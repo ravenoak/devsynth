@@ -1,5 +1,6 @@
 """Pytest fixtures for behavior tests."""
 
+import importlib.util
 import os
 import shutil
 import sys
@@ -48,7 +49,9 @@ _stub_modules = [
 ]
 
 for _name in _stub_modules:
-    if _name not in sys.modules:
+    if _name in sys.modules:
+        continue
+    if importlib.util.find_spec(_name) is None:
         _mod = ModuleType(_name)
         if _name == "langgraph.checkpoint.base":
             _mod.BaseCheckpointSaver = object
