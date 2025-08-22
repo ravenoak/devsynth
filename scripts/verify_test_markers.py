@@ -10,7 +10,9 @@ verification issues are found and ``2`` when subprocesses exceed the timeout.
 Pytest collection results are cached per file in ``.pytest_collection_cache.json``,
 keyed by the file's content hash. Subsequent runs reuse this cache, dramatically
 reducing execution time. Use ``--changed`` to restrict verification to paths
-reported by ``git diff --name-only``.
+reported by ``git diff --name-only``. Missing optional dependencies like
+``fastapi`` are detected and cause affected files to be skipped rather than
+crashing the run.
 
 Usage:
     python -m scripts.verify_test_markers [options]
@@ -77,7 +79,7 @@ HEAVY_PLUGINS = [
 ]
 
 # Optional dependencies that, when missing, should cause tests to be skipped
-OPTIONAL_DEPENDENCIES = {"lmstudio"}
+OPTIONAL_DEPENDENCIES = {"lmstudio", "fastapi"}
 
 # Threshold for automatically limiting verification to changed paths
 DEFAULT_DIFF_LIMIT = 200
@@ -1001,7 +1003,29 @@ def verify_directory_markers(
                 1,
             ):
                 completed.add(future)
-                file_path, file_results = future.result()
+                try:
+                    file_path, file_results = future.result()
+                except Exception as exc:
+                    file_path = futures[future]
+                    logger.error("Error verifying %s: %s", file_path, exc)
+                    results["files_with_issues"] += 1
+                    results["files"][str(file_path)] = {
+                        "file_path": str(file_path),
+                        "test_functions": 0,
+                        "markers": {},
+                        "tests_with_markers": 0,
+                        "tests_without_markers": 0,
+                        "misaligned_markers": [],
+                        "duplicate_markers": [],
+                        "recognized_markers": {},
+                        "issues": [
+                            {
+                                "type": "exception",
+                                "message": str(exc),
+                            }
+                        ],
+                    }
+                    continue
 
                 results["total_test_functions"] += file_results["test_functions"]
                 results["total_markers"] += file_results["tests_with_markers"]
