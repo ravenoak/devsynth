@@ -11,6 +11,9 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 pytest.importorskip("chromadb.api")
+tinydb = pytest.importorskip("tinydb")
+if getattr(tinydb, "TinyDB", object) is object:
+    pytest.skip("tinydb not installed", allow_module_level=True)
 
 from devsynth.application.memory.adapters.chromadb_vector_adapter import (
     ChromaDBVectorAdapter,
