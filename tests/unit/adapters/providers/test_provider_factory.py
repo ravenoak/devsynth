@@ -2,7 +2,11 @@ import pytest
 
 pytest.importorskip("lmstudio")
 
-pytestmark = [pytest.mark.memory_intensive, pytest.mark.medium]
+pytestmark = [
+    pytest.mark.requires_resource("lmstudio"),
+    pytest.mark.memory_intensive,
+    pytest.mark.medium,
+]
 
 from devsynth.adapters.providers.provider_factory import (
     LMStudioProvider,

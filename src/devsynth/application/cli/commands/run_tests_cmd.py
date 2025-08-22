@@ -9,6 +9,7 @@ Example:
 
 from __future__ import annotations
 
+import importlib.util
 import os
 from typing import Any, Dict, List, Optional
 
@@ -45,7 +46,7 @@ def _parse_feature_options(values: List[str]) -> Dict[str, bool]:
     return result
 
 
-OPTIONAL_PROVIDER_ENV_VARS = ["DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"]
+OPTIONAL_PROVIDERS = {"DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "lmstudio"}
 
 
 def _configure_optional_providers() -> None:
@@ -53,13 +54,17 @@ def _configure_optional_providers() -> None:
 
     Some test suites depend on services like LM Studio. When those services or
     their Python packages aren't available, running the tests can hang while the
-    runner waits for an unavailable resource. We default these optional
-    resources to ``false`` unless explicitly enabled by the user to ensure the
-    corresponding tests are skipped rather than stalling the run.
+    runner waits for an unavailable resource. If the corresponding Python
+    package cannot be imported, we default these optional resources to ``false``
+    unless explicitly enabled by the user to ensure the corresponding tests are
+    skipped rather than stalling the run.
     """
 
-    for env_var in OPTIONAL_PROVIDER_ENV_VARS:
-        os.environ.setdefault(env_var, "false")
+    for env_var, package in OPTIONAL_PROVIDERS.items():
+        if env_var in os.environ:
+            continue
+        if importlib.util.find_spec(package) is None:
+            os.environ[env_var] = "false"
 
 
 def run_tests_cmd(

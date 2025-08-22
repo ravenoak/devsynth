@@ -21,7 +21,10 @@ from devsynth.fallback import retry_with_exponential_backoff
 
 pytest.importorskip("lmstudio")
 
-pytestmark = [pytest.mark.memory_intensive]
+pytestmark = [
+    pytest.mark.requires_resource("lmstudio"),
+    pytest.mark.memory_intensive,
+]
 
 
 @pytest.mark.medium

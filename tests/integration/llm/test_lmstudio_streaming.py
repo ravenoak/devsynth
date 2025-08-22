@@ -9,7 +9,7 @@ pytest.importorskip("lmstudio")
 from devsynth.application.llm.providers import LMStudioProvider
 
 # LM Studio streaming tests run at medium speed
-pytestmark = [pytest.mark.medium]
+pytestmark = [pytest.mark.requires_resource("lmstudio"), pytest.mark.medium]
 
 
 def _import_provider():

@@ -19,7 +19,7 @@ from devsynth.adapters.provider_system import LMStudioProvider as PS_LMStudioPro
 from devsynth.adapters.provider_system import OpenAIProvider, ProviderError
 from devsynth.application.llm.providers import LMStudioProvider
 
-pytestmark = [pytest.mark.medium]
+pytestmark = [pytest.mark.requires_resource("lmstudio"), pytest.mark.medium]
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer

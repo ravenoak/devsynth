@@ -9,6 +9,8 @@ from devsynth.adapters.provider_system import (
 
 pytest.importorskip("lmstudio")
 
+pytestmark = [pytest.mark.requires_resource("lmstudio")]
+
 
 @pytest.mark.medium
 def test_env_provider_openai_succeeds(monkeypatch):
