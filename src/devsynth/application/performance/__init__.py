@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Dict, Iterable, List
 
-OPS_PER_SECOND = 9_000_000
 
-
-def _simulate_duration(workload: int, ops_per_second: float = OPS_PER_SECOND) -> float:
-    """Return a deterministic duration for the workload."""
-    return workload / ops_per_second
+def _run_workload(workload: int) -> None:
+    """Execute a CPU-bound workload to benchmark."""
+    total = 0
+    for i in range(workload):
+        total += i * i
+    return total
 
 
 def capture_baseline_metrics(
@@ -20,13 +22,15 @@ def capture_baseline_metrics(
     """Capture baseline metrics for a workload.
 
     Args:
-        workload: Number of operations to simulate.
+        workload: Number of operations to execute.
         output_path: Optional path to write the metrics JSON.
 
     Returns:
         Metrics dictionary with workload, duration, and throughput.
     """
-    duration = _simulate_duration(workload)
+    start = time.perf_counter()
+    _run_workload(workload)
+    duration = time.perf_counter() - start
     throughput = workload / duration if duration else 0.0
     metrics = {
         "workload": workload,
@@ -53,7 +57,9 @@ def capture_scalability_metrics(
     """
     results = []
     for workload in workloads:
-        duration = _simulate_duration(workload)
+        start = time.perf_counter()
+        _run_workload(workload)
+        duration = time.perf_counter() - start
         throughput = workload / duration if duration else 0.0
         results.append(
             {
