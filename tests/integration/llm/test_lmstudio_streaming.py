@@ -4,13 +4,12 @@ from unittest.mock import patch
 
 import pytest
 
+pytest.importorskip("lmstudio")
+
 from devsynth.application.llm.providers import LMStudioProvider
 
 # LM Studio streaming tests run at medium speed
-pytestmark = [
-    pytest.mark.medium,
-    pytest.mark.skipif(LMStudioProvider is None, reason="lmstudio not installed"),
-]
+pytestmark = [pytest.mark.medium]
 
 
 def _import_provider():
