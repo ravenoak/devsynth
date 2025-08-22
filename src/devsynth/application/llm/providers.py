@@ -211,11 +211,15 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
 
 
 # Import providers at the end to avoid circular imports
-try:  # pragma: no cover - optional dependency
-    from .lmstudio_provider import LMStudioProvider
-except ImportError as exc:  # pragma: no cover - fallback path
+lmstudio_requested = os.getenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE")
+if lmstudio_requested:  # pragma: no cover - optional dependency
+    try:
+        from .lmstudio_provider import LMStudioProvider
+    except ImportError as exc:  # pragma: no cover - fallback path
+        LMStudioProvider = None
+        logger.warning("LMStudioProvider not available: %s", exc)
+else:  # pragma: no cover - optional dependency
     LMStudioProvider = None
-    logger.warning("LMStudioProvider not available: %s", exc)
 from .local_provider import LocalProvider
 from .offline_provider import OfflineProvider
 from .openai_provider import OpenAIProvider

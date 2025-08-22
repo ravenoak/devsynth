@@ -5,6 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 pytest.importorskip("lmstudio")
+if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
+    pytest.skip("LMStudio service not available", allow_module_level=True)
 
 from devsynth.application.llm.providers import LMStudioProvider
 
@@ -26,12 +28,12 @@ def _import_provider():
 class TestLMStudioProvider:
     """Tests for the LMStudioProvider class.
 
-    ReqID: N/A"""
+    ReqID: LMSTUDIO-1"""
 
     def test_init_with_default_config_succeeds(self, lmstudio_service):
         """Test initialization with default configuration.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-2"""
         LMStudioProvider, _, _ = _import_provider()
         with (
             patch(
@@ -57,7 +59,7 @@ class TestLMStudioProvider:
     def test_init_with_specified_model_succeeds(self, lmstudio_service):
         """Test initialization with a specified model.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-3"""
         LMStudioProvider, _, _ = _import_provider()
         provider = LMStudioProvider({"model": "specified_model"})
         assert provider.model == "specified_model"
@@ -65,7 +67,7 @@ class TestLMStudioProvider:
     def test_init_with_connection_error_succeeds(self, lmstudio_service):
         """Test initialization when LM Studio is not available.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-4"""
         LMStudioProvider, LMStudioConnectionError, _ = _import_provider()
         with (
             patch(
@@ -89,7 +91,7 @@ class TestLMStudioProvider:
     def test_list_available_models_error_fails(self, lmstudio_service):
         """Test listing available models when the API call fails.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-5"""
         LMStudioProvider, LMStudioConnectionError, _ = _import_provider()
         with patch(
             "devsynth.application.llm.lmstudio_provider.lmstudio.sync_api.list_downloaded_models"
@@ -102,7 +104,7 @@ class TestLMStudioProvider:
     def test_list_available_models_integration_succeeds(self, lmstudio_service):
         """Integration test for listing available models from LM Studio.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-6"""
         LMStudioProvider, _, _ = _import_provider()
         if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
             with patch(
@@ -126,7 +128,7 @@ class TestLMStudioProvider:
     def test_generate_integration_succeeds(self, lmstudio_service):
         """Integration test for generating text from LM Studio.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-7"""
         LMStudioProvider, _, _ = _import_provider()
         if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
             with patch(
@@ -149,7 +151,7 @@ class TestLMStudioProvider:
     def test_generate_with_connection_error_succeeds(self, lmstudio_service):
         """Test generating text when LM Studio is not available.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-8"""
         LMStudioProvider, LMStudioConnectionError, _ = _import_provider()
         # Patch the TokenTracker.__init__ method to avoid using tiktoken
         with (
@@ -190,7 +192,7 @@ class TestLMStudioProvider:
     ):
         """Test generating text when LM Studio returns an invalid response.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-9"""
         LMStudioProvider, LMStudioConnectionError, LMStudioModelError = (
             _import_provider()
         )
@@ -231,7 +233,7 @@ class TestLMStudioProvider:
     def test_generate_with_context_integration_succeeds(self, lmstudio_service):
         """Integration test for generating text with context from LM Studio.
 
-        ReqID: N/A"""
+        ReqID: LMSTUDIO-10"""
         LMStudioProvider, _, _ = _import_provider()
         if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
             with patch(
