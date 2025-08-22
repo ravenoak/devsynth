@@ -30,8 +30,16 @@ if ! command -v task >/dev/null 2>&1; then
   exit 1
 fi
 
-# Display Task version for debugging
-task --version
+# Display Task version for debugging and ensure it resolves
+if ! task_version="$(task --version 2>/dev/null)"; then
+  echo "[error] failed to determine task version" >&2
+  exit 1
+fi
+if [[ -z "$task_version" ]]; then
+  echo "[error] task version output empty" >&2
+  exit 1
+fi
+echo "$task_version"
 
 # Ensure Poetry manages a dedicated virtual environment
 poetry config virtualenvs.create true
@@ -77,7 +85,10 @@ export PIP_FIND_LINKS="$WHEEL_DIR"
 poetry install --with dev,docs --extras "tests retrieval chromadb api"
 
 # Fail fast if Poetry did not create a virtual environment
-venv_path="$(poetry env info --path 2>/dev/null || true)"
+if ! venv_path="$(poetry env info --path 2>/dev/null)"; then
+  echo "[error] poetry virtualenv path not found" >&2
+  exit 1
+fi
 if [[ -z "$venv_path" ]]; then
   echo "[error] poetry virtualenv path not found" >&2
   exit 1
