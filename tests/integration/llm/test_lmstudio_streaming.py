@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import os
 from unittest.mock import patch
 
 import pytest
 
 pytest.importorskip("lmstudio")
+if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
+    pytest.skip("LMStudio service not available", allow_module_level=True)
 
 from devsynth.application.llm.providers import LMStudioProvider
 
@@ -22,7 +25,9 @@ class TestLMStudioStreaming:
     """Tests for LMStudioProvider using the mock service."""
 
     def test_generate_streaming_returns_expected(self, lmstudio_service):
-        """Ensure generate handles streaming responses."""
+        """Ensure generate handles streaming responses.
+
+        ReqID: LMSTUDIO-11"""
         LMStudioProvider = _import_provider()
         with patch(
             "devsynth.application.llm.lmstudio_provider.get_llm_settings"
@@ -39,7 +44,9 @@ class TestLMStudioStreaming:
         assert result == "This is a test"
 
     def test_generate_with_context_streaming_returns_expected(self, lmstudio_service):
-        """Ensure generate_with_context handles streaming responses."""
+        """Ensure generate_with_context handles streaming responses.
+
+        ReqID: LMSTUDIO-12"""
         LMStudioProvider = _import_provider()
         with patch(
             "devsynth.application.llm.lmstudio_provider.get_llm_settings"
