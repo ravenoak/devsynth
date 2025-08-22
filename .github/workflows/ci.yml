@@ -36,6 +36,10 @@ jobs:
       - name: Verify tooling
         run: |
           poetry env info --path
+          if ! command -v task >/dev/null 2>&1; then
+            echo "Task runner not found" >&2
+            exit 1
+          fi
           task --version
       - name: Lint commit messages
         run: |
