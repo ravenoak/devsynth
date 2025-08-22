@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/consensus-building.md, tests/behavior/features/consensus_building.feature
+Dependencies: Phase-2-completion.md, docs/specifications/consensus-building.md, tests/behavior/features/consensus_building.feature
 
 ## Problem Statement
 Consensus Building is not yet implemented, limiting DevSynth's capabilities.

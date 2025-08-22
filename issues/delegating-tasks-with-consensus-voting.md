@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/delegating-tasks-with-consensus-voting.md, tests/behavior/features/delegating_tasks_with_consensus_voting.feature
+Dependencies: Phase-2-completion.md, docs/specifications/delegating-tasks-with-consensus-voting.md, tests/behavior/features/delegating_tasks_with_consensus_voting.feature
 
 ## Problem Statement
 Delegating tasks with consensus voting is not yet implemented, limiting DevSynth's capabilities.

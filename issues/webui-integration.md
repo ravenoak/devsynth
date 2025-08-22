@@ -2,7 +2,7 @@
 Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, docs/specifications/webui-integration.md, tests/behavior/features/webui_integration.feature
+Dependencies: Phase-1-completion.md, docs/specifications/webui-integration.md, tests/behavior/features/webui_integration.feature
 
 ## Problem Statement
 WebUI Integration is not yet implemented, limiting DevSynth's capabilities.

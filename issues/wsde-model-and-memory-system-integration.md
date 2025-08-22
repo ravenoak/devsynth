@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/wsde-model-and-memory-system-integration.md, tests/behavior/features/wsde_model_and_memory_system_integration.feature
+Dependencies: Phase-2-completion.md, docs/specifications/wsde-model-and-memory-system-integration.md, tests/behavior/features/wsde_model_and_memory_system_integration.feature
 
 ## Problem Statement
 WSDE Model and Memory System Integration is not yet implemented, limiting DevSynth's capabilities.

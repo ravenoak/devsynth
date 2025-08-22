@@ -2,7 +2,7 @@
 Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, docs/specifications/webui-requirements-wizard-with-wizardstate.md, tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature
+Dependencies: Phase-1-completion.md, docs/specifications/webui-requirements-wizard-with-wizardstate.md, tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature
 
 ## Problem Statement
 WebUI Requirements Wizard with WizardState is not yet implemented, limiting DevSynth's capabilities.

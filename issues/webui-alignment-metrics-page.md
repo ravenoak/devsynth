@@ -2,7 +2,7 @@
 Milestone: 0.1.1
 Status: in progress
 Priority: low
-Dependencies: Phase 3 completion, docs/specifications/webui-alignment-metrics-page.md, tests/behavior/features/webui_alignment_metrics_page.feature
+Dependencies: Phase-3-completion.md, docs/specifications/webui-alignment-metrics-page.md, tests/behavior/features/webui_alignment_metrics_page.feature
 
 ## Problem Statement
 WebUI Alignment Metrics Page is not yet implemented, limiting DevSynth's capabilities.

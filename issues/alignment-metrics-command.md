@@ -2,7 +2,7 @@
 Milestone: 0.1.1
 Status: in progress
 Priority: low
-Dependencies: Phase 3 completion, docs/specifications/alignment-metrics-command.md, tests/behavior/features/alignment_metrics_command.feature
+Dependencies: Phase-3-completion.md, docs/specifications/alignment-metrics-command.md, tests/behavior/features/alignment_metrics_command.feature
 
 ## Problem Statement
 Alignment Metrics Command is not yet implemented, limiting DevSynth's capabilities.

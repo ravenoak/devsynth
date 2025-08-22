@@ -2,7 +2,7 @@
 Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, docs/specifications/webui-navigation-and-prompts.md, tests/behavior/features/webui_navigation_and_prompts.feature
+Dependencies: Phase-1-completion.md, docs/specifications/webui-navigation-and-prompts.md, tests/behavior/features/webui_navigation_and_prompts.feature
 
 ## Problem Statement
 WebUI Navigation and Prompts is not yet implemented, limiting DevSynth's capabilities.

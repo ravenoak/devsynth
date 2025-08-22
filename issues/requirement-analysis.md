@@ -2,7 +2,7 @@
 Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, docs/specifications/requirement-analysis.md, tests/behavior/features/requirement_analysis.feature
+Dependencies: Phase-1-completion.md, docs/specifications/requirement-analysis.md, tests/behavior/features/requirement_analysis.feature
 
 ## Problem Statement
 Requirement Analysis is not yet implemented, limiting DevSynth's capabilities.
