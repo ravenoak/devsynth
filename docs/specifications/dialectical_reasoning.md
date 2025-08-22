@@ -30,22 +30,39 @@ The dialectical reasoner exposes evaluation hooks. Registered callbacks receive 
 - Unit test: a hook runs when consensus is not reached and receives ``False``.
 
 ## Termination
+### Termination Proof
 
-Let ``n`` be the number of registered evaluation hooks. After producing a
-``DialecticalReasoning`` result, the service iterates through this finite set of
-hooks exactly once. If ``T_i`` bounds the execution time of the ``i``\ th hook,
-then the total additional work is ``\sum_{i=1}^n T_i``. Because ``n`` is finite
-and hooks cannot register new hooks during iteration, the evaluation loop is
-guaranteed to terminate.
+Let ``H`` denote the list of registered evaluation hooks and ``n = |H|``.  The
+hook execution algorithm is equivalent to the loop::
+
+    for i in range(n):
+        H[i](reasoning, consensus)
+
+Define a variant ``v(i) = n - i`` over the natural numbers.  At the start of the
+loop ``v(0) = n`` and ``v`` decreases by one on each iteration.  Because ``v`` is
+non-negative and strictly decreases, the loop is well founded and must terminate
+when ``v(i) = 0`` after exactly ``n`` iterations.  Hooks are prevented from
+registering additional hooks while the loop runs, so ``n`` remains constant
+throughout execution.
+
+### Complexity Analysis
+
+Let ``T_i`` bound the cost of the ``i``\ th hook.  The loop performs ``n``
+iterations and invokes each hook once, yielding total time ``Θ(n + \sum T_i)``.
+When every hook runs in constant time ``T``, the evaluation adds ``O(n)``
+overhead.  The algorithm uses ``O(1)`` additional space beyond the storage for
+the hook list.
 
 ### Simulation
 
-The snippet below demonstrates termination even for a large number of hooks::
+The snippet below demonstrates termination and linear scaling even for a large
+number of hooks::
 
     for _ in range(1000):
         service.register_evaluation_hook(lambda r, c: None)
     service.evaluate_change(change)  # completes in O(n)
 
 Unit tests under
-``tests/unit/methodology/test_dialectical_reasoner_termination.py`` exercise
-these edge cases to confirm termination.
+``tests/unit/methodology/test_dialectical_reasoner_termination.py`` and
+``tests/behavior/test_dialectical_reasoner_termination_behavior.py`` exercise
+these edge cases to confirm termination and complexity bounds.
