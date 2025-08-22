@@ -6,6 +6,7 @@ allowing for efficient querying of different types of memory and tagging
 items with EDRR phases.
 """
 
+import os
 from functools import lru_cache
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -58,9 +59,15 @@ class MemoryManager:
         """
         if adapters is None:
             settings = get_settings()
-            store_type = getattr(settings, "memory_store_type", "tinydb").lower()
+            store_type = os.getenv(
+                "DEVSYNTH_MEMORY_STORE",
+                getattr(settings, "memory_store_type", "tinydb"),
+            ).lower()
             if store_type == "s3" and S3MemoryAdapter is not None:
-                bucket = getattr(settings, "s3_bucket_name", "devsynth-memory")
+                bucket = os.getenv(
+                    "DEVSYNTH_S3_BUCKET",
+                    getattr(settings, "s3_bucket_name", "devsynth-memory"),
+                )
                 try:
                     adapter = S3MemoryAdapter(bucket)
                     self.adapters = {"s3": adapter}

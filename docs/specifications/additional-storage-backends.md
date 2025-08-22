@@ -54,6 +54,13 @@ tests and examples remain hermetic.
   value is `s3`, the manager configures the adapter with the bucket name from
   `s3_bucket_name`.
 
+## Required Environment Variables
+
+- `DEVSYNTH_MEMORY_STORE` – selects the backend (`s3` enables the S3 adapter).
+- `DEVSYNTH_S3_BUCKET` – name of the bucket for persisted items.
+- Standard AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and
+  optionally `AWS_DEFAULT_REGION`) so boto3 can authenticate.
+
 ## Acceptance Criteria
 
 - Given `DEVSYNTH_MEMORY_STORE=s3` and an available bucket, `MemoryManager`
