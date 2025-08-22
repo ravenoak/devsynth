@@ -1,4 +1,5 @@
 {
   "workload": 100000,
-  "duration_seconds": 0.01119796599999745
+  "duration_seconds": 0.010622779999721388,
+  "throughput_ops_per_s": 9413731.622289343
 }

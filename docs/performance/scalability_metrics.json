@@ -1,14 +1,17 @@
 [
   {
     "workload": 10000,
-    "duration_seconds": 0.001063993999991908
+    "duration_seconds": 0.0010430009997435263,
+    "throughput_ops_per_s": 9587718.518447246
   },
   {
     "workload": 100000,
-    "duration_seconds": 0.010926303000019288
+    "duration_seconds": 0.011032565999812505,
+    "throughput_ops_per_s": 9064074.486542793
   },
   {
     "workload": 1000000,
-    "duration_seconds": 0.11343649700000924
+    "duration_seconds": 0.11657932800062554,
+    "throughput_ops_per_s": 8577850.097014062
   }
 ]

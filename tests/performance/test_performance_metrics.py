@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from devsynth.application.performance import (
+from devsynth.testing.performance import (
     capture_baseline_metrics,
     capture_scalability_metrics,
 )

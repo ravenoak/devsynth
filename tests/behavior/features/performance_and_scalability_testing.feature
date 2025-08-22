@@ -20,6 +20,12 @@ Feature: Performance and scalability testing
     Then the metrics file "docs/performance/baseline_metrics.json" includes throughput
 
   @slow
+  Scenario: baseline duration is recorded
+    Given a workload of 100000 operations
+    When the baseline performance task runs
+    Then the metrics file "docs/performance/baseline_metrics.json" includes duration
+
+  @slow
   Scenario Outline: scalability metrics are captured for varying workloads
     Given a workload of <workload> operations
     When the scalability performance task runs
@@ -30,3 +36,15 @@ Feature: Performance and scalability testing
       | 10000    |
       | 100000   |
       | 1000000  |
+
+  @slow
+  Scenario: scalability metrics file is created
+    Given a workload of 100000 operations
+    When the scalability performance task runs
+    Then a metrics file "docs/performance/scalability_metrics.json" is created
+
+  @slow
+  Scenario: scalability throughput is calculated
+    Given a workload of 100000 operations
+    When the scalability performance task runs
+    Then the metrics file "docs/performance/scalability_metrics.json" includes throughput
