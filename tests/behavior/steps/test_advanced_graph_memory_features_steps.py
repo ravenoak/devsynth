@@ -38,6 +38,7 @@ def context():
             self.chromadb_adapter = None
             self.memory_items = {}
             self.volatile_items = []
+            self.traversal_result = set()
 
         def cleanup(self):
             if self.temp_dir:
@@ -651,3 +652,66 @@ def check_vector_similarity_search(context):
     """Check that vector similarity searches can be performed on the vector store."""
     results = context.chromadb_adapter.similarity_search([0.1, 0.2, 0.3, 0.4, 0.5])
     assert len(results) > 0, "No similarity search results returned"
+
+
+@given("I have stored related memory items")
+def store_related_memory_items(context):
+    """Store a chain of related memory items."""
+    item1 = MemoryItem(id="node1", content="Node 1", memory_type=MemoryType.CODE)
+    context.graph_adapter.store(item1)
+
+    item2 = MemoryItem(
+        id="node2",
+        content="Node 2",
+        memory_type=MemoryType.CODE,
+        metadata={"related_to": "node1"},
+    )
+    context.graph_adapter.store(item2)
+
+    item3 = MemoryItem(
+        id="node3",
+        content="Node 3",
+        memory_type=MemoryType.CODE,
+        metadata={"related_to": "node2"},
+    )
+    context.graph_adapter.store(item3)
+
+
+@when(
+    parsers.parse(
+        'I traverse the graph starting from "{start_id}" up to depth {depth:d}'
+    )
+)
+def traverse_graph(context, start_id, depth):
+    """Traverse the graph from the starting node."""
+    context.traversal_result = context.graph_adapter.traverse_graph(start_id, depth)
+
+
+@then(parsers.parse('the traversal result should include "{items}"'))
+def check_traversal_result(context, items):
+    """Verify that traversal returned expected nodes."""
+    expected_ids = [item.strip() for item in items.split(",") if item.strip()]
+    for item_id in expected_ids:
+        assert item_id in context.traversal_result, f"{item_id} not found in traversal"
+
+
+@when("I save and reload the GraphMemoryAdapter")
+def reload_graph_adapter(context):
+    """Persist the graph and create a new adapter instance."""
+    context.graph_adapter._save_graph()
+    context.graph_adapter = GraphMemoryAdapter(
+        base_path=context.base_path, use_rdflib_store=True
+    )
+
+
+@then(
+    parsers.parse(
+        'traversing from "{start_id}" to depth {depth:d} should return "{items}"'
+    )
+)
+def traversal_after_reload(context, start_id, depth, items):
+    """Traverse after reloading to confirm persistence."""
+    result = context.graph_adapter.traverse_graph(start_id, depth)
+    expected_ids = [item.strip() for item in items.split(",") if item.strip()]
+    for item_id in expected_ids:
+        assert item_id in result, f"{item_id} not found after reload"

@@ -115,7 +115,9 @@ class GraphMemoryAdapter(MemoryStore):
             logger.info("Graph Memory Adapter initialized with basic RDFLib")
 
     # ------------------------------------------------------------------
-    def is_transaction_active(self, transaction_id: str) -> bool:  # pragma: no cover - simple interface compliance
+    def is_transaction_active(
+        self, transaction_id: str
+    ) -> bool:  # pragma: no cover - simple interface compliance
         """Return False as GraphMemoryAdapter does not track transactions."""
         return False
 
@@ -789,6 +791,49 @@ class GraphMemoryAdapter(MemoryStore):
         except Exception as e:
             logger.error(f"Failed to get all relationships: {e}")
             raise MemoryStoreError(f"Failed to get all relationships: {e}")
+
+    def traverse_graph(self, start_id: str, max_depth: int = 1) -> Set[str]:
+        """
+        Traverse related nodes starting from the given item ID.
+
+        Args:
+            start_id: The ID of the starting node.
+            max_depth: Maximum depth to traverse.
+
+        Returns:
+            A set of item IDs reachable within the given depth, excluding the
+            starting node.
+        """
+        if rdflib is None:
+            return set()
+
+        try:
+            visited: Set[str] = set()
+            frontier: Set[str] = {start_id}
+            depth = 0
+
+            while frontier and depth < max_depth:
+                next_frontier: Set[str] = set()
+                for current_id in frontier:
+                    item_uri = URIRef(f"{MEMORY}{current_id}")
+                    for related_uri in self.graph.objects(item_uri, DEVSYNTH.relatedTo):
+                        related_id = str(self.graph.value(related_uri, DEVSYNTH.id))
+                        if related_id == "None" or not related_id:
+                            related_id = str(related_uri).replace(str(MEMORY), "")
+                        if related_id not in visited:
+                            visited.add(related_id)
+                            next_frontier.add(related_id)
+
+                frontier = next_frontier
+                depth += 1
+
+            logger.info(
+                f"Traversed graph from {start_id} to depth {max_depth} and found {len(visited)} nodes"
+            )
+            return visited
+        except Exception as e:
+            logger.error(f"Failed to traverse graph: {e}")
+            raise MemoryStoreError(f"Failed to traverse graph: {e}")
 
     def add_memory_volatility(
         self,
