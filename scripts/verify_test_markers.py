@@ -8,10 +8,11 @@ and can fix common issues automatically. The script exits with status code ``1``
 when verification issues are found and ``2`` when subprocesses exceed the
 timeout.
 
-Pytest collection results are cached per file in ``.pytest_collection_cache.json``
-keyed by the file's content hash. Subsequent runs reuse this cache, dramatically
-reducing execution time. The ``--changed`` flag enables incremental verification
-by restricting checks to paths reported by ``git diff --name-only`` relative to
+Pytest collection results **and verification outcomes** are cached per file in
+``.pytest_collection_cache.json`` keyed by the file's content hash. Subsequent
+runs reuse this cache, dramatically reducing execution time by skipping
+unmodified files. The ``--changed`` flag enables incremental verification by
+restricting checks to paths reported by ``git diff --name-only`` relative to
 ``--diff-base`` (default ``HEAD``). This is useful during local development when
 only a subset of tests has been modified:
 
@@ -298,6 +299,14 @@ def verify_file_markers(
     # Check if the file exists
     if not os.path.exists(file_path):
         return {"success": False, "error": f"File not found: {file_path}"}
+
+    # Skip unchanged files using the persistent cache
+    file_hash = get_file_hash(file_path)
+    file_cache = PERSISTENT_CACHE.get(str(file_path))
+    if file_cache and file_cache.get("hash") == file_hash:
+        cached_result = file_cache.get("verification")
+        if cached_result is not None:
+            return cached_result
 
     # Read the file content
     with open(file_path, "r") as f:
@@ -747,6 +756,13 @@ def verify_file_markers(
         print(f"  Issues found in {file_path}:")
         for issue in results["issues"]:
             print(f"    - {issue['message']}")
+
+    # Persist verification result for future runs
+    file_cache = PERSISTENT_CACHE.setdefault(
+        str(file_path), {"hash": file_hash, "markers": {}}
+    )
+    file_cache["hash"] = file_hash
+    file_cache["verification"] = results
 
     return results
 
