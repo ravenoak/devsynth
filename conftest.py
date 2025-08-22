@@ -1,31 +1,41 @@
-"""
-Root conftest.py to ensure pytest-bdd configuration is properly loaded.
-"""
+"""Root conftest.py to ensure pytest-bdd configuration is properly loaded."""
 
+import importlib.util
 import os
+
 import pytest
-from pytest_bdd.utils import CONFIG_STACK
 
-# Set the base directory for feature files and register markers
-@pytest.hookimpl(trylast=True)
-def pytest_configure(config):
-    """Configure pytest-bdd and register custom markers."""
-    # Register the isolation marker
-    config.addinivalue_line(
-        "markers", "isolation: mark test to run in isolation due to interactions with other tests"
-    )
 
-    # Ensure the CONFIG_STACK is initialized
-    if not CONFIG_STACK:
-        CONFIG_STACK.append(config)
+def _setup_pytest_bdd() -> None:
+    """Configure pytest-bdd if the plugin is available."""
+    try:
+        spec = importlib.util.find_spec("pytest_bdd.utils")
+    except ModuleNotFoundError:
+        spec = None
+    if spec is None:
+        return
 
-    # Set the base directory for feature files
-    features_dir = os.path.join(
-        os.path.dirname(__file__), "tests", "behavior", "features"
-    )
+    from pytest_bdd.utils import CONFIG_STACK  # local import
 
-    # Set the option directly on the config object
-    config.option.bdd_features_base_dir = features_dir
+    @pytest.hookimpl(trylast=True)
+    def pytest_configure(config):
+        """Configure pytest-bdd and register custom markers."""
+        config.addinivalue_line(
+            "markers",
+            "isolation: mark test to run in isolation due to interactions with other tests",
+        )
 
-    # Also set it as an ini option for backwards compatibility
-    config._inicache['bdd_features_base_dir'] = features_dir
+        if not CONFIG_STACK:
+            CONFIG_STACK.append(config)
+
+        features_dir = os.path.join(
+            os.path.dirname(__file__),
+            "tests",
+            "behavior",
+            "features",
+        )
+        config.option.bdd_features_base_dir = features_dir
+        config._inicache["bdd_features_base_dir"] = features_dir
+
+
+_setup_pytest_bdd()

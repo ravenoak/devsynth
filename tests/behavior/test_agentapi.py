@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 pytest.importorskip("fastapi")
+pytest.importorskip("fastapi.testclient")
 
 
 def _setup(monkeypatch):
