@@ -28,3 +28,24 @@ The dialectical reasoner exposes evaluation hooks. Registered callbacks receive 
 - Unit test: a hook receives the reasoning and consensus flag when evaluation succeeds.
 - Unit test: hook exceptions are logged without interrupting evaluation.
 - Unit test: a hook runs when consensus is not reached and receives ``False``.
+
+## Termination
+
+Let ``n`` be the number of registered evaluation hooks. After producing a
+``DialecticalReasoning`` result, the service iterates through this finite set of
+hooks exactly once. If ``T_i`` bounds the execution time of the ``i``\ th hook,
+then the total additional work is ``\sum_{i=1}^n T_i``. Because ``n`` is finite
+and hooks cannot register new hooks during iteration, the evaluation loop is
+guaranteed to terminate.
+
+### Simulation
+
+The snippet below demonstrates termination even for a large number of hooks::
+
+    for _ in range(1000):
+        service.register_evaluation_hook(lambda r, c: None)
+    service.evaluate_change(change)  # completes in O(n)
+
+Unit tests under
+``tests/unit/methodology/test_dialectical_reasoner_termination.py`` exercise
+these edge cases to confirm termination.

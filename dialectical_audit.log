@@ -22,6 +22,7 @@
     "Feature 'User Authentication' documented and referenced in code 2025-08-21.",
     "Feature 'Version bump script' documented and referenced in code 2025-08-21.",
     "Development environment virtualenv enforcement documented 2025-08-21.",
-    "Release checklist re-run 2025-08-21: environment setup and pip check succeeded; fast tests failed (missing tests/tmp_speed_dummy.py); medium and slow test runs terminated after LMStudioProvider warnings; marker verification interrupted; deployment tests failed coverage; release prep interrupted; release state check reported missing tag."
+    "Release checklist re-run 2025-08-21: environment setup and pip check succeeded; fast tests failed (missing tests/tmp_speed_dummy.py); medium and slow test runs terminated after LMStudioProvider warnings; marker verification interrupted; deployment tests failed coverage; release prep interrupted; release state check reported missing tag.",
+    "Termination proof for dialectical reasoner hooks documented and tests added 2025-08-21."
   ]
 }
