@@ -104,7 +104,10 @@ def run_tests_cmd(
     speed_categories = speeds or None
     feature_map = _parse_feature_options(features)
     if feature_map:
-        logger.debug("Feature flags: %s", feature_map)
+        for name, enabled in feature_map.items():
+            env_var = f"DEVSYNTH_FEATURE_{name.upper()}"
+            os.environ[env_var] = "true" if enabled else "false"
+        logger.info("Feature flags: %s", feature_map)
 
     success, output = run_tests(
         target,
