@@ -48,6 +48,9 @@ This policy defines how Socratic dialogues support audits that seek consensus be
 
 - Maintain a log of questions and resolutions in `dialectical_audit.log` produced by the audit script.
 - Update docs, code, and tests to reflect agreed resolutions.
+- Termination guarantees for evaluation hooks are detailed in the
+  [Dialectical Reasoner Evaluation Hooks specification](../specifications/dialectical_reasoning.md#termination-proof)
+  with accompanying [complexity analysis](../specifications/dialectical_reasoning.md#complexity-analysis).
 
 ## Review
 
