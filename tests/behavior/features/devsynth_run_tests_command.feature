@@ -11,3 +11,13 @@ Feature: devsynth run-tests command
     When I invoke "devsynth run-tests --target unit-tests --speed=fast"
     Then the command should succeed
     And the output should not contain xdist assertions
+
+  Scenario: run-tests can segment execution
+    Given the environment variable "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" is "false"
+    When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --segment --segment-size=1"
+    Then the command should succeed
+
+  Scenario: run-tests accepts feature flags
+    Given the environment variable "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" is "false"
+    When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --feature experimental"
+    Then the command should succeed

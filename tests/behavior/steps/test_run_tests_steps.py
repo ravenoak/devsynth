@@ -66,6 +66,55 @@ def invoke_run_tests_parallel(command_result: Dict[str, str]) -> None:
 
 
 @when(
+    'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --segment --segment-size=1"'
+)
+def invoke_run_tests_segment(command_result: Dict[str, str]) -> None:
+    env = os.environ.copy()
+    env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
+    env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    cmd = [
+        "poetry",
+        "run",
+        "devsynth",
+        "run-tests",
+        "--target",
+        "unit-tests",
+        "--speed=fast",
+        "--no-parallel",
+        "--segment",
+        "--segment-size",
+        "1",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    command_result["exit_code"] = result.returncode
+    command_result["output"] = result.stdout + result.stderr
+
+
+@when(
+    'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --feature experimental"'
+)
+def invoke_run_tests_feature(command_result: Dict[str, str]) -> None:
+    env = os.environ.copy()
+    env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
+    env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    cmd = [
+        "poetry",
+        "run",
+        "devsynth",
+        "run-tests",
+        "--target",
+        "unit-tests",
+        "--speed=fast",
+        "--no-parallel",
+        "--feature",
+        "experimental",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    command_result["exit_code"] = result.returncode
+    command_result["output"] = result.stdout + result.stderr
+
+
+@when(
     'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1"'
 )
 def invoke_run_tests_maxfail(command_result: Dict[str, str]) -> None:
