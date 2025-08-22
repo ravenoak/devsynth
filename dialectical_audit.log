@@ -28,7 +28,7 @@
     "Development environment virtualenv enforcement documented 2025-08-21.",
     "Release checklist re-run 2025-08-21: environment setup and pip check succeeded; fast tests failed (missing tests/tmp_speed_dummy.py); medium and slow test runs terminated after LMStudioProvider warnings; marker verification interrupted; deployment tests failed coverage; release prep interrupted; release state check reported missing tag.",
     "Termination proof for dialectical reasoner hooks documented and tests added 2025-08-21.",
-    "2025-08-24: TinyDB adapter now detects stubbed implementations and regression test added.",
+    "2025-08-22: TinyDB adapter now detects stubbed implementations and regression test added.",
     "2025-08-22: TinyDB adapter enforces transaction IDs and failing sequence covered by regression test."
   ]
 }
