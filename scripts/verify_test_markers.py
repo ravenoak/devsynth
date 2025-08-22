@@ -50,8 +50,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-# Cache pytest collection results to avoid rerunning slow subprocesses
-PYTEST_COLLECTION_CACHE: Dict[Tuple[str, str], Tuple[str, str, int, float]] = {}
+# Cache pytest collection results to avoid rerunning slow subprocesses.
+# Each cache entry stores standard streams, return code, duration and the
+# list of collected tests to avoid reparsing stdout on subsequent runs.
+PYTEST_COLLECTION_CACHE: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
 # Persistent cache for pytest collection results
 CACHE_FILE = Path(".pytest_collection_cache.json")
@@ -113,6 +115,32 @@ def get_file_hash(path: Path) -> str:
     digest = h.hexdigest()
     FILE_HASHES[path_str] = digest
     return digest
+
+
+def parse_collected_tests(stdout: str, file_path: Path) -> List[str]:
+    """Extract test names from pytest ``--collect-only`` output.
+
+    The output lists each parametrized variant separately; this function
+    normalizes names by stripping any parameterization and returns a
+    de-duplicated list while preserving order.
+    """
+    rel_path = os.path.relpath(file_path)
+    tests: List[str] = []
+    for line in stdout.splitlines():
+        if str(file_path) in line or rel_path in line:
+            parts = line.strip().split("::")
+            if len(parts) >= 2:
+                name = parts[-1]
+                name = re.split(r"[\[(]", name)[0]
+                tests.append(name)
+    # Preserve order but remove duplicates
+    seen: Set[str] = set()
+    deduped: List[str] = []
+    for name in tests:
+        if name not in seen:
+            seen.add(name)
+            deduped.append(name)
+    return deduped
 
 
 # Load cache at import time
@@ -375,12 +403,7 @@ def verify_file_markers(
             if file_cache and file_cache.get("hash") == file_hash:
                 marker_cache = file_cache.get("markers", {}).get(marker_type)
                 if marker_cache:
-                    cached = (
-                        marker_cache["stdout"],
-                        marker_cache.get("stderr", ""),
-                        marker_cache["returncode"],
-                        marker_cache.get("duration", 0.0),
-                    )
+                    cached = marker_cache
                     PYTEST_COLLECTION_CACHE[cache_key] = cached
 
         if cached is None:
@@ -420,22 +443,25 @@ def verify_file_markers(
                     duration,
                     proc.returncode,
                 )
-                PYTEST_COLLECTION_CACHE[cache_key] = (
-                    stdout,
-                    stderr,
-                    proc.returncode,
-                    duration,
-                )
-                file_cache = PERSISTENT_CACHE.setdefault(
-                    str(file_path), {"hash": file_hash, "markers": {}}
-                )
-                file_cache["hash"] = file_hash
-                file_cache["markers"][marker_type] = {
+                tests = parse_collected_tests(stdout, file_path)
+                cache_entry = {
                     "stdout": stdout,
                     "stderr": stderr,
                     "returncode": proc.returncode,
                     "duration": duration,
+                    "tests": tests,
                 }
+                PYTEST_COLLECTION_CACHE[cache_key] = cache_entry
+                file_cache = PERSISTENT_CACHE.setdefault(
+                    str(file_path), {"hash": file_hash, "markers": {}}
+                )
+                file_cache["hash"] = file_hash
+                file_cache["markers"][marker_type] = cache_entry
+                cached = cache_entry
+                stdout = cache_entry["stdout"]
+                stderr = cache_entry["stderr"]
+                returncode = cache_entry["returncode"]
+                duration = cache_entry["duration"]
             except subprocess.TimeoutExpired:
                 duration = time.time() - start_time
                 log_msg = f"pytest collection for {file_path} with marker '{marker_type}' timed out after {timeout}s"
@@ -452,22 +478,24 @@ def verify_file_markers(
                     stdout, stderr = proc.communicate(timeout=5)
                 except Exception:  # pragma: no cover - defensive
                     stdout, stderr = "", ""
-                PYTEST_COLLECTION_CACHE[cache_key] = (
-                    stdout,
-                    stderr,
-                    -1,
-                    duration,
-                )
-                file_cache = PERSISTENT_CACHE.setdefault(
-                    str(file_path), {"hash": file_hash, "markers": {}}
-                )
-                file_cache["hash"] = file_hash
-                file_cache["markers"][marker_type] = {
+                cache_entry = {
                     "stdout": stdout,
                     "stderr": stderr,
                     "returncode": -1,
                     "duration": duration,
+                    "tests": [],
                 }
+                PYTEST_COLLECTION_CACHE[cache_key] = cache_entry
+                file_cache = PERSISTENT_CACHE.setdefault(
+                    str(file_path), {"hash": file_hash, "markers": {}}
+                )
+                file_cache["hash"] = file_hash
+                file_cache["markers"][marker_type] = cache_entry
+                cached = cache_entry
+                stdout = cache_entry["stdout"]
+                stderr = cache_entry["stderr"]
+                returncode = cache_entry["returncode"]
+                duration = cache_entry["duration"]
                 result = {
                     "file_count": marker_count,
                     "pytest_count": 0,
@@ -491,7 +519,10 @@ def verify_file_markers(
 
             returncode = proc.returncode
         else:
-            stdout, stderr, returncode, duration = cached
+            stdout = cached.get("stdout", "")
+            stderr = cached.get("stderr", "")
+            returncode = cached.get("returncode", 0)
+            duration = cached.get("duration", 0.0)
             logger.debug(
                 "Using cached subprocess result for %s [marker=%s]",
                 file_path,
@@ -575,16 +606,21 @@ def verify_file_markers(
                         }
                     )
         else:
-            collected_tests: Set[str] = set()
-            rel_path = os.path.relpath(file_path)
-            for line in stdout.split("\n"):
-                if str(file_path) in line or rel_path in line:
-                    test_parts = line.strip().split("::")
-                    if len(test_parts) >= 2:
-                        test_name = test_parts[-1]
-                        test_name = re.split(r"[\[(]", test_name)[0]
-                        if test_name in expected_tests:
-                            collected_tests.add(test_name)
+            stdout = cached.get("stdout", "")
+            stderr = cached.get("stderr", "")
+            returncode = cached.get("returncode", 0)
+            duration = cached.get("duration", 0.0)
+            tests_list = cached.get("tests")
+            if tests_list is None:
+                tests_list = parse_collected_tests(stdout, file_path)
+                cached["tests"] = tests_list
+                file_cache = PERSISTENT_CACHE.setdefault(
+                    str(file_path), {"hash": get_file_hash(file_path), "markers": {}}
+                )
+                file_cache["markers"].setdefault(marker_type, {}).update(
+                    {"tests": tests_list}
+                )
+            collected_tests = {t for t in tests_list if t in expected_tests}
 
             collected_count = len(collected_tests)
             uncollected_tests = [
