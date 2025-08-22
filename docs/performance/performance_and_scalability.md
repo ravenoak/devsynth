@@ -4,6 +4,8 @@
 
 Baseline workload of 100000 operations completed in approximately 0.0112 seconds (≈8.9e6 ops/s).
 
+Metrics are stored as JSON entries with `workload`, `duration_seconds`, and `throughput_ops_per_s` fields.
+
 Scalability measurements:
 
 | workload | duration (s) | throughput (ops/s) |
