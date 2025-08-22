@@ -21,6 +21,10 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
 )
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
+# Each scenario in this module exercises potentially expensive graph operations
+# but remains suitable for the medium test tier.
+pytestmark = [pytest.mark.medium]
+
 # Register scenarios
 scenarios("../features/general/advanced_graph_memory_features.feature")
 
@@ -38,6 +42,7 @@ def context():
             self.chromadb_adapter = None
             self.memory_items = {}
             self.volatile_items = []
+            self.traversal = None
 
         def cleanup(self):
             if self.temp_dir:
@@ -651,3 +656,67 @@ def check_vector_similarity_search(context):
     """Check that vector similarity searches can be performed on the vector store."""
     results = context.chromadb_adapter.similarity_search([0.1, 0.2, 0.3, 0.4, 0.5])
     assert len(results) > 0, "No similarity search results returned"
+
+
+@given("I have stored memory items with relationships:")
+def store_items_with_relationships(context):
+    """Store several memory items and their relationships from a data table."""
+    for row in context.table:
+        source = row["source"]
+        target = row["target"]
+        # Ensure target exists before creating the relationship
+        if target not in context.memory_items:
+            target_item = MemoryItem(
+                id=target,
+                content=f"Item {target}",
+                memory_type=MemoryType.CODE,
+                metadata={},
+            )
+            context.graph_adapter.store(target_item)
+            context.memory_items[target] = target_item
+
+        source_item = MemoryItem(
+            id=source,
+            content=f"Item {source}",
+            memory_type=MemoryType.CODE,
+            metadata={"related_to": target},
+        )
+        context.graph_adapter.store(source_item)
+        context.memory_items[source] = source_item
+
+
+@when(
+    parsers.parse('I traverse the graph starting from "{start_id}" to depth {depth:d}')
+)
+def traverse_graph(context, start_id: str, depth: int):
+    """Traverse the graph from a starting node."""
+    context.traversal = context.graph_adapter.traverse(start_id, depth)
+
+
+@then("I should visit nodes:")
+def check_traversed_nodes(context):
+    """Verify that traversal visited the expected nodes."""
+    expected = {row["node"] for row in context.table}
+    visited = set(context.traversal["nodes"])
+    assert expected == visited, f"Visited nodes {visited} did not match {expected}"
+
+
+@then("I should see links:")
+def check_traversed_links(context):
+    """Verify that traversal returned the expected edges."""
+    expected = {(row["source"], row["target"]) for row in context.table}
+    edges = {(edge["source"], edge["target"]) for edge in context.traversal["edges"]}
+    assert expected == edges, f"Edges {edges} did not match {expected}"
+
+
+@then("retrieving the nodes should preserve their relationships")
+def check_relationship_persistence(context):
+    """Ensure relationships remain after retrieval."""
+    for edge in context.traversal["edges"]:
+        source_item = context.graph_adapter.retrieve(edge["source"])
+        related = source_item.metadata.get("related_to", [])
+        if isinstance(related, str):
+            related = [related]
+        assert (
+            edge["target"] in related
+        ), f"Relationship from {edge['source']} to {edge['target']} missing"

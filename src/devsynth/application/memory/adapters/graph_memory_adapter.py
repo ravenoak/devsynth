@@ -39,6 +39,7 @@ from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStor
 from ....domain.interfaces.memory import MemoryStore, VectorStore
 from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ....logging_setup import DevSynthLogger
+from ..knowledge_graph_utils import traverse_graph
 from ..rdflib_store import RDFLibStore
 
 logger = DevSynthLogger(__name__)
@@ -115,7 +116,9 @@ class GraphMemoryAdapter(MemoryStore):
             logger.info("Graph Memory Adapter initialized with basic RDFLib")
 
     # ------------------------------------------------------------------
-    def is_transaction_active(self, transaction_id: str) -> bool:  # pragma: no cover - simple interface compliance
+    def is_transaction_active(
+        self, transaction_id: str
+    ) -> bool:  # pragma: no cover - simple interface compliance
         """Return False as GraphMemoryAdapter does not track transactions."""
         return False
 
@@ -365,6 +368,12 @@ class GraphMemoryAdapter(MemoryStore):
             return self.rdflib_store.get_all_vectors()
         return []
 
+    def traverse(self, start_id: str, depth: int = 1) -> Dict[str, Any]:
+        """Traverse the graph starting from ``start_id`` up to ``depth`` levels."""
+        if not self.use_rdflib_store or not self.rdflib_store:
+            raise MemoryStoreError("RDFLib store required for graph traversal")
+        return traverse_graph(self.rdflib_store, start_id, depth)
+
     def _memory_item_to_triples(self, item: MemoryItem) -> URIRef:
         """
         Convert a memory item to RDF triples and add them to the graph.
@@ -478,9 +487,15 @@ class GraphMemoryAdapter(MemoryStore):
             # For simple or string types, use the content as is
             content = content_str
 
-        # Get metadata
-        metadata = {}
-        metadata_types = {}
+        # Prepare metadata containers
+        metadata: Dict[str, Any] = {}
+        metadata_types: Dict[str, Any] = {}
+
+        # Capture relationships separately
+        related_to_nodes = [
+            str(o).split("/")[-1]
+            for o in self.graph.objects(item_uri, DEVSYNTH.relatedTo)
+        ]
 
         # First pass: collect all metadata and their types
         for s, p, o in self.graph.triples((item_uri, None, None)):
@@ -491,6 +506,7 @@ class GraphMemoryAdapter(MemoryStore):
                 DEVSYNTH.content,
                 DEVSYNTH.memory_type,
                 DEVSYNTH.content_type,
+                DEVSYNTH.relatedTo,
             ]:
                 continue
 
@@ -524,6 +540,9 @@ class GraphMemoryAdapter(MemoryStore):
             if key.endswith("_type"):
                 del metadata[key]
 
+        if related_to_nodes:
+            metadata["related_to"] = related_to_nodes
+
         # Create and return the memory item
         return MemoryItem(
             id=item_id, content=content, memory_type=memory_type, metadata=metadata
@@ -554,13 +573,14 @@ class GraphMemoryAdapter(MemoryStore):
             # Process relationships
             related_to = item.metadata.get("related_to")
             if related_to:
-                related_uri = URIRef(f"{MEMORY}{related_to}")
-
-                # Add the relationship
-                self.graph.add((item_uri, DEVSYNTH.relatedTo, related_uri))
-
-                # Add the reverse relationship
-                self.graph.add((related_uri, DEVSYNTH.relatedTo, item_uri))
+                if not isinstance(related_to, list):
+                    related_ids = [related_to]
+                else:
+                    related_ids = related_to
+                for related in related_ids:
+                    related_uri = URIRef(f"{MEMORY}{related}")
+                    self.graph.add((item_uri, DEVSYNTH.relatedTo, related_uri))
+                    self.graph.add((related_uri, DEVSYNTH.relatedTo, item_uri))
 
             # Save the graph
             self._save_graph()

@@ -54,3 +54,21 @@ Feature: Advanced Graph Memory Features
     When I integrate the GraphMemoryAdapter with the ChromaDBVectorStore in "bidirectional" mode
     Then memory items with vectors should be properly synchronized between stores
     And I should be able to perform vector similarity searches on both stores
+
+  Scenario: Traverse graph and verify node and link persistence
+    Given I have a GraphMemoryAdapter with RDFLibStore integration
+    And I have stored memory items with relationships:
+      | source | relationship | target |
+      | node_a | related_to   | node_b |
+      | node_b | related_to   | node_c |
+    When I traverse the graph starting from "node_a" to depth 2
+    Then I should visit nodes:
+      | node   |
+      | node_a |
+      | node_b |
+      | node_c |
+    And I should see links:
+      | source | target |
+      | node_a | node_b |
+      | node_b | node_c |
+    And retrieving the nodes should preserve their relationships
