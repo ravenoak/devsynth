@@ -12,15 +12,14 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
+pytest.importorskip("lmstudio")
+
 from devsynth.adapters.provider_system import FallbackProvider
 from devsynth.adapters.provider_system import LMStudioProvider as PS_LMStudioProvider
 from devsynth.adapters.provider_system import OpenAIProvider, ProviderError
 from devsynth.application.llm.providers import LMStudioProvider
 
-pytestmark = [
-    pytest.mark.medium,
-    pytest.mark.skipif(LMStudioProvider is None, reason="lmstudio not installed"),
-]
+pytestmark = [pytest.mark.medium]
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
