@@ -34,3 +34,17 @@ def test_hit_ratio_tracking() -> None:
         memory.get("missing")
 
     assert memory.hit_ratio() == pytest.approx(0.5)
+
+
+@pytest.mark.fast
+def test_read_and_write_alias_methods() -> None:
+    """Read/write mirror get/set. ReqID: memory-adapter-read-and-write-operations"""
+
+    layer = DictCacheLayer()
+    memory = MultiLayeredMemory([layer])
+
+    memory.write("k", "v")
+    assert memory.read("k") == "v"
+    assert layer.read("k") == "v"
+    with pytest.raises(KeyError):
+        memory.read("missing")

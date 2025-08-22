@@ -25,6 +25,13 @@ class DictCacheLayer:
     def contains(self, key: str) -> bool:
         return key in self.store
 
+    # Read/write aliases for interface parity. ReqID: memory-adapter-read-and-write-operations
+    def read(self, key: str) -> Any:
+        return self.get(key)
+
+    def write(self, key: str, value: Any) -> None:
+        self.set(key, value)
+
 
 class MultiLayeredMemory:
     """Orchestrates multiple cache layers with promotion and statistics."""
@@ -41,6 +48,10 @@ class MultiLayeredMemory:
         for layer in self.layers:
             layer.set(key, value)
 
+    # Maintain a conventional API alongside ``set``/``get``. ReqID: memory-adapter-read-and-write-operations
+    def write(self, key: str, value: Any) -> None:
+        self.set(key, value)
+
     def get(self, key: str) -> Any:
         """Retrieve ``key`` promoting values up the hierarchy."""
         self._accesses += 1
@@ -52,6 +63,9 @@ class MultiLayeredMemory:
                     self.layers[promote_idx].set(key, value)
                 return value
         raise KeyError(key)
+
+    def read(self, key: str) -> Any:
+        return self.get(key)
 
     def hit_ratio(self, layer: int | None = None) -> float:
         """Return overall or per-layer hit ratio."""

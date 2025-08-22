@@ -23,13 +23,30 @@ Required metadata fields:
 -->
 
 # Summary
+# Dict-based cache layers and the multi-layered memory expose symmetric
+read and write operations for key-value items.
 
 ## Socratic Checklist
-- What is the problem?
-- What proofs confirm the solution?
+- What is the problem? The memory system lacks a standard read/write API,
+  making tests rely on internal method names.
+- What proofs confirm the solution? Unit tests verify that values written via
+  ``write`` are retrievable through ``read`` and that missing keys raise
+  ``KeyError``.
 
 ## Motivation
+Providing a conventional read/write interface clarifies how memory components
+are used and allows tests and adapters to interact with caches consistently.
 
 ## Specification
+- ``DictCacheLayer`` adds ``write(key, value)`` and ``read(key)`` methods that
+  delegate to ``set`` and ``get`` respectively.
+- ``MultiLayeredMemory`` exposes ``write`` and ``read`` as aliases for ``set``
+  and ``get``. Writes remain write-through across all layers, and reads promote
+  values to higher layers.
+- ``read`` raises ``KeyError`` when the key is absent from every layer.
 
 ## Acceptance Criteria
+- Writing a value via ``write`` makes it available through ``read`` on both
+  the cache layer and the multi-layered memory.
+- ``write`` propagates values to all layers.
+- ``read`` of an unknown key raises ``KeyError``.
