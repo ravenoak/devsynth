@@ -3,7 +3,7 @@ repos:
   hooks:
     - id: devsynth-align
       name: devsynth align
-      entry: devsynth align --quiet
+      entry: poetry run devsynth align --quiet
       language: system
       pass_filenames: false
     - id: check-frontmatter
@@ -31,7 +31,7 @@ repos:
       entry: python scripts/verify_mvuu_references.py
       language: system
       pass_filenames: false
-      stages: [push]
+      stages: [pre-push]
     - id: verify-requirements-traceability
       name: verify requirements traceability
       entry: poetry run python scripts/verify_requirements_traceability.py
@@ -60,7 +60,7 @@ repos:
       entry: python scripts/policy_audit.py
       language: system
       pass_filenames: false
-      stages: [push]
+      stages: [pre-push]
     - id: commit-message-lint
       name: commit message lint
       description: lint commit messages for MVUU compliance
@@ -73,13 +73,13 @@ repos:
       entry: poetry run bandit -q -r src
       language: system
       pass_filenames: false
-      stages: [push]
+      stages: [pre-push]
     - id: safety
       name: safety vulnerability check
       entry: poetry run safety check --full-report
       language: system
       pass_filenames: false
-      stages: [push]
+      stages: [pre-push]
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
   hooks:
