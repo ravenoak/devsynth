@@ -2,17 +2,24 @@
 """
 Script to verify that test markers are correctly applied and recognized by pytest.
 
-This script builds on fix_test_markers.py to verify that markers are correctly applied
-and recognized by pytest. It provides detailed reporting of marker issues and can
-fix common issues automatically. The script exits with status code ``1`` when
-verification issues are found and ``2`` when subprocesses exceed the timeout.
+This script builds on ``fix_test_markers.py`` to verify that markers are correctly
+applied and recognized by pytest. It provides detailed reporting of marker issues
+and can fix common issues automatically. The script exits with status code ``1``
+when verification issues are found and ``2`` when subprocesses exceed the
+timeout.
 
-Pytest collection results are cached per file in ``.pytest_collection_cache.json``,
+Pytest collection results are cached per file in ``.pytest_collection_cache.json``
 keyed by the file's content hash. Subsequent runs reuse this cache, dramatically
-reducing execution time. Use ``--changed`` to restrict verification to paths
-reported by ``git diff --name-only``. Missing optional dependencies like
-``fastapi`` are detected and cause affected files to be skipped rather than
-crashing the run.
+reducing execution time. The ``--changed`` flag enables incremental verification
+by restricting checks to paths reported by ``git diff --name-only`` relative to
+``--diff-base`` (default ``HEAD``). This is useful during local development when
+only a subset of tests has been modified:
+
+    python -m scripts.verify_test_markers --changed --diff-base main
+
+Missing optional dependencies such as ``fastapi`` are detected and cause affected
+files to be skipped rather than crashing the run. These skipped modules are
+reported separately in ``test_markers_report.json``.
 
 Usage:
     python -m scripts.verify_test_markers [options]
@@ -551,11 +558,13 @@ def verify_file_markers(
                 }
             else:
                 stderr_text = stderr or ""
+                combined_output = f"{stdout}\n{stderr_text}"
                 missing_opt = next(
                     (
                         dep
                         for dep in OPTIONAL_DEPENDENCIES
-                        if f"No module named '{dep}'" in stderr_text
+                        if f"No module named '{dep}'" in combined_output
+                        or dep in combined_output
                     ),
                     None,
                 )
@@ -575,6 +584,7 @@ def verify_file_markers(
                         "uncollected_tests": [],
                         "duration": duration,
                         "skipped": True,
+                        "missing_optional_dependency": missing_opt,
                     }
                 else:
                     stderr_last = (
@@ -676,6 +686,11 @@ def verify_file_markers(
             additional_issues.extend(issues)
 
     # Prepare verification results
+    missing_deps = [
+        info.get("missing_optional_dependency")
+        for info in recognized_markers.values()
+        if info.get("missing_optional_dependency")
+    ]
     results = {
         "file_path": str(file_path),
         "has_pytest_import": has_pytest_import,
@@ -689,6 +704,9 @@ def verify_file_markers(
         "issues": [],
         "skipped": any(info.get("skipped") for info in recognized_markers.values()),
     }
+    if missing_deps:
+        # Propagate the missing dependency to the top-level result for easier reporting
+        results["missing_optional_dependency"] = missing_deps[0]
 
     # Identify issues
     if not has_pytest_import and len(markers) > 0:
@@ -1000,6 +1018,7 @@ def verify_directory_markers(
         "marker_counts": {"fast": 0, "medium": 0, "slow": 0, "isolation": 0},
         "files": {},
         "subprocess_timeouts": 0,
+        "missing_optional_dependencies": [],
     }
 
     start = time.time()
@@ -1044,6 +1063,15 @@ def verify_directory_markers(
                     }
                     continue
 
+                if file_results.get("skipped"):
+                    results["skipped_files"] += 1
+                    missing_dep = file_results.get("missing_optional_dependency")
+                    if missing_dep:
+                        results["missing_optional_dependencies"].append(
+                            {"file": str(file_path), "dependency": missing_dep}
+                        )
+                    continue
+
                 results["total_test_functions"] += file_results["test_functions"]
                 results["total_markers"] += file_results["tests_with_markers"]
                 results["total_misaligned_markers"] += len(
@@ -1065,9 +1093,7 @@ def verify_directory_markers(
                     if count.get("timeout"):
                         results["subprocess_timeouts"] += 1
 
-                if file_results.get("skipped"):
-                    results["skipped_files"] += 1
-                elif file_results["issues"]:
+                if file_results["issues"]:
                     results["files_with_issues"] += 1
                     results["files"][str(file_path)] = file_results
 
@@ -1238,6 +1264,10 @@ def main():
         print(f"  Total files: {verification_results['total_files']}")
         print(f"  Files with issues: {verification_results['files_with_issues']}")
         print(f"  Skipped files: {verification_results.get('skipped_files', 0)}")
+        if verification_results.get("missing_optional_dependencies"):
+            print("  Missing optional dependencies:")
+            for item in verification_results["missing_optional_dependencies"]:
+                print(f"    - {item['file']}: {item['dependency']}")
         print(f"  Total test functions: {verification_results['total_test_functions']}")
         marker_pct = (
             verification_results["total_markers"]
