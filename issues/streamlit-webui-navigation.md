@@ -2,7 +2,7 @@
 Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, docs/specifications/streamlit-webui-navigation.md, tests/behavior/features/streamlit_webui_navigation.feature
+Dependencies: Phase-1-completion.md, docs/specifications/streamlit-webui-navigation.md, tests/behavior/features/streamlit_webui_navigation.feature
 
 ## Problem Statement
 Streamlit WebUI Navigation is not yet implemented, limiting DevSynth's capabilities.

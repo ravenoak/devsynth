@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/wsde-peer-review-workflow.md, tests/behavior/features/wsde_peer_review_workflow.feature
+Dependencies: Phase-2-completion.md, docs/specifications/wsde-peer-review-workflow.md, tests/behavior/features/wsde_peer_review_workflow.feature
 
 ## Problem Statement
 WSDE Peer Review Workflow is not yet implemented, limiting DevSynth's capabilities.

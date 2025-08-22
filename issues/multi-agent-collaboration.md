@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/multi-agent-collaboration.md, tests/behavior/features/multi_agent_collaboration.feature
+Dependencies: Phase-2-completion.md, docs/specifications/multi-agent-collaboration.md, tests/behavior/features/multi_agent_collaboration.feature
 
 ## Problem Statement
 Multi-Agent Collaboration is not yet implemented, limiting DevSynth's capabilities.

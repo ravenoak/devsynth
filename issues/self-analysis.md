@@ -2,7 +2,7 @@
 Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, docs/specifications/self-analysis.md, tests/behavior/features/self_analysis.feature
+Dependencies: Phase-1-completion.md, docs/specifications/self-analysis.md, tests/behavior/features/self_analysis.feature
 
 ## Problem Statement
 Self Analysis is not yet implemented, limiting DevSynth's capabilities.

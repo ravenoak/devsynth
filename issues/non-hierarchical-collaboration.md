@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/non-hierarchical-collaboration.md, tests/behavior/features/non_hierarchical_collaboration.feature
+Dependencies: Phase-2-completion.md, docs/specifications/non-hierarchical-collaboration.md, tests/behavior/features/non_hierarchical_collaboration.feature
 
 ## Problem Statement
 Non-Hierarchical Collaboration is not yet implemented, limiting DevSynth's capabilities.

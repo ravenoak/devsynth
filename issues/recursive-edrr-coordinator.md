@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/recursive-edrr-coordinator.md, tests/behavior/features/recursive_edrr_coordinator.feature
+Dependencies: Phase-2-completion.md, docs/specifications/recursive-edrr-coordinator.md, tests/behavior/features/recursive_edrr_coordinator.feature
 
 ## Problem Statement
 Recursive EDRR Coordinator is not yet implemented, limiting DevSynth's capabilities.

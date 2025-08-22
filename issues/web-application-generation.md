@@ -2,7 +2,7 @@
 Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, docs/specifications/web-application-generation.md, tests/behavior/features/web_application_generation.feature
+Dependencies: Phase-1-completion.md, docs/specifications/web-application-generation.md, tests/behavior/features/web_application_generation.feature
 
 ## Problem Statement
 Web Application Generation is not yet implemented, limiting DevSynth's capabilities.

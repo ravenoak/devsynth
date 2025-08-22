@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/multi-agent-task-delegation.md, tests/behavior/features/multi_agent_task_delegation.feature
+Dependencies: Phase-2-completion.md, docs/specifications/multi-agent-task-delegation.md, tests/behavior/features/multi_agent_task_delegation.feature
 
 ## Problem Statement
 Multi-agent task delegation is not yet implemented, limiting DevSynth's capabilities.

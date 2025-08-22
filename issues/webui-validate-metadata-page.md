@@ -2,7 +2,7 @@
 Milestone: 0.1.0-beta.1
 Status: in progress
 Priority: medium
-Dependencies: Phase 1 completion, docs/specifications/webui-validate-metadata-page.md, tests/behavior/features/webui_validate_metadata_page.feature
+Dependencies: Phase-1-completion.md, docs/specifications/webui-validate-metadata-page.md, tests/behavior/features/webui_validate_metadata_page.feature
 
 ## Problem Statement
 WebUI Validate Metadata Page is not yet implemented, limiting DevSynth's capabilities.

@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/edrr-coordinator.md, tests/behavior/features/edrr_coordinator.feature
+Dependencies: Phase-2-completion.md, docs/specifications/edrr-coordinator.md, tests/behavior/features/edrr_coordinator.feature
 
 ## Problem Statement
 EDRR Coordinator is not yet implemented, limiting DevSynth's capabilities.

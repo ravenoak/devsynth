@@ -2,7 +2,7 @@
 Milestone: 0.1.0
 Status: in progress
 Priority: low
-Dependencies: Phase 2 completion, docs/specifications/promise-system-capability-management.md, tests/behavior/features/promise_system_capability_management.feature
+Dependencies: Phase-2-completion.md, docs/specifications/promise-system-capability-management.md, tests/behavior/features/promise_system_capability_management.feature
 
 ## Problem Statement
 Promise System Capability Management is not yet implemented, limiting DevSynth's capabilities.
