@@ -2,8 +2,7 @@
   "questions": [
     "2025-08-22: devsynth run-tests --speed=fast, --speed=medium, and --speed=slow aborted; LMStudioProvider package missing.",
     "2025-08-22: scripts/verify_test_markers.py interrupted after pytest collection error in tests/behavior/test_agentapi.py.",
-    "2025-08-22: pytest tests/unit/deployment -m fast failed coverage (8.69% < 60%).",
-    "2025-08-22: task release:prep failed; tests/behavior/steps/test_advanced_graph_memory_features_steps.py raised TypeError in TinyDBMemoryAdapter."
+    "2025-08-22: pytest tests/unit/deployment -m fast failed coverage (8.69% < 60%)."
   ],
   "resolved": [
     "Release checklist commands executed 2025-08-20; verify_test_markers.py failed and task command was not found.",
@@ -29,6 +28,7 @@
     "Development environment virtualenv enforcement documented 2025-08-21.",
     "Release checklist re-run 2025-08-21: environment setup and pip check succeeded; fast tests failed (missing tests/tmp_speed_dummy.py); medium and slow test runs terminated after LMStudioProvider warnings; marker verification interrupted; deployment tests failed coverage; release prep interrupted; release state check reported missing tag.",
     "Termination proof for dialectical reasoner hooks documented and tests added 2025-08-21.",
-    "2025-08-24: TinyDB adapter now detects stubbed implementations and regression test added."
+    "2025-08-24: TinyDB adapter now detects stubbed implementations and regression test added.",
+    "2025-08-22: TinyDB adapter enforces transaction IDs and failing sequence covered by regression test."
   ]
 }

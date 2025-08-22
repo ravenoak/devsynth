@@ -2,6 +2,8 @@ import tempfile
 
 import pytest
 
+pytest.importorskip("tinydb")
+
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
@@ -16,6 +18,8 @@ from devsynth.exceptions import MemoryTransactionError
 @pytest.mark.parametrize("adapter_cls", [TinyDBMemoryAdapter, GraphMemoryAdapter])
 @pytest.mark.medium
 def test_store_retrieve_search_update(adapter_cls, tmp_path):
+    """ReqID: FR-44, FR-46"""
+
     if adapter_cls is GraphMemoryAdapter:
         adapter = adapter_cls(base_path=tmp_path)
     else:
@@ -40,6 +44,8 @@ def test_store_retrieve_search_update(adapter_cls, tmp_path):
 
 @pytest.mark.medium
 def test_vector_adapter_operations():
+    """ReqID: FR-47"""
+
     adapter = VectorMemoryAdapter()
     vector = MemoryVector(
         id="", content="doc", embedding=[0.1, 0.2, 0.3], metadata={"kind": "test"}
@@ -54,7 +60,10 @@ def test_vector_adapter_operations():
 
 @pytest.mark.medium
 def test_tinydb_adapter_transaction_support(tmp_path):
-    """Test transaction support in TinyDBMemoryAdapter."""
+    """Test transaction support in TinyDBMemoryAdapter.
+
+    ReqID: FR-44
+    """
     adapter = TinyDBMemoryAdapter(db_path=str(tmp_path / "db.json"))
     item1 = MemoryItem(
         id="test1",
@@ -102,3 +111,29 @@ def test_tinydb_adapter_transaction_support(tmp_path):
         adapter.store(item1, transaction_id="invalid_tx")
     with pytest.raises(MemoryTransactionError):
         adapter.delete(item1.id, transaction_id="invalid_tx")
+
+
+@pytest.mark.medium
+def test_tinydb_adapter_requires_transaction_id(tmp_path):
+    """Operations should fail if a transaction is active and no ID is provided.
+
+    ReqID: FR-44
+    """
+    adapter = TinyDBMemoryAdapter(db_path=str(tmp_path / "db.json"))
+    tx = adapter.begin_transaction("tx1")
+    item = MemoryItem(
+        id="missing_txn",
+        content="content",
+        memory_type=MemoryType.KNOWLEDGE,
+        metadata={},
+    )
+
+    with pytest.raises(MemoryTransactionError):
+        adapter.store(item)
+
+    adapter.store(item, transaction_id=tx)
+
+    with pytest.raises(MemoryTransactionError):
+        adapter.delete(item.id)
+
+    adapter.rollback_transaction(tx)

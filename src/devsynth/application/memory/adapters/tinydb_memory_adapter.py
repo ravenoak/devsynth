@@ -145,6 +145,15 @@ class TinyDBMemoryAdapter(MemoryStore):
                 f"Stored memory item with ID {item.id} in TinyDB Memory Adapter (transaction: {transaction_id})"
             )
         else:
+            # Reject operations without a transaction ID when a transaction is active
+            if hasattr(self, "_transaction_id"):
+                raise MemoryTransactionError(
+                    f"Transaction {self._transaction_id} is active",
+                    transaction_id=self._transaction_id,
+                    store_type="TinyDBMemoryAdapter",
+                    operation="store",
+                )
+
             # Not part of a transaction, store normally
             # Check if the item already exists
             existing = self.items_table.get(Query().id == item.id)
@@ -257,6 +266,15 @@ class TinyDBMemoryAdapter(MemoryStore):
                 return True
             return False
         else:
+            # Reject operations without a transaction ID when a transaction is active
+            if hasattr(self, "_transaction_id"):
+                raise MemoryTransactionError(
+                    f"Transaction {self._transaction_id} is active",
+                    transaction_id=self._transaction_id,
+                    store_type="TinyDBMemoryAdapter",
+                    operation="delete",
+                )
+
             # Not part of a transaction, delete normally
             removed = self.items_table.remove(Query().id == item_id)
             if removed:
@@ -464,7 +482,7 @@ class TinyDBMemoryAdapter(MemoryStore):
 
             # Restore items from snapshot
             for item in self._transaction_snapshot.values():
-                self.store(item)
+                self.store(item, transaction_id=transaction_id)
 
             # Clear the snapshot
             delattr(self, "_transaction_snapshot")
