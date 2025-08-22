@@ -29,6 +29,7 @@ _This index lists all documentation files, their status, and release phase. It i
 | docs/analysis/inventory.md | DevSynth Project Comprehensive Inventory & Analysis | published | analysis |
 | docs/analysis/technical_deep_dive.md | DevSynth Technical Deep Dive Analysis | published | analysis |
 | docs/analysis/wide_sweep_analysis.md | DevSynth Project Wide Sweep Analysis | published | analysis |
+| docs/analysis/dialectical_reasoning_loop_convergence.md | Dialectical Reasoning Loop Convergence | published | analysis |
 | docs/architecture/agent_system.md | DevSynth Agent System Architecture | published | foundation |
 | docs/architecture/cli_webui_mapping.md | CLI to WebUI Command Mapping | draft | foundation |
 | docs/architecture/dialectical_reasoning.md | Dialectical Reasoning System for Requirements Management | published | foundation |
