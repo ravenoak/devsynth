@@ -2,7 +2,6 @@
   "questions": [
     "2025-08-22: devsynth run-tests --speed=fast, --speed=medium, and --speed=slow aborted; LMStudioProvider package missing.",
     "2025-08-22: scripts/verify_test_markers.py interrupted after pytest collection error in tests/behavior/test_agentapi.py.",
-    "2025-08-22: task release:prep failed; tests/behavior/steps/test_advanced_graph_memory_features_steps.py raised TypeError in TinyDBMemoryAdapter."
   ],
   "resolved": [
     "Release checklist commands executed 2025-08-20; verify_test_markers.py failed and task command was not found.",
