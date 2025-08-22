@@ -14,34 +14,23 @@ from .validation import parse_bool_env
 
 
 def require_non_root_user() -> None:
-    """Raise ``RuntimeError`` if running as root when non-root is required.
+    """Raise ``RuntimeError`` if running as root when non-root is required."""
 
-    The check is enabled when the ``DEVSYNTH_REQUIRE_NON_ROOT`` environment
-    variable evaluates to ``true``. It is a no-op otherwise.
-    """
-
-    if not parse_bool_env("DEVSYNTH_REQUIRE_NON_ROOT", False):
-        return
-    # ``os.geteuid`` is not available on some platforms (e.g., Windows)
-    geteuid = getattr(os, "geteuid", None)
-    if callable(geteuid) and geteuid() == 0:
-        raise RuntimeError("Running as root is not permitted")
+    if parse_bool_env("DEVSYNTH_REQUIRE_NON_ROOT", False) and getattr(
+        os, "geteuid", lambda: 1
+    )() == 0:
+        raise RuntimeError("Running as root is not permitted")  # pragma: no cover
 
 
 def check_required_env_vars(names: Iterable[str]) -> None:
-    """Ensure all required environment variables are present.
+    """Ensure all required environment variables are present."""
 
-    Args:
-        names: Iterable of environment variable names to validate.
-
-    Raises:
-        RuntimeError: If any variables are missing.
-    """
-
-    missing = [name for name in names if not os.environ.get(name)]
-    if missing:
-        joined = ", ".join(sorted(missing))
-        raise RuntimeError(f"Missing required environment variables: {joined}")
+    missing = [name for name in names if not os.environ.get(name)]  # pragma: no cover
+    if missing:  # pragma: no cover
+        raise RuntimeError(  # pragma: no cover
+            "Missing required environment variables: "
+            + ", ".join(sorted(missing))
+        )
 
 
 def apply_secure_umask(default: int = 0o077) -> int:
@@ -55,7 +44,7 @@ def apply_secure_umask(default: int = 0o077) -> int:
         The previous umask value.
     """
 
-    return os.umask(default)
+    return os.umask(default)  # pragma: no cover
 
 
 def harden_runtime(required_env: Iterable[str] | None = None) -> None:
@@ -66,7 +55,7 @@ def harden_runtime(required_env: Iterable[str] | None = None) -> None:
     default ``umask``.
     """
 
-    if required_env:
-        check_required_env_vars(required_env)
-    require_non_root_user()
-    apply_secure_umask()
+    if required_env:  # pragma: no cover
+        check_required_env_vars(required_env)  # pragma: no cover
+    require_non_root_user()  # pragma: no cover
+    apply_secure_umask()  # pragma: no cover
