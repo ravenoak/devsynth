@@ -622,17 +622,32 @@ def verify_file_markers(
                 file_cache["markers"].setdefault(marker_type, {}).update(
                     {"tests": tests_list}
                 )
-            collected_tests = {t for t in tests_list if t in expected_tests}
 
-            collected_count = len(collected_tests)
-            uncollected_tests = [
-                name for name in expected_tests if name not in collected_tests
-            ]
+            pytest_count = cached.get("pytest_count")
+            uncollected_tests = cached.get("uncollected_tests")
+            if pytest_count is None or uncollected_tests is None:
+                collected_tests = {t for t in tests_list if t in expected_tests}
+                pytest_count = len(collected_tests)
+                uncollected_tests = [
+                    name for name in expected_tests if name not in collected_tests
+                ]
+                cached["pytest_count"] = pytest_count
+                cached["uncollected_tests"] = uncollected_tests
+                file_cache = PERSISTENT_CACHE.setdefault(
+                    str(file_path), {"hash": get_file_hash(file_path), "markers": {}}
+                )
+                file_cache["markers"].setdefault(marker_type, {}).update(
+                    {
+                        "tests": tests_list,
+                        "pytest_count": pytest_count,
+                        "uncollected_tests": uncollected_tests,
+                    }
+                )
 
             result = {
                 "file_count": marker_count,
-                "pytest_count": collected_count,
-                "recognized": collected_count == marker_count,
+                "pytest_count": pytest_count,
+                "recognized": pytest_count == marker_count,
                 "registered_in_pytest_ini": markers_registered.get(marker_type, False),
                 "uncollected_tests": uncollected_tests,
                 "duration": duration,
@@ -647,10 +662,12 @@ def verify_file_markers(
         for m in ["fast", "medium", "slow"]
     }
 
+    markers_to_check = {m: tests for m, tests in expected_by_marker.items() if tests}
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         futures = [
-            pool.submit(run_marker_check, m, expected_by_marker[m])
-            for m in ["fast", "medium", "slow"]
+            pool.submit(run_marker_check, m, tests)
+            for m, tests in markers_to_check.items()
         ]
         for fut in concurrent.futures.as_completed(futures):
             marker_type, result, issues = fut.result()

@@ -400,4 +400,11 @@ poetry run python scripts/verify_test_markers.py --report --report-file test_mar
 
 The script caches `pytest --collect-only` results and records subprocess durations so slow collections can be profiled.
 
+For large suites, pass `--changed` to verify only tests modified since the last
+commit and speed up runs:
+
+```bash
+poetry run python scripts/verify_test_markers.py --changed
+```
+
 Including the requirement ID ensures traceability between tests and requirements.

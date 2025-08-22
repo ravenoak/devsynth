@@ -150,6 +150,13 @@ poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
 ```
 
+Use `--changed` to limit marker verification to tests modified since the last
+commit:
+
+```bash
+poetry run python scripts/verify_test_markers.py --changed
+```
+
 ## Development Workflow
 
 Run all development commands inside the Poetry-managed virtual environment. A

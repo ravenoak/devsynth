@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-08-22T00:09:08.717710",
+  "timestamp": "2025-08-22T14:25:32.950974",
   "verification": {
-    "directory": "tests/test_chromadb_store_import.py",
+    "directory": "tests",
     "total_files": 1,
     "files_with_issues": 0,
     "skipped_files": 0,
-    "total_test_functions": 1,
+    "total_test_functions": 2,
     "total_markers": 1,
     "total_misaligned_markers": 0,
     "total_duplicate_markers": 0,
