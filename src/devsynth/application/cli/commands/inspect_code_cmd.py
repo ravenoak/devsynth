@@ -4,16 +4,17 @@ Command to inspect a codebase and provide insights about its architecture, struc
 
 import os
 from typing import Optional
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
 
-from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
 from devsynth.application.code_analysis.project_state_analyzer import (
     ProjectStateAnalyzer,
 )
+from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -39,7 +40,7 @@ def inspect_code_cmd(
 
     try:
         # Show a welcome message for the inspect-code command
-        bridge.print(
+        console.print(
             Panel(
                 "[bold blue]DevSynth Code Inspection[/bold blue]\n\n"
                 "This command will inspect a codebase and provide insights about its architecture, structure, and quality.",
@@ -51,32 +52,71 @@ def inspect_code_cmd(
         # Determine the path to inspect
         if path is None:
             path = os.getcwd()
+        else:
+            path = os.path.abspath(path)
+            if not os.path.exists(path):
+                os.makedirs(path, exist_ok=True)
 
-        bridge.print(f"[bold]Inspecting codebase at:[/bold] {path}")
+        console.print(f"[bold]Inspecting codebase at:[/bold] {path}")
 
         # Create a progress panel
+        analysis_failed = False
         with console.status("[bold green]Inspecting codebase...[/bold green]"):
-            # Inspect the codebase using SelfAnalyzer
-            analyzer = SelfAnalyzer(path)
-            result = analyzer.analyze()
-
-            # Inspect the project state using ProjectStateAnalyzer
-            project_analyzer = ProjectStateAnalyzer(path)
-            project_state = project_analyzer.analyze()
+            try:
+                analyzer = SelfAnalyzer(path)
+                result = analyzer.analyze()
+            except Exception as e:
+                analysis_failed = True
+                logger.error(f"Self analysis failed: {e}")
+                console.print(f"[red]Error analyzing codebase: {e}[/red]")
+                result = {
+                    "insights": {
+                        "architecture": {
+                            "type": "unknown",
+                            "confidence": 0.0,
+                            "layers": {},
+                            "architecture_violations": [],
+                        },
+                        "code_quality": {
+                            "total_files": 0,
+                            "total_classes": 0,
+                            "total_functions": 0,
+                            "docstring_coverage": {
+                                "files": 0.0,
+                                "classes": 0.0,
+                                "functions": 0.0,
+                            },
+                        },
+                        "test_coverage": {
+                            "total_symbols": 0,
+                            "tested_symbols": 0,
+                            "coverage_percentage": 0.0,
+                        },
+                        "improvement_opportunities": [],
+                    }
+                }
+            try:
+                project_analyzer = ProjectStateAnalyzer(path)
+                project_state = project_analyzer.analyze()
+            except Exception as e:
+                analysis_failed = True
+                logger.error(f"Project state analysis failed: {e}")
+                console.print(f"[red]Error analyzing project state: {e}[/red]")
+                project_state = {}
 
         # Display the analysis results
-        bridge.print("\n[bold]Inspection Results:[/bold]")
+        console.print("\n[bold]Inspection Results:[/bold]")
 
         # Display architecture information
         architecture = result["insights"]["architecture"]
-        bridge.print(
+        console.print(
             f"\n[bold]Architecture:[/bold] {architecture['type']} (confidence: {architecture['confidence']:.2f})"
         )
 
         # Display layers
         layers = architecture["layers"]
         if layers:
-            bridge.print("\n[bold]Layers:[/bold]")
+            console.print("\n[bold]Layers:[/bold]")
             layers_table = Table(show_header=True, header_style="bold")
             layers_table.add_column("Layer")
             layers_table.add_column("Components")
@@ -86,12 +126,12 @@ def inspect_code_cmd(
                     layer, ", ".join(components) if components else "None"
                 )
 
-            bridge.print(layers_table)
+            console.print(layers_table)
 
         # Display architecture violations
         violations = architecture["architecture_violations"]
         if violations:
-            bridge.print("\n[bold]Architecture Violations:[/bold]")
+            console.print("\n[bold]Architecture Violations:[/bold]")
             violations_table = Table(show_header=True, header_style="bold")
             violations_table.add_column("Source Layer")
             violations_table.add_column("Target Layer")
@@ -104,11 +144,11 @@ def inspect_code_cmd(
                     violation["description"],
                 )
 
-            bridge.print(violations_table)
+            console.print(violations_table)
 
         # Display code quality metrics
         code_quality = result["insights"]["code_quality"]
-        bridge.print("\n[bold]Code Quality Metrics:[/bold]")
+        console.print("\n[bold]Code Quality Metrics:[/bold]")
         quality_table = Table(show_header=True, header_style="bold")
         quality_table.add_column("Metric")
         quality_table.add_column("Value")
@@ -129,11 +169,11 @@ def inspect_code_cmd(
             f"{code_quality['docstring_coverage']['functions'] * 100:.1f}%",
         )
 
-        bridge.print(quality_table)
+        console.print(quality_table)
 
         # Display test coverage
         test_coverage = result["insights"]["test_coverage"]
-        bridge.print("\n[bold]Test Coverage:[/bold]")
+        console.print("\n[bold]Test Coverage:[/bold]")
         coverage_table = Table(show_header=True, header_style="bold")
         coverage_table.add_column("Metric")
         coverage_table.add_column("Value")
@@ -144,17 +184,16 @@ def inspect_code_cmd(
             "Coverage Percentage", f"{test_coverage['coverage_percentage'] * 100:.1f}%"
         )
 
-        bridge.print(coverage_table)
+        console.print(coverage_table)
 
         # Display project health score
-        bridge.print(
-            f"\n[bold]Project Health Score:[/bold] {project_state['health_score']:.2f}/10.0"
-        )
+        health_score = project_state.get("health_score", 0.0)
+        console.print(f"\n[bold]Project Health Score:[/bold] {health_score:.2f}/10.0")
 
         # Display improvement opportunities
         opportunities = result["insights"]["improvement_opportunities"]
         if opportunities:
-            bridge.print("\n[bold]Improvement Opportunities:[/bold]")
+            console.print("\n[bold]Improvement Opportunities:[/bold]")
             opportunities_table = Table(show_header=True, header_style="bold")
             opportunities_table.add_column("Priority")
             opportunities_table.add_column("Type")
@@ -167,16 +206,17 @@ def inspect_code_cmd(
                     opportunity["description"],
                 )
 
-            bridge.print(opportunities_table)
+            console.print(opportunities_table)
 
         # Display recommendations
         if "recommendations" in project_state:
-            bridge.print("\n[bold]Recommendations:[/bold]")
+            console.print("\n[bold]Recommendations:[/bold]")
             for recommendation in project_state["recommendations"]:
-                bridge.print(f"- {recommendation}")
+                console.print(f"- {recommendation}")
 
-        bridge.print("\n[green]Inspection completed successfully![/green]")
+        if not analysis_failed:
+            console.print("\n[green]Inspection completed successfully![/green]")
 
     except Exception as e:
         logger.error(f"Error analyzing codebase: {str(e)}")
-        bridge.print(f"[red]Error analyzing codebase: {str(e)}[/red]")
+        console.print(f"[red]Error analyzing codebase: {str(e)}[/red]")
