@@ -108,3 +108,37 @@ def test_tinydb_adapter_transaction_support(tmp_path):
         adapter.store(item1, transaction_id="invalid_tx")
     with pytest.raises(MemoryTransactionError):
         adapter.delete(item1.id, transaction_id="invalid_tx")
+
+
+@pytest.mark.medium
+def test_tinydb_transaction_optional_id(tmp_path):
+    """Ensure commit and rollback work without explicitly passing IDs.
+
+    ReqID: FR-44
+    """
+
+    adapter = TinyDBMemoryAdapter(db_path=str(tmp_path / "db.json"))
+    item = MemoryItem(
+        id="a",
+        content="A",
+        memory_type=MemoryType.KNOWLEDGE,
+        metadata={"tag": "x"},
+    )
+
+    tx_id = adapter.begin_transaction()
+    adapter.store(item, transaction_id=tx_id)
+    # Commit without providing the transaction id
+    assert adapter.commit_transaction() is True
+    assert adapter.retrieve("a") is not None
+
+    tx_id = adapter.begin_transaction()
+    adapter.delete("a", transaction_id=tx_id)
+    # Rollback without providing the transaction id
+    assert adapter.rollback_transaction() is True
+    assert adapter.retrieve("a") is not None
+
+    # No active transaction should raise an error
+    with pytest.raises(MemoryTransactionError):
+        adapter.commit_transaction()
+    with pytest.raises(MemoryTransactionError):
+        adapter.rollback_transaction()

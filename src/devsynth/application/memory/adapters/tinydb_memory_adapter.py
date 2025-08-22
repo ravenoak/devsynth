@@ -95,7 +95,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
             ),
         )
 
-    def store(self, item: MemoryItem, transaction_id: str = None) -> str:
+    def store(self, item: MemoryItem, transaction_id: str | None = None) -> str:
         """
         Store a memory item in TinyDB.
 
@@ -108,7 +108,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         """
         # Generate an ID if not provided
         if not item.id:
-            item.id = f"tinydb_{len(self.items_table) + 1}"
+            item.id = str(uuid.uuid4())
 
         # Convert to dictionary
         item_dict = self._memory_item_to_dict(item)
@@ -400,24 +400,26 @@ class TinyDBMemoryAdapter(StorageAdapter):
         # TinyDB doesn't have a native prepare phase, so we just return True
         return True
 
-    def commit_transaction(self, transaction_id: str) -> bool:
+    def commit_transaction(self, transaction_id: str | None = None) -> bool:
         """
         Commit a transaction.
 
         Args:
-            transaction_id: The ID of the transaction
+            transaction_id: Optional transaction identifier. If ``None`` the
+                currently active transaction is committed.
 
         Returns:
-            True if the transaction was committed
+            True if the transaction was committed.
 
         Raises:
-            MemoryTransactionError: If the transaction cannot be committed
+            MemoryTransactionError: If no transaction is active or the provided
+                identifier does not match the active transaction.
         """
-        logger.debug(f"Committing transaction {transaction_id} in TinyDBMemoryAdapter")
-
-        # Check if this is the active transaction
+        if transaction_id is None:
+            transaction_id = getattr(self, "_transaction_id", None)
         if (
-            not hasattr(self, "_transaction_id")
+            not transaction_id
+            or not hasattr(self, "_transaction_id")
             or self._transaction_id != transaction_id
         ):
             raise MemoryTransactionError(
@@ -426,6 +428,8 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 store_type="TinyDBMemoryAdapter",
                 operation="commit_transaction",
             )
+
+        logger.debug(f"Committing transaction {transaction_id} in TinyDBMemoryAdapter")
 
         # TinyDB doesn't have native transaction support, so we just clear the snapshot
         if hasattr(self, "_transaction_snapshot"):
@@ -436,26 +440,26 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
         return True
 
-    def rollback_transaction(self, transaction_id: str) -> bool:
+    def rollback_transaction(self, transaction_id: str | None = None) -> bool:
         """
         Rollback a transaction.
 
         Args:
-            transaction_id: The ID of the transaction
+            transaction_id: Optional transaction identifier. If ``None`` the
+                currently active transaction is rolled back.
 
         Returns:
-            True if the transaction was rolled back
+            True if the transaction was rolled back.
 
         Raises:
-            MemoryTransactionError: If the transaction cannot be rolled back
+            MemoryTransactionError: If no transaction is active or the
+                identifier does not match the active transaction.
         """
-        logger.debug(
-            f"Rolling back transaction {transaction_id} in TinyDBMemoryAdapter"
-        )
-
-        # Check if this is the active transaction
+        if transaction_id is None:
+            transaction_id = getattr(self, "_transaction_id", None)
         if (
-            not hasattr(self, "_transaction_id")
+            not transaction_id
+            or not hasattr(self, "_transaction_id")
             or self._transaction_id != transaction_id
         ):
             raise MemoryTransactionError(
@@ -464,6 +468,10 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 store_type="TinyDBMemoryAdapter",
                 operation="rollback_transaction",
             )
+
+        logger.debug(
+            f"Rolling back transaction {transaction_id} in TinyDBMemoryAdapter"
+        )
 
         # Restore from snapshot if available
         if hasattr(self, "_transaction_snapshot"):
