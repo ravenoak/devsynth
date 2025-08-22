@@ -24,12 +24,24 @@ Required metadata fields:
 
 # Summary
 
+DevSynth captures repeatable performance benchmarks for core operations.
+
 ## Socratic Checklist
 - What is the problem?
+  - The system lacks baseline and scalability metrics.
 - What proofs confirm the solution?
+  - Metrics files recording workload, duration, and throughput.
 
 ## Motivation
+Understanding baseline performance and scalability enables regression detection and capacity planning.
 
 ## Specification
+- Provide a baseline performance task that records duration and throughput for a given workload.
+- Provide a scalability performance task that records metrics for multiple workloads.
+- Metrics are written to `docs/performance/baseline_metrics.json` and `docs/performance/scalability_metrics.json`.
+- Each metric entry includes `workload`, `duration_seconds`, and `throughput_ops_per_s`.
 
 ## Acceptance Criteria
+- Running the baseline task with workload `100000` creates `docs/performance/baseline_metrics.json` with throughput data.
+- Running the scalability task for workloads `10000`, `100000`, and `1000000` writes corresponding entries.
+- BDD tests cover baseline metrics, throughput calculation, and scalability results.
