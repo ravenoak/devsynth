@@ -331,19 +331,31 @@ class TinyDBMemoryAdapter(StorageAdapter):
         results = self.items_table.all()
         return [self._dict_to_memory_item(item_dict) for item_dict in results]
 
-    def begin_transaction(self, transaction_id: str) -> str:
-        """
-        Begin a transaction.
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
+        """Begin a transaction.
 
         Args:
-            transaction_id: The ID of the transaction
+            transaction_id: Optional transaction identifier. If ``None`` a new
+                identifier is generated. Providing an explicit identifier allows
+                external coordination across adapters.
 
         Returns:
-            The transaction ID
+            The active transaction identifier.
 
         Raises:
-            MemoryTransactionError: If the transaction cannot be started
+            MemoryTransactionError: If a transaction is already active.
         """
+        if hasattr(self, "_transaction_id"):
+            raise MemoryTransactionError(
+                "Transaction already active",
+                transaction_id=getattr(self, "_transaction_id"),
+                store_type="TinyDBMemoryAdapter",
+                operation="begin_transaction",
+            )
+
+        if transaction_id is None:
+            transaction_id = str(uuid.uuid4())
+
         logger.debug(f"Beginning transaction {transaction_id} in TinyDBMemoryAdapter")
 
         # Store the transaction ID and create a snapshot of the current state
