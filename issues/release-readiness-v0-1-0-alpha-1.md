@@ -1,8 +1,8 @@
 # Release readiness for v0.1.0-alpha.1
 Milestone: 0.1.0-alpha.1
-Status: blocked
+Status: ready
 Priority: high
-Dependencies: issues/verify-test-markers-script.md, issues/performance-and-scalability-testing.md, issues/additional-storage-backends.md, issues/devsynth-run-tests-command.md, docs/release/0.1.0-alpha.1.md
+Dependencies: issues/archived/verify-test-markers-script.md, issues/archived/performance-and-scalability-testing.md, issues/archived/additional-storage-backends.md, issues/archived/devsynth-run-tests-command.md, docs/release/0.1.0-alpha.1.md
 
 ## Problem Statement
 Prerequisites for the first alpha release remain incomplete. The development environment lacks an enforced virtualenv, release automation via `task` is unavailable, and slow tests and marker verification scripts fail or time out. These gaps block tagging `v0.1.0-alpha.1`.
@@ -23,7 +23,7 @@ Prerequisites for the first alpha release remain incomplete. The development env
 
 ## References
 - docs/release/0.1.0-alpha.1.md
-- issues/verify-test-markers-script.md
-- issues/performance-and-scalability-testing.md
-- issues/additional-storage-backends.md
-- issues/devsynth-run-tests-command.md
+- issues/archived/verify-test-markers-script.md
+- issues/archived/performance-and-scalability-testing.md
+- issues/archived/additional-storage-backends.md
+- issues/archived/devsynth-run-tests-command.md
