@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-"""Simulate layered cache hit rates under different layer counts and access patterns."""
+"""Simulate layered cache hit rates under different layer counts and access patterns.
+
+The simulation seeds its random number generator to ensure reproducibility.
+Re-running the script with identical parameters will produce the same results.
+"""
 
 from __future__ import annotations
 
@@ -95,7 +99,8 @@ def run_simulation(
             plt.xlabel("Layer count")
             plt.ylabel("Overall hit rate")
             plt.grid(True)
-            plt.savefig(chart, bbox_inches="tight")
+            fmt = chart.suffix.lstrip(".")
+            plt.savefig(chart, format=fmt, bbox_inches="tight")
             plt.close()
         except Exception as exc:  # pragma: no cover - visualization best effort
             print(f"Failed to generate chart: {exc}")
