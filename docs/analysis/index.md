@@ -36,6 +36,7 @@ This section contains various analysis documents related to the DevSynth project
 - **[Memory Component Algorithmic Analysis](memory_component_analysis.md)**: Invariants and complexity for memory operations.
 - **[EDRR Component Algorithmic Analysis](edrr_component_analysis.md)**: Phase invariants and recovery complexity.
 - **[MVU Component Algorithmic Analysis](mvu_component_analysis.md)**: Atomic rewrite and dashboard overhead.
+- **[Dialectical Reasoning Loop Convergence](dialectical_reasoning_loop_convergence.md)**: Termination proof for the iterative reasoning loop.
 
 ## Related Documentation
 

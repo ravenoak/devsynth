@@ -66,3 +66,6 @@ Unit tests under
 ``tests/unit/methodology/test_dialectical_reasoner_termination.py`` and
 ``tests/behavior/test_dialectical_reasoner_termination_behavior.py`` exercise
 these edge cases to confirm termination and complexity bounds.
+
+For a formal convergence argument, see the analysis in
+``docs/analysis/dialectical_reasoning_loop_convergence.md``.
