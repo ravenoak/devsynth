@@ -1,7 +1,7 @@
 import random
 import uuid
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict
 
 
 @dataclass
@@ -44,6 +44,14 @@ class TransactionalStore:
         return tx_id in self._snapshots
 
 
+class SynchronizableStore(TransactionalStore):
+    """Transactional store that can synchronize its state with a peer."""
+
+    def sync_from(self, other: "SynchronizableStore") -> None:
+        """Copy all items from ``other`` into this store."""
+        self.items = other.items.copy()
+
+
 def run_simulation(iterations: int = 100) -> None:
     store = TransactionalStore()
     for _ in range(iterations):
@@ -69,8 +77,28 @@ def run_simulation(iterations: int = 100) -> None:
     print(f"Simulation passed for {iterations} iterations")
 
 
+def run_synchronization_simulation(iterations: int = 100) -> None:
+    """Simulate synchronization between two replicas."""
+    primary = SynchronizableStore()
+    replica = SynchronizableStore()
+    for _ in range(iterations):
+        start_replica_state = replica.items.copy()
+        tx = primary.begin_transaction()
+        item_id = str(uuid.uuid4())
+        primary.store(MemoryItem(id=item_id, content="data"))
+        if random.random() < 0.5:
+            primary.commit_transaction(tx)
+            replica.sync_from(primary)
+            assert replica.items == primary.items
+        else:
+            primary.rollback_transaction(tx)
+            assert replica.items == start_replica_state
+    print(f"Synchronization simulation passed for {iterations} iterations")
+
+
 def main() -> None:  # pragma: no cover - manual execution
     run_simulation()
+    run_synchronization_simulation()
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution script

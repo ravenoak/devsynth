@@ -40,12 +40,16 @@ def generate_access_sequence(
 
 
 def simulate(
-    num_layers: int, access_sequence: List[int]
+    num_layers: int,
+    access_sequence: List[int],
+    reset_interval: int | None = None,
 ) -> Dict[str, float | int | List[float | int]]:
     """Run a layered cache simulation for a single layer count."""
     caches: List[Dict[int, bool]] = [dict() for _ in range(num_layers)]
     hits = [0] * num_layers
     total = 0
+    misses = 0
+    resets = 0
 
     for item in access_sequence:
         total += 1
@@ -58,6 +62,11 @@ def simulate(
         if found is None:
             caches[-1][item] = True
             found = num_layers - 1
+            misses += 1
+            if reset_interval and misses % reset_interval == 0:
+                for cache in caches:
+                    cache.clear()
+                resets += 1
         for promote_idx in range(found):
             caches[promote_idx][item] = True
 
@@ -69,6 +78,7 @@ def simulate(
         "hits": hits,
         "per_layer_rate": per_layer_rate,
         "overall_rate": overall_rate,
+        "resets": resets,
     }
 
 
@@ -79,10 +89,14 @@ def run_simulation(
     pattern: str,
     output: Path | None,
     chart: Path | None,
+    reset_interval: int | None = None,
 ) -> List[Dict[str, float | int | List[float | int]]]:
     """Run simulations for layer counts from 1 to ``max_layers``."""
     sequence = generate_access_sequence(pattern, num_items, num_accesses, seed=42)
-    results = [simulate(layers, sequence) for layers in range(1, max_layers + 1)]
+    results = [
+        simulate(layers, sequence, reset_interval)
+        for layers in range(1, max_layers + 1)
+    ]
 
     if output:
         output.write_text(json.dumps(results, indent=2))
@@ -132,6 +146,12 @@ def main() -> None:
     parser.add_argument(
         "--chart", type=Path, help="Optional path to write chart image."
     )
+    parser.add_argument(
+        "--reset-interval",
+        type=int,
+        default=None,
+        help="Reset caches after this many misses (optional)",
+    )
 
     args = parser.parse_args()
 
@@ -142,6 +162,7 @@ def main() -> None:
         pattern=args.pattern,
         output=args.output,
         chart=args.chart,
+        reset_interval=args.reset_interval,
     )
     print(json.dumps(results, indent=2))
 
