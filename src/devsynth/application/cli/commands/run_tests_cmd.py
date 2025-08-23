@@ -100,7 +100,11 @@ def run_tests_cmd(
     *,
     bridge: Optional[Any] = typer.Option(None, hidden=True),
 ) -> None:
-    """Run DevSynth test suites."""
+    """Run DevSynth test suites.
+
+    For workflow and performance details see
+    ``docs/analysis/run_tests_workflow.md``.
+    """
 
     ux_bridge = bridge if isinstance(bridge, UXBridge) else globals()["bridge"]
 
