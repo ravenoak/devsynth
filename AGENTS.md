@@ -11,7 +11,7 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
 1. Ensure Python 3.12 is active and Poetry created a virtual environment (enforced via the committed `poetry.toml`):
    ```bash
    python --version
-   poetry env info --path
+   poetry env info --path  # must print the virtualenv path
    ```
    If `poetry env info --path` prints nothing or points elsewhere, recreate the environment:
    ```bash
@@ -28,7 +28,7 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
    [scripts/install_dev.sh](scripts/install_dev.sh),
    the release guide [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md),
    and the CI workflow [.github/workflows/ci.yml](.github/workflows/ci.yml).
-3. Install dependencies with development and test extras and run commands through `poetry run`.
+3. Install dependencies with development and test extras and run commands through `poetry run` or `task`, both of which rely on the Poetry-managed virtualenv.
 
 ## Testing
 

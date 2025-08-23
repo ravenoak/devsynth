@@ -67,7 +67,9 @@ jobs:
           name: dialectical_audit
           path: dialectical_audit.log
       - name: Task release prep
-        run: task release:prep
+        run: |
+          poetry env info --path
+          task release:prep
       - name: Build package
         run: |
           poetry build

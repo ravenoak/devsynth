@@ -33,6 +33,20 @@ This guide provides step-by-step instructions for installing DevSynth in various
 - Python 3.12 or higher
 - Poetry (recommended for development)
 
+Verify that Poetry manages a virtual environment before continuing:
+
+```bash
+poetry env info --path  # should print the virtualenv path
+```
+
+If the path is empty, create it and install dependencies with:
+
+```bash
+poetry env use 3.12 && poetry install --all-extras --with dev,docs
+```
+
+Run project commands through `poetry run` or inside `poetry shell` to ensure the environment is active.
+
 
 ## Install from PyPI using Poetry
 
@@ -92,6 +106,7 @@ cd devsynth
 
 poetry install --all-extras --with dev,docs
 poetry sync --all-extras --all-groups
+poetry env info --path  # confirm virtualenv
 poetry shell
 
 # Older instructions may reference `pip install -e '.[dev]'`. Use Poetry instead
