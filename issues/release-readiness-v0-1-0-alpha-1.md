@@ -24,6 +24,7 @@ Prerequisites for the first alpha release remain incomplete. The development env
 - 2025-08-23: Attempted full release checklist and environment provisioning via `scripts/install_dev.sh`; `pre-commit` failed in the `devsynth-align` hook due to missing dependencies and a circular import in `apply_dialectical_reasoning`, leaving release readiness blocked.
 - 2025-08-23: `poetry install --with dev --extras "tests retrieval chromadb api"` succeeded. `poetry run devsynth run-tests --speed=fast` failed at `test_wsde_edrr_simulation.py::test_simulation_converges`. `tests/verify_test_organization.py` reported missing `tests/test_speed_dummy.py`, and `scripts/verify_test_markers.py` found no test files.
 - 2025-08-23: Added sentinel test and seeded `run_simulation` for deterministic convergence; `poetry run devsynth run-tests --speed=fast` and all verification scripts now succeed.
+- 2025-08-23: Latest audit shows `task` command missing; `poetry run devsynth run-tests --speed fast` and direct `pytest -m fast` hang without output, blocking test verification. `scripts/verify_test_markers.py` completes after processing 752 files (~40s).
 
 ## References
 - docs/release/0.1.0-alpha.1.md
