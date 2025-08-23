@@ -1,31 +1,16 @@
 # Specification: docs/specifications/finalize-dialectical-reasoning.md
 Feature: Finalize dialectical reasoning
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a system maintainer
+  I want dialectical reasoning to terminate
+  So that recursive analyses remain bounded
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+  Scenario: Recursion depth limit halts reasoning
+    Given a dialectical reasoning loop with max depth 3
+    When the loop attempts a fourth recursion
+    Then recursion stops to preserve termination
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: Python recursion guard triggers
+    Given Python recursion limit is lower than required depth
+    When the reasoning loop exceeds Python's recursion limit
+    Then a recursion error is raised
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |

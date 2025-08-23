@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+import sys
 from statistics import mean
 from typing import List
 
@@ -32,6 +33,23 @@ def run_simulation(
     return history
 
 
+def _recursive_depth(depth: int, max_depth: int) -> int:
+    """Simple recursive function to illustrate depth limits."""
+    if depth >= max_depth:
+        return depth
+    return _recursive_depth(depth + 1, max_depth)
+
+
+def demonstrate_recursion_depth() -> None:
+    """Show how recursion depth limits enforce termination."""
+    safe_depth = _recursive_depth(0, 10)
+    print(f"Safe recursion depth reached: {safe_depth}")
+    try:
+        _recursive_depth(0, sys.getrecursionlimit() + 1)
+    except RecursionError:
+        print("RecursionError: maximum depth exceeded")
+
+
 def main() -> None:
     """Run the simulation and print summary statistics."""
     history = run_simulation()
@@ -40,6 +58,7 @@ def main() -> None:
     deviation = max(final) - min(final)
     print(f"Deviation: {deviation:.4f}")
     print(f"Iterations: {len(history) - 1}")
+    demonstrate_recursion_depth()
 
 
 if __name__ == "__main__":
