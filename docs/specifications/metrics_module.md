@@ -1,0 +1,31 @@
+---
+author: AI Assistant
+date: 2025-08-23
+last_reviewed: 2025-08-23
+status: draft
+tags:
+  - specification
+  - metrics
+
+title: Metrics Module
+version: 0.1.0-alpha.1
+---
+
+# Summary
+
+Defines interfaces for recording alignment and test metrics within DevSynth.
+
+## Socratic Checklist
+- What is the problem?
+- What proofs confirm the solution?
+
+## Motivation
+Unified metrics collection enables consistent reporting across CLI commands and integrations.
+
+## Specification
+- Expose functions for recording and summarizing metric data.
+- Support both alignment metrics and test metrics aggregation.
+
+## Acceptance Criteria
+- Metrics functions return structures suitable for serialization.
+- Missing metric backends raise clear exceptions.
