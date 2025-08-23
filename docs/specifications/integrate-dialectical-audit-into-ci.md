@@ -52,5 +52,5 @@ validated state.
   available as an artifact.
 ## References
 
-- [Issue: Integrate dialectical audit into CI](../../issues/Integrate-dialectical-audit-into-CI.md)
+ - [Issue: Integrate dialectical audit into CI](../../issues/archived/Integrate-dialectical-audit-into-CI.md)
 - [BDD: integrate_dialectical_audit_into_ci.feature](../../tests/behavior/features/integrate_dialectical_audit_into_ci.feature)
