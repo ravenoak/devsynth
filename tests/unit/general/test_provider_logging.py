@@ -1,9 +1,12 @@
 import logging
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 pytest.importorskip("lmstudio")
+if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
+    pytest.skip("LMStudio service not available", allow_module_level=True)
 
 from devsynth.application.llm.offline_provider import OfflineProvider
 from devsynth.exceptions import DevSynthError
