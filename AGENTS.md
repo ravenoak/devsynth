@@ -19,11 +19,13 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
    ```
 2. Provision the environment:
    ```bash
-   bash scripts/install_dev.sh      # general setup (installs Taskfile if needed)
+   bash scripts/install_dev.sh      # general setup (auto-installs go-task)
    bash scripts/codex_setup.sh      # Codex agents
    task --version                   # verify Taskfile is available
    ```
-   These checks are mirrored in [scripts/install_dev.sh](scripts/install_dev.sh),
+   The install script downloads `go-task` to `$HOME/.local/bin` and adds it to
+   the `PATH` for subsequent steps. These checks are mirrored in
+   [scripts/install_dev.sh](scripts/install_dev.sh),
    the release guide [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md),
    and the CI workflow [.github/workflows/ci.yml](.github/workflows/ci.yml).
 3. Install dependencies with development and test extras and run commands through `poetry run`.
