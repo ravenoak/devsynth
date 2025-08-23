@@ -32,6 +32,7 @@ This section contains various analysis documents related to the DevSynth project
 - **[Performance Benchmark Plan](performance_plan.md)**: Expected metrics for core components.
 - **[WSDE Voting Fairness](wsde_voting_fairness.md)**: Probabilistic tie-breaking and weighted voting analysis.
 - **[Provider System Reliability](provider_system_reliability.md)**: Retry and circuit-breaker failure-rate simulations.
+- **[`devsynth run-tests` Workflow Analysis](run_tests_workflow_analysis.md)**: Termination arguments and runtime benchmarks.
 
 - **[Memory Component Algorithmic Analysis](memory_component_analysis.md)**: Invariants and complexity for memory operations.
 - **[EDRR Component Algorithmic Analysis](edrr_component_analysis.md)**: Phase invariants and recovery complexity.

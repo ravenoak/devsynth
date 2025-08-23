@@ -12,6 +12,8 @@ version: 0.1.0-alpha.1
 # Summary
 Enhances `devsynth run-tests` with flags to control parallelism, batching, and feature toggles.
 
+Runtime behavior and termination characteristics are analyzed in [analysis/run_tests_workflow_analysis.md](../analysis/run_tests_workflow_analysis.md).
+
 ## Socratic Checklist
 - **What is the problem?** Developers lacked fine-grained control over test execution; optional providers could stall runs, large suites overwhelmed resources, and conditional features were hard to toggle.
 - **What proofs confirm the solution?** Behavior tests invoke the command with `--no-parallel`, `--segment`, and `--feature` options; unit tests verify feature flag parsing.

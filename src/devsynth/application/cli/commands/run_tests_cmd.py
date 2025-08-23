@@ -2,6 +2,8 @@
 
 Wraps :func:`devsynth.testing.run_tests` to provide a `devsynth run-tests`
 command. This command mirrors the options exposed by the underlying helper.
+Runtime characteristics and termination arguments are documented in
+``docs/analysis/run_tests_workflow_analysis.md``.
 
 Example:
     `devsynth run-tests --target unit-tests --speed fast`
