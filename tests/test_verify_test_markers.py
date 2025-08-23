@@ -26,3 +26,17 @@ def test_parameterized_marker_counts(tmp_path, monkeypatch):
     assert fast_info["file_count"] == 1
     assert fast_info["pytest_count"] == 1
     assert fast_info["recognized"] is True
+
+
+@pytest.mark.fast
+def test_reports_collection_errors(tmp_path, monkeypatch):
+    """Syntax issues are surfaced with file context. ReqID: TEST-02"""
+    bad_file = tmp_path / "test_bad.py"
+    bad_file.write_text(
+        "import pytest\nimport non_existent_module\n\n"
+        "@pytest.mark.fast\n"
+        "def test_example():\n    pass\n"
+    )
+    monkeypatch.chdir(tmp_path)
+    results = verify_test_markers.verify_file_markers(bad_file)
+    assert any(issue["type"] == "collection_error" for issue in results["issues"])
