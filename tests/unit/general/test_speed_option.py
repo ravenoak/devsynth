@@ -12,6 +12,8 @@ def test_speed_option_recognized():
     ReqID: DEV-0000"""
     repo_root = Path(__file__).resolve().parents[3]
     test_file = repo_root / "tests" / "test_speed_dummy.py"
+    pre_exists = test_file.exists()
+    original_content = test_file.read_text() if pre_exists else None
     try:
         test_file.write_text(
             "import pytest\n\n@pytest.mark.fast\ndef test_dummy():\n    assert True\n"
@@ -36,5 +38,7 @@ def test_speed_option_recognized():
         )
         assert result.returncode == 0, result.stderr
     finally:
-        if test_file.exists():
+        if pre_exists and original_content is not None:
+            test_file.write_text(original_content)
+        elif test_file.exists():
             test_file.unlink()

@@ -33,6 +33,7 @@ This section contains various analysis documents related to the DevSynth project
 - **[WSDE Voting Fairness](wsde_voting_fairness.md)**: Probabilistic tie-breaking and weighted voting analysis.
 - **[Provider System Reliability](provider_system_reliability.md)**: Retry and circuit-breaker failure-rate simulations.
 - **[devsynth run-tests Workflow](run_tests_workflow.md)**: Termination and runtime analysis for the test runner.
+- **[Test Marker Verification Benchmark](test_marker_verification_benchmark.md)**: Sub-minute runtime for cached marker checks.
 
 - **[Memory Component Algorithmic Analysis](memory_component_analysis.md)**: Invariants and complexity for memory operations.
 - **[EDRR Component Algorithmic Analysis](edrr_component_analysis.md)**: Phase invariants and recovery complexity.

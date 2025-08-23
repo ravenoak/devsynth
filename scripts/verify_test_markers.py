@@ -9,10 +9,10 @@ when verification issues are found and ``2`` when subprocesses exceed the
 timeout.
 
 Pytest collection results **and verification outcomes** are cached per file in
-``.pytest_collection_cache.json`` keyed by the file's content hash and last
-modification time. Subsequent runs reuse this cache, dramatically reducing
-execution time by skipping unmodified files without recomputing hashes. The
-``--changed`` flag enables incremental verification by
+``.pytest_collection_cache.json`` (stored at the repository root) keyed by the
+file's content hash and last modification time. Subsequent runs reuse this
+cache, dramatically reducing execution time by skipping unmodified files without
+recomputing hashes. The ``--changed`` flag enables incremental verification by
 restricting checks to paths reported by ``git diff --name-only`` relative to
 ``--diff-base`` (default ``HEAD``). This is useful during local development when
 only a subset of tests has been modified:
@@ -66,8 +66,10 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 # list of collected tests to avoid reparsing stdout on subsequent runs.
 PYTEST_COLLECTION_CACHE: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
-# Persistent cache for pytest collection results
-CACHE_FILE = Path(".pytest_collection_cache.json")
+# Persistent cache for pytest collection results.  The path is anchored to the
+# repository root so callers can execute this script from any directory.
+REPO_ROOT = Path(__file__).resolve().parent.parent
+CACHE_FILE = REPO_ROOT / ".pytest_collection_cache.json"
 PERSISTENT_CACHE: Dict[str, Any] = {}
 # Cache file hashes alongside their last modification time to avoid
 # recomputing hashes for unchanged files during a single run.
