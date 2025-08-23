@@ -431,13 +431,33 @@ All test changes should undergo a brief review cycle before merging:
    poetry run python tests/verify_test_organization.py
    ```text
 
-3. Execute the relevant test suites, typically:
+3. Check marker coverage and collection errors:
+
+   ```bash
+   poetry run python scripts/verify_test_markers.py --changed
+   ```text
+
+   The script invalidates caches for recently modified tests and reuses
+   previous results to keep execution under a minute. A successful run ends
+   with a summary similar to:
+
+   ```text
+   Verification Summary:
+     Total files: 42
+     Files with issues: 0
+     Skipped files: 0
+   ```
+
+   If pytest raises an import or syntax error during collection, the offending
+   file is listed under **Collection errors**.
+
+4. Execute the relevant test suites, typically:
 
    ```bash
    poetry run devsynth run-tests --speed=<cat>
    ```text
 
-4. Request peer review and ensure reviewers confirm meaningful assertions and
+5. Request peer review and ensure reviewers confirm meaningful assertions and
    adequate coverage. See
    [cross_functional_review_process.md](cross_functional_review_process.md)
    for expectations.

@@ -113,6 +113,24 @@ def save_persistent_cache() -> None:
         pass
 
 
+def invalidate_cache_for_paths(paths: List[Path]) -> int:
+    """Invalidate cached entries for the given paths.
+
+    Args:
+        paths: Iterable of file paths whose cache entries should be removed.
+
+    Returns:
+        The number of cache entries invalidated.
+    """
+    removed = 0
+    for p in paths:
+        key = str(p)
+        if key in PERSISTENT_CACHE:
+            del PERSISTENT_CACHE[key]
+            removed += 1
+    return removed
+
+
 def get_file_hash(path: Path) -> str:
     """Compute and cache the SHA256 hash of a file."""
     path_str = str(path)
@@ -621,7 +639,7 @@ def verify_file_markers(
                     }
                     issues.append(
                         {
-                            "type": "pytest_error",
+                            "type": "collection_error",
                             "marker": marker_type,
                             "message": log_msg,
                         }
@@ -1035,6 +1053,7 @@ def verify_directory_markers(
         "files": {},
         "subprocess_timeouts": 0,
         "missing_optional_dependencies": [],
+        "collection_errors": [],
     }
 
     start = time.time()
@@ -1112,6 +1131,14 @@ def verify_directory_markers(
                 if file_results["issues"]:
                     results["files_with_issues"] += 1
                     results["files"][str(file_path)] = file_results
+                    for issue in file_results["issues"]:
+                        if issue.get("type") == "collection_error":
+                            results["collection_errors"].append(
+                                {
+                                    "file": str(file_path),
+                                    "error": issue.get("message", ""),
+                                }
+                            )
 
                 if idx % progress_interval == 0:
                     elapsed = time.time() - start
@@ -1257,6 +1284,9 @@ def main():
         diff_cmd = ["git", "diff", "--name-only", args.diff_base]
         diff_output = subprocess.check_output(diff_cmd, text=True)
         diff_paths = [Path(p.strip()) for p in diff_output.splitlines() if p.strip()]
+        removed = invalidate_cache_for_paths(diff_paths)
+        if removed:
+            print(f"Invalidated cache for {removed} changed test files")
     except subprocess.CalledProcessError as exc:  # pragma: no cover - git failure
         print(f"git diff failed: {exc}", file=sys.stderr)
         diff_paths = []
@@ -1284,6 +1314,10 @@ def main():
             print("  Missing optional dependencies:")
             for item in verification_results["missing_optional_dependencies"]:
                 print(f"    - {item['file']}: {item['dependency']}")
+        if verification_results.get("collection_errors"):
+            print("  Collection errors:")
+            for item in verification_results["collection_errors"]:
+                print(f"    - {item['file']}: {item['error']}")
         print(f"  Total test functions: {verification_results['total_test_functions']}")
         marker_pct = (
             verification_results["total_markers"]
