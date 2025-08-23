@@ -1,4 +1,5 @@
 import logging
+import os
 
 import pytest
 
@@ -11,6 +12,8 @@ from devsynth.adapters.provider_system import (
 )
 
 pytest.importorskip("lmstudio")
+if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
+    pytest.skip("LMStudio service not available", allow_module_level=True)
 
 pytestmark = [pytest.mark.requires_resource("lmstudio")]
 

@@ -177,6 +177,8 @@ The provider system tests validate:
 3. Environment variable configuration
 4. Error handling and retries
 
+LM Studio provider tests are skipped unless the `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`
+environment variable is set to a truthy value.
 
 Test fixtures for provider system testing include:
 

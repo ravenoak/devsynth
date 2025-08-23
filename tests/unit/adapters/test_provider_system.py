@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import httpx
@@ -20,6 +21,8 @@ from devsynth.adapters.provider_system import (
 from devsynth.fallback import retry_with_exponential_backoff
 
 pytest.importorskip("lmstudio")
+if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
+    pytest.skip("LMStudio service not available", allow_module_level=True)
 
 pytestmark = [
     pytest.mark.requires_resource("lmstudio"),
