@@ -22,18 +22,34 @@ Required metadata fields:
 - version: specification version
 -->
 
+Feature: Integrate dialectical audit into CI
+
 # Summary
 
 ## Socratic Checklist
-- What is the problem?
-- What proofs confirm the solution?
+- **What is the problem?** CI runs do not check the dialectical audit log, allowing
+  undocumented or untested features to slip through.
+- **What proofs confirm the solution?** A workflow step executes the dialectical
+  audit script during CI and fails the build when unresolved questions exist.
 
 ## Motivation
-
+Continuous integration currently ignores `dialectical_audit.log`, so
+inconsistencies between documentation, tests, and code may go unnoticed. By
+running the dialectical audit as part of CI, developers receive immediate
+feedback whenever a feature lacks cross references, keeping the project in a
+validated state.
 ## Specification
-
+- Add a step to the CI workflow that executes `poetry run python
+  scripts/dialectical_audit.py`.
+- The step relies on the script's exit code; any unresolved questions cause the
+  workflow to fail.
+- The generated `dialectical_audit.log` is retained as a build artifact for
+  inspection.
 ## Acceptance Criteria
-
+- `ci.yml` includes a "Dialectical audit" step that runs the script above.
+- A CI run fails when the audit reports unresolved questions.
+- A CI run succeeds when the audit reports no questions and the log is
+  available as an artifact.
 ## References
 
 - [Issue: Integrate dialectical audit into CI](../../issues/Integrate-dialectical-audit-into-CI.md)

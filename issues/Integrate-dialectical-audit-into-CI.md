@@ -1,6 +1,6 @@
 # Integrate dialectical audit into CI
 Milestone: 0.1.0
-Status: in progress
+Status: closed
 Priority: medium
 Dependencies: Phase-2-completion.md, docs/specifications/integrate-dialectical-audit-into-ci.md, tests/behavior/features/integrate_dialectical_audit_into_ci.feature
 
@@ -18,6 +18,7 @@ The dialectical audit log is generated manually and not enforced in continuous i
 
 ## Progress
 - 2025-02-19: gap identified during audit review; CI integration pending.
+- 2025-08-23: CI workflow runs dialectical audit and fails on unresolved questions.
 
 ## References
 - [scripts/dialectical_audit.py](../scripts/dialectical_audit.py)
