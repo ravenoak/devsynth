@@ -1,6 +1,6 @@
-# WSDE EDRR simulation divergence
+# Issue 160: WSDE EDRR simulation divergence
 Milestone: backlog
-Status: open
+Status: closed
 Priority: medium
 Dependencies:
 
@@ -14,6 +14,7 @@ The `tests/unit/scripts/test_wsde_edrr_simulation.py::test_simulation_converges`
 
 ## Progress
 - 2025-08-23: Detected failure during `poetry run devsynth run-tests --speed=fast`.
+- 2025-08-23: Added optional seed to `run_simulation` and updated test; convergence verified.
 
 ## References
 - tests/unit/scripts/test_wsde_edrr_simulation.py

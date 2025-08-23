@@ -9,7 +9,10 @@ from typing import List
 
 
 def run_simulation(
-    num_agents: int = 5, iterations: int = 100, eta: float = 0.2
+    num_agents: int = 5,
+    iterations: int = 100,
+    eta: float = 0.2,
+    seed: int | None = None,
 ) -> List[List[float]]:
     """Run a simple WSDE/EDRR consensus simulation.
 
@@ -17,10 +20,13 @@ def run_simulation(
         num_agents: Number of participating agents.
         iterations: Maximum number of EDRR cycles.
         eta: Refinement step size ``0 < eta < 1``.
+        seed: Optional random seed for deterministic runs.
 
     Returns:
         History of agent opinions for each iteration.
     """
+    if seed is not None:
+        random.seed(seed)
     state = [random.uniform(-1, 1) for _ in range(num_agents)]
     history = [state.copy()]
     for _ in range(iterations):
