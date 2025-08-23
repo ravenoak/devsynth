@@ -12,10 +12,10 @@ from unittest.mock import MagicMock, create_autospec, patch
 
 import pytest
 
-pytest.importorskip("chromadb.api")
-import chromadb
-from chromadb.api import ClientAPI
-from chromadb.api.models.Collection import Collection
+chromadb = pytest.importorskip("chromadb")
+chromadb_api = pytest.importorskip("chromadb.api")
+ClientAPI = chromadb_api.ClientAPI
+Collection = pytest.importorskip("chromadb.api.models").Collection
 
 from devsynth.adapters.chromadb_memory_store import (
     ChromaDBMemoryStore,

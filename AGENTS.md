@@ -30,6 +30,11 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
    and the CI workflow [.github/workflows/ci.yml](.github/workflows/ci.yml).
 3. Install dependencies with development and test extras and run commands through `poetry run` or `task`, both of which rely on the Poetry-managed virtualenv.
 
+   Optional test extras map to resource markers:
+   - `poetry install --extras retrieval` provides `kuzu` and `faiss-cpu` for tests marked with `requires_resource("kuzu")` or `requires_resource("lmdb")`.
+   - `poetry install --extras chromadb` enables ChromaDB-specific tests marked `requires_resource("chromadb")`.
+   - `poetry install --extras memory` pulls the full memory stack if running all back-end tests.
+
 ## Testing
 
 **How do I keep the build green?**

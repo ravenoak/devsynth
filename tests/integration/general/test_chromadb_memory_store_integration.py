@@ -4,8 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-pytest.importorskip("chromadb.api")
-import chromadb  # noqa: F401
+pytest.importorskip("chromadb")
 
 from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType

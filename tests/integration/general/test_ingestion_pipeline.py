@@ -570,7 +570,7 @@ class TestIngestion:
 def test_sync_manager_persistence_across_backends(tmp_path, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     monkeypatch.setenv("ENABLE_CHROMADB", "1")
-    import chromadb.utils.embedding_functions as ef
+    ef = pytest.importorskip("chromadb.utils.embedding_functions")
 
     monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
 
