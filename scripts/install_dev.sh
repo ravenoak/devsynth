@@ -117,6 +117,17 @@ PIP_NO_INDEX=1 poetry run pip check
 # Run repository verification commands
 export PYTEST_ADDOPTS="${PYTEST_ADDOPTS:-} -p benchmark"
 export PYTEST_DISABLE_PLUGIN_AUTOLOAD=0
+
+# Confirm environment and task availability before tests
+if ! poetry env info --path >/dev/null 2>&1; then
+  echo "[error] poetry virtualenv path not found before tests" >&2
+  exit 1
+fi
+if ! task --version >/dev/null 2>&1; then
+  echo "[error] task command not available before tests" >&2
+  exit 1
+fi
+
 poetry run python tests/verify_test_organization.py
 poetry run python scripts/verify_test_markers.py
 # Re-run to guarantee deterministic results via caching

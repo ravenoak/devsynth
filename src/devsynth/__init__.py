@@ -33,7 +33,10 @@ def __getattr__(name: str):
     """
 
     if name in _EXPORTED:
-        from . import logger as _logger  # Local import for lazy loading
+        try:
+            from . import logger as _logger  # Local import for lazy loading
+        except ModuleNotFoundError:  # pragma: no cover - fallback for missing module
+            from . import logging_setup as _logger
 
         value = getattr(_logger, name)
         globals()[name] = value  # Cache for future lookups
