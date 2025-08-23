@@ -22,6 +22,8 @@ DevSynth's pre-release milestones in the `0.1.x` range lead up to the first
 stable release. Version `0.1.0-alpha.1` marks the project's initial published
 milestone.
 
+> **Pre-release:** The `0.1.0-alpha.1` tag has not been created. Details may change until the release is tagged.
+
 ## [0.1.0-alpha.1] - 2025-08-16
 
 Initial alpha release delivering a modular architecture, unified memory backends, and a LangGraph-powered agent system.
