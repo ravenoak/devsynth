@@ -1007,3 +1007,35 @@ def feature_user_authentication():
 def feature_version_bump_script():
     """Marker function for audit."""
     pass
+
+
+import inspect
+import sys
+
+# Automatically generated feature marker enumeration and lookup utilities
+from enum import Enum
+from typing import Callable, Dict
+
+
+def _discover_markers() -> Dict[str, Callable[[], None]]:
+    """Return mapping of feature names to marker callables."""
+    current_module = sys.modules[__name__]
+    prefix = "feature_"
+    markers: Dict[str, Callable[[], None]] = {}
+    for name, obj in inspect.getmembers(current_module, inspect.isfunction):
+        if name.startswith(prefix):
+            key = name[len(prefix) :].upper()
+            markers[key] = obj
+    return markers
+
+
+_MARKER_FUNCTIONS = _discover_markers()
+
+FeatureMarker = Enum(
+    "FeatureMarker", {name: name for name in _MARKER_FUNCTIONS}, type=str
+)
+
+
+def get_marker(marker: "FeatureMarker") -> Callable[[], None]:
+    """Return the marker function associated with ``marker``."""
+    return _MARKER_FUNCTIONS[marker.name]

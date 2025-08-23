@@ -5,7 +5,8 @@ This module defines a comprehensive exception hierarchy for the DevSynth system,
 providing specific exception types for different categories of errors.
 """
 
-from typing import Optional, Dict, Any, List
+import logging
+from typing import Any, Dict, List, Optional
 
 # Import will be done after DevSynthLogger is defined to avoid circular imports
 # Logger will be initialized at the end of the file
@@ -355,13 +356,13 @@ class MemoryTransactionError(MemoryAdapterError):
 
         # Store transaction_id
         self.transaction_id = transaction_id
-        
+
         # Add transaction_id and original_error to details dictionary
         if transaction_id:
             self.details["transaction_id"] = transaction_id
         if original_error:
             self.details["original_error"] = str(original_error)
-            
+
         # Set the cause for proper exception chaining
         self.__cause__ = original_error
 
@@ -388,7 +389,7 @@ class CircuitBreakerOpenError(MemoryAdapterError):
         # Store circuit_name and reset_time
         self.circuit_name = circuit_name
         self.reset_time = reset_time
-        
+
         # Add circuit_name and reset_time to details dictionary
         if circuit_name:
             self.details["circuit_name"] = circuit_name
@@ -890,3 +891,13 @@ except ImportError:
     import logging
 
     logger = logging.getLogger(__name__)
+
+
+def log_exception(exc: DevSynthError, *, level: int = logging.ERROR) -> None:
+    """Log a :class:`DevSynthError` with structured details."""
+
+    log_fn = getattr(logger, "log", None)
+    if callable(log_fn):
+        log_fn(level, exc.message, extra={"error": exc.to_dict()})
+    else:  # Fallback for DevSynthLogger without ``log`` method
+        logger.error(exc.message, extra={"error": exc.to_dict()})

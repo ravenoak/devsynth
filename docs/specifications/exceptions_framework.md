@@ -23,9 +23,11 @@ Defines a structured exception hierarchy for DevSynth to ensure consistent error
 A shared base exception simplifies diagnostics and enables uniform error messaging across components.
 
 ## Specification
-- Provide a `DevSynthError` base class.
+- Provide a `DevSynthError` base class with a `to_dict` method for structured logging.
 - Group domain-specific exceptions beneath this base.
+- Offer a `log_exception` helper that records a `DevSynthError` via the project logger.
 
 ## Acceptance Criteria
 - Modules raise subclasses of `DevSynthError` for predictable handling.
+- `log_exception` emits structured details when invoked.
 - Catching `DevSynthError` captures all framework-defined errors.

@@ -24,8 +24,11 @@ Centralizing markers ensures features are discoverable for compliance and auditi
 
 ## Specification
 - Provide a marker function per tracked feature.
+- Expose a `FeatureMarker` enum that lists discovered marker functions.
+- Implement `get_marker` to return the marker callable for a given enum member.
 - Each marker serves as a reference point for requirement coverage.
 
 ## Acceptance Criteria
 - Auditing tools can locate marker functions for every documented feature.
+- Enumerating `FeatureMarker` yields all available markers.
 - Adding a new marker function registers the feature for traceability.
