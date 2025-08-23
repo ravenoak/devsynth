@@ -65,3 +65,27 @@ def align_sprint_planning(planning_sections: Dict[str, Any]) -> Dict[Phase, Any]
         if phase is not None:
             aligned[phase] = data
     return aligned
+
+
+def align_sprint_review(review_sections: Dict[str, Any]) -> Dict[Phase, Any]:
+    """Align sprint review data with EDRR phases.
+
+    This helper mirrors :func:`align_sprint_planning` but operates on review
+    feedback from completed work. Sections keyed by ceremony name are
+    translated to their corresponding EDRR phase, allowing downstream tooling
+    to analyse review outcomes in phase-aware reports.
+
+    Args:
+        review_sections: Mapping of ceremony names to review data.
+
+    Returns:
+        Dictionary keyed by :class:`Phase` for ceremonies that have a known
+        mapping. Ceremonies without a mapping are ignored.
+    """
+
+    aligned: Dict[Phase, Any] = {}
+    for ceremony, data in review_sections.items():
+        phase = map_ceremony_to_phase(ceremony)
+        if phase is not None:
+            aligned[phase] = data
+    return aligned
