@@ -7,7 +7,7 @@ mkdir -p "$WHEEL_DIR"
 
 # Ensure go-task is available for Taskfile-based workflows
 if ! command -v task >/dev/null 2>&1; then
-  echo "[warning] task command missing; installing go-task. Re-run scripts/install_dev.sh after installation." >&2
+  echo "[info] task command missing; installing go-task" >&2
   TASK_BIN_DIR="${HOME}/.local/bin"
   mkdir -p "$TASK_BIN_DIR"
 
@@ -24,13 +24,13 @@ if ! command -v task >/dev/null 2>&1; then
   echo "$TASK_BIN_DIR" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
 
   if ! command -v task >/dev/null 2>&1; then
-    echo "[error] task binary not found on PATH after installation. Install it manually and re-run scripts/install_dev.sh." >&2
-  elif ! task --version >/dev/null 2>&1; then
-    echo "[error] task command failed to run after installation. Install it manually and re-run scripts/install_dev.sh." >&2
-  else
-    echo "[info] task installed; please re-run scripts/install_dev.sh to finish setup." >&2
+    echo "[error] task binary not found on PATH after installation" >&2
+    exit 1
   fi
-  exit 1
+  if ! task --version >/dev/null 2>&1; then
+    echo "[error] task command failed to run after installation" >&2
+    exit 1
+  fi
 fi
 
 # Display Task version for debugging and ensure it resolves
