@@ -25,7 +25,7 @@ TESTS_ROOT = PROJECT_ROOT / "tests"
 
 # Files that serve as sentinels and should always be present
 SENTINEL_TEST_FILES = [
-    TESTS_ROOT / "tmp_speed_dummy.py",
+    TESTS_ROOT / "test_speed_dummy.py",
 ]
 
 # Define standard patterns

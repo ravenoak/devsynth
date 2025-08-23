@@ -1044,9 +1044,10 @@ def verify_directory_markers(
         }
 
     # Verify markers in each file
+    total_files = len(test_files)
     results = {
         "directory": directory,
-        "total_files": len(test_files),
+        "total_files": total_files,
         "files_with_issues": 0,
         "skipped_files": 0,
         "total_test_functions": 0,
@@ -1063,6 +1064,54 @@ def verify_directory_markers(
         "cache_misses": 0,
     }
 
+    # Skip files that are unchanged and have cached verification results
+    remaining_files: List[Path] = []
+    for fp in test_files:
+        file_cache = PERSISTENT_CACHE.get(str(fp))
+        if file_cache and file_cache.get("hash") == get_file_hash(fp):
+            cached = file_cache.get("verification")
+            if cached:
+                cached = dict(cached)
+                cached["cached"] = True
+                results["files"][str(fp)] = cached
+                results["cache_hits"] += 1
+                if cached.get("skipped"):
+                    results["skipped_files"] += 1
+                    missing_dep = cached.get("missing_optional_dependency")
+                    if missing_dep:
+                        results["missing_optional_dependencies"].append(
+                            {"file": str(fp), "dependency": missing_dep}
+                        )
+                    continue
+                results["total_test_functions"] += cached.get("test_functions", 0)
+                results["total_markers"] += cached.get("tests_with_markers", 0)
+                results["total_misaligned_markers"] += len(
+                    cached.get("misaligned_markers", [])
+                )
+                results["total_duplicate_markers"] += len(
+                    cached.get("duplicate_markers", [])
+                )
+                for marker_type, info in cached.get("recognized_markers", {}).items():
+                    results["marker_counts"][marker_type] = results[
+                        "marker_counts"
+                    ].get(marker_type, 0) + info.get("file_count", 0)
+                    if not info.get("recognized", False):
+                        results["total_unrecognized_markers"] += info.get(
+                            "file_count", 0
+                        )
+                    if info.get("timeout"):
+                        results["subprocess_timeouts"] += 1
+                if cached.get("issues"):
+                    results["files_with_issues"] += 1
+                    for issue in cached["issues"]:
+                        if issue.get("type") == "collection_error":
+                            results["collection_errors"].append(
+                                {"file": str(fp), "error": issue.get("message", "")}
+                            )
+                continue
+        remaining_files.append(fp)
+
+    test_files = remaining_files
     start = time.time()
 
     def process(file_path: Path) -> Tuple[Path, Dict[str, Any]]:
