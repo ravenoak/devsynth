@@ -34,6 +34,26 @@ Required metadata fields:
 
 ## Acceptance Criteria
 
+## Proofs
+
+### Termination
+Each of \(w\) tasks triggers at most \(n(n-1)\) message exchanges among \(n\) agents. The total number of steps is bounded by
+
+\[
+S = w \cdot n (n - 1)
+\]
+
+Because \(n\) and \(w\) are finite, \(S\) is finite, ensuring termination.
+
+### Complexity
+Communication complexity grows quadratically with the number of agents:
+
+\[
+T(n, w) = O(n^2 w)
+\]
+
+Hypothesis-based benchmarks (`tests/performance/test_multi_agent_benchmarks.py`) show 120 operations for \(n=4, w=10\) and 560 for \(n=8, w=10\), consistent with the formula.
+
 ## References
 
 - [Issue: Multi-Agent Collaboration](../../issues/multi-agent-collaboration.md)
