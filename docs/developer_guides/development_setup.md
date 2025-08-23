@@ -81,6 +81,20 @@ poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
 ```
 
+### Troubleshooting go-task installation
+
+If `task --version` fails even after running `scripts/install_dev.sh`, install
+`go-task` manually and ensure it appears on your `PATH`:
+
+- **Linux**: `sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -b ~/.local/bin` or use your distribution's package manager.
+- **macOS**: `brew install go-task/tap/go-task`.
+- **Windows**: `choco install task` or `scoop install task`.
+
+After installation, verify with `task --version` and re-run
+`scripts/install_dev.sh`.
+
+
+
 
 ### 1. Clone the Repository
 

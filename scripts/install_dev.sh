@@ -25,6 +25,8 @@ if ! command -v task >/dev/null 2>&1; then
 
   if ! command -v task >/dev/null 2>&1; then
     echo "[error] task binary not found on PATH after installation. Install it manually and re-run scripts/install_dev.sh." >&2
+  elif ! task --version >/dev/null 2>&1; then
+    echo "[error] task command failed to run after installation. Install it manually and re-run scripts/install_dev.sh." >&2
   else
     echo "[info] task installed; please re-run scripts/install_dev.sh to finish setup." >&2
   fi
