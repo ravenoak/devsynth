@@ -28,10 +28,23 @@ if ! command -v task >/dev/null 2>&1; then
   TASK_BIN_DIR="${HOME}/.local/bin"
   mkdir -p "$TASK_BIN_DIR"
 
+  os=$(uname -s | tr '[:upper:]' '[:lower:]')
+  arch=$(uname -m)
+  case "$arch" in
+    x86_64|amd64) arch="amd64" ;;
+    arm64|aarch64) arch="arm64" ;;
+    *) echo "[error] unsupported architecture: $arch" >&2; exit 1 ;;
+  esac
+  case "$os" in
+    linux|darwin) : ;;
+    *) echo "[error] unsupported OS: $os" >&2; exit 1 ;;
+  esac
+
+  TASK_URL="https://github.com/go-task/task/releases/latest/download/task_${os}_${arch}.tar.gz"
   if command -v curl >/dev/null 2>&1; then
-    curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR" >/tmp/task_install.log
+    curl -sSL "$TASK_URL" | tar -xz -C "$TASK_BIN_DIR" task >/tmp/task_install.log 2>&1
   elif command -v wget >/dev/null 2>&1; then
-    wget -qO- https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR" >/tmp/task_install.log
+    wget -qO- "$TASK_URL" | tar -xz -C "$TASK_BIN_DIR" task >/tmp/task_install.log 2>&1
   else
     echo "[error] neither curl nor wget is available" >&2
     exit 1

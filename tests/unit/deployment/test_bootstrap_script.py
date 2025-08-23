@@ -1,5 +1,7 @@
+import os
 import shutil
 import subprocess
+import tarfile
 import tempfile
 from pathlib import Path
 
@@ -47,3 +49,48 @@ def test_bootstrap_script_requires_docker():
         assert "Docker is required" in result.stderr
     finally:
         shutil.rmtree(workdir)
+
+
+def test_install_dev_installs_task(tmp_path):
+    """install_dev.sh should install go-task when absent.
+
+    ReqID: DEP-05"""
+
+    home = tmp_path / "home"
+    home.mkdir()
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+
+    task_stub = tmp_path / "task"
+    task_stub.write_text(
+        "#!/usr/bin/env bash\nif [[ $1 == '--version' ]]; then echo 'Task version 0.0.0'; fi\n"
+    )
+    task_stub.chmod(0o755)
+    tar_path = tmp_path / "task.tar.gz"
+    with tarfile.open(tar_path, "w:gz") as tar:
+        tar.add(task_stub, arcname="task")
+
+    curl_script = bin_dir / "curl"
+    curl_script.write_text(f"#!/usr/bin/env bash\ncat '{tar_path}'\n")
+    curl_script.chmod(0o755)
+
+    env = os.environ.copy()
+    env["HOME"] = str(home)
+    python_dir = Path(shutil.which("python")).parent
+    env["PATH"] = (
+        f"{bin_dir}:{python_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    )
+
+    install_script = ROOT / "scripts" / "install_dev.sh"
+    cmd = (
+        "awk '/^# Ensure Poetry manages a dedicated virtual environment/ {exit} {print}' "
+        f"'{install_script}' | bash"
+    )
+    subprocess.run(["bash", "-c", cmd], check=True, env=env)
+
+    task_bin = home / ".local" / "bin" / "task"
+    assert task_bin.exists()
+    result = subprocess.run(
+        [str(task_bin), "--version"], capture_output=True, text=True
+    )
+    assert result.stdout.strip() == "Task version 0.0.0"
