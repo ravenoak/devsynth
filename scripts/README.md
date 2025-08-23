@@ -121,6 +121,24 @@ The script tests the following configuration options:
 - Command line options
 - Complex configuration with multiple settings
 
+### 6. Verify Test Markers (`verify_test_markers.py`)
+
+Ensures every test carries an appropriate speed marker and that pytest can collect the marked tests. Results are cached per file in `.pytest_collection_cache.json` using a content hash so subsequent runs only verify modified tests.
+
+```bash
+# Verify all tests
+poetry run python scripts/verify_test_markers.py
+
+# Verify only changed tests
+poetry run python scripts/verify_test_markers.py --changed
+```
+
+**Expected runtime:** After an initial run, cached collections keep verification under 30 seconds for typical development workflows.
+
+**Troubleshooting:**
+- Delete `.pytest_collection_cache.json` to force a full re-run if results seem stale.
+- Collection errors often stem from missing optional dependencies; install the package or skip the test with an environment flag.
+
 ## Best Practices
 
 These scripts follow these best practices:

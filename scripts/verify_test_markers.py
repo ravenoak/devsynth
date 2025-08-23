@@ -324,6 +324,7 @@ def verify_file_markers(
     if file_cache and file_cache.get("hash") == file_hash:
         cached_result = file_cache.get("verification")
         if cached_result is not None:
+            cached_result["cached"] = True
             return cached_result
 
     # Read the file content
@@ -775,6 +776,8 @@ def verify_file_markers(
         for issue in results["issues"]:
             print(f"    - {issue['message']}")
 
+    results["cached"] = False
+
     # Persist verification result for future runs
     file_cache = PERSISTENT_CACHE.setdefault(
         str(file_path), {"hash": file_hash, "markers": {}}
@@ -1036,6 +1039,8 @@ def verify_directory_markers(
             "marker_counts": {"fast": 0, "medium": 0, "slow": 0, "isolation": 0},
             "files": {},
             "subprocess_timeouts": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
         }
 
     # Verify markers in each file
@@ -1054,6 +1059,8 @@ def verify_directory_markers(
         "subprocess_timeouts": 0,
         "missing_optional_dependencies": [],
         "collection_errors": [],
+        "cache_hits": 0,
+        "cache_misses": 0,
     }
 
     start = time.time()
@@ -1095,6 +1102,7 @@ def verify_directory_markers(
                                 "message": str(exc),
                             }
                         ],
+                        "cached": False,
                     }
                     continue
 
@@ -1106,6 +1114,11 @@ def verify_directory_markers(
                             {"file": str(file_path), "dependency": missing_dep}
                         )
                     continue
+
+                if file_results.get("cached"):
+                    results["cache_hits"] += 1
+                else:
+                    results["cache_misses"] += 1
 
                 results["total_test_functions"] += file_results["test_functions"]
                 results["total_markers"] += file_results["tests_with_markers"]
@@ -1172,6 +1185,7 @@ def verify_directory_markers(
                                 "message": "verification timed out",
                             }
                         ],
+                        "cached": False,
                     }
     logger.debug("ThreadPoolExecutor shutdown for %s", directory)
 
