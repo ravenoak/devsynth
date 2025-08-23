@@ -12,6 +12,8 @@ import pytest
 import responses
 
 pytest.importorskip("lmstudio")
+if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
+    pytest.skip("LMStudio service not available", allow_module_level=True)
 
 from devsynth.adapters.provider_system import FallbackProvider
 from devsynth.adapters.provider_system import LMStudioProvider as PS_LMStudioProvider
