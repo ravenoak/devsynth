@@ -1,8 +1,8 @@
 # DevSynth run-tests hangs
 Milestone: 0.1.0-alpha.1
-Status: todo
+Status: blocked
 Priority: high
-Dependencies: release-readiness-v0-1-0-alpha-1.md, Resolve-pytest-xdist-assertion-errors.md
+Dependencies: Resolve-pytest-xdist-assertion-errors.md
 
 ## Problem Statement
 Executing `poetry run devsynth run-tests --speed fast` or `pytest -m fast` hangs without producing output, preventing validation of the test suite. This blocks the release process and undermines confidence in automated testing.
