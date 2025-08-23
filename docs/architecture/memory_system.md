@@ -87,6 +87,26 @@ LMDB, FAISS, and Kuzu adapters using store-specific context managers. If any
 operation fails, changes are rolled back across all participating stores using a
 mix of native transactions and snapshot restoration.
 
+### Complexity and Synchronization Guarantees
+
+The memory subsystem exhibits the following time complexities (``n`` = number of
+stored items):
+
+| Adapter | Insert Complexity | Lookup Complexity |
+|---------|-------------------|-------------------|
+| TinyDB  | ``O(n)``          | ``O(n)``          |
+| DuckDB  | ``O(log n)``      | ``O(log n)``      |
+| LMDB    | ``O(log n)``      | ``O(log n)``      |
+| Kuzu    | ``O(log n)``      | ``O(log n)``      |
+
+`SyncManager` enforces atomic cross-store commits across LMDB, FAISS, and Kuzu.
+It couples LMDB's native transactions with snapshot restoration for adapters
+that lack transactional support. When a failure occurs, all participating stores
+roll back to their previous states, ensuring that either every store records the
+update or none do. Asynchronous replicas such as TinyDB and DuckDB receive
+changes after the transaction completes, providing eventual consistency with a
+last-write-wins policy.
+
 ### Domain Models
 
 #### Memory Types
