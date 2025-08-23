@@ -47,6 +47,7 @@ between runs to keep subsequent executions under 30 seconds for large test suite
 """
 
 import argparse
+import atexit
 import concurrent.futures
 import hashlib
 import json
@@ -111,9 +112,13 @@ def save_persistent_cache() -> None:
     """Persist cached pytest collection results to disk."""
     try:
         with open(CACHE_FILE, "w") as f:
-            json.dump(PERSISTENT_CACHE, f)
+            json.dump(PERSISTENT_CACHE, f, indent=2)
     except Exception:
         pass
+
+
+# Ensure the cache is written even if the process exits unexpectedly.
+atexit.register(save_persistent_cache)
 
 
 def invalidate_cache_for_paths(paths: List[Path]) -> int:
@@ -188,8 +193,7 @@ def parse_collected_tests(stdout: str, file_path: Path) -> List[str]:
     return deduped
 
 
-# Load cache at import time
-load_persistent_cache()
+# Persistent cache is loaded lazily in ``main`` to avoid side effects during import.
 
 # Limit concurrency to a small, safe default to avoid deadlocks during
 # collection.  The value mirrors ``pytest``'s own conservative defaults.
@@ -1354,6 +1358,9 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s",
     )
 
+    # Load the persistent cache after argument parsing to minimize import side effects.
+    load_persistent_cache()
+
     # Determine the directory to verify
     directory = args.module if args.module else args.directory
 
@@ -1456,8 +1463,6 @@ def main():
     ):
         exit_code = max(exit_code, 1)
 
-    # Persist cache for future runs
-    save_persistent_cache()
     return exit_code
 
 
