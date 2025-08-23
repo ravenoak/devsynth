@@ -1,5 +1,7 @@
 import pytest
 
+from devsynth import DevSynthLogger
+
 
 @pytest.mark.fast
 def test_speed_dummy():
@@ -7,4 +9,6 @@ def test_speed_dummy():
 
     ReqID: DEV-0000
     """
-    assert True
+    # Ensure DevSynth exports logging helpers via __getattr__
+    logger = DevSynthLogger(__name__)
+    assert logger is not None

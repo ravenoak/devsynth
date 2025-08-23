@@ -26,6 +26,7 @@ Prerequisites for the first alpha release remain incomplete. The development env
 - 2025-08-23: Added sentinel test and seeded `run_simulation` for deterministic convergence; `poetry run devsynth run-tests --speed=fast` and all verification scripts now succeed.
 - 2025-08-23: Latest audit shows `task` command missing; `poetry run devsynth run-tests --speed fast` and direct `pytest -m fast` hang without output, blocking test verification. `scripts/verify_test_markers.py` completes after processing 752 files (~40s).
 - 2025-08-23: Re-ran environment setup. `scripts/install_dev.sh` installed go-task v3.44.1, and `poetry install --with dev --extras "tests retrieval chromadb api"` completed. `task --version` reports 3.44.1 and `poetry run devsynth --help` displays CLI options, but `poetry run devsynth run-tests --speed=fast` exits with `ModuleNotFoundError: No module named 'devsynth'`.
+- 2025-08-23: Confirmed editable install fixes `ModuleNotFoundError`; `poetry env info --path` and `task --version` succeed, `poetry run devsynth run-tests --speed=fast` passes, while `task release:prep` fails at `test_handle_errors_during_code_inspection`.
 
 ## References
 - docs/release/0.1.0-alpha.1.md
