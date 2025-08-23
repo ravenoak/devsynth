@@ -1,31 +1,15 @@
 # Specification: docs/specifications/integrate-dialectical-audit-into-ci.md
 Feature: Integrate dialectical audit into CI
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a maintainer
+  I want CI to check for unresolved dialectical questions
+  So that mismatched documentation, tests, and code are caught early
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+  Scenario: CI fails when the audit raises questions
+    Given the repository has unresolved dialectical audit questions
+    When the CI workflow runs the dialectical audit
+    Then the workflow should fail
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: CI passes when the audit finds no questions
+    Given the dialectical audit log contains no questions
+    When the CI workflow runs the dialectical audit
+    Then the workflow should succeed
