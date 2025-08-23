@@ -45,6 +45,21 @@ and fragile error handling when optional stores are missing.
 - Expand integration tests covering persistence and retrieval paths.
 - Ensure missing LMDB dependencies raise clear, actionable errors.
 
+### Transaction semantics
+
+The synchronization manager coordinates TinyDB, DuckDB, LMDB, and Kuzu
+stores using snapshot-based transactions. Before mutating any store the
+manager records its state; on successful completion changes are committed
+across all adapters, while any exception triggers a rollback restoring the
+snapshots.
+
+### Failure modes
+
+- Construction fails with a descriptive error if any required adapter is
+  absent.
+- During a transaction, an exception from one store causes all stores to
+  revert to their pre-transaction state preventing partial writes.
+
 ## Acceptance Criteria
 
 - MemorySystemAdapter initializes any configured store or fails with a
