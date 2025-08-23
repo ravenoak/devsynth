@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -15,7 +16,7 @@ def test_verify_test_markers_cache(tmp_path: Path) -> None:
     )
 
     vtm.PERSISTENT_CACHE.clear()
-    vtm.FILE_HASHES.clear()
+    vtm.FILE_SIGNATURES.clear()
 
     result1 = vtm.verify_directory_markers(str(tmp_path))
     assert result1["cache_misses"] == 1
@@ -36,10 +37,29 @@ def test_verify_test_markers_collection_error(tmp_path: Path) -> None:
     )
 
     vtm.PERSISTENT_CACHE.clear()
-    vtm.FILE_HASHES.clear()
+    vtm.FILE_SIGNATURES.clear()
 
     result = vtm.verify_directory_markers(str(tmp_path))
     assert result["files_with_issues"] == 1
     file_result = result["files"][str(test_file)]
     assert any(issue["type"] == "collection_error" for issue in file_result["issues"])
     assert result["collection_errors"]
+
+
+@pytest.mark.fast
+def test_verify_test_markers_cache_invalidation(tmp_path: Path) -> None:
+    """Invalidate persisted cache entries. ReqID: QA-03"""
+    test_file = tmp_path / "test_sample.py"
+    test_file.write_text(
+        "import pytest\n\n@pytest.mark.fast\ndef test_one():\n    assert True\n",
+        encoding="utf-8",
+    )
+
+    key = str(test_file)
+    vtm.PERSISTENT_CACHE[key] = {"hash": "abc", "verification": {}}
+    vtm.FILE_SIGNATURES[key] = (0.0, "abc")
+
+    removed = vtm.invalidate_cache_for_paths([test_file])
+    assert removed == 1
+    assert key not in vtm.PERSISTENT_CACHE
+    assert key not in vtm.FILE_SIGNATURES

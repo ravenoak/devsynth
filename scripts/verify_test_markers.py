@@ -9,9 +9,10 @@ when verification issues are found and ``2`` when subprocesses exceed the
 timeout.
 
 Pytest collection results **and verification outcomes** are cached per file in
-``.pytest_collection_cache.json`` keyed by the file's content hash. Subsequent
-runs reuse this cache, dramatically reducing execution time by skipping
-unmodified files. The ``--changed`` flag enables incremental verification by
+``.pytest_collection_cache.json`` keyed by the file's content hash and last
+modification time. Subsequent runs reuse this cache, dramatically reducing
+execution time by skipping unmodified files without recomputing hashes. The
+``--changed`` flag enables incremental verification by
 restricting checks to paths reported by ``git diff --name-only`` relative to
 ``--diff-base`` (default ``HEAD``). This is useful during local development when
 only a subset of tests has been modified:
@@ -68,7 +69,9 @@ PYTEST_COLLECTION_CACHE: Dict[Tuple[str, str], Dict[str, Any]] = {}
 # Persistent cache for pytest collection results
 CACHE_FILE = Path(".pytest_collection_cache.json")
 PERSISTENT_CACHE: Dict[str, Any] = {}
-FILE_HASHES: Dict[str, str] = {}
+# Cache file hashes alongside their last modification time to avoid
+# recomputing hashes for unchanged files during a single run.
+FILE_SIGNATURES: Dict[str, Tuple[float, str]] = {}
 
 # Ensure pytest doesn't autoload third-party plugins which can introduce
 # heavy dependencies during collection. Additional plugins are disabled
@@ -128,20 +131,34 @@ def invalidate_cache_for_paths(paths: List[Path]) -> int:
         if key in PERSISTENT_CACHE:
             del PERSISTENT_CACHE[key]
             removed += 1
+        FILE_SIGNATURES.pop(key, None)
     return removed
 
 
 def get_file_hash(path: Path) -> str:
     """Compute and cache the SHA256 hash of a file."""
     path_str = str(path)
-    digest = FILE_HASHES.get(path_str)
-    if digest:
+    current_mtime = path.stat().st_mtime
+
+    sig = FILE_SIGNATURES.get(path_str)
+    if sig and sig[0] == current_mtime:
+        return sig[1]
+
+    file_cache = PERSISTENT_CACHE.get(path_str)
+    if file_cache and file_cache.get("mtime") == current_mtime:
+        digest = file_cache.get("hash", "")
+        FILE_SIGNATURES[path_str] = (current_mtime, digest)
         return digest
+
     h = hashlib.sha256()
     with open(path, "rb") as f:
         h.update(f.read())
     digest = h.hexdigest()
-    FILE_HASHES[path_str] = digest
+    FILE_SIGNATURES[path_str] = (current_mtime, digest)
+    file_cache = PERSISTENT_CACHE.setdefault(path_str, {})
+    file_cache["hash"] = digest
+    file_cache["mtime"] = current_mtime
+    file_cache.setdefault("markers", {})
     return digest
 
 
@@ -489,11 +506,9 @@ def verify_file_markers(
                     "tests": tests,
                 }
                 PYTEST_COLLECTION_CACHE[cache_key] = cache_entry
-                file_cache = PERSISTENT_CACHE.setdefault(
-                    str(file_path), {"hash": file_hash, "markers": {}}
-                )
+                file_cache = PERSISTENT_CACHE.setdefault(str(file_path), {})
                 file_cache["hash"] = file_hash
-                file_cache["markers"][marker_type] = cache_entry
+                file_cache.setdefault("markers", {})[marker_type] = cache_entry
                 cached = cache_entry
                 stdout = cache_entry["stdout"]
                 stderr = cache_entry["stderr"]
@@ -523,11 +538,9 @@ def verify_file_markers(
                     "tests": [],
                 }
                 PYTEST_COLLECTION_CACHE[cache_key] = cache_entry
-                file_cache = PERSISTENT_CACHE.setdefault(
-                    str(file_path), {"hash": file_hash, "markers": {}}
-                )
+                file_cache = PERSISTENT_CACHE.setdefault(str(file_path), {})
                 file_cache["hash"] = file_hash
-                file_cache["markers"][marker_type] = cache_entry
+                file_cache.setdefault("markers", {})[marker_type] = cache_entry
                 cached = cache_entry
                 stdout = cache_entry["stdout"]
                 stderr = cache_entry["stderr"]
@@ -1068,7 +1081,9 @@ def verify_directory_markers(
     remaining_files: List[Path] = []
     for fp in test_files:
         file_cache = PERSISTENT_CACHE.get(str(fp))
-        if file_cache and file_cache.get("hash") == get_file_hash(fp):
+        previous_hash = file_cache.get("hash") if file_cache else None
+        current_hash = get_file_hash(fp)
+        if file_cache and previous_hash == current_hash:
             cached = file_cache.get("verification")
             if cached:
                 cached = dict(cached)
