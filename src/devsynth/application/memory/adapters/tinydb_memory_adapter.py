@@ -2,7 +2,9 @@
 TinyDB Memory Adapter Module
 
 This module provides a memory adapter that handles structured data queries
-using TinyDB.
+using TinyDB. It also normalizes common Python types (e.g., ``set`` or
+``datetime``) into JSON-friendly representations to avoid serialization
+errors.
 """
 
 import uuid
@@ -48,6 +50,27 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
         logger.info("TinyDB Memory Adapter initialized")
 
+    def _serialize_value(self, value: Any) -> Any:
+        """Recursively convert values to JSON-serializable forms.
+
+        TinyDB relies on JSON serialization. Sets, datetimes, and enums are
+        normalized so they can be stored without raising ``TypeError``.
+        """
+        from datetime import datetime
+        from enum import Enum
+
+        if isinstance(value, datetime):
+            return value.isoformat()
+        if isinstance(value, set):
+            return [self._serialize_value(v) for v in value]
+        if isinstance(value, list):
+            return [self._serialize_value(v) for v in value]
+        if isinstance(value, dict):
+            return {k: self._serialize_value(v) for k, v in value.items()}
+        if isinstance(value, Enum):
+            return value.value
+        return value
+
     def _memory_item_to_dict(self, item: MemoryItem) -> Dict[str, Any]:
         """
         Convert a MemoryItem to a dictionary for storage in TinyDB.
@@ -65,10 +88,10 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
         return {
             "id": item.id,
-            "content": item.content,
+            "content": self._serialize_value(item.content),
             "memory_type": memory_type_value,
-            "metadata": item.metadata,
-            "created_at": item.created_at.isoformat() if item.created_at else None,
+            "metadata": self._serialize_value(item.metadata),
+            "created_at": self._serialize_value(item.created_at),
         }
 
     def _dict_to_memory_item(self, item_dict: Dict[str, Any]) -> MemoryItem:

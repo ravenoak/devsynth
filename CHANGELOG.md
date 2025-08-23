@@ -67,6 +67,7 @@ Initial alpha release delivering a modular architecture, unified memory backends
 - Added missing step definitions for enhanced memory scenarios
 - Linked remaining alpha tasks (WebUI, Kuzu memory, WSDE collaboration, CLI ingestion) to milestone `0.1.0-alpha.1` and updated development status.
 - Memory module import no longer leaves residual TinyDB state when the dependency is absent
+- TinyDBMemoryAdapter converts non-JSON types (e.g., sets, datetimes) during serialization to avoid TypeError
 
 ### Dialectical audit
 - Generated `dialectical_audit.log`; see Issue 125 for unresolved questions.

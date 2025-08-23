@@ -142,3 +142,28 @@ def test_tinydb_transaction_optional_id(tmp_path):
         adapter.commit_transaction()
     with pytest.raises(MemoryTransactionError):
         adapter.rollback_transaction()
+
+
+@pytest.mark.medium
+def test_tinydb_serializes_unhandled_types(tmp_path):
+    """ReqID: FR-44
+
+    TinyDB adapter should gracefully handle metadata with non-JSON values."""
+
+    from datetime import datetime
+
+    adapter = TinyDBMemoryAdapter(db_path=str(tmp_path / "db.json"))
+    item = MemoryItem(
+        id="meta1",
+        content="content",
+        memory_type=MemoryType.KNOWLEDGE,
+        metadata={"tags": {"a", "b"}, "timestamp": datetime(2024, 1, 1)},
+    )
+
+    item_id = adapter.store(item)
+    retrieved = adapter.retrieve(item_id)
+    assert retrieved is not None
+    # sets should round-trip as lists
+    assert set(retrieved.metadata["tags"]) == {"a", "b"}
+    # datetimes should round-trip as ISO strings
+    assert retrieved.metadata["timestamp"] == datetime(2024, 1, 1).isoformat()
