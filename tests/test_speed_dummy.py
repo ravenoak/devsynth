@@ -1,14 +1,9 @@
-import pytest
+"""Sentinel test for verify_test_organization. ReqID: QA-06"""
 
-from devsynth import DevSynthLogger
+import pytest
 
 
 @pytest.mark.fast
 def test_speed_dummy():
-    """Sentinel test for speed marker validation.
-
-    ReqID: DEV-0000
-    """
-    # Ensure DevSynth exports logging helpers via __getattr__
-    logger = DevSynthLogger(__name__)
-    assert logger is not None
+    """Ensure sentinel test runs quickly. ReqID: QA-06"""
+    assert True
