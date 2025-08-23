@@ -1,6 +1,8 @@
 """Dialectical reasoning orchestrator with consensus failure logging."""
 
-from typing import Any, Dict, Optional
+from __future__ import annotations
+
+from typing import Any, Dict, Optional, Protocol
 
 from devsynth.exceptions import ConsensusError
 from devsynth.logger import log_consensus_failure
@@ -9,10 +11,18 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
+class _Coordinator(Protocol):
+    """Protocol for coordinator dependencies used by the reasoner."""
+
+    def apply_dialectical_reasoning(
+        self, task: Dict[str, Any], critic_agent: Any, memory_integration: Optional[Any]
+    ) -> Optional[Dict[str, Any]]: ...
+
+
 class DialecticalReasoner:
     """Run dialectical reasoning via an EDRR coordinator."""
 
-    def __init__(self, coordinator: Any) -> None:
+    def __init__(self, coordinator: _Coordinator) -> None:
         self.coordinator = coordinator
 
     def run(

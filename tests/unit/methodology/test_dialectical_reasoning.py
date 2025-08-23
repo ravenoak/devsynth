@@ -1,13 +1,20 @@
 """Tests for the dialectical reasoning utilities."""
 
+import pytest
+
 from devsynth.domain.models.memory import MemoryType
 from devsynth.exceptions import ConsensusError
 from devsynth.methodology.base import Phase
 from devsynth.methodology.edrr import EDRRCoordinator, reasoning_loop
 
+pytestmark = pytest.mark.fast
+
 
 def test_reasoning_loop_records_results(mocker) -> None:
-    """It stores results through the coordinator."""
+    """It stores results through the coordinator.
+
+    ReqID: DR-1
+    """
 
     coordinator = mocker.create_autospec(EDRRCoordinator, instance=True)
     result = {"status": "completed"}
@@ -24,7 +31,10 @@ def test_reasoning_loop_records_results(mocker) -> None:
 
 
 def test_reasoning_loop_logs_consensus_failure(mocker) -> None:
-    """It delegates consensus failures to the coordinator."""
+    """It delegates consensus failures to the coordinator.
+
+    ReqID: DR-2
+    """
 
     coordinator = mocker.create_autospec(EDRRCoordinator, instance=True)
 
@@ -44,7 +54,10 @@ def test_reasoning_loop_logs_consensus_failure(mocker) -> None:
 
 
 def test_reasoning_loop_persists_phase_results(mocker) -> None:
-    """It stores results using the memory manager."""
+    """It stores results using the memory manager.
+
+    ReqID: DR-3
+    """
 
     memory_manager = mocker.Mock()
     coordinator = EDRRCoordinator(memory_manager)
