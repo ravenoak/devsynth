@@ -9,6 +9,7 @@ This directory contains the DevSynth test suite.
 
 **How do I prepare for testing?**
 Follow the repository setup from the root AGENTS and ensure all commands run through `poetry run`.
+Agent API tests require the `api` extra.
 
 Install extras for optional resources as needed:
 - `poetry install --extras retrieval` to enable `kuzu`, `lmdb`, and `faiss` back-end tests.

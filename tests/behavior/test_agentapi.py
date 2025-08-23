@@ -5,8 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
+fastapi = pytest.importorskip("fastapi")
 
 
 def _setup(monkeypatch):
@@ -40,7 +39,7 @@ def test_json_requests_succeeds(monkeypatch):
 
     ReqID: AGENTAPI-001"""
 
-    from fastapi.testclient import TestClient
+    TestClient = fastapi.testclient.TestClient
 
     cli_stub, agentapi = _setup(monkeypatch)
     client = TestClient(agentapi.app)
