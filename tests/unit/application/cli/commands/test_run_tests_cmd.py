@@ -1,6 +1,8 @@
 """Tests for the ``run-tests`` CLI command."""
 
+import importlib
 import os
+import sys
 import typing
 from unittest.mock import patch
 
@@ -11,6 +13,8 @@ from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
+
+pytestmark = pytest.mark.fast
 
 
 @pytest.fixture(autouse=True)
@@ -67,6 +71,7 @@ def test_run_tests_cmd_sets_optional_provider_guard(monkeypatch) -> None:
     ReqID: FR-22"""
 
     monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+    monkeypatch.delitem(sys.modules, "lmstudio", raising=False)
     with patch.object(module, "run_tests", return_value=(True, "")):
         module.run_tests_cmd(target="unit-tests", bridge=DummyBridge())
     assert os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE") == "false"
@@ -143,3 +148,32 @@ def test_run_tests_cli_maxfail_option() -> None:
             50,
             2,
         )
+
+
+def test_run_tests_cli_fast_without_optional_providers(monkeypatch) -> None:
+    """CLI fast run should succeed when optional providers are absent.
+
+    ReqID: FR-22"""
+
+    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+
+    real_find_spec = importlib.util.find_spec
+
+    def missing_spec(name):
+        if name == "lmstudio":
+            return None
+        return real_find_spec(name)
+
+    monkeypatch.setattr(importlib.util, "find_spec", missing_spec)
+
+    runner = CliRunner()
+    with patch(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        return_value=(True, ""),
+    ) as mock_run:
+        app = build_app()
+        result = runner.invoke(app, ["run-tests", "--speed", "fast"])
+
+    assert result.exit_code == 0
+    assert os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE") == "false"
+    mock_run.assert_called_once()

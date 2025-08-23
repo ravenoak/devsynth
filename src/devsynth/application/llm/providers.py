@@ -183,7 +183,7 @@ class SimpleLLMProviderFactory(LLMProviderFactory):
         if provider_type not in self.provider_types:
             if provider_type == "lmstudio":
                 raise ValidationError(
-                    "LMStudio provider is unavailable. Install the 'lmstudio' package to enable this provider."
+                    "LMStudio provider is unavailable. Install the 'lmstudio' package and set 'DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true' to enable this provider."
                 )
             raise ValidationError(f"Unknown provider type: {provider_type}")
 
@@ -211,7 +211,9 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
 
 
 # Import providers at the end to avoid circular imports
-lmstudio_requested = os.getenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE")
+lmstudio_requested = os.environ.get(
+    "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+).lower() in ("1", "true")
 if lmstudio_requested:  # pragma: no cover - optional dependency
     try:
         from .lmstudio_provider import LMStudioProvider

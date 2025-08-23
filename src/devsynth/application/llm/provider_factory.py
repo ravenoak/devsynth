@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, Optional
+
+from devsynth.logging_setup import DevSynthLogger
 
 from .providers import (
     AnthropicProvider,
@@ -13,9 +16,18 @@ from .providers import (
     ValidationError,
 )
 
-try:  # pragma: no cover - optional dependency
-    from .lmstudio_provider import LMStudioProvider
-except ImportError:  # pragma: no cover - fallback path
+logger = DevSynthLogger(__name__)
+
+lmstudio_requested = os.environ.get(
+    "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+).lower() in ("1", "true")
+if lmstudio_requested:  # pragma: no cover - optional dependency
+    try:
+        from .lmstudio_provider import LMStudioProvider
+    except ImportError as exc:  # pragma: no cover - fallback path
+        LMStudioProvider = None
+        logger.warning("LMStudioProvider not available: %s", exc)
+else:  # pragma: no cover - optional dependency
     LMStudioProvider = None
 
 
