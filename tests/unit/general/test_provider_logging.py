@@ -14,7 +14,10 @@ pytestmark = [pytest.mark.fast, pytest.mark.requires_resource("lmstudio")]
 
 
 def test_provider_logging_cleanup(lmstudio_service, capsys):
-    """Providers should not log after logging.shutdown."""
+    """Providers should not log after logging.shutdown.
+
+    ReqID: LMSTUDIO-13
+    """
     from devsynth.application.llm.lmstudio_provider import LMStudioProvider
 
     OfflineProvider().generate("hello")
@@ -32,15 +35,17 @@ def test_provider_logging_cleanup(lmstudio_service, capsys):
         provider = LMStudioProvider({"auto_select_model": False})
         provider.generate("hi")
 
-    import lmstudio.sync_api as sync_api
-
-    sync_api._reset_default_client()
+    lmstudio_module = pytest.importorskip("lmstudio")
+    lmstudio_module.sync_api._reset_default_client()
     logging.shutdown()
     assert "I/O operation on closed file" not in capsys.readouterr().err
 
 
 def test_lmstudio_retry_metrics_and_circuit_breaker(lmstudio_service):
-    """Failures increment retry metrics and open the circuit breaker."""
+    """Failures increment retry metrics and open the circuit breaker.
+
+    ReqID: LMSTUDIO-14
+    """
     from devsynth.application.llm.lmstudio_provider import (
         LMStudioConnectionError,
         LMStudioProvider,

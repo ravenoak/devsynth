@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import types
 from dataclasses import dataclass
 from typing import Any, Dict, List
@@ -33,6 +34,13 @@ class LMStudioMockServer:
 @pytest.fixture
 def lmstudio_mock(monkeypatch) -> LMStudioMockServer:
     """Provide a mocked LM Studio HTTP API with streaming responses."""
+
+    if os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false").lower() not in (
+        "1",
+        "true",
+        "yes",
+    ):
+        pytest.skip("LMStudio service not available")
 
     lmstudio = pytest.importorskip("lmstudio")
 
