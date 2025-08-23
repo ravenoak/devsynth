@@ -1,9 +1,12 @@
+import os
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 pytest.importorskip("lmstudio")
+if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
+    pytest.skip("LMStudio service not available", allow_module_level=True)
 
 pytestmark = [pytest.mark.requires_resource("lmstudio"), pytest.mark.medium]
 
@@ -49,12 +52,14 @@ def tracker_patches():
 
 
 def test_generate_succeeds(provider):
+    """Generate text using LM Studio. ReqID: LMSTUDIO-15"""
     with tracker_patches():
         result = provider.generate("Test prompt")
     assert result == "This is a test response"
 
 
 def test_generate_with_context_succeeds(provider):
+    """Generate with prior conversation. ReqID: LMSTUDIO-16"""
     context = [
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello"},
@@ -66,6 +71,7 @@ def test_generate_with_context_succeeds(provider):
 
 
 def test_get_embedding_succeeds(provider):
+    """Return embeddings for text. ReqID: LMSTUDIO-17"""
     with patch(
         "devsynth.application.utils.token_tracker.TokenTracker.__init__",
         return_value=None,
@@ -75,12 +81,14 @@ def test_get_embedding_succeeds(provider):
 
 
 def test_api_error_handling_raises_error(provider, lmstudio_service):
+    """Raise error when API fails. ReqID: LMSTUDIO-18"""
     lmstudio_service.trigger_error()
     with tracker_patches(), pytest.raises(Exception):
         provider.generate("Test prompt")
 
 
 def test_circuit_breaker_opens_after_failures_fails(lmstudio_service):
+    """Open circuit breaker after repeated failures. ReqID: LMSTUDIO-19"""
     from devsynth.application.llm.lmstudio_provider import (
         LMStudioConnectionError,
         LMStudioProvider,

@@ -33,7 +33,11 @@ class LMStudioMockServer:
 
 @pytest.fixture
 def lmstudio_service(monkeypatch) -> LMStudioMockServer:
-    """Provide a mocked LM Studio HTTP API with streaming responses."""
+    """Provide a mocked LM Studio HTTP API with streaming responses.
+
+    Skips unless ``DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`` is truthy and the
+    :mod:`lmstudio` package is installed.
+    """
 
     if os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false").lower() not in (
         "1",
