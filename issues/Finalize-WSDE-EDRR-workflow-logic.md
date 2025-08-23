@@ -33,5 +33,6 @@ Integration tests for WSDE and EDRR now hang within collaboration memory utiliti
 ## References
 - Specification: docs/specifications/finalize-wsde-edrr-workflow-logic.md
 - BDD Feature: tests/behavior/features/finalize_wsde_edrr_workflow_logic.feature
+- Analysis: docs/analysis/wsde_edrr_convergence.md
 
 - Related: [Complete Sprint-EDRR integration](Complete-Sprint-EDRR-integration.md)

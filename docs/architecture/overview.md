@@ -157,6 +157,7 @@ DevSynth follows a comprehensive set of SDLC policies and documentation standard
 - [Dialectical Reasoning](dialectical_reasoning.md)
 - [Error Handling](../technical_reference/error_handling.md)
 - [Requirements Traceability Matrix](../requirements_traceability.md)
+- [WSDE/EDRR Convergence Analysis](../analysis/wsde_edrr_convergence.md)
 
 
 ---
