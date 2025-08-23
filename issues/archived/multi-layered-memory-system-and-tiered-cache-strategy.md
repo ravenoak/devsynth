@@ -22,3 +22,4 @@ Multi-Layered Memory System and Tiered Cache Strategy is not yet implemented, li
 ## References
 - Specification: docs/specifications/multi-layered-memory-system-and-tiered-cache-strategy.md
 - BDD Feature: tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature
+- Analysis: docs/analysis/synchronization_algorithm_proof.md

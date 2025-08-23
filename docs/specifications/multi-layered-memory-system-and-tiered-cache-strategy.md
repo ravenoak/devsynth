@@ -52,3 +52,8 @@ hit_ratio = hits / trials
 - Retrieving a value from a lower layer stores it in higher layers.
 - `hit_ratio()` reports overall cache efficiency and per‑layer values.
 - Accessing a missing key raises a `KeyError`.
+
+## References
+
+- [Issue: Multi-Layered Memory System and Tiered Cache Strategy](../../issues/archived/multi-layered-memory-system-and-tiered-cache-strategy.md)
+- [Analysis: Synchronization Algorithm Proof](../analysis/synchronization_algorithm_proof.md)

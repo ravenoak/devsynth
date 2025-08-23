@@ -31,3 +31,4 @@ Resolve pytest-xdist assertion errors is not yet implemented, limiting DevSynth'
 - Related: [Expand test generation capabilities](Expand-test-generation-capabilities.md)
 - Specification: docs/specifications/resolve-pytest-xdist-assertion-errors.md
 - BDD Feature: tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature
+- Analysis: docs/analysis/coverage_reset_proof.md

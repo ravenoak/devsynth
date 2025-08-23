@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
 
@@ -108,6 +109,39 @@ def run_simulation(
     return results
 
 
+@dataclass
+class SyncStore:
+    """Store with pending writes used for synchronization demo."""
+
+    data: Dict[int, int]
+    pending: Dict[int, int]
+
+
+def synchronize(primary: SyncStore, secondary: SyncStore) -> None:
+    """Apply pending updates from ``primary`` to ``secondary``."""
+
+    secondary.data.update(primary.pending)
+    primary.pending.clear()
+
+
+def run_synchronization_simulation(iterations: int = 50) -> None:
+    """Demonstrate eventual consistency across two stores."""
+
+    rng = random.Random(42)
+    a, b = SyncStore({}, {}), SyncStore({}, {})
+    for _ in range(iterations):
+        key = rng.randrange(100)
+        value = rng.randrange(1000)
+        a.data[key] = value
+        a.pending[key] = value
+        if rng.random() < 0.3:
+            synchronize(a, b)
+            assert a.data == b.data
+    synchronize(a, b)
+    assert a.data == b.data
+    print(f"Synchronization simulation passed for {iterations} iterations")
+
+
 def main() -> None:
     """Entrypoint for command-line execution."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -144,6 +178,7 @@ def main() -> None:
         chart=args.chart,
     )
     print(json.dumps(results, indent=2))
+    run_synchronization_simulation()
 
 
 if __name__ == "__main__":

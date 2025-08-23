@@ -33,3 +33,9 @@ Required metadata fields:
 ## Specification
 
 ## Acceptance Criteria
+
+## References
+
+- [Issue: Hybrid Memory Query Patterns and Synchronization](../../issues/hybrid-memory-query-patterns-and-synchronization.md)
+- [BDD: hybrid_memory_query_patterns_and_synchronization.feature](../../tests/behavior/features/hybrid_memory_query_patterns_and_synchronization.feature)
+- [Analysis: Synchronization Algorithm Proof](../analysis/synchronization_algorithm_proof.md)
