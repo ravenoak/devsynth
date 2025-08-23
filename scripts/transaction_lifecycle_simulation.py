@@ -1,7 +1,9 @@
+"""Transactional memory lifecycle simulation with coverage reset demo."""
+
 import random
 import uuid
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict
 
 
 @dataclass
@@ -44,13 +46,28 @@ class TransactionalStore:
         return tx_id in self._snapshots
 
 
+@dataclass
+class CoverageTracker:
+    """Track executed line identifiers and support resets."""
+
+    lines: set[int]
+
+    def mark(self, line: int) -> None:
+        self.lines.add(line)
+
+    def reset(self) -> None:
+        self.lines.clear()
+
+
 def run_simulation(iterations: int = 100) -> None:
     store = TransactionalStore()
+    coverage = CoverageTracker(lines=set())
     for _ in range(iterations):
         start_state = store.items.copy()
         expected_state = start_state.copy()
         tx = store.begin_transaction()
         for _ in range(random.randint(1, 5)):
+            coverage.mark(random.randint(1, 1_000))
             if random.random() < 0.5 or not expected_state:
                 item_id = str(uuid.uuid4())
                 item = MemoryItem(id=item_id, content=f"item-{random.random()}")
@@ -66,6 +83,8 @@ def run_simulation(iterations: int = 100) -> None:
         else:
             store.rollback_transaction(tx)
             assert store.items == start_state and not store.is_transaction_active(tx)
+        coverage.reset()
+        assert not coverage.lines
     print(f"Simulation passed for {iterations} iterations")
 
 

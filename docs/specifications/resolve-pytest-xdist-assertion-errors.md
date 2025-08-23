@@ -38,3 +38,4 @@ Required metadata fields:
 
 - [Issue: Resolve pytest-xdist assertion errors](../../issues/Resolve-pytest-xdist-assertion-errors.md)
 - [BDD: resolve_pytest_xdist_assertion_errors.feature](../../tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature)
+- [Analysis: Coverage Reset Algorithm Proof](../analysis/coverage_reset_proof.md)
