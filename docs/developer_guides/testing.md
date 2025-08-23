@@ -2,7 +2,7 @@
 
 author: DevSynth Team
 date: '2025-06-01'
-last_reviewed: "2025-08-02"
+last_reviewed: "2025-08-22"
 status: published
 tags:
 
@@ -38,6 +38,7 @@ This guide documents the testing standards, practices, and infrastructure for th
 - [ChromaDB Memory Store Testing](#ChromaDB-memory-store-testing)
 - [Writing New Tests](#writing-new-tests)
 - [Running Tests](#running-tests)
+- [Requirements Traceability](#requirements-traceability)
 - [Continuous Integration](#continuous-integration)
 - [Test Coverage](#test-coverage)
 
@@ -511,6 +512,21 @@ poetry run pytest tests/property/
 
 When the flag is `false`, tests marked with `@pytest.mark.property` are automatically skipped.
 
+## Requirements Traceability
+
+Every published specification in `docs/specifications/` must link to at least
+one BDD feature file under `tests/behavior/features/`. The
+`scripts/verify_requirements_traceability.py` script scans the requirements
+traceability matrix and verifies that specification documents reference existing
+feature files. The CI workflow runs this script and fails if a spec lacks a
+feature reference or links to a missing file.
+
+Run the check locally with:
+
+```bash
+poetry run python scripts/verify_requirements_traceability.py
+```
+
 ## Continuous Integration
 
 DevSynth uses GitHub Actions for continuous integration testing. The CI pipeline:
@@ -535,4 +551,4 @@ Test coverage is tracked and reported in CI runs.
 
 ---
 
-_Last updated: August 2, 2025_
+_Last updated: August 22, 2025_
