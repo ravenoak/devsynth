@@ -1,6 +1,6 @@
 # Release readiness for v0.1.0-alpha.1
 Milestone: 0.1.0-alpha.1
-Status: ready
+Status: in progress
 Priority: high
 Dependencies:
 
@@ -21,6 +21,7 @@ Prerequisites for the first alpha release remain incomplete. The development env
 - 2025-08-22: Archived virtualenv configuration dependency. `poetry run python scripts/verify_release_state.py` reports missing tag `v0.1.0-alpha.1`.
 - 2025-08-22: Re-ran release checklist; `pip check` passed, `devsynth run-tests` for all speeds aborted with missing `LMStudioProvider`, `verify_test_markers.py` halted after collection error, deployment tests failed coverage, and `task release:prep` failed with a `TinyDBMemoryAdapter` TypeError.
 - 2025-08-22: Profiled `verify_test_markers.py`, implemented caching for unmodified files, and confirmed it completes in ~1.5 seconds (<1 minute).
+- 2025-08-23: Attempted full release checklist and environment provisioning via `scripts/install_dev.sh`; `pre-commit` failed in the `devsynth-align` hook due to missing dependencies and a circular import in `apply_dialectical_reasoning`, leaving release readiness blocked.
 
 ## References
 - docs/release/0.1.0-alpha.1.md
