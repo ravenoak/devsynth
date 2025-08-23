@@ -26,6 +26,7 @@
     "Termination proof for dialectical reasoner hooks documented and tests added 2025-08-21.",
     "2025-08-22: tests/unit/deployment coverage improved to 100% with security hardening tests.",
     "2025-08-22: TinyDBMemoryAdapter transaction lifecycle fixed to auto-generate IDs; regression test added.",
-    "2025-08-22: devsynth run-tests and verify_test_markers succeeded after installing go-task."
+    "2025-08-22: devsynth run-tests and verify_test_markers succeeded after installing go-task.",
+    "2025-08-22: Formal termination proof added for dialectical reasoning and recursion depth simulation documented."
   ]
 }
