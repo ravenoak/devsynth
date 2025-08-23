@@ -47,6 +47,10 @@ echo "$task_version"
 # Ensure Poetry manages a dedicated virtual environment
 poetry config virtualenvs.create true
 poetry env remove --all >/dev/null 2>&1 || true
+if ! poetry env use 3.12 >/dev/null 2>&1; then
+  echo "[error] Python 3.12 not available for Poetry" >&2
+  exit 1
+fi
 
 optional_pkgs=$(python - <<'PY'
 import re, tomllib

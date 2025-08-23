@@ -188,6 +188,7 @@ tasks:
   release:prep:
     desc: Build distributions and run smoke tests before tagging a release
     cmds:
+      - poetry env info --path
       - task: clean
       - task: build:wheel
       - task: build:sdist
