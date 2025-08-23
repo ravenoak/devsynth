@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, Optional
 
 from .providers import (
@@ -13,9 +14,15 @@ from .providers import (
     ValidationError,
 )
 
-try:  # pragma: no cover - optional dependency
-    from .lmstudio_provider import LMStudioProvider
-except ImportError:  # pragma: no cover - fallback path
+lmstudio_requested = os.getenv(
+    "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+).lower() in {"1", "true", "yes"}
+if lmstudio_requested:  # pragma: no cover - optional dependency
+    try:
+        from .lmstudio_provider import LMStudioProvider
+    except ImportError:  # pragma: no cover - fallback path
+        LMStudioProvider = None
+else:  # pragma: no cover - optional dependency
     LMStudioProvider = None
 
 

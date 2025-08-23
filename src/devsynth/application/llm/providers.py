@@ -211,7 +211,9 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
 
 
 # Import providers at the end to avoid circular imports
-lmstudio_requested = os.getenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE")
+lmstudio_requested = os.getenv(
+    "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+).lower() in {"1", "true", "yes"}
 if lmstudio_requested:  # pragma: no cover - optional dependency
     try:
         from .lmstudio_provider import LMStudioProvider
