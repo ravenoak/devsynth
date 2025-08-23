@@ -15,7 +15,7 @@ def test_chromadb_falls_back_to_ephemeral_client(tmp_path, monkeypatch):
     ef = pytest.importorskip("chromadb.utils.embedding_functions")
     monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
 
-    import chromadb
+    chromadb = pytest.importorskip("chromadb")
 
     def raise_module_error(*args, **kwargs):
         raise ModuleNotFoundError("lmdb")

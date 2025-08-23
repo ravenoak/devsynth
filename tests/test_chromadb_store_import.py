@@ -1,5 +1,3 @@
-from importlib import util
-
 import pytest
 
 from tests.lightweight_imports import apply_lightweight_imports
@@ -11,7 +9,6 @@ def test_chromadb_store_import() -> None:
 
     ReqID: CDS-001
     """
-    if util.find_spec("chromadb") is None:
-        pytest.skip("chromadb not installed")
+    pytest.importorskip("chromadb")
     apply_lightweight_imports()
     from devsynth.application.memory.chromadb_store import ChromaDBStore  # noqa: F401

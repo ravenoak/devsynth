@@ -10,6 +10,11 @@ This directory contains the DevSynth test suite.
 **How do I prepare for testing?**
 Follow the repository setup from the root AGENTS and ensure all commands run through `poetry run`.
 
+Install extras for optional resources as needed:
+- `poetry install --extras retrieval` to enable `kuzu`, `lmdb`, and `faiss` back-end tests.
+- `poetry install --extras chromadb` for ChromaDB integration tests.
+Set `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=1` to opt into these resources.
+
 ## Testing
 
 **How do I run tests?**
