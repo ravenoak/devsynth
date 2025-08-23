@@ -53,34 +53,54 @@ def main(argv: list[str] | None = None) -> None:
         result: dict[str, Any] = analyzer.analyze()
         print(json.dumps(result, indent=2))
     else:
-        try:
-            from devsynth.adapters.cli.typer_adapter import run_cli
-        except ModuleNotFoundError as exc:  # pragma: no cover - optional deps
-            from devsynth.application.cli.errors import handle_error
-            from devsynth.interface.cli import CLIUXBridge
-
-            msg = (
-                f"Missing optional dependency: {exc.name}. "
-                "Install the required provider package to enable this feature."
-            )
-            handle_error(CLIUXBridge(), msg)
-            raise SystemExit(1)
-
         from devsynth.application.cli.errors import handle_error
         from devsynth.interface.cli import CLIUXBridge
 
-        try:
-            run_cli()
-        except ModuleNotFoundError as exc:  # pragma: no cover - optional deps
-            msg = (
-                f"Missing optional dependency: {exc.name}. "
-                "Install the required provider package to enable this feature."
-            )
-            handle_error(CLIUXBridge(), msg)
-            raise SystemExit(1)
-        except Exception as err:  # pragma: no cover - defensive
-            handle_error(CLIUXBridge(), err)
-            raise SystemExit(1)
+        if remaining and remaining[0] == "run-tests":
+            try:
+                import typer
+
+                from devsynth.application.cli.commands.run_tests_cmd import (
+                    run_tests_cmd,
+                )
+            except ModuleNotFoundError as exc:  # pragma: no cover - optional deps
+                msg = (
+                    f"Missing optional dependency: {exc.name}. "
+                    "Install the required provider package to enable this feature."
+                )
+                handle_error(CLIUXBridge(), msg)
+                raise SystemExit(1)
+
+            app = typer.Typer(add_completion=False)
+            app.command("run-tests")(run_tests_cmd)
+            try:
+                app(prog_name="devsynth", args=remaining)
+            except Exception as err:  # pragma: no cover - defensive
+                handle_error(CLIUXBridge(), err)
+                raise SystemExit(1)
+        else:
+            try:
+                from devsynth.adapters.cli.typer_adapter import run_cli
+            except ModuleNotFoundError as exc:  # pragma: no cover - optional deps
+                msg = (
+                    f"Missing optional dependency: {exc.name}. "
+                    "Install the required provider package to enable this feature."
+                )
+                handle_error(CLIUXBridge(), msg)
+                raise SystemExit(1)
+
+            try:
+                run_cli()
+            except ModuleNotFoundError as exc:  # pragma: no cover - optional deps
+                msg = (
+                    f"Missing optional dependency: {exc.name}. "
+                    "Install the required provider package to enable this feature."
+                )
+                handle_error(CLIUXBridge(), msg)
+                raise SystemExit(1)
+            except Exception as err:  # pragma: no cover - defensive
+                handle_error(CLIUXBridge(), err)
+                raise SystemExit(1)
 
 
 if __name__ == "__main__":  # pragma: no cover - tested via integration test
