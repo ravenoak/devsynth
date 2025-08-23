@@ -40,10 +40,22 @@ and fragile error handling when optional stores are missing.
 
 ## Specification
 
-- Finalize synchronization manager supporting LMDB, FAISS, and Kuzu stores.
-- Harden ChromaDB adapter and transactional semantics.
+- Finalize synchronization manager supporting TinyDB, DuckDB, LMDB, and Kuzu stores.
+- Harden transactional semantics across adapters.
 - Expand integration tests covering persistence and retrieval paths.
 - Ensure missing LMDB dependencies raise clear, actionable errors.
+
+## Transaction Semantics
+
+- Synchronization manager performs write-through updates to all configured stores.
+- Writes occur sequentially; failures halt propagation and surface the error.
+- Retrieval queries fall back through stores in declaration order.
+
+## Failure Modes
+
+- Absence of an optional store dependency logs a warning but does not block others.
+- Write failures leave previously updated stores committed and later stores untouched.
+- Invoking synchronization with a store lacking `get_all_items` results in a no-op.
 
 ## Acceptance Criteria
 
