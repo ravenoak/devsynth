@@ -1,10 +1,11 @@
 import pytest
 
+pytestmark = pytest.mark.fast
 
-@pytest.mark.fast
+
 def test_speed_dummy():
-    """Sentinel test for speed marker validation.
+    """Sentinel test to satisfy test organization checks.
 
-    ReqID: DEV-0000
-    """
+    ReqID: TEST-00"""
+
     assert True

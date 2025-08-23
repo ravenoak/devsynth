@@ -1,5 +1,43 @@
 """Feature markers for dialectical audit."""
 
+from enum import Enum
+from typing import List
+
+
+class FeatureMarker(str, Enum):
+    """Enumerate auditable DevSynth features."""
+
+    EXCEPTIONS_FRAMEWORK = "exceptions_framework"
+    FEATURE_MARKERS = "feature_markers"
+    COMPLETE_MEMORY_SYSTEM_INTEGRATION = "complete_memory_system_integration"
+
+
+def list_feature_markers() -> List[str]:
+    """Return identifiers for all feature markers."""
+
+    return [marker.value for marker in FeatureMarker]
+
+
+# Feature: Exceptions Framework
+def feature_exceptions_framework():
+    """Marker function for audit."""
+
+    pass
+
+
+# Feature: Feature Markers
+def feature_feature_markers():
+    """Marker function for audit."""
+
+    pass
+
+
+# Feature: Complete Memory System Integration
+def feature_complete_memory_system_integration():
+    """Marker function for audit."""
+
+    pass
+
 
 # Feature: API Reference Documentation Generation
 def feature_api_reference_documentation_generation():

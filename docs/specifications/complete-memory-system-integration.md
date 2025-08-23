@@ -59,3 +59,4 @@ and fragile error handling when optional stores are missing.
 - [BDD: complete_memory_system_integration.feature](../../tests/behavior/features/complete_memory_system_integration.feature)
 - [MemorySystemAdapter](../../src/devsynth/adapters/memory/memory_adapter.py)
 - [WSDE memory integration](../../src/devsynth/application/agents/wsde_memory_integration.py)
+- [Feature marker](../../src/devsynth/feature_markers.py)

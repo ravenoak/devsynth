@@ -5,7 +5,7 @@ This module defines a comprehensive exception hierarchy for the DevSynth system,
 providing specific exception types for different categories of errors.
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 # Import will be done after DevSynthLogger is defined to avoid circular imports
 # Logger will be initialized at the end of the file
@@ -355,13 +355,13 @@ class MemoryTransactionError(MemoryAdapterError):
 
         # Store transaction_id
         self.transaction_id = transaction_id
-        
+
         # Add transaction_id and original_error to details dictionary
         if transaction_id:
             self.details["transaction_id"] = transaction_id
         if original_error:
             self.details["original_error"] = str(original_error)
-            
+
         # Set the cause for proper exception chaining
         self.__cause__ = original_error
 
@@ -388,7 +388,7 @@ class CircuitBreakerOpenError(MemoryAdapterError):
         # Store circuit_name and reset_time
         self.circuit_name = circuit_name
         self.reset_time = reset_time
-        
+
         # Add circuit_name and reset_time to details dictionary
         if circuit_name:
             self.details["circuit_name"] = circuit_name
@@ -879,6 +879,28 @@ class AuthorizationError(SecurityError):
 
 class InputSanitizationError(SecurityError):
     """Exception raised when unsafe input is detected."""
+
+
+# Utilities
+
+
+def ensure_dev_synth_error(
+    exc: Exception, message: str = "Unexpected error"
+) -> DevSynthError:
+    """Wrap arbitrary exceptions in :class:`DevSynthError`.
+
+    Args:
+        exc: Exception to validate.
+        message: Message for the wrapped error when ``exc`` is not already a
+            :class:`DevSynthError`.
+
+    Returns:
+        A :class:`DevSynthError` instance.
+    """
+
+    if isinstance(exc, DevSynthError):
+        return exc
+    return InternalError(message or str(exc), cause=exc)
 
 
 # Initialize logger at the end to avoid circular imports

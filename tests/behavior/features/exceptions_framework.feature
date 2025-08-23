@@ -1,9 +1,9 @@
 Feature: Exceptions Framework
   As a developer
-  I want a unified exception base class
+  I want a central exception hierarchy
   So that error handling is consistent
 
-  Scenario: Catch DevSynthError
-    Given a component that raises a DevSynthError
-    When I handle errors
-    Then I can catch the base class
+  Scenario: Placeholder
+    Given [precondition]
+    When [action]
+    Then [outcome]

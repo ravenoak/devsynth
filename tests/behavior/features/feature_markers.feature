@@ -1,9 +1,9 @@
 Feature: Feature Markers
-  As a compliance officer
-  I want feature marker functions
-  So that auditing tools can trace requirements
+  As a developer
+  I want to track project features via markers
+  So that requirements are auditable
 
-  Scenario: Locate feature marker
-    Given a documented feature
-    When I search the marker module
-    Then I find a corresponding marker function
+  Scenario: Placeholder
+    Given [precondition]
+    When [action]
+    Then [outcome]

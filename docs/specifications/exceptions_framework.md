@@ -23,9 +23,20 @@ Defines a structured exception hierarchy for DevSynth to ensure consistent error
 A shared base exception simplifies diagnostics and enables uniform error messaging across components.
 
 ## Specification
-- Provide a `DevSynthError` base class.
-- Group domain-specific exceptions beneath this base.
+- Provide a `DevSynthError` base class exposing a message, optional
+  ``error_code``, and structured ``details`` with a ``to_dict`` helper.
+- Group domain-specific exceptions beneath this base, including
+  ``UserInputError`` and ``SystemError`` families.
+- Expose an ``ensure_dev_synth_error`` utility that wraps arbitrary
+  exceptions in the hierarchy.
 
 ## Acceptance Criteria
 - Modules raise subclasses of `DevSynthError` for predictable handling.
 - Catching `DevSynthError` captures all framework-defined errors.
+- ``ensure_dev_synth_error`` returns existing ``DevSynthError`` instances and
+  wraps other exceptions in ``InternalError``.
+
+## References
+
+- [`src/devsynth/exceptions.py`](../../src/devsynth/exceptions.py)
+- [`tests/unit/devsynth/test_exceptions_framework.py`](../../tests/unit/devsynth/test_exceptions_framework.py)
