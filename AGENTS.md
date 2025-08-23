@@ -28,7 +28,7 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
    [scripts/install_dev.sh](scripts/install_dev.sh),
    the release guide [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md),
    and the CI workflow [.github/workflows/ci.yml](.github/workflows/ci.yml).
-3. Install dependencies with development and test extras and run commands through `poetry run` or `task`, both of which rely on the Poetry-managed virtualenv.
+3. Install dependencies with development and test extras. Use `poetry run` for all Python invocations (or `task` for Taskfile targets) so commands run inside the Poetry-managed virtualenv.
 
    Optional test extras map to resource markers:
    - `poetry install --extras retrieval` provides `kuzu` and `faiss-cpu` for tests marked with `requires_resource("kuzu")` or `requires_resource("lmdb")`.

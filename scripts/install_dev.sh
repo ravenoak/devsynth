@@ -5,6 +5,23 @@ CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/devsynth"
 WHEEL_DIR="$CACHE_DIR/wheels"
 mkdir -p "$WHEEL_DIR"
 
+# Abort if the active Python version is below 3.12
+if ! py_ver="$(python --version 2>&1)"; then
+  echo "[error] unable to determine Python version" >&2
+  exit 1
+fi
+if [[ $py_ver =~ ^Python[[:space:]]([0-9]+)\.([0-9]+) ]]; then
+  major="${BASH_REMATCH[1]}"
+  minor="${BASH_REMATCH[2]}"
+  if (( major < 3 || (major == 3 && minor < 12) )); then
+    echo "[error] Python 3.12 or higher is required; found $py_ver" >&2
+    exit 1
+  fi
+else
+  echo "[error] unrecognized Python version output: $py_ver" >&2
+  exit 1
+fi
+
 # Ensure go-task is available for Taskfile-based workflows
 if ! command -v task >/dev/null 2>&1; then
   echo "[info] task command missing; installing go-task" >&2
