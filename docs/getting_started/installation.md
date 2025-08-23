@@ -50,6 +50,16 @@ poetry install --without dev --without docs
 
 Extras may be added later using `poetry install --extras llm --extras api --extras offline --extras gui`.
 
+### Optional LM Studio support
+
+LM Studio integration is optional. Install the extra when you need it:
+
+```bash
+poetry install --extras lmstudio
+```
+
+Set `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true` to opt in to tests that require LM Studio.
+
 ### Enable GUI support
 
 Install the optional desktop interface by including the `gui` extra:
