@@ -3,6 +3,8 @@ Milestone: 0.1.0-alpha.1
 Status: in progress
 Priority: high
 Dependencies:
+- devsynth-run-tests-hangs.md
+- Resolve-pytest-xdist-assertion-errors.md
 - archived/wsde-edrr-simulation-divergence.md
 ## Problem Statement
 Prerequisites for the first alpha release remain incomplete. The development environment lacks an enforced virtualenv, release automation via `task` is unavailable, and slow tests and marker verification scripts fail or time out. These gaps block tagging `v0.1.0-alpha.1`.
