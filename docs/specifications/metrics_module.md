@@ -1,7 +1,7 @@
 ---
 author: AI Assistant
 date: 2025-08-23
-last_reviewed: 2025-08-23
+last_reviewed: 2025-08-24
 status: draft
 tags:
   - specification
@@ -10,6 +10,8 @@ tags:
 title: Metrics Module
 version: 0.1.0-alpha.1
 ---
+
+Feature: Metrics Module
 
 # Summary
 
@@ -29,3 +31,8 @@ Unified metrics collection enables consistent reporting across CLI commands and 
 ## Acceptance Criteria
 - Metrics functions return structures suitable for serialization.
 - Missing metric backends raise clear exceptions.
+
+## References
+
+- [Issue: Dialectical audit documentation](../../issues/dialectical-audit-documentation.md)
+- [BDD: metrics_module.feature](../../tests/behavior/features/metrics_module.feature)

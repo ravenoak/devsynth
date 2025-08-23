@@ -1,7 +1,7 @@
 ---
 author: AI Assistant
 date: 2025-08-23
-last_reviewed: 2025-08-23
+last_reviewed: 2025-08-24
 status: draft
 tags:
   - specification
@@ -10,6 +10,8 @@ tags:
 title: CLI Entrypoint
 version: 0.1.0-alpha.1
 ---
+
+Feature: CLI Entrypoint
 
 # Summary
 
@@ -29,3 +31,8 @@ The project requires a single entrypoint capable of lightweight repository analy
 ## Acceptance Criteria
 - Running `devsynth --analyze-repo PATH` emits JSON describing the repository.
 - Invoking `devsynth` without options runs the Typer CLI.
+
+## References
+
+- [Issue: Dialectical audit documentation](../../issues/dialectical-audit-documentation.md)
+- [BDD: cli_entrypoint.feature](../../tests/behavior/features/cli_entrypoint.feature)

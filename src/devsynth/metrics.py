@@ -1,10 +1,14 @@
 """Utility module for tracking runtime metrics.
 
+See ``docs/specifications/metrics_module.md`` for specification details.
+
 The module exposes helper functions for incrementing counters used throughout
 the project.  Internally the counters are maintained both as simple in-memory
 ``Counter`` objects for unit tests and as `prometheus_client` counters for
 runtime scraping.
 """
+
+# Feature: Metrics Module
 
 from __future__ import annotations
 

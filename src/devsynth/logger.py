@@ -1,10 +1,14 @@
 """Central logging configuration for DevSynth components.
 
+See ``docs/specifications/logger_configuration.md`` for detailed requirements.
+
 This module sets up a shared logging configuration so that all parts of the
 system emit logs to ``logs/devsynth.log``.  Logs are rotated automatically and
 the log level can be controlled programmatically or via the
 ``DEVSYNTH_LOG_LEVEL`` environment variable.
 """
+
+# Feature: Logger Configuration
 
 from __future__ import annotations
 

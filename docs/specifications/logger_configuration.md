@@ -1,7 +1,7 @@
 ---
 author: AI Assistant
 date: 2025-08-23
-last_reviewed: 2025-08-23
+last_reviewed: 2025-08-24
 status: draft
 tags:
   - specification
@@ -10,6 +10,8 @@ tags:
 title: Logger Configuration
 version: 0.1.0-alpha.1
 ---
+
+Feature: Logger Configuration
 
 # Summary
 
@@ -30,3 +32,8 @@ A consistent logging interface simplifies debugging and enables centralized log 
 ## Acceptance Criteria
 - Calling `get_logger` returns a configured logger instance.
 - Passing an exception to logging methods records stack traces without error.
+
+## References
+
+- [Issue: Dialectical audit documentation](../../issues/dialectical-audit-documentation.md)
+- [BDD: logger_configuration.feature](../../tests/behavior/features/logger_configuration.feature)
