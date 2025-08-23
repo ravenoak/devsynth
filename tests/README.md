@@ -6,6 +6,8 @@ This directory contains tests for the DevSynth project, organized into different
 - **Integration Tests**: Tests for interactions between components (`tests/integration/`)
 - **Behavior Tests**: Tests for user-facing features using BDD (`tests/behavior/`)
 - **Standalone Tests**: Special-purpose tests that don't fit the other categories (`tests/standalone/`)
+- **Sentinel Test**: `tests/tmp_speed_dummy.py` is a trivial fast test that exists
+  to validate tooling; do not remove it.
 
 ## Test Organization
 

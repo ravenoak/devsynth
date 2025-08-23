@@ -23,6 +23,11 @@ from typing import Dict, List, Optional, Set, Tuple
 PROJECT_ROOT = Path(__file__).parent.parent
 TESTS_ROOT = PROJECT_ROOT / "tests"
 
+# Files that serve as sentinels and should always be present
+SENTINEL_TEST_FILES = [
+    TESTS_ROOT / "tmp_speed_dummy.py",
+]
+
 # Define standard patterns
 UNIT_TEST_PATTERN = re.compile(r"tests/unit/.*?/test_[a-z0-9_]+\.py$")
 INTEGRATION_TEST_PATTERN = re.compile(r"tests/integration/.*?/test_[a-z0-9_]+\.py$")
@@ -135,6 +140,15 @@ def check_test_classes_with_init() -> List[str]:
     return test_classes_with_init
 
 
+def check_sentinel_files() -> List[str]:
+    """Ensure required sentinel test files are present."""
+    missing = []
+    for path in SENTINEL_TEST_FILES:
+        if not path.exists():
+            missing.append(os.path.relpath(path, PROJECT_ROOT))
+    return missing
+
+
 def main():
     """Run all checks and report results."""
     print("Verifying test organization standards...")
@@ -196,8 +210,22 @@ def main():
     else:
         print("\n✅ No test classes with __init__ constructors found.")
 
+    # Check sentinel test files
+    missing_sentinels = check_sentinel_files()
+    if missing_sentinels:
+        print("\n❌ Missing sentinel test files:")
+        for file in missing_sentinels:
+            print(f"  - {file}")
+    else:
+        print("\n✅ All sentinel test files are present.")
+
     # Overall result
-    if missing_init_files or has_non_compliant_files or test_classes_with_init:
+    if (
+        missing_init_files
+        or has_non_compliant_files
+        or test_classes_with_init
+        or missing_sentinels
+    ):
         print(
             "\n❌ Test organization verification failed. Please fix the issues above."
         )
