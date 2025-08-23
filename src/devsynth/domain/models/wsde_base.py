@@ -422,10 +422,14 @@ class WSDETeam:
         next_agent = self.agents[next_idx]
         self.roles["primus"] = next_agent
 
-        from devsynth.domain.models import wsde_roles
-
-        wsde_roles._update_agent_role(self, next_agent, "primus")
-        setattr(next_agent, "has_been_primus", True)
+        # Inline role update logic to avoid a runtime import of ``wsde_roles``
+        # which previously created a circular dependency during module
+        # initialization.
+        setattr(next_agent, "previous_role", getattr(next_agent, "current_role", None))
+        setattr(next_agent, "current_role", "Primus")
+        if next_agent in self.agents:
+            self.primus_index = self.agents.index(next_agent)
+            setattr(next_agent, "has_been_primus", True)
 
         if all(getattr(a, "has_been_primus", False) for a in self.agents):
             for a in self.agents:
