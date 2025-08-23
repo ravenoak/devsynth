@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Validate requirements traceability matrix.
 
-Ensures each requirement row includes references to code modules and tests.
+Ensures each requirement row includes references to code modules and tests and
+that published specifications link to existing BDD feature files.
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ import sys
 
 
 def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
-    """Return 0 if requirements and specs have code and test references."""
+    """Return 0 if requirements and specs have code, test, and feature links."""
     errors: list[str] = []
     for lineno, line in enumerate(matrix.read_text().splitlines(), start=1):
         if (
@@ -46,6 +47,12 @@ def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
             continue
         has_code = "src/" in text
         has_test = "tests/" in text
+        feature_refs = set(
+            re.findall(
+                r"(?:\./|\.\./)*tests/behavior/features/[\w./-]+\.feature",
+                text,
+            )
+        )
         if not has_code:
             errors.append(
                 f"{spec.relative_to(pathlib.Path('.'))} missing code reference"
@@ -54,6 +61,22 @@ def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
             errors.append(
                 f"{spec.relative_to(pathlib.Path('.'))} missing test reference"
             )
+        if not feature_refs:
+            errors.append(
+                f"{spec.relative_to(pathlib.Path('.'))} missing BDD feature reference"
+            )
+        else:
+            repo_root = pathlib.Path(".").resolve()
+            for ref in feature_refs:
+                ref_path = pathlib.Path(ref)
+                if ref.startswith("tests/"):
+                    feature_path = (repo_root / ref_path).resolve()
+                else:
+                    feature_path = (spec.parent / ref_path).resolve()
+                if not feature_path.is_file():
+                    errors.append(
+                        f"{spec.relative_to(pathlib.Path('.'))} references missing feature {feature_path.relative_to(repo_root)}"
+                    )
 
     if errors:
         for err in errors:
