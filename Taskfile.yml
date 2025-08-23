@@ -189,6 +189,7 @@ tasks:
     desc: Build distributions and run smoke tests before tagging a release
     cmds:
       - poetry env info --path
+      - poetry run python scripts/verify_python_version.py
       - task: clean
       - task: build:wheel
       - task: build:sdist
