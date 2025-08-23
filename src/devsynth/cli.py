@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """DevSynth CLI entry point.
 
+See ``docs/specifications/cli_entrypoint.md`` for design details.
+
 This module primarily delegates to the Typer based CLI defined in
 ``devsynth.adapters.cli.typer_adapter``.  A lightweight ``--analyze-repo``
 option is provided for invoking the :class:`RepoAnalyzer` directly from the
 command line without loading the full CLI stack.  The Typer application
 exposes shell completion installation via ``--install-completion``.
 """
+
+# Feature: CLI Entrypoint
 
 from __future__ import annotations
 
