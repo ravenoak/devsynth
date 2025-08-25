@@ -1,7 +1,9 @@
 import importlib
 import sys
 from pathlib import Path
+
 import pytest
+
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytestmark = pytest.mark.requires_resource("kuzu")

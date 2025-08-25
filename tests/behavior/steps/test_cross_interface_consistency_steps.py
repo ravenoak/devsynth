@@ -2,17 +2,20 @@
 
 ReqID: FR-67
 """
+
 from __future__ import annotations
 
 import importlib
+
 import pytest
-from pytest_bdd import scenarios, given, when, then, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Load scenarios from the feature file
 scenarios("../features/general/cross_interface_consistency.feature")
 
 # Helper to access implementation functions from the test module without
 # creating an import cycle.
+
 
 def _impl(name: str):
     mod = importlib.import_module("tests.behavior.test_cross_interface_consistency")
@@ -34,12 +37,18 @@ def invoke_cli_command(cross_interface_context, command):
     return _impl("invoke_cli_command")(cross_interface_context, command)
 
 
-@when(parsers.parse("I invoke the {command} command with identical parameters via WebUI"))
+@when(
+    parsers.parse("I invoke the {command} command with identical parameters via WebUI")
+)
 def invoke_webui_command(cross_interface_context, command):
     return _impl("invoke_webui_command")(cross_interface_context, command)
 
 
-@when(parsers.parse("I invoke the {command} command with identical parameters via Agent API"))
+@when(
+    parsers.parse(
+        "I invoke the {command} command with identical parameters via Agent API"
+    )
+)
 def invoke_api_command(cross_interface_context, command):
     return _impl("invoke_api_command")(cross_interface_context, command)
 
@@ -54,7 +63,11 @@ def invoke_webui_command_invalid(cross_interface_context, command):
     return _impl("invoke_webui_command_invalid")(cross_interface_context, command)
 
 
-@when(parsers.parse("I invoke the {command} command with invalid parameters via Agent API"))
+@when(
+    parsers.parse(
+        "I invoke the {command} command with invalid parameters via Agent API"
+    )
+)
 def invoke_api_command_invalid(cross_interface_context, command):
     return _impl("invoke_api_command_invalid")(cross_interface_context, command)
 
@@ -132,4 +145,3 @@ def verify_progress_reporting_consistency(cross_interface_context):
 @then("all interfaces should indicate completion consistently")
 def verify_completion_consistency(cross_interface_context):
     return _impl("verify_completion_consistency")(cross_interface_context)
-

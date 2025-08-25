@@ -1,9 +1,15 @@
 import os
+
 import pytest
+
+from devsynth.exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+    InputSanitizationError,
+)
 from devsynth.security.authentication import authenticate, hash_password
 from devsynth.security.authorization import require_authorization
 from devsynth.security.sanitization import validate_safe_input
-from devsynth.exceptions import AuthenticationError, AuthorizationError, InputSanitizationError
 
 ACL = {"admin": ["read"], "user": ["read"]}
 

@@ -79,6 +79,24 @@ def valid_devsynth_project(tmp_project_dir):
     return tmp_project_dir
 
 
+@given("a project with invalid code structure")
+def project_with_invalid_code_structure(monkeypatch, tmp_project_dir):
+    """Set up an invalid project by forcing the self-analyzer to raise an error.
+
+    We patch SelfAnalyzer.analyze to raise a runtime error so the CLI must surface
+    a clear, user-facing error message while continuing gracefully.
+    """
+    # Local import to avoid import-time side effects in unrelated tests
+    from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
+
+    def _raise_error(*_args, **_kwargs):  # pragma: no cover - behavior verified via BDD
+        raise RuntimeError("Invalid code structure detected during analysis")
+
+    # Patch analyze() method to simulate an analysis-time failure
+    monkeypatch.setattr(SelfAnalyzer, "analyze", _raise_error)
+    return tmp_project_dir
+
+
 @when(parsers.parse('I run the command "{command}"'))
 def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     """

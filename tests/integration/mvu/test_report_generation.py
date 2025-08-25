@@ -1,17 +1,16 @@
 from __future__ import annotations
 
+# Load the command module directly to avoid package side effects
+import importlib.util
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import click
 import pytest
 import typer
 from typer.testing import CliRunner
-
-# Load the command module directly to avoid package side effects
-import importlib.util
-import sys
 
 MODULE_PATH = (
     Path(__file__).resolve().parents[3]

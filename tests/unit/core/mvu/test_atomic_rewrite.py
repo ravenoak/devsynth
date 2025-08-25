@@ -28,4 +28,3 @@ def test_cluster_commits_by_file(tmp_path) -> None:
     assert set(clusters) == {"a.txt", "b.txt"}
     assert [c.message.strip() for c in clusters["a.txt"]] == ["a", "ab"]
     assert [c.message.strip() for c in clusters["b.txt"]] == ["b", "ab"]
-

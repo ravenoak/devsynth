@@ -59,8 +59,12 @@ def test_harden_runtime_invokes_helpers(monkeypatch):
     ReqID: SEC-05"""
     calls = {}
     monkeypatch.setenv("FOO", "1")
-    monkeypatch.setattr(secdeploy, "require_non_root_user", lambda: calls.setdefault("non_root", True))
-    monkeypatch.setattr(secdeploy, "apply_secure_umask", lambda: calls.setdefault("umask", True))
+    monkeypatch.setattr(
+        secdeploy, "require_non_root_user", lambda: calls.setdefault("non_root", True)
+    )
+    monkeypatch.setattr(
+        secdeploy, "apply_secure_umask", lambda: calls.setdefault("umask", True)
+    )
 
     def fake_check(names):
         calls["required_env"] = list(names)
@@ -77,7 +81,13 @@ def test_harden_runtime_raises_when_env_missing(monkeypatch):
 
     ReqID: SEC-06"""
     monkeypatch.delenv("MISSING", raising=False)
-    monkeypatch.setattr(secdeploy, "apply_secure_umask", lambda: (_ for _ in ()).throw(AssertionError))
-    monkeypatch.setattr(secdeploy, "require_non_root_user", lambda: (_ for _ in ()).throw(AssertionError))
+    monkeypatch.setattr(
+        secdeploy, "apply_secure_umask", lambda: (_ for _ in ()).throw(AssertionError)
+    )
+    monkeypatch.setattr(
+        secdeploy,
+        "require_non_root_user",
+        lambda: (_ for _ in ()).throw(AssertionError),
+    )
     with pytest.raises(RuntimeError):
         secdeploy.harden_runtime(["MISSING"])

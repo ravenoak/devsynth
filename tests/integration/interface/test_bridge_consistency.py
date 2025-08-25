@@ -1,13 +1,14 @@
-import inspect
 import html
+import inspect
 import re
-from devsynth.interface.ux_bridge import sanitize_output
 from unittest.mock import MagicMock
+
 import pytest
-from devsynth.interface.cli import CLIUXBridge
+
 from devsynth.interface.agentapi import APIBridge
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge, sanitize_output
 from devsynth.interface.webui_bridge import WebUIBridge
-from devsynth.interface.ux_bridge import UXBridge
 
 
 def _sanitize(text: str) -> str:

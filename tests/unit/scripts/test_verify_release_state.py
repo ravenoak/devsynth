@@ -37,9 +37,7 @@ def setup_git_repo(root: Path) -> None:
     )
 
 
-def create_release_file(
-    root: Path, status: str, version: str = "0.1.0-alpha.1"
-) -> Path:
+def create_release_file(root: Path, status: str, version: str = "0.1.0a1") -> Path:
     """Write a release file with the given status and version."""
     path = root / "release.md"
     path.write_text(
@@ -84,7 +82,7 @@ def test_published_status_with_tag(monkeypatch: pytest.MonkeyPatch) -> None:
     setup_git_repo(root)
     release_file = create_release_file(root, status="published")
     subprocess.run(
-        ["git", "tag", "v0.1.0-alpha.1"], cwd=root, check=True, capture_output=True
+        ["git", "tag", "v0.1.0a1"], cwd=root, check=True, capture_output=True
     )
     patch_paths(monkeypatch, root, release_file)
     assert verify_release_state.main() == 0

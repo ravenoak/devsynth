@@ -1,5 +1,9 @@
 import pytest
-from devsynth.application.collaboration.collaborative_wsde_team import CollaborativeWSDETeam
+
+from devsynth.application.collaboration.collaborative_wsde_team import (
+    CollaborativeWSDETeam,
+)
+
 
 class SimpleAgent:
     def __init__(self, name, expertise):

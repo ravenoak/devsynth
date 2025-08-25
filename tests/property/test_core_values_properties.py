@@ -9,6 +9,7 @@ from hypothesis import strategies as st
 from devsynth.core.values import CoreValues, find_value_conflicts
 
 
+@pytest.mark.property
 @given(st.lists(st.text(min_size=1).filter(lambda s: s.strip()), max_size=10))
 @pytest.mark.medium
 def test_update_values_deduplicates(values):
@@ -19,6 +20,7 @@ def test_update_values_deduplicates(values):
     assert cv.statements == expected
 
 
+@pytest.mark.property
 @given(st.text())
 @pytest.mark.medium
 def test_find_value_conflicts_no_negation(text):

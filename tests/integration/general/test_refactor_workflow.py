@@ -7,13 +7,15 @@ next steps.
 """
 
 import os
-import pytest
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
+
+import pytest
+
 from devsynth.application.cli.cli_commands import init_cmd
+from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
 
 
 class TestRefactorWorkflowManager:

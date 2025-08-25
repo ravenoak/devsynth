@@ -3,8 +3,8 @@ import time
 
 import pytest
 
-from devsynth.fallback import Bulkhead, CircuitBreaker
 from devsynth.exceptions import DevSynthError
+from devsynth.fallback import Bulkhead, CircuitBreaker
 
 
 def test_bulkhead_limits_concurrency():

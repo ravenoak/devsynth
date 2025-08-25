@@ -7,21 +7,23 @@ workflow. It verifies that the workflow execution produces the expected results.
 """
 
 import os
-import pytest
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
-from devsynth.application.code_analysis.project_state_analyzer import (
-    ProjectStateAnalyzer,
-)
-from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
+
+import pytest
+
 from devsynth.application.cli.cli_commands import (
+    code_cmd,
     init_cmd,
     inspect_cmd,
     spec_cmd,
     test_cmd,
-    code_cmd,
 )
+from devsynth.application.code_analysis.project_state_analyzer import (
+    ProjectStateAnalyzer,
+)
+from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
 
 
 class TestComplexWorkflow:

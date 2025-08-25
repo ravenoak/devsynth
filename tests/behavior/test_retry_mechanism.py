@@ -1,8 +1,10 @@
 """BDD tests for the retry mechanism."""
 
 import os
+
 import pytest
 from pytest_bdd import scenarios
+
 from .steps.test_retry_steps import *
 
 feature_file = os.path.join(

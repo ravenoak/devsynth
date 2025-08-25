@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Dict, Union
+from typing import Any, Dict, Iterable, Union
 
 from devsynth.domain.interfaces.onnx import OnnxRuntime
 

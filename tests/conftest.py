@@ -9,6 +9,7 @@ pytest_plugins = ["tests.conftest_extensions"]
 
 import logging
 import os
+import random
 import shutil
 import socket
 import sys
@@ -19,6 +20,12 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+# Normalized subsystem stubs (GUI/providers)
+try:
+    from tests.fixtures.mock_subsystems import apply_normalized_stubs
+except Exception:  # pragma: no cover - fallback if pathing changes
+    apply_normalized_stubs = None  # type: ignore
 
 try:
     import yaml
@@ -60,6 +67,80 @@ def pytest_configure(config):
         and config.option.maxworkerrestart is None
     ):
         config.option.maxworkerrestart = 2
+
+
+@pytest.fixture(scope="session", autouse=True)
+def deterministic_seed() -> int:
+    """Ensure deterministic behavior across tests by setting global RNG seeds.
+
+    This fixture sets deterministic seeds for Python's random module and, when available,
+    NumPy and PyTorch. It also ensures DEVSYNTH_TEST_SEED is present in the environment and
+    attempts to propagate PYTHONHASHSEED for child processes. While PYTHONHASHSEED must be
+    set before process start to fully affect hash randomization in this process, exporting it
+    still benefits any subprocesses spawned by tests.
+
+    Environment variables:
+    - DEVSYNTH_TEST_SEED: overrides the default seed (defaults to "1337").
+    - PYTHONHASHSEED: exported for subprocess determinism when not already set.
+
+    Returns:
+    - The integer seed applied.
+
+    Rationale: Supports docs/tasks.md item 14 "Test suite health" -> "Ensure deterministic behavior where
+    randomness present (seed fixtures)" and aligns with .junie/guidelines.md on reproducibility.
+    """
+    logger = logging.getLogger("tests.deterministic_seed")
+
+    seed_env = os.environ.get("DEVSYNTH_TEST_SEED", "1337")
+    try:
+        seed = int(seed_env)
+    except ValueError:
+        # Fallback to a stable default if provided value is not an int
+        logger.warning("Invalid DEVSYNTH_TEST_SEED=%r; falling back to 1337", seed_env)
+        seed = 1337
+        os.environ["DEVSYNTH_TEST_SEED"] = str(seed)
+
+    # Export PYTHONHASHSEED for any subprocesses; note: too late to affect current interpreter
+    if "PYTHONHASHSEED" not in os.environ:
+        os.environ["PYTHONHASHSEED"] = str(seed)
+        logger.debug("Set PYTHONHASHSEED=%s for subprocess determinism", seed)
+
+    # Seed standard library RNG
+    random.seed(seed)
+
+    # Seed NumPy if available
+    try:
+        import numpy as np  # type: ignore
+
+        np.random.seed(seed)
+    except Exception as e:  # noqa: BLE001 - broad to avoid optional dep issues
+        logger.debug("NumPy not available or failed to seed: %s", e)
+
+    # Seed PyTorch if available
+    try:
+        import torch  # type: ignore
+
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():  # type: ignore[attr-defined]
+            try:
+                torch.cuda.manual_seed_all(seed)  # type: ignore[attr-defined]
+            except Exception as ce:  # noqa: BLE001
+                logger.debug("Failed to seed CUDA RNGs: %s", ce)
+        # Favor determinism over perf in CI
+        try:
+            import torch.backends.cudnn as cudnn  # type: ignore
+
+            cudnn.deterministic = True  # type: ignore[attr-defined]
+            cudnn.benchmark = False  # type: ignore[attr-defined]
+        except Exception as be:  # noqa: BLE001
+            logger.debug("Failed to set cuDNN deterministic flags: %s", be)
+    except Exception as e:  # noqa: BLE001
+        logger.debug("PyTorch not available or failed to seed: %s", e)
+
+    # Always expose the seed for tests that may want to assert or log it
+    os.environ["DEVSYNTH_TEST_SEED"] = str(seed)
+    logger.info("Deterministic test seed set to %s", seed)
+    return seed
 
 
 @pytest.fixture
@@ -293,6 +374,14 @@ def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
     checkpoints_dir.mkdir(exist_ok=True)
     workflows_dir.mkdir(exist_ok=True)
 
+    # Establish a temporary HOME for tests to enforce tmp-only writes
+    home_dir = tmp_path / "home"
+    home_dir.mkdir(exist_ok=True)
+    # Common XDG locations under HOME
+    (home_dir / ".cache").mkdir(exist_ok=True)
+    (home_dir / ".config").mkdir(exist_ok=True)
+    (home_dir / ".local" / "share").mkdir(parents=True, exist_ok=True)
+
     # Set up a basic project structure
     with open(devsynth_dir / "config.json", "w") as f:
         f.write('{"model": "test-model", "project_name": "test-project"}')
@@ -303,6 +392,16 @@ def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
     monkeypatch.setenv("DEVSYNTH_MEMORY_PATH", str(memory_dir))
     monkeypatch.setenv("DEVSYNTH_CHECKPOINTS_PATH", str(checkpoints_dir))
     monkeypatch.setenv("DEVSYNTH_WORKFLOWS_PATH", str(workflows_dir))
+
+    # Redirect HOME (and Windows USERPROFILE) to temporary directory
+    monkeypatch.setenv("HOME", str(home_dir))
+    monkeypatch.setenv("USERPROFILE", str(home_dir))
+    monkeypatch.setenv("XDG_CACHE_HOME", str(home_dir / ".cache"))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(home_dir / ".config"))
+    monkeypatch.setenv("XDG_DATA_HOME", str(home_dir / ".local" / "share"))
+
+    # Patch Path.home() to return the temporary HOME
+    monkeypatch.setattr(Path, "home", lambda: home_dir)
 
     # Set standard test credentials
     monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
@@ -368,12 +467,127 @@ def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
 
 @pytest.fixture(autouse=True)
 def disable_network(monkeypatch):
-    """Disable network access during tests."""
+    """Disable network access during tests.
+
+    In addition to patching raw sockets, defensively patch common HTTP clients
+    (requests, httpx, urllib) when available to ensure no network egress can occur.
+    This aligns with docs/plan.md's isolation goals and .junie/guidelines.md on
+    hermetic tests.
+    """
 
     def guard_connect(*args, **kwargs):
         raise RuntimeError("Network access disabled during tests")
 
+    # Block low-level sockets
     monkeypatch.setattr(socket.socket, "connect", guard_connect)
+
+    # Block urllib to catch stdlib network attempts
+    try:  # pragma: no cover - depends on optional import path usage
+        import urllib.request as _urllib_request  # type: ignore
+
+        def _guard_urlopen(*args, **kwargs):  # type: ignore
+            raise RuntimeError("Network access disabled during tests (urllib)")
+
+        monkeypatch.setattr(_urllib_request, "urlopen", _guard_urlopen, raising=False)
+    except Exception:
+        pass
+
+    # Block requests if installed
+    try:  # pragma: no cover - depends on optional dependency
+        import requests  # type: ignore
+
+        def guard_request(*args, **kwargs):  # type: ignore
+            raise RuntimeError("Network access disabled during tests (requests)")
+
+        # Session.request is used by all verbs
+        monkeypatch.setattr(requests.sessions.Session, "request", guard_request, raising=True)  # type: ignore
+        # Also patch top-level helper in case a library calls requests.api.request
+        monkeypatch.setattr(requests.api, "request", guard_request, raising=False)  # type: ignore
+    except Exception:
+        pass
+
+    # Block httpx if installed
+    try:  # pragma: no cover - depends on optional dependency
+        import httpx  # type: ignore
+
+        def guard_httpx_request(*args, **kwargs):  # type: ignore
+            raise RuntimeError("Network access disabled during tests (httpx)")
+
+        monkeypatch.setattr(httpx.Client, "request", guard_httpx_request, raising=False)  # type: ignore
+        monkeypatch.setattr(httpx.AsyncClient, "request", guard_httpx_request, raising=False)  # type: ignore
+    except Exception:
+        pass
+
+
+@pytest.fixture(autouse=True)
+def normalize_subsystem_stubs():
+    """Apply normalized stubs for GUI and provider subsystems by default.
+
+    - Honors env vars:
+      - DEVSYNTH_TEST_ALLOW_GUI
+      - DEVSYNTH_TEST_ALLOW_PROVIDERS
+    - No-ops if helper is unavailable.
+    """
+    if apply_normalized_stubs is not None:
+        apply_normalized_stubs()
+
+
+@pytest.fixture(autouse=True)
+def enforce_test_timeout(monkeypatch):
+    """Enforce a per-test timeout to fail fast during fast/smoke runs.
+
+    Controlled by the environment variable ``DEVSYNTH_TEST_TIMEOUT_SECONDS``.
+    If set to a positive integer and the platform supports ``signal.SIGALRM``,
+    a timeout alarm will abort tests that exceed the configured seconds with a
+    clear RuntimeError. On platforms without SIGALRM (e.g., Windows), this
+    fixture is a no-op.
+
+    Rationale:
+    - Supports docs/tasks.md item 38: reduce test timeouts to fail fast.
+    - Aligns with .junie/guidelines.md preference for deterministic, quick feedback.
+    """
+    import os
+    import sys
+
+    timeout_str = os.environ.get("DEVSYNTH_TEST_TIMEOUT_SECONDS")
+    if not timeout_str:
+        return
+
+    try:
+        timeout = int(timeout_str)
+    except Exception:
+        return
+
+    if timeout <= 0:
+        return
+
+    # Only apply on POSIX platforms that support SIGALRM
+    try:
+        import signal
+    except Exception:
+        return
+
+    if not hasattr(signal, "SIGALRM"):
+        return
+
+    def _handler(signum, frame):  # noqa: ARG001 - signature required by signal
+        raise RuntimeError(
+            f"Test timed out after {timeout} seconds (DEVSYNTH_TEST_TIMEOUT_SECONDS)"
+        )
+
+    # Save original handler and set the alarm for each test
+    original = signal.getsignal(signal.SIGALRM)
+    signal.signal(signal.SIGALRM, _handler)
+    signal.alarm(timeout)
+    try:
+        yield
+    finally:
+        try:
+            signal.alarm(0)  # cancel
+            signal.signal(signal.SIGALRM, original)
+        except Exception:
+            # Best-effort cleanup; do not fail tests on teardown
+            pass
 
 
 @pytest.fixture
@@ -486,27 +700,47 @@ def is_lmstudio_available() -> bool:
 
 
 def is_codebase_available() -> bool:
-    """Check if the DevSynth codebase is available for analysis."""
-    # Check environment variable override
+    """Check if the DevSynth codebase is available for analysis.
+
+    Default behavior: available (True) unless explicitly disabled via
+    DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=false. This aligns with docs/tasks.md
+    expectation for CI/local defaults.
+    """
+    # Respect explicit opt-out
     if (
-        os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "false").lower()
+        os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "true").lower()
         == "false"
     ):
         return False
 
-    # Actual availability check
+    # Actual availability check (best effort)
     try:
-        # Check if the src directory exists
         return Path("src/devsynth").exists()
     except Exception:
-        return False
+        # If in doubt, assume available to avoid over-skipping
+        return True
 
 
 def is_cli_available() -> bool:
-    """Check if the DevSynth CLI is available for testing."""
-    # Check environment variable override
-    if os.environ.get("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "false").lower() == "false":
+    """Check if the DevSynth CLI is available for testing.
+
+    Default behavior: available (True) unless explicitly disabled via
+    DEVSYNTH_RESOURCE_CLI_AVAILABLE=false. When available, optionally sanity-check
+    that invoking `devsynth --help` succeeds; failures fall back to True to avoid
+    over-skipping in environments without the entry-point.
+    """
+    # Respect explicit opt-out
+    if os.environ.get("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "true").lower() == "false":
         return False
+    # Best-effort health check
+    try:
+        import subprocess
+
+        proc = subprocess.run(["devsynth", "--help"], capture_output=True, text=True)
+        return proc.returncode == 0
+    except Exception:
+        # Assume available if the subprocess cannot be executed in this environment
+        return True
 
 
 def is_webui_available() -> bool:
@@ -560,6 +794,30 @@ def is_chromadb_available() -> bool:
         return False
 
 
+def is_tinydb_available() -> bool:
+    """Check if the tinydb package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_TINYDB_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import tinydb  # type: ignore  # noqa: F401
+
+        return True
+    except Exception:
+        return False
+
+
+def is_duckdb_available() -> bool:
+    """Check if the duckdb package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import duckdb  # type: ignore  # noqa: F401
+
+        return True
+    except Exception:
+        return False
+
+
 def is_faiss_available() -> bool:
     """Check if the faiss package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_FAISS_AVAILABLE", "true").lower() == "false":
@@ -595,14 +853,34 @@ def is_lmdb_available() -> bool:
     except Exception:
         return False
 
-    # Actual availability check
-    try:
-        import subprocess
 
-        result = subprocess.run(["devsynth", "--help"], capture_output=True, text=True)
-        return result.returncode == 0
+def is_rdflib_available() -> bool:
+    """Check if the rdflib package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import rdflib  # noqa: F401
+
+        return True
     except Exception:
         return False
+
+
+def is_openai_available() -> bool:
+    """Check if OpenAI is configured via API key."""
+    if os.environ.get("DEVSYNTH_RESOURCE_OPENAI_AVAILABLE", "true").lower() == "false":
+        return False
+    return bool(os.environ.get("OPENAI_API_KEY"))
+
+
+def is_memory_available() -> bool:
+    """Generic 'memory' resource gate for memory-heavy tests (opt-out via env)."""
+    return os.environ.get("DEVSYNTH_RESOURCE_MEMORY_AVAILABLE", "true").lower() != "false"
+
+
+def is_test_resource_available() -> bool:
+    """Test sentinel resource used by unit tests to validate resource gating."""
+    return os.environ.get("DEVSYNTH_RESOURCE_TEST_RESOURCE_AVAILABLE", "false").lower() == "true"
 
 
 def is_anthropic_available() -> bool:
@@ -651,12 +929,18 @@ def is_resource_available(resource: str) -> bool:
         "anthropic": is_anthropic_available,
         "llm_provider": is_llm_provider_available,
         "lmstudio": is_lmstudio_available,
+        "openai": is_openai_available,
         "codebase": is_codebase_available,
         "cli": is_cli_available,
         "chromadb": is_chromadb_available,
+        "tinydb": is_tinydb_available,
+        "duckdb": is_duckdb_available,
         "faiss": is_faiss_available,
         "kuzu": is_kuzu_available,
         "lmdb": is_lmdb_available,
+        "rdflib": is_rdflib_available,
+        "memory": is_memory_available,
+        "test_resource": is_test_resource_available,
         "webui": is_webui_available,
     }
 

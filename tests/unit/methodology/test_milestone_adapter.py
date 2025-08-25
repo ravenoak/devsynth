@@ -1,5 +1,5 @@
-from devsynth.methodology.milestone import MilestoneAdapter
 from devsynth.methodology.base import Phase
+from devsynth.methodology.milestone import MilestoneAdapter
 
 
 def test_should_start_cycle():

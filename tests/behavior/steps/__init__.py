@@ -16,6 +16,7 @@ from __future__ import annotations
 # an empty list so pytest does not try to load a missing module.
 pytest_plugins: list[str] = []
 
+
 # Provide no-op ``setUpModule`` and ``tearDownModule`` hooks so pytest does not
 # attempt to lazy-import these as modules via ``__getattr__`` on this package.
 def setUpModule() -> None:  # noqa: N802 - pytest expects this exact name
@@ -24,6 +25,7 @@ def setUpModule() -> None:  # noqa: N802 - pytest expects this exact name
 
 def tearDownModule() -> None:  # noqa: N802 - pytest expects this exact name
     """Package-level teardown hook for pytest."""
+
 
 import importlib
 import sys

@@ -28,7 +28,14 @@ def test_load_traceability_reads_specified_file(tmp_path: Path):
 
 
 def test_render_dashboard_invokes_streamlit(monkeypatch: pytest.MonkeyPatch):
-    data = {"DSY-0001": {"mvuu": True, "issue": "DSY-0001", "files": ["file.txt"], "features": []}}
+    data = {
+        "DSY-0001": {
+            "mvuu": True,
+            "issue": "DSY-0001",
+            "files": ["file.txt"],
+            "features": [],
+        }
+    }
 
     mock_sidebar = MagicMock()
     mock_sidebar.selectbox.return_value = "DSY-0001"

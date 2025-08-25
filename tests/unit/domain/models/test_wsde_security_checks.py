@@ -1,4 +1,5 @@
 """Unit tests for wsde_security_checks submodule."""
+
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 

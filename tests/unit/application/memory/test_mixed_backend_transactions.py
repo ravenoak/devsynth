@@ -2,8 +2,8 @@ from datetime import datetime
 
 import pytest
 
-from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.application.memory.transaction_context import TransactionContext
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
 class DummyStore:

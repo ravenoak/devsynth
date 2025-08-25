@@ -14,6 +14,7 @@ reasoning_loop_module = importlib.import_module(
 )
 
 
+@pytest.mark.property
 @pytest.mark.medium
 def test_reasoning_loop_stops_on_completion(monkeypatch):
     """Loop halts on the first completed status. ReqID: DRL-001"""
@@ -55,6 +56,7 @@ def test_reasoning_loop_stops_on_completion(monkeypatch):
     check()
 
 
+@pytest.mark.property
 @pytest.mark.medium
 def test_reasoning_loop_respects_max_iterations(monkeypatch):
     """Loop runs at most max_iterations times. ReqID: DRL-001"""

@@ -1,8 +1,8 @@
 import click
+import pytest
 import typer
 import typer.main
 from typer.testing import CliRunner
-import pytest
 
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.interface.ux_bridge import UXBridge
@@ -17,7 +17,11 @@ def patch_typer_types(monkeypatch):
         if annotation in {UXBridge, typer.models.Context}:
             return click.STRING
         origin = getattr(annotation, "__origin__", None)
-        if origin in {UXBridge, typer.models.Context} or annotation is dict or origin is dict:
+        if (
+            origin in {UXBridge, typer.models.Context}
+            or annotation is dict
+            or origin is dict
+        ):
             return click.STRING
         return orig(annotation=annotation, parameter_info=parameter_info)
 
