@@ -80,12 +80,11 @@ FROM base AS production
 COPY --from=builder --chown=${USERNAME}:${USERNAME} /workspace/.venv /workspace/.venv
 ENV PATH="/workspace/.venv/bin:$PATH"
 
-EXPOSE 8000
-
 # Copy only source code (no tests)
 COPY --chown=${USERNAME}:${USERNAME} src ./src
 
 USER ${USERNAME}
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["poetry", "run", "uvicorn", "devsynth.api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default to a safe, minimal command that verifies installation.
+# Override with: docker run --rm devsynth:latest poetry run devsynth <command>
+CMD ["poetry", "run", "devsynth", "--help"]

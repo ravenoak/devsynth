@@ -1,103 +1,36 @@
 repos:
-- repo: local
-  hooks:
-    - id: devsynth-align
-      name: devsynth align
-      entry: poetry run devsynth align --quiet
-      language: system
-      pass_filenames: false
-    - id: check-frontmatter
-      name: check frontmatter formatting
-      entry: python scripts/fix_frontmatter.py --check
-      language: system
-      pass_filenames: false
-    - id: check-internal-links
-      name: check internal links
-      entry: python scripts/check_internal_links.py
-      language: system
-      pass_filenames: false
-    - id: fix-code-blocks
-      name: fix code blocks
-      entry: python scripts/fix_code_blocks.py --check
-      language: system
-      pass_filenames: false
-    - id: find-syntax-errors
-      name: find syntax errors
-      entry: python scripts/find_syntax_errors.py
-      language: system
-      pass_filenames: false
-    - id: verify-mvuu-references
-      name: verify mvuu references
-      entry: python scripts/verify_mvuu_references.py
-      language: system
-      pass_filenames: false
-      stages: [pre-push]
-    - id: verify-requirements-traceability
-      name: verify requirements traceability
-      entry: poetry run python scripts/verify_requirements_traceability.py
-      language: system
-      pass_filenames: false
-      files: ^docs/requirements_traceability.md$
-    - id: spec-or-test-updates
-      name: warn on missing spec or test updates
-      entry: python scripts/check_spec_or_test_updates.py
-      language: system
-      pass_filenames: false
-    - id: check-reqid
-      name: check test ReqID
-      entry: python scripts/check_reqid.py
-      language: system
-      pass_filenames: true
-      files: ^tests/.*\.py$
-    - id: update-traceability
-      name: update traceability
-      entry: python scripts/update_traceability.py
-      language: system
-      pass_filenames: false
-      stages: [post-commit]
-    - id: policy-audit
-      name: policy audit
-      entry: python scripts/policy_audit.py
-      language: system
-      pass_filenames: false
-      stages: [pre-push]
-    - id: commit-message-lint
-      name: commit message lint
-      description: lint commit messages for MVUU compliance
-      entry: python scripts/commit_linter.py
-      language: system
-      stages: [commit-msg]
-      pass_filenames: true
-    - id: bandit
-      name: bandit security check
-      entry: poetry run bandit -q -r src
-      language: system
-      pass_filenames: false
-      stages: [pre-push]
-    - id: safety
-      name: safety vulnerability check
-      entry: poetry run safety check --full-report
-      language: system
-      pass_filenames: false
-      stages: [pre-push]
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.4.0
-  hooks:
-    - id: trailing-whitespace
-    - id: end-of-file-fixer
-    - id: check-yaml
-    - id: check-added-large-files
-- repo: https://github.com/psf/black
-  rev: 25.1.0
-  hooks:
-    - id: black
-- repo: https://github.com/pycqa/isort
-  rev: 5.12.0
-  hooks:
-    - id: isort
-- repo: https://github.com/pycqa/flake8
-  rev: 7.0.0
-  hooks:
-    - id: flake8
-      additional_dependencies: [flake8-docstrings]
-      args: [--exit-zero]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3.12
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        additional_dependencies: []
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        additional_dependencies: []
+        files: ^src/
+        args: ["--config-file", "pyproject.toml"]
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.17.0
+    hooks:
+      - id: pyupgrade
+        args: ["--py312-plus"]

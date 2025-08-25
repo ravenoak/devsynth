@@ -29,6 +29,10 @@ coverage.json
 coverage_html/
 htmlcov/
 
+# Type checker and linter caches (Task 2: Baseline repo hygiene)
+.mypy_cache/
+.ruff_cache/
+
 # Python distribution / packaging
 dist/
 build/
@@ -46,6 +50,7 @@ build/
 traceability.json
 
 # Test and report files
+test_reports/
 .test_categorization_progress.json
 .test_categorization_schedule.json
 flaky_test_report.json

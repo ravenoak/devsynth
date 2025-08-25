@@ -123,11 +123,11 @@ formalVerification:
 
 # Feature flags
 features:
-  wsde_collaboration: true
+  wsde_collaboration: false
   dialectical_reasoning: false
   code_generation: false
   test_generation: false
   documentation_generation: false
   prompt_auto_tuning: false
-  automatic_phase_transitions: true
-  collaboration_notifications: true
+  automatic_phase_transitions: false
+  collaboration_notifications: false
