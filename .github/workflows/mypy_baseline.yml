@@ -1,0 +1,54 @@
+name: Mypy Baseline (On-Demand)
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'pyproject.toml'
+      - '.github/workflows/mypy_baseline.yml'
+      - 'scripts/generate_mypy_baseline_issues.py'
+
+concurrency:
+  group: mypy-baseline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mypy-baseline:
+    name: Generate mypy baseline report and triage issues
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dev environment (no heavy extras)
+        run: |
+          poetry env use 3.12
+          poetry install --with dev --extras "tests"
+
+      - name: Run mypy baseline generator
+        run: |
+          poetry run python scripts/generate_mypy_baseline_issues.py
+
+      - name: Upload baseline artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-baseline-artifacts
+          path: |
+            mypy_baseline.json
+            issues/triage/mypy/**
+          if-no-files-found: warn

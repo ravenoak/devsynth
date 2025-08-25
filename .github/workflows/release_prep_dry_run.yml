@@ -1,0 +1,107 @@
+name: Release Prep (Dry Run)
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+concurrency:
+  group: release-prep-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-prep:
+    name: Run task release:prep and upload artifacts
+    runs-on: ubuntu-latest
+    env:
+      # Default CI resource gating: skip optional backends unless explicitly enabled
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_FAISS_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_KUZU_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_TINYDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      # Provide a stub API key for mocked providers
+      OPENAI_API_KEY: 'test-openai-key'
+      # Enforce no file logging during CI
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+
+      - name: Install dev environment (includes go-task)
+        run: bash scripts/install_dev.sh
+
+      - name: Run internal link checker (docs)
+        run: |
+          echo "Running internal link checker"
+          poetry run python scripts/check_internal_links.py
+
+      - name: Validate documentation front matter
+        run: |
+          echo "Validating standardized front matter"
+          poetry run python scripts/check_front_matter.py
+
+      - name: Verify release state (tag gating)
+        run: |
+          echo "Verifying release state per FR-95"
+          poetry run python scripts/verify_release_state.py
+
+      - name: Run release:prep
+        run: |
+          echo "Running task release:prep (dry run)"
+          task release:prep
+
+      - name: Upload build artifacts (wheel and sdist)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dist-artifacts
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          if-no-files-found: warn
+
+      - name: Upload coverage and reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-and-coverage-reports
+          path: |
+            coverage.xml
+            test_reports/**
+            test_markers_report.json
+            dialectical_audit.log
+          if-no-files-found: warn
+
+      - name: Upload Taskfile and logs for debugging
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: debug-assets
+          path: |
+            Taskfile.yml
+            .test_collection_cache/**
+            .pytest_cache/**
+          if-no-files-found: ignore

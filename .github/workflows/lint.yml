@@ -1,4 +1,4 @@
-name: Security Scans
+name: Lint and Typing
 
 on:
   push:
@@ -7,12 +7,12 @@ on:
   workflow_dispatch: {}
 
 concurrency:
-  group: security-${{ github.ref }}
+  group: lint-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  security:
-    name: Bandit and Safety
+  lint:
+    name: Style, Lint, and Typing
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,10 +51,17 @@ jobs:
           poetry env use 3.12
           poetry install --with dev --extras minimal
 
-      - name: Bandit (security lint)
-        run: poetry run bandit -r src/devsynth -x tests
+      - name: Black (check)
+        run: poetry run black --check .
 
-      - name: Safety (vulnerability scan)
-        env:
-          SAFETY_DISABLE_TELEMETRY: '1'
-        run: poetry run safety check --full-report
+      - name: isort (check-only)
+        run: poetry run isort --check-only .
+
+      - name: Flake8
+        run: poetry run flake8 src/ tests/
+
+      - name: Mypy (strict by default)
+        run: poetry run mypy src/devsynth
+
+      - name: Verify test speed markers (exactly one per test)
+        run: poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json

@@ -1,0 +1,50 @@
+name: Quality Checks
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: | 
+            .venv
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies (dev)
+        run: poetry install --with dev --no-interaction --no-ansi
+
+      - name: Style checks (Black/isort)
+        run: |
+          poetry run python scripts/run_style_checks.py --check
+
+      - name: Static analysis (mypy)
+        run: |
+          poetry run python scripts/run_static_analysis.py
+
+      - name: Lint and security (flake8, bandit, safety)
+        env:
+          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
+        run: |
+          poetry run python scripts/run_security_checks.py

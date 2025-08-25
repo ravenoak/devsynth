@@ -1,0 +1,47 @@
+name: Mypy Incremental
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '.github/workflows/mypy_incremental.yml'
+      - 'scripts/mypy_incremental.py'
+
+concurrency:
+  group: mypy-incremental-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mypy-incremental:
+    name: Incremental mypy on changed files
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dev environment (tests extra)
+        run: |
+          poetry env use 3.12
+          poetry install --with dev --extras "tests"
+
+      - name: Run incremental mypy
+        env:
+          MYPY_BASE_REF: ${{ github.base_ref || 'origin/main' }}
+        run: |
+          poetry run python scripts/mypy_incremental.py
