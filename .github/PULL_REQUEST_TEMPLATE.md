@@ -1,110 +1,40 @@
 # Pull Request
 
-## Description
+Thank you for contributing to DevSynth!
 
-<!-- Provide a brief description of the changes in this PR -->
+Please fill out the checklist below to help us keep the repository healthy and aligned with our standards.
 
-## MVUU JSON
-
-```json
-{
-  "utility_statement": "",
-  "affected_files": [],
-  "tests": [],
-  "TraceID": "",
-  "mvuu": true,
-  "issue": "#"
-}
-```
-
-## TraceID
-
-<!-- Provide the TraceID associated with this work -->
-
-## Linked Issue
-
-<!-- Link to the issue using the format: Fixes #123 -->
-
-## Type of Change
-
-<!-- Mark the appropriate option with an "x" -->
-
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
-- [ ] Refactoring (no functional changes)
-- [ ] Other (please describe):
-
-## Alignment Verification
-
-<!-- Verify that your changes maintain alignment between SDLC artifacts -->
-
-### Bidirectional Traceability
-
-- [ ] Requirements affected by this change have been identified and updated
-- [ ] Specifications affected by this change have been identified and updated
-- [ ] Tests affected by this change have been identified and updated
-- [ ] Code changes are consistent with requirements and specifications
-- [ ] Traceability matrix has been updated (if applicable)
-
-### Terminology Consistency
-
-- [ ] New terms are consistent with the project glossary
-- [ ] Existing terms are used consistently with their defined meanings
-- [ ] Capitalization and naming conventions are consistent
-
-### Documentation Synchronization
-
-- [ ] Documentation reflects the changes made
-- [ ] README and other user-facing documentation is updated (if applicable)
-- [ ] API documentation is updated (if applicable)
-- [ ] Comments in code are updated
-
-## Testing
-
-<!-- Describe the testing you have performed -->
-
-- [ ] Added or updated unit tests
-- [ ] Added or updated integration tests
-- [ ] Added or updated behavior tests
-- [ ] Manually tested the changes
+## Summary
+- What does this PR change?
+- Why is it needed?
+- Linked issues/epics (if any):
 
 ## Checklist
+- [ ] I ran quick sanity checks locally:
+  - [ ] poetry run pytest --collect-only -q
+  - [ ] poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel (or --smoke for plugin isolation)
+- [ ] I verified style and typing (as applicable):
+  - [ ] poetry run black --check . && poetry run isort --check-only .
+  - [ ] poetry run flake8 src/ tests/
+  - [ ] poetry run mypy src/devsynth (or added/updated TODOs when relaxing strictness as per .junie/guidelines.md)
+- [ ] I followed .junie/guidelines.md and the priorities in docs/plan.md.
+- [ ] I updated docs as needed and verified links if touched.
+- [ ] I confirmed no secrets or credentials were added.
 
-<!-- Verify that you have completed the following -->
+## Tasks Checklist Alignment (docs/tasks.md)
+- [ ] If this PR completes any item(s) in docs/tasks.md, I updated the checklist:
+  - Marked the task(s) as [x].
+  - Added a short completion note with date and context.
+  - Ensured changes reflect the improvement plan in docs/plan.md.
 
-- [ ] PR description includes the MVUU JSON block above with TraceID and issue link
-- [ ] Commits include an MVUU JSON block
-- [ ] Commits include a TraceID and link to the relevant issue
-- [ ] `traceability.json` has been updated
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] Any dependent changes have been merged and published
+## Testing Notes
+- What scenarios were tested? Any resource-gated tests involved?
+- If adding tests, ensure exactly one speed marker per test function (fast|medium|slow).
 
-### Commit Message Template
+## Breaking Changes
+- [ ] None
+- [ ] Describe breaking changes (if any) and migration notes:
 
-```text
-<type>: <summary>
-
-TraceID: <TraceID>
-Issue: #<issue-number>
-
-{
-  "MVUU": {
-    "utility_statement": "<utility_statement>",
-    "affected_files": ["path/to/file"],
-    "tests": ["poetry run pytest tests/..."],
-    "TraceID": "<TraceID>",
-    "mvuu": true,
-    "issue": "#<issue-number>"
-  }
-}
-```
-
-## Additional Notes
-
-<!-- Add any other information about the PR here -->
+## Additional Context
+- Environment (OS, Python, Poetry):
+- Any follow-ups or TODOs:
