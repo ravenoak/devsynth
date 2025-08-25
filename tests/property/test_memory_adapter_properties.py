@@ -10,6 +10,7 @@ from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
+@pytest.mark.property
 @given(st.text())
 @pytest.mark.medium
 def test_store_and_retrieve_round_trip(content):
@@ -22,6 +23,7 @@ def test_store_and_retrieve_round_trip(content):
     assert retrieved.memory_type == MemoryType.SHORT_TERM
 
 
+@pytest.mark.property
 @given(st.lists(st.text(), min_size=1, max_size=5))
 @pytest.mark.medium
 def test_search_without_filters_returns_all(contents):

@@ -1,6 +1,7 @@
 import pytest
-from devsynth.security.authorization import require_authorization
+
 from devsynth.exceptions import AuthorizationError
+from devsynth.security.authorization import require_authorization
 
 ACL = {"admin": ["read", "write"], "user": ["read"]}
 

@@ -23,4 +23,3 @@ def test_atomic_rewrite_round_trip(tmp_path) -> None:
 
     diff = repo.git.diff("atomic", "main")
     assert diff == ""
-

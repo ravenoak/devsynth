@@ -7,15 +7,15 @@ the 'devsynth ingest' CLI command for ingesting a project into DevSynth.
 
 import os
 import sys
+
+# Stub optional dependencies to allow direct import of ingest_cmd without
+# requiring the full runtime stack.
+import types
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
-
-# Stub optional dependencies to allow direct import of ingest_cmd without
-# requiring the full runtime stack.
-import types
 
 sys.modules.setdefault("langgraph", types.ModuleType("langgraph"))
 sys.modules.setdefault("langgraph.checkpoint", types.ModuleType("langgraph.checkpoint"))
@@ -27,9 +27,11 @@ sys.modules["langgraph.checkpoint"].base = _checkpoint_base
 _graph_module = types.ModuleType("langgraph.graph")
 setattr(_graph_module, "END", object())
 
+
 class _DummyStateGraph:  # pragma: no cover - simple placeholder
     def __init__(self, *args, **kwargs):
         pass
+
 
 _graph_module.StateGraph = _DummyStateGraph
 sys.modules["langgraph.graph"] = _graph_module

@@ -1,13 +1,13 @@
 import unittest
 
 from devsynth.domain.interfaces.code_analysis import (
-    SimpleFileAnalysis,
-    SimpleCodeAnalysis,
-    SimpleTransformation,
+    CodeAnalysisResult,
+    FileAnalysisResult,
     NoopCodeAnalyzer,
     NoopCodeTransformationProvider,
-    FileAnalysisResult,
-    CodeAnalysisResult,
+    SimpleCodeAnalysis,
+    SimpleFileAnalysis,
+    SimpleTransformation,
     TransformationResult,
 )
 

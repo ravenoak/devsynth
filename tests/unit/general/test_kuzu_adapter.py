@@ -1,8 +1,9 @@
 """Tests for the ``KuzuAdapter`` vector store."""
 
 import pytest
-from devsynth.domain.models.memory import MemoryVector
+
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+from devsynth.domain.models.memory import MemoryVector
 
 pytestmark = pytest.mark.requires_resource("kuzu")
 
@@ -49,6 +50,7 @@ def test_persistence_between_instances_succeeds(tmp_path):
 def test_similarity_search_without_numpy_succeeds(monkeypatch, tmp_path):
     """Fallback distance calculation should work without NumPy."""
     import importlib
+
     import devsynth.adapters.memory.kuzu_adapter as kuzu_adapter
 
     monkeypatch.setattr(kuzu_adapter, "np", None)

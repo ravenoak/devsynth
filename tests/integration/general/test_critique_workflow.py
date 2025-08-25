@@ -32,4 +32,3 @@ def test_generate_tests_clean_passes_critique():
         result = workflows.generate_tests("spec.yaml")
         assert result["critique_approved"] is True
         assert result["critique"] == []
-

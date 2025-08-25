@@ -1,6 +1,7 @@
-from unittest.mock import MagicMock
-import types
 import sys
+import types
+from unittest.mock import MagicMock
+
 import pytest
 
 argon2_mod = types.ModuleType("argon2")
@@ -38,10 +39,10 @@ sys.modules.setdefault("astor", astor_mod)
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
-from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
+from devsynth.application.memory.memory_manager import MemoryManager
 
 
 class VotingAgent:

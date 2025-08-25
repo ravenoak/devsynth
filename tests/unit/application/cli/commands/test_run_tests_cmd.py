@@ -72,6 +72,19 @@ def test_run_tests_cmd_sets_optional_provider_guard(monkeypatch) -> None:
     assert os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE") == "false"
 
 
+def test_run_tests_cmd_defaults_to_stub_offline(monkeypatch) -> None:
+    """Unset provider selection defaults to stub and offline mode for tests.
+
+    ReqID: FR-22"""
+
+    monkeypatch.delenv("DEVSYNTH_PROVIDER", raising=False)
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    with patch.object(module, "run_tests", return_value=(True, "")):
+        module.run_tests_cmd(target="unit-tests", bridge=DummyBridge())
+    assert os.environ.get("DEVSYNTH_PROVIDER") == "stub"
+    assert os.environ.get("DEVSYNTH_OFFLINE") == "true"
+
+
 def test_run_tests_cli_full_invocation() -> None:
     """Full CLI invocation delegates to ``run_tests`` and succeeds.
 
@@ -100,6 +113,31 @@ def test_run_tests_cli_full_invocation() -> None:
             None,  # maxfail
         )
         assert "Tests completed successfully" in result.output
+
+
+def test_run_tests_cli_smoke_disables_parallel_and_plugins(monkeypatch) -> None:
+    """--smoke should disable xdist and plugin autoload via env and no_parallel."""
+
+    runner = CliRunner()
+    with patch(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        return_value=(True, ""),
+    ) as mock_run:
+        app = build_app()
+        result = runner.invoke(
+            app,
+            ["run-tests", "--target", "unit-tests", "--smoke"],
+        )
+    assert result.exit_code == 0
+    mock_run.assert_called_once()
+    # When --smoke is set, parallel should be False
+    called_args = mock_run.call_args[0]
+    assert called_args[0] == "unit-tests"
+    assert called_args[2] is False  # verbose
+    assert called_args[4] is False  # parallel
+    # Env variables should be set for pytest plugin gating
+    assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
+    assert "-p no:xdist" in os.environ.get("PYTEST_ADDOPTS", "")
 
 
 def test_run_tests_cli_help() -> None:
@@ -142,4 +180,67 @@ def test_run_tests_cli_maxfail_option() -> None:
             False,
             50,
             2,
+        )
+
+
+def test_run_tests_cli_no_parallel_flag_disables_parallel() -> None:
+    """--no-parallel should set parallel=False in the runner call."""
+
+    runner = CliRunner()
+    with patch(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        return_value=(True, ""),
+    ) as mock_run:
+        app = build_app()
+        result = runner.invoke(
+            app,
+            ["run-tests", "--target", "unit-tests", "--no-parallel"],
+        )
+
+        assert result.exit_code == 0
+        # Args: target, speeds, verbose, report, parallel, segment, segment_size, maxfail
+        mock_run.assert_called_once_with(
+            "unit-tests",
+            None,
+            False,
+            False,
+            False,
+            False,
+            50,
+            None,
+        )
+
+
+def test_run_tests_cli_multiple_speed_values_are_forwarded() -> None:
+    """Multiple --speed flags are forwarded as a list preserving values."""
+
+    runner = CliRunner()
+    with patch(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        return_value=(True, ""),
+    ) as mock_run:
+        app = build_app()
+        result = runner.invoke(
+            app,
+            [
+                "run-tests",
+                "--target",
+                "all-tests",
+                "--speed",
+                "medium",
+                "--speed",
+                "slow",
+            ],
+        )
+
+        assert result.exit_code == 0
+        mock_run.assert_called_once_with(
+            "all-tests",
+            ["medium", "slow"],
+            False,
+            False,
+            True,
+            False,
+            50,
+            None,
         )

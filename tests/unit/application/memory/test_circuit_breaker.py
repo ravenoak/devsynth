@@ -1,4 +1,5 @@
 import time
+
 import pytest
 
 from devsynth.application.memory.circuit_breaker import (

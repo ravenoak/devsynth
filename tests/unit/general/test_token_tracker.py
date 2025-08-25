@@ -1,10 +1,11 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from devsynth.application.utils.token_tracker import (
-    TokenTracker,
-    TokenLimitExceededError,
     _TEST_MODE,
     _TEST_TOKEN_COUNTS,
+    TokenLimitExceededError,
+    TokenTracker,
 )
 
 

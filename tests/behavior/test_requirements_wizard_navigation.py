@@ -1,4 +1,5 @@
 import os
+
 from pytest_bdd import scenarios
 
 from .steps.test_requirements_wizard_navigation_steps import *  # noqa: F401,F403

@@ -1,7 +1,7 @@
 import datetime
 
-from devsynth.methodology.sprint import SprintAdapter
 from devsynth.methodology.base import Phase
+from devsynth.methodology.sprint import SprintAdapter
 
 
 def test_calculate_phase_end_time():
@@ -88,4 +88,3 @@ def test_after_retrospect_captures_sprint_plan():
     assert adapter.sprint_plan["planned_scope"] == ["item1"]
     assert adapter.sprint_plan["objectives"] == ["obj"]
     assert adapter.sprint_plan["success_criteria"] == ["done"]
-

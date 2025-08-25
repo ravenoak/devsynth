@@ -1,5 +1,5 @@
-from devsynth.methodology.kanban import KanbanAdapter
 from devsynth.methodology.base import Phase
+from devsynth.methodology.kanban import KanbanAdapter
 
 
 def test_should_start_cycle():

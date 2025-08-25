@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-from unittest.mock import MagicMock
-
 import json
 import sys
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import devsynth.interface.dpg_ui as dpg_ui
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType

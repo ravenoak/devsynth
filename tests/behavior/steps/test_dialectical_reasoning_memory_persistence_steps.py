@@ -103,7 +103,15 @@ def evaluate_change_invalid(context):
 )
 def reasoning_stored_with_phase(context, phase):
     assert context.memory_manager.calls, "No reasoning stored"
-    item, memory_type, edrr_phase, metadata = context.memory_manager.calls[-1]
+    # Find the last DIALECTICAL_REASONING store call explicitly to avoid
+    # dependency on call ordering when additional memory items are persisted.
+    reasoning_calls = [
+        c
+        for c in context.memory_manager.calls
+        if c[1] == MemoryType.DIALECTICAL_REASONING
+    ]
+    assert reasoning_calls, "No DIALECTICAL_REASONING memory item stored"
+    item, memory_type, edrr_phase, metadata = reasoning_calls[-1]
     assert edrr_phase == phase
     assert memory_type == MemoryType.DIALECTICAL_REASONING
     assert metadata["change_id"] == str(context.change.id)

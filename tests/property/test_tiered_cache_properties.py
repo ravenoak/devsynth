@@ -10,6 +10,7 @@ from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
+@pytest.mark.property
 @given(st.text())
 @pytest.mark.medium
 def test_second_read_hits_cache(content):
@@ -24,6 +25,7 @@ def test_second_read_hits_cache(content):
     assert adapter.get_cache_stats()["hits"] == hits_before + 1
 
 
+@pytest.mark.property
 @given(st.lists(st.text(), min_size=1, max_size=20))
 @pytest.mark.medium
 def test_cache_never_exceeds_max_size(contents):

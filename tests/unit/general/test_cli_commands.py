@@ -1,8 +1,9 @@
 import click
+import pytest
 import typer
 import typer.main
 from typer.testing import CliRunner
-import pytest
+
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.interface.ux_bridge import UXBridge
 

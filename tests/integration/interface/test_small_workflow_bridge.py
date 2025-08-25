@@ -1,8 +1,10 @@
-import pytest
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.agentapi import APIBridge
-from devsynth.interface.ux_bridge import sanitize_output
 from typing import Union
+
+import pytest
+
+from devsynth.interface.agentapi import APIBridge
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import sanitize_output
 
 
 class DummyProgress:
@@ -22,7 +24,9 @@ class DummyProgress:
         self.complete()
         return False
 
-    def update(self, *, advance: float = 1, description: Union[str, None] = None) -> None:
+    def update(
+        self, *, advance: float = 1, description: Union[str, None] = None
+    ) -> None:
         if description:
             self.description = sanitize_output(description)
         self.current += advance

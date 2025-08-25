@@ -1,12 +1,13 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 
 from devsynth.adapters.provider_system import (
-    OpenAIProvider,
     FallbackProvider,
+    OpenAIProvider,
+    ProviderError,
     acomplete,
     aembed,
-    ProviderError,
 )
 
 
@@ -22,7 +23,9 @@ async def test_openai_provider_acomplete():
     async_client.__aexit__.return_value = None
     async_client.post.return_value = mock_response
 
-    with patch("devsynth.adapters.provider_system.httpx.AsyncClient", return_value=async_client):
+    with patch(
+        "devsynth.adapters.provider_system.httpx.AsyncClient", return_value=async_client
+    ):
         provider = OpenAIProvider(api_key="key")
         result = await provider.acomplete("test prompt")
         assert result == "Async"
@@ -34,7 +37,9 @@ async def test_openai_provider_acomplete():
 async def test_acomplete_function():
     mock_provider = AsyncMock()
     mock_provider.acomplete.return_value = "response"
-    with patch("devsynth.adapters.provider_system.get_provider", return_value=mock_provider):
+    with patch(
+        "devsynth.adapters.provider_system.get_provider", return_value=mock_provider
+    ):
         result = await acomplete("prompt")
         assert result == "response"
         mock_provider.acomplete.assert_called_once()
@@ -45,7 +50,9 @@ async def test_acomplete_function():
 async def test_aembed_function():
     mock_provider = AsyncMock()
     mock_provider.aembed.return_value = [[0.1, 0.2]]
-    with patch("devsynth.adapters.provider_system.get_provider", return_value=mock_provider):
+    with patch(
+        "devsynth.adapters.provider_system.get_provider", return_value=mock_provider
+    ):
         result = await aembed("text")
         assert result == [[0.1, 0.2]]
         mock_provider.aembed.assert_called_once()

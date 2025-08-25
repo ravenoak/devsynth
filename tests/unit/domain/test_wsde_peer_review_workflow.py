@@ -39,7 +39,7 @@ def test_peer_review_cross_store_sync_succeeds():
 def test_mvu_helpers_cover_module():
     """Import MVU helpers to satisfy coverage requirements."""
 
-    from devsynth.core.mvu import linter, parser, storage, models
+    from devsynth.core.mvu import linter, models, parser, storage
 
     mvuu = models.MVUU.from_dict(
         {

@@ -123,6 +123,20 @@ You can also use helper commands:
 poetry run devsynth run-tests --fast --medium
 ```
 
+## Property-based Tests (opt-in)
+
+Property tests using Hypothesis are disabled by default to keep fast, stable CI runs. Enable them explicitly by setting the environment variable before running tests:
+
+```bash
+export DEVSYNTH_PROPERTY_TESTING=true
+poetry run pytest tests/property/
+```
+
+Conventions:
+- Mark all property tests with `@pytest.mark.property` in addition to a speed marker (`@pytest.mark.fast|medium|slow`).
+- Property tests may also live in unit/ directories; they should still include the `property` marker.
+- The tests/property/conftest.py ensures these tests are only collected when `DEVSYNTH_PROPERTY_TESTING` is truthy (1/true/yes/on).
+
 ## Conditional Test Execution
 
 The test framework includes a mechanism for conditionally skipping tests based on resource availability. This is useful for tests that depend on external resources like LM Studio or other services that might not always be available.
@@ -347,7 +361,38 @@ is unavailable:
 Each corresponding test module uses `@pytest.mark.requires_resource("<backend>")`
 to declare its dependency.
 
-To run tests for a specific type:
+#### Enabling specific resources locally
+
+For local runs, enable a resource by installing the required extra/dependency and
+setting the corresponding environment flag to `true` before running tests.
+
+- TinyDB
+  - Install: `poetry add tinydb --group dev` or `pip install tinydb`
+  - Enable: `export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true`
+- DuckDB
+  - Install: `poetry add duckdb --group dev` or `pip install duckdb`
+  - Enable: `export DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=true`
+- LMDB
+  - Install: `poetry add lmdb --group dev` or `pip install lmdb`
+  - Enable: `export DEVSYNTH_RESOURCE_LMDB_AVAILABLE=true`
+- FAISS (CPU)
+  - Install: `poetry add faiss-cpu --group dev` or `pip install faiss-cpu`
+  - Enable: `export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true`
+- Kuzu
+  - Install: `poetry add kuzu --group dev` or `pip install kuzu`
+  - Enable: `export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true`
+- ChromaDB
+  - Install: `poetry add chromadb tiktoken --group dev` or `pip install "chromadb>=0.5" tiktoken`
+  - Enable: `export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true`
+- RDFLib (if used by RDF adapters)
+  - Install: `poetry add rdflib --group dev` or `pip install rdflib`
+  - Enable: `export DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE=true`
+- LM Studio (local LLM)
+  - Install extras (optional): `poetry install --extras llm`
+  - Configure: `export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234`
+  - Enable: `export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true`
+
+After enabling resources, run the desired subset or the full suite:
 
 ```bash
 poetry run pytest tests/unit/
@@ -385,6 +430,12 @@ For additional utilities like flaky-test fixes and incremental categorization, s
 ## Referencing Requirements in Tests
 
 All tests should include the requirement ID they verify in the test's docstring. This links the test back to the relevant entry in `docs/requirements_traceability.md`.
+
+You can verify compliance locally:
+
+```bash
+poetry run python scripts/verify_reqid_references.py --json test_reqid_report.json
+```
 
 Example:
 

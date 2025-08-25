@@ -10,6 +10,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 
+@pytest.mark.property
 @given(
     num_agents=st.integers(min_value=1, max_value=8),
     workload=st.integers(min_value=1, max_value=100),

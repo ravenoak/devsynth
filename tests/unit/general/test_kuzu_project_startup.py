@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 import pytest
 
-from devsynth.config import load_project_config
-from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.config import load_project_config
 
 
 @pytest.fixture

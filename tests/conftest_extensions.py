@@ -114,6 +114,16 @@ def pytest_collection_modifyitems(config, items):
             name for name in ("fast", "medium", "slow") if item.get_closest_marker(name)
         ]
         if len(speed_markers) != 1:
+            # Normalize to exactly one speed marker by defaulting to 'medium'.
+            # Emit a warning so contributors add an explicit marker in-source.
+            try:
+                item.warn(
+                    pytest.PytestWarning(
+                        f"Test '{item.nodeid}' lacks exactly one speed marker; defaulting to @pytest.mark.medium"
+                    )
+                )
+            except Exception:
+                pass
             item.add_marker(pytest.mark.medium)
             marker = "medium"
         else:

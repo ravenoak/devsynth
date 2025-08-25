@@ -1,5 +1,6 @@
 import sys
 import types
+
 import pytest
 
 
@@ -23,4 +24,3 @@ def temporary_kuzu_config(tmp_path, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_KUZU_DB_PATH", str(db_path))
     monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "true")
     yield str(db_path)
-

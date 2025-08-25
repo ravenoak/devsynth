@@ -5,7 +5,9 @@ import pytest
 from devsynth import metrics
 from devsynth.fallback import (
     reset_prometheus_metrics,
-    retry_event_counter as fallback_retry_event_counter,
+)
+from devsynth.fallback import retry_event_counter as fallback_retry_event_counter
+from devsynth.fallback import (
     retry_with_exponential_backoff,
 )
 from devsynth.metrics import retry_event_counter as metrics_retry_event_counter
@@ -39,4 +41,3 @@ def test_retry_metrics_synced_with_prometheus() -> None:
     # Prometheus counters exposed by metrics module
     assert metrics_retry_event_counter.labels(status="attempt")._value.get() == 1
     assert metrics_retry_event_counter.labels(status="success")._value.get() == 1
-
