@@ -10,7 +10,7 @@ tags:
   - "solutions"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-24"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Troubleshooting Guide
@@ -99,6 +99,10 @@ All configuration files are valid.
 
 ## Provider Issues
 
+### Default provider behavior (offline-safe)
+
+By default, DevSynth does not require any remote LLM provider. A lightweight built-in provider is used for smoke paths and CLI help flows so that commands do not hang when credentials are absent or network is unavailable. If you explicitly select a remote provider (e.g., `DEVSYNTH_PROVIDER=openai`) without credentials, startup will fail fast with a clear error instead of silently falling back.
+
 ### Connection Errors with LM Studio
 
 **Issue**: DevSynth can't connect to LM Studio.
@@ -131,6 +135,69 @@ All configuration files are valid.
 
 ## Memory System Issues
 
+### Optional Extras Installation Issues
+
+These extras are optional and commonly used in development/testing. Installation may fail due to platform wheels, compiler toolchains, or Python/C++ ABI constraints. Prefer Poetry for consistency; pip commands are provided for PyPI installs.
+
+#### FAISS (faiss-cpu)
+
+Issue:
+- Installation fails with errors about missing BLAS/LAPACK, MKL, or incompatible wheels.
+
+Solutions:
+- Poetry (recommended):
+  - macOS (Apple Silicon / Intel): poetry add faiss-cpu -E retrieval
+  - Linux (x86_64): poetry add faiss-cpu -E retrieval
+  - Windows: faiss prebuilt wheels are limited; use WSL2 Ubuntu for best support.
+- pip alternative:
+  - pip install faiss-cpu
+- Notes:
+  - Ensure Python version is 3.12+ to match this project.
+  - Avoid faiss-gpu unless you’ve configured CUDA; prefer faiss-cpu for CI/dev.
+  - If installation continues to fail, set DEVSYNTH_RESOURCE_FAISS_AVAILABLE=false to skip FAISS-dependent tests.
+
+#### Kuzu
+
+Issue:
+- Build errors or wheel not found for your platform.
+
+Solutions:
+- Poetry (recommended): poetry add kuzu -E retrieval
+- pip alternative: pip install kuzu
+- Platform hints:
+  - Linux/macOS: Recent Python versions usually have binary wheels; older platforms may build from source and require a C++ toolchain.
+  - Windows: Prefer WSL2; native builds may require MSVC Build Tools.
+- If not needed, skip Kuzu-dependent tests by setting DEVSYNTH_RESOURCE_KUZU_AVAILABLE=false.
+
+#### ChromaDB (+ tiktoken)
+
+Issue:
+- Install fails on tiktoken or pydantic-related wheels; or runtime import errors for chromadb.
+
+Solutions:
+- Poetry (recommended): poetry add chromadb tiktoken -E chromadb
+- pip alternative: pip install "chromadb>=0.5" tiktoken
+- Platform hints:
+  - Ensure Rust toolchain if tiktoken attempts a local build: curl https://sh.rustup.rs -sSf | sh
+  - macOS: xcode-select --install to install command line tools.
+  - Linux: Ensure python3-dev headers and a C++ compiler (e.g., build-essential on Debian/Ubuntu).
+- To bypass when optional: set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false.
+
+#### LMDB / DuckDB / TinyDB
+
+Issue:
+- Optional memory backends fail to install or import.
+
+Solutions:
+- Poetry:
+  - poetry add lmdb duckdb tinydb -E memory
+- pip:
+  - pip install lmdb duckdb tinydb
+- Skip when unavailable using flags:
+  - DEVSYNTH_RESOURCE_LMDB_AVAILABLE=false
+  - DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=false
+- TinyDB is pure-Python and typically trouble-free.
+
 ### ChromaDB Issues
 
 **Issue**: Problems with the ChromaDB memory store.
@@ -152,6 +219,18 @@ All configuration files are valid.
 - Make sure you're properly saving items before ending the session
 
 ## Command Execution Issues
+
+### Smoke tests hang or never complete
+
+Issue: Long-running or hanging behavior during basic test runs.
+
+Solutions:
+- Use the fast smoke profile without xdist and with minimal plugins. For example: `poetry run pytest -m fast -q`.
+- Prefer the helper: `./scripts/run_all_tests.py --unit` for a quick check without optional integrations.
+- Ensure you are not forcing a remote provider without credentials. Unset `DEVSYNTH_PROVIDER` or set it to a local/offline mode.
+- Avoid loading heavy pytest plugins implicitly in minimal environments. If you used scripts that set `PYTEST_DISABLE_PLUGIN_AUTOLOAD`, make sure to unset it when running the broader suite.
+
+### Command Not Found
 
 ### Command Not Found
 

@@ -871,3 +871,37 @@ devsynth memory --restore memory_backup.json
 ---
 
 For more information, see the [User Guide](user_guide.md), [Configuration Guide](../technical_reference/configuration_reference.md), and the [Architecture Overview](../architecture/overview.md).
+
+
+## run-tests
+
+Run DevSynth test suites with stability and reporting options.
+
+```bash
+devsynth run-tests [OPTIONS]
+```
+
+Options:
+
+- `--target {all-tests|unit-tests|integration-tests|behavior-tests}`: Select test target.
+- `--speed <fast|medium|slow>`: Speed category to run; may be repeated to include multiple.
+- `--no-parallel`: Disable xdist parallelization.
+- `--report`: Produce an HTML report under `test_reports/`.
+- `--smoke`: Disable xdist and third-party plugins (sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`).
+- `--segment`: Enable batched execution.
+- `--segment-size N`: Batch size when segmenting.
+- `--maxfail N`: Stop after N failures.
+- `--feature name[=true|false]`: Set feature flags mapping to `DEVSYNTH_FEATURE_<NAME>`.
+
+Examples:
+
+```bash
+# Fast smoke run, fail on first error, no parallel
+poetry run devsynth run-tests --speed fast --smoke --maxfail=1 --no-parallel
+
+# Medium + slow, segmenting into batches of 25
+poetry run devsynth run-tests --speed medium --speed slow --segment --segment-size 25
+
+# Generate HTML report and disable parallel
+poetry run devsynth run-tests --report --no-parallel
+```

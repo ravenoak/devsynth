@@ -779,6 +779,75 @@ TLS_KEY_FILE=/path/to/key.pem
 TLS_CA_FILE=/path/to/ca.pem
 ```
 
+##### Safe Defaults and Test/CI Behavior
+To prevent accidental live network calls during tests or on minimal CI runners, the provider system uses safe defaults:
+
+- By default, if OPENAI_API_KEY is not set, the system will NOT attempt to contact LM Studio unless you explicitly declare availability.
+- Explicitly enable LM Studio discovery by setting:
+
+```bash
+DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+```
+
+- Choose the safe default provider when no online provider is usable:
+
+```bash
+# Options: "stub" (deterministic offline) or "null" (no-op)
+DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub
+```
+
+- To completely disable providers (useful for some tests):
+
+```bash
+DEVSYNTH_DISABLE_PROVIDERS=true
+```
+
+- Anthropic: when DEVSYNTH_PROVIDER=anthropic and ANTHROPIC_API_KEY is missing, the system safely falls back to the configured safe default. Anthropic is currently supported via application.llm.providers; the adapters.provider_system path will raise a clear error if Anthropic is explicitly requested with a key.
+
+###### Testing Fixtures and CI Usage
+
+To ensure deterministic, no-network behavior in tests, use the following patterns:
+
+- Pytest markers and environment gating:
+  - Default tests run with the `no_network` assumption. Avoid real provider calls unless explicitly opted in.
+  - Enable property tests locally with:
+    ```bash
+    export DEVSYNTH_PROPERTY_TESTING=true
+    poetry run pytest tests/property/
+    ```
+
+- Recommended environment for CI and unit tests:
+  ```bash
+  export DEVSYNTH_DISABLE_PROVIDERS=true
+  export DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub
+  export DEVSYNTH_PROVIDER=openai  # harmless without keys when using stub
+  ```
+
+- Example pytest fixture to enforce stubbed provider:
+  ```python
+  import os
+  import pytest
+
+  @pytest.fixture(autouse=True)
+  def _force_stub_provider(monkeypatch):
+      monkeypatch.setenv("DEVSYNTH_DISABLE_PROVIDERS", "true")
+      monkeypatch.setenv("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "stub")
+      # Ensure no accidental keys leak into CI runs
+      monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+      monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+      return
+  ```
+
+- Integration tests using local stubs/mocks should construct providers via the factory with fallback disabled to avoid any external calls:
+  ```python
+  from devsynth.adapters.provider_system import ProviderFactory
+
+  # Create a provider explicitly; factory will honor env and safe defaults
+  provider = ProviderFactory.create_provider(provider_type=os.getenv("DEVSYNTH_PROVIDER", "openai"))
+  ```
+
+Documenting and enforcing these fixtures prevents flakiness and aligns with pytest.ini defaults (registered markers and coverage thresholds).
+
 ## Configuration in Python Code
 
 ```python

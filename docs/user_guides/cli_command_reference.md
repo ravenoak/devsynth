@@ -1,22 +1,15 @@
 ---
-
-author: DevSynth Team
-date: '2025-07-07'
-last_reviewed: "2025-07-10"
-status: published
-tags:
-
-- user-guide
-- cli
-- reference
-
-title: DevSynth CLI Command Reference
+title: "DevSynth CLI Command Reference"
+author: "DevSynth Team"
+date: "2025-07-07"
 version: "0.1.0-alpha.1"
+status: "published"
+tags:
+  - user-guide
+  - cli
+  - reference
+last_reviewed: "2025-08-24"
 ---
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Command Reference
-</div>
-
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Command Reference
 </div>
@@ -29,14 +22,41 @@ This document provides a comprehensive reference for all DevSynth CLI commands. 
 
 ## Global Options
 
-These options are available for all DevSynth commands:
+### Exit Codes
+
+DevSynth standardizes CLI exit codes so automation and CI can respond predictably:
+
+- 0: Success
+- 1: Runtime or unexpected error (e.g., internal failure during command execution)
+- 2: Usage or argument error (e.g., invalid flags, bad parameters)
+
+These codes apply to top-level CLI execution via the entry point and when invoking commands with `devsynth ...`.
+
+Global flags are intentionally minimal:
 
 | Option | Description |
 |--------|-------------|
-| `--help` | Show help information for the command |
-| `--verbose` | Enable verbose output |
-| `--quiet` | Suppress non-essential output |
-| `--config FILE` | Specify a custom configuration file |
+| `--help` | Show help information for the current command |
+| `--version` | Show DevSynth version and exit |
+| `--dashboard-hook module:function` | Register a Python hook function to receive dashboard metric events (top-level option) |
+| `--debug` | Enable debug logging (equivalent to `--log-level DEBUG`) |
+| `--log-level <LEVEL>` | Set log level: DEBUG, INFO, WARNING, ERROR, CRITICAL |
+
+Notes:
+- Logging can also be controlled via env: `DEVSYNTH_LOG_LEVEL` or `DEVSYNTH_DEBUG=1`.
+- Verbosity and configuration flags remain command-specific and documented per command below.
+
+## CLI Messaging Principles
+
+DevSynth commands follow a few simple rules to ensure messages are clear, concise, and actionable:
+- Lead with the problem, then the remedy. Example: "Unknown target 'foo'. Valid values: unit-tests, integration-tests, behavior-tests, all-tests."
+- Use exit code 2 for usage errors; include a one-line hint to `--help` with the problematic flag.
+- Prefer single-sentence error messages; follow-up with a short suggestion ("Try: devsynth run-tests --help").
+- Avoid stack traces for expected user errors; reserve tracebacks for `--debug` or internal errors (exit 1).
+- Keep warnings actionable and rate-limited; include the flag or env var to silence or resolve.
+- In smoke/offline modes, explicitly confirm that network calls are disabled to set expectations.
+
+These principles are enforced in tests for key commands (see unit tests under `tests/unit/application/cli/commands/`).
 
 ## Core Commands
 
@@ -176,37 +196,35 @@ devsynth code --output-dir lib
 devsynth code --language typescript
 ```
 
-## run-pipeline
+## run-pipeline (alias: run)
 
-Run the complete synthesis pipeline (spec, test, code).
+Run the pipeline or a specific execution target.
 
 **Usage:**
 
 ```bash
 devsynth run-pipeline [OPTIONS]
+# alias
+devsynth run [OPTIONS]
 ```
 
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--target TEXT` | Target component to synthesize (unit, integration, all) |
-| `--requirements-file TEXT` | Path to the requirements file (default: requirements.md) |
+| `--target TEXT` | Execution target (unit-tests, integration-tests, behavior-tests, all) |
+| `--report TEXT` | JSON string with additional report data to persist |
 
 **Examples:**
 
 ```bash
+# Run the default pipeline
+ devsynth run-pipeline
 
-# Run the complete pipeline
+# Run unit tests target
+ devsynth run-pipeline --target unit-tests
 
-devsynth run-pipeline
-
-# Run the pipeline for unit tests only
-
-devsynth run-pipeline --target unit
-
-# Run the pipeline with a custom requirements file
-
-devsynth run-pipeline --requirements-file docs/requirements.md
+# Provide a report payload to persist alongside results
+ devsynth run --target all --report '{"build_id": 123, "env": "ci"}'
 ```
 
 ## config
@@ -470,6 +488,125 @@ devsynth webui --port 9501
 devsynth webui --browser=False
 ```
 
+## run-tests
+
+Run DevSynth test suites with stability and reporting options.
+
+**Usage:**
+
+```bash
+devsynth run-tests [OPTIONS]
+```
+
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--target TEXT` | Test target to run (e.g., unit-tests, integration-tests, all-tests) |
+| `--speed TEXT` | Speed category to run; repeatable (fast, medium, slow) |
+| `--report` | Generate an HTML test report (stored under test_reports/) |
+| `--verbose` | Show verbose output |
+| `--no-parallel` | Disable parallel test execution (disables xdist) |
+| `--smoke` | Disable third-party plugins and xdist for maximally stable runs (defaults to `--speed fast` if no speed provided) |
+| `--segment` | Run tests in batches |
+| `--segment-size INTEGER` | Number of tests per batch when segmenting (default: 50) |
+| `--maxfail INTEGER` | Exit after this many failures |
+| `--feature TEXT` | Feature flags to set; repeatable; accept `name` or `name=false` |
+
+**Examples:**
+
+```bash
+# Fast smoke run, fail on first error, no parallel
+devsynth run-tests --speed fast --smoke --maxfail 1
+
+# Medium + slow, segmenting into batches of 25
+devsynth run-tests --speed medium --speed slow --segment --segment-size 25
+
+# Generate HTML report and disable parallel
+devsynth run-tests --report --no-parallel
+```
+
+## completion
+
+Show or install shell completion scripts.
+
+**Usage:**
+
+```bash
+devsynth completion [OPTIONS]
+```
+
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--shell TEXT` | Shell type (e.g., bash, zsh) |
+| `--install` | Install completion script |
+| `--path TEXT` | Installation path |
+
+**Examples:**
+
+```bash
+# Show completion script for current shell
+devsynth completion --shell bash
+
+# Install completion to default path
+devsynth completion --install
+
+# Install completion to a custom path
+devsynth completion --install --path ~/.local/share/bash-completion/completions
+```
+
+## ingest
+
+Ingest a project manifest into DevSynth.
+
+**Usage:**
+
+```bash
+devsynth ingest [OPTIONS] [MANIFEST_PATH]
+```
+
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Perform a dry run without making changes |
+| `--verbose` | Enable verbose output |
+| `--validate-only` | Only validate the manifest, do not ingest |
+| `--priority TEXT` | Persist project priority |
+| `--auto-phase-transitions/--no-auto-phase-transitions` | Automatically advance EDRR phases (default: enabled) |
+| `--defaults` | Use defaults and skip prompts (implies non-interactive) |
+| `--non-interactive` | Run without interactive prompts |
+
+**Examples:**
+
+```bash
+# Validate only
+devsynth ingest ./project.yaml --validate-only
+
+# Dry run with verbose output
+devsynth ingest ./project.yaml --dry-run --verbose
+
+# Non-interactive defaults
+devsynth ingest ./project.yaml --defaults
+```
+
+## mvuu-dashboard
+
+Launch the MVUU traceability dashboard.
+
+Usage:
+
+```bash
+# Validate wiring only (no external processes)
+devsynth mvuu-dashboard --no-run
+
+# Generate traceability report and launch the dashboard
+mvuu-dashboard
+```
+
+Notes:
+- The command is safe to import and supports a --no-run flag for smoke testing.
+- The full dashboard requires the web UI dependency (NiceGUI / Streamlit) and may be gated in tests.
+
 ## Diagnostic Commands
 
 ### doctor
@@ -505,7 +642,7 @@ devsynth doctor --path ./my-project
 devsynth doctor --fix
 ```
 
-## EDRR-cycle
+## edrr-cycle
 
 Run an Expand-Differentiate-Refine-Reflect cycle.
 
@@ -610,7 +747,7 @@ devsynth alignment-metrics --format markdown
 
 ## inspect-config
 
-Inspect and analyze project configuration.
+Inspect and analyze project configuration and manifest alignment.
 
 **Usage:**
 
@@ -621,19 +758,24 @@ devsynth inspect-config [OPTIONS]
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--output-file TEXT` | Path where the analysis will be written |
+| `PATH` | Optional path to the project root (defaults to current directory) |
+| `--update` | Update the manifest with discovered items |
+| `--prune` | Remove entries from the manifest that no longer exist |
 
 **Examples:**
 
 ```bash
-
-# Inspect project configuration
-
+# Inspect project configuration in the current directory
 devsynth inspect-config
 
-# Inspect project configuration and save the analysis
+# Inspect a specific path
+devsynth inspect-config ./examples/project
 
-devsynth inspect-config --output-file config_analysis.md
+# Update the manifest with discovered items
+devsynth inspect-config --update
+
+# Prune stale entries from the manifest
+devsynth inspect-config --prune
 ```
 
 ## validate-manifest
@@ -807,7 +949,8 @@ DevSynth respects the following environment variables:
 | `DEVSYNTH_PROVIDER` | Default Provider to use |
 | `OPENAI_API_KEY` | API key for OpenAI |
 | `ANTHROPIC_API_KEY` | API key for Anthropic |
-| `DEVSYNTH_LOG_LEVEL` | Log level (DEBUG, INFO, WARNING, ERROR) |
+| `DEVSYNTH_LOG_LEVEL` | Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL) |
+| `DEVSYNTH_DEBUG` | If set (e.g., 1/true), forces DEBUG logging unless overridden by `--log-level` |
 | `DEVSYNTH_CACHE_DIR` | Directory for caching data |
 | `DEVSYNTH_DISABLE_TELEMETRY` | Disable telemetry (set to any value) |
 

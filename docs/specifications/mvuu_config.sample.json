@@ -1,0 +1,9 @@
+{
+  "$schema": "./mvuu_config.schema.json",
+  "schema": "docs/specifications/mvuuschema.json",
+  "storage": {
+    "path": "docs/specifications/mvuu_database.json",
+    "format": "json"
+  },
+  "issues": {}
+}
