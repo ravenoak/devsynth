@@ -1,5 +1,10 @@
 """
 Command to inspect a codebase and provide insights about its architecture, structure, and quality.
+
+NOTE (mypy override): This module currently has relaxed mypy settings per
+pyproject.toml [tool.mypy.overrides] to allow incremental stabilization.
+TODO(typing): Restore disallow_untyped_defs and check_untyped_defs after
+refining public API types and internal helpers. Target: 2025-10-01. See docs/tasks.md (Static analysis).
 """
 
 import os
@@ -14,7 +19,7 @@ from devsynth.application.code_analysis.project_state_analyzer import (
 )
 from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
 from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
+from devsynth.interface.ux_bridge import UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -57,7 +62,7 @@ def inspect_code_cmd(
             if not os.path.exists(path):
                 os.makedirs(path, exist_ok=True)
 
-        console.print(f"[bold]Inspecting codebase at:[/bold] {path}")
+        console.print(f"[bold]Inspecting codebase at:[/bold] {sanitize_output(path)}")
 
         # Create a progress panel
         analysis_failed = False
@@ -65,10 +70,24 @@ def inspect_code_cmd(
             try:
                 analyzer = SelfAnalyzer(path)
                 result = analyzer.analyze()
+                # Detect per-file analysis errors and surface as a user-visible error
+                files = result.get("code_analysis", {}).get("files", {})
+                error_files = [
+                    fp for fp, fa in files.items() if fa.get("metrics", {}).get("error")
+                ]
+                if error_files:
+                    analysis_failed = True
+                    msg = f"Detected analysis errors in {len(error_files)} file(s)."
+                    logger.error(msg)
+                    console.print(
+                        f"[red]Error analyzing codebase: {sanitize_output(msg)}[/red]"
+                    )
             except Exception as e:
                 analysis_failed = True
                 logger.error(f"Self analysis failed: {e}")
-                console.print(f"[red]Error analyzing codebase: {e}[/red]")
+                console.print(
+                    f"[red]Error analyzing codebase: {sanitize_output(str(e))}[/red]"
+                )
                 result = {
                     "insights": {
                         "architecture": {
@@ -101,7 +120,9 @@ def inspect_code_cmd(
             except Exception as e:
                 analysis_failed = True
                 logger.error(f"Project state analysis failed: {e}")
-                console.print(f"[red]Error analyzing project state: {e}[/red]")
+                console.print(
+                    f"[red]Error analyzing project state: {sanitize_output(str(e))}[/red]"
+                )
                 project_state = {}
 
         # Display the analysis results
@@ -110,7 +131,7 @@ def inspect_code_cmd(
         # Display architecture information
         architecture = result["insights"]["architecture"]
         console.print(
-            f"\n[bold]Architecture:[/bold] {architecture['type']} (confidence: {architecture['confidence']:.2f})"
+            f"\n[bold]Architecture:[/bold] {sanitize_output(str(architecture['type']))} (confidence: {architecture['confidence']:.2f})"
         )
 
         # Display layers
@@ -122,9 +143,13 @@ def inspect_code_cmd(
             layers_table.add_column("Components")
 
             for layer, components in layers.items():
-                layers_table.add_row(
-                    layer, ", ".join(components) if components else "None"
+                safe_layer = sanitize_output(str(layer))
+                safe_components = (
+                    ", ".join(sanitize_output(str(c)) for c in components)
+                    if components
+                    else "None"
                 )
+                layers_table.add_row(safe_layer, safe_components)
 
             console.print(layers_table)
 
@@ -139,9 +164,9 @@ def inspect_code_cmd(
 
             for violation in violations:
                 violations_table.add_row(
-                    violation["source_layer"],
-                    violation["target_layer"],
-                    violation["description"],
+                    sanitize_output(str(violation["source_layer"])),
+                    sanitize_output(str(violation["target_layer"])),
+                    sanitize_output(str(violation["description"])),
                 )
 
             console.print(violations_table)
@@ -153,20 +178,32 @@ def inspect_code_cmd(
         quality_table.add_column("Metric")
         quality_table.add_column("Value")
 
-        quality_table.add_row("Total Files", str(code_quality["total_files"]))
-        quality_table.add_row("Total Classes", str(code_quality["total_classes"]))
-        quality_table.add_row("Total Functions", str(code_quality["total_functions"]))
+        quality_table.add_row(
+            "Total Files", sanitize_output(str(code_quality["total_files"]))
+        )
+        quality_table.add_row(
+            "Total Classes", sanitize_output(str(code_quality["total_classes"]))
+        )
+        quality_table.add_row(
+            "Total Functions", sanitize_output(str(code_quality["total_functions"]))
+        )
         quality_table.add_row(
             "Docstring Coverage (Files)",
-            f"{code_quality['docstring_coverage']['files'] * 100:.1f}%",
+            sanitize_output(
+                f"{code_quality['docstring_coverage']['files'] * 100:.1f}%"
+            ),
         )
         quality_table.add_row(
             "Docstring Coverage (Classes)",
-            f"{code_quality['docstring_coverage']['classes'] * 100:.1f}%",
+            sanitize_output(
+                f"{code_quality['docstring_coverage']['classes'] * 100:.1f}%"
+            ),
         )
         quality_table.add_row(
             "Docstring Coverage (Functions)",
-            f"{code_quality['docstring_coverage']['functions'] * 100:.1f}%",
+            sanitize_output(
+                f"{code_quality['docstring_coverage']['functions'] * 100:.1f}%"
+            ),
         )
 
         console.print(quality_table)
@@ -178,17 +215,24 @@ def inspect_code_cmd(
         coverage_table.add_column("Metric")
         coverage_table.add_column("Value")
 
-        coverage_table.add_row("Total Symbols", str(test_coverage["total_symbols"]))
-        coverage_table.add_row("Tested Symbols", str(test_coverage["tested_symbols"]))
         coverage_table.add_row(
-            "Coverage Percentage", f"{test_coverage['coverage_percentage'] * 100:.1f}%"
+            "Total Symbols", sanitize_output(str(test_coverage["total_symbols"]))
+        )
+        coverage_table.add_row(
+            "Tested Symbols", sanitize_output(str(test_coverage["tested_symbols"]))
+        )
+        coverage_table.add_row(
+            "Coverage Percentage",
+            sanitize_output(f"{test_coverage['coverage_percentage'] * 100:.1f}%"),
         )
 
         console.print(coverage_table)
 
         # Display project health score
         health_score = project_state.get("health_score", 0.0)
-        console.print(f"\n[bold]Project Health Score:[/bold] {health_score:.2f}/10.0")
+        console.print(
+            f"\n[bold]Project Health Score:[/bold] {sanitize_output(f'{health_score:.2f}')}/10.0"
+        )
 
         # Display improvement opportunities
         opportunities = result["insights"]["improvement_opportunities"]
@@ -201,9 +245,9 @@ def inspect_code_cmd(
 
             for opportunity in opportunities:
                 opportunities_table.add_row(
-                    opportunity["priority"].upper(),
-                    opportunity["type"],
-                    opportunity["description"],
+                    sanitize_output(str(opportunity.get("priority", "")).upper()),
+                    sanitize_output(str(opportunity.get("type", ""))),
+                    sanitize_output(str(opportunity.get("description", ""))),
                 )
 
             console.print(opportunities_table)
@@ -212,11 +256,11 @@ def inspect_code_cmd(
         if "recommendations" in project_state:
             console.print("\n[bold]Recommendations:[/bold]")
             for recommendation in project_state["recommendations"]:
-                console.print(f"- {recommendation}")
+                console.print(f"- {sanitize_output(str(recommendation))}")
 
         if not analysis_failed:
             console.print("\n[green]Inspection completed successfully![/green]")
 
     except Exception as e:
         logger.error(f"Error analyzing codebase: {str(e)}")
-        console.print(f"[red]Error analyzing codebase: {str(e)}[/red]")
+        console.print(f"[red]Error analyzing codebase: {sanitize_output(str(e))}[/red]")
