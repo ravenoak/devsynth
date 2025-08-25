@@ -38,6 +38,16 @@ tasks:
     cmds:
       - poetry run pytest {{.PYTEST_ARGS}}
 
+  typecheck:
+    desc: Run mypy type checks
+    cmds:
+      - poetry run mypy src/devsynth
+
+  typecheck:baseline:
+    desc: Generate mypy baseline and triage issues (outputs mypy_baseline.json and issues/triage/mypy/*.md)
+    cmds:
+      - poetry run python scripts/generate_mypy_baseline_issues.py
+
   test:unit:
     desc: Run unit tests only
     cmds:
@@ -51,7 +61,29 @@ tasks:
   test:bdd:
     desc: Run BDD tests
     cmds:
-      - poetry run pytest {{.PYTEST_ARGS}} tests/bdd
+      - poetry run pytest {{.PYTEST_ARGS}} tests/behavior
+
+  test:fast:
+    desc: Run fast test suite via devsynth CLI (smoke-friendly defaults)
+    cmds:
+      - poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1
+
+  test:behavior:fast:
+    desc: Run behavior (BDD) tests limited to fast scenarios via devsynth CLI
+    cmds:
+      - poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel
+
+  test:all:
+    desc: Run full test suite via devsynth CLI with HTML report
+    cmds:
+      - poetry run devsynth run-tests --speed=all --report
+
+  final:smoke:
+    desc: Run final smoke commands for release gating (fast default, integration, behavior)
+    cmds:
+      - poetry run pytest
+      - poetry run pytest tests/integration/
+      - poetry run pytest tests/behavior/
 
   test:coverage:
     desc: Run tests with coverage
@@ -61,7 +93,7 @@ tasks:
   test:smoke:
     desc: Run a minimal smoke test suite
     cmds:
-      - poetry run pytest --maxfail=1
+      - PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 poetry run pytest -p no:cov -p no:xdist --maxfail=1 -q
 
   # Performance benchmarking tasks
   bench:
@@ -164,6 +196,23 @@ tasks:
     cmds:
       - poetry build
 
+  setup:minimal:
+    desc: Install development deps with minimal extras
+    cmds:
+      - poetry install --with dev --extras minimal
+
+  verify:build:
+    desc: Verify poetry build succeeds without warnings
+    cmds:
+      - poetry run python scripts/verify_poetry_build.py
+
+  verify:minimal:
+    desc: Verify minimal extras installation path (CLI+imports)
+    deps:
+      - setup:minimal
+    cmds:
+      - poetry run python scripts/verify_minimal_install.py
+
   build:wheel:
     desc: Build wheel distribution
     cmds:
@@ -196,6 +245,7 @@ tasks:
       - task: test:smoke
       - poetry run python scripts/verify_test_markers.py
       - task: security:audit
+      - task: verify:minimal
       - poetry run python scripts/verify_release_state.py
       - poetry run python scripts/dialectical_audit.py
 
@@ -207,6 +257,12 @@ tasks:
     cmds:
       - git describe --tags --exact-match >/dev/null
       - poetry run python scripts/bump_version.py {{.NEXT_VERSION}}
+
+  release:tag:
+    desc: Tag v0.1.0a1 and push to origin
+    cmds:
+      - git tag v0.1.0a1
+      - git push origin v0.1.0a1
   # Development workflow tasks
   dev:
     desc: Run common development tasks (format, lint, test)
