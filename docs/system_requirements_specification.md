@@ -1,7 +1,7 @@
 ---
 title: "DevSynth System Requirements Specification"
 date: "2025-08-04"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "documentation"
 
@@ -24,11 +24,11 @@ last_reviewed: "2025-08-04"
 
 | Document Title | DevSynth System Requirements Specification |
 |---------------|-------------------------------------------|
-| Version       | 0.1.0-alpha.1                              |
+| Version       | 0.1.0a1                                   |
 | Status        | Draft                                     |
 | Date          | August 2025                               |
 
-This specification describes an unreleased system targeting the `0.1.0-alpha.1` live test as outlined in the [release plan](roadmap/release_plan.md).
+This specification describes an unreleased system targeting the `0.1.0a1` live test as outlined in the [release plan](roadmap/release_plan.md).
 
 ## 1. Introduction
 
@@ -476,9 +476,9 @@ Primary users are individual software developers who:
 
 ## Changelog
 
-- **0.1.0-alpha.1** (2025-08-04): Added non-functional requirements for atomic, idempotent commits, MVUU metadata enforcement, and continuous main-branch usability with associated CI and commit-hook criteria in preparation for the first live test.
+- **0.1.0a1** (2025-08-04): Added non-functional requirements for atomic, idempotent commits, MVUU metadata enforcement, and continuous main-branch usability with associated CI and commit-hook criteria in preparation for the first live test.
 - **0.1.0-alpha.0** (2025-05-01): Initial draft.
 
 ## Implementation Status
 
-This specification is **in progress** and outlines planned behavior for the upcoming `0.1.0-alpha.1` milestone.
+This specification is **in progress** and outlines planned behavior for the upcoming `0.1.0a1` milestone.

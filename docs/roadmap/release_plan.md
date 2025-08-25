@@ -1,7 +1,7 @@
 ---
 title: "DevSynth Release Plan"
 date: "2025-08-20"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - roadmap
   - release
@@ -16,19 +16,19 @@ last_reviewed: "2025-08-20"
 
 # DevSynth Release Plan
 
-This release plan defines version milestones for DevSynth starting with the upcoming `0.1.0-alpha.1` pre-release and outlines the path toward the `0.1.x` line and future minor versions.
+This release plan defines version milestones for DevSynth starting with the upcoming `0.1.0a1` pre-release and outlines the path toward the `0.1.x` line and future minor versions.
 
 ## Milestones
 
-### 0.1.0-alpha.1
+### 0.1.0a1
 
 Before publishing the first alpha tag, ensure the artifacts build and the
 project passes a quick smoke test:
 
 ```bash
 task release:prep
-git tag v0.1.0-alpha.1
-git push origin v0.1.0-alpha.1
+git tag v0.1.0a1
+git push origin v0.1.0a1
 ```
 
 - Refresh system architecture diagrams under `docs/architecture/`.
@@ -44,6 +44,28 @@ git push origin v0.1.0-alpha.1
   - Wizard forms
   - Progress UI
   - CLI mapping
+
+#### Prerequisite Completion Status (0.1.0a1)
+
+- [ ] Refresh system architecture diagrams under `docs/architecture/` (tracked under Documentation Quality gates)
+- [x] Standardize metadata headers across all project documentation (front matter standardized for key sections)
+- [x] Publish the consolidated release plan for team-wide alignment (this document, status: published)
+- [ ] MVUU engine prototype and refinement for Minimum Viable Utility Units
+- [ ] Atomic-Rewrite workflow baseline and integration
+- [ ] MVUU JSON schema finalization
+- [ ] Commit-linter enforcement
+- [ ] Traceability automation and ticket linkage
+- [ ] Automatic issue comments for commit traceability
+- [ ] Baseline Dear PyGui parity tasks:
+  - [ ] Wizard forms
+  - [ ] Progress UI
+  - [ ] CLI mapping
+
+### 0.1.0a2 (Planned)
+- Carry over deferred items from 0.1.0a1 that did not block the tag.
+- CI/CD matrix hardening (minimal/full/docs/lint/type jobs) and artifacts publication.
+- Provider system safe defaults fully validated with integration tests using local stubs.
+- Release management updates: README badges/links, metadata verification automation.
 
 ### 0.1.0
 - Stabilize core agent APIs and complete critical test coverage.

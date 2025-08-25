@@ -5,7 +5,7 @@ last_reviewed: "2025-08-17"
 status: active
 tags: [implementation, status, audit, foundation-stabilization]
 title: DevSynth Feature Status Matrix
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 
 <div class="breadcrumbs">
@@ -20,7 +20,7 @@ version: "0.1.0-alpha.1"
 
 This document provides a comprehensive status matrix for all features in the DevSynth project. It is a key deliverable of the Feature Implementation Audit conducted as part of Phase 1: Foundation Stabilization.
 
-**Implementation Status:** The overall project is **partially implemented**. Approximately **77%** of documented features are functional. Work continues toward the `0.1.0-alpha.1` milestone, but several integration tests remain unstable. Each feature row below lists the current completion level and outstanding work.
+**Implementation Status:** The overall project is **partially implemented**. Approximately **77%** of documented features are functional. Work continues toward the `0.1.0a1` milestone, but several integration tests remain unstable. Each feature row below lists the current completion level and outstanding work.
 
 ## Status Categories
 
@@ -128,7 +128,7 @@ Each feature is scored on two dimensions:
 3. Prioritize incomplete features based on user impact and implementation complexity
 4. Develop detailed implementation plans for high-priority features
 
-Current partial implementations include the EDRR framework, WSDE agent collaboration, memory synchronization utilities, deployment automation, the retry mechanism, and the SDLC security policy. A recent fast test run produced **0** failing tests, **51** passing tests, and **30** skipped with **0** collection errors. Test metrics identify **3,309** tests across the suite—approximately **2,024** unit, **346** integration, **43** behavior, **12** performance, and **2** property test functions—with overall coverage at **19%**. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of instability, blocking `0.1.0-alpha.1`.
+Current partial implementations include the EDRR framework, WSDE agent collaboration, memory synchronization utilities, deployment automation, the retry mechanism, and the SDLC security policy. A recent fast test run produced **0** failing tests, **51** passing tests, and **30** skipped with **0** collection errors. Test metrics identify **3,309** tests across the suite—approximately **2,024** unit, **346** integration, **43** behavior, **12** performance, and **2** property test functions—with overall coverage at **19%**. Unfinished WSDE collaboration features and cross-store memory integration remain the primary sources of instability, blocking `0.1.0a1`.
 
 
 ## Release Milestones and Coverage Goals
@@ -137,8 +137,8 @@ DevSynth releases follow the [Release Plan](../roadmap/release_plan.md). Each mi
 
 | Milestone | Coverage Target | Notes |
 |-----------|-----------------|-------|
-| `0.1.0-alpha.1` | ~50% | Core architecture validated |
-| `0.1.0-alpha.1` | ≥75% | Peer review workflow and Web UI preview |
+| `0.1.0a1` | ~50% | Core architecture validated |
+| `0.1.0a1` | ≥75% | Peer review workflow and Web UI preview |
 | `0.1.0-rc.1` | ≥90% | Documentation freeze and full suite passing |
 
 Coverage goals align with the [Testing Standards](../developer_guides/TESTING_STANDARDS.md). Advancing to the next milestone requires meeting the stated coverage threshold.

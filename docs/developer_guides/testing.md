@@ -12,7 +12,7 @@ tags:
 - quality assurance
 
 title: DevSynth Testing Guide
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 ---
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Guide
@@ -275,6 +275,30 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 
 ## Running Tests
 
+### Optional Extras Installation Matrix (local)
+
+Install the project with the extras configuration that matches your local workflow. These presets align with docs/tasks.md task 11 and are suitable for fast local iteration:
+
+- Minimal dev (quickest install; core development only):
+  
+  ```bash
+  poetry install --with dev --extras minimal
+  ```
+
+- Tests baseline (sufficient for most tests, including retrieval + API paths referenced by the suite):
+  
+  ```bash
+  poetry install --with dev --extras tests retrieval chromadb api
+  ```
+
+- Full feature (non-GPU):
+  
+  ```bash
+  poetry install --with dev,docs --all-extras
+  ```
+
+These commands are additive with environment flags described below; prefer these presets to avoid missing optional dependencies when running the suite.
+
 Before executing tests, install DevSynth with its development extras so that all test dependencies are available. Running the **full** suite requires the `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, and `chromadb` extras. Environment provisioning is handled automatically in Codex environments. For manual setups run:
 
 ```bash
@@ -340,6 +364,118 @@ The repository provides a lightweight HTTP stub in
 use the `lmstudio_service` fixture to patch the `lmstudio` client and route
 requests to the stub server, enabling deterministic runs when the real
 service is unavailable.
+
+### Quick Reference: Markers and Resource Flags
+
+- Markers:
+  - requires_resource(name): mark tests that need an external resource; e.g., @pytest.mark.requires_resource("lmstudio")
+  - property: mark Hypothesis-based property tests in tests/property/
+- Environment flags (default off for external services in CI/dev):
+  - DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: true/false to opt in/out of LM Studio tests
+  - DEVSYNTH_RESOURCE_CLI_AVAILABLE: true/false for CLI-dependent tests
+  - DEVSYNTH_RESOURCE_WEBUI_AVAILABLE: true/false for WebUI-dependent tests
+  - DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: true/false to force skip/presence
+  - DEVSYNTH_PROPERTY_TESTING: true/false to enable property tests
+
+### Speed Marker Discipline (mandatory)
+
+- Exactly one speed marker per test function is required: @pytest.mark.fast, @pytest.mark.medium, or @pytest.mark.slow.
+- Do not rely on module-level pytestmark for speed. Apply speed markers at the function level.
+- Validate locally before committing:
+  - poetry run python scripts/verify_test_markers.py --changed
+  - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+
+Examples:
+
+Correct (function-level speed marker):
+
+```python
+import pytest
+
+@pytest.mark.fast
+def test_addition_is_commutative():
+    assert 1 + 2 == 2 + 1
+```
+
+Incorrect (module-level speed marker only; will be flagged):
+
+```python
+import pytest
+
+pytestmark = pytest.mark.fast  # Not recognized for speed discipline
+
+def test_addition_is_commutative():
+    assert 1 + 2 == 2 + 1
+```
+
+Correcting the incorrect example:
+
+```python
+import pytest
+
+@pytest.mark.fast
+def test_addition_is_commutative():
+    assert 1 + 2 == 2 + 1
+```
+
+Property tests still require a speed marker in addition to @pytest.mark.property.
+
+### Flakiness mitigation (quick tips)
+
+- Prefer running fast tests locally during iteration: `poetry run devsynth run-tests --speed=fast`.
+- Use `--no-parallel` or the `@pytest.mark.isolation` marker for tests that exercise heavy backends (e.g., DuckDB/Kuzu/FAISS) or shared global state.
+- Timeouts: smoke mode sets a conservative per-test timeout; for explicit fast-only runs, the CLI defaults to a slightly looser timeout. Override via `DEVSYNTH_TEST_TIMEOUT_SECONDS` if a slow machine triggers spurious timeouts.
+- External resources: mark with `@pytest.mark.requires_resource("<name>")` and gate via `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE`. Keep these `false` by default for deterministic CI.
+- Network: network is disabled by default in test runs. Stub outbound calls rather than relying on the network.
+- Determinism: avoid reliance on wall-clock time and random order dependencies; seed RNGs when used.
+
+If a test remains flaky:
+- Capture a minimal repro (inputs, seed, environment flags) in the test’s docstring.
+- Add a short comment in the test explaining the mitigation (e.g., isolation, increased timeout) and link to the driving issue.
+
+### Extras Matrix (install what you need)
+
+- minimal: baseline runtime for CLI and core features
+  - poetry install --extras minimal
+- retrieval: Kuzu + FAISS for vector retrieval
+  - poetry install --extras retrieval
+- chromadb: ChromaDB store and tokenizer helpers
+  - poetry install --extras chromadb
+- memory: full memory stack (tinydb, duckdb, lmdb, kuzu, faiss, chromadb, numpy)
+  - poetry install --extras memory
+- llm: HTTP client/token tools for LLM execution
+  - poetry install --extras llm
+- api: FastAPI server + Prometheus client
+  - poetry install --extras api
+- webui: Streamlit-based WebUI
+  - poetry install --extras webui
+- lmstudio: LM Studio Python client integration
+  - poetry install --extras lmstudio
+- gui: Dear PyGui desktop interface
+  - poetry install --extras gui
+- gpu: PyTorch + CUDA libs (Linux x86_64) for local models
+  - poetry install --extras gpu
+- offline: Transformers-only offline provider support
+  - poetry install --extras offline
+- tests: convenience group for common test deps when not using groups
+  - poetry install --extras tests
+
+Tip: for the full developer environment use poetry install --with dev,docs and consider poetry sync --all-extras --all-groups in CI images.
+
+### Troubleshooting
+
+- Pytest hangs or xdist restarts:
+  - Ensure you are using the CLI wrapper: poetry run devsynth run-tests --speed=fast
+  - Our pytest_configure caps worker restarts; avoid combining coverage + xdist unless necessary.
+- Network calls during tests:
+  - Network is disabled by default; use responses or unittest.mock to stub HTTP.
+  - Enable specific providers only when needed via DEVSYNTH_RESOURCE_* flags.
+- Missing optional dependency (e.g., chromadb):
+  - Install the matching extra (poetry install --extras chromadb) or set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false to skip.
+- Property tests not running:
+  - Set DEVSYNTH_PROPERTY_TESTING=true or enable via devsynth config formalVerification.propertyTesting true
+- CLI import errors:
+  - Always run inside Poetry venv. Use poetry install and poetry run devsynth help to verify entrypoints.
 
 ## Running All Tests
 
@@ -549,6 +685,23 @@ Run the check locally with:
 poetry run python scripts/verify_requirements_traceability.py
 ```
 
+### Cross-references for Traceability
+
+To maintain end-to-end traceability between requirements, issues, and tests, this guide and related documents cross-reference the following artifacts:
+
+- Issues: 
+  - [issues/devsynth-run-tests-hangs.md](../../issues/devsynth-run-tests-hangs.md) — runner stability and provider short-circuiting.
+  - [issues/release-readiness-v0-1-0-alpha-1.md](../../issues/release-readiness-v0-1-0-alpha-1.md) — release preparation checklist context.
+  - [issues/Finalize-WSDE-EDRR-workflow-logic.md](../../issues/Finalize-WSDE-EDRR-workflow-logic.md) — workflow logic alignment for BDD coverage.
+  - [issues/Complete-Sprint-EDRR-integration.md](../../issues/Complete-Sprint-EDRR-integration.md) — integration tasks mapped to behavior features.
+- Specifications index: [docs/specifications/](../specifications/index.md) — authoritative specs linked by behavior features under `tests/behavior/features/`.
+- Task tracker: [docs/tasks.md](../tasks.md) — prioritized tasks; update checkboxes as items are completed.
+
+When you add or modify tests:
+- Link the relevant specification at the top of the test file (see existing feature files for examples).
+- Reference the driving issue in the test docstring or comments where appropriate.
+- Ensure `scripts/verify_requirements_traceability.py` passes locally and in CI.
+
 ## Continuous Integration
 
 DevSynth uses GitHub Actions for continuous integration testing. The CI pipeline:
@@ -573,4 +726,4 @@ Test coverage is tracked and reported in CI runs.
 
 ---
 
-_Last updated: August 22, 2025_
+_Last updated: August 23, 2025_

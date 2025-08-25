@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-16'
-last_reviewed: "2025-07-10"
+last_reviewed: "2025-08-24"
 status: published
 tags:
 - architecture
@@ -10,10 +10,6 @@ tags:
 title: DevSynth Architecture
 version: "0.1.0-alpha.1"
 ---
-
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture
-</div>
 
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture
@@ -76,6 +72,21 @@ If you're new to DevSynth's architecture, we recommend starting with the [Overvi
 - [CLI Overhaul Pseudocode](../specifications/cli_overhaul_pseudocode.md) - Design reference for the updated initialization command
 - [WebUI Reference](../user_guides/webui_reference.md) - How to use the NiceGUI interface
 - [Agent API Reference](../user_guides/api_reference.md) - Programmatic endpoints for automating DevSynth
+
+## Diagrams
+
+Note: Diagrams were last refreshed on 2025-08-24. See scripts/regenerate_architecture_diagrams.py for the automated regeneration path.
+
+- [DPG Overview](diagrams/dpg_overview.svg)
+- [Init Workflow (1)](diagrams/init_workflow-1.svg)
+- [Init Workflow (2)](diagrams/init_workflow-2.svg)
+- [WebUI Overview (1)](diagrams/webui_overview-1.svg)
+- [WebUI Overview (2)](diagrams/webui_overview-2.svg)
+- [WebUI Overview (3)](diagrams/webui_overview-3.svg)
+- [WebUI Overview (4)](diagrams/webui_overview-4.svg)
+- [WebUI Overview (5)](diagrams/webui_overview-5.svg)
+- [WSDE/EDRR Integration](diagrams/wsde_edrr_integration-1.svg)
+
 ## Implementation Status
 
 .

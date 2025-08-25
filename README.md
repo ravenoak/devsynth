@@ -1,7 +1,7 @@
 ---
 title: "DevSynth"
 date: "2025-05-20"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "devsynth"
   - "overview"
@@ -15,11 +15,13 @@ last_reviewed: "2025-08-08"
 > Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
 
 # DevSynth
-![Coverage](https://img.shields.io/badge/coverage-77%25-yellow.svg)
+![Version](https://img.shields.io/badge/version-0.1.0a1-blue.svg) [![Pre‑release](https://img.shields.io/badge/status-pre--release-orange.svg)](docs/release/0.1.0-alpha.1.md)
+[![Readiness Checklist](https://img.shields.io/badge/readiness-checklist-blueviolet.svg)](docs/tasks.md)
+![Coverage](https://img.shields.io/badge/coverage-80%2B%25-green.svg)
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
-**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. Version `0.1.0-alpha.1` remains untagged; see [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md) for the full checklist. All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md). Release milestones and targeted features post-`0.1.0-alpha.1` are documented in [docs/release/roadmap.md](docs/release/roadmap.md); see [docs/roadmap/CONSOLIDATED_ROADMAP.md](docs/roadmap/CONSOLIDATED_ROADMAP.md) for the broader project plan.
+**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. Version `0.1.0a1` has been tagged; see [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md) and the prioritized readiness checklist at [docs/tasks.md](docs/tasks.md). All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md). Release milestones and targeted features post-`0.1.0a1` are documented in [docs/release/roadmap.md](docs/release/roadmap.md); see [docs/roadmap/CONSOLIDATED_ROADMAP.md](docs/roadmap/CONSOLIDATED_ROADMAP.md) for the broader project plan.
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
 - Unified memory system with Kuzu, TinyDB, RDFLib, and JSON backends
@@ -90,42 +92,81 @@ bash scripts/install_dev.sh
 
 ## Installation
 
-You can install DevSynth in a few different ways:
+### Editable Install (from source)
 
-1. **Poetry** – install from PyPI
+To run DevSynth directly from a cloned repository with an editable install using Poetry, follow these steps:
+
+1. Ensure you are using Python 3.12 and Poetry.
+2. From the project root, create the virtual environment and install dependencies:
+
+```bash
+poetry install
+```
+
+3. Run the CLI to verify that imports resolve cleanly:
+
+```bash
+poetry run devsynth --help
+```
+
+If you encounter a ModuleNotFoundError:
+- Make sure you are running within the Poetry virtual environment (use `poetry run` or `poetry shell`).
+- Confirm that the package path is correct (the project uses `packages = [{ include = "devsynth", from = "src" }]`).
+- If you plan to run tests or optional features, install the necessary extras:
+
+```bash
+# Minimal contributor setup (fast path) aligning with project guidelines
+poetry install --with dev --extras minimal
+
+# Minimal contributor setup with common tooling
+poetry install --with dev --extras "tests"
+# For retrieval or API examples add extras as needed
+poetry install --extras retrieval --extras api
+```
+
+Basic CLI usage (e.g., `--help`, `init`, `config`) does not require optional extras. Optional providers and GUIs remain lazy‑loaded and are strictly optional.
+
+### Installation
+
+Pre-release note: DevSynth 0.1.0a1 is not published on PyPI. Prefer Poetry for development installs, or pipx from a local checkout or Git URL.
+
+1. From source (development) — Poetry
 
    ```bash
-   poetry add devsynth
+   # Clone and enter the repository
+   git clone https://github.com/ravenoak/devsynth.git
+   cd devsynth
+
+   # Install development and documentation dependencies with targeted extras
+   poetry install --with dev,docs --extras "tests retrieval chromadb api"
+   # Optionally include all extras
+   poetry sync --all-extras --all-groups
    ```
 
-2. **pipx** *(end-user install)* – keep DevSynth isolated from system Python
+2. pipx (isolated end-user install) — from local path or Git
 
    ```bash
-   pipx install devsynth
+   # From a local checkout
+   pipx install .
+
+   # Or directly from Git (pin to a tag or commit for reproducibility)
+   pipx install git+https://github.com/ravenoak/devsynth.git@v0.1.0a1
    ```
 
-3. **Docker** – build and run using the provided Dockerfile
+3. Docker — build and run using the provided Dockerfile
 
    ```bash
    docker build -t devsynth .
    docker run --rm -p 8000:8000 devsynth
    ```
 
-4. **From Source for Development** – use Poetry
+4. Quick GUI preview — from source extras
 
    ```bash
-   # Install development and documentation dependencies with required extras
-   poetry install --with dev,docs --extras "tests retrieval chromadb api"
-   # Optionally include all extras
-   poetry sync --all-extras --all-groups
+   # Enable GUI extras with Poetry
+   poetry install --extras gui
+   poetry run devsynth dpg
    ```
-
-5. **Quick GUI preview** – install from PyPI and launch the Dear PyGui interface
-
-   ```bash
-   pip install 'devsynth[gui]'
-devsynth dpg
-  ```
 
 ### Shell Completion
 
@@ -136,8 +177,6 @@ devsynth --install-completion
 # or
 devsynth completion --install
 ```
-
-Use pip or pipx only when installing from PyPI.
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
 
@@ -198,6 +237,12 @@ These extras enable optional vector stores such as **ChromaDB**, **Kuzu**,
 **FAISS**, and **LMDB**, additional LLM providers, the FastAPI server with
 Prometheus metrics, the NiceGUI WebUI, and the Dear PyGui interface. ChromaDB
 runs in embedded mode by default.
+
+Note on GUI extras: The NiceGUI and Dear PyGui integrations are fully optional.
+If these extras are not installed, DevSynth will stub or skip GUI code paths
+with friendly messages and will not import GUI frameworks at test collection
+or CLI startup. Install with `poetry install --extras gui` (or `pip install
+"devsynth[gui]"`) to enable these interfaces.
 
 ### Offline Mode
 
