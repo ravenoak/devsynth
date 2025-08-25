@@ -1,25 +1,26 @@
-
 """
 Specification agent for the DevSynth system.
 """
 
 from typing import Any, Dict, List
-from .base import BaseAgent
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from .base import BaseAgent
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
+
 class SpecificationAgent(BaseAgent):
     """Agent responsible for generating specifications."""
-    
+
     def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and produce specifications."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
-        
+
         # Create a prompt for the LLM
         prompt = f"""
         {role_prompt}
@@ -43,10 +44,10 @@ class SpecificationAgent(BaseAgent):
         5. User interfaces
         6. Integration points
         """
-        
+
         # Generate the specifications using the LLM port
         specifications = self.generate_text(prompt)
-        
+
         # Create a WSDE with the specifications
         spec_wsde = self.create_wsde(
             content=specifications,
@@ -54,17 +55,17 @@ class SpecificationAgent(BaseAgent):
             metadata={
                 "agent": self.name,
                 "role": self.current_role,
-                "type": "specifications"
-            }
+                "type": "specifications",
+            },
         )
-        
+
         return {
             "specifications": specifications,
             "wsde": spec_wsde,
             "agent": self.name,
-            "role": self.current_role
+            "role": self.current_role,
         }
-    
+
     def get_capabilities(self) -> List[str]:
         """Get the capabilities of this agent."""
         capabilities = super().get_capabilities()
@@ -75,6 +76,6 @@ class SpecificationAgent(BaseAgent):
                 "define_api_specifications",
                 "define_data_models",
                 "design_user_interfaces",
-                "identify_integration_points"
+                "identify_integration_points",
             ]
         return capabilities

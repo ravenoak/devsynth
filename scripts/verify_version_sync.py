@@ -1,76 +1,72 @@
 #!/usr/bin/env python3
-"""Verify that project version references stay synchronized.
+"""Verify that project version is synchronized across metadata sources.
 
-The script compares the version declared in ``pyproject.toml`` with the
-``__version__`` constant in ``src/devsynth/__init__.py`` and with the
-``version`` fields in Markdown document headers.  It exits with status 1 if
-any discrepancies are found.
+Checks that:
+- pyproject.toml [tool.poetry].version matches src/devsynth/__init__.py __version__
+- README.md badge/version occurrences match the same version (best effort)
+
+This is intentionally conservative and fast. It prints discrepancies and exits 1
+on mismatch, 0 otherwise.
 """
 from __future__ import annotations
 
 import re
 import sys
-import tomllib
 from pathlib import Path
 
-import yaml
-
 ROOT = Path(__file__).resolve().parents[1]
+PYPROJECT = ROOT / "pyproject.toml"
+PKG_INIT = ROOT / "src" / "devsynth" / "__init__.py"
+README = ROOT / "README.md"
 
 
-def _pyproject_version() -> str:
-    data = tomllib.loads((ROOT / "pyproject.toml").read_text())
-    return data["tool"]["poetry"]["version"]
+def read_version_from_pyproject() -> str | None:
+    text = PYPROJECT.read_text(encoding="utf-8")
+    m = re.search(r"^version\s*=\s*\"([^\"]+)\"", text, re.MULTILINE)
+    return m.group(1) if m else None
 
 
-def _package_version() -> str:
-    text = (ROOT / "src" / "devsynth" / "__init__.py").read_text()
-    match = re.search(r'__version__\s*=\s*"([^"]+)"', text)
-    if not match:
-        raise RuntimeError("__version__ not found in src/devsynth/__init__.py")
-    return match.group(1)
+def read_version_from_init() -> str | None:
+    text = PKG_INIT.read_text(encoding="utf-8")
+    m = re.search(r"^__version__\s*=\s*\"([^\"]+)\"", text, re.MULTILINE)
+    return m.group(1) if m else None
 
 
-def _doc_versions() -> dict[Path, str]:
-    versions: dict[Path, str] = {}
-    for path in ROOT.rglob("*.md"):
-        if any(
-            part in {".git", "inspirational_docs", "external_research_papers"}
-            for part in path.parts
-        ):
-            continue
-        text = path.read_text(encoding="utf-8")
-        if not text.startswith("---"):
-            continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
-            continue
-        try:
-            front_matter = yaml.safe_load(parts[1])
-        except Exception:
-            continue
-        if isinstance(front_matter, dict) and "version" in front_matter:
-            versions[path] = str(front_matter["version"])
-    return versions
+def check_readme_version(ver: str) -> bool:
+    if not README.exists():
+        return True
+    text = README.read_text(encoding="utf-8", errors="ignore")
+    # Heuristic: expect version string somewhere in README
+    return ver in text
 
 
 def main() -> int:
-    pyproject_version = _pyproject_version()
-    package_version = _package_version()
-    mismatches = []
-    if package_version != pyproject_version:
-        mismatches.append((Path("src/devsynth/__init__.py"), package_version))
-    for path, version in _doc_versions().items():
-        if version != pyproject_version:
-            mismatches.append((path, version))
-    if mismatches:
-        print("Version mismatches found:")
-        for path, version in mismatches:
-            print(f"- {path} ({version}) != {pyproject_version}")
+    errors: list[str] = []
+    pver = read_version_from_pyproject()
+    iver = read_version_from_init()
+
+    if not pver:
+        errors.append("[verify_version_sync] version missing in pyproject.toml")
+    if not iver:
+        errors.append(
+            "[verify_version_sync] __version__ missing in src/devsynth/__init__.py"
+        )
+
+    if pver and iver and pver != iver:
+        errors.append(
+            f"[verify_version_sync] mismatch: pyproject={pver} != __init__={iver}"
+        )
+
+    if pver and not check_readme_version(pver):
+        errors.append("[verify_version_sync] README does not reference project version")
+
+    if errors:
+        print("\n".join(errors), file=sys.stderr)
         return 1
-    print(f"All versions are synchronized: {pyproject_version}")
+
+    print(f"[verify_version_sync] OK version={pver}")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())

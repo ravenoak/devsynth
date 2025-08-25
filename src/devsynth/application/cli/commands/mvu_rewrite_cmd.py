@@ -39,4 +39,3 @@ def mvu_rewrite_cmd(
         ux_bridge.print("[yellow]Dry run complete[/yellow]")
     else:
         ux_bridge.print(f"[green]Rewritten history to branch '{branch_name}'[/green]")
-

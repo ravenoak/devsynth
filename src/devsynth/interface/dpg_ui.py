@@ -8,16 +8,17 @@ ensures consistent user interaction behaviour across interfaces.
 
 from __future__ import annotations
 
-from typing import Callable
 import json
+from typing import Callable
 
 try:  # pragma: no cover - optional dependency
     import dearpygui.dearpygui as dpg
 except Exception:  # pragma: no cover - defensive
     dpg = None  # type: ignore
 
-from .dpg_bridge import DearPyGUIBridge
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
+
+from .dpg_bridge import DearPyGUIBridge
 
 
 def _bind(
@@ -144,35 +145,35 @@ def run() -> None:
 
     # Import workflow commands lazily to avoid heavy dependencies at import time
     from devsynth.application.cli import (
-        init_cmd,
-        gather_cmd,
-        inspect_cmd,
-        spec_cmd,
-        test_cmd,
+        check_cmd,
         code_cmd,
-        run_pipeline_cmd,
         config_cmd,
-        enable_feature_cmd,
-        refactor_cmd,
-        webapp_cmd,
-        serve_cmd,
         dbschema_cmd,
         doctor_cmd,
-        check_cmd,
-        webui_cmd,
-        inspect_code_cmd,
         edrr_cycle_cmd,
+        enable_feature_cmd,
+        gather_cmd,
         ingest_cmd,
+        init_cmd,
+        inspect_cmd,
+        inspect_code_cmd,
+        refactor_cmd,
+        run_pipeline_cmd,
+        serve_cmd,
+        spec_cmd,
+        test_cmd,
+        webapp_cmd,
+        webui_cmd,
     )
     from devsynth.application.cli.apispec import apispec_cmd
     from devsynth.application.cli.commands import (
         align_cmd,
         alignment_metrics_cmd,
+        generate_docs_cmd,
         inspect_config_cmd,
+        test_metrics_cmd,
         validate_manifest_cmd,
         validate_metadata_cmd,
-        test_metrics_cmd,
-        generate_docs_cmd,
     )
 
     def _enable_feature(*, bridge: DearPyGUIBridge) -> None:

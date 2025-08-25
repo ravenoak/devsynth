@@ -11,9 +11,9 @@ from __future__ import annotations
 
 from typing import Optional
 
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.interface.uxbridge_config import get_default_bridge
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 

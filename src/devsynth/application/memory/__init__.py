@@ -11,9 +11,9 @@ from devsynth.logging_setup import DevSynthLogger
 from .context_manager import InMemoryStore, SimpleContextManager
 from .json_file_store import JSONFileStore
 from .memory_manager import MemoryManager
-from .search_patterns import SearchPatterns
-from .persistent_context_manager import PersistentContextManager
 from .multi_layered_memory import MultiLayeredMemorySystem
+from .persistent_context_manager import PersistentContextManager
+from .search_patterns import SearchPatterns
 
 logger = DevSynthLogger(__name__)
 

@@ -6,72 +6,73 @@ all UXBridge implementations based on configuration settings.
 
 from __future__ import annotations
 
-from typing import Dict, Any, Optional, Type
+from typing import Any, Dict, Optional, Type
 
 from devsynth.config import ProjectUnifiedConfig
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger
 
 # Module level logger
 logger = DevSynthLogger(__name__)
 
 
 def apply_uxbridge_settings(
-    bridge_class: Type[UXBridge], 
-    config: ProjectUnifiedConfig, 
-    **kwargs: Any
+    bridge_class: Type[UXBridge], config: ProjectUnifiedConfig, **kwargs: Any
 ) -> UXBridge:
     """Apply uxbridge_settings from configuration to a UXBridge implementation.
-    
+
     Args:
         bridge_class: The UXBridge implementation class to instantiate
         config: The project configuration
         **kwargs: Additional keyword arguments to pass to the bridge constructor
-        
+
     Returns:
         An instance of the UXBridge implementation with settings applied
     """
     # Get UXBridge settings from configuration
     uxbridge_settings = config.config.uxbridge_settings or {}
-    
+
     # Create an instance of the bridge class with appropriate settings
     bridge_instance = bridge_class(**kwargs)
-    
+
     # Log the settings being applied
     logger.debug(
         f"Applying UXBridge settings to {bridge_class.__name__}: {uxbridge_settings}"
     )
-    
+
     # Apply any additional settings based on the bridge class
     # This can be extended as needed for specific bridge implementations
-    
+
     return bridge_instance
 
 
 def get_default_bridge(config: Optional[ProjectUnifiedConfig] = None) -> UXBridge:
     """Get the default UXBridge implementation based on configuration.
-    
+
     Args:
         config: The project configuration, or None to load the default
-        
+
     Returns:
         An instance of the default UXBridge implementation
     """
     from devsynth.config import load_project_config
     from devsynth.interface.cli import CLIUXBridge
-    
+
     # Load configuration if not provided
     if config is None:
         config = load_project_config()
-    
+
     # Get UXBridge settings from configuration
     uxbridge_settings = config.config.uxbridge_settings or {}
     default_interface = uxbridge_settings.get("default_interface", "cli")
-    
+
     # Determine which bridge to use based on configuration
-    if default_interface == "webui" and config.config.features.get("uxbridge_webui", False):
+    if default_interface == "webui" and config.config.features.get(
+        "uxbridge_webui", False
+    ):
         try:
             from devsynth.interface.webui import WebUI
+
             logger.debug("Using WebUI as default UXBridge implementation")
             return apply_uxbridge_settings(WebUI, config)
         except ImportError:
@@ -79,9 +80,12 @@ def get_default_bridge(config: Optional[ProjectUnifiedConfig] = None) -> UXBridg
                 "WebUI requested but Streamlit not available, falling back to CLI"
             )
             return apply_uxbridge_settings(CLIUXBridge, config)
-    elif default_interface == "api" and config.config.features.get("uxbridge_agent_api", False):
+    elif default_interface == "api" and config.config.features.get(
+        "uxbridge_agent_api", False
+    ):
         try:
             from devsynth.interface.agentapi import APIBridge
+
             logger.debug("Using APIBridge as default UXBridge implementation")
             return apply_uxbridge_settings(APIBridge, config)
         except ImportError:

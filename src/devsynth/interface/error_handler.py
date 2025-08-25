@@ -6,15 +6,15 @@ and documentation links for DevSynth interfaces.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union, Any
-import re
 import inspect
+import re
 import traceback
+from typing import Any, Dict, List, Optional, Union
 
-from rich.panel import Panel
-from rich.text import Text
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.text import Text
 
 from devsynth.logging_setup import DevSynthLogger
 

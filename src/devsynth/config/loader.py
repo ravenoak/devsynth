@@ -47,6 +47,9 @@ class ConfigModel:
             "test_generation": False,
             "documentation_generation": False,
             "experimental_features": False,
+            "prompt_auto_tuning": False,
+            "automatic_phase_transitions": False,
+            "collaboration_notifications": False,
             "edrr_framework": False,
             "micro_edrr_cycles": False,
             "recursive_edrr": False,
@@ -56,6 +59,7 @@ class ConfigModel:
             "uxbridge_agent_api": False,
             "gui": False,
             "mvuu_dashboard": False,
+            "atomic_rewrite": False,
         }
     )
     memory_store_type: str = "memory"
@@ -128,6 +132,9 @@ _VALID_FEATURE_FLAGS = {
     "test_generation",
     "documentation_generation",
     "experimental_features",
+    "prompt_auto_tuning",
+    "automatic_phase_transitions",
+    "collaboration_notifications",
     "edrr_framework",
     "micro_edrr_cycles",
     "recursive_edrr",
@@ -137,6 +144,7 @@ _VALID_FEATURE_FLAGS = {
     "uxbridge_agent_api",
     "gui",
     "mvuu_dashboard",
+    "atomic_rewrite",
 }
 
 
@@ -235,6 +243,36 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
             parsed["memory_store_type"] = str(backend).lower()
 
         data.update(parsed)
+
+    # Apply environment overrides (env > file > defaults)
+    def _parse_bool(val: str) -> bool:
+        return str(val).strip().lower() in {"1", "true", "yes", "on"}
+
+    # Top-level simple overrides
+    env_overrides = {
+        "project_root": os.environ.get("DEVSYNTH_PROJECT_ROOT"),
+        "version": os.environ.get("DEVSYNTH_CONFIG_VERSION"),
+        "structure": os.environ.get("DEVSYNTH_STRUCTURE"),
+        "language": os.environ.get("DEVSYNTH_LANGUAGE"),
+        "memory_store_type": os.environ.get("DEVSYNTH_MEMORY_STORE_TYPE"),
+    }
+    for k, v in env_overrides.items():
+        if v is not None:
+            data[k] = v
+
+    # Booleans
+    if (v := os.environ.get("DEVSYNTH_KUZU_EMBEDDED")) is not None:
+        data["kuzu_embedded"] = _parse_bool(v)
+    if (v := os.environ.get("DEVSYNTH_OFFLINE_MODE")) is not None:
+        data["offline_mode"] = _parse_bool(v)
+
+    # Feature flag overrides
+    features = data.get("features") or {}
+    for flag in list(_VALID_FEATURE_FLAGS):
+        env_name = f"DEVSYNTH_FEATURE_{flag.upper()}"
+        if env_name in os.environ:
+            features[flag] = _parse_bool(os.environ[env_name])
+    data["features"] = features
 
     # Validate and normalize feature flags before creating the model
     _validate_feature_flags(data)

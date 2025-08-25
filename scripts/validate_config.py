@@ -9,10 +9,10 @@ and contain all required fields with appropriate types.
 import argparse
 import os
 import sys
-import yaml
-import jsonschema
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
+import jsonschema
+import yaml
 
 # Configuration schema definition
 CONFIG_SCHEMA = {
@@ -188,6 +188,19 @@ CONFIG_SCHEMA = {
                 "code_generation": {"type": "boolean"},
                 "test_generation": {"type": "boolean"},
                 "documentation_generation": {"type": "boolean"},
+                "experimental_features": {"type": "boolean"},
+                "prompt_auto_tuning": {"type": "boolean"},
+                "automatic_phase_transitions": {"type": "boolean"},
+                "collaboration_notifications": {"type": "boolean"},
+                "edrr_framework": {"type": "boolean"},
+                "micro_edrr_cycles": {"type": "boolean"},
+                "recursive_edrr": {"type": "boolean"},
+                "wsde_peer_review": {"type": "boolean"},
+                "wsde_consensus_voting": {"type": "boolean"},
+                "uxbridge_webui": {"type": "boolean"},
+                "uxbridge_agent_api": {"type": "boolean"},
+                "gui": {"type": "boolean"},
+                "mvuu_dashboard": {"type": "boolean"},
             },
         },
     },

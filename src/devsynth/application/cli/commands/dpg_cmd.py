@@ -1,4 +1,7 @@
-"""Launch the Dear PyGUI interface."""
+"""[experimental] Launch the Dear PyGUI interface.
+
+This command requires the GUI extra and may be unavailable in default setups.
+"""
 
 from __future__ import annotations
 

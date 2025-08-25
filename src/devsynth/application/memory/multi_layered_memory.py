@@ -5,14 +5,15 @@ This module provides a multi-layered memory system with short-term, episodic,
 and semantic memory layers. It categorizes memory items into appropriate layers
 based on their type and provides methods for querying across layers.
 """
-from typing import Dict, List, Any, Optional, Union
+
 import uuid
 from collections import defaultdict
+from typing import Any, Dict, List, Optional, Union
 
-from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ...domain.interfaces.memory import MemoryStore
-from .tiered_cache import TieredCache
+from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ...logging_setup import DevSynthLogger
+from .tiered_cache import TieredCache
 
 logger = DevSynthLogger(__name__)
 
@@ -20,40 +21,44 @@ logger = DevSynthLogger(__name__)
 class MultiLayeredMemorySystem:
     """
     Multi-Layered Memory System with short-term, episodic, and semantic memory layers.
-    
+
     This class categorizes memory items into appropriate layers based on their type
     and provides methods for querying across layers. It also supports a tiered cache
     strategy for faster access to frequently used items.
     """
-    
+
     def __init__(self):
         """Initialize the multi-layered memory system."""
         # Initialize memory layers
-        self.short_term_memory = {}  # For immediate context (e.g., current task, conversation)
-        self.episodic_memory = {}    # For past events (e.g., task history, error logs)
-        self.semantic_memory = {}    # For general knowledge (e.g., language references, best practices)
-        
+        self.short_term_memory = (
+            {}
+        )  # For immediate context (e.g., current task, conversation)
+        self.episodic_memory = {}  # For past events (e.g., task history, error logs)
+        self.semantic_memory = (
+            {}
+        )  # For general knowledge (e.g., language references, best practices)
+
         # Initialize cache
         self.cache = None
         self.cache_enabled = False
         self.cache_stats = {"hits": 0, "misses": 0}
-        
+
         logger.info("Multi-layered memory system initialized")
-    
+
     def store(self, memory_item: MemoryItem) -> str:
         """
         Store a memory item in the appropriate memory layer.
-        
+
         Args:
             memory_item: The memory item to store
-            
+
         Returns:
             The ID of the stored memory item
         """
         # Generate an ID if not provided
         if not memory_item.id:
             memory_item.id = str(uuid.uuid4())
-        
+
         # Determine the appropriate memory layer based on the memory type
         if memory_item.memory_type in [MemoryType.CONTEXT, MemoryType.CONVERSATION]:
             # Store in short-term memory
@@ -63,7 +68,10 @@ class MultiLayeredMemorySystem:
             # Store in episodic memory
             self.episodic_memory[memory_item.id] = memory_item
             logger.debug(f"Stored item {memory_item.id} in episodic memory")
-        elif memory_item.memory_type in [MemoryType.KNOWLEDGE, MemoryType.DOCUMENTATION]:
+        elif memory_item.memory_type in [
+            MemoryType.KNOWLEDGE,
+            MemoryType.DOCUMENTATION,
+        ]:
             # Store in semantic memory
             self.semantic_memory[memory_item.id] = memory_item
             logger.debug(f"Stored item {memory_item.id} in semantic memory")
@@ -71,16 +79,16 @@ class MultiLayeredMemorySystem:
             # Default to short-term memory for unknown types
             self.short_term_memory[memory_item.id] = memory_item
             logger.debug(f"Stored item {memory_item.id} in short-term memory (default)")
-        
+
         return memory_item.id
-    
+
     def retrieve(self, item_id: str) -> Optional[MemoryItem]:
         """
         Retrieve a memory item by ID.
-        
+
         Args:
             item_id: The ID of the memory item to retrieve
-            
+
         Returns:
             The retrieved memory item, or None if not found
         """
@@ -93,7 +101,7 @@ class MultiLayeredMemorySystem:
                 return cached_item
             self.cache_stats["misses"] += 1
             logger.debug(f"Cache miss for item {item_id}")
-        
+
         # Check each memory layer
         if item_id in self.short_term_memory:
             item = self.short_term_memory[item_id]
@@ -104,20 +112,20 @@ class MultiLayeredMemorySystem:
         else:
             logger.debug(f"Item {item_id} not found in any memory layer")
             return None
-        
+
         # Add to cache if enabled
         if self.cache_enabled:
             self.cache.put(item_id, item)
-        
+
         return item
-    
+
     def get_items_by_layer(self, layer: str) -> List[MemoryItem]:
         """
         Get all memory items in a specific layer.
-        
+
         Args:
             layer: The memory layer to query ("short-term", "episodic", or "semantic")
-            
+
         Returns:
             A list of memory items in the specified layer
         """
@@ -130,20 +138,20 @@ class MultiLayeredMemorySystem:
         else:
             logger.warning(f"Unknown memory layer: {layer}")
             return []
-    
+
     def query(self, query_params: Dict[str, Any]) -> List[MemoryItem]:
         """
         Query memory items across layers.
-        
+
         Args:
             query_params: Query parameters, including optional "layer" parameter
-            
+
         Returns:
             A list of memory items matching the query
         """
         # Check if a specific layer is requested
         layer = query_params.get("layer")
-        
+
         if layer:
             # Query a specific layer
             return self.get_items_by_layer(layer)
@@ -154,70 +162,70 @@ class MultiLayeredMemorySystem:
             all_items.extend(self.episodic_memory.values())
             all_items.extend(self.semantic_memory.values())
             return all_items
-    
+
     def enable_tiered_cache(self, max_size: int = 100) -> None:
         """
         Enable the tiered cache strategy.
-        
+
         Args:
             max_size: The maximum number of items to store in the cache
         """
         self.cache = TieredCache(max_size=max_size)
         self.cache_enabled = True
         logger.info(f"Tiered cache enabled with max size {max_size}")
-    
+
     def disable_tiered_cache(self) -> None:
         """Disable the tiered cache strategy."""
         self.cache = None
         self.cache_enabled = False
         logger.info("Tiered cache disabled")
-    
+
     def is_tiered_cache_enabled(self) -> bool:
         """
         Check if the tiered cache strategy is enabled.
-        
+
         Returns:
             True if the tiered cache is enabled, False otherwise
         """
         return self.cache_enabled
-    
+
     def get_cache_stats(self) -> Dict[str, int]:
         """
         Get cache statistics.
-        
+
         Returns:
             A dictionary with cache statistics (hits, misses)
         """
         return self.cache_stats
-    
+
     def get_cache_size(self) -> int:
         """
         Get the current size of the cache.
-        
+
         Returns:
             The number of items in the cache, or 0 if cache is disabled
         """
         if self.cache_enabled:
             return self.cache.size()
         return 0
-    
+
     def get_cache_max_size(self) -> int:
         """
         Get the maximum size of the cache.
-        
+
         Returns:
             The maximum number of items in the cache, or 0 if cache is disabled
         """
         if self.cache_enabled:
             return self.cache.max_size
         return 0
-    
+
     def clear_cache(self) -> None:
         """Clear the cache."""
         if self.cache_enabled:
             self.cache.clear()
             logger.info("Cache cleared")
-    
+
     def clear(self) -> None:
         """Clear all memory layers and cache."""
         self.short_term_memory.clear()

@@ -7,17 +7,19 @@ appropriate next steps.
 """
 
 import os
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
-from ...domain.models.workflow import Workflow, WorkflowStep, WorkflowStatus
 from ...application.code_analysis.project_state_analyzer import ProjectStateAnalyzer
+from ...domain.models.workflow import Workflow, WorkflowStatus, WorkflowStep
 from .workflow import WorkflowManager
+
 
 class RefactorWorkflowManager:
     """
@@ -70,16 +72,16 @@ class RefactorWorkflowManager:
         logger.info("Determining optimal workflow")
 
         # Check if the project has requirements
-        has_requirements = project_state['requirements_count'] > 0
+        has_requirements = project_state["requirements_count"] > 0
 
         # Check if the project has specifications
-        has_specifications = project_state['specifications_count'] > 0
+        has_specifications = project_state["specifications_count"] > 0
 
         # Check if the project has tests
-        has_tests = project_state['test_count'] > 0
+        has_tests = project_state["test_count"] > 0
 
         # Check if the project has code
-        has_code = project_state['code_count'] > 0
+        has_code = project_state["code_count"] > 0
 
         # Determine the optimal workflow based on the project state
         if not has_requirements:
@@ -94,7 +96,9 @@ class RefactorWorkflowManager:
         # If all artifacts exist, return complete
         return "complete"
 
-    def determine_entry_point(self, project_state: Dict[str, Any], workflow: str) -> str:
+    def determine_entry_point(
+        self, project_state: Dict[str, Any], workflow: str
+    ) -> str:
         """
         Determine the entry point for the workflow based on the project state.
 
@@ -143,58 +147,76 @@ class RefactorWorkflowManager:
         suggestions = []
 
         # Check for missing requirements
-        if project_state['requirements_count'] == 0:
+        if project_state["requirements_count"] == 0:
             suggestions.append(
                 {
-                    'command': 'analyze',
-                    'description': 'Create requirements documentation to define project goals',
-                    'priority': 'high',
+                    "command": "analyze",
+                    "description": "Create requirements documentation to define project goals",
+                    "priority": "high",
                 }
             )
 
         # Check for missing specifications
-        if project_state['specifications_count'] == 0:
-            suggestions.append({
-                'command': 'spec',
-                'description': 'Generate specifications from requirements',
-                'priority': 'high' if project_state['requirements_count'] > 0 else 'medium'
-            })
+        if project_state["specifications_count"] == 0:
+            suggestions.append(
+                {
+                    "command": "spec",
+                    "description": "Generate specifications from requirements",
+                    "priority": (
+                        "high" if project_state["requirements_count"] > 0 else "medium"
+                    ),
+                }
+            )
 
         # Check for missing tests
-        if project_state['test_count'] == 0:
-            suggestions.append({
-                'command': 'test',
-                'description': 'Generate tests from specifications',
-                'priority': 'high' if project_state['specifications_count'] > 0 else 'medium'
-            })
+        if project_state["test_count"] == 0:
+            suggestions.append(
+                {
+                    "command": "test",
+                    "description": "Generate tests from specifications",
+                    "priority": (
+                        "high"
+                        if project_state["specifications_count"] > 0
+                        else "medium"
+                    ),
+                }
+            )
 
         # Check for missing code
-        if project_state['code_count'] == 0:
-            suggestions.append({
-                'command': 'code',
-                'description': 'Generate code from tests',
-                'priority': 'high' if project_state['test_count'] > 0 else 'medium'
-            })
+        if project_state["code_count"] == 0:
+            suggestions.append(
+                {
+                    "command": "code",
+                    "description": "Generate code from tests",
+                    "priority": "high" if project_state["test_count"] > 0 else "medium",
+                }
+            )
 
         # Check for unmatched requirements
-        if project_state['requirements_spec_alignment']['unmatched_requirements']:
-            suggestions.append({
-                'command': 'spec',
-                'description': f"Update specifications to address {len(project_state['requirements_spec_alignment']['unmatched_requirements'])} unmatched requirements",
-                'priority': 'medium'
-            })
+        if project_state["requirements_spec_alignment"]["unmatched_requirements"]:
+            suggestions.append(
+                {
+                    "command": "spec",
+                    "description": f"Update specifications to address {len(project_state['requirements_spec_alignment']['unmatched_requirements'])} unmatched requirements",
+                    "priority": "medium",
+                }
+            )
 
         # Check for unimplemented specifications
-        if project_state['spec_code_alignment']['unimplemented_specifications']:
-            suggestions.append({
-                'command': 'code',
-                'description': f"Implement code for {len(project_state['spec_code_alignment']['unimplemented_specifications'])} unimplemented specifications",
-                'priority': 'medium'
-            })
+        if project_state["spec_code_alignment"]["unimplemented_specifications"]:
+            suggestions.append(
+                {
+                    "command": "code",
+                    "description": f"Implement code for {len(project_state['spec_code_alignment']['unimplemented_specifications'])} unimplemented specifications",
+                    "priority": "medium",
+                }
+            )
 
         return suggestions
 
-    def initialize_workflow(self, project_path: str) -> Tuple[str, str, List[Dict[str, Any]]]:
+    def initialize_workflow(
+        self, project_path: str
+    ) -> Tuple[str, str, List[Dict[str, Any]]]:
         """
         Initialize a workflow based on the current project state.
 
@@ -237,14 +259,16 @@ class RefactorWorkflowManager:
         result = self.workflow_manager.execute_command(command, args)
 
         # If the command was successful, analyze the project state and suggest next steps
-        if result.get('success', False):
-            project_path = args.get('path', os.getcwd())
+        if result.get("success", False):
+            project_path = args.get("path", os.getcwd())
             suggestions = self.suggest_next_steps(project_path)
-            result['suggestions'] = suggestions
+            result["suggestions"] = suggestions
 
         return result
 
-    def execute_refactor_workflow(self, project_path: str, max_steps: int = 3) -> Dict[str, Any]:
+    def execute_refactor_workflow(
+        self, project_path: str, max_steps: int = 3
+    ) -> Dict[str, Any]:
         """
         Execute a refactor workflow based on the current project state.
 
@@ -265,7 +289,9 @@ class RefactorWorkflowManager:
             - suggestions: Suggestions for next steps
             - final_state: Summary of the final project state
         """
-        logger.info(f"Executing refactor workflow for {project_path} with max_steps={max_steps}")
+        logger.info(
+            f"Executing refactor workflow for {project_path} with max_steps={max_steps}"
+        )
 
         # Initialize the workflow
         workflow, entry_point, suggestions = self.initialize_workflow(project_path)
@@ -278,7 +304,7 @@ class RefactorWorkflowManager:
             "steps": [],
             "workflow": workflow,
             "entry_point": entry_point,
-            "initial_suggestions": suggestions
+            "initial_suggestions": suggestions,
         }
 
         # Execute up to max_steps commands
@@ -287,20 +313,26 @@ class RefactorWorkflowManager:
             logger.info(f"Executing step {step + 1}/{max_steps}: {current_command}")
 
             # Execute the current command
-            step_result = self.execute_command(current_command, {'path': project_path})
+            step_result = self.execute_command(current_command, {"path": project_path})
 
             # Record the step
-            result["steps"].append({
-                "command": current_command,
-                "status": "success" if step_result.get('success', False) else "error",
-                "details": step_result
-            })
+            result["steps"].append(
+                {
+                    "command": current_command,
+                    "status": (
+                        "success" if step_result.get("success", False) else "error"
+                    ),
+                    "details": step_result,
+                }
+            )
 
             # If the command failed, stop the workflow
-            if not step_result.get('success', False):
+            if not step_result.get("success", False):
                 result["status"] = "error"
                 result["success"] = False
-                result["error_message"] = step_result.get('message', f"Command {current_command} failed")
+                result["error_message"] = step_result.get(
+                    "message", f"Command {current_command} failed"
+                )
                 break
 
             # Analyze the project state after the command execution
@@ -320,12 +352,17 @@ class RefactorWorkflowManager:
                 break
 
             # Get the highest priority suggestion
-            next_suggestion = sorted(suggestions, key=lambda s: 
-                                    0 if s.get('priority') == 'high' else 
-                                    1 if s.get('priority') == 'medium' else 2)[0]
+            next_suggestion = sorted(
+                suggestions,
+                key=lambda s: (
+                    0
+                    if s.get("priority") == "high"
+                    else 1 if s.get("priority") == "medium" else 2
+                ),
+            )[0]
 
             # Set the next command
-            current_command = next_suggestion['command']
+            current_command = next_suggestion["command"]
 
             # If we've reached the last step, break
             if step == max_steps - 1:
@@ -337,16 +374,21 @@ class RefactorWorkflowManager:
 
         # Add final information to the result
         result["final_state"] = {
-            "requirements_count": final_state['requirements_count'],
-            "specifications_count": final_state['specifications_count'],
-            "test_count": final_state['test_count'],
-            "code_count": final_state['code_count'],
-            "requirements_spec_alignment": final_state['requirements_spec_alignment']['alignment_score'],
-            "spec_code_alignment": final_state['spec_code_alignment']['implementation_score']
+            "requirements_count": final_state["requirements_count"],
+            "specifications_count": final_state["specifications_count"],
+            "test_count": final_state["test_count"],
+            "code_count": final_state["code_count"],
+            "requirements_spec_alignment": final_state["requirements_spec_alignment"][
+                "alignment_score"
+            ],
+            "spec_code_alignment": final_state["spec_code_alignment"][
+                "implementation_score"
+            ],
         }
         result["suggestions"] = self.suggest_next_steps(project_path)
 
         return result
+
 
 # Create a singleton instance of the refactor workflow manager
 refactor_workflow_manager = RefactorWorkflowManager()

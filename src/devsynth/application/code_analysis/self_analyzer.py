@@ -5,11 +5,11 @@ This module provides classes and functions for DevSynth to analyze its own codeb
 and generate insights that can be used for self-improvement.
 """
 
+import ast
 import os
 import re
-import ast
-from typing import Dict, List, Any, Optional, Tuple, Set
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.domain.models.code_analysis import CodeAnalysis, FileAnalysis
@@ -40,14 +40,18 @@ class SelfAnalyzer:
         if project_root is None:
             # Try to find the project root by looking for the pyproject.toml file
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            while current_dir != os.path.dirname(current_dir):  # Stop at filesystem root
-                if os.path.exists(os.path.join(current_dir, 'pyproject.toml')):
+            while current_dir != os.path.dirname(
+                current_dir
+            ):  # Stop at filesystem root
+                if os.path.exists(os.path.join(current_dir, "pyproject.toml")):
                     project_root = current_dir
                     break
                 current_dir = os.path.dirname(current_dir)
 
         if project_root is None:
-            raise ValueError("Could not determine the project root. Please provide it explicitly.")
+            raise ValueError(
+                "Could not determine the project root. Please provide it explicitly."
+            )
 
         self.project_root = project_root
         logger.info(f"SelfAnalyzer initialized with project root: {self.project_root}")
@@ -69,20 +73,53 @@ class SelfAnalyzer:
         else:
             logger.info(f"Starting analysis of directory at {target_dir}")
 
-        # Analyze the source code
-        code_analysis = self.code_analyzer.analyze_directory(target_dir)
+        try:
+            # Analyze the source code
+            code_analysis = self.code_analyzer.analyze_directory(target_dir)
 
-        # Generate insights
-        insights = self._generate_insights(code_analysis)
+            # Generate insights
+            insights = self._generate_insights(code_analysis)
 
-        # Combine analysis and insights
-        result = {
-            "code_analysis": code_analysis.to_dict(),
-            "insights": insights
-        }
+            # Combine analysis and insights
+            result = {"code_analysis": code_analysis.to_dict(), "insights": insights}
 
-        logger.info("Self-analysis completed")
-        return result
+            logger.info("Self-analysis completed")
+            return result
+        except Exception as e:
+            # Graceful fallback for error paths – do not raise, return safe shape
+            logger.error(f"SelfAnalyzer.analyze failed: {e}")
+            safe_insights: Dict[str, Any] = {
+                "metrics_summary": {},
+                "architecture": {
+                    "type": "unknown",
+                    "confidence": 0.0,
+                    "layers": {},
+                    "layer_dependencies": {},
+                    "architecture_violations": [],
+                },
+                "code_quality": {
+                    "docstring_coverage": {
+                        "files": 0.0,
+                        "classes": 0.0,
+                        "functions": 0.0,
+                    },
+                    "total_files": 0,
+                    "total_classes": 0,
+                    "total_functions": 0,
+                },
+                "test_coverage": {
+                    "total_symbols": 0,
+                    "tested_symbols": 0,
+                    "coverage_percentage": 0.0,
+                },
+                "improvement_opportunities": [],
+            }
+            safe_code_analysis: Dict[str, Any] = {
+                "files": {},
+                "dependencies": {},
+                "metrics": {},
+            }
+            return {"code_analysis": safe_code_analysis, "insights": safe_insights}
 
     def _generate_insights(self, code_analysis: CodeAnalysis) -> Dict[str, Any]:
         """
@@ -110,7 +147,10 @@ class SelfAnalyzer:
 
         # Identify improvement opportunities
         improvement_opportunities = self._identify_improvement_opportunities(
-            code_analysis, architecture_insights, code_quality_insights, test_coverage_insights
+            code_analysis,
+            architecture_insights,
+            code_quality_insights,
+            test_coverage_insights,
         )
 
         return {
@@ -118,7 +158,7 @@ class SelfAnalyzer:
             "architecture": architecture_insights,
             "code_quality": code_quality_insights,
             "test_coverage": test_coverage_insights,
-            "improvement_opportunities": improvement_opportunities
+            "improvement_opportunities": improvement_opportunities,
         }
 
     def _analyze_architecture(self, code_analysis: CodeAnalysis) -> Dict[str, Any]:
@@ -135,7 +175,7 @@ class SelfAnalyzer:
 
         # We'll work with the raw dependencies dictionary if it exists
         # or skip dependency analysis otherwise
-        dependencies = getattr(code_analysis, 'dependencies', {})
+        dependencies = getattr(code_analysis, "dependencies", {})
 
         # Detect architecture type
         architecture_type, confidence = self._detect_architecture_type(code_analysis)
@@ -167,7 +207,11 @@ class SelfAnalyzer:
 
                 # If this is a recognized layer, add the component
                 if potential_layer in layers:
-                    component = parts[min(len(parts)-1, parts.index(potential_layer)+1)] if len(parts) > parts.index(potential_layer)+1 else ""
+                    component = (
+                        parts[min(len(parts) - 1, parts.index(potential_layer) + 1)]
+                        if len(parts) > parts.index(potential_layer) + 1
+                        else ""
+                    )
                     if component and component not in layers[potential_layer]:
                         layers[potential_layer].append(component)
             except Exception as e:
@@ -178,17 +222,21 @@ class SelfAnalyzer:
         layer_dependencies = self._analyze_layer_dependencies(code_analysis, layers)
 
         # Check for architecture violations
-        architecture_violations = self._check_architecture_violations(layer_dependencies, architecture_type)
+        architecture_violations = self._check_architecture_violations(
+            layer_dependencies, architecture_type
+        )
 
         return {
             "type": architecture_type,
             "confidence": confidence,
             "layers": layers,
             "layer_dependencies": layer_dependencies,
-            "architecture_violations": architecture_violations
+            "architecture_violations": architecture_violations,
         }
 
-    def _detect_architecture_type(self, code_analysis: CodeAnalysis) -> Tuple[str, float]:
+    def _detect_architecture_type(
+        self, code_analysis: CodeAnalysis
+    ) -> Tuple[str, float]:
         """
         Detect the type of architecture used in the codebase.
 
@@ -221,13 +269,15 @@ class SelfAnalyzer:
             "MVC": mvc_score,
             "Layered": layered_score,
             "Microservices": microservices_score,
-            "Unknown": 0.1  # Default score for unknown architecture
+            "Unknown": 0.1,  # Default score for unknown architecture
         }
 
         architecture_type = max(architecture_scores, key=architecture_scores.get)
         confidence = architecture_scores[architecture_type]
 
-        logger.info(f"Detected architecture type: {architecture_type} (confidence: {confidence:.2f})")
+        logger.info(
+            f"Detected architecture type: {architecture_type} (confidence: {confidence:.2f})"
+        )
 
         return architecture_type, confidence
 
@@ -243,12 +293,12 @@ class SelfAnalyzer:
         """
         # Look for typical hexagonal architecture directories
         hexagonal_patterns = [
-            r'domain',
-            r'application',
-            r'adapters',
-            r'ports',
-            r'infrastructure',
-            r'interfaces'
+            r"domain",
+            r"application",
+            r"adapters",
+            r"ports",
+            r"infrastructure",
+            r"interfaces",
         ]
 
         return self._calculate_architecture_score(file_paths, hexagonal_patterns)
@@ -264,12 +314,7 @@ class SelfAnalyzer:
             A confidence score between 0 and 1.
         """
         # Look for typical MVC architecture directories
-        mvc_patterns = [
-            r'models',
-            r'views',
-            r'controllers',
-            r'templates'
-        ]
+        mvc_patterns = [r"models", r"views", r"controllers", r"templates"]
 
         return self._calculate_architecture_score(file_paths, mvc_patterns)
 
@@ -285,13 +330,13 @@ class SelfAnalyzer:
         """
         # Look for typical layered architecture directories
         layered_patterns = [
-            r'presentation',
-            r'business',
-            r'service',
-            r'persistence',
-            r'data',
-            r'ui',
-            r'api'
+            r"presentation",
+            r"business",
+            r"service",
+            r"persistence",
+            r"data",
+            r"ui",
+            r"api",
         ]
 
         return self._calculate_architecture_score(file_paths, layered_patterns)
@@ -308,16 +353,18 @@ class SelfAnalyzer:
         """
         # Look for typical microservices architecture patterns
         microservices_patterns = [
-            r'services',
-            r'api-gateway',
-            r'service-registry',
-            r'config-server',
-            r'discovery'
+            r"services",
+            r"api-gateway",
+            r"service-registry",
+            r"config-server",
+            r"discovery",
         ]
 
         return self._calculate_architecture_score(file_paths, microservices_patterns)
 
-    def _calculate_architecture_score(self, file_paths: List[str], patterns: List[str]) -> float:
+    def _calculate_architecture_score(
+        self, file_paths: List[str], patterns: List[str]
+    ) -> float:
         """
         Calculate a confidence score for an architecture type based on matching patterns.
 
@@ -382,7 +429,18 @@ class SelfAnalyzer:
                         potential_layer = parts[2]
 
                 # Skip common non-layer directories
-                if potential_layer not in ['.git', '.idea', '.vscode', '__pycache__', 'venv', 'env', '.env', 'node_modules', 'build', 'dist']:
+                if potential_layer not in [
+                    ".git",
+                    ".idea",
+                    ".vscode",
+                    "__pycache__",
+                    "venv",
+                    "env",
+                    ".env",
+                    "node_modules",
+                    "build",
+                    "dist",
+                ]:
                     potential_layers.add(potential_layer)
             except Exception as e:
                 logger.warning(f"Error processing file path {file_path}: {str(e)}")
@@ -396,40 +454,22 @@ class SelfAnalyzer:
             architecture_type, _ = self._detect_architecture_type(code_analysis)
 
             if architecture_type == "Hexagonal":
-                layers = {
-                    "domain": [],
-                    "application": [],
-                    "adapters": [],
-                    "ports": []
-                }
+                layers = {"domain": [], "application": [], "adapters": [], "ports": []}
             elif architecture_type == "MVC":
-                layers = {
-                    "models": [],
-                    "views": [],
-                    "controllers": []
-                }
+                layers = {"models": [], "views": [], "controllers": []}
             elif architecture_type == "Layered":
-                layers = {
-                    "presentation": [],
-                    "business": [],
-                    "data": []
-                }
+                layers = {"presentation": [], "business": [], "data": []}
             elif architecture_type == "Microservices":
-                layers = {
-                    "services": [],
-                    "api-gateway": [],
-                    "common": []
-                }
+                layers = {"services": [], "api-gateway": [], "common": []}
             else:
                 # Default to a simple structure for unknown architecture
-                layers = {
-                    "src": [],
-                    "tests": []
-                }
+                layers = {"src": [], "tests": []}
 
         return layers
 
-    def _analyze_layer_dependencies(self, code_analysis: CodeAnalysis, layers: Dict[str, List[str]]) -> Dict[str, Set[str]]:
+    def _analyze_layer_dependencies(
+        self, code_analysis: CodeAnalysis, layers: Dict[str, List[str]]
+    ) -> Dict[str, Set[str]]:
         """
         Analyze dependencies between layers.
 
@@ -487,8 +527,8 @@ class SelfAnalyzer:
                     target_layer = None
 
                     # Check if the import is from the project
-                    if from_module and from_module.split('.')[0] == project_name:
-                        module_parts = from_module.split('.')
+                    if from_module and from_module.split(".")[0] == project_name:
+                        module_parts = from_module.split(".")
                         if len(module_parts) >= 2:
                             potential_target = module_parts[1]
                             if potential_target in layers:
@@ -507,12 +547,16 @@ class SelfAnalyzer:
                     if target_layer and target_layer != source_layer:
                         layer_dependencies[source_layer].add(target_layer)
             except Exception as e:
-                logger.warning(f"Error analyzing dependencies for file {file_path}: {str(e)}")
+                logger.warning(
+                    f"Error analyzing dependencies for file {file_path}: {str(e)}"
+                )
                 continue
 
         return layer_dependencies
 
-    def _check_architecture_violations(self, layer_dependencies: Dict[str, Set[str]], architecture_type: str) -> List[Dict[str, str]]:
+    def _check_architecture_violations(
+        self, layer_dependencies: Dict[str, Set[str]], architecture_type: str
+    ) -> List[Dict[str, str]]:
         """
         Check for violations of the detected architecture.
 
@@ -538,7 +582,7 @@ class SelfAnalyzer:
                 "domain": set(),
                 "application": {"domain"},
                 "adapters": {"domain", "application", "ports"},
-                "ports": {"domain"}
+                "ports": {"domain"},
             }
         elif architecture_type == "MVC":
             # In an MVC architecture:
@@ -548,7 +592,7 @@ class SelfAnalyzer:
             allowed_dependencies = {
                 "models": set(),
                 "views": {"models"},
-                "controllers": {"models", "views"}
+                "controllers": {"models", "views"},
             }
         elif architecture_type == "Layered":
             # In a layered architecture, dependencies should only flow downward:
@@ -562,7 +606,7 @@ class SelfAnalyzer:
                 "data": set(),
                 "persistence": set(),
                 "ui": {"presentation", "business", "service"},
-                "api": {"business", "service", "data"}
+                "api": {"business", "service", "data"},
             }
         elif architecture_type == "Microservices":
             # In a microservices architecture, services should be independent
@@ -582,11 +626,13 @@ class SelfAnalyzer:
             if layer in allowed_dependencies:
                 for dependency in dependencies:
                     if dependency not in allowed_dependencies[layer]:
-                        violations.append({
-                            "source_layer": layer,
-                            "target_layer": dependency,
-                            "description": f"Layer '{layer}' should not depend on layer '{dependency}' in {architecture_type} architecture"
-                        })
+                        violations.append(
+                            {
+                                "source_layer": layer,
+                                "target_layer": dependency,
+                                "description": f"Layer '{layer}' should not depend on layer '{dependency}' in {architecture_type} architecture",
+                            }
+                        )
 
         return violations
 
@@ -629,15 +675,21 @@ class SelfAnalyzer:
         # Calculate percentages
         docstring_coverage = {
             "files": files_with_docstrings / total_files if total_files > 0 else 0,
-            "classes": classes_with_docstrings / total_classes if total_classes > 0 else 0,
-            "functions": functions_with_docstrings / total_functions if total_functions > 0 else 0
+            "classes": (
+                classes_with_docstrings / total_classes if total_classes > 0 else 0
+            ),
+            "functions": (
+                functions_with_docstrings / total_functions
+                if total_functions > 0
+                else 0
+            ),
         }
 
         return {
             "docstring_coverage": docstring_coverage,
             "total_files": total_files,
             "total_classes": total_classes,
-            "total_functions": total_functions
+            "total_functions": total_functions,
         }
 
     def _analyze_test_coverage(self, code_analysis: CodeAnalysis) -> Dict[str, Any]:
@@ -660,7 +712,7 @@ class SelfAnalyzer:
         test_dirs = []
 
         # Common test directory names
-        test_dir_names = ['tests', 'test', 'testing', 'unittest', 'pytest']
+        test_dir_names = ["tests", "test", "testing", "unittest", "pytest"]
 
         # Look for test directories in the project root
         for test_dir_name in test_dir_names:
@@ -672,7 +724,7 @@ class SelfAnalyzer:
         if not test_dirs:
             for root, dirs, files in os.walk(self.project_root):
                 for file in files:
-                    if file.startswith('test_') and file.endswith('.py'):
+                    if file.startswith("test_") and file.endswith(".py"):
                         test_dirs.append(root)
                         break
 
@@ -698,20 +750,26 @@ class SelfAnalyzer:
 
         # Calculate test coverage
         total_symbols = len(all_symbols)
-        tested_symbol_count = sum(1 for symbol in all_symbols if symbol in tested_symbols)
-        coverage_percentage = tested_symbol_count / total_symbols if total_symbols > 0 else 0
+        tested_symbol_count = sum(
+            1 for symbol in all_symbols if symbol in tested_symbols
+        )
+        coverage_percentage = (
+            tested_symbol_count / total_symbols if total_symbols > 0 else 0
+        )
 
         return {
             "total_symbols": total_symbols,
             "tested_symbols": tested_symbol_count,
-            "coverage_percentage": coverage_percentage
+            "coverage_percentage": coverage_percentage,
         }
 
-    def _identify_improvement_opportunities(self, 
-                                           code_analysis: CodeAnalysis,
-                                           architecture_insights: Dict[str, Any],
-                                           code_quality_insights: Dict[str, Any],
-                                           test_coverage_insights: Dict[str, Any]) -> List[Dict[str, str]]:
+    def _identify_improvement_opportunities(
+        self,
+        code_analysis: CodeAnalysis,
+        architecture_insights: Dict[str, Any],
+        code_quality_insights: Dict[str, Any],
+        test_coverage_insights: Dict[str, Any],
+    ) -> List[Dict[str, str]]:
         """
         Identify opportunities for improving the codebase.
 
@@ -730,42 +788,52 @@ class SelfAnalyzer:
 
         # Check for architecture violations
         for violation in architecture_insights.get("architecture_violations", []):
-            opportunities.append({
-                "type": "architecture_violation",
-                "description": violation["description"],
-                "priority": "high"
-            })
+            opportunities.append(
+                {
+                    "type": "architecture_violation",
+                    "description": violation["description"],
+                    "priority": "high",
+                }
+            )
 
         # Check for low docstring coverage
         docstring_coverage = code_quality_insights.get("docstring_coverage", {})
         if docstring_coverage.get("files", 1) < 0.8:
-            opportunities.append({
-                "type": "low_docstring_coverage",
-                "description": f"Only {docstring_coverage.get('files', 0) * 100:.1f}% of files have docstrings",
-                "priority": "medium"
-            })
+            opportunities.append(
+                {
+                    "type": "low_docstring_coverage",
+                    "description": f"Only {docstring_coverage.get('files', 0) * 100:.1f}% of files have docstrings",
+                    "priority": "medium",
+                }
+            )
 
         if docstring_coverage.get("classes", 1) < 0.8:
-            opportunities.append({
-                "type": "low_docstring_coverage",
-                "description": f"Only {docstring_coverage.get('classes', 0) * 100:.1f}% of classes have docstrings",
-                "priority": "medium"
-            })
+            opportunities.append(
+                {
+                    "type": "low_docstring_coverage",
+                    "description": f"Only {docstring_coverage.get('classes', 0) * 100:.1f}% of classes have docstrings",
+                    "priority": "medium",
+                }
+            )
 
         if docstring_coverage.get("functions", 1) < 0.8:
-            opportunities.append({
-                "type": "low_docstring_coverage",
-                "description": f"Only {docstring_coverage.get('functions', 0) * 100:.1f}% of functions have docstrings",
-                "priority": "medium"
-            })
+            opportunities.append(
+                {
+                    "type": "low_docstring_coverage",
+                    "description": f"Only {docstring_coverage.get('functions', 0) * 100:.1f}% of functions have docstrings",
+                    "priority": "medium",
+                }
+            )
 
         # Check for low test coverage
         coverage_percentage = test_coverage_insights.get("coverage_percentage", 1)
         if coverage_percentage < 0.7:
-            opportunities.append({
-                "type": "low_test_coverage",
-                "description": f"Only {coverage_percentage * 100:.1f}% of symbols are covered by tests",
-                "priority": "high"
-            })
+            opportunities.append(
+                {
+                    "type": "low_test_coverage",
+                    "description": f"Only {coverage_percentage * 100:.1f}% of symbols are covered by tests",
+                    "priority": "high",
+                }
+            )
 
         return opportunities

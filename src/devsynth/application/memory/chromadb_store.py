@@ -15,19 +15,27 @@ from datetime import datetime
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from devsynth.application.utils.extras import require_optional_package
+
 try:
     import chromadb
 except ImportError as e:  # pragma: no cover - optional dependency
-    raise ImportError(
-        "ChromaDBStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
-    ) from e
+    raise require_optional_package(
+        e,
+        extra_name="memory",
+        packages=["chromadb"],
+        context="ChromaDB memory store",
+    )
 
 try:
     import tiktoken
 except ImportError as e:  # pragma: no cover - optional dependency
-    raise ImportError(
-        "ChromaDBStore requires the 'tiktoken' package. Install it with 'pip install tiktoken' or use the dev extras."
-    ) from e
+    raise require_optional_package(
+        e,
+        extra_name="llm",
+        packages=["tiktoken"],
+        context="ChromaDB token counting",
+    )
 
 from devsynth.exceptions import (
     DevSynthError,
@@ -309,6 +317,12 @@ class ChromaDBStore(MemoryStore):
             The ID of the stored item
         """
         try:
+            # Basic input validation
+            if item is None or not getattr(item, "id", None):
+                raise MemoryStoreError("MemoryItem must have a non-empty id")
+            if getattr(item, "content", None) is None:
+                raise MemoryStoreError("MemoryItem content cannot be None")
+
             if self._use_fallback:
                 existing_item = self._store.get(item.id)
                 is_update = existing_item is not None
@@ -463,7 +477,17 @@ class ChromaDBStore(MemoryStore):
 
             # Extract the serialized item from metadata
             metadata = result["metadatas"][0]
-            serialized = json.loads(metadata["item_data"])
+            item_data = (
+                metadata.get("item_data") if isinstance(metadata, dict) else None
+            )
+            if not item_data:
+                logger.warning("Missing item_data in metadata for id %s", item_id)
+                return None
+            try:
+                serialized = json.loads(item_data)
+            except Exception as je:
+                logger.warning("Invalid item_data JSON for id %s: %s", item_id, je)
+                return None
 
             # Deserialize to a MemoryItem
             item = self._deserialize_memory_item(serialized)
@@ -549,7 +573,26 @@ class ChromaDBStore(MemoryStore):
 
             # Extract the serialized item from metadata
             metadata = result["metadatas"][0]
-            serialized = json.loads(metadata["item_data"])
+            item_data = (
+                metadata.get("item_data") if isinstance(metadata, dict) else None
+            )
+            if not item_data:
+                logger.warning(
+                    "Missing item_data in metadata for version %s of id %s",
+                    version,
+                    item_id,
+                )
+                return None
+            try:
+                serialized = json.loads(item_data)
+            except Exception as je:
+                logger.warning(
+                    "Invalid item_data JSON for version %s of id %s: %s",
+                    version,
+                    item_id,
+                    je,
+                )
+                return None
 
             # Deserialize to a MemoryItem
             item = self._deserialize_memory_item(serialized)
@@ -629,7 +672,17 @@ class ChromaDBStore(MemoryStore):
         if results["ids"] and results["metadatas"]:
             for metadata in results["metadatas"][0]:
                 # Extract the serialized item from metadata
-                serialized = json.loads(metadata["item_data"])
+                item_data = (
+                    metadata.get("item_data") if isinstance(metadata, dict) else None
+                )
+                if not item_data:
+                    logger.debug("Skipping result missing item_data")
+                    continue
+                try:
+                    serialized = json.loads(item_data)
+                except Exception as je:
+                    logger.debug("Skipping result with invalid item_data JSON: %s", je)
+                    continue
 
                 # Deserialize to a MemoryItem
                 item = self._deserialize_memory_item(serialized)
@@ -664,7 +717,23 @@ class ChromaDBStore(MemoryStore):
             all_items = []
             if results["ids"] and results["metadatas"]:
                 for metadata in results["metadatas"]:
-                    serialized = json.loads(metadata["item_data"])
+                    item_data = (
+                        metadata.get("item_data")
+                        if isinstance(metadata, dict)
+                        else None
+                    )
+                    if not item_data:
+                        logger.debug(
+                            "Skipping item without item_data during exact search"
+                        )
+                        continue
+                    try:
+                        serialized = json.loads(item_data)
+                    except Exception as je:
+                        logger.debug(
+                            "Skipping item with invalid item_data JSON: %s", je
+                        )
+                        continue
                     item = self._deserialize_memory_item(serialized)
                     all_items.append(item)
 
@@ -727,8 +796,18 @@ class ChromaDBStore(MemoryStore):
                 self._save_fallback()
                 return existed
 
-            # Delete the item from ChromaDB
+            # Delete the item from ChromaDB (main collection)
             self.collection.delete(ids=[item_id])
+
+            # Best-effort cleanup of versioned entries
+            try:
+                if hasattr(self, "versions_collection") and self.versions_collection:
+                    self.versions_collection.delete(where={"original_id": item_id})
+            except Exception as verr:
+                # Don't fail deletion due to versions cleanup; just log
+                logger.warning(
+                    f"Deleted main item {item_id} but failed to delete version entries: {verr}"
+                )
 
             # Remove the item from the cache if it exists
             if item_id in self._cache:

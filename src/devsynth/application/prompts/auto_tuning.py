@@ -4,15 +4,16 @@ Prompt Auto-Tuning Module
 This module provides components for dynamically adjusting LLM prompts based on feedback.
 """
 
-from typing import Dict, List, Any, Optional, Union, Callable
-import json
-import re
-import random
-from datetime import datetime
 import hashlib
+import json
+import random
+import re
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Union
+
+from devsynth.exceptions import DevSynthError
 
 from ...logging_setup import DevSynthLogger
-from devsynth.exceptions import DevSynthError
 
 logger = DevSynthLogger(__name__)
 
@@ -508,11 +509,13 @@ class PromptAutoTuner:
         # Ensure the template has actually changed
         if template == original_template:
             # If the template hasn't changed, force a change by adding a tone prefix
-            prefix = random.choice([
-                "In a " + tone_name + " tone: ",
-                "Speaking " + tone_name + "ly: ",
-                "[" + tone_name.capitalize() + " tone] ",
-            ])
+            prefix = random.choice(
+                [
+                    "In a " + tone_name + " tone: ",
+                    "Speaking " + tone_name + "ly: ",
+                    "[" + tone_name.capitalize() + " tone] ",
+                ]
+            )
             template = prefix + template
 
         return template
@@ -633,7 +636,9 @@ class BasicPromptTuner:
         self.step = step
 
     def adjust(
-        self, success: Union[bool, None] = None, feedback_score: Union[float, None] = None
+        self,
+        success: Union[bool, None] = None,
+        feedback_score: Union[float, None] = None,
     ) -> None:
         """Adjust the sampling temperature based on feedback."""
         delta = 0.0

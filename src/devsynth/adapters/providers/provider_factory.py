@@ -26,7 +26,7 @@ class ProviderFactory(provider_system.ProviderFactory):
     ) -> provider_system.BaseProvider:
         """Create a provider instance.
 
-        When ``provider_type`` explicitly requests OpenAI but no API key is
+        When ``provider_type`` explicitly requests OpenAI or Anthropic but no API key is
         configured, a :class:`ProviderError` is raised instead of falling back
         to another provider. This ensures that explicit provider selection does
         not silently degrade to a different backend.
@@ -37,10 +37,15 @@ class ProviderFactory(provider_system.ProviderFactory):
                 if isinstance(provider_type, ProviderType)
                 else str(provider_type).lower()
             )
+            cfg = config or provider_system.get_provider_config()
             if pt_value == ProviderType.OPENAI.value:
-                cfg = config or provider_system.get_provider_config()
                 if not cfg.get("openai", {}).get("api_key"):
                     raise ProviderError("OpenAI API key not found")
+            if pt_value == ProviderType.ANTHROPIC.value:
+                import os
+
+                if not os.environ.get("ANTHROPIC_API_KEY"):
+                    raise ProviderError("Anthropic API key not found")
 
         return provider_system.ProviderFactory.create_provider(
             provider_type,

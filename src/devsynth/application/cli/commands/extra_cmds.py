@@ -16,6 +16,14 @@ register("run-tests", run_tests_cmd)
 register("edrr-cycle", edrr_cycle_cmd)
 register("security-audit", security_audit_cmd)
 register("reprioritize-issues", reprioritize_issues_cmd)
+from .atomic_rewrite_cmd import atomic_rewrite_cmd
+
+register("atomic-rewrite", atomic_rewrite_cmd)
+
+# Optional MVUU dashboard launcher (kept lightweight for smoke tests)
+from .mvuu_dashboard_cmd import mvuu_dashboard_cmd
+
+register("mvuu-dashboard", mvuu_dashboard_cmd)
 
 __all__ = [
     "align_cmd",
@@ -25,4 +33,5 @@ __all__ = [
     "edrr_cycle_cmd",
     "security_audit_cmd",
     "reprioritize_issues_cmd",
+    "mvuu_dashboard_cmd",
 ]

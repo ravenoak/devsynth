@@ -1,6 +1,6 @@
 """Adapter providing an OnnxRuntime implementation using onnxruntime."""
 
-from typing import Any, Iterable, Dict, Union
+from typing import Any, Dict, Iterable, Union
 
 import onnxruntime as ort
 

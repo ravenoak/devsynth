@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Optional
 
 from devsynth.config.unified_loader import (
-    UnifiedConfigLoader as _CoreLoader,
     UnifiedConfig,
 )
+from devsynth.config.unified_loader import UnifiedConfigLoader as _CoreLoader
 
 
 class UnifiedConfigLoader:

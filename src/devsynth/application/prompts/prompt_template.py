@@ -5,10 +5,10 @@ This module defines the PromptTemplate and PromptTemplateVersion classes for
 managing prompt templates with versioning support.
 """
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-import uuid
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -22,6 +22,7 @@ class PromptTemplateVersion:
         created_at: When this version was created
         metadata: Additional metadata for this version
     """
+
     template_text: str
     version_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = field(default_factory=datetime.now)
@@ -59,13 +60,16 @@ class PromptTemplate:
         metadata: Additional metadata for this template
         edrr_phase: The EDRR phase this template is associated with (if any)
     """
+
     name: str
     description: str
     versions: List[PromptTemplateVersion] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     edrr_phase: Optional[str] = None
 
-    def add_version(self, template_text: str, metadata: Optional[Dict[str, Any]] = None) -> PromptTemplateVersion:
+    def add_version(
+        self, template_text: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> PromptTemplateVersion:
         """
         Add a new version of this template.
 
@@ -77,8 +81,7 @@ class PromptTemplate:
             The newly created version
         """
         version = PromptTemplateVersion(
-            template_text=template_text,
-            metadata=metadata or {}
+            template_text=template_text, metadata=metadata or {}
         )
         self.versions.append(version)
         return version
@@ -109,7 +112,9 @@ class PromptTemplate:
                 return version
         return None
 
-    def render(self, variables: Dict[str, str], version_id: Optional[str] = None) -> str:
+    def render(
+        self, variables: Dict[str, str], version_id: Optional[str] = None
+    ) -> str:
         """
         Render the template with the provided variables.
 
@@ -126,7 +131,9 @@ class PromptTemplate:
         if version_id:
             version = self.get_version(version_id)
             if not version:
-                raise ValueError(f"Version {version_id} not found for template {self.name}")
+                raise ValueError(
+                    f"Version {version_id} not found for template {self.name}"
+                )
         else:
             version = self.get_latest_version()
             if not version:

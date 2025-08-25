@@ -4,21 +4,22 @@ This module provides utilities for standardizing command output formatting
 across all DevSynth commands and interfaces.
 """
 
-from typing import Any, Dict, List, Optional, Union
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
-from rich.syntax import Syntax
-from rich.text import Text
 from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.syntax import Syntax
+from rich.table import Table
+from rich.text import Text
 
-from devsynth.interface.output_formatter import OutputFormatter, OutputFormat
+from devsynth.interface.output_formatter import OutputFormat, OutputFormatter
 
 
 class MessageType(str, Enum):
     """Enum for message types."""
+
     ERROR = "error"
     WARNING = "warning"
     SUCCESS = "success"
@@ -52,7 +53,12 @@ class CommandOutput:
         self.console = console
         self.formatter.set_console(console)
 
-    def format_message(self, message: str, message_type: Optional[Union[str, MessageType]] = None, highlight: bool = False) -> Any:
+    def format_message(
+        self,
+        message: str,
+        message_type: Optional[Union[str, MessageType]] = None,
+        highlight: bool = False,
+    ) -> Any:
         """Format a message based on its type and highlight flag.
 
         Args:
@@ -69,7 +75,12 @@ class CommandOutput:
 
         return self.formatter.format_message(message, message_type, highlight)
 
-    def display_message(self, message: str, message_type: Optional[Union[str, MessageType]] = None, highlight: bool = False) -> None:
+    def display_message(
+        self,
+        message: str,
+        message_type: Optional[Union[str, MessageType]] = None,
+        highlight: bool = False,
+    ) -> None:
         """Display a formatted message.
 
         Args:
@@ -93,7 +104,9 @@ class CommandOutput:
         else:
             print(str(formatted))
 
-    def format_error(self, error: Union[Exception, str], include_suggestions: bool = True) -> Any:
+    def format_error(
+        self, error: Union[Exception, str], include_suggestions: bool = True
+    ) -> Any:
         """Format an error message with optional suggestions.
 
         Args:
@@ -104,7 +117,7 @@ class CommandOutput:
             The formatted error message
         """
         error_str = str(error)
-        
+
         if include_suggestions:
             # Add suggestions based on error type or content
             if "permission" in error_str.lower():
@@ -115,10 +128,12 @@ class CommandOutput:
                 error_str += "\n\nSuggestion: Check network connectivity or increase timeout settings."
             elif "api key" in error_str.lower():
                 error_str += "\n\nSuggestion: Verify your API key is correctly set in the configuration."
-        
+
         return self.format_message(error_str, MessageType.ERROR)
 
-    def display_error(self, error: Union[Exception, str], include_suggestions: bool = True) -> None:
+    def display_error(
+        self, error: Union[Exception, str], include_suggestions: bool = True
+    ) -> None:
         """Display a formatted error message with optional suggestions.
 
         Args:
@@ -126,7 +141,7 @@ class CommandOutput:
             include_suggestions: Whether to include actionable suggestions
         """
         formatted = self.format_error(error, include_suggestions)
-        
+
         if self.console:
             self.console.print(formatted)
         else:
@@ -211,7 +226,7 @@ class CommandOutput:
             level: The heading level (1-6)
         """
         formatted = self.format_heading(message, level)
-        
+
         if self.console:
             self.console.print(formatted)
         else:
@@ -237,7 +252,7 @@ class CommandOutput:
             title: Optional title for the table
         """
         formatted = self.format_table(data, title)
-        
+
         if self.console:
             self.console.print(formatted)
         else:
@@ -263,7 +278,7 @@ class CommandOutput:
             title: Optional title for the list
         """
         formatted = self.format_list(items, title)
-        
+
         if self.console:
             self.console.print(formatted)
         else:
@@ -289,7 +304,7 @@ class CommandOutput:
             title: Optional title for the output
         """
         formatted = self.format_json(data, title)
-        
+
         if self.console:
             self.console.print(formatted)
         else:
@@ -315,13 +330,18 @@ class CommandOutput:
             title: Optional title for the output
         """
         formatted = self.format_yaml(data, title)
-        
+
         if self.console:
             self.console.print(formatted)
         else:
             print(str(formatted))
 
-    def format_command_result(self, result: Dict[str, Any], format_name: Optional[str] = None, title: Optional[str] = None) -> Any:
+    def format_command_result(
+        self,
+        result: Dict[str, Any],
+        format_name: Optional[str] = None,
+        title: Optional[str] = None,
+    ) -> Any:
         """Format a command result in the specified format.
 
         This is a convenience method for CLI commands to format their output
@@ -337,7 +357,12 @@ class CommandOutput:
         """
         return self.formatter.format_command_output(result, format_name, title)
 
-    def display_command_result(self, result: Dict[str, Any], format_name: Optional[str] = None, title: Optional[str] = None) -> None:
+    def display_command_result(
+        self,
+        result: Dict[str, Any],
+        format_name: Optional[str] = None,
+        title: Optional[str] = None,
+    ) -> None:
         """Display a formatted command result.
 
         Args:
@@ -346,7 +371,7 @@ class CommandOutput:
             title: Optional title for the output
         """
         formatted = self.format_command_result(result, format_name, title)
-        
+
         if self.console:
             self.console.print(formatted)
         else:

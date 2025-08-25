@@ -2,27 +2,29 @@
 TinyDB implementation of MemoryStore.
 """
 
-import os
 import json
+import os
 import uuid
-import tiktoken
-from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
-from tinydb import TinyDB, Query
-from tinydb.storages import JSONStorage, Storage, touch
-from tinydb.middlewares import CachingMiddleware
+from typing import Any, Dict, List, Optional, Union
 
-from ...domain.interfaces.memory import MemoryStore
-from ...domain.models.memory import MemoryItem, MemoryType
-from devsynth.logging_setup import DevSynthLogger
+import tiktoken
+from tinydb import Query, TinyDB
+from tinydb.middlewares import CachingMiddleware
+from tinydb.storages import JSONStorage, Storage, touch
+
 from devsynth.exceptions import (
     DevSynthError,
     MemoryError,
-    MemoryStoreError,
     MemoryItemNotFoundError,
+    MemoryStoreError,
 )
-from devsynth.security.encryption import encrypt_bytes, decrypt_bytes
+from devsynth.logging_setup import DevSynthLogger
 from devsynth.security.audit import audit_event
+from devsynth.security.encryption import decrypt_bytes, encrypt_bytes
+
+from ...domain.interfaces.memory import MemoryStore
+from ...domain.models.memory import MemoryItem, MemoryType
 
 
 class EncryptedJSONStorage(Storage):

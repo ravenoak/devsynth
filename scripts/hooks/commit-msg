@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""
+Conventional Commit message linter.
+
+Accepted format:
+  <type>[optional scope]: <description>
+
+Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+
+Examples:
+  feat(cli): add --offline flag to provider selection
+  fix(memory): handle TinyDB TypeError on insert
+
+This hook is intentionally lightweight and has no third-party deps.
+"""
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+CONVENTIONAL_RE = re.compile(
+    r"^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?:\s+.+"
+)
+
+
+def main(path: str) -> int:
+    msg = Path(path).read_text(encoding="utf-8").strip()
+    # allow merge commits and WIP in local branches
+    if msg.startswith("Merge ") or msg.lower().startswith("wip:"):
+        return 0
+    if not CONVENTIONAL_RE.match(msg):
+        sys.stderr.write(
+            "\n❌ Commit message must follow Conventional Commits.\n"
+            "   Examples: 'feat: add new feature', 'fix(api): correct error handling'\n"
+        )
+        sys.stderr.write(f"\nYour message was:\n{msg}\n")
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1]))

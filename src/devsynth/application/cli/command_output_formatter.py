@@ -4,24 +4,24 @@ This module provides standardized formatting for different types of command outp
 ensuring consistent output across all CLI commands.
 """
 
-from typing import Dict, List, Any, Optional, Union, Tuple
 import json
-import yaml
-from enum import Enum, auto
 from datetime import datetime
+from enum import Enum, auto
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import yaml
+from rich.box import MINIMAL, ROUNDED, SIMPLE, SQUARE, Box
+from rich.columns import Columns
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.style import Style
+from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
-from rich.markdown import Markdown
-from rich.syntax import Syntax
-from rich.box import Box, ROUNDED, SIMPLE, MINIMAL, SQUARE
-from rich.style import Style
 from rich.tree import Tree
-from rich.columns import Columns
 
-from devsynth.interface.output_formatter import OutputFormatter, OutputFormat
+from devsynth.interface.output_formatter import OutputFormat, OutputFormatter
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -29,7 +29,7 @@ logger = DevSynthLogger(__name__)
 
 class CommandOutputType(Enum):
     """Types of command output."""
-    
+
     RESULT = auto()  # General command result
     SUCCESS = auto()  # Success message
     ERROR = auto()  # Error message
@@ -42,7 +42,7 @@ class CommandOutputType(Enum):
 
 class CommandOutputStyle(Enum):
     """Styles for command output."""
-    
+
     MINIMAL = auto()  # Minimal styling (plain text)
     SIMPLE = auto()  # Simple styling (basic formatting)
     STANDARD = auto()  # Standard styling (default)
@@ -53,21 +53,25 @@ class CommandOutputStyle(Enum):
 
 class StandardizedOutputFormatter:
     """Standardized output formatter for DevSynth CLI commands.
-    
+
     This class provides standardized formatting for different types of command output,
     ensuring consistent output across all CLI commands.
     """
-    
-    def __init__(self, console: Optional[Console] = None, base_formatter: Optional[OutputFormatter] = None):
+
+    def __init__(
+        self,
+        console: Optional[Console] = None,
+        base_formatter: Optional[OutputFormatter] = None,
+    ):
         """Initialize the standardized output formatter.
-        
+
         Args:
             console: Optional Rich console for output
             base_formatter: Optional base output formatter to use
         """
         self.console = console or Console()
         self.base_formatter = base_formatter or OutputFormatter(console)
-        
+
         # Define standard styles for different output types
         self.styles = {
             CommandOutputType.RESULT: Style(color="white"),
@@ -79,7 +83,7 @@ class StandardizedOutputFormatter:
             CommandOutputType.HELP: Style(color="magenta"),
             CommandOutputType.DEBUG: Style(color="dim"),
         }
-        
+
         # Define standard boxes for different output styles
         self.boxes = {
             CommandOutputStyle.MINIMAL: None,
@@ -89,7 +93,7 @@ class StandardizedOutputFormatter:
             CommandOutputStyle.COMPACT: MINIMAL,
             CommandOutputStyle.EXPANDED: ROUNDED,
         }
-        
+
         # Define standard padding for different output styles
         self.padding = {
             CommandOutputStyle.MINIMAL: (0, 0),
@@ -99,9 +103,9 @@ class StandardizedOutputFormatter:
             CommandOutputStyle.COMPACT: (0, 0),
             CommandOutputStyle.EXPANDED: (2, 2),
         }
-        
+
         logger.debug("Initialized StandardizedOutputFormatter")
-    
+
     def format_message(
         self,
         message: str,
@@ -112,7 +116,7 @@ class StandardizedOutputFormatter:
         highlight: bool = False,
     ) -> Union[str, Text, Panel]:
         """Format a message with standardized styling.
-        
+
         Args:
             message: The message to format
             output_type: The type of output
@@ -120,17 +124,19 @@ class StandardizedOutputFormatter:
             title: Optional title for the message
             subtitle: Optional subtitle for the message
             highlight: Whether to highlight the message
-            
+
         Returns:
             The formatted message
         """
         # Get the style for the output type
         style = self.styles.get(output_type, self.styles[CommandOutputType.RESULT])
-        
+
         # Get the box and padding for the output style
         box = self.boxes.get(output_style, self.boxes[CommandOutputStyle.STANDARD])
-        padding = self.padding.get(output_style, self.padding[CommandOutputStyle.STANDARD])
-        
+        padding = self.padding.get(
+            output_style, self.padding[CommandOutputStyle.STANDARD]
+        )
+
         # Format the message based on the output style
         if output_style == CommandOutputStyle.MINIMAL:
             # Minimal styling (plain text)
@@ -151,10 +157,14 @@ class StandardizedOutputFormatter:
                 # Format the message using the base formatter
                 content = self.base_formatter.format_message(
                     message,
-                    message_type=output_type.name.lower() if output_type != CommandOutputType.RESULT else None,
+                    message_type=(
+                        output_type.name.lower()
+                        if output_type != CommandOutputType.RESULT
+                        else None
+                    ),
                     highlight=highlight,
                 )
-            
+
             # Create a panel with the appropriate styling
             return Panel(
                 content,
@@ -165,7 +175,7 @@ class StandardizedOutputFormatter:
                 padding=padding,
                 highlight=highlight,
             )
-    
+
     def format_table(
         self,
         data: Union[List[Dict[str, Any]], Dict[str, Any]],
@@ -177,7 +187,7 @@ class StandardizedOutputFormatter:
         padding: Optional[Tuple[int, int]] = None,
     ) -> Table:
         """Format data as a table with standardized styling.
-        
+
         Args:
             data: The data to format as a table
             output_style: The style of output
@@ -186,7 +196,7 @@ class StandardizedOutputFormatter:
             show_header: Whether to show the table header
             box: Optional box style for the table
             padding: Optional padding for the table cells
-            
+
         Returns:
             The formatted table
         """
@@ -194,8 +204,10 @@ class StandardizedOutputFormatter:
         if box is None:
             box = self.boxes.get(output_style, self.boxes[CommandOutputStyle.STANDARD])
         if padding is None:
-            padding = self.padding.get(output_style, self.padding[CommandOutputStyle.STANDARD])
-        
+            padding = self.padding.get(
+                output_style, self.padding[CommandOutputStyle.STANDARD]
+            )
+
         # Create a table with the appropriate styling
         table = Table(
             title=title,
@@ -204,7 +216,7 @@ class StandardizedOutputFormatter:
             box=box,
             padding=padding,
         )
-        
+
         # Format the data as a table
         if isinstance(data, list) and data and isinstance(data[0], dict):
             # List of dictionaries
@@ -212,7 +224,7 @@ class StandardizedOutputFormatter:
             columns = list(data[0].keys())
             for column in columns:
                 table.add_column(column)
-            
+
             # Add rows based on the values in each dictionary
             for row_data in data:
                 row = [str(row_data.get(column, "")) for column in columns]
@@ -222,7 +234,7 @@ class StandardizedOutputFormatter:
             # Add columns for key and value
             table.add_column("Key")
             table.add_column("Value")
-            
+
             # Add rows based on the key-value pairs
             for key, value in data.items():
                 if isinstance(value, (dict, list)):
@@ -234,9 +246,9 @@ class StandardizedOutputFormatter:
             logger.warning(f"Unsupported data type for table formatting: {type(data)}")
             table.add_column("Data")
             table.add_row(str(data))
-        
+
         return table
-    
+
     def format_list(
         self,
         items: List[Any],
@@ -246,14 +258,14 @@ class StandardizedOutputFormatter:
         bullet: str = "•",
     ) -> Union[str, Text, Panel]:
         """Format a list with standardized styling.
-        
+
         Args:
             items: The list items to format
             output_style: The style of output
             title: Optional title for the list
             subtitle: Optional subtitle for the list
             bullet: The bullet character to use for list items
-            
+
         Returns:
             The formatted list
         """
@@ -271,13 +283,15 @@ class StandardizedOutputFormatter:
             # Standard, detailed, compact, or expanded styling
             # Get the box and padding for the output style
             box = self.boxes.get(output_style, self.boxes[CommandOutputStyle.STANDARD])
-            padding = self.padding.get(output_style, self.padding[CommandOutputStyle.STANDARD])
-            
+            padding = self.padding.get(
+                output_style, self.padding[CommandOutputStyle.STANDARD]
+            )
+
             # Create a tree for the list
             tree = Tree(title or "")
             for item in items:
                 tree.add(str(item))
-            
+
             # Create a panel with the tree
             return Panel(
                 tree,
@@ -286,7 +300,7 @@ class StandardizedOutputFormatter:
                 box=box,
                 padding=padding,
             )
-    
+
     def format_code(
         self,
         code: str,
@@ -298,7 +312,7 @@ class StandardizedOutputFormatter:
         word_wrap: bool = True,
     ) -> Union[str, Syntax, Panel]:
         """Format code with standardized styling.
-        
+
         Args:
             code: The code to format
             language: The programming language of the code
@@ -307,7 +321,7 @@ class StandardizedOutputFormatter:
             subtitle: Optional subtitle for the code
             line_numbers: Whether to show line numbers
             word_wrap: Whether to wrap long lines
-            
+
         Returns:
             The formatted code
         """
@@ -328,8 +342,10 @@ class StandardizedOutputFormatter:
             # Standard, detailed, compact, or expanded styling
             # Get the box and padding for the output style
             box = self.boxes.get(output_style, self.boxes[CommandOutputStyle.STANDARD])
-            padding = self.padding.get(output_style, self.padding[CommandOutputStyle.STANDARD])
-            
+            padding = self.padding.get(
+                output_style, self.padding[CommandOutputStyle.STANDARD]
+            )
+
             # Create a syntax object for the code
             syntax = Syntax(
                 code,
@@ -338,7 +354,7 @@ class StandardizedOutputFormatter:
                 line_numbers=line_numbers,
                 word_wrap=word_wrap,
             )
-            
+
             # Create a panel with the syntax object
             return Panel(
                 syntax,
@@ -347,7 +363,7 @@ class StandardizedOutputFormatter:
                 box=box,
                 padding=padding,
             )
-    
+
     def format_help(
         self,
         command: str,
@@ -358,7 +374,7 @@ class StandardizedOutputFormatter:
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
     ) -> Union[str, Text, Panel]:
         """Format help text with standardized styling.
-        
+
         Args:
             command: The command name
             description: The command description
@@ -366,7 +382,7 @@ class StandardizedOutputFormatter:
             examples: List of example dictionaries with 'description' and 'command' keys
             options: List of option dictionaries with 'name', 'description', and 'default' keys
             output_style: The style of output
-            
+
         Returns:
             The formatted help text
         """
@@ -375,7 +391,9 @@ class StandardizedOutputFormatter:
             # Minimal styling (plain text)
             help_text = f"{command}\n\n{description}\n\nUsage:\n{usage}\n\nOptions:\n"
             for option in options:
-                default = f" (default: {option['default']})" if 'default' in option else ""
+                default = (
+                    f" (default: {option['default']})" if "default" in option else ""
+                )
                 help_text += f"  {option['name']}: {option['description']}{default}\n"
             help_text += "\nExamples:\n"
             for example in examples:
@@ -390,7 +408,9 @@ class StandardizedOutputFormatter:
             help_text.append(f"{usage}\n\n")
             help_text.append("Options:\n", style="bold")
             for option in options:
-                default = f" (default: {option['default']})" if 'default' in option else ""
+                default = (
+                    f" (default: {option['default']})" if "default" in option else ""
+                )
                 help_text.append(f"  {option['name']}: ", style="bold")
                 help_text.append(f"{option['description']}{default}\n")
             help_text.append("\nExamples:\n", style="bold")
@@ -402,47 +422,52 @@ class StandardizedOutputFormatter:
             # Standard, detailed, compact, or expanded styling
             # Get the box and padding for the output style
             box = self.boxes.get(output_style, self.boxes[CommandOutputStyle.STANDARD])
-            padding = self.padding.get(output_style, self.padding[CommandOutputStyle.STANDARD])
-            
+            padding = self.padding.get(
+                output_style, self.padding[CommandOutputStyle.STANDARD]
+            )
+
             # Create a table for the options
             options_table = Table(box=box, show_header=True, padding=padding)
             options_table.add_column("Option", style="bold")
             options_table.add_column("Description")
             options_table.add_column("Default", style="dim")
-            
+
             for option in options:
-                default = option.get('default', "")
-                options_table.add_row(option['name'], option['description'], str(default))
-            
+                default = option.get("default", "")
+                options_table.add_row(
+                    option["name"], option["description"], str(default)
+                )
+
             # Create a table for the examples
             examples_table = Table(box=box, show_header=True, padding=padding)
             examples_table.add_column("Description", style="bold")
             examples_table.add_column("Command", style="cyan")
-            
+
             for example in examples:
-                examples_table.add_row(example['description'], example['command'])
-            
+                examples_table.add_row(example["description"], example["command"])
+
             # Create a panel with the help text
             content = Text()
             content.append(f"{description}\n\n")
             content.append("Usage:\n", style="bold")
             content.append(f"{usage}\n\n")
             content.append("Options:\n", style="bold")
-            
+
             # Add the options table
             from rich.console import Console
+
             console = Console(file=None)
             with console.capture() as capture:
                 console.print(options_table)
             content.append(capture.get())
-            
+
             content.append("\nExamples:\n", style="bold")
-            
+
             # Add the examples table
             with console.capture() as capture:
                 console.print(examples_table)
             content.append(capture.get())
-            
+
             return Panel(
                 content,
                 title=f"[bold]Command: {command}[/bold]",
@@ -450,7 +475,7 @@ class StandardizedOutputFormatter:
                 box=box,
                 padding=padding,
             )
-    
+
     def format_command_result(
         self,
         result: Any,
@@ -460,14 +485,14 @@ class StandardizedOutputFormatter:
         subtitle: Optional[str] = None,
     ) -> Any:
         """Format a command result with standardized styling.
-        
+
         Args:
             result: The command result to format
             output_type: The type of output
             output_style: The style of output
             title: Optional title for the result
             subtitle: Optional subtitle for the result
-            
+
         Returns:
             The formatted command result
         """
@@ -481,7 +506,9 @@ class StandardizedOutputFormatter:
                 title=title,
                 subtitle=subtitle,
             )
-        elif isinstance(result, (list, tuple)) and all(isinstance(item, dict) for item in result):
+        elif isinstance(result, (list, tuple)) and all(
+            isinstance(item, dict) for item in result
+        ):
             # List of dictionaries (table data)
             return self.format_table(
                 result,
@@ -514,7 +541,7 @@ class StandardizedOutputFormatter:
                 title=title,
                 subtitle=subtitle,
             )
-    
+
     def display(
         self,
         content: Any,
@@ -524,7 +551,7 @@ class StandardizedOutputFormatter:
         subtitle: Optional[str] = None,
     ) -> None:
         """Display content with standardized styling.
-        
+
         Args:
             content: The content to display
             output_type: The type of output
@@ -540,7 +567,7 @@ class StandardizedOutputFormatter:
             title=title,
             subtitle=subtitle,
         )
-        
+
         # Display the formatted content
         self.console.print(formatted_content)
 

@@ -27,9 +27,12 @@ else:  # pragma: no cover - optional dependency
 
 
 class ProviderFactory(SimpleLLMProviderFactory):
-    """Factory that selects providers in a deterministic order."""
+    """Factory that selects providers in a deterministic order.
 
-    _order = ("openai", "anthropic", "lmstudio", "local", "offline")
+    Safe-by-default: prefer offline/local providers for implicit selection.
+    """
+
+    _order = ("offline", "local", "openai", "anthropic", "lmstudio")
 
     def create_provider(
         self,

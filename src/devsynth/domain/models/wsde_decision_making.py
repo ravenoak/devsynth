@@ -5,19 +5,23 @@ This module contains methods for decision-making, including idea generation,
 option evaluation, and implementation planning.
 """
 
-from typing import Any, Dict, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
-
-from devsynth.logging_setup import DevSynthLogger
 
 # Import the base WSDETeam class for type hints
 from devsynth.domain.models.wsde_base import WSDETeam
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
 
-def generate_diverse_ideas(self: WSDETeam, task: Dict[str, Any], max_ideas: int = 10, diversity_threshold: float = 0.7) -> List[Dict[str, Any]]:
+def generate_diverse_ideas(
+    self: WSDETeam,
+    task: Dict[str, Any],
+    max_ideas: int = 10,
+    diversity_threshold: float = 0.7,
+) -> List[Dict[str, Any]]:
     """
     Generate diverse ideas for a task.
 
@@ -57,7 +61,9 @@ def generate_diverse_ideas(self: WSDETeam, task: Dict[str, Any], max_ideas: int 
 
                 all_ideas.append(idea)
         except Exception as e:
-            logger.error(f"Error getting ideas from agent {getattr(agent, 'name', 'unknown')}: {str(e)}")
+            logger.error(
+                f"Error getting ideas from agent {getattr(agent, 'name', 'unknown')}: {str(e)}"
+            )
 
     # Ensure we have at least some ideas
     if not all_ideas:
@@ -87,7 +93,9 @@ def generate_diverse_ideas(self: WSDETeam, task: Dict[str, Any], max_ideas: int 
     return diverse_ideas
 
 
-def _calculate_idea_similarity(self: WSDETeam, idea1: Dict[str, Any], idea2: Dict[str, Any]) -> float:
+def _calculate_idea_similarity(
+    self: WSDETeam, idea1: Dict[str, Any], idea2: Dict[str, Any]
+) -> float:
     """
     Calculate the similarity between two ideas.
 
@@ -119,7 +127,9 @@ def _calculate_idea_similarity(self: WSDETeam, idea1: Dict[str, Any], idea2: Dic
     return len(intersection) / len(union)
 
 
-def create_comparison_matrix(self: WSDETeam, ideas: List[Dict[str, Any]], evaluation_criteria: List[str]) -> Dict[str, Dict[str, float]]:
+def create_comparison_matrix(
+    self: WSDETeam, ideas: List[Dict[str, Any]], evaluation_criteria: List[str]
+) -> Dict[str, Dict[str, float]]:
     """
     Create a comparison matrix for evaluating ideas.
 
@@ -152,7 +162,9 @@ def create_comparison_matrix(self: WSDETeam, ideas: List[Dict[str, Any]], evalua
                     score = agent.evaluate_idea(idea, criterion)
                     scores.append(score)
                 except Exception as e:
-                    logger.error(f"Error getting evaluation from agent {getattr(agent, 'name', 'unknown')}: {str(e)}")
+                    logger.error(
+                        f"Error getting evaluation from agent {getattr(agent, 'name', 'unknown')}: {str(e)}"
+                    )
 
             # Calculate the average score
             if scores:
@@ -163,7 +175,12 @@ def create_comparison_matrix(self: WSDETeam, ideas: List[Dict[str, Any]], evalua
     return matrix
 
 
-def evaluate_options(self: WSDETeam, ideas: List[Dict[str, Any]], comparison_matrix: Dict[str, Dict[str, float]], weighting_scheme: Dict[str, float]) -> List[Dict[str, Any]]:
+def evaluate_options(
+    self: WSDETeam,
+    ideas: List[Dict[str, Any]],
+    comparison_matrix: Dict[str, Dict[str, float]],
+    weighting_scheme: Dict[str, float],
+) -> List[Dict[str, Any]]:
     """
     Evaluate options based on a comparison matrix and weighting scheme.
 
@@ -206,7 +223,7 @@ def evaluate_options(self: WSDETeam, ideas: List[Dict[str, Any]], comparison_mat
             criterion_scores[criterion] = {
                 "raw_score": score,
                 "weight": weight,
-                "weighted_score": weighted_criterion_score
+                "weighted_score": weighted_criterion_score,
             }
 
         # Create the evaluated option
@@ -214,7 +231,7 @@ def evaluate_options(self: WSDETeam, ideas: List[Dict[str, Any]], comparison_mat
             "id": idea_id,
             "idea": idea,
             "criterion_scores": criterion_scores,
-            "weighted_score": weighted_score
+            "weighted_score": weighted_score,
         }
 
         evaluated_options.append(evaluated_option)
@@ -225,7 +242,12 @@ def evaluate_options(self: WSDETeam, ideas: List[Dict[str, Any]], comparison_mat
     return evaluated_options
 
 
-def analyze_trade_offs(self: WSDETeam, evaluated_options: List[Dict[str, Any]], conflict_detection_threshold: float = 0.7, identify_complementary_options: bool = True) -> List[Dict[str, Any]]:
+def analyze_trade_offs(
+    self: WSDETeam,
+    evaluated_options: List[Dict[str, Any]],
+    conflict_detection_threshold: float = 0.7,
+    identify_complementary_options: bool = True,
+) -> List[Dict[str, Any]]:
     """
     Analyze trade-offs between evaluated options.
 
@@ -252,7 +274,7 @@ def analyze_trade_offs(self: WSDETeam, evaluated_options: List[Dict[str, Any]], 
 
     # Compare each pair of options
     for i, option1 in enumerate(evaluated_options):
-        for j, option2 in enumerate(evaluated_options[i+1:], i+1):
+        for j, option2 in enumerate(evaluated_options[i + 1 :], i + 1):
             option1_id = option1.get("id", f"option_{i+1}")
             option2_id = option2.get("id", f"option_{j+1}")
 
@@ -262,8 +284,9 @@ def analyze_trade_offs(self: WSDETeam, evaluated_options: List[Dict[str, Any]], 
 
             for criterion in criteria:
                 # Skip criteria that aren't in both options
-                if (criterion not in option1.get("criterion_scores", {}) or
-                    criterion not in option2.get("criterion_scores", {})):
+                if criterion not in option1.get(
+                    "criterion_scores", {}
+                ) or criterion not in option2.get("criterion_scores", {}):
                     continue
 
                 score1 = option1["criterion_scores"][criterion]["raw_score"]
@@ -274,20 +297,24 @@ def analyze_trade_offs(self: WSDETeam, evaluated_options: List[Dict[str, Any]], 
                     better_option = option1_id if score1 > score2 else option2_id
                     worse_option = option2_id if score1 > score2 else option1_id
 
-                    conflicts.append({
-                        "criterion": criterion,
-                        "better_option": better_option,
-                        "worse_option": worse_option,
-                        "score_difference": abs(score1 - score2)
-                    })
+                    conflicts.append(
+                        {
+                            "criterion": criterion,
+                            "better_option": better_option,
+                            "worse_option": worse_option,
+                            "score_difference": abs(score1 - score2),
+                        }
+                    )
 
                 # Check for complementary aspects (both options have high scores)
                 elif identify_complementary_options and score1 > 0.7 and score2 > 0.7:
-                    complementary.append({
-                        "criterion": criterion,
-                        "option1_score": score1,
-                        "option2_score": score2
-                    })
+                    complementary.append(
+                        {
+                            "criterion": criterion,
+                            "option1_score": score1,
+                            "option2_score": score2,
+                        }
+                    )
 
             # Create the trade-off
             if conflicts or complementary:
@@ -295,7 +322,7 @@ def analyze_trade_offs(self: WSDETeam, evaluated_options: List[Dict[str, Any]], 
                     "option1_id": option1_id,
                     "option2_id": option2_id,
                     "conflicts": conflicts,
-                    "complementary": complementary
+                    "complementary": complementary,
                 }
 
                 trade_offs.append(trade_off)
@@ -303,7 +330,14 @@ def analyze_trade_offs(self: WSDETeam, evaluated_options: List[Dict[str, Any]], 
     return trade_offs
 
 
-def formulate_decision_criteria(self: WSDETeam, task: Dict[str, Any], evaluated_options: List[Dict[str, Any]], trade_offs: List[Dict[str, Any]], contextualize_with_code: bool = False, code_analyzer: Any = None) -> Dict[str, float]:
+def formulate_decision_criteria(
+    self: WSDETeam,
+    task: Dict[str, Any],
+    evaluated_options: List[Dict[str, Any]],
+    trade_offs: List[Dict[str, Any]],
+    contextualize_with_code: bool = False,
+    code_analyzer: Any = None,
+) -> Dict[str, float]:
     """
     Formulate decision criteria based on evaluated options and trade-offs.
 
@@ -369,7 +403,9 @@ def formulate_decision_criteria(self: WSDETeam, task: Dict[str, Any], evaluated_
                         # Increase weight for criteria related to code issues
                         decision_criteria[criterion] *= 1.3
         except Exception as e:
-            logger.error(f"Error contextualizing decision criteria with code analysis: {str(e)}")
+            logger.error(
+                f"Error contextualizing decision criteria with code analysis: {str(e)}"
+            )
 
     # Normalize weights to sum to 1.0
     total_weight = sum(decision_criteria.values())
@@ -380,7 +416,11 @@ def formulate_decision_criteria(self: WSDETeam, task: Dict[str, Any], evaluated_
     return decision_criteria
 
 
-def select_best_option(self: WSDETeam, evaluated_options: List[Dict[str, Any]], decision_criteria: Dict[str, float]) -> Dict[str, Any]:
+def select_best_option(
+    self: WSDETeam,
+    evaluated_options: List[Dict[str, Any]],
+    decision_criteria: Dict[str, float],
+) -> Dict[str, Any]:
     """
     Select the best option based on decision criteria.
 
@@ -421,7 +461,9 @@ def select_best_option(self: WSDETeam, evaluated_options: List[Dict[str, Any]], 
     return selected_option
 
 
-def elaborate_details(self: WSDETeam, selected_option: Dict[str, Any]) -> List[Dict[str, Any]]:
+def elaborate_details(
+    self: WSDETeam, selected_option: Dict[str, Any]
+) -> List[Dict[str, Any]]:
     """
     Elaborate details for a selected option.
 
@@ -462,12 +504,16 @@ def elaborate_details(self: WSDETeam, selected_option: Dict[str, Any]) -> List[D
 
                 details.append(detail)
         except Exception as e:
-            logger.error(f"Error getting details from agent {getattr(agent, 'name', 'unknown')}: {str(e)}")
+            logger.error(
+                f"Error getting details from agent {getattr(agent, 'name', 'unknown')}: {str(e)}"
+            )
 
     return details
 
 
-def create_implementation_plan(self: WSDETeam, details: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def create_implementation_plan(
+    self: WSDETeam, details: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
     """
     Create an implementation plan from elaborated details.
 
@@ -511,7 +557,9 @@ def create_implementation_plan(self: WSDETeam, details: List[Dict[str, Any]]) ->
     return sorted_steps
 
 
-def _topological_sort_steps(self: WSDETeam, steps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _topological_sort_steps(
+    self: WSDETeam, steps: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
     """
     Sort steps topologically based on dependencies.
 
@@ -572,7 +620,12 @@ def _topological_sort_steps(self: WSDETeam, steps: List[Dict[str, Any]]) -> List
     return sorted_steps
 
 
-def optimize_implementation(self: WSDETeam, plan: List[Dict[str, Any]], optimization_targets: List[str], code_analyzer: Any = None) -> List[Dict[str, Any]]:
+def optimize_implementation(
+    self: WSDETeam,
+    plan: List[Dict[str, Any]],
+    optimization_targets: List[str],
+    code_analyzer: Any = None,
+) -> List[Dict[str, Any]]:
     """
     Optimize an implementation plan.
 
@@ -599,16 +652,22 @@ def optimize_implementation(self: WSDETeam, plan: List[Dict[str, Any]], optimiza
     # Apply optimizations based on targets
     for target in optimization_targets:
         if target.lower() == "performance":
-            optimized_plan = self._optimize_for_performance(optimized_plan, code_analyzer)
+            optimized_plan = self._optimize_for_performance(
+                optimized_plan, code_analyzer
+            )
         elif target.lower() == "maintainability":
-            optimized_plan = self._optimize_for_maintainability(optimized_plan, code_analyzer)
+            optimized_plan = self._optimize_for_maintainability(
+                optimized_plan, code_analyzer
+            )
         elif target.lower() == "security":
             optimized_plan = self._optimize_for_security(optimized_plan, code_analyzer)
 
     return optimized_plan
 
 
-def _optimize_for_performance(self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None) -> List[Dict[str, Any]]:
+def _optimize_for_performance(
+    self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None
+) -> List[Dict[str, Any]]:
     """
     Optimize an implementation plan for performance.
 
@@ -632,25 +691,27 @@ def _optimize_for_performance(self: WSDETeam, plan: List[Dict[str, Any]], code_a
         if "database" in description or "query" in description:
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Consider adding indexes to improve query performance",
-                "Use query optimization techniques like eager loading or query caching"
+                "Use query optimization techniques like eager loading or query caching",
             ]
 
         if "loop" in description or "iteration" in description:
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Optimize loops to minimize iterations",
-                "Consider using more efficient data structures"
+                "Consider using more efficient data structures",
             ]
 
         if "algorithm" in description:
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Analyze algorithm complexity and optimize if possible",
-                "Consider using more efficient algorithms"
+                "Consider using more efficient algorithms",
             ]
 
     return optimized_plan
 
 
-def _optimize_for_maintainability(self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None) -> List[Dict[str, Any]]:
+def _optimize_for_maintainability(
+    self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None
+) -> List[Dict[str, Any]]:
     """
     Optimize an implementation plan for maintainability.
 
@@ -674,25 +735,27 @@ def _optimize_for_maintainability(self: WSDETeam, plan: List[Dict[str, Any]], co
         if "class" in description or "function" in description:
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Follow SOLID principles for better maintainability",
-                "Keep classes and functions small and focused on a single responsibility"
+                "Keep classes and functions small and focused on a single responsibility",
             ]
 
         if "test" in description:
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Write comprehensive tests to ensure code correctness",
-                "Use test-driven development (TDD) approach"
+                "Use test-driven development (TDD) approach",
             ]
 
         if "documentation" in description:
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Write clear and comprehensive documentation",
-                "Include examples and use cases in documentation"
+                "Include examples and use cases in documentation",
             ]
 
     return optimized_plan
 
 
-def _optimize_for_security(self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None) -> List[Dict[str, Any]]:
+def _optimize_for_security(
+    self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None
+) -> List[Dict[str, Any]]:
     """
     Optimize an implementation plan for security.
 
@@ -717,27 +780,32 @@ def _optimize_for_security(self: WSDETeam, plan: List[Dict[str, Any]], code_anal
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Implement secure authentication mechanisms",
                 "Use multi-factor authentication where appropriate",
-                "Store passwords securely using strong hashing algorithms"
+                "Store passwords securely using strong hashing algorithms",
             ]
 
         if "data" in description or "database" in description:
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Encrypt sensitive data at rest and in transit",
                 "Implement proper access controls for data",
-                "Sanitize user inputs to prevent SQL injection"
+                "Sanitize user inputs to prevent SQL injection",
             ]
 
         if "api" in description or "endpoint" in description:
             step["optimization_notes"] = step.get("optimization_notes", []) + [
                 "Implement proper API authentication and authorization",
                 "Rate limit API requests to prevent abuse",
-                "Validate and sanitize all API inputs"
+                "Validate and sanitize all API inputs",
             ]
 
     return optimized_plan
 
 
-def perform_quality_assurance(self: WSDETeam, plan: List[Dict[str, Any]], check_categories: List[str], code_analyzer: Any = None) -> Dict[str, Any]:
+def perform_quality_assurance(
+    self: WSDETeam,
+    plan: List[Dict[str, Any]],
+    check_categories: List[str],
+    code_analyzer: Any = None,
+) -> Dict[str, Any]:
     """
     Perform quality assurance on an implementation plan.
 
@@ -764,7 +832,7 @@ def perform_quality_assurance(self: WSDETeam, plan: List[Dict[str, Any]], check_
         "timestamp": datetime.now().isoformat(),
         "checks": [],
         "issues": [],
-        "suggestions": []
+        "suggestions": [],
     }
 
     # Perform checks based on categories
@@ -791,12 +859,16 @@ def perform_quality_assurance(self: WSDETeam, plan: List[Dict[str, Any]], check_
     else:
         qa_results["overall_assessment"] = "Poor"
 
-    qa_results["summary"] = f"Found {issue_count} issues and {suggestion_count} suggestions for improvement."
+    qa_results["summary"] = (
+        f"Found {issue_count} issues and {suggestion_count} suggestions for improvement."
+    )
 
     return qa_results
 
 
-def _check_completeness(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]) -> None:
+def _check_completeness(
+    self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]
+) -> None:
     """
     Check the completeness of an implementation plan.
 
@@ -809,28 +881,34 @@ def _check_completeness(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: 
         qa_results: The quality assurance results to update
     """
     # Add the check to the results
-    qa_results["checks"].append({
-        "category": "completeness",
-        "description": "Check if the implementation plan is complete"
-    })
+    qa_results["checks"].append(
+        {
+            "category": "completeness",
+            "description": "Check if the implementation plan is complete",
+        }
+    )
 
     # Check if the plan has steps
     if not plan:
-        qa_results["issues"].append({
-            "category": "completeness",
-            "severity": "high",
-            "description": "The implementation plan has no steps"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "completeness",
+                "severity": "high",
+                "description": "The implementation plan has no steps",
+            }
+        )
         return
 
     # Check if all steps have descriptions
     for i, step in enumerate(plan):
         if not step.get("description"):
-            qa_results["issues"].append({
-                "category": "completeness",
-                "severity": "medium",
-                "description": f"Step {i+1} has no description"
-            })
+            qa_results["issues"].append(
+                {
+                    "category": "completeness",
+                    "severity": "medium",
+                    "description": f"Step {i+1} has no description",
+                }
+            )
 
     # Check if all dependencies exist
     step_ids = {step.get("id") for step in plan if step.get("id")}
@@ -840,21 +918,25 @@ def _check_completeness(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: 
 
         for dep_id in dependencies:
             if dep_id not in step_ids:
-                qa_results["issues"].append({
-                    "category": "completeness",
-                    "severity": "high",
-                    "description": f"Step {i+1} depends on non-existent step with ID {dep_id}"
-                })
+                qa_results["issues"].append(
+                    {
+                        "category": "completeness",
+                        "severity": "high",
+                        "description": f"Step {i+1} depends on non-existent step with ID {dep_id}",
+                    }
+                )
 
     # Check if the plan has a clear starting point (steps with no dependencies)
     start_steps = [step for step in plan if not step.get("dependencies")]
 
     if not start_steps:
-        qa_results["issues"].append({
-            "category": "completeness",
-            "severity": "medium",
-            "description": "The implementation plan has no clear starting point (all steps have dependencies)"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "completeness",
+                "severity": "medium",
+                "description": "The implementation plan has no clear starting point (all steps have dependencies)",
+            }
+        )
 
     # Check if the plan has a clear ending point (steps that no other steps depend on)
     end_steps = []
@@ -873,24 +955,30 @@ def _check_completeness(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: 
                 end_steps.append(step)
 
     if not end_steps:
-        qa_results["issues"].append({
-            "category": "completeness",
-            "severity": "medium",
-            "description": "The implementation plan has no clear ending point (all steps are dependencies for other steps)"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "completeness",
+                "severity": "medium",
+                "description": "The implementation plan has no clear ending point (all steps are dependencies for other steps)",
+            }
+        )
 
     # Suggest adding more details if steps are too brief
     for i, step in enumerate(plan):
         description = step.get("description", "")
 
         if len(description.split()) < 5:
-            qa_results["suggestions"].append({
-                "category": "completeness",
-                "description": f"Consider adding more details to step {i+1}"
-            })
+            qa_results["suggestions"].append(
+                {
+                    "category": "completeness",
+                    "description": f"Consider adding more details to step {i+1}",
+                }
+            )
 
 
-def _check_consistency(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]) -> None:
+def _check_consistency(
+    self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]
+) -> None:
     """
     Check the consistency of an implementation plan.
 
@@ -903,10 +991,12 @@ def _check_consistency(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: D
         qa_results: The quality assurance results to update
     """
     # Add the check to the results
-    qa_results["checks"].append({
-        "category": "consistency",
-        "description": "Check if the implementation plan is consistent"
-    })
+    qa_results["checks"].append(
+        {
+            "category": "consistency",
+            "description": "Check if the implementation plan is consistent",
+        }
+    )
 
     # Check if the plan has steps
     if not plan:
@@ -919,11 +1009,13 @@ def _check_consistency(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: D
         description = step.get("description", "").lower()
 
         if description in descriptions:
-            qa_results["issues"].append({
-                "category": "consistency",
-                "severity": "medium",
-                "description": f"Steps {descriptions[description]+1} and {i+1} have similar descriptions"
-            })
+            qa_results["issues"].append(
+                {
+                    "category": "consistency",
+                    "severity": "medium",
+                    "description": f"Steps {descriptions[description]+1} and {i+1} have similar descriptions",
+                }
+            )
         else:
             descriptions[description] = i
 
@@ -931,11 +1023,13 @@ def _check_consistency(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: D
     try:
         self._topological_sort_steps(plan)
     except Exception:
-        qa_results["issues"].append({
-            "category": "consistency",
-            "severity": "high",
-            "description": "The implementation plan has circular dependencies"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "consistency",
+                "severity": "high",
+                "description": "The implementation plan has circular dependencies",
+            }
+        )
 
     # Check for inconsistent effort estimates
     effort_units = set()
@@ -949,11 +1043,13 @@ def _check_consistency(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: D
                 effort_units.add(unit)
 
     if len(effort_units) > 1:
-        qa_results["issues"].append({
-            "category": "consistency",
-            "severity": "low",
-            "description": f"The implementation plan uses inconsistent effort units: {', '.join(effort_units)}"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "consistency",
+                "severity": "low",
+                "description": f"The implementation plan uses inconsistent effort units: {', '.join(effort_units)}",
+            }
+        )
 
     # Suggest standardizing terminology
     terms = {}
@@ -968,13 +1064,17 @@ def _check_consistency(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: D
     if len(terms) > 1:
         most_common_term = max(terms.items(), key=lambda x: x[1])[0]
 
-        qa_results["suggestions"].append({
-            "category": "consistency",
-            "description": f"Consider standardizing terminology by using '{most_common_term}' consistently"
-        })
+        qa_results["suggestions"].append(
+            {
+                "category": "consistency",
+                "description": f"Consider standardizing terminology by using '{most_common_term}' consistently",
+            }
+        )
 
 
-def _check_testability(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]) -> None:
+def _check_testability(
+    self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]
+) -> None:
     """
     Check the testability of an implementation plan.
 
@@ -987,51 +1087,66 @@ def _check_testability(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: D
         qa_results: The quality assurance results to update
     """
     # Add the check to the results
-    qa_results["checks"].append({
-        "category": "testability",
-        "description": "Check if the implementation plan includes appropriate testing"
-    })
+    qa_results["checks"].append(
+        {
+            "category": "testability",
+            "description": "Check if the implementation plan includes appropriate testing",
+        }
+    )
 
     # Check if the plan has steps
     if not plan:
         return
 
     # Check if the plan includes testing steps
-    test_steps = [step for step in plan if "test" in step.get("description", "").lower()]
+    test_steps = [
+        step for step in plan if "test" in step.get("description", "").lower()
+    ]
 
     if not test_steps:
-        qa_results["issues"].append({
-            "category": "testability",
-            "severity": "high",
-            "description": "The implementation plan does not include any testing steps"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "testability",
+                "severity": "high",
+                "description": "The implementation plan does not include any testing steps",
+            }
+        )
 
-        qa_results["suggestions"].append({
-            "category": "testability",
-            "description": "Add steps for unit testing, integration testing, and end-to-end testing"
-        })
+        qa_results["suggestions"].append(
+            {
+                "category": "testability",
+                "description": "Add steps for unit testing, integration testing, and end-to-end testing",
+            }
+        )
 
     # Check if there are tests for each implementation step
-    implementation_steps = [step for step in plan if any(term in step.get("description", "").lower() for term in ["implement", "create", "develop", "build"])]
+    implementation_steps = [
+        step
+        for step in plan
+        if any(
+            term in step.get("description", "").lower()
+            for term in ["implement", "create", "develop", "build"]
+        )
+    ]
 
     if implementation_steps and len(test_steps) < len(implementation_steps) * 0.5:
-        qa_results["issues"].append({
-            "category": "testability",
-            "severity": "medium",
-            "description": f"The implementation plan has {len(test_steps)} test steps for {len(implementation_steps)} implementation steps"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "testability",
+                "severity": "medium",
+                "description": f"The implementation plan has {len(test_steps)} test steps for {len(implementation_steps)} implementation steps",
+            }
+        )
 
-        qa_results["suggestions"].append({
-            "category": "testability",
-            "description": "Add more test steps to ensure adequate test coverage"
-        })
+        qa_results["suggestions"].append(
+            {
+                "category": "testability",
+                "description": "Add more test steps to ensure adequate test coverage",
+            }
+        )
 
     # Check if the plan includes different types of testing
-    test_types = {
-        "unit": False,
-        "integration": False,
-        "end-to-end": False
-    }
+    test_types = {"unit": False, "integration": False, "end-to-end": False}
 
     for step in test_steps:
         description = step.get("description", "").lower()
@@ -1045,22 +1160,30 @@ def _check_testability(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: D
         if "end-to-end test" in description or "e2e test" in description:
             test_types["end-to-end"] = True
 
-    missing_test_types = [test_type for test_type, included in test_types.items() if not included]
+    missing_test_types = [
+        test_type for test_type, included in test_types.items() if not included
+    ]
 
     if missing_test_types:
-        qa_results["issues"].append({
-            "category": "testability",
-            "severity": "medium",
-            "description": f"The implementation plan is missing {', '.join(missing_test_types)} tests"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "testability",
+                "severity": "medium",
+                "description": f"The implementation plan is missing {', '.join(missing_test_types)} tests",
+            }
+        )
 
-        qa_results["suggestions"].append({
-            "category": "testability",
-            "description": f"Add {', '.join(missing_test_types)} tests to ensure comprehensive testing"
-        })
+        qa_results["suggestions"].append(
+            {
+                "category": "testability",
+                "description": f"Add {', '.join(missing_test_types)} tests to ensure comprehensive testing",
+            }
+        )
 
 
-def _check_security(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]) -> None:
+def _check_security(
+    self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]
+) -> None:
     """
     Check the security considerations in an implementation plan.
 
@@ -1073,29 +1196,37 @@ def _check_security(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict
         qa_results: The quality assurance results to update
     """
     # Add the check to the results
-    qa_results["checks"].append({
-        "category": "security",
-        "description": "Check if the implementation plan includes appropriate security considerations"
-    })
+    qa_results["checks"].append(
+        {
+            "category": "security",
+            "description": "Check if the implementation plan includes appropriate security considerations",
+        }
+    )
 
     # Check if the plan has steps
     if not plan:
         return
 
     # Check if the plan includes security steps
-    security_steps = [step for step in plan if "security" in step.get("description", "").lower()]
+    security_steps = [
+        step for step in plan if "security" in step.get("description", "").lower()
+    ]
 
     if not security_steps:
-        qa_results["issues"].append({
-            "category": "security",
-            "severity": "high",
-            "description": "The implementation plan does not include any security steps"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "security",
+                "severity": "high",
+                "description": "The implementation plan does not include any security steps",
+            }
+        )
 
-        qa_results["suggestions"].append({
-            "category": "security",
-            "description": "Add steps for security considerations, such as input validation, authentication, and authorization"
-        })
+        qa_results["suggestions"].append(
+            {
+                "category": "security",
+                "description": "Add steps for security considerations, such as input validation, authentication, and authorization",
+            }
+        )
 
     # Check for specific security considerations
     security_considerations = {
@@ -1103,7 +1234,7 @@ def _check_security(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict
         "authentication": False,
         "authorization": False,
         "encryption": False,
-        "secure communication": False
+        "secure communication": False,
     }
 
     for step in plan:
@@ -1113,19 +1244,27 @@ def _check_security(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict
             if consideration in description:
                 security_considerations[consideration] = True
 
-    missing_considerations = [consideration for consideration, included in security_considerations.items() if not included]
+    missing_considerations = [
+        consideration
+        for consideration, included in security_considerations.items()
+        if not included
+    ]
 
     if missing_considerations:
-        qa_results["issues"].append({
-            "category": "security",
-            "severity": "medium",
-            "description": f"The implementation plan is missing security considerations for {', '.join(missing_considerations)}"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "security",
+                "severity": "medium",
+                "description": f"The implementation plan is missing security considerations for {', '.join(missing_considerations)}",
+            }
+        )
 
-        qa_results["suggestions"].append({
-            "category": "security",
-            "description": f"Add steps to address {', '.join(missing_considerations)}"
-        })
+        qa_results["suggestions"].append(
+            {
+                "category": "security",
+                "description": f"Add steps to address {', '.join(missing_considerations)}",
+            }
+        )
 
     # Check if security testing is included
     security_testing = False
@@ -1133,18 +1272,26 @@ def _check_security(self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict
     for step in plan:
         description = step.get("description", "").lower()
 
-        if "security test" in description or "penetration test" in description or "vulnerability scan" in description:
+        if (
+            "security test" in description
+            or "penetration test" in description
+            or "vulnerability scan" in description
+        ):
             security_testing = True
             break
 
     if not security_testing:
-        qa_results["issues"].append({
-            "category": "security",
-            "severity": "medium",
-            "description": "The implementation plan does not include security testing"
-        })
+        qa_results["issues"].append(
+            {
+                "category": "security",
+                "severity": "medium",
+                "description": "The implementation plan does not include security testing",
+            }
+        )
 
-        qa_results["suggestions"].append({
-            "category": "security",
-            "description": "Add steps for security testing, such as vulnerability scanning or penetration testing"
-        })
+        qa_results["suggestions"].append(
+            {
+                "category": "security",
+                "description": "Add steps for security testing, such as vulnerability scanning or penetration testing",
+            }
+        )

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import Dict, List, Any, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -48,6 +48,7 @@ class AgentConfig:
     capabilities: List[str] | None = None
     expertise: List[str] | None = None
     parameters: Dict[str, Any] | None = None
+    workspace_dir: Optional[str] | None = None
 
     def __post_init__(self):
         if self.parameters is None:

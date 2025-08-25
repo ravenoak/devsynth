@@ -21,32 +21,34 @@ Options:
     --dashboard            Generate a test execution dashboard
 """
 
+import argparse
+import datetime
+import json
 import os
 import re
-import json
-import time
-import argparse
 import subprocess
-import datetime
-from pathlib import Path
-from typing import Dict, List, Set, Tuple, Any, Optional
 
 # Import common test utilities if available
 import sys
+import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 try:
-    from test_utils import setup_test_environment, get_cache_dir
+    from test_utils import get_cache_dir, setup_test_environment
 except ImportError:
     # Fallback implementation if test_utils.py is not available
     def setup_test_environment():
         """Set up the test environment."""
         os.environ["PYTHONPATH"] = os.getcwd()
-        
+
     def get_cache_dir():
         """Get the cache directory."""
         cache_dir = Path(".test_metrics_cache")
         cache_dir.mkdir(exist_ok=True)
         return cache_dir
+
 
 # Test categories
 TEST_CATEGORIES = {
@@ -60,88 +62,85 @@ TEST_CATEGORIES = {
 # Speed categories
 SPEED_CATEGORIES = ["fast", "medium", "slow"]
 
+
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description='Generate optimized test metrics report for large test suites.'
+        description="Generate optimized test metrics report for large test suites."
     )
     parser.add_argument(
-        '-o', '--output',
-        default='test_metrics_report.json',
-        help='Output file for the report (default: test_metrics_report.json)'
+        "-o",
+        "--output",
+        default="test_metrics_report.json",
+        help="Output file for the report (default: test_metrics_report.json)",
     )
     parser.add_argument(
-        '--run-tests',
-        action='store_true',
-        help='Run tests to identify failures (otherwise just counts tests)'
+        "--run-tests",
+        action="store_true",
+        help="Run tests to identify failures (otherwise just counts tests)",
     )
     parser.add_argument(
-        '--html',
-        action='store_true',
-        help='Generate an HTML report in addition to JSON'
+        "--html",
+        action="store_true",
+        help="Generate an HTML report in addition to JSON",
     )
     parser.add_argument(
-        '--batch-size',
+        "--batch-size",
         type=int,
         default=20,
-        help='Number of tests per batch (default: 20)'
+        help="Number of tests per batch (default: 20)",
     )
     parser.add_argument(
-        '--max-batches',
+        "--max-batches",
         type=int,
         default=0,
-        help='Maximum number of batches to process (default: all)'
+        help="Maximum number of batches to process (default: all)",
     )
     parser.add_argument(
-        '--timeout',
+        "--timeout",
         type=int,
         default=300,
-        help='Timeout for each batch in seconds (default: 300)'
+        help="Timeout for each batch in seconds (default: 300)",
     )
     parser.add_argument(
-        '--category',
-        choices=list(TEST_CATEGORIES.keys()) + ['all'],
-        default='all',
-        help='Only analyze tests in the specified category'
+        "--category",
+        choices=list(TEST_CATEGORIES.keys()) + ["all"],
+        default="all",
+        help="Only analyze tests in the specified category",
     )
     parser.add_argument(
-        '--speed',
-        choices=SPEED_CATEGORIES + ['all', 'unmarked'],
-        default='all',
-        help='Only analyze tests with the specified speed marker'
+        "--speed",
+        choices=SPEED_CATEGORIES + ["all", "unmarked"],
+        default="all",
+        help="Only analyze tests with the specified speed marker",
     )
     parser.add_argument(
-        '--dashboard',
-        action='store_true',
-        help='Generate a test execution dashboard'
+        "--dashboard", action="store_true", help="Generate a test execution dashboard"
     )
     parser.add_argument(
-        '--no-cache',
-        action='store_true',
-        help='Disable caching (always collect fresh data)'
+        "--no-cache",
+        action="store_true",
+        help="Disable caching (always collect fresh data)",
     )
     parser.add_argument(
-        '--clear-cache',
-        action='store_true',
-        help='Clear all cached data before running'
+        "--clear-cache",
+        action="store_true",
+        help="Clear all cached data before running",
     )
     parser.add_argument(
-        '--parallel',
-        action='store_true',
-        help='Run tests in parallel using pytest-xdist'
+        "--parallel",
+        action="store_true",
+        help="Run tests in parallel using pytest-xdist",
     )
     parser.add_argument(
-        '--workers',
+        "--workers",
         type=int,
         default=0,
-        help='Number of worker processes to use (default: auto)'
+        help="Number of worker processes to use (default: auto)",
     )
-    parser.add_argument(
-        '--verbose',
-        action='store_true',
-        help='Verbose output'
-    )
+    parser.add_argument("--verbose", action="store_true", help="Verbose output")
     return parser.parse_args()
+
 
 def clear_cache():
     """Clear all cached data."""
@@ -151,14 +150,15 @@ def clear_cache():
             file.unlink()
         print(f"Cleared cache directory: {cache_dir}")
 
+
 def collect_tests(category: str, speed: str = "all") -> List[str]:
     """
     Collect tests to run based on category and speed.
-    
+
     Args:
         category: Test category (unit, integration, behavior, etc.)
         speed: Test speed category (fast, medium, slow, all)
-        
+
     Returns:
         List of test paths
     """
@@ -167,65 +167,75 @@ def collect_tests(category: str, speed: str = "all") -> List[str]:
     if not os.path.exists(test_dir):
         print(f"Test directory not found: {test_dir}")
         return []
-    
+
     # Build the pytest command
     cmd = [
-        "python", "-m", "pytest",
+        "python",
+        "-m",
+        "pytest",
         test_dir,
         "--collect-only",
         "-q",  # quiet mode
     ]
-    
+
     # Add speed marker if specified
     if speed != "all" and speed != "unmarked":
         cmd.extend(["-m", speed])
     elif speed == "unmarked":
         # Collect all tests, then filter out marked tests later
         pass
-    
+
     # Run pytest to collect tests
     try:
         result = subprocess.run(cmd, check=False, capture_output=True, text=True)
-        
+
         # Parse the output to get the list of tests
         test_list = []
         for line in result.stdout.split("\n"):
             if line.startswith(test_dir):
                 test_list.append(line.strip())
-        
+
         # If we're looking for unmarked tests, we need to filter out marked tests
         if speed == "unmarked":
             # Collect all marked tests
             marked_tests = set()
             for marker in SPEED_CATEGORIES:
                 marker_cmd = [
-                    "python", "-m", "pytest",
+                    "python",
+                    "-m",
+                    "pytest",
                     test_dir,
                     "--collect-only",
                     "-q",  # quiet mode
-                    "-m", marker,
+                    "-m",
+                    marker,
                 ]
-                marker_result = subprocess.run(marker_cmd, check=False, capture_output=True, text=True)
+                marker_result = subprocess.run(
+                    marker_cmd, check=False, capture_output=True, text=True
+                )
                 for line in marker_result.stdout.split("\n"):
                     if line.startswith(test_dir):
                         marked_tests.add(line.strip())
-            
+
             # Filter out marked tests
             test_list = [test for test in test_list if test not in marked_tests]
-        
+
         return test_list
     except Exception as e:
         print(f"Error collecting tests: {e}")
         return []
 
-def collect_all_tests(categories: List[str], speed: str = "all") -> Dict[str, List[str]]:
+
+def collect_all_tests(
+    categories: List[str], speed: str = "all"
+) -> Dict[str, List[str]]:
     """
     Collect tests from multiple categories.
-    
+
     Args:
         categories: List of test categories
         speed: Test speed category
-        
+
     Returns:
         Dictionary mapping categories to lists of tests
     """
@@ -236,14 +246,17 @@ def collect_all_tests(categories: List[str], speed: str = "all") -> Dict[str, Li
             all_tests[category] = tests
     return all_tests
 
-def create_test_batches(tests_by_category: Dict[str, List[str]], batch_size: int) -> List[Tuple[str, List[str]]]:
+
+def create_test_batches(
+    tests_by_category: Dict[str, List[str]], batch_size: int
+) -> List[Tuple[str, List[str]]]:
     """
     Create batches of tests for processing.
-    
+
     Args:
         tests_by_category: Dictionary mapping categories to lists of tests
         batch_size: Number of tests per batch
-        
+
     Returns:
         List of (category, batch) tuples
     """
@@ -251,46 +264,44 @@ def create_test_batches(tests_by_category: Dict[str, List[str]], batch_size: int
     for category, tests in tests_by_category.items():
         # Create batches for this category
         for i in range(0, len(tests), batch_size):
-            batch = tests[i:i+batch_size]
+            batch = tests[i : i + batch_size]
             batches.append((category, batch))
-    
+
     return batches
+
 
 def run_test_batch(category: str, batch: List[str], timeout: int) -> Dict[str, Any]:
     """
     Run a batch of tests.
-    
+
     Args:
         category: Test category
         batch: List of tests to run
         timeout: Timeout in seconds
-        
+
     Returns:
         Dictionary with test results
     """
     start_time = time.time()
-    
+
     # Build the pytest command
     cmd = [
-        "python", "-m", "pytest",
+        "python",
+        "-m",
+        "pytest",
         *batch,
         "-v",  # verbose mode
     ]
-    
+
     # Run the tests
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout
-        )
-        
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
         # Parse the output to get test results
         passed = []
         failed = []
         skipped = []
-        
+
         for line in result.stdout.split("\n"):
             if "PASSED" in line:
                 match = line.split(" ")[0]
@@ -304,10 +315,10 @@ def run_test_batch(category: str, batch: List[str], timeout: int) -> Dict[str, A
                 match = line.split(" ")[0]
                 if match:
                     skipped.append(match)
-        
+
         # Calculate execution time
         execution_time = time.time() - start_time
-        
+
         return {
             "category": category,
             "tests": batch,
@@ -349,17 +360,18 @@ def run_test_batch(category: str, batch: List[str], timeout: int) -> Dict[str, A
             "timeout": False,
         }
 
+
 def process_batches(
     batches: List[Tuple[str, List[str]]],
     timeout: int,
     max_batches: int,
     parallel: bool,
     workers: int,
-    verbose: bool
+    verbose: bool,
 ) -> List[Dict[str, Any]]:
     """
     Process test batches.
-    
+
     Args:
         batches: List of (category, batch) tuples
         timeout: Timeout for each batch
@@ -367,41 +379,45 @@ def process_batches(
         parallel: Whether to run tests in parallel
         workers: Number of worker processes
         verbose: Whether to print verbose output
-        
+
     Returns:
         List of batch results
     """
     # Limit the number of batches if specified
     if max_batches > 0:
         batches = batches[:max_batches]
-    
+
     results = []
-    
+
     if parallel:
         # Import ProcessPoolExecutor for parallel execution
-        from concurrent.futures import ProcessPoolExecutor, as_completed
         import multiprocessing
-        
+        from concurrent.futures import ProcessPoolExecutor, as_completed
+
         if workers <= 0:
             # Auto-detect number of workers
             workers = multiprocessing.cpu_count()
-        
+
         print(f"Processing {len(batches)} batches with {workers} workers")
-        
+
         with ProcessPoolExecutor(max_workers=workers) as executor:
             # Submit all batches
             future_to_batch = {
-                executor.submit(run_test_batch, category, batch, timeout): (i, category, batch)
+                executor.submit(run_test_batch, category, batch, timeout): (
+                    i,
+                    category,
+                    batch,
+                )
                 for i, (category, batch) in enumerate(batches)
             }
-            
+
             # Process results as they complete
             for future in as_completed(future_to_batch):
                 i, category, batch = future_to_batch[future]
                 try:
                     result = future.result()
                     results.append(result)
-                    
+
                     # Print progress
                     if verbose:
                         print(f"Batch {i+1}/{len(batches)} completed:")
@@ -411,26 +427,30 @@ def process_batches(
                         print(f"  Skipped: {len(result['skipped'])}")
                         print(f"  Time: {result['execution_time']:.2f}s")
                     else:
-                        status = "✓" if not result['failed'] else "✗"
-                        print(f"Batch {i+1}/{len(batches)} {status} - "
-                              f"P: {len(result['passed'])}, "
-                              f"F: {len(result['failed'])}, "
-                              f"S: {len(result['skipped'])}, "
-                              f"T: {result['execution_time']:.2f}s")
+                        status = "✓" if not result["failed"] else "✗"
+                        print(
+                            f"Batch {i+1}/{len(batches)} {status} - "
+                            f"P: {len(result['passed'])}, "
+                            f"F: {len(result['failed'])}, "
+                            f"S: {len(result['skipped'])}, "
+                            f"T: {result['execution_time']:.2f}s"
+                        )
                 except Exception as e:
                     print(f"Error processing batch {i}: {e}")
-                    results.append({
-                        "category": category,
-                        "tests": batch,
-                        "passed": [],
-                        "failed": batch,  # Consider all tests as failed
-                        "skipped": [],
-                        "execution_time": 0,
-                        "returncode": -1,
-                        "stdout": "",
-                        "stderr": str(e),
-                        "timeout": False,
-                    })
+                    results.append(
+                        {
+                            "category": category,
+                            "tests": batch,
+                            "passed": [],
+                            "failed": batch,  # Consider all tests as failed
+                            "skipped": [],
+                            "execution_time": 0,
+                            "returncode": -1,
+                            "stdout": "",
+                            "stderr": str(e),
+                            "timeout": False,
+                        }
+                    )
     else:
         # Process batches sequentially
         for i, (category, batch) in enumerate(batches):
@@ -440,32 +460,35 @@ def process_batches(
                 print(f"  Tests: {len(batch)}")
             else:
                 print(f"Processing batch {i+1}/{len(batches)}...", end="\r")
-            
+
             result = run_test_batch(category, batch, timeout)
             results.append(result)
-            
+
             if verbose:
                 print(f"  Passed: {len(result['passed'])}")
                 print(f"  Failed: {len(result['failed'])}")
                 print(f"  Skipped: {len(result['skipped'])}")
                 print(f"  Time: {result['execution_time']:.2f}s")
             else:
-                status = "✓" if not result['failed'] else "✗"
-                print(f"Batch {i+1}/{len(batches)} {status} - "
-                      f"P: {len(result['passed'])}, "
-                      f"F: {len(result['failed'])}, "
-                      f"S: {len(result['skipped'])}, "
-                      f"T: {result['execution_time']:.2f}s")
-    
+                status = "✓" if not result["failed"] else "✗"
+                print(
+                    f"Batch {i+1}/{len(batches)} {status} - "
+                    f"P: {len(result['passed'])}, "
+                    f"F: {len(result['failed'])}, "
+                    f"S: {len(result['skipped'])}, "
+                    f"T: {result['execution_time']:.2f}s"
+                )
+
     return results
+
 
 def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Aggregate results from multiple batches.
-    
+
     Args:
         batch_results: List of batch results
-        
+
     Returns:
         Aggregated results
     """
@@ -481,11 +504,11 @@ def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         "batch_results": batch_results,
         "categories": {},
     }
-    
+
     # Aggregate results
     for result in batch_results:
         category = result["category"]
-        
+
         # Initialize category if not already present
         if category not in aggregated["categories"]:
             aggregated["categories"][category] = {
@@ -495,42 +518,55 @@ def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "skipped": [],
                 "execution_time": 0,
             }
-        
+
         # Update category statistics
         aggregated["categories"][category]["total_tests"] += len(result["tests"])
         aggregated["categories"][category]["passed"].extend(result["passed"])
         aggregated["categories"][category]["failed"].extend(result["failed"])
         aggregated["categories"][category]["skipped"].extend(result["skipped"])
         aggregated["categories"][category]["execution_time"] += result["execution_time"]
-        
+
         # Update overall statistics
         aggregated["total_tests"] += len(result["tests"])
         aggregated["passed"].extend(result["passed"])
         aggregated["failed"].extend(result["failed"])
         aggregated["skipped"].extend(result["skipped"])
         aggregated["total_execution_time"] += result["execution_time"]
-    
+
     # Calculate summary metrics
     aggregated["summary"] = {
         "total_tests": aggregated["total_tests"],
         "total_passed": len(aggregated["passed"]),
         "total_failed": len(aggregated["failed"]),
         "total_skipped": len(aggregated["skipped"]),
-        "pass_rate": len(aggregated["passed"]) / aggregated["total_tests"] * 100 if aggregated["total_tests"] > 0 else 0,
+        "pass_rate": (
+            len(aggregated["passed"]) / aggregated["total_tests"] * 100
+            if aggregated["total_tests"] > 0
+            else 0
+        ),
         "total_execution_time": aggregated["total_execution_time"],
-        "average_execution_time": aggregated["total_execution_time"] / len(batch_results) if batch_results else 0,
+        "average_execution_time": (
+            aggregated["total_execution_time"] / len(batch_results)
+            if batch_results
+            else 0
+        ),
     }
-    
+
     # Calculate category summary metrics
     for category, stats in aggregated["categories"].items():
-        stats["pass_rate"] = len(stats["passed"]) / stats["total_tests"] * 100 if stats["total_tests"] > 0 else 0
-    
+        stats["pass_rate"] = (
+            len(stats["passed"]) / stats["total_tests"] * 100
+            if stats["total_tests"] > 0
+            else 0
+        )
+
     return aggregated
+
 
 def save_results(results: Dict[str, Any], output_file: str):
     """
     Save results to a file.
-    
+
     Args:
         results: Results to save
         output_file: Output filename
@@ -539,10 +575,11 @@ def save_results(results: Dict[str, Any], output_file: str):
         json.dump(results, f, indent=2)
     print(f"Results saved to {output_file}")
 
+
 def generate_html_report(results: Dict[str, Any], output_file: str):
     """
     Generate an HTML report from the results.
-    
+
     Args:
         results: Test results
         output_file: Output filename
@@ -618,14 +655,18 @@ def generate_html_report(results: Dict[str, Any], output_file: str):
             </div>
         </div>
     """
-    
+
     # Add category sections
     html += """
         <h2>Categories</h2>
     """
-    
+
     for i, (category, stats) in enumerate(results["categories"].items()):
-        pass_rate_class = "good" if stats["pass_rate"] > 90 else "warning" if stats["pass_rate"] > 75 else "bad"
+        pass_rate_class = (
+            "good"
+            if stats["pass_rate"] > 90
+            else "warning" if stats["pass_rate"] > 75 else "bad"
+        )
         html += f"""
         <div class="category">
             <div class="category-header" onclick="toggleCategory({i})">
@@ -658,33 +699,33 @@ def generate_html_report(results: Dict[str, Any], output_file: str):
                     <span class="metric-value">{stats['execution_time']:.2f}s</span>
                 </div>
         """
-        
+
         # Add failed tests if any
         if stats["failed"]:
             html += """
                 <h3>Failed Tests</h3>
                 <ul>
             """
-            
+
             for test in stats["failed"][:20]:  # Show only the first 20 failures
                 html += f"""
                     <li>{test}</li>
                 """
-            
+
             if len(stats["failed"]) > 20:
                 html += f"""
                     <li>... and {len(stats["failed"]) - 20} more</li>
                 """
-            
+
             html += """
                 </ul>
             """
-        
+
         html += """
             </div>
         </div>
         """
-    
+
     # Add failed tests section if there are any
     if results["failed"]:
         html += """
@@ -695,7 +736,7 @@ def generate_html_report(results: Dict[str, Any], output_file: str):
                 <th>Category</th>
             </tr>
         """
-        
+
         for test in results["failed"][:100]:  # Show only the first 100 failures
             # Find the category for this test
             category = None
@@ -703,23 +744,23 @@ def generate_html_report(results: Dict[str, Any], output_file: str):
                 if test in stats["failed"]:
                     category = cat
                     break
-            
+
             html += f"""
             <tr>
                 <td>{test}</td>
                 <td>{category if category else 'Unknown'}</td>
             </tr>
             """
-        
+
         if len(results["failed"]) > 100:
             html += f"""
             <tr>
                 <td colspan="2">... and {len(results["failed"]) - 100} more</td>
             </tr>
             """
-        
+
         html += "</table>"
-    
+
     html += f"""
         <div class="timestamp">
             Generated on: {results['timestamp']}
@@ -727,15 +768,16 @@ def generate_html_report(results: Dict[str, Any], output_file: str):
     </body>
     </html>
     """
-    
+
     with open(output_file, "w") as f:
         f.write(html)
     print(f"HTML report saved to {output_file}")
 
+
 def generate_dashboard(results: Dict[str, Any], output_file: str):
     """
     Generate a test execution dashboard.
-    
+
     Args:
         results: Test results
         output_file: Output filename
@@ -952,9 +994,13 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
                 <th>Execution Time</th>
             </tr>
     """
-    
+
     for category, stats in results["categories"].items():
-        pass_rate_class = "good" if stats["pass_rate"] > 90 else "warning" if stats["pass_rate"] > 75 else "bad"
+        pass_rate_class = (
+            "good"
+            if stats["pass_rate"] > 90
+            else "warning" if stats["pass_rate"] > 75 else "bad"
+        )
         html += f"""
             <tr>
                 <td>{category}</td>
@@ -966,7 +1012,7 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
                 <td>{stats['execution_time']:.2f}s</td>
             </tr>
         """
-    
+
     html += f"""
         </table>
         
@@ -976,22 +1022,23 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
     </body>
     </html>
     """
-    
+
     with open(output_file, "w") as f:
         f.write(html)
     print(f"Dashboard saved to {output_file}")
 
+
 def print_summary(results: Dict[str, Any], execution_time: float):
     """
     Print a summary of the results.
-    
+
     Args:
         results: Test results
         execution_time: Total execution time
     """
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("SUMMARY:")
-    print("="*80)
+    print("=" * 80)
     print(f"Total Tests: {results['summary']['total_tests']}")
     print(f"Passed Tests: {results['summary']['total_passed']}")
     print(f"Failed Tests: {results['summary']['total_failed']}")
@@ -999,9 +1046,11 @@ def print_summary(results: Dict[str, Any], execution_time: float):
     print(f"Pass Rate: {results['summary']['pass_rate']:.2f}%")
     print(f"Total Execution Time: {results['summary']['total_execution_time']:.2f}s")
     print(f"Total Wall Clock Time: {execution_time:.2f}s")
-    print(f"Speedup Factor: {results['summary']['total_execution_time'] / execution_time:.2f}x")
-    print("="*80)
-    
+    print(
+        f"Speedup Factor: {results['summary']['total_execution_time'] / execution_time:.2f}x"
+    )
+    print("=" * 80)
+
     print("\nCategory Summary:")
     for category, stats in results["categories"].items():
         print(f"  {category}:")
@@ -1011,35 +1060,38 @@ def print_summary(results: Dict[str, Any], execution_time: float):
         print(f"    Skipped: {len(stats['skipped'])}")
         print(f"    Pass Rate: {stats['pass_rate']:.2f}%")
         print(f"    Execution Time: {stats['execution_time']:.2f}s")
-    
-    print("\n" + "="*80)
+
+    print("\n" + "=" * 80)
+
 
 def main():
     """Main function."""
     start_time = time.time()
     args = parse_args()
-    
+
     # Set up the test environment
     setup_test_environment()
-    
+
     # Clear cache if requested
     if args.clear_cache:
         clear_cache()
-    
+
     # Determine test categories
-    categories = list(TEST_CATEGORIES.keys()) if args.category == "all" else [args.category]
-    
+    categories = (
+        list(TEST_CATEGORIES.keys()) if args.category == "all" else [args.category]
+    )
+
     # Collect tests
     print(f"Collecting tests for categories: {', '.join(categories)}")
     tests_by_category = collect_all_tests(categories, args.speed)
-    
+
     # Create test batches
     batches = create_test_batches(tests_by_category, args.batch_size)
-    
+
     if not batches:
         print("No tests found")
         return
-    
+
     # Process batches
     if args.run_tests:
         print(f"Processing {len(batches)} batches...")
@@ -1049,46 +1101,49 @@ def main():
             args.max_batches,
             args.parallel,
             args.workers,
-            args.verbose
+            args.verbose,
         )
     else:
         print("Skipping test execution (use --run-tests to run tests)")
         batch_results = []
         for category, batch in batches:
-            batch_results.append({
-                "category": category,
-                "tests": batch,
-                "passed": [],
-                "failed": [],
-                "skipped": [],
-                "execution_time": 0,
-                "returncode": 0,
-                "stdout": "",
-                "stderr": "",
-                "timeout": False,
-            })
-    
+            batch_results.append(
+                {
+                    "category": category,
+                    "tests": batch,
+                    "passed": [],
+                    "failed": [],
+                    "skipped": [],
+                    "execution_time": 0,
+                    "returncode": 0,
+                    "stdout": "",
+                    "stderr": "",
+                    "timeout": False,
+                }
+            )
+
     # Aggregate results
     results = aggregate_results(batch_results)
-    
+
     # Save results
     save_results(results, args.output)
-    
+
     # Generate HTML report if requested
     if args.html:
         html_output = args.output.replace(".json", ".html")
         generate_html_report(results, html_output)
-    
+
     # Generate dashboard if requested
     if args.dashboard:
         dashboard_output = args.output.replace(".json", "_dashboard.html")
         generate_dashboard(results, dashboard_output)
-    
+
     # Calculate total execution time
     execution_time = time.time() - start_time
-    
+
     # Print summary
     print_summary(results, execution_time)
+
 
 if __name__ == "__main__":
     main()

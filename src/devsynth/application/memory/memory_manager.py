@@ -612,8 +612,76 @@ class MemoryManager:
         )
 
         if "vector" not in self.adapters:
-            logger.warning("Vector adapter not available for semantic search")
-            return []
+            # Fallback: perform a lightweight keyword search across available stores
+            logger.info("Vector adapter not available; using keyword fallback search")
+            aggregated: List[MemoryVector] = []
+
+            # Helper to add a candidate if it matches the query string
+            def maybe_add(item: Any) -> None:
+                try:
+                    content_text = (
+                        "" if item is None else str(getattr(item, "content", item))
+                    )
+                except Exception:
+                    content_text = ""
+                if not query:
+                    match = True
+                else:
+                    match = query.lower() in content_text.lower()
+                if not match:
+                    return
+                # Build a MemoryVector with an empty embedding to avoid requiring embeddings
+                meta = getattr(item, "metadata", {}) or {}
+                mv = MemoryVector(
+                    id=getattr(item, "id", ""),
+                    content=getattr(item, "content", item),
+                    embedding=[],
+                    metadata=meta,
+                )
+                aggregated.append(mv)
+
+            # Prefer adapters that can return all items; fall back to search if available
+            for adapter in self.adapters.values():
+                if hasattr(adapter, "get_all"):
+                    try:
+                        for it in adapter.get_all():
+                            maybe_add(it)
+                    except Exception:
+                        continue
+                elif hasattr(adapter, "search"):
+                    try:
+                        # Broad search with empty filter to retrieve many items, then filter
+                        for it in adapter.search({}):
+                            maybe_add(it)
+                    except Exception:
+                        continue
+
+            # Apply post-filters (memory_type and metadata_filter) and limit
+            filtered: List[MemoryVector] = []
+            for vector in aggregated:
+                if memory_type is not None:
+                    expected = (
+                        memory_type.value
+                        if hasattr(memory_type, "value")
+                        else str(memory_type)
+                    )
+                    actual = vector.metadata.get("memory_type")
+                    if hasattr(actual, "value"):
+                        actual = actual.value
+                    if actual != expected:
+                        continue
+                if metadata_filter:
+                    ok = True
+                    for k, v in (metadata_filter or {}).items():
+                        if vector.metadata.get(k) != v:
+                            ok = False
+                            break
+                    if not ok:
+                        continue
+                filtered.append(vector)
+                if len(filtered) >= limit:
+                    break
+            return filtered
 
         vector_adapter: VectorStore = self.adapters["vector"]
 

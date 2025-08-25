@@ -1,16 +1,17 @@
-
 """
 Code agent for the DevSynth system.
 """
 
 from typing import Any, Dict, List
-from .base import BaseAgent
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from .base import BaseAgent
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
+
 
 class CodeAgent(BaseAgent):
     """Agent responsible for implementing code based on tests."""
@@ -50,8 +51,8 @@ class CodeAgent(BaseAgent):
                 metadata={
                     "agent": self.name,
                     "role": self.current_role,
-                    "type": "code"
-                }
+                    "type": "code",
+                },
             )
         except Exception as e:
             logger.error(f"Error generating text: {str(e)}")
@@ -60,7 +61,7 @@ class CodeAgent(BaseAgent):
             "code": code,
             "wsde": code_wsde,
             "agent": self.name,
-            "role": self.current_role
+            "role": self.current_role,
         }
 
     def get_capabilities(self) -> List[str]:
@@ -72,6 +73,6 @@ class CodeAgent(BaseAgent):
                 "refactor_code",
                 "optimize_code",
                 "debug_code",
-                "implement_apis"
+                "implement_apis",
             ]
         return capabilities

@@ -1,16 +1,17 @@
-
 """
 Diagram agent for the DevSynth system.
 """
 
 from typing import Any, Dict, List
-from .base import BaseAgent
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from .base import BaseAgent
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
+
 
 class DiagramAgent(BaseAgent):
     """Agent responsible for generating visual representations."""
@@ -57,8 +58,8 @@ class DiagramAgent(BaseAgent):
                 metadata={
                     "agent": self.name,
                     "role": self.current_role,
-                    "type": "diagrams"
-                }
+                    "type": "diagrams",
+                },
             )
         except Exception as e:
             logger.error(f"Error creating WSDE: {str(e)}")
@@ -67,7 +68,7 @@ class DiagramAgent(BaseAgent):
             "diagrams": diagrams,
             "wsde": diagram_wsde,
             "agent": self.name,
-            "role": self.current_role
+            "role": self.current_role,
         }
 
     def get_capabilities(self) -> List[str]:
@@ -79,6 +80,6 @@ class DiagramAgent(BaseAgent):
                 "create_component_diagrams",
                 "create_sequence_diagrams",
                 "create_er_diagrams",
-                "create_state_diagrams"
+                "create_state_diagrams",
             ]
         return capabilities

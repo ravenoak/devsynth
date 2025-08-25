@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Platform guard: this script targets Linux/macOS. On Windows, use WSL2 (Ubuntu) and run inside the WSL shell.
+os_name="$(uname -s 2>/dev/null || echo unknown)"
+case "$os_name" in
+  MINGW*|MSYS*|CYGWIN*|Windows*)
+    echo "[error] Windows shell detected ($os_name). This script supports Linux and macOS shells only." >&2
+    echo "[hint] Please use Windows Subsystem for Linux (WSL2) with Ubuntu and run this script inside the WSL shell." >&2
+    echo "[docs] See docs/getting_started/installation.md#windows--wsl2 for instructions." >&2
+    exit 1 ;;
+  Linux|Darwin)
+    : ;;
+  *)
+    echo "[warning] Unrecognized OS: $os_name. Proceeding, but this script is designed for Linux/macOS." >&2 ;;
+esac
+
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/devsynth"
 WHEEL_DIR="$CACHE_DIR/wheels"
 mkdir -p "$WHEEL_DIR"
@@ -81,7 +95,29 @@ if [[ -z "$task_version" ]]; then
 fi
 echo "$task_version"
 
-# Ensure Poetry manages a dedicated virtual environment
+# Ensure Poetry is installed and manages a dedicated virtual environment
+if ! command -v poetry >/dev/null 2>&1; then
+  echo "[info] poetry not found; installing Poetry via official installer" >&2
+  if command -v curl >/dev/null 2>&1; then
+    curl -sSL https://install.python-poetry.org | python - >/tmp/poetry_install.log 2>&1 || {
+      echo "[error] Poetry installation failed" >&2; exit 1; }
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO- https://install.python-poetry.org | python - >/tmp/poetry_install.log 2>&1 || {
+      echo "[error] Poetry installation failed" >&2; exit 1; }
+  else
+    echo "[error] neither curl nor wget is available to install Poetry" >&2
+    exit 1
+  fi
+  # Add Poetry to PATH for current session and GitHub Actions if available
+  export PATH="$HOME/.local/bin:$PATH"
+  echo "$HOME/.local/bin" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
+fi
+
+if ! poetry --version >/dev/null 2>&1; then
+  echo "[error] poetry command not working after installation" >&2
+  exit 1
+fi
+
 poetry config virtualenvs.create true
 poetry env remove --all >/dev/null 2>&1 || true
 if ! poetry env use 3.12 >/dev/null 2>&1; then

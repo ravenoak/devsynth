@@ -23,7 +23,9 @@ REFERENCE_RE = re.compile(r"- (Specification|BDD Feature): (?P<path>.+)")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fix", action="store_true", help="update issues with missing references")
+    parser.add_argument(
+        "--fix", action="store_true", help="update issues with missing references"
+    )
     return parser.parse_args()
 
 
@@ -35,7 +37,9 @@ def save_issue(path: pathlib.Path, lines: List[str]) -> None:
     path.write_text("".join(lines))
 
 
-def update_issue(path: pathlib.Path, lines: List[str], missing_paths: List[str]) -> List[str]:
+def update_issue(
+    path: pathlib.Path, lines: List[str], missing_paths: List[str]
+) -> List[str]:
     """Apply updates for missing reference paths."""
     priority_re = re.compile(r"^Priority: ")
     deps_re = re.compile(r"^Dependencies: ")
@@ -50,7 +54,11 @@ def update_issue(path: pathlib.Path, lines: List[str], missing_paths: List[str])
     # adjust dependencies
     for i, line in enumerate(lines):
         if deps_re.match(line):
-            existing = [d.strip() for d in line.split(":", 1)[1].split(",") if d.strip() and d.strip().lower() != "none"]
+            existing = [
+                d.strip()
+                for d in line.split(":", 1)[1].split(",")
+                if d.strip() and d.strip().lower() != "none"
+            ]
             for mp in missing_paths:
                 if mp not in existing:
                     existing.append(mp)
@@ -76,9 +84,11 @@ def update_issue(path: pathlib.Path, lines: List[str], missing_paths: List[str])
                 pass
             j += 1
         # after removing invalid lines, ensure at least '- None'
-        has_ref = any(REFERENCE_RE.match(lines[k]) for k in range(ref_header_idx + 1, j))
+        has_ref = any(
+            REFERENCE_RE.match(lines[k]) for k in range(ref_header_idx + 1, j)
+        )
         if not has_ref:
-            lines = lines[:ref_header_idx + 1] + ["- None\n"] + lines[j:]
+            lines = lines[: ref_header_idx + 1] + ["- None\n"] + lines[j:]
     return lines
 
 
@@ -108,7 +118,9 @@ def process_issue(path: pathlib.Path, fix: bool) -> bool:
 
 def main() -> int:
     args = parse_args()
-    issues = [p for p in ISSUES_DIR.glob("*.md") if p.name not in {"README.md", "TEMPLATE.md"}]
+    issues = [
+        p for p in ISSUES_DIR.glob("*.md") if p.name not in {"README.md", "TEMPLATE.md"}
+    ]
     problems = []
     for issue in issues:
         missing_only, updated = process_issue(issue, args.fix)

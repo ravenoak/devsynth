@@ -6,16 +6,18 @@ including file indexing, language detection, architecture inference,
 and consistency checking between requirements, specifications, and code.
 """
 
+import json
 import os
 import re
-from typing import Dict, Set, List, Optional, Any, Tuple
 from pathlib import Path
-import json
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
+
 
 class ProjectStateAnalyzer:
     """
@@ -36,7 +38,9 @@ class ProjectStateAnalyzer:
         self.languages = {}
         self.detected_languages = set()  # Will store the set of detected languages
         self.architecture = {}
-        self.architecture_model = {}  # Will be set to self.architecture for backward compatibility
+        self.architecture_model = (
+            {}
+        )  # Will be set to self.architecture for backward compatibility
         self.requirements_files = []
         self.specification_files = []
         self.test_files = []
@@ -53,22 +57,47 @@ class ProjectStateAnalyzer:
         """
         logger.info(f"Starting project analysis for {self.project_path}")
 
-        self._index_files()
-        self._detect_languages()
-        self._infer_architecture()
-        req_spec_alignment = self._analyze_requirements_spec_alignment()
-        spec_code_alignment = self._analyze_spec_code_alignment()
+        try:
+            self._index_files()
+            self._detect_languages()
+            self._infer_architecture()
+            req_spec_alignment = self._analyze_requirements_spec_alignment()
+            spec_code_alignment = self._analyze_spec_code_alignment()
 
-        health_report = self._generate_health_report(req_spec_alignment, spec_code_alignment)
+            health_report = self._generate_health_report(
+                req_spec_alignment, spec_code_alignment
+            )
 
-        # Return the expected structure for the tests
-        return {
-            'files': self.files,
-            'languages': self.languages,
-            'architecture': self.architecture,
-            'components': self.architecture.get('components', []),
-            'health_report': health_report
-        }
+            # Return the expected structure for the tests
+            return {
+                "files": self.files,
+                "languages": self.languages,
+                "architecture": self.architecture,
+                "components": self.architecture.get("components", []),
+                "health_report": health_report,
+            }
+        except Exception as e:
+            logger.error(f"ProjectStateAnalyzer.analyze failed: {e}")
+            return {
+                "files": {},
+                "languages": {},
+                "architecture": {"components": []},
+                "components": [],
+                "health_report": {
+                    "status": "unknown",
+                    "requirements_spec_alignment": {
+                        "coverage": 0.0,
+                        "missing_requirements": [],
+                        "missing_specifications": [],
+                    },
+                    "spec_code_alignment": {
+                        "coverage": 0.0,
+                        "missing_implementations": [],
+                    },
+                    "issues": [],
+                    "recommendations": [],
+                },
+            }
 
     def _index_files(self) -> None:
         """
@@ -77,10 +106,28 @@ class ProjectStateAnalyzer:
         logger.info("Indexing project files")
 
         # File extensions to ignore
-        ignore_extensions = {'.pyc', '.pyo', '.pyd', '.git', '.idea', '.vscode', '__pycache__', '.DS_Store'}
+        ignore_extensions = {
+            ".pyc",
+            ".pyo",
+            ".pyd",
+            ".git",
+            ".idea",
+            ".vscode",
+            "__pycache__",
+            ".DS_Store",
+        }
 
         # Directories to ignore
-        ignore_dirs = {'.git', '.idea', '.vscode', '__pycache__', 'venv', 'env', '.env', 'node_modules'}
+        ignore_dirs = {
+            ".git",
+            ".idea",
+            ".vscode",
+            "__pycache__",
+            "venv",
+            "env",
+            ".env",
+            "node_modules",
+        }
 
         for root, dirs, files in os.walk(self.project_path):
             # Skip ignored directories
@@ -91,7 +138,9 @@ class ProjectStateAnalyzer:
                 rel_path = os.path.relpath(file_path, self.project_path)
 
                 # Skip ignored files
-                if any(file.endswith(ext) for ext in ignore_extensions) or any(part in ignore_dirs for part in rel_path.split(os.sep)):
+                if any(file.endswith(ext) for ext in ignore_extensions) or any(
+                    part in ignore_dirs for part in rel_path.split(os.sep)
+                ):
                     continue
 
                 # Get file extension
@@ -102,10 +151,10 @@ class ProjectStateAnalyzer:
 
                 # Add to file index
                 self.files[rel_path] = {
-                    'path': file_path,
-                    'extension': ext,
-                    'size': os.path.getsize(file_path),
-                    'last_modified': os.path.getmtime(file_path)
+                    "path": file_path,
+                    "extension": ext,
+                    "size": os.path.getsize(file_path),
+                    "last_modified": os.path.getmtime(file_path),
                 }
 
         # Set file_index to files for backward compatibility
@@ -123,27 +172,41 @@ class ProjectStateAnalyzer:
             ext: File extension
         """
         # Check for requirements files
-        if 'requirement' in rel_path.lower() or rel_path.endswith('requirements.md'):
+        if "requirement" in rel_path.lower() or rel_path.endswith("requirements.md"):
             self.requirements_files.append(rel_path)
 
         # Check for specification files
-        elif 'spec' in rel_path.lower() or rel_path.endswith('specs.md'):
+        elif "spec" in rel_path.lower() or rel_path.endswith("specs.md"):
             self.specification_files.append(rel_path)
 
         # Check for test files
-        elif 'test' in rel_path.lower() or rel_path.startswith('tests/'):
+        elif "test" in rel_path.lower() or rel_path.startswith("tests/"):
             self.test_files.append(rel_path)
 
         # Check for documentation files
-        elif ext in ['.md', '.rst', '.txt'] or 'doc' in rel_path.lower():
+        elif ext in [".md", ".rst", ".txt"] or "doc" in rel_path.lower():
             self.documentation_files.append(rel_path)
 
         # Check for configuration files
-        elif ext in ['.json', '.yaml', '.yml', '.toml', '.ini', '.cfg'] or 'config' in rel_path.lower():
+        elif (
+            ext in [".json", ".yaml", ".yml", ".toml", ".ini", ".cfg"]
+            or "config" in rel_path.lower()
+        ):
             self.config_files.append(rel_path)
 
         # Check for code files
-        elif ext in ['.py', '.js', '.ts', '.java', '.c', '.cpp', '.go', '.rs', '.rb', '.php']:
+        elif ext in [
+            ".py",
+            ".js",
+            ".ts",
+            ".java",
+            ".c",
+            ".cpp",
+            ".go",
+            ".rs",
+            ".rb",
+            ".php",
+        ]:
             self.code_files.append(rel_path)
 
     def _detect_languages(self) -> None:
@@ -154,20 +217,20 @@ class ProjectStateAnalyzer:
 
         # Map of file extensions to languages
         extension_to_language = {
-            '.py': 'Python',
-            '.js': 'JavaScript',
-            '.ts': 'TypeScript',
-            '.java': 'Java',
-            '.c': 'C',
-            '.cpp': 'C++',
-            '.go': 'Go',
-            '.rs': 'Rust',
-            '.rb': 'Ruby',
-            '.php': 'PHP',
-            '.html': 'HTML',
-            '.css': 'CSS',
-            '.scss': 'SCSS',
-            '.sql': 'SQL'
+            ".py": "Python",
+            ".js": "JavaScript",
+            ".ts": "TypeScript",
+            ".java": "Java",
+            ".c": "C",
+            ".cpp": "C++",
+            ".go": "Go",
+            ".rs": "Rust",
+            ".rb": "Ruby",
+            ".php": "PHP",
+            ".html": "HTML",
+            ".css": "CSS",
+            ".scss": "SCSS",
+            ".sql": "SQL",
         }
 
         # Count files by language
@@ -175,7 +238,7 @@ class ProjectStateAnalyzer:
         self.detected_languages = set()
 
         for file_info in self.files.values():
-            ext = file_info['extension']
+            ext = file_info["extension"]
             if ext in extension_to_language:
                 language = extension_to_language[ext]
                 self.detected_languages.add(language)
@@ -183,7 +246,10 @@ class ProjectStateAnalyzer:
 
         # Store language information in the expected format
         self.languages = {
-            lang: {'count': count, 'percentage': count / len(self.files) if len(self.files) > 0 else 0}
+            lang: {
+                "count": count,
+                "percentage": count / len(self.files) if len(self.files) > 0 else 0,
+            }
             for lang, count in language_counts.items()
         }
 
@@ -197,31 +263,31 @@ class ProjectStateAnalyzer:
 
         # Check for common architecture patterns
         architecture_patterns = {
-            'MVC': self._check_mvc_pattern(),
-            'Hexagonal': self._check_hexagonal_pattern(),
-            'Microservices': self._check_microservices_pattern(),
-            'Layered': self._check_layered_pattern(),
-            'Event-Driven': self._check_event_driven_pattern()
+            "MVC": self._check_mvc_pattern(),
+            "Hexagonal": self._check_hexagonal_pattern(),
+            "Microservices": self._check_microservices_pattern(),
+            "Layered": self._check_layered_pattern(),
+            "Event-Driven": self._check_event_driven_pattern(),
         }
 
         # Select the architecture with the highest confidence
-        architecture, confidence = max(architecture_patterns.items(), key=lambda x: x[1])
+        architecture, confidence = max(
+            architecture_patterns.items(), key=lambda x: x[1]
+        )
 
         if confidence > 0.5:
             arch_data = {
-                'type': architecture,
-                'confidence': confidence,
-                'components': self._identify_components(architecture)
+                "type": architecture,
+                "confidence": confidence,
+                "components": self._identify_components(architecture),
             }
             self.architecture = arch_data
             self.architecture_model = arch_data  # Set both attributes to the same value
-            logger.info(f"Inferred architecture: {architecture} (confidence: {confidence:.2f})")
+            logger.info(
+                f"Inferred architecture: {architecture} (confidence: {confidence:.2f})"
+            )
         else:
-            arch_data = {
-                'type': 'Unknown',
-                'confidence': 0.0,
-                'components': []
-            }
+            arch_data = {"type": "Unknown", "confidence": 0.0, "components": []}
             self.architecture = arch_data
             self.architecture_model = arch_data  # Set both attributes to the same value
             logger.info("Could not confidently infer architecture")
@@ -234,13 +300,17 @@ class ProjectStateAnalyzer:
             Confidence score between 0 and 1
         """
         # Look for model, view, controller directories or files
-        has_models = any('model' in path.lower() for path in self.files)
-        has_views = any('view' in path.lower() for path in self.files)
-        has_controllers = any('controller' in path.lower() for path in self.files)
+        has_models = any("model" in path.lower() for path in self.files)
+        has_views = any("view" in path.lower() for path in self.files)
+        has_controllers = any("controller" in path.lower() for path in self.files)
 
         if has_models and has_views and has_controllers:
             return 0.9
-        elif (has_models and has_views) or (has_models and has_controllers) or (has_views and has_controllers):
+        elif (
+            (has_models and has_views)
+            or (has_models and has_controllers)
+            or (has_views and has_controllers)
+        ):
             return 0.6
         elif has_models or has_views or has_controllers:
             return 0.3
@@ -255,10 +325,10 @@ class ProjectStateAnalyzer:
             Confidence score between 0 and 1
         """
         # Look for domain, application, adapters, ports directories
-        has_domain = any('domain' in path.lower() for path in self.files)
-        has_application = any('application' in path.lower() for path in self.files)
-        has_adapters = any('adapter' in path.lower() for path in self.files)
-        has_ports = any('port' in path.lower() for path in self.files)
+        has_domain = any("domain" in path.lower() for path in self.files)
+        has_application = any("application" in path.lower() for path in self.files)
+        has_adapters = any("adapter" in path.lower() for path in self.files)
+        has_ports = any("port" in path.lower() for path in self.files)
 
         if has_domain and has_application and has_adapters and has_ports:
             return 0.9
@@ -277,17 +347,27 @@ class ProjectStateAnalyzer:
             Confidence score between 0 and 1
         """
         # Look for multiple service directories, each with its own structure
-        service_dirs = [d for d in os.listdir(self.project_path) 
-                       if os.path.isdir(os.path.join(self.project_path, d)) 
-                       and ('service' in d.lower() or 'api' in d.lower())]
+        service_dirs = [
+            d
+            for d in os.listdir(self.project_path)
+            if os.path.isdir(os.path.join(self.project_path, d))
+            and ("service" in d.lower() or "api" in d.lower())
+        ]
 
         # Check for Docker files, docker-compose, kubernetes configs
-        has_docker = any('dockerfile' in path.lower() or 'docker-compose' in path.lower() for path in self.files)
-        has_kubernetes = any('kubernetes' in path.lower() or 'k8s' in path.lower() for path in self.files)
+        has_docker = any(
+            "dockerfile" in path.lower() or "docker-compose" in path.lower()
+            for path in self.files
+        )
+        has_kubernetes = any(
+            "kubernetes" in path.lower() or "k8s" in path.lower() for path in self.files
+        )
 
         if len(service_dirs) >= 3 and (has_docker or has_kubernetes):
             return 0.9
-        elif len(service_dirs) >= 2 or (len(service_dirs) >= 1 and (has_docker or has_kubernetes)):
+        elif len(service_dirs) >= 2 or (
+            len(service_dirs) >= 1 and (has_docker or has_kubernetes)
+        ):
             return 0.6
         elif len(service_dirs) >= 1 or has_docker or has_kubernetes:
             return 0.3
@@ -302,8 +382,21 @@ class ProjectStateAnalyzer:
             Confidence score between 0 and 1
         """
         # Look for common layer names
-        layers = ['presentation', 'ui', 'service', 'business', 'data', 'persistence', 'repository', 'infrastructure']
-        found_layers = [layer for layer in layers if any(layer in path.lower() for path in self.files)]
+        layers = [
+            "presentation",
+            "ui",
+            "service",
+            "business",
+            "data",
+            "persistence",
+            "repository",
+            "infrastructure",
+        ]
+        found_layers = [
+            layer
+            for layer in layers
+            if any(layer in path.lower() for path in self.files)
+        ]
 
         if len(found_layers) >= 3:
             return 0.8
@@ -322,12 +415,35 @@ class ProjectStateAnalyzer:
             Confidence score between 0 and 1
         """
         # Look for event-related terms
-        event_terms = ['event', 'message', 'queue', 'topic', 'subscriber', 'publisher', 'consumer', 'producer']
-        found_terms = [term for term in event_terms if any(term in path.lower() for path in self.files)]
+        event_terms = [
+            "event",
+            "message",
+            "queue",
+            "topic",
+            "subscriber",
+            "publisher",
+            "consumer",
+            "producer",
+        ]
+        found_terms = [
+            term
+            for term in event_terms
+            if any(term in path.lower() for path in self.files)
+        ]
 
         # Check for event-driven frameworks
-        event_frameworks = ['kafka', 'rabbitmq', 'activemq', 'nats', 'eventbridge', 'pubsub']
-        has_frameworks = any(framework in ' '.join(self.files.keys()).lower() for framework in event_frameworks)
+        event_frameworks = [
+            "kafka",
+            "rabbitmq",
+            "activemq",
+            "nats",
+            "eventbridge",
+            "pubsub",
+        ]
+        has_frameworks = any(
+            framework in " ".join(self.files.keys()).lower()
+            for framework in event_frameworks
+        )
 
         if len(found_terms) >= 3 and has_frameworks:
             return 0.9
@@ -350,61 +466,73 @@ class ProjectStateAnalyzer:
         """
         components = []
 
-        if architecture == 'Hexagonal':
+        if architecture == "Hexagonal":
             # Identify domain entities
-            domain_files = [f for f in self.code_files if 'domain' in f.lower()]
+            domain_files = [f for f in self.code_files if "domain" in f.lower()]
             for file in domain_files:
-                components.append({
-                    'type': 'Domain Entity',
-                    'path': file,
-                    'name': os.path.basename(file).split('.')[0]
-                })
+                components.append(
+                    {
+                        "type": "Domain Entity",
+                        "path": file,
+                        "name": os.path.basename(file).split(".")[0],
+                    }
+                )
 
             # Identify ports
-            port_files = [f for f in self.code_files if 'port' in f.lower()]
+            port_files = [f for f in self.code_files if "port" in f.lower()]
             for file in port_files:
-                components.append({
-                    'type': 'Port',
-                    'path': file,
-                    'name': os.path.basename(file).split('.')[0]
-                })
+                components.append(
+                    {
+                        "type": "Port",
+                        "path": file,
+                        "name": os.path.basename(file).split(".")[0],
+                    }
+                )
 
             # Identify adapters
-            adapter_files = [f for f in self.code_files if 'adapter' in f.lower()]
+            adapter_files = [f for f in self.code_files if "adapter" in f.lower()]
             for file in adapter_files:
-                components.append({
-                    'type': 'Adapter',
-                    'path': file,
-                    'name': os.path.basename(file).split('.')[0]
-                })
+                components.append(
+                    {
+                        "type": "Adapter",
+                        "path": file,
+                        "name": os.path.basename(file).split(".")[0],
+                    }
+                )
 
-        elif architecture == 'MVC':
+        elif architecture == "MVC":
             # Identify models
-            model_files = [f for f in self.code_files if 'model' in f.lower()]
+            model_files = [f for f in self.code_files if "model" in f.lower()]
             for file in model_files:
-                components.append({
-                    'type': 'Model',
-                    'path': file,
-                    'name': os.path.basename(file).split('.')[0]
-                })
+                components.append(
+                    {
+                        "type": "Model",
+                        "path": file,
+                        "name": os.path.basename(file).split(".")[0],
+                    }
+                )
 
             # Identify views
-            view_files = [f for f in self.code_files if 'view' in f.lower()]
+            view_files = [f for f in self.code_files if "view" in f.lower()]
             for file in view_files:
-                components.append({
-                    'type': 'View',
-                    'path': file,
-                    'name': os.path.basename(file).split('.')[0]
-                })
+                components.append(
+                    {
+                        "type": "View",
+                        "path": file,
+                        "name": os.path.basename(file).split(".")[0],
+                    }
+                )
 
             # Identify controllers
-            controller_files = [f for f in self.code_files if 'controller' in f.lower()]
+            controller_files = [f for f in self.code_files if "controller" in f.lower()]
             for file in controller_files:
-                components.append({
-                    'type': 'Controller',
-                    'path': file,
-                    'name': os.path.basename(file).split('.')[0]
-                })
+                components.append(
+                    {
+                        "type": "Controller",
+                        "path": file,
+                        "name": os.path.basename(file).split(".")[0],
+                    }
+                )
 
         # Add more architecture-specific component identification as needed
 
@@ -420,12 +548,12 @@ class ProjectStateAnalyzer:
         logger.info("Analyzing requirements-specification alignment")
 
         alignment_results = {
-            'total_requirements': 0,
-            'total_specifications': 0,
-            'matched_requirements': 0,
-            'unmatched_requirements': [],
-            'unmatched_specifications': [],
-            'alignment_score': 0.0
+            "total_requirements": 0,
+            "total_specifications": 0,
+            "matched_requirements": 0,
+            "unmatched_requirements": [],
+            "unmatched_specifications": [],
+            "alignment_score": 0.0,
         }
 
         # Skip if no requirements or specifications
@@ -435,11 +563,11 @@ class ProjectStateAnalyzer:
 
         # Extract requirements
         requirements = self._extract_requirements()
-        alignment_results['total_requirements'] = len(requirements)
+        alignment_results["total_requirements"] = len(requirements)
 
         # Extract specifications
         specifications = self._extract_specifications()
-        alignment_results['total_specifications'] = len(specifications)
+        alignment_results["total_specifications"] = len(specifications)
 
         # Match requirements to specifications
         matched_reqs = []
@@ -453,9 +581,9 @@ class ProjectStateAnalyzer:
             if matched:
                 matched_reqs.append(req)
             else:
-                alignment_results['unmatched_requirements'].append(req)
+                alignment_results["unmatched_requirements"].append(req)
 
-        alignment_results['matched_requirements'] = len(matched_reqs)
+        alignment_results["matched_requirements"] = len(matched_reqs)
 
         # Find specifications without matching requirements
         for spec in specifications:
@@ -466,13 +594,18 @@ class ProjectStateAnalyzer:
                     break
 
             if not matched:
-                alignment_results['unmatched_specifications'].append(spec)
+                alignment_results["unmatched_specifications"].append(spec)
 
         # Calculate alignment score
-        if alignment_results['total_requirements'] > 0:
-            alignment_results['alignment_score'] = alignment_results['matched_requirements'] / alignment_results['total_requirements']
+        if alignment_results["total_requirements"] > 0:
+            alignment_results["alignment_score"] = (
+                alignment_results["matched_requirements"]
+                / alignment_results["total_requirements"]
+            )
 
-        logger.info(f"Requirements-specification alignment score: {alignment_results['alignment_score']:.2f}")
+        logger.info(
+            f"Requirements-specification alignment score: {alignment_results['alignment_score']:.2f}"
+        )
         return alignment_results
 
     def _extract_requirements(self) -> List[Dict[str, Any]]:
@@ -486,35 +619,37 @@ class ProjectStateAnalyzer:
 
         for req_file in self.requirements_files:
             try:
-                with open(os.path.join(self.project_path, req_file), 'r') as f:
+                with open(os.path.join(self.project_path, req_file), "r") as f:
                     content = f.read()
 
                 # Simple extraction of requirements (can be enhanced with NLP)
                 # Look for bullet points, numbered lists, or sections
-                lines = content.split('\n')
+                lines = content.split("\n")
                 current_section = "General"
 
                 for line in lines:
                     line = line.strip()
 
                     # Check for section headers
-                    if line.startswith('# '):
+                    if line.startswith("# "):
                         current_section = line[2:].strip()
                         continue
-                    elif line.startswith('## '):
+                    elif line.startswith("## "):
                         current_section = line[3:].strip()
                         continue
 
                     # Check for requirement patterns
-                    req_pattern = re.match(r'^[-*]|\d+\.\s+(.+)$', line)
+                    req_pattern = re.match(r"^[-*]|\d+\.\s+(.+)$", line)
                     if req_pattern:
                         req_text = req_pattern.group(1).strip()
                         if req_text:
-                            requirements.append({
-                                'text': req_text,
-                                'section': current_section,
-                                'source_file': req_file
-                            })
+                            requirements.append(
+                                {
+                                    "text": req_text,
+                                    "section": current_section,
+                                    "source_file": req_file,
+                                }
+                            )
             except Exception as e:
                 logger.error(f"Error extracting requirements from {req_file}: {str(e)}")
 
@@ -531,41 +666,47 @@ class ProjectStateAnalyzer:
 
         for spec_file in self.specification_files:
             try:
-                with open(os.path.join(self.project_path, spec_file), 'r') as f:
+                with open(os.path.join(self.project_path, spec_file), "r") as f:
                     content = f.read()
 
                 # Simple extraction of specifications (can be enhanced with NLP)
                 # Look for bullet points, numbered lists, or sections
-                lines = content.split('\n')
+                lines = content.split("\n")
                 current_section = "General"
 
                 for line in lines:
                     line = line.strip()
 
                     # Check for section headers
-                    if line.startswith('# '):
+                    if line.startswith("# "):
                         current_section = line[2:].strip()
                         continue
-                    elif line.startswith('## '):
+                    elif line.startswith("## "):
                         current_section = line[3:].strip()
                         continue
 
                     # Check for specification patterns
-                    spec_pattern = re.match(r'^[-*]|\d+\.\s+(.+)$', line)
+                    spec_pattern = re.match(r"^[-*]|\d+\.\s+(.+)$", line)
                     if spec_pattern:
                         spec_text = spec_pattern.group(1).strip()
                         if spec_text:
-                            specifications.append({
-                                'text': spec_text,
-                                'section': current_section,
-                                'source_file': spec_file
-                            })
+                            specifications.append(
+                                {
+                                    "text": spec_text,
+                                    "section": current_section,
+                                    "source_file": spec_file,
+                                }
+                            )
             except Exception as e:
-                logger.error(f"Error extracting specifications from {spec_file}: {str(e)}")
+                logger.error(
+                    f"Error extracting specifications from {spec_file}: {str(e)}"
+                )
 
         return specifications
 
-    def _is_requirement_matched_by_spec(self, requirement: Dict[str, Any], specification: Dict[str, Any]) -> bool:
+    def _is_requirement_matched_by_spec(
+        self, requirement: Dict[str, Any], specification: Dict[str, Any]
+    ) -> bool:
         """
         Check if a requirement is matched by a specification.
 
@@ -577,12 +718,12 @@ class ProjectStateAnalyzer:
             True if the requirement is matched by the specification
         """
         # Simple matching based on text similarity (can be enhanced with NLP)
-        req_text = requirement['text'].lower()
-        spec_text = specification['text'].lower()
+        req_text = requirement["text"].lower()
+        spec_text = specification["text"].lower()
 
         # Check for direct keyword matches
-        req_keywords = set(re.findall(r'\b\w+\b', req_text))
-        spec_keywords = set(re.findall(r'\b\w+\b', spec_text))
+        req_keywords = set(re.findall(r"\b\w+\b", req_text))
+        spec_keywords = set(re.findall(r"\b\w+\b", spec_text))
 
         # Calculate keyword overlap
         if len(req_keywords) > 0:
@@ -601,10 +742,10 @@ class ProjectStateAnalyzer:
         logger.info("Analyzing specification-code alignment")
 
         alignment_results = {
-            'total_specifications': 0,
-            'implemented_specifications': 0,
-            'unimplemented_specifications': [],
-            'implementation_score': 0.0
+            "total_specifications": 0,
+            "implemented_specifications": 0,
+            "unimplemented_specifications": [],
+            "implementation_score": 0.0,
         }
 
         # Skip if no specifications
@@ -614,7 +755,7 @@ class ProjectStateAnalyzer:
 
         # Extract specifications
         specifications = self._extract_specifications()
-        alignment_results['total_specifications'] = len(specifications)
+        alignment_results["total_specifications"] = len(specifications)
 
         # For each specification, check if it's implemented in code
         implemented_specs = []
@@ -622,15 +763,20 @@ class ProjectStateAnalyzer:
             if self._is_specification_implemented(spec):
                 implemented_specs.append(spec)
             else:
-                alignment_results['unimplemented_specifications'].append(spec)
+                alignment_results["unimplemented_specifications"].append(spec)
 
-        alignment_results['implemented_specifications'] = len(implemented_specs)
+        alignment_results["implemented_specifications"] = len(implemented_specs)
 
         # Calculate implementation score
-        if alignment_results['total_specifications'] > 0:
-            alignment_results['implementation_score'] = alignment_results['implemented_specifications'] / alignment_results['total_specifications']
+        if alignment_results["total_specifications"] > 0:
+            alignment_results["implementation_score"] = (
+                alignment_results["implemented_specifications"]
+                / alignment_results["total_specifications"]
+            )
 
-        logger.info(f"Specification-code implementation score: {alignment_results['implementation_score']:.2f}")
+        logger.info(
+            f"Specification-code implementation score: {alignment_results['implementation_score']:.2f}"
+        )
         return alignment_results
 
     def _is_specification_implemented(self, specification: Dict[str, Any]) -> bool:
@@ -644,16 +790,18 @@ class ProjectStateAnalyzer:
             True if the specification is implemented
         """
         # Simple implementation check based on keyword matching (can be enhanced with AST parsing)
-        spec_text = specification['text'].lower()
+        spec_text = specification["text"].lower()
 
         # Extract key terms from the specification
-        key_terms = set(re.findall(r'\b\w+\b', spec_text))
-        key_terms = {term for term in key_terms if len(term) > 3}  # Filter out short words
+        key_terms = set(re.findall(r"\b\w+\b", spec_text))
+        key_terms = {
+            term for term in key_terms if len(term) > 3
+        }  # Filter out short words
 
         # Check if key terms appear in code files
         for code_file in self.code_files:
             try:
-                with open(os.path.join(self.project_path, code_file), 'r') as f:
+                with open(os.path.join(self.project_path, code_file), "r") as f:
                     content = f.read().lower()
 
                 # Count how many key terms appear in the code
@@ -667,7 +815,9 @@ class ProjectStateAnalyzer:
 
         return False
 
-    def _generate_health_report(self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_health_report(
+        self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Generate a project health report.
 
@@ -684,12 +834,12 @@ class ProjectStateAnalyzer:
         health_score = 0.0
         factors = 0
 
-        if req_spec_alignment['total_requirements'] > 0:
-            health_score += req_spec_alignment['alignment_score']
+        if req_spec_alignment["total_requirements"] > 0:
+            health_score += req_spec_alignment["alignment_score"]
             factors += 1
 
-        if spec_code_alignment['total_specifications'] > 0:
-            health_score += spec_code_alignment['implementation_score']
+        if spec_code_alignment["total_specifications"] > 0:
+            health_score += spec_code_alignment["implementation_score"]
             factors += 1
 
         if factors > 0:
@@ -697,25 +847,29 @@ class ProjectStateAnalyzer:
 
         # Generate report
         report = {
-            'project_path': self.project_path,
-            'file_count': len(self.files),
-            'languages': list(self.detected_languages),
-            'architecture': self.architecture,
-            'requirements_count': len(self.requirements_files),
-            'specifications_count': len(self.specification_files),
-            'test_count': len(self.test_files),
-            'code_count': len(self.code_files),
-            'requirements_spec_alignment': req_spec_alignment,
-            'spec_code_alignment': spec_code_alignment,
-            'health_score': health_score,
-            'issues': self._identify_issues(req_spec_alignment, spec_code_alignment),
-            'recommendations': self._generate_recommendations(req_spec_alignment, spec_code_alignment)
+            "project_path": self.project_path,
+            "file_count": len(self.files),
+            "languages": list(self.detected_languages),
+            "architecture": self.architecture,
+            "requirements_count": len(self.requirements_files),
+            "specifications_count": len(self.specification_files),
+            "test_count": len(self.test_files),
+            "code_count": len(self.code_files),
+            "requirements_spec_alignment": req_spec_alignment,
+            "spec_code_alignment": spec_code_alignment,
+            "health_score": health_score,
+            "issues": self._identify_issues(req_spec_alignment, spec_code_alignment),
+            "recommendations": self._generate_recommendations(
+                req_spec_alignment, spec_code_alignment
+            ),
         }
 
         logger.info(f"Project health score: {health_score:.2f}")
         return report
 
-    def _identify_issues(self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _identify_issues(
+        self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Identify issues in the project.
 
@@ -730,49 +884,61 @@ class ProjectStateAnalyzer:
 
         # Check for missing requirements files
         if not self.requirements_files:
-            issues.append({
-                'severity': 'high',
-                'type': 'missing_requirements',
-                'description': 'No requirements files found in the project'
-            })
+            issues.append(
+                {
+                    "severity": "high",
+                    "type": "missing_requirements",
+                    "description": "No requirements files found in the project",
+                }
+            )
 
         # Check for missing specification files
         if not self.specification_files:
-            issues.append({
-                'severity': 'high',
-                'type': 'missing_specifications',
-                'description': 'No specification files found in the project'
-            })
+            issues.append(
+                {
+                    "severity": "high",
+                    "type": "missing_specifications",
+                    "description": "No specification files found in the project",
+                }
+            )
 
         # Check for missing test files
         if not self.test_files:
-            issues.append({
-                'severity': 'medium',
-                'type': 'missing_tests',
-                'description': 'No test files found in the project'
-            })
+            issues.append(
+                {
+                    "severity": "medium",
+                    "type": "missing_tests",
+                    "description": "No test files found in the project",
+                }
+            )
 
         # Check for unmatched requirements
-        if req_spec_alignment['unmatched_requirements']:
-            issues.append({
-                'severity': 'high',
-                'type': 'unmatched_requirements',
-                'description': f"{len(req_spec_alignment['unmatched_requirements'])} requirements not matched by specifications",
-                'details': req_spec_alignment['unmatched_requirements']
-            })
+        if req_spec_alignment["unmatched_requirements"]:
+            issues.append(
+                {
+                    "severity": "high",
+                    "type": "unmatched_requirements",
+                    "description": f"{len(req_spec_alignment['unmatched_requirements'])} requirements not matched by specifications",
+                    "details": req_spec_alignment["unmatched_requirements"],
+                }
+            )
 
         # Check for unimplemented specifications
-        if spec_code_alignment['unimplemented_specifications']:
-            issues.append({
-                'severity': 'medium',
-                'type': 'unimplemented_specifications',
-                'description': f"{len(spec_code_alignment['unimplemented_specifications'])} specifications not implemented in code",
-                'details': spec_code_alignment['unimplemented_specifications']
-            })
+        if spec_code_alignment["unimplemented_specifications"]:
+            issues.append(
+                {
+                    "severity": "medium",
+                    "type": "unimplemented_specifications",
+                    "description": f"{len(spec_code_alignment['unimplemented_specifications'])} specifications not implemented in code",
+                    "details": spec_code_alignment["unimplemented_specifications"],
+                }
+            )
 
         return issues
 
-    def _generate_recommendations(self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]) -> List[str]:
+    def _generate_recommendations(
+        self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]
+    ) -> List[str]:
         """
         Generate recommendations based on the analysis.
 
@@ -787,35 +953,53 @@ class ProjectStateAnalyzer:
 
         # Recommendations for missing files
         if not self.requirements_files:
-            recommendations.append("Create requirements documentation to clearly define project goals")
+            recommendations.append(
+                "Create requirements documentation to clearly define project goals"
+            )
 
         if not self.specification_files:
-            recommendations.append("Develop specifications based on requirements to guide implementation")
+            recommendations.append(
+                "Develop specifications based on requirements to guide implementation"
+            )
 
         if not self.test_files:
-            recommendations.append("Add tests to ensure code quality and prevent regressions")
+            recommendations.append(
+                "Add tests to ensure code quality and prevent regressions"
+            )
 
         # Recommendations for alignment issues
-        if req_spec_alignment['unmatched_requirements']:
-            recommendations.append(f"Update specifications to address {len(req_spec_alignment['unmatched_requirements'])} unmatched requirements")
+        if req_spec_alignment["unmatched_requirements"]:
+            recommendations.append(
+                f"Update specifications to address {len(req_spec_alignment['unmatched_requirements'])} unmatched requirements"
+            )
 
-        if spec_code_alignment['unimplemented_specifications']:
-            recommendations.append(f"Implement code for {len(spec_code_alignment['unimplemented_specifications'])} unimplemented specifications")
+        if spec_code_alignment["unimplemented_specifications"]:
+            recommendations.append(
+                f"Implement code for {len(spec_code_alignment['unimplemented_specifications'])} unimplemented specifications"
+            )
 
         # Architecture recommendations
-        if self.architecture and self.architecture['type'] != 'Unknown':
-            if self.architecture['confidence'] < 0.7:
-                recommendations.append(f"Consider clarifying the {self.architecture['type']} architecture by reorganizing files and directories")
+        if self.architecture and self.architecture["type"] != "Unknown":
+            if self.architecture["confidence"] < 0.7:
+                recommendations.append(
+                    f"Consider clarifying the {self.architecture['type']} architecture by reorganizing files and directories"
+                )
         else:
-            recommendations.append("Consider adopting a clear architectural pattern to improve code organization")
+            recommendations.append(
+                "Consider adopting a clear architectural pattern to improve code organization"
+            )
 
         # Language recommendations
         if len(self.detected_languages) > 3:
-            recommendations.append("Consider consolidating the number of programming languages used in the project")
+            recommendations.append(
+                "Consider consolidating the number of programming languages used in the project"
+            )
 
         # Test recommendations
         if len(self.test_files) < len(self.code_files) * 0.5:
-            recommendations.append("Increase test coverage to improve code quality and maintainability")
+            recommendations.append(
+                "Increase test coverage to improve code quality and maintainability"
+            )
 
         return recommendations
 
@@ -829,12 +1013,12 @@ class ProjectStateAnalyzer:
         logger.info("Analyzing requirements-specification alignment")
 
         alignment_results = {
-            'total_requirements': 0,
-            'total_specifications': 0,
-            'matched_requirements': 0,
-            'unmatched_requirements': [],
-            'unmatched_specifications': [],
-            'alignment_score': 0.0
+            "total_requirements": 0,
+            "total_specifications": 0,
+            "matched_requirements": 0,
+            "unmatched_requirements": [],
+            "unmatched_specifications": [],
+            "alignment_score": 0.0,
         }
 
         # Skip if no requirements or specifications
@@ -844,11 +1028,11 @@ class ProjectStateAnalyzer:
 
         # Extract requirements
         requirements = self._extract_requirements()
-        alignment_results['total_requirements'] = len(requirements)
+        alignment_results["total_requirements"] = len(requirements)
 
         # Extract specifications
         specifications = self._extract_specifications()
-        alignment_results['total_specifications'] = len(specifications)
+        alignment_results["total_specifications"] = len(specifications)
 
         # Match requirements to specifications
         matched_reqs = []
@@ -862,9 +1046,9 @@ class ProjectStateAnalyzer:
             if matched:
                 matched_reqs.append(req)
             else:
-                alignment_results['unmatched_requirements'].append(req)
+                alignment_results["unmatched_requirements"].append(req)
 
-        alignment_results['matched_requirements'] = len(matched_reqs)
+        alignment_results["matched_requirements"] = len(matched_reqs)
 
         # Find specifications without matching requirements
         for spec in specifications:
@@ -875,14 +1059,18 @@ class ProjectStateAnalyzer:
                     break
 
             if not matched:
-                alignment_results['unmatched_specifications'].append(spec)
+                alignment_results["unmatched_specifications"].append(spec)
 
         # Calculate alignment score
-        if alignment_results['total_requirements'] > 0:
-            alignment_results['alignment_score'] = alignment_results['matched_requirements'] / alignment_results[
-                'total_requirements']
+        if alignment_results["total_requirements"] > 0:
+            alignment_results["alignment_score"] = (
+                alignment_results["matched_requirements"]
+                / alignment_results["total_requirements"]
+            )
 
-        logger.info(f"Requirements-specification alignment score: {alignment_results['alignment_score']:.2f}")
+        logger.info(
+            f"Requirements-specification alignment score: {alignment_results['alignment_score']:.2f}"
+        )
         return alignment_results
 
     def _extract_requirements(self) -> List[Dict[str, Any]]:
@@ -896,35 +1084,37 @@ class ProjectStateAnalyzer:
 
         for req_file in self.requirements_files:
             try:
-                with open(os.path.join(self.project_path, req_file), 'r') as f:
+                with open(os.path.join(self.project_path, req_file), "r") as f:
                     content = f.read()
 
                 # Simple extraction of requirements (can be enhanced with NLP)
                 # Look for bullet points, numbered lists, or sections
-                lines = content.split('\n')
+                lines = content.split("\n")
                 current_section = "General"
 
                 for line in lines:
                     line = line.strip()
 
                     # Check for section headers
-                    if line.startswith('# '):
+                    if line.startswith("# "):
                         current_section = line[2:].strip()
                         continue
-                    elif line.startswith('## '):
+                    elif line.startswith("## "):
                         current_section = line[3:].strip()
                         continue
 
                     # Check for requirement patterns
-                    req_pattern = re.match(r'^[-*]|\d+\.\s+(.+)$', line)
+                    req_pattern = re.match(r"^[-*]|\d+\.\s+(.+)$", line)
                     if req_pattern:
                         req_text = req_pattern.group(1).strip()
                         if req_text:
-                            requirements.append({
-                                'text': req_text,
-                                'section': current_section,
-                                'source_file': req_file
-                            })
+                            requirements.append(
+                                {
+                                    "text": req_text,
+                                    "section": current_section,
+                                    "source_file": req_file,
+                                }
+                            )
             except Exception as e:
                 logger.error(f"Error extracting requirements from {req_file}: {str(e)}")
 
@@ -941,41 +1131,47 @@ class ProjectStateAnalyzer:
 
         for spec_file in self.specification_files:
             try:
-                with open(os.path.join(self.project_path, spec_file), 'r') as f:
+                with open(os.path.join(self.project_path, spec_file), "r") as f:
                     content = f.read()
 
                 # Simple extraction of specifications (can be enhanced with NLP)
                 # Look for bullet points, numbered lists, or sections
-                lines = content.split('\n')
+                lines = content.split("\n")
                 current_section = "General"
 
                 for line in lines:
                     line = line.strip()
 
                     # Check for section headers
-                    if line.startswith('# '):
+                    if line.startswith("# "):
                         current_section = line[2:].strip()
                         continue
-                    elif line.startswith('## '):
+                    elif line.startswith("## "):
                         current_section = line[3:].strip()
                         continue
 
                     # Check for specification patterns
-                    spec_pattern = re.match(r'^[-*]|\d+\.\s+(.+)$', line)
+                    spec_pattern = re.match(r"^[-*]|\d+\.\s+(.+)$", line)
                     if spec_pattern:
                         spec_text = spec_pattern.group(1).strip()
                         if spec_text:
-                            specifications.append({
-                                'text': spec_text,
-                                'section': current_section,
-                                'source_file': spec_file
-                            })
+                            specifications.append(
+                                {
+                                    "text": spec_text,
+                                    "section": current_section,
+                                    "source_file": spec_file,
+                                }
+                            )
             except Exception as e:
-                logger.error(f"Error extracting specifications from {spec_file}: {str(e)}")
+                logger.error(
+                    f"Error extracting specifications from {spec_file}: {str(e)}"
+                )
 
         return specifications
 
-    def _is_requirement_matched_by_spec(self, requirement: Dict[str, Any], specification: Dict[str, Any]) -> bool:
+    def _is_requirement_matched_by_spec(
+        self, requirement: Dict[str, Any], specification: Dict[str, Any]
+    ) -> bool:
         """
         Check if a requirement is matched by a specification.
 
@@ -987,12 +1183,12 @@ class ProjectStateAnalyzer:
             True if the requirement is matched by the specification
         """
         # Simple matching based on text similarity (can be enhanced with NLP)
-        req_text = requirement['text'].lower()
-        spec_text = specification['text'].lower()
+        req_text = requirement["text"].lower()
+        spec_text = specification["text"].lower()
 
         # Check for direct keyword matches
-        req_keywords = set(re.findall(r'\b\w+\b', req_text))
-        spec_keywords = set(re.findall(r'\b\w+\b', spec_text))
+        req_keywords = set(re.findall(r"\b\w+\b", req_text))
+        spec_keywords = set(re.findall(r"\b\w+\b", spec_text))
 
         # Calculate keyword overlap
         if len(req_keywords) > 0:
@@ -1011,10 +1207,10 @@ class ProjectStateAnalyzer:
         logger.info("Analyzing specification-code alignment")
 
         alignment_results = {
-            'total_specifications': 0,
-            'implemented_specifications': 0,
-            'unimplemented_specifications': [],
-            'implementation_score': 0.0
+            "total_specifications": 0,
+            "implemented_specifications": 0,
+            "unimplemented_specifications": [],
+            "implementation_score": 0.0,
         }
 
         # Skip if no specifications
@@ -1024,7 +1220,7 @@ class ProjectStateAnalyzer:
 
         # Extract specifications
         specifications = self._extract_specifications()
-        alignment_results['total_specifications'] = len(specifications)
+        alignment_results["total_specifications"] = len(specifications)
 
         # For each specification, check if it's implemented in code
         implemented_specs = []
@@ -1032,16 +1228,20 @@ class ProjectStateAnalyzer:
             if self._is_specification_implemented(spec):
                 implemented_specs.append(spec)
             else:
-                alignment_results['unimplemented_specifications'].append(spec)
+                alignment_results["unimplemented_specifications"].append(spec)
 
-        alignment_results['implemented_specifications'] = len(implemented_specs)
+        alignment_results["implemented_specifications"] = len(implemented_specs)
 
         # Calculate implementation score
-        if alignment_results['total_specifications'] > 0:
-            alignment_results['implementation_score'] = alignment_results['implemented_specifications'] / \
-                                                        alignment_results['total_specifications']
+        if alignment_results["total_specifications"] > 0:
+            alignment_results["implementation_score"] = (
+                alignment_results["implemented_specifications"]
+                / alignment_results["total_specifications"]
+            )
 
-        logger.info(f"Specification-code implementation score: {alignment_results['implementation_score']:.2f}")
+        logger.info(
+            f"Specification-code implementation score: {alignment_results['implementation_score']:.2f}"
+        )
         return alignment_results
 
     def _is_specification_implemented(self, specification: Dict[str, Any]) -> bool:
@@ -1055,16 +1255,18 @@ class ProjectStateAnalyzer:
             True if the specification is implemented
         """
         # Simple implementation check based on keyword matching (can be enhanced with AST parsing)
-        spec_text = specification['text'].lower()
+        spec_text = specification["text"].lower()
 
         # Extract key terms from the specification
-        key_terms = set(re.findall(r'\b\w+\b', spec_text))
-        key_terms = {term for term in key_terms if len(term) > 3}  # Filter out short words
+        key_terms = set(re.findall(r"\b\w+\b", spec_text))
+        key_terms = {
+            term for term in key_terms if len(term) > 3
+        }  # Filter out short words
 
         # Check if key terms appear in code files
         for code_file in self.code_files:
             try:
-                with open(os.path.join(self.project_path, code_file), 'r') as f:
+                with open(os.path.join(self.project_path, code_file), "r") as f:
                     content = f.read().lower()
 
                 # Count how many key terms appear in the code
@@ -1078,8 +1280,9 @@ class ProjectStateAnalyzer:
 
         return False
 
-    def _generate_health_report(self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]) -> Dict[
-        str, Any]:
+    def _generate_health_report(
+        self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Generate a project health report.
 
@@ -1096,12 +1299,12 @@ class ProjectStateAnalyzer:
         health_score = 0.0
         factors = 0
 
-        if req_spec_alignment['total_requirements'] > 0:
-            health_score += req_spec_alignment['alignment_score']
+        if req_spec_alignment["total_requirements"] > 0:
+            health_score += req_spec_alignment["alignment_score"]
             factors += 1
 
-        if spec_code_alignment['total_specifications'] > 0:
-            health_score += spec_code_alignment['implementation_score']
+        if spec_code_alignment["total_specifications"] > 0:
+            health_score += spec_code_alignment["implementation_score"]
             factors += 1
 
         if factors > 0:
@@ -1109,26 +1312,29 @@ class ProjectStateAnalyzer:
 
         # Generate report
         report = {
-            'project_path': self.project_path,
-            'file_count': len(self.file_index),
-            'languages': list(self.detected_languages),
-            'architecture': self.architecture_model,
-            'requirements_count': len(self.requirements_files),
-            'specifications_count': len(self.specification_files),
-            'test_count': len(self.test_files),
-            'code_count': len(self.code_files),
-            'requirements_spec_alignment': req_spec_alignment,
-            'spec_code_alignment': spec_code_alignment,
-            'health_score': health_score,
-            'issues': self._identify_issues(req_spec_alignment, spec_code_alignment),
-            'recommendations': self._generate_recommendations(req_spec_alignment, spec_code_alignment)
+            "project_path": self.project_path,
+            "file_count": len(self.file_index),
+            "languages": list(self.detected_languages),
+            "architecture": self.architecture_model,
+            "requirements_count": len(self.requirements_files),
+            "specifications_count": len(self.specification_files),
+            "test_count": len(self.test_files),
+            "code_count": len(self.code_files),
+            "requirements_spec_alignment": req_spec_alignment,
+            "spec_code_alignment": spec_code_alignment,
+            "health_score": health_score,
+            "issues": self._identify_issues(req_spec_alignment, spec_code_alignment),
+            "recommendations": self._generate_recommendations(
+                req_spec_alignment, spec_code_alignment
+            ),
         }
 
         logger.info(f"Project health score: {health_score:.2f}")
         return report
 
-    def _identify_issues(self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]) -> List[
-        Dict[str, Any]]:
+    def _identify_issues(
+        self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Identify issues in the project.
 
@@ -1143,50 +1349,61 @@ class ProjectStateAnalyzer:
 
         # Check for missing requirements files
         if not self.requirements_files:
-            issues.append({
-                'severity': 'high',
-                'type': 'missing_requirements',
-                'description': 'No requirements files found in the project'
-            })
+            issues.append(
+                {
+                    "severity": "high",
+                    "type": "missing_requirements",
+                    "description": "No requirements files found in the project",
+                }
+            )
 
         # Check for missing specification files
         if not self.specification_files:
-            issues.append({
-                'severity': 'high',
-                'type': 'missing_specifications',
-                'description': 'No specification files found in the project'
-            })
+            issues.append(
+                {
+                    "severity": "high",
+                    "type": "missing_specifications",
+                    "description": "No specification files found in the project",
+                }
+            )
 
         # Check for missing test files
         if not self.test_files:
-            issues.append({
-                'severity': 'medium',
-                'type': 'missing_tests',
-                'description': 'No test files found in the project'
-            })
+            issues.append(
+                {
+                    "severity": "medium",
+                    "type": "missing_tests",
+                    "description": "No test files found in the project",
+                }
+            )
 
         # Check for unmatched requirements
-        if req_spec_alignment['unmatched_requirements']:
-            issues.append({
-                'severity': 'high',
-                'type': 'unmatched_requirements',
-                'description': f"{len(req_spec_alignment['unmatched_requirements'])} requirements not matched by specifications",
-                'details': req_spec_alignment['unmatched_requirements']
-            })
+        if req_spec_alignment["unmatched_requirements"]:
+            issues.append(
+                {
+                    "severity": "high",
+                    "type": "unmatched_requirements",
+                    "description": f"{len(req_spec_alignment['unmatched_requirements'])} requirements not matched by specifications",
+                    "details": req_spec_alignment["unmatched_requirements"],
+                }
+            )
 
         # Check for unimplemented specifications
-        if spec_code_alignment['unimplemented_specifications']:
-            issues.append({
-                'severity': 'medium',
-                'type': 'unimplemented_specifications',
-                'description': f"{len(spec_code_alignment['unimplemented_specifications'])} specifications not implemented in code",
-                'details': spec_code_alignment['unimplemented_specifications']
-            })
+        if spec_code_alignment["unimplemented_specifications"]:
+            issues.append(
+                {
+                    "severity": "medium",
+                    "type": "unimplemented_specifications",
+                    "description": f"{len(spec_code_alignment['unimplemented_specifications'])} specifications not implemented in code",
+                    "details": spec_code_alignment["unimplemented_specifications"],
+                }
+            )
 
         return issues
 
-    def _generate_recommendations(self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]) -> \
-    List[str]:
+    def _generate_recommendations(
+        self, req_spec_alignment: Dict[str, Any], spec_code_alignment: Dict[str, Any]
+    ) -> List[str]:
         """
         Generate recommendations based on the analysis.
 
@@ -1201,37 +1418,52 @@ class ProjectStateAnalyzer:
 
         # Recommendations for missing files
         if not self.requirements_files:
-            recommendations.append("Create requirements documentation to clearly define project goals")
+            recommendations.append(
+                "Create requirements documentation to clearly define project goals"
+            )
 
         if not self.specification_files:
-            recommendations.append("Develop specifications based on requirements to guide implementation")
+            recommendations.append(
+                "Develop specifications based on requirements to guide implementation"
+            )
 
         if not self.test_files:
-            recommendations.append("Add tests to ensure code quality and prevent regressions")
+            recommendations.append(
+                "Add tests to ensure code quality and prevent regressions"
+            )
 
         # Recommendations for alignment issues
-        if req_spec_alignment['unmatched_requirements']:
+        if req_spec_alignment["unmatched_requirements"]:
             recommendations.append(
-                f"Update specifications to address {len(req_spec_alignment['unmatched_requirements'])} unmatched requirements")
+                f"Update specifications to address {len(req_spec_alignment['unmatched_requirements'])} unmatched requirements"
+            )
 
-        if spec_code_alignment['unimplemented_specifications']:
+        if spec_code_alignment["unimplemented_specifications"]:
             recommendations.append(
-                f"Implement code for {len(spec_code_alignment['unimplemented_specifications'])} unimplemented specifications")
+                f"Implement code for {len(spec_code_alignment['unimplemented_specifications'])} unimplemented specifications"
+            )
 
         # Architecture recommendations
-        if self.architecture_model and self.architecture_model['type'] != 'Unknown':
-            if self.architecture_model['confidence'] < 0.7:
+        if self.architecture_model and self.architecture_model["type"] != "Unknown":
+            if self.architecture_model["confidence"] < 0.7:
                 recommendations.append(
-                    f"Consider clarifying the {self.architecture_model['type']} architecture by reorganizing files and directories")
+                    f"Consider clarifying the {self.architecture_model['type']} architecture by reorganizing files and directories"
+                )
         else:
-            recommendations.append("Consider adopting a clear architectural pattern to improve code organization")
+            recommendations.append(
+                "Consider adopting a clear architectural pattern to improve code organization"
+            )
 
         # Language recommendations
         if len(self.detected_languages) > 3:
-            recommendations.append("Consider consolidating the number of programming languages used in the project")
+            recommendations.append(
+                "Consider consolidating the number of programming languages used in the project"
+            )
 
         # Test recommendations
         if len(self.test_files) < len(self.code_files) * 0.5:
-            recommendations.append("Increase test coverage to improve code quality and maintainability")
+            recommendations.append(
+                "Increase test coverage to improve code quality and maintainability"
+            )
 
         return recommendations

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable, List, Dict, Any
+from typing import Any, Dict, Iterable, List
 
 import jsonschema
 

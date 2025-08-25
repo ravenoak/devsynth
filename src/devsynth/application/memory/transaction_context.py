@@ -6,12 +6,12 @@ It implements a two-phase commit protocol for cross-store transactions.
 """
 
 import uuid
-from typing import Dict, List, Any, Optional, Set
 from contextlib import contextmanager
+from typing import Any, Dict, List, Optional, Set
 
-from ...logging_setup import DevSynthLogger
 from ...domain.models.memory import MemoryItem
 from ...exceptions import MemoryTransactionError
+from ...logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 

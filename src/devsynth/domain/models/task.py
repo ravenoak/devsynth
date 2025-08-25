@@ -3,12 +3,13 @@ Domain models for tasks.
 """
 
 from enum import Enum
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
 
 class TaskStatus(Enum):
     """Enum representing the status of a task."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -26,7 +27,7 @@ class Task:
         data: Dict[str, Any] = None,
         assigned_to: str = None,
         status: TaskStatus = TaskStatus.PENDING,
-        result: Dict[str, Any] = None
+        result: Dict[str, Any] = None,
     ):
         """Initialize a Task instance.
 
@@ -52,12 +53,14 @@ class Task:
             "task_type": self.task_type,
             "data": self.data,
             "assigned_to": self.assigned_to,
-            "status": self.status.value if isinstance(self.status, Enum) else self.status,
-            "result": self.result
+            "status": (
+                self.status.value if isinstance(self.status, Enum) else self.status
+            ),
+            "result": self.result,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Task':
+    def from_dict(cls, data: Dict[str, Any]) -> "Task":
         """Create a Task object from a dictionary representation."""
         status_value = data.get("status")
         status = None
@@ -75,5 +78,5 @@ class Task:
             data=data.get("data", {}),
             assigned_to=data.get("assigned_to"),
             status=status,
-            result=data.get("result", {})
+            result=data.get("result", {}),
         )

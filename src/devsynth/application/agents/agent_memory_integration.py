@@ -5,13 +5,13 @@ This module provides integration between agents and the memory system,
 allowing agents to store and retrieve information from memory.
 """
 
-from typing import Dict, Any, List, Optional
 import json
 import uuid
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.logging_setup import DevSynthLogger
 

@@ -1,4 +1,7 @@
-"""Launch the Streamlit WebUI."""
+"""[experimental] Launch the Streamlit WebUI.
+
+This command depends on optional extras and may not be available in all environments.
+"""
 
 from __future__ import annotations
 

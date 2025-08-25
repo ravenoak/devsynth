@@ -174,6 +174,13 @@ def run_tests(
     test_path = TARGET_PATHS.get(target, TARGET_PATHS["all-tests"])
     base_cmd.append(test_path)
 
+    # When not running in parallel, force-disable auto-loading of third-party
+    # pytest plugins to avoid hangs and unintended side effects in smoke/fast
+    # paths. Respect any explicit user setting if already present.
+    env = os.environ.copy()
+    if not parallel:
+        env.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+
     if verbose:
         base_cmd.append("-v")
     if parallel:
@@ -198,7 +205,7 @@ def run_tests(
         cmd = base_cmd + ["-m", "not memory_intensive"] + report_options
         try:
             process = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
             )
             stdout, stderr = process.communicate()
             output = stdout + stderr
@@ -255,6 +262,7 @@ def run_tests(
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
+                    env=env,
                 )
                 batch_stdout, batch_stderr = batch_process.communicate()
                 logger.info(batch_stdout)
@@ -269,7 +277,11 @@ def run_tests(
             all_success = all_success and batch_success
         else:
             process = subprocess.Popen(
-                speed_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                speed_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env=env,
             )
             stdout, stderr = process.communicate()
             logger.info(stdout)

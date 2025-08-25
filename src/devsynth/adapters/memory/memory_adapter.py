@@ -316,21 +316,29 @@ class MemorySystemAdapter:
                 self.vector_store = None
         elif self.storage_type == "lmdb":
             if LMDBStore is None:  # pragma: no cover - simple guard
-                raise ImportError(
-                    "LMDB storage requires the 'lmdb' package"
-                ) from _LMDB_ERROR
-            self.memory_store = LMDBStore(
-                self.memory_path,
-                encryption_enabled=self.encryption_at_rest,
-                encryption_key=self.encryption_key,
-            )
-            self.context_manager = PersistentContextManager(
-                self.memory_path,
-                max_context_size=self.max_context_size,
-                expiration_days=self.context_expiration_days,
-            )
-            # No vector store for LMDB-based storage by default
-            self.vector_store = None
+                # Provide a friendly message and gracefully fallback to in-memory
+                logger.warning(
+                    "LMDB backend not available: %s. Selected storage_type='lmdb' but the 'lmdb' package is not installed. "
+                    "To enable LMDB, install extras: pip install 'devsynth[memory]' or poetry install --extras memory. "
+                    "Falling back to in-memory store for this session.",
+                    _LMDB_ERROR,
+                )
+                self.memory_store = InMemoryStore()
+                self.context_manager = SimpleContextManager()
+                self.vector_store = None
+            else:
+                self.memory_store = LMDBStore(
+                    self.memory_path,
+                    encryption_enabled=self.encryption_at_rest,
+                    encryption_key=self.encryption_key,
+                )
+                self.context_manager = PersistentContextManager(
+                    self.memory_path,
+                    max_context_size=self.max_context_size,
+                    expiration_days=self.context_expiration_days,
+                )
+                # No vector store for LMDB-based storage by default
+                self.vector_store = None
         elif self.storage_type == "faiss":
             # FAISS is primarily a vector store, so we'll use it for vector storage
             # and use a different store for general memory items
