@@ -1,9 +1,10 @@
 """Port for ONNX runtime operations."""
 
-from typing import Any, Iterable, Dict
+from typing import Any, Dict, Iterable
+
+from devsynth.logging_setup import DevSynthLogger
 
 from ..domain.interfaces.onnx import OnnxRuntime
-from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
