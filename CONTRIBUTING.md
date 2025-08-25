@@ -67,14 +67,18 @@ poetry install --all-extras --with dev,docs
 # Activate virtual environment
 poetry shell
 
-# Install pre-commit hooks
+# Install pre-commit hooks (includes a Conventional Commits linter)
 pre-commit install
+pre-commit install --hook-type commit-msg
 
 # Run all hooks on the current codebase
 pre-commit run --all-files
 
 # Run the alignment check manually
 pre-commit run devsynth-align --all-files
+
+# Run a secrets scan (no baseline required for contributors)
+pre-commit run detect-secrets --all-files
 ```
 
 The `devsynth-align` hook runs `devsynth align --quiet` and will block commits
@@ -98,9 +102,100 @@ poetry run devsynth run-tests --speed=fast
 poetry run pytest --cov=src --cov-report=term-missing
 ```
 
+### Optional extras: how to install and run focused tests
+
+DevSynth supports optional feature sets via Poetry extras. Below are common extras and example commands to install and run their focused tests. These should be run locally; CI defaults avoid network, GUI, and heavy backends.
+
+Install patterns:
+
+```bash
+# Minimal contributor setup (fastest):
+poetry install --with dev --extras minimal
+
+# Target a specific extra:
+poetry install --with dev --extras memory
+poetry install --with dev --extras llm
+poetry install --with dev --extras retrieval
+poetry install --with dev --extras chromadb
+poetry install --with dev --extras api
+poetry install --with dev --extras webui
+poetry install --with dev --extras gui
+poetry install --with dev --extras offline
+
+# Full matrix for local verification:
+poetry install --all-extras --all-groups
+```
+
+Running tests per extra (examples):
+
+```bash
+# Memory backends (skips missing backends gracefully)
+poetry run pytest tests/integration/memory -m "not slow and not no_network"
+
+# LLM provider system (uses stubs; no real network)
+DEVSYNTH_PROVIDER=openai \
+poetry run pytest tests/unit/application/test_provider_selection.py -m no_network
+
+# API server (no real ports; uses TestClient)
+poetry install --with dev --extras api
+poetry run pytest tests/integration/api -m no_network
+
+# WebUI (import smoke only; no side effects)
+poetry install --with dev --extras webui
+poetry run pytest tests/integration/webui -m no_network
+
+# GUI (Dear PyGui) – skipped by default in CI
+poetry install --with dev --extras gui
+poetry run pytest -m gui -k mvuu --maxfail=1 --disable-warnings
+```
+
+Linting and formatting:
+
+```bash
+# Format
+poetry run black .
+poetry run isort .
+
+# Lint
+poetry run flake8
+
+# Optional static typing (recommended for changed modules)
+poetry run mypy src tests --config-file pyproject.toml
+```
+
+Notes:
+- Default tests should not require real API keys; providers default to safe stubs.
+- Use markers fast/medium/slow/gui/no_network consistently; register new markers in pytest.ini.
+- Prefer deterministic seeds and stubbed I/O for CI stability.
+
+### Benchmarks (optional)
+
+Benchmarks are disabled by default. To run the performance benchmark for the in-memory search path, enable the environment flag and load the pytest-benchmark plugin explicitly:
+
+```bash
+DEVSYNTH_ENABLE_BENCHMARKS=true \
+pytest -p benchmark tests/performance/test_memory_benchmark.py -q
+```
+
 ## Documentation
 
 Good documentation is essential. Please update relevant documentation for any changes and ensure your code includes proper docstrings.
+
+## Conventional Commits
+
+We enforce [Conventional Commits](https://www.conventionalcommits.org/) via a commit-msg hook. Valid examples:
+
+- feat(cli): add --offline mode for providers
+- fix(memory): handle TinyDB TypeError during insert
+- docs(readme): clarify installation steps
+
+To enable locally:
+
+```bash
+pre-commit install --hook-type commit-msg
+```
+
+The hook allows Merge commits and local WIP: prefixes.
 
 ## Pre-PR Checks
 
