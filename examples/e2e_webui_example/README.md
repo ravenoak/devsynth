@@ -2,6 +2,11 @@
 
 This example mirrors the CLI workflow but uses the experimental WebUI. It shows how to complete a project from requirements to running code through the browser interface.
 
+## Requirements
+- Poetry environment with the webui extra installed:
+  - `poetry install --with dev --extras "minimal webui"`
+- See also: docs/examples/requirements.md
+
 ## Steps
 
 1. **Start the WebUI**
