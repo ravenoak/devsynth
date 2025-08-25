@@ -1,0 +1,103 @@
+name: Release Prep (dry-run)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  release-prep:
+    name: task release:prep
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Default CI resource gating: skip optional backends unless explicitly enabled
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_FAISS_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_KUZU_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_TINYDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      # Provide a stub API key for mocked providers
+      OPENAI_API_KEY: 'test-openai-key'
+      # Enforce no file logging during CI
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Initialize dev environment (installs go-task, sets up venv)
+        run: |
+          bash scripts/install_dev.sh
+
+      - name: Show Taskfile targets (for debugging)
+        run: |
+          task --list
+
+      - name: Validate documentation front matter
+        run: |
+          poetry run python scripts/check_front_matter.py
+
+      - name: Verify release state (tag gating)
+        run: |
+          poetry run python scripts/verify_release_state.py
+
+      - name: Run release:prep (dry-run validation)
+        env:
+          PIP_NO_INDEX: '1'
+          CI: 'true'
+        run: |
+          task release:prep
+
+      - name: Upload build artifacts (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifacts
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          if-no-files-found: ignore
+
+      - name: Upload coverage and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-and-coverage-reports
+          path: |
+            coverage.xml
+            test_reports/**
+            test_markers_report.json
+            dialectical_audit.log
+          if-no-files-found: warn
+
+      - name: Upload Task and cache for debugging
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-assets
+          path: |
+            Taskfile.yml
+            .task/**
+            .test_collection_cache/**
+            .pytest_cache/**
+          if-no-files-found: ignore

@@ -1,0 +1,78 @@
+name: Security Scans (Bandit & Safety)
+
+on:
+  push:
+    branches: [ main, develop, "release/*" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+  id-token: write
+
+jobs:
+  security:
+    name: Security Scans
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+
+      - name: Install Dependencies (minimal)
+        run: |
+          poetry install --with dev --no-interaction --no-ansi
+
+      - name: Install Security Tools
+        run: |
+          poetry run pip install --upgrade pip
+          poetry run pip install bandit safety
+
+      - name: Run Bandit (JSON)
+        run: |
+          poetry run bandit -r src -f json -o bandit.json || true
+
+      - name: Run Safety (JSON)
+        env:
+          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
+        run: |
+          # Prefer full DB if key present; fallback to open DB
+          if [ -n "$SAFETY_API_KEY" ]; then
+            poetry run safety check --key "$SAFETY_API_KEY" --full-report --json > safety.json || true
+          else
+            poetry run safety check --full-report --json > safety.json || true
+          fi
+
+      - name: Upload Security Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            bandit.json
+            safety.json
+
+      - name: Generate Summary
+        run: |
+          echo "# Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Bandit report: saved as bandit.json" >> $GITHUB_STEP_SUMMARY
+          echo "- Safety report: saved as safety.json" >> $GITHUB_STEP_SUMMARY
+          echo "\nNote: This job does not fail the workflow yet. Review artifacts and triage issues or document justifications in docs/security/security_scans.md." >> $GITHUB_STEP_SUMMARY
