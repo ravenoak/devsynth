@@ -1,10 +1,11 @@
 from typing import Any, Dict, List, Optional
-from ..domain.interfaces.memory import MemoryStore, ContextManager
-from ..domain.models.memory import MemoryItem, MemoryType
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import inc_memory
+
+from ..domain.interfaces.memory import ContextManager, MemoryStore
+from ..domain.models.memory import MemoryItem, MemoryType
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError

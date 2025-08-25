@@ -61,7 +61,9 @@ class Sandbox(ContextDecorator):
         return False
 
 
-def sandboxed(func: Callable[..., Any], *, allow_shell: bool = False) -> Callable[..., Any]:
+def sandboxed(
+    func: Callable[..., Any], *, allow_shell: bool = False
+) -> Callable[..., Any]:
     """Return ``func`` wrapped to execute inside a :class:`Sandbox`."""
 
     @wraps(func)

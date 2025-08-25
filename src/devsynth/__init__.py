@@ -11,7 +11,7 @@ ahead of time.
 from __future__ import annotations
 
 # Version and metadata
-__version__ = "0.1.0-alpha.1"
+__version__ = "0.1.0a1"
 
 # Names that are re-exported lazily from :mod:`devsynth.logger`
 _EXPORTED = {

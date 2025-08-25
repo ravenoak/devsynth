@@ -5,11 +5,11 @@ This module defines the DocumentationManager class for coordinating documentatio
 fetching, storage, and querying in a version-aware manner.
 """
 
-from typing import Dict, List, Optional, Any, Tuple, Union
-import os
 import json
+import os
 import re
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from devsynth.application.documentation.documentation_fetcher import (
     DocumentationFetcher,

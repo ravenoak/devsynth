@@ -7,13 +7,14 @@ follows test-first development practices, and generates metrics and reports.
 
 import subprocess
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from rich.console import Console
-from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.panel import Panel
+
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
-
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)

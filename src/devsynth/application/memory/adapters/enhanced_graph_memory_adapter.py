@@ -8,15 +8,18 @@ This module provides an enhanced version of the GraphMemoryAdapter that supports
 4. Multi-modal memory with heterogeneous data types
 5. Memory with temporal awareness and versioning
 """
+
+import datetime
+import json
 import os
 import uuid
-import json
-import datetime
-from typing import Dict, List, Any, Optional, Set, Union, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
 try:
     import rdflib
-    from rdflib import Graph, Literal, URIRef, Namespace, RDF, RDFS, XSD, OWL
-    from rdflib.namespace import FOAF, DC
+    from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
+    from rdflib.namespace import DC, FOAF
+
     try:
         Namespace("test")
     except Exception:
@@ -26,13 +29,16 @@ except Exception:
     Graph = Literal = URIRef = OWL = object  # type: ignore
     RDF = RDFS = XSD = object  # type: ignore
     FOAF = DC = object  # type: ignore
+
     def Namespace(uri: str):  # type: ignore
         return uri
 
-from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
+
+from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStoreError
+
 from ....domain.interfaces.memory import MemoryStore, VectorStore
+from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ....logging_setup import DevSynthLogger
-from devsynth.exceptions import MemoryError, MemoryStoreError, MemoryItemNotFoundError
 from ..rdflib_store import RDFLibStore
 from .graph_memory_adapter import GraphMemoryAdapter
 
@@ -80,8 +86,13 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             # Save the graph
             self._save_graph()
 
-    def store_with_edrr_phase(self, content: Any, memory_type: Union[str, MemoryType], edrr_phase: str, 
-                             metadata: Dict[str, Any] = None) -> str:
+    def store_with_edrr_phase(
+        self,
+        content: Any,
+        memory_type: Union[str, MemoryType],
+        edrr_phase: str,
+        metadata: Dict[str, Any] = None,
+    ) -> str:
         """
         Store a memory item with an EDRR phase with enhanced metadata.
 
@@ -122,17 +133,16 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 memory_type_enum = MemoryType(memory_type)
             except ValueError:
                 # If the string doesn't match any enum value, use a default
-                logger.warning(f"Unknown memory type: {memory_type}, using CODE as default")
+                logger.warning(
+                    f"Unknown memory type: {memory_type}, using CODE as default"
+                )
                 memory_type_enum = MemoryType.CODE
         else:
             memory_type_enum = memory_type
 
         # Create the memory item
         memory_item = MemoryItem(
-            id="",
-            content=content,
-            memory_type=memory_type_enum,
-            metadata=metadata_copy
+            id="", content=content, memory_type=memory_type_enum, metadata=metadata_copy
         )
 
         # Store the memory item
@@ -153,12 +163,16 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
                 # Link to previous cycles in the same domain
                 if "domain" in metadata_copy and "previous_cycle_id" in metadata_copy:
-                    prev_cycle_uri = URIRef(f"{CYCLE}{metadata_copy['previous_cycle_id']}")
+                    prev_cycle_uri = URIRef(
+                        f"{CYCLE}{metadata_copy['previous_cycle_id']}"
+                    )
                     self.graph.add((cycle_uri, CYCLE.followsCycle, prev_cycle_uri))
                     self.graph.add((prev_cycle_uri, CYCLE.precededBy, cycle_uri))
 
             # Add content relationships if specified
-            if "related_to" in metadata_copy and isinstance(metadata_copy["related_to"], list):
+            if "related_to" in metadata_copy and isinstance(
+                metadata_copy["related_to"], list
+            ):
                 for related_concept in metadata_copy["related_to"]:
                     concept_uri = URIRef(f"{DEVSYNTH}concept_{related_concept}")
                     self.graph.add((item_uri, RELATION.relatedTo, concept_uri))
@@ -205,7 +219,11 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             matching_items = []
             for item in all_items:
                 # Convert memory_type to string for comparison
-                item_memory_type = item.memory_type.value if hasattr(item.memory_type, 'value') else str(item.memory_type)
+                item_memory_type = (
+                    item.memory_type.value
+                    if hasattr(item.memory_type, "value")
+                    else str(item.memory_type)
+                )
 
                 # Check if the item has the correct memory type
                 if item_memory_type != item_type and str(item.memory_type) != item_type:
@@ -230,18 +248,29 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
                 if match:
                     matching_items.append(item)
-                    logger.debug(f"Found matching item: {item.id}, Type: {item.memory_type}, Metadata: {item.metadata}")
+                    logger.debug(
+                        f"Found matching item: {item.id}, Type: {item.memory_type}, Metadata: {item.metadata}"
+                    )
 
             # If no exact matches and semantic similarity is enabled, try semantic matching
             if not matching_items and semantic_similarity and rdflib is not None:
                 logger.debug("No exact matches found, trying semantic similarity")
-                semantic_items = self._retrieve_with_semantic_similarity(item_type, edrr_phase, metadata)
+                semantic_items = self._retrieve_with_semantic_similarity(
+                    item_type, edrr_phase, metadata
+                )
                 matching_items.extend(semantic_items)
 
             # If context-aware retrieval is enabled, include context-relevant items
-            if context_aware and metadata and "task_id" in metadata and rdflib is not None:
+            if (
+                context_aware
+                and metadata
+                and "task_id" in metadata
+                and rdflib is not None
+            ):
                 logger.debug("Adding context-relevant items")
-                context_items = self._retrieve_context_relevant_items(metadata.get("task_id"), edrr_phase)
+                context_items = self._retrieve_context_relevant_items(
+                    metadata.get("task_id"), edrr_phase
+                )
                 # Add only items that aren't already in matching_items
                 existing_ids = {item.id for item in matching_items}
                 for item in context_items:
@@ -250,9 +279,16 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                         existing_ids.add(item.id)
 
             # If include_previous_cycles is enabled, include items from previous cycles
-            if include_previous_cycles and metadata and "cycle_id" in metadata and rdflib is not None:
+            if (
+                include_previous_cycles
+                and metadata
+                and "cycle_id" in metadata
+                and rdflib is not None
+            ):
                 logger.debug("Adding items from previous cycles")
-                cycle_items = self._retrieve_previous_cycle_items(metadata.get("cycle_id"), edrr_phase)
+                cycle_items = self._retrieve_previous_cycle_items(
+                    metadata.get("cycle_id"), edrr_phase
+                )
                 # Add only items that aren't already in matching_items
                 existing_ids = {item.id for item in matching_items}
                 for item in cycle_items:
@@ -265,16 +301,28 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 ranked_items = self._rank_items_by_relevance(matching_items, metadata)
             else:
                 # Just add a default relevance score
-                ranked_items = [{"item": item, "relevance": 1.0} for item in matching_items]
+                ranked_items = [
+                    {"item": item, "relevance": 1.0} for item in matching_items
+                ]
 
             if ranked_items:
                 # Return the content of all matching items with relevance scores
-                logger.info(f"Retrieved {len(ranked_items)} items with type {item_type}, EDRR phase {edrr_phase}")
-                return [{"content": item["item"].content, "relevance": item["relevance"], 
-                         "id": item["item"].id, "metadata": item["item"].metadata} 
-                        for item in ranked_items]
+                logger.info(
+                    f"Retrieved {len(ranked_items)} items with type {item_type}, EDRR phase {edrr_phase}"
+                )
+                return [
+                    {
+                        "content": item["item"].content,
+                        "relevance": item["relevance"],
+                        "id": item["item"].id,
+                        "metadata": item["item"].metadata,
+                    }
+                    for item in ranked_items
+                ]
 
-            logger.debug(f"No items found with type {item_type} and EDRR phase {edrr_phase}")
+            logger.debug(
+                f"No items found with type {item_type} and EDRR phase {edrr_phase}"
+            )
             return []
         except Exception as e:
             logger.error(f"Failed to retrieve item with EDRR phase: {e}")
@@ -303,14 +351,27 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             for s, p, o in self.graph.triples((None, RDF.type, DEVSYNTH.MemoryItem)):
                 item = self._triples_to_memory_item(s)
                 if item:
-                    item_memory_type = item.memory_type.value if hasattr(item.memory_type, 'value') else str(item.memory_type)
-                    if item_memory_type == item_type or str(item.memory_type) == item_type:
+                    item_memory_type = (
+                        item.memory_type.value
+                        if hasattr(item.memory_type, "value")
+                        else str(item.memory_type)
+                    )
+                    if (
+                        item_memory_type == item_type
+                        or str(item.memory_type) == item_type
+                    ):
                         type_items.append(item)
 
             # Find items that are related to the same concepts
-            if metadata and "related_to" in metadata and isinstance(metadata["related_to"], list):
+            if (
+                metadata
+                and "related_to" in metadata
+                and isinstance(metadata["related_to"], list)
+            ):
                 for item in type_items:
-                    if "related_to" in item.metadata and isinstance(item.metadata["related_to"], list):
+                    if "related_to" in item.metadata and isinstance(
+                        item.metadata["related_to"], list
+                    ):
                         # Check for overlap in related concepts
                         query_concepts = set(metadata["related_to"])
                         item_concepts = set(item.metadata["related_to"])
@@ -322,15 +383,25 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             if metadata:
                 for item in type_items:
                     # Check for overlap in metadata keys (excluding special keys)
-                    query_keys = set(metadata.keys()) - {"cycle_id", "task_id", "related_to"}
-                    item_keys = set(item.metadata.keys()) - {"cycle_id", "task_id", "related_to"}
+                    query_keys = set(metadata.keys()) - {
+                        "cycle_id",
+                        "task_id",
+                        "related_to",
+                    }
+                    item_keys = set(item.metadata.keys()) - {
+                        "cycle_id",
+                        "task_id",
+                        "related_to",
+                    }
                     overlap = query_keys.intersection(item_keys)
                     if overlap:
                         semantic_items.append(item)
 
         return semantic_items
 
-    def _retrieve_context_relevant_items(self, task_id: str, edrr_phase: str) -> List[MemoryItem]:
+    def _retrieve_context_relevant_items(
+        self, task_id: str, edrr_phase: str
+    ) -> List[MemoryItem]:
         """
         Retrieve items that are relevant to the current context (task).
 
@@ -355,7 +426,9 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             # Find items from the same domain as the current task
             for s, p, o in self.graph.triples((task_uri, CONTEXT.hasDomain, None)):
                 domain_uri = o
-                for s2, p2, o2 in self.graph.triples((None, CONTEXT.hasDomain, domain_uri)):
+                for s2, p2, o2 in self.graph.triples(
+                    (None, CONTEXT.hasDomain, domain_uri)
+                ):
                     if s2 != task_uri:  # Don't include the task itself
                         item = self._triples_to_memory_item(s2)
                         if item:
@@ -363,7 +436,9 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
         return context_items
 
-    def _retrieve_previous_cycle_items(self, cycle_id: str, edrr_phase: str) -> List[MemoryItem]:
+    def _retrieve_previous_cycle_items(
+        self, cycle_id: str, edrr_phase: str
+    ) -> List[MemoryItem]:
         """
         Retrieve items from previous cycles that are related to the current cycle.
 
@@ -387,7 +462,9 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 previous_cycles.add(o)
 
             # Transitive predecessors (predecessors of predecessors)
-            for cycle in list(previous_cycles):  # Make a copy to avoid modifying during iteration
+            for cycle in list(
+                previous_cycles
+            ):  # Make a copy to avoid modifying during iteration
                 for s, p, o in self.graph.triples((cycle, CYCLE.followsCycle, None)):
                     previous_cycles.add(o)
 
@@ -423,7 +500,10 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             # Adjust relevance based on various factors
             if metadata:
                 # Items from the current cycle are more relevant
-                if "cycle_id" in metadata and item.metadata.get("cycle_id") == metadata["cycle_id"]:
+                if (
+                    "cycle_id" in metadata
+                    and item.metadata.get("cycle_id") == metadata["cycle_id"]
+                ):
                     relevance += 0.5
 
                 # Items with more matching metadata are more relevant
@@ -436,7 +516,9 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 # More recent items are more relevant
                 if "timestamp" in item.metadata:
                     try:
-                        item_time = datetime.datetime.fromisoformat(item.metadata["timestamp"])
+                        item_time = datetime.datetime.fromisoformat(
+                            item.metadata["timestamp"]
+                        )
                         now = datetime.datetime.now()
                         age_days = (now - item_time).days
                         # Decrease relevance for older items (max penalty of 0.5 for items older than 30 days)
@@ -513,14 +595,23 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             all_items = []
             for s, p, o in self.graph.triples((None, RDF.type, DEVSYNTH.MemoryItem)):
                 candidate = self._triples_to_memory_item(s)
-                if (candidate and 
-                    candidate.metadata.get("domain") == domain and 
-                    candidate.metadata.get("task_id") == task_id):
+                if (
+                    candidate
+                    and candidate.metadata.get("domain") == domain
+                    and candidate.metadata.get("task_id") == task_id
+                ):
                     all_items.append(candidate)
 
             # Sort by EDRR phase order
-            phase_order = {"EXPAND": 1, "DIFFERENTIATE": 2, "REFINE": 3, "RETROSPECT": 4}
-            all_items.sort(key=lambda x: phase_order.get(x.metadata.get("edrr_phase", ""), 0))
+            phase_order = {
+                "EXPAND": 1,
+                "DIFFERENTIATE": 2,
+                "REFINE": 3,
+                "RETROSPECT": 4,
+            }
+            all_items.sort(
+                key=lambda x: phase_order.get(x.metadata.get("edrr_phase", ""), 0)
+            )
 
             return all_items
         except Exception as e:
@@ -575,8 +666,9 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             logger.error(f"Failed to find related concepts: {e}")
             return []
 
-    def store_version_history(self, item_id: str, new_content: Any, 
-                             metadata: Dict[str, Any] = None) -> str:
+    def store_version_history(
+        self, item_id: str, new_content: Any, metadata: Dict[str, Any] = None
+    ) -> str:
         """
         Store a new version of an existing item with version history.
 
@@ -614,7 +706,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 id="",
                 content=new_content,
                 memory_type=existing_item.memory_type,
-                metadata=new_metadata
+                metadata=new_metadata,
             )
 
             # Store the new version

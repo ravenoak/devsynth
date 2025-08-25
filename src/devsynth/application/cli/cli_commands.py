@@ -15,6 +15,10 @@ init_project = workflows.init_project
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
+# Expose a module-level bridge for tests to monkeypatch.
+# Tests expect `devsynth.application.cli.cli_commands.bridge` to exist.
+bridge: UXBridge = CLIUXBridge()
+
 from .commands import (
     config_cmds,
     diagnostics_cmds,
@@ -24,9 +28,11 @@ from .commands import (
     interface_cmds,
     metrics_cmds,
     pipeline_cmds,
-    validation_cmds,
 )
 from .commands import spec_cmd as _spec_module
+from .commands import (
+    validation_cmds,
+)
 from .help import get_all_commands_help, get_command_help
 from .progress import ProgressManager
 from .registry import COMMAND_REGISTRY
@@ -53,8 +59,8 @@ def create_progress(
         A :class:`~devsynth.interface.ux_bridge.ProgressIndicator` instance.
     """
 
-    bridge = bridge or CLIUXBridge()
-    manager = ProgressManager(bridge)
+    active_bridge = bridge or globals().get("bridge") or CLIUXBridge()
+    manager = ProgressManager(active_bridge)
     # Use a fixed task id since tests typically track a single progress bar
     return manager.create_progress("task", description, total=total)
 

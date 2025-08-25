@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from typing import TYPE_CHECKING
 from ...logging_setup import DevSynthLogger
 
 if TYPE_CHECKING:

@@ -4,9 +4,11 @@ Project Model Module.
 This module defines the domain model for representing a project's structure,
 based on the manifest.yaml file and file system analysis.
 """
+
 from enum import Enum, auto
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Any, Union
+from typing import Any, Dict, List, Optional, Set, Union
+
 import networkx as nx
 
 from devsynth.exceptions import ProjectModelError
@@ -14,6 +16,7 @@ from devsynth.exceptions import ProjectModelError
 
 class ArtifactType(Enum):
     """Types of artifacts that can be discovered in a project."""
+
     CODE = auto()
     TEST = auto()
     DOCUMENTATION = auto()
@@ -25,11 +28,12 @@ class ArtifactType(Enum):
 
 class ProjectStructureType(Enum):
     """Types of project structures that can be defined in the manifest."""
-    STANDARD = auto()     # Standard single project
-    MONOREPO = auto()     # Monorepo with multiple projects/packages
-    FEDERATED = auto()    # Federated repositories
-    COMPOSITE = auto()    # Mixed structure with submodules
-    CUSTOM = auto()       # Custom structure defined by user rules
+
+    STANDARD = auto()  # Standard single project
+    MONOREPO = auto()  # Monorepo with multiple projects/packages
+    FEDERATED = auto()  # Federated repositories
+    COMPOSITE = auto()  # Mixed structure with submodules
+    CUSTOM = auto()  # Custom structure defined by user rules
 
 
 class Artifact:
@@ -39,7 +43,7 @@ class Artifact:
         self,
         path: Union[str, Path],
         artifact_type: ArtifactType = ArtifactType.UNKNOWN,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize an artifact.
@@ -87,7 +91,10 @@ class ProjectModel:
 
     def _determine_structure_type(self) -> ProjectStructureType:
         """Determine the project structure type from the manifest data."""
-        if "structure" in self.manifest_data and "type" in self.manifest_data["structure"]:
+        if (
+            "structure" in self.manifest_data
+            and "type" in self.manifest_data["structure"]
+        ):
             structure_type = self.manifest_data["structure"]["type"].lower()
             if structure_type == "single_package":
                 return ProjectStructureType.STANDARD
@@ -109,7 +116,9 @@ class ProjectModel:
         builds a graph representing the relationships between artifacts.
         """
         # Start with the project root
-        root_artifact = Artifact(self.project_root, ArtifactType.UNKNOWN, {"is_root": True})
+        root_artifact = Artifact(
+            self.project_root, ArtifactType.UNKNOWN, {"is_root": True}
+        )
         self.artifacts[str(self.project_root)] = root_artifact
         self.graph.add_node(str(self.project_root), artifact=root_artifact)
 
@@ -141,7 +150,9 @@ class ProjectModel:
             self.graph.add_node(str(src_path), artifact=src_artifact)
 
             # Add edge from root to source directory
-            self.graph.add_edge(str(self.project_root), str(src_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(src_path), relationship="contains"
+            )
 
             # Process files in source directory
             self._process_directory(src_path, ArtifactType.CODE)
@@ -159,7 +170,9 @@ class ProjectModel:
             self.graph.add_node(str(test_path), artifact=test_artifact)
 
             # Add edge from root to test directory
-            self.graph.add_edge(str(self.project_root), str(test_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(test_path), relationship="contains"
+            )
 
             # Process files in test directory
             self._process_directory(test_path, ArtifactType.TEST)
@@ -172,12 +185,16 @@ class ProjectModel:
                 continue
 
             # Add documentation directory as an artifact
-            doc_artifact = Artifact(doc_path, ArtifactType.DOCUMENTATION, {"role": "documentation"})
+            doc_artifact = Artifact(
+                doc_path, ArtifactType.DOCUMENTATION, {"role": "documentation"}
+            )
             self.artifacts[str(doc_path)] = doc_artifact
             self.graph.add_node(str(doc_path), artifact=doc_artifact)
 
             # Add edge from root to documentation directory
-            self.graph.add_edge(str(self.project_root), str(doc_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(doc_path), relationship="contains"
+            )
 
             # Process files in documentation directory
             self._process_directory(doc_path, ArtifactType.DOCUMENTATION)
@@ -185,7 +202,9 @@ class ProjectModel:
     def _build_monorepo_model(self) -> None:
         """Build a model for a monorepo project with multiple packages."""
         # Get custom layouts from manifest
-        custom_layouts = self.manifest_data.get("structure", {}).get("customLayouts", {})
+        custom_layouts = self.manifest_data.get("structure", {}).get(
+            "customLayouts", {}
+        )
 
         if not custom_layouts or custom_layouts.get("type") != "monorepo":
             # If no custom layouts or not a monorepo, fall back to standard model
@@ -194,14 +213,22 @@ class ProjectModel:
 
         # Get packages root directory
         packages_root = custom_layouts.get("packagesRoot", "")
-        packages_root_path = self.project_root / packages_root if packages_root else self.project_root
+        packages_root_path = (
+            self.project_root / packages_root if packages_root else self.project_root
+        )
 
         # Add packages root as an artifact if it's not the project root
         if packages_root and packages_root_path != self.project_root:
-            packages_root_artifact = Artifact(packages_root_path, ArtifactType.UNKNOWN, {"role": "packages_root"})
+            packages_root_artifact = Artifact(
+                packages_root_path, ArtifactType.UNKNOWN, {"role": "packages_root"}
+            )
             self.artifacts[str(packages_root_path)] = packages_root_artifact
-            self.graph.add_node(str(packages_root_path), artifact=packages_root_artifact)
-            self.graph.add_edge(str(self.project_root), str(packages_root_path), relationship="contains")
+            self.graph.add_node(
+                str(packages_root_path), artifact=packages_root_artifact
+            )
+            self.graph.add_edge(
+                str(self.project_root), str(packages_root_path), relationship="contains"
+            )
 
         # Process each package
         packages = custom_layouts.get("packages", [])
@@ -218,28 +245,43 @@ class ProjectModel:
                 continue
 
             # Add package as an artifact
-            package_artifact = Artifact(package_full_path, ArtifactType.CODE, {
-                "role": "package",
-                "name": package_name
-            })
+            package_artifact = Artifact(
+                package_full_path,
+                ArtifactType.CODE,
+                {"role": "package", "name": package_name},
+            )
             self.artifacts[str(package_full_path)] = package_artifact
             self.graph.add_node(str(package_full_path), artifact=package_artifact)
 
             # Add edge from packages root to package
             if packages_root:
-                self.graph.add_edge(str(packages_root_path), str(package_full_path), relationship="contains")
+                self.graph.add_edge(
+                    str(packages_root_path),
+                    str(package_full_path),
+                    relationship="contains",
+                )
             else:
-                self.graph.add_edge(str(self.project_root), str(package_full_path), relationship="contains")
+                self.graph.add_edge(
+                    str(self.project_root),
+                    str(package_full_path),
+                    relationship="contains",
+                )
 
             # Process source directory if specified
             source_dir = package.get("source", "")
             if source_dir:
                 source_path = package_full_path / source_dir
                 if source_path.exists():
-                    source_artifact = Artifact(source_path, ArtifactType.CODE, {"role": "source"})
+                    source_artifact = Artifact(
+                        source_path, ArtifactType.CODE, {"role": "source"}
+                    )
                     self.artifacts[str(source_path)] = source_artifact
                     self.graph.add_node(str(source_path), artifact=source_artifact)
-                    self.graph.add_edge(str(package_full_path), str(source_path), relationship="contains")
+                    self.graph.add_edge(
+                        str(package_full_path),
+                        str(source_path),
+                        relationship="contains",
+                    )
                     self._process_directory(source_path, ArtifactType.CODE)
 
             # Process tests directory if specified
@@ -247,10 +289,14 @@ class ProjectModel:
             if tests_dir:
                 tests_path = package_full_path / tests_dir
                 if tests_path.exists():
-                    tests_artifact = Artifact(tests_path, ArtifactType.TEST, {"role": "test"})
+                    tests_artifact = Artifact(
+                        tests_path, ArtifactType.TEST, {"role": "test"}
+                    )
                     self.artifacts[str(tests_path)] = tests_artifact
                     self.graph.add_node(str(tests_path), artifact=tests_artifact)
-                    self.graph.add_edge(str(package_full_path), str(tests_path), relationship="contains")
+                    self.graph.add_edge(
+                        str(package_full_path), str(tests_path), relationship="contains"
+                    )
                     self._process_directory(tests_path, ArtifactType.TEST)
 
         # Process shared directories (outside of packages)
@@ -273,12 +319,16 @@ class ProjectModel:
                 continue
 
             # Add documentation directory as an artifact
-            doc_artifact = Artifact(doc_path, ArtifactType.DOCUMENTATION, {"role": "shared_documentation"})
+            doc_artifact = Artifact(
+                doc_path, ArtifactType.DOCUMENTATION, {"role": "shared_documentation"}
+            )
             self.artifacts[str(doc_path)] = doc_artifact
             self.graph.add_node(str(doc_path), artifact=doc_artifact)
 
             # Add edge from root to documentation directory
-            self.graph.add_edge(str(self.project_root), str(doc_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(doc_path), relationship="contains"
+            )
 
             # Process files in documentation directory
             self._process_directory(doc_path, ArtifactType.DOCUMENTATION)
@@ -290,14 +340,22 @@ class ProjectModel:
             self.project_root / "config",
             self.project_root / "configs",
             self.project_root / ".vscode",
-            self.project_root / ".idea"
+            self.project_root / ".idea",
         ]
 
         # Common configuration files
         config_files = [
-            ".gitignore", ".editorconfig", ".prettierrc", ".eslintrc",
-            "tsconfig.json", "package.json", "pyproject.toml", "setup.py",
-            "requirements.txt", "Dockerfile", "docker-compose.yml"
+            ".gitignore",
+            ".editorconfig",
+            ".prettierrc",
+            ".eslintrc",
+            "tsconfig.json",
+            "package.json",
+            "pyproject.toml",
+            "setup.py",
+            "requirements.txt",
+            "Dockerfile",
+            "docker-compose.yml",
         ]
 
         # Process configuration directories
@@ -306,12 +364,18 @@ class ProjectModel:
                 continue
 
             # Add configuration directory as an artifact
-            config_artifact = Artifact(config_path, ArtifactType.CONFIGURATION, {"role": "shared_configuration"})
+            config_artifact = Artifact(
+                config_path,
+                ArtifactType.CONFIGURATION,
+                {"role": "shared_configuration"},
+            )
             self.artifacts[str(config_path)] = config_artifact
             self.graph.add_node(str(config_path), artifact=config_artifact)
 
             # Add edge from root to configuration directory
-            self.graph.add_edge(str(self.project_root), str(config_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(config_path), relationship="contains"
+            )
 
             # Process files in configuration directory
             self._process_directory(config_path, ArtifactType.CONFIGURATION)
@@ -323,17 +387,25 @@ class ProjectModel:
                 continue
 
             # Add configuration file as an artifact
-            config_artifact = Artifact(config_path, ArtifactType.CONFIGURATION, {"role": "shared_configuration"})
+            config_artifact = Artifact(
+                config_path,
+                ArtifactType.CONFIGURATION,
+                {"role": "shared_configuration"},
+            )
             self.artifacts[str(config_path)] = config_artifact
             self.graph.add_node(str(config_path), artifact=config_artifact)
 
             # Add edge from root to configuration file
-            self.graph.add_edge(str(self.project_root), str(config_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(config_path), relationship="contains"
+            )
 
     def _build_federated_model(self) -> None:
         """Build a model for a federated project with multiple repositories."""
         # Get custom layouts from manifest
-        custom_layouts = self.manifest_data.get("structure", {}).get("customLayouts", {})
+        custom_layouts = self.manifest_data.get("structure", {}).get(
+            "customLayouts", {}
+        )
 
         if not custom_layouts or custom_layouts.get("type") != "multi_project":
             # If no custom layouts or not a multi-project, fall back to standard model
@@ -355,25 +427,32 @@ class ProjectModel:
                 continue
 
             # Add repository as an artifact
-            repo_artifact = Artifact(repo_path, ArtifactType.CODE, {
-                "role": "repository",
-                "name": package_name
-            })
+            repo_artifact = Artifact(
+                repo_path,
+                ArtifactType.CODE,
+                {"role": "repository", "name": package_name},
+            )
             self.artifacts[str(repo_path)] = repo_artifact
             self.graph.add_node(str(repo_path), artifact=repo_artifact)
 
             # Add edge from project root to repository
-            self.graph.add_edge(str(self.project_root), str(repo_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(repo_path), relationship="contains"
+            )
 
             # Process source directory if specified
             source_dir = package.get("source", "")
             if source_dir:
                 source_path = repo_path / source_dir
                 if source_path.exists():
-                    source_artifact = Artifact(source_path, ArtifactType.CODE, {"role": "source"})
+                    source_artifact = Artifact(
+                        source_path, ArtifactType.CODE, {"role": "source"}
+                    )
                     self.artifacts[str(source_path)] = source_artifact
                     self.graph.add_node(str(source_path), artifact=source_artifact)
-                    self.graph.add_edge(str(repo_path), str(source_path), relationship="contains")
+                    self.graph.add_edge(
+                        str(repo_path), str(source_path), relationship="contains"
+                    )
                     self._process_directory(source_path, ArtifactType.CODE)
 
             # Process tests directory if specified
@@ -381,10 +460,14 @@ class ProjectModel:
             if tests_dir:
                 tests_path = repo_path / tests_dir
                 if tests_path.exists():
-                    tests_artifact = Artifact(tests_path, ArtifactType.TEST, {"role": "test"})
+                    tests_artifact = Artifact(
+                        tests_path, ArtifactType.TEST, {"role": "test"}
+                    )
                     self.artifacts[str(tests_path)] = tests_artifact
                     self.graph.add_node(str(tests_path), artifact=tests_artifact)
-                    self.graph.add_edge(str(repo_path), str(tests_path), relationship="contains")
+                    self.graph.add_edge(
+                        str(repo_path), str(tests_path), relationship="contains"
+                    )
                     self._process_directory(tests_path, ArtifactType.TEST)
 
         # Process shared directories (outside of repositories)
@@ -416,7 +499,9 @@ class ProjectModel:
             self.graph.add_node(str(src_path), artifact=src_artifact)
 
             # Add edge from root to source directory
-            self.graph.add_edge(str(self.project_root), str(src_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(src_path), relationship="contains"
+            )
 
             # Process files in source directory
             self._process_directory(src_path, ArtifactType.CODE)
@@ -434,7 +519,9 @@ class ProjectModel:
             self.graph.add_node(str(test_path), artifact=test_artifact)
 
             # Add edge from root to test directory
-            self.graph.add_edge(str(self.project_root), str(test_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(test_path), relationship="contains"
+            )
 
             # Process files in test directory
             self._process_directory(test_path, ArtifactType.TEST)
@@ -447,12 +534,16 @@ class ProjectModel:
                 continue
 
             # Add documentation directory as an artifact
-            doc_artifact = Artifact(doc_path, ArtifactType.DOCUMENTATION, {"role": "documentation"})
+            doc_artifact = Artifact(
+                doc_path, ArtifactType.DOCUMENTATION, {"role": "documentation"}
+            )
             self.artifacts[str(doc_path)] = doc_artifact
             self.graph.add_node(str(doc_path), artifact=doc_artifact)
 
             # Add edge from root to documentation directory
-            self.graph.add_edge(str(self.project_root), str(doc_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(doc_path), relationship="contains"
+            )
 
             # Process files in documentation directory
             self._process_directory(doc_path, ArtifactType.DOCUMENTATION)
@@ -465,47 +556,69 @@ class ProjectModel:
                 continue
 
             # Add entry point as an artifact
-            entry_artifact = Artifact(entry_path, ArtifactType.CODE, {"role": "entry_point"})
+            entry_artifact = Artifact(
+                entry_path, ArtifactType.CODE, {"role": "entry_point"}
+            )
             self.artifacts[str(entry_path)] = entry_artifact
             self.graph.add_node(str(entry_path), artifact=entry_artifact)
 
             # Add edge from root to entry point
-            self.graph.add_edge(str(self.project_root), str(entry_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(entry_path), relationship="contains"
+            )
 
         # Process include patterns
         include_patterns = structure.get("include", [])
         for pattern in include_patterns:
             # Find files matching the pattern
             for item_path in self.project_root.glob(pattern):
-                if not item_path.exists() or item_path.is_dir() or str(item_path) in self.artifacts:
+                if (
+                    not item_path.exists()
+                    or item_path.is_dir()
+                    or str(item_path) in self.artifacts
+                ):
                     continue
 
                 # Determine artifact type
-                artifact_type = self._determine_artifact_type(item_path, ArtifactType.UNKNOWN)
+                artifact_type = self._determine_artifact_type(
+                    item_path, ArtifactType.UNKNOWN
+                )
 
                 # Add file as an artifact
-                file_artifact = Artifact(item_path, artifact_type, {
-                    "extension": item_path.suffix,
-                    "parent_dir": str(item_path.parent),
-                    "included_by_pattern": pattern
-                })
+                file_artifact = Artifact(
+                    item_path,
+                    artifact_type,
+                    {
+                        "extension": item_path.suffix,
+                        "parent_dir": str(item_path.parent),
+                        "included_by_pattern": pattern,
+                    },
+                )
                 self.artifacts[str(item_path)] = file_artifact
                 self.graph.add_node(str(item_path), artifact=file_artifact)
 
                 # Add edge from parent directory to file
                 parent_dir = str(item_path.parent)
                 if parent_dir in self.artifacts:
-                    self.graph.add_edge(parent_dir, str(item_path), relationship="contains")
+                    self.graph.add_edge(
+                        parent_dir, str(item_path), relationship="contains"
+                    )
                 else:
                     # If parent directory is not yet an artifact, add it
-                    parent_artifact = Artifact(item_path.parent, ArtifactType.UNKNOWN, {"role": "directory"})
+                    parent_artifact = Artifact(
+                        item_path.parent, ArtifactType.UNKNOWN, {"role": "directory"}
+                    )
                     self.artifacts[parent_dir] = parent_artifact
                     self.graph.add_node(parent_dir, artifact=parent_artifact)
-                    self.graph.add_edge(parent_dir, str(item_path), relationship="contains")
+                    self.graph.add_edge(
+                        parent_dir, str(item_path), relationship="contains"
+                    )
 
                     # Add edge from root to parent directory
                     if parent_dir != str(self.project_root):
-                        self.graph.add_edge(str(self.project_root), parent_dir, relationship="contains")
+                        self.graph.add_edge(
+                            str(self.project_root), parent_dir, relationship="contains"
+                        )
 
         # Process key artifacts if specified
         key_artifacts = self.manifest_data.get("keyArtifacts", {})
@@ -517,15 +630,18 @@ class ProjectModel:
                 continue
 
             # Add key document as an artifact
-            doc_artifact = Artifact(doc_path, ArtifactType.DOCUMENTATION, {
-                "role": "key_document",
-                "purpose": key_doc.get("purpose", "")
-            })
+            doc_artifact = Artifact(
+                doc_path,
+                ArtifactType.DOCUMENTATION,
+                {"role": "key_document", "purpose": key_doc.get("purpose", "")},
+            )
             self.artifacts[str(doc_path)] = doc_artifact
             self.graph.add_node(str(doc_path), artifact=doc_artifact)
 
             # Add edge from root to key document
-            self.graph.add_edge(str(self.project_root), str(doc_path), relationship="contains")
+            self.graph.add_edge(
+                str(self.project_root), str(doc_path), relationship="contains"
+            )
 
     def get_artifact(self, path: Union[str, Path]) -> Optional[Artifact]:
         """
@@ -614,10 +730,11 @@ class ProjectModel:
             artifact_type = self._determine_artifact_type(item_path, default_type)
 
             # Add file as an artifact
-            file_artifact = Artifact(item_path, artifact_type, {
-                "extension": item_path.suffix,
-                "parent_dir": str(item_path.parent)
-            })
+            file_artifact = Artifact(
+                item_path,
+                artifact_type,
+                {"extension": item_path.suffix, "parent_dir": str(item_path.parent)},
+            )
             self.artifacts[str(item_path)] = file_artifact
             self.graph.add_node(str(item_path), artifact=file_artifact)
 
@@ -627,7 +744,9 @@ class ProjectModel:
                 self.graph.add_edge(parent_dir, str(item_path), relationship="contains")
             else:
                 # If parent directory is not yet an artifact, add it
-                parent_artifact = Artifact(item_path.parent, default_type, {"role": "directory"})
+                parent_artifact = Artifact(
+                    item_path.parent, default_type, {"role": "directory"}
+                )
                 self.artifacts[parent_dir] = parent_artifact
                 self.graph.add_node(parent_dir, artifact=parent_artifact)
                 self.graph.add_edge(parent_dir, str(item_path), relationship="contains")
@@ -637,10 +756,14 @@ class ProjectModel:
                 while str(current_parent) != str(directory):
                     current_parent = current_parent.parent
                     if str(current_parent) in self.artifacts:
-                        self.graph.add_edge(str(current_parent), parent_dir, relationship="contains")
+                        self.graph.add_edge(
+                            str(current_parent), parent_dir, relationship="contains"
+                        )
                         break
 
-    def _determine_artifact_type(self, file_path: Path, default_type: ArtifactType) -> ArtifactType:
+    def _determine_artifact_type(
+        self, file_path: Path, default_type: ArtifactType
+    ) -> ArtifactType:
         """
         Determine the artifact type based on the file extension and path.
 
@@ -652,20 +775,28 @@ class ProjectModel:
             The determined artifact type
         """
         # First check if it's a test file based on name
-        if 'test' in file_path.name.lower() or 'spec' in file_path.name.lower():
+        if "test" in file_path.name.lower() or "spec" in file_path.name.lower():
             return ArtifactType.TEST
 
         # Get file extension
         extension = file_path.suffix.lower()
 
         # Determine type based on extension
-        if extension in ['.py', '.js', '.ts', '.java', '.c', '.cpp', '.go', '.rs']:
+        if extension in [".py", ".js", ".ts", ".java", ".c", ".cpp", ".go", ".rs"]:
             return ArtifactType.CODE
-        elif extension in ['.md', '.rst', '.txt', '.pdf', '.html', '.docx']:
+        elif extension in [".md", ".rst", ".txt", ".pdf", ".html", ".docx"]:
             return ArtifactType.DOCUMENTATION
-        elif extension in ['.json', '.yaml', '.yml', '.toml', '.ini', '.cfg', '.conf']:
+        elif extension in [".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf"]:
             return ArtifactType.CONFIGURATION
-        elif extension in ['.sh', '.bat', '.ps1', '.cmd', '.Makefile', '.gradle', '.pom']:
+        elif extension in [
+            ".sh",
+            ".bat",
+            ".ps1",
+            ".cmd",
+            ".Makefile",
+            ".gradle",
+            ".pom",
+        ]:
             return ArtifactType.BUILD
 
         # If no specific type is determined, use the default
@@ -686,11 +817,12 @@ class ProjectModel:
                     "name": artifact.name,
                     "type": artifact.artifact_type.name,
                     "is_directory": artifact.is_directory,
-                    "metadata": artifact.metadata
-                } for path, artifact in self.artifacts.items()
+                    "metadata": artifact.metadata,
+                }
+                for path, artifact in self.artifacts.items()
             },
             "relationships": [
                 {"source": source, "target": target, "metadata": data}
                 for source, target, data in self.graph.edges(data=True)
-            ]
+            ],
         }

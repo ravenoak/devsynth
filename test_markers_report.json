@@ -1,29 +1,23 @@
 {
-  "timestamp": "2025-08-22T17:12:30.969557",
-  "verification": {
-    "directory": "tests",
-    "total_files": 746,
-    "files_with_issues": 0,
-    "skipped_files": 1,
-    "total_test_functions": 2524,
-    "total_markers": 1549,
-    "total_misaligned_markers": 0,
-    "total_duplicate_markers": 0,
-    "total_unrecognized_markers": 0,
-    "marker_counts": {
-      "fast": 127,
-      "medium": 1372,
-      "slow": 50,
-      "isolation": 0
-    },
-    "files": {},
-    "subprocess_timeouts": 0,
-    "missing_optional_dependencies": [
-      {
-        "file": "/workspace/devsynth/tests/behavior/test_agentapi.py",
-        "dependency": "fastapi"
-      }
-    ],
-    "success": true
-  }
+  "markers": {
+    "medium": 1282,
+    "fast": 119,
+    "requires_resource": 22,
+    "parametrize": 34,
+    "docker": 2,
+    "slow": 52,
+    "memory_intensive": 1,
+    "integtest": 1,
+    "asyncio": 10,
+    "integration": 1,
+    "skipif": 3,
+    "property": 16,
+    "no_network": 9,
+    "anyio": 3,
+    "unit": 2,
+    "smoke": 3,
+    "skip": 2
+  },
+  "files_scanned": 905,
+  "files_with_issues": 317
 }

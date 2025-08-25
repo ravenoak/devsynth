@@ -13,10 +13,9 @@ project.
 import threading
 from typing import Any, Callable, Optional, Sequence
 
-try:  # pragma: no cover - dearpygui may not be installed during tests
-    import dearpygui.dearpygui as dpg
-except Exception:  # pragma: no cover - gracefully handle missing dependency
-    dpg = None  # type: ignore
+# Lazy import: resolved in __init__ to allow tests to stub dearpygui safely
+# and to avoid loading the native extension during test collection.
+dpg = None  # type: ignore
 
 from .shared_bridge import SharedBridgeMixin
 from .ux_bridge import ProgressIndicator, UXBridge, sanitize_output
@@ -95,9 +94,17 @@ class DearPyGUIBridge(SharedBridgeMixin, UXBridge):
 
     def __init__(self) -> None:
         super().__init__()
-        if dpg is None:  # pragma: no cover - defensive
-            raise RuntimeError("dearpygui is required for DearPyGUIBridge")
-        if not dpg.is_viewport_created():
+        # Lazy import to avoid loading native extension during test collection
+        # and to allow tests to stub dearpygui before instantiation.
+        global dpg
+        if dpg is None:
+            try:
+                import importlib
+
+                dpg = importlib.import_module("dearpygui.dearpygui")
+            except Exception as exc:  # pragma: no cover - optional during tests
+                raise RuntimeError("dearpygui is required for DearPyGUIBridge") from exc
+        if not getattr(dpg, "is_viewport_created", lambda: False)():
             dpg.create_context()
             dpg.create_viewport(title="DevSynth")
             dpg.setup_dearpygui()

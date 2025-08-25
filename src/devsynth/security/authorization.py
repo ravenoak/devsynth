@@ -3,6 +3,7 @@
 from typing import Dict, Iterable
 
 from devsynth.exceptions import AuthorizationError
+
 from .validation import parse_bool_env
 
 

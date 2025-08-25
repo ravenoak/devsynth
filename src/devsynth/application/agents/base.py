@@ -4,13 +4,14 @@ Base agent class for the DevSynth system.
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
+
+# Create a logger for this module
+from devsynth.logging_setup import DevSynthLogger
+
 from ...domain.interfaces.agent import Agent
 from ...domain.models.agent import AgentConfig
 from ...domain.models.wsde import WSDE
 from ...ports.llm_port import LLMPort
-
-# Create a logger for this module
-from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError

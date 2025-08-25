@@ -1,7 +1,7 @@
 """Sample step definitions for behavior tests in DevSynth projects."""
 
 import pytest
-from pytest_bdd import given, when, then, scenarios
+from pytest_bdd import given, scenarios, then, when
 
 scenarios("sample.feature")
 

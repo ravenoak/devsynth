@@ -5,12 +5,12 @@ This module defines the DocumentationRepository class for storing and retrieving
 documentation in a version-aware manner, integrating with the memory system.
 """
 
-from typing import Dict, List, Optional, Any, Tuple
-import os
 import json
-from pathlib import Path
+import os
 import re
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
@@ -29,7 +29,9 @@ class DocumentationRepository:
     knowledge graph.
     """
 
-    def __init__(self, memory_manager: MemoryManager, storage_path: Optional[str] = None):
+    def __init__(
+        self, memory_manager: MemoryManager, storage_path: Optional[str] = None
+    ):
         """
         Initialize the documentation repository.
 
@@ -38,7 +40,9 @@ class DocumentationRepository:
             storage_path: Path to store documentation metadata (defaults to .devsynth/documentation)
         """
         self.memory_manager = memory_manager
-        self.storage_path = storage_path or os.path.join(os.getcwd(), ".devsynth", "documentation")
+        self.storage_path = storage_path or os.path.join(
+            os.getcwd(), ".devsynth", "documentation"
+        )
         self.metadata: Dict[str, Dict[str, Any]] = {}
 
         # Create the storage directory if it doesn't exist
@@ -47,10 +51,13 @@ class DocumentationRepository:
         # Load any existing metadata
         self._load_metadata()
 
-        logger.info(f"Documentation repository initialized with storage path: {self.storage_path}")
+        logger.info(
+            f"Documentation repository initialized with storage path: {self.storage_path}"
+        )
 
-    def store_documentation(self, library: str, version: str, 
-                           chunks: List[Dict[str, Any]]) -> str:
+    def store_documentation(
+        self, library: str, version: str, chunks: List[Dict[str, Any]]
+    ) -> str:
         """
         Store documentation for a library version.
 
@@ -70,7 +77,7 @@ class DocumentationRepository:
             "version": version,
             "chunk_count": len(chunks),
             "stored_at": datetime.now().isoformat(),
-            "status": "active"
+            "status": "active",
         }
 
         # Store each chunk in memory
@@ -87,9 +94,9 @@ class DocumentationRepository:
                     "source_url": chunk.get("metadata", {}).get("source_url", ""),
                     "section": chunk.get("metadata", {}).get("section", ""),
                     "type": "documentation",
-                    "chunk_index": i
+                    "chunk_index": i,
                 },
-                memory_type=MemoryType.KNOWLEDGE_GRAPH  # Using KNOWLEDGE_GRAPH since DOCUMENTATION is not in MemoryType
+                memory_type=MemoryType.KNOWLEDGE_GRAPH,  # Using KNOWLEDGE_GRAPH since DOCUMENTATION is not in MemoryType
             )
 
             # Store in vector memory for semantic search
@@ -105,7 +112,9 @@ class DocumentationRepository:
         self.metadata[doc_id]["chunk_ids"] = chunk_ids
         self._save_metadata()
 
-        logger.info(f"Stored {len(chunks)} documentation chunks for {library} {version}")
+        logger.info(
+            f"Stored {len(chunks)} documentation chunks for {library} {version}"
+        )
         return doc_id
 
     def get_documentation(self, library: str, version: str) -> Optional[Dict[str, Any]]:
@@ -136,9 +145,13 @@ class DocumentationRepository:
         doc_id = f"{library}-{version}"
         return doc_id in self.metadata
 
-    def query_documentation(self, query: str, libraries: Optional[List[str]] = None,
-                           version_constraints: Optional[Dict[str, str]] = None,
-                           limit: int = 10) -> List[Dict[str, Any]]:
+    def query_documentation(
+        self,
+        query: str,
+        libraries: Optional[List[str]] = None,
+        version_constraints: Optional[Dict[str, str]] = None,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
         """
         Query documentation using semantic search.
 
@@ -161,7 +174,7 @@ class DocumentationRepository:
             query=query,
             memory_type="DOCUMENTATION",  # Using string instead of enum since DOCUMENTATION is not in MemoryType
             metadata_filter=metadata_filter,
-            limit=limit * 2  # Get more results than needed for filtering
+            limit=limit * 2,  # Get more results than needed for filtering
         )
 
         # Filter by version constraints if provided
@@ -192,7 +205,7 @@ class DocumentationRepository:
                 "title": result.metadata.get("title"),
                 "source_url": result.metadata.get("source_url"),
                 "section": result.metadata.get("section"),
-                "relevance": result.score if hasattr(result, "score") else None
+                "relevance": result.score if hasattr(result, "score") else None,
             }
             for result in results
         ]
@@ -211,16 +224,15 @@ class DocumentationRepository:
             version = metadata["version"]
 
             if library not in libraries:
-                libraries[library] = {
-                    "name": library,
-                    "versions": []
-                }
+                libraries[library] = {"name": library, "versions": []}
 
-            libraries[library]["versions"].append({
-                "version": version,
-                "stored_at": metadata["stored_at"],
-                "chunk_count": metadata["chunk_count"]
-            })
+            libraries[library]["versions"].append(
+                {
+                    "version": version,
+                    "stored_at": metadata["stored_at"],
+                    "chunk_count": metadata["chunk_count"],
+                }
+            )
 
         return list(libraries.values())
 
@@ -275,7 +287,9 @@ class DocumentationRepository:
         logger.info(f"Deleted documentation for {library} {version}")
         return True
 
-    def _store_relationships(self, library: str, version: str, chunk: Dict[str, Any]) -> None:
+    def _store_relationships(
+        self, library: str, version: str, chunk: Dict[str, Any]
+    ) -> None:
         """Store relationships in the knowledge graph."""
         # Extract entities and relationships from the chunk
         content = chunk["content"]
@@ -286,51 +300,49 @@ class DocumentationRepository:
         self.memory_manager.add_graph_triple(
             subject=f"library:{library}",
             predicate="hasVersion",
-            object=f"version:{library}:{version}"
+            object=f"version:{library}:{version}",
         )
 
         # Add document-library relationship
         doc_id = f"doc:{library}:{version}:{metadata.get('section', 'unknown')}"
         self.memory_manager.add_graph_triple(
-            subject=doc_id,
-            predicate="describesLibrary",
-            object=f"library:{library}"
+            subject=doc_id, predicate="describesLibrary", object=f"library:{library}"
         )
 
         self.memory_manager.add_graph_triple(
             subject=doc_id,
             predicate="describesVersion",
-            object=f"version:{library}:{version}"
+            object=f"version:{library}:{version}",
         )
 
         # Extract and add function/class relationships if possible
         # This is a simple regex-based extraction and could be enhanced
-        class_matches = re.findall(r'class\s+(\w+)', content)
+        class_matches = re.findall(r"class\s+(\w+)", content)
         for class_name in class_matches:
             self.memory_manager.add_graph_triple(
                 subject=f"class:{library}:{class_name}",
                 predicate="definedIn",
-                object=f"library:{library}"
+                object=f"library:{library}",
             )
 
             self.memory_manager.add_graph_triple(
                 subject=f"class:{library}:{class_name}",
                 predicate="availableInVersion",
-                object=f"version:{library}:{version}"
+                object=f"version:{library}:{version}",
             )
 
-        function_matches = re.findall(r'def\s+(\w+)', content)
+        function_matches = re.findall(r"def\s+(\w+)", content)
         for function_name in function_matches:
             self.memory_manager.add_graph_triple(
                 subject=f"function:{library}:{function_name}",
                 predicate="definedIn",
-                object=f"library:{library}"
+                object=f"library:{library}",
             )
 
             self.memory_manager.add_graph_triple(
                 subject=f"function:{library}:{function_name}",
                 predicate="availableInVersion",
-                object=f"version:{library}:{version}"
+                object=f"version:{library}:{version}",
             )
 
     def _version_satisfies_constraint(self, version: str, constraint: str) -> bool:
@@ -339,7 +351,7 @@ class DocumentationRepository:
         # This could be enhanced with a proper version comparison library
 
         # Extract operator and version
-        match = re.match(r'^\s*(>=|<=|>|<|==|!=)\s*(.+)\s*$', constraint)
+        match = re.match(r"^\s*(>=|<=|>|<|==|!=)\s*(.+)\s*$", constraint)
         if not match:
             # If no operator, assume exact match
             return version == constraint
@@ -348,37 +360,37 @@ class DocumentationRepository:
 
         # Convert versions to tuples of integers for comparison
         try:
-            v1 = tuple(int(x) for x in version.split('.'))
-            v2 = tuple(int(x) for x in constraint_version.split('.'))
+            v1 = tuple(int(x) for x in version.split("."))
+            v2 = tuple(int(x) for x in constraint_version.split("."))
         except ValueError:
             # If conversion fails, fall back to string comparison
-            if operator == '>=':
+            if operator == ">=":
                 return version >= constraint_version
-            elif operator == '<=':
+            elif operator == "<=":
                 return version <= constraint_version
-            elif operator == '>':
+            elif operator == ">":
                 return version > constraint_version
-            elif operator == '<':
+            elif operator == "<":
                 return version < constraint_version
-            elif operator == '==':
+            elif operator == "==":
                 return version == constraint_version
-            elif operator == '!=':
+            elif operator == "!=":
                 return version != constraint_version
             else:
                 return False
 
         # Compare version tuples
-        if operator == '>=':
+        if operator == ">=":
             return v1 >= v2
-        elif operator == '<=':
+        elif operator == "<=":
             return v1 <= v2
-        elif operator == '>':
+        elif operator == ">":
             return v1 > v2
-        elif operator == '<':
+        elif operator == "<":
             return v1 < v2
-        elif operator == '==':
+        elif operator == "==":
             return v1 == v2
-        elif operator == '!=':
+        elif operator == "!=":
             return v1 != v2
         else:
             return False

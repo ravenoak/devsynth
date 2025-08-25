@@ -6,16 +6,16 @@ for capability declaration, discovery, and fulfillment between agents.
 """
 
 import time
-from devsynth.logging_setup import DevSynthLogger
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from devsynth.application.promises import (
-    Promise,
-    PromiseBroker,
-    PromiseAgent,
     CapabilityNotFoundError,
+    Promise,
+    PromiseAgent,
+    PromiseBroker,
     UnauthorizedAccessError,
 )
+from devsynth.logging_setup import DevSynthLogger
 
 # Setup logger
 logger = DevSynthLogger(__name__)

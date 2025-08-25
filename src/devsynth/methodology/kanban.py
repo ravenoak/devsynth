@@ -36,7 +36,9 @@ class KanbanAdapter(BaseMethodologyAdapter):
         if not results.get("phase_complete"):
             return False
         next_phase = self._next_phase(current_phase)
-        if self.board_state[next_phase] >= self.wip_limits.get(next_phase, float("inf")):
+        if self.board_state[next_phase] >= self.wip_limits.get(
+            next_phase, float("inf")
+        ):
             return False
         self.board_state[current_phase] = max(0, self.board_state[current_phase] - 1)
         self.board_state[next_phase] += 1

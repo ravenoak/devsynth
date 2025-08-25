@@ -3,55 +3,67 @@
 This script generates a page for each module in the DevSynth package,
 using the manifest.yaml file to understand project structure.
 """
-from pathlib import Path
-import yaml
+
 import sys
+from pathlib import Path
+
 import mkdocs_gen_files
+import yaml
+
 
 def load_manifest(manifest_path):
     """Load the project manifest file."""
     try:
-        with open(manifest_path, 'r') as f:
+        with open(manifest_path, "r") as f:
             return yaml.safe_load(f)
     except (FileNotFoundError, yaml.YAMLError) as e:
         print(f"Error loading manifest: {e}")
         return None
 
+
 def main():
     root = Path(__file__).parent.parent
     manifest_path = root / "manifest.yaml"
     manifest = load_manifest(manifest_path)
-    
+
     if not manifest:
         print("Warning: Using default src directory since manifest couldn't be loaded")
         src_dirs = [root / "src"]
     else:
         # Get source directories from project structure if available
         src_dirs = []
-        if "structure" in manifest and "directories" in manifest["structure"] and "source" in manifest["structure"]["directories"]:
+        if (
+            "structure" in manifest
+            and "directories" in manifest["structure"]
+            and "source" in manifest["structure"]["directories"]
+        ):
             for src_dir in manifest["structure"]["directories"]["source"]:
                 src_dirs.append(root / src_dir)
-        
+
         # Check for custom layouts and monorepos
         if "structure" in manifest and "customLayouts" in manifest["structure"]:
             custom = manifest["structure"]["customLayouts"]
-            if "type" in custom and custom["type"] == "monorepo" and "packages" in custom:
+            if (
+                "type" in custom
+                and custom["type"] == "monorepo"
+                and "packages" in custom
+            ):
                 for package in custom["packages"]:
                     if "path" in package and "source" in package:
                         src_dirs.append(root / package["path"] / package["source"])
-        
+
         # If no source directories specified, default to src/
         if not src_dirs:
             src_dirs = [root / "src"]
-    
+
     nav = mkdocs_gen_files.Nav()
-    
+
     # Process each source directory
     for src in src_dirs:
         if not src.exists():
             print(f"Warning: Source directory {src} does not exist")
             continue
-            
+
         print(f"Generating API reference for {src}")
         for path in sorted(src.rglob("*.py")):
             module_path = path.relative_to(src).with_suffix("")
@@ -77,6 +89,7 @@ def main():
 
     with mkdocs_gen_files.open("api_reference/SUMMARY.md", "w") as nav_file:
         nav_file.writelines(nav.build_literate_nav())
+
 
 if __name__ == "__main__":
     main()

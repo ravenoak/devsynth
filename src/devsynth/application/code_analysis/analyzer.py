@@ -2,18 +2,18 @@
 Code analyzer implementation.
 """
 
-import os
 import ast
 import inspect
+import os
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from devsynth.domain.interfaces.code_analysis import (
     CodeAnalysisProvider,
-    FileAnalysisResult,
     CodeAnalysisResult,
+    FileAnalysisResult,
 )
-from devsynth.domain.models.code_analysis import FileAnalysis, CodeAnalysis
+from devsynth.domain.models.code_analysis import CodeAnalysis, FileAnalysis
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger

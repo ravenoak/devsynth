@@ -5,20 +5,24 @@ This module contains methods for enhanced dialectical reasoning, including
 multi-solution analysis, comparative analysis, and evaluation.
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime
-from uuid import uuid4
 import re
-
-from devsynth.logging_setup import DevSynthLogger
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 # Import the base WSDETeam class for type hints
 from devsynth.domain.models.wsde_base import WSDETeam
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
 
-def apply_enhanced_dialectical_reasoning(self: WSDETeam, task: Dict[str, Any], critic_agent: Any, memory_integration: Any = None) -> Dict[str, Any]:
+def apply_enhanced_dialectical_reasoning(
+    self: WSDETeam,
+    task: Dict[str, Any],
+    critic_agent: Any,
+    memory_integration: Any = None,
+) -> Dict[str, Any]:
     """
     Apply enhanced dialectical reasoning to a task.
 
@@ -34,7 +38,9 @@ def apply_enhanced_dialectical_reasoning(self: WSDETeam, task: Dict[str, Any], c
     Returns:
         A dictionary containing the synthesis result
     """
-    logger.info(f"Applying enhanced dialectical reasoning to task: {task.get('id', 'unknown')}")
+    logger.info(
+        f"Applying enhanced dialectical reasoning to task: {task.get('id', 'unknown')}"
+    )
 
     # Get the solution from the task
     solution = task.get("solution", {})
@@ -62,7 +68,7 @@ def apply_enhanced_dialectical_reasoning(self: WSDETeam, task: Dict[str, Any], c
                 thesis=thesis,
                 antithesis=antithesis,
                 synthesis=synthesis,
-                evaluation=evaluation
+                evaluation=evaluation,
             )
             logger.info("Stored dialectical process in memory")
         except Exception as e:
@@ -78,7 +84,12 @@ def apply_enhanced_dialectical_reasoning(self: WSDETeam, task: Dict[str, Any], c
     return synthesis
 
 
-def apply_enhanced_dialectical_reasoning_multi(self: WSDETeam, task: Dict[str, Any], critic_agent: Any, memory_integration: Any = None) -> Dict[str, Any]:
+def apply_enhanced_dialectical_reasoning_multi(
+    self: WSDETeam,
+    task: Dict[str, Any],
+    critic_agent: Any,
+    memory_integration: Any = None,
+) -> Dict[str, Any]:
     """
     Apply enhanced dialectical reasoning to multiple solutions for a task.
 
@@ -94,13 +105,19 @@ def apply_enhanced_dialectical_reasoning_multi(self: WSDETeam, task: Dict[str, A
     Returns:
         A dictionary containing the synthesis result
     """
-    logger.info(f"Applying enhanced multi-solution dialectical reasoning to task: {task.get('id', 'unknown')}")
+    logger.info(
+        f"Applying enhanced multi-solution dialectical reasoning to task: {task.get('id', 'unknown')}"
+    )
 
     # Get the solutions from the task
     solutions = task.get("solutions", [])
     if not solutions:
-        logger.warning("No solutions found in task for multi-solution dialectical reasoning")
-        return {"error": "No solutions found in task for multi-solution dialectical reasoning"}
+        logger.warning(
+            "No solutions found in task for multi-solution dialectical reasoning"
+        )
+        return {
+            "error": "No solutions found in task for multi-solution dialectical reasoning"
+        }
 
     # Analyze each solution
     solution_analyses = []
@@ -115,7 +132,9 @@ def apply_enhanced_dialectical_reasoning_multi(self: WSDETeam, task: Dict[str, A
     synthesis = self._generate_multi_solution_synthesis(solutions, comparative_analysis)
 
     # Generate evaluation
-    evaluation = self._generate_comparative_evaluation(synthesis, solutions, comparative_analysis)
+    evaluation = self._generate_comparative_evaluation(
+        synthesis, solutions, comparative_analysis
+    )
 
     # Store the dialectical process in memory if memory integration is provided
     if memory_integration:
@@ -126,11 +145,13 @@ def apply_enhanced_dialectical_reasoning_multi(self: WSDETeam, task: Dict[str, A
                 solution_analyses=solution_analyses,
                 comparative_analysis=comparative_analysis,
                 synthesis=synthesis,
-                evaluation=evaluation
+                evaluation=evaluation,
             )
             logger.info("Stored multi-solution dialectical process in memory")
         except Exception as e:
-            logger.error(f"Failed to store multi-solution dialectical process in memory: {str(e)}")
+            logger.error(
+                f"Failed to store multi-solution dialectical process in memory: {str(e)}"
+            )
 
     # Call any registered dialectical hooks
     for hook in self.dialectical_hooks:
@@ -142,7 +163,9 @@ def apply_enhanced_dialectical_reasoning_multi(self: WSDETeam, task: Dict[str, A
     return synthesis
 
 
-def _identify_thesis(self: WSDETeam, thesis_solution: Dict[str, Any], task: Dict[str, Any]) -> Dict[str, Any]:
+def _identify_thesis(
+    self: WSDETeam, thesis_solution: Dict[str, Any], task: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Identify the thesis from a solution.
 
@@ -176,7 +199,9 @@ def _identify_thesis(self: WSDETeam, thesis_solution: Dict[str, Any], task: Dict
     return thesis
 
 
-def _generate_enhanced_antithesis(self: WSDETeam, thesis: Dict[str, Any], critic_agent: Any) -> Dict[str, Any]:
+def _generate_enhanced_antithesis(
+    self: WSDETeam, thesis: Dict[str, Any], critic_agent: Any
+) -> Dict[str, Any]:
     """
     Generate an enhanced antithesis for a thesis.
 
@@ -191,7 +216,9 @@ def _generate_enhanced_antithesis(self: WSDETeam, thesis: Dict[str, Any], critic
     Returns:
         A dictionary containing the antithesis
     """
-    logger.info(f"Generating enhanced antithesis for thesis: {thesis.get('id', 'unknown')}")
+    logger.info(
+        f"Generating enhanced antithesis for thesis: {thesis.get('id', 'unknown')}"
+    )
 
     # Extract content and code from thesis
     content = thesis.get("content", "")
@@ -251,7 +278,9 @@ def _generate_enhanced_antithesis(self: WSDETeam, thesis: Dict[str, Any], critic
     return antithesis
 
 
-def _generate_enhanced_synthesis(self: WSDETeam, thesis: Dict[str, Any], antithesis: Dict[str, Any]) -> Dict[str, Any]:
+def _generate_enhanced_synthesis(
+    self: WSDETeam, thesis: Dict[str, Any], antithesis: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Generate an enhanced synthesis from a thesis and antithesis.
 
@@ -266,7 +295,9 @@ def _generate_enhanced_synthesis(self: WSDETeam, thesis: Dict[str, Any], antithe
     Returns:
         A dictionary containing the synthesis
     """
-    logger.info(f"Generating enhanced synthesis for thesis: {thesis.get('id', 'unknown')}")
+    logger.info(
+        f"Generating enhanced synthesis for thesis: {thesis.get('id', 'unknown')}"
+    )
 
     # Extract content and code from thesis
     content = thesis.get("content", "")
@@ -326,13 +357,13 @@ def _generate_enhanced_synthesis(self: WSDETeam, thesis: Dict[str, Any], antithe
             resolution = self._resolve_code_improvement_conflict(
                 conflict,
                 domain_improvements.get(domain1, []),
-                domain_improvements.get(domain2, [])
+                domain_improvements.get(domain2, []),
             )
         else:
             resolution = self._resolve_content_improvement_conflict(
                 conflict,
                 domain_improvements.get(domain1, []),
-                domain_improvements.get(domain2, [])
+                domain_improvements.get(domain2, []),
             )
 
         resolved_conflicts.append(resolution)
@@ -345,7 +376,9 @@ def _generate_enhanced_synthesis(self: WSDETeam, thesis: Dict[str, Any], antithe
             "security": self._check_security_best_practices(code),
         }
     if content:
-        standards_compliance["content"] = self._check_content_standards_compliance(content)
+        standards_compliance["content"] = self._check_content_standards_compliance(
+            content
+        )
 
     # Generate detailed reasoning
     synthesis_reasoning = self._generate_detailed_synthesis_reasoning(
@@ -353,7 +386,7 @@ def _generate_enhanced_synthesis(self: WSDETeam, thesis: Dict[str, Any], antithe
         domain_improvements,
         domain_conflicts,
         resolved_conflicts,
-        standards_compliance
+        standards_compliance,
     )
 
     # Create the synthesis
@@ -373,7 +406,12 @@ def _generate_enhanced_synthesis(self: WSDETeam, thesis: Dict[str, Any], antithe
     return synthesis
 
 
-def _generate_evaluation(self: WSDETeam, synthesis: Dict[str, Any], antithesis: Dict[str, Any], task: Dict[str, Any]) -> Dict[str, Any]:
+def _generate_evaluation(
+    self: WSDETeam,
+    synthesis: Dict[str, Any],
+    antithesis: Dict[str, Any],
+    task: Dict[str, Any],
+) -> Dict[str, Any]:
     """
     Generate an evaluation of a synthesis.
 
@@ -389,7 +427,9 @@ def _generate_evaluation(self: WSDETeam, synthesis: Dict[str, Any], antithesis: 
     Returns:
         A dictionary containing the evaluation
     """
-    logger.info(f"Generating evaluation for synthesis: {synthesis.get('id', 'unknown')}")
+    logger.info(
+        f"Generating evaluation for synthesis: {synthesis.get('id', 'unknown')}"
+    )
 
     # Extract critiques from antithesis
     critiques = antithesis.get("critiques", [])
@@ -404,11 +444,13 @@ def _generate_evaluation(self: WSDETeam, synthesis: Dict[str, Any], antithesis: 
     for critique in critiques:
         # Simple evaluation: check if the critique is mentioned in the reasoning
         addressed = critique.lower() in synthesis.get("reasoning", "").lower()
-        critique_evaluations.append({
-            "critique": critique,
-            "addressed": addressed,
-            "explanation": f"The critique was {'addressed' if addressed else 'not clearly addressed'} in the synthesis reasoning."
-        })
+        critique_evaluations.append(
+            {
+                "critique": critique,
+                "addressed": addressed,
+                "explanation": f"The critique was {'addressed' if addressed else 'not clearly addressed'} in the synthesis reasoning.",
+            }
+        )
 
     # Evaluate how well the synthesis addresses domain-specific critiques
     domain_evaluations = {}
@@ -426,7 +468,7 @@ def _generate_evaluation(self: WSDETeam, synthesis: Dict[str, Any], antithesis: 
             "score": score,
             "critique_count": critique_count,
             "improvement_count": improvement_count,
-            "explanation": f"The synthesis addressed {improvement_count} out of {critique_count} critiques in the {domain} domain."
+            "explanation": f"The synthesis addressed {improvement_count} out of {critique_count} critiques in the {domain} domain.",
         }
 
     # Evaluate how well the synthesis meets requirements
@@ -437,11 +479,13 @@ def _generate_evaluation(self: WSDETeam, synthesis: Dict[str, Any], antithesis: 
         code_match = req.lower() in synthesis.get("code", "").lower()
         addressed = content_match or code_match
 
-        requirement_evaluations.append({
-            "requirement": req,
-            "addressed": addressed,
-            "explanation": f"The requirement was {'addressed' if addressed else 'not clearly addressed'} in the synthesis."
-        })
+        requirement_evaluations.append(
+            {
+                "requirement": req,
+                "addressed": addressed,
+                "explanation": f"The requirement was {'addressed' if addressed else 'not clearly addressed'} in the synthesis.",
+            }
+        )
 
     # Evaluate how well the synthesis respects constraints
     constraint_evaluations = []
@@ -451,19 +495,31 @@ def _generate_evaluation(self: WSDETeam, synthesis: Dict[str, Any], antithesis: 
         violated = False
         explanation = f"The constraint appears to be respected in the synthesis."
 
-        constraint_evaluations.append({
-            "constraint": constraint,
-            "respected": not violated,
-            "explanation": explanation
-        })
+        constraint_evaluations.append(
+            {
+                "constraint": constraint,
+                "respected": not violated,
+                "explanation": explanation,
+            }
+        )
 
     # Calculate overall scores
-    critique_score = sum(1 for eval in critique_evaluations if eval["addressed"]) / max(1, len(critique_evaluations))
-    domain_score = sum(eval["score"] for eval in domain_evaluations.values()) / max(1, len(domain_evaluations))
-    requirement_score = sum(1 for eval in requirement_evaluations if eval["addressed"]) / max(1, len(requirement_evaluations))
-    constraint_score = sum(1 for eval in constraint_evaluations if eval["respected"]) / max(1, len(constraint_evaluations))
+    critique_score = sum(1 for eval in critique_evaluations if eval["addressed"]) / max(
+        1, len(critique_evaluations)
+    )
+    domain_score = sum(eval["score"] for eval in domain_evaluations.values()) / max(
+        1, len(domain_evaluations)
+    )
+    requirement_score = sum(
+        1 for eval in requirement_evaluations if eval["addressed"]
+    ) / max(1, len(requirement_evaluations))
+    constraint_score = sum(
+        1 for eval in constraint_evaluations if eval["respected"]
+    ) / max(1, len(constraint_evaluations))
 
-    overall_score = (critique_score + domain_score + requirement_score + constraint_score) / 4
+    overall_score = (
+        critique_score + domain_score + requirement_score + constraint_score
+    ) / 4
 
     # Create the evaluation
     evaluation = {
@@ -479,7 +535,7 @@ def _generate_evaluation(self: WSDETeam, synthesis: Dict[str, Any], antithesis: 
         "requirement_score": requirement_score,
         "constraint_score": constraint_score,
         "overall_score": overall_score,
-        "explanation": f"The synthesis achieved an overall score of {overall_score:.2f} out of 1.0, indicating {'excellent' if overall_score > 0.8 else 'good' if overall_score > 0.6 else 'fair' if overall_score > 0.4 else 'poor'} quality."
+        "explanation": f"The synthesis achieved an overall score of {overall_score:.2f} out of 1.0, indicating {'excellent' if overall_score > 0.8 else 'good' if overall_score > 0.6 else 'fair' if overall_score > 0.4 else 'poor'} quality.",
     }
 
     return evaluation

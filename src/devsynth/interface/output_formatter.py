@@ -4,28 +4,29 @@ This module provides utilities for formatting output in a consistent way
 across different interfaces (CLI, WebUI, etc.).
 """
 
-from typing import Optional, Dict, Any, Union, List, Tuple
-import re
 import html
 import json
-import yaml
+import re
 import textwrap
 from enum import Enum, auto
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import yaml
+from rich.box import ROUNDED, Box
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.style import Style
-from rich.text import Text
-from rich.markdown import Markdown
-from rich.table import Table
-from rich.box import Box, ROUNDED
 from rich.syntax import Syntax
+from rich.table import Table
+from rich.text import Text
 
-from devsynth.security import sanitize_input
+from devsynth.interface.ux_bridge import sanitize_output as global_sanitize_output
 
 
 class OutputFormat(Enum):
     """Enum for output formats."""
+
     TEXT = auto()
     JSON = auto()
     YAML = auto()
@@ -45,7 +46,9 @@ class OutputFormatter:
     # Regular expressions for detecting message types
     ERROR_PATTERN = re.compile(r"^(ERROR|FAILED|CRITICAL)[\s:]", re.IGNORECASE)
     WARNING_PATTERN = re.compile(r"^WARNING[\s:]", re.IGNORECASE)
-    SUCCESS_PATTERN = re.compile(r"^(SUCCESS|COMPLETED)[\s:]|successfully", re.IGNORECASE)
+    SUCCESS_PATTERN = re.compile(
+        r"^(SUCCESS|COMPLETED)[\s:]|successfully", re.IGNORECASE
+    )
     INFO_PATTERN = re.compile(r"^(INFO|NOTE)[\s:]", re.IGNORECASE)
     HEADING_PATTERN = re.compile(r"^(#+)\s+(.*)")
 
@@ -70,7 +73,11 @@ class OutputFormatter:
         "rich": OutputFormat.RICH,
     }
 
-    def __init__(self, console: Optional[Console] = None, default_format: OutputFormat = OutputFormat.RICH) -> None:
+    def __init__(
+        self,
+        console: Optional[Console] = None,
+        default_format: OutputFormat = OutputFormat.RICH,
+    ) -> None:
         """Initialize the output formatter.
 
         Args:
@@ -85,6 +92,11 @@ class OutputFormatter:
 
     def sanitize_output(self, text: str) -> str:
         """Sanitize and escape user provided text for safe display.
+
+        This delegates to the centralized sanitization policy in
+        devsynth.interface.ux_bridge.sanitize_output so that all interfaces
+        (CLI, WebUI, Agent API) respect the same environment toggles and
+        behavior.
 
         Args:
             text: The text to sanitize
@@ -104,13 +116,8 @@ class OutputFormatter:
         # Convert to string if not already
         text_str = str(text)
 
-        # First sanitize the input to remove any potentially harmful content
-        sanitized = sanitize_input(text_str)
-
-        # Then escape HTML entities to prevent XSS attacks
-        escaped = html.escape(sanitized)
-
-        return escaped
+        # Delegate to the global sanitizer (respects DEVSYNTH_SANITIZATION_ENABLED)
+        return global_sanitize_output(text_str)
 
     def detect_message_type(self, message: str) -> str:
         """Detect the type of message based on its content.
@@ -140,7 +147,9 @@ class OutputFormatter:
 
         return "normal"
 
-    def format_message(self, message: str, message_type: Optional[str] = None, highlight: bool = False) -> Union[str, Text, Panel, Markdown]:
+    def format_message(
+        self, message: str, message_type: Optional[str] = None, highlight: bool = False
+    ) -> Union[str, Text, Panel, Markdown]:
         """Format a message based on its type and highlight flag.
 
         Args:
@@ -196,12 +205,16 @@ class OutputFormatter:
             highlight: Whether to highlight the message
         """
         if not self.console:
-            raise ValueError("Console not set. Use set_console() or provide a console in the constructor.")
+            raise ValueError(
+                "Console not set. Use set_console() or provide a console in the constructor."
+            )
 
         formatted = self.format_message(message, highlight=highlight)
 
         if isinstance(formatted, Panel):
-            self.console.print(formatted, style="bold white on blue" if highlight else None)
+            self.console.print(
+                formatted, style="bold white on blue" if highlight else None
+            )
         elif isinstance(formatted, Text):
             self.console.print(formatted)
         else:
@@ -240,7 +253,9 @@ class OutputFormatter:
 
         return "\n".join(result)
 
-    def format_list(self, items: list, title: Optional[str] = None, bullet: str = "•") -> str:
+    def format_list(
+        self, items: list, title: Optional[str] = None, bullet: str = "•"
+    ) -> str:
         """Format a list of items.
 
         Args:
@@ -263,7 +278,9 @@ class OutputFormatter:
 
         return "\n".join(result)
 
-    def format_structured(self, data: Any, output_format: OutputFormat = None, title: Optional[str] = None) -> Union[str, Panel, Table, Syntax]:
+    def format_structured(
+        self, data: Any, output_format: OutputFormat = None, title: Optional[str] = None
+    ) -> Union[str, Panel, Table, Syntax]:
         """Format data in a structured format (JSON, YAML, etc.).
 
         Args:
@@ -285,7 +302,9 @@ class OutputFormatter:
             return json_str
 
         elif output_format == OutputFormat.YAML:
-            yaml_str = yaml.dump(data, indent=self.indent, sort_keys=True, default_flow_style=False)
+            yaml_str = yaml.dump(
+                data, indent=self.indent, sort_keys=True, default_flow_style=False
+            )
             if self.console:
                 return Syntax(yaml_str, "yaml", theme="monokai", line_numbers=True)
             return yaml_str
@@ -303,7 +322,9 @@ class OutputFormatter:
             # Convert data to a table
             if isinstance(data, dict):
                 return self._dict_to_table(data, title)
-            elif isinstance(data, list) and all(isinstance(item, dict) for item in data):
+            elif isinstance(data, list) and all(
+                isinstance(item, dict) for item in data
+            ):
                 return self._list_of_dicts_to_table(data, title)
             else:
                 # Fall back to text format for non-tabular data
@@ -332,7 +353,9 @@ class OutputFormatter:
                 result.append(str(data))
                 return "\n".join(result)
 
-    def _dict_to_markdown(self, data: Dict[str, Any], title: Optional[str] = None) -> str:
+    def _dict_to_markdown(
+        self, data: Dict[str, Any], title: Optional[str] = None
+    ) -> str:
         """Convert a dictionary to markdown format.
 
         Args:
@@ -403,7 +426,9 @@ class OutputFormatter:
 
         return "\n".join(result)
 
-    def _dict_to_table(self, data: Dict[str, Any], title: Optional[str] = None) -> Table:
+    def _dict_to_table(
+        self, data: Dict[str, Any], title: Optional[str] = None
+    ) -> Table:
         """Convert a dictionary to a Rich table.
 
         Args:
@@ -430,7 +455,9 @@ class OutputFormatter:
 
         return table
 
-    def _list_of_dicts_to_table(self, data: List[Dict[str, Any]], title: Optional[str] = None) -> Table:
+    def _list_of_dicts_to_table(
+        self, data: List[Dict[str, Any]], title: Optional[str] = None
+    ) -> Table:
         """Convert a list of dictionaries to a Rich table.
 
         Args:
@@ -484,7 +511,9 @@ class OutputFormatter:
         # Wrap the table in a panel with the title
         return Panel(table, title=title, border_style="blue")
 
-    def _list_to_rich(self, data: List[Any], title: Optional[str] = None) -> Union[Panel, Table]:
+    def _list_to_rich(
+        self, data: List[Any], title: Optional[str] = None
+    ) -> Union[Panel, Table]:
         """Convert a list to a Rich panel or table.
 
         Args:
@@ -511,7 +540,9 @@ class OutputFormatter:
             # Wrap the text in a panel with the title
             return Panel(text, title=title, border_style="blue")
 
-    def set_format_options(self, indent: int = None, spacing: int = None, line_width: int = None) -> None:
+    def set_format_options(
+        self, indent: int = None, spacing: int = None, line_width: int = None
+    ) -> None:
         """Set formatting options.
 
         Args:
@@ -526,7 +557,9 @@ class OutputFormatter:
         if line_width is not None:
             self.line_width = line_width
 
-    def format_command_output(self, data: Any, format_name: str = None, title: Optional[str] = None) -> Union[str, Panel, Table, Syntax]:
+    def format_command_output(
+        self, data: Any, format_name: str = None, title: Optional[str] = None
+    ) -> Union[str, Panel, Table, Syntax]:
         """Format command output in the specified format.
 
         This is a convenience method for CLI commands to format their output
@@ -543,7 +576,9 @@ class OutputFormatter:
         # Determine the output format
         output_format = self.default_format
         if format_name:
-            output_format = self.FORMAT_EXTENSIONS.get(format_name.lower(), self.default_format)
+            output_format = self.FORMAT_EXTENSIONS.get(
+                format_name.lower(), self.default_format
+            )
 
         # Format the data
         return self.format_structured(data, output_format, title)

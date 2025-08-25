@@ -2,12 +2,12 @@
 Domain models for code analysis.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from devsynth.domain.interfaces.code_analysis import (
-    FileAnalysisResult, 
     CodeAnalysisResult,
-    TransformationResult
+    FileAnalysisResult,
+    TransformationResult,
 )
 
 
@@ -21,7 +21,7 @@ class FileAnalysis(FileAnalysisResult):
         functions: List[Dict[str, Any]],
         variables: List[Dict[str, Any]],
         docstring: str,
-        metrics: Dict[str, Any]
+        metrics: Dict[str, Any],
     ):
         """Initialize a FileAnalysis instance.
 
@@ -73,7 +73,7 @@ class CodeAnalysis(CodeAnalysisResult):
         files: Dict[str, FileAnalysisResult],
         symbols: Dict[str, List[Dict[str, Any]]],
         dependencies: Dict[str, List[str]],
-        metrics: Dict[str, Any]
+        metrics: Dict[str, Any],
     ):
         """Initialize a CodeAnalysis instance.
 
@@ -115,14 +115,18 @@ class CodeAnalysis(CodeAnalysisResult):
     def to_dict(self) -> Dict[str, Any]:
         """Convert the CodeAnalysis object to a dictionary representation."""
         return {
-            "files": {path: self._serialize_file_analysis(file_analysis) 
-                     for path, file_analysis in self._files.items()},
+            "files": {
+                path: self._serialize_file_analysis(file_analysis)
+                for path, file_analysis in self._files.items()
+            },
             "symbols": self._symbols,
             "dependencies": self._dependencies,
-            "metrics": self._metrics
+            "metrics": self._metrics,
         }
 
-    def _serialize_file_analysis(self, file_analysis: FileAnalysisResult) -> Dict[str, Any]:
+    def _serialize_file_analysis(
+        self, file_analysis: FileAnalysisResult
+    ) -> Dict[str, Any]:
         """Serialize a FileAnalysisResult object to a dictionary."""
         return {
             "imports": file_analysis.get_imports(),
@@ -130,7 +134,7 @@ class CodeAnalysis(CodeAnalysisResult):
             "functions": file_analysis.get_functions(),
             "variables": file_analysis.get_variables(),
             "docstring": file_analysis.get_docstring(),
-            "metrics": file_analysis.get_metrics()
+            "metrics": file_analysis.get_metrics(),
         }
 
 
@@ -138,10 +142,7 @@ class CodeTransformation(TransformationResult):
     """Implementation of TransformationResult for storing code transformation data."""
 
     def __init__(
-        self,
-        original_code: str,
-        transformed_code: str,
-        changes: List[Dict[str, Any]]
+        self, original_code: str, transformed_code: str, changes: List[Dict[str, Any]]
     ):
         """Initialize a CodeTransformation instance.
 
@@ -171,5 +172,5 @@ class CodeTransformation(TransformationResult):
         return {
             "original_code": self._original_code,
             "transformed_code": self._transformed_code,
-            "changes": self._changes
+            "changes": self._changes,
         }

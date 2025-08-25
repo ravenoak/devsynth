@@ -40,11 +40,11 @@ import os
 import sys
 
 from dotenv import load_dotenv
+from langchain.agents import AgentExecutor, create_react_agent
 from langchain.prompts import PromptTemplate
 from langchain.tools.base import BaseTool
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_react_agent
 
 
 def run_search_agent(query: str) -> str:
@@ -83,7 +83,9 @@ def run_search_agent(query: str) -> str:
 
     class WebSearchTool(BaseTool):
         name: str = "WebSearch"
-        description: str = "Use this to search for real-time information about current events, tools, definitions, or any other factual information from the web. Use this for any questions requiring up-to-date information."
+        description: str = (
+            "Use this to search for real-time information about current events, tools, definitions, or any other factual information from the web. Use this for any questions requiring up-to-date information."
+        )
 
         def _run(self, query: str) -> str:
             return search_tool.run(query)
@@ -140,34 +142,29 @@ Begin your analysis now, using the WebSearch tool to gather information.
 """
 
     # Initialize the LLM and agent
-    #llm = ChatOpenAI(temperature=0, api_key=None, model="qwen3-30b-a3b", base_url="http://localhost:1234/v1")
+    # llm = ChatOpenAI(temperature=0, api_key=None, model="qwen3-30b-a3b", base_url="http://localhost:1234/v1")
 
     # gpt-4.1-2025-04-14
     # gpt-4o-mini-2024-07-18
-    llm = ChatOpenAI(temperature=0, api_key=openai_api_key, model="gpt-4o-mini-2024-07-18")
+    llm = ChatOpenAI(
+        temperature=0, api_key=openai_api_key, model="gpt-4o-mini-2024-07-18"
+    )
 
     # Create the prompt template with all required variables
     prompt = PromptTemplate(
         template=dialectical_template,
-        input_variables=["input", "agent_scratchpad", "tools", "tool_names"]
+        input_variables=["input", "agent_scratchpad", "tools", "tool_names"],
     )
 
     # Create a ReAct agent using LangGraph instead of LangChain's initialize_agent
     # This eliminates the deprecation warning and provides more flexibility
 
     # Create a ReAct agent using LangChain's create_react_agent
-    agent = create_react_agent(
-        llm=llm,
-        tools=tools,
-        prompt=prompt
-    )
+    agent = create_react_agent(llm=llm, tools=tools, prompt=prompt)
 
     # Create the agent executor with the agent and tools
     agent_executor = AgentExecutor.from_agent_and_tools(
-        agent=agent,
-        tools=tools,
-        max_iterations=10,
-        verbose=True
+        agent=agent, tools=tools, max_iterations=10, verbose=True
     )
 
     # Run the query through the agent
@@ -201,10 +198,12 @@ def main():
         print("===BEGIN_RESULTS===\n" + result.strip() + "\n===END_RESULTS===")
     except EnvironmentError as e:
         print(
-            f"===BEGIN_RESULTS===\nConfiguration Error: {str(e)}\nPlease ensure you have a .env file in the project root with SERPER_API_KEY and OPENAI_API_KEY variables set.\n===END_RESULTS===")
+            f"===BEGIN_RESULTS===\nConfiguration Error: {str(e)}\nPlease ensure you have a .env file in the project root with SERPER_API_KEY and OPENAI_API_KEY variables set.\n===END_RESULTS==="
+        )
     except Exception as e:
         print(
-            f"===BEGIN_RESULTS===\nError: {str(e)}\nPlease try again with a more specific query or check your internet connection.\n===END_RESULTS===")
+            f"===BEGIN_RESULTS===\nError: {str(e)}\nPlease try again with a more specific query or check your internet connection.\n===END_RESULTS==="
+        )
 
 
 if __name__ == "__main__":

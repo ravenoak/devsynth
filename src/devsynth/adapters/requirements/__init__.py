@@ -1,4 +1,3 @@
-
 """
 Adapters for requirements management.
 """

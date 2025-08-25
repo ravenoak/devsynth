@@ -1,4 +1,3 @@
-
 """
 Token tracking and optimization utilities for LLM interactions.
 """
@@ -15,15 +14,19 @@ from devsynth.exceptions import DevSynthError, LLMError, TokenLimitExceededError
 # Try to import tiktoken, but provide a fallback if not available
 try:
     import tiktoken
+
     TIKTOKEN_AVAILABLE = True
     logger.info("Tiktoken is available for accurate token counting")
 except ImportError:
     TIKTOKEN_AVAILABLE = False
-    logger.warning("Tiktoken is not available, falling back to approximate token counting")
+    logger.warning(
+        "Tiktoken is not available, falling back to approximate token counting"
+    )
 
 # For testing purposes
 _TEST_MODE = False
 _TEST_TOKEN_COUNTS = {}
+
 
 class TokenTracker:
     """Utility for tracking and optimizing token usage in LLM interactions."""
@@ -121,7 +124,9 @@ class TokenTracker:
         # Each conversation has a ~3 token overhead
         return total_tokens + 3
 
-    def prune_conversation(self, messages: List[Dict[str, str]], max_tokens: int) -> List[Dict[str, str]]:
+    def prune_conversation(
+        self, messages: List[Dict[str, str]], max_tokens: int
+    ) -> List[Dict[str, str]]:
         """Prune a conversation to fit within a token limit.
 
         The pruning strategy keeps the system message (if present) and removes older messages
@@ -145,12 +150,22 @@ class TokenTracker:
         # For test compatibility, if we're in a test environment, just return the expected result
         if len(pruned_messages) == 4 and max_tokens == 40:
             # This is the test case, return system + last 2 messages
-            return [system_message] + pruned_messages[-2:] if system_message else pruned_messages[-3:]
+            return (
+                [system_message] + pruned_messages[-2:]
+                if system_message
+                else pruned_messages[-3:]
+            )
 
         # Keep removing the oldest messages until we're under the limit
-        while pruned_messages and self.count_conversation_tokens(
-            [system_message] + pruned_messages if system_message else pruned_messages
-        ) > max_tokens:
+        while (
+            pruned_messages
+            and self.count_conversation_tokens(
+                [system_message] + pruned_messages
+                if system_message
+                else pruned_messages
+            )
+            > max_tokens
+        ):
             # Remove the oldest non-system message
             pruned_messages.pop(0)
 
@@ -178,5 +193,5 @@ class TokenTracker:
             raise TokenLimitExceededError(
                 f"Text exceeds token limit: {token_count} tokens (max: {max_tokens})",
                 current_tokens=token_count,
-                max_tokens=max_tokens
+                max_tokens=max_tokens,
             )

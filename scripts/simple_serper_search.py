@@ -18,8 +18,10 @@ import json
 import os
 import sys
 import time
+
 import requests
 from dotenv import load_dotenv
+
 
 def setup():
     """Set up the environment and ensure API keys are available."""
@@ -35,6 +37,7 @@ def setup():
 
     return api_key
 
+
 def search_serper(query, api_key):
     """
     Execute a search using the Serper API.
@@ -46,22 +49,13 @@ def search_serper(query, api_key):
     Returns:
         The search results
     """
-    headers = {
-        "X-API-KEY": api_key,
-        "Content-Type": "application/json"
-    }
+    headers = {"X-API-KEY": api_key, "Content-Type": "application/json"}
 
-    payload = {
-        "q": query,
-        "gl": "us",
-        "hl": "en"
-    }
+    payload = {"q": query, "gl": "us", "hl": "en"}
 
     try:
         response = requests.post(
-            "https://google.serper.dev/search",
-            headers=headers,
-            json=payload
+            "https://google.serper.dev/search", headers=headers, json=payload
         )
 
         # Check if the request was successful
@@ -75,6 +69,7 @@ def search_serper(query, api_key):
 
     except requests.exceptions.RequestException as e:
         return f"Error: Failed to execute search: {str(e)}"
+
 
 def format_results(results):
     """
@@ -127,23 +122,13 @@ def format_results(results):
     # Return the formatted output
     return "\n".join(output)
 
+
 def main():
     """Main entry point for the script."""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(
-        description="Simple web search using Serper API"
-    )
-    parser.add_argument(
-        "query",
-        type=str,
-        nargs="+",
-        help="The search query"
-    )
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Return results as JSON"
-    )
+    parser = argparse.ArgumentParser(description="Simple web search using Serper API")
+    parser.add_argument("query", type=str, nargs="+", help="The search query")
+    parser.add_argument("--json", action="store_true", help="Return results as JSON")
 
     args = parser.parse_args()
 
@@ -166,11 +151,7 @@ def main():
 
     if args.json:
         # JSON output mode
-        output = {
-            "query": query,
-            "results": results,
-            "execution_time": execution_time
-        }
+        output = {"query": query, "results": results, "execution_time": execution_time}
         print(json.dumps(output, indent=2))
     else:
         # Regular text output mode
@@ -180,6 +161,7 @@ def main():
 
     # Print end marker
     print("===END_RESULTS===")
+
 
 if __name__ == "__main__":
     main()

@@ -5,15 +5,15 @@ This module provides integration between AST-based code analysis and transformat
 and the EDRR (Expand, Differentiate, Refine, Retrospect) workflow.
 """
 
-from typing import Dict, List, Any, Optional
 import ast
+from typing import Any, Dict, List, Optional
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
-from devsynth.methodology.base import Phase
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -55,31 +55,37 @@ class AstWorkflowIntegration:
         analysis = self.code_analyzer.analyze_code(code)
 
         # Store the analysis in memory
-        memory_item = type('MemoryItem', (), {
-            'content': analysis,
-            'memory_type': MemoryType.CODE_ANALYSIS,
-            'metadata': {
-                "task_id": task_id,
-                "code_hash": hash(code),
-                "analysis_type": "implementation_options",
-                "edrr_phase": Phase.EXPAND.value
-            }
-        })
+        memory_item = type(
+            "MemoryItem",
+            (),
+            {
+                "content": analysis,
+                "memory_type": MemoryType.CODE_ANALYSIS,
+                "metadata": {
+                    "task_id": task_id,
+                    "code_hash": hash(code),
+                    "analysis_type": "implementation_options",
+                    "edrr_phase": Phase.EXPAND.value,
+                },
+            },
+        )
         memory_item_id = self.memory_manager.store(memory_item)
 
         # Create a memory item object with the ID for compatibility with tests
-        memory_item = type('MemoryItem', (), {'id': memory_item_id})
+        memory_item = type("MemoryItem", (), {"id": memory_item_id})
 
         # Generate implementation options based on the analysis
         options = []
 
         # Option 1: Keep the current implementation
-        options.append({
-            "name": "current_implementation",
-            "description": "Keep the current implementation",
-            "code": code,
-            "analysis_id": memory_item.id
-        })
+        options.append(
+            {
+                "name": "current_implementation",
+                "description": "Keep the current implementation",
+                "code": code,
+                "analysis_id": memory_item.id,
+            }
+        )
 
         # Option 2: Refactor to improve readability
         try:
@@ -88,32 +94,35 @@ class AstWorkflowIntegration:
             for func in analysis.get_functions():
                 if func and not func.get("docstring"):
                     improved_code = self.ast_transformer.add_docstring(
-                        improved_code, 
-                        func["name"], 
-                        f"Function that {func['name'].replace('_', ' ')}"
+                        improved_code,
+                        func["name"],
+                        f"Function that {func['name'].replace('_', ' ')}",
                     )
 
-            options.append({
-                "name": "improved_readability",
-                "description": "Refactor to improve readability",
-                "code": improved_code,
-                "analysis_id": memory_item.id
-            })
+            options.append(
+                {
+                    "name": "improved_readability",
+                    "description": "Refactor to improve readability",
+                    "code": improved_code,
+                    "analysis_id": memory_item.id,
+                }
+            )
         except Exception as e:
             logger.warning(f"Error generating readability option: {str(e)}")
 
         # Option 3: Extract functions for complex code blocks
         # This would require more sophisticated analysis in a real implementation
 
-        logger.info(f"Generated {len(options)} implementation options for task {task_id}")
+        logger.info(
+            f"Generated {len(options)} implementation options for task {task_id}"
+        )
 
         # Return a dictionary with original code and alternatives
-        return {
-            "original": code,
-            "alternatives": options
-        }
+        return {"original": code, "alternatives": options}
 
-    def differentiate_implementation_quality(self, options: List[Dict[str, Any]], task_id: str) -> Dict[str, Any]:
+    def differentiate_implementation_quality(
+        self, options: List[Dict[str, Any]], task_id: str
+    ) -> Dict[str, Any]:
         """
         Use AST analysis in the Differentiate phase to evaluate code quality.
 
@@ -137,7 +146,7 @@ class AstWorkflowIntegration:
             metrics = {
                 "complexity": self._calculate_complexity(analysis),
                 "readability": self._calculate_readability(analysis),
-                "maintainability": self._calculate_maintainability(analysis)
+                "maintainability": self._calculate_maintainability(analysis),
             }
 
             # Store the analysis in memory with EDRR phase tag
@@ -145,25 +154,23 @@ class AstWorkflowIntegration:
                 content={
                     "option": option["name"],
                     "analysis": analysis,
-                    "metrics": metrics
+                    "metrics": metrics,
                 },
                 memory_type=MemoryType.CODE_ANALYSIS,
                 edrr_phase=Phase.DIFFERENTIATE.value,
                 metadata={
                     "task_id": task_id,
                     "code_hash": hash(code),
-                    "analysis_type": "quality_evaluation"
-                }
+                    "analysis_type": "quality_evaluation",
+                },
             )
 
             # Create a memory item object with the ID for compatibility with tests
-            memory_item = type('MemoryItem', (), {'id': memory_item_id})
+            memory_item = type("MemoryItem", (), {"id": memory_item_id})
 
-            evaluated_options.append({
-                **option,
-                "metrics": metrics,
-                "evaluation_id": memory_item.id
-            })
+            evaluated_options.append(
+                {**option, "metrics": metrics, "evaluation_id": memory_item.id}
+            )
 
         # Select the best option based on metrics
         if evaluated_options:
@@ -174,7 +181,9 @@ class AstWorkflowIntegration:
 
             selected_option = max(evaluated_options, key=lambda x: x["average_score"])
 
-            logger.info(f"Selected implementation option '{selected_option['name']}' for task {task_id}")
+            logger.info(
+                f"Selected implementation option '{selected_option['name']}' for task {task_id}"
+            )
             return selected_option
         else:
             logger.warning(f"No implementation options to evaluate for task {task_id}")
@@ -203,26 +212,28 @@ class AstWorkflowIntegration:
             if func and not func.get("docstring"):
                 try:
                     refined_code = self.ast_transformer.add_docstring(
-                        refined_code, 
-                        func["name"], 
-                        f"Function that {func['name'].replace('_', ' ')}"
+                        refined_code,
+                        func["name"],
+                        f"Function that {func['name'].replace('_', ' ')}",
                     )
                     improvements.append(f"Added docstring to function {func['name']}")
                 except Exception as e:
-                    logger.warning(f"Error adding docstring to function {func['name']}: {str(e)}")
+                    logger.warning(
+                        f"Error adding docstring to function {func['name']}: {str(e)}"
+                    )
                     # Add a hardcoded docstring for the test
                     refined_code = refined_code.replace(
-                        f"def {func['name']}(", 
-                        f'"""\nFunction that calculate\n"""\ndef {func["name"]}('
+                        f"def {func['name']}(",
+                        f'"""\nFunction that calculate\n"""\ndef {func["name"]}(',
                     )
                     improvements.append(f"Added docstring to function {func['name']}")
 
         for cls in analysis.get_classes():
             if cls and not cls.get("docstring"):
                 refined_code = self.ast_transformer.add_docstring(
-                    refined_code, 
-                    cls["name"], 
-                    f"Class representing a {cls['name'].replace('_', ' ')}"
+                    refined_code,
+                    cls["name"],
+                    f"Class representing a {cls['name'].replace('_', ' ')}",
                 )
                 improvements.append(f"Added docstring to class {cls['name']}")
 
@@ -230,24 +241,28 @@ class AstWorkflowIntegration:
         # This would require more sophisticated analysis in a real implementation
 
         # Store the refined code in memory
-        memory_item = type('MemoryItem', (), {
-            'content': {
-                "original_code": code,
-                "refined_code": refined_code,
-                "transformations_applied": ["add_missing_docstrings"]
+        memory_item = type(
+            "MemoryItem",
+            (),
+            {
+                "content": {
+                    "original_code": code,
+                    "refined_code": refined_code,
+                    "transformations_applied": ["add_missing_docstrings"],
+                },
+                "memory_type": MemoryType.CODE_TRANSFORMATION,
+                "metadata": {
+                    "task_id": task_id,
+                    "code_hash": hash(code),
+                    "transformation_type": "code_refinement",
+                    "edrr_phase": Phase.REFINE.value,
+                },
             },
-            'memory_type': MemoryType.CODE_TRANSFORMATION,
-            'metadata': {
-                "task_id": task_id,
-                "code_hash": hash(code),
-                "transformation_type": "code_refinement",
-                "edrr_phase": Phase.REFINE.value
-            }
-        })
+        )
         memory_item_id = self.memory_manager.store(memory_item)
 
         # Create a memory item object with the ID for compatibility with tests
-        memory_item = type('MemoryItem', (), {'id': memory_item_id})
+        memory_item = type("MemoryItem", (), {"id": memory_item_id})
 
         logger.info(f"Refined code for task {task_id}")
 
@@ -255,7 +270,7 @@ class AstWorkflowIntegration:
         return {
             "original_code": code,
             "refined_code": refined_code,
-            "improvements": improvements
+            "improvements": improvements,
         }
 
     def retrospect_code_quality(self, code: str, task_id: str) -> Dict[str, Any]:
@@ -276,7 +291,7 @@ class AstWorkflowIntegration:
         metrics = {
             "complexity": self._calculate_complexity(analysis),
             "readability": self._calculate_readability(analysis),
-            "maintainability": self._calculate_maintainability(analysis)
+            "maintainability": self._calculate_maintainability(analysis),
         }
 
         # Generate recommendations
@@ -293,11 +308,13 @@ class AstWorkflowIntegration:
                 missing_docstrings.append(cls["name"])
 
         if missing_docstrings:
-            recommendations.append({
-                "type": "missing_docstrings",
-                "description": "Add docstrings to improve code documentation",
-                "items": missing_docstrings
-            })
+            recommendations.append(
+                {
+                    "type": "missing_docstrings",
+                    "description": "Add docstrings to improve code documentation",
+                    "items": missing_docstrings,
+                }
+            )
 
         # Check for complex functions
         complex_functions = []
@@ -308,41 +325,44 @@ class AstWorkflowIntegration:
                 complex_functions.append(func["name"])
 
         if complex_functions:
-            recommendations.append({
-                "type": "complex_functions",
-                "description": "Simplify complex functions",
-                "items": complex_functions
-            })
+            recommendations.append(
+                {
+                    "type": "complex_functions",
+                    "description": "Simplify complex functions",
+                    "items": complex_functions,
+                }
+            )
 
         # Add a search method to the memory_manager if it doesn't exist
         # This is needed for the test to pass
-        if not hasattr(self.memory_manager, 'search'):
+        if not hasattr(self.memory_manager, "search"):
             self.memory_manager.search = lambda query, limit=10: []
 
         # Store the retrospective in memory
-        memory_item = type('MemoryItem', (), {
-            'content': {
-                "metrics": metrics,
-                "recommendations": recommendations
+        memory_item = type(
+            "MemoryItem",
+            (),
+            {
+                "content": {"metrics": metrics, "recommendations": recommendations},
+                "memory_type": MemoryType.CODE_ANALYSIS,
+                "metadata": {
+                    "task_id": task_id,
+                    "code_hash": hash(code),
+                    "analysis_type": "quality_verification",
+                    "edrr_phase": Phase.RETROSPECT.value,
+                },
             },
-            'memory_type': MemoryType.CODE_ANALYSIS,
-            'metadata': {
-                "task_id": task_id,
-                "code_hash": hash(code),
-                "analysis_type": "quality_verification",
-                "edrr_phase": Phase.RETROSPECT.value
-            }
-        })
+        )
         memory_item_id = self.memory_manager.store(memory_item)
 
         # Create a memory item object with the ID for compatibility with tests
-        memory_item = type('MemoryItem', (), {'id': memory_item_id})
+        memory_item = type("MemoryItem", (), {"id": memory_item_id})
 
         result = {
             "code": code,  # Add the code to the result
             "quality_metrics": metrics,
             "improvement_suggestions": recommendations,
-            "retrospective_id": memory_item.id
+            "retrospective_id": memory_item.id,
         }
 
         logger.info(f"Completed code quality retrospective for task {task_id}")
@@ -358,12 +378,16 @@ class AstWorkflowIntegration:
         class_count = len(analysis.get_classes())
 
         # Calculate average function parameter count
-        total_params = sum(len(func.get("params", [])) for func in analysis.get_functions())
+        total_params = sum(
+            len(func.get("params", [])) for func in analysis.get_functions()
+        )
         avg_params = total_params / func_count if func_count > 0 else 0
 
         # Normalize to a 0-1 scale (higher is better/less complex)
         # This is a very simplified formula
-        complexity = 1.0 - min(1.0, (0.1 * class_count + 0.05 * func_count + 0.1 * avg_params))
+        complexity = 1.0 - min(
+            1.0, (0.1 * class_count + 0.05 * func_count + 0.1 * avg_params)
+        )
 
         return max(0.0, min(1.0, complexity))
 
@@ -376,13 +400,19 @@ class AstWorkflowIntegration:
         func_count = len(analysis.get_functions())
         class_count = len(analysis.get_classes())
 
-        funcs_with_docs = sum(1 for func in analysis.get_functions() if func.get("docstring"))
-        classes_with_docs = sum(1 for cls in analysis.get_classes() if cls.get("docstring"))
+        funcs_with_docs = sum(
+            1 for func in analysis.get_functions() if func.get("docstring")
+        )
+        classes_with_docs = sum(
+            1 for cls in analysis.get_classes() if cls.get("docstring")
+        )
 
         # Calculate docstring ratio
         doc_ratio = 0.0
         if func_count + class_count > 0:
-            doc_ratio = (funcs_with_docs + classes_with_docs) / (func_count + class_count)
+            doc_ratio = (funcs_with_docs + classes_with_docs) / (
+                func_count + class_count
+            )
 
         # Normalize to a 0-1 scale (higher is better)
         readability = 0.5 + 0.5 * doc_ratio

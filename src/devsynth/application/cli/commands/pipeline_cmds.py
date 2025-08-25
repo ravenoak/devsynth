@@ -8,6 +8,8 @@ from .refactor_cmd import refactor_cmd
 from .run_pipeline_cmd import run_pipeline_cmd
 
 register("run-pipeline", run_pipeline_cmd)
+# Provide an alias to align with user documentation that references 'run'
+register("run", run_pipeline_cmd)
 register("gather", gather_cmd)
 register("refactor", refactor_cmd)
 register("inspect", inspect_cmd)

@@ -1,4 +1,7 @@
-"""Generate a web application with the specified framework."""
+"""[experimental] Generate a web application with the specified framework.
+
+Currently full support is implemented for Flask; other frameworks produce scaffolds only.
+"""
 
 from __future__ import annotations
 

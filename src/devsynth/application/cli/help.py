@@ -3,13 +3,14 @@
 This module provides enhanced help text with examples for the DevSynth CLI commands.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
 from rich.console import Console
-from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.panel import Panel
 from rich.table import Table
 
-from .autocomplete import COMMANDS, COMMAND_DESCRIPTIONS, COMMAND_EXAMPLES
+from .autocomplete import COMMAND_DESCRIPTIONS, COMMAND_EXAMPLES, COMMANDS
 
 
 def get_command_help(command: str) -> str:
@@ -61,7 +62,9 @@ def get_all_commands_help() -> str:
         description = COMMAND_DESCRIPTIONS.get(command, "No description available")
         help_text += f"{command:15} {description}\n"
 
-    help_text += "\nUse 'devsynth <command> --help' for more information about a command."
+    help_text += (
+        "\nUse 'devsynth <command> --help' for more information about a command."
+    )
 
     return help_text
 
@@ -103,7 +106,9 @@ def create_command_table(commands: Optional[List[str]] = None) -> Table:
     return table
 
 
-def display_command_table(commands: Optional[List[str]] = None, console: Console = None) -> None:
+def display_command_table(
+    commands: Optional[List[str]] = None, console: Console = None
+) -> None:
     """Display a table of commands with their descriptions.
 
     Args:
@@ -119,7 +124,7 @@ def display_command_table(commands: Optional[List[str]] = None, console: Console
     console.print(table)
 
     # For testing purposes, reset the mock between calls
-    if hasattr(console, '_reset_mock') and callable(console._reset_mock):
+    if hasattr(console, "_reset_mock") and callable(console._reset_mock):
         console._reset_mock()
 
 
@@ -159,7 +164,7 @@ def display_command_help_markdown(command: str, console: Console) -> None:
     """
     markdown = format_command_help_markdown(command)
     # In tests, markdown might be a mock object, so we don't need to wrap it in Markdown
-    if hasattr(markdown, '_mock_name'):
+    if hasattr(markdown, "_mock_name"):
         console.print(markdown)
     else:
         console.print(markdown)
@@ -184,7 +189,7 @@ def get_command_usage(command: str) -> str:
     # Extract the first example and format it as usage
     example = examples[0]
     if example.startswith("devsynth "):
-        example = example[len("devsynth "):]
+        example = example[len("devsynth ") :]
 
     return f"Usage: devsynth {example}"
 
@@ -210,7 +215,9 @@ def get_command_examples(command: str) -> List[str]:
         List of examples for the command
     """
     if command not in COMMANDS:
-        return [f"Command not found: {command}. Use 'devsynth help' to see available commands."]
+        return [
+            f"Command not found: {command}. Use 'devsynth help' to see available commands."
+        ]
 
     examples = COMMAND_EXAMPLES.get(command, [])
     if not examples:

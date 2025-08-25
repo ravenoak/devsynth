@@ -13,6 +13,7 @@ import traceback
 from contextvars import ContextVar
 from datetime import datetime
 from pathlib import Path
+from threading import RLock
 from typing import Any, Dict, List, Optional, Union
 
 # We'll import DevSynthError later to avoid circular imports
@@ -30,12 +31,87 @@ _configured_log_dir = None
 _configured_log_file = None
 _logging_configured = False
 
+# Track last effective configuration for idempotency
+_last_effective_config: Optional[tuple] = None
+
+# Reentrant lock to make configuration thread-safe
+_config_lock: RLock = RLock()
+
 # Module-level logger for internal debug messages
 logger = logging.getLogger(__name__)
 
 # Context variables for request context
 request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
 phase_var: ContextVar[Optional[str]] = ContextVar("phase", default=None)
+
+# Secret keys to redact from logs
+_SECRET_ENV_VARS = [
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "AZURE_OPENAI_API_KEY",
+]
+
+
+class RedactSecretsFilter(logging.Filter):
+    """A logging filter that redacts known secret values from log messages and extras.
+
+    It replaces full occurrences of secret values with a masked form (e.g., sk-***last4).
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        # Snapshot secret values from environment at construction time
+        self._secrets = {}
+        for key in _SECRET_ENV_VARS:
+            val = os.environ.get(key)
+            if val and isinstance(val, str) and len(val) >= 8:
+                self._secrets[key] = val
+
+    @staticmethod
+    def _mask(value: str) -> str:
+        if not value:
+            return value
+        # Keep only last 4 chars for context
+        last4 = value[-4:]
+        return f"***REDACTED***{last4}"
+
+    def _redact_in_text(self, text: str) -> str:
+        if not text:
+            return text
+        out = text
+        for secret in self._secrets.values():
+            if secret and secret in out:
+                out = out.replace(secret, self._mask(secret))
+        return out
+
+    def _redact_in_mapping(self, mapping: Dict[str, Any]) -> Dict[str, Any]:
+        redacted: Dict[str, Any] = {}
+        for k, v in mapping.items():
+            if isinstance(v, str):
+                redacted[k] = self._redact_in_text(v)
+            else:
+                redacted[k] = v
+        return redacted
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        try:
+            if isinstance(record.msg, str):
+                record.msg = self._redact_in_text(record.msg)
+            if hasattr(record, "args") and isinstance(record.args, tuple):
+                record.args = tuple(
+                    self._redact_in_text(a) if isinstance(a, str) else a
+                    for a in record.args
+                )
+            # Redact common extra fields if present
+            for attr in ("extra", "details", "payload"):
+                if hasattr(record, attr):
+                    val = getattr(record, attr)
+                    if isinstance(val, dict):
+                        setattr(record, attr, self._redact_in_mapping(val))
+        except Exception:
+            # Safety: never break logging due to redaction errors
+            return True
+        return True
 
 
 # Configure JSON formatter
@@ -246,102 +322,139 @@ def configure_logging(
         log_level: Logging level (e.g., logging.INFO)
         create_dir: Whether to create the log directory (default True)
     """
-    global _configured_log_dir, _configured_log_file, _logging_configured
+    global _configured_log_dir, _configured_log_file, _logging_configured, _last_effective_config
 
-    # Check if file logging is disabled via environment variable
-    no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
-        "1",
-        "true",
-        "yes",
-    )
-    if no_file_logging:
-        create_dir = False
-
-    project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
-
-    # Set configured log directory
-    _configured_log_dir = log_dir if log_dir is not None else get_log_dir()
-
-    if project_dir:
-        dir_obj = Path(_configured_log_dir)
-        if not dir_obj.is_absolute() or not str(dir_obj).startswith(project_dir):
-            if dir_obj.is_absolute() and not str(dir_obj).startswith(project_dir):
-                if str(dir_obj).startswith(str(Path.home())):
-                    relative = str(dir_obj).replace(str(Path.home()), "").lstrip("/\\")
-                else:
-                    relative = str(dir_obj.relative_to(dir_obj.anchor))
-            else:
-                relative = str(dir_obj)
-            _configured_log_dir = os.path.join(project_dir, relative)
-
-    # Configure log file path
-    _configured_log_file = (
-        log_file
-        if log_file is not None
-        else os.path.join(
-            _configured_log_dir,
-            os.environ.get("DEVSYNTH_LOG_FILENAME", DEFAULT_LOG_FILENAME),
+    # Guard the entire configuration for thread-safety
+    _config_lock.acquire()
+    try:
+        # Check if file logging is disabled via environment variable
+        no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
+            "1",
+            "true",
+            "yes",
         )
-    )
+        if no_file_logging:
+            create_dir = False
 
-    if project_dir:
-        file_obj = Path(_configured_log_file)
-        if not file_obj.is_absolute() or not str(file_obj).startswith(project_dir):
-            if file_obj.is_absolute() and not str(file_obj).startswith(project_dir):
-                if str(file_obj).startswith(str(Path.home())):
-                    relative = str(file_obj).replace(str(Path.home()), "").lstrip("/\\")
+        project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
+
+        # Determine intended log directory
+        intended_log_dir = log_dir if log_dir is not None else get_log_dir()
+        configured_log_dir = intended_log_dir
+        if project_dir:
+            dir_obj = Path(configured_log_dir)
+            if not dir_obj.is_absolute() or not str(dir_obj).startswith(project_dir):
+                if dir_obj.is_absolute() and not str(dir_obj).startswith(project_dir):
+                    if str(dir_obj).startswith(str(Path.home())):
+                        relative = (
+                            str(dir_obj).replace(str(Path.home()), "").lstrip("/\\")
+                        )
+                    else:
+                        relative = str(dir_obj.relative_to(dir_obj.anchor))
                 else:
-                    relative = str(file_obj.relative_to(file_obj.anchor))
-            else:
-                relative = str(file_obj)
-            _configured_log_file = os.path.join(project_dir, relative)
+                    relative = str(dir_obj)
+                configured_log_dir = os.path.join(project_dir, relative)
 
-    # Create directory if requested and file logging is not disabled
-    if create_dir and not no_file_logging:
-        ensure_log_dir_exists(_configured_log_dir)
-
-    # Set up root logger
-    root_logger = logging.getLogger()
-
-    # Clear existing handlers
-    for handler in list(root_logger.handlers):
-        root_logger.removeHandler(handler)
-
-    # Set log level
-    if log_level is None:
-        log_level = int(os.environ.get("DEVSYNTH_LOG_LEVEL", DEFAULT_LOG_LEVEL))
-    root_logger.setLevel(log_level)
-
-    # Add console handler
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT))
-    root_logger.addHandler(console_handler)
-
-    # Add file handler if create_dir is True and file logging is not disabled
-    if create_dir and not no_file_logging:
-        try:
-            file_handler = logging.FileHandler(_configured_log_file)
-            file_handler.setFormatter(JSONFormatter())
-            root_logger.addHandler(file_handler)
-        except (PermissionError, FileNotFoundError) as e:
-            # Log to console only if file logging fails
-            console_handler.setFormatter(
-                logging.Formatter(
-                    "WARNING: File logging failed - %(asctime)s - %(name)s - %(levelname)s - %(message)s"
-                )
+        # Determine intended log file
+        intended_log_file = (
+            log_file
+            if log_file is not None
+            else os.path.join(
+                configured_log_dir,
+                os.environ.get("DEVSYNTH_LOG_FILENAME", DEFAULT_LOG_FILENAME),
             )
-            root_logger.warning(f"Failed to set up file logging: {str(e)}")
-
-    # Mark as configured
-    _logging_configured = True
-
-    # Log configuration info
-    if create_dir and not no_file_logging:
-        root_logger.info(f"Logging configured. Log file: {_configured_log_file}")
-    else:
-        root_logger.info(
-            "Logging configured for console output only (no file logging)."
         )
+        configured_log_file = intended_log_file
+        if project_dir:
+            file_obj = Path(configured_log_file)
+            if not file_obj.is_absolute() or not str(file_obj).startswith(project_dir):
+                if file_obj.is_absolute() and not str(file_obj).startswith(project_dir):
+                    if str(file_obj).startswith(str(Path.home())):
+                        relative = (
+                            str(file_obj).replace(str(Path.home()), "").lstrip("/\\")
+                        )
+                    else:
+                        relative = str(file_obj.relative_to(file_obj.anchor))
+                else:
+                    relative = str(file_obj)
+                configured_log_file = os.path.join(project_dir, relative)
+
+        # Compute effective log level
+        effective_log_level = (
+            int(os.environ.get("DEVSYNTH_LOG_LEVEL", DEFAULT_LOG_LEVEL))
+            if log_level is None
+            else log_level
+        )
+        effective_create_dir = bool(create_dir and not no_file_logging)
+
+        new_config = (
+            configured_log_dir,
+            configured_log_file,
+            effective_log_level,
+            effective_create_dir,
+        )
+
+        # Idempotency: if already configured with the same effective config, do nothing
+        if _logging_configured and _last_effective_config == new_config:
+            logger.debug(
+                "configure_logging called with identical config; skipping reconfiguration"
+            )
+            return
+
+        # Apply configuration and persist globals
+        _configured_log_dir = configured_log_dir
+        _configured_log_file = configured_log_file
+
+        # Create directory if requested and file logging is not disabled
+        if effective_create_dir:
+            ensure_log_dir_exists(_configured_log_dir)
+
+        # Set up root logger
+        root_logger = logging.getLogger()
+
+        # Attach global redaction filter (ensures secrets never hit logs)
+        root_logger.addFilter(RedactSecretsFilter())
+
+        # Clear existing handlers (safe reconfiguration)
+        for handler in list(root_logger.handlers):
+            root_logger.removeHandler(handler)
+
+        # Set log level
+        root_logger.setLevel(effective_log_level)
+
+        # Add console handler
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT))
+        root_logger.addHandler(console_handler)
+
+        # Add file handler if applicable
+        if effective_create_dir:
+            try:
+                file_handler = logging.FileHandler(_configured_log_file)
+                file_handler.setFormatter(JSONFormatter())
+                root_logger.addHandler(file_handler)
+            except (PermissionError, FileNotFoundError) as e:
+                # Log to console only if file logging fails
+                console_handler.setFormatter(
+                    logging.Formatter(
+                        "WARNING: File logging failed - %(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                    )
+                )
+                root_logger.warning(f"Failed to set up file logging: {str(e)}")
+
+        # Mark as configured and remember the configuration
+        _logging_configured = True
+        _last_effective_config = new_config
+
+        # Log configuration info
+        if effective_create_dir:
+            root_logger.info(f"Logging configured. Log file: {_configured_log_file}")
+        else:
+            root_logger.info(
+                "Logging configured for console output only (no file logging)."
+            )
+    finally:
+        _config_lock.release()
 
 
 class DevSynthLogger:
@@ -361,6 +474,7 @@ class DevSynthLogger:
         """
         self.logger = logging.getLogger(name)
         self.logger.addFilter(RequestContextFilter())
+        self.logger.addFilter(RedactSecretsFilter())
 
         # Don't create log directory here - defer until explicitly configured
         # This is important for test isolation

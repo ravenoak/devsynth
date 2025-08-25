@@ -10,8 +10,9 @@ Usage:
 3. Replace the placeholder content with your actual step definitions
 4. Ensure all steps in the corresponding feature file are implemented
 """
+
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file(s)
 # scenarios('../features/feature_name.feature')
@@ -23,22 +24,24 @@ from pytest_bdd import given, when, then, parsers, scenarios
 @pytest.fixture
 def context():
     """Fixture to provide a context object for sharing state between steps."""
+
     class Context:
         def __init__(self):
             # Initialize any attributes needed across steps
             self.data = {}
             # Example: self.agents = {}
             # Example: self.promises = {}
-    
+
     return Context()
 
 
 # Given steps
 
+
 @given(parsers.parse('[step description with "{parameter}"]'))
 def given_step_with_parameter(context, parameter):
     """Step definition for a Given step with a parameter.
-    
+
     Args:
         context: The test context object
         parameter: The parameter extracted from the step text
@@ -47,10 +50,10 @@ def given_step_with_parameter(context, parameter):
     pass
 
 
-@given('[step description]')
+@given("[step description]")
 def given_step(context):
     """Step definition for a Given step.
-    
+
     Args:
         context: The test context object
     """
@@ -60,10 +63,11 @@ def given_step(context):
 
 # When steps
 
+
 @when(parsers.parse('[step description with "{parameter}"]'))
 def when_step_with_parameter(context, parameter):
     """Step definition for a When step with a parameter.
-    
+
     Args:
         context: The test context object
         parameter: The parameter extracted from the step text
@@ -72,10 +76,10 @@ def when_step_with_parameter(context, parameter):
     pass
 
 
-@when('[step description]')
+@when("[step description]")
 def when_step(context):
     """Step definition for a When step.
-    
+
     Args:
         context: The test context object
     """
@@ -85,10 +89,11 @@ def when_step(context):
 
 # Then steps
 
+
 @then(parsers.parse('[step description with "{parameter}"]'))
 def then_step_with_parameter(context, parameter):
     """Step definition for a Then step with a parameter.
-    
+
     Args:
         context: The test context object
         parameter: The parameter extracted from the step text
@@ -98,10 +103,10 @@ def then_step_with_parameter(context, parameter):
     pass
 
 
-@then('[step description]')
+@then("[step description]")
 def then_step(context):
     """Step definition for a Then step.
-    
+
     Args:
         context: The test context object
     """
@@ -111,10 +116,10 @@ def then_step(context):
 
 
 # Example of a step with a data table
-@when(parsers.parse('[step description with table]'))
+@when(parsers.parse("[step description with table]"))
 def step_with_table(context, table):
     """Step definition for a step with a data table.
-    
+
     Args:
         context: The test context object
         table: The table data from the step

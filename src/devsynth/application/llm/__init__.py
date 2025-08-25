@@ -2,9 +2,9 @@
 
 from typing import Any, Dict
 
+from devsynth.config import get_llm_settings
 from devsynth.core.config_loader import load_config
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.config import get_llm_settings
 
 from .providers import factory as _factory
 

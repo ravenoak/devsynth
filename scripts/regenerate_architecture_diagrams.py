@@ -32,7 +32,9 @@ def extract_mermaid_blocks(markdown: str) -> list[str]:
 def render_block(block: str, output_path: Path) -> None:
     """Render a Mermaid block to ``output_path`` using Kroki."""
     data = block.encode("utf-8")
-    req = urllib.request.Request(KROKI_URL, data=data, headers={"Content-Type": "text/plain"})
+    req = urllib.request.Request(
+        KROKI_URL, data=data, headers={"Content-Type": "text/plain"}
+    )
     with urllib.request.urlopen(req) as resp:
         output_path.write_bytes(resp.read())
 

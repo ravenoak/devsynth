@@ -20,13 +20,13 @@ Options:
     --dry-run             Show what would be run without executing tests
 """
 
-import os
-import sys
-import json
 import argparse
+import json
+import os
 import subprocess
+import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 # Presets for different incremental testing scenarios
 PRESETS = {
@@ -70,8 +70,9 @@ PRESETS = {
         "parallel": True,
         "report": True,
         "speed": None,  # Run tests of all speeds
-    }
+    },
 }
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -82,73 +83,67 @@ def parse_args():
         "--preset",
         choices=list(PRESETS.keys()),
         default="recent",
-        help="Incremental testing preset to use (default: recent)"
+        help="Incremental testing preset to use (default: recent)",
     )
     parser.add_argument(
-        "--base",
-        help="Base commit to compare against (overrides preset)"
+        "--base", help="Base commit to compare against (overrides preset)"
     )
     parser.add_argument(
         "--parallel",
         action="store_true",
-        help="Run tests in parallel (overrides preset)"
+        help="Run tests in parallel (overrides preset)",
     )
     parser.add_argument(
-        "--report",
-        action="store_true",
-        help="Generate HTML report (overrides preset)"
+        "--report", action="store_true", help="Generate HTML report (overrides preset)"
     )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Show detailed output"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Show detailed output")
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Show what would be run without executing tests"
+        help="Show what would be run without executing tests",
     )
     return parser.parse_args()
+
 
 def build_command(args):
     """
     Build the command to run the incremental tests script.
-    
+
     Args:
         args: Command line arguments
-        
+
     Returns:
         list: Command to run as a list of strings
     """
     # Start with the base command
     cmd = ["python", "scripts/run_modified_tests.py"]
-    
+
     # Get the preset configuration
     preset = PRESETS[args.preset]
-    
+
     # Add base commit (from args or preset)
     base = args.base if args.base else preset.get("base")
     if base:
         cmd.extend(["--base", base])
-    
+
     # Add test directory if specified in preset
     if "test_dir" in preset:
         cmd.extend(["--test-dir", preset["test_dir"]])
-    
+
     # Add all-tests flag
     if preset.get("all_tests", False):
         cmd.append("--all-tests")
-    
+
     # Add parallel flag (from args or preset)
     parallel = args.parallel if args.parallel else preset.get("parallel", False)
     if parallel:
         cmd.append("--parallel")
-    
+
     # Add report flag (from args or preset)
     report = args.report if args.report else preset.get("report", False)
     if report:
         cmd.append("--report")
-    
+
     # Add speed filters
     speed = preset.get("speed")
     if speed == "fast":
@@ -157,24 +152,25 @@ def build_command(args):
         cmd.append("--medium")
     elif speed == "slow":
         cmd.append("--slow")
-    
+
     # Add verbose output
     if args.verbose:
         cmd.append("--verbose")
-    
+
     return cmd
+
 
 def main():
     """Main function."""
     args = parse_args()
-    
+
     # Build the command
     cmd = build_command(args)
-    
+
     # Print the command
     print(f"Running: {' '.join(cmd)}")
     print(f"Preset: {args.preset} - {PRESETS[args.preset]['description']}")
-    
+
     # Execute the command if not a dry run
     if not args.dry_run:
         try:
@@ -184,6 +180,7 @@ def main():
             sys.exit(1)
     else:
         print("Dry run - not executing tests")
+
 
 if __name__ == "__main__":
     main()

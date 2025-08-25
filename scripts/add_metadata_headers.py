@@ -24,22 +24,25 @@ from pathlib import Path
 # Get the current date in YYYY-MM-DD format
 CURRENT_DATE = datetime.now().strftime("%Y-%m-%d")
 
+
 def has_metadata_header(content):
     """Check if the file has a metadata header."""
     return content.startswith("---")
 
+
 def extract_title(content):
     """Extract the title from the first heading in the file."""
     # Look for the first heading (# Title)
-    match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+    match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
     if match:
         return match.group(1).strip()
     return "Untitled Document"
 
+
 def generate_tags(file_path):
     """Generate appropriate tags based on the file path."""
     tags = []
-    
+
     # Add tags based on directory
     parts = file_path.parts
     if "getting_started" in parts:
@@ -62,7 +65,7 @@ def generate_tags(file_path):
         tags.append("roadmap")
     if "policies" in parts:
         tags.append("policy")
-    
+
     # Add tags based on filename
     filename = file_path.stem.lower()
     if "cli" in filename:
@@ -83,17 +86,18 @@ def generate_tags(file_path):
         tags.append("configuration")
     if "troubleshooting" in filename:
         tags.append("troubleshooting")
-    
+
     # Ensure we have at least one tag
     if not tags:
         tags.append("documentation")
-    
+
     return tags
+
 
 def create_metadata_header(title, tags):
     """Create a metadata header with the given title and tags."""
     tags_str = "\n  - ".join([f'"{tag}"' for tag in tags])
-    
+
     return f"""---
 title: "{title}"
 date: "{CURRENT_DATE}"
@@ -107,32 +111,34 @@ last_reviewed: "{CURRENT_DATE}"
 
 """
 
+
 def add_metadata_header(file_path):
     """Add a metadata header to the file if it doesn't have one."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
-    
+
     if has_metadata_header(content):
         print(f"Skipping {file_path} - already has metadata header")
         return
-    
+
     title = extract_title(content)
     tags = generate_tags(file_path)
     header = create_metadata_header(title, tags)
-    
-    with open(file_path, 'w', encoding='utf-8') as f:
+
+    with open(file_path, "w", encoding="utf-8") as f:
         f.write(header + content)
-    
+
     print(f"Added metadata header to {file_path}")
+
 
 def main():
     """Main function to add metadata headers to all Markdown files in the docs directory."""
     docs_dir = Path("docs")
-    
+
     # Find all Markdown files in the docs directory
     md_files = list(docs_dir.glob("**/*.md"))
     print(f"Found {len(md_files)} Markdown files in the docs directory")
-    
+
     # Add metadata headers to files missing them
     files_updated = 0
     for file_path in md_files:
@@ -141,8 +147,9 @@ def main():
             files_updated += 1
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
-    
+
     print(f"Updated {files_updated} files with metadata headers")
+
 
 if __name__ == "__main__":
     main()

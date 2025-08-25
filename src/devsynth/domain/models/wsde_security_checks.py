@@ -1,5 +1,7 @@
 """Security and code quality checks for the WSDE model."""
+
 from typing import Any
+
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -44,43 +46,37 @@ def _check_security_best_practices(self: Any, code: str) -> bool:
 def _balance_security_and_performance(self: Any, code: str) -> str:
     """Annotate code with guidance on balancing security and performance."""
     if "# Security and performance balance:" not in code:
-        code += (
-            """
+        code += """
 
 # Security and performance balance:
 # - Using efficient validation methods
 # - Implementing security checks at critical points only
 # - Using cached results where appropriate for repeated operations
 """
-        )
     return code
 
 
 def _balance_security_and_usability(self: Any, code: str) -> str:
     """Annotate code with guidance on balancing security and usability."""
     if "# Security and usability balance:" not in code:
-        code += (
-            """
+        code += """
 
 # Security and usability balance:
 # - Implementing progressive security measures
 # - Using clear error messages for security issues
 # - Providing helpful guidance for users
 """
-        )
     return code
 
 
 def _balance_performance_and_maintainability(self: Any, code: str) -> str:
     """Annotate code with guidance on balancing performance and maintainability."""
     if "# Performance and maintainability balance:" not in code:
-        code += (
-            """
+        code += """
 
 # Performance and maintainability balance:
 # - Using descriptive variable names even in performance-critical sections
 # - Adding comments to explain optimization techniques
 # - Extracting complex optimizations into well-named functions
 """
-        )
     return code

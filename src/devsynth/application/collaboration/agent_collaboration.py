@@ -7,9 +7,9 @@ to work together on complex tasks through a flexible collaboration protocol.
 
 import os
 import uuid
-from typing import Dict, List, Any, Optional, Callable, Set, Tuple
 from datetime import datetime
 from enum import Enum, auto
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from devsynth.domain.interfaces.agent import Agent
 from devsynth.domain.models.wsde_facade import WSDETeam
