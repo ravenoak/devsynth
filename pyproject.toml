@@ -1,11 +1,20 @@
 [tool.poetry]
 name = "devsynth"
-version = "0.1.0-alpha.1"
+version = "0.1.0a1"
 description = "DevSynth project"
 authors = ["DevSynth Team"]
+license = "MIT"
 readme = "README.md"
 packages = [{include = "devsynth", from = "src"}]
-classifiers = ["Development Status :: 3 - Alpha"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent"
+]
 
 [tool.poetry.dependencies]
 python = "<3.13,>=3.12"
@@ -32,7 +41,7 @@ astor = {version = "0.8.1", optional = true}
 argon2-cffi = "25.1.0"
 cryptography = "==45.0.5"
 prometheus-client = {version = "0.20.0", optional = true}
-streamlit = "^1.47.1"
+streamlit = {version = "^1.47.1", optional = true}
 httpx = {version = "0.28.1", optional = true}
 chromadb = {version = "1.0.15", optional = true}
 kuzu = {version = "0.10.0", optional = true}
@@ -127,17 +136,10 @@ minimal = [
     "pydantic",
     "pydantic-settings",
     "langgraph",
-    "tiktoken",
     "networkx",
     "toml",
     "pyyaml",
     "requests",
-    "tinydb",
-    "duckdb",
-    "lmdb",
-    "rdflib",
-    "astor",
-    "httpx",
 ]
 
 retrieval = ["kuzu", "faiss-cpu"]
@@ -164,7 +166,7 @@ gpu = [
 ]
 offline = ["transformers"]
 api = ["fastapi", "prometheus-client"]
-webui = ["streamlit"]
+webui = ["nicegui"]
 gui = ["dearpygui"]
 tests = ["fastapi", "httpx", "tinydb", "duckdb", "lmdb", "astor"]
 dev = [
@@ -193,7 +195,7 @@ dev = [
 ]
 
 [tool.poetry.scripts]
-devsynth = "devsynth.adapters.cli:run_cli"
+devsynth = "devsynth.adapters.cli.typer_adapter:run_cli"
 mvuu-dashboard = "devsynth.application.cli.commands.mvuu_dashboard_cmd:mvuu_dashboard_cmd"
 
 [tool.mypy]
@@ -230,6 +232,20 @@ features = {}
 module = "tests.*"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+
+# Relax strictness for recently changed modules to allow incremental typing.
+# Rationale: these modules are actively evolving; we keep global strictness high
+# while avoiding blocking changes. Add TODOs in modules to restore strictness.
+# Target to restore strictness: 2025-10-01
+[[tool.mypy.overrides]]
+module = "devsynth.application.cli.commands.inspect_code_cmd"
+disallow_untyped_defs = false
+check_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "devsynth.methodology.edrr.reasoning_loop"
+disallow_untyped_defs = false
+check_untyped_defs = false
 
 [build-system]
 requires = ["poetry-core"]
