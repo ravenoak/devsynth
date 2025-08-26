@@ -10,7 +10,7 @@ import logging
 import uuid
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-from devsynth.application.promises import Promise, PromiseError
+from .implementation import Promise, PromiseError
 from devsynth.exceptions import DevSynthError
 
 # Setup logger
