@@ -19,7 +19,7 @@ from typer.models import OptionInfo
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.testing.run_tests import run_tests
+from devsynth.testing.run_tests import run_tests, collect_tests_with_cache
 from devsynth.observability.metrics import increment_counter
 
 logger = DevSynthLogger(__name__)
@@ -104,6 +104,11 @@ def run_tests_cmd(
         "--feature",
         help="Feature flags to enable/disable (format: name or name=false)",
     ),
+    inventory: bool = typer.Option(
+        False,
+        "--inventory",
+        help="Export test inventory to test_reports/test_inventory.json and exit",
+    ),
     *,
     bridge: Optional[Any] = typer.Option(None, hidden=True),
 ) -> None:
@@ -134,7 +139,7 @@ def run_tests_cmd(
         ux_bridge.print(
             "[red]Invalid --target value:[/red] '" + target + "'. "
             "Allowed: all-tests|unit-tests|integration-tests|behavior-tests. "
-            "See docs/user_guides/cli_reference.md for details."
+            "See docs/user_guides/cli_command_reference.md for details."
         )
         raise typer.Exit(code=2)
 
@@ -147,6 +152,33 @@ def run_tests_cmd(
             "Allowed: fast|medium|slow. Use multiple --speed flags to combine."
         )
         raise typer.Exit(code=2)
+
+    # Inventory-only mode: export JSON and exit successfully without running tests
+    if inventory:
+        from datetime import datetime as _dt
+        from pathlib import Path as _Path
+        import json as _json
+
+        targets = ["all-tests", "unit-tests", "integration-tests", "behavior-tests"]
+        speeds_all = ["fast", "medium", "slow"]
+        inventory_data: Dict[str, Dict[str, List[str]]] = {}
+        for tgt in targets:
+            inventory_data[tgt] = {}
+            for spd in speeds_all:
+                try:
+                    inventory_data[tgt][spd] = collect_tests_with_cache(tgt, spd)
+                except Exception:
+                    inventory_data[tgt][spd] = []
+        report_dir = _Path("test_reports")
+        report_dir.mkdir(parents=True, exist_ok=True)
+        out_path = report_dir / "test_inventory.json"
+        payload = {
+            "generated_at": _dt.utcnow().isoformat() + "Z",
+            "targets": inventory_data,
+        }
+        out_path.write_text(_json.dumps(payload, indent=2))
+        ux_bridge.print("[green]Test inventory exported to[/green] " + str(out_path))
+        return
 
     # Smoke mode: minimize plugin surface and disable xdist
     if smoke:

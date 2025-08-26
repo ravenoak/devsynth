@@ -20,6 +20,41 @@ from devsynth.logging_setup import DevSynthLogger
 
 # Cache directory for test collection
 COLLECTION_CACHE_DIR = ".test_collection_cache"
+# TTL for collection cache in seconds (default: 3600); configurable via env var
+try:
+    COLLECTION_CACHE_TTL_SECONDS: int = int(
+        os.environ.get("DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS", "3600")
+    )
+except ValueError:
+    # Fallback to default if malformed
+    COLLECTION_CACHE_TTL_SECONDS = 3600
+
+
+def _failure_tips(returncode: int, cmd: Sequence[str]) -> str:
+    """Return actionable tips for troubleshooting pytest failures.
+
+    This does not change behavior; it augments logs/output with guidance.
+    """
+    joined = " ".join(cmd)
+    tips = [
+        f"Pytest exited with code {returncode}. Command: {joined}",
+        "Troubleshooting tips:",
+        "- Smoke mode: reduce third-party plugin surface to isolate issues:",
+        "  poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1",
+        "- Marker discipline: default filter is '-m \"not memory_intensive\"'. Ensure each test has exactly ONE of @pytest.mark.fast|medium|slow.",
+        "- Plugin autoload: avoid setting PYTEST_DISABLE_PLUGIN_AUTOLOAD unless using --smoke; otherwise pytest options from plugins may fail.",
+        "- Diagnostics: run 'poetry run devsynth doctor' for a quick environment check.",
+        "- Narrow scope: use '-k <expr>' and '-vv' to focus a failure.",
+        "- Segment large suites to localize failures and flakes:",
+        "  poetry run devsynth run-tests --target unit-tests --speed=fast --segment --segment-size=50",
+        "- Limit failures early to speed iteration:",
+        "  poetry run devsynth run-tests --target unit-tests --speed=fast --maxfail=1",
+        "- Disable parallelism if xdist interaction is suspected:",
+        "  poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel",
+        "- Generate an HTML report for context (saved under test_reports/):",
+        "  poetry run devsynth run-tests --target unit-tests --speed=fast --report",
+    ]
+    return "\n" + "\n".join(tips) + "\n"
 
 # Mapping of CLI targets to test paths
 TARGET_PATHS = {
@@ -38,6 +73,10 @@ def collect_tests_with_cache(
     """Collect tests for the given target and speed category.
 
     Results are cached for a short period to speed up repeated collections.
+    Cache entries are invalidated when:
+    - TTL expires, or
+    - The latest modification time under the target path changes, or
+    - The marker expression (speed filter) changes.
 
     Args:
         target: Test target (e.g. ``unit-tests`` or ``integration-tests``).
@@ -48,6 +87,28 @@ def collect_tests_with_cache(
     """
     test_path = TARGET_PATHS.get(target, TARGET_PATHS["all-tests"])
 
+    # Build the marker expression we'll use and compute a simple fingerprint of
+    # the test tree (latest mtime) to detect changes that should invalidate cache.
+    marker_expr = "not memory_intensive"
+    category_expr = marker_expr
+    if speed_category:
+        category_expr = f"{speed_category} and {marker_expr}"
+
+    def _latest_mtime(root: str) -> float:
+        latest = 0.0
+        for dirpath, _dirnames, filenames in os.walk(root):
+            for fn in filenames:
+                if fn.endswith(".py"):
+                    try:
+                        mtime = os.path.getmtime(os.path.join(dirpath, fn))
+                        if mtime > latest:
+                            latest = mtime
+                    except OSError:
+                        # Ignore transient filesystem errors
+                        continue
+        return latest
+
+    latest_mtime = _latest_mtime(test_path)
     cache_key = f"{target}_{speed_category or 'all'}"
     cache_file = os.path.join(COLLECTION_CACHE_DIR, f"{cache_key}_tests.json")
 
@@ -56,22 +117,28 @@ def collect_tests_with_cache(
             with open(cache_file, "r") as f:
                 cached_data = json.load(f)
             cache_time = datetime.fromisoformat(cached_data["timestamp"])
-            if (datetime.now() - cache_time).total_seconds() < 3600:
+            cached_fingerprint = cached_data.get("fingerprint", {})
+            fingerprint_matches = (
+                cached_fingerprint.get("latest_mtime", 0.0) == latest_mtime
+                and cached_fingerprint.get("category_expr") == category_expr
+                and cached_fingerprint.get("test_path") == test_path
+            )
+            if (
+                (datetime.now() - cache_time).total_seconds() < COLLECTION_CACHE_TTL_SECONDS
+                and fingerprint_matches
+            ):
                 logger.info(
-                    "Using cached test collection for %s (%s)",
+                    "Using cached test collection for %s (%s) [TTL=%ss; fingerprint ok]",
                     target,
                     speed_category or "all",
+                    COLLECTION_CACHE_TTL_SECONDS,
                 )
                 return cached_data["tests"]
-        except (json.JSONDecodeError, KeyError):
+        except (json.JSONDecodeError, KeyError, ValueError):
+            # Fall through to regenerate
             pass
 
     os.makedirs(COLLECTION_CACHE_DIR, exist_ok=True)
-
-    marker_expr = "not memory_intensive"
-    category_expr = marker_expr
-    if speed_category:
-        category_expr = f"{speed_category} and {marker_expr}"
 
     collect_cmd = [
         sys.executable,
@@ -84,7 +151,7 @@ def collect_tests_with_cache(
         category_expr,
     ]
 
-    if target == "behavior-tests" and speed_category:
+    if target in {"behavior-tests", "integration-tests"} and speed_category:
         check_cmd = [
             sys.executable,
             "-m",
@@ -114,19 +181,34 @@ def collect_tests_with_cache(
         collect_result = subprocess.run(
             collect_cmd, check=False, capture_output=True, text=True
         )
+        if collect_result.returncode not in (0, 5):
+            if collect_result.stderr:
+                logger.error("Collection stderr:\n%s", collect_result.stderr)
+            tips = _failure_tips(collect_result.returncode, collect_cmd)
+            logger.error(tips)
         test_list = [
             line.strip()
             for line in collect_result.stdout.split("\n")
-            if line.startswith("tests/")
+            if line.startswith("tests/") or line.startswith(test_path)
         ]
 
-        cache_data = {"timestamp": datetime.now().isoformat(), "tests": test_list}
+        cache_data = {
+            "timestamp": datetime.now().isoformat(),
+            "tests": test_list,
+            "fingerprint": {
+                "latest_mtime": latest_mtime,
+                "category_expr": category_expr,
+                "test_path": test_path,
+            },
+        }
         with open(cache_file, "w") as f:
             json.dump(cache_data, f, indent=2)
 
         return test_list
     except Exception as exc:  # pragma: no cover - defensive
         logger.error("Error collecting tests: %s", exc)
+        tips = _failure_tips(-1, collect_cmd)
+        logger.error(tips)
         return []
 
 
@@ -178,8 +260,11 @@ def run_tests(
     # pytest plugins to avoid hangs and unintended side effects in smoke/fast
     # paths. Respect any explicit user setting if already present.
     env = os.environ.copy()
-    if not parallel:
-        env.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    # Do not unilaterally disable third-party pytest plugins here. Disabling
+    # plugin autoload while pytest.ini includes plugin-specific options (e.g.,
+    # --cov flags from pytest-cov) causes 'unrecognized arguments' errors.
+    # Smoke mode and stricter paths should set PYTEST_DISABLE_PLUGIN_AUTOLOAD
+    # explicitly via the CLI layer.
 
     if verbose:
         base_cmd.append("-v")
@@ -216,10 +301,16 @@ def run_tests(
             success = process.returncode in (0, 5)
             if "PytestBenchmarkWarning" in stderr:
                 success = True
+            if not success:
+                tips = _failure_tips(process.returncode, cmd)
+                logger.error(tips)
+                output += tips
             return success, output
         except Exception as exc:  # pragma: no cover - defensive
             logger.error("Error running tests: %s", exc)
-            return False, str(exc)
+            # Provide generic tips even on unexpected exceptions
+            tips = _failure_tips(-1, cmd)
+            return False, f"{exc}\n{tips}"
 
     all_success = True
     all_output = ""
@@ -272,6 +363,10 @@ def run_tests(
                 batch_ok = batch_process.returncode in (0, 5)
                 if "PytestBenchmarkWarning" in batch_stderr:
                     batch_ok = True
+                if not batch_ok:
+                    tips = _failure_tips(batch_process.returncode, batch_cmd)
+                    logger.error(tips)
+                    batch_stderr = batch_stderr + tips
                 batch_success = batch_success and batch_ok
                 all_output += batch_stdout + batch_stderr
             all_success = all_success and batch_success
@@ -291,6 +386,10 @@ def run_tests(
             run_ok = process.returncode in (0, 5)
             if "PytestBenchmarkWarning" in stderr:
                 run_ok = True
+            if not run_ok:
+                tips = _failure_tips(process.returncode, speed_cmd)
+                logger.error(tips)
+                stderr = stderr + tips
             all_success = all_success and run_ok
             all_output += stdout + stderr
 
