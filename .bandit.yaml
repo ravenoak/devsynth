@@ -1,0 +1,11 @@
+# Bandit policy for DevSynth
+# Aligns with .junie/guidelines.md and docs/plan.md
+# Suppressions must include rationale and linked issue. Prefer localized `# nosec` with an inline
+# explanation over global skips. Keep this file minimal.
+
+# Globally disabled tests (avoid unless absolutely necessary; document rationale if used)
+# Reference: https://bandit.readthedocs.io/en/latest/config.html
+skips: []
+
+# Optionally, you can narrow targets or exclude directories here. CI typically calls bandit with
+# explicit -r src/devsynth -x tests, so we leave this minimal to avoid drift with CI.
