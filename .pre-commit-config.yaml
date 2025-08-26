@@ -34,3 +34,12 @@ repos:
     hooks:
       - id: pyupgrade
         args: ["--py312-plus"]
+  - repo: local
+    hooks:
+      - id: verify-test-markers-changed
+        name: Verify test markers on changed test files
+        entry: poetry run python scripts/verify_test_markers.py --changed
+        language: system
+        pass_filenames: true
+        files: ^tests/.*\.py$
+        stages: [commit]
