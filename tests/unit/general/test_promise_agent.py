@@ -23,6 +23,7 @@ class TestCapabilityHandler:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_handler_initialization_succeeds(self):
         """Test initializing a capability handler.
 
@@ -47,6 +48,7 @@ class TestCapabilityHandler:
         assert handler.tags == ["math", "addition"]
         assert handler._active_promises == {}
 
+    @pytest.mark.fast
     def test_handler_direct_execution_succeeds(self):
         """Test direct execution of a handler.
 
@@ -65,6 +67,7 @@ class TestCapabilityHandler:
         result = handler(3, 4)
         assert result == 12
 
+    @pytest.mark.fast
     def test_handler_promise_execution_succeeds(self):
         """Test executing a handler through a promise.
 
@@ -88,6 +91,7 @@ class TestCapabilityHandler:
         assert "execution_completed_at" in promise._metadata
         assert len(handler._active_promises) == 0
 
+    @pytest.mark.fast
     def test_handler_promise_error_raises_error(self):
         """Test error handling in a capability handler.
 
@@ -121,6 +125,7 @@ class TestPromiseAgent:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_agent_initialization_succeeds(self):
         """Test initializing a promise agent.
 
@@ -130,6 +135,7 @@ class TestPromiseAgent:
         assert agent.agent_id == "test_agent"
         assert agent.broker is broker
 
+    @pytest.mark.fast
     def test_capability_registration_succeeds(self):
         """Test registering a capability with an agent.
 
@@ -152,6 +158,7 @@ class TestPromiseAgent:
         assert capabilities[0]["name"] == "add"
         assert capabilities[0]["provider_id"] == "provider_agent"
 
+    @pytest.mark.fast
     def test_capability_request_and_fulfillment_succeeds(self):
         """Test requesting and fulfilling a capability.
 
@@ -174,9 +181,11 @@ class TestPromiseAgent:
         assert promise.is_fulfilled
         assert promise.value == 35
 
+    @pytest.mark.medium
     def test_capability_request_with_timeout_succeeds(self):
         """Test requesting a capability with a timeout.
 
+        Speed: medium because it relies on a timer-based timeout and a short sleep to ensure the timer fires deterministically.
         ReqID: N/A"""
         broker = PromiseBroker()
         provider = PromiseAgent(agent_id="provider_agent", broker=broker)
@@ -193,16 +202,21 @@ class TestPromiseAgent:
         )
         requester = PromiseAgent(agent_id="requester_agent", broker=broker)
         promise = requester.request_capability(
-            name="slow_operation", timeout=0.5, delay=2
+            name="slow_operation", timeout=0.05, delay=1
         )
-        time.sleep(0.6)
+        # Poll for rejection to avoid long sleeps and reduce wall time
+        deadline = time.perf_counter() + 0.5
+        while not promise.is_rejected and time.perf_counter() < deadline:
+            time.sleep(0.005)
         provider.handle_pending_capabilities()
         assert promise.is_rejected
         assert isinstance(promise.reason, TimeoutError)
 
+    @pytest.mark.medium
     def test_wait_for_capability_succeeds(self):
         """Test waiting for a capability to complete.
 
+        Speed: medium because it spawns a background thread and waits for inter-thread coordination with a short sleep.
         ReqID: N/A"""
         broker = PromiseBroker()
         provider = PromiseAgent(agent_id="provider_agent", broker=broker)
@@ -220,7 +234,7 @@ class TestPromiseAgent:
         promise = requester.request_capability(name="greet", person_name="World")
 
         def process_later():
-            time.sleep(0.5)
+            time.sleep(0.05)
             provider.handle_pending_capabilities()
 
         import threading
@@ -231,6 +245,7 @@ class TestPromiseAgent:
         assert result == "Hello, World!"
         thread.join()
 
+    @pytest.mark.fast
     def test_unauthorized_access_succeeds(self):
         """Test unauthorized access to a capability.
 
@@ -251,6 +266,7 @@ class TestPromiseAgent:
         with pytest.raises(UnauthorizedAccessError):
             unauthorized.request_capability(name="secret_operation")
 
+    @pytest.mark.fast
     def test_capability_not_found_succeeds(self):
         """Test requesting a non-existent capability.
 
@@ -259,6 +275,7 @@ class TestPromiseAgent:
         with pytest.raises(CapabilityNotFoundError):
             requester.request_capability(name="non_existent_capability")
 
+    @pytest.mark.fast
     def test_get_available_capabilities_succeeds(self):
         """Test getting available capabilities.
 
@@ -309,6 +326,7 @@ class TestPromiseAgentMixin:
             self.custom_state = "action_performed"
             return "Custom action performed"
 
+    @pytest.mark.fast
     def test_mixin_with_custom_agent_succeeds(self):
         """Test using the PromiseAgentMixin with a custom agent class.
 

@@ -7,6 +7,9 @@ import pytest
 from devsynth.interface.simple_run import run_workflow
 from devsynth.interface.ux_bridge import UXBridge
 
+# Resource gating: exercises both CLI and WebUI layers
+pytestmark = [pytest.mark.requires_resource("cli"), pytest.mark.requires_resource("webui")]
+
 
 class DummyBridge(UXBridge):
 
@@ -25,6 +28,7 @@ class DummyBridge(UXBridge):
         self.messages.append(message)
 
 
+@pytest.mark.medium
 def test_run_workflow_cli_succeeds(monkeypatch):
     """Test that run workflow cli succeeds.
 
@@ -43,6 +47,7 @@ def test_run_workflow_cli_succeeds(monkeypatch):
     assert "ok" in bridge.messages
 
 
+@pytest.mark.medium
 def test_run_workflow_webui_succeeds(monkeypatch):
     """Test that run workflow webui succeeds.
 

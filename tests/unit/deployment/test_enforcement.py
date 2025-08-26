@@ -5,9 +5,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 
-pytestmark = pytest.mark.fast
 
-
+@pytest.mark.fast
 def test_shell_scripts_enforce_non_root_and_env_validation():
     """Deployment shell scripts enforce non-root execution and env file checks."""
     scripts_dir = ROOT / "scripts/deployment"

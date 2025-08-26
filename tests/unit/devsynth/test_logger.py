@@ -5,8 +5,7 @@ import pytest
 from devsynth.logger import DevSynthLogger
 from devsynth.logging_setup import DevSynthLogger as BaseDevSynthLogger
 
-pytestmark = pytest.mark.fast
-
+@pytest.mark.fast
 
 def test_log_exception_object_normalized(monkeypatch):
     """Exception objects become ``(type, value, traceback)`` tuples.
@@ -26,6 +25,7 @@ def test_log_exception_object_normalized(monkeypatch):
     assert exc_info[0] is ValueError and exc_info[1] is err
 
 
+@pytest.mark.fast
 def test_log_true_uses_current_exception(monkeypatch):
     """Passing ``exc_info=True`` attaches the active exception.
 
@@ -46,6 +46,7 @@ def test_log_true_uses_current_exception(monkeypatch):
     assert exc_info[0] is RuntimeError
 
 
+@pytest.mark.fast
 def test_log_invalid_exc_info_dropped(monkeypatch):
     """Invalid ``exc_info`` values are ignored.
 

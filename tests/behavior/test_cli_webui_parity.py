@@ -7,6 +7,9 @@ import pytest
 
 from devsynth.interface.agentapi import APIBridge
 
+# Resource gating: exercises both CLI and WebUI layers
+pytestmark = [pytest.mark.gui, pytest.mark.requires_resource("cli"), pytest.mark.requires_resource("webui")]
+
 
 class DummyForm:
 
@@ -187,6 +190,7 @@ def _capture_webui_messages(webui_cls, bridge, st):
     return ui
 
 
+@pytest.mark.medium
 def test_init_parity_succeeds(parity_env):
     """Test that init parity succeeds.
 
@@ -206,6 +210,7 @@ def test_init_parity_succeeds(parity_env):
     assert cli_messages == web_messages
 
 
+@pytest.mark.medium
 def test_spec_parity_succeeds(parity_env):
     """Test that spec parity succeeds.
 
@@ -227,6 +232,7 @@ def test_spec_parity_succeeds(parity_env):
     assert cli_messages == web_messages
 
 
+@pytest.mark.medium
 def test_code_parity_succeeds(parity_env):
     """Test that code parity succeeds.
 
@@ -248,6 +254,7 @@ def test_code_parity_succeeds(parity_env):
     assert cli_messages == web_messages
 
 
+@pytest.mark.medium
 def test_doctor_parity_succeeds(parity_env):
     """Test that doctor parity succeeds.
 

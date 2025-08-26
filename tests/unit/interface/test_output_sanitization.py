@@ -15,8 +15,8 @@ def clean_state():
     # Clean up state
 
 
-@pytest.mark.slow
-def test_function(clean_state):
+@pytest.mark.fast
+def test_cliuxbridge_sanitizes_script_tag_succeeds(clean_state):
     """Test that cliuxbridge sanitizes output succeeds.
 
     ReqID: N/A"""
