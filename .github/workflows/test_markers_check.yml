@@ -1,0 +1,66 @@
+name: Test Markers Discipline
+
+on:
+  pull_request:
+    branches: [ "**" ]
+  schedule:
+    - cron: '0 3 * * *'  # nightly at 03:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify-changed:
+    if: github.event_name == 'pull_request'
+    name: Verify markers on changed tests (PR)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Install dev deps (tests baseline)
+        run: |
+          poetry install --with dev --extras "tests retrieval chromadb api"
+      - name: Run changed markers verification
+        run: |
+          poetry run python scripts/verify_test_markers.py --changed
+
+  nightly-report:
+    if: github.event_name != 'pull_request'
+    name: Nightly full markers report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Install dev deps (tests baseline)
+        run: |
+          poetry install --with dev --extras "tests retrieval chromadb api"
+      - name: Generate full markers report
+        run: |
+          poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+      - name: Upload markers report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-markers-report
+          path: test_markers_report.json
+          if-no-files-found: error

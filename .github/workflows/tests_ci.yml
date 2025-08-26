@@ -1,0 +1,125 @@
+name: Tests CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  unit-fast:
+    name: Unit (fast) [PR]
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            .venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}-unit-fast
+
+      - name: Install dependencies (tests baseline)
+        run: |
+          poetry --version
+          poetry install --with dev --extras "tests retrieval chromadb api"
+
+      - name: Environment defaults (gate resources)
+        run: |
+          echo "DEVSYNTH_PROVIDER=stub" >> $GITHUB_ENV
+          echo "DEVSYNTH_OFFLINE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CLI_AVAILABLE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_FAISS_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_KUZU_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_LMDB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=test-openai-key" >> $GITHUB_ENV
+          echo "LM_STUDIO_ENDPOINT=http://127.0.0.1:1234" >> $GITHUB_ENV
+
+      - name: Collect tests (sanity)
+        run: |
+          poetry run pytest --collect-only -q
+
+      - name: Unit fast
+        run: |
+          poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+
+  unit-full:
+    name: Unit (full speeds) [main]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            .venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}-unit-full
+
+      - name: Install dependencies (tests baseline)
+        run: |
+          poetry --version
+          poetry install --with dev --extras "tests retrieval chromadb api"
+
+      - name: Environment defaults (gate resources)
+        run: |
+          echo "DEVSYNTH_PROVIDER=stub" >> $GITHUB_ENV
+          echo "DEVSYNTH_OFFLINE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CLI_AVAILABLE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_FAISS_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_KUZU_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_LMDB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=false" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=test-openai-key" >> $GITHUB_ENV
+          echo "LM_STUDIO_ENDPOINT=http://127.0.0.1:1234" >> $GITHUB_ENV
+
+      - name: Run full unit suite with report
+        run: |
+          poetry run devsynth run-tests --target unit-tests --speed=fast --speed=medium --speed=slow --segment --segment-size 50 --report
+
+      - name: Upload test report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: test_reports/
+          if-no-files-found: warn

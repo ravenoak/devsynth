@@ -1,0 +1,53 @@
+name: Test Markers Report
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify-test-markers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Keep CI environment minimal and offline-friendly
+      DEVSYNTH_OFFLINE: 'true'
+      DEVSYNTH_PROVIDER: 'stub'
+      OPENAI_API_KEY: 'test-openai-key'
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dependencies (dev + minimal extras)
+        run: |
+          poetry install --with dev --extras minimal
+
+      - name: Verify test speed markers and generate report
+        run: |
+          poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+
+      - name: Upload markers report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-markers-report
+          path: |
+            test_markers_report.json
+          if-no-files-found: warn
