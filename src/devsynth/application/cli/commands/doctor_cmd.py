@@ -1,6 +1,7 @@
 import importlib.util
 import os
 import sys
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -61,9 +62,16 @@ def doctor_cmd(
             )
             warnings = True
 
-        if sys.version_info < (3, 11):
+        if sys.version_info < (3, 12):
             ux_bridge.print(
                 f"[yellow]Warning: Python 3.12 or higher is required. Current version: {sys.version.split()[0]}[/yellow]"
+            )
+            warnings = True
+
+        # Check Poetry availability (recommended workflow)
+        if shutil.which("poetry") is None:
+            ux_bridge.print(
+                "[yellow]Poetry is not installed or not on PATH. Install Poetry for consistent dev workflows.[/yellow]"
             )
             warnings = True
 

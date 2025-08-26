@@ -3,6 +3,7 @@
 import re
 import subprocess
 import sys
+import os
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -113,8 +114,20 @@ class TestAgent(BaseAgent):
             DevSynthError: If the tests fail.
         """
 
+        # Ensure subprocess runs with stubbed/offline providers and without real LLM resources.
+        # This prevents accidental network calls and enforces isolation per docs/tasks.md (Task 26/27)
+        env = os.environ.copy()
+        env.setdefault("DEVSYNTH_PROVIDER", "stub")
+        env.setdefault("DEVSYNTH_OFFLINE", "true")
+        # Explicitly disable real LLM resources unless the caller opts in
+        env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+        env.setdefault("DEVSYNTH_RESOURCE_OPENAI_AVAILABLE", "false")
+        env.setdefault("DEVSYNTH_RESOURCE_LLM_PROVIDER_AVAILABLE", "false")
+
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", str(directory)],
+            [sys.executable, "-m", "pytest", "-q"],
+            cwd=str(directory),
+            env=env,
             capture_output=True,
             text=True,
         )

@@ -3,12 +3,7 @@ from typing import Any, Dict, List, Optional
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
-from ...application.llm.providers import (
-    AnthropicProvider,
-    OpenAIProvider,
-    SimpleLLMProviderFactory,
-    factory,
-)
+from ...application.llm.providers import factory
 from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
 
 logger = DevSynthLogger(__name__)
