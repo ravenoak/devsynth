@@ -3,8 +3,7 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = pytest.mark.fast
-
+@pytest.mark.fast
 
 def test_global_test_isolation_sets_env_and_dirs(tmp_path):
     """Ensure the autouse global_test_isolation fixture sets sane defaults.

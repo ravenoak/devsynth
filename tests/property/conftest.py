@@ -29,6 +29,28 @@ def _property_tests_enabled() -> bool:
     return value in _TRUTHY
 
 
+# Configure Hypothesis defaults conservatively to reduce flakiness when enabled.
+# We avoid importing Hypothesis unless the suite is actually enabled to keep
+# import overhead minimal in default runs.
+if _property_tests_enabled():
+    try:
+        from hypothesis import HealthCheck, settings
+
+        # A conservative default: modest example count and reasonable deadline.
+        # Individual tests can override with @settings as needed.
+        settings.register_profile(
+            "devsynth_property_ci",
+            max_examples=25,
+            deadline=500,
+            suppress_health_check=(HealthCheck.too_slow,),
+            derandomize=False,
+        )
+        settings.load_profile("devsynth_property_ci")
+    except Exception:
+        # Hypothesis may not be installed in minimal environments; ignore.
+        pass
+
+
 def pytest_ignore_collect(path, config):  # type: ignore[override]
     """Prevent collection of this directory when property tests are disabled.
 

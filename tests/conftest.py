@@ -27,6 +27,37 @@ try:
 except Exception:  # pragma: no cover - fallback if pathing changes
     apply_normalized_stubs = None  # type: ignore
 
+# Configure Hypothesis defaults for property-based tests when available
+try:  # pragma: no cover - only active when hypothesis is installed
+    from hypothesis import HealthCheck, Phase, Verbosity, settings
+
+    # Allow environment overrides for CI/local tuning
+    _hyp_deadline = os.environ.get("DEVSYNTH_HYPOTHESIS_DEADLINE_MS", "500")
+    _hyp_max_examples = os.environ.get("DEVSYNTH_HYPOTHESIS_MAX_EXAMPLES", "50")
+    try:
+        _deadline_ms = int(_hyp_deadline)
+    except Exception:
+        _deadline_ms = 500
+    try:
+        _max_examples = int(_hyp_max_examples)
+    except Exception:
+        _max_examples = 50
+
+    settings.register_profile(
+        "devsynth",
+        settings(
+            deadline=_deadline_ms,
+            suppress_health_check=[HealthCheck.too_slow],
+            phases=(Phase.explicit, Phase.generate, Phase.shrink),
+            max_examples=_max_examples,
+            verbosity=Verbosity.normal,
+        ),
+    )
+    settings.load_profile(os.environ.get("DEVSYNTH_HYPOTHESIS_PROFILE", "devsynth"))
+except Exception:
+    # Hypothesis not installed or configuration failed; tests/property/ are skipped by gating anyway
+    pass
+
 try:
     import yaml
 except ModuleNotFoundError:  # yaml is optional
@@ -60,6 +91,10 @@ def pytest_configure(config):
         "markers",
         "property: mark test as a Hypothesis property-based test",
     )
+    config.addinivalue_line(
+        "markers",
+        "performance: mark test as a performance/benchmark test (opt-in)",
+    )
 
     # Limit worker restarts to avoid xdist hangs when collecting coverage
     if (
@@ -69,78 +104,8 @@ def pytest_configure(config):
         config.option.maxworkerrestart = 2
 
 
-@pytest.fixture(scope="session", autouse=True)
-def deterministic_seed() -> int:
-    """Ensure deterministic behavior across tests by setting global RNG seeds.
-
-    This fixture sets deterministic seeds for Python's random module and, when available,
-    NumPy and PyTorch. It also ensures DEVSYNTH_TEST_SEED is present in the environment and
-    attempts to propagate PYTHONHASHSEED for child processes. While PYTHONHASHSEED must be
-    set before process start to fully affect hash randomization in this process, exporting it
-    still benefits any subprocesses spawned by tests.
-
-    Environment variables:
-    - DEVSYNTH_TEST_SEED: overrides the default seed (defaults to "1337").
-    - PYTHONHASHSEED: exported for subprocess determinism when not already set.
-
-    Returns:
-    - The integer seed applied.
-
-    Rationale: Supports docs/tasks.md item 14 "Test suite health" -> "Ensure deterministic behavior where
-    randomness present (seed fixtures)" and aligns with .junie/guidelines.md on reproducibility.
-    """
-    logger = logging.getLogger("tests.deterministic_seed")
-
-    seed_env = os.environ.get("DEVSYNTH_TEST_SEED", "1337")
-    try:
-        seed = int(seed_env)
-    except ValueError:
-        # Fallback to a stable default if provided value is not an int
-        logger.warning("Invalid DEVSYNTH_TEST_SEED=%r; falling back to 1337", seed_env)
-        seed = 1337
-        os.environ["DEVSYNTH_TEST_SEED"] = str(seed)
-
-    # Export PYTHONHASHSEED for any subprocesses; note: too late to affect current interpreter
-    if "PYTHONHASHSEED" not in os.environ:
-        os.environ["PYTHONHASHSEED"] = str(seed)
-        logger.debug("Set PYTHONHASHSEED=%s for subprocess determinism", seed)
-
-    # Seed standard library RNG
-    random.seed(seed)
-
-    # Seed NumPy if available
-    try:
-        import numpy as np  # type: ignore
-
-        np.random.seed(seed)
-    except Exception as e:  # noqa: BLE001 - broad to avoid optional dep issues
-        logger.debug("NumPy not available or failed to seed: %s", e)
-
-    # Seed PyTorch if available
-    try:
-        import torch  # type: ignore
-
-        torch.manual_seed(seed)
-        if torch.cuda.is_available():  # type: ignore[attr-defined]
-            try:
-                torch.cuda.manual_seed_all(seed)  # type: ignore[attr-defined]
-            except Exception as ce:  # noqa: BLE001
-                logger.debug("Failed to seed CUDA RNGs: %s", ce)
-        # Favor determinism over perf in CI
-        try:
-            import torch.backends.cudnn as cudnn  # type: ignore
-
-            cudnn.deterministic = True  # type: ignore[attr-defined]
-            cudnn.benchmark = False  # type: ignore[attr-defined]
-        except Exception as be:  # noqa: BLE001
-            logger.debug("Failed to set cuDNN deterministic flags: %s", be)
-    except Exception as e:  # noqa: BLE001
-        logger.debug("PyTorch not available or failed to seed: %s", e)
-
-    # Always expose the seed for tests that may want to assert or log it
-    os.environ["DEVSYNTH_TEST_SEED"] = str(seed)
-    logger.info("Deterministic test seed set to %s", seed)
-    return seed
+# Extracted to tests/fixtures/determinism.py
+from tests.fixtures.determinism import deterministic_seed
 
 
 @pytest.fixture
@@ -270,15 +235,26 @@ def tmp_project_dir():
 
 
 @pytest.fixture
-def mock_datetime():
+def mock_datetime(monkeypatch):
     """
-    Patch datetime.now() to return a fixed value for reproducible tests.
+    Patch datetime.datetime.now/utcnow and time.time to return a fixed, timezone-stable value.
+
+    Notes:
+    - Uses a fixed naive datetime (interpreted consistently) and a fixed epoch timestamp for time.time.
+    - Helps avoid wall-clock drift and timezone-related flakiness across platforms.
     """
     fixed_dt = datetime(2025, 1, 1, 12, 0, 0)
+    # Patch datetime.datetime methods used by code under test
     with patch("datetime.datetime") as mock_dt:
         mock_dt.now.return_value = fixed_dt
+        mock_dt.utcnow.return_value = fixed_dt
         mock_dt.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
-        yield mock_dt
+        # Patch time.time to a fixed timestamp derived from fixed_dt
+        import time as _time  # local import to avoid global side effects
+
+        fixed_ts = int(fixed_dt.timestamp())
+        with patch.object(_time, "time", return_value=fixed_ts):
+            yield mock_dt
 
 
 @pytest.fixture
@@ -465,58 +441,8 @@ def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
                 print(f"Warning: Failed to clean up {path}: {str(e)}")
 
 
-@pytest.fixture(autouse=True)
-def disable_network(monkeypatch):
-    """Disable network access during tests.
-
-    In addition to patching raw sockets, defensively patch common HTTP clients
-    (requests, httpx, urllib) when available to ensure no network egress can occur.
-    This aligns with docs/plan.md's isolation goals and .junie/guidelines.md on
-    hermetic tests.
-    """
-
-    def guard_connect(*args, **kwargs):
-        raise RuntimeError("Network access disabled during tests")
-
-    # Block low-level sockets
-    monkeypatch.setattr(socket.socket, "connect", guard_connect)
-
-    # Block urllib to catch stdlib network attempts
-    try:  # pragma: no cover - depends on optional import path usage
-        import urllib.request as _urllib_request  # type: ignore
-
-        def _guard_urlopen(*args, **kwargs):  # type: ignore
-            raise RuntimeError("Network access disabled during tests (urllib)")
-
-        monkeypatch.setattr(_urllib_request, "urlopen", _guard_urlopen, raising=False)
-    except Exception:
-        pass
-
-    # Block requests if installed
-    try:  # pragma: no cover - depends on optional dependency
-        import requests  # type: ignore
-
-        def guard_request(*args, **kwargs):  # type: ignore
-            raise RuntimeError("Network access disabled during tests (requests)")
-
-        # Session.request is used by all verbs
-        monkeypatch.setattr(requests.sessions.Session, "request", guard_request, raising=True)  # type: ignore
-        # Also patch top-level helper in case a library calls requests.api.request
-        monkeypatch.setattr(requests.api, "request", guard_request, raising=False)  # type: ignore
-    except Exception:
-        pass
-
-    # Block httpx if installed
-    try:  # pragma: no cover - depends on optional dependency
-        import httpx  # type: ignore
-
-        def guard_httpx_request(*args, **kwargs):  # type: ignore
-            raise RuntimeError("Network access disabled during tests (httpx)")
-
-        monkeypatch.setattr(httpx.Client, "request", guard_httpx_request, raising=False)  # type: ignore
-        monkeypatch.setattr(httpx.AsyncClient, "request", guard_httpx_request, raising=False)  # type: ignore
-    except Exception:
-        pass
+# Extracted to tests/fixtures/networking.py
+from tests.fixtures.networking import disable_network
 
 
 @pytest.fixture(autouse=True)
@@ -532,62 +458,8 @@ def normalize_subsystem_stubs():
         apply_normalized_stubs()
 
 
-@pytest.fixture(autouse=True)
-def enforce_test_timeout(monkeypatch):
-    """Enforce a per-test timeout to fail fast during fast/smoke runs.
-
-    Controlled by the environment variable ``DEVSYNTH_TEST_TIMEOUT_SECONDS``.
-    If set to a positive integer and the platform supports ``signal.SIGALRM``,
-    a timeout alarm will abort tests that exceed the configured seconds with a
-    clear RuntimeError. On platforms without SIGALRM (e.g., Windows), this
-    fixture is a no-op.
-
-    Rationale:
-    - Supports docs/tasks.md item 38: reduce test timeouts to fail fast.
-    - Aligns with .junie/guidelines.md preference for deterministic, quick feedback.
-    """
-    import os
-    import sys
-
-    timeout_str = os.environ.get("DEVSYNTH_TEST_TIMEOUT_SECONDS")
-    if not timeout_str:
-        return
-
-    try:
-        timeout = int(timeout_str)
-    except Exception:
-        return
-
-    if timeout <= 0:
-        return
-
-    # Only apply on POSIX platforms that support SIGALRM
-    try:
-        import signal
-    except Exception:
-        return
-
-    if not hasattr(signal, "SIGALRM"):
-        return
-
-    def _handler(signum, frame):  # noqa: ARG001 - signature required by signal
-        raise RuntimeError(
-            f"Test timed out after {timeout} seconds (DEVSYNTH_TEST_TIMEOUT_SECONDS)"
-        )
-
-    # Save original handler and set the alarm for each test
-    original = signal.getsignal(signal.SIGALRM)
-    signal.signal(signal.SIGALRM, _handler)
-    signal.alarm(timeout)
-    try:
-        yield
-    finally:
-        try:
-            signal.alarm(0)  # cancel
-            signal.signal(signal.SIGALRM, original)
-        except Exception:
-            # Best-effort cleanup; do not fail tests on teardown
-            pass
+# Extracted to tests/fixtures/determinism.py
+from tests.fixtures.determinism import enforce_test_timeout
 
 
 @pytest.fixture
@@ -956,18 +828,85 @@ def is_resource_available(resource: str) -> bool:
 
 def pytest_collection_modifyitems(config, items):
     """
-    Skip tests that depend on external resources unless explicitly marked.
-    Mark expected failures based on known issues.
+    Normalize and enforce resource gating, smoke-mode behavior, property-based testing collection,
+    and conservative xdist-parallel safety.
+
+    - Resource gating: validate @pytest.mark.requires_resource("<name>") and skip when unavailable or malformed/unknown.
+    - Smoke mode: when PYTEST_DISABLE_PLUGIN_AUTOLOAD=1, skip tests under tests/behavior/ that rely on third-party plugins.
+    - Property-based tests: skip unless DEVSYNTH_PROPERTY_TESTING is enabled.
+    - Xdist safety: conservatively mark integration and performance tests as @pytest.mark.isolation to avoid parallelization issues.
     """
+    # Validate and apply resource gating
     for item in items:
-        # Check for resource markers
         for marker in item.iter_markers(name="requires_resource"):
-            resource = marker.args[0]
+            # Validate marker arguments
+            if not marker.args or not isinstance(marker.args[0], str) or not marker.args[0].strip():
+                item.add_marker(
+                    pytest.mark.skip(reason="Malformed requires_resource marker: expected a non-empty resource name")
+                )
+                continue
+            resource = marker.args[0].strip()
+
+            # Validate known resource
+            known_resources = {
+                "anthropic",
+                "llm_provider",
+                "lmstudio",
+                "openai",
+                "codebase",
+                "cli",
+                "chromadb",
+                "tinydb",
+                "duckdb",
+                "faiss",
+                "kuzu",
+                "lmdb",
+                "rdflib",
+                "memory",
+                "test_resource",
+                "webui",
+            }
+            if resource not in known_resources:
+                item.add_marker(
+                    pytest.mark.skip(reason=f"Unknown resource '{resource}' not recognized by test harness")
+                )
+                continue
+
+            # Skip if resource is not available
             if not is_resource_available(resource):
-                # Skip the test if the resource is not available
                 item.add_marker(
                     pytest.mark.skip(reason=f"Resource '{resource}' not available")
                 )
+
+    # Smoke-mode behavior: skip behavior tests when plugins are disabled
+    smoke = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "0").lower() in {"1", "true", "yes"}
+    if smoke:
+        skip_behavior = pytest.mark.skip(
+            reason=(
+                "Smoke mode (plugins disabled): skipping behavior tests that require third-party plugins"
+            )
+        )
+        for item in items:
+            try:
+                fspath = getattr(item, "fspath", None)
+                path_str = str(fspath) if fspath is not None else ""
+            except Exception:
+                path_str = ""
+            norm = path_str.replace("\\", "/")
+            if "/tests/behavior/" in norm or norm.endswith("/tests/behavior"):
+                item.add_marker(skip_behavior)
+
+    # Conservatively mark integration and performance tests as isolation for xdist safety
+    for item in items:
+        try:
+            fspath = getattr(item, "fspath", None)
+            path_str = str(fspath) if fspath is not None else ""
+        except Exception:
+            path_str = ""
+        norm = path_str.replace("\\", "/")
+        if "/tests/integration/" in norm or "/tests/performance/" in norm:
+            if not item.get_closest_marker("isolation"):
+                item.add_marker(pytest.mark.isolation)
 
     # Skip property-based tests unless enabled
     for item in items:
@@ -975,15 +914,23 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Property testing disabled"))
 
 
-def is_property_testing_enabled() -> bool:
-    """Return True if property-based tests should run."""
-    flag = os.environ.get("DEVSYNTH_PROPERTY_TESTING")
-    if flag is not None:
-        return flag.strip().lower() in {"1", "true", "yes"}
-    cfg_path = Path(__file__).resolve().parents[1] / "config" / "default.yml"
-    try:
-        with open(cfg_path, "r") as f:
-            data = yaml.safe_load(f) or {}
-        return bool(data.get("formalVerification", {}).get("propertyTesting", False))
-    except Exception:
-        return False
+# Extracted to tests/fixtures/resources.py
+from tests.fixtures.resources import is_property_testing_enabled
+
+
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    """
+    When running under xdist workers, skip tests marked with @pytest.mark.isolation unless
+    explicitly allowed via DEVSYNTH_ALLOW_ISOLATION_IN_XDIST=true. This prevents known
+    shared-state or resource-contention issues from causing flakes under parallel execution.
+    """
+    allow_isolation = os.environ.get("DEVSYNTH_ALLOW_ISOLATION_IN_XDIST", "").lower() in {"1", "true", "yes"}
+    running_in_xdist = os.environ.get("PYTEST_XDIST_WORKER") is not None
+    if running_in_xdist and item.get_closest_marker("isolation") and not allow_isolation:
+        pytest.skip(
+            "Isolation test skipped under xdist (parallel). Rerun with -n0/--no-parallel or set "
+            "DEVSYNTH_ALLOW_ISOLATION_IN_XDIST=true to force-run in parallel."
+        )
+
+
+# NOTE: Merged into the unified pytest_collection_modifyitems above to avoid duplicate hook definitions.

@@ -10,8 +10,6 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS_DIR = ROOT / "scripts" / "deployment"
 
-pytestmark = pytest.mark.fast
-
 
 class _Handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -25,6 +23,7 @@ class _FailHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 
+@pytest.mark.fast
 def test_health_check_script_reports_healthy():
     """health_check.sh should succeed when endpoints return 200.
 
@@ -55,6 +54,7 @@ def test_health_check_script_reports_healthy():
         shutil.rmtree(workdir)
 
 
+@pytest.mark.fast
 def test_health_check_script_rejects_root_user():
     """health_check.sh should refuse to run as root.
 
@@ -74,6 +74,7 @@ def test_health_check_script_rejects_root_user():
         shutil.rmtree(workdir)
 
 
+@pytest.mark.fast
 def test_health_check_script_requires_env_file():
     """health_check.sh should fail when the env file is missing.
 
@@ -93,6 +94,7 @@ def test_health_check_script_requires_env_file():
         shutil.rmtree(workdir)
 
 
+@pytest.mark.fast
 def test_health_check_script_requires_strict_permissions():
     """health_check.sh should enforce 600 permissions on the env file.
 
@@ -115,6 +117,7 @@ def test_health_check_script_requires_strict_permissions():
         shutil.rmtree(workdir)
 
 
+@pytest.mark.fast
 def test_health_check_script_rejects_invalid_url():
     """health_check.sh should validate provided URLs.
 
@@ -140,6 +143,7 @@ def test_health_check_script_rejects_invalid_url():
         shutil.rmtree(workdir)
 
 
+@pytest.mark.fast
 def test_health_check_script_fails_on_unhealthy_endpoint():
     """health_check.sh should report failure when an endpoint is unhealthy.
 

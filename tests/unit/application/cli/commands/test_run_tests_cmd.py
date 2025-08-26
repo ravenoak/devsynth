@@ -115,6 +115,31 @@ def test_run_tests_cli_full_invocation() -> None:
         assert "Tests completed successfully" in result.output
 
 
+def test_run_tests_cli_does_not_set_plugin_autoload_in_normal_mode(monkeypatch) -> None:
+    """Normal CLI runs should not set PYTEST_DISABLE_PLUGIN_AUTOLOAD.
+
+    Guards Task 44: Only smoke mode should set the variable.
+    """
+
+    # Ensure clean env state
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+
+    runner = CliRunner()
+    with patch(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        return_value=(True, ""),
+    ) as mock_run:
+        app = build_app()
+        result = runner.invoke(
+            app,
+            ["run-tests", "--target", "unit-tests"],
+        )
+
+    assert result.exit_code == 0
+    mock_run.assert_called_once()
+    assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") is None
+
+
 def test_run_tests_cli_smoke_disables_parallel_and_plugins(monkeypatch) -> None:
     """--smoke should disable xdist and plugin autoload via env and no_parallel."""
 

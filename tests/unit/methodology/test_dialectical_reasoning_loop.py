@@ -8,7 +8,6 @@ rl = importlib.import_module("devsynth.methodology.edrr.reasoning_loop")
 from devsynth.exceptions import ConsensusError
 from devsynth.methodology.edrr import reasoning_loop
 
-pytestmark = pytest.mark.fast
 
 
 class DummyConsensusError(ConsensusError):
@@ -16,6 +15,7 @@ class DummyConsensusError(ConsensusError):
         Exception.__init__(self, message)
 
 
+@pytest.mark.fast
 def test_reasoning_loop_runs_until_complete(monkeypatch):
     """It continues until the reasoning process is complete.
 
@@ -37,6 +37,7 @@ def test_reasoning_loop_runs_until_complete(monkeypatch):
     assert results[-1]["synthesis"] == "final"
 
 
+@pytest.mark.fast
 def test_reasoning_loop_logs_consensus_failure(monkeypatch, caplog):
     """It logs and swallows consensus failures.
 
@@ -55,6 +56,7 @@ def test_reasoning_loop_logs_consensus_failure(monkeypatch, caplog):
     assert caplog.records[0].error_type == "DummyConsensusError"
 
 
+@pytest.mark.fast
 def test_reasoning_loop_respects_max_iterations(monkeypatch):
     """It stops after reaching the iteration limit.
 

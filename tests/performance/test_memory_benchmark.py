@@ -12,6 +12,7 @@ except Exception as e:  # pragma: no cover - defensive import for CI environment
 
 
 pytestmark = [
+    pytest.mark.performance,
     pytest.mark.memory_intensive,
     pytest.mark.no_network,
 ]

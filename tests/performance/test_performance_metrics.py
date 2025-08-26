@@ -9,6 +9,10 @@ from devsynth.testing.performance import (
     capture_scalability_metrics,
 )
 
+# Performance tests are opt-in and not part of default PR runs.
+# See docs/testing/performance_tests_policy.md for details.
+pytestmark = [pytest.mark.performance]
+
 
 @pytest.mark.slow
 def test_baseline_metrics(tmp_path):

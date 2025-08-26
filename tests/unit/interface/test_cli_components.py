@@ -69,7 +69,7 @@ def clean_state():
     # Clean up state
 
 
-@pytest.mark.slow
+@pytest.mark.fast
 def test_cliprogressindicator_sanitize_output_succeeds(clean_state):
     """Test that CLIProgressIndicator sanitizes output.
 

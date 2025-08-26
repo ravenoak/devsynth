@@ -4,8 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# Mark as fast; it should complete very quickly with a near-zero budget
-pytestmark = pytest.mark.fast
 
 rl = importlib.import_module("devsynth.methodology.edrr.reasoning_loop")
 
@@ -17,6 +15,7 @@ def _slow_apply(team, task, critic, memory):
     return {"status": "in_progress"}
 
 
+@pytest.mark.fast
 @pytest.mark.unit
 def test_reasoning_loop_respects_total_time_budget(monkeypatch):
     """It stops when the total time budget is exhausted.
