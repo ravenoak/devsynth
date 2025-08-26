@@ -7,6 +7,7 @@ marked appropriately.
 Key rules:
 - Exactly one speed marker per test function: `@pytest.mark.fast` OR `@pytest.mark.medium` OR `@pytest.mark.slow`.
 - Do not use module-level `pytestmark` for speed categories; apply at the function level.
+- Parametrized tests: Prefer a single function-level speed marker. Alternatively, if you use `pytest.param(..., marks=pytest.mark.<speed>)`, every parameter must specify exactly one identical speed marker; mixed or missing markers will be flagged.
 - Property tests require a speed marker in addition to `@pytest.mark.property`.
 
 Examples

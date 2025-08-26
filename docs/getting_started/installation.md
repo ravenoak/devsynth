@@ -18,15 +18,15 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Installation Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Installation Guide
-</div>
-
 # DevSynth Installation Guide
 
 ## Executive Summary
 
 This guide provides step-by-step instructions for installing DevSynth in various environments. It covers installation via PyPI and from source, along with prerequisites for both methods.
+
+> To avoid duplication with other guides, this page focuses on installation specifics. For quick commands and CLI usage details, see:
+> - Quick Start: [Getting Started / Quick Start](../getting_started/quick_start_guide.md)
+> - CLI options and examples: [User Guides / CLI Command Reference](../user_guides/cli_command_reference.md)
 
 ## Prerequisites
 
@@ -60,6 +60,8 @@ poetry install --with dev --extras minimal
 ```
 
 This aligns with the project guidelines in .junie/guidelines.md and speeds up first-time setup.
+
+See also: [Resources Matrix](../resources_matrix.md) for mapping extras to resource flags and quick enablement commands.
 
 
 ## Install from PyPI using Poetry

@@ -495,35 +495,57 @@ Run DevSynth test suites with stability and reporting options.
 **Usage:**
 
 ```bash
-devsynth run-tests [OPTIONS]
+poetry run devsynth run-tests [OPTIONS]
 ```
 
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--target TEXT` | Test target to run (e.g., unit-tests, integration-tests, all-tests) |
-| `--speed TEXT` | Speed category to run; repeatable (fast, medium, slow) |
+| `--target {all-tests|unit-tests|integration-tests|behavior-tests}` | Test target to run (validated) |
+| `--speed {fast|medium|slow}` | Speed category to run; repeatable |
 | `--report` | Generate an HTML test report (stored under test_reports/) |
 | `--verbose` | Show verbose output |
 | `--no-parallel` | Disable parallel test execution (disables xdist) |
-| `--smoke` | Disable third-party plugins and xdist for maximally stable runs (defaults to `--speed fast` if no speed provided) |
+| `--smoke` | Disable third-party plugins and xdist for maximally stable runs (sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`; defaults to `--speed fast` if no speed provided) |
 | `--segment` | Run tests in batches |
 | `--segment-size INTEGER` | Number of tests per batch when segmenting (default: 50) |
 | `--maxfail INTEGER` | Exit after this many failures |
-| `--feature TEXT` | Feature flags to set; repeatable; accept `name` or `name=false` |
+| `--feature TEXT` | Feature flags to set; repeatable; accept `name` or `name=false` (maps to `DEVSYNTH_FEATURE_<NAME>`) |
+
+Additional behavior:
+- In smoke mode, a conservative per-test timeout is applied by default: `DEVSYNTH_TEST_TIMEOUT_SECONDS=5` (unless already set).
+- For explicit fast-only runs (non-smoke), a slightly looser default timeout is applied: `DEVSYNTH_TEST_TIMEOUT_SECONDS=10` (unless already set).
 
 **Examples:**
-
 ```bash
 # Fast smoke run, fail on first error, no parallel
-devsynth run-tests --speed fast --smoke --maxfail 1
+poetry run devsynth run-tests --target unit-tests --speed fast --smoke --maxfail 1 --no-parallel
 
 # Medium + slow, segmenting into batches of 25
-devsynth run-tests --speed medium --speed slow --segment --segment-size 25
+poetry run devsynth run-tests --target all-tests --speed medium --speed slow --segment --segment-size 25
+
+# Slow suite segmented into default-sized batches (50)
+poetry run devsynth run-tests --target all-tests --speed slow --segment
 
 # Generate HTML report and disable parallel
-devsynth run-tests --report --no-parallel
+poetry run devsynth run-tests --report --no-parallel
 ```
+
+Recommendation:
+- For medium/slow suites, prefer segmentation with `--segment-size 50` as a starting point. Adjust to 25–100 depending on stability and runtime. Keep `--no-parallel` while triaging flakes.
+
+Note on segmentation and collection caching:
+- When using --segment, the runner first collects matching tests. This collection is cached to speed up repeated runs.
+- Default collection cache TTL is 3600 seconds (1 hour). You can override via env var:
+  - DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS=<seconds>
+
+Behavior when no tests match a requested speed:
+- For behavior-tests and integration-tests, if a given --speed has no matching tests, the runner will gracefully broaden selection to the default marker filter (equivalent to -m "not memory_intensive") for collection purposes to avoid false negatives in CI. During execution, empty selections are skipped without failing the run.
+- This supports stable pipelines where certain speeds may be temporarily absent for a target without causing "no tests ran" failures.
+
+Default resource gating:
+- The run-tests CLI applies offline-first defaults and disables optional remote resources unless explicitly enabled (e.g., DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false by default). Tests marked with @pytest.mark.requires_resource(...) will be skipped when their resource is unavailable.
+- Provider defaults applied for tests: `DEVSYNTH_PROVIDER=stub`, `DEVSYNTH_OFFLINE=true` (unless already set).
 
 ## completion
 
@@ -953,6 +975,7 @@ DevSynth respects the following environment variables:
 | `DEVSYNTH_DEBUG` | If set (e.g., 1/true), forces DEBUG logging unless overridden by `--log-level` |
 | `DEVSYNTH_CACHE_DIR` | Directory for caching data |
 | `DEVSYNTH_DISABLE_TELEMETRY` | Disable telemetry (set to any value) |
+| `DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS` | TTL (in seconds) for cached pytest collection used by run-tests segmentation (default: 3600) |
 
 ## Configuration File
 
@@ -992,6 +1015,9 @@ paths:
 ## Conclusion
 
 This reference covers all the DevSynth CLI commands and their options. For more detailed information about specific features or workflows, refer to the DevSynth documentation or use the `--help` option with any command.
+
 ## Implementation Status
 
-.
+- The run-tests CLI options are validated by behavior tests under `tests/behavior/steps/test_run_tests_steps.py` and unit tests under `tests/unit/application/cli/commands/`.
+- CI workflows exercise fast unit tests by default and archive HTML reports when `--report` is used; see `.github/workflows/unit_tests.yml`.
+- For determinism and resource gating defaults applied by the CLI, see `.junie/guidelines.md` and `docs/developer_guides/testing.md`.

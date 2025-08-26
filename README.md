@@ -17,11 +17,45 @@ last_reviewed: "2025-08-08"
 # DevSynth
 ![Version](https://img.shields.io/badge/version-0.1.0a1-blue.svg) [![Pre‑release](https://img.shields.io/badge/status-pre--release-orange.svg)](docs/release/0.1.0-alpha.1.md)
 [![Readiness Checklist](https://img.shields.io/badge/readiness-checklist-blueviolet.svg)](docs/tasks.md)
-![Coverage](https://img.shields.io/badge/coverage-80%2B%25-green.svg)
+![Coverage](https://img.shields.io/badge/coverage-illustrative-lightgrey.svg)
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
 **Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. Version `0.1.0a1` has been tagged; see [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md) and the prioritized readiness checklist at [docs/tasks.md](docs/tasks.md). All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md). Release milestones and targeted features post-`0.1.0a1` are documented in [docs/release/roadmap.md](docs/release/roadmap.md); see [docs/roadmap/CONSOLIDATED_ROADMAP.md](docs/roadmap/CONSOLIDATED_ROADMAP.md) for the broader project plan.
+## Quickstart
+
+Prerequisites
+- Python 3.12.x
+- Poetry
+
+Setup (choose one)
+- Recommended targeted baseline (tests without heavy GPU/LLM deps):
+  - poetry install --with dev --extras "tests retrieval chromadb api"
+- Minimal contributor setup:
+  - poetry install --with dev --extras minimal
+- Full dev + docs with all extras:
+  - poetry install --with dev,docs --all-extras
+
+Sanity checks
+- poetry run devsynth --help
+- poetry run devsynth doctor
+- poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+- Smoke mode (reduces plugin surface):
+  - poetry run devsynth run-tests --smoke --speed=fast --no-parallel
+
+Optional resources (opt-in)
+- Install an extra and export the flag to enable gated tests/resources, e.g. TinyDB:
+  - poetry add tinydb --group dev
+  - export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
+- Common flags: DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE, DEVSYNTH_RESOURCE_CLI_AVAILABLE, DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
+- Note: The run-tests CLI defaults to a stub provider and offline mode in tests unless overridden.
+- See also: [Resources Matrix](docs/resources_matrix.md) for mapping extras to DEVSYNTH_RESOURCE_* flags and enablement examples.
+
+Next steps
+- Testing guidance: docs/developer_guides/testing.md
+- CLI options reference: docs/user_guides/cli_command_reference.md
+- Release Playbook: docs/release/release_playbook.md
+
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
 - Unified memory system with Kuzu, TinyDB, RDFLib, and JSON backends
@@ -63,7 +97,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Installation Guide](docs/getting_started/installation.md) *(includes pipx instructions)*
 - [User Guide](docs/user_guides/user_guide.md)
 - [Progressive Feature Setup](docs/user_guides/progressive_setup.md)
-- [CLI Reference](docs/user_guides/cli_reference.md)
+- [CLI Command Reference](docs/user_guides/cli_command_reference.md)
 - [API Reference Generation Guide](docs/user_guides/api_reference_generation.md)
 - [Dear PyGui Guide](docs/user_guides/dearpygui.md)
 - [Architecture Overview](docs/architecture/overview.md)
@@ -304,79 +338,42 @@ The repository includes runnable examples that walk through common workflows:
 
 ## Running Tests
 
-Always execute tests with `poetry run pytest`. Invoking plain `pytest`
-may fail because required plugins are installed only in the Poetry
-virtual environment. Environment provisioning is handled automatically
-in Codex environments. For manual setups, run `poetry install` to
-install all dependencies before running the tests.
-
-Before running the test suite manually, you **must** install DevSynth with its development extras:
+For consistency with project tooling and plugins, always run tests via Poetry and the CLI wrapper:
 
 ```bash
-# Minimal setup for contributors
+# Fast sanity subset (recommended)
+poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1
+
+# Full unit/integration targets
+poetry run devsynth run-tests --target unit-tests
+poetry run devsynth run-tests --target integration-tests
+
+# Smoke mode (reduced plugin surface)
+poetry run devsynth run-tests --smoke --speed=fast
+
+# HTML report under test_reports/
+poetry run devsynth run-tests --report
+```
+
+Install dependencies using one of the presets from our guidelines:
+
+```bash
+# Targeted baseline for local testing (no heavy GPU/LLM deps)
 poetry install --with dev --extras "tests retrieval chromadb api"
 
-# Enable GPU support if needed
-# poetry install --extras gpu
+# Minimal contributor setup
+poetry install --with dev --extras minimal
+
+# Full dev + docs with all extras
+poetry install --with dev,docs --all-extras
 ```
 
-Running the **full** test suite additionally requires the optional extras `tests`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, `chromadb`, and `gui`:
+Notes:
+- Tests are isolated and deterministic by default; network is disabled unless explicitly enabled.
+- Optional resources (e.g., LM Studio, vector stores) are gated by env flags and extras.
 
-```bash
-  poetry install --extras tests --extras retrieval --extras memory \
-    --extras llm --extras api --extras webui --extras lmstudio \
-    --extras chromadb --extras gui
-```
-Alternatively, install them all at once:
-
-```bash
-poetry install --all-extras --all-groups
-
-To set up a complete development environment run:
-
-```bash
-poetry install --with dev,docs --extras "tests retrieval chromadb api" --all-extras
-```
-
-The test suite runs entirely in isolated temporary directories.  Ingestion and
-WSDE tests no longer require special environment variables and are executed by
-default when running `poetry run pytest`.
-
-Use pip only for installing from PyPI, not for local development.
-
-Some tests and features rely on optional vector store backends such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**. Install these packages if you plan to use them:
-
-```bash
-poetry install --extras retrieval
-# or install from PyPI
-pip install 'devsynth[retrieval]'
-```
-
-For a minimal install without optional extras:
-
-```bash
-poetry install --without dev --without docs
-```
-
-You can later enable specific features with `poetry install --extras retrieval --extras api`.
-
-After installation, execute the tests with:
-```bash
-poetry run pytest
-```
-If `pytest` reports missing packages, run `poetry install` to ensure all
-dependencies are installed.
-
-You can also use the `devsynth run-pipeline` command to run the entire
-suite or specific groups of tests and optionally generate an HTML report:
-
-```bash
-devsynth run-pipeline --target unit-tests            # run unit tests
-devsynth run-pipeline --target integration-tests     # run integration tests
-devsynth run-pipeline --target unit-tests --report   # generate HTML report under test_reports/
-```
-
-See [docs/developer_guides/testing.md](docs/developer_guides/testing.md) for detailed testing guidance.
+For authoritative, detailed instructions (extras matrix, resource flags, smoke mode, flakiness mitigation), see the DevSynth Testing Guide:
+- docs/developer_guides/testing.md
 
 ## Alignment and Manifest Validation
 
@@ -489,4 +486,11 @@ DevSynth is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-_Last updated: August 5, 2025_
+_Last updated: August 25, 2025_
+
+## Troubleshooting (Quick Links)
+- Testing guide and fixtures: docs/developer_guides/testing.md
+- Common issues: docs/getting_started/troubleshooting.md
+- Open issues and analyses: issues/
+- If tests hang or plugins conflict: try smoke mode
+  - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
