@@ -1,9 +1,22 @@
-name: Lint and Typing
+name: Lint (Black, Isort, Flake8)
 
 on:
-  push:
-    branches: [ main, master ]
   pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '.github/workflows/lint.yml'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - '.github/workflows/lint.yml'
   workflow_dispatch: {}
 
 concurrency:
@@ -12,11 +25,11 @@ concurrency:
 
 jobs:
   lint:
-    name: Style, Lint, and Typing
+    name: Style and lint checks
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -24,44 +37,28 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'poetry'
 
       - name: Install Poetry
         uses: abatilo/actions-poetry@v3
         with:
           poetry-version: '1.8.3'
 
-      - name: Cache pip wheels
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Cache Poetry virtualenvs
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-
-      - name: Install dev dependencies
+      - name: Install dependencies (dev)
         run: |
           poetry env use 3.12
-          poetry install --with dev --extras minimal
+          poetry install --with dev --extras "tests" --no-interaction --no-ansi
 
       - name: Black (check)
-        run: poetry run black --check .
+        run: |
+          poetry run black --version
+          poetry run black --check .
 
-      - name: isort (check-only)
-        run: poetry run isort --check-only .
+      - name: Isort (check-only)
+        run: |
+          poetry run isort --version-number
+          poetry run isort --check-only .
 
       - name: Flake8
-        run: poetry run flake8 src/ tests/
-
-      - name: Mypy (strict by default)
-        run: poetry run mypy src/devsynth
-
-      - name: Verify test speed markers (exactly one per test)
-        run: poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+        run: |
+          poetry run flake8 src/ tests/

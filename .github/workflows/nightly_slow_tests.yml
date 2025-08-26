@@ -1,0 +1,100 @@
+name: Nightly Slow Test Suite
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 03:00 UTC nightly
+  workflow_dispatch: {}
+
+concurrency:
+  group: nightly-slow-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  slow-tests:
+    name: Run slow tier with segmentation and HTML report
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      # Default CI resource gating: skip optional backends unless explicitly enabled
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_FAISS_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_KUZU_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_TINYDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      # Provide a stub API key for mocked providers
+      OPENAI_API_KEY: 'test-openai-key'
+      # Enforce no file logging during CI
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dev environment (tests, docs, and relevant extras)
+        run: |
+          bash scripts/install_dev.sh
+
+      - name: Sanity - show pytest collection (slow only)
+        run: |
+          poetry run pytest --collect-only -q -m slow || true
+
+      - name: Run unit slow tests (segmented, with report)
+        env:
+          CI: 'true'
+        run: |
+          poetry run devsynth run-tests \
+            --target unit-tests \
+            --speed=slow \
+            --segment --segment-size 75 \
+            --report --maxfail=0
+
+      - name: Run integration slow tests (segmented)
+        env:
+          CI: 'true'
+        run: |
+          poetry run devsynth run-tests \
+            --target integration-tests \
+            --speed=slow \
+            --segment --segment-size 75 \
+            --report --maxfail=0
+
+      - name: Run behavior slow tests (segmented)
+        env:
+          CI: 'true'
+        run: |
+          poetry run devsynth run-tests \
+            --target behavior-tests \
+            --speed=slow \
+            --segment --segment-size 75 \
+            --report --maxfail=0
+
+      - name: Upload slow test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-slow-test-reports
+          path: |
+            test_reports/**
+            coverage.xml
+            test_markers_report.json
+            dialectical_audit.log
+          if-no-files-found: warn

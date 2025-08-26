@@ -1,40 +1,56 @@
 # Pull Request
 
-Thank you for contributing to DevSynth!
-
-Please fill out the checklist below to help us keep the repository healthy and aligned with our standards.
+Thank you for contributing to DevSynth! Please fill out the checklist below to help us maintain determinism, clarity, and safety per .junie/guidelines.md and docs/plan.md.
 
 ## Summary
-- What does this PR change?
-- Why is it needed?
-- Linked issues/epics (if any):
+- What does this change do in one or two sentences?
+- Linked issues or tasks: e.g., fixes #123; addresses docs/tasks.md items: [ ]  …
 
-## Checklist
-- [ ] I ran quick sanity checks locally:
-  - [ ] poetry run pytest --collect-only -q
-  - [ ] poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel (or --smoke for plugin isolation)
-- [ ] I verified style and typing (as applicable):
-  - [ ] poetry run black --check . && poetry run isort --check-only .
-  - [ ] poetry run flake8 src/ tests/
-  - [ ] poetry run mypy src/devsynth (or added/updated TODOs when relaxing strictness as per .junie/guidelines.md)
-- [ ] I followed .junie/guidelines.md and the priorities in docs/plan.md.
-- [ ] I updated docs as needed and verified links if touched.
-- [ ] I confirmed no secrets or credentials were added.
+## Scope of Change
+- [ ] Code
+- [ ] Tests
+- [ ] Docs
+- [ ] CI/Tooling
+- [ ] Other: ____________
 
-## Tasks Checklist Alignment (docs/tasks.md)
-- [ ] If this PR completes any item(s) in docs/tasks.md, I updated the checklist:
-  - Marked the task(s) as [x].
-  - Added a short completion note with date and context.
-  - Ensured changes reflect the improvement plan in docs/plan.md.
+## Socratic Checklist
+- Assumptions tested: What assumptions did you make? How did you test them?
+- Hidden dependencies: What external systems, environment variables, files, or global state does this depend on?
+- Minimal reproducible example (MRE): What is the smallest way to reproduce the observed bug/behavior?
+- Failure modes: What can go wrong? How is it handled or made visible to users/devs?
+- Rollback plan: If this has to be reverted, are follow-ups needed?
 
-## Testing Notes
-- What scenarios were tested? Any resource-gated tests involved?
-- If adding tests, ensure exactly one speed marker per test function (fast|medium|slow).
+## Determinism and Test Discipline
+- [ ] Exactly one speed marker per new/changed test (@pytest.mark.fast|medium|slow)
+- [ ] Respect default marker filter (not memory_intensive) or use @pytest.mark.memory_intensive when appropriate
+- [ ] Deterministic seeding (random, numpy) via fixtures or explicit seeds
+- [ ] No real network calls unless explicitly gated (disable_network used; requires_resource flags applied)
+- [ ] Timeouts applied where appropriate (enforce_test_timeout fixture or explicit)
+- [ ] Writes constrained to tmp paths; no persistent side effects
 
-## Breaking Changes
-- [ ] None
-- [ ] Describe breaking changes (if any) and migration notes:
+## Resource Gating and Providers
+- [ ] If optional backends are used (CHROMADB/DUCKDB/FAISS/KUZU/LMDB/RDFLIB/TINYDB), guarded by @pytest.mark.requires_resource and docs list how to enable locally
+- [ ] LLM provider calls stubbed/offline by default; opt-in flags documented (DEVSYNTH_PROVIDER=stub by default in tests)
 
-## Additional Context
-- Environment (OS, Python, Poetry):
-- Any follow-ups or TODOs:
+## CLI and Docs Consistency
+- [ ] Commands in docs/examples use Poetry (poetry run …) per guidelines
+- [ ] run-tests CLI options and examples align with docs/user_guides/cli_command_reference.md
+
+## Local Verification
+Provide minimal commands used to validate:
+```bash
+poetry run pytest --collect-only -q
+poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+poetry run python scripts/verify_test_markers.py --changed
+```
+
+## Pre-submit Checks
+- [ ] PR is linked to related issues/tickets via GitHub "Linked issues" (required)
+- [ ] scripts/verify_test_markers.py --changed passes with 0 issues on modified tests
+- [ ] Exactly one speed marker per test function is present in all modified/added tests (@pytest.mark.fast|@pytest.mark.medium|@pytest.mark.slow)
+
+## Screenshots / Logs (if applicable)
+- Attach or paste relevant output.
+
+## Notes
+- Additional context, trade-offs, or follow-ups.
