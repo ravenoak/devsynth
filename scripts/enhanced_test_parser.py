@@ -36,6 +36,9 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
+# Align marker detection with verify_test_markers.py
+MARK_RE = re.compile(r"@pytest\.mark\.([a-zA-Z_][a-zA-Z0-9_]*)")
+
 # Constants
 TEST_CATEGORIES = {
     "unit": "tests/unit",
@@ -159,7 +162,7 @@ class TestVisitor(ast.NodeVisitor):
 
         if is_test:
             # Extract markers from decorators
-            markers = []
+            markers: List[str] = []
             for decorator in node.decorator_list:
                 marker = self._extract_marker_from_decorator(decorator)
                 if marker:
@@ -172,6 +175,12 @@ class TestVisitor(ast.NodeVisitor):
                 and self.current_class in self.class_markers
             ):
                 markers = self.class_markers[self.current_class]
+
+            # If still no markers, attempt to derive from @pytest.mark.parametrize pytest.param marks
+            if not markers:
+                param_speed = self._collect_parametrize_speed_markers_from_node(node)
+                if param_speed:
+                    markers = param_speed
 
             # Determine the test path
             if self.current_class:
@@ -278,8 +287,88 @@ class TestVisitor(ast.NodeVisitor):
                         and "pytest" in self.imported_modules
                     ):
                         return True
-
         return False
+
+    def _collect_parametrize_speed_markers_from_node(self, node: ast.FunctionDef) -> List[str]:
+        """Return a single speed marker from parametrize marks if all params agree.
+
+        Mirrors behavior in scripts/verify_test_markers.py::_collect_parametrize_speed_markers.
+        """
+        speed_markers = {"fast", "medium", "slow"}
+        # Scan decorators for @pytest.mark.parametrize
+        for dec in node.decorator_list:
+            if not (isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute)):
+                continue
+            if getattr(dec.func, "attr", None) != "parametrize":
+                continue
+            # Identify argvalues (2nd positional or argvalues= kw)
+            argvalues = None
+            if dec.args:
+                argvalues = dec.args[1] if len(dec.args) >= 2 else None
+            for kw in getattr(dec, "keywords", []) or []:
+                if getattr(kw, "arg", None) == "argvalues":
+                    argvalues = kw.value
+                    break
+            if argvalues is None:
+                continue
+            elements: List[ast.AST] = []
+            if isinstance(argvalues, (ast.List, ast.Tuple)):
+                elements = list(argvalues.elts)
+            else:
+                continue
+            all_param_markers: List[str] = []
+            for el in elements:
+                if not isinstance(el, ast.Call):
+                    all_param_markers = []
+                    break
+                # pytest.param(...) or from pytest import param
+                is_param = False
+                if isinstance(el.func, ast.Attribute):
+                    is_param = (
+                        getattr(el.func, "attr", "") == "param"
+                        and isinstance(el.func.value, ast.Name)
+                        and getattr(el.func.value, "id", "") == "pytest"
+                    )
+                elif isinstance(el.func, ast.Name):
+                    is_param = el.func.id == "param"
+                if not is_param:
+                    all_param_markers = []
+                    break
+                # Find marks=...
+                mark_value = None
+                for kw in el.keywords or []:
+                    if getattr(kw, "arg", None) == "marks":
+                        mark_value = kw.value
+                        break
+                if mark_value is None:
+                    all_param_markers = []
+                    break
+                # marks may be a single marker or list
+                markers_here: List[str] = []
+                if isinstance(mark_value, (ast.List, ast.Tuple)):
+                    for v in mark_value.elts:
+                        name = None
+                        if isinstance(v, ast.Attribute):
+                            name = getattr(v, "attr", None)
+                        elif isinstance(v, ast.Call) and isinstance(v.func, ast.Attribute):
+                            name = getattr(v.func, "attr", None)
+                        if isinstance(name, str) and name in speed_markers:
+                            markers_here.append(name)
+                else:
+                    name = None
+                    if isinstance(mark_value, ast.Attribute):
+                        name = getattr(mark_value, "attr", None)
+                    elif isinstance(mark_value, ast.Call) and isinstance(mark_value.func, ast.Attribute):
+                        name = getattr(mark_value.func, "attr", None)
+                    if isinstance(name, str) and name in speed_markers:
+                        markers_here.append(name)
+                if len(markers_here) != 1:
+                    all_param_markers = []
+                    break
+                all_param_markers.append(markers_here[0])
+            if all_param_markers and len(set(all_param_markers)) == 1:
+                return [all_param_markers[0]]
+        return []
 
     def _extract_parameterized_tests(
         self, node: ast.FunctionDef, base_test_path: str
@@ -604,8 +693,8 @@ def compare_with_pytest(directory: str) -> Dict[str, Any]:
             "common_count": len(common),
             "only_in_parser_count": len(only_in_parser),
             "only_in_pytest_count": len(only_in_pytest),
-            "only_in_parser": list(only_in_parser),
-            "only_in_pytest": list(only_in_pytest),
+            "only_in_parser": list(sorted(only_in_parser)),
+            "only_in_pytest": list(sorted(only_in_pytest)),
             "discrepancy": abs(len(parser_tests) - len(pytest_tests)),
         }
 
@@ -633,10 +722,37 @@ if __name__ == "__main__":
     )
     parser.add_argument("--markers", action="store_true", help="Show marker counts")
     parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Write a JSON summary report of marker counts (aligns with verify_test_markers)",
+    )
+    parser.add_argument(
+        "--report-file",
+        default="test_markers_report.json",
+        help="Path to write JSON summary (default: test_markers_report.json)",
+    )
+    parser.add_argument(
         "--verbose", action="store_true", help="Show detailed information"
     )
 
     args = parser.parse_args()
+
+    def _collect_marker_counts_text(dir_path: str) -> Dict[str, int]:
+        from collections import Counter
+
+        counts: Counter[str] = Counter()
+        for root, _, files in os.walk(dir_path):
+            for file in files:
+                if not file.endswith(".py"):
+                    continue
+                fp = os.path.join(root, file)
+                try:
+                    text = Path(fp).read_text(encoding="utf-8", errors="ignore")
+                except Exception:
+                    continue
+                for m in MARK_RE.finditer(text):
+                    counts[m.group(1)] += 1
+        return dict(counts)
 
     if args.compare:
         results = compare_with_pytest(args.directory)
@@ -647,6 +763,13 @@ if __name__ == "__main__":
         print(f"Only in parser: {results.get('only_in_parser_count', 0)}")
         print(f"Only in pytest: {results.get('only_in_pytest_count', 0)}")
         print(f"Discrepancy: {results['discrepancy']}")
+
+        # Optionally write a JSON report of the comparison when --report is provided
+        if args.report:
+            out_path = Path(args.report_file)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+            print(f"Comparison report written to {out_path}")
 
         if args.verbose:
             if results.get("only_in_parser", []):
@@ -659,18 +782,28 @@ if __name__ == "__main__":
                 for test in sorted(results.get("only_in_pytest", [])):
                     print(f"  {test}")
 
-    elif args.markers:
-        marker_counts = get_marker_counts(args.directory)
+    elif args.markers or args.report:
+        # Use text-based regex to align with verify_test_markers for counts
+        marker_counts = _collect_marker_counts_text(args.directory)
         print(f"Marker counts for {args.directory}:")
-        print(f"Fast: {marker_counts.get('fast', 0)}")
-        print(f"Medium: {marker_counts.get('medium', 0)}")
-        print(f"Slow: {marker_counts.get('slow', 0)}")
+        for name in sorted(marker_counts.keys()):
+            print(f"{name}: {marker_counts.get(name, 0)}")
 
-        # Get total test count
+        # Get total test count from parser
         tests = get_test_paths_from_directory(args.directory)
-        print(f"Total tests: {len(tests)}")
-        print(f"Tests with markers: {sum(marker_counts.values())}")
-        print(f"Tests without markers: {len(tests) - sum(marker_counts.values())}")
+        print(f"Total tests (parser): {len(tests)}")
+
+        if args.report:
+            # Write JSON summary in the same shape as verify_test_markers
+            summary = {
+                "markers": marker_counts,
+                "files_scanned": sum(1 for _ in Path(args.directory).rglob("*.py")),
+                "files_with_issues": 0,  # parser does not perform import exec checks
+            }
+            out_path = Path(args.report_file)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+            print(f"Report written to {out_path}")
 
     else:
         # Just collect and count tests

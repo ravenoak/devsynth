@@ -129,24 +129,152 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
     """Return a list of violations for the exactly-one speed marker rule.
 
     Rules:
-    - Count only function-level decorators on test_ functions.
+    - Prefer function-level decorators on test_ functions.
+    - If no function-level speed marker is present, allow parametrize-level marks
+      via pytest.param(..., marks=pytest.mark.<speed>) provided ALL parameters
+      specify exactly the same single speed marker.
     - Allowed speed markers: fast | medium | slow.
-    - Exactly one must be present; 0 or >1 are violations.
+    - Exactly one must be present overall; 0 or >1 are violations.
     - Module-level markers do not satisfy this requirement.
     """
     violations: List[dict] = []
     try:
         tree = ast.parse(text)
-    except SyntaxError as e:
+    except SyntaxError:
         # Already handled elsewhere as a syntax error; skip here.
         return violations
 
     speed_markers = {"fast", "medium", "slow"}
 
+    def _extract_marker_name_from_attr(a: ast.AST) -> Optional[str]:
+        # Accept pytest.mark.<name> and pytest.mark.<name>()
+        if isinstance(a, ast.Attribute):
+            name = getattr(a, "attr", None)
+            return name if isinstance(name, str) and name in speed_markers else None
+        if isinstance(a, ast.Call) and isinstance(a.func, ast.Attribute):
+            name = getattr(a.func, "attr", None)
+            return name if isinstance(name, str) and name in speed_markers else None
+        return None
+
+    # Detect module-level speed markers assigned to pytestmark (disallowed)
+    try:
+        for node in getattr(tree, "body", []):
+            if isinstance(node, (ast.Assign, ast.AnnAssign)):
+                # Handle: pytestmark = ... or: pytestmark: Any = ...
+                target_names: List[str] = []
+                if isinstance(node, ast.Assign):
+                    for t in node.targets:
+                        if isinstance(t, ast.Name):
+                            target_names.append(t.id)
+                elif isinstance(node, ast.AnnAssign):
+                    if isinstance(node.target, ast.Name):
+                        target_names.append(node.target.id)
+                if "pytestmark" in target_names:
+                    # Look for speed markers in the assigned value
+                    val = node.value if isinstance(node, (ast.Assign, ast.AnnAssign)) else None
+                    markers_found: List[str] = []
+                    if isinstance(val, (ast.List, ast.Tuple)):
+                        elements = list(getattr(val, "elts", []))
+                    else:
+                        elements = [val] if val is not None else []
+                    for el in elements:
+                        name = _extract_marker_name_from_attr(el)
+                        if name:
+                            markers_found.append(name)
+                    if any(m in speed_markers for m in markers_found):
+                        violations.append(
+                            {
+                                "type": "speed_marker_violation",
+                                "function": "<module>",
+                                "file": str(path),
+                                "markers_found": markers_found,
+                                "message": (
+                                    "Module-level pytestmark with speed markers is not allowed; "
+                                    "apply exactly one speed marker per test function."
+                                ),
+                            }
+                        )
+    except Exception:
+        # Be permissive on AST shapes we don't anticipate
+        pass
+
+    def _collect_parametrize_speed_markers(dec: ast.Call) -> List[str]:
+        """Inspect a @pytest.mark.parametrize decorator for pytest.param marks.
+
+        We only consider markers embedded in pytest.param(..., marks=...). If every
+        param has exactly one of {fast, medium, slow} and they are all identical,
+        return that single marker; otherwise return [].
+        """
+        # Identify the argvalues argument: typically second positional arg
+        argvalues: Optional[ast.AST] = None
+        if dec.args:
+            argvalues = dec.args[1] if len(dec.args) >= 2 else None
+        for kw in getattr(dec, "keywords", []) or []:
+            if getattr(kw, "arg", None) == "argvalues":
+                argvalues = kw.value
+                break
+        if argvalues is None:
+            return []
+        # Normalize to a list of parameters
+        elements: List[ast.AST] = []
+        if isinstance(argvalues, (ast.List, ast.Tuple)):
+            elements = list(argvalues.elts)
+        else:
+            # Not a static list/tuple; can't analyze safely
+            return []
+        all_param_markers: List[str] = []
+        for el in elements:
+            # We care about pytest.param(...) entries
+            if isinstance(el, ast.Call):
+                # Check if func is pytest.param
+                is_param = False
+                if isinstance(el.func, ast.Attribute):
+                    is_param = (
+                        getattr(el.func, "attr", "") == "param"
+                        and isinstance(el.func.value, ast.Name)
+                        and getattr(el.func.value, "id", "") == "pytest"
+                    )
+                elif isinstance(el.func, ast.Name):
+                    is_param = el.func.id == "param"  # from "from pytest import param"
+                if not is_param:
+                    return []  # Bail if non-pytest.param entries are present
+                # Look for marks=...
+                mark_value = None
+                for kw in el.keywords or []:
+                    if getattr(kw, "arg", None) == "marks":
+                        mark_value = kw.value
+                        break
+                if mark_value is None:
+                    return []
+                # marks may be a single marker or a list of markers
+                markers_here: List[str] = []
+                if isinstance(mark_value, (ast.List, ast.Tuple)):
+                    for v in mark_value.elts:
+                        name = _extract_marker_name_from_attr(v)
+                        if name:
+                            markers_here.append(name)
+                else:
+                    name = _extract_marker_name_from_attr(mark_value)
+                    if name:
+                        markers_here.append(name)
+                # Exactly one speed marker per param
+                if len(markers_here) != 1:
+                    return []
+                all_param_markers.append(markers_here[0])
+            else:
+                # Non-call entries: cannot analyze reliably
+                return []
+        # All params must agree on the same single marker
+        if not all_param_markers:
+            return []
+        unique = set(all_param_markers)
+        return [unique.pop()] if len(unique) == 1 else []
+
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
             # Collect decorator names of the form pytest.mark.<name>
             found: List[str] = []
+            parametrize_found: List[str] = []
             for dec in node.decorator_list:
                 # Handle @pytest.mark.<name>
                 attr = None
@@ -156,18 +284,24 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
                     # Allow called markers like @pytest.mark.slow()
                     attr = dec.func
                 if attr and isinstance(attr, ast.Attribute):
-                    # attr.value should be Attribute("mark") with value Name("pytest")
-                    # We only care about the final attr.attr which is the marker name
                     marker_name = getattr(attr, "attr", None)
                     if isinstance(marker_name, str) and marker_name in speed_markers:
                         found.append(marker_name)
-            if len(found) != 1:
+                # Handle @pytest.mark.parametrize(...)
+                if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute):
+                    if getattr(dec.func, "attr", None) == "parametrize":
+                        param_speed = _collect_parametrize_speed_markers(dec)
+                        if param_speed:
+                            parametrize_found.extend(param_speed)
+            # Reconcile: prefer function-level marker; else consider parametrize-only
+            effective = found or parametrize_found
+            if len(effective) != 1:
                 violations.append(
                     {
                         "type": "speed_marker_violation",
                         "function": node.name,
                         "file": str(path),
-                        "markers_found": found,
+                        "markers_found": effective,
                         "message": (
                             f"Function {node.name} must have exactly one speed marker"
                         ),

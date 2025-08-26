@@ -1,23 +1,7 @@
 {
   "markers": {
-    "medium": 1282,
-    "fast": 119,
-    "requires_resource": 22,
-    "parametrize": 34,
-    "docker": 2,
-    "slow": 52,
-    "memory_intensive": 1,
-    "integtest": 1,
-    "asyncio": 10,
-    "integration": 1,
-    "skipif": 3,
-    "property": 16,
-    "no_network": 9,
-    "anyio": 3,
-    "unit": 2,
-    "smoke": 3,
-    "skip": 2
+    "fast": 1
   },
-  "files_scanned": 905,
-  "files_with_issues": 317
+  "files_scanned": 1,
+  "files_with_issues": 0
 }
