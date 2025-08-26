@@ -6,6 +6,20 @@ authors = ["DevSynth Team"]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "devsynth", from = "src"}]
+# Explicitly control packaged files for sdist/wheel hygiene
+include = [
+    "LICENSE",
+    "README.md",
+    # Ship scaffolding templates for users; lightweight and helpful
+    "templates/**",
+]
+exclude = [
+    # Do not ship tests in the wheel/sdist
+    "tests/**",
+    # Local and CI artifacts are excluded implicitly by .gitignore; keep explicit here for clarity
+    "test_reports/**",
+    "docs/archived/**",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
