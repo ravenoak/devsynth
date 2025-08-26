@@ -299,6 +299,8 @@ Install the project with the extras configuration that matches your local workfl
 
 These commands are additive with environment flags described below; prefer these presets to avoid missing optional dependencies when running the suite.
 
+See also: [Resources Matrix](../resources_matrix.md) for a concise mapping of extras to DEVSYNTH_RESOURCE_* flags and quick enablement examples.
+
 Before executing tests, install DevSynth with its development extras so that all test dependencies are available. Running the **full** suite requires the `minimal`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, and `chromadb` extras. Environment provisioning is handled automatically in Codex environments. For manual setups run:
 
 ```bash
@@ -348,6 +350,59 @@ poetry run devsynth run-tests --speed=fast
 
 Mark such tests with `@pytest.mark.memory_intensive`. For optional services, use resource markers such as `@pytest.mark.requires_resource("lmstudio")` and set `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=false` to skip them when unavailable.
 
+### Smoke Mode (reduced plugin surface)
+
+Smoke mode is designed for the fastest, most hermetic signal when diagnosing failures or validating a PR quickly. It disables third-party pytest plugins by setting `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` and applies conservative timeouts.
+
+When to use:
+- Quick sanity on a branch to surface deterministic failures early.
+- Reproducing flakes with fewer moving parts (plugins disabled).
+- CI fast path (see docs/tasks.md Task 54) when plugin interactions are not under test.
+
+How to run:
+```bash
+# Fast + smoke + no-parallel + stop early (maxfail=1)
+poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+# Generate an HTML report even in smoke mode
+poetry run devsynth run-tests --smoke --speed=fast --report
+```
+
+### Segmentation of slow tests (batching)
+
+Running slow tests in isolation and in batches should produce consistent results. For long-running suites, prefer batching to reduce rerun costs and improve observability of partial progress.
+
+Recommendations:
+- Use segmentation for medium and slow suites when they exceed a few minutes locally or in CI.
+- Default batch size: 50 tests per segment works well for our suite. Tune to 25–100 depending on stability and runtime characteristics.
+- Keep xdist disabled for initial triage on flakes; re-enable once stable.
+
+Examples:
+```bash
+# Segment slow tests into default-sized batches (50)
+poetry run devsynth run-tests --target all-tests --speed slow --segment
+
+# Segment both medium and slow, with smaller batches of 25
+poetry run devsynth run-tests --target all-tests --speed medium --speed slow --segment --segment-size 25
+
+# Combine with an HTML report for each segment (artifacts under test_reports/)
+poetry run devsynth run-tests --target all-tests --speed slow --segment --report
+```
+
+Notes:
+- When using --segment, the runner first performs a collection step (cached by default; see collection cache TTL guidance below). Each batch executes with the same marker and resource gating.
+- Prefer segment sizes that complete within 3–8 minutes per batch to maximize signal without prolonging feedback cycles.
+- If a batch shows flakiness, re-run that segment with --no-parallel and consider adding @pytest.mark.isolation to offending tests or refactoring shared state.
+
+Observed limitations and notes:
+- Plugins that provide fixtures or markers will not be available; tests must not depend on them when running in smoke.
+- Coverage and benchmarking are implicitly disabled in smoke runs.
+- If behavior differs between smoke and normal mode, investigate plugin side effects (ordering, auto-use fixtures, monkeypatching). Prefer making tests robust to both modes.
+
+Troubleshooting:
+- If collection fails only outside smoke mode, bisect enabled plugins to find the interfering one; open an issue with a minimal repro.
+- If a test needs a plugin, avoid running it in smoke by marking or gating it appropriately.
+
 ### Mocking LM Studio and other optional services
 
 When the `lmstudio` package or its server is unavailable, tests should
@@ -376,6 +431,43 @@ service is unavailable.
   - DEVSYNTH_RESOURCE_WEBUI_AVAILABLE: true/false for WebUI-dependent tests
   - DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: true/false to force skip/presence
   - DEVSYNTH_PROPERTY_TESTING: true/false to enable property tests
+
+### Quick recipes: enabling optional resources locally
+
+The following examples show how to enable optional backends locally. Prefer Poetry for installs. After enabling, run the relevant tests via devsynth run-tests. See tests/README.md for the authoritative, extended list and context.
+
+- TinyDB
+  - Install: poetry add tinydb --group dev
+  - Enable: export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
+- DuckDB
+  - Install: poetry add duckdb --group dev
+  - Enable: export DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=true
+- LMDB
+  - Install: poetry add lmdb --group dev
+  - Enable: export DEVSYNTH_RESOURCE_LMDB_AVAILABLE=true
+- FAISS (CPU)
+  - Install: poetry add faiss-cpu --group dev
+  - Enable: export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true
+- Kuzu
+  - Install: poetry add kuzu --group dev
+  - Enable: export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
+- ChromaDB
+  - Install: poetry add chromadb tiktoken --group dev
+  - Enable: export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+- RDFLib (if applicable)
+  - Install: poetry add rdflib --group dev
+  - Enable: export DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE=true
+- LM Studio (local LLM)
+  - Install extras (optional): poetry install --extras llm
+  - Configure endpoint: export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234
+  - Enable tests: export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+
+Examples of running subsets after enabling resources:
+
+- poetry run devsynth run-tests --target unit-tests --speed=fast
+- poetry run devsynth run-tests --target integration-tests --speed=fast
+
+For more details and troubleshooting, refer to tests/README.md and .junie/guidelines.md.
 
 ### Speed Marker Discipline (mandatory)
 
@@ -419,6 +511,26 @@ def test_addition_is_commutative():
 ```
 
 Property tests still require a speed marker in addition to @pytest.mark.property.
+
+### Logging during tests
+
+- Default log level during tests is WARNING to keep output focused and avoid slowing down parallel runs.
+- To enable DEBUG logs for targeted reproduction, use one of the following:
+  - Environment variable (preferred for CLI):
+    ```bash
+    DEVSYNTH_LOG_LEVEL=DEBUG poetry run devsynth run-tests --speed=fast --no-parallel -k <node>
+    ```
+  - Pytest CLI logging (direct pytest):
+    ```bash
+    poetry run pytest -k <node> -o log_cli=true -o log_cli_level=DEBUG
+    ```
+  - Per-module logger override within a test using caplog:
+    ```python
+    def test_debug_trace(caplog):
+        caplog.set_level("DEBUG", logger="devsynth")
+        ...
+    ```
+- Avoid enabling DEBUG globally in CI; restrict to reproductions and local diagnosis to minimize noise.
 
 ### Flakiness mitigation (quick tips)
 
@@ -477,6 +589,51 @@ Tip: for the full developer environment use poetry install --with dev,docs and c
 - CLI import errors:
   - Always run inside Poetry venv. Use poetry install and poetry run devsynth help to verify entrypoints.
 
+## Test Failure Playbook
+
+Use this Socratic, step-by-step checklist to isolate and resolve failures quickly. Capture thesis/antithesis/synthesis outcomes in docs/rationales/test_fixes.md for significant fixes.
+
+1) What is the expected behavior?
+- Identify the precise assertion or behavior the test intends to validate.
+- Cross-check against docs/user_guides/cli_command_reference.md and relevant module docs.
+
+2) What alternatives could explain the failure?
+- Environment misconfig (extras missing, env flags false vs true).
+- Plugin side effects (ordering, auto-use fixtures) vs smoke mode.
+- Hidden shared state or global caches leaking between tests.
+- Non-determinism (time, randomness, ordering, async race).
+
+3) Which assumptions can we falsify quickly?
+- Re-run in smoke mode: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+- Disable parallel: add --no-parallel and observe changes.
+- Force resource flags (enable/disable) to confirm guard behavior.
+- Pin seeds and freeze time via deterministic fixtures.
+
+4) What minimal reproduction isolates the cause?
+- Run a single test file or node (use -k, -q) inside Poetry.
+- Minimize dependencies by stubbing or skipping optional resources.
+- Use tmp_path/tmp_project_dir and verify no writes to repo root.
+
+5) Stabilize and fix
+- Apply exactly one speed marker per test function.
+- Add @pytest.mark.isolation for tests that need single-worker execution.
+- Replace wall-clock/time.sleep reliance with mock_datetime or event synchronization.
+- Normalize resource gating with @pytest.mark.requires_resource("<NAME>") and DEVSYNTH_RESOURCE_<NAME>_AVAILABLE.
+- Strengthen disable_network coverage where gaps are found.
+
+6) Document and cross-link
+- Add a brief Dialectical Review entry: docs/rationales/test_fixes.md (thesis/antithesis/synthesis).
+- Reference the driving issue and test file.
+- If relevant, add a troubleshooting hint to _failure_tips in src/devsynth/testing/run_tests.py.
+
+Quick commands
+- Collect-only: poetry run pytest --collect-only -q
+- Fast subset: poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1
+- Smoke: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+- HTML report: poetry run devsynth run-tests --report
+
+See also: docs/developer_guides/diagnostics.md for a diagnostics command flow checklist and .junie/guidelines.md for the authoritative practices. Track intermittent issues in docs/testing/known_flakes.md.
+
 ## Running All Tests
 
 ```bash
@@ -485,30 +642,28 @@ poetry run pytest
 
 ```text
 
-### Using `devsynth run-pipeline`
+### Using the CLI (preferred)
 
-The `devsynth run-pipeline` command wraps `pytest` and can execute the
-entire suite or selected groups of tests. It also supports generating HTML
-reports with `pytest-html`.
+Use the `devsynth run-tests` command as the primary entrypoint. It wraps pytest with the correct environment and plugins and can generate HTML reports.
 
 ```bash
-
-# Run the full suite (unit tests)
-devsynth run-pipeline --target unit-tests
+# Run the full unit suite
+poetry run devsynth run-tests --target unit-tests
 
 # Run integration tests
-devsynth run-pipeline --target integration-tests
+poetry run devsynth run-tests --target integration-tests
 
 # Produce an HTML report in `test_reports/`
-devsynth run-pipeline --target unit-tests --report
-
-```text
+poetry run devsynth run-tests --target unit-tests --report
+```
 
 Combine options (for example, integration tests with a report) as needed.
 
 For utilities that fix flaky tests and categorize runtime, refer to [Test Stabilization Tools](test_stabilization_tools.md).
 
 ### Running Specific Test Types
+
+Advanced: The following examples use direct pytest for targeted workflows. For routine development, prefer the CLI wrapper: `poetry run devsynth run-tests`.
 
 ```bash
 
@@ -727,3 +882,32 @@ Test coverage is tracked and reported in CI runs.
 ---
 
 _Last updated: August 23, 2025_
+
+
+## Global Isolation Fixtures (autouse)
+
+DevSynth enforces hermetic test execution via autouse fixtures in tests/conftest.py, aligned with .junie/guidelines.md and docs/plan.md:
+
+- global_test_isolation (autouse):
+  - Saves/restores the entire environment (os.environ) per test.
+  - Saves/restores the working directory; sets ORIGINAL_CWD for diagnostics.
+  - Redirects HOME and XDG paths to a tmp directory; patches Path.home() accordingly.
+  - Establishes an ephemeral .devsynth tree (memory, logs, checkpoints, workflows) under tmp.
+  - Switches CWD into a temporary project dir for each test.
+  - Disables file logging; patches logging setup and path creation helpers defensively.
+  - Performs best-effort cleanup of stray artifacts in the real CWD after test completion.
+
+- reset_global_state (helper):
+  - Resets project-level singletons/caches to avoid cross-test leakage.
+
+- disable_network (autouse):
+  - Blocks socket.connect and common client calls (urllib/httpx) to ensure no outbound network in tests. Compatible with responses for requests.
+
+- enforce_test_timeout (autouse):
+  - Applies a per-test timeout when DEVSYNTH_TEST_TIMEOUT_SECONDS is set; the CLI sets conservative defaults for smoke/fast runs.
+
+Acceptance for docs/tasks.md #43: These fixtures reset global state, env, and CWD per test. If you discover a path that still writes to the repo root, open an issue and add a minimal repro; the cleanup in global_test_isolation will mitigate in the interim.
+
+See also:
+- docs/analysis/flaky_case_log.md (dialectical notes driving these fixtures)
+- tests/conftest.py (authoritative implementation)

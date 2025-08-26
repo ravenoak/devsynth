@@ -100,17 +100,17 @@ print(f"Discrepancy: {comparison['discrepancy']}")
 
 ### Command-Line Usage
 
-The Enhanced Test Parser can also be used from the command line:
+The Enhanced Test Parser can also be used from the command line (run via Poetry to ensure consistent environment and plugins):
 
 ```bash
 # Compare with pytest collection
-python enhanced_test_parser.py --directory tests/unit --compare
+poetry run python scripts/enhanced_test_parser.py --directory tests/unit --compare
 
 # Show marker counts
-python enhanced_test_parser.py --directory tests/unit --markers
+poetry run python scripts/enhanced_test_parser.py --directory tests/unit --markers
 
 # Show detailed information
-python enhanced_test_parser.py --directory tests/unit --verbose
+poetry run python scripts/enhanced_test_parser.py --directory tests/unit --verbose
 ```
 
 ## Test Detection Details

@@ -173,6 +173,8 @@ poetry run flake8 src tests
 
 ## Testing Requirements
 
+Note: This section summarizes contributor expectations. For canonical testing instructions, fixtures, speed markers, and CLI options, see docs/developer_guides/testing.md.
+
 DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
 
 ### Writing Tests
@@ -191,6 +193,8 @@ DevSynth uses pytest for unit testing and pytest-bdd for behavior-driven tests.
 
 
 ### Running Tests
+
+For end-to-end guidance (speed markers, resources, smoke mode, segmentation), refer to the canonical testing guide: docs/developer_guides/testing.md.
 
 ```bash
 
