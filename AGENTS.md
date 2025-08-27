@@ -20,7 +20,7 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
 2. Provision the environment:
    ```bash
    bash scripts/install_dev.sh      # general setup (auto-installs go-task)
-   bash scripts/codex_setup.sh      # Codex agents
+    bash scripts/codex_setup.sh      # Codex agents (finishes <15m, warns >10m)
    task --version                   # verify Taskfile is available
    ```
    The install script downloads `go-task` to `$HOME/.local/bin` and adds it to
