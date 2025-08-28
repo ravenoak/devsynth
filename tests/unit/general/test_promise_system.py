@@ -19,6 +19,7 @@ class TestPromise:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_initial_state_succeeds(self):
         """Test the initial state of a Promise.
 
@@ -29,6 +30,7 @@ class TestPromise:
         assert not promise.is_fulfilled
         assert not promise.is_rejected
 
+    @pytest.mark.fast
     def test_resolve_succeeds(self):
         """Test resolving a Promise.
 
@@ -42,6 +44,7 @@ class TestPromise:
         with pytest.raises(PromiseStateError):
             promise.resolve("another value")
 
+    @pytest.mark.fast
     def test_reject_succeeds(self):
         """Test rejecting a Promise.
 
@@ -56,6 +59,7 @@ class TestPromise:
         with pytest.raises(PromiseStateError):
             promise.reject(Exception("another error"))
 
+    @pytest.mark.fast
     def test_then_fulfilled_succeeds(self):
         """Test the 'then' method with a fulfilled Promise.
 
@@ -77,6 +81,7 @@ class TestPromise:
         assert next_promise.is_fulfilled
         assert next_promise.value == 84
 
+    @pytest.mark.fast
     def test_then_rejected_succeeds(self):
         """Test the 'then' method with a rejected Promise.
 
@@ -99,6 +104,7 @@ class TestPromise:
         assert next_promise.is_fulfilled
         assert next_promise.value == "handled"
 
+    @pytest.mark.fast
     def test_catch_succeeds(self):
         """Test the 'catch' method.
 
@@ -117,6 +123,7 @@ class TestPromise:
         assert next_promise.is_fulfilled
         assert next_promise.value == "recovered"
 
+    @pytest.mark.fast
     def test_chaining_succeeds(self):
         """Test chaining multiple promises.
 
@@ -137,6 +144,7 @@ class TestPromise:
         assert final_promise.is_fulfilled
         assert final_promise.value == "Result: 20"
 
+    @pytest.mark.fast
     def test_error_propagation_raises_error(self):
         """Test error propagation through chains.
 
@@ -165,6 +173,7 @@ class TestPromise:
         assert final_promise.is_fulfilled
         assert final_promise.value == "Handled: Failed on 10"
 
+    @pytest.mark.fast
     def test_resolve_value_static_succeeds(self):
         """Test the static resolve_value method.
 
@@ -173,6 +182,7 @@ class TestPromise:
         assert promise.is_fulfilled
         assert promise.value == "test"
 
+    @pytest.mark.fast
     def test_reject_with_static_succeeds(self):
         """Test the static reject_with method.
 
@@ -182,6 +192,7 @@ class TestPromise:
         assert promise.is_rejected
         assert promise.reason is error
 
+    @pytest.mark.fast
     def test_all_succeeds(self):
         """Test the Promise.all static method.
 
@@ -199,6 +210,7 @@ class TestPromise:
         assert all_promise.is_fulfilled
         assert all_promise.value == [1, "test", 3.14]
 
+    @pytest.mark.fast
     def test_all_with_rejection_succeeds(self):
         """Test Promise.all with a rejection.
 
@@ -218,6 +230,7 @@ class TestPromise:
         assert all_promise.is_rejected
         assert all_promise.reason is error
 
+    @pytest.mark.fast
     def test_race_succeeds(self):
         """Test the Promise.race static method.
 
@@ -237,6 +250,7 @@ class TestPromise:
         assert race_promise.is_fulfilled
         assert race_promise.value == "winner"
 
+    @pytest.mark.fast
     def test_metadata_succeeds(self):
         """Test the metadata capabilities for DevSynth analysis.
 

@@ -39,7 +39,7 @@ def run(cmd: List[str]) -> int:
 
 def check_python_version() -> bool:
     ver = sys.version_info
-    ok = (ver.major == 3 and ver.minor == 12)
+    ok = ver.major == 3 and ver.minor == 12
     if not ok:
         print(
             f"Python version requirement not met: found {platform.python_version()}, "
@@ -66,7 +66,7 @@ def verify_install_hint() -> None:
     # Provide a gentle hint; this script does not install dependencies by itself.
     print(
         "If dependencies are not installed yet, run one of:\n"
-        "  poetry install --with dev --extras \"tests retrieval chromadb api\"\n"
+        '  poetry install --with dev --extras "tests retrieval chromadb api"\n'
         "  poetry install --with dev --extras minimal\n"
         "  poetry install --with dev,docs --all-extras\n"
     )
@@ -75,7 +75,9 @@ def verify_install_hint() -> None:
 def baseline_collection() -> int:
     exit_code = 0
     # 1) pytest collection
-    exit_code |= run([sys.executable, "-m", "pytest", "--collect-only", "-q"])  # assumes poetry run context
+    exit_code |= run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q"]
+    )  # assumes poetry run context
 
     # 2) devsynth run-tests unit fast, no-parallel, maxfail=1
     # Ensure PYTEST_DISABLE_PLUGIN_AUTOLOAD is not forced here to mimic normal baseline.

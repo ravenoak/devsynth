@@ -122,6 +122,7 @@ class TestGraphMemoryEDRRIntegration:
             "code": "def example(): pass",
         }
 
+    @pytest.mark.medium
     def test_edrr_cycle_with_graph_memory_succeeds(
         self, coordinator, graph_adapter, sample_task, mock_dependencies
     ):
@@ -168,6 +169,7 @@ class TestGraphMemoryEDRRIntegration:
             history = coordinator.get_execution_history()
             assert len(history) > 0
 
+    @pytest.mark.medium
     def test_memory_volatility_with_edrr_succeeds(
         self, coordinator, graph_adapter, sample_task
     ):
@@ -202,6 +204,7 @@ class TestGraphMemoryEDRRIntegration:
             task_items = graph_adapter.search({"type": "TASK"})
         assert len(task_items) > 0
 
+    @pytest.mark.medium
     def test_query_edrr_phases_from_graph_has_expected(
         self, coordinator, graph_adapter, sample_task
     ):
@@ -214,6 +217,7 @@ class TestGraphMemoryEDRRIntegration:
         for item in expand_items:
             assert item.metadata.get("edrr_phase") == Phase.EXPAND.name
 
+    @pytest.mark.medium
     def test_relationships_across_edrr_phases_has_expected(
         self, coordinator, graph_adapter, sample_task
     ):
@@ -270,6 +274,7 @@ class TestGraphMemoryEDRRIntegration:
         assert "refine-item" in relationships
         assert "retrospect-item" in relationships
 
+    @pytest.mark.medium
     def test_cross_store_sync_with_memory_manager(
         self, graph_adapter, mock_dependencies, sample_task
     ):
@@ -306,6 +311,7 @@ class TestGraphMemoryEDRRIntegration:
         )
         assert len(graph_adapter.search({"edrr_phase": Phase.EXPAND.name})) > 0
 
+    @pytest.mark.medium
     def test_transaction_rollback_reverts_changes(self, graph_adapter):
         """Ensure transaction rollback restores previous state."""
         item = MemoryItem(id="tx-item", content="ok", memory_type=MemoryType.CODE)

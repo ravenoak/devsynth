@@ -1,0 +1,43 @@
+name: Pre-Release Full Suite
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  pre-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Install all extras
+        run: |
+          poetry install --with dev,docs --all-extras
+      - name: Run full slow suite with report
+        run: |
+          poetry run devsynth run-tests --target all-tests --speed=slow --report
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-release-test-reports
+          path: |
+            test_reports/**
+            coverage.xml
+            test_markers_report.json
+          if-no-files-found: warn

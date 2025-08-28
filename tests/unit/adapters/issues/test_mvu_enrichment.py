@@ -10,8 +10,6 @@ import responses
 
 from devsynth.core import mvu
 
-pytestmark = [pytest.mark.medium]
-
 
 def _init_repo(path: Path) -> None:
     subprocess.check_call(["git", "init"], cwd=path)
@@ -19,6 +17,7 @@ def _init_repo(path: Path) -> None:
     subprocess.check_call(["git", "config", "user.name", "Test User"], cwd=path)
 
 
+@pytest.mark.medium
 @responses.activate
 def test_get_by_trace_id_enriches(tmp_path, monkeypatch) -> None:
     """get_by_trace_id attaches issue metadata when configured."""

@@ -3,11 +3,13 @@ from pathlib import Path
 
 import pytest
 
-from devsynth.testing.run_tests import collect_tests_with_cache, TARGET_PATHS
+from devsynth.testing.run_tests import TARGET_PATHS, collect_tests_with_cache
 
 
 @pytest.mark.fast
-def test_cache_invalidation_on_file_change(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cache_invalidation_on_file_change(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     # Arrange: create an isolated tests directory
     tests_dir = tmp_path / "isolated_tests"
     tests_dir.mkdir(parents=True, exist_ok=True)
@@ -61,7 +63,9 @@ def test_another():
 
 
 @pytest.mark.fast
-def test_cache_invalidation_on_marker_change(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cache_invalidation_on_marker_change(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     tests_dir = tmp_path / "isolated_tests_marker"
     tests_dir.mkdir(parents=True, exist_ok=True)
 

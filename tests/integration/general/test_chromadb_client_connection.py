@@ -16,6 +16,7 @@ sys.modules.setdefault(
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 
 
+@pytest.mark.medium
 def test_memory_adapter_uses_ephemeral_client_when_no_network(tmp_path, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_NO_NETWORK", "1")
     cfg = {

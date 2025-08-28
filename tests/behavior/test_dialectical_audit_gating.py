@@ -12,5 +12,3 @@ feature_file = os.path.join(
 )
 
 scenarios(feature_file)
-
-pytestmark = pytest.mark.fast

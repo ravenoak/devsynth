@@ -5,8 +5,8 @@ import pytest
 from devsynth.logger import DevSynthLogger
 from devsynth.logging_setup import DevSynthLogger as BaseDevSynthLogger
 
-@pytest.mark.fast
 
+@pytest.mark.fast
 def test_log_exception_object_normalized(monkeypatch):
     """Exception objects become ``(type, value, traceback)`` tuples.
 

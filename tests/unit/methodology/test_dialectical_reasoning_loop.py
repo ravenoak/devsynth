@@ -9,7 +9,6 @@ from devsynth.exceptions import ConsensusError
 from devsynth.methodology.edrr import reasoning_loop
 
 
-
 class DummyConsensusError(ConsensusError):
     def __init__(self, message: str):  # pragma: no cover - simple helper
         Exception.__init__(self, message)

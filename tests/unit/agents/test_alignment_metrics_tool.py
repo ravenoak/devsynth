@@ -7,9 +7,8 @@ import pytest
 
 from devsynth.agents.tools import alignment_metrics_tool, get_tool_registry
 
-pytestmark = [pytest.mark.fast]
 
-
+@pytest.mark.fast
 def test_alignment_metrics_tool_returns_structure() -> None:
     """alignment_metrics_tool should return success and metrics."""
     align_cmd = ModuleType("align_cmd")
@@ -39,6 +38,7 @@ def test_alignment_metrics_tool_returns_structure() -> None:
         assert result == {"success": True, "metrics": {"coverage": 1, "issues": 2}}
 
 
+@pytest.mark.fast
 def test_alignment_metrics_tool_registered() -> None:
     """The tool should be registered and callable from the registry."""
     registry = get_tool_registry()

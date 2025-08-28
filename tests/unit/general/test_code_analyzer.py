@@ -8,6 +8,8 @@ import unittest
 from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.domain.interfaces.code_analysis import (
     CodeAnalysisProvider,
@@ -57,6 +59,7 @@ TEST_VARIABLE = "test\"
         """Clean up test fixtures."""
         self.temp_dir.cleanup()
 
+    @pytest.mark.fast
     def test_analyze_file_succeeds(self):
         """Test analyzing a single file.
 
@@ -83,6 +86,7 @@ TEST_VARIABLE = "test\"
         self.assertIn("lines_of_code", metrics)
         self.assertGreater(metrics["lines_of_code"], 0)
 
+    @pytest.mark.fast
     def test_analyze_directory_succeeds(self):
         """Test analyzing a directory of files.
 
@@ -112,6 +116,7 @@ def another_function():
         self.assertIn("total_files", metrics)
         self.assertEqual(metrics["total_files"], 2)
 
+    @pytest.mark.fast
     def test_analyze_code_succeeds(self):
         """Test analyzing a string of code.
 
@@ -137,6 +142,7 @@ RADIUS = 5
         self.assertEqual(len(variables), 1)
         self.assertEqual(variables[0]["name"], "RADIUS")
 
+    @pytest.mark.fast
     def test_project_structure_metrics_succeeds(self):
         """Test analyzing project structure metrics.
 

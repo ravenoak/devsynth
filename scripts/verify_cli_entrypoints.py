@@ -15,7 +15,9 @@ from typing import Sequence
 
 
 def run_cmd(cmd: Sequence[str]) -> int:
-    proc = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.run(
+        cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     if proc.returncode != 0:
         print(proc.stdout)
         print(proc.stderr, file=sys.stderr)
@@ -27,7 +29,10 @@ def main() -> int:
     for cmd in (["devsynth", "--help"], ["devsynth", "help"]):
         code = run_cmd(cmd)
         if code != 0:
-            print(f"[verify_cli_entrypoints] Command failed: {' '.join(cmd)}", file=sys.stderr)
+            print(
+                f"[verify_cli_entrypoints] Command failed: {' '.join(cmd)}",
+                file=sys.stderr,
+            )
             failures += 1
     if failures:
         return 1

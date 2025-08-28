@@ -511,6 +511,7 @@ poetry run devsynth run-tests [OPTIONS]
 | `--segment-size INTEGER` | Number of tests per batch when segmenting (default: 50) |
 | `--maxfail INTEGER` | Exit after this many failures |
 | `--feature TEXT` | Feature flags to set; repeatable; accept `name` or `name=false` (maps to `DEVSYNTH_FEATURE_<NAME>`) |
+| `--inventory` | Produce a JSON inventory of collected tests (written to `test_reports/test_inventory.json`) |
 
 Additional behavior:
 - In smoke mode, a conservative per-test timeout is applied by default: `DEVSYNTH_TEST_TIMEOUT_SECONDS=5` (unless already set).
@@ -529,7 +530,19 @@ poetry run devsynth run-tests --target all-tests --speed slow --segment
 
 # Generate HTML report and disable parallel
 poetry run devsynth run-tests --report --no-parallel
+
+# Generate an inventory of collected tests
+poetry run devsynth run-tests --inventory
+
+# Scoped inventory to avoid heavy collection:
+poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
+poetry run devsynth run-tests --inventory --target integration-tests --speed=medium
 ```
+
+Note on inventory:
+- The inventory is written to test_reports/test_inventory.json.
+- Scoping by target and speed significantly reduces collection time and avoids timeouts in large repositories.
+- If you experience timeouts, prefer running with --smoke and --no-parallel and consult docs/developer_guides/testing.md (Inventory collection constraints and timeouts) for mitigation tips.
 
 Recommendation:
 - For medium/slow suites, prefer segmentation with `--segment-size 50` as a starting point. Adjust to 25–100 depending on stability and runtime. Keep `--no-parallel` while triaging flakes.
@@ -546,6 +559,25 @@ Behavior when no tests match a requested speed:
 Default resource gating:
 - The run-tests CLI applies offline-first defaults and disables optional remote resources unless explicitly enabled (e.g., DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false by default). Tests marked with @pytest.mark.requires_resource(...) will be skipped when their resource is unavailable.
 - Provider defaults applied for tests: `DEVSYNTH_PROVIDER=stub`, `DEVSYNTH_OFFLINE=true` (unless already set).
+
+### Troubleshooting run-tests
+
+- Plugins hang or unexpected collection behavior:
+  - Re-run in smoke mode to disable third-party plugins and xdist:
+    - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+  - Smoke sets PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 and disables -p no:xdist -p no:cov.
+- Excessive runtime or timeouts:
+  - Use segmentation to reduce flakiness and memory pressure:
+    - poetry run devsynth run-tests --segment --segment-size 50
+  - In smoke mode, a tighter timeout is applied by default via DEVSYNTH_TEST_TIMEOUT_SECONDS.
+- No tests collected for a given speed:
+  - Behavior/integration targets will broaden selection to a safe default; verify your markers with:
+    - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+- Ensure offline-first and deterministic runs:
+  - Verify env defaults: DEVSYNTH_PROVIDER=stub, DEVSYNTH_OFFLINE=true.
+  - Resource flags default to false; enable explicitly if needed, e.g. export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true.
+
+For broader guidance, see .junie/guidelines.md and docs/developer_guides/testing.md.
 
 ## completion
 
@@ -962,20 +994,25 @@ devsynth security-audit --skip-static
 ```
 
 ## Environment Variables
-
 DevSynth respects the following environment variables:
 
 | Variable | Description |
 |----------|-------------|
 | `DEVSYNTH_CONFIG` | Path to the configuration file |
-| `DEVSYNTH_PROVIDER` | Default Provider to use |
-| `OPENAI_API_KEY` | API key for OpenAI |
+| `DEVSYNTH_PROVIDER` | Default Provider to use (tests default to `stub` unless overridden by the run-tests CLI) |
+| `OPENAI_API_KEY` | API key for OpenAI (live tests are strictly opt-in and gated) |
+| `OPENAI_MODEL` | OpenAI chat/completions model to use for live tests (e.g., `gpt-4o-mini`) |
+| `OPENAI_EMBEDDINGS_MODEL` | OpenAI embeddings model to use for live tests (e.g., `text-embedding-3-small`) |
+| `LM_STUDIO_ENDPOINT` | Base URL for LM Studio server (default `http://127.0.0.1:1234`) |
 | `ANTHROPIC_API_KEY` | API key for Anthropic |
 | `DEVSYNTH_LOG_LEVEL` | Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL) |
 | `DEVSYNTH_DEBUG` | If set (e.g., 1/true), forces DEBUG logging unless overridden by `--log-level` |
 | `DEVSYNTH_CACHE_DIR` | Directory for caching data |
 | `DEVSYNTH_DISABLE_TELEMETRY` | Disable telemetry (set to any value) |
 | `DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS` | TTL (in seconds) for cached pytest collection used by run-tests segmentation (default: 3600) |
+
+Note on live provider tests:
+- Tests that exercise real OpenAI or LM Studio endpoints are marked with `@pytest.mark.requires_resource("openai"|"lmstudio")` and are skipped by default in CI. To opt in locally, set the appropriate env vars above and export `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true`. These tests assert only on response shape and use short timeouts (<=5s).
 
 ## Configuration File
 
@@ -1021,3 +1058,31 @@ This reference covers all the DevSynth CLI commands and their options. For more 
 - The run-tests CLI options are validated by behavior tests under `tests/behavior/steps/test_run_tests_steps.py` and unit tests under `tests/unit/application/cli/commands/`.
 - CI workflows exercise fast unit tests by default and archive HTML reports when `--report` is used; see `.github/workflows/unit_tests.yml`.
 - For determinism and resource gating defaults applied by the CLI, see `.junie/guidelines.md` and `docs/developer_guides/testing.md`.
+
+
+
+## Appendix: run-tests inventory output
+
+The --inventory flag writes a JSON file to test_reports/test_inventory.json that summarizes the collected tests for planning and coverage tracking. This file is safe to generate in CI and local runs (no execution occurs when only inventorying).
+
+Contents overview (fields may evolve conservatively):
+- collected_count: total number of collected test items
+- by_target: mapping of target → count (unit-tests, integration-tests, behavior-tests)
+- by_speed: mapping of speed → count (fast, medium, slow)
+- items: optional list of objects with fields
+  - nodeid: pytest node id (e.g., tests/unit/test_example.py::TestClass::test_foo)
+  - target: inferred target bucket
+  - speed: speed marker
+
+Practical uses:
+- Sanity-check target/speed coverage before modifying CI matrices.
+- Identify modules that lack speed markers (when used alongside the marker verification report).
+- Track growth/regression in suites between commits by comparing JSONs.
+
+Example generation:
+- poetry run devsynth run-tests --inventory
+- open test_reports/test_inventory.json
+
+See also:
+- docs/developer_guides/testing.md (segmentation, smoke mode)
+- .junie/guidelines.md (marker discipline and offline-first defaults)

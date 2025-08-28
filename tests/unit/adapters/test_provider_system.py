@@ -20,14 +20,8 @@ from devsynth.adapters.provider_system import (
 )
 from devsynth.fallback import retry_with_exponential_backoff
 
-pytest.importorskip("lmstudio")
-if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
-    pytest.skip("LMStudio service not available", allow_module_level=True)
-
-pytestmark = [
-    pytest.mark.requires_resource("lmstudio"),
-    pytest.mark.memory_intensive,
-]
+# Do not use import-time gating; tests are fully mocked/offline by default.
+# Resource gating is applied only in truly live-provider tests.
 
 
 @pytest.mark.medium

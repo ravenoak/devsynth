@@ -13,6 +13,7 @@ except Exception as e:  # pragma: no cover - defensive import for CI environment
 
 pytestmark = [
     pytest.mark.performance,
+    pytest.mark.requires_resource("performance"),
     pytest.mark.memory_intensive,
     pytest.mark.no_network,
 ]
@@ -48,6 +49,8 @@ def _build_dataset(store: InMemoryStore, n: int = 2000) -> List[str]:
     and "-p no:benchmark" in os.environ.get("PYTEST_ADDOPTS", ""),
     reason="pytest-benchmark plugin disabled via -p no:benchmark",
 )
+@pytest.mark.slow
+@pytest.mark.requires_resource("performance")
 def test_memory_search_benchmark(benchmark):
     """
     Benchmark the in-memory search path for a representative query.

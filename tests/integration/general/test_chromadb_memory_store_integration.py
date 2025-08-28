@@ -30,6 +30,7 @@ def enable_chromadb(monkeypatch):
     yield
 
 
+@pytest.mark.medium
 def test_chromadb_memory_store_end_to_end(temp_dir):
     with patch(
         "devsynth.adapters.chromadb_memory_store.embed",

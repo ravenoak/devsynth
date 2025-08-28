@@ -30,6 +30,7 @@ bash scripts/install_dev.sh
    pre-commit install
    pre-commit autoupdate
    ```
+   Note: This repository includes a local pre-commit hook that runs `poetry run python scripts/verify_test_markers.py --changed` on changed test files to enforce exactly one speed marker per test function.
 5. **Review directory-specific guidelines** before making changes
 6. **Draft a specification** in [docs/specifications/](docs/specifications/index.md) and add a failing BDD feature in `tests/behavior/features/` answering the Socratic checklist **before** writing code
 7. **Implement** your changes following our coding standards
@@ -125,6 +126,7 @@ poetry run pytest --cov=src --cov-report=term-missing
   poetry run python scripts/verify_test_markers.py --changed
   poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
   ```
+- See the Testing Guide for marker rules and verification workflow: [docs/developer_guides/testing.md](docs/developer_guides/testing.md)
 
 ### Property tests (opt‑in)
 - Disabled by default. Enable explicitly:

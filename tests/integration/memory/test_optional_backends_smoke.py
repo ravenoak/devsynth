@@ -3,9 +3,6 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = [pytest.mark.no_network, pytest.mark.fast]
-
-
 BACKENDS = [
     ("tinydb", "devsynth.application.memory.tinydb_store", "TinyDBStore"),
     ("duckdb", "devsynth.application.memory.duckdb_store", "DuckDBStore"),
@@ -16,6 +13,8 @@ BACKENDS = [
 ]
 
 
+@pytest.mark.no_network
+@pytest.mark.medium
 @pytest.mark.parametrize("pkg, module_path, cls_name", BACKENDS)
 def test_optional_memory_backend_imports(
     pkg: str, module_path: str, cls_name: str, tmp_path: Path

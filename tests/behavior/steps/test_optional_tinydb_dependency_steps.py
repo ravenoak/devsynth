@@ -6,7 +6,6 @@ import pytest
 from pytest_bdd import given, scenarios, then, when
 
 scenarios("../features/memory/optional_tinydb_dependency.feature")
-pytestmark = pytest.mark.medium
 
 
 @pytest.fixture

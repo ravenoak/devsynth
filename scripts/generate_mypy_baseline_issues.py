@@ -22,7 +22,7 @@ import os
 import re
 import subprocess
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -31,7 +31,9 @@ SRC_DIR = ROOT / "src" / "devsynth"
 OUT_JSON = ROOT / "mypy_baseline.json"
 ISSUES_DIR = ROOT / "issues" / "triage" / "mypy"
 
-ERR_LINE_RE = re.compile(r"^(?P<file>.*?):(?P<line>\d+)(?::(?P<col>\d+))?: (?P<level>error|note|warning): (?P<message>.*)$")
+ERR_LINE_RE = re.compile(
+    r"^(?P<file>.*?):(?P<line>\d+)(?::(?P<col>\d+))?: (?P<level>error|note|warning): (?P<message>.*)$"
+)
 
 
 @dataclass
@@ -58,13 +60,15 @@ def run_mypy() -> str:
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, cwd=str(ROOT))
     except FileNotFoundError:
-        raise SystemExit("[error] mypy is not installed in this environment. Run: poetry install --with dev")
+        raise SystemExit(
+            "[error] mypy is not installed in this environment. Run: poetry install --with dev"
+        )
 
     # mypy returns non-zero when there are type errors; that's expected. We still parse stdout.
     stdout = proc.stdout or ""
     # Some versions print notes to stderr; include for completeness.
     if proc.stderr:
-        stdout += ("\n" + proc.stderr)
+        stdout += "\n" + proc.stderr
 
     return stdout
 
@@ -87,7 +91,9 @@ def parse_mypy_output(output: str) -> Dict[str, List[MypyError]]:
         col_str = m.group("col")
         col_no = int(col_str) if col_str and col_str.isdigit() else None
         msg = m.group("message").strip()
-        err = MypyError(file=file_path, line=line_no, col=col_no, level=level, message=msg)
+        err = MypyError(
+            file=file_path, line=line_no, col=col_no, level=level, message=msg
+        )
         grouped.setdefault(file_path, []).append(err)
     return grouped
 
@@ -97,11 +103,14 @@ def write_json_summary(grouped: Dict[str, List[MypyError]]) -> None:
         "total_files_with_errors": len(grouped),
         "total_errors": sum(len(v) for v in grouped.values()),
         "files": [
-            asdict(FileReport(file=f, error_count=len(errs), errors=errs)) for f, errs in sorted(grouped.items())
+            asdict(FileReport(file=f, error_count=len(errs), errors=errs))
+            for f, errs in sorted(grouped.items())
         ],
     }
     OUT_JSON.write_text(json.dumps(summary, indent=2))
-    print(f"[info] wrote {OUT_JSON} (files={summary['total_files_with_errors']} errors={summary['total_errors']})")
+    print(
+        f"[info] wrote {OUT_JSON} (files={summary['total_files_with_errors']} errors={summary['total_errors']})"
+    )
 
 
 def sanitize_filename(path: str) -> str:
@@ -124,7 +133,11 @@ def gen_issue_md(file_path: str, errors: List[MypyError]) -> str:
         loc = f"{file_path}:{e.line}"
         msg = e.message
         lines.append(f"- [ ] {loc}: {msg}\n")
-    lines.append("\n---\nGenerated: Task 4.1 on " + __import__("datetime").datetime.now().strftime("%Y-%m-%d") + "\n")
+    lines.append(
+        "\n---\nGenerated: Task 4.1 on "
+        + __import__("datetime").datetime.now().strftime("%Y-%m-%d")
+        + "\n"
+    )
     return "".join(lines)
 
 

@@ -17,7 +17,6 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Dict
 
-
 _TRUE_SET = {"1", "true", "yes", "on"}
 _FALSE_SET = {"0", "false", "no", "off"}
 
@@ -65,7 +64,9 @@ class ProviderEnv:
         offline = self.offline or ("DEVSYNTH_OFFLINE" not in os.environ)
         # LM Studio availability: default false when unset
         lmstudio = self.lmstudio_available  # already False by default when unset
-        return ProviderEnv(provider=provider, offline=offline, lmstudio_available=lmstudio)
+        return ProviderEnv(
+            provider=provider, offline=offline, lmstudio_available=lmstudio
+        )
 
     def apply_to_env(self) -> None:
         os.environ["DEVSYNTH_PROVIDER"] = self.provider
@@ -80,7 +81,7 @@ class ProviderEnv:
         return {
             "DEVSYNTH_PROVIDER": self.provider,
             "DEVSYNTH_OFFLINE": "true" if self.offline else "false",
-            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "true"
-            if self.lmstudio_available
-            else "false",
+            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": (
+                "true" if self.lmstudio_available else "false"
+            ),
         }

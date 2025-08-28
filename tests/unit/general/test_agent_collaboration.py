@@ -16,8 +16,6 @@ from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDE, WSDETeam
 from devsynth.exceptions import ValidationError
 
-pytestmark = pytest.mark.medium
-
 
 class TestAgentCollaboration:
     """Tests for the AgentCollaboration component.
@@ -42,6 +40,7 @@ class TestAgentCollaboration:
         coordinator.add_agent(mock_agent)
         return coordinator
 
+    @pytest.mark.medium
     def test_coordinator_initialization_succeeds(self):
         """Test that the coordinator initializes correctly.
 
@@ -50,6 +49,7 @@ class TestAgentCollaboration:
         assert coordinator.teams == {}
         assert coordinator.current_team_id is None
 
+    @pytest.mark.medium
     def test_add_agent_succeeds(self, mock_agent):
         """Test adding an agent to the coordinator.
 
@@ -59,6 +59,7 @@ class TestAgentCollaboration:
         assert len(coordinator.teams["default_team"].agents) == 1
         assert coordinator.teams["default_team"].agents[0] == mock_agent
 
+    @pytest.mark.medium
     def test_delegate_task_succeeds(self, coordinator, mock_agent):
         """Test delegating a task to the agent.
 
@@ -68,6 +69,7 @@ class TestAgentCollaboration:
         assert result["result"] == "Success"
         mock_agent.process.assert_called_once_with(task)
 
+    @pytest.mark.medium
     def test_simplified_agent_factory_succeeds(self):
         """Test the simplified agent factory.
 
@@ -78,6 +80,7 @@ class TestAgentCollaboration:
         agent = factory.create_agent(AgentType.CODE.value)
         assert isinstance(agent, CodeAgent)
 
+    @pytest.mark.medium
     def test_team_task_phase_notifications_succeeds(self):
         """Test that team task phase notifications succeeds.
 
@@ -137,6 +140,7 @@ class TestAgentCollaboration:
         )
         assert result["result"] == "final"
 
+    @pytest.mark.medium
     def test_delegate_task_agent_type_not_found_succeeds(self):
         """Test that delegate task agent type not found succeeds.
 
@@ -149,6 +153,7 @@ class TestAgentCollaboration:
         with pytest.raises(ValidationError):
             coordinator.delegate_task({"agent_type": "nonexistent"})
 
+    @pytest.mark.medium
     def test_delegate_task_multi_agent_consensus_succeeds(self):
         """Test that delegate task multi agent consensus succeeds.
 
@@ -199,6 +204,7 @@ class TestAgentCollaboration:
         assert result["result"] == "final"
         assert "dialectical_analysis" in result
 
+    @pytest.mark.medium
     def test_delegate_task_dynamic_role_assignment_succeeds(self):
         """Test that delegate task dynamic role assignment succeeds.
 
@@ -246,6 +252,7 @@ class TestAgentCollaboration:
         team.select_primus_by_expertise.assert_called_once_with(task)
         assert result["contributors"] == ["a1", "a2"]
 
+    @pytest.mark.medium
     def test_delegate_task_voting_succeeds(self):
         """Test that delegate task voting succeeds.
 
@@ -272,6 +279,7 @@ class TestAgentCollaboration:
         team.vote_on_critical_decision.assert_called_once_with(task)
         assert result["voting_initiated"]
 
+    @pytest.mark.medium
     def test_agent_adapter_succeeds(self, mock_agent):
         """Test the agent adapter.
 
@@ -288,6 +296,7 @@ class TestAgentCollaboration:
         result = adapter.process_task(task)
         assert result["result"] == "Specification generated"
 
+    @pytest.mark.medium
     def test_backward_compatibility_succeeds(self):
         """Test backward compatibility with existing code.
 
@@ -300,6 +309,7 @@ class TestAgentCollaboration:
         agent = factory.create_agent(AgentType.CODE.value)
         assert isinstance(agent, CodeAgent)
 
+    @pytest.mark.medium
     def test_delegate_calls_select_primus_before_processing_succeeds(self):
         """Test that delegate calls select primus before processing succeeds.
 

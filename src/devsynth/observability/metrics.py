@@ -12,6 +12,7 @@ Usage:
 The helpers favor simplicity and stability for CLI/server contexts while keeping
 allocation overhead minimal.
 """
+
 from __future__ import annotations
 
 from typing import Dict, Optional, Tuple
@@ -32,7 +33,9 @@ def _labels_tuple(labels: Optional[Dict[str, str]]) -> Tuple[str, ...]:
     return tuple(sorted(labels.keys()))
 
 
-def increment_counter(name: str, labels: Optional[Dict[str, str]] = None, *, description: str = "") -> None:
+def increment_counter(
+    name: str, labels: Optional[Dict[str, str]] = None, *, description: str = ""
+) -> None:
     """Increment a Prometheus counter if available, otherwise no-op.
 
     Args:

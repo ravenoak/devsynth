@@ -26,6 +26,7 @@ def test_public_api_imports():
 def test_deprecated_wrapper_emits_warning(monkeypatch):
     # The legacy wrapper should emit a DeprecationWarning and still return an int status
     from types import SimpleNamespace
+
     import scripts.run_all_tests as run_all_tests
 
     def fake_run(cmd, capture_output, text):
@@ -48,6 +49,6 @@ def test_deprecated_wrapper_emits_warning(monkeypatch):
         rc = run_all_tests.main()
     assert rc == 0
     # At least one DeprecationWarning should be captured
-    assert any(isinstance(w.message, DeprecationWarning) for w in caught), (
-        "Expected DeprecationWarning from scripts/run_all_tests.py"
-    )
+    assert any(
+        isinstance(w.message, DeprecationWarning) for w in caught
+    ), "Expected DeprecationWarning from scripts/run_all_tests.py"

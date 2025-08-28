@@ -10,8 +10,9 @@ import logging
 import uuid
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-from .implementation import Promise, PromiseError
 from devsynth.exceptions import DevSynthError
+
+from .implementation import Promise, PromiseError
 
 # Setup logger
 logger = logging.getLogger(__name__)

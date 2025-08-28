@@ -10,6 +10,7 @@ These fixtures centralize common test controls:
 They are imported by tests/conftest.py and intentionally kept separate to
 improve maintainability (docs/tasks.md item 61) without changing behavior.
 """
+
 from __future__ import annotations
 
 import logging
@@ -79,7 +80,9 @@ def deterministic_seed() -> int:
 
 
 @pytest.fixture(autouse=True)
-def enforce_test_timeout(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
+def enforce_test_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None, None, None]:
     """Enforce a per-test timeout when configured.
 
     Controlled by the environment variable DEVSYNTH_TEST_TIMEOUT_SECONDS.

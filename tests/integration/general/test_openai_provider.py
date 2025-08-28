@@ -11,14 +11,13 @@ from devsynth.application.llm.openai_provider import (
     OpenAIProvider,
 )
 
-openai_available = pytest.mark.requires_resource("openai")
-
 
 class TestOpenAIProvider:
     """Tests for the OpenAIProvider class.
 
     ReqID: N/A"""
 
+    @pytest.mark.medium
     def test_init_with_default_config_succeeds(self):
         """Test initialization with default configuration.
 
@@ -35,6 +34,7 @@ class TestOpenAIProvider:
             assert provider.temperature == 0.7
             assert provider.api_key == "test_key"
 
+    @pytest.mark.medium
     def test_init_with_specified_model_succeeds(self):
         """Test initialization with a specified model.
 
@@ -50,12 +50,13 @@ class TestOpenAIProvider:
             )
             assert provider.model == "gpt-4"
 
-    def test_init_without_api_key_succeeds(self):
-        """Test initialization without an API key.
+    @pytest.mark.medium
+    def test_init_without_api_key_uses_stub_in_offline(self):
+        """Initialization without an API key should use no-op stub (offline-safe).
 
         ReqID: N/A"""
         with (
-            patch.dict(os.environ, {}, clear=True),
+            patch.dict(os.environ, {"DEVSYNTH_OFFLINE": "true"}, clear=False),
             patch(
                 "devsynth.application.llm.openai_provider.get_llm_settings"
             ) as mock_settings,
@@ -71,9 +72,13 @@ class TestOpenAIProvider:
                 "openai_model": "gpt-3.5-turbo",
                 "openai_embedding_model": "text-embedding-ada-002",
             }
-            with pytest.raises(OpenAIConnectionError):
-                OpenAIProvider({})
+            provider = OpenAIProvider({})
+            # No real client constructed; chat and embeddings are available as no-ops
+            assert hasattr(provider, "client")
+            assert hasattr(provider.client, "chat")
+            assert hasattr(provider.client, "embeddings")
 
+    @pytest.mark.medium
     def test_generate_with_connection_error_succeeds(self):
         """Test generating text when OpenAI is not available.
 
@@ -93,6 +98,7 @@ class TestOpenAIProvider:
             with pytest.raises(OpenAIConnectionError):
                 provider.generate("Hello, how are you?")
 
+    @pytest.mark.medium
     def test_generate_with_context_succeeds(self):
         """Test generating text with context.
 
@@ -126,6 +132,7 @@ class TestOpenAIProvider:
             assert len(messages_arg) == 4
             assert messages_arg[-1]["content"] == "Tell me more about yourself."
 
+    @pytest.mark.medium
     def test_get_embedding_succeeds(self):
         """Test getting embeddings.
 
@@ -146,7 +153,7 @@ class TestOpenAIProvider:
             embedding = provider.get_embedding("Test text")
             assert embedding == [0.1, 0.2, 0.3]
 
-    @openai_available
+    @pytest.mark.medium
     def test_generate_integration_succeeds(self):
         """Integration test for generating text from OpenAI.
 
@@ -188,7 +195,7 @@ class TestOpenAIProvider:
             assert call_args["temperature"] == 0.7
             assert call_args["max_tokens"] == 2000
 
-    @openai_available
+    @pytest.mark.medium
     def test_generate_with_context_integration_succeeds(self):
         """Integration test for generating text with context from OpenAI.
 
@@ -243,7 +250,7 @@ class TestOpenAIProvider:
             assert call_args["temperature"] == 0.7
             assert call_args["max_tokens"] == 2000
 
-    @openai_available
+    @pytest.mark.medium
     def test_get_embedding_integration_succeeds(self):
         """Integration test for getting embeddings from OpenAI.
 

@@ -9,6 +9,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.medium
 def test_bidirectional_persistence_and_retrieval(tmp_path, monkeypatch):
     """Synchronizes data both ways between stores. ReqID: FR-60"""
 

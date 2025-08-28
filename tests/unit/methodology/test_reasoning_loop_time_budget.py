@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-
 rl = importlib.import_module("devsynth.methodology.edrr.reasoning_loop")
 
 

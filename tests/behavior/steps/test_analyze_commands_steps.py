@@ -19,8 +19,6 @@ from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_
 # Register the scenarios
 scenarios("../features/general/analyze_commands.feature")
 
-pytestmark = [pytest.mark.medium]
-
 
 # Define fixtures and step definitions
 @pytest.fixture

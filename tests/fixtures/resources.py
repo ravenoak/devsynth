@@ -3,6 +3,7 @@ Resource and property-testing helpers used by pytest collection hooks.
 
 Extracted from tests/conftest.py to improve maintainability (docs/tasks.md #61).
 """
+
 from __future__ import annotations
 
 import os

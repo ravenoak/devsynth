@@ -289,7 +289,9 @@ class TestVisitor(ast.NodeVisitor):
                         return True
         return False
 
-    def _collect_parametrize_speed_markers_from_node(self, node: ast.FunctionDef) -> List[str]:
+    def _collect_parametrize_speed_markers_from_node(
+        self, node: ast.FunctionDef
+    ) -> List[str]:
         """Return a single speed marker from parametrize marks if all params agree.
 
         Mirrors behavior in scripts/verify_test_markers.py::_collect_parametrize_speed_markers.
@@ -350,7 +352,9 @@ class TestVisitor(ast.NodeVisitor):
                         name = None
                         if isinstance(v, ast.Attribute):
                             name = getattr(v, "attr", None)
-                        elif isinstance(v, ast.Call) and isinstance(v.func, ast.Attribute):
+                        elif isinstance(v, ast.Call) and isinstance(
+                            v.func, ast.Attribute
+                        ):
                             name = getattr(v.func, "attr", None)
                         if isinstance(name, str) and name in speed_markers:
                             markers_here.append(name)
@@ -358,7 +362,9 @@ class TestVisitor(ast.NodeVisitor):
                     name = None
                     if isinstance(mark_value, ast.Attribute):
                         name = getattr(mark_value, "attr", None)
-                    elif isinstance(mark_value, ast.Call) and isinstance(mark_value.func, ast.Attribute):
+                    elif isinstance(mark_value, ast.Call) and isinstance(
+                        mark_value.func, ast.Attribute
+                    ):
                         name = getattr(mark_value.func, "attr", None)
                     if isinstance(name, str) and name in speed_markers:
                         markers_here.append(name)

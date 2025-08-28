@@ -21,7 +21,7 @@ from devsynth.adapters.provider_system import LMStudioProvider as PS_LMStudioPro
 from devsynth.adapters.provider_system import OpenAIProvider, ProviderError
 from devsynth.application.llm.providers import LMStudioProvider
 
-pytestmark = [pytest.mark.requires_resource("lmstudio"), pytest.mark.medium]
+pytestmark = [pytest.mark.requires_resource("lmstudio")]
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -121,6 +121,7 @@ class TestErrorHandlingAtIntegrationPoints:
             config={"edrr": {"quality_based_transitions": True}},
         )
 
+    @pytest.mark.medium
     def test_error_handling_in_edrr_wsde_integration_raises_error(self, coordinator):
         """Test error handling in the EDRR-WSDE integration.
 
@@ -155,6 +156,7 @@ class TestErrorHandlingAtIntegrationPoints:
         except EDRRCoordinatorError as e:
             assert "Test error in evaluate_options" in str(e)
 
+    @pytest.mark.medium
     def test_error_handling_in_memory_integration_raises_error(self, memory_manager):
         """Test error handling in the memory integration.
 
@@ -192,6 +194,7 @@ class TestErrorHandlingAtIntegrationPoints:
         except Exception as e:
             assert "Test error in retrieve" in str(e)
 
+    @pytest.mark.medium
     def test_error_handling_in_provider_integration_raises_error(self):
         """Test error handling in the provider integration.
 
@@ -221,6 +224,7 @@ class TestErrorHandlingAtIntegrationPoints:
             assert "All providers failed" in str(e)
             assert "Test error in provider2" in str(e)
 
+    @pytest.mark.medium
     def test_error_handling_in_code_analysis_integration_raises_error(
         self, coordinator
     ):
@@ -246,6 +250,7 @@ class TestErrorHandlingAtIntegrationPoints:
         refine_results = coordinator.execute_current_phase()
         assert refine_results is not None
 
+    @pytest.mark.medium
     def test_error_recovery_in_edrr_cycle_raises_error(self, coordinator):
         """Test error recovery in the EDRR cycle.
 
@@ -286,6 +291,7 @@ class TestErrorHandlingAtIntegrationPoints:
         differentiate_results = coordinator.execute_current_phase()
         assert differentiate_results is not None
 
+    @pytest.mark.medium
     def test_error_handling_in_cross_component_integration_raises_error(
         self, coordinator, memory_manager
     ):

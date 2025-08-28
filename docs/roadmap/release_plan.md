@@ -7,7 +7,7 @@ tags:
   - release
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-20"
+last_reviewed: "2025-08-26"
 ---
 
 <div class="breadcrumbs">
@@ -16,7 +16,7 @@ last_reviewed: "2025-08-20"
 
 # DevSynth Release Plan
 
-This release plan defines version milestones for DevSynth starting with the upcoming `0.1.0a1` pre-release and outlines the path toward the `0.1.x` line and future minor versions.
+This release plan defines version milestones for DevSynth starting with the upcoming `0.1.0a1` pre-release and outlines the path toward the `0.1.x` line and future minor versions. For the actionable readiness checklist tied to this plan, see ../tasks.md.
 
 ## Milestones
 

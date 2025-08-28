@@ -11,7 +11,10 @@ from devsynth.testing.performance import (
 
 # Performance tests are opt-in and not part of default PR runs.
 # See docs/testing/performance_tests_policy.md for details.
-pytestmark = [pytest.mark.performance]
+pytestmark = [
+    pytest.mark.performance,
+    pytest.mark.requires_resource("performance"),
+]
 
 
 @pytest.mark.slow

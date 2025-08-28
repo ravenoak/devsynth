@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import pytest
 import yaml
 from typer.testing import CliRunner
 
@@ -14,6 +15,7 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
+@pytest.mark.fast
 def test_mvu_help_lists_subcommands():
     result = runner.invoke(app, ["mvu", "--help"])
     assert result.exit_code == 0
@@ -23,6 +25,7 @@ def test_mvu_help_lists_subcommands():
         assert sub in out, f"Expected '{sub}' in help output: {out}"
 
 
+@pytest.mark.fast
 def test_mvu_init_creates_config_and_matches_schema(tmp_path, monkeypatch):
     # Run in isolated temp directory
     monkeypatch.chdir(tmp_path)

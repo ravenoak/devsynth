@@ -20,8 +20,6 @@ def apispec_context(monkeypatch):
 
 scenarios("../features/general/apispec_generation.feature")
 
-pytestmark = [pytest.mark.medium]
-
 
 @given("the DevSynth CLI is installed")
 def cli_installed():

@@ -48,6 +48,7 @@ class TestDevSynthError:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_init_with_message_only_succeeds(self):
         """Test initialization with only a message.
 
@@ -58,6 +59,7 @@ class TestDevSynthError:
         assert error.details == {}
         assert str(error) == "Test error message"
 
+    @pytest.mark.fast
     def test_init_with_error_code_raises_error(self):
         """Test initialization with a message and error code.
 
@@ -67,6 +69,7 @@ class TestDevSynthError:
         assert error.error_code == "TEST_ERROR"
         assert error.details == {}
 
+    @pytest.mark.fast
     def test_init_with_details_raises_error(self):
         """Test initialization with a message, error code, and details.
 
@@ -79,6 +82,7 @@ class TestDevSynthError:
         assert error.error_code == "TEST_ERROR"
         assert error.details == details
 
+    @pytest.mark.fast
     def test_to_dict_succeeds(self):
         """Test the to_dict method.
 
@@ -99,6 +103,7 @@ class TestUserInputErrors:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_validation_error_raises_error(self):
         """Test ValidationError initialization and properties.
 
@@ -117,6 +122,7 @@ class TestUserInputErrors:
         assert isinstance(error, UserInputError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_configuration_error_raises_error(self):
         """Test ConfigurationError initialization and properties.
 
@@ -131,6 +137,7 @@ class TestUserInputErrors:
         assert isinstance(error, UserInputError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_command_error_raises_error(self):
         """Test CommandError initialization and properties.
 
@@ -151,6 +158,7 @@ class TestSystemErrors:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_internal_error_raises_error(self):
         """Test InternalError initialization and properties.
 
@@ -167,6 +175,7 @@ class TestSystemErrors:
         assert isinstance(error, SystemError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_resource_exhausted_error_raises_error(self):
         """Test ResourceExhaustedError initialization and properties.
 
@@ -187,6 +196,7 @@ class TestAdapterErrors:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_provider_error_raises_error(self):
         """Test ProviderError initialization and properties.
 
@@ -206,6 +216,7 @@ class TestAdapterErrors:
         assert isinstance(error, AdapterError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_provider_timeout_error_raises_error(self):
         """Test ProviderTimeoutError initialization and properties.
 
@@ -225,6 +236,7 @@ class TestAdapterErrors:
         assert isinstance(error, AdapterError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_memory_adapter_error_raises_error(self):
         """Test MemoryAdapterError initialization and properties.
 
@@ -245,6 +257,7 @@ class TestDomainErrors:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_agent_error_raises_error(self):
         """Test AgentError initialization and properties.
 
@@ -261,6 +274,7 @@ class TestDomainErrors:
         assert isinstance(error, DomainError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_workflow_error_succeeds(self):
         """Test WorkflowError initialization and properties.
 
@@ -277,6 +291,7 @@ class TestDomainErrors:
         assert isinstance(error, DomainError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_dialectical_reasoning_error_raises_error(self):
         """Test DialecticalReasoningError initialization and properties.
 
@@ -298,6 +313,7 @@ class TestApplicationErrors:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_promise_error_raises_error(self):
         """Test PromiseError initialization and properties.
 
@@ -314,6 +330,7 @@ class TestApplicationErrors:
         assert isinstance(error, ApplicationError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_promise_state_error_raises_error(self):
         """Test PromiseStateError initialization and properties.
 
@@ -333,6 +350,7 @@ class TestApplicationErrors:
         assert isinstance(error, ApplicationError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_ingestion_error_raises_error(self):
         """Test IngestionError initialization and properties.
 
@@ -355,6 +373,7 @@ class TestPortErrors:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_memory_port_error_raises_error(self):
         """Test MemoryPortError initialization and properties.
 
@@ -368,6 +387,7 @@ class TestPortErrors:
         assert isinstance(error, PortError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_provider_port_error_raises_error(self):
         """Test ProviderPortError initialization and properties.
 
@@ -381,6 +401,7 @@ class TestPortErrors:
         assert isinstance(error, PortError)
         assert isinstance(error, DevSynthError)
 
+    @pytest.mark.fast
     def test_agent_port_error_raises_error(self):
         """Test AgentPortError initialization and properties.
 

@@ -16,6 +16,7 @@ class TestAnthropicProvider:
 
     ReqID: N/A"""
 
+    @pytest.mark.medium
     @anthropic_available
     def test_generate_integration_succeeds(self):
         """Test that generate integration succeeds.
@@ -39,6 +40,7 @@ class TestAnthropicProvider:
             assert "/v1/messages" in call_args[0][0]
             assert call_args[1]["headers"]["x-api-key"] == "test_key"
 
+    @pytest.mark.medium
     @anthropic_available
     def test_generate_with_context_integration_succeeds(self):
         """Test that generate with context integration succeeds.
@@ -65,6 +67,7 @@ class TestAnthropicProvider:
             assert len(messages) == 3
             assert messages[-1]["content"] == "Tell me a joke"
 
+    @pytest.mark.medium
     @anthropic_available
     def test_get_embedding_integration_succeeds(self):
         """Test that get embedding integration succeeds.

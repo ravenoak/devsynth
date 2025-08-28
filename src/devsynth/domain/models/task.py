@@ -22,12 +22,12 @@ class Task:
 
     def __init__(
         self,
-        id: str = None,
-        task_type: str = None,
-        data: Dict[str, Any] = None,
-        assigned_to: str = None,
+        id: Optional[str] = None,
+        task_type: Optional[str] = None,
+        data: Optional[Dict[str, Any]] = None,
+        assigned_to: Optional[str] = None,
         status: TaskStatus = TaskStatus.PENDING,
-        result: Dict[str, Any] = None,
+        result: Optional[Dict[str, Any]] = None,
     ):
         """Initialize a Task instance.
 
@@ -63,14 +63,12 @@ class Task:
     def from_dict(cls, data: Dict[str, Any]) -> "Task":
         """Create a Task object from a dictionary representation."""
         status_value = data.get("status")
-        status = None
+        status: TaskStatus = TaskStatus.PENDING
         if status_value:
             for s in TaskStatus:
                 if s.value == status_value:
                     status = s
                     break
-            if status is None:
-                status = TaskStatus.PENDING
 
         return cls(
             id=data.get("id"),

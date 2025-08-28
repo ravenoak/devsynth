@@ -332,6 +332,14 @@ When a speed marker matches no tests the command still succeeds and reports
 "no tests ran", avoiding `pytest-xdist` assertion errors during parallel
 execution.
 
+#### Provider defaults and offline-first behavior
+
+By default, the devsynth run-tests CLI enforces offline-first execution and a safe stub provider to avoid accidental remote calls:
+- DEVSYNTH_OFFLINE=true (unless already set)
+- DEVSYNTH_PROVIDER=stub (unless already set)
+
+These defaults can be overridden explicitly in your environment if you need to exercise real providers locally, but keep them off in CI unless a job explicitly enables backends.
+
 Run each speed category separately to surface any parallel execution issues:
 
 ```bash
@@ -403,6 +411,25 @@ Troubleshooting:
 - If collection fails only outside smoke mode, bisect enabled plugins to find the interfering one; open an issue with a minimal repro.
 - If a test needs a plugin, avoid running it in smoke by marking or gating it appropriately.
 
+### Inventory collection constraints and timeouts
+
+The --inventory flag performs a collection-only pass and writes test_reports/test_inventory.json. In large repositories, unconstrained inventory may time out due to plugin load and global discovery costs. To keep inventory responsive:
+
+- Scope inventory whenever possible:
+  - poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
+  - poetry run devsynth run-tests --inventory --target integration-tests --speed=medium
+- Prefer smoke mode to disable third-party plugins during inventory if you only need node IDs and marker summaries:
+  - poetry run devsynth run-tests --inventory --smoke --no-parallel
+- Control collection cache TTL to avoid repeated full discovery when iterating locally:
+  - export DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS=3600  # default; raise to reduce recache frequency
+- Ensure speed markers are normalized (see scripts/verify_test_markers.py). Missing or module-level-only markers increase inventory time by forcing broader marker queries.
+- If inventory still times out:
+  - Reduce breadth (narrow target and speed),
+  - Run in smoke mode, and
+  - Increase the process timeout via your shell/CI runner if necessary. In CI, prefer targeted inventory per lane over global.
+
+Acceptance for docs/tasks.md #22: These constraints and mitigations are now documented here and in the CLI reference; inventory commands are provided with scoped examples.
+
 ### Mocking LM Studio and other optional services
 
 When the `lmstudio` package or its server is unavailable, tests should
@@ -426,6 +453,8 @@ service is unavailable.
   - requires_resource(name): mark tests that need an external resource; e.g., @pytest.mark.requires_resource("lmstudio")
   - property: mark Hypothesis-based property tests in tests/property/
 - Environment flags (default off for external services in CI/dev):
+  - DEVSYNTH_OFFLINE: true/false; defaults to true under devsynth run-tests to prevent remote calls
+  - DEVSYNTH_PROVIDER: provider name; defaults to stub under devsynth run-tests unless overridden
   - DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: true/false to opt in/out of LM Studio tests
   - DEVSYNTH_RESOURCE_CLI_AVAILABLE: true/false for CLI-dependent tests
   - DEVSYNTH_RESOURCE_WEBUI_AVAILABLE: true/false for WebUI-dependent tests
@@ -859,12 +888,20 @@ When you add or modify tests:
 
 ## Continuous Integration
 
-DevSynth uses GitHub Actions for continuous integration testing. The CI pipeline:
+DevSynth uses GitHub Actions for continuous integration testing. See the authoritative stabilization plan at [docs/plan.md](../plan.md) and the working checklist at [docs/tasks.md](../tasks.md) for the expected CI matrix and acceptance criteria.
 
-1. Runs all tests on PR and push to main.
-2. Verifies test isolation and cleanliness.
-3. Checks test coverage.
-4. Runs linting and type checking.
+The CI pipeline includes:
+
+1. PR fast path: `poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel`.
+2. Lint/style/typing/security: flake8, black --check, isort --check-only, mypy, bandit, safety.
+3. Nightly medium matrix: `poetry install --with dev --extras "tests retrieval chromadb api"` then `poetry run devsynth run-tests --target all-tests --speed=medium`.
+4. Pre-release full suite: `poetry install --with dev,docs --all-extras` then `poetry run devsynth run-tests --target all-tests --speed=slow --report`.
+5. Smoke diagnostics: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`.
+
+Live-provider jobs are opt-in only and must be explicitly enabled via environment flags in the job configuration; they are disabled by default in CI:
+- OpenAI live checks require `DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true` and a valid `OPENAI_API_KEY`.
+- LM Studio live checks require `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true` and a reachable `LM_STUDIO_ENDPOINT`.
+- By default, `DEVSYNTH_PROVIDER=stub` and `DEVSYNTH_OFFLINE=true` are set for test runs to prevent unintended network egress.
 
 
 ## Test Coverage
@@ -911,3 +948,61 @@ Acceptance for docs/tasks.md #43: These fixtures reset global state, env, and CW
 See also:
 - docs/analysis/flaky_case_log.md (dialectical notes driving these fixtures)
 - tests/conftest.py (authoritative implementation)
+
+
+
+## Quick checklist: Opt into optional backends locally
+
+Most optional backends are disabled by default via resource flags. To exercise them locally:
+
+1) Pick extras matching the backend and install with Poetry:
+   - Examples:
+     - TinyDB: poetry install --with dev --extras memory
+     - ChromaDB: poetry install --with dev --extras chromadb
+     - FAISS/Kuzu: poetry install --with dev --extras retrieval
+2) Enable the resource flag(s):
+   - export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
+   - export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+   - export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true
+   - export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
+3) Run tests in a conservative mode first:
+   - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+4) Scale out as stable:
+   - poetry run devsynth run-tests --target integration-tests --speed=medium --segment --segment-size 50
+
+Notes:
+- Keep DEVSYNTH_OFFLINE=true unless intentionally exercising remote providers.
+- See docs/developer_guides/resources_matrix.md for a complete mapping extras ↔ flags and additional examples.
+- For quick troubleshooting steps, see docs/developer_guides/doctor_checklist.md.
+
+
+## Quick command recipes (canonical)
+
+Use Poetry to ensure plugins are available.
+
+- Fast local smoke (all fast, reduced plugin surface):
+  - poetry run devsynth run-tests --smoke --speed=fast --no-parallel
+- Unit fast lane:
+  - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel
+- Behavior fast lane:
+  - poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel
+- Integration fast lane:
+  - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel
+- Generate HTML report under test_reports/:
+  - poetry run devsynth run-tests --report
+- Verify speed markers and generate report:
+  - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+- Enable LM Studio mock for local integration tests:
+  - export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+  - poetry run pytest -q -o addopts="" tests/integration/llm/test_lmstudio_streaming.py
+
+## Property-based tests (opt-in enablement)
+
+Property tests are disabled by default.
+
+- Enable collection/run:
+  - export DEVSYNTH_PROPERTY_TESTING=true
+  - poetry run pytest tests/property/
+- Conventions:
+  - Add @pytest.mark.property in addition to exactly one speed marker (@pytest.mark.fast|medium|slow).
+  - Keep runs hermetic; avoid live network calls and rely on stubs/offline defaults.

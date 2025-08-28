@@ -34,9 +34,19 @@ tasks:
 
   # Testing tasks
   test:
-    desc: Run all tests
+    desc: Run all tests (pytest direct)
     cmds:
       - poetry run pytest {{.PYTEST_ARGS}}
+
+  verify:markers:
+    desc: Run speed marker audit and write report artifact
+    cmds:
+      - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+
+  test:pr-fast:
+    desc: PR fast gate via devsynth CLI (unit fast, hermetic)
+    cmds:
+      - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
 
   typecheck:
     desc: Run mypy type checks
@@ -66,7 +76,7 @@ tasks:
   test:fast:
     desc: Run fast test suite via devsynth CLI (smoke-friendly defaults)
     cmds:
-      - poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1
+      - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
 
   test:behavior:fast:
     desc: Run behavior (BDD) tests limited to fast scenarios via devsynth CLI
@@ -76,7 +86,7 @@ tasks:
   test:all:
     desc: Run full test suite via devsynth CLI with HTML report
     cmds:
-      - poetry run devsynth run-tests --speed=all --report
+      - poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --speed=slow --report
 
   final:smoke:
     desc: Run final smoke commands for release gating (fast default, integration, behavior)
@@ -277,7 +287,7 @@ tasks:
       - task: manifest:validate
       - task: lint
       - task: test:coverage
-      - poetry run python scripts/verify_test_markers.py
+      - task: verify:markers
       - poetry run python scripts/update_traceability.py
       - poetry run python scripts/dialectical_audit.py
       - task: docs:build

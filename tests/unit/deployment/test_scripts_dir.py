@@ -5,8 +5,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 
-@pytest.mark.fast
 
+@pytest.mark.fast
 def test_scripts_bootstrap_exists():
     """Bootstrap script in scripts/deployment should exist and be executable."""
     script = ROOT / "scripts/deployment/bootstrap.sh"

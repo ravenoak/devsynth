@@ -11,4 +11,9 @@ FEATURE_FILE = os.path.join(
 
 pytestmark = pytest.mark.requires_resource("cli")
 
+# Apply speed marker at function level by wrapping scenarios in a generated test
 scenarios(FEATURE_FILE)
+
+# Note: pytest-bdd generates test functions automatically.
+# Speed markers for behavior tests are applied centrally in tests/behavior/conftest.py
+# to ensure exactly one function-level marker per scenario.

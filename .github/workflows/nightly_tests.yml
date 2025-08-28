@@ -1,0 +1,61 @@
+name: Nightly Test Matrix (fast+medium)
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  nightly-matrix:
+    name: Nightly fast+medium across all targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # Default CI resource gating: keep optional backends off by default
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_FAISS_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_KUZU_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_TINYDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      # Stub key; providers must not call network in CI
+      OPENAI_API_KEY: 'test-openai-key'
+      # Avoid file logging in CI
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dev environment (includes go-task)
+        run: bash scripts/install_dev.sh
+
+      - name: Nightly test run (fast+medium, all targets) with HTML report
+        run: |
+          poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --report
+
+      - name: Upload nightly HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-test-reports
+          path: |
+            test_reports/**
+            coverage.xml
+          if-no-files-found: warn

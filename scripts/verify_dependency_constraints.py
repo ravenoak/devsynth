@@ -25,9 +25,9 @@ from dataclasses import dataclass
 from typing import Callable, Iterable
 
 try:
-    from importlib.metadata import version, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError, version
 except Exception:  # pragma: no cover - Python <3.8 fallback not needed in CI
-    from importlib_metadata import version, PackageNotFoundError  # type: ignore
+    from importlib_metadata import PackageNotFoundError, version  # type: ignore
 
 
 @dataclass(frozen=True)
@@ -56,7 +56,9 @@ def _parse_semver_tuple(v: str) -> tuple[int, int, int]:
     return tuple(nums)  # type: ignore[return-value]
 
 
-def _range_check(v: str, lower_incl: tuple[int, int, int], upper_excl: tuple[int, int, int]) -> bool:
+def _range_check(
+    v: str, lower_incl: tuple[int, int, int], upper_excl: tuple[int, int, int]
+) -> bool:
     vt = _parse_semver_tuple(v)
     return (vt >= lower_incl) and (vt < upper_excl)
 
@@ -74,9 +76,7 @@ def main() -> int:
         Constraint(
             name="anyio",
             checker=lambda v: _range_check(v, (4, 0, 0), (5, 0, 0)),
-            hint=(
-                "httpx 0.28 requires anyio >=4,<5. Pin anyio to <5.0 if violated."
-            ),
+            hint=("httpx 0.28 requires anyio >=4,<5. Pin anyio to <5.0 if violated."),
         ),
         Constraint(
             name="urllib3",
@@ -103,7 +103,9 @@ def main() -> int:
         print("Dependency constraint violations detected:\n" + "\n".join(failed))
         return 2
 
-    print("Dependency constraints check passed: key transitive ranges are within policy.")
+    print(
+        "Dependency constraints check passed: key transitive ranges are within policy."
+    )
     return 0
 
 

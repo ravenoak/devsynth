@@ -6,9 +6,8 @@ import pytest
 
 from devsynth.exceptions import DevSynthError, log_exception
 
-pytestmark = pytest.mark.fast
 
-
+@pytest.mark.fast
 def test_log_exception_emits_error(caplog):
     """log_exception records the error message.
 

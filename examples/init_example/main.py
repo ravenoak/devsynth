@@ -7,6 +7,7 @@ that a fast smoke test can validate the example is runnable end-to-end.
 
 It does not import heavy subsystems to keep execution under a second.
 """
+
 from __future__ import annotations
 
 import sys

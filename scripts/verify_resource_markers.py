@@ -28,7 +28,9 @@ ROOT = Path(__file__).resolve().parents[1]
 TESTS_DIR = ROOT / "tests"
 CONFTEST = TESTS_DIR / "conftest.py"
 
-RESOURCE_REGEX = re.compile(r"requires_resource\((?:name=)?[\'\"]([A-Za-z0-9_\-]+)[\'\"]\)")
+RESOURCE_REGEX = re.compile(
+    r"requires_resource\((?:name=)?[\'\"]([A-Za-z0-9_\-]+)[\'\"]\)"
+)
 
 
 def parse_known_resources() -> set[str]:

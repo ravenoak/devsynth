@@ -4,6 +4,7 @@ Networking-related test fixtures.
 These fixtures help ensure test hermeticity by preventing unintended
 network egress. They are imported by tests/conftest.py.
 """
+
 from __future__ import annotations
 
 import os
@@ -48,8 +49,11 @@ def disable_network(monkeypatch: pytest.MonkeyPatch) -> None:
     try:  # pragma: no cover - optional dependency
         import requests  # type: ignore
 
-        allow_requests = os.environ.get("DEVSYNTH_TEST_ALLOW_REQUESTS", "false").lower() in {"1", "true", "yes"}
+        allow_requests = os.environ.get(
+            "DEVSYNTH_TEST_ALLOW_REQUESTS", "false"
+        ).lower() in {"1", "true", "yes"}
         if not allow_requests:
+
             def _guard_requests_request(*args: Any, **kwargs: Any) -> None:  # type: ignore
                 raise RuntimeError("Network access disabled during tests (requests)")
 

@@ -63,6 +63,7 @@ class VotingAgent:
         return {"vote": self.vote}
 
 
+@pytest.mark.medium
 def test_majority_voting_succeeds():
     """Test that majority voting succeeds.
 
@@ -80,6 +81,7 @@ def test_majority_voting_succeeds():
     assert result["result"] in {"o1", "o2"}
 
 
+@pytest.mark.medium
 def test_weighted_voting_succeeds():
     """Test that weighted voting succeeds.
 
@@ -101,6 +103,7 @@ def test_weighted_voting_succeeds():
     assert result["result"] in {"o1", "o2"}
 
 
+@pytest.mark.medium
 def test_voting_result_syncs_to_memory():
     """Voting results should be stored across memory stores."""
     adapters = {

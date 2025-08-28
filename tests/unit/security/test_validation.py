@@ -13,6 +13,7 @@ class TestValidateNonEmpty:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_valid_string_is_valid(self):
         """Test with valid non-empty string.
 
@@ -22,6 +23,7 @@ class TestValidateNonEmpty:
         assert validate_non_empty("  hello  ", "field") == "  hello  "
 
     @pytest.mark.parametrize("invalid_value", ["", "   ", None])
+    @pytest.mark.fast
     def test_invalid_string_is_valid(self, invalid_value):
         """Test with invalid empty strings or None.
 
@@ -31,6 +33,7 @@ class TestValidateNonEmpty:
         assert excinfo.value.details["field"] == "test_field"
         assert excinfo.value.details["value"] == invalid_value
 
+    @pytest.mark.fast
     def test_non_string_value_succeeds(self):
         """Test with non-string values.
 
@@ -51,6 +54,7 @@ class TestValidateIntRange:
     @pytest.mark.parametrize(
         "value,expected", [("5", 5), (5, 5), ("10", 10), ("-5", -5), ("0", 0)]
     )
+    @pytest.mark.fast
     def test_valid_int_is_valid(self, value, expected):
         """Test with valid integer values.
 
@@ -67,6 +71,7 @@ class TestValidateIntRange:
             ("0", -10, 10, 0),
         ],
     )
+    @pytest.mark.fast
     def test_valid_int_with_range_is_valid(self, value, min_val, max_val, expected):
         """Test with valid integer values within range.
 
@@ -77,6 +82,7 @@ class TestValidateIntRange:
         )
 
     @pytest.mark.parametrize("value", ["abc", "1.5", "", None, {}, []])
+    @pytest.mark.fast
     def test_invalid_int_is_valid(self, value):
         """Test with invalid integer values.
 
@@ -87,6 +93,7 @@ class TestValidateIntRange:
         assert excinfo.value.details["value"] == value
 
     @pytest.mark.parametrize("value,min_val", [("0", 1), ("-5", 0), ("5", 10)])
+    @pytest.mark.fast
     def test_below_min_value_succeeds(self, value, min_val):
         """Test with values below minimum.
 
@@ -98,6 +105,7 @@ class TestValidateIntRange:
         assert excinfo.value.details["constraints"]["min"] == min_val
 
     @pytest.mark.parametrize("value,max_val", [("10", 5), ("0", -1), ("100", 99)])
+    @pytest.mark.fast
     def test_above_max_value_succeeds(self, value, max_val):
         """Test with values above maximum.
 
@@ -125,6 +133,7 @@ class TestValidateChoice:
             (5, (5, 10, 15)),
         ],
     )
+    @pytest.mark.fast
     def test_valid_choice_is_valid(self, value, choices):
         """Test with valid choices.
 
@@ -141,6 +150,7 @@ class TestValidateChoice:
             (20, (5, 10, 15)),
         ],
     )
+    @pytest.mark.fast
     def test_invalid_choice_is_valid(self, value, choices):
         """Test with invalid choices.
 

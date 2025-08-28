@@ -18,8 +18,6 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 scenarios("../features/webui/requirements_wizard_with_state.feature")
 
-pytestmark = pytest.mark.medium
-
 
 @pytest.fixture
 def wizard_context(monkeypatch):

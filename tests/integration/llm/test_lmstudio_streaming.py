@@ -5,14 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-pytest.importorskip("lmstudio")
-if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
-    pytest.skip("LMStudio service not available", allow_module_level=True)
-
 from devsynth.application.llm.providers import LMStudioProvider
-
-# LM Studio streaming tests run at medium speed
-pytestmark = [pytest.mark.requires_resource("lmstudio"), pytest.mark.medium]
 
 
 def _import_provider():
@@ -24,6 +17,7 @@ def _import_provider():
 class TestLMStudioStreaming:
     """Tests for LMStudioProvider using the mock service."""
 
+    @pytest.mark.medium
     def test_generate_streaming_returns_expected(self, lmstudio_service):
         """Ensure generate handles streaming responses.
 
@@ -43,6 +37,7 @@ class TestLMStudioStreaming:
         result = provider.generate("Hello")
         assert result == "This is a test"
 
+    @pytest.mark.medium
     def test_generate_with_context_streaming_returns_expected(self, lmstudio_service):
         """Ensure generate_with_context handles streaming responses.
 

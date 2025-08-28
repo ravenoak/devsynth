@@ -1,7 +1,7 @@
 import pytest
 
-from devsynth.adapters.cli import typer_adapter as adapter
 from devsynth import __version__
+from devsynth.adapters.cli import typer_adapter as adapter
 
 
 @pytest.mark.fast

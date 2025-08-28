@@ -1,7 +1,16 @@
 {
   "markers": {
-    "fast": 1
+    "medium": 196,
+    "requires_resource": 2,
+    "isolation": 2,
+    "fast": 132,
+    "no_network": 2,
+    "memory_intensive": 1,
+    "slow": 5,
+    "parametrize": 13,
+    "integration": 1,
+    "skipif": 2
   },
-  "files_scanned": 1,
-  "files_with_issues": 0
+  "files_scanned": 112,
+  "files_with_issues": 60
 }

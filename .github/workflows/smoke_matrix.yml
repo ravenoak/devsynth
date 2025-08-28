@@ -64,6 +64,8 @@ jobs:
           poetry run devsynth doctor
 
       - name: Fast smoke tests
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
           poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 --target unit-tests
 

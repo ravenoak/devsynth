@@ -13,6 +13,7 @@ class SimpleAgent:
         self.has_been_primus = False
 
 
+@pytest.mark.medium
 def test_dynamic_role_reassignment_integration_succeeds():
     team = CollaborativeWSDETeam("team")
     doc = SimpleAgent("doc", ["documentation"])
@@ -23,6 +24,7 @@ def test_dynamic_role_reassignment_integration_succeeds():
     assert team.get_primus() == doc
 
 
+@pytest.mark.medium
 def test_consensus_vote_tie_breaker_succeeds():
     team = CollaborativeWSDETeam("team")
     a1 = SimpleAgent("a1", ["a"])

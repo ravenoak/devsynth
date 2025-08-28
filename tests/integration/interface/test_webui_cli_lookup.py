@@ -1,8 +1,11 @@
 from types import SimpleNamespace
 
+import pytest
+
 from devsynth.interface import webui
 
 
+@pytest.mark.medium
 def test_cli_fallback_to_cli_module(monkeypatch):
     dummy = object()
     cli_mod = SimpleNamespace(sample_cmd=dummy)

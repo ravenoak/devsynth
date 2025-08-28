@@ -1,9 +1,12 @@
 import datetime
 
+import pytest
+
 from devsynth.methodology.adhoc import AdHocAdapter
 from devsynth.methodology.base import Phase
 
 
+@pytest.mark.fast
 def test_should_start_cycle_true():
     """AdHocAdapter begins a cycle when requested.
 
@@ -12,6 +15,7 @@ def test_should_start_cycle_true():
     assert adapter.should_start_cycle()
 
 
+@pytest.mark.fast
 def test_should_progress_to_next_phase():
     """Progresses when user marks phase complete and requests progression.
 

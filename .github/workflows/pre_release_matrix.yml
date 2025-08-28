@@ -1,0 +1,67 @@
+name: Pre-release Matrix (full speeds + marker report)
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'pre-*'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  pre-release-matrix:
+    name: Pre-release full matrix (fast/medium/slow)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # Keep optional backends disabled by default
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_FAISS_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_KUZU_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_TINYDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      OPENAI_API_KEY: 'test-openai-key'
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dev environment (includes go-task)
+        run: bash scripts/install_dev.sh
+
+      - name: Run full matrix (fast+medium+slow) with HTML report
+        run: |
+          poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --speed=slow --report
+
+      - name: Generate speed marker report JSON
+        run: |
+          poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+
+      - name: Upload reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-release-reports
+          path: |
+            test_reports/**
+            test_markers_report.json
+            coverage.xml
+            dialectical_audit.log
+          if-no-files-found: warn

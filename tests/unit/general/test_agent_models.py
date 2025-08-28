@@ -8,6 +8,7 @@ class TestAgentModels:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_agent_type_enum_succeeds(self):
         """Test that agent type enum succeeds.
 
@@ -19,6 +20,7 @@ class TestAgentModels:
         assert AgentType.REVIEWER.value == "reviewer"
         assert AgentType.DOCUMENTER.value == "documenter"
 
+    @pytest.mark.fast
     def test_agent_config_initialization_succeeds(self):
         """Test that agent config initialization succeeds.
 
@@ -36,6 +38,7 @@ class TestAgentModels:
         assert isinstance(agent_config.parameters, dict)
         assert len(agent_config.parameters) == 0
 
+    @pytest.mark.fast
     def test_agent_config_with_parameters_succeeds(self):
         """Test that agent config with parameters succeeds.
 
@@ -53,6 +56,7 @@ class TestAgentModels:
         assert agent_config.parameters["temperature"] == 0.7
         assert agent_config.parameters["max_tokens"] == 1000
 
+    @pytest.mark.fast
     def test_mvp_capabilities_succeeds(self):
         """Test that mvp capabilities succeeds.
 

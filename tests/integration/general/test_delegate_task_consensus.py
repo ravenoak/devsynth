@@ -1,6 +1,8 @@
 import types
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 
 
@@ -15,6 +17,7 @@ class SimpleAgent:
         self.config = types.SimpleNamespace(name=name, parameters={})
 
 
+@pytest.mark.medium
 def test_delegate_task_team_consensus_succeeds():
     """Test that delegate task team consensus succeeds.
 
@@ -63,6 +66,7 @@ class VotingAgent:
         return {"solution": f"{self.name}-sol"}
 
 
+@pytest.mark.medium
 def test_critical_decision_majority_vote_succeeds():
     """Test that critical decision majority vote succeeds.
 
@@ -96,6 +100,7 @@ def test_critical_decision_majority_vote_succeeds():
     assert result["result"]["method"] == "majority_vote"
 
 
+@pytest.mark.medium
 def test_critical_decision_tied_vote_falls_back_to_consensus_succeeds():
     """Test that critical decision tied vote falls back to consensus succeeds.
 

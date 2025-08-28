@@ -37,6 +37,7 @@ class TestEndToEndWorkflow:
         yield temp_dir
         # No need for cleanup as pytest handles it automatically
 
+    @pytest.mark.medium
     def test_complete_workflow_succeeds(self, temp_project_dir, tmpdir, monkeypatch):
         """Test a complete workflow from requirements to code.
 
@@ -146,6 +147,7 @@ class TestEndToEndWorkflow:
         finally:
             os.chdir(original_dir)
 
+    @pytest.mark.medium
     def test_inconsistent_project_workflow_succeeds(self, temp_project_dir, tmpdir):
         """Test workflow with an inconsistent project state.
 

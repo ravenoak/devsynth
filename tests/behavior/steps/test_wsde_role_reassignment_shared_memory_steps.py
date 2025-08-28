@@ -17,7 +17,6 @@ pytest.importorskip("faiss")
 if not hasattr(lmdb_mod, "open"):
     pytest.skip("lmdb unavailable", allow_module_level=True)
 
-pytestmark = pytest.mark.fast
 scenarios("../features/wsde/role_reassignment_shared_memory.feature")
 
 

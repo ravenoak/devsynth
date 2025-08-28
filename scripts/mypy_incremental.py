@@ -30,8 +30,12 @@ from typing import Iterable, List, Sequence
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def _run(cmd: Sequence[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(list(cmd), cwd=str(cwd or ROOT), capture_output=True, text=True)
+def _run(
+    cmd: Sequence[str], cwd: Path | None = None
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        list(cmd), cwd=str(cwd or ROOT), capture_output=True, text=True
+    )
 
 
 def _git_diff_names(base_ref: str) -> List[str]:

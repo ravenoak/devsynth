@@ -2,6 +2,7 @@
 
 ReqID: FR-22 (CLI behavior) | Cov: 6.2 (targeted tests for CLI/provider)
 """
+
 from __future__ import annotations
 
 import os
@@ -60,7 +61,9 @@ def test_run_tests_cli_report_option_forwards_true() -> None:
 
 
 @pytest.mark.fast
-def test_run_tests_cmd_respects_explicit_provider_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_tests_cmd_respects_explicit_provider_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """When provider env vars are explicitly set, CLI must not override them.
 
     - DEVSYNTH_PROVIDER=openai
@@ -74,7 +77,9 @@ def test_run_tests_cmd_respects_explicit_provider_env(monkeypatch: pytest.Monkey
     monkeypatch.setenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "true")
 
     with patch.object(module, "run_tests", return_value=(True, "")):
-        module.run_tests_cmd(target="unit-tests", speeds=["fast"], bridge=_DummyBridge())
+        module.run_tests_cmd(
+            target="unit-tests", speeds=["fast"], bridge=_DummyBridge()
+        )
 
     # Ensure values were not force-overwritten by test defaults
     assert os.environ.get("DEVSYNTH_PROVIDER") == "openai"

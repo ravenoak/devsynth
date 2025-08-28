@@ -125,6 +125,7 @@ def sync_stores(source: MemoryStore, dest: MemoryStore) -> int:
     return count
 
 
+@pytest.mark.medium
 def test_store_and_retrieve_round_trip() -> None:
     # Arrange
     store = InMemoryStore()
@@ -145,6 +146,7 @@ def test_store_and_retrieve_round_trip() -> None:
     assert fetched.metadata["k"] == 1
 
 
+@pytest.mark.medium
 def test_search_by_memory_type_and_metadata_filters() -> None:
     store = InMemoryStore()
     store.store(
@@ -167,6 +169,7 @@ def test_search_by_memory_type_and_metadata_filters() -> None:
     assert [r.content for r in results] == ["b"]
 
 
+@pytest.mark.medium
 def test_delete_removes_item() -> None:
     store = InMemoryStore()
     item_id = store.store(
@@ -179,6 +182,7 @@ def test_delete_removes_item() -> None:
     assert store.retrieve(item_id) is None
 
 
+@pytest.mark.medium
 def test_transactions_commit_and_rollback() -> None:
     store = InMemoryStore()
     txid = store.begin_transaction()
@@ -202,6 +206,7 @@ def test_transactions_commit_and_rollback() -> None:
     assert not store.is_transaction_active(txid2)
 
 
+@pytest.mark.medium
 def test_cross_store_sync_copies_missing_items() -> None:
     # Arrange
     src = InMemoryStore()
@@ -238,6 +243,7 @@ def test_cross_store_sync_copies_missing_items() -> None:
 
 
 @pytest.mark.integration
+@pytest.mark.slow
 def test_cross_store_sync_with_chromadb_if_available(tmp_path, monkeypatch):
     """Cross-store sync using ChromaDBMemoryStore when chromadb extra is present.
 
