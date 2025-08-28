@@ -2,9 +2,12 @@
 
 from unittest.mock import patch
 
+import pytest
+
 from devsynth.agents.tools import get_tool_registry, run_tests_tool
 
 
+@pytest.mark.fast
 def test_run_tests_tool_returns_structure() -> None:
     """run_tests_tool should return a success flag and output string."""
     with patch(
@@ -15,6 +18,7 @@ def test_run_tests_tool_returns_structure() -> None:
         mock_run.assert_called_once()
 
 
+@pytest.mark.fast
 def test_run_tests_tool_registered() -> None:
     """The tool should be registered in the global registry."""
     registry = get_tool_registry()

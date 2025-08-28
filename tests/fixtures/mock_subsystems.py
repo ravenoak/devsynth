@@ -114,18 +114,25 @@ def stub_providers() -> None:
     try:
         import devsynth.application.llm.lmstudio_provider as app_lms  # type: ignore
 
-        class _AppLMStudioStub:
-            def __init__(self, *_, **__):
-                pass
+        # Only stub LMStudio when the resource is not explicitly enabled.
+        _lmstudio_resource_enabled = os.getenv(
+            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+        ).lower() in {"1", "true", "yes"}
 
-            def complete(self, *_, **__):
-                return "Test completion response"
+        if not _lmstudio_resource_enabled:
 
-            def embed(self, *_, **__):
-                return [0.1, 0.2, 0.3, 0.4]
+            class _AppLMStudioStub:
+                def __init__(self, *_, **__):
+                    pass
 
-        if hasattr(app_lms, "LMStudioProvider"):
-            app_lms.LMStudioProvider = _AppLMStudioStub  # type: ignore[attr-defined]
+                def complete(self, *_, **__):
+                    return "Test completion response"
+
+                def embed(self, *_, **__):
+                    return [0.1, 0.2, 0.3, 0.4]
+
+            if hasattr(app_lms, "LMStudioProvider"):
+                app_lms.LMStudioProvider = _AppLMStudioStub  # type: ignore[attr-defined]
     except Exception:
         pass
 

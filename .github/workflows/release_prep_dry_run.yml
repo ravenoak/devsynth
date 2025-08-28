@@ -68,6 +68,14 @@ jobs:
           echo "Verifying release state per FR-95"
           poetry run python scripts/verify_release_state.py
 
+      - name: Run test speed marker verification (JSON report)
+        run: |
+          poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+
+      - name: PR gate - unit fast suite (hermetic)
+        run: |
+          poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+
       - name: Run release:prep
         run: |
           echo "Running task release:prep (dry run)"

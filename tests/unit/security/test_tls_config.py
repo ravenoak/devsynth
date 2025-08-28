@@ -117,7 +117,9 @@ def test_tls_config_as_requests_kwargs_with_ca_file_has_expected(tmp_path, monke
     assert kwargs == {"verify": str(ca), "timeout": 10.0}
 
 
-def test_tls_config_as_requests_kwargs_with_cert_and_key_has_expected(tmp_path, monkeypatch):
+def test_tls_config_as_requests_kwargs_with_cert_and_key_has_expected(
+    tmp_path, monkeypatch
+):
     """Test as_requests_kwargs with cert_file and key_file provided includes timeout.
 
     ReqID: N/A"""
@@ -131,7 +133,9 @@ def test_tls_config_as_requests_kwargs_with_cert_and_key_has_expected(tmp_path, 
     assert kwargs == {"verify": True, "cert": (str(cert), str(key)), "timeout": 10.0}
 
 
-def test_tls_config_as_requests_kwargs_with_cert_only_has_expected(tmp_path, monkeypatch):
+def test_tls_config_as_requests_kwargs_with_cert_only_has_expected(
+    tmp_path, monkeypatch
+):
     """Test as_requests_kwargs with only cert_file provided includes timeout.
 
     ReqID: N/A"""
@@ -143,7 +147,9 @@ def test_tls_config_as_requests_kwargs_with_cert_only_has_expected(tmp_path, mon
     assert kwargs == {"verify": True, "cert": str(cert), "timeout": 10.0}
 
 
-def test_tls_config_as_requests_kwargs_ca_file_precedence_succeeds(tmp_path, monkeypatch):
+def test_tls_config_as_requests_kwargs_ca_file_precedence_succeeds(
+    tmp_path, monkeypatch
+):
     """Test as_requests_kwargs with both ca_file and verify=False includes timeout.
 
     ReqID: N/A"""

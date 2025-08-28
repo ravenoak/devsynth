@@ -57,6 +57,7 @@ fresh_isolation_report.json
 isolation_report_*.json
 *_isolation_report.json
 high_priority_isolation_issues.md
+test_markers_report.json
 
 # IDE specific files
 .idea/

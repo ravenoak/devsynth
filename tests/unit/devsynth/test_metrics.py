@@ -3,6 +3,7 @@ import pytest
 from devsynth import metrics
 
 
+@pytest.mark.fast
 def test_memory_metrics_increment_and_reset():
     metrics.reset_metrics()
     metrics.inc_memory("read")
@@ -13,6 +14,7 @@ def test_memory_metrics_increment_and_reset():
     assert metrics.get_memory_metrics() == {}
 
 
+@pytest.mark.fast
 def test_provider_and_retry_metrics():
     metrics.reset_metrics()
     metrics.inc_provider("openai")
@@ -30,6 +32,7 @@ def test_provider_and_retry_metrics():
     assert metrics.get_retry_error_metrics() == {}
 
 
+@pytest.mark.fast
 def test_dashboard_metrics():
     metrics.reset_metrics()
     metrics.inc_dashboard("view")
@@ -39,6 +42,7 @@ def test_dashboard_metrics():
     assert metrics.get_dashboard_metrics() == {}
 
 
+@pytest.mark.fast
 def test_inc_memory_unhashable_raises_type_error():
     metrics.reset_metrics()
     with pytest.raises(TypeError):

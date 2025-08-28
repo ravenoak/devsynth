@@ -43,6 +43,21 @@ Sanity checks
 - Smoke mode (reduces plugin surface):
   - poetry run devsynth run-tests --smoke --speed=fast --no-parallel
 
+## Testing Quick Start
+
+- Fast local smoke (all fast):
+  - poetry run devsynth run-tests --smoke --speed=fast --no-parallel
+- Unit fast lane:
+  - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel
+- Behavior fast lane:
+  - poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel
+- Integration fast lane:
+  - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel
+- Generate HTML test report:
+  - poetry run devsynth run-tests --report
+- Full guidance: see docs/developer_guides/testing.md
+- CLI options reference: see docs/user_guides/cli_command_reference.md
+
 Optional resources (opt-in)
 - Install an extra and export the flag to enable gated tests/resources, e.g. TinyDB:
   - poetry add tinydb --group dev
@@ -52,7 +67,7 @@ Optional resources (opt-in)
 - See also: [Resources Matrix](docs/resources_matrix.md) for mapping extras to DEVSYNTH_RESOURCE_* flags and enablement examples.
 
 Next steps
-- Testing guidance: docs/developer_guides/testing.md
+- Testing guidance: docs/developer_guides/testing.md (see stabilization plan: docs/plan.md and working checklist: docs/tasks.md)
 - CLI options reference: docs/user_guides/cli_command_reference.md
 - Release Playbook: docs/release/release_playbook.md
 

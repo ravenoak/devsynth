@@ -1,0 +1,47 @@
+name: Types (mypy)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'pyproject.toml'
+      - '.github/workflows/types.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'pyproject.toml'
+      - '.github/workflows/types.yml'
+
+concurrency:
+  group: types-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mypy:
+    name: Run mypy (strict types)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dev environment (tests extra for plugins)
+        run: |
+          poetry env use 3.12
+          poetry install --with dev --extras "tests"
+
+      - name: Run mypy on src/devsynth
+        run: |
+          poetry run mypy src/devsynth

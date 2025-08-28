@@ -131,6 +131,7 @@ class TestUser(unittest.TestCase):
         finally:
             shutil.rmtree(temp_dir)
 
+    @pytest.mark.medium
     def test_analyze_external_codebase_succeeds(self, sample_project):
         """Test that DevSynth can analyze an external codebase.
 
@@ -159,6 +160,7 @@ class TestUser(unittest.TestCase):
         test_coverage = result["insights"]["test_coverage"]
         assert test_coverage["coverage_percentage"] >= 0
 
+    @pytest.mark.medium
     def test_project_state_analyzer_with_external_codebase_succeeds(
         self, sample_project
     ):
@@ -185,6 +187,7 @@ class TestUser(unittest.TestCase):
         print(f"File Count: {report['file_count']}")
         print(f"Requirements Count: {report['requirements_count']}")
 
+    @pytest.mark.medium
     def test_refactor_workflow_with_external_codebase_succeeds(self, sample_project):
         """Test that RefactorWorkflowManager can work with an external codebase.
 
@@ -206,6 +209,7 @@ class TestUser(unittest.TestCase):
         assert workflow is not None
         assert entry_point is not None
 
+    @pytest.mark.medium
     def test_end_to_end_workflow_succeeds(self, sample_project):
         """Test an end-to-end workflow from requirements to code.
 

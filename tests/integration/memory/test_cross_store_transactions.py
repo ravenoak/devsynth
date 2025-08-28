@@ -30,6 +30,7 @@ def _manager(lmdb, faiss, kuzu):
     return manager
 
 
+@pytest.mark.medium
 def test_cross_store_transaction_commit(tmp_path, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     lmdb = LMDBStore(str(tmp_path / "lmdb"))
@@ -53,6 +54,7 @@ def test_cross_store_transaction_commit(tmp_path, monkeypatch):
     kuzu.cleanup()
 
 
+@pytest.mark.medium
 def test_cross_store_transaction_rollback(tmp_path, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     lmdb = LMDBStore(str(tmp_path / "lmdb"))

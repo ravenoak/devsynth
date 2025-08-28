@@ -19,12 +19,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 TMP_ENV = ROOT / ".tmp_build_verify"
 
 
-def run(cmd: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+def run(
+    cmd: list[str], env: dict[str, str] | None = None, cwd: Path | None = None
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         cmd,
         text=True,
@@ -86,7 +87,10 @@ def main() -> int:
     dist_dir = ROOT / "dist"
     wheels = sorted(dist_dir.glob("*.whl"))
     if not wheels:
-        print("[verify_poetry_build] no wheel found under dist/ after build", file=sys.stderr)
+        print(
+            "[verify_poetry_build] no wheel found under dist/ after build",
+            file=sys.stderr,
+        )
         return 3
     wheel = wheels[-1]
 

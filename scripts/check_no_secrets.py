@@ -56,7 +56,10 @@ ALLOWLIST_SUBSTRINGS: tuple[str, ...] = (
 
 # Regexes for high-risk secret patterns
 PATTERNS: Iterable[tuple[str, re.Pattern[str]]] = (
-    ("OpenAI API key", re.compile(r"\bOPENAI_API_KEY\s*[:=]\s*['\"]?[A-Za-z0-9-_]{10,}\b")),
+    (
+        "OpenAI API key",
+        re.compile(r"\bOPENAI_API_KEY\s*[:=]\s*['\"]?[A-Za-z0-9-_]{10,}\b"),
+    ),
     ("AWS Access Key ID", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
     ("AWS Secret Access Key", re.compile(r"\baws_secret_access_key\b\s*[:=]", re.I)),
     ("Private Key PEM", re.compile(r"-----BEGIN (RSA |DSA |EC )?PRIVATE KEY-----")),
@@ -68,9 +71,7 @@ PATTERNS: Iterable[tuple[str, re.Pattern[str]]] = (
 ROOTS: tuple[str, ...] = ("src", "scripts", "docs", "examples", ".github")
 
 # Skip patterns by path (regex)
-SKIP_PATH_REGEXES: Iterable[re.Pattern[str]] = (
-    re.compile(r"tests?/fixtures?/", re.I),
-)
+SKIP_PATH_REGEXES: Iterable[re.Pattern[str]] = (re.compile(r"tests?/fixtures?/", re.I),)
 
 
 def _should_skip_path(path: str) -> bool:
@@ -108,16 +109,20 @@ def main() -> int:
                     continue
                 for label, rx in PATTERNS:
                     for m in rx.finditer(text):
-                        snippet = text[max(0, m.start()-20): m.end()+20]
+                        snippet = text[max(0, m.start() - 20) : m.end() + 20]
                         if any(s in snippet for s in ALLOWLIST_SUBSTRINGS):
                             continue
                         findings.append(f"{rel_path}: {label} -> {m.group(0)[:60]}")
 
     if findings:
-        print("Potential secrets detected. Please remove or replace with env vars/secrets store and placeholders.\n")
+        print(
+            "Potential secrets detected. Please remove or replace with env vars/secrets store and placeholders.\n"
+        )
         for item in findings:
             print(f"- {item}")
-        print("\nIf these are false positives, add safe placeholders or extend ALLOWLIST_SUBSTRINGS with caution.")
+        print(
+            "\nIf these are false positives, add safe placeholders or extend ALLOWLIST_SUBSTRINGS with caution."
+        )
         return 3
 
     print("Secret scan passed: no high-risk patterns found.")

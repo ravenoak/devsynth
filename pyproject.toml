@@ -101,7 +101,7 @@ isort = "^6.0.1"
 flake8 = "^7.1.1"
 pre-commit = "^4.2.0"
 psutil = "^7.0.0"
-mypy = {version = "^1.17.0", optional = true}
+mypy = "^1.17.0"
 tinydb = "^4.8.2"
 faker = "^37.4.2"
 ipywidgets = "^8.1.7"
@@ -234,6 +234,14 @@ target-version = ["py312"]
 [tool.isort]
 profile = "black"
 line_length = 88
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+per-file-ignores = [
+  # Allow long docstrings and BDD steps in behavior tests
+  "tests/behavior/*.py: E501",
+]
 
 [tool.devsynth]
 project_root = "."

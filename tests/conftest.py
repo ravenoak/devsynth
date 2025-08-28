@@ -108,8 +108,8 @@ def pytest_configure(config):
 from tests.fixtures.determinism import deterministic_seed
 
 
-@pytest.fixture
-def test_environment(tmp_path, monkeypatch):
+@pytest.fixture(name="test_environment")
+def _test_environment(tmp_path, monkeypatch):
     """Create a completely isolated test environment with temporary directories and patched environment variables. ReqID: none
     This fixture is NOT automatically used for all tests - use global_test_isolation instead.
 
@@ -462,6 +462,43 @@ def normalize_subsystem_stubs():
 from tests.fixtures.determinism import enforce_test_timeout
 
 
+@pytest.fixture(autouse=True)
+def _default_timeout_by_speed(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Set a default per-test timeout based on speed markers when not explicitly set.
+
+    Non-smoke defaults (local/dev):
+    - fast: 3s (quick signal)
+    - medium: 10s (integration guidance)
+    - slow: 30s (generous cap; keep tests bounded)
+
+    Smoke mode (plugins disabled via PYTEST_DISABLE_PLUGIN_AUTOLOAD=1):
+    - fast: 2s
+    - medium: 5s
+    - slow: 15s
+
+    This only applies when DEVSYNTH_TEST_TIMEOUT_SECONDS is not already set, so
+    explicit CLI/env control remains authoritative. The actual enforcement is
+    performed by tests.fixtures.determinism.enforce_test_timeout.
+    """
+    # Respect explicit configuration
+    if os.environ.get("DEVSYNTH_TEST_TIMEOUT_SECONDS"):
+        return
+
+    # Determine if we're in smoke mode (plugins disabled)
+    smoke = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "0").lower() in {"1", "true", "yes"}
+
+    # Determine closest speed marker and set default timeout accordingly
+    if request.node.get_closest_marker("fast") is not None:
+        monkeypatch.setenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", "2" if smoke else "3")
+    elif request.node.get_closest_marker("medium") is not None:
+        monkeypatch.setenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", "5" if smoke else "10")
+    elif request.node.get_closest_marker("slow") is not None:
+        # Provide an upper bound while allowing intentionally longer tests
+        monkeypatch.setenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", "15" if smoke else "30")
+
+
 @pytest.fixture
 def mock_openai_provider():
     """
@@ -747,12 +784,17 @@ def is_openai_available() -> bool:
 
 def is_memory_available() -> bool:
     """Generic 'memory' resource gate for memory-heavy tests (opt-out via env)."""
-    return os.environ.get("DEVSYNTH_RESOURCE_MEMORY_AVAILABLE", "true").lower() != "false"
+    return (
+        os.environ.get("DEVSYNTH_RESOURCE_MEMORY_AVAILABLE", "true").lower() != "false"
+    )
 
 
 def is_test_resource_available() -> bool:
     """Test sentinel resource used by unit tests to validate resource gating."""
-    return os.environ.get("DEVSYNTH_RESOURCE_TEST_RESOURCE_AVAILABLE", "false").lower() == "true"
+    return (
+        os.environ.get("DEVSYNTH_RESOURCE_TEST_RESOURCE_AVAILABLE", "false").lower()
+        == "true"
+    )
 
 
 def is_anthropic_available() -> bool:
@@ -840,9 +882,15 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         for marker in item.iter_markers(name="requires_resource"):
             # Validate marker arguments
-            if not marker.args or not isinstance(marker.args[0], str) or not marker.args[0].strip():
+            if (
+                not marker.args
+                or not isinstance(marker.args[0], str)
+                or not marker.args[0].strip()
+            ):
                 item.add_marker(
-                    pytest.mark.skip(reason="Malformed requires_resource marker: expected a non-empty resource name")
+                    pytest.mark.skip(
+                        reason="Malformed requires_resource marker: expected a non-empty resource name"
+                    )
                 )
                 continue
             resource = marker.args[0].strip()
@@ -868,7 +916,9 @@ def pytest_collection_modifyitems(config, items):
             }
             if resource not in known_resources:
                 item.add_marker(
-                    pytest.mark.skip(reason=f"Unknown resource '{resource}' not recognized by test harness")
+                    pytest.mark.skip(
+                        reason=f"Unknown resource '{resource}' not recognized by test harness"
+                    )
                 )
                 continue
 
@@ -879,7 +929,11 @@ def pytest_collection_modifyitems(config, items):
                 )
 
     # Smoke-mode behavior: skip behavior tests when plugins are disabled
-    smoke = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "0").lower() in {"1", "true", "yes"}
+    smoke = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "0").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
     if smoke:
         skip_behavior = pytest.mark.skip(
             reason=(
@@ -924,9 +978,15 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
     explicitly allowed via DEVSYNTH_ALLOW_ISOLATION_IN_XDIST=true. This prevents known
     shared-state or resource-contention issues from causing flakes under parallel execution.
     """
-    allow_isolation = os.environ.get("DEVSYNTH_ALLOW_ISOLATION_IN_XDIST", "").lower() in {"1", "true", "yes"}
+    allow_isolation = os.environ.get(
+        "DEVSYNTH_ALLOW_ISOLATION_IN_XDIST", ""
+    ).lower() in {"1", "true", "yes"}
     running_in_xdist = os.environ.get("PYTEST_XDIST_WORKER") is not None
-    if running_in_xdist and item.get_closest_marker("isolation") and not allow_isolation:
+    if (
+        running_in_xdist
+        and item.get_closest_marker("isolation")
+        and not allow_isolation
+    ):
         pytest.skip(
             "Isolation test skipped under xdist (parallel). Rerun with -n0/--no-parallel or set "
             "DEVSYNTH_ALLOW_ISOLATION_IN_XDIST=true to force-run in parallel."

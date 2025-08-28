@@ -8,7 +8,11 @@ import pytest
 from devsynth.interface.agentapi import APIBridge
 
 # Resource gating: exercises both CLI and WebUI layers
-pytestmark = [pytest.mark.gui, pytest.mark.requires_resource("cli"), pytest.mark.requires_resource("webui")]
+pytestmark = [
+    pytest.mark.gui,
+    pytest.mark.requires_resource("cli"),
+    pytest.mark.requires_resource("webui"),
+]
 
 
 class DummyForm:

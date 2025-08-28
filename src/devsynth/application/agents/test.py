@@ -1,9 +1,9 @@
 """Test agent for the DevSynth system."""
 
+import os
 import re
 import subprocess
 import sys
-import os
 from pathlib import Path
 from typing import Any, Dict, List
 

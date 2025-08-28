@@ -5,10 +5,9 @@ import responses
 
 from devsynth.adapters.issues import GitHubIssueAdapter
 
-pytestmark = [pytest.mark.fast]
-
 
 @responses.activate
+@pytest.mark.fast
 def test_fetch_github_issue() -> None:
     """Adapter returns title and body from the GitHub API."""
     adapter = GitHubIssueAdapter("https://api.github.com/repos/org/repo", "token")

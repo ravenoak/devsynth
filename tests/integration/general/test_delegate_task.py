@@ -21,6 +21,7 @@ class SimpleAgent:
         self.process = MagicMock(return_value={"solution": f"{name}-sol"})
 
 
+@pytest.mark.medium
 def test_delegate_task_team_consensus_succeeds(mocker):
     """Test that delegate task team consensus succeeds.
 
@@ -51,6 +52,7 @@ def test_delegate_task_team_consensus_succeeds(mocker):
     assert result["team_result"]["consensus"] == consensus
 
 
+@pytest.mark.medium
 def test_delegate_task_no_agents_succeeds():
     """Test that delegate task no agents succeeds.
 
@@ -60,6 +62,7 @@ def test_delegate_task_no_agents_succeeds():
         coordinator.delegate_task({"team_task": True})
 
 
+@pytest.mark.medium
 def test_delegate_task_invalid_task_succeeds():
     """Test that delegate task invalid task succeeds.
 

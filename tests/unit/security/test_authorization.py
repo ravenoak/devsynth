@@ -7,9 +7,8 @@ ACL = {"admin": ["read", "write"], "user": ["read"], "superuser": ["*"]}
 EMPTY_ACL = {}
 CASE_SENSITIVE_ACL = {"Admin": ["Read", "Write"], "user": ["read"]}
 
-pytestmark = pytest.mark.medium
 
-
+@pytest.mark.medium
 def test_is_authorized_true_returns_expected_result():
     """Test that is_authorized returns True when the user has the required role.
 
@@ -17,6 +16,7 @@ def test_is_authorized_true_returns_expected_result():
     assert is_authorized(["admin"], "write", ACL)
 
 
+@pytest.mark.medium
 def test_is_authorized_false_returns_expected_result():
     """Test that is_authorized returns False when the user doesn't have the required role.
 
@@ -24,6 +24,7 @@ def test_is_authorized_false_returns_expected_result():
     assert not is_authorized(["user"], "write", ACL)
 
 
+@pytest.mark.medium
 def test_is_authorized_multiple_roles_succeeds():
     """Test that is_authorized works with multiple roles.
 
@@ -33,6 +34,7 @@ def test_is_authorized_multiple_roles_succeeds():
     assert not is_authorized(["guest", "user"], "delete", ACL)
 
 
+@pytest.mark.medium
 def test_is_authorized_wildcard_succeeds():
     """Test that is_authorized works with wildcard actions.
 
@@ -42,6 +44,7 @@ def test_is_authorized_wildcard_succeeds():
     assert is_authorized(["superuser"], "delete", ACL)
 
 
+@pytest.mark.medium
 def test_is_authorized_role_not_in_acl_returns_expected_result():
     """Test that is_authorized returns False when the role doesn't exist in the ACL.
 
@@ -50,6 +53,7 @@ def test_is_authorized_role_not_in_acl_returns_expected_result():
     assert not is_authorized(["unknown"], "write", ACL)
 
 
+@pytest.mark.medium
 def test_is_authorized_empty_roles_returns_expected_result():
     """Test that is_authorized returns False when the user has no roles.
 
@@ -58,6 +62,7 @@ def test_is_authorized_empty_roles_returns_expected_result():
     assert not is_authorized([], "write", ACL)
 
 
+@pytest.mark.medium
 def test_is_authorized_empty_acl_returns_expected_result():
     """Test that is_authorized returns False when the ACL is empty.
 
@@ -66,6 +71,7 @@ def test_is_authorized_empty_acl_returns_expected_result():
     assert not is_authorized(["user"], "write", EMPTY_ACL)
 
 
+@pytest.mark.medium
 def test_is_authorized_case_sensitivity_succeeds():
     """Test that is_authorized is case-sensitive for roles and actions.
 
@@ -77,6 +83,7 @@ def test_is_authorized_case_sensitivity_succeeds():
     assert not is_authorized(["user"], "Read", ACL)
 
 
+@pytest.mark.medium
 def test_is_authorized_iterable_roles_succeeds():
     """Test that is_authorized works with different iterable types for roles.
 
@@ -93,6 +100,7 @@ def test_is_authorized_iterable_roles_succeeds():
     assert is_authorized(RolesIterable(), "write", ACL)
 
 
+@pytest.mark.medium
 def test_require_authorization_raises():
     """Test that require_authorization raises an AuthorizationError when the user doesn't have the required role.
 
@@ -104,6 +112,7 @@ def test_require_authorization_raises():
     assert excinfo.value.details["action"] == "write"
 
 
+@pytest.mark.medium
 def test_require_authorization_no_exception_raises_error():
     """Test that require_authorization doesn't raise an exception when the user is authorized.
 
@@ -113,6 +122,7 @@ def test_require_authorization_no_exception_raises_error():
     require_authorization(["superuser"], "delete", ACL)
 
 
+@pytest.mark.medium
 def test_require_authorization_empty_roles_raises_error():
     """Test that require_authorization raises an AuthorizationError when the user has no roles.
 
@@ -124,6 +134,7 @@ def test_require_authorization_empty_roles_raises_error():
     assert excinfo.value.details["action"] == "read"
 
 
+@pytest.mark.medium
 def test_require_authorization_empty_acl_raises_error():
     """Test that require_authorization raises an AuthorizationError when the ACL is empty.
 

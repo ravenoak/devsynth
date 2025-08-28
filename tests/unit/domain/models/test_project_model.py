@@ -25,6 +25,7 @@ class TestArtifact:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_artifact_initialization_succeeds(self):
         """Test basic initialization of an Artifact.
 
@@ -38,6 +39,7 @@ class TestArtifact:
         assert artifact.metadata == metadata
         assert artifact.name == "file.py"
 
+    @pytest.mark.fast
     def test_artifact_str_representation_succeeds(self):
         """Test the string representation of an Artifact.
 
@@ -45,6 +47,7 @@ class TestArtifact:
         artifact = Artifact("/test/path/file.py", ArtifactType.CODE)
         assert str(artifact) == "file.py (CODE)"
 
+    @pytest.mark.fast
     def test_artifact_repr_representation_succeeds(self):
         """Test the repr representation of an Artifact.
 
@@ -112,6 +115,7 @@ class TestProjectModel:
             },
         }
 
+    @pytest.mark.fast
     def test_project_model_initialization_succeeds(
         self, mock_project_root, basic_manifest_data
     ):
@@ -126,6 +130,7 @@ class TestProjectModel:
         assert isinstance(model.artifacts, dict)
         assert len(model.artifacts) == 0
 
+    @pytest.mark.fast
     def test_determine_structure_type_succeeds(self, mock_project_root):
         """Test determination of project structure type from manifest data.
 
@@ -148,6 +153,7 @@ class TestProjectModel:
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.is_dir")
     @patch("pathlib.Path.glob")
+    @pytest.mark.fast
     def test_build_standard_model_succeeds(
         self,
         mock_glob,
@@ -181,6 +187,7 @@ class TestProjectModel:
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.is_dir")
     @patch("pathlib.Path.glob")
+    @pytest.mark.fast
     def test_build_monorepo_model_succeeds(
         self,
         mock_glob,
@@ -217,6 +224,7 @@ class TestProjectModel:
         assert model.artifacts[str(package2_src)].artifact_type == ArtifactType.CODE
         assert model.artifacts[str(package2_tests)].artifact_type == ArtifactType.TEST
 
+    @pytest.mark.fast
     def test_get_artifact_succeeds(self, mock_project_root, basic_manifest_data):
         """Test getting an artifact by path.
 
@@ -230,6 +238,7 @@ class TestProjectModel:
         non_existent = model.get_artifact("/non/existent/path")
         assert non_existent is None
 
+    @pytest.mark.fast
     def test_get_artifacts_by_type_succeeds(
         self, mock_project_root, basic_manifest_data
     ):

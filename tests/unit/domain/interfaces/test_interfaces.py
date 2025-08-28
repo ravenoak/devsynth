@@ -31,6 +31,7 @@ class DummyCLI(CLIInterface):
         return super().configure(key, value)
 
 
+@pytest.mark.fast
 def test_cli_interface_raises_not_implemented() -> None:
     cli = DummyCLI()
     with pytest.raises(NotImplementedError):
@@ -57,6 +58,7 @@ class DummyFileAnalysis(FileAnalysisResult):
         return super().get_metrics()
 
 
+@pytest.mark.fast
 def test_file_analysis_result_raises_not_implemented() -> None:
     analysis = DummyFileAnalysis()
     with pytest.raises(NotImplementedError):
@@ -71,6 +73,7 @@ class DummyOnnx(OnnxRuntime):
         return super().run(inputs)
 
 
+@pytest.mark.fast
 def test_onnx_runtime_raises_not_implemented() -> None:
     runtime = DummyOnnx()
     with pytest.raises(NotImplementedError):

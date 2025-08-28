@@ -10,11 +10,12 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 pytest.importorskip("kuzu")
 
 # Kuzu store operations are relatively quick but require the dependency
-pytestmark = [pytest.mark.requires_resource("kuzu"), pytest.mark.medium]
+pytestmark = [pytest.mark.requires_resource("kuzu")]
 
 KuzuStore = importlib.import_module("devsynth.application.memory.kuzu_store").KuzuStore
 
 
+@pytest.mark.medium
 def test_store_retrieve_and_versions_succeeds(tmp_path):
     """Test that store retrieve and versions succeeds.
 
@@ -30,6 +31,7 @@ def test_store_retrieve_and_versions_succeeds(tmp_path):
     assert len(versions) == 1
 
 
+@pytest.mark.medium
 def test_search_by_metadata_succeeds(tmp_path):
     """Test that search by metadata succeeds.
 
@@ -56,6 +58,7 @@ def test_search_by_metadata_succeeds(tmp_path):
     assert results[0].id == "2"
 
 
+@pytest.mark.medium
 def test_store_path_is_absolute(tmp_path):
     """Initialization should normalize the store path."""
     store = KuzuStore(str(tmp_path))

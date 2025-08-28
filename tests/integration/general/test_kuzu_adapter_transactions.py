@@ -6,9 +6,10 @@ from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.domain.models.memory import MemoryVector
 
 # Transactions require kuzu and run a bit longer than unit tests
-pytestmark = [pytest.mark.requires_resource("kuzu"), pytest.mark.medium]
+pytestmark = [pytest.mark.requires_resource("kuzu")]
 
 
+@pytest.mark.medium
 def test_kuzu_adapter_transaction_persistence(tmp_path):
     """KuzuAdapter should commit and rollback vector operations with persistence."""
 

@@ -5,7 +5,7 @@ import os
 import pytest
 from pytest_bdd import scenarios
 
-from .steps.test_retry_steps import *
+from .steps.test_retry_steps import *  # noqa: F401,F403
 
 feature_file = os.path.join(
     os.path.dirname(__file__), "features", "general", "retry_mechanism.feature"
@@ -13,6 +13,7 @@ feature_file = os.path.join(
 
 # Load all scenarios from the feature file
 scenarios(feature_file)
+
 
 # The test functions below are no longer needed as scenarios() will automatically
 # generate test functions for each scenario in the feature file.

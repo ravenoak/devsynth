@@ -20,8 +20,6 @@ def apispec_context(monkeypatch):
 
 scenarios("../features/general/apispec_generation.feature")
 
-pytestmark = [pytest.mark.medium]
-
 
 @given("the apispec_generation feature context")
 def given_context(apispec_context):

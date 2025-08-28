@@ -1,8 +1,8 @@
 import pytest
 
-pytestmark = [pytest.mark.no_network, pytest.mark.fast]
 
-
+@pytest.mark.no_network
+@pytest.mark.fast
 def test_api_health_and_metrics_startup_without_binding_ports():
     fastapi = pytest.importorskip("fastapi")
     TestClient = pytest.importorskip("fastapi.testclient").TestClient

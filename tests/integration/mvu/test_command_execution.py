@@ -3,9 +3,8 @@ from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import build_app
 
-pytestmark = pytest.mark.fast
 
-
+@pytest.mark.fast
 def test_mvu_exec_runs_command():
     runner = CliRunner()
     app = build_app()
@@ -14,6 +13,7 @@ def test_mvu_exec_runs_command():
     assert "hello" in result.output
 
 
+@pytest.mark.fast
 def test_mvu_exec_propagates_error(tmp_path):
     script = tmp_path / "fail.sh"
     script.write_text("#!/bin/bash\necho err >&2\nexit 3\n")

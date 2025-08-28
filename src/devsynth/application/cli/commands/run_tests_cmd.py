@@ -9,18 +9,17 @@ Example:
 
 from __future__ import annotations
 
-import importlib.util
 import os
 from typing import Any, Dict, List, Optional
 
 import typer
-from typer.models import OptionInfo
 
+from devsynth.config.provider_env import ProviderEnv
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.testing.run_tests import run_tests, collect_tests_with_cache
 from devsynth.observability.metrics import increment_counter
+from devsynth.testing.run_tests import collect_tests_with_cache, run_tests
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -34,7 +33,8 @@ def _parse_feature_options(values: List[str]) -> Dict[str, bool]:
     ``True``.
     """
 
-    if not values or isinstance(values, OptionInfo):
+    # Typer always passes a list for multi-option flags; guard defensively for runtime safety.
+    if not values:
         return {}
 
     result: Dict[str, bool] = {}
@@ -46,8 +46,6 @@ def _parse_feature_options(values: List[str]) -> Dict[str, bool]:
             result[item] = True
     return result
 
-
-from devsynth.config.provider_env import ProviderEnv
 
 OPTIONAL_PROVIDERS = {"DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "lmstudio"}
 
@@ -137,9 +135,12 @@ def run_tests_cmd(
     allowed_targets = {"all-tests", "unit-tests", "integration-tests", "behavior-tests"}
     if target not in allowed_targets:
         ux_bridge.print(
-            "[red]Invalid --target value:[/red] '" + target + "'. "
-            "Allowed: all-tests|unit-tests|integration-tests|behavior-tests. "
-            "See docs/user_guides/cli_command_reference.md for details."
+            (
+                "[red]Invalid --target value:[/red] '"
+                + str(target)
+                + "'. Allowed: all-tests|unit-tests|integration-tests|behavior-tests. "
+                + "See docs/user_guides/cli_command_reference.md for details."
+            )
         )
         raise typer.Exit(code=2)
 
@@ -148,16 +149,19 @@ def run_tests_cmd(
     invalid_speeds = [s for s in normalized_speeds if s not in allowed_speeds]
     if invalid_speeds:
         ux_bridge.print(
-            "[red]Invalid --speed value(s):[/red] " + ", ".join(invalid_speeds) + ". "
-            "Allowed: fast|medium|slow. Use multiple --speed flags to combine."
+            (
+                "[red]Invalid --speed value(s):[/red] "
+                + ", ".join(invalid_speeds)
+                + ". Allowed: fast|medium|slow. Use multiple --speed flags to combine."
+            )
         )
         raise typer.Exit(code=2)
 
     # Inventory-only mode: export JSON and exit successfully without running tests
     if inventory:
+        import json as _json
         from datetime import datetime as _dt
         from pathlib import Path as _Path
-        import json as _json
 
         targets = ["all-tests", "unit-tests", "integration-tests", "behavior-tests"]
         speeds_all = ["fast", "medium", "slow"]

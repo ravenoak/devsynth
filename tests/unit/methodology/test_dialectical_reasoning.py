@@ -7,8 +7,8 @@ from devsynth.exceptions import ConsensusError
 from devsynth.methodology.base import Phase
 from devsynth.methodology.edrr import EDRRCoordinator, reasoning_loop
 
-@pytest.mark.fast
 
+@pytest.mark.fast
 def test_reasoning_loop_records_results(mocker) -> None:
     """It stores results through the coordinator.
 

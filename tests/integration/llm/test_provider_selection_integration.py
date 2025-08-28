@@ -49,6 +49,7 @@ def _llm_settings(provider: str):
     return {"provider": provider}
 
 
+@pytest.mark.medium
 def test_offline_mode_returns_offline_provider_for_app_wrapper(monkeypatch):
     """application.llm.get_llm_provider selects OfflineProvider when offline_mode is True."""
     monkeypatch.setattr(app_llm, "load_config", lambda: _mock_config(True, "local"))
@@ -58,6 +59,7 @@ def test_offline_mode_returns_offline_provider_for_app_wrapper(monkeypatch):
     assert isinstance(provider, OfflineProvider)
 
 
+@pytest.mark.medium
 def test_offline_mode_returns_offline_provider_for_providers_module(monkeypatch):
     """providers.get_llm_provider selects 'offline' when offline_mode is True."""
     monkeypatch.setattr(prov, "load_config", lambda: _mock_config(True, "local"))
@@ -67,6 +69,7 @@ def test_offline_mode_returns_offline_provider_for_providers_module(monkeypatch)
     assert isinstance(provider, OfflineProvider)
 
 
+@pytest.mark.medium
 def test_openai_without_api_key_raises_validation_error_in_providers(monkeypatch):
     """Requesting OpenAI without credentials should fail fast in providers.get_llm_provider.
 
@@ -83,6 +86,7 @@ def test_openai_without_api_key_raises_validation_error_in_providers(monkeypatch
         prov.get_llm_provider()
 
 
+@pytest.mark.medium
 def test_openai_without_api_key_raises_connection_error_in_app_wrapper(monkeypatch):
     """application.llm.get_llm_provider constructs the OpenAIProvider which raises OpenAIConnectionError
     when no API key is configured. This still avoids any network calls in tests.

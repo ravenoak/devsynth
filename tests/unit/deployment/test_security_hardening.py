@@ -4,8 +4,8 @@ import pytest
 
 from devsynth.security import deployment as secdeploy
 
-@pytest.mark.fast
 
+@pytest.mark.fast
 def test_require_non_root_user_noop_without_flag(monkeypatch):
     """require_non_root_user is a no-op when flag not set.
 

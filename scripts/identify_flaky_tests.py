@@ -49,7 +49,7 @@ def _parse_failed_tests(output: str) -> Set[str]:
         line = line.strip()
         if line.startswith("FAILED "):
             # Extract the token after FAILED
-            rest = line[len("FAILED "):].strip()
+            rest = line[len("FAILED ") :].strip()
             # Node id ends before first space (usually), but may have a dash
             # after node id. Split on space to be safe.
             nodeid = rest.split(" ", 1)[0]

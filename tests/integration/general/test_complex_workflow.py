@@ -40,6 +40,7 @@ class TestComplexWorkflow:
         finally:
             shutil.rmtree(temp_dir)
 
+    @pytest.mark.medium
     def test_complex_workflow_with_inconsistent_state_succeeds(
         self, temp_project_dir, monkeypatch
     ):

@@ -357,3 +357,22 @@ def command_context():
     Store context about the command being executed.
     """
     return {"command": "", "output": ""}
+
+
+# Ensure behavior scenarios (pytest-bdd generated or otherwise) have exactly one speed marker.
+# Our verifier requires a function-level speed marker and ignores module-level ones.
+# We add @pytest.mark.medium only when no existing speed marker is present.
+# This centralizes behavior speed marking and avoids duplicative per-file hooks.
+
+
+def pytest_collection_modifyitems(items):
+    SPEED_MARKERS = {"fast", "medium", "slow"}
+    for item in items:
+        # Scope to behavior suite only
+        if not item.nodeid.startswith("tests/behavior/"):
+            continue
+        existing_speed = {
+            m.name for m in item.iter_markers() if m.name in SPEED_MARKERS
+        }
+        if not existing_speed:
+            item.add_marker(pytest.mark.medium)

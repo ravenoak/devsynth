@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 # Import the feature file
 scenarios("../features/general/ast_code_analysis.feature")
 
-pytestmark = [pytest.mark.medium]
 
 # Import the modules needed for the steps
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer

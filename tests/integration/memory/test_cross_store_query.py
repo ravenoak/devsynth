@@ -14,6 +14,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.medium
 def test_cross_store_query_returns_results(tmp_path, monkeypatch):
     """Cross-store queries should return results from all stores. ReqID: FR-60"""
     ef = pytest.importorskip("chromadb.utils.embedding_functions")

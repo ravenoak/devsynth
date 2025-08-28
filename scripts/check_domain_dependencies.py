@@ -77,7 +77,9 @@ def main() -> int:
                 print(f"  {path}:{lineno}: {line}")
 
     if all_violations:
-        print("ERROR: Forbidden dependencies imported in domain layer.", file=sys.stderr)
+        print(
+            "ERROR: Forbidden dependencies imported in domain layer.", file=sys.stderr
+        )
         return 1
     return 0
 

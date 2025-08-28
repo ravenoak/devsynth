@@ -3,8 +3,13 @@ from pathlib import Path
 
 import pytest
 
-from devsynth.utils.serialization import dumps_deterministic, loads, dump_to_file, load_from_file
 from devsynth.config.provider_env import ProviderEnv
+from devsynth.utils.serialization import (
+    dump_to_file,
+    dumps_deterministic,
+    load_from_file,
+    loads,
+)
 
 
 @pytest.mark.fast

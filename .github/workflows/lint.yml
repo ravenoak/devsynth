@@ -1,22 +1,9 @@
-name: Lint (Black, Isort, Flake8)
+name: Lint (black/isort/flake8)
 
 on:
   pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'poetry.lock'
-      - '.github/workflows/lint.yml'
   push:
     branches: [ main, develop ]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'poetry.lock'
-      - '.github/workflows/lint.yml'
   workflow_dispatch: {}
 
 concurrency:
@@ -25,40 +12,43 @@ concurrency:
 
 jobs:
   lint:
-    name: Style and lint checks
+    name: Style and Lint Checks
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Set up Python 3.12
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'poetry'
 
       - name: Install Poetry
         uses: abatilo/actions-poetry@v3
         with:
           poetry-version: '1.8.3'
 
-      - name: Install dependencies (dev)
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry/virtualenvs
+            .venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}-lint
+
+      - name: Install dependencies (dev only)
         run: |
           poetry env use 3.12
-          poetry install --with dev --extras "tests" --no-interaction --no-ansi
+          poetry install --with dev --no-interaction --no-root
 
-      - name: Black (check)
+      - name: Run black --check
         run: |
-          poetry run black --version
           poetry run black --check .
 
-      - name: Isort (check-only)
+      - name: Run isort --check-only
         run: |
-          poetry run isort --version-number
           poetry run isort --check-only .
 
-      - name: Flake8
+      - name: Run flake8
         run: |
           poetry run flake8 src/ tests/

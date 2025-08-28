@@ -8,7 +8,10 @@ from devsynth.interface.simple_run import run_workflow
 from devsynth.interface.ux_bridge import UXBridge
 
 # Resource gating: exercises both CLI and WebUI layers
-pytestmark = [pytest.mark.requires_resource("cli"), pytest.mark.requires_resource("webui")]
+pytestmark = [
+    pytest.mark.requires_resource("cli"),
+    pytest.mark.requires_resource("webui"),
+]
 
 
 class DummyBridge(UXBridge):

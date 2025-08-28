@@ -6,6 +6,7 @@ adapters (e.g., LangGraph adapter) remain thin and focused on integration.
 
 Aligned with .junie/guidelines.md and docs/plan.md (architecture boundaries).
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict
@@ -31,7 +32,9 @@ class OrchestrationService:
         # In the future, this can accept configuration or factories via DI.
         self._llm_factory = SimpleLLMProviderFactory()
 
-    def process_step(self, state: Any, step: Any) -> Any:  # pragma: no cover - thin wrapper
+    def process_step(
+        self, state: Any, step: Any
+    ) -> Any:  # pragma: no cover - thin wrapper
         """Process a single workflow step and update the given state.
 
         Expected attributes:

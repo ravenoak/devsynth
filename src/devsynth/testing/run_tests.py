@@ -56,6 +56,7 @@ def _failure_tips(returncode: int, cmd: Sequence[str]) -> str:
     ]
     return "\n" + "\n".join(tips) + "\n"
 
+
 # Mapping of CLI targets to test paths
 TARGET_PATHS = {
     "unit-tests": "tests/unit/",
@@ -124,9 +125,8 @@ def collect_tests_with_cache(
                 and cached_fingerprint.get("test_path") == test_path
             )
             if (
-                (datetime.now() - cache_time).total_seconds() < COLLECTION_CACHE_TTL_SECONDS
-                and fingerprint_matches
-            ):
+                datetime.now() - cache_time
+            ).total_seconds() < COLLECTION_CACHE_TTL_SECONDS and fingerprint_matches:
                 logger.info(
                     "Using cached test collection for %s (%s) [TTL=%ss; fingerprint ok]",
                     target,

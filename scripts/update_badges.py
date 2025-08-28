@@ -20,8 +20,9 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-
-BADGE_PATTERN = re.compile(r"!\[Coverage\]\(https://img.shields.io/badge/coverage-[^\)]*\)")
+BADGE_PATTERN = re.compile(
+    r"!\[Coverage\]\(https://img.shields.io/badge/coverage-[^\)]*\)"
+)
 
 
 def compute_overall_coverage(xml_path: Path) -> float:

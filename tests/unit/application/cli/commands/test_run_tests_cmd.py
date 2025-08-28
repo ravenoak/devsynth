@@ -40,6 +40,7 @@ class DummyBridge:
         pass
 
 
+@pytest.mark.fast
 def test_run_tests_cmd_invokes_runner() -> None:
     """run_tests_cmd should call the underlying ``run_tests`` helper.
 
@@ -50,6 +51,7 @@ def test_run_tests_cmd_invokes_runner() -> None:
         mock_run.assert_called_once()
 
 
+@pytest.mark.fast
 def test_run_tests_cmd_nonzero_exit() -> None:
     """run_tests_cmd exits with code 1 when tests fail.
 
@@ -61,6 +63,7 @@ def test_run_tests_cmd_nonzero_exit() -> None:
         assert exc.value.exit_code == 1
 
 
+@pytest.mark.fast
 def test_run_tests_cmd_sets_optional_provider_guard(monkeypatch) -> None:
     """Unset provider env vars default to skipping optional resources.
 
@@ -72,6 +75,7 @@ def test_run_tests_cmd_sets_optional_provider_guard(monkeypatch) -> None:
     assert os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE") == "false"
 
 
+@pytest.mark.fast
 def test_run_tests_cmd_defaults_to_stub_offline(monkeypatch) -> None:
     """Unset provider selection defaults to stub and offline mode for tests.
 
@@ -85,6 +89,7 @@ def test_run_tests_cmd_defaults_to_stub_offline(monkeypatch) -> None:
     assert os.environ.get("DEVSYNTH_OFFLINE") == "true"
 
 
+@pytest.mark.fast
 def test_run_tests_cli_full_invocation() -> None:
     """Full CLI invocation delegates to ``run_tests`` and succeeds.
 
@@ -115,6 +120,7 @@ def test_run_tests_cli_full_invocation() -> None:
         assert "Tests completed successfully" in result.output
 
 
+@pytest.mark.fast
 def test_run_tests_cli_does_not_set_plugin_autoload_in_normal_mode(monkeypatch) -> None:
     """Normal CLI runs should not set PYTEST_DISABLE_PLUGIN_AUTOLOAD.
 
@@ -140,6 +146,7 @@ def test_run_tests_cli_does_not_set_plugin_autoload_in_normal_mode(monkeypatch) 
     assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") is None
 
 
+@pytest.mark.fast
 def test_run_tests_cli_smoke_disables_parallel_and_plugins(monkeypatch) -> None:
     """--smoke should disable xdist and plugin autoload via env and no_parallel."""
 
@@ -165,6 +172,7 @@ def test_run_tests_cli_smoke_disables_parallel_and_plugins(monkeypatch) -> None:
     assert "-p no:xdist" in os.environ.get("PYTEST_ADDOPTS", "")
 
 
+@pytest.mark.fast
 def test_run_tests_cli_help() -> None:
     """The ``--help`` flag should render without Typer runtime errors.
 
@@ -179,6 +187,7 @@ def test_run_tests_cli_help() -> None:
     assert "Run DevSynth test suites." in result.output
 
 
+@pytest.mark.fast
 def test_run_tests_cli_maxfail_option() -> None:
     """``--maxfail`` forwards the value to the runner.
 
@@ -208,6 +217,7 @@ def test_run_tests_cli_maxfail_option() -> None:
         )
 
 
+@pytest.mark.fast
 def test_run_tests_cli_no_parallel_flag_disables_parallel() -> None:
     """--no-parallel should set parallel=False in the runner call."""
 
@@ -236,6 +246,7 @@ def test_run_tests_cli_no_parallel_flag_disables_parallel() -> None:
         )
 
 
+@pytest.mark.fast
 def test_run_tests_cli_multiple_speed_values_are_forwarded() -> None:
     """Multiple --speed flags are forwarded as a list preserving values."""
 

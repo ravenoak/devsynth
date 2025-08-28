@@ -1,5 +1,5 @@
-import os
 import inspect
+import os
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -288,20 +288,28 @@ OfflineProvider = _offline_provider.OfflineProvider
 # Provide a patchable OpenAIProvider symbol for tests; lazily resolved if available.
 try:  # pragma: no cover - symbol exposure for patching in tests
     from .openai_provider import OpenAIProvider as _OpenAIProvider  # type: ignore
+
     OpenAIProvider = _OpenAIProvider  # type: ignore
 except Exception:  # pragma: no cover - fallback sentinel
+
     class OpenAIProvider:  # type: ignore
         """Sentinel to allow patching in tests when openai not installed."""
+
         pass
+
 
 # Provide LocalProvider symbol for explicit imports and registration in provider_factory
 try:  # pragma: no cover - symbol exposure for imports/registration
     from .local_provider import LocalProvider as _LocalProvider  # type: ignore
+
     LocalProvider = _LocalProvider  # type: ignore
 except Exception:  # pragma: no cover - fallback sentinel
+
     class LocalProvider:  # type: ignore
         """Sentinel LocalProvider; real implementation resides in local_provider.py."""
+
         pass
+
 
 # Create factory instance
 factory = SimpleLLMProviderFactory()
@@ -315,11 +323,19 @@ if LMStudioProvider is not None:
 # Lazy import inside the lambda to avoid import-time side effects
 factory.register_provider_type(
     "openai",
-    lambda cfg: (__import__("devsynth.application.llm.openai_provider", fromlist=["OpenAIProvider"]).OpenAIProvider)(cfg),
+    lambda cfg: (
+        __import__(
+            "devsynth.application.llm.openai_provider", fromlist=["OpenAIProvider"]
+        ).OpenAIProvider
+    )(cfg),
 )
 factory.register_provider_type(
     "local",
-    lambda cfg: (__import__("devsynth.application.llm.local_provider", fromlist=["LocalProvider"]).LocalProvider)(cfg),
+    lambda cfg: (
+        __import__(
+            "devsynth.application.llm.local_provider", fromlist=["LocalProvider"]
+        ).LocalProvider
+    )(cfg),
 )
 factory.register_provider_type(
     "offline", lambda cfg: _offline_provider.OfflineProvider(cfg)

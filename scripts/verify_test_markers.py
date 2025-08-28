@@ -171,7 +171,11 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
                         target_names.append(node.target.id)
                 if "pytestmark" in target_names:
                     # Look for speed markers in the assigned value
-                    val = node.value if isinstance(node, (ast.Assign, ast.AnnAssign)) else None
+                    val = (
+                        node.value
+                        if isinstance(node, (ast.Assign, ast.AnnAssign))
+                        else None
+                    )
                     markers_found: List[str] = []
                     if isinstance(val, (ast.List, ast.Tuple)):
                         elements = list(getattr(val, "elts", []))

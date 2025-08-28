@@ -37,14 +37,18 @@ def test_will_pass():
 
     # Find any report.html generated for unit-tests; choose the newest one
     candidates = list(reports_root.glob("*/unit-tests/report.html"))
-    assert candidates, "Expected at least one report.html under test_reports/*/unit-tests/"
+    assert (
+        candidates
+    ), "Expected at least one report.html under test_reports/*/unit-tests/"
 
     latest = max(candidates, key=lambda p: p.stat().st_mtime)
     # Basic stability checks on folder naming: YYYYMMDD_HHMMSS
     timestamp_folder = latest.parents[1].name  # the */ part under test_reports/
     assert len(timestamp_folder) == 15, "Timestamp folder should be YYYYMMDD_HHMMSS"
     assert timestamp_folder[8] == "_", "Timestamp separator should be an underscore"
-    assert timestamp_folder.replace("_", "").isdigit(), "Timestamp should be numeric digits around underscore"
+    assert timestamp_folder.replace(
+        "_", ""
+    ).isdigit(), "Timestamp should be numeric digits around underscore"
 
     # The file should exist and be non-empty
     assert latest.is_file(), "report.html should be a file"

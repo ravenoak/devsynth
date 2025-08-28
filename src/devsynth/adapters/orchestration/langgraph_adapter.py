@@ -192,7 +192,10 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                 if _is_cancelled(state.context):
                     state.status = WorkflowStatus.PAUSED.value
                     state.messages.append(
-                        {"role": "system", "content": "Execution paused by cancellation"}
+                        {
+                            "role": "system",
+                            "content": "Execution paused by cancellation",
+                        }
                     )
                     return state
 
@@ -236,7 +239,9 @@ class LangGraphWorkflowEngine(WorkflowEngine):
     def _create_step_function(self, step: WorkflowStep):
         """Create a function for a workflow step."""
 
-        def _get_stream_cb(ctx: Dict[str, Any]) -> Optional[Callable[[Dict[str, Any]], None]]:
+        def _get_stream_cb(
+            ctx: Dict[str, Any],
+        ) -> Optional[Callable[[Dict[str, Any]], None]]:
             cb = None
             if isinstance(ctx, dict):
                 cb = ctx.get("stream_callback")
@@ -250,7 +255,13 @@ class LangGraphWorkflowEngine(WorkflowEngine):
             stream_cb = _get_stream_cb(state.context)
             if stream_cb:
                 try:
-                    stream_cb({"event": "step_started", "step_id": step.id, "step_name": step.name})
+                    stream_cb(
+                        {
+                            "event": "step_started",
+                            "step_id": step.id,
+                            "step_name": step.name,
+                        }
+                    )
                 except Exception:
                     pass
 
@@ -266,7 +277,9 @@ class LangGraphWorkflowEngine(WorkflowEngine):
             while attempt <= max_retries:
                 try:
                     # Delegate step processing to orchestration core service
-                    from devsynth.orchestration.step_executor import OrchestrationService
+                    from devsynth.orchestration.step_executor import (
+                        OrchestrationService,
+                    )
 
                     service = OrchestrationService()
                     state = service.process_step(state, step)
@@ -274,7 +287,9 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                     # Optional streaming: notify last message when available
                     if stream_cb and state.messages:
                         try:
-                            stream_cb({"event": "message", "message": state.messages[-1]})
+                            stream_cb(
+                                {"event": "message", "message": state.messages[-1]}
+                            )
                         except Exception:
                             pass
                     return state

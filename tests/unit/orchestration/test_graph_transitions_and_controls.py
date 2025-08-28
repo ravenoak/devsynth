@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from devsynth.adapters.orchestration.langgraph_adapter import LangGraphWorkflowEngine
-from devsynth.domain.models.workflow import WorkflowStep, WorkflowStatus
+from devsynth.domain.models.workflow import WorkflowStatus, WorkflowStep
 
 
 @pytest.fixture
@@ -24,7 +25,9 @@ def test_graph_transitions_complete(engine):
             state.messages.append({"role": "system", "content": f"ran {step.id}"})
             return state
 
-    with patch("devsynth.orchestration.step_executor.OrchestrationService", FakeService):
+    with patch(
+        "devsynth.orchestration.step_executor.OrchestrationService", FakeService
+    ):
         result = engine.execute_workflow(wf, context={})
 
     assert result.status == WorkflowStatus.COMPLETED
@@ -40,7 +43,9 @@ def test_failure_branch_sets_failed(engine):
         def process_step(self, state, step):
             raise RuntimeError("boom")
 
-    with patch("devsynth.orchestration.step_executor.OrchestrationService", FailingService):
+    with patch(
+        "devsynth.orchestration.step_executor.OrchestrationService", FailingService
+    ):
         result = engine.execute_workflow(wf, context={})
 
     assert result.status == WorkflowStatus.FAILED
@@ -62,7 +67,9 @@ def test_retry_branch_succeeds_with_max_retries(engine):
             state.messages.append({"role": "system", "content": "ok"})
             return state
 
-    with patch("devsynth.orchestration.step_executor.OrchestrationService", FlakyService):
+    with patch(
+        "devsynth.orchestration.step_executor.OrchestrationService", FlakyService
+    ):
         # Allow one retry
         result = engine.execute_workflow(wf, context={"max_retries": 1})
 

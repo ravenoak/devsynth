@@ -19,6 +19,7 @@ class SimpleAgent:
         self.process = MagicMock(return_value={"solution": f"{name}-sol"})
 
 
+@pytest.mark.medium
 def test_delegate_task_full_workflow_succeeds(mocker):
     """Test that delegate task full workflow succeeds.
 

@@ -39,7 +39,9 @@ def is_git_tracked(paths: Iterable[Path]) -> set[Path]:
     except Exception:
         # If git is unavailable, err on the side of caution: assume nothing is tracked.
         return tracked
-    tracked_files = {REPO_ROOT / Path(line.strip()) for line in out.splitlines() if line.strip()}
+    tracked_files = {
+        REPO_ROOT / Path(line.strip()) for line in out.splitlines() if line.strip()
+    }
     tracked_dirs = {p.parent for p in tracked_files}
 
     for p in paths:
@@ -103,14 +105,22 @@ def remove_path(p: Path, dry_run: bool) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Clean workspace artifacts safely.")
-    parser.add_argument("--yes", action="store_true", help="Actually delete files (disable dry-run)")
-    parser.add_argument("--keep-reports", action="store_true", help="Keep test_reports/")
-    parser.add_argument("--keep-coverage", action="store_true", help="Keep coverage outputs")
+    parser.add_argument(
+        "--yes", action="store_true", help="Actually delete files (disable dry-run)"
+    )
+    parser.add_argument(
+        "--keep-reports", action="store_true", help="Keep test_reports/"
+    )
+    parser.add_argument(
+        "--keep-coverage", action="store_true", help="Keep coverage outputs"
+    )
     args = parser.parse_args()
 
     dry_run = not args.yes
 
-    targets = collect_targets(keep_reports=args.keep_reports, keep_coverage=args.keep_coverage)
+    targets = collect_targets(
+        keep_reports=args.keep_reports, keep_coverage=args.keep_coverage
+    )
 
     # Exclude Git-tracked paths for safety
     tracked = is_git_tracked(targets)

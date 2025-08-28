@@ -9,7 +9,9 @@ from _pytest.logging import LogCaptureHandler
 # ``json`` is used to verify the wizard's output file contents
 
 # Ensures gather_requirements persists priority, goals, and constraints
-pytestmark = [pytest.mark.usefixtures("stub_optional_deps"), pytest.mark.medium]
+pytestmark = [
+    pytest.mark.usefixtures("stub_optional_deps")
+]  # keep resource/fixtures at module scope
 
 from devsynth.application.cli import requirements_commands as rc
 from devsynth.application.cli.config import CLIConfig
@@ -19,6 +21,7 @@ from devsynth.application.requirements.interactions import gather_requirements
 from devsynth.logging_setup import configure_logging
 
 
+@pytest.mark.medium
 def test_gather_updates_config_succeeds(tmp_path, monkeypatch):
     """Test that gather updates config succeeds.
 
@@ -67,6 +70,7 @@ def test_gather_updates_config_succeeds(tmp_path, monkeypatch):
     assert plan["constraints"] == ["constraint1"]
 
 
+@pytest.mark.medium
 def test_requirements_wizard_persists_priority_succeeds(tmp_path, monkeypatch):
     """Interactive requirements wizard should persist priority."""
     os.chdir(tmp_path)
@@ -105,6 +109,7 @@ def test_requirements_wizard_persists_priority_succeeds(tmp_path, monkeypatch):
     assert cfg.get("constraints") == "c1,c2"
 
 
+@pytest.mark.medium
 def test_requirements_wizard_backtracks_priority_succeeds(tmp_path, monkeypatch):
     """Priority persists when navigating back and changing choices."""
     os.chdir(tmp_path)
@@ -142,6 +147,7 @@ def test_requirements_wizard_backtracks_priority_succeeds(tmp_path, monkeypatch)
     assert cfg.get("priority") == "high"
 
 
+@pytest.mark.medium
 def test_gather_cmd_logging_exc_info_succeeds(tmp_path, monkeypatch):
     """gather_requirements_cmd logs exceptions without crashing."""
     os.chdir(tmp_path)

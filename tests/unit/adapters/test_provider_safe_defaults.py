@@ -37,6 +37,7 @@ def reset_provider_config_cache():
         provider_system.get_provider_config.cache_clear()
 
 
+@pytest.mark.fast
 def test_default_safe_falls_back_to_stub_without_keys_and_lmstudio():
     with temp_env(
         DEVSYNTH_DISABLE_PROVIDERS=None,
@@ -51,6 +52,7 @@ def test_default_safe_falls_back_to_stub_without_keys_and_lmstudio():
         assert isinstance(prov, provider_system.StubProvider)
 
 
+@pytest.mark.fast
 def test_openai_explicit_without_key_raises():
     with temp_env(OPENAI_API_KEY=None):
         reset_provider_config_cache()
@@ -58,6 +60,7 @@ def test_openai_explicit_without_key_raises():
             ProviderFactory.create_provider(ProviderType.OPENAI.value)
 
 
+@pytest.mark.fast
 def test_anthropic_implicit_without_key_falls_back_safe_default_stub():
     with temp_env(
         DEVSYNTH_PROVIDER="anthropic",
@@ -69,6 +72,7 @@ def test_anthropic_implicit_without_key_falls_back_safe_default_stub():
         assert isinstance(prov, provider_system.StubProvider)
 
 
+@pytest.mark.fast
 def test_lmstudio_not_attempted_without_availability_flag():
     # Even if default provider is openai and no key, LM Studio should not be probed unless flagged
     with temp_env(
@@ -82,6 +86,7 @@ def test_lmstudio_not_attempted_without_availability_flag():
         assert isinstance(prov, provider_system.StubProvider)
 
 
+@pytest.mark.fast
 def test_disable_providers_returns_null():
     with temp_env(DEVSYNTH_DISABLE_PROVIDERS="true"):
         prov = ProviderFactory.create_provider()

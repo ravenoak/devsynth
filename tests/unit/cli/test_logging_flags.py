@@ -16,6 +16,7 @@ def _restore_logging_state():
     root.setLevel(prev_level)
 
 
+@pytest.mark.fast
 def test_global_debug_flag_sets_log_level_debug(monkeypatch):
     runner = CliRunner()
     # Ensure env does not force level
@@ -29,6 +30,7 @@ def test_global_debug_flag_sets_log_level_debug(monkeypatch):
     assert os.environ.get("DEVSYNTH_LOG_LEVEL") == "DEBUG"
 
 
+@pytest.mark.fast
 def test_env_debug_sets_log_level_when_no_flag(monkeypatch):
     runner = CliRunner()
     monkeypatch.setenv("DEVSYNTH_DEBUG", "1")
@@ -41,6 +43,7 @@ def test_env_debug_sets_log_level_when_no_flag(monkeypatch):
     assert os.environ.get("DEVSYNTH_LOG_LEVEL") == "DEBUG"
 
 
+@pytest.mark.fast
 def test_log_level_option_overrides_env_debug(monkeypatch):
     runner = CliRunner()
     monkeypatch.setenv("DEVSYNTH_DEBUG", "true")

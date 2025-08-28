@@ -102,7 +102,15 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Validate test speed markers and apply filtering."""
+    """Validate test speed markers and apply filtering.
+
+    Harmonization rules:
+    - Do not auto-add a default speed marker here; centralized suite conftests
+      (tests/unit|integration|behavior/conftest.py) are authoritative for defaults.
+    - Only warn when a test lacks exactly one speed marker; let the verifier and
+      suite hooks drive remediation. Apply --speed filtering only when a single
+      speed marker is present.
+    """
     speed = config.getoption("--speed")
     skip_other_speeds = None
     if speed != "all":
@@ -113,20 +121,19 @@ def pytest_collection_modifyitems(config, items):
         speed_markers = [
             name for name in ("fast", "medium", "slow") if item.get_closest_marker(name)
         ]
+        marker = None
         if len(speed_markers) != 1:
-            # Normalize to exactly one speed marker by defaulting to 'medium'.
             # Emit a warning so contributors add an explicit marker in-source.
             try:
                 item.warn(
                     pytest.PytestWarning(
-                        f"Test '{item.nodeid}' lacks exactly one speed marker; defaulting to @pytest.mark.medium"
+                        f"Test '{item.nodeid}' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level"
                     )
                 )
             except Exception:
                 pass
-            item.add_marker(pytest.mark.medium)
-            marker = "medium"
         else:
             marker = speed_markers[0]
-        if skip_other_speeds and marker != speed:
+        # Only apply --speed filtering when we have an unambiguous marker
+        if marker and skip_other_speeds and marker != speed:
             item.add_marker(skip_other_speeds)

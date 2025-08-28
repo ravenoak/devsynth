@@ -13,6 +13,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.medium
 def test_multi_store_sync_and_persistence(tmp_path, monkeypatch):
     """LMDB and FAISS data should propagate to Kuzu and persist across runs."""
 
@@ -52,6 +53,7 @@ def test_multi_store_sync_and_persistence(tmp_path, monkeypatch):
     manager2.cleanup()
 
 
+@pytest.mark.medium
 def test_multi_store_transaction_persistence(tmp_path, monkeypatch):
     """Transactions should commit and rollback across all stores with persistence."""
 

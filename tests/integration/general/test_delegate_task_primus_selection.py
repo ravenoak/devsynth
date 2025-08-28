@@ -1,6 +1,8 @@
 import types
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 
 
@@ -15,6 +17,7 @@ class SimpleAgent:
         self.process = MagicMock(return_value={"solution": name})
 
 
+@pytest.mark.medium
 def test_delegate_task_calls_select_primus_by_expertise_and_updates_primus_succeeds():
     """Test that delegate task calls select primus by expertise and updates primus succeeds.
 
@@ -52,6 +55,7 @@ def test_delegate_task_calls_select_primus_by_expertise_and_updates_primus_succe
     assert result2["method"] == "consensus_synthesis"
 
 
+@pytest.mark.medium
 def test_primus_rotation_resets_after_all_have_served_succeeds():
     """Test that primus rotation resets after all have served succeeds.
 

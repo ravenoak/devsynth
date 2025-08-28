@@ -320,9 +320,10 @@ def build_app() -> typer.Typer:
     ) -> None:
         # Handle --version eagerly
         # Configure logging as early as possible using flags/env
-        from devsynth.logging_setup import configure_logging
-        import os
         import logging as _logging
+        import os
+
+        from devsynth.logging_setup import configure_logging
 
         # If DEVSYNTH_DEBUG is set and log_level not provided, treat as debug
         env_debug = os.environ.get("DEVSYNTH_DEBUG", "").lower() in {"1", "true", "yes"}
@@ -339,7 +340,9 @@ def build_app() -> typer.Typer:
             # Persist to env for child processes and consistency
             os.environ["DEVSYNTH_LOG_LEVEL"] = chosen_level
             try:
-                configure_logging(log_level=getattr(_logging, chosen_level, _logging.INFO))
+                configure_logging(
+                    log_level=getattr(_logging, chosen_level, _logging.INFO)
+                )
             except Exception:
                 # As a fallback, try configuring with the string level
                 try:

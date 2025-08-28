@@ -10,6 +10,7 @@ Env vars:
 
 import importlib.util
 import os
+from typing import Dict, Iterator
 
 import pytest
 
@@ -83,6 +84,59 @@ def pytest_configure(config: pytest.Config) -> None:
                 except ValueError:
                     # Ignore bad value; keep existing threshold
                     pass
+
+
+# --- Test isolation and defaults -------------------------------------------------
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _devsynth_test_env_defaults() -> None:
+    """Set conservative, offline-first defaults for tests.
+
+    Tests can override these via monkeypatch.setenv within individual test functions.
+    We only set values if they are not already present in the environment to respect
+    explicit user/CI configuration.
+    """
+    os.environ.setdefault("DEVSYNTH_OFFLINE", "true")
+    os.environ.setdefault("DEVSYNTH_PROVIDER", "stub")
+
+    # Resource availability defaults (skip heavy/remote by default)
+    os.environ.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    os.environ.setdefault("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "true")
+    os.environ.setdefault("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "true")
+
+    # Safe defaults for provider endpoints/keys used by stubs
+    os.environ.setdefault("OPENAI_API_KEY", "test-openai-key")
+    os.environ.setdefault("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234")
+
+
+@pytest.fixture(autouse=True)
+def _restore_env_and_cwd_between_tests() -> Iterator[None]:
+    """Snapshot and restore os.environ and the current working directory per test.
+
+    - Captures a shallow copy of os.environ and the current working directory.
+    - Yields to the test, allowing it to mutate env and chdir as needed.
+    - Restores both environment variables and CWD to the captured state.
+
+    Note: Prefer using pytest's monkeypatch fixture in tests for clarity; this
+    fixture guarantees restoration even if monkeypatch isn't used.
+    """
+    # Snapshot environment and cwd
+    env_before: Dict[str, str] = dict(os.environ)
+    cwd_before = os.getcwd()
+    try:
+        yield
+    finally:
+        # Restore environment completely
+        os.environ.clear()
+        os.environ.update(env_before)
+        # Restore working directory if changed
+        try:
+            os.chdir(cwd_before)
+        except Exception:
+            # If the directory no longer exists, fallback to repo root
+            repo_root = os.path.dirname(__file__)
+            os.chdir(repo_root)
 
 
 _setup_pytest_bdd()

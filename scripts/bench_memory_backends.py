@@ -53,7 +53,9 @@ def bench_tinydb(tmp: Path) -> Dict[str, Any]:
             _ = table.get(doc_id=1)
             read_s = time.perf_counter() - t1
 
-            results["samples"].append({"size": len(p), "write_s": write_s, "read_s": read_s})
+            results["samples"].append(
+                {"size": len(p), "write_s": write_s, "read_s": read_s}
+            )
     return results
 
 
@@ -78,7 +80,9 @@ def bench_duckdb(tmp: Path) -> Dict[str, Any]:
             t1 = time.perf_counter()
             _ = con.execute("select * from bench limit 1").fetchone()
             read_s = time.perf_counter() - t1
-            results["samples"].append({"size": len(p), "write_s": write_s, "read_s": read_s})
+            results["samples"].append(
+                {"size": len(p), "write_s": write_s, "read_s": read_s}
+            )
         return results
     finally:
         con.close()
@@ -103,7 +107,9 @@ def bench_lmdb(tmp: Path) -> Dict[str, Any]:
             t1 = time.perf_counter()
             _ = txn.get(b"k")
             read_s = time.perf_counter() - t1
-            results["samples"].append({"size": len(p), "write_s": write_s, "read_s": read_s})
+            results["samples"].append(
+                {"size": len(p), "write_s": write_s, "read_s": read_s}
+            )
     env.close()
     return results
 
