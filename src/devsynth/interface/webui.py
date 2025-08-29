@@ -36,7 +36,17 @@ from pathlib import Path
 from typing import Any, Callable, Optional, Sequence, TypeVar
 from unittest.mock import MagicMock
 
-import streamlit as st
+# Optional dependency: Streamlit may not be installed in minimal/test environments.
+try:  # pragma: no cover - optional dependency handling
+    import streamlit as st  # type: ignore
+except Exception:  # pragma: no cover - provide a lazy erroring stub
+    class _MissingStreamlit:
+        def __getattr__(self, name: str):  # type: ignore[no-untyped-def]
+            raise ImportError(
+                "streamlit is required to use devsynth.interface.webui; install via 'poetry add streamlit --group dev' or run with the 'webui' extra"
+            )
+
+    st = _MissingStreamlit()  # type: ignore
 
 from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType

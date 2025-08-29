@@ -107,6 +107,12 @@ def run_tests_cmd(
         "--inventory",
         help="Export test inventory to test_reports/test_inventory.json and exit",
     ),
+    marker: Optional[str] = typer.Option(
+        None,
+        "-m",
+        "--marker",
+        help="Additional pytest marker expression to AND with speed filters (e.g., requires_resource('lmstudio'))",
+    ),
     *,
     bridge: Optional[Any] = typer.Option(None, hidden=True),
 ) -> None:
@@ -219,6 +225,7 @@ def run_tests_cmd(
         segment,
         segment_size,
         maxfail,
+        marker,
     )
 
     if output:

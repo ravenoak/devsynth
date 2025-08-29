@@ -221,6 +221,7 @@ def run_tests(
     segment: bool = False,
     segment_size: int = 50,
     maxfail: Optional[int] = None,
+    extra_marker: Optional[str] = None,
 ) -> Tuple[bool, str]:
     """Execute pytest for the specified target.
 
@@ -287,7 +288,10 @@ def run_tests(
         logger.info("Report will be saved to %s/report.html", report_dir)
 
     if not speed_categories:
-        cmd = base_cmd + ["-m", "not memory_intensive"] + report_options
+        category_expr = "not memory_intensive"
+        if extra_marker:
+            category_expr = f"({category_expr}) and ({extra_marker})"
+        cmd = base_cmd + ["-m", category_expr] + report_options
         try:
             process = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
@@ -318,6 +322,8 @@ def run_tests(
     for speed in speed_categories:
         logger.info("\nRunning %s tests...", speed)
         marker_expr = f"{speed} and not memory_intensive"
+        if extra_marker:
+            marker_expr = f"({marker_expr}) and ({extra_marker})"
         check_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
         check_result = subprocess.run(
             check_cmd, check=False, capture_output=True, text=True
