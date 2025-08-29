@@ -346,7 +346,7 @@ description = "Function decoration for backoff and retry"
 optional = true
 python-versions = ">=3.7,<4.0"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8"},
     {file = "backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba"},
@@ -404,7 +404,7 @@ description = "Modern password hashing for your software and your servers"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "bcrypt-4.3.0-cp313-cp313t-macosx_10_12_universal2.whl", hash = "sha256:f01e060f14b6b57bbb72fc5b4a83ac21c443c9a2ee708e04a10e9192f90a6281"},
     {file = "bcrypt-4.3.0-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c5eeac541cefd0bb887a371ef73c62c3cd78535e4887b310626036a7c0a817bb"},
@@ -552,7 +552,7 @@ description = "A simple, correct Python build frontend"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "build-1.3.0-py3-none-any.whl", hash = "sha256:7145f0b5061ba90a1500d60bd1b13ca0a8a4cebdd0cc16ed8adf1c0e739f43b4"},
     {file = "build-1.3.0.tar.gz", hash = "sha256:698edd0ea270bde950f53aed21f3a0135672206f3911e0176261a31e0e07b397"},
@@ -780,7 +780,7 @@ description = "Chroma."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "chromadb-1.0.15-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:51791553014297798b53df4e043e9c30f4e8bd157647971a6bb02b04bfa65f82"},
     {file = "chromadb-1.0.15-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:48015803c0631c3a817befc276436dc084bb628c37fd4214047212afb2056291"},
@@ -848,7 +848,7 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {main = "(extra == \"chromadb\" or extra == \"memory\") and os_name == \"nt\" or platform_system == \"Windows\" or sys_platform == \"win32\" and (extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\")", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
+markers = {main = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") and os_name == \"nt\" or platform_system == \"Windows\" or ((platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") or extra == \"webui\") and sys_platform == \"win32\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [[package]]
 name = "coloredlogs"
@@ -857,7 +857,7 @@ description = "Colored terminal output for Python's logging module"
 optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "coloredlogs-15.0.1-py2.py3-none-any.whl", hash = "sha256:612ee75c546f53e92e70049c9dbfcc18c935a2b9a53b66085ce9ef6a6e5c0934"},
     {file = "coloredlogs-15.0.1.tar.gz", hash = "sha256:7c991aa71a4577af2f82600d8f8f3a89f936baeaf9b50a9c197da014e5bf16b0"},
@@ -1218,7 +1218,7 @@ description = "Module for converting between datetime.timedelta and Go's Duratio
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "durationpy-0.10-py3-none-any.whl", hash = "sha256:3b41e1b601234296b4fb368338fdcd3e13e0b4fb5b67345948f4f2bf9868b286"},
     {file = "durationpy-0.10.tar.gz", hash = "sha256:1fa6893409a6e739c9c72334fc65cca1f355dbdd93405d30f726deb5bde42fba"},
@@ -1261,7 +1261,7 @@ description = "A library for efficient similarity search and clustering of dense
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"retrieval\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"retrieval\" or extra == \"memory\")"
 files = [
     {file = "faiss_cpu-1.11.0.post1-cp310-cp310-macosx_13_0_x86_64.whl", hash = "sha256:e079d44ea22919f6477fea553b05854c68838ab553e1c6b1237437a8becdf89d"},
     {file = "faiss_cpu-1.11.0.post1-cp310-cp310-macosx_14_0_arm64.whl", hash = "sha256:4ded0c91cb67f462ae00a4d339718ea2fbb23eedbf260c3a07de77c32c23205a"},
@@ -1386,7 +1386,7 @@ description = "The FlatBuffers serialization format for Python"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "flatbuffers-25.2.10-py2.py3-none-any.whl", hash = "sha256:ebba5f4d5ea615af3f7fd70fc310636fbb2bbd1f566ac0a23d98dd412de50051"},
     {file = "flatbuffers-25.2.10.tar.gz", hash = "sha256:97e451377a41262f8d9bd4295cc836133415cc03d8cb966410a4af92eb00d26e"},
@@ -1513,7 +1513,7 @@ description = "File-system specification"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\" or extra == \"offline\" or extra == \"gpu\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"offline\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"offline\") or platform_system == \"Linux\" and platform_machine == \"x86_64\" and extra == \"gpu\""
 files = [
     {file = "fsspec-2025.7.0-py3-none-any.whl", hash = "sha256:8b012e39f63c7d5f10474de957f3ab793b47b45ae7d39f2fb735f8bbe25c0e21"},
     {file = "fsspec-2025.7.0.tar.gz", hash = "sha256:786120687ffa54b8283d942929540d8bc5ccfa820deb555a2b5d0ed2b737bf58"},
@@ -1618,7 +1618,7 @@ description = "Google Authentication Library"
 optional = true
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "google-auth-1.6.3.tar.gz", hash = "sha256:0f7c6a64927d34c1a474da92cfc59e552a5d3b940d3266606c6a28b72888b9e4"},
     {file = "google_auth-1.6.3-py2.py3-none-any.whl", hash = "sha256:20705f6803fd2c4d1cc2dcb0df09d4dfcb9a7d51fd59e94a3a28231fd93119ed"},
@@ -1637,7 +1637,7 @@ description = "Common protobufs used in Google APIs"
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "googleapis_common_protos-1.70.0-py3-none-any.whl", hash = "sha256:b8bfcca8c25a2bb253e0e0b0adaf8c00773e5e6af6fd92397576680b807e0fd8"},
     {file = "googleapis_common_protos-1.70.0.tar.gz", hash = "sha256:0e1b44e0ea153e6594f9f394fef15193a68aaaea2d843f83e2742717ca753257"},
@@ -1740,7 +1740,7 @@ description = "HTTP/2-based RPC framework"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "grpcio-1.74.0-cp310-cp310-linux_armv7l.whl", hash = "sha256:85bd5cdf4ed7b2d6438871adf6afff9af7096486fcf51818a81b77ef4dd30907"},
     {file = "grpcio-1.74.0-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:68c8ebcca945efff9d86d8d6d7bfb0841cf0071024417e2d7f45c5e46b5b08eb"},
@@ -1812,21 +1812,21 @@ files = [
 
 [[package]]
 name = "hf-xet"
-version = "1.1.8"
+version = "1.1.9"
 description = "Fast transfer of large files with the Hugging Face Hub."
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "(extra == \"chromadb\" or extra == \"memory\" or extra == \"offline\") and (platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\")"
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"offline\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"offline\") and (platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\")"
 files = [
-    {file = "hf_xet-1.1.8-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:3d5f82e533fc51c7daad0f9b655d9c7811b5308e5890236828bd1dd3ed8fea74"},
-    {file = "hf_xet-1.1.8-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:8e2dba5896bca3ab61d0bef4f01a1647004de59640701b37e37eaa57087bbd9d"},
-    {file = "hf_xet-1.1.8-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bfe5700bc729be3d33d4e9a9b5cc17a951bf8c7ada7ba0c9198a6ab2053b7453"},
-    {file = "hf_xet-1.1.8-cp37-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:09e86514c3c4284ed8a57d6b0f3d089f9836a0af0a1ceb3c9dd664f1f3eaefef"},
-    {file = "hf_xet-1.1.8-cp37-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:4a9b99ab721d385b83f4fc8ee4e0366b0b59dce03b5888a86029cc0ca634efbf"},
-    {file = "hf_xet-1.1.8-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:25b9d43333bbef39aeae1616789ec329c21401a7fe30969d538791076227b591"},
-    {file = "hf_xet-1.1.8-cp37-abi3-win_amd64.whl", hash = "sha256:4171f31d87b13da4af1ed86c98cf763292e4720c088b4957cf9d564f92904ca9"},
-    {file = "hf_xet-1.1.8.tar.gz", hash = "sha256:62a0043e441753bbc446dcb5a3fe40a4d03f5fb9f13589ef1df9ab19252beb53"},
+    {file = "hf_xet-1.1.9-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:a3b6215f88638dd7a6ff82cb4e738dcbf3d863bf667997c093a3c990337d1160"},
+    {file = "hf_xet-1.1.9-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:9b486de7a64a66f9a172f4b3e0dfe79c9f0a93257c501296a2521a13495a698a"},
+    {file = "hf_xet-1.1.9-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a4c5a840c2c4e6ec875ed13703a60e3523bc7f48031dfd750923b2a4d1a5fc3c"},
+    {file = "hf_xet-1.1.9-cp37-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:96a6139c9e44dad1c52c52520db0fffe948f6bce487cfb9d69c125f254bb3790"},
+    {file = "hf_xet-1.1.9-cp37-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:ad1022e9a998e784c97b2173965d07fe33ee26e4594770b7785a8cc8f922cd95"},
+    {file = "hf_xet-1.1.9-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:86754c2d6d5afb11b0a435e6e18911a4199262fe77553f8c50d75e21242193ea"},
+    {file = "hf_xet-1.1.9-cp37-abi3-win_amd64.whl", hash = "sha256:5aad3933de6b725d61d51034e04174ed1dce7a57c63d530df0014dea15a40127"},
+    {file = "hf_xet-1.1.9.tar.gz", hash = "sha256:c99073ce404462e909f1d5839b2d14a3827b8fe75ed8aed551ba6609c026c803"},
 ]
 
 [package.extras]
@@ -1861,7 +1861,7 @@ description = "A collection of framework independent HTTP protocol utils."
 optional = false
 python-versions = ">=3.8.0"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"webui\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\")"
 files = [
     {file = "httptools-0.6.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:3c73ce323711a6ffb0d247dcd5a550b8babf0f757e86a52558fe5b86d6fefcc0"},
     {file = "httptools-0.6.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:345c288418f0944a6fe67be8e6afa9262b18c7626c3ef3c28adc5eabc06a68da"},
@@ -1974,7 +1974,7 @@ description = "Client library to download and publish models, datasets and other
 optional = true
 python-versions = ">=3.8.0"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\" or extra == \"offline\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"offline\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"offline\")"
 files = [
     {file = "huggingface_hub-0.34.4-py3-none-any.whl", hash = "sha256:9b365d781739c93ff90c359844221beef048403f1bc1f1c123c191257c3c890a"},
     {file = "huggingface_hub-0.34.4.tar.gz", hash = "sha256:a4228daa6fb001be3f4f4bdaf9a0db00e1739235702848df00885c9b5742c85c"},
@@ -2014,7 +2014,7 @@ description = "Human friendly output for text interfaces using Python"
 optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "humanfriendly-10.0-py2.py3-none-any.whl", hash = "sha256:1697e1a8a8f550fd43c2865cd84542fc175a61dcb779b6fee18cf6b6ccba1477"},
     {file = "humanfriendly-10.0.tar.gz", hash = "sha256:6b0b831ce8f15f7300721aa49829fc4e83921a9a301cc7f606be6686a2288ddc"},
@@ -2025,15 +2025,15 @@ pyreadline3 = {version = "*", markers = "sys_platform == \"win32\" and python_ve
 
 [[package]]
 name = "hypothesis"
-version = "6.138.6"
+version = "6.138.7"
 description = "A library for property-based testing"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 markers = "extra == \"docs\""
 files = [
-    {file = "hypothesis-6.138.6-py3-none-any.whl", hash = "sha256:40b563fd262e808e47f0e9937ac7f8f513ab4c9647b8f521626c389f90559b4c"},
-    {file = "hypothesis-6.138.6.tar.gz", hash = "sha256:327973a658eb3a291da9780952064e11ad49508eba1ec9f9528c2df02b598b56"},
+    {file = "hypothesis-6.138.7-py3-none-any.whl", hash = "sha256:ec96ad34a50fa638491b5c08a37344db57765a9d7cdc863a38aadf27d52c317c"},
+    {file = "hypothesis-6.138.7.tar.gz", hash = "sha256:e3adc2df34d8e5d5a1f2b3aff399327544525137acfecbac3b0343c189e52126"},
 ]
 
 [package.dependencies]
@@ -2108,7 +2108,7 @@ description = "Read metadata from Python packages"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "importlib_metadata-8.7.0-py3-none-any.whl", hash = "sha256:e5dd1551894c77868a30651cef00984d50e1002d06942a7101d34870c5f02afd"},
     {file = "importlib_metadata-8.7.0.tar.gz", hash = "sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000"},
@@ -2133,7 +2133,7 @@ description = "Read resources from Python packages"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "importlib_resources-6.5.2-py3-none-any.whl", hash = "sha256:789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec"},
     {file = "importlib_resources-6.5.2.tar.gz", hash = "sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c"},
@@ -2465,7 +2465,7 @@ description = "Kubernetes python client"
 optional = true
 python-versions = ">=3.6"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "kubernetes-33.1.0-py2.py3-none-any.whl", hash = "sha256:544de42b24b64287f7e0aa9513c93cb503f7f40eea39b20f66810011a86eabc5"},
     {file = "kubernetes-33.1.0.tar.gz", hash = "sha256:f64d829843a54c251061a8e7a14523b521f2dc5c896cf6d65ccf348648a88993"},
@@ -2494,7 +2494,7 @@ description = "Highly scalable, extremely fast, easy-to-use embeddable graph dat
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"retrieval\" or extra == \"memory\""
+markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\" and (extra == \"retrieval\" or extra == \"memory\")"
 files = [
     {file = "kuzu-0.10.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:54787a8295c09643e464f2f26ef03fa79ea1abdd4c48f2151ce18bba5af11f1a"},
     {file = "kuzu-0.10.0-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:991ce52e9d6fe01f7ac0e32e85b67723e115ed4436a4e7bfefd698c04517a80e"},
@@ -2641,18 +2641,19 @@ tiktoken = ">=0.7,<1"
 
 [[package]]
 name = "langchain-text-splitters"
-version = "0.3.9"
+version = "0.3.10"
 description = "LangChain text splitting utilities"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "langchain_text_splitters-0.3.9-py3-none-any.whl", hash = "sha256:cee0bb816211584ea79cc79927317c358543f40404bcfdd69e69ba3ccde54401"},
-    {file = "langchain_text_splitters-0.3.9.tar.gz", hash = "sha256:7cd1e5a3aaf609979583eeca2eb34177622570b8fa8f586a605c6b1c34e7ebdb"},
+    {file = "langchain_text_splitters-0.3.10-py3-none-any.whl", hash = "sha256:4bc6ebef274d954e79321d0781dc5ab89b79f40c3cb8ba3310cc2d05ff73c945"},
+    {file = "langchain_text_splitters-0.3.10.tar.gz", hash = "sha256:b00a82b92eb362a9842f7d7a16d6d223fc93a9be4c51c14109be7d15d120c67f"},
 ]
 
 [package.dependencies]
-langchain-core = ">=0.3.72,<1.0.0"
+langchain-core = ">=0.3.75,<2.0.0"
+pip = ">=25.2"
 
 [[package]]
 name = "langgraph"
@@ -2711,15 +2712,15 @@ langgraph-checkpoint = ">=2.1.0,<3.0.0"
 
 [[package]]
 name = "langgraph-sdk"
-version = "0.2.3"
+version = "0.2.4"
 description = "SDK for interacting with LangGraph API"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 markers = "extra == \"minimal\""
 files = [
-    {file = "langgraph_sdk-0.2.3-py3-none-any.whl", hash = "sha256:059edfe2f62708c2e54239e170f5a33f796d456dbdbde64276c16cac8b97ba99"},
-    {file = "langgraph_sdk-0.2.3.tar.gz", hash = "sha256:17398aeae0f937cae1c8eb9027ada2969abdb50fe8ed3246c78f543b679cf959"},
+    {file = "langgraph_sdk-0.2.4-py3-none-any.whl", hash = "sha256:b9dfbe77abc86ee6280b6d328320b7e1ca2b303b5fd89540dc5a28f780222cd1"},
+    {file = "langgraph_sdk-0.2.4.tar.gz", hash = "sha256:65c37fdb1d6f572deb7d5dda45aab79916c13c276a1e08b29309ae7729567a36"},
 ]
 
 [package.dependencies]
@@ -2728,14 +2729,14 @@ orjson = ">=3.10.1"
 
 [[package]]
 name = "langsmith"
-version = "0.4.19"
+version = "0.4.20"
 description = "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "langsmith-0.4.19-py3-none-any.whl", hash = "sha256:4c50ae47e9f8430a06adb54bceaf32808f5e54fcb8186731bf7b2dab3fc30621"},
-    {file = "langsmith-0.4.19.tar.gz", hash = "sha256:71916bef574f72c40887ce371a4502d80c80efc2a053df123f1347e79ea83dca"},
+    {file = "langsmith-0.4.20-py3-none-any.whl", hash = "sha256:acad342dc56284c00a46bdb16d32ff82cb124f38907ae552ad2d8f088f62d463"},
+    {file = "langsmith-0.4.20.tar.gz", hash = "sha256:a743fc83298967383415eac2c85c8a7757867b25d1d7006ef3842120ba73f2c0"},
 ]
 
 [package.dependencies]
@@ -2864,7 +2865,7 @@ files = [
     {file = "markdown_it_py-4.0.0-py3-none-any.whl", hash = "sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147"},
     {file = "markdown_it_py-4.0.0.tar.gz", hash = "sha256:cb0a2b4aa34f932c007117b194e945bd74e0ec24133ceb5bac59009cda1cb9f3"},
 ]
-markers = {main = "extra == \"minimal\" or extra == \"chromadb\" or extra == \"memory\""}
+markers = {main = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"minimal\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"minimal\")"}
 
 [package.dependencies]
 mdurl = ">=0.1,<1.0"
@@ -3026,7 +3027,7 @@ files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
 ]
-markers = {main = "extra == \"minimal\" or extra == \"chromadb\" or extra == \"memory\""}
+markers = {main = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"minimal\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"minimal\")"}
 
 [[package]]
 name = "mergedeep"
@@ -3256,14 +3257,14 @@ python-legacy = ["mkdocstrings-python-legacy (>=0.2.1)"]
 
 [[package]]
 name = "mkdocstrings-python"
-version = "1.18.0"
+version = "1.18.2"
 description = "A Python handler for mkdocstrings."
 optional = false
 python-versions = ">=3.9"
 groups = ["docs"]
 files = [
-    {file = "mkdocstrings_python-1.18.0-py3-none-any.whl", hash = "sha256:f5056d8afe9a9683ad0c59001df1ecd9668b51c19b9a6b4dc0ff02cc9b76265a"},
-    {file = "mkdocstrings_python-1.18.0.tar.gz", hash = "sha256:0b9924b4034fe9ae43604d78fe8e5107ea2c2391620124fc833043a62e83c744"},
+    {file = "mkdocstrings_python-1.18.2-py3-none-any.whl", hash = "sha256:944fe6deb8f08f33fa936d538233c4036e9f53e840994f6146e8e94eb71b600d"},
+    {file = "mkdocstrings_python-1.18.2.tar.gz", hash = "sha256:4ad536920a07b6336f50d4c6d5603316fafb1172c5c882370cbbc954770ad323"},
 ]
 
 [package.dependencies]
@@ -3278,7 +3279,7 @@ description = "Python extension for MurmurHash (MurmurHash3), a set of fast and 
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "mmh3-5.2.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:81c504ad11c588c8629536b032940f2a359dda3b6cbfd4ad8f74cb24dcd1b0bc"},
     {file = "mmh3-5.2.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:0b898cecff57442724a0f52bf42c2de42de63083a91008fb452887e372f9c328"},
@@ -3418,7 +3419,7 @@ description = "Python library for arbitrary-precision floating-point arithmetic"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\" or extra == \"gpu\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") or platform_system == \"Linux\" and platform_machine == \"x86_64\" and extra == \"gpu\""
 files = [
     {file = "mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"},
     {file = "mpmath-1.3.0.tar.gz", hash = "sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f"},
@@ -3608,7 +3609,7 @@ files = [
 name = "mypy"
 version = "1.17.1"
 description = "Optional static typing for Python"
-optional = true
+optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
@@ -3708,7 +3709,7 @@ description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "extra == \"minimal\" or extra == \"gpu\""
+markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\" and extra == \"gpu\" or extra == \"minimal\""
 files = [
     {file = "networkx-3.5-py3-none-any.whl", hash = "sha256:0030d386a9a06dee3565298b4a734b68589749a544acbb6c412dc9e2489ec6ec"},
     {file = "networkx-3.5.tar.gz", hash = "sha256:d4c6f9cf81f52d69230866796b82afbccdec3db7ae4fbd1b65ea750feed50037"},
@@ -4092,7 +4093,7 @@ description = "A generic, spec-compliant, thorough implementation of the OAuth r
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "oauthlib-3.3.1-py3-none-any.whl", hash = "sha256:88119c938d2b8fb88561af5f6ee0eec8cc8d552b7bb1f712743136eb7523b7a1"},
     {file = "oauthlib-3.3.1.tar.gz", hash = "sha256:0f0f8aa759826a193cf66c12ea1af1637f87b9b4622d46e866952bb022e538c9"},
@@ -4110,7 +4111,7 @@ description = "ONNX Runtime is a runtime accelerator for Machine Learning models
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "onnxruntime-1.22.1-cp310-cp310-macosx_13_0_universal2.whl", hash = "sha256:80e7f51da1f5201c1379b8d6ef6170505cd800e40da216290f5e06be01aadf95"},
     {file = "onnxruntime-1.22.1-cp310-cp310-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b89ddfdbbdaf7e3a59515dee657f6515601d55cb21a0f0f48c81aefc54ff1b73"},
@@ -4175,7 +4176,7 @@ description = "OpenTelemetry Python API"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "opentelemetry_api-1.36.0-py3-none-any.whl", hash = "sha256:02f20bcacf666e1333b6b1f04e647dc1d5111f86b8e510238fcc56d7762cda8c"},
     {file = "opentelemetry_api-1.36.0.tar.gz", hash = "sha256:9a72572b9c416d004d492cbc6e61962c0501eaf945ece9b5a0f56597d8348aa0"},
@@ -4192,7 +4193,7 @@ description = "OpenTelemetry Protobuf encoding"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "opentelemetry_exporter_otlp_proto_common-1.36.0-py3-none-any.whl", hash = "sha256:0fc002a6ed63eac235ada9aa7056e5492e9a71728214a61745f6ad04b923f840"},
     {file = "opentelemetry_exporter_otlp_proto_common-1.36.0.tar.gz", hash = "sha256:6c496ccbcbe26b04653cecadd92f73659b814c6e3579af157d8716e5f9f25cbf"},
@@ -4208,7 +4209,7 @@ description = "OpenTelemetry Collector Protobuf over gRPC Exporter"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "opentelemetry_exporter_otlp_proto_grpc-1.36.0-py3-none-any.whl", hash = "sha256:734e841fc6a5d6f30e7be4d8053adb703c70ca80c562ae24e8083a28fadef211"},
     {file = "opentelemetry_exporter_otlp_proto_grpc-1.36.0.tar.gz", hash = "sha256:b281afbf7036b325b3588b5b6c8bb175069e3978d1bd24071f4a59d04c1e5bbf"},
@@ -4230,7 +4231,7 @@ description = "OpenTelemetry Python Proto"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "opentelemetry_proto-1.36.0-py3-none-any.whl", hash = "sha256:151b3bf73a09f94afc658497cf77d45a565606f62ce0c17acb08cd9937ca206e"},
     {file = "opentelemetry_proto-1.36.0.tar.gz", hash = "sha256:0f10b3c72f74c91e0764a5ec88fd8f1c368ea5d9c64639fb455e2854ef87dd2f"},
@@ -4246,7 +4247,7 @@ description = "OpenTelemetry Python SDK"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "opentelemetry_sdk-1.36.0-py3-none-any.whl", hash = "sha256:19fe048b42e98c5c1ffe85b569b7073576ad4ce0bcb6e9b4c6a39e890a6c45fb"},
     {file = "opentelemetry_sdk-1.36.0.tar.gz", hash = "sha256:19c8c81599f51b71670661ff7495c905d8fdf6976e41622d5245b791b06fa581"},
@@ -4264,7 +4265,7 @@ description = "OpenTelemetry Semantic Conventions"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "opentelemetry_semantic_conventions-0.57b0-py3-none-any.whl", hash = "sha256:757f7e76293294f124c827e514c2a3144f191ef175b069ce8d1211e1e38e9e78"},
     {file = "opentelemetry_semantic_conventions-0.57b0.tar.gz", hash = "sha256:609a4a79c7891b4620d64c7aac6898f872d790d75f22019913a660756f27ff32"},
@@ -4281,7 +4282,7 @@ description = "Fast, correct Python JSON library supporting dataclasses, datetim
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "platform_python_implementation != \"PyPy\" or extra == \"minimal\" or extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\" and platform_machine != \"i386\" and platform_machine != \"i686\""
+markers = "platform_python_implementation != \"PyPy\" or extra == \"minimal\" or (platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") or extra == \"webui\" and platform_machine != \"i386\" and platform_machine != \"i686\""
 files = [
     {file = "orjson-3.11.3-cp310-cp310-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:29cb1f1b008d936803e2da3d7cba726fc47232c45df531b29edf0b232dd737e7"},
     {file = "orjson-3.11.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:97dceed87ed9139884a55db8722428e27bd8452817fbf1869c58b49fecab1120"},
@@ -4442,7 +4443,7 @@ description = "A decorator to automatically detect mismatch when overriding a me
 optional = true
 python-versions = ">=3.6"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "overrides-7.7.0-py3-none-any.whl", hash = "sha256:c7ed9d062f78b8e4c1a7b70bd8796b35ead4d9f510227ef9c5dc7626c60d7e49"},
     {file = "overrides-7.7.0.tar.gz", hash = "sha256:55158fa3d93b98cc75299b1e67078ad9003ca27945c76162c1c0766d6f91820a"},
@@ -4762,6 +4763,18 @@ typing = ["typing-extensions ; python_version < \"3.10\""]
 xmp = ["defusedxml"]
 
 [[package]]
+name = "pip"
+version = "25.2"
+description = "The PyPA recommended tool for installing Python packages."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "pip-25.2-py3-none-any.whl", hash = "sha256:6d67a2b4e7f14d8b31b8b52648866fa717f45a1eb70e83002f4331d07e953717"},
+    {file = "pip-25.2.tar.gz", hash = "sha256:578283f006390f85bb6282dffb876454593d637f5d1be494b5202ce4877e71f2"},
+]
+
+[[package]]
 name = "platformdirs"
 version = "4.4.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
@@ -4801,7 +4814,7 @@ description = "Integrate PostHog into any python application."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "posthog-5.4.0-py3-none-any.whl", hash = "sha256:284dfa302f64353484420b52d4ad81ff5c2c2d1d607c4e2db602ac72761831bd"},
     {file = "posthog-5.4.0.tar.gz", hash = "sha256:701669261b8d07cdde0276e5bc096b87f9e200e3b9589c5ebff14df658c5893c"},
@@ -5135,7 +5148,7 @@ description = "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs 
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "pyasn1-0.6.1-py3-none-any.whl", hash = "sha256:0d632f46f2ba09143da3a8afe9e33fb6f92fa2320ab7e886e2d0f7672af84629"},
     {file = "pyasn1-0.6.1.tar.gz", hash = "sha256:6f580d2bdd84365380830acf45550f2511469f673cb4a5ae3857a3170128b034"},
@@ -5148,7 +5161,7 @@ description = "A collection of ASN.1-based protocols modules"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "pyasn1_modules-0.4.2-py3-none-any.whl", hash = "sha256:29253a9207ce32b64c3ac6600edc75368f98473906e8fd1043bd6b5b1de2c14a"},
     {file = "pyasn1_modules-0.4.2.tar.gz", hash = "sha256:677091de870a80aae844b1ca6134f54652fa2c8c5a52aa396440ac3106e941e6"},
@@ -5164,7 +5177,7 @@ description = "Fast Base64 encoding/decoding"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "pybase64-1.4.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:82b4593b480773b17698fef33c68bae0e1c474ba07663fad74249370c46b46c9"},
     {file = "pybase64-1.4.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:a126f29d29cb4a498db179135dbf955442a0de5b00f374523f5dcceb9074ff58"},
@@ -5602,7 +5615,7 @@ files = [
     {file = "pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b"},
     {file = "pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887"},
 ]
-markers = {main = "extra == \"minimal\" or extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\""}
+markers = {main = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"minimal\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"minimal\") or extra == \"webui\""}
 
 [package.extras]
 windows-terminal = ["colorama (>=0.4.6)"]
@@ -5648,7 +5661,7 @@ description = "A SQL query builder API for Python"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "PyPika-0.48.9.tar.gz", hash = "sha256:838836a61747e7c8380cd1b7ff638694b7a7335345d0f559b04b2cd832ad5378"},
 ]
@@ -5660,7 +5673,7 @@ description = "Wrappers to call pyproject.toml-based build backend hooks."
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "pyproject_hooks-1.2.0-py3-none-any.whl", hash = "sha256:9e5c6bfa8dcc30091c74b0cf803c81fdd29d94f01992a7707bc97babb1141913"},
     {file = "pyproject_hooks-1.2.0.tar.gz", hash = "sha256:1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8"},
@@ -5673,7 +5686,7 @@ description = "A python implementation of GNU readline."
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "sys_platform == \"win32\" and (extra == \"chromadb\" or extra == \"memory\")"
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") and sys_platform == \"win32\""
 files = [
     {file = "pyreadline3-3.5.4-py3-none-any.whl", hash = "sha256:eaf8e6cc3c49bcccf145fc6067ba8643d1df34d604a1ec0eccbf7a18e6d3fae6"},
     {file = "pyreadline3-3.5.4.tar.gz", hash = "sha256:8d57d53039a1c75adba8e50dd3d992b28143480816187ea5efbd5c78e6c885b7"},
@@ -6205,7 +6218,7 @@ description = "OAuthlib authentication support for Requests."
 optional = true
 python-versions = ">=3.4"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "requests-oauthlib-2.0.0.tar.gz", hash = "sha256:b3dffaebd884d8cd778494369603a9e7b58d29111bf6b41bdc2dcd87203af4e9"},
     {file = "requests_oauthlib-2.0.0-py2.py3-none-any.whl", hash = "sha256:7dd8a5c40426b779b0868c404bdef9768deccf22749cde15852df527e6269b36"},
@@ -6264,7 +6277,7 @@ files = [
     {file = "rich-14.1.0-py3-none-any.whl", hash = "sha256:536f5f1785986d6dbdea3c75205c473f970777b4a0d6c6dd1b696aa05a3fa04f"},
     {file = "rich-14.1.0.tar.gz", hash = "sha256:e497a48b844b0320d45007cdebfeaeed8db2a4f4bcf49f15e455cfc4af11eaa8"},
 ]
-markers = {main = "extra == \"minimal\" or extra == \"chromadb\" or extra == \"memory\""}
+markers = {main = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"minimal\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"minimal\")"}
 
 [package.dependencies]
 markdown-it-py = ">=2.2.0"
@@ -6445,7 +6458,7 @@ description = "Pure-Python RSA implementation"
 optional = true
 python-versions = "<4,>=3.6"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "rsa-4.9.1-py3-none-any.whl", hash = "sha256:68635866661c6836b8d39430f97a996acbd61bfa49406748ea243539fe239762"},
     {file = "rsa-4.9.1.tar.gz", hash = "sha256:e7bdbfdb5497da4c07dfd35530e1a902659db6ff241e39d9953cad06ebd0ae75"},
@@ -6634,7 +6647,7 @@ files = [
     {file = "setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922"},
     {file = "setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c"},
 ]
-markers = {main = "extra == \"gpu\""}
+markers = {main = "platform_system == \"Linux\" and platform_machine == \"x86_64\" and extra == \"gpu\""}
 
 [package.extras]
 check = ["pytest-checkdocs (>=2.4)", "pytest-ruff (>=0.2.1) ; sys_platform != \"cygwin\"", "ruff (>=0.8.0) ; sys_platform != \"cygwin\""]
@@ -6656,7 +6669,7 @@ files = [
     {file = "shellingham-1.5.4-py2.py3-none-any.whl", hash = "sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"},
     {file = "shellingham-1.5.4.tar.gz", hash = "sha256:8dbca0739d487e5bd35ab3ca4b36e11c4078f3a234bfce294b0a0291363404de"},
 ]
-markers = {main = "extra == \"minimal\" or extra == \"chromadb\" or extra == \"memory\""}
+markers = {main = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"minimal\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"minimal\")"}
 
 [[package]]
 name = "simple-websocket"
@@ -6921,7 +6934,7 @@ description = "Computer algebra system (CAS) in Python"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\" or extra == \"gpu\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") or platform_system == \"Linux\" and platform_machine == \"x86_64\" and extra == \"gpu\""
 files = [
     {file = "sympy-1.14.0-py3-none-any.whl", hash = "sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5"},
     {file = "sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517"},
@@ -7016,7 +7029,7 @@ description = ""
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\" or extra == \"offline\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") or extra == \"offline\""
 files = [
     {file = "tokenizers-0.21.4-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:2ccc10a7c3bcefe0f242867dc914fc1226ee44321eb618cfe3019b5df3400133"},
     {file = "tokenizers-0.21.4-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:5e2f601a8e0cd5be5cc7506b20a79112370b9b3e9cb5f13f68ab11acd6ca7d60"},
@@ -7062,7 +7075,7 @@ description = "Tensors and Dynamic neural networks in Python with strong GPU acc
 optional = true
 python-versions = ">=3.9.0"
 groups = ["main"]
-markers = "extra == \"gpu\""
+markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\" and extra == \"gpu\""
 files = [
     {file = "torch-2.7.1-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:a103b5d782af5bd119b81dbcc7ffc6fa09904c423ff8db397a1e6ea8fd71508f"},
     {file = "torch-2.7.1-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:fe955951bdf32d182ee8ead6c3186ad54781492bf03d547d31771a01b3d6fb7d"},
@@ -7308,7 +7321,7 @@ files = [
     {file = "typer-0.16.0-py3-none-any.whl", hash = "sha256:1f79bed11d4d02d4310e3c1b7ba594183bcedb0ac73b27a9e5f28f6fb5b98855"},
     {file = "typer-0.16.0.tar.gz", hash = "sha256:af377ffaee1dbe37ae9440cb4e8f11686ea5ce4e9bae01b84ae7c63b87f1dd3b"},
 ]
-markers = {main = "extra == \"minimal\" or extra == \"chromadb\" or extra == \"memory\""}
+markers = {main = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") or extra == \"minimal\""}
 
 [package.dependencies]
 click = ">=8.0.0"
@@ -7422,7 +7435,7 @@ description = "Fast implementation of asyncio event loop on top of libuv"
 optional = false
 python-versions = ">=3.8.0"
 groups = ["main"]
-markers = "sys_platform != \"win32\" and sys_platform != \"cygwin\" and platform_python_implementation != \"PyPy\" and (extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\")"
+markers = "((platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\") or extra == \"webui\") and sys_platform != \"win32\" and sys_platform != \"cygwin\" and platform_python_implementation != \"PyPy\""
 files = [
     {file = "uvloop-0.21.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:ec7e6b09a6fdded42403182ab6b832b71f4edaf7f37a9a0e371a01db5f0cb45f"},
     {file = "uvloop-0.21.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:196274f2adb9689a289ad7d65700d37df0c0930fd8e4e743fa4834e850d7719d"},
@@ -7556,7 +7569,7 @@ description = "Simple, modern and high performance file watching and code reload
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"webui\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\")"
 files = [
     {file = "watchfiles-1.1.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:27f30e14aa1c1e91cb653f03a63445739919aef84c8d2517997a83155e7a2fcc"},
     {file = "watchfiles-1.1.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:3366f56c272232860ab45c77c3ca7b74ee819c8e1f6f35a7125556b198bbc6df"},
@@ -7703,7 +7716,7 @@ description = "WebSocket client for Python with low level API options"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "websocket_client-1.8.0-py3-none-any.whl", hash = "sha256:17b44cc997f5c498e809b22cdf2d9c7a9e71c02c8cc2b6c56e7c2d1239bfa526"},
     {file = "websocket_client-1.8.0.tar.gz", hash = "sha256:3239df9f44da632f96012472805d40a23281a991027ce11d2f45a6f24ac4c3da"},
@@ -7721,7 +7734,7 @@ description = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\" or extra == \"webui\") and (extra == \"chromadb\" or extra == \"memory\" or extra == \"webui\")"
 files = [
     {file = "websockets-15.0.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:d63efaa0cd96cf0c5fe4d581521d9fa87744540d4bc999ae6e08595a1014b45b"},
     {file = "websockets-15.0.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:ac60e3b188ec7574cb761b08d50fcedf9d77f1530352db4eef1707fe9dee7205"},
@@ -8082,7 +8095,7 @@ description = "Backport of pathlib-compatible object wrapper for zip files"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"chromadb\" or extra == \"memory\""
+markers = "(platform_system != \"Darwin\" or platform_machine == \"arm64\") and (extra == \"chromadb\" or extra == \"memory\")"
 files = [
     {file = "zipp-3.23.0-py3-none-any.whl", hash = "sha256:071652d6115ed432f5ce1d34c336c0adfd6a884660d1e9712a256d3d3bd4b14e"},
     {file = "zipp-3.23.0.tar.gz", hash = "sha256:a07157588a12518c9d4034df3fbbee09c814741a33ff63c05fa29d26a2404166"},
@@ -8227,4 +8240,4 @@ webui = ["nicegui"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.12"
-content-hash = "05112bb546dfd27ff79f61fdd1d79f9c9f8c4e935b98b8fcb32aa7db22152921"
+content-hash = "29c18f5f5050dc07c83cc0c8863ab6eaf618afb97bef2ad468ec09b45555605c"

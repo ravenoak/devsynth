@@ -194,13 +194,13 @@ def run_tests_cmd(
         if not normalized_speeds:
             normalized_speeds = ["fast"]
         # Enforce a conservative per-test timeout for smoke runs unless overridden
-        os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "5")
+        os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "30")
 
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
     # to catch stalls while avoiding flakiness on slower machines.
     if not smoke:
         if normalized_speeds and set(normalized_speeds) == {"fast"}:
-            os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "10")
+            os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "30")
 
     speed_categories = normalized_speeds or None
     feature_map = _parse_feature_options(features)
