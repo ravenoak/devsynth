@@ -1,16 +1,24 @@
 {
   "markers": {
-    "medium": 196,
-    "requires_resource": 2,
+    "medium": 1469,
+    "fast": 355,
+    "requires_resource": 24,
     "isolation": 2,
-    "fast": 132,
-    "no_network": 2,
+    "no_network": 11,
+    "parametrize": 35,
+    "docker": 2,
+    "slow": 52,
     "memory_intensive": 1,
-    "slow": 5,
-    "parametrize": 13,
+    "integtest": 1,
+    "asyncio": 10,
     "integration": 1,
-    "skipif": 2
+    "skipif": 3,
+    "property": 16,
+    "anyio": 3,
+    "unit": 3,
+    "smoke": 4,
+    "skip": 2
   },
-  "files_scanned": 112,
-  "files_with_issues": 60
+  "files_scanned": 939,
+  "files_with_issues": 420
 }

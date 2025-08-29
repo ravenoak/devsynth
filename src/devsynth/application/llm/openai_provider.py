@@ -17,6 +17,7 @@ except Exception:  # pragma: no cover - graceful fallback
     ChatCompletion = ChatCompletionChunk = object
 
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
+import concurrent.futures
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -76,6 +77,11 @@ class OpenAIProvider(StreamingLLMProvider):
             failure_threshold=self.config.get("failure_threshold", 3),
             recovery_timeout=self.config.get("recovery_timeout", 60),
         )
+        # Deterministic per-call timeout (seconds)
+        try:
+            self.call_timeout = float(os.environ.get("DEVSYNTH_CALL_TIMEOUT_SECONDS", str(self.config.get("call_timeout", 15))))
+        except ValueError:
+            self.call_timeout = 15.0
 
         # Check for API key in config or environment
         if not self.api_key and "OPENAI_API_KEY" in os.environ:
@@ -114,6 +120,23 @@ class OpenAIProvider(StreamingLLMProvider):
         if self.api_base:
             client_kwargs["base_url"] = self.api_base
 
+        # Deterministic timeouts to avoid hangs; configurable via env
+        # Use short connect/read timeouts in offline-first contexts
+        try:
+            default_timeout = float(os.environ.get("DEVSYNTH_HTTP_TIMEOUT_SECONDS", "10"))
+        except ValueError:
+            default_timeout = 10.0
+        # OpenAI v1 client accepts http_client with httpx.Client configured; AsyncOpenAI uses AsyncClient
+        # We avoid importing httpx at module level to keep optional deps light.
+        try:
+            import httpx  # type: ignore
+
+            client_kwargs["http_client"] = httpx.Client(timeout=httpx.Timeout(default_timeout))
+            async_http_client = httpx.AsyncClient(timeout=httpx.Timeout(default_timeout))
+        except Exception:  # pragma: no cover - fallback if httpx not available
+            httpx = None  # type: ignore
+            async_http_client = None  # type: ignore
+
         # ``tests/__init__.py`` installs a lightweight ``openai`` stub where
         # ``OpenAI`` resolves to ``object``. Instantiating it with arguments
         # raises ``TypeError``. Fallback to simple no-op clients so provider
@@ -127,7 +150,12 @@ class OpenAIProvider(StreamingLLMProvider):
             self.async_client = stub
         else:  # pragma: no cover - exercised in integration tests
             self.client = OpenAI(**client_kwargs)
-            self.async_client = AsyncOpenAI(**client_kwargs)
+            try:
+                # Prefer the async http client with timeout if available
+                self.async_client = AsyncOpenAI(**client_kwargs, http_client=async_http_client) if async_http_client is not None else AsyncOpenAI(**client_kwargs)
+            except TypeError:
+                # Older SDKs may not accept http_client kwarg
+                self.async_client = AsyncOpenAI(**client_kwargs)
 
     def _should_retry(self, exc: Exception) -> bool:
         """Return ``True`` if the exception should trigger a retry."""
@@ -155,7 +183,10 @@ class OpenAIProvider(StreamingLLMProvider):
             on_retry=self._on_retry,
         )
         def _wrapped():
-            return self.circuit_breaker.call(func, *args, **kwargs)
+            # Execute in a worker with a strict timeout to avoid hangs
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self.circuit_breaker.call, func, *args, **kwargs)
+                return future.result(timeout=self.call_timeout)
 
         return _wrapped()
 

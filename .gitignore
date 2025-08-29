@@ -75,3 +75,4 @@ test_markers_report.json
 .test_timing_cache/
 .pytest_collection_cache.json
 TASK_PROGRESS.md
+.test_collection_cache/

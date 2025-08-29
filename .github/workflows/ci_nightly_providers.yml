@@ -1,0 +1,122 @@
+name: Nightly Provider Integrations
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-providers-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  lmstudio:
+    name: LM Studio (nightly)
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner != 'dependabot[bot]' }}
+    env:
+      POETRY_VIRTUALENVS_CREATE: true
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
+      # Resource flags for tests; explicitly enable LM Studio lane
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: true
+      DEVSYNTH_OFFLINE: false
+      # Endpoint and model are provided by repository/environment secrets/vars
+      LM_STUDIO_ENDPOINT: ${{ secrets.LM_STUDIO_ENDPOINT }}
+      LM_STUDIO_MODEL: ${{ vars.LM_STUDIO_MODEL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+      - name: Install dependencies (dev + memory + llm)
+        run: |
+          poetry install --with dev --extras "memory llm tests"
+      - name: Show environment
+        run: |
+          poetry run python -V
+          poetry run pip list
+      - name: Run integration tests (LM Studio)
+        env:
+          PYTEST_ADDOPTS: -q
+        run: |
+          set -euxo pipefail
+          # Minimal parallelism and strict timeouts per docs/plan.md
+          poetry run pytest tests/integration/general/test_lmstudio_provider.py \
+            -m "not slow and requires_resource('lmstudio')" \
+            --maxfail=1 -q
+      - name: Upload test reports (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lmstudio-nightly-reports
+          path: |
+            test_reports/**
+            .pytest_cache/**
+          if-no-files-found: ignore
+
+  openai:
+    name: OpenAI (nightly)
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner != 'dependabot[bot]' }}
+    env:
+      POETRY_VIRTUALENVS_CREATE: true
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
+      DEVSYNTH_RESOURCE_OPENAI_AVAILABLE: true
+      DEVSYNTH_OFFLINE: false
+      DEVSYNTH_PROVIDER: openai
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+      - name: Install dependencies (dev + llm)
+        run: |
+          poetry install --with dev --extras "llm tests"
+      - name: Show environment
+        run: |
+          poetry run python -V
+          poetry run pip list
+      - name: Run integration tests (OpenAI)
+        env:
+          PYTEST_ADDOPTS: -q
+        run: |
+          set -euxo pipefail
+          poetry run pytest tests/integration/general/test_openai_provider.py \
+            -m "not slow and requires_resource('openai')" \
+            --maxfail=1 -q
+      - name: Upload test reports (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openai-nightly-reports
+          path: |
+            test_reports/**
+            .pytest_cache/**
+          if-no-files-found: ignore

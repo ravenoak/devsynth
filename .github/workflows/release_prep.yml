@@ -86,6 +86,13 @@ jobs:
             dist/*.tar.gz
           if-no-files-found: ignore
 
+      - name: Run security scans (Bandit and Safety)
+        run: |
+          poetry run bandit -r src/devsynth -x tests -q -f txt -o bandit_report.txt || true
+          poetry export --without-hashes -f requirements.txt -o /tmp/requirements.txt
+          poetry run safety check --file /tmp/requirements.txt --full-report --output text --output-file safety_report.txt || true
+          rm /tmp/requirements.txt
+
       - name: Upload coverage and reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -96,6 +103,8 @@ jobs:
             test_reports/**
             test_markers_report.json
             dialectical_audit.log
+            bandit_report.txt
+            safety_report.txt
           if-no-files-found: warn
 
       - name: Upload Task and cache for debugging

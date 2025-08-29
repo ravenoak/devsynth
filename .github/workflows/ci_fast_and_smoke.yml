@@ -1,0 +1,153 @@
+name: CI Matrix (Fast and Smoke)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-checks:
+    name: static-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dev dependencies
+        run: |
+          poetry install --with dev --no-interaction --no-root
+
+      - name: Run mypy (strict, per pyproject)
+        run: |
+          poetry run mypy src/devsynth
+
+      - name: Run Bandit (security)
+        run: |
+          poetry run bandit -r src/devsynth -x tests -q
+
+      - name: Run Safety (dependency vulnerabilities)
+        run: |
+          poetry run safety check --full-report
+
+  fast-and-smoke:
+    name: ${{ matrix.os }} | fast+smoke
+    runs-on: ${{ matrix.os }}
+    needs: static-checks
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    env:
+      # Default CI resource gating: skip optional backends unless explicitly enabled
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_FAISS_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_KUZU_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_TINYDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      # Provider defaults for offline deterministic runs
+      DEVSYNTH_PROVIDER: 'stub'
+      DEVSYNTH_OFFLINE: 'true'
+      # Provide a stub API key for mocked providers
+      OPENAI_API_KEY: 'test-openai-key'
+      # Enforce no file logging during CI
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dev environment (includes go-task)
+        shell: bash
+        run: |
+          bash scripts/install_dev.sh
+
+      - name: Verify test marker discipline (JSON report, enforced)
+        run: |
+          poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+
+      - name: Verify offline defaults for fast lane
+        run: |
+          bash scripts/check_offline_defaults.sh
+
+      - name: Fast lane - unit fast (hermetic)
+        run: |
+          poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+
+      - name: Smoke lane - fast path with plugin autoload disabled (timed)
+        env:
+          # Explicitly disable third-party plugin autoloading in smoke (runner also sets this via --smoke)
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+        run: |
+          start_ts=$(date +%s)
+          poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 || exit_code=$?
+          end_ts=$(date +%s)
+          duration=$(( end_ts - start_ts ))
+          mkdir -p test_reports
+          echo "smoke_fast_duration_seconds=$duration" | tee test_reports/smoke_fast_timing.txt
+          # Soft gate for now; warn if over 60s and exit non-zero only if env var enforces strict gate
+          if [ "$duration" -gt 60 ]; then
+            echo "WARNING: Smoke fast path exceeded 60s: ${duration}s" | tee -a test_reports/smoke_fast_timing.txt
+            if [ "${{ env.ENFORCE_SMOKE_60S_GATE }}" = "1" ]; then
+              echo "FAIL: Enforcing 60s gate per ENFORCE_SMOKE_60S_GATE=1" | tee -a test_reports/smoke_fast_timing.txt
+              exit 1
+            fi
+          fi
+          # After smoke, also run collection-only and verify plugin-disabled notice (acceptance 1.6.2)
+          echo "[ci] pytest --collect-only -q" | tee test_reports/collect_only.log
+          poetry run pytest --collect-only -q | tee -a test_reports/collect_only.log | tee test_reports/collect_only_output.txt >/dev/null
+          poetry run python scripts/verify_smoke_notice.py --input test_reports/collect_only_output.txt || true
+          exit ${exit_code:-0}
+
+      - name: Upload test reports and logs (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-${{ matrix.os }}
+          path: |
+            test_reports/**
+            test_markers_report.json
+            dialectical_audit.log
+          if-no-files-found: warn
