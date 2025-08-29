@@ -514,8 +514,8 @@ poetry run devsynth run-tests [OPTIONS]
 | `--inventory` | Produce a JSON inventory of collected tests (written to `test_reports/test_inventory.json`) |
 
 Additional behavior:
-- In smoke mode, a conservative per-test timeout is applied by default: `DEVSYNTH_TEST_TIMEOUT_SECONDS=5` (unless already set).
-- For explicit fast-only runs (non-smoke), a slightly looser default timeout is applied: `DEVSYNTH_TEST_TIMEOUT_SECONDS=10` (unless already set).
+- In smoke mode, a conservative per-test timeout is applied by default: `DEVSYNTH_TEST_TIMEOUT_SECONDS=30` (unless already set).
+- For explicit fast-only runs (non-smoke), a slightly looser default timeout is applied: `DEVSYNTH_TEST_TIMEOUT_SECONDS=30` (unless already set).
 
 **Examples:**
 ```bash
