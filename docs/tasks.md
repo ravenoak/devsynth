@@ -7,7 +7,7 @@ Note: Execute in order. Each task is independently verifiable and maps to docs/p
 3. [ ] Record pytest version: poetry run pytest --version | tee diagnostics/pytest_version.txt
 4. [ ] Record Python version: poetry run python -V | tee diagnostics/python_version.txt
 5. [ ] Record pip list: poetry run pip list | tee diagnostics/pip_list.txt
-6. [ ] Prepare an execution log file diagnostics/exec_log.txt with the template (timestamp, command, exit code, artifacts, notes)
+6. [x] Prepare an execution log file diagnostics/exec_log.txt with the template (timestamp, command, exit code, artifacts, notes)
 7. [ ] Ensure environment toggles ready for smoke mode if needed: export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 (only when instability is observed)
 8. [ ] Ensure DEVSYNTH_TEST_TIMEOUT_SECONDS default is set for smoke/fast runs (export if not set): export DEVSYNTH_TEST_TIMEOUT_SECONDS=${DEVSYNTH_TEST_TIMEOUT_SECONDS:-30}
 
@@ -114,3 +114,4 @@ Note: Execute in order. Each task is independently verifiable and maps to docs/p
 
 Notes (2025-08-28):
 - Iteration 1: Created artifact directories (test_reports/, test_reports/quality/, diagnostics/) per docs/plan.md §0 to unblock evidence capture. Next: add diagnostics capture and smoke toggles (tasks 2–8). No blockers observed.
+- Iteration 2: Prepared diagnostics/exec_log.txt with the standard template (timestamp, command, exit code, artifacts, notes) to standardize evidence logging. Next: capture doctor/versions/pip list and set smoke env toggles.
