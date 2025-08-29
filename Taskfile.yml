@@ -22,6 +22,12 @@ tasks:
     cmds:
       - poetry install --with dev,docs
 
+  setup:test-baseline:
+    desc: Install test baseline extras and run pytest collect-only to validate env
+    cmds:
+      - poetry install --with dev --extras "tests retrieval chromadb api"
+      - poetry run pytest --collect-only -q
+
   setup:dev:
     desc: Install development dependencies only
     cmds:
@@ -41,7 +47,34 @@ tasks:
   verify:markers:
     desc: Run speed marker audit and write report artifact
     cmds:
-      - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+      - poetry run python scripts/verify_test_markers.py --report --report-file test_reports/test_markers_report.json
+
+  tests:sanity-and-inventory:
+    desc: Run Section 7 sanity and inventory commands (writes artifacts under test_reports/)
+    cmds:
+      - bash scripts/run_sanity_and_inventory.sh
+
+  tests:marker-discipline:
+    desc: Run speed marker discipline script (writes test_reports/test_markers_report.json)
+    cmds:
+      - bash scripts/run_marker_discipline.sh
+
+  tests:collect-smoke-timing:
+    desc: Run smoke fast lane locally and write test_reports/smoke_fast_timing.txt
+    cmds:
+      - bash scripts/collect_smoke_timing.sh
+
+  tests:security-and-typing:
+    desc: Run typing (mypy) and security (Bandit, Safety) checks and write artifacts under test_reports/
+    cmds:
+      - bash -lc 'mkdir -p test_reports; poetry run mypy src/devsynth | tee test_reports/mypy_report.txt; exit ${PIPESTATUS[0]}'
+      - poetry run bandit -r src/devsynth -x tests -q -f txt -o test_reports/bandit_report.txt
+      - bash -lc 'mkdir -p test_reports; poetry run safety check --full-report | tee test_reports/safety_report.txt; exit ${PIPESTATUS[0]}'
+
+  tests:property:
+    desc: Run opt-in property tests (requires DEVSYNTH_PROPERTY_TESTING=true)
+    cmds:
+      - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/
 
   test:pr-fast:
     desc: PR fast gate via devsynth CLI (unit fast, hermetic)
@@ -354,6 +387,11 @@ tasks:
       - task: security:bandit
       - task: security:safety
       - poetry run python scripts/security_audit.py --skip-bandit --skip-safety
+
+  kpi:nightly-pass-rate:
+    desc: Compute or stub nightly provider pass rate KPI (writes test_reports/nightly_pass_rate.json)
+    cmds:
+      - poetry run python scripts/ci_kpis/nightly_pass_rate.py
 
   policy:gate:
     desc: Enforce security policy checks before deployment

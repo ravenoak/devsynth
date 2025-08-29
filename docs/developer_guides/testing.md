@@ -358,6 +358,41 @@ poetry run devsynth run-tests --speed=fast
 
 Mark such tests with `@pytest.mark.memory_intensive`. For optional services, use resource markers such as `@pytest.mark.requires_resource("lmstudio")` and set `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=false` to skip them when unavailable.
 
+### Local resource enablement (extras + env)
+
+For routines that exercise optional backends locally, install the corresponding extras and set resource flags explicitly. These are opt-in and disabled by default in CI.
+
+- Retrieval backends (FAISS/ChromaDB subset used by tests):
+
+  ```bash
+  poetry install --with dev --extras "tests retrieval chromadb"
+  # run a quick subset
+  poetry run devsynth run-tests --speed=fast -m "not requires_resource('openai')"
+  ```
+
+- Memory + LLM (local LM Studio, offline by default):
+
+  ```bash
+  poetry install --with dev --extras "memory llm"
+  export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+  export LM_STUDIO_ENDPOINT=${LM_STUDIO_ENDPOINT:-http://127.0.0.1:1234}
+  poetry run devsynth run-tests --speed=fast -m "requires_resource('lmstudio') and not slow"
+  ```
+
+- OpenAI provider (nightly/gated local):
+
+  ```bash
+  poetry install --with dev --extras llm
+  export DEVSYNTH_PROVIDER=openai
+  export OPENAI_API_KEY=your-key
+  export OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+  poetry run devsynth run-tests --speed=fast -m "requires_resource('openai') and not slow"
+  ```
+
+Notes:
+- Resource markers are honored via DEVSYNTH_RESOURCE_<NAME>_AVAILABLE flags in tests/conftest.py. If unset, provider tests are skipped.
+- The run-tests CLI sets DEVSYNTH_PROVIDER=stub and DEVSYNTH_OFFLINE=true by default unless you override them.
+
 ### Smoke Mode (reduced plugin surface)
 
 Smoke mode is designed for the fastest, most hermetic signal when diagnosing failures or validating a PR quickly. It disables third-party pytest plugins by setting `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` and applies conservative timeouts.
@@ -660,6 +695,8 @@ Quick commands
 - Fast subset: poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1
 - Smoke: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
 - HTML report: poetry run devsynth run-tests --report
+- Sanity+Inventory bundle (writes logs under test_reports/): bash scripts/run_sanity_and_inventory.sh
+- Marker discipline report (emits test_reports/test_markers_report.json): bash scripts/run_marker_discipline.sh
 
 See also: docs/developer_guides/diagnostics.md for a diagnostics command flow checklist and .junie/guidelines.md for the authoritative practices. Track intermittent issues in docs/testing/known_flakes.md.
 
@@ -887,6 +924,97 @@ When you add or modify tests:
 - Ensure `scripts/verify_requirements_traceability.py` passes locally and in CI.
 
 ## Continuous Integration
+
+### Interpreting the speed marker report
+
+Artifacts produced by the marker verification tooling are standardized to simplify triage and CI collection.
+
+- Default report path: test_reports/test_markers_report.json (created by scripts/verify_test_markers.py and Taskfile target tests:marker-discipline).
+- Purpose: lists speed-marker policy violations and a summary of counts per module.
+- Common fields:
+  - violations: array of {file, function, issue, line} entries.
+  - totals: {fast, medium, slow, unknown, duplicates} counts.
+  - policy: description of rules (exactly one speed marker per test; no module-level speed markers; behavior steps must be marked).
+- How to use locally:
+  1) poetry install --with dev --extras tests
+  2) poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+  3) Open test_reports/test_markers_report.json and fix items reported (add one of @pytest.mark.fast|medium|slow at the function level; remove duplicates; move any module-level markers to functions).
+  4) Re-run with --changed to validate staged fixes quickly: poetry run python scripts/verify_test_markers.py --changed
+- In CI:
+  - The fast/smoke lanes upload test_reports/test_markers_report.json as an artifact.
+  - PRs fail if violations are non-zero. Link to the artifact in the PR description when discussing remediation.
+
+This guidance complements tests/README.md and docs/plan.md §7 and follows .junie/guidelines.md (clarity, minimalism).
+
+### Using Section 7 helper scripts in CI (and locally)
+
+To standardize evidence collection for docs/plan.md §7 (Concrete Command Runs and Audit Logging), we provide helper scripts and Taskfile targets that can be invoked locally and from CI without enabling heavy plugins or real providers by default.
+
+- Taskfile targets:
+  - task tests:sanity-and-inventory → runs scripts/run_sanity_and_inventory.sh, producing artifacts under test_reports/:
+    - collect_only_output.txt
+    - smoke_plugin_notice.txt (via scripts/verify_smoke_notice.py)
+    - inventory file when --inventory is used
+  - task tests:marker-discipline → runs scripts/run_marker_discipline.sh, producing test_reports/test_markers_report.json and a --changed verification pass.
+
+- Direct script usage (when Task is unavailable):
+  - bash scripts/run_sanity_and_inventory.sh
+  - bash scripts/run_marker_discipline.sh
+
+Example GitHub Actions snippet (invoke helper tasks):
+
+```yaml
+- name: Run sanity and inventory (Section 7)
+  run: |
+    if command -v task >/dev/null 2>&1; then
+      task tests:sanity-and-inventory
+      task tests:marker-discipline
+    else
+      bash scripts/run_sanity_and_inventory.sh
+      bash scripts/run_marker_discipline.sh
+    fi
+- name: Upload test_reports artifacts
+  uses: actions/upload-artifact@v4
+  with:
+    name: test_reports
+    path: test_reports/
+```
+
+Notes:
+- The scripts assume offline-first defaults and smoke-friendly behavior per the guidelines; CI lanes may additionally set PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 and DEVSYNTH_OFFLINE=true.
+- Artifacts are written to test_reports/ to align with CI collection and docs/tasks.md acceptance evidence.
+
+### Nightly provider jobs: secrets and rotation
+
+Nightly CI lanes exercise real providers and require repository-level secrets and variables. These jobs are isolated from default lanes and run with explicit timeouts and minimal parallelism. Required configuration:
+
+- LM Studio lane (ci_nightly_providers.yml):
+  - Secrets:
+    - LM_STUDIO_ENDPOINT (URL to a reachable LM Studio API endpoint)
+  - Variables (recommended defaults at repo/environment level):
+    - LM_STUDIO_MODEL (e.g., mistral or a lightweight local model)
+  - Flags set in the job:
+    - DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+    - DEVSYNTH_OFFLINE=false
+
+- OpenAI lane (ci_nightly_providers.yml):
+  - Secrets:
+    - OPENAI_API_KEY
+  - Variables:
+    - OPENAI_MODEL (e.g., gpt-4o-mini)
+  - Flags set in the job:
+    - DEVSYNTH_PROVIDER=openai
+    - DEVSYNTH_OFFLINE=false
+
+Rotation policy and handling:
+- Rotate OPENAI_API_KEY at least quarterly or immediately upon suspected exposure. Prefer GitHub Actions Encrypted Secrets; avoid repository files.
+- Use organization-level secrets when multiple repos share credentials; audit usage via GitHub’s secret scanning alerts.
+- For LM Studio, prefer ephemeral/self-hosted endpoints where feasible; rotate tokens/endpoint keys monthly. If the endpoint is local to CI, ensure firewalling and short-lived credentials.
+- Never echo secrets in logs; CI steps must use masked environment variables. Verify workflows upload only sanitized artifacts.
+
+See also:
+- .github/workflows/ci_nightly_providers.yml (authoritative nightly matrix)
+- docs/tasks.md §3.3 (Nightly CI lanes) and §5.3.2 (matrix updates)
 
 DevSynth uses GitHub Actions for continuous integration testing. See the authoritative stabilization plan at [docs/plan.md](../plan.md) and the working checklist at [docs/tasks.md](../tasks.md) for the expected CI matrix and acceptance criteria.
 

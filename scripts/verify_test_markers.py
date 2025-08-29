@@ -25,7 +25,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TESTS_DIR = ROOT / "tests"
-REPORT_PATH = ROOT / "test_markers_report.json"
+REPORT_PATH = ROOT / "test_reports" / "test_markers_report.json"
 CACHE_PATH = ROOT / ".cache" / "test_markers_cache.json"
 CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -274,8 +274,29 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
         unique = set(all_param_markers)
         return [unique.pop()] if len(unique) == 1 else []
 
+    # Helper to check if a function has pytest-bdd step decorators
+    def _has_bdd_step_decorator(fn: ast.FunctionDef) -> bool:
+        step_names = {"given", "when", "then", "step"}
+        for dec in getattr(fn, "decorator_list", []) or []:
+            # Accept @pytest_bdd.given / @pytest_bdd.when / ... or imported names like @given
+            if isinstance(dec, ast.Attribute):
+                if isinstance(dec.value, ast.Name) and dec.attr in step_names:
+                    return True
+            elif isinstance(dec, ast.Name):
+                if dec.id in step_names:
+                    return True
+            elif isinstance(dec, ast.Call):
+                # Called decorators: e.g., @given("pattern")
+                if isinstance(dec.func, ast.Attribute):
+                    if isinstance(dec.func.value, ast.Name) and dec.func.attr in step_names:
+                        return True
+                elif isinstance(dec.func, ast.Name):
+                    if dec.func.id in step_names:
+                        return True
+        return False
+
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+        if isinstance(node, ast.FunctionDef) and (node.name.startswith("test_") or _has_bdd_step_decorator(node)):
             # Collect decorator names of the form pytest.mark.<name>
             found: List[str] = []
             parametrize_found: List[str] = []
@@ -444,6 +465,7 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
         arg_report_file = None
     # We cannot reliably access parsed args from here unless passed; we'll handle in main()
     # Default write to REPORT_PATH here; main() may also rewrite if --report-file provided.
+    report_target.parent.mkdir(parents=True, exist_ok=True)
     report_target.write_text(
         json.dumps(summary_report, indent=2) + "\n", encoding="utf-8"
     )

@@ -14,6 +14,8 @@ except ImportError as e:  # pragma: no cover - if lmstudio is missing tests skip
 from typing import Any, Dict, List
 
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
+import concurrent.futures
+import os
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -72,6 +74,11 @@ class LMStudioProvider(BaseLLMProvider):
             failure_threshold=self.config.get("failure_threshold", 3),
             recovery_timeout=self.config.get("recovery_timeout", 60),
         )
+        # Deterministic per-call timeout (seconds)
+        try:
+            self.call_timeout = float(os.environ.get("DEVSYNTH_CALL_TIMEOUT_SECONDS", str(self.config.get("call_timeout", 15))))
+        except ValueError:
+            self.call_timeout = 15.0
         self.token_tracker = TokenTracker()
 
         # Auto-select model if not specified
@@ -129,7 +136,10 @@ class LMStudioProvider(BaseLLMProvider):
             on_retry=self._on_retry,
         )
         def _wrapped():
-            return self.circuit_breaker.call(func, *args, **kwargs)
+            # Execute in a worker with a strict timeout to avoid hangs
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self.circuit_breaker.call, func, *args, **kwargs)
+                return future.result(timeout=self.call_timeout)
 
         return _wrapped()
 

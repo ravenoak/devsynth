@@ -56,6 +56,7 @@ Sanity checks
 - Generate HTML test report:
   - poetry run devsynth run-tests --report
 - Full guidance: see docs/developer_guides/testing.md
+- Section 7 scripts (sanity+inventory, marker discipline): see docs/developer_guides/testing.md#using-section-7-helper-scripts-in-ci-and-locally
 - CLI options reference: see docs/user_guides/cli_command_reference.md
 
 Optional resources (opt-in)
