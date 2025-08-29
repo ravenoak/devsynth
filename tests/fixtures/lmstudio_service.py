@@ -66,7 +66,7 @@ def lmstudio_service(monkeypatch) -> LMStudioMockServer:
                 status_code=server.status_code, content={"error": "Internal error"}
             )
 
-        tokens = ["This", " is", " a", " test"]
+        tokens = ["This", " is", " a", " test", " response"]
 
         async def event_stream():
             for token in tokens:
