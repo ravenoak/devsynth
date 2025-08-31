@@ -63,7 +63,8 @@ jobs:
 
       - name: Run test speed marker verification (JSON report)
         run: |
-          poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+          mkdir -p test_reports
+          poetry run python scripts/verify_test_markers.py --report --report-file test_reports/test_markers_report.json
 
       - name: PR gate - unit fast suite (hermetic)
         run: |

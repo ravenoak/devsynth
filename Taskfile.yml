@@ -38,6 +38,16 @@ tasks:
     cmds:
       - poetry install --with docs
 
+  setup:minimal:
+    desc: Install minimal extras for a clean environment (no heavy optional deps)
+    cmds:
+      - poetry install --with dev --extras minimal
+
+  tests:collect:
+    desc: Run quick sanity collection and capture output under diagnostics/
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run pytest --collect-only -q | tee diagnostics/pytest_collect.txt; exit ${PIPESTATUS[0]}'
+
   # Testing tasks
   test:
     desc: Run all tests (pytest direct)
@@ -49,10 +59,45 @@ tasks:
     cmds:
       - poetry run python scripts/verify_test_markers.py --report --report-file test_reports/test_markers_report.json
 
+  verify:markers:changed:
+    desc: Run speed marker audit on changed test files
+    cmds:
+      - poetry run python scripts/verify_test_markers.py --changed
+
+  validate:matrix:
+    desc: Orchestrate baseline validations and capture artifacts under diagnostics/
+    cmds:
+      - poetry run python scripts/run_validation_matrix.py
+
   tests:sanity-and-inventory:
     desc: Run Section 7 sanity and inventory commands (writes artifacts under test_reports/)
     cmds:
       - bash scripts/run_sanity_and_inventory.sh
+
+  tests:inventory-snapshot:
+    desc: Capture devsynth test inventory to diagnostics/ via helper script (Section 8.1)
+    cmds:
+      - poetry run python scripts/run_inventory_snapshot.py --target unit-tests --speed fast --smoke
+
+  guardrails:all:
+    desc: Run Black/isort/Flake8/mypy/Bandit/Safety and save outputs under diagnostics/
+    cmds:
+      - poetry run python scripts/run_guardrails_suite.py --continue-on-error
+
+  tests:unit-fast:
+    desc: Run unit tests fast lane (no xdist) for quick triage
+    cmds:
+      - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+
+  tests:integration-fast:
+    desc: Run integration tests fast lane (no xdist) for quick triage
+    cmds:
+      - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1
+
+  tests:behavior-fast-smoke:
+    desc: Run behavior tests in smoke mode (disables xdist and third-party plugins)
+    cmds:
+      - PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel --smoke --maxfail=1
 
   tests:marker-discipline:
     desc: Run speed marker discipline script (writes test_reports/test_markers_report.json)
@@ -239,10 +284,6 @@ tasks:
     cmds:
       - poetry build
 
-  setup:minimal:
-    desc: Install development deps with minimal extras
-    cmds:
-      - poetry install --with dev --extras minimal
 
   verify:build:
     desc: Verify poetry build succeeds without warnings
@@ -403,3 +444,35 @@ tasks:
     cmds:
       - task: policy:gate
       - bash deployment/deploy_production.sh
+
+
+  tests:smoke-fast:
+    desc: Run smoke mode fast lane via devsynth CLI (reduced plugin surface)
+    cmds:
+      - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+  tests:inventory:
+    desc: Inventory scoping to quickly list fast unit tests via devsynth CLI
+    cmds:
+      - poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
+
+  tests:segment-medium:
+    desc: Run medium-speed unit tests with segmentation to improve stability
+    cmds:
+      - poetry run devsynth run-tests --target unit-tests --speed=medium --segment --segment-size 50 --no-parallel
+
+  tests:segment-slow:
+    desc: Run slow-speed unit tests with segmentation to improve stability
+    cmds:
+      - poetry run devsynth run-tests --target unit-tests --speed=slow --segment --segment-size 50 --no-parallel
+
+
+  tests:lmstudio-stability:
+    desc: Run LM Studio-enabled subset 3× (fast, no-parallel, maxfail=1) for stability
+    cmds:
+      - echo "[LMSTUDIO] Run 1/3"
+      - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
+      - echo "[LMSTUDIO] Run 2/3"
+      - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
+      - echo "[LMSTUDIO] Run 3/3"
+      - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
