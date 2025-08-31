@@ -9,6 +9,11 @@ This directory contains tests for the DevSynth project, organized into different
 - **Sentinel Test**: `tests/test_speed_dummy.py` is a trivial fast test that exists
   to validate tooling; do not remove it.
 
+### See also
+- [Improvement Plan](../docs/plan.md)
+- [Improvement Tasks Checklist](../docs/tasks.md)
+- [CLI Command Reference](../docs/user_guides/cli_command_reference.md)
+
 ## Test Organization
 
 ### Directory Structure
@@ -148,10 +153,12 @@ To run optional backends locally, install extras and set resource flags explicit
 - Memory + LLM with LM Studio:
 
   ```bash
-  poetry install --with dev --extras "memory llm"
+  poetry install --with dev --extras "tests llm"
   export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
-  export LM_STUDIO_ENDPOINT=${LM_STUDIO_ENDPOINT:-http://127.0.0.1:1234}
-  poetry run devsynth run-tests --speed=fast -m "requires_resource('lmstudio') and not slow"
+  export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234
+  export DEVSYNTH_LMSTUDIO_TIMEOUT_SECONDS=10
+  export DEVSYNTH_LMSTUDIO_RETRIES=1
+  poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
   ```
 
 - OpenAI provider (nightly/gated local):
@@ -596,3 +603,30 @@ poetry run python scripts/verify_test_markers.py --changed
 ```
 
 Including the requirement ID ensures traceability between tests and requirements.
+
+
+## Default-to-stability shortcuts
+
+When triaging failures or validating a fresh environment, prefer the stable, low‑surface commands below. They align with .junie/guidelines.md and docs/plan.md and are safe to copy‑paste.
+
+- Smoke mode (reduces plugin surface; disables xdist and third‑party plugins):
+
+  ```bash
+  poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+  ```
+
+- Segmentation for medium/slow suites (batch execution to avoid long tails):
+
+  ```bash
+  poetry run devsynth run-tests --segment --segment-size 50 --no-parallel
+  ```
+
+- Inventory scoping (fast collection-only to discover targets and node IDs):
+
+  ```bash
+  poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
+  ```
+
+See also:
+- docs/developer_guides/testing.md (Smoke Mode, Inventory, Segmentation)
+- docs/user_guides/cli_command_reference.md (full CLI options)
