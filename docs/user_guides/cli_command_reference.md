@@ -20,6 +20,11 @@ last_reviewed: "2025-08-24"
 
 This document provides a comprehensive reference for all DevSynth CLI commands. Each command is explained in detail, including its purpose, options, and usage examples.
 
+### See also
+- [Improvement Plan](../plan.md)
+- [Improvement Tasks Checklist](../tasks.md)
+- [Test Framework README](../../tests/README.md)
+
 ## Global Options
 
 ### Exit Codes
@@ -458,6 +463,14 @@ devsynth dbschema --output-file db/schema.sql
 ## webui
 
 Start the DevSynth Web UI.
+
+Note: The WebUI is optional. If the `webui` extra (Streamlit) is not installed, the command remains visible but will error gracefully on invocation with guidance to install the extra, for example:
+
+```bash
+poetry install --with dev --extras "webui"
+```
+
+Imports are lazy/guarded, so `devsynth doctor` and other CLI commands work without Streamlit installed.
 
 **Usage:**
 
