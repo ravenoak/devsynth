@@ -219,6 +219,11 @@ class ProviderFactory:
             logger.info("Falling back to Null provider: %s", reason)
             return NullProvider(reason=reason)
 
+        # Global offline guard to prevent accidental network calls
+        if os.environ.get("DEVSYNTH_OFFLINE", "").lower() in {"1", "true", "yes"}:
+            if provider_type_value.lower() not in {ProviderType.STUB.value, "offline"}:
+                return _safe_provider("DEVSYNTH_OFFLINE active; using safe provider")
+
         try:
             pt = provider_type_value.lower()
             if pt == ProviderType.OPENAI.value:

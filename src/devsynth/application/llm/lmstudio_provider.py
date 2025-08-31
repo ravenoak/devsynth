@@ -11,11 +11,11 @@ except ImportError as e:  # pragma: no cover - if lmstudio is missing tests skip
     raise ImportError(
         "LMStudioProvider requires the 'lmstudio' package. Install it with 'pip install lmstudio' or use the 'lmstudio' extra."
     ) from e
+import concurrent.futures
+import os
 from typing import Any, Dict, List
 
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
-import concurrent.futures
-import os
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -63,22 +63,37 @@ class LMStudioProvider(BaseLLMProvider):
         super().__init__(merged_config)
 
         # Set instance variables from config
-        self.api_base = self.config.get("api_base")
+        endpoint_default = os.environ.get("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234")
+        self.api_base = self.config.get("api_base") or endpoint_default
         self.max_tokens = self.config.get("max_tokens")
         self.temperature = self.config.get("temperature")
         parsed = urlparse(self.api_base)
         self.api_host = parsed.netloc or parsed.path.split("/")[0]
         lmstudio.sync_api.configure_default_client(self.api_host)
-        self.max_retries = self.config.get("max_retries", 3)
+        # Retries: env override with default 1 (idempotent minimal retries)
+        retries_env = os.environ.get("DEVSYNTH_LMSTUDIO_RETRIES")
+        try:
+            self.max_retries = (
+                int(retries_env)
+                if retries_env is not None
+                else int(self.config.get("max_retries", 1))
+            )
+        except (TypeError, ValueError):
+            self.max_retries = 1
         self.circuit_breaker = CircuitBreaker(
             failure_threshold=self.config.get("failure_threshold", 3),
             recovery_timeout=self.config.get("recovery_timeout", 60),
         )
-        # Deterministic per-call timeout (seconds)
+        # Deterministic per-call timeout (seconds) with env default of 10
+        timeout_env = os.environ.get("DEVSYNTH_LMSTUDIO_TIMEOUT_SECONDS")
         try:
-            self.call_timeout = float(os.environ.get("DEVSYNTH_CALL_TIMEOUT_SECONDS", str(self.config.get("call_timeout", 15))))
-        except ValueError:
-            self.call_timeout = 15.0
+            self.call_timeout = (
+                float(timeout_env)
+                if timeout_env is not None
+                else float(self.config.get("call_timeout", 10))
+            )
+        except (TypeError, ValueError):
+            self.call_timeout = 10.0
         self.token_tracker = TokenTracker()
 
         # Auto-select model if not specified
@@ -138,7 +153,9 @@ class LMStudioProvider(BaseLLMProvider):
         def _wrapped():
             # Execute in a worker with a strict timeout to avoid hangs
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(self.circuit_breaker.call, func, *args, **kwargs)
+                future = executor.submit(
+                    self.circuit_breaker.call, func, *args, **kwargs
+                )
                 return future.result(timeout=self.call_timeout)
 
         return _wrapped()

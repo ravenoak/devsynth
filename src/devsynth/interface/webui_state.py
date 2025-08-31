@@ -5,12 +5,12 @@ This module provides common utilities for managing state in the WebUI components
 It ensures consistent state persistence and error handling across all WebUI pages.
 """
 
+import importlib
 import logging
 from functools import wraps
 from typing import Any, Callable, Dict, Generic, Optional, TypeVar
 
-import streamlit as st
-
+from devsynth.exceptions import DevSynthError
 from devsynth.interface.state_access import get_session_value as _get_session_value
 from devsynth.interface.state_access import set_session_value as _set_session_value
 from devsynth.logging_setup import DevSynthLogger
@@ -20,6 +20,26 @@ logger = DevSynthLogger(__name__)
 
 # Type variable for generic functions
 T = TypeVar("T")
+
+
+def _require_streamlit():
+    try:
+        return importlib.import_module("streamlit")
+    except ModuleNotFoundError as e:
+        raise DevSynthError(
+            "Streamlit is required for WebUI state utilities but is not installed. "
+            "Install the 'webui' extra, e.g.:\n"
+            "  poetry install --with dev --extras webui\n"
+            "Or run CLI/doctor commands without WebUI."
+        ) from e
+
+
+# Optional module-level reference used by tests to inject a dummy Streamlit
+st: Any | None = None
+
+
+def _get_st():
+    return st if st is not None else _require_streamlit()
 
 
 def get_session_value(key: str, default: Any = None) -> Any:
@@ -33,7 +53,8 @@ def get_session_value(key: str, default: Any = None) -> Any:
     Returns:
         The value from the session state or the default value
     """
-    return _get_session_value(st.session_state, key, default)
+    s = _get_st()
+    return _get_session_value(s.session_state, key, default)
 
 
 def set_session_value(key: str, value: Any) -> bool:
@@ -47,7 +68,8 @@ def set_session_value(key: str, value: Any) -> bool:
     Returns:
         True if the value was set successfully, False otherwise
     """
-    success = _set_session_value(st.session_state, key, value)
+    s = _get_st()
+    success = _set_session_value(s.session_state, key, value)
     if success:
         logger.debug(f"Set '{key}' in session state")
     return success
@@ -165,22 +187,23 @@ class PageState(Generic[T]):
     def clear(self) -> None:
         """Clear all state for this page."""
         try:
-            if not hasattr(st, "session_state"):
+            s = _get_st()
+            if not hasattr(s, "session_state"):
                 logger.warning(
                     f"Session state not available, cannot clear {self.page_name} state"
                 )
                 return
 
             keys_to_remove = [
-                k for k in st.session_state.keys() if k.startswith(f"{self.page_name}_")
+                k for k in s.session_state.keys() if k.startswith(f"{self.page_name}_")
             ]
             for key in keys_to_remove:
                 try:
-                    del st.session_state[key]
+                    del s.session_state[key]
                 except KeyError:
                     pass
                 try:
-                    delattr(st.session_state, key)
+                    delattr(s.session_state, key)
                 except AttributeError:
                     pass
 

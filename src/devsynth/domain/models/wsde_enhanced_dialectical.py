@@ -82,11 +82,11 @@ def apply_enhanced_dialectical_reasoning(
             logger.error(f"Error in dialectical hook: {str(e)}")
 
 
-
 # Internal helper functions for enhanced dialectical reasoning
 # These are module-level to satisfy strict typing (mypy) and avoid relying on
 # undeclared attributes on WSDETeam. They are pure or side-effect free where
 # possible to keep reasoning deterministic in tests.
+
 
 def _categorize_critiques_by_domain(critiques: List[str]) -> Dict[str, List[str]]:
     categories: Dict[str, List[str]] = {
@@ -109,7 +109,9 @@ def _categorize_critiques_by_domain(critiques: List[str]) -> Dict[str, List[str]
             categories["error_handling"].append(c)
         elif "validate" in lc or "sanitiz" in lc:
             categories["input_validation"].append(c)
-        elif any(k in lc for k in ["lint", "format", "pep8", "readability", "complexity"]):
+        elif any(
+            k in lc for k in ["lint", "format", "pep8", "readability", "complexity"]
+        ):
             categories["code_quality"].append(c)
         elif any(k in lc for k in ["unclear", "confusing", "clarity"]):
             categories["clarity"].append(c)
@@ -122,7 +124,9 @@ def _categorize_critiques_by_domain(critiques: List[str]) -> Dict[str, List[str]
     return categories
 
 
-def _identify_domain_conflicts(domain_critiques: Dict[str, List[str]]) -> List[Dict[str, str]]:
+def _identify_domain_conflicts(
+    domain_critiques: Dict[str, List[str]],
+) -> List[Dict[str, str]]:
     # Simple heuristic: conflicts arise between performance and security or readability
     conflicts: List[Dict[str, str]] = []
     if domain_critiques.get("performance") and domain_critiques.get("security"):
@@ -182,13 +186,21 @@ def _improve_structure(content: str) -> str:
 def _resolve_code_improvement_conflict(
     conflict: Dict[str, Any], imp1: List[str], imp2: List[str]
 ) -> Dict[str, Any]:
-    return {"conflict": conflict, "resolution": "balanced code trade-off", "applied": imp1 + imp2}
+    return {
+        "conflict": conflict,
+        "resolution": "balanced code trade-off",
+        "applied": imp1 + imp2,
+    }
 
 
 def _resolve_content_improvement_conflict(
     conflict: Dict[str, Any], imp1: List[str], imp2: List[str]
 ) -> Dict[str, Any]:
-    return {"conflict": conflict, "resolution": "clarified documentation", "applied": imp1 + imp2}
+    return {
+        "conflict": conflict,
+        "resolution": "clarified documentation",
+        "applied": imp1 + imp2,
+    }
 
 
 def _check_pep8_compliance(code: str) -> Dict[str, Any]:
@@ -216,8 +228,9 @@ def _generate_detailed_synthesis_reasoning(
     )
 
 
-
-def _analyze_solution(solution: Dict[str, Any], task: Dict[str, Any], index: int) -> Dict[str, Any]:
+def _analyze_solution(
+    solution: Dict[str, Any], task: Dict[str, Any], index: int
+) -> Dict[str, Any]:
     return {
         "id": solution.get("id", f"solution-{index}"),
         "score": len(solution.get("content", "")),
@@ -229,8 +242,16 @@ def _analyze_solution(solution: Dict[str, Any], task: Dict[str, Any], index: int
 def _generate_comparative_analysis(
     solution_analyses: List[Dict[str, Any]], task: Dict[str, Any]
 ) -> Dict[str, Any]:
-    best = max(solution_analyses, key=lambda a: a.get("score", 0)) if solution_analyses else {}
-    return {"best": best, "count": len(solution_analyses), "task_id": task.get("id", "unknown")}
+    best = (
+        max(solution_analyses, key=lambda a: a.get("score", 0))
+        if solution_analyses
+        else {}
+    )
+    return {
+        "best": best,
+        "count": len(solution_analyses),
+        "task_id": task.get("id", "unknown"),
+    }
 
 
 def _generate_multi_solution_synthesis(
@@ -239,14 +260,18 @@ def _generate_multi_solution_synthesis(
     return {
         "id": str(uuid4()),
         "timestamp": datetime.now().isoformat(),
-        "content": "; ".join(s.get("content", "") for s in solutions if s.get("content")),
+        "content": "; ".join(
+            s.get("content", "") for s in solutions if s.get("content")
+        ),
         "code": "\n\n".join(s.get("code", "") for s in solutions if s.get("code")),
         "comparative": comparative_analysis,
     }
 
 
 def _generate_comparative_evaluation(
-    synthesis: Dict[str, Any], solutions: List[Dict[str, Any]], comparative_analysis: Dict[str, Any]
+    synthesis: Dict[str, Any],
+    solutions: List[Dict[str, Any]],
+    comparative_analysis: Dict[str, Any],
 ) -> Dict[str, Any]:
     return {
         "id": str(uuid4()),
@@ -549,9 +574,7 @@ def _generate_enhanced_synthesis(
             "security": _check_security_best_practices(code),
         }
     if content:
-        standards_compliance["content"] = _check_content_standards_compliance(
-            content
-        )
+        standards_compliance["content"] = _check_content_standards_compliance(content)
 
     # Generate detailed reasoning
     synthesis_reasoning = self._generate_detailed_synthesis_reasoning(

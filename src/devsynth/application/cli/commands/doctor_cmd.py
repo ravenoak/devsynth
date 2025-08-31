@@ -12,9 +12,6 @@ from devsynth.core.config_loader import _find_project_config, load_config
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.testing.run_tests import run_tests
-
-from . import align_cmd
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -176,6 +173,8 @@ def doctor_cmd(
         if quick:
             ux_bridge.print("[blue]Running alignment check...[/blue]")
             try:
+                from . import align_cmd
+
                 issues = align_cmd.check_alignment(bridge=ux_bridge)
                 align_cmd.display_issues(issues, bridge=ux_bridge)
                 if issues:
@@ -188,6 +187,8 @@ def doctor_cmd(
 
             ux_bridge.print("[blue]Running unit tests...[/blue]")
             try:
+                from devsynth.testing.run_tests import run_tests
+
                 success, _ = run_tests("unit-tests")
                 if not success:
                     ux_bridge.print("[yellow]Unit tests failed[/yellow]")

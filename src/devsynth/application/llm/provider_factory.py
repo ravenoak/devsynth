@@ -46,10 +46,32 @@ class ProviderFactory(SimpleLLMProviderFactory):
         first registered provider.
         """
 
+        # Global offline kill-switch respected at runtime
+        offline_env = os.getenv("DEVSYNTH_OFFLINE", "").lower() in {"1", "true", "yes"}
+
         if provider_type:
-            return super().create_provider(provider_type.lower(), config)
+            pt = provider_type.lower()
+            if offline_env and pt != "offline":
+                return super().create_provider("offline", config)
+            if pt == "lmstudio":
+                lmstudio_available = os.getenv(
+                    "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+                ).lower() in {"1", "true", "yes"}
+                if not lmstudio_available:
+                    return super().create_provider("offline", config)
+            return super().create_provider(pt, config)
+
+        # Implicit selection path
+        if offline_env:
+            return super().create_provider("offline", config)
 
         for name in self._order:
+            if name == "lmstudio":
+                lmstudio_available = os.getenv(
+                    "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+                ).lower() in {"1", "true", "yes"}
+                if not lmstudio_available:
+                    continue
             if name in self.provider_types:
                 return super().create_provider(name, config)
 

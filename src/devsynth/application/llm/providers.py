@@ -222,12 +222,19 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
 
     Safe-by-default policy:
     - If offline_mode is true, select 'offline'.
+    - If DEVSYNTH_OFFLINE=true (env), force 'offline'.
     - If a provider is explicitly configured, use it but validate required credentials.
+    - If 'lmstudio' is requested but not marked available via DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE, fall back to 'offline'.
     - Otherwise, default to 'offline'.
     """
 
     cfg = config or load_config().as_dict()
     offline = cfg.get("offline_mode", False)
+
+    # Honor global offline kill-switch
+    offline_env = os.getenv("DEVSYNTH_OFFLINE", "").lower() in {"1", "true", "yes"}
+    if offline_env:
+        offline = True
 
     # Tests default: require explicit opt-in to use real providers
     allow_providers = os.getenv("DEVSYNTH_TEST_ALLOW_PROVIDERS", "false").lower() in {
@@ -248,8 +255,17 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
     else:
         provider_type = llm_cfg.get("provider") or "offline"
 
-    # Validate credentials if a remote provider is explicitly requested
+    # Enforce LM Studio availability flag
     pt_lower = str(provider_type).lower()
+    if pt_lower == "lmstudio":
+        lmstudio_available = os.getenv(
+            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+        ).lower() in {"1", "true", "yes"}
+        if not lmstudio_available:
+            provider_type = "offline"
+            pt_lower = "offline"
+
+    # Validate credentials if a remote provider is explicitly requested
     if pt_lower == "openai":
         api_key = llm_cfg.get("api_key") or os.environ.get("OPENAI_API_KEY")
         if not api_key:
