@@ -65,18 +65,18 @@ high_priority_isolation_issues.md
 test_markers_report.json
 
 # IDE specific files
- .idea/
- .vscode/
- *.sublime-project
- *.sublime-workspace
- .DS_Store
- .benchmarks/
- .hypothesis/
- .test_cache/
- .cache/
- .test_dependency_cache/
- .test_metrics_cache/
- .test_timing_cache/
- .pytest_collection_cache.json
- TASK_PROGRESS.md
- .test_collection_cache/
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+.benchmarks/
+.hypothesis/
+.test_cache/
+.cache/
+.test_dependency_cache/
+.test_metrics_cache/
+.test_timing_cache/
+.pytest_collection_cache.json
+TASK_PROGRESS.md
+.test_collection_cache/
