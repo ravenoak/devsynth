@@ -51,29 +51,30 @@ build/
 traceability.json
 
 # Test and report files
-test_reports/
-.test_categorization_progress.json
-.test_categorization_schedule.json
-flaky_test_report.json
-fresh_isolation_report.json
-isolation_report_*.json
-*_isolation_report.json
-high_priority_isolation_issues.md
-test_markers_report.json
-
-# IDE specific files
-.idea/
-.vscode/
-*.sublime-project
-*.sublime-workspace
-.DS_Store
-.benchmarks/
-.hypothesis/
-.test_cache/
-.cache/
-.test_dependency_cache/
-.test_metrics_cache/
-.test_timing_cache/
-.pytest_collection_cache.json
-TASK_PROGRESS.md
-.test_collection_cache/
+ test_reports/
+ diagnostics/
+ .test_categorization_progress.json
+ .test_categorization_schedule.json
+ flaky_test_report.json
+ fresh_isolation_report.json
+ isolation_report_*.json
+ *_isolation_report.json
+ high_priority_isolation_issues.md
+ test_markers_report.json
+ 
+ # IDE specific files
+ .idea/
+ .vscode/
+ *.sublime-project
+ *.sublime-workspace
+ .DS_Store
+ .benchmarks/
+ .hypothesis/
+ .test_cache/
+ .cache/
+ .test_dependency_cache/
+ .test_metrics_cache/
+ .test_timing_cache/
+ .pytest_collection_cache.json
+ TASK_PROGRESS.md
+ .test_collection_cache/
