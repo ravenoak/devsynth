@@ -2,11 +2,26 @@
 
 from __future__ import annotations
 
+import importlib
 import json
 import subprocess
 from pathlib import Path
 
-import streamlit as st
+from devsynth.exceptions import DevSynthError
+
+
+# Optional dependency guard for Streamlit
+def _require_streamlit():
+    try:
+        return importlib.import_module("streamlit")
+    except ModuleNotFoundError as e:
+        raise DevSynthError(
+            "Streamlit is required for the MVUU dashboard but is not installed. "
+            "Install the 'webui' extra, e.g.:\n"
+            "  poetry install --with dev --extras webui\n"
+            "Or run CLI/doctor commands without WebUI."
+        ) from e
+
 
 # Path to the traceability file relative to the repository root
 _DEFAULT_TRACE_PATH = Path(__file__).resolve().parents[3] / "traceability.json"
@@ -39,6 +54,7 @@ def load_traceability(path: Path = _DEFAULT_TRACE_PATH) -> dict:
 
 def render_dashboard(data: dict) -> None:
     """Render the MVUU dashboard using Streamlit."""
+    st = _require_streamlit()
     st.title("MVUU Traceability Dashboard")
     st.sidebar.header("TraceIDs")
 

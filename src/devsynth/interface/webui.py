@@ -28,25 +28,44 @@ UX guidance for clarity and responsiveness.
 
 from __future__ import annotations
 
+import importlib
 import json
 import os
 import time
 import traceback
 from pathlib import Path
+
+# Optional dependency: Streamlit may not be installed in minimal/test environments.
+# Do not import Streamlit at module scope; use a lazy proxy and a guarded importer.
+from types import ModuleType
 from typing import Any, Callable, Optional, Sequence, TypeVar
 from unittest.mock import MagicMock
 
-# Optional dependency: Streamlit may not be installed in minimal/test environments.
-try:  # pragma: no cover - optional dependency handling
-    import streamlit as st  # type: ignore
-except Exception:  # pragma: no cover - provide a lazy erroring stub
-    class _MissingStreamlit:
-        def __getattr__(self, name: str):  # type: ignore[no-untyped-def]
-            raise ImportError(
-                "streamlit is required to use devsynth.interface.webui; install via 'poetry add streamlit --group dev' or run with the 'webui' extra"
-            )
+from devsynth.exceptions import DevSynthError
 
-    st = _MissingStreamlit()  # type: ignore
+_STREAMLIT: Optional[ModuleType] = None
+
+
+def _require_streamlit() -> ModuleType:
+    global _STREAMLIT
+    if _STREAMLIT is None:
+        try:  # pragma: no cover - optional dependency handling
+            _STREAMLIT = importlib.import_module("streamlit")
+        except Exception as exc:  # pragma: no cover - provide clear guidance
+            raise DevSynthError(
+                "Streamlit is required to use the DevSynth WebUI. Install the optional extra:\n"
+                "  poetry install --with dev --extras webui"
+            ) from exc
+    return _STREAMLIT
+
+
+class _LazyStreamlit:
+    def __getattr__(self, name: str):  # type: ignore[no-untyped-def]
+        mod = _require_streamlit()
+        return getattr(mod, name)
+
+
+st = _LazyStreamlit()  # type: ignore
 
 from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType

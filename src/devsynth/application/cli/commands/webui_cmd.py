@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Optional
 
+from devsynth.exceptions import DevSynthError
 from devsynth.interface.ux_bridge import UXBridge
 
 from ..utils import _resolve_bridge
@@ -27,7 +28,10 @@ def webui_cmd(*, bridge: Optional[UXBridge] = None) -> None:
         from devsynth.interface.webui import run  # type: ignore
 
         run()
-    except ModuleNotFoundError as err:  # pragma: no cover - optional dep missing
+    except (
+        ModuleNotFoundError,
+        DevSynthError,
+    ) as err:  # pragma: no cover - optional dep missing
         bridge.display_result(
             "[yellow]WebUI dependencies are not installed.[/yellow]\n"
             "Install optional extras and retry, e.g.:\n"

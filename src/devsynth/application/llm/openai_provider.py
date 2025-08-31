@@ -16,8 +16,9 @@ except Exception:  # pragma: no cover - graceful fallback
     OpenAI = AsyncOpenAI = object
     ChatCompletion = ChatCompletionChunk = object
 
-from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 import concurrent.futures
+
+from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -79,7 +80,12 @@ class OpenAIProvider(StreamingLLMProvider):
         )
         # Deterministic per-call timeout (seconds)
         try:
-            self.call_timeout = float(os.environ.get("DEVSYNTH_CALL_TIMEOUT_SECONDS", str(self.config.get("call_timeout", 15))))
+            self.call_timeout = float(
+                os.environ.get(
+                    "DEVSYNTH_CALL_TIMEOUT_SECONDS",
+                    str(self.config.get("call_timeout", 15)),
+                )
+            )
         except ValueError:
             self.call_timeout = 15.0
 
@@ -91,7 +97,12 @@ class OpenAIProvider(StreamingLLMProvider):
         self.token_tracker = TokenTracker()
 
         # Respect offline/test modes: avoid constructing real clients when DEVSYNTH_OFFLINE=true
-        offline = os.environ.get("DEVSYNTH_OFFLINE", "false").strip().lower() in {"1", "true", "yes", "on"}
+        offline = os.environ.get("DEVSYNTH_OFFLINE", "false").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
 
         # Initialize OpenAI client lazily/safely:
         # If offline or no API key is present, set no-op stub clients to avoid network usage.
@@ -123,7 +134,9 @@ class OpenAIProvider(StreamingLLMProvider):
         # Deterministic timeouts to avoid hangs; configurable via env
         # Use short connect/read timeouts in offline-first contexts
         try:
-            default_timeout = float(os.environ.get("DEVSYNTH_HTTP_TIMEOUT_SECONDS", "10"))
+            default_timeout = float(
+                os.environ.get("DEVSYNTH_HTTP_TIMEOUT_SECONDS", "10")
+            )
         except ValueError:
             default_timeout = 10.0
         # OpenAI v1 client accepts http_client with httpx.Client configured; AsyncOpenAI uses AsyncClient
@@ -131,8 +144,12 @@ class OpenAIProvider(StreamingLLMProvider):
         try:
             import httpx  # type: ignore
 
-            client_kwargs["http_client"] = httpx.Client(timeout=httpx.Timeout(default_timeout))
-            async_http_client = httpx.AsyncClient(timeout=httpx.Timeout(default_timeout))
+            client_kwargs["http_client"] = httpx.Client(
+                timeout=httpx.Timeout(default_timeout)
+            )
+            async_http_client = httpx.AsyncClient(
+                timeout=httpx.Timeout(default_timeout)
+            )
         except Exception:  # pragma: no cover - fallback if httpx not available
             httpx = None  # type: ignore
             async_http_client = None  # type: ignore
@@ -152,7 +169,11 @@ class OpenAIProvider(StreamingLLMProvider):
             self.client = OpenAI(**client_kwargs)
             try:
                 # Prefer the async http client with timeout if available
-                self.async_client = AsyncOpenAI(**client_kwargs, http_client=async_http_client) if async_http_client is not None else AsyncOpenAI(**client_kwargs)
+                self.async_client = (
+                    AsyncOpenAI(**client_kwargs, http_client=async_http_client)
+                    if async_http_client is not None
+                    else AsyncOpenAI(**client_kwargs)
+                )
             except TypeError:
                 # Older SDKs may not accept http_client kwarg
                 self.async_client = AsyncOpenAI(**client_kwargs)
@@ -185,7 +206,9 @@ class OpenAIProvider(StreamingLLMProvider):
         def _wrapped():
             # Execute in a worker with a strict timeout to avoid hangs
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(self.circuit_breaker.call, func, *args, **kwargs)
+                future = executor.submit(
+                    self.circuit_breaker.call, func, *args, **kwargs
+                )
                 return future.result(timeout=self.call_timeout)
 
         return _wrapped()

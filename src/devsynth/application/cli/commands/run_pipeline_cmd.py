@@ -89,12 +89,8 @@ def run_pipeline_cmd(
                 return
 
         # Execute command
-        running_label = (
-            "target: " + str(target) if target else "default pipeline"
-        )
-        bridge.display_result(
-            "[blue]Running " + running_label + "...[/blue]"
-        )
+        running_label = "target: " + str(target) if target else "default pipeline"
+        bridge.display_result("[blue]Running " + running_label + "...[/blue]")
         result = workflows.execute_command(
             "run-pipeline", {"target": target, "report": _parse_report(report)}
         )
