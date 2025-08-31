@@ -16,6 +16,7 @@ def mock_settings():
         yield mock_settings
 
 
+@pytest.mark.fast
 def test_verify_token_valid_is_valid(mock_settings):
     """Test that verify_token accepts a valid token.
 
@@ -24,6 +25,7 @@ def test_verify_token_valid_is_valid(mock_settings):
     verify_token(authorization)
 
 
+@pytest.mark.fast
 def test_verify_token_invalid_is_valid(mock_settings):
     """Test that verify_token rejects an invalid token.
 
@@ -35,6 +37,7 @@ def test_verify_token_invalid_is_valid(mock_settings):
     assert excinfo.value.detail == "Unauthorized"
 
 
+@pytest.mark.fast
 def test_verify_token_missing_succeeds(mock_settings):
     """Test that verify_token rejects a missing token.
 
@@ -46,6 +49,7 @@ def test_verify_token_missing_succeeds(mock_settings):
     assert excinfo.value.detail == "Unauthorized"
 
 
+@pytest.mark.fast
 def test_verify_token_wrong_format_succeeds(mock_settings):
     """Test that verify_token rejects a token in the wrong format.
 
@@ -57,6 +61,7 @@ def test_verify_token_wrong_format_succeeds(mock_settings):
     assert excinfo.value.detail == "Unauthorized"
 
 
+@pytest.mark.fast
 def test_verify_token_access_control_disabled_succeeds(mock_settings):
     """Test that verify_token accepts any token when access control is disabled.
 

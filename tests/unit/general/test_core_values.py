@@ -1,5 +1,8 @@
 import importlib.util
+import sys
 from pathlib import Path
+
+import pytest
 
 spec = importlib.util.spec_from_file_location(
     "devsynth.core.values",
@@ -7,7 +10,6 @@ spec = importlib.util.spec_from_file_location(
 )
 values_mod = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
-import sys
 
 sys.modules[spec.name] = values_mod
 spec.loader.exec_module(values_mod)
@@ -16,6 +18,7 @@ find_value_conflicts = values_mod.find_value_conflicts
 check_report_for_value_conflicts = values_mod.check_report_for_value_conflicts
 
 
+@pytest.mark.fast
 def test_load_core_values_succeeds(tmp_path):
     """Test that load core values succeeds.
 
@@ -27,6 +30,7 @@ def test_load_core_values_succeeds(tmp_path):
     assert values.statements == ["integrity", "transparency"]
 
 
+@pytest.mark.fast
 def test_find_value_conflicts_succeeds():
     """Test that find value conflicts succeeds.
 
@@ -36,6 +40,7 @@ def test_find_value_conflicts_succeeds():
     assert find_value_conflicts(text, values) == ["integrity"]
 
 
+@pytest.mark.fast
 def test_check_report_for_value_conflicts_succeeds(tmp_path):
     """Test that check report for value conflicts succeeds.
 

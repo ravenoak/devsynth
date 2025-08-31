@@ -13,6 +13,7 @@ class DummyCritic:
     pass
 
 
+@pytest.mark.fast
 @pytest.mark.unit
 def test_reasoning_loop_retries_on_transient_error(monkeypatch):
     calls = {"count": 0}

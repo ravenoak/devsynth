@@ -35,6 +35,7 @@ def bind(team):
     return team
 
 
+@pytest.mark.fast
 def test_majority_voting_simple(monkeypatch):
     agents = [DummyAgent("a1", ["a"]), DummyAgent("a2", ["b"]), DummyAgent("a3", ["a"])]
     team = bind(DummyTeam(agents, primus=agents[0]))
@@ -45,6 +46,7 @@ def test_majority_voting_simple(monkeypatch):
     assert result["result"] == "option_a"
 
 
+@pytest.mark.fast
 def test_handle_tied_vote_primus_breaks(monkeypatch):
     agents = [DummyAgent("primus", ["x"]), DummyAgent("other", ["y"])]
     team = bind(DummyTeam(agents, primus=agents[0]))
@@ -61,6 +63,7 @@ def test_handle_tied_vote_primus_breaks(monkeypatch):
     assert res["status"] == "completed"
 
 
+@pytest.mark.fast
 def test_weighted_voting_tie_primus_resolution(monkeypatch):
     a1 = DummyAgent("p", ["frontend"])
     a2 = DummyAgent("s", ["frontend"])
@@ -85,6 +88,7 @@ def test_weighted_voting_tie_primus_resolution(monkeypatch):
     assert res["result"] == "frontend"
 
 
+@pytest.mark.fast
 def test_vote_on_critical_decision_majority(monkeypatch):
     agents = [
         DummyAgent("a1", ["opt1"]),
@@ -99,6 +103,7 @@ def test_vote_on_critical_decision_majority(monkeypatch):
     assert result["status"] == "completed"
 
 
+@pytest.mark.fast
 def test_vote_on_critical_decision_weighted(monkeypatch):
     a1 = DummyAgent("a1", ["frontend"])
     a2 = DummyAgent("a2", ["backend"])
@@ -115,6 +120,7 @@ def test_vote_on_critical_decision_weighted(monkeypatch):
     assert result["result"] == "frontend"
 
 
+@pytest.mark.fast
 def test_apply_majority_voting_no_tie(monkeypatch):
     agents = [DummyAgent("a1"), DummyAgent("a2")]
     team = bind(DummyTeam(agents, primus=agents[0]))
@@ -129,6 +135,7 @@ def test_apply_majority_voting_no_tie(monkeypatch):
     assert res["status"] == "completed"
 
 
+@pytest.mark.fast
 def test_consensus_vote(monkeypatch):
     agents = [DummyAgent("a1", ["front"]), DummyAgent("a2", ["front"])]
     team = bind(DummyTeam(agents, primus=agents[0]))
@@ -138,6 +145,7 @@ def test_consensus_vote(monkeypatch):
     assert res["decision"] in {"front", "back"}
 
 
+@pytest.mark.fast
 def test_build_consensus_simple(monkeypatch):
     agents = [DummyAgent("a1", ["front"]), DummyAgent("a2", ["back"])]
     team = bind(DummyTeam(agents, primus=agents[0]))
@@ -151,6 +159,7 @@ def test_build_consensus_simple(monkeypatch):
     assert "status" in res
 
 
+@pytest.mark.fast
 def test_build_consensus_rounds(monkeypatch):
     agents = [DummyAgent("a1", ["x"]), DummyAgent("a2", ["y"]), DummyAgent("a3", ["x"])]
     team = bind(DummyTeam(agents, primus=agents[0]))
@@ -165,6 +174,7 @@ def test_build_consensus_rounds(monkeypatch):
     assert "status" in res
 
 
+@pytest.mark.fast
 def test_apply_weighted_voting_primus_tie(monkeypatch):
     p = DummyAgent("p", ["front"])
     o = DummyAgent("o", ["front"])
@@ -181,6 +191,7 @@ def test_apply_weighted_voting_primus_tie(monkeypatch):
     assert res["result"] == "front"
 
 
+@pytest.mark.fast
 def test_apply_weighted_voting_random(monkeypatch):
     a1 = DummyAgent("a1")
     a2 = DummyAgent("a2")

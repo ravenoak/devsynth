@@ -1,9 +1,12 @@
 import types
 from unittest.mock import MagicMock
 
+import pytest
+
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 
 
+@pytest.mark.medium
 def test_non_hierarchical_conflict_resolution_succeeds():
     """Test that non hierarchical conflict resolution succeeds.
 

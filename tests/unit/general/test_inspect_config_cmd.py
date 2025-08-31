@@ -3,6 +3,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
 import yaml
 
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
@@ -13,6 +14,7 @@ from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_
 @patch("devsynth.application.cli.commands.inspect_config_cmd.compare_with_manifest")
 @patch("devsynth.application.cli.commands.inspect_config_cmd.update_manifest")
 @patch("yaml.dump")
+@pytest.mark.fast
 def test_inspect_config_update_succeeds(
     mock_dump, mock_update, mock_compare, mock_analyze, mock_bridge, tmp_path
 ):
@@ -42,6 +44,7 @@ def test_inspect_config_update_succeeds(
 @patch("devsynth.application.cli.commands.inspect_config_cmd.compare_with_manifest")
 @patch("devsynth.application.cli.commands.inspect_config_cmd.prune_manifest")
 @patch("yaml.dump")
+@pytest.mark.fast
 def test_inspect_config_prune_succeeds(
     mock_dump, mock_prune, mock_compare, mock_analyze, mock_bridge, tmp_path
 ):
@@ -67,6 +70,7 @@ def test_inspect_config_prune_succeeds(
 
 
 @patch("devsynth.application.cli.commands.inspect_config_cmd.bridge")
+@pytest.mark.fast
 def test_inspect_config_no_config_succeeds(mock_bridge, tmp_path):
     """Test that inspect config no config succeeds.
 

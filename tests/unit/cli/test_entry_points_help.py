@@ -6,6 +6,7 @@ from importlib.metadata import entry_points
 import pytest
 
 
+@pytest.mark.fast
 @pytest.mark.smoke
 def test_devsynth_help_module_invocation():
     # Invoke devsynth via module to avoid relying on installed console script
@@ -32,6 +33,7 @@ def _console_script_targets():
     return {ep.name: ep.value for ep in console}
 
 
+@pytest.mark.fast
 @pytest.mark.smoke
 def test_console_scripts_declared():
     targets = _console_script_targets()
@@ -45,6 +47,7 @@ def test_console_scripts_declared():
     ), targets["mvuu-dashboard"]
 
 
+@pytest.mark.fast
 @pytest.mark.smoke
 def test_mvuu_dashboard_help_via_module():
     # Run the command module with --help; argparse will print help and exit(0)

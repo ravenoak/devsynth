@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
 
+import pytest
+
 from devsynth.core.config_loader import CoreConfig, load_config, save_global_config
 
 
+@pytest.mark.fast
 def test_precedence_env_over_project_over_global_succeeds(tmp_path, monkeypatch):
     """Test that precedence env over project over global succeeds.
 
@@ -26,6 +29,7 @@ def test_precedence_env_over_project_over_global_succeeds(tmp_path, monkeypatch)
     assert cfg.language == "rust"
 
 
+@pytest.mark.fast
 def test_load_toml_project_succeeds(tmp_path, monkeypatch):
     """Test that load toml project succeeds.
 
@@ -37,6 +41,7 @@ def test_load_toml_project_succeeds(tmp_path, monkeypatch):
     assert cfg.language == "java"
 
 
+@pytest.mark.fast
 def test_save_global_config_yaml_succeeds(tmp_path, monkeypatch):
     """Test that save global config yaml succeeds.
 

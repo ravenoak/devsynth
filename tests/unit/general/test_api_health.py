@@ -17,6 +17,7 @@ def api_token_env(monkeypatch):
     monkeypatch.setattr(api_module.settings, "access_token", "test-token")
 
 
+@pytest.mark.fast
 def test_health_endpoint_succeeds(api_token_env):
     """Test that health endpoint succeeds.
 
@@ -26,6 +27,7 @@ def test_health_endpoint_succeeds(api_token_env):
     assert resp.json() == {"status": "ok"}
 
 
+@pytest.mark.fast
 def test_metrics_endpoint_succeeds(api_token_env):
     """Test that metrics endpoint succeeds.
 

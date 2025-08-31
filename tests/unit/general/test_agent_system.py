@@ -17,6 +17,7 @@ from devsynth.agents.base_agent_graph import (
 from devsynth.agents.graph_state import AgentState
 
 
+@pytest.mark.fast
 def test_agent_state_keys_has_expected():
     """Test that AgentState can be created and has expected keys.
 
@@ -33,6 +34,7 @@ def test_agent_state_keys_has_expected():
     assert state["input_request"] == "test"
 
 
+@pytest.mark.fast
 def test_process_input_node_success_is_valid():
     """Test process_input_node with valid input.
 
@@ -50,6 +52,7 @@ def test_process_input_node_success_is_valid():
     assert updated_state.get("error") is None
 
 
+@pytest.mark.fast
 def test_process_input_node_empty_input_succeeds():
     """Test process_input_node with empty input.
 
@@ -67,6 +70,7 @@ def test_process_input_node_empty_input_succeeds():
     assert updated_state.get("processed_input") is None
 
 
+@pytest.mark.fast
 def test_process_input_node_adds_tool_list():
     """Process node should add available tools to state."""
     initial_state = AgentState(
@@ -81,6 +85,7 @@ def test_process_input_node_adds_tool_list():
     assert updated_state.get("available_tools") == get_available_tools()
 
 
+@pytest.mark.fast
 @patch("devsynth.agents.base_agent_graph.llm_complete")
 def test_llm_call_node_success_succeeds(mock_llm_complete):
     """Test llm_call_node with successful LLM call.
@@ -109,6 +114,7 @@ def test_llm_call_node_success_succeeds(mock_llm_complete):
     assert updated_state.get("error") is None
 
 
+@pytest.mark.fast
 @patch("devsynth.agents.base_agent_graph.llm_complete")
 def test_llm_call_node_llm_failure_fails(mock_llm_complete):
     """Test llm_call_node when LLM call fails.
@@ -137,6 +143,7 @@ def test_llm_call_node_llm_failure_fails(mock_llm_complete):
     assert updated_state.get("llm_response") is None
 
 
+@pytest.mark.fast
 def test_llm_call_node_skip_on_prior_error_raises_error():
     """Test llm_call_node skips if there's a prior error in state.
 
@@ -154,6 +161,7 @@ def test_llm_call_node_skip_on_prior_error_raises_error():
     assert updated_state.get("llm_response") is None
 
 
+@pytest.mark.fast
 def test_llm_call_node_missing_processed_input_succeeds():
     """Test llm_call_node if processed_input is missing.
 
@@ -172,6 +180,7 @@ def test_llm_call_node_missing_processed_input_succeeds():
     assert updated_state.get("llm_response") is None
 
 
+@pytest.mark.fast
 def test_parse_output_node_success_is_valid():
     """Test parse_output_node with valid LLM response.
 
@@ -189,6 +198,7 @@ def test_parse_output_node_success_is_valid():
     assert updated_state.get("error") is None
 
 
+@pytest.mark.fast
 def test_parse_output_node_missing_llm_response_succeeds():
     """Test parse_output_node if llm_response is missing.
 
@@ -205,6 +215,7 @@ def test_parse_output_node_missing_llm_response_succeeds():
     assert updated_state["final_output"] == ""
 
 
+@pytest.mark.fast
 def test_parse_output_node_skip_on_prior_error_raises_error():
     """Test parse_output_node skips if there's a prior error in state.
 
@@ -222,6 +233,7 @@ def test_parse_output_node_skip_on_prior_error_raises_error():
     assert updated_state.get("final_output") is None
 
 
+@pytest.mark.fast
 def test_base_agent_graph_compiles_raises_error():
     """Test that the base_agent_graph compiles without errors.
 

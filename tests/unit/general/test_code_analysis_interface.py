@@ -1,6 +1,8 @@
 import unittest
 from typing import Any, Dict, List, Optional
 
+import pytest
+
 from devsynth.domain.interfaces.code_analysis import (
     CodeAnalysisProvider,
     CodeAnalysisResult,
@@ -13,6 +15,7 @@ class TestCodeAnalysisInterface(unittest.TestCase):
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_code_analysis_result_interface_has_expected(self):
         """Test that the CodeAnalysisResult interface has the expected attributes.
 
@@ -48,6 +51,7 @@ class TestCodeAnalysisInterface(unittest.TestCase):
         self.assertEqual(result.get_dependencies("test_module"), [])
         self.assertEqual(result.get_metrics(), {})
 
+    @pytest.mark.fast
     def test_file_analysis_result_interface_has_expected(self):
         """Test that the FileAnalysisResult interface has the expected attributes.
 
@@ -93,6 +97,7 @@ class TestCodeAnalysisInterface(unittest.TestCase):
         self.assertEqual(file_result.get_docstring(), "")
         self.assertEqual(file_result.get_metrics(), {})
 
+    @pytest.mark.fast
     def test_code_analysis_provider_interface_has_expected(self):
         """Test that the CodeAnalysisProvider interface has the expected methods.
 

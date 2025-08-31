@@ -53,6 +53,7 @@ class TestAgentCoordinatorImpl:
         self.agent4.agent_type = "validation"
         self.agent4.current_role = None
 
+    @pytest.mark.fast
     def test_add_agent_succeeds(self):
         """Test adding an agent to the coordinator.
 
@@ -63,6 +64,7 @@ class TestAgentCoordinatorImpl:
         assert len(self.coordinator.team.agents) == 1
         assert self.coordinator.team.agents[0] == self.agent1
 
+    @pytest.mark.fast
     def test_delegate_task_to_agent_type_succeeds(self):
         """Test delegating a task to a specific agent type.
 
@@ -76,6 +78,7 @@ class TestAgentCoordinatorImpl:
         self.agent2.process.assert_called_once_with(task)
         self.agent1.process.assert_not_called()
 
+    @pytest.mark.fast
     def test_delegate_task_to_team_succeeds(self):
         """Test delegating a task to the entire team.
 
@@ -97,6 +100,7 @@ class TestAgentCoordinatorImpl:
         assert "evaluation" in result["team_result"]
         assert "primus" in result["team_result"]
 
+    @pytest.mark.fast
     def test_delegate_task_missing_parameters_succeeds(self):
         """Test delegating a task with missing parameters.
 
@@ -105,6 +109,7 @@ class TestAgentCoordinatorImpl:
         with pytest.raises(ValidationError):
             self.coordinator.delegate_task(task)
 
+    @pytest.mark.fast
     def test_delegate_task_no_agents_succeeds(self):
         """Test delegating a team task with no agents.
 
@@ -113,6 +118,7 @@ class TestAgentCoordinatorImpl:
         with pytest.raises(TeamConfigurationError):
             self.coordinator.delegate_task(task)
 
+    @pytest.mark.fast
     def test_delegate_task_agent_type_not_found_succeeds(self):
         """Test delegating a task to an agent type that doesn't exist.
 
@@ -122,6 +128,7 @@ class TestAgentCoordinatorImpl:
         with pytest.raises(ValidationError):
             self.coordinator.delegate_task(task)
 
+    @pytest.mark.fast
     def test_delegate_task_agent_execution_error_raises_error(self):
         """Test handling an error during agent execution.
 

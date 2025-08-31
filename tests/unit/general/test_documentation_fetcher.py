@@ -5,6 +5,7 @@ from devsynth.application.documentation.documentation_fetcher import (
 )
 
 
+@pytest.mark.fast
 def test_fetcher_initialization_succeeds():
     """Test that fetcher initialization succeeds.
 

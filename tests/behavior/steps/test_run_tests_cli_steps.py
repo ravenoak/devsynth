@@ -41,7 +41,9 @@ def plugin_autoload_disabled():
 
 
 @pytest.mark.fast
-@then(parsers.parse('the command should fail with a helpful message containing "{text}"'))
+@then(
+    parsers.parse('the command should fail with a helpful message containing "{text}"')
+)
 def command_fails_with_message(text: str, command_context):
     assert command_context.get("exit_code", 0) != 0
     output = command_context.get("output", "")

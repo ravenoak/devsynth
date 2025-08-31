@@ -1,5 +1,6 @@
 import logging
 
+import pytest
 from _pytest.logging import LogCaptureHandler
 
 from devsynth.logging_setup import (
@@ -10,6 +11,7 @@ from devsynth.logging_setup import (
 )
 
 
+@pytest.mark.fast
 def test_log_records_include_request_context_succeeds(caplog, monkeypatch):
     """Test that log records include request context succeeds.
 
@@ -28,6 +30,7 @@ def test_log_records_include_request_context_succeeds(caplog, monkeypatch):
     ]
 
 
+@pytest.mark.fast
 def test_exc_info_passes_through_succeeds(caplog, monkeypatch):
     """DevSynthLogger should forward exc_info to logging."""
 
@@ -45,6 +48,7 @@ def test_exc_info_passes_through_succeeds(caplog, monkeypatch):
     assert record.exc_info and record.exc_info[0] is ValueError
 
 
+@pytest.mark.fast
 def test_exc_info_true_uses_current_exception(monkeypatch):
     """Passing exc_info=True attaches the active exception."""
 
@@ -62,6 +66,7 @@ def test_exc_info_true_uses_current_exception(monkeypatch):
     assert record.exc_info and record.exc_info[0] is ZeroDivisionError
 
 
+@pytest.mark.fast
 def test_extra_kwargs_and_reserved_keys_safely_handled(monkeypatch):
     """Reserved keys in kwargs or extra should not raise errors."""
 

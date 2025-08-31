@@ -19,6 +19,7 @@ class TestWorkflowState:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_workflow_state_creation_succeeds(self):
         """Test creating a workflow state.
 
@@ -37,6 +38,7 @@ class TestWorkflowState:
         assert state.current_step is None
         assert state.result == {}
 
+    @pytest.mark.fast
     def test_workflow_state_to_dict_succeeds(self):
         """Test converting workflow state to dictionary.
 
@@ -56,6 +58,7 @@ class TestWorkflowState:
         assert state_dict["current_step"] == "step-1"
         assert state_dict["status"] == WorkflowStatus.PENDING.value
 
+    @pytest.mark.fast
     def test_workflow_state_from_dict_succeeds(self):
         """Test creating workflow state from dictionary.
 
@@ -96,6 +99,7 @@ class TestFileSystemCheckpointSaver:
         checkpoint_dir = str(tmp_path / "checkpoints")
         return FileSystemCheckpointSaver(checkpoint_dir)
 
+    @pytest.mark.fast
     def test_checkpoint_path_succeeds(self, checkpoint_saver):
         """Test getting checkpoint path.
 
@@ -103,6 +107,7 @@ class TestFileSystemCheckpointSaver:
         path = checkpoint_saver.get_checkpoint_path("test-thread")
         assert path.endswith("test-thread.pkl")
 
+    @pytest.mark.fast
     @patch("os.path.exists")
     @patch("builtins.open", new_callable=mock_open)
     @patch("pickle.load")
@@ -120,6 +125,7 @@ class TestFileSystemCheckpointSaver:
         mock_file_open.assert_called_once()
         mock_pickle_load.assert_called_once()
 
+    @pytest.mark.fast
     @patch("os.path.exists")
     def test_get_checkpoint_not_exists_succeeds(self, mock_exists, checkpoint_saver):
         """Test getting a non-existent checkpoint.
@@ -130,6 +136,7 @@ class TestFileSystemCheckpointSaver:
         assert result is None
         mock_exists.assert_called_once()
 
+    @pytest.mark.fast
     @patch("builtins.open", new_callable=mock_open)
     @patch("pickle.dump")
     def test_put_checkpoint_succeeds(
@@ -157,6 +164,7 @@ class TestLangGraphWorkflowEngine:
         callback = MagicMock()
         return LangGraphWorkflowEngine(human_intervention_callback=callback)
 
+    @pytest.mark.fast
     def test_create_workflow_succeeds(self, workflow_engine):
         """Test creating a workflow.
 
@@ -168,6 +176,7 @@ class TestLangGraphWorkflowEngine:
         assert workflow.status == WorkflowStatus.PENDING
         assert workflow.steps == []
 
+    @pytest.mark.fast
     def test_add_step_succeeds(self, workflow_engine):
         """Test adding a step to a workflow.
 
@@ -185,6 +194,7 @@ class TestLangGraphWorkflowEngine:
         assert updated_workflow.steps[0].name == "Test Step"
         assert updated_workflow.steps[0].status == WorkflowStatus.PENDING
 
+    @pytest.mark.fast
     @patch("devsynth.adapters.orchestration.langgraph_adapter.StateGraph")
     @patch("devsynth.adapters.orchestration.langgraph_adapter.Pregel")
     def test_execute_workflow_succeeds(
@@ -230,6 +240,7 @@ class TestFileSystemWorkflowRepository:
         repo_dir = str(tmp_path / "workflows")
         return FileSystemWorkflowRepository(repo_dir)
 
+    @pytest.mark.fast
     def test_save_and_get_workflow_succeeds(self, workflow_repo):
         """Test saving and retrieving a workflow.
 
@@ -254,6 +265,7 @@ class TestFileSystemWorkflowRepository:
             assert retrieved.name == "Test Workflow"
             mock_file.assert_called_once()
 
+    @pytest.mark.fast
     def test_list_workflows_succeeds(self, workflow_repo):
         """Test listing workflows.
 

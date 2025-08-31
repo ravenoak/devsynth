@@ -95,6 +95,7 @@ def fake_analyzers(monkeypatch):
     monkeypatch.setattr(mod, "ProjectStateAnalyzer", _ProjectAnalyzer)
 
 
+@pytest.mark.fast
 def test_inspect_code_cmd_sanitizes_dynamic_output(
     patch_console, fake_analyzers, monkeypatch, tmp_path
 ):

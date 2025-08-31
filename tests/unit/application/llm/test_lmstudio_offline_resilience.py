@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 @pytest.mark.fast
@@ -26,6 +27,7 @@ def test_generate_timeout_raises_connection_error_quickly(monkeypatch):
         patch("devsynth.application.llm.lmstudio_provider.lmstudio.llm") as mock_llm,
     ):
         mock_model = MagicMock()
+
         # Simulate a timeout-like exception repeatedly
         class FakeTimeoutError(Exception):
             pass

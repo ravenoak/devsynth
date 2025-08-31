@@ -1,3 +1,5 @@
+import pytest
+
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
 
 
@@ -15,6 +17,7 @@ class DummyAdapter(BaseMethodologyAdapter):
         pass
 
 
+@pytest.mark.fast
 def test_dummy_adapter_succeeds():
     """Test that dummy adapter succeeds.
 

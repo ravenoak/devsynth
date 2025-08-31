@@ -38,6 +38,7 @@ class TestChromaDBAdapter:
             persist_directory=temp_dir, collection_name="test_vectors"
         )
 
+    @pytest.mark.fast
     def test_initialization_succeeds(self, temp_dir):
         """Test that the adapter initializes correctly.
 
@@ -50,6 +51,7 @@ class TestChromaDBAdapter:
         assert adapter.client is not None
         assert adapter.collection is not None
 
+    @pytest.mark.fast
     def test_store_and_retrieve_vector_succeeds(self, adapter):
         """Test storing and retrieving a vector.
 
@@ -70,6 +72,7 @@ class TestChromaDBAdapter:
         assert retrieved_vector.metadata["test"] == vector.metadata["test"]
         assert retrieved_vector.metadata["category"] == vector.metadata["category"]
 
+    @pytest.mark.fast
     def test_store_vector_without_id_succeeds(self, adapter):
         """Test storing a vector without an ID.
 
@@ -89,6 +92,7 @@ class TestChromaDBAdapter:
         assert retrieved_vector.content == vector.content
         assert retrieved_vector.metadata["test"] == vector.metadata["test"]
 
+    @pytest.mark.fast
     def test_similarity_search_succeeds(self, adapter):
         """Test similarity search functionality.
 
@@ -110,6 +114,7 @@ class TestChromaDBAdapter:
         closest_ids = [v.id for v in results]
         assert "test-vector-2" in closest_ids
 
+    @pytest.mark.fast
     def test_delete_vector_succeeds(self, adapter):
         """Test deleting a vector.
 
@@ -126,6 +131,7 @@ class TestChromaDBAdapter:
         retrieved_vector = adapter.retrieve_vector(vector.id)
         assert retrieved_vector is None
 
+    @pytest.mark.fast
     def test_delete_nonexistent_vector_succeeds(self, adapter):
         """Test deleting a vector that doesn't exist.
 
@@ -133,6 +139,7 @@ class TestChromaDBAdapter:
         result = adapter.delete_vector("nonexistent-vector")
         assert result is False
 
+    @pytest.mark.fast
     def test_get_collection_stats_succeeds(self, adapter):
         """Test getting collection statistics.
 

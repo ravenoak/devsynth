@@ -84,6 +84,7 @@ def wsde_team(agent_adapter):
     return team
 
 
+@pytest.mark.medium
 def test_memory_manager_passed_to_team(agent_adapter, memory_manager):
     """Test that the memory_manager is passed to the team."""
     team = agent_adapter.create_team("test_team")
@@ -91,6 +92,7 @@ def test_memory_manager_passed_to_team(agent_adapter, memory_manager):
     assert team.memory_manager is memory_manager
 
 
+@pytest.mark.medium
 def test_memory_manager_passed_to_peer_review(wsde_team, memory_manager):
     """Test that the memory_manager is passed to the peer review."""
     # Get author and reviewers
@@ -108,6 +110,7 @@ def test_memory_manager_passed_to_peer_review(wsde_team, memory_manager):
     assert review.memory_manager is memory_manager
 
 
+@pytest.mark.medium
 def test_peer_review_stores_in_memory(wsde_team, memory_manager, memory_adapter):
     """Test that the peer review stores data in memory."""
     # Get author and reviewers
@@ -134,6 +137,7 @@ def test_peer_review_stores_in_memory(wsde_team, memory_manager, memory_adapter)
     assert stored_review.content.get("review_id") == review.review_id
 
 
+@pytest.mark.medium
 def test_full_peer_review_workflow_with_memory(
     wsde_team, memory_manager, memory_adapter
 ):
@@ -183,6 +187,7 @@ def test_full_peer_review_workflow_with_memory(
     assert result["consensus"]["majority_opinion"] == "approve"
 
 
+@pytest.mark.medium
 def test_cross_store_synchronization(wsde_team, memory_manager):
     """Test that peer review results persist across multiple memory stores."""
     second_adapter = MockMemoryAdapter()

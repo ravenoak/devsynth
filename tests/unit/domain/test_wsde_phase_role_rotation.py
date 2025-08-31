@@ -15,6 +15,7 @@ def _agent(name: str, expertise: list[str], used: bool = False):
     return agent
 
 
+@pytest.mark.fast
 def test_initial_selection_prefers_unused_agent_succeeds():
     """Test that initial selection prefers unused agent succeeds.
 
@@ -28,6 +29,7 @@ def test_initial_selection_prefers_unused_agent_succeeds():
     assert newbie.has_been_primus
 
 
+@pytest.mark.fast
 def test_documentation_tasks_pick_documentation_experts_succeeds():
     """Test that documentation tasks pick documentation experts succeeds.
 
@@ -41,6 +43,7 @@ def test_documentation_tasks_pick_documentation_experts_succeeds():
     assert doc.has_been_primus
 
 
+@pytest.mark.fast
 def test_assign_roles_for_phase_rotates_after_all_primus_succeeds():
     """Test that assign roles for phase rotates after all primus succeeds.
 

@@ -6,9 +6,12 @@ by mocking subprocess calls.
 
 from types import SimpleNamespace
 
+import pytest
+
 import scripts.security.security_scan as security_scan
 
 
+@pytest.mark.fast
 def test_main_non_strict_no_tools_returns_ok(monkeypatch):
     """In non-strict mode, missing tools should not cause a failure. ReqID: SEC-01"""
 

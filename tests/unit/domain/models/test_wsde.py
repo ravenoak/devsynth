@@ -55,6 +55,7 @@ class TestWSDETeam:
         self.agent4 = None
         self.critic_agent = None
 
+    @pytest.mark.fast
     def test_add_agent_succeeds(self):
         """Test adding an agent to the team.
 
@@ -63,6 +64,7 @@ class TestWSDETeam:
         assert len(self.team.agents) == 1
         assert self.team.agents[0] == self.agent1
 
+    @pytest.mark.fast
     def test_dialectical_hook_invoked_on_add_solution_succeeds(self):
         """Registered dialectical hooks should run when a solution is added.
 
@@ -80,6 +82,7 @@ class TestWSDETeam:
         assert called["task"] == task
         assert called["solutions"][0] == solution
 
+    @pytest.mark.fast
     def test_rotate_primus_succeeds(self):
         """Test rotating the Primus role.
 
@@ -93,6 +96,7 @@ class TestWSDETeam:
             self.team.agents
         )
 
+    @pytest.mark.fast
     def test_get_primus_succeeds(self):
         """Test getting the current Primus agent.
 
@@ -103,6 +107,7 @@ class TestWSDETeam:
         primus = self.team.get_primus()
         assert primus == self.agent2
 
+    @pytest.mark.fast
     def test_get_primus_empty_team_succeeds(self):
         """Test getting the Primus agent from an empty team.
 
@@ -110,6 +115,7 @@ class TestWSDETeam:
         primus = self.team.get_primus()
         assert primus is None
 
+    @pytest.mark.fast
     def test_assign_roles_succeeds(self):
         """Test assigning WSDE roles to agents.
 
@@ -148,6 +154,7 @@ class TestWSDETeam:
         assert "Supervisor" in roles
         assert "Designer" in roles or "Evaluator" in roles
 
+    @pytest.mark.fast
     def test_get_agent_by_role_succeeds(self):
         """Test getting agents by their role.
 
@@ -177,6 +184,7 @@ class TestWSDETeam:
                     break
             assert method() == role_agent
 
+    @pytest.mark.fast
     def test_assign_roles_with_rotation_succeeds(self):
         """Test that role assignments change when the Primus rotates.
 
@@ -206,6 +214,7 @@ class TestWSDETeam:
         assert "Supervisor" in roles
         assert "Designer" in roles or "Evaluator" in roles
 
+    @pytest.mark.fast
     def test_apply_dialectical_reasoning_with_knowledge_graph_succeeds(self):
         """Test applying dialectical reasoning with knowledge graph integration.
 
@@ -261,6 +270,7 @@ class TestWSDE:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_initialization_succeeds(self):
         """Test that a WSDE is initialized correctly.
 
@@ -272,6 +282,7 @@ class TestWSDE:
         assert isinstance(wsde.created_at, datetime)
         assert wsde.updated_at == wsde.created_at
 
+    @pytest.mark.fast
     def test_initialization_with_metadata_succeeds(self):
         """Test that a WSDE is initialized correctly with metadata.
 

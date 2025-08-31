@@ -37,6 +37,7 @@ class TestWSDETeam:
         self.agent4.current_role = None
         self.agent4.parameters = {"expertise": ["design", "architecture"]}
 
+    @pytest.mark.fast
     def test_add_agent_succeeds(self):
         """Test adding an agent to the team.
 
@@ -45,6 +46,7 @@ class TestWSDETeam:
         assert len(self.team.agents) == 1
         assert self.team.agents[0] == self.agent1
 
+    @pytest.mark.fast
     def test_rotate_primus_succeeds(self):
         """Test rotating the Primus role.
 
@@ -58,6 +60,7 @@ class TestWSDETeam:
             self.team.agents
         )
 
+    @pytest.mark.fast
     def test_get_primus_succeeds(self):
         """Test getting the current Primus agent.
 
@@ -68,6 +71,7 @@ class TestWSDETeam:
         primus = self.team.get_primus()
         assert primus == self.agent2
 
+    @pytest.mark.fast
     def test_get_primus_empty_team_succeeds(self):
         """Test getting the Primus agent from an empty team.
 
@@ -75,6 +79,7 @@ class TestWSDETeam:
         primus = self.team.get_primus()
         assert primus is None
 
+    @pytest.mark.fast
     def test_assign_roles_succeeds(self):
         """Test assigning WSDE roles to agents.
 
@@ -113,6 +118,7 @@ class TestWSDETeam:
         assert "Supervisor" in roles
         assert "Designer" in roles or "Evaluator" in roles
 
+    @pytest.mark.fast
     def test_analyze_trade_offs_detects_conflicts_succeeds(self):
         """Trade-off analysis should flag options with similar scores as conflicts.
 

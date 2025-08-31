@@ -5,6 +5,7 @@ import pytest
 import tests.behavior.steps.test_analyze_commands_steps as steps
 
 
+@pytest.mark.fast
 def test_run_command_inspect_code(monkeypatch):
     mock_manager = MagicMock()
     monkeypatch.setattr(steps, "inspect_code_cmd", lambda path: print("Architecture"))
@@ -25,6 +26,7 @@ def test_run_command_inspect_code(monkeypatch):
     assert "Architecture" in command_context.get("output", "")
 
 
+@pytest.mark.fast
 def test_run_command_inspect_config_update(monkeypatch):
     mock_manager = MagicMock()
     monkeypatch.setattr(

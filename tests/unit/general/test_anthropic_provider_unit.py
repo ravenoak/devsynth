@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import httpx
+import pytest
 
 from devsynth.application.llm.providers import (
     AnthropicConnectionError,
@@ -18,6 +19,7 @@ class TestAnthropicProvider(unittest.TestCase):
     def setUp(self):
         self.provider = AnthropicProvider({"api_key": "test_key"})
 
+    @pytest.mark.fast
     @patch("httpx.post")
     def test_generate_succeeds(self, mock_post):
         """Test that generate succeeds.
@@ -33,6 +35,7 @@ class TestAnthropicProvider(unittest.TestCase):
         self.assertIn("/v1/messages", mock_post.call_args[0][0])
         self.assertEqual(mock_post.call_args[1]["headers"]["x-api-key"], "test_key")
 
+    @pytest.mark.fast
     @patch("httpx.post")
     def test_generate_with_context_succeeds(self, mock_post):
         """Test that generate with context.
@@ -50,6 +53,7 @@ class TestAnthropicProvider(unittest.TestCase):
         self.assertEqual(len(messages), 2)
         self.assertEqual(messages[-1]["content"], "prompt")
 
+    @pytest.mark.fast
     @patch("httpx.post")
     def test_get_embedding_succeeds(self, mock_post):
         """Test that get embedding.
@@ -64,6 +68,7 @@ class TestAnthropicProvider(unittest.TestCase):
         mock_post.assert_called_once()
         self.assertIn("/v1/embeddings", mock_post.call_args[0][0])
 
+    @pytest.mark.fast
     @patch("httpx.post")
     def test_connection_error_raises_error(self, mock_post):
         """Test that connection error.
@@ -73,6 +78,7 @@ class TestAnthropicProvider(unittest.TestCase):
         with self.assertRaises(AnthropicConnectionError):
             self.provider.generate("fail")
 
+    @pytest.mark.fast
     @patch("httpx.post")
     def test_model_error_raises_error(self, mock_post):
         """Test that model error.

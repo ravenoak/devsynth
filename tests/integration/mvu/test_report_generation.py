@@ -60,6 +60,7 @@ def _mvuu_message(trace_id: str, file_name: str) -> str:
     return "feat: add\n\n```json\n" + json.dumps(data, indent=2) + "\n```"
 
 
+@pytest.mark.medium
 def test_report_generation(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     repo.mkdir()

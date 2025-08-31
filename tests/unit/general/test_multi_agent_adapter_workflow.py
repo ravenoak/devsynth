@@ -36,6 +36,7 @@ class TestMultiAgentAdapterWorkflow:
         self.agent3.process.return_value = {"result": "doc"}
         self.adapter.add_agents_to_team([self.agent1, self.agent2, self.agent3])
 
+    @pytest.mark.fast
     def test_multi_agent_consensus_and_primus_selection_succeeds(self):
         """Test that multi agent consensus and primus selection succeeds.
 
@@ -65,6 +66,7 @@ class TestMultiAgentAdapterWorkflow:
         assert result["method"] == "consensus_synthesis"
         assert set(result["contributors"]) == {"PythonAgent", "JSAgent", "DocAgent"}
 
+    @pytest.mark.fast
     def test_bulk_add_agents_succeeds(self):
         """Test that bulk add agents succeeds.
 

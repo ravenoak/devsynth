@@ -102,27 +102,52 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
 
     def _maybe_patch_run_tests():
         if len(args) > 0 and args[0] == "run-tests":
-            def _mock_run_tests(target, speeds, verbose, report, parallel, segment, segment_size, maxfail):  # noqa: E501
+
+            def _mock_run_tests(
+                target,
+                speeds,
+                verbose,
+                report,
+                parallel,
+                segment,
+                segment_size,
+                maxfail,
+            ):  # noqa: E501
                 # Record the call for assertions
                 command_context["run_tests_call"] = {
-                    "args": [target, speeds, verbose, report, parallel, segment, segment_size, maxfail],
+                    "args": [
+                        target,
+                        speeds,
+                        verbose,
+                        report,
+                        parallel,
+                        segment,
+                        segment_size,
+                        maxfail,
+                    ],
                 }
                 # Create a dummy report file when --report is requested
                 if report:
                     reports_dir = Path("test_reports")
                     reports_dir.mkdir(parents=True, exist_ok=True)
-                    (reports_dir / "report.html").write_text("<html><body>dummy</body></html>")
+                    (reports_dir / "report.html").write_text(
+                        "<html><body>dummy</body></html>"
+                    )
                 return True, ""
+
             return patch(
                 "devsynth.application.cli.commands.run_tests_cmd.run_tests",
                 _mock_run_tests,
             )
+
         # No-op context manager
         class _NullCtx:
             def __enter__(self):
                 return None
+
             def __exit__(self, exc_type, exc, tb):
                 return False
+
         return _NullCtx()
 
     with patch("uvicorn.run") as mock_run, _maybe_patch_run_tests():

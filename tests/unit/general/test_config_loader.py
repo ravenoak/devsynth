@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+import pytest
 import yaml
 
 from devsynth.config.loader import (
@@ -11,6 +12,7 @@ from devsynth.config.loader import (
 )
 
 
+@pytest.mark.fast
 def test_load_yaml_config_succeeds(tmp_path):
     """Test that load yaml config.
 
@@ -22,6 +24,7 @@ def test_load_yaml_config_succeeds(tmp_path):
     assert cfg.language == "python"
 
 
+@pytest.mark.fast
 def test_load_pyproject_toml_succeeds(tmp_path):
     """Test that load pyproject toml.
 
@@ -31,6 +34,7 @@ def test_load_pyproject_toml_succeeds(tmp_path):
     assert cfg.language == "python"
 
 
+@pytest.mark.fast
 def test_autocomplete_succeeds(monkeypatch, tmp_path):
     """Test that autocomplete succeeds.
 
@@ -43,6 +47,7 @@ def test_autocomplete_succeeds(monkeypatch, tmp_path):
     assert "language" in result
 
 
+@pytest.mark.fast
 def test_save_persists_version_succeeds(tmp_path):
     """Test that save persists version.
 
@@ -53,6 +58,7 @@ def test_save_persists_version_succeeds(tmp_path):
     assert data["version"] == cfg.version
 
 
+@pytest.mark.fast
 def test_version_mismatch_logs_warning_matches_expected(tmp_path, caplog):
     """Test that version mismatch logs warning.
 

@@ -124,6 +124,7 @@ def make_service(llm=None, req_repo=None, mem=None):
     )
 
 
+@pytest.mark.fast
 def test_identify_affected_components_deterministic():
     rid = uuid4()
     req = Requirement(id=rid, metadata={"component": "B"})
@@ -139,6 +140,7 @@ def test_identify_affected_components_deterministic():
     ], "Components should be unique and sorted deterministically"
 
 
+@pytest.mark.fast
 def test_identify_affected_requirements_deterministic():
     rid = uuid4()
     dep1 = Requirement(id=uuid4(), dependencies=[rid])
@@ -153,6 +155,7 @@ def test_identify_affected_requirements_deterministic():
     assert str(ids[0]) <= min(str(dep1.id), str(dep2.id))
 
 
+@pytest.mark.fast
 def test_generate_arguments_sorted(monkeypatch):
     # Reverse order in text, expect sorted by position/content
     text = (
@@ -183,6 +186,7 @@ def test_generate_arguments_sorted(monkeypatch):
     assert args[1]["content"].lower() == "zeta"
 
 
+@pytest.mark.fast
 def test_edrr_phase_mapping_on_persist():
     rid = uuid4()
     mem = StubMemory()
@@ -224,6 +228,7 @@ def test_edrr_phase_mapping_on_persist():
     ), "MODIFY should stay REFINE"
 
 
+@pytest.mark.fast
 def test_evaluation_hook_invoked_on_consensus_true():
     rid = uuid4()
     mem = StubMemory()

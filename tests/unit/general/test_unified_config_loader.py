@@ -1,12 +1,14 @@
 import logging
 from pathlib import Path
 
+import pytest
 import toml
 import yaml
 
 from devsynth.config.unified_loader import UnifiedConfigLoader
 
 
+@pytest.mark.fast
 def test_load_from_yaml_succeeds(tmp_path: Path) -> None:
     """Test that load from yaml succeeds.
 
@@ -20,6 +22,7 @@ def test_load_from_yaml_succeeds(tmp_path: Path) -> None:
     assert unified.config.language == "python"
 
 
+@pytest.mark.fast
 def test_load_from_pyproject_succeeds(tmp_path: Path) -> None:
     """Test that load from pyproject succeeds.
 
@@ -32,6 +35,7 @@ def test_load_from_pyproject_succeeds(tmp_path: Path) -> None:
     assert unified.config.language == "python"
 
 
+@pytest.mark.fast
 def test_save_and_exists_succeeds(tmp_path: Path) -> None:
     """Test that save and exists succeeds.
 
@@ -49,6 +53,7 @@ def test_save_and_exists_succeeds(tmp_path: Path) -> None:
     assert save_path == unified.path
 
 
+@pytest.mark.fast
 def test_missing_files_succeeds(tmp_path: Path) -> None:
     """Test that missing files succeeds.
 
@@ -58,6 +63,7 @@ def test_missing_files_succeeds(tmp_path: Path) -> None:
     assert unified.path == tmp_path / ".devsynth" / "project.yaml"
 
 
+@pytest.mark.fast
 def test_version_mismatch_warning_succeeds(tmp_path: Path, caplog) -> None:
     """Test that version mismatch warning succeeds.
 
@@ -70,6 +76,7 @@ def test_version_mismatch_warning_succeeds(tmp_path: Path, caplog) -> None:
     assert any("version" in rec.message for rec in caplog.records)
 
 
+@pytest.mark.fast
 def test_loader_save_function_yaml_succeeds(tmp_path: Path) -> None:
     """Test that loader save function yaml succeeds.
 
@@ -81,6 +88,7 @@ def test_loader_save_function_yaml_succeeds(tmp_path: Path) -> None:
     assert data["language"] == "go"
 
 
+@pytest.mark.fast
 def test_loader_save_function_pyproject_succeeds(tmp_path: Path) -> None:
     """Test that loader save function pyproject succeeds.
 

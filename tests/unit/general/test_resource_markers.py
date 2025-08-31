@@ -6,6 +6,7 @@ import requests
 
 
 @pytest.mark.no_network
+@pytest.mark.fast
 def test_is_lmstudio_available_succeeds():
     """Test that is_lmstudio_available obeys environment variables and HTTP checks.
 
@@ -44,6 +45,7 @@ def test_is_lmstudio_available_succeeds():
             assert not is_lmstudio_available()
 
 
+@pytest.mark.fast
 def test_is_codebase_available_succeeds():
     """Test that is_codebase_available checks environment variables and file existence.
 
@@ -62,6 +64,7 @@ def test_is_codebase_available_succeeds():
         assert not is_codebase_available()
 
 
+@pytest.mark.fast
 def test_is_cli_available_succeeds():
     """Test that is_cli_available checks environment variables and CLI availability.
 
@@ -86,6 +89,7 @@ def test_is_cli_available_succeeds():
         assert not is_cli_available()
 
 
+@pytest.mark.fast
 def test_is_resource_available_succeeds():
     """Test that is_resource_available calls the correct checker function.
 
@@ -99,6 +103,7 @@ def test_is_resource_available_succeeds():
     assert is_resource_available("unknown_resource")
 
 
+@pytest.mark.fast
 @pytest.mark.requires_resource("test_resource")
 def test_with_resource_marker_succeeds():
     """Test that a test with a resource marker is executed.
@@ -107,6 +112,7 @@ def test_with_resource_marker_succeeds():
     assert True
 
 
+@pytest.mark.fast
 def test_pytest_collection_modifyitems_succeeds():
     """Test that pytest_collection_modifyitems skips tests with unavailable resources.
 

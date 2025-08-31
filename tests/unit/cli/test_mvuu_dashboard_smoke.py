@@ -5,6 +5,7 @@ from unittest import mock
 import pytest
 
 
+@pytest.mark.fast
 @pytest.mark.smoke
 def test_mvuu_dashboard_module_no_run_avoids_subprocess():
     # Ensure running the module with --no-run exits cleanly and does not spawn subprocesses

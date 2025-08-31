@@ -6,6 +6,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 sys.path.append("scripts")
 from test_first_metrics import (
     analyze_commit,
@@ -93,6 +95,7 @@ class TestTestFirstMetrics(unittest.TestCase):
         """Tear down test fixtures."""
         self.temp_dir.cleanup()
 
+    @pytest.mark.fast
     @patch("test_first_metrics.subprocess.run")
     def test_get_commit_history_succeeds(self, mock_run):
         """Test getting commit history from git.
@@ -113,6 +116,7 @@ class TestTestFirstMetrics(unittest.TestCase):
         self.assertIn("--date=short", args)
         self.assertIn(f"--since={7} days ago", args)
 
+    @pytest.mark.fast
     @patch("test_first_metrics.subprocess.run")
     def test_analyze_commit_succeeds(self, mock_run):
         """Test analyzing a commit to determine if it follows test-first development.
@@ -144,6 +148,7 @@ class TestTestFirstMetrics(unittest.TestCase):
         self.assertIn("--format=", args)
         self.assertIn("abc123", args)
 
+    @pytest.mark.fast
     def test_calculate_metrics_succeeds(self):
         """Test calculating metrics from commit data.
 
@@ -172,6 +177,7 @@ class TestTestFirstMetrics(unittest.TestCase):
             metrics["by_date"]["2025-05-25"]["test_first_percentage"], 100.0
         )
 
+    @pytest.mark.fast
     def test_generate_metrics_report_succeeds(self):
         """Test generating a metrics report.
 
@@ -187,6 +193,7 @@ class TestTestFirstMetrics(unittest.TestCase):
         self.assertIn("Metrics by Date", report)
         self.assertIn("2025-05-25", report)
 
+    @pytest.mark.fast
     @patch("test_first_metrics.get_commit_history")
     @patch("test_first_metrics.analyze_commit")
     @patch("test_first_metrics.calculate_metrics")

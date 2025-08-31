@@ -1,3 +1,5 @@
+import pytest
+
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 
@@ -12,6 +14,7 @@ def make_agent(monkeypatch):
     return agent
 
 
+@pytest.mark.fast
 def test_process_code_task_includes_language_and_paradigm_succeeds(monkeypatch):
     """Test that process code task includes language and paradigm succeeds.
 

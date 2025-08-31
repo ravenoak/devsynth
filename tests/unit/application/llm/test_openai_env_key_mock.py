@@ -6,6 +6,7 @@ import pytest
 from devsynth.application.llm.openai_provider import OpenAIProvider
 
 
+@pytest.mark.fast
 def test_openai_provider_uses_mocked_env_key_without_network(monkeypatch):
     """ReqID: REQ-LLM-OPENAI-ENV-KEY
 

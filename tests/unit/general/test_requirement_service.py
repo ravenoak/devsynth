@@ -7,6 +7,8 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
+import pytest
+
 from devsynth.adapters.requirements.memory_repository import (
     InMemoryChangeRepository,
     InMemoryRequirementRepository,
@@ -42,6 +44,7 @@ class TestRequirementService(unittest.TestCase):
             notification_service=self.notification_service,
         )
 
+    @pytest.mark.fast
     def test_create_requirement_succeeds(self):
         """Test creating a requirement.
 
@@ -76,6 +79,7 @@ class TestRequirementService(unittest.TestCase):
         self.assertIsNone(changes[0].previous_state)
         self.assertEqual(changes[0].new_state.id, created_requirement.id)
 
+    @pytest.mark.fast
     def test_update_requirement_succeeds(self):
         """Test updating a requirement.
 
@@ -124,6 +128,7 @@ class TestRequirementService(unittest.TestCase):
         self.dialectical_reasoner.evaluate_change.assert_called_once()
         self.dialectical_reasoner.assess_impact.assert_called_once()
 
+    @pytest.mark.fast
     def test_delete_requirement_succeeds(self):
         """Test deleting a requirement.
 
@@ -159,6 +164,7 @@ class TestRequirementService(unittest.TestCase):
         self.dialectical_reasoner.evaluate_change.assert_called_once()
         self.dialectical_reasoner.assess_impact.assert_called_once()
 
+    @pytest.mark.fast
     def test_approve_change_succeeds(self):
         """Test approving a change.
 
@@ -197,6 +203,7 @@ class TestRequirementService(unittest.TestCase):
             approved_change
         )
 
+    @pytest.mark.fast
     def test_reject_change_succeeds(self):
         """Test rejecting a change.
 

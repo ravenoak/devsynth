@@ -20,6 +20,7 @@ class TestIsolation:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_devsynth_dir_isolation_succeeds(self, test_environment):
         """Test that .devsynth/ directory is created in the test environment.
 
@@ -45,6 +46,7 @@ class TestIsolation:
             not parent_devsynth.exists()
         ), f".devsynth directory was created in {parent_dir}"
 
+    @pytest.mark.fast
     def test_global_config_isolation_succeeds(self, test_environment):
         """Test that global configuration is isolated during tests.
 
@@ -83,6 +85,7 @@ class TestIsolation:
                     not home_config_dir.exists()
                 ), f"Global config directory was created in {home_config_dir}"
 
+    @pytest.mark.fast
     def test_memory_path_isolation_succeeds(self, test_environment):
         """Test that memory path is isolated during tests.
 
@@ -102,6 +105,7 @@ class TestIsolation:
             not original_memory_dir.exists()
         ), f"Memory directory was created in {original_memory_dir}"
 
+    @pytest.mark.fast
     def test_no_file_logging_prevents_directory_creation_succeeds(self, monkeypatch):
         """Test that when file logging is disabled, no log directories are created.
 
@@ -126,6 +130,7 @@ class TestIsolation:
         finally:
             shutil.rmtree(test_dir, ignore_errors=True)
 
+    @pytest.mark.fast
     def test_path_redirection_in_test_environment_succeeds(self, monkeypatch):
         """Test that paths are redirected to the test environment in tests.
 
@@ -205,6 +210,7 @@ class TestIsolation:
         finally:
             shutil.rmtree(test_dir, ignore_errors=True)
 
+    @pytest.mark.fast
     def test_comprehensive_isolation_succeeds(self, monkeypatch):
         """Comprehensive test for isolation of .devsynth directories.
 

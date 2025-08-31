@@ -6,6 +6,8 @@ import unittest
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
+
 from devsynth.domain.models.requirement import (
     ChangeType,
     ChatMessage,
@@ -25,6 +27,7 @@ class TestRequirementModels(unittest.TestCase):
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_requirement_model_succeeds(self):
         """Test the Requirement model.
 
@@ -57,6 +60,7 @@ class TestRequirementModels(unittest.TestCase):
         self.assertEqual(requirement.tags, ["updated", "requirement"])
         self.assertEqual(requirement.description, "This is a test requirement")
 
+    @pytest.mark.fast
     def test_requirement_change_model_succeeds(self):
         """Test the RequirementChange model.
 
@@ -97,6 +101,7 @@ class TestRequirementModels(unittest.TestCase):
         self.assertIsNone(change.approved_by)
         self.assertEqual(change.comments, [])
 
+    @pytest.mark.fast
     def test_impact_assessment_model_succeeds(self):
         """Test the ImpactAssessment model.
 
@@ -121,6 +126,7 @@ class TestRequirementModels(unittest.TestCase):
         self.assertEqual(len(impact.affected_requirements), 2)
         self.assertEqual(impact.affected_components, ["component1", "component2"])
 
+    @pytest.mark.fast
     def test_dialectical_reasoning_model_succeeds(self):
         """Test the DialecticalReasoning model.
 
@@ -150,6 +156,7 @@ class TestRequirementModels(unittest.TestCase):
         self.assertEqual(reasoning.arguments[1]["position"], "antithesis")
         self.assertEqual(reasoning.arguments[1]["content"], "Argument for antithesis")
 
+    @pytest.mark.fast
     def test_chat_models_succeeds(self):
         """Test the ChatMessage and ChatSession models.
 

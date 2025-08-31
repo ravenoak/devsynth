@@ -1,10 +1,13 @@
 import importlib
 from pathlib import Path
 
+import pytest
+
 import devsynth.config.settings as settings_module
 import devsynth.logging_setup as logging_setup_module
 
 
+@pytest.mark.fast
 def test_ensure_path_exists_within_project_dir_succeeds(tmp_path, monkeypatch):
     """Test that ensure path exists within project dir succeeds.
 
@@ -24,6 +27,7 @@ def test_ensure_path_exists_within_project_dir_succeeds(tmp_path, monkeypatch):
     assert Path(relative_result) == project_dir / "rel" / "data"
 
 
+@pytest.mark.fast
 def test_configure_logging_within_project_dir_succeeds(tmp_path, monkeypatch):
     """Test that configure logging within project dir succeeds.
 

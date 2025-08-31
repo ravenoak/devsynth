@@ -1,10 +1,12 @@
 from pathlib import Path
 
+import pytest
 import yaml
 
 from devsynth.core.config_loader import load_config
 
 
+@pytest.mark.fast
 def test_load_config_merges_mvuu_settings(tmp_path):
     mvu_cfg = {"schema": "s.json", "storage": {"path": "db.json", "format": "json"}}
     dev_dir = tmp_path / ".devsynth"

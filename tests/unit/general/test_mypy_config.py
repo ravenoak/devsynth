@@ -5,6 +5,7 @@ import tempfile
 import pytest
 
 
+@pytest.mark.fast
 def test_mypy_configuration_raises_error():
     """Test that mypy is properly configured to detect type errors.
 
@@ -29,6 +30,7 @@ def test_mypy_configuration_raises_error():
         os.unlink(temp_file_path)
 
 
+@pytest.mark.fast
 def test_mypy_project_configuration_raises_error():
     """Test that mypy is properly configured for the project.
 

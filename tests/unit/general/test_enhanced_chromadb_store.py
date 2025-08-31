@@ -64,6 +64,7 @@ class TestEnhancedChromaDBStore(unittest.TestCase):
         except Exception as e:
             print(f"Error removing temporary directory: {e}")
 
+    @pytest.mark.fast
     def test_caching_succeeds(self):
         """Test that the caching layer reduces disk I/O operations.
 
@@ -83,6 +84,7 @@ class TestEnhancedChromaDBStore(unittest.TestCase):
                 self.assertIsNotNone(retrieved_item)
             self.assertEqual(mock_retrieve.call_count, 1)
 
+    @pytest.mark.fast
     def test_cache_invalidation_is_valid(self):
         """Test that the cache is invalidated when an item is updated.
 
@@ -110,6 +112,7 @@ class TestEnhancedChromaDBStore(unittest.TestCase):
             self.assertEqual(retrieved_item.content, "This is an updated test item")
             self.assertEqual(retrieved_item.metadata["test"], "updated_metadata")
 
+    @pytest.mark.fast
     def test_versioning_succeeds(self):
         """Test that versions are tracked when items are updated.
 
@@ -135,6 +138,7 @@ class TestEnhancedChromaDBStore(unittest.TestCase):
         self.assertEqual(versions[1].content, "Version 2")
         self.assertEqual(versions[2].content, "Version 3")
 
+    @pytest.mark.fast
     def test_retrieve_specific_version_succeeds(self):
         """Test retrieving a specific version of an item.
 
@@ -158,6 +162,7 @@ class TestEnhancedChromaDBStore(unittest.TestCase):
         self.assertEqual(version2.content, "Version 2")
         self.assertEqual(version2.metadata["version"], 2)
 
+    @pytest.mark.fast
     def test_get_history_succeeds(self):
         """Test retrieving the history of an item.
 
@@ -184,6 +189,7 @@ class TestEnhancedChromaDBStore(unittest.TestCase):
             self.assertIn("version", entry)
             self.assertIn("content_summary", entry)
 
+    @pytest.mark.fast
     def test_latest_version_by_default_returns_expected_result(self):
         """Test that the latest version is returned by default.
 
@@ -207,6 +213,7 @@ class TestEnhancedChromaDBStore(unittest.TestCase):
         self.assertEqual(latest.content, "Version 3")
         self.assertEqual(latest.metadata["version"], 3)
 
+    @pytest.mark.fast
     def test_optimized_embeddings_succeeds(self):
         """Test that embeddings are optimized for similar content.
 

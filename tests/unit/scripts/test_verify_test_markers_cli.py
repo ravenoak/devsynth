@@ -6,6 +6,7 @@ import types
 import pytest
 
 
+@pytest.mark.fast
 def test_argparser_includes_changed_flag():
     mod = importlib.import_module("scripts.verify_test_markers")
     parser = mod.get_arg_parser()
@@ -14,6 +15,7 @@ def test_argparser_includes_changed_flag():
     assert "--base-ref" in help_text
 
 
+@pytest.mark.fast
 def test_verify_files_with_temp_test(tmp_path: pathlib.Path):
     # Create a simple test file with a marker
     p = tmp_path / "test_sample.py"

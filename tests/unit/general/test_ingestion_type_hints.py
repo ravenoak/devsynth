@@ -10,6 +10,7 @@ if shutil.which("mypy") is None:
     pytest.skip("mypy is not installed", allow_module_level=True)
 
 
+@pytest.mark.fast
 def test_ingestion_type_hints_raises_error():
     """Test that the ingestion.py file has proper type hints.
 
