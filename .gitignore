@@ -32,6 +32,8 @@ htmlcov/
 # Type checker and linter caches (Task 2: Baseline repo hygiene)
 .mypy_cache/
 .ruff_cache/
+**/.cache/
+scripts/.cache/
 
 # Python distribution / packaging
 dist/
@@ -50,18 +52,18 @@ build/
 traceability.json
 
 # Test and report files
- test_reports/
- diagnostics/
- .test_categorization_progress.json
- .test_categorization_schedule.json
- flaky_test_report.json
- fresh_isolation_report.json
- isolation_report_*.json
- *_isolation_report.json
- high_priority_isolation_issues.md
- test_markers_report.json
- 
- # IDE specific files
+test_reports/
+diagnostics/
+.test_categorization_progress.json
+.test_categorization_schedule.json
+flaky_test_report.json
+fresh_isolation_report.json
+isolation_report_*.json
+*_isolation_report.json
+high_priority_isolation_issues.md
+test_markers_report.json
+
+# IDE specific files
  .idea/
  .vscode/
  *.sublime-project
