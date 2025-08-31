@@ -43,9 +43,21 @@ def detect_notice(text: str) -> str | None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Verify pytest smoke plugin-disabled notice is present.")
-    parser.add_argument("--input", type=str, default=None, help="Path to file containing pytest output. Reads stdin if omitted.")
-    parser.add_argument("--out", type=str, default="test_reports/smoke_plugin_notice.txt", help="Where to write the result summary.")
+    parser = argparse.ArgumentParser(
+        description="Verify pytest smoke plugin-disabled notice is present."
+    )
+    parser.add_argument(
+        "--input",
+        type=str,
+        default=None,
+        help="Path to file containing pytest output. Reads stdin if omitted.",
+    )
+    parser.add_argument(
+        "--out",
+        type=str,
+        default="test_reports/smoke_plugin_notice.txt",
+        help="Where to write the result summary.",
+    )
     args = parser.parse_args(argv)
 
     if args.input:
@@ -59,10 +71,15 @@ def main(argv: list[str] | None = None) -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     if matched:
-        out_path.write_text(f"PASS: Detected smoke plugin-disabled notice: {matched}\n", encoding="utf-8")
+        out_path.write_text(
+            f"PASS: Detected smoke plugin-disabled notice: {matched}\n",
+            encoding="utf-8",
+        )
         return 0
     else:
-        out_path.write_text("FAIL: Smoke plugin-disabled notice not detected.\n", encoding="utf-8")
+        out_path.write_text(
+            "FAIL: Smoke plugin-disabled notice not detected.\n", encoding="utf-8"
+        )
         return 1
 
 

@@ -36,11 +36,20 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 StatusLine = Tuple[str, str]  # (status_code, path)
 
 
-def run(cmd: List[str], cwd: Path | None = None, env: Dict[str, str] | None = None) -> subprocess.CompletedProcess:
+def run(
+    cmd: List[str], cwd: Path | None = None, env: Dict[str, str] | None = None
+) -> subprocess.CompletedProcess:
     merged_env = os.environ.copy()
     if env:
         merged_env.update(env)
-    return subprocess.run(cmd, cwd=cwd or REPO_ROOT, check=False, capture_output=True, text=True, env=merged_env)
+    return subprocess.run(
+        cmd,
+        cwd=cwd or REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=merged_env,
+    )
 
 
 def git_status_porcelain(include_untracked: bool) -> List[StatusLine]:
@@ -87,7 +96,9 @@ def build_groups() -> List[Group]:
         Group(
             name="docs",
             description="Documentation and guides",
-            matcher=re.compile(r"^(docs/|README\.md$|CHANGELOG\.md$|AGENTS\.md$|mkdocs\.yml$)"),
+            matcher=re.compile(
+                r"^(docs/|README\.md$|CHANGELOG\.md$|AGENTS\.md$|mkdocs\.yml$)"
+            ),
             conventional_type="docs",
         ),
         Group(
@@ -148,7 +159,11 @@ def assign_to_groups(status: List[StatusLine], groups: List[Group]) -> Dict[str,
     by_name: Dict[str, Group] = {g.name: g for g in groups}
     for _, path in status:
         # Skip internal cache directories created by tests/tools
-        if path.startswith(".pytest_cache/") or path.startswith(".mypy_cache/") or path.startswith(".test_collection_cache/"):
+        if (
+            path.startswith(".pytest_cache/")
+            or path.startswith(".mypy_cache/")
+            or path.startswith(".test_collection_cache/")
+        ):
             continue
         matched = False
         for g in groups:
@@ -203,14 +218,20 @@ def stage_and_commit(paths: Iterable[str], message: str, execute: bool) -> None:
         env = _git_identity_env()
         add_cp = run(["git", "add", "--"] + list(paths), env=env)
         if add_cp.returncode != 0:
-            raise RuntimeError(f"git add failed:\nSTDERR: {add_cp.stderr}\nSTDOUT: {add_cp.stdout}")
+            raise RuntimeError(
+                f"git add failed:\nSTDERR: {add_cp.stderr}\nSTDOUT: {add_cp.stdout}"
+            )
         commit_cp = run(["git", "commit", "--no-gpg-sign", "-m", message], env=env)
         if commit_cp.returncode != 0:
             raise RuntimeError(
-                "git commit failed:\n" f"STDERR: {commit_cp.stderr}\nSTDOUT: {commit_cp.stdout}"
+                "git commit failed:\n"
+                f"STDERR: {commit_cp.stderr}\nSTDOUT: {commit_cp.stdout}"
             )
         else:
-            print("[executed] Committed group with message header: " + message.split("\n", 1)[0])
+            print(
+                "[executed] Committed group with message header: "
+                + message.split("\n", 1)[0]
+            )
     else:
         print("[dry-run] Would stage and commit:")
         for p in paths:
@@ -220,8 +241,14 @@ def stage_and_commit(paths: Iterable[str], message: str, execute: bool) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--execute", action="store_true", help="Perform commits; default is dry-run")
-    parser.add_argument("--socratic", action="store_true", help="Include Socratic/Dialectical reasoning in commit messages")
+    parser.add_argument(
+        "--execute", action="store_true", help="Perform commits; default is dry-run"
+    )
+    parser.add_argument(
+        "--socratic",
+        action="store_true",
+        help="Include Socratic/Dialectical reasoning in commit messages",
+    )
     parser.add_argument(
         "--groups",
         nargs="*",
@@ -259,7 +286,9 @@ def main() -> None:
 
     # Validate filter
     filter_set = set(args.groups) if args.groups else None
-    unknown_filters = set() if not filter_set else {g for g in filter_set if g not in grouped}
+    unknown_filters = (
+        set() if not filter_set else {g for g in filter_set if g not in grouped}
+    )
     if unknown_filters:
         print("Unknown group names:", ", ".join(sorted(unknown_filters)))
         print("Known groups:", ", ".join(sorted(grouped.keys())))

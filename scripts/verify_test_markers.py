@@ -288,7 +288,10 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
             elif isinstance(dec, ast.Call):
                 # Called decorators: e.g., @given("pattern")
                 if isinstance(dec.func, ast.Attribute):
-                    if isinstance(dec.func.value, ast.Name) and dec.func.attr in step_names:
+                    if (
+                        isinstance(dec.func.value, ast.Name)
+                        and dec.func.attr in step_names
+                    ):
                         return True
                 elif isinstance(dec.func, ast.Name):
                     if dec.func.id in step_names:
@@ -296,7 +299,9 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
         return False
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and (node.name.startswith("test_") or _has_bdd_step_decorator(node)):
+        if isinstance(node, ast.FunctionDef) and (
+            node.name.startswith("test_") or _has_bdd_step_decorator(node)
+        ):
             # Collect decorator names of the form pytest.mark.<name>
             found: List[str] = []
             parametrize_found: List[str] = []

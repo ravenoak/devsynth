@@ -21,9 +21,9 @@ import argparse
 from typing import Any, Dict, List, Optional
 
 try:
+    import uvicorn
     from fastapi import FastAPI
     from pydantic import BaseModel
-    import uvicorn
 except Exception as e:  # pragma: no cover - optional for local use only
     raise SystemExit(
         "FastAPI and uvicorn are required to run the mock LM Studio server.\n"
@@ -61,7 +61,11 @@ async def chat_completions(req: ChatRequest) -> Dict[str, Any]:
                 "finish_reason": "stop",
             }
         ],
-        "usage": {"prompt_tokens": 0, "completion_tokens": len(reply.split()), "total_tokens": 0},
+        "usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": len(reply.split()),
+            "total_tokens": 0,
+        },
     }
 
 
