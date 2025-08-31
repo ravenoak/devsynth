@@ -28,6 +28,7 @@ def patch_typer_types(monkeypatch):
     monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
 
 
+@pytest.mark.fast
 def test_mvu_lint_cli_success(monkeypatch):
     """CLI should report success when no errors are returned."""
     runner = CliRunner()
@@ -41,6 +42,7 @@ def test_mvu_lint_cli_success(monkeypatch):
     assert "All commit messages valid" in result.output
 
 
+@pytest.mark.fast
 def test_mvu_lint_cli_failure(monkeypatch):
     """CLI should exit with error when linter reports problems."""
     runner = CliRunner()

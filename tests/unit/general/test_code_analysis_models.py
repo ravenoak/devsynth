@@ -5,6 +5,8 @@ Tests for the code analysis domain models.
 import unittest
 from typing import Any, Dict, List, Optional
 
+import pytest
+
 from devsynth.domain.interfaces.code_analysis import (
     CodeAnalysisProvider,
     CodeAnalysisResult,
@@ -18,6 +20,7 @@ class TestCodeAnalysisModels(unittest.TestCase):
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_file_analysis_implementation_succeeds(self):
         """Test that FileAnalysis correctly implements FileAnalysisResult.
 
@@ -52,6 +55,7 @@ class TestCodeAnalysisModels(unittest.TestCase):
         self.assertEqual(file_analysis.get_docstring(), docstring)
         self.assertEqual(file_analysis.get_metrics(), metrics)
 
+    @pytest.mark.fast
     def test_code_analysis_implementation_succeeds(self):
         """Test that CodeAnalysis correctly implements CodeAnalysisResult.
 

@@ -6,6 +6,7 @@ from devsynth.adapters.cli.typer_adapter import build_app
 runner = CliRunner()
 
 
+@pytest.mark.fast
 def test_atomic_rewrite_help_shows_command():
     app = build_app()
     result = runner.invoke(app, ["atomic-rewrite", "--help"])
@@ -14,6 +15,7 @@ def test_atomic_rewrite_help_shows_command():
     assert "atomic-rewrite" in result.output
 
 
+@pytest.mark.fast
 def test_atomic_rewrite_disabled_exits_with_guidance(monkeypatch):
     app = build_app()
     # Ensure flag is reported disabled
@@ -26,6 +28,7 @@ def test_atomic_rewrite_disabled_exits_with_guidance(monkeypatch):
     assert "Enable with" in result.output
 
 
+@pytest.mark.fast
 def test_atomic_rewrite_enabled_dry_run_succeeds(monkeypatch, tmp_path):
     app = build_app()
 

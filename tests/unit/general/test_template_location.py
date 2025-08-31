@@ -84,6 +84,7 @@ This directory contains templates for different types of tests."""
                 )
             yield templates_dir
 
+    @pytest.mark.fast
     def test_templates_exist_in_temp_location_succeeds(self, setup_template_dir):
         """Test that the templates exist in the temporary location.
 
@@ -112,6 +113,7 @@ This directory contains templates for different types of tests."""
         ).exists(), "Step definitions template does not exist"
         assert (templates_dir / "README.md").exists(), "README.md does not exist"
 
+    @pytest.mark.fast
     def test_can_use_template_to_create_test_succeeds(self, setup_template_dir):
         """Test that a template can be used to create a new test file.
 

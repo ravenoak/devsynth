@@ -2,11 +2,13 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
 
+import pytest
 from rich.panel import Panel
 
 from devsynth.interface.cli import CLIUXBridge
 
 
+@pytest.mark.fast
 def test_cli_bridge_methods_succeeds():
     """Test that cli bridge methods succeeds.
 
@@ -28,6 +30,7 @@ def test_cli_bridge_methods_succeeds():
         assert pr.call_args.kwargs.get("style") == "highlight"
 
 
+@pytest.mark.fast
 def test_webui_bridge_methods_succeeds(monkeypatch):
     """Test that webui bridge methods succeeds.
 

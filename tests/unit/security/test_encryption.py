@@ -12,6 +12,7 @@ from devsynth.security.encryption import (
 )
 
 
+@pytest.mark.fast
 def test_generate_key_returns_expected_result():
     """Test that generate_key returns a valid Fernet key.
 
@@ -22,6 +23,7 @@ def test_generate_key_returns_expected_result():
     assert isinstance(fernet, Fernet)
 
 
+@pytest.mark.fast
 def test_encrypt_decrypt_roundtrip_succeeds():
     """Test that data can be encrypted and then decrypted back to the original data.
 
@@ -34,6 +36,7 @@ def test_encrypt_decrypt_roundtrip_succeeds():
     assert plain == data
 
 
+@pytest.mark.fast
 def test_get_fernet_with_key_succeeds():
     """Test that _get_fernet works with a key provided as a parameter.
 
@@ -43,6 +46,7 @@ def test_get_fernet_with_key_succeeds():
     assert isinstance(fernet, Fernet)
 
 
+@pytest.mark.fast
 def test_get_fernet_with_string_key_succeeds():
     """Test that _get_fernet works with a key provided as a string.
 
@@ -56,6 +60,7 @@ def test_get_fernet_with_string_key_succeeds():
     assert decrypted == data
 
 
+@pytest.mark.fast
 def test_get_fernet_with_bytes_key_succeeds():
     """Test that _get_fernet works with a key provided as bytes.
 
@@ -69,6 +74,7 @@ def test_get_fernet_with_bytes_key_succeeds():
     assert decrypted == data
 
 
+@pytest.mark.fast
 def test_get_fernet_with_env_var_succeeds(monkeypatch):
     """Test that _get_fernet works with a key from the environment variable.
 
@@ -79,6 +85,7 @@ def test_get_fernet_with_env_var_succeeds(monkeypatch):
     assert isinstance(fernet, Fernet)
 
 
+@pytest.mark.fast
 def test_get_fernet_no_key_raises_error(monkeypatch):
     """Test that _get_fernet raises ValueError when no key is provided.
 
@@ -89,6 +96,7 @@ def test_get_fernet_no_key_raises_error(monkeypatch):
     assert "Encryption key not provided" in str(excinfo.value)
 
 
+@pytest.mark.fast
 def test_encrypt_decrypt_with_env_var_succeeds(monkeypatch):
     """Test that encrypt_bytes and decrypt_bytes work with a key from the environment variable.
 
@@ -102,6 +110,7 @@ def test_encrypt_decrypt_with_env_var_succeeds(monkeypatch):
     assert plain == data
 
 
+@pytest.mark.fast
 def test_decrypt_invalid_token_raises_error():
     """Test that decrypt_bytes raises InvalidToken when given an invalid token.
 
@@ -112,6 +121,7 @@ def test_decrypt_invalid_token_raises_error():
         decrypt_bytes(invalid_token, key)
 
 
+@pytest.mark.fast
 def test_decrypt_with_wrong_key_raises_error():
     """Test that decrypt_bytes raises InvalidToken when given a valid token but the wrong key.
 

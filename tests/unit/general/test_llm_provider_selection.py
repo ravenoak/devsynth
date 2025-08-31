@@ -1,5 +1,7 @@
 import types
 
+import pytest
+
 from devsynth.application.llm import get_llm_provider
 from devsynth.application.llm.openai_provider import OpenAIProvider
 
@@ -14,6 +16,7 @@ def _mock_config(offline: bool):
     return cfg
 
 
+@pytest.mark.fast
 def test_offline_mode_selects_offline_provider_succeeds(monkeypatch):
     """Test that offline mode selects offline provider succeeds.
 
@@ -36,6 +39,7 @@ def test_offline_mode_selects_offline_provider_succeeds(monkeypatch):
     assert isinstance(provider, OfflineProvider)
 
 
+@pytest.mark.fast
 def test_online_mode_uses_configured_provider_succeeds(monkeypatch):
     """Test that online mode uses configured provider succeeds.
 

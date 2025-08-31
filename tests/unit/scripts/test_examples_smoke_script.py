@@ -25,6 +25,7 @@ def no_external_calls(monkeypatch):
     monkeypatch.setattr(examples_smoke, "run", fake_run)
 
 
+@pytest.mark.fast
 def test_main_default_examples_succeeds(monkeypatch):
     """Default invocation should succeed when analysis is mocked. ReqID: QA-07"""
 
@@ -59,6 +60,7 @@ def test_main_default_examples_succeeds(monkeypatch):
     assert examples_smoke.main([]) == 0
 
 
+@pytest.mark.fast
 def test_main_reports_failure_when_analyze_raises(monkeypatch):
     """When an example analysis fails, the script should return non-zero. ReqID: QA-07"""
 

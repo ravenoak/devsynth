@@ -36,6 +36,7 @@ class TestChromaDBStore(unittest.TestCase):
         """Clean up the test environment."""
         shutil.rmtree(self.temp_dir)
 
+    @pytest.mark.fast
     def test_store_and_retrieve_succeeds(self):
         """Test storing and retrieving items.
 
@@ -55,6 +56,7 @@ class TestChromaDBStore(unittest.TestCase):
         self.assertEqual(retrieved_item.memory_type, item.memory_type)
         self.assertEqual(retrieved_item.metadata["test"], item.metadata["test"])
 
+    @pytest.mark.fast
     def test_search_exact_match_matches_expected(self):
         """Test searching for items with exact match.
 
@@ -105,6 +107,7 @@ class TestChromaDBStore(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].id, "item-1")
 
+    @pytest.mark.fast
     def test_search_semantic_succeeds(self):
         """Test semantic search for items.
 
@@ -140,6 +143,7 @@ class TestChromaDBStore(unittest.TestCase):
             any(item.metadata["topic"] in relevant_topics for item in results[:2])
         )
 
+    @pytest.mark.fast
     def test_delete_succeeds(self):
         """Test deleting items.
 
@@ -158,6 +162,7 @@ class TestChromaDBStore(unittest.TestCase):
         result = self.store.delete("non-existent-id")
         self.assertFalse(result)
 
+    @pytest.mark.fast
     def test_persistence_succeeds(self):
         """Test that items persist across store instances.
 
@@ -177,6 +182,7 @@ class TestChromaDBStore(unittest.TestCase):
         self.assertEqual(retrieved_item.memory_type, item.memory_type)
         self.assertEqual(retrieved_item.metadata["test"], item.metadata["test"])
 
+    @pytest.mark.fast
     def test_token_usage_succeeds(self):
         """Test token usage tracking.
 

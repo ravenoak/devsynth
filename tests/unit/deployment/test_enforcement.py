@@ -18,6 +18,7 @@ def test_shell_scripts_enforce_non_root_and_env_validation():
             assert "Environment file $ENV_FILE must have 600 permissions" in content
 
 
+@pytest.mark.fast
 def test_docker_compose_enforces_user_and_env_file():
     """docker-compose defines non-root users and required env files."""
     compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text())

@@ -15,6 +15,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.security.encryption import generate_key
 
 
+@pytest.mark.fast
 def test_json_file_store_encryption_succeeds(tmp_path):
     """Test that json file store encryption succeeds.
 
@@ -33,6 +34,7 @@ def test_json_file_store_encryption_succeeds(tmp_path):
 
 
 @pytest.mark.requires_resource("lmdb")
+@pytest.mark.fast
 def test_lmdb_store_encryption_succeeds(tmp_path):
     """Test that lmdb store encryption succeeds.
 
@@ -51,6 +53,7 @@ def test_lmdb_store_encryption_succeeds(tmp_path):
     assert retrieved.content == "secret"
 
 
+@pytest.mark.fast
 def test_tinydb_store_encryption_succeeds(tmp_path):
     """Test that tinydb store encryption succeeds."""
     key = generate_key()

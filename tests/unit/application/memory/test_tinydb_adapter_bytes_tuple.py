@@ -11,6 +11,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 pytestmark = pytest.mark.requires_resource("tinydb")
 
 
+@pytest.mark.fast
 def test_tinydb_adapter_serializes_bytes_and_tuple(tmp_path):
     """Ensure TinyDBMemoryAdapter serializes non-JSON types safely.
 

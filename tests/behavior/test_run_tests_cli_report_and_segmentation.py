@@ -12,7 +12,10 @@ from .steps.cli_commands_steps import *  # noqa: F401,F403
 from .steps.test_run_tests_cli_steps import *  # noqa: F401,F403
 
 FEATURE_FILE = os.path.join(
-    os.path.dirname(__file__), "features", "general", "run_tests_cli_report_and_segmentation.feature"
+    os.path.dirname(__file__),
+    "features",
+    "general",
+    "run_tests_cli_report_and_segmentation.feature",
 )
 
 pytestmark = pytest.mark.requires_resource("cli")

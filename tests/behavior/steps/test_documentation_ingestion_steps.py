@@ -561,6 +561,7 @@ def verify_cross_source_query(context):
     context.query_results["cross_source"] = query_results
 
 
+@pytest.mark.medium
 @then("the documentation should be stored in appropriate memory stores:")
 def verify_memory_store_integration(context):
     """Verify that documentation is stored in appropriate memory stores based on the data table."""

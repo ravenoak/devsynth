@@ -27,6 +27,7 @@ def patch_typer_types(monkeypatch):
     monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
 
 
+@pytest.mark.fast
 def test_mvuu_dashboard_help_succeeds():
     runner = CliRunner()
     app = build_app()

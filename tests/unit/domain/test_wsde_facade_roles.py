@@ -1,5 +1,7 @@
 import types
 
+import pytest
+
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
@@ -11,6 +13,7 @@ class SimpleAgent:
         self.current_role = None
 
 
+@pytest.mark.fast
 def test_select_primus_updates_index_and_role():
     team = WSDETeam(name="facade")
     doc = SimpleAgent("doc", ["documentation"])
@@ -22,6 +25,7 @@ def test_select_primus_updates_index_and_role():
     assert getattr(coder, "has_been_primus", False)
 
 
+@pytest.mark.fast
 def test_dynamic_role_reassignment_rotates_primus():
     team = WSDETeam(name="facade")
     doc = SimpleAgent("doc", ["documentation"])

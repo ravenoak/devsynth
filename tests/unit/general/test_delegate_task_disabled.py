@@ -1,6 +1,9 @@
+import pytest
+
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 
 
+@pytest.mark.fast
 def test_delegate_task_collaboration_disabled_succeeds():
     """Test that delegate task collaboration disabled succeeds.
 

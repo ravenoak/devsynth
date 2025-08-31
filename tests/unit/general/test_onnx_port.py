@@ -1,7 +1,10 @@
+import pytest
+
 from devsynth.ports.onnx_port import OnnxPort
 from tests.unit.fakes.test_fake_onnx_runtime import FakeOnnxRuntime
 
 
+@pytest.mark.fast
 def test_onnx_port_load_and_run_succeeds():
     """Test that onnx port load and run succeeds.
 

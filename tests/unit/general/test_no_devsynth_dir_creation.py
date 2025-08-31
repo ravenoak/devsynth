@@ -19,6 +19,7 @@ class TestNoDevSynthDirCreation:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_ensure_path_exists_respects_no_file_logging_succeeds(self, monkeypatch):
         """Test that ensure_path_exists respects the DEVSYNTH_NO_FILE_LOGGING environment variable.
 
@@ -42,6 +43,7 @@ class TestNoDevSynthDirCreation:
             if test_path.exists():
                 test_path.rmdir()
 
+    @pytest.mark.fast
     def test_settings_respects_no_file_logging_succeeds(self, monkeypatch, tmp_path):
         """Test that settings respects the DEVSYNTH_NO_FILE_LOGGING environment variable.
 

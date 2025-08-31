@@ -15,6 +15,7 @@ def _non_interactive(monkeypatch):
     monkeypatch.setenv("DEVSYNTH_NONINTERACTIVE", "1")
 
 
+@pytest.mark.fast
 def test_run_ingestion_invokes_edrr_phases_succeeds(tmp_path):
     """Test that run ingestion invokes edrr phases succeeds.
 

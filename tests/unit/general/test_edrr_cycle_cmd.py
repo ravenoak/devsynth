@@ -68,6 +68,7 @@ def mock_config():
         yield mock_loader
 
 
+@pytest.mark.fast
 def test_edrr_cycle_cmd_no_input_raises_error(mock_bridge, mock_config):
     """Test that an error is shown when neither manifest nor prompt is provided.
 
@@ -78,6 +79,7 @@ def test_edrr_cycle_cmd_no_input_raises_error(mock_bridge, mock_config):
     )
 
 
+@pytest.mark.fast
 def test_edrr_cycle_cmd_manifest_missing_raises_error(
     tmp_path, mock_bridge, mock_config
 ):
@@ -91,6 +93,7 @@ def test_edrr_cycle_cmd_manifest_missing_raises_error(
     )
 
 
+@pytest.mark.fast
 def test_edrr_cycle_cmd_manifest_success_succeeds(
     tmp_path, mock_bridge, mock_components, mock_config, mock_tqdm
 ):
@@ -129,6 +132,7 @@ def test_edrr_cycle_cmd_manifest_success_succeeds(
     )
 
 
+@pytest.mark.fast
 def test_edrr_cycle_cmd_prompt_success_succeeds(
     mock_bridge, mock_components, mock_config, mock_tqdm
 ):
@@ -162,6 +166,7 @@ def test_edrr_cycle_cmd_prompt_success_succeeds(
     )
 
 
+@pytest.mark.fast
 def test_edrr_cycle_cmd_manual_succeeds(
     tmp_path, mock_bridge, mock_components, mock_config
 ):
@@ -180,6 +185,7 @@ def test_edrr_cycle_cmd_manual_succeeds(
     assert [c.args[0] for c in coordinator.progress_to_phase.call_args_list] == expected
 
 
+@pytest.mark.fast
 def test_edrr_cycle_cmd_custom_bridge_has_expected(mock_components, mock_config):
     """Test that a custom bridge is used when provided.
 
@@ -192,6 +198,7 @@ def test_edrr_cycle_cmd_custom_bridge_has_expected(mock_components, mock_config)
     coordinator.progress_to_phase.assert_called()
 
 
+@pytest.mark.fast
 def test_edrr_cycle_cmd_error_handling_raises_error(
     mock_bridge, mock_components, mock_config
 ):

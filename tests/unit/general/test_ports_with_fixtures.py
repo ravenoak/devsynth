@@ -1,7 +1,10 @@
 pytest_plugins = ["tests.fixtures.ports"]
+import pytest
+
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
+@pytest.mark.fast
 def test_ports_fixtures_succeeds(llm_port, memory_port, onnx_port):
     """Test that ports fixtures succeeds.
 

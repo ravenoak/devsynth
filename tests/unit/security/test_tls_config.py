@@ -5,6 +5,7 @@ import pytest
 from devsynth.security.tls import TLSConfig
 
 
+@pytest.mark.fast
 def test_tls_config_timeout_env_override(monkeypatch):
     """DEVSYNTH_HTTP_TIMEOUT env var should override default timeout.
 
@@ -15,6 +16,7 @@ def test_tls_config_timeout_env_override(monkeypatch):
     assert kwargs["timeout"] == 3.5
 
 
+@pytest.mark.fast
 def test_tls_config_timeout_explicit_override(monkeypatch):
     """Explicit TLSConfig.timeout should take precedence over env.
 
@@ -25,6 +27,7 @@ def test_tls_config_timeout_explicit_override(monkeypatch):
     assert kwargs["timeout"] == 2.25
 
 
+@pytest.mark.fast
 def test_tls_config_validation_raises_error(tmp_path):
     """Test that validate doesn't raise an exception when the certificate and key files exist.
 
@@ -39,6 +42,7 @@ def test_tls_config_validation_raises_error(tmp_path):
     cfg.validate()
 
 
+@pytest.mark.fast
 def test_tls_config_validation_partial_raises_error(tmp_path):
     """Test that validate raises an exception when some files exist and some don't.
 
@@ -54,6 +58,7 @@ def test_tls_config_validation_partial_raises_error(tmp_path):
     assert "ca_file not found" in str(excinfo.value)
 
 
+@pytest.mark.fast
 def test_tls_config_validation_key_only_succeeds(tmp_path):
     """Test that validate works with only a key file.
 
@@ -64,6 +69,7 @@ def test_tls_config_validation_key_only_succeeds(tmp_path):
     cfg.validate()
 
 
+@pytest.mark.fast
 def test_tls_config_validation_cert_only_succeeds(tmp_path):
     """Test that validate works with only a cert file.
 
@@ -74,6 +80,7 @@ def test_tls_config_validation_cert_only_succeeds(tmp_path):
     cfg.validate()
 
 
+@pytest.mark.fast
 def test_tls_config_validation_missing_raises_error(tmp_path):
     """Test that validate raises a FileNotFoundError when a file doesn't exist.
 
@@ -84,6 +91,7 @@ def test_tls_config_validation_missing_raises_error(tmp_path):
     assert "cert_file not found" in str(excinfo.value)
 
 
+@pytest.mark.fast
 def test_tls_config_as_requests_kwargs_default_succeeds(monkeypatch):
     """Test as_requests_kwargs with default settings includes timeout.
 
@@ -95,6 +103,7 @@ def test_tls_config_as_requests_kwargs_default_succeeds(monkeypatch):
     assert kwargs == {"verify": True, "timeout": 10.0}
 
 
+@pytest.mark.fast
 def test_tls_config_as_requests_kwargs_verify_false_succeeds(monkeypatch):
     """Test as_requests_kwargs with verify=False includes timeout.
 
@@ -105,6 +114,7 @@ def test_tls_config_as_requests_kwargs_verify_false_succeeds(monkeypatch):
     assert kwargs == {"verify": False, "timeout": 10.0}
 
 
+@pytest.mark.fast
 def test_tls_config_as_requests_kwargs_with_ca_file_has_expected(tmp_path, monkeypatch):
     """Test as_requests_kwargs with ca_file provided includes timeout.
 
@@ -117,6 +127,7 @@ def test_tls_config_as_requests_kwargs_with_ca_file_has_expected(tmp_path, monke
     assert kwargs == {"verify": str(ca), "timeout": 10.0}
 
 
+@pytest.mark.fast
 def test_tls_config_as_requests_kwargs_with_cert_and_key_has_expected(
     tmp_path, monkeypatch
 ):
@@ -133,6 +144,7 @@ def test_tls_config_as_requests_kwargs_with_cert_and_key_has_expected(
     assert kwargs == {"verify": True, "cert": (str(cert), str(key)), "timeout": 10.0}
 
 
+@pytest.mark.fast
 def test_tls_config_as_requests_kwargs_with_cert_only_has_expected(
     tmp_path, monkeypatch
 ):
@@ -147,6 +159,7 @@ def test_tls_config_as_requests_kwargs_with_cert_only_has_expected(
     assert kwargs == {"verify": True, "cert": str(cert), "timeout": 10.0}
 
 
+@pytest.mark.fast
 def test_tls_config_as_requests_kwargs_ca_file_precedence_succeeds(
     tmp_path, monkeypatch
 ):
@@ -161,6 +174,7 @@ def test_tls_config_as_requests_kwargs_ca_file_precedence_succeeds(
     assert kwargs == {"verify": str(ca), "timeout": 10.0}
 
 
+@pytest.mark.fast
 def test_tls_config_as_requests_kwargs_all_params_succeeds(tmp_path, monkeypatch):
     """Test as_requests_kwargs with all parameters set includes timeout.
 

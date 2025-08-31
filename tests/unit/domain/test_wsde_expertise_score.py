@@ -12,6 +12,7 @@ class DummyAgent:
         self.current_role = None
 
 
+@pytest.mark.fast
 def test_calculate_expertise_score_multiple_matches():
     """Test that calculate expertise score multiple matches.
 

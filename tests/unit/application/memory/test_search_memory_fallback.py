@@ -8,6 +8,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
 @pytest.mark.no_network
+@pytest.mark.fast
 def test_search_memory_fallback_without_vector_adapter_returns_results():
     # Setup MemoryManager with only TinyDB (no vector adapter)
     mm = MemoryManager(adapters={"tinydb": TinyDBMemoryAdapter()})

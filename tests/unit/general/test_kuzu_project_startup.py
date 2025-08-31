@@ -20,6 +20,7 @@ def project_dir(tmp_path):
     return project
 
 
+@pytest.mark.medium
 def test_project_startup_with_kuzu(project_dir, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(project_dir))
     # Prevent actual embedding calls

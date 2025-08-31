@@ -21,6 +21,7 @@ class DummyStore(MemoryStore):
         raise NotImplementedError
 
 
+@pytest.mark.fast
 def test_memory_store_abstract_methods_succeeds():
     """Test that memory store abstract methods succeeds.
 

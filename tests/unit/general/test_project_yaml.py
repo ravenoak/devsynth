@@ -21,6 +21,7 @@ class TestProjectYamlLoading:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     @patch("builtins.open")
     @patch("yaml.safe_load")
     def test_load_project_yaml_success_succeeds(self, mock_yaml_load, mock_open):
@@ -33,6 +34,7 @@ class TestProjectYamlLoading:
         mock_open.assert_called_once_with(Path(".devsynth/project.yaml"), "r")
         mock_yaml_load.assert_called_once()
 
+    @pytest.mark.fast
     @patch("builtins.open")
     @patch("yaml.safe_load")
     @patch("os.path.exists")
@@ -51,6 +53,7 @@ class TestProjectYamlLoading:
         mock_open.assert_called_once_with(Path("manifest.yaml"), "r")
         mock_yaml_load.assert_called_once()
 
+    @pytest.mark.fast
     @patch("os.path.exists")
     def test_project_yaml_path_preference_succeeds(self, mock_exists):
         """Test that .devsynth/project.yaml is preferred over manifest.yaml when both exist.
@@ -64,6 +67,7 @@ class TestProjectYamlLoading:
                 result = load_manifest(None)
                 mock_open.assert_called_once_with(Path(".devsynth/project.yaml"), "r")
 
+    @pytest.mark.fast
     @patch("builtins.open")
     @patch("yaml.safe_load")
     def test_manifest_version_locking_succeeds(self, mock_yaml_load, mock_open):
@@ -76,6 +80,7 @@ class TestProjectYamlLoading:
         mock_open.assert_called_once_with(Path(".devsynth/project.yaml"), "r")
         mock_yaml_load.assert_called_once()
 
+    @pytest.mark.fast
     @patch("os.path.exists")
     def test_default_manifest_returned_when_missing_returns_expected_result(
         self, mock_exists

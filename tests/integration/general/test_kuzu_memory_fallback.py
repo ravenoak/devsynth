@@ -5,11 +5,14 @@ import tempfile
 import types
 from unittest.mock import patch
 
+import pytest
+
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
+@pytest.mark.medium
 def test_memory_system_falls_back_when_kuzu_unavailable(monkeypatch):
     # Simulate kuzu not installed
     monkeypatch.setitem(sys.modules, "kuzu", None)

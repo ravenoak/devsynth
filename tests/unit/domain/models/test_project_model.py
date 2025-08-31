@@ -262,6 +262,7 @@ class TestProjectModel:
         assert model.artifacts[code_path2] in code_artifacts
         assert model.artifacts[test_path] in test_artifacts
 
+    @pytest.mark.fast
     def test_get_related_artifacts_succeeds(
         self, mock_project_root, basic_manifest_data
     ):
@@ -287,6 +288,7 @@ class TestProjectModel:
         with pytest.raises(ProjectModelError):
             model.get_related_artifacts("/non/existent/path")
 
+    @pytest.mark.fast
     def test_determine_artifact_type_succeeds(
         self, mock_project_root, basic_manifest_data
     ):
@@ -355,6 +357,7 @@ class TestProjectModel:
             == ArtifactType.CODE
         )
 
+    @pytest.mark.fast
     def test_to_dict_succeeds(self, mock_project_root, basic_manifest_data):
         """Test converting the project model to a dictionary representation.
 

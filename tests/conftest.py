@@ -493,7 +493,11 @@ def _default_timeout_by_speed(
         return
 
     # Determine if we're in smoke mode (plugins disabled)
-    smoke = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "0").lower() in {"1", "true", "yes"}
+    smoke = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "0").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
 
     # Determine closest speed marker and set default timeout accordingly
     if request.node.get_closest_marker("fast") is not None:

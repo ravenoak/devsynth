@@ -1,9 +1,12 @@
 import logging
 
+import pytest
+
 from devsynth.methodology.base import Phase
 from devsynth.methodology.sprint import SprintAdapter
 
 
+@pytest.mark.fast
 def test_phase_timeout_logs_warning_succeeds(caplog):
     """Test that phase timeout logs warning succeeds.
 

@@ -45,6 +45,7 @@ class TestMemorySystemWithChromaDB:
         }
         return MemorySystemAdapter(config=config)
 
+    @pytest.mark.fast
     def test_initialization_with_chromadb_succeeds(self, temp_dir):
         """Test that the memory system initializes correctly with ChromaDB.
 
@@ -61,6 +62,7 @@ class TestMemorySystemWithChromaDB:
         assert isinstance(memory_system.vector_store, ChromaDBAdapter)
         assert memory_system.has_vector_store() is True
 
+    @pytest.mark.fast
     def test_initialization_without_vector_store_succeeds(self, temp_dir):
         """Test that the memory system initializes correctly without vector store.
 
@@ -75,6 +77,7 @@ class TestMemorySystemWithChromaDB:
         assert memory_system.vector_store is None
         assert memory_system.has_vector_store() is False
 
+    @pytest.mark.fast
     def test_memory_and_vector_store_integration_succeeds(self, memory_system):
         """Test that both memory store and vector store work together.
 
@@ -105,6 +108,7 @@ class TestMemorySystemWithChromaDB:
         assert retrieved_vector.content == vector.content
         assert retrieved_vector.metadata["memory_item_id"] == item_id
 
+    @pytest.mark.fast
     def test_context_manager_with_chromadb_succeeds(self, memory_system):
         """Test that the context manager works with ChromaDB.
 

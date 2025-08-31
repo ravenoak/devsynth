@@ -24,6 +24,7 @@ class TestWorkflowManager:
             manager.orchestration_port = mock_port
             yield manager
 
+    @pytest.mark.fast
     def test_handle_human_intervention_succeeds(self, workflow_manager):
         """Test handling human intervention.
 
@@ -43,6 +44,7 @@ class TestWorkflowManager:
             assert response == "User input"
             assert mock_console.print.call_count == 2
 
+    @pytest.mark.fast
     def test_create_workflow_for_command_succeeds(self, workflow_manager):
         """Test creating a workflow for a command.
 
@@ -69,6 +71,7 @@ class TestWorkflowManager:
                 mock_workflow, {"test": "value"}
             )
 
+    @pytest.mark.fast
     def test_add_init_workflow_steps_succeeds(self, workflow_manager):
         """Test adding steps for init workflow.
 
@@ -86,6 +89,7 @@ class TestWorkflowManager:
         assert "file_system" in str(calls[1])
         assert "config_manager" in str(calls[2])
 
+    @pytest.mark.fast
     def test_execute_command_succeeds(self, workflow_manager):
         """Test executing a command.
 
@@ -111,6 +115,7 @@ class TestWorkflowManager:
         assert result["success"] is True
         assert result["message"] == "Command executed successfully"
 
+    @pytest.mark.fast
     def test_execute_command_failure_fails(self, workflow_manager):
         """Test executing a command that fails.
 
@@ -129,6 +134,7 @@ class TestWorkflowManager:
         assert result["success"] is False
         assert result["message"] == "Command failed"
 
+    @pytest.mark.fast
     def test_execute_command_human_intervention_succeeds(self, workflow_manager):
         """Test executing a command that requires human intervention.
 

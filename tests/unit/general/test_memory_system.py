@@ -35,6 +35,7 @@ class TestInMemoryStore(unittest.TestCase):
     def setUp(self):
         self.store = InMemoryStore()
 
+    @pytest.mark.fast
     def test_store_and_retrieve_succeeds(self):
         """Test storing and retrieving items.
 
@@ -53,6 +54,7 @@ class TestInMemoryStore(unittest.TestCase):
         self.assertEqual(retrieved_item.memory_type, MemoryType.SHORT_TERM)
         self.assertEqual(retrieved_item.metadata["key"], "value")
 
+    @pytest.mark.fast
     def test_search_succeeds(self):
         """Test searching for items.
 
@@ -81,6 +83,7 @@ class TestInMemoryStore(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].content, "Banana content")
 
+    @pytest.mark.fast
     def test_delete_succeeds(self):
         """Test deleting items.
 
@@ -107,6 +110,7 @@ class TestJSONFileStore(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
+    @pytest.mark.fast
     def test_store_and_retrieve_succeeds(self):
         """Test storing and retrieving items.
 
@@ -125,6 +129,7 @@ class TestJSONFileStore(unittest.TestCase):
         self.assertEqual(retrieved_item.memory_type, MemoryType.SHORT_TERM)
         self.assertEqual(retrieved_item.metadata["key"], "value")
 
+    @pytest.mark.fast
     def test_persistence_succeeds(self):
         """Test that items persist between store instances.
 
@@ -148,6 +153,7 @@ class TestJSONFileStore(unittest.TestCase):
             self.assertIsNotNone(retrieved_item)
             self.assertEqual(retrieved_item.content, "Persistent content")
 
+    @pytest.mark.fast
     def test_search_succeeds(self):
         """Test searching for items.
 
@@ -176,6 +182,7 @@ class TestJSONFileStore(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].content, "Banana content")
 
+    @pytest.mark.fast
     def test_delete_succeeds(self):
         """Test deleting items.
 
@@ -189,6 +196,7 @@ class TestJSONFileStore(unittest.TestCase):
         retrieved_item = self.store.retrieve(item_id)
         self.assertIsNone(retrieved_item)
 
+    @pytest.mark.fast
     def test_token_usage_succeeds(self):
         """Test token usage tracking.
 
@@ -209,6 +217,7 @@ class TestSimpleContextManager(unittest.TestCase):
     def setUp(self):
         self.context_manager = SimpleContextManager()
 
+    @pytest.mark.fast
     def test_add_and_get_succeeds(self):
         """Test adding and getting context values.
 
@@ -217,6 +226,7 @@ class TestSimpleContextManager(unittest.TestCase):
         value = self.context_manager.get_from_context("key1")
         self.assertEqual(value, "value1")
 
+    @pytest.mark.fast
     def test_get_full_context_succeeds(self):
         """Test getting the full context.
 
@@ -228,6 +238,7 @@ class TestSimpleContextManager(unittest.TestCase):
         self.assertEqual(context["key1"], "value1")
         self.assertEqual(context["key2"], "value2")
 
+    @pytest.mark.fast
     def test_clear_context_succeeds(self):
         """Test clearing the context.
 
@@ -251,6 +262,7 @@ class TestPersistentContextManager(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
+    @pytest.mark.fast
     def test_add_and_get_succeeds(self):
         """Test adding and getting context values.
 
@@ -259,6 +271,7 @@ class TestPersistentContextManager(unittest.TestCase):
         value = self.context_manager.get_from_context("key1")
         self.assertEqual(value, "value1")
 
+    @pytest.mark.fast
     def test_persistence_succeeds(self):
         """Test that context persists between manager instances.
 
@@ -268,6 +281,7 @@ class TestPersistentContextManager(unittest.TestCase):
         value = new_context_manager.get_from_context("key1")
         self.assertEqual(value, "persistent_value")
 
+    @pytest.mark.fast
     def test_get_full_context_succeeds(self):
         """Test getting the full context.
 
@@ -279,6 +293,7 @@ class TestPersistentContextManager(unittest.TestCase):
         self.assertEqual(context["key1"], "value1")
         self.assertEqual(context["key2"], "value2")
 
+    @pytest.mark.fast
     def test_clear_context_succeeds(self):
         """Test clearing the context.
 
@@ -289,6 +304,7 @@ class TestPersistentContextManager(unittest.TestCase):
         context = self.context_manager.get_full_context()
         self.assertEqual(len(context), 0)
 
+    @pytest.mark.fast
     def test_get_relevant_context_succeeds(self):
         """Test getting relevant context.
 
@@ -300,6 +316,7 @@ class TestPersistentContextManager(unittest.TestCase):
         self.assertEqual(len(relevant), 1)
         self.assertEqual(relevant["apple_info"], "Apples are red")
 
+    @pytest.mark.fast
     def test_token_usage_succeeds(self):
         """Test token usage tracking.
 
@@ -320,6 +337,7 @@ class TestMemorySystemAdapter(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
+    @pytest.mark.fast
     def test_in_memory_adapter_succeeds(self):
         """Test the adapter with in-memory storage.
 
@@ -328,6 +346,7 @@ class TestMemorySystemAdapter(unittest.TestCase):
         self.assertIsInstance(adapter.get_memory_store(), InMemoryStore)
         self.assertIsInstance(adapter.get_context_manager(), SimpleContextManager)
 
+    @pytest.mark.fast
     def test_file_based_adapter_succeeds(self):
         """Test the adapter with file-based storage.
 
@@ -338,6 +357,7 @@ class TestMemorySystemAdapter(unittest.TestCase):
         self.assertIsInstance(adapter.get_memory_store(), JSONFileStore)
         self.assertIsInstance(adapter.get_context_manager(), PersistentContextManager)
 
+    @pytest.mark.fast
     def test_token_usage_succeeds(self):
         """Test token usage tracking.
 

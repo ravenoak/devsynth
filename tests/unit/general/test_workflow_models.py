@@ -11,6 +11,7 @@ class TestWorkflowModels:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_workflow_status_enum_succeeds(self):
         """Test that workflow status enum succeeds.
 
@@ -21,6 +22,7 @@ class TestWorkflowModels:
         assert WorkflowStatus.FAILED.value == "failed"
         assert WorkflowStatus.PAUSED.value == "paused"
 
+    @pytest.mark.fast
     def test_workflow_step_initialization_succeeds(self):
         """Test that workflow step initialization succeeds.
 
@@ -39,6 +41,7 @@ class TestWorkflowModels:
         assert isinstance(step.outputs, dict)
         assert step.status == WorkflowStatus.PENDING
 
+    @pytest.mark.fast
     def test_workflow_initialization_succeeds(self):
         """Test that workflow initialization succeeds.
 
@@ -56,6 +59,7 @@ class TestWorkflowModels:
         except ValueError:
             pytest.fail("Workflow id is not a valid UUID")
 
+    @pytest.mark.fast
     def test_workflow_with_steps_succeeds(self):
         """Test that workflow with steps succeeds.
 

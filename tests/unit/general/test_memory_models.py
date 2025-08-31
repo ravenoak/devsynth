@@ -10,6 +10,7 @@ class TestMemoryModels:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_memory_type_enum_succeeds(self):
         """Test that memory type enum succeeds.
 
@@ -19,6 +20,7 @@ class TestMemoryModels:
         assert MemoryType.WORKING.value == "working"
         assert MemoryType.EPISODIC.value == "episodic"
 
+    @pytest.mark.fast
     def test_memory_item_initialization_succeeds(self):
         """Test that memory item initialization succeeds.
 
@@ -34,6 +36,7 @@ class TestMemoryModels:
         assert isinstance(memory_item.metadata, dict)
         assert isinstance(memory_item.created_at, datetime)
 
+    @pytest.mark.fast
     def test_memory_item_with_metadata_succeeds(self):
         """Test that memory item with metadata succeeds.
 
@@ -57,12 +60,14 @@ class TestMemoryModels:
         assert memory_item.metadata == custom_metadata
         assert memory_item.created_at == custom_time
 
+    @pytest.mark.fast
     def test_memory_type_aliases(self):
         """Ensure enum aliases reference the same member."""
 
         # WORKING_MEMORY should refer to the same enum member as WORKING
         assert MemoryType.WORKING_MEMORY is MemoryType.WORKING
 
+    @pytest.mark.fast
     def test_memory_item_type_alias(self):
         """Ensure MemoryItemType is an alias of MemoryType."""
 

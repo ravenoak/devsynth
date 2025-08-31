@@ -21,6 +21,7 @@ def team_with_agents():
     return team, doc, coder, tester
 
 
+@pytest.mark.fast
 def test_select_primus_by_expertise_prefers_documentation_agent_succeeds(
     team_with_agents,
 ):
@@ -34,6 +35,7 @@ def test_select_primus_by_expertise_prefers_documentation_agent_succeeds(
     assert doc.current_role == "Primus"
 
 
+@pytest.mark.fast
 def test_vote_on_critical_decision_tie_triggers_consensus_succeeds(team_with_agents):
     """Test that vote on critical decision tie triggers consensus succeeds.
 
@@ -57,6 +59,7 @@ def test_vote_on_critical_decision_tie_triggers_consensus_succeeds(team_with_age
         bc.assert_called_once()
 
 
+@pytest.mark.fast
 def test_vote_on_critical_decision_weighted_voting_succeeds(team_with_agents):
     """Test that vote on critical decision weighted voting succeeds.
 
@@ -81,6 +84,7 @@ def test_vote_on_critical_decision_weighted_voting_succeeds(team_with_agents):
     assert result["result"]["method"] == "weighted_vote"
 
 
+@pytest.mark.fast
 def test_build_consensus_multiple_and_single_succeeds(team_with_agents):
     """Test that build consensus multiple and single succeeds.
 
@@ -97,6 +101,7 @@ def test_build_consensus_multiple_and_single_succeeds(team_with_agents):
     assert set(consensus["contributors"]) == {doc.name, coder.name}
 
 
+@pytest.mark.fast
 def test_documentation_task_selects_unused_doc_agent_succeeds(team_with_agents):
     """Test that documentation task selects unused doc agent succeeds.
 
@@ -108,6 +113,7 @@ def test_documentation_task_selects_unused_doc_agent_succeeds(team_with_agents):
     assert team.get_primus() is doc
 
 
+@pytest.mark.fast
 def test_rotation_resets_after_all_have_served_succeeds(team_with_agents):
     """Test that rotation resets after all have served succeeds.
 
@@ -127,6 +133,7 @@ def test_rotation_resets_after_all_have_served_succeeds(team_with_agents):
     assert not tester.has_been_primus
 
 
+@pytest.mark.fast
 def test_select_primus_prefers_doc_expertise_via_config_succeeds(team_with_agents):
     """Test that select primus prefers doc expertise via config succeeds.
 
@@ -142,6 +149,7 @@ def test_select_primus_prefers_doc_expertise_via_config_succeeds(team_with_agent
     assert team.get_role_map()[doc.name] == "Primus"
 
 
+@pytest.mark.fast
 def test_rotate_primus_resets_usage_flags_and_role_map_succeeds(team_with_agents):
     """Test that rotate primus resets usage flags and role map succeeds.
 
@@ -159,6 +167,7 @@ def test_rotate_primus_resets_usage_flags_and_role_map_succeeds(team_with_agents
     assert not tester.has_been_primus
 
 
+@pytest.mark.fast
 def test_multiple_task_cycles_reset_primus_flags_succeeds(team_with_agents):
     """Test that multiple task cycles reset primus flags succeeds.
 
@@ -174,6 +183,7 @@ def test_multiple_task_cycles_reset_primus_flags_succeeds(team_with_agents):
     assert all(a.has_been_primus for a in [doc, coder, tester])
 
 
+@pytest.mark.fast
 def test_vote_on_critical_decision_coverage_succeeds():
     """Test that vote on critical decision coverage succeeds.
 
@@ -251,6 +261,7 @@ def test_vote_on_critical_decision_coverage_succeeds():
     assert coverage_percent >= 80
 
 
+@pytest.mark.fast
 def test_force_wsde_coverage_succeeds():
     """Test that force wsde coverage succeeds.
 
@@ -263,6 +274,7 @@ def test_force_wsde_coverage_succeeds():
     exec(compile(dummy, str(path), "exec"), {})
 
 
+@pytest.mark.fast
 def test_expertise_selection_and_flag_rotation_succeeds():
     """Test that expertise selection and flag rotation succeeds.
 
@@ -296,6 +308,7 @@ def test_expertise_selection_and_flag_rotation_succeeds():
     assert not tester.has_been_primus
 
 
+@pytest.mark.fast
 def test_select_primus_coverage_succeeds(team_with_agents):
     """Ensure select_primus_by_expertise maintains >80% coverage.
 

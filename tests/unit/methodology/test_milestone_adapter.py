@@ -1,12 +1,16 @@
+import pytest
+
 from devsynth.methodology.base import Phase
 from devsynth.methodology.milestone import MilestoneAdapter
 
 
+@pytest.mark.fast
 def test_should_start_cycle():
     adapter = MilestoneAdapter({"settings": {"approvalRequired": {}}})
     assert adapter.should_start_cycle()
 
 
+@pytest.mark.fast
 def test_progress_requires_approval_when_configured():
     settings = {"approvalRequired": {"afterExpand": True}}
     adapter = MilestoneAdapter({"settings": settings})
