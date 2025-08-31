@@ -52,8 +52,12 @@ PYTEST_MARK_IMPORT = re.compile(r"^\s*import\s+pytest\b|^\s*from\s+pytest\s+impo
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Fix missing speed markers in tests")
-    p.add_argument("--path", default="tests", help="Directory or file to process (default: tests)")
-    p.add_argument("--dry-run", action="store_true", help="Show changes without writing files")
+    p.add_argument(
+        "--path", default="tests", help="Directory or file to process (default: tests)"
+    )
+    p.add_argument(
+        "--dry-run", action="store_true", help="Show changes without writing files"
+    )
     p.add_argument("--verbose", action="store_true", help="Verbose output")
     return p.parse_args()
 
@@ -67,7 +71,9 @@ def _ensure_pytest_import(lines: List[str]) -> Tuple[List[str], bool]:
     if lines and lines[0].startswith("#!/"):
         insert_idx = 1
     # Skip module docstring block if present
-    if insert_idx < len(lines) and lines[insert_idx].lstrip().startswith(('"""', "'''")):
+    if insert_idx < len(lines) and lines[insert_idx].lstrip().startswith(
+        ('"""', "'''")
+    ):
         quote = lines[insert_idx].lstrip()[:3]
         insert_idx += 1
         while insert_idx < len(lines):
@@ -89,12 +95,14 @@ def _file_has_module_level_speed_marker(lines: List[str]) -> bool:
     # We do not add/alter module-level speed markers; verifier will flag them elsewhere.
     # Here, we just detect them to avoid false positives when counting missing markers.
     for line in lines:
-        if MARKER_PATTERN.match(line) and "def "+"test_" not in line:
+        if MARKER_PATTERN.match(line) and "def " + "test_" not in line:
             return True
     return False
 
 
-def process_file(path: Path, dry_run: bool = False, verbose: bool = False) -> Tuple[bool, int]:
+def process_file(
+    path: Path, dry_run: bool = False, verbose: bool = False
+) -> Tuple[bool, int]:
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines(keepends=True)
 
@@ -169,7 +177,9 @@ def process_file(path: Path, dry_run: bool = False, verbose: bool = False) -> Tu
 
     if dry_run:
         if verbose:
-            print(f"[DRY] Would modify {path} adding {len(adjusted_inserts)} @pytest.mark.medium decorators")
+            print(
+                f"[DRY] Would modify {path} adding {len(adjusted_inserts)} @pytest.mark.medium decorators"
+            )
         return False, len(adjusted_inserts)
 
     path.write_text("".join(lines), encoding="utf-8")
@@ -182,7 +192,9 @@ def process_file(path: Path, dry_run: bool = False, verbose: bool = False) -> Tu
             pass
 
     if verbose:
-        print(f"Updated {path}: added {len(adjusted_inserts)} @pytest.mark.medium decorators")
+        print(
+            f"Updated {path}: added {len(adjusted_inserts)} @pytest.mark.medium decorators"
+        )
     return True, len(adjusted_inserts)
 
 
