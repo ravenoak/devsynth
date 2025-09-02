@@ -7,8 +7,8 @@ See also:
 - [CLI Command Reference](user_guides/cli_command_reference.md)
 - [Test Framework README](../tests/README.md)
 
-1. [ ] Establish baseline dev environment for validation
-   1.1. [ ] Install minimal extras for a clean environment: poetry install --with dev --extras minimal (Verify install completes without optional extras)
+1. [x] Establish baseline dev environment for validation
+   1.1. [x] Install minimal extras for a clean environment: poetry install --with dev --extras minimal (Verify install completes without optional extras)
    1.2. [x] Run quick sanity collection: poetry run pytest --collect-only -q (Expect collection succeeds)  
    1.3. [x] Verify doctor succeeds without optional extras: poetry run devsynth doctor (Expect exit 0; no ModuleNotFoundError: streamlit)
 
@@ -27,7 +27,7 @@ See also:
    2.5. [x] Re-run doctor on minimal env: poetry run devsynth doctor (Expect exit 0)  
         (Optionally verify devsynth --help behavior as per 2.3.)
 
-3. [ ] Stabilize LM Studio tests and deterministic local path
+3. [x] Stabilize LM Studio tests and deterministic local path
    3.1. [x] Confirm default offline behavior: ensure DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false and DEVSYNTH_PROVIDER=stub are respected so LM Studio tests skip by default.  
         (Run: poetry run pytest -q -m "requires_resource('lmstudio')"; expect all skipped.)
    3.2. [x] Prevent accidental network calls in provider factory when resource flag is false. Review and adjust:
@@ -44,8 +44,8 @@ See also:
         export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234  
         export DEVSYNTH_LMSTUDIO_TIMEOUT_SECONDS=10  
         export DEVSYNTH_LMSTUDIO_RETRIES=1  
-        poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
-   3.5. [ ] Validate enabled stability: run the targeted subset 3 times consecutively with no-parallel and maxfail=1; all green.  
+        poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 --marker "requires_resource('lmstudio') and not slow"
+   3.5. [x] Validate enabled stability: run the targeted subset 3 times consecutively with no-parallel and maxfail=1; all green.  
         (Record results; flake rate must be 0.)
 
 4. [x] Enforce and accelerate test speed marker/resource discipline
@@ -66,17 +66,17 @@ See also:
    5.3. [x] Document inventory scoping for quick target discovery:  
         poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
 
-6. [ ] Lint, typing, and security guardrails (high-signal fixes only)
+6. [x] Lint, typing, and security guardrails (high-signal fixes only)
    6.1. [x] Run Black/isort formatting checks and fix as needed:  
         poetry run black --check .  
         poetry run isort --check-only .
-   6.2. [ ] Run Flake8 and address high-signal issues in src/ and tests/:  
+   6.2. [x] Run Flake8 and address high-signal issues in src/ and tests/:  
         poetry run flake8 src/ tests/
-   6.3. [ ] Run mypy in strict mode, adding minimal, documented overrides where required (with TODOs to restore strictness):  
+   6.3. [x] Run mypy in strict mode, adding minimal, documented overrides where required (with TODOs to restore strictness):  
         poetry run mypy src/devsynth
-   6.4. [ ] Run Bandit (exclude tests) and address critical findings:  
+   6.4. [x] Run Bandit (exclude tests) and address critical findings:  
         poetry run bandit -r src/devsynth -x tests
-   6.5. [ ] Run Safety and review dependency advisories:  
+   6.5. [x] Run Safety and review dependency advisories:  
         poetry run safety check --full-report
 
 7. [x] Update CLI and testing documentation
@@ -100,11 +100,11 @@ See also:
         poetry run devsynth run-tests --target unit-tests --speed=slow --segment --segment-size 50 --no-parallel  
         (Repeat for integration/behavior as needed; optionally add --report.)
 
-9. [ ] Confirm LM Studio offline/online acceptance criteria
+9. [x] Confirm LM Studio offline/online acceptance criteria
    9.1. [x] Offline: poetry run pytest -q -m "requires_resource('lmstudio') and not slow".  
         (Resource flag false.)
-   9.2. [ ] Enabled: Follow Section 3.4 recipe and run:  
-        poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"  
+   9.2. [x] Enabled: Follow Section 3.4 recipe and run:  
+        poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 --marker "requires_resource('lmstudio') and not slow"  
         (Pass 3 consecutive runs.)
 
 10. [x] Integrate marker verification and reports into release prep
@@ -113,7 +113,7 @@ See also:
     10.2. [x] Include verify_test_markers.py in the release readiness checklist and document how to run --changed for faster feedback on modified subsets.
 
 11. [ ] Final release sign-off validation (v0.1.0a1)
-    11.1. [ ] Doctor without optional extras: poetry run devsynth doctor → exit 0.  
+    11.1. [x] Doctor without optional extras: poetry run devsynth doctor → exit 0.  
           (Minimal extras env.)
     11.2. [ ] Marker discipline: zero violations from verify_test_markers.py.  
           (Report saved to test_markers_report.json.)
