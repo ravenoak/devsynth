@@ -158,7 +158,8 @@ To run optional backends locally, install extras and set resource flags explicit
   export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234
   export DEVSYNTH_LMSTUDIO_TIMEOUT_SECONDS=10
   export DEVSYNTH_LMSTUDIO_RETRIES=1
-  poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
+  # Prefer --marker to avoid shell/pytest -m quoting pitfalls
+  poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 --marker "requires_resource('lmstudio') and not slow"
   ```
 
 - OpenAI provider (nightly/gated local):

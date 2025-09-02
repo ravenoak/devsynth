@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 from typing import Any
+import sys
 
 from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
 from devsynth.logger import setup_logging
@@ -49,6 +50,10 @@ def main(argv: list[str] | None = None) -> None:
     args, remaining = parser.parse_known_args(argv)
 
     if args.analyze_repo:
+        # Ensure heavy Typer CLI stack is not imported/retained for this fast path.
+        # Some test scenarios may have previously imported the CLI; clearing here
+        # guarantees this code path does not rely on it and keeps import-time light.
+        sys.modules.pop("devsynth.adapters.cli.typer_adapter", None)
         analyzer = RepoAnalyzer(args.analyze_repo)
         result: dict[str, Any] = analyzer.analyze()
         print(json.dumps(result, indent=2))

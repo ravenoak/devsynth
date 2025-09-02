@@ -40,9 +40,11 @@ class GitHubIssueAdapter:
         }
         try:
             resp = requests.get(url, headers=headers, timeout=10)
-            resp.raise_for_status()
-        except Exception as exc:  # pragma: no cover - network failure
+        except requests.RequestException as exc:  # pragma: no cover - network failure
             self.logger.error("GitHub issue fetch failed: %s", exc)
+            return None
+        if resp.status_code != 200:
+            self.logger.error("GitHub issue fetch failed: HTTP %s", resp.status_code)
             return None
         data = resp.json()
         title = data.get("title", "")

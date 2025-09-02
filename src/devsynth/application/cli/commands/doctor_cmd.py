@@ -137,7 +137,9 @@ def doctor_cmd(
             warnings = True
 
         # Load validation utilities dynamically
-        repo_root = Path(__file__).resolve().parents[4]
+        # Determine repository root (go up from src/devsynth/application/cli/commands)
+        # parents[5] points to the project root (beyond 'src')
+        repo_root = Path(__file__).resolve().parents[5]
         script_path = repo_root / "scripts" / "validate_config.py"
         spec = importlib.util.spec_from_file_location("validate_config", script_path)
         module = importlib.util.module_from_spec(spec)  # type: ignore

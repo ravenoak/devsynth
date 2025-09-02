@@ -87,15 +87,15 @@ See also:
    7.3. [x] Ensure Taskfile targets (Taskfile.yml) reference smoke/segmentation defaults and inventory scoping to speed triage.  
         (Add or adjust tasks without adding heavy new dependencies.)
 
-8. [ ] Validate full local test matrix (no GPU/LLM heft; segmentation where appropriate)
+8. [x] Validate full local test matrix (no GPU/LLM heft; segmentation where appropriate)
    8.1. [x] Baseline discovery:  
         poetry run pytest --collect-only -q  
         poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
-   8.2. [ ] Fast suites (no xdist):  
+   8.2. [x] Fast suites (no xdist):  
         poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel  
         poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel  
         poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel --smoke
-   8.3. [ ] Medium/slow with segmentation:  
+   8.3. [x] Medium/slow with segmentation:  
         poetry run devsynth run-tests --target unit-tests --speed=medium --segment --segment-size 50 --no-parallel  
         poetry run devsynth run-tests --target unit-tests --speed=slow --segment --segment-size 50 --no-parallel  
         (Repeat for integration/behavior as needed; optionally add --report.)
@@ -112,16 +112,16 @@ See also:
          (Adjust workflow or scripts if necessary.)
     10.2. [x] Include verify_test_markers.py in the release readiness checklist and document how to run --changed for faster feedback on modified subsets.
 
-11. [ ] Final release sign-off validation (v0.1.0a1)
+11. [x] Final release sign-off validation (v0.1.0a1)
     11.1. [x] Doctor without optional extras: poetry run devsynth doctor → exit 0.  
           (Minimal extras env.)
-    11.2. [ ] Marker discipline: zero violations from verify_test_markers.py.  
+    11.2. [x] Marker discipline: zero violations from verify_test_markers.py.  
           (Report saved to test_markers_report.json.)
-    11.3. [ ] All speeds green across unit/integration/behavior tests, following Section 8 matrix.  
+    11.3. [x] All speeds green across unit/integration/behavior tests, following Section 8 matrix.  
           (Segment medium/slow first; optionally confirm without segmentation.)
-    11.4. [ ] LM Studio: offline skipped by default; enabled path stable (3x green).  
+    11.4. [x] LM Studio: offline skipped by default; enabled path stable (3x green).  
           (No flakes.)
-    11.5. [ ] Lint/typing/security checks: black/isort/flake8/mypy/bandit/safety all pass or have documented, temporary overrides with TODOs.
+    11.5. [x] Lint/typing/security checks: black/isort/flake8/mypy/bandit/safety all pass or have documented, temporary overrides with TODOs.
 
 12. [x] Post-completion documentation tidy-up
     12.1. [x] Cross-link docs/plan.md, docs/tasks.md, docs/user_guides/cli_command_reference.md, and tests/README.md.  

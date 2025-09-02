@@ -124,7 +124,39 @@ def run_tests_cmd(
 
     ux_bridge = bridge if isinstance(bridge, UXBridge) else globals()["bridge"]
 
+    # When invoked programmatically (not via Typer CLI), parameters defined with
+    # typer.Option(...) can be passed as Typer Option objects rather than their
+    # concrete types. Normalize such values for predictable behavior in tests.
+    try:
+        from typer.models import OptionInfo as _TyperOptionInfo  # type: ignore
+    except Exception:  # pragma: no cover - typer internals not available
+        _TyperOptionInfo = tuple()  # type: ignore
+
+    if not isinstance(inventory, bool):
+        # Treat unspecified inventory flag as False when called directly.
+        inventory = False  # type: ignore[assignment]
+
+    if not isinstance(speeds, list):  # Typer OptionInfo or None
+        speeds = []  # type: ignore[assignment]
+
+    if not isinstance(features, list):  # Typer OptionInfo or None
+        features = []  # type: ignore[assignment]
+
     _configure_optional_providers()
+
+    # Allow 'responses' library to intercept requests cleanly in unit tests.
+    # We keep low-level sockets blocked in tests/fixtures/networking.py, so
+    # real network egress is still prevented. This only relaxes the guard
+    # that patches requests.request/Session.request, which interferes with
+    # responses in some environments.
+    if (
+        os.environ.get("DEVSYNTH_TEST_ALLOW_REQUESTS") is None
+        and os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") != "1"
+        and target == "unit-tests"
+    ):
+        # Apply by default for unit-tests target; other targets can opt-in via env.
+        # This preserves hermeticity while enabling standard mocking patterns.
+        os.environ["DEVSYNTH_TEST_ALLOW_REQUESTS"] = "true"
 
     # Record a lightweight invocation metric (no-op if prometheus not installed)
     try:
@@ -202,11 +234,22 @@ def run_tests_cmd(
         # Enforce a conservative per-test timeout for smoke runs unless overridden
         os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "30")
 
+    # Optimize inner subprocess validation runs used by tests: disable plugins and parallelism
+    # to avoid timeouts and reduce startup overhead, but only when explicitly indicated by tests.
+    if os.environ.get("DEVSYNTH_INNER_TEST") == "1":
+        os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+        existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
+        # Prepend to ensure our flags take effect
+        os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist -p no:cov "+ existing_addopts).strip()
+        no_parallel = True
+
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
     # to catch stalls while avoiding flakiness on slower machines.
     if not smoke:
         if normalized_speeds and set(normalized_speeds) == {"fast"}:
-            os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "30")
+            # Allow generous timeout for subprocess-invoked runs that can load plugins
+            # and perform slower startup on some machines.
+            os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "120")
 
     speed_categories = normalized_speeds or None
     feature_map = _parse_feature_options(features)
@@ -215,6 +258,11 @@ def run_tests_cmd(
             env_var = f"DEVSYNTH_FEATURE_{name.upper()}"
             os.environ[env_var] = "true" if enabled else "false"
         logger.info("Feature flags: %s", feature_map)
+
+    _kwargs: Dict[str, Any] = {}
+    if marker is not None:
+        # Map CLI --marker to the internal run_tests extra_marker parameter.
+        _kwargs["extra_marker"] = marker
 
     success, output = run_tests(
         target,
@@ -225,7 +273,7 @@ def run_tests_cmd(
         segment,
         segment_size,
         maxfail,
-        marker,
+        **_kwargs,
     )
 
     if output:

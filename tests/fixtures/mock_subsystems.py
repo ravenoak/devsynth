@@ -92,36 +92,14 @@ def stub_providers() -> None:
         # If import fails, tests using adapters should import the stub via patching elsewhere
         pass
 
-    # Application-layer providers
-    try:
-        import devsynth.application.llm.openai_provider as app_openai  # type: ignore
+    # Application-layer OpenAI provider: opt-in stubbing only.
+    # Some unit tests assert internal behaviors of the real provider (e.g., constructor patching),
+    # so we avoid overriding it by default. Enable via DEVSYNTH_TEST_STUB_APP_OPENAI=true when desired.
+    if os.getenv("DEVSYNTH_TEST_STUB_APP_OPENAI", "false").lower() in {"1", "true", "yes"}:
+        try:
+            import devsynth.application.llm.openai_provider as app_openai  # type: ignore
 
-        class _AppOpenAIStub:
-            def __init__(self, *_, **__):
-                pass
-
-            def complete(self, *_, **__):
-                return "Test completion response"
-
-            def embed(self, *_, **__):
-                return [0.1, 0.2, 0.3, 0.4]
-
-        if hasattr(app_openai, "OpenAIProvider"):
-            app_openai.OpenAIProvider = _AppOpenAIStub  # type: ignore[attr-defined]
-    except Exception:
-        pass
-
-    try:
-        import devsynth.application.llm.lmstudio_provider as app_lms  # type: ignore
-
-        # Only stub LMStudio when the resource is not explicitly enabled.
-        _lmstudio_resource_enabled = os.getenv(
-            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
-        ).lower() in {"1", "true", "yes"}
-
-        if not _lmstudio_resource_enabled:
-
-            class _AppLMStudioStub:
+            class _AppOpenAIStub:
                 def __init__(self, *_, **__):
                     pass
 
@@ -131,10 +109,49 @@ def stub_providers() -> None:
                 def embed(self, *_, **__):
                     return [0.1, 0.2, 0.3, 0.4]
 
-            if hasattr(app_lms, "LMStudioProvider"):
-                app_lms.LMStudioProvider = _AppLMStudioStub  # type: ignore[attr-defined]
-    except Exception:
-        pass
+            if hasattr(app_openai, "OpenAIProvider"):
+                app_openai.OpenAIProvider = _AppOpenAIStub  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+    # Optional stub for application-layer LMStudio provider.
+    # Disabled by default to allow tests to patch internals of the real provider class.
+    if os.getenv("DEVSYNTH_TEST_STUB_APP_LMSTUDIO", "false").lower() in {"1", "true", "yes"}:
+        try:
+            import devsynth.application.llm.lmstudio_provider as app_lms  # type: ignore
+
+            # Only stub LMStudio when the resource is not explicitly enabled.
+            _lmstudio_resource_enabled = os.getenv(
+                "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+            ).lower() in {"1", "true", "yes"}
+
+            if not _lmstudio_resource_enabled:
+
+                class _AppLMStudioStub:
+                    def __init__(self, *_, **__):
+                        pass
+
+                    # Application-layer API shape
+                    def generate(self, *_, **__):
+                        return "Test completion response"
+
+                    def generate_with_context(self, *_, **__):
+                        return "Test completion response"
+
+                    def get_embedding(self, *_, **__):
+                        return [0.1, 0.2, 0.3, 0.4]
+
+                    # Adapter-style methods for compatibility (some tests call these)
+                    def complete(self, *_, **__):
+                        return "Test completion response"
+
+                    def embed(self, *_, **__):
+                        return [0.1, 0.2, 0.3, 0.4]
+
+                if hasattr(app_lms, "LMStudioProvider"):
+                    app_lms.LMStudioProvider = _AppLMStudioStub  # type: ignore[attr-defined]
+        except Exception:
+            pass
 
 
 def apply_normalized_stubs() -> None:
