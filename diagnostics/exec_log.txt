@@ -185,3 +185,10 @@ Exit code: 0
 Key outputs/artifacts: poetry install completed
 Notes/anomalies: Task 27
 ---
+
+---
+Timestamp: 2025-08-31T20:04:00Z
+Command: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 | tee diagnostics/fast_smoke_run_2025-08-31T20-04-00Z.txt
+Exit code: N/A (instruction recorded; execute locally to capture)
+Key outputs/artifacts: diagnostics/fast_smoke_run_2025-08-31T20-04-00Z.txt
+Notes/anomalies: Runner is constrained; record this entry as guidance per docs/plan.md §7.D. Maintain zero-plugin autoload via --smoke to reduce flake/hang risk.

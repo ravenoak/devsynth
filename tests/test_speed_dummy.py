@@ -1,7 +1,8 @@
 import pytest
 
-
 @pytest.mark.fast
-def test_speed_dummy() -> None:
-    """Sentinel fast test for CI tooling and marker discipline."""
+def test_speed_dummy_sentinel():
+    """Sentinel test to ensure marker discipline control path is always valid.
+    ReqID: QA-SPEED-SENTINEL
+    """
     assert True

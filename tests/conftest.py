@@ -95,6 +95,29 @@ def pytest_configure(config):
         "markers",
         "performance: mark test as a performance/benchmark test (opt-in)",
     )
+    # Register derived static markers for known resources to allow '-m resource_<name>' selection
+    for _res in [
+        "anthropic",
+        "llm_provider",
+        "lmstudio",
+        "openai",
+        "codebase",
+        "cli",
+        "chromadb",
+        "tinydb",
+        "duckdb",
+        "faiss",
+        "kuzu",
+        "lmdb",
+        "rdflib",
+        "memory",
+        "test_resource",
+        "webui",
+    ]:
+        config.addinivalue_line(
+            "markers",
+            f"resource_{_res}: derived marker for requires_resource('{_res}')",
+        )
 
     # Limit worker restarts to avoid xdist hangs when collecting coverage
     if (
@@ -931,6 +954,13 @@ def pytest_collection_modifyitems(config, items):
                     )
                 )
                 continue
+
+            # Add a derived static marker to enable '-m resource_<name>' selection
+            try:
+                item.add_marker(getattr(pytest.mark, f"resource_{resource}"))
+            except Exception:
+                # Defensive: do not fail collection if dynamic marker attachment has issues
+                pass
 
             # Skip if resource is not available
             if not is_resource_available(resource):

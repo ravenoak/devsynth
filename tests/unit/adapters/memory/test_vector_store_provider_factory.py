@@ -6,7 +6,7 @@ from devsynth.application.memory.vector_providers import (
 from devsynth.domain.interfaces.memory import MemoryVector, VectorStore
 from devsynth.exceptions import ValidationError
 
-pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation, pytest.mark.medium]
+pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
 
 
 class StubStore(VectorStore):
@@ -30,6 +30,7 @@ class StubStore(VectorStore):
         return {"name": "stub"}
 
 
+@pytest.mark.medium
 def test_register_and_create_succeeds():
     """Test that register and create succeeds.
 
@@ -41,6 +42,7 @@ def test_register_and_create_succeeds():
     assert provider.config["foo"] == "bar"
 
 
+@pytest.mark.medium
 def test_unknown_type_succeeds():
     """Test that unknown type succeeds.
 

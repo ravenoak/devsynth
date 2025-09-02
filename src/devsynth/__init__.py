@@ -41,6 +41,17 @@ def __getattr__(name: str):
         value = getattr(_logger, name)
         globals()[name] = value  # Cache for future lookups
         return value
+
+    # Fallback: try to resolve unknown attributes as subpackages/modules
+    try:
+        import importlib
+
+        module = importlib.import_module(f"{__name__}.{name}")
+        globals()[name] = module  # Cache the loaded submodule on the package
+        return module
+    except Exception:
+        pass
+
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

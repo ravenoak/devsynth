@@ -82,7 +82,9 @@ def main() -> None:
     runs = data.get("workflow_runs", [])[:rolling_n]
     total = len(runs)
     passed = sum(1 for r in runs if r.get("conclusion") == "success")
-    failed = sum(1 for r in runs if r.get("conclusion") in {"failure", "timed_out", "cancelled"})
+    failed = sum(
+        1 for r in runs if r.get("conclusion") in {"failure", "timed_out", "cancelled"}
+    )
     pass_rate = (passed / total) * 100.0 if total else None
 
     ensure_parent(OUTPUT)

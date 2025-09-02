@@ -21,7 +21,7 @@ from ...domain.models.wsde import WSDETeam
 from ...ports.llm_port import LLMPort
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError, ValidationError
+from devsynth.exceptions import ValidationError
 
 # Load default configuration
 _DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "default.yml"
@@ -185,13 +185,13 @@ class WSDETeamCoordinator(AgentCoordinator):
         For MVP with a single agent, this simply passes the task to that agent.
         """
         if self.current_team_id is None:
-            raise ValidationError(f"No active team. Create a team first.")
+            raise ValidationError("No active team. Create a team first.")
 
         team = self.teams[self.current_team_id]
 
         # For MVP with a single agent
         if len(team.agents) == 0:
-            raise ValidationError(f"No agents in the team.")
+            raise ValidationError("No agents in the team.")
         elif len(team.agents) == 1:
             # Just use the single agent
             agent = team.agents[0]

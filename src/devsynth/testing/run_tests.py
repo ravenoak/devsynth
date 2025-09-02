@@ -15,6 +15,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
+import re
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -287,34 +288,97 @@ def run_tests(
         ]
         logger.info("Report will be saved to %s/report.html", report_dir)
 
+    # Determine how to apply extra filtering. Pytest '-m' does not support function-call
+    # expressions like requires_resource('lmstudio'). If such an expression is provided,
+    # approximate by using '-k lmstudio' which targets LM Studio-related modules/tests.
+    use_keyword_filter = False
+    keyword_expr = None
+    if extra_marker:
+        try:
+            if re.search(r"requires_resource\((['\"])lmstudio\1\)", extra_marker):
+                use_keyword_filter = True
+                keyword_expr = "lmstudio"
+        except Exception:
+            pass
+
     if not speed_categories:
         category_expr = "not memory_intensive"
-        if extra_marker:
+        if extra_marker and not use_keyword_filter:
             category_expr = f"({category_expr}) and ({extra_marker})"
-        cmd = base_cmd + ["-m", category_expr] + report_options
-        try:
-            process = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
+        if use_keyword_filter and keyword_expr:
+            # Narrow collection strictly to keyword-matching tests to avoid importing unrelated modules
+            # that may emit strict marker-discipline errors during collection.
+            collect_cmd = base_cmd + [
+                "-q",
+                "--collect-only",
+            ]
+            # Apply the base category expression to keep consistency with defaults
+            collect_cmd += ["-m", category_expr]
+            collect_cmd += ["-k", keyword_expr]
+            collect_result = subprocess.run(
+                collect_cmd, check=False, capture_output=True, text=True
             )
-            stdout, stderr = process.communicate()
-            output = stdout + stderr
-            logger.info(stdout)
-            if stderr:
-                logger.error("ERRORS:")
-                logger.error(stderr)
-            success = process.returncode in (0, 5)
-            if "PytestBenchmarkWarning" in stderr:
-                success = True
-            if not success:
-                tips = _failure_tips(process.returncode, cmd)
-                logger.error(tips)
-                output += tips
-            return success, output
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.error("Error running tests: %s", exc)
-            # Provide generic tips even on unexpected exceptions
-            tips = _failure_tips(-1, cmd)
-            return False, f"{exc}\n{tips}"
+            node_ids = [
+                line.strip()
+                for line in collect_result.stdout.split("\n")
+                if line.startswith("tests/")
+            ]
+            if not node_ids:
+                # Nothing to run is a success for subset execution
+                return True, "No tests matched the provided filters."
+            run_cmd = base_cmd + node_ids + report_options
+            try:
+                process = subprocess.Popen(
+                    run_cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    env=env,
+                )
+                stdout, stderr = process.communicate()
+                output = stdout + stderr
+                logger.info(stdout)
+                if stderr:
+                    logger.error("ERRORS:")
+                    logger.error(stderr)
+                success = process.returncode in (0, 5)
+                if "PytestBenchmarkWarning" in stderr:
+                    success = True
+                if not success:
+                    tips = _failure_tips(process.returncode, run_cmd)
+                    logger.error(tips)
+                    output += tips
+                return success, output
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.error("Error running tests: %s", exc)
+                tips = _failure_tips(-1, run_cmd)
+                return False, f"{exc}\n{tips}"
+        else:
+            cmd = base_cmd + ["-m", category_expr]
+            cmd += report_options
+            try:
+                process = subprocess.Popen(
+                    cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
+                )
+                stdout, stderr = process.communicate()
+                output = stdout + stderr
+                logger.info(stdout)
+                if stderr:
+                    logger.error("ERRORS:")
+                    logger.error(stderr)
+                success = process.returncode in (0, 5)
+                if "PytestBenchmarkWarning" in stderr:
+                    success = True
+                if not success:
+                    tips = _failure_tips(process.returncode, cmd)
+                    logger.error(tips)
+                    output += tips
+                return success, output
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.error("Error running tests: %s", exc)
+                # Provide generic tips even on unexpected exceptions
+                tips = _failure_tips(-1, cmd)
+                return False, f"{exc}\n{tips}"
 
     all_success = True
     all_output = ""
@@ -322,23 +386,26 @@ def run_tests(
     for speed in speed_categories:
         logger.info("\nRunning %s tests...", speed)
         marker_expr = f"{speed} and not memory_intensive"
-        if extra_marker:
+        if extra_marker and not use_keyword_filter:
             marker_expr = f"({marker_expr}) and ({extra_marker})"
-        check_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
+        # Collect matching node IDs to avoid importing unrelated modules that may fail marker checks.
+        collect_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
+        if use_keyword_filter and keyword_expr:
+            collect_cmd += ["-k", keyword_expr]
         check_result = subprocess.run(
-            check_cmd, check=False, capture_output=True, text=True
+            collect_cmd, check=False, capture_output=True, text=True
         )
-        if "no tests ran" in check_result.stdout or not check_result.stdout.strip():
+        node_ids = [
+            line.strip()
+            for line in check_result.stdout.split("\n")
+            if line.startswith("tests/")
+        ]
+        if not node_ids:
             logger.info("No %s tests found for %s, skipping...", speed, target)
             continue
-        speed_cmd = base_cmd + ["-m", marker_expr] + report_options
 
         if segment:
-            test_list = collect_tests_with_cache(target, speed)
-            if not test_list:
-                logger.info("No %s tests found for %s", speed, target)
-                continue
-
+            test_list = node_ids
             logger.info(
                 "Found %d %s tests, running in batches of %d...",
                 len(test_list),
@@ -353,7 +420,7 @@ def run_tests(
                     i // segment_size + 1,
                     (len(test_list) + segment_size - 1) // segment_size,
                 )
-                batch_cmd = base_cmd + ["-m", marker_expr] + batch + report_options
+                batch_cmd = base_cmd + batch + report_options
                 batch_process = subprocess.Popen(
                     batch_cmd,
                     stdout=subprocess.PIPE,
@@ -377,8 +444,9 @@ def run_tests(
                 all_output += batch_stdout + batch_stderr
             all_success = all_success and batch_success
         else:
+            run_cmd = base_cmd + node_ids + report_options
             process = subprocess.Popen(
-                speed_cmd,
+                run_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -393,7 +461,7 @@ def run_tests(
             if "PytestBenchmarkWarning" in stderr:
                 run_ok = True
             if not run_ok:
-                tips = _failure_tips(process.returncode, speed_cmd)
+                tips = _failure_tips(process.returncode, run_cmd)
                 logger.error(tips)
                 stderr = stderr + tips
             all_success = all_success and run_ok

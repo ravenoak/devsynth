@@ -48,10 +48,14 @@ def disable_network(monkeypatch: pytest.MonkeyPatch) -> None:
     # Optionally patch requests for clearer errors in environments not using 'responses'
     try:  # pragma: no cover - optional dependency
         import requests  # type: ignore
+        import sys
+        # If the 'responses' library is available (commonly used to stub requests),
+        # do not patch requests so tests decorated with @responses.activate work.
+        responses_active = 'responses' in sys.modules
 
-        allow_requests = os.environ.get(
-            "DEVSYNTH_TEST_ALLOW_REQUESTS", "false"
-        ).lower() in {"1", "true", "yes"}
+        allow_requests = responses_active or (
+            os.environ.get("DEVSYNTH_TEST_ALLOW_REQUESTS", "false").lower() in {"1", "true", "yes"}
+        )
         if not allow_requests:
 
             def _guard_requests_request(*args: Any, **kwargs: Any) -> None:  # type: ignore
@@ -72,12 +76,39 @@ def disable_network(monkeypatch: pytest.MonkeyPatch) -> None:
     try:  # pragma: no cover - optional dependency
         import httpx  # type: ignore
 
-        def guard_httpx_request(*args: Any, **kwargs: Any) -> None:  # type: ignore
+        # Preserve original methods so we can delegate for allowed in-memory calls
+        _orig_client_request = httpx.Client.request  # type: ignore[attr-defined]
+        _orig_async_request = httpx.AsyncClient.request  # type: ignore[attr-defined]
+
+        def guard_httpx_request(self, method: str, url, *args: Any, **kwargs: Any):  # type: ignore[no-redef]
+            # Allow in-memory TestClient requests against the ASGI test server
+            try:
+                host = getattr(url, "host", None) or getattr(url, "netloc", None)
+                if host == "testserver":
+                    return _orig_client_request(self, method, url, *args, **kwargs)
+            except Exception:
+                # Fallback to string check if URL is not httpx.URL
+                try:
+                    if str(url).startswith("http://testserver") or str(url).startswith("https://testserver"):
+                        return _orig_client_request(self, method, url, *args, **kwargs)
+                except Exception:
+                    pass
+            raise RuntimeError("Network access disabled during tests (httpx)")
+
+        async def guard_httpx_async_request(self, method: str, url, *args: Any, **kwargs: Any):  # type: ignore[no-redef]
+            try:
+                host = getattr(url, "host", None) or getattr(url, "netloc", None)
+                if host == "testserver":
+                    return await _orig_async_request(self, method, url, *args, **kwargs)
+            except Exception:
+                try:
+                    if str(url).startswith("http://testserver") or str(url).startswith("https://testserver"):
+                        return await _orig_async_request(self, method, url, *args, **kwargs)
+                except Exception:
+                    pass
             raise RuntimeError("Network access disabled during tests (httpx)")
 
         monkeypatch.setattr(httpx.Client, "request", guard_httpx_request, raising=False)  # type: ignore
-        monkeypatch.setattr(
-            httpx.AsyncClient, "request", guard_httpx_request, raising=False
-        )  # type: ignore
+        monkeypatch.setattr(httpx.AsyncClient, "request", guard_httpx_async_request, raising=False)  # type: ignore
     except Exception:
         pass

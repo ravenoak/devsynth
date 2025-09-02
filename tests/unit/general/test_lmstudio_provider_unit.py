@@ -8,7 +8,7 @@ pytest.importorskip("lmstudio")
 if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
     pytest.skip("LMStudio service not available", allow_module_level=True)
 
-pytestmark = [pytest.mark.requires_resource("lmstudio"), pytest.mark.medium]
+pytestmark = [pytest.mark.requires_resource("lmstudio")]
 
 
 @pytest.fixture()
@@ -51,6 +51,7 @@ def tracker_patches():
         yield
 
 
+@pytest.mark.medium
 def test_generate_succeeds(provider):
     """Generate text using LM Studio. ReqID: LMSTUDIO-15"""
     with tracker_patches():
@@ -58,6 +59,7 @@ def test_generate_succeeds(provider):
     assert result == "This is a test response"
 
 
+@pytest.mark.medium
 def test_generate_with_context_succeeds(provider):
     """Generate with prior conversation. ReqID: LMSTUDIO-16"""
     context = [
@@ -70,6 +72,7 @@ def test_generate_with_context_succeeds(provider):
     assert result == "This is a test response"
 
 
+@pytest.mark.medium
 def test_get_embedding_succeeds(provider):
     """Return embeddings for text. ReqID: LMSTUDIO-17"""
     with patch(
@@ -80,6 +83,7 @@ def test_get_embedding_succeeds(provider):
     assert result == [0.1, 0.2, 0.3, 0.4, 0.5]
 
 
+@pytest.mark.medium
 def test_api_error_handling_raises_error(provider, lmstudio_service):
     """Raise error when API fails. ReqID: LMSTUDIO-18"""
     lmstudio_service.trigger_error()
@@ -87,6 +91,7 @@ def test_api_error_handling_raises_error(provider, lmstudio_service):
         provider.generate("Test prompt")
 
 
+@pytest.mark.medium
 def test_circuit_breaker_opens_after_failures_fails(lmstudio_service):
     """Open circuit breaker after repeated failures. ReqID: LMSTUDIO-19"""
     from devsynth.application.llm.lmstudio_provider import (
