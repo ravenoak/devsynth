@@ -52,8 +52,14 @@ build/
 traceability.json
 
 # Test and report files
+# Keep reports out of VCS, but allow curated diagnostics artifacts via .gitkeep and selected text files.
 test_reports/
-diagnostics/
+# Allow committing specific small artifacts inside diagnostics/; default ignore remains.
+diagnostics/*
+!diagnostics/.gitkeep
+!diagnostics/README.md
+!diagnostics/*.txt
+!diagnostics/*.md
 .test_categorization_progress.json
 .test_categorization_schedule.json
 flaky_test_report.json

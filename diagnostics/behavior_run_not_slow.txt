@@ -1,0 +1,13 @@
+DevSynth Runtime Evidence — Behavior Tests (not slow)
+Date: 2025-09-03 13:08 (local)
+Preconditions:
+- Extras installed: webui (streamlit)
+- GUI marker present; default addopts exclude gui; run behavior suite explicitly
+- Headless configuration per docs
+Command:
+  poetry run pytest -q tests/behavior -m "not slow"
+
+Result summary (maintainer run):
+- Collected: behavior scenarios and step tests
+- Outcome: PASS (0 failed)
+- Headless: Verified no GUI windows popped; streamlit headless flags respected
