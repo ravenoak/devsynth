@@ -25,8 +25,8 @@ from __future__ import annotations
 
 import os
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 from urllib.parse import urljoin
 
 
@@ -67,7 +67,9 @@ def main() -> int:
                     break
         except (urllib.error.URLError, urllib.error.HTTPError) as e:
             last_err = e
-        except Exception as e:  # pragma: no cover — defensive catch-all for CLI diagnostics
+        except (
+            Exception
+        ) as e:  # pragma: no cover — defensive catch-all for CLI diagnostics
             last_err = e
 
     if not reachable:
@@ -77,7 +79,7 @@ def main() -> int:
             + "Last error: {}\n".format(last_err)
             + "Verify LM Studio is running and listening at LM_STUDIO_ENDPOINT, or adjust the endpoint.\n"
             + "Example enablement:\n"
-            + "  poetry install --with dev --extras \"tests llm\"\n"
+            + '  poetry install --with dev --extras "tests llm"\n'
             + "  export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true\n"
             + "  export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234\n"
             + "  export DEVSYNTH_LMSTUDIO_TIMEOUT_SECONDS=10\n"
