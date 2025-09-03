@@ -1,6 +1,5 @@
 # Feature: ChromaDB memory store
 try:
-    import chromadb
     from chromadb.api import ClientAPI
     from chromadb.config import Settings
     from chromadb.utils import embedding_functions
@@ -17,7 +16,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from typing import Any, ContextManager, Dict, List, Optional, Union
 
-from devsynth.adapters.provider_system import ProviderError, embed, get_provider
+from devsynth.adapters.provider_system import ProviderError, embed
 from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
@@ -30,7 +29,6 @@ _chromadb_clients = {}
 @atexit.register
 def _cleanup_chromadb_clients():
     """Clean up all ChromaDB clients at program exit."""
-    global _chromadb_clients
     for client_id, client in list(_chromadb_clients.items()):
         try:
             if hasattr(client, "close"):
@@ -177,7 +175,6 @@ class ChromaDBMemoryStore(MemoryStore):
 
         # Initialize ChromaDB client with error handling and retries
         retry_count = 0
-        last_exception = None
 
         while retry_count < max_retries:
             try:
