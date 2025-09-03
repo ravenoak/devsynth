@@ -55,6 +55,8 @@ Sanity checks
   - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel
 - Generate HTML test report:
   - poetry run devsynth run-tests --report
+- Segmented full suite (recommended default for long runs):
+  - poetry run devsynth run-tests --target all-tests --speed fast --speed medium --speed slow --no-parallel --segment --segment-size 50 --report
 - Full guidance: see docs/developer_guides/testing.md
 - Section 7 scripts (sanity+inventory, marker discipline): see docs/developer_guides/testing.md#using-section-7-helper-scripts-in-ci-and-locally
 - CLI options reference: see docs/user_guides/cli_command_reference.md
@@ -256,6 +258,8 @@ typical workflow is:
 
 ```bash
 poetry install
+pre-commit install
+pre-commit autoupdate
 poetry run pre-commit run --files <files>
 poetry run pytest
 ```

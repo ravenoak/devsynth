@@ -15,6 +15,7 @@ Executing `poetry run devsynth run-tests --speed fast` or `pytest -m fast` hangs
 - Update documentation on running tests once the issue is resolved.
 
 ## Progress
+- 2025-09-03: Mitigation validated in maintainer profile with smoke mode and segmented runs. Added diagnostics/runner_stability_notes.txt and updated docs to guide segmentation-first approach.
 - 2025-08-23: Initial report—commands hang on fresh environment; `scripts/verify_test_markers.py` completes, indicating tests exist but runner stalls.
 - 2025-08-23: After reinstalling the environment, `scripts/install_dev.sh` installed go-task v3.44.1 and `poetry install --with dev --extras "tests retrieval chromadb api"` ran. `task --version` shows 3.44.1 and `poetry run devsynth --help` displays CLI options, but `poetry run devsynth run-tests --speed=fast` exits immediately with `ModuleNotFoundError: No module named 'devsynth'`.
 

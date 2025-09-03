@@ -83,6 +83,10 @@ tests/
 
 ### Behavior-Driven Tests
 
+Note on configuration alignment:
+- pytest.ini sets anyio_backend=asyncio to ensure asyncio is the only async backend used during tests.
+- pytest.ini sets bdd_features_base_dir=tests/behavior/features to anchor pytest-bdd collection. If you move features, update pytest.ini accordingly.
+
 Behavior-driven tests use Gherkin syntax (Feature/Scenario/Given/When/Then) to define system behaviors. These tests ensure the system works correctly from a user perspective.
 
 Example feature file (`tests/behavior/chromadb_integration.feature`):
@@ -395,6 +399,53 @@ Notes:
 
 ### Smoke Mode (reduced plugin surface)
 
+Timeouts recommendation for online subsets
+- For tests that enable live providers or external resources, set a conservative global timeout to avoid indefinite hangs:
+  - export PYTEST_TIMEOUT=60
+  - You can also set DEVSYNTH_TEST_TIMEOUT_SECONDS=60 when using the devsynth run-tests CLI; the CLI will respect this and apply per-test timeouts via autouse fixtures.
+- Combine with retries for resource-marked tests only (see tasks 71/24) to mitigate transient network issues.
+
+Smoke mode is designed for the fastest, most hermetic signal when diagnosing failures or validating a PR quickly. It disables third-party pytest plugins by setting `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` and applies conservative timeouts.
+
+When to use:
+- Quick sanity on a branch to surface deterministic failures early.
+- Reproducing flakes with fewer moving parts (plugins disabled).
+- CI fast path (see docs/tasks.md Task 54) when plugin interactions are not under test.
+
+How to run:
+```bash
+# Fast + smoke + no-parallel + stop early (maxfail=1)
+poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+# Generate an HTML report even in smoke mode
+poetry run devsynth run-tests --smoke --speed=fast --report
+```
+
+### Headless WebUI and Behavior Tests (Streamlit)
+
+Behavior/UI tests are excluded by default in minimal environments via the `gui` marker and pytest.ini addopts (`-m "not slow and not gui"`). To exercise behavior tests and the WebUI in headless environments:
+
+Prerequisites:
+- Install the WebUI extra (Streamlit):
+  - `poetry install --with dev --extras "webui"`
+
+Headless execution recipe:
+```bash
+export STREAMLIT_SERVER_HEADLESS=true
+export STREAMLIT_BROWSER_SERVER_ADDRESS=127.0.0.1
+export STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+# Prevent Streamlit from attempting to open a browser
+export BROWSER=none
+
+# Doctor should pass in maintainer profile when webui extra is installed
+poetry run devsynth doctor
+
+# Run behavior tests (still headless)
+poetry run pytest tests/behavior -m "not slow"
+```
+
+See also: examples/webui_headless.md for a compact headless WebUI run script and additional notes. In CI or smoke scenarios, prefer running `poetry run devsynth doctor` as a lightweight WebUI readiness check before executing GUI-marked tests.
+
 Smoke mode is designed for the fastest, most hermetic signal when diagnosing failures or validating a PR quickly. It disables third-party pytest plugins by setting `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` and applies conservative timeouts.
 
 When to use:
@@ -598,6 +649,15 @@ Property tests still require a speed marker in addition to @pytest.mark.property
 
 ### Flakiness mitigation (quick tips)
 
+Online provider retries (limited scope)
+- To reduce transient network flakiness for resource-marked tests only, the test suite can apply retries when the pytest plugin pytest-rerunfailures is available.
+- Configuration (environment variables / CLI):
+  - DEVSYNTH_RESOURCE_RETRIES: integer N; when >0, enables retries only for tests marked with @pytest.mark.requires_resource("<name>"). Recommended N=2 per docs/plan.md. Default 0 (disabled).
+  - CLI alternative: --devsynth-resource-retries N (takes precedence over env when provided).
+- Scope: Only tests explicitly marked with requires_resource("...") are eligible for retries. Offline/stubbed tests are not retried.
+- Implementation: tests/conftest.py configures pytest-rerunfailures with --reruns N and --only-rerun "requires_resource" when the plugin supports it; otherwise a fallback hook limits retries to resource-marked tests.
+- Recommendation: keep retries small (≤2) and fix underlying flakiness where feasible.
+
 - Prefer running fast tests locally during iteration: `poetry run devsynth run-tests --speed=fast`.
 - Use `--no-parallel` or the `@pytest.mark.isolation` marker for tests that exercise heavy backends (e.g., DuckDB/Kuzu/FAISS) or shared global state.
 - Timeouts: smoke mode sets a conservative per-test timeout; for explicit fast-only runs, the CLI defaults to a slightly looser timeout. Override via `DEVSYNTH_TEST_TIMEOUT_SECONDS` if a slow machine triggers spurious timeouts.
@@ -623,8 +683,9 @@ If a test remains flaky:
   - poetry install --extras llm
 - api: FastAPI server + Prometheus client
   - poetry install --extras api
-- webui: Streamlit-based WebUI
-  - poetry install --extras webui
+- webui: Streamlit-based WebUI (0.1.0a1)
+  - Rationale: For 0.1.0a1, the canonical WebUI extra is streamlit. NiceGUI remains under evaluation for a potential post‑0.1.0a1 migration.
+  - Install: poetry install --extras webui
 - lmstudio: LM Studio Python client integration
   - poetry install --extras lmstudio
 - gui: Dear PyGui desktop interface
@@ -1022,6 +1083,11 @@ The CI pipeline includes:
 
 1. PR fast path: `poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel`.
 2. Lint/style/typing/security: flake8, black --check, isort --check-only, mypy, bandit, safety.
+
+Security scanning (Bandit)
+- Per docs/plan.md and docs/tasks.md, run Bandit excluding tests to avoid false positives in test code:
+  - poetry run bandit -r src/devsynth -x tests
+- Rationale: tests intentionally include patterns (e.g., use of eval in fuzzing/mocking) that would trigger Bandit but are not part of the shipping code. Documented exclusion keeps the signal focused on application sources.
 3. Nightly medium matrix: `poetry install --with dev --extras "tests retrieval chromadb api"` then `poetry run devsynth run-tests --target all-tests --speed=medium`.
 4. Pre-release full suite: `poetry install --with dev,docs --all-extras` then `poetry run devsynth run-tests --target all-tests --speed=slow --report`.
 5. Smoke diagnostics: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`.
@@ -1033,6 +1099,67 @@ Live-provider jobs are opt-in only and must be explicitly enabled via environmen
 
 
 ## Test Coverage
+
+### Maintainer profile install and environment
+- Recommended full profile (no GPU):
+  - poetry install --with dev,docs --extras "tests retrieval chromadb memory llm api webui"
+- Minimal contributor setup:
+  - poetry install --with dev --extras minimal
+- Quick targeted baseline:
+  - poetry install --with dev --extras "tests retrieval chromadb api"
+
+### Resource flags matrix (summary)
+- Offline defaults enforced in tests: DEVSYNTH_OFFLINE=true; DEVSYNTH_PROVIDER=stub
+- Resource availability flags (skips when false):
+  - DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true
+  - DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
+  - DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false
+  - Backends: DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE, DEVSYNTH_RESOURCE_FAISS_AVAILABLE, DEVSYNTH_RESOURCE_KUZU_AVAILABLE, DEVSYNTH_RESOURCE_LMDB_AVAILABLE, DEVSYNTH_RESOURCE_TINYDB_AVAILABLE, etc.
+- Provider live profiles (manual only):
+  - OpenAI: export DEVSYNTH_OFFLINE=false; export DEVSYNTH_PROVIDER=openai; export OPENAI_API_KEY; export OPENAI_HTTP_TIMEOUT=15
+  - LM Studio: export DEVSYNTH_OFFLINE=false; export DEVSYNTH_PROVIDER=lmstudio; export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234; export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true; export LM_STUDIO_HTTP_TIMEOUT=15
+
+### Coverage gating env vars
+- Default relaxed via tests/conftest.py: cov_fail_under=0 unless overridden
+- Enable strict gating for rehearsals:
+  - export DEVSYNTH_STRICT_COVERAGE=1
+  - export DEVSYNTH_COV_FAIL_UNDER=90
+- Alternatively, append --cov-fail-under=90 to pytest invocations
+
+### Execution matrix and segmentation guidance
+- Inventory: poetry run devsynth run-tests --inventory
+- Unit fast path (smoke): poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --smoke
+- Full profile (segmented, no xdist):
+  - poetry run devsynth run-tests --target all-tests --speed fast --speed medium --speed slow --no-parallel --segment --segment-size 50 --report
+- Resource subsets:
+  - OpenAI: DEVSYNTH_OFFLINE=false DEVSYNTH_PROVIDER=openai OPENAI_API_KEY=... poetry run pytest -m "requires_resource('openai') and (fast or medium)"
+  - LM Studio: DEVSYNTH_OFFLINE=false DEVSYNTH_PROVIDER=lmstudio DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true poetry run pytest -m "requires_resource('lmstudio') and (fast or medium)"
+- Timeouts and flakiness:
+  - export PYTEST_TIMEOUT=60; limit flaky retries to resource-marked subsets (retries=2)
+
+### Manual maintainer flow and CI status
+- GitHub Actions remain disabled until the 0.1.0a1 tag.
+- Maintainers should use the above full-profile commands locally and attach artifacts under diagnostics/.
+- After release, enable low-throughput CI (marker verification, unit fast path, lint/type/security gates) and schedule nightlies for full profile.
+
+Coverage gating is relaxed by default to keep fast/local runs green. Maintainers can enable strict coverage in rehearsal or release readiness flows via environment variables:
+- export DEVSYNTH_STRICT_COVERAGE=1
+- export DEVSYNTH_COV_FAIL_UNDER=90
+
+Behavior:
+- When DEVSYNTH_STRICT_COVERAGE (or DEVSYNTH_FULL_COVERAGE) is set, conftest.py enforces the fail-under threshold (overridable via DEVSYNTH_COV_FAIL_UNDER).
+- Otherwise, conftest.py forces cov_fail_under=0 to avoid failing quick feedback cycles.
+
+Examples:
+```bash
+# Fast sanity with relaxed coverage
+poetry run pytest --maxfail=1 --cov=src/devsynth --cov-report=term-missing:skip-covered
+
+# Strict gate locally (≥90%) when preparing release readiness
+export DEVSYNTH_STRICT_COVERAGE=1
+export DEVSYNTH_COV_FAIL_UNDER=90
+poetry run pytest --cov=src/devsynth --cov-report=term-missing:skip-covered --cov-report=html:test_reports/htmlcov
+```
 
 DevSynth aims for high test coverage, with a focus on covering:
 
