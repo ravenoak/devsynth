@@ -43,3 +43,10 @@ repos:
         pass_filenames: true
         files: ^tests/.*\.py$
         stages: [commit]
+      - id: verify-reqids-changed
+        name: Verify ReqID docstring tags on changed test files
+        entry: poetry run python scripts/verify_docstring_reqids.py --files
+        language: system
+        pass_filenames: true
+        files: ^tests/.*\.py$
+        stages: [commit]
