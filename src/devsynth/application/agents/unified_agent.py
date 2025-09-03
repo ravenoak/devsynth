@@ -164,8 +164,8 @@ class UnifiedAgent(BaseAgent):
 
         # Create a prompt for the LLM with enhanced guidance
         prompt = f"""
-        You are an expert in software testing with deep knowledge of test-driven development and 
-        comprehensive test strategies. Your task is to generate high-quality tests based on the 
+        You are an expert in software testing with deep knowledge of test-driven development and
+        comprehensive test strategies. Your task is to generate high-quality tests based on the
         provided specification.
 
         Specification:
@@ -281,7 +281,7 @@ class UnifiedAgent(BaseAgent):
 
         # Create a prompt for the LLM with enhanced guidance
         prompt = f"""
-        You are an expert software engineer specializing in clean, maintainable, and robust code. 
+        You are an expert software engineer specializing in clean, maintainable, and robust code.
         Your task is to implement high-quality code based on the provided tests and specifications.
 
         Specification:
@@ -749,7 +749,7 @@ This is a summary of the requirements.
 
         # Create a prompt for the LLM to analyze the differences
         prompt = f"""
-        You are an expert in continuous learning and improvement. Your task is to analyze 
+        You are an expert in continuous learning and improvement. Your task is to analyze
         the differences between an original AI-generated artifact and the human-modified version.
 
         Original {artifact_type}:
