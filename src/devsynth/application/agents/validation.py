@@ -2,21 +2,26 @@
 Validation agent for the DevSynth system.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Mapping, MutableMapping, TypedDict
 
-# Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 from .base import BaseAgent
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class ValidationAgent(BaseAgent):
     """Agent responsible for verifying code against tests."""
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    class ProcessOutput(TypedDict):
+        validation_report: str
+        wsde: Any
+        agent: str
+        role: str
+        is_valid: bool
+
+    def process(self, inputs: Mapping[str, Any]) -> ProcessOutput:
         """Process inputs and validate code against tests."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
@@ -24,27 +29,27 @@ class ValidationAgent(BaseAgent):
         # Create a prompt for the LLM
         prompt = f"""
         {role_prompt}
-        
+
         You are a validation expert. Your task is to verify code against tests.
-        
+
         Project context:
         {inputs.get('context', '')}
-        
+
         Specifications:
         {inputs.get('specifications', '')}
-        
+
         Tests:
         {inputs.get('tests', '')}
-        
+
         Code:
         {inputs.get('code', '')}
-        
+
         Verify that the code passes the tests and meets the specifications.
         Provide a detailed validation report.
         """
 
         # Generate the validation report using the LLM port
-        validation_report = self.generate_text(prompt)
+        validation_report = str(self.generate_text(prompt))
 
         # Determine if the code is valid based on the report
         is_valid = "fail" not in validation_report.lower()
@@ -69,7 +74,10 @@ class ValidationAgent(BaseAgent):
         }
 
     def get_capabilities(self) -> List[str]:
-        """Get the capabilities of this agent."""
+        """Get the capabilities of this agent.
+
+        Returns a default list if the base class returns an empty list or None.
+        """
         capabilities = super().get_capabilities()
         if not capabilities:
             capabilities = [
