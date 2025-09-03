@@ -39,7 +39,9 @@ class PromptVariant:
         """
         self.template = template
         # Use a modern hash for non-security identifier generation to avoid Bandit B324
-        self.variant_id = variant_id or hashlib.sha256(template.encode()).hexdigest()[:8]
+        self.variant_id = (
+            variant_id or hashlib.sha256(template.encode()).hexdigest()[:8]
+        )
         self.usage_count = 0
         self.success_count = 0
         self.failure_count = 0
