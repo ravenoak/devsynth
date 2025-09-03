@@ -1,4 +1,4 @@
-# Defer heavy CLI imports until execution to keep import-time light and optional deps gated
+# Defer heavy CLI imports; avoid importing optional deps at module import time
 
 if __name__ == "__main__":
     from devsynth.adapters.cli.typer_adapter import run_cli

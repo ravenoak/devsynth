@@ -154,7 +154,6 @@ def run_search_agent(query: str) -> str:
     search_tool = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
 
     # Define the tool in a format compatible with LangGraph
-    from langchain.tools.base import BaseTool
 
     class WebSearchTool(BaseTool):
         name: str = "WebSearch"
