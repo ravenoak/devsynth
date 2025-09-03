@@ -42,9 +42,13 @@ def main() -> int:
         mods = ", ".join(e["modules"])  # type: ignore[index]
         opts = ", ".join(f"{k}={v}" for k, v in e["options"].items())  # type: ignore[index]
         lines.append(f"- {mods} | {opts}")
-    (diagnostics / "mypy_overrides.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (diagnostics / "mypy_overrides.txt").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
 
-    print(f"Wrote {diagnostics / 'mypy_overrides.json'} and {diagnostics / 'mypy_overrides.txt'}")
+    print(
+        f"Wrote {diagnostics / 'mypy_overrides.json'} and {diagnostics / 'mypy_overrides.txt'}"
+    )
     return 0
 
 

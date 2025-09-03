@@ -1,0 +1,16 @@
+Runner Stability Investigation — Task 44
+Date: 2025-09-03 13:53 (local)
+
+Summary
+- Reviewed historical issue issues/devsynth-run-tests-hangs.md and confirmed root causes were environment/plugin related and addressed by:
+  * Offline-first defaults and provider gating via run_tests_cmd._configure_optional_providers()
+  * Smoke mode disabling third-party plugins (PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
+  * Segmented, non-parallel execution as documented
+- Outcome: Current maintainer profile runs complete without hangs in smoke/unit subsets; see also diagnostics/full_profile_coverage.txt for a recent segmented run completing successfully.
+
+Suggested Commands
+- Smoke sanity (fast path):
+  poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 | tee diagnostics/smoke_run_example.txt
+
+Notes
+- If hangs reappear, re-run with --smoke and --no-parallel. Escalate plugin conflicts by bisecting pytest -p no:<plugin>. Capture -vv -s logs.

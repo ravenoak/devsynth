@@ -15,15 +15,19 @@ from __future__ import annotations
 
 import argparse
 import subprocess
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
 
 
 def run_and_capture(cmd: list[str], outfile: Path) -> int:
     outfile.parent.mkdir(parents=True, exist_ok=True)
     with outfile.open("w", encoding="utf-8") as f:
-        f.write(f"# Command: {' '.join(cmd)}\n# Started: {datetime.now(timezone.utc).isoformat()}\n\n")
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        f.write(
+            f"# Command: {' '.join(cmd)}\n# Started: {datetime.now(timezone.utc).isoformat()}\n\n"
+        )
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
         assert proc.stdout is not None
         for line in proc.stdout:
             f.write(line)
@@ -32,15 +36,27 @@ def run_and_capture(cmd: list[str], outfile: Path) -> int:
         return proc.returncode
 
 
-def append_exec_log(command: str, exit_code: int, artifacts: list[str], notes: str) -> None:
+def append_exec_log(
+    command: str, exit_code: int, artifacts: list[str], notes: str
+) -> None:
     try:
-        subprocess.run([
-            "poetry", "run", "python", "scripts/append_exec_log.py",
-            "--command", command,
-            "--exit-code", str(exit_code),
-            "--artifacts", ",".join(artifacts),
-            "--notes", notes,
-        ], check=False)
+        subprocess.run(
+            [
+                "poetry",
+                "run",
+                "python",
+                "scripts/append_exec_log.py",
+                "--command",
+                command,
+                "--exit-code",
+                str(exit_code),
+                "--artifacts",
+                ",".join(artifacts),
+                "--notes",
+                notes,
+            ],
+            check=False,
+        )
     except Exception:
         pass
 
@@ -49,17 +65,24 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--openai", action="store_true", help="Run OpenAI fast subset")
-    group.add_argument("--lmstudio", action="store_true", help="Run LM Studio fast subset")
+    group.add_argument(
+        "--lmstudio", action="store_true", help="Run LM Studio fast subset"
+    )
     args = parser.parse_args()
 
     diagnostics = Path("diagnostics")
 
     if args.openai:
         cmd = [
-            "poetry", "run", "devsynth", "run-tests",
-            "--target", "integration-tests",
+            "poetry",
+            "run",
+            "devsynth",
+            "run-tests",
+            "--target",
+            "integration-tests",
             "--speed=fast",
-            "-m", "requires_resource('openai')",
+            "-m",
+            "requires_resource('openai')",
             "--no-parallel",
             "--maxfail=1",
         ]
@@ -67,10 +90,15 @@ def main() -> int:
         notes = "live OpenAI fast subset"
     else:
         cmd = [
-            "poetry", "run", "devsynth", "run-tests",
-            "--target", "integration-tests",
+            "poetry",
+            "run",
+            "devsynth",
+            "run-tests",
+            "--target",
+            "integration-tests",
             "--speed=fast",
-            "-m", "requires_resource('lmstudio')",
+            "-m",
+            "requires_resource('lmstudio')",
             "--no-parallel",
             "--maxfail=1",
         ]

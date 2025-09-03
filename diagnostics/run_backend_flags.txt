@@ -1,0 +1,9 @@
+2025-09-03T10:20 Local
+Command: pytest -q -o addopts="" tests/unit/general/test_backend_resource_flags.py
+
+Result:
+2 passed, 5 warnings in 0.41s
+
+Notes:
+- Coverage plugin disabled via -o addopts="" for this focused run to avoid repo-wide thresholds.
+- Validates tasks 25 and 26 implementation.
