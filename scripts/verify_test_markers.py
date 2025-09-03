@@ -340,6 +340,69 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
     return violations
 
 
+def _find_property_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
+    """For modules under tests/property, ensure each test function has @pytest.mark.property.
+
+    We do not fail the script on these violations (informational), but include them in issues
+    and summary stats to aid hygiene improvements.
+    """
+    violations: List[dict] = []
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return violations
+
+    def _has_property_marker(dec: ast.AST) -> bool:
+        # Accept pytest.mark.property and called form pytest.mark.property()
+        if isinstance(dec, ast.Attribute):
+            return getattr(dec, "attr", None) == "property"
+        if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute):
+            return getattr(dec.func, "attr", None) == "property"
+        return False
+
+    # BDD step functions or test_ functions are considered
+    def _has_bdd_step_decorator(fn: ast.FunctionDef) -> bool:
+        step_names = {"given", "when", "then", "step"}
+        for dec in getattr(fn, "decorator_list", []) or []:
+            if isinstance(dec, ast.Attribute):
+                if isinstance(dec.value, ast.Name) and dec.attr in step_names:
+                    return True
+            elif isinstance(dec, ast.Name):
+                if dec.id in step_names:
+                    return True
+            elif isinstance(dec, ast.Call):
+                if isinstance(dec.func, ast.Attribute):
+                    if (
+                        isinstance(dec.func.value, ast.Name)
+                        and dec.func.attr in step_names
+                    ):
+                        return True
+                elif isinstance(dec.func, ast.Name):
+                    if dec.func.id in step_names:
+                        return True
+        return False
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and (
+            node.name.startswith("test_") or _has_bdd_step_decorator(node)
+        ):
+            has_property = any(
+                _has_property_marker(dec) for dec in (node.decorator_list or [])
+            )
+            if not has_property:
+                violations.append(
+                    {
+                        "type": "property_marker_violation",
+                        "function": node.name,
+                        "file": str(path),
+                        "message": (
+                            "tests/property/ require @pytest.mark.property in addition to one speed marker"
+                        ),
+                    }
+                )
+    return violations
+
+
 def _attempt_collection(path: pathlib.Path, text: str) -> list:
     """Very light-weight 'collection' to catch obvious import errors.
 
@@ -399,6 +462,7 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
     files_with_issues = 0
     collection_errors = []
     speed_marker_violations: List[dict] = []
+    property_marker_violations: List[dict] = []
 
     for p in sorted(pathlib.Path(str(fp)).resolve() for fp in file_paths):
         if p.is_dir():
@@ -428,6 +492,18 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
             issues = _attempt_collection(p, text)
             # Add speed marker violations (function-level rule)
             issues.extend(_find_speed_marker_violations(p, text))
+            # Add property marker check for tests under tests/property/
+            try:
+                if "tests/property" in str(p):
+                    prop_violations = _find_property_marker_violations(p, text)
+                    issues.extend(prop_violations)
+                    # Collect separately for summary stats
+                    for v in prop_violations:
+                        if v.get("type") == "property_marker_violation":
+                            property_marker_violations.append(v)
+            except Exception:
+                # Be resilient if path logic fails unexpectedly
+                pass
             file_result = {"markers": markers, "issues": issues}
             PERSISTENT_CACHE[key] = {"hash": sig[1], "verification": file_result}
 
@@ -448,6 +524,7 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
         "cache_misses": cache_misses,
         "collection_errors": collection_errors,
         "speed_marker_violations": speed_marker_violations,
+        "property_marker_violations": property_marker_violations,
     }
 
     # Also build a brief markers summary for the legacy JSON report
@@ -580,18 +657,29 @@ def main() -> int:
         if total_speed_violations > 50:
             print(f" ... and {total_speed_violations - 50} more")
 
+    total_property_violations = len(result.get("property_marker_violations", []))
+    if total_property_violations:
+        print("[error] property marker violations detected in tests/property:")
+        for v in result["property_marker_violations"][:50]:
+            print(
+                f" - {v.get('file')}::{v.get('function')}: missing @pytest.mark.property"
+            )
+        if total_property_violations > 50:
+            print(f" ... and {total_property_violations - 50} more")
+
     print(
-        "[info] verify_test_markers: files=%d, cache_hits=%d, cache_misses=%d, issues=%d, speed_violations=%d"
+        "[info] verify_test_markers: files=%d, cache_hits=%d, cache_misses=%d, issues=%d, speed_violations=%d, property_violations=%d"
         % (
             len(result["files"]),
             result["cache_hits"],
             result["cache_misses"],
             result["files_with_issues"],
             total_speed_violations,
+            total_property_violations,
         )
     )
-    # Enforce discipline: fail if any speed marker violations were found
-    return 1 if total_speed_violations else 0
+    # Enforce discipline: fail if any speed marker violations were found, and enforce property marker in tests/property
+    return 1 if (total_speed_violations or total_property_violations) else 0
 
 
 if __name__ == "__main__":
