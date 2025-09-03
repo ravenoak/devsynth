@@ -188,8 +188,8 @@ class LMStudioProvider(BaseLLMProvider):
             failure_threshold=self.config.get("failure_threshold", 3),
             recovery_timeout=self.config.get("recovery_timeout", 60),
         )
-        # Deterministic per-call timeout (seconds) with env default of 10
-        timeout_env = os.environ.get("DEVSYNTH_LMSTUDIO_TIMEOUT_SECONDS")
+        # Deterministic per-call timeout (seconds) with env default via LM_STUDIO_HTTP_TIMEOUT (Task 70)
+        timeout_env = os.environ.get("LM_STUDIO_HTTP_TIMEOUT")
         try:
             self.call_timeout = (
                 float(timeout_env)
