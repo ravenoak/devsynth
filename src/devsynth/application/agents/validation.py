@@ -2,7 +2,7 @@
 Validation agent for the DevSynth system.
 """
 
-from typing import Any, Dict, List, Mapping, MutableMapping, TypedDict
+from typing import Any, Dict, List, Mapping, MutableMapping, TypedDict, cast
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -21,7 +21,7 @@ class ValidationAgent(BaseAgent):
         role: str
         is_valid: bool
 
-    def process(self, inputs: Mapping[str, Any]) -> ProcessOutput:
+    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process inputs and validate code against tests."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
@@ -65,13 +65,14 @@ class ValidationAgent(BaseAgent):
             },
         )
 
-        return {
+        out: ValidationAgent.ProcessOutput = {
             "validation_report": validation_report,
             "wsde": validation_wsde,
             "agent": self.name,
-            "role": self.current_role,
+            "role": str(self.current_role or "validator"),
             "is_valid": is_valid,
         }
+        return cast(Dict[str, Any], out)
 
     def get_capabilities(self) -> List[str]:
         """Get the capabilities of this agent.
