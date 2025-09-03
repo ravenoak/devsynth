@@ -202,12 +202,20 @@ Linting and formatting:
 poetry run black .
 poetry run isort .
 
-# Lint
-poetry run flake8
+# Lint (full repo)
+poetry run flake8 src/ tests/
+
+# Lint (changed files only via pre-commit)
+pre-commit run flake8 --files $(git diff --name-only --cached | tr '\n' ' ')
 
 # Optional static typing (recommended for changed modules)
 poetry run mypy src tests --config-file pyproject.toml
 ```
+
+Policy for flake8 fixes:
+- Limit flake8 fixes to ≤50 violations per PR to keep reviews focused and diffs manageable.
+- Enable and rely on pre-commit to enforce flake8 on changed files (`pre-commit install`).
+- For larger cleanups, split into several PRs ordered by components (e.g., application/agents, adapters/memory).
 
 Notes:
 - Default tests should not require real API keys; providers default to safe stubs.

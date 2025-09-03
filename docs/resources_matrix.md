@@ -58,10 +58,11 @@ Guiding principles:
   - Env flags:
     - `DEVSYNTH_RESOURCE_API_AVAILABLE=true` (if applicable in tests)
 
-- webui (NiceGUI)
+- webui (Streamlit for 0.1.0a1)
   - Install: `poetry install --with dev --extras webui`
   - Env flags:
     - `DEVSYNTH_RESOURCE_WEBUI_AVAILABLE=true`
+  - Notes: NiceGUI is evaluated post-0.1.0a1 under a separate extra (webui_nicegui) if present.
 
 - gpu (PyTorch + CUDA, Linux/x86_64 only)
   - Install: `poetry install --with dev --extras gpu`

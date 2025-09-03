@@ -525,6 +525,7 @@ poetry run devsynth run-tests [OPTIONS]
 | `--maxfail INTEGER` | Exit after this many failures |
 | `--feature TEXT` | Feature flags to set; repeatable; accept `name` or `name=false` (maps to `DEVSYNTH_FEATURE_<NAME>`) |
 | `--inventory` | Produce a JSON inventory of collected tests (written to `test_reports/test_inventory.json`) |
+| `-m`, `--marker TEXT` | Additional pytest marker expression to AND with speed filters (e.g., `requires_resource('lmstudio') and not slow`) |
 
 Additional behavior:
 - In smoke mode, a conservative per-test timeout is applied by default: `DEVSYNTH_TEST_TIMEOUT_SECONDS=30` (unless already set).
@@ -1025,7 +1026,7 @@ DevSynth respects the following environment variables:
 | `DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS` | TTL (in seconds) for cached pytest collection used by run-tests segmentation (default: 3600) |
 
 Note on live provider tests:
-- Tests that exercise real OpenAI or LM Studio endpoints are marked with `@pytest.mark.requires_resource("openai"|"lmstudio")` and are skipped by default in CI. To opt in locally, set the appropriate env vars above and export `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true`. These tests assert only on response shape and use short timeouts (<=5s).
+- Tests that exercise real OpenAI or LM Studio endpoints are marked with `@pytest.mark.requires_resource("openai"|"lmstudio")` and are skipped by default in CI. To opt in locally, set the appropriate env vars above and export `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true`. These tests assert only on response shape and use short timeouts (<=5s). For flake mitigation, resource-marked tests may be retried up to `DEVSYNTH_ONLINE_TEST_RETRIES` times (default 2) when `pytest-rerunfailures` is available; set to 0 to disable. OpenAI live profile reference: `DEVSYNTH_OFFLINE=false`, `DEVSYNTH_PROVIDER=openai`, `OPENAI_API_KEY`, `OPENAI_HTTP_TIMEOUT=15`. LM Studio profile: `DEVSYNTH_OFFLINE=false`, `DEVSYNTH_PROVIDER=lmstudio`, `LM_STUDIO_ENDPOINT`, `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true`, `LM_STUDIO_HTTP_TIMEOUT=15`.
 
 ## Configuration File
 
