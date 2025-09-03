@@ -95,7 +95,11 @@ def stub_providers() -> None:
     # Application-layer OpenAI provider: opt-in stubbing only.
     # Some unit tests assert internal behaviors of the real provider (e.g., constructor patching),
     # so we avoid overriding it by default. Enable via DEVSYNTH_TEST_STUB_APP_OPENAI=true when desired.
-    if os.getenv("DEVSYNTH_TEST_STUB_APP_OPENAI", "false").lower() in {"1", "true", "yes"}:
+    if os.getenv("DEVSYNTH_TEST_STUB_APP_OPENAI", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
         try:
             import devsynth.application.llm.openai_provider as app_openai  # type: ignore
 
@@ -116,7 +120,11 @@ def stub_providers() -> None:
 
     # Optional stub for application-layer LMStudio provider.
     # Disabled by default to allow tests to patch internals of the real provider class.
-    if os.getenv("DEVSYNTH_TEST_STUB_APP_LMSTUDIO", "false").lower() in {"1", "true", "yes"}:
+    if os.getenv("DEVSYNTH_TEST_STUB_APP_LMSTUDIO", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
         try:
             import devsynth.application.llm.lmstudio_provider as app_lms  # type: ignore
 

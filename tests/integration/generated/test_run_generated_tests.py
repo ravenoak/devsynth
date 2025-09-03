@@ -17,7 +17,7 @@ def test_run_generated_tests_success(monkeypatch, tmp_path: Path) -> None:
 
     agent = TestAgent()
 
-    def fake_run(cmd, capture_output, text):
+    def fake_run(cmd, capture_output=None, text=None, **kwargs):
         return subprocess.CompletedProcess(cmd, 0, stdout="1 passed", stderr="")
 
     monkeypatch.setattr(subprocess, "run", fake_run)
@@ -32,7 +32,7 @@ def test_run_generated_tests_failure(monkeypatch, tmp_path: Path) -> None:
 
     agent = TestAgent()
 
-    def fake_run(cmd, capture_output, text):
+    def fake_run(cmd, capture_output=None, text=None, **kwargs):
         return subprocess.CompletedProcess(cmd, 1, stdout="1 failed", stderr="")
 
     monkeypatch.setattr(subprocess, "run", fake_run)

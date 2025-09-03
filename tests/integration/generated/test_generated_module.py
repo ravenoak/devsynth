@@ -14,7 +14,6 @@ from pathlib import Path
 import pytest
 
 pytestmark = [
-    pytest.mark.fast,
     pytest.mark.skip(reason="Scaffold for generated module integration tests"),
 ]
 
@@ -26,6 +25,7 @@ def process_data(value: int, output_path: Path) -> Path:
     return output_path
 
 
+@pytest.mark.fast
 def test_generated_module_workflow(tmp_path: Path) -> None:
     """Verify the generated module can create and read output files."""
     output_file = tmp_path / "result.json"
