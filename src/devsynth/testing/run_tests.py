@@ -10,12 +10,12 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
-import re
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -358,7 +358,11 @@ def run_tests(
             cmd += report_options
             try:
                 process = subprocess.Popen(
-                    cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    env=env,
                 )
                 stdout, stderr = process.communicate()
                 output = stdout + stderr
