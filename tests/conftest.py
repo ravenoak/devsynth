@@ -5,7 +5,7 @@ This module provides fixtures for ensuring all tests are hermetic (isolated from
 and don't pollute the developer's environment, file system, or depend on external services.
 """
 
-pytest_plugins = ["tests.conftest_extensions"]
+pytest_plugins = ["tests.conftest_extensions", "tests.fixtures.backends"]
 
 import logging
 import os
@@ -1034,3 +1034,78 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
 
 
 # NOTE: Merged into the unified pytest_collection_modifyitems above to avoid duplicate hook definitions.
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Add command-line option to enable limited retries for resource-marked tests.
+
+    Controlled by either:
+    - CLI: --devsynth-resource-retries N
+    - Env: DEVSYNTH_RESOURCE_RETRIES=N (used if CLI not supplied)
+
+    Default is 0 (disabled). This is intentionally scoped to resource-marked tests
+    to keep unit tests deterministic and fast, per docs/plan.md Section "Key risks
+    and mitigations" (retries=2 for online subsets).
+    """
+    parser.addoption(
+        "--devsynth-resource-retries",
+        action="store",
+        dest="devsynth_resource_retries",
+        default=None,
+        help="Enable reruns for tests marked requires_resource; value is integer N (default 0).",
+    )
+
+
+def pytest_configure(config: pytest.Config):  # type: ignore[override]
+    """Inject rerun configuration only for resource-marked tests.
+
+    We leverage pytest-rerunfailures if installed. If the plugin is not available,
+    we simply no-op. The rerun count is pulled from the CLI option above or from
+    DEVSYNTH_RESOURCE_RETRIES env var. Scope is limited using the plugin's
+    --reruns and --only-rerun marked expression support when available; otherwise
+    we set a custom hook to re-schedule failures selectively.
+    """
+    try:
+        import pytest_rerunfailures  # type: ignore  # noqa: F401
+    except Exception:
+        return  # plugin not installed, do nothing
+
+    # Determine retries
+    cli_val = config.getoption("devsynth_resource_retries", default=None)
+    env_val = os.environ.get("DEVSYNTH_RESOURCE_RETRIES")
+    retries = None
+    if cli_val is not None:
+        try:
+            retries = int(cli_val)
+        except Exception:
+            retries = 0
+    elif env_val is not None:
+        try:
+            retries = int(env_val)
+        except Exception:
+            retries = 0
+    else:
+        retries = 0
+
+    if retries and retries > 0:
+        # Configure plugin options programmatically. Prefer selective reruns via marker expression.
+        # Newer pytest-rerunfailures supports --only-rerun <expr>.
+        try:
+            # Equivalent of: --reruns <retries> --only-rerun "requires_resource"
+            setattr(config.option, "reruns", retries)
+            setattr(config.option, "only_rerun", "requires_resource")
+        except Exception:
+            # Fallback: set global reruns (less ideal). We further reduce impact by
+            # lowering retries for non-resource tests to 0 via a custom hook below.
+            setattr(config.option, "reruns", retries)
+
+            @pytest.hookimpl(hookwrapper=True, tryfirst=True)
+            def pytest_runtest_makereport(item, call):  # type: ignore
+                outcome = yield
+                rep = outcome.get_result()
+                # If the test is not resource-marked, clear reruns to avoid retrying it
+                if not item.get_closest_marker("requires_resource"):
+                    setattr(config.option, "reruns", 0)
+                else:
+                    setattr(config.option, "reruns", retries)
+                return rep

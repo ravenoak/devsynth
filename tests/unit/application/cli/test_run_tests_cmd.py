@@ -2,12 +2,14 @@
 
 from unittest.mock import patch
 
+import pytest
 from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
 
 
+@pytest.mark.fast
 def test_parse_feature_options() -> None:
     """`_parse_feature_options` converts option values to booleans."""
 
@@ -15,6 +17,7 @@ def test_parse_feature_options() -> None:
     assert result == {"a": True, "b": False, "c": True}
 
 
+@pytest.mark.fast
 def test_cli_accepts_feature_flags() -> None:
     """CLI invocation with ``--feature`` delegates to `run_tests`."""
 

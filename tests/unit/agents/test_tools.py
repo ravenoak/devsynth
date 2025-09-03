@@ -1,5 +1,7 @@
 """Tests for the tool registry."""
 
+import pytest
+
 from devsynth.agents.tools import ToolRegistry
 
 
@@ -7,6 +9,7 @@ def sample_tool(x: int) -> int:
     return x + 1
 
 
+@pytest.mark.fast
 def test_register_and_get_tool() -> None:
     registry = ToolRegistry()
     registry.register(
@@ -26,12 +29,14 @@ def test_register_and_get_tool() -> None:
     }
 
 
+@pytest.mark.fast
 def test_unknown_tool_returns_none() -> None:
     registry = ToolRegistry()
     assert registry.get("missing") is None
     assert registry.get_metadata("missing") is None
 
 
+@pytest.mark.fast
 def test_export_for_openai_formats_tools() -> None:
     registry = ToolRegistry()
     registry.register(

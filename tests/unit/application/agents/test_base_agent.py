@@ -41,6 +41,7 @@ class TestBaseAgent:
         agent.set_llm_port(mock_llm_port)
         return agent
 
+    @pytest.mark.fast
     def test_initialization_succeeds(self, base_agent):
         """Test that the agent initializes correctly.
 
@@ -50,6 +51,7 @@ class TestBaseAgent:
         assert base_agent.description == "Test Agent"
         assert base_agent.get_capabilities() == ["test", "example"]
 
+    @pytest.mark.fast
     def test_generate_text_succeeds(self, base_agent, mock_llm_port):
         """Test the generate_text method.
 
@@ -58,6 +60,7 @@ class TestBaseAgent:
         mock_llm_port.generate.assert_called_once_with("Test prompt", None)
         assert result == "Generated text"
 
+    @pytest.mark.fast
     def test_generate_text_with_context_succeeds(self, base_agent, mock_llm_port):
         """Test the generate_text_with_context method.
 
@@ -69,6 +72,7 @@ class TestBaseAgent:
         )
         assert result == "Generated text with context"
 
+    @pytest.mark.fast
     def test_generate_text_no_llm_port_succeeds(self):
         """Test generate_text when no LLM port is set.
 
@@ -83,6 +87,7 @@ class TestBaseAgent:
         result = agent.generate_text("Test prompt")
         assert "Placeholder text for prompt" in result
 
+    @pytest.mark.fast
     def test_generate_text_with_context_no_llm_port_succeeds(self):
         """Test generate_text_with_context when no LLM port is set.
 
@@ -98,6 +103,7 @@ class TestBaseAgent:
         result = agent.generate_text_with_context("Test prompt", context)
         assert "Placeholder text for prompt with context" in result
 
+    @pytest.mark.fast
     def test_process_abstract_method_succeeds(self):
         """Test that the process method is abstract and must be implemented.
 
@@ -105,6 +111,7 @@ class TestBaseAgent:
         with pytest.raises(TypeError):
             BaseAgent()
 
+    @pytest.mark.fast
     def test_create_wsde_succeeds(self, base_agent):
         """Test the create_wsde method.
 
@@ -114,6 +121,7 @@ class TestBaseAgent:
         assert wsde.content_type == "text"
         assert wsde.metadata == {"key": "value"}
 
+    @pytest.mark.fast
     def test_update_wsde_succeeds(self, base_agent):
         """Test the update_wsde method.
 
@@ -125,6 +133,7 @@ class TestBaseAgent:
         assert updated_wsde.content == "Updated content"
         assert updated_wsde.metadata == {"key": "value", "new_key": "new_value"}
 
+    @pytest.mark.fast
     def test_get_role_prompt_succeeds(self, base_agent):
         """Test the get_role_prompt method.
 
@@ -143,6 +152,7 @@ class TestBaseAgent:
         assert base_agent.get_role_prompt() == ""
 
     @patch("devsynth.application.agents.base.logger")
+    @pytest.mark.fast
     def test_generate_text_error_raises_error(
         self, mock_logger, base_agent, mock_llm_port
     ):
@@ -155,6 +165,7 @@ class TestBaseAgent:
         mock_logger.error.assert_called_once()
 
     @patch("devsynth.application.agents.base.logger")
+    @pytest.mark.fast
     def test_generate_text_with_context_error_raises_error(
         self, mock_logger, base_agent, mock_llm_port
     ):

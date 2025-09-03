@@ -566,6 +566,42 @@ def test_workflow_progress_tracking():
 
 ## Test Marker Report and Contributor Workflow
 
+### HOWTO: Move module-level speed markers to function level
+
+If you find `pytestmark = pytest.mark.fast` (or medium/slow) at the top of a test module, migrate these markers to function level. The verifier and repository policy require exactly one speed marker per test function; module-level speed markers are not recognized.
+
+Steps:
+- Remove the module-level assignment line containing the speed marker.
+- Add exactly one of `@pytest.mark.fast | @pytest.mark.medium | @pytest.mark.slow` immediately above each test function definition in that file.
+- If a test already has a speed marker, do not add another; ensure there is exactly one.
+- Re-run the verifier on changed files to confirm compliance:
+  ```bash
+  poetry run python scripts/verify_test_markers.py --changed
+  ```
+
+Example before:
+```python
+import pytest
+
+pytestmark = pytest.mark.fast
+
+def test_adds_numbers():
+    assert 1 + 1 == 2
+```
+
+Example after:
+```python
+import pytest
+
+@pytest.mark.fast
+def test_adds_numbers():
+    assert 1 + 1 == 2
+```
+
+Notes:
+- Do not use module-level speed markers. They are intentionally not recognized in this repository to avoid ambiguity.
+- Keep one and only one speed marker per test function. Use the verifier script to validate.
+
 Generate an updated marker report after modifying tests:
 
 ```bash

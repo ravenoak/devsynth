@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytestmark = [pytest.mark.memory_intensive, pytest.mark.medium]
+pytestmark = [pytest.mark.memory_intensive]
 
 # Create minimal stubs to avoid importing heavy dependencies when loading doctor_cmd
 devsynth_pkg = ModuleType("devsynth")
@@ -106,6 +106,7 @@ def _load_doctor_cmd():
 doctor_cmd = _load_doctor_cmd()
 
 
+@pytest.mark.medium
 def _patch_validation_loader():
     """Return a context manager providing a stub validation module."""
     stub = ModuleType("validate_config")

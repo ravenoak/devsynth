@@ -7,9 +7,10 @@ from types import ModuleType
 import pytest
 from pytest import MonkeyPatch
 
-pytestmark = [pytest.mark.fast, pytest.mark.requires_resource("webui")]
+pytestmark = [pytest.mark.requires_resource("webui")]
 
 
+@pytest.mark.fast
 def test_update_records_time(monkeypatch: MonkeyPatch) -> None:
     """``WebUIProgressIndicator.update`` stores deterministic timestamps."""
     module_name = "devsynth.interface.webui_bridge"

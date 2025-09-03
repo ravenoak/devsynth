@@ -2,11 +2,13 @@
 
 import json
 
+import pytest
 import responses
 
 from devsynth.adapters.github_project import GitHubProjectAdapter
 
 
+@pytest.mark.fast
 @responses.activate
 def test_sync_board_creates_columns_and_cards() -> None:
     """Missing columns and cards are created via GraphQL mutations."""
