@@ -38,9 +38,20 @@ def main() -> int:
     # 1) Marker verification with report
     report_path = TEST_REPORTS / "test_markers_report.json"
     if not VERIFY_SCRIPT.exists():
-        print("verify_test_markers.py not found; cannot produce marker report.", file=sys.stderr)
+        print(
+            "verify_test_markers.py not found; cannot produce marker report.",
+            file=sys.stderr,
+        )
         return 2
-    code = run([sys.executable, str(VERIFY_SCRIPT), "--report", "--report-file", str(report_path)])
+    code = run(
+        [
+            sys.executable,
+            str(VERIFY_SCRIPT),
+            "--report",
+            "--report-file",
+            str(report_path),
+        ]
+    )
     # Acceptance for 11.2 is strictly: zero speed marker violations.
     # verify_test_markers.py returns exit 0 iff there are no speed marker violations.
     marker_ok = code == 0
@@ -53,10 +64,15 @@ def main() -> int:
                 data = json.load(f)
             files_with_issues = int(data.get("files_with_issues", -1))
     except Exception as e:  # best-effort; surface but don't crash
-        print(f"Warning: failed to parse marker report {report_path}: {e}", file=sys.stderr)
+        print(
+            f"Warning: failed to parse marker report {report_path}: {e}",
+            file=sys.stderr,
+        )
 
     # 2) Collect-only sanity
-    code_collect = run(["poetry", "run", "pytest", "--collect-only", "-q"])  # relies on Poetry env
+    code_collect = run(
+        ["poetry", "run", "pytest", "--collect-only", "-q"]
+    )  # relies on Poetry env
     collect_ok = code_collect == 0
 
     # 3) Summarize

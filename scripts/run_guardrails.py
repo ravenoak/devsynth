@@ -56,12 +56,24 @@ def main() -> int:
     results["mypy"] = run(["poetry", "run", "mypy", "src/devsynth"])
 
     # Security
-    results["bandit"] = run(["poetry", "run", "bandit", "-r", "src/devsynth", "-x", "tests"])
+    results["bandit"] = run(
+        ["poetry", "run", "bandit", "-r", "src/devsynth", "-x", "tests"]
+    )
 
     # Safety: prefer offline DB if safety.json exists; otherwise run online check
     safety_db = ROOT / "safety.json"
     if safety_db.exists():
-        results["safety"] = run(["poetry", "run", "safety", "check", "--full-report", "--db", str(safety_db)])
+        results["safety"] = run(
+            [
+                "poetry",
+                "run",
+                "safety",
+                "check",
+                "--full-report",
+                "--db",
+                str(safety_db),
+            ]
+        )
     else:
         results["safety"] = run(["poetry", "run", "safety", "check", "--full-report"])
 
@@ -75,7 +87,9 @@ def main() -> int:
         ],
     }
 
-    (out_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (out_dir / "summary.json").write_text(
+        json.dumps(summary, indent=2), encoding="utf-8"
+    )
     print("\nGuardrails summary:\n" + json.dumps(summary, indent=2))
 
     return 0 if summary["all_passed"] else 1

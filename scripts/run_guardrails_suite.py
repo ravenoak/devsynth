@@ -1,120 +1,67 @@
 #!/usr/bin/env python3
 """
-Run DevSynth guardrail tools (format/lint/type/security) and save outputs under diagnostics/.
-
-Usage examples:
-  poetry run python scripts/run_guardrails_suite.py             # run all tools
-  poetry run python scripts/run_guardrails_suite.py --only black isort
-  poetry run python scripts/run_guardrails_suite.py --continue-on-error
-
-This helper aligns with docs/plan.md and .junie/guidelines.md:
-- Minimal dependencies
-- Evidence-first: writes outputs to diagnostics/guardrails_<tool>_<timestamp>.txt
-- Non-intrusive: does not modify files; it only runs checks
+Run Black/isort/Flake8/mypy/Bandit/Safety in sequence and write artifacts under diagnostics/.
+Exits non-zero if any tool fails unless --continue-on-error is passed.
 """
 from __future__ import annotations
 
 import argparse
-import datetime as _dt
-import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, List, Tuple
-
-# Tools and their Poetry-invoked commands
-TOOLS = {
-    "black": ["black", "--check", "."],
-    "isort": ["isort", "--check-only", "."],
-    "flake8": ["flake8", "src/", "tests/"],
-    "mypy": ["mypy", "src/devsynth"],
-    "bandit": ["bandit", "-r", "src/devsynth", "-x", "tests"],
-    "safety": ["safety", "check", "--full-report"],
-}
 
 
-def _timestamp() -> str:
-    return _dt.datetime.now().strftime("%Y-%m-%dT%H%M%S")
-
-
-def _ensure_diagnostics_dir() -> Path:
-    d = Path("diagnostics")
-    d.mkdir(parents=True, exist_ok=True)
-    return d
-
-
-def _run_tool(
-    tool: str, args: List[str], diagnostics_dir: Path, use_poetry: bool = True
-) -> Tuple[int, Path]:
-    ts = _timestamp()
-    outfile = diagnostics_dir / f"guardrails_{tool}_{ts}.txt"
-    cmd = (["poetry", "run"] if use_poetry else []) + args
-    # Capture both stdout and stderr into the same file for convenience
+def run(cmd: list[str], outfile: Path) -> int:
+    outfile.parent.mkdir(parents=True, exist_ok=True)
+    started = datetime.now(timezone.utc).isoformat()
     with outfile.open("w", encoding="utf-8") as f:
-        f.write(f"$ {' '.join(cmd)}\n\n")
-        f.flush()
-        proc = subprocess.run(cmd, stdout=f, stderr=subprocess.STDOUT)
-    return proc.returncode, outfile
-
-
-def parse_args(argv: Iterable[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run DevSynth guardrail tools and save diagnostics outputs."
-    )
-    parser.add_argument(
-        "--only",
-        nargs="*",
-        help=f"Subset of tools to run from: {', '.join(TOOLS.keys())}",
-    )
-    parser.add_argument(
-        "--no-poetry",
-        action="store_true",
-        help="Run tools without 'poetry run' (assumes tools are on PATH).",
-    )
-    parser.add_argument(
-        "--continue-on-error",
-        action="store_true",
-        help="Continue running remaining tools even if one fails; exit with aggregated non-zero code if any failed.",
-    )
-    return parser.parse_args(list(argv))
-
-
-def main(argv: Iterable[str] | None = None) -> int:
-    ns = parse_args(argv or sys.argv[1:])
-    selected = list(TOOLS.keys()) if not ns.only else ns.only
-
-    invalid = [t for t in selected if t not in TOOLS]
-    if invalid:
-        print(
-            f"Invalid tool(s): {', '.join(invalid)}. Valid: {', '.join(TOOLS.keys())}",
-            file=sys.stderr,
+        f.write(f"# Command: {' '.join(cmd)}\n# Started: {started}\n\n")
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
         )
-        return 2
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            f.write(line)
+        proc.wait()
+        rc = proc.returncode
+        f.write(f"\n# Exit: {rc}\n")
+        return rc
 
-    diagnostics_dir = _ensure_diagnostics_dir()
 
-    results: List[Tuple[str, int, Path]] = []
-    any_fail = False
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--continue-on-error", action="store_true")
+    args = parser.parse_args()
 
-    for tool in selected:
-        cmd = TOOLS[tool]
-        rc, out = _run_tool(
-            tool, [cmd[0], *cmd[1:]], diagnostics_dir, use_poetry=not ns.no_poetry
-        )
-        results.append((tool, rc, out))
-        status = "OK" if rc == 0 else f"FAIL (exit {rc})"
-        print(f"{tool:7s} -> {status} | log: {out}")
+    diagnostics = Path("diagnostics")
+
+    steps: list[tuple[list[str], Path]] = [
+        (["poetry", "run", "black", "--check", "."], diagnostics / "black_check.txt"),
+        (
+            ["poetry", "run", "isort", "--check-only", "."],
+            diagnostics / "isort_check.txt",
+        ),
+        (["poetry", "run", "flake8", "src/", "tests/"], diagnostics / "flake8.txt"),
+        (["poetry", "run", "mypy", "src/devsynth"], diagnostics / "mypy.txt"),
+        (
+            ["poetry", "run", "bandit", "-r", "src/devsynth", "-x", "tests"],
+            diagnostics / "bandit.txt",
+        ),
+        (
+            ["poetry", "run", "safety", "check", "--full-report"],
+            diagnostics / "safety.txt",
+        ),
+    ]
+
+    overall_rc = 0
+    for cmd, out in steps:
+        rc = run(cmd, out)
         if rc != 0:
-            any_fail = True
-            if not ns.continue_on_error:
-                break
-
-    print("\nSummary:")
-    for tool, rc, out in results:
-        status = "OK" if rc == 0 else f"FAIL (exit {rc})"
-        print(f"- {tool:7s}: {status} | {out}")
-
-    return 1 if any_fail else 0
+            overall_rc = rc if overall_rc == 0 else overall_rc
+            if not args.continue_on_error:
+                return overall_rc
+    return overall_rc
 
 
 if __name__ == "__main__":
