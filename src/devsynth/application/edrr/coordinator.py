@@ -482,7 +482,9 @@ class EDRRCoordinator:
                 try:
                     self.memory_manager.flush_updates()
                 except Exception:
-                    logger.debug("flush_updates failed after consensus failure", exc_info=True)
+                    logger.debug(
+                        "flush_updates failed after consensus failure", exc_info=True
+                    )
             return {}
         # Successful path: flush any pending memory updates before returning final result.
         if hasattr(self.memory_manager, "flush_updates"):
