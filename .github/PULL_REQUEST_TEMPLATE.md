@@ -36,6 +36,12 @@ Thank you for contributing to DevSynth! Please fill out the checklist below to h
 - [ ] Commands in docs/examples use Poetry (poetry run …) per guidelines
 - [ ] run-tests CLI options and examples align with docs/user_guides/cli_command_reference.md
 
+## Acceptance Criteria (Release Readiness)
+- [ ] Marker discipline passes for changed files (files_with_issues=0 for modified subset)
+- [ ] Coverage meets or exceeds policy when strict gating is enabled (DEVSYNTH_STRICT_COVERAGE=1 with DEVSYNTH_COV_FAIL_UNDER=90)
+- [ ] `poetry run devsynth doctor` passes in the applicable profile (no ModuleNotFoundError for webui when expected)
+- [ ] Lint/type/security gates pass for changed files (black, isort, flake8, mypy, bandit, safety as applicable)
+
 ## Local Verification
 Provide minimal commands used to validate:
 ```bash
