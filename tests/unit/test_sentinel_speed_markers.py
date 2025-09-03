@@ -37,7 +37,10 @@ except Exception:  # pragma: no cover - exercised only in minimal envs
 @pytest.mark.no_network
 @pytest.mark.fast
 def test_sentinel_fast_bucket_present():
-    """Fast bucket sentinel: executes in << 1s and is deterministic."""
+    """Fast bucket sentinel: executes in << 1s and is deterministic.
+
+    ReqID: TR-01
+    """
     # Arrange
     a, b = 1, 2
     # Act
@@ -49,7 +52,10 @@ def test_sentinel_fast_bucket_present():
 @pytest.mark.no_network
 @pytest.mark.medium
 def test_sentinel_medium_bucket_present():
-    """Medium bucket sentinel: trivial logic, simply marks presence."""
+    """Medium bucket sentinel: trivial logic, simply marks presence.
+
+    ReqID: TR-01
+    """
     data = [1, 1, 2, 3, 5]
     assert sum(data[:3]) == 4
 
@@ -61,6 +67,8 @@ def test_sentinel_slow_bucket_present():
 
     Note: We intentionally avoid sleeps; the 'slow' designation is semantic for
     categorization and does not enforce wall-clock runtime here.
+
+    ReqID: TR-01
     """
     product = 1
     for x in (1, 1, 1):
