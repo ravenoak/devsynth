@@ -92,6 +92,15 @@ def doctor_cmd(
             )
             warnings = True
 
+        # WebUI alignment check (Streamlit is the declared 0.1.0a1 webui extra)
+        # This must not import streamlit; only check availability via find_spec.
+        webui_spec = importlib.util.find_spec("streamlit")
+        if webui_spec is None:
+            ux_bridge.print(
+                "[yellow]WebUI alignment: Streamlit is not installed. If you intend to use the WebUI, install the 'webui' extra: `poetry install --with dev,docs --extras \"webui\"` or add it to your current env. See docs/developer_guides/testing.md.[/yellow]"
+            )
+            warnings = True
+
         # Warn when optional dependencies for enabled features are missing
         feature_pkgs = {
             "wsde_collaboration": "langgraph",
