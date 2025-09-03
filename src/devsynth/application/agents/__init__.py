@@ -2,7 +2,6 @@
 Agent module for the DevSynth system.
 """
 
-# Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 from .agent_memory_integration import AgentMemoryIntegration
@@ -19,8 +18,8 @@ from .test import TestAgent
 from .validation import ValidationAgent
 from .wsde_memory_integration import WSDEMemoryIntegration
 
+# Module logger
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 __all__ = [
     "BaseAgent",

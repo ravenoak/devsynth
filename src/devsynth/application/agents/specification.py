@@ -4,13 +4,11 @@ Specification agent for the DevSynth system.
 
 from typing import Any, Dict, List
 
-# Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 from .base import BaseAgent
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class SpecificationAgent(BaseAgent):
@@ -24,18 +22,18 @@ class SpecificationAgent(BaseAgent):
         # Create a prompt for the LLM
         prompt = f"""
         {role_prompt}
-        
+
         You are a specification expert. Your task is to create detailed specifications.
-        
+
         Project context:
         {inputs.get('context', '')}
-        
+
         Requirements:
         {inputs.get('requirements', '')}
-        
+
         Development plan:
         {inputs.get('plan', '')}
-        
+
         Create detailed specifications with the following sections:
         1. Functional requirements
         2. Non-functional requirements
