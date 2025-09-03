@@ -137,3 +137,26 @@ def pytest_collection_modifyitems(config, items):
         # Only apply --speed filtering when we have an unambiguous marker
         if marker and skip_other_speeds and marker != speed:
             item.add_marker(skip_other_speeds)
+
+    # Apply flaky retries to online resource-marked tests if configured
+    try:
+        import os
+
+        retries_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRIES", "2").strip()
+        delay_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRY_DELAY", "0").strip()
+        retries = int(retries_raw) if retries_raw != "" else 2
+        delay = int(delay_raw) if delay_raw != "" else 0
+    except Exception:
+        retries, delay = 2, 0
+
+    if retries > 0:
+        for item in items:
+            if item.get_closest_marker("requires_resource"):
+                # Add a flaky marker understood by pytest-rerunfailures if installed.
+                try:
+                    item.add_marker(
+                        pytest.mark.flaky(reruns=retries, reruns_delay=delay)
+                    )
+                except Exception:
+                    # If plugin is unavailable, marker is inert; behavior remains unchanged.
+                    pass

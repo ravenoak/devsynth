@@ -10,7 +10,6 @@ import pytest
 # significant memory when run in parallel. Mark them for isolation so
 # they execute sequentially and avoid xdist resource contention.
 pytestmark = [
-    pytest.mark.requires_resource("memory"),
     pytest.mark.memory_intensive,
     pytest.mark.isolation,
 ]

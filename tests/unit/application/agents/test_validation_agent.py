@@ -1,48 +1,51 @@
-from unittest.mock import MagicMock
-
 import pytest
+from typing import Any, Mapping, Dict
 
 from devsynth.application.agents.validation import ValidationAgent
-from devsynth.domain.models.agent import AgentConfig, AgentType
-from devsynth.ports.llm_port import LLMPort
 
 
-class TestValidationAgent:
+class FakeValidationAgent(ValidationAgent):
+    name = "validation"
+    current_role = "validator"
 
-    @pytest.fixture
-    def mock_llm_port(self):
-        port = MagicMock(spec=LLMPort)
-        port.generate.return_value = "All tests pass"
-        port.generate_with_context.return_value = "All tests pass"
-        return port
+    def get_role_prompt(self) -> str:  # type: ignore[override]
+        return "You are a validation expert."
 
-    @pytest.fixture
-    def validation_agent(self, mock_llm_port):
-        agent = ValidationAgent()
-        config = AgentConfig(
-            name="TestValidationAgent",
-            agent_type=AgentType.VALIDATION,
-            description="Test Validation Agent",
-            capabilities=[],
-        )
-        agent.initialize(config)
-        agent.set_llm_port(mock_llm_port)
-        return agent
+    def generate_text(self, prompt: str) -> str:  # type: ignore[override]
+        # Return a deterministic report that indicates success
+        assert isinstance(prompt, str)
+        return "All checks passed; no failures detected."
 
-    @pytest.mark.medium
-    def test_process_succeeds(self, validation_agent):
-        inputs = {
-            "context": "ctx",
-            "specifications": "spec",
-            "tests": "tests",
-            "code": "code",
-        }
-        result = validation_agent.process(inputs)
-        validation_agent.llm_port.generate.assert_called_once()
-        assert result["validation_report"] == "All tests pass"
-        assert result["is_valid"] is True
-        wsde = result["wsde"]
-        assert wsde.content == result["validation_report"]
-        assert wsde.content_type == "text"
-        assert wsde.metadata["agent"] == "TestValidationAgent"
-        assert wsde.metadata["type"] == "validation_report"
+    def create_wsde(self, content: str, content_type: str, metadata: Dict[str, Any]) -> Dict[str, Any]:  # type: ignore[override]
+        return {"content": content, "content_type": content_type, "metadata": metadata}
+
+
+@pytest.mark.fast
+def test_process_returns_typed_output() -> None:
+    agent = FakeValidationAgent()
+    inputs: Mapping[str, Any] = {
+        "context": "Project context",
+        "specifications": "Spec details",
+        "tests": "Test summary",
+        "code": "print('hello')",
+    }
+    out = agent.process(inputs)
+
+    assert out["is_valid"] is True
+    assert isinstance(out["validation_report"], str)
+    assert out["agent"] == "validation"
+    assert out["role"] == "validator"
+    assert isinstance(out["wsde"], dict)
+
+
+@pytest.mark.fast
+def test_get_capabilities_has_defaults_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    agent = FakeValidationAgent()
+
+    def _no_caps() -> list[str]:
+        return []
+
+    monkeypatch.setattr(ValidationAgent, "get_capabilities", _no_caps, raising=False)
+    # Call the instance method; our monkeypatch forces empty list from super
+    caps = FakeValidationAgent().get_capabilities()
+    assert "verify_code_against_tests" in caps

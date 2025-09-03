@@ -29,8 +29,14 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
-@pytest.mark.requires_resource("llm_provider")
-def test_edrr_cycle_with_real_llm_has_expected(tmp_path):
+@pytest.mark.parametrize(
+    "provider_resource",
+    [
+        pytest.param("openai", marks=pytest.mark.requires_resource("openai")),
+        pytest.param("lmstudio", marks=pytest.mark.requires_resource("lmstudio")),
+    ],
+)
+def test_edrr_cycle_with_real_llm_has_expected(tmp_path, provider_resource):
     """Test EDRR cycle with a real LLM provider and verify memory integration.
 
     This test will use the configured LLM provider (OpenAI or LM Studio)
@@ -103,8 +109,14 @@ def test_edrr_cycle_with_real_llm_has_expected(tmp_path):
     print(f"Memory integration verified with GraphMemoryAdapter")
 
 
-@pytest.mark.requires_resource("llm_provider")
-def test_edrr_cycle_with_real_project_succeeds(tmp_path):
+@pytest.mark.parametrize(
+    "provider_resource",
+    [
+        pytest.param("openai", marks=pytest.mark.requires_resource("openai")),
+        pytest.param("lmstudio", marks=pytest.mark.requires_resource("lmstudio")),
+    ],
+)
+def test_edrr_cycle_with_real_project_succeeds(tmp_path, provider_resource):
     """Test EDRR cycle with a real LLM provider on a more complex project.
 
     This test creates a small project with multiple files and asks the EDRR

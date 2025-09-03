@@ -7,8 +7,11 @@ import os
 import pytest
 from pytest_bdd import scenarios
 
-# Mark all scenarios with requires_llm_provider
-pytestmark = pytest.mark.requires_llm_provider
+# Mark all scenarios with documented resource markers for live providers
+pytestmark = [
+    pytest.mark.requires_resource("openai"),
+    pytest.mark.requires_resource("lmstudio"),
+]
 
 # Import the step definitions
 from tests.behavior.steps.test_edrr_real_llm_integration_steps import *  # noqa: F401,F403
