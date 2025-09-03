@@ -79,14 +79,15 @@ class OpenAIProvider(StreamingLLMProvider):
             recovery_timeout=self.config.get("recovery_timeout", 60),
         )
         # Deterministic per-call timeout (seconds)
+        # Env var precedence: OPENAI_HTTP_TIMEOUT (docs/tasks.md Task 70)
         try:
-            self.call_timeout = float(
-                os.environ.get(
-                    "DEVSYNTH_CALL_TIMEOUT_SECONDS",
-                    str(self.config.get("call_timeout", 15)),
-                )
+            timeout_env = os.environ.get("OPENAI_HTTP_TIMEOUT")
+            self.call_timeout = (
+                float(timeout_env)
+                if timeout_env is not None
+                else float(self.config.get("call_timeout", 15))
             )
-        except ValueError:
+        except (TypeError, ValueError):
             self.call_timeout = 15.0
 
         # Check for API key in config or environment
@@ -120,10 +121,10 @@ class OpenAIProvider(StreamingLLMProvider):
         # Use short connect/read timeouts in offline-first contexts
         try:
             default_timeout = float(
-                os.environ.get("DEVSYNTH_HTTP_TIMEOUT_SECONDS", "10")
+                os.environ.get("OPENAI_HTTP_TIMEOUT", str(self.call_timeout))
             )
-        except ValueError:
-            default_timeout = 10.0
+        except (TypeError, ValueError):
+            default_timeout = self.call_timeout
         # OpenAI v1 client accepts http_client with httpx.Client configured; AsyncOpenAI uses AsyncClient
         # We avoid importing httpx at module level to keep optional deps light.
         try:

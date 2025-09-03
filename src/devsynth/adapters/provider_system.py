@@ -1778,6 +1778,9 @@ def embed(
     except ProviderError:
         raise
     except Exception as exc:  # pragma: no cover - unexpected
+        # Be robust to class identity mismatches across import contexts
+        if exc.__class__.__name__ == "ProviderError":
+            raise exc
         raise ProviderError(f"Embedding call failed: {exc}") from exc
 
 
@@ -1817,4 +1820,6 @@ async def aembed(
     except ProviderError:
         raise
     except Exception as exc:  # pragma: no cover - unexpected
+        if exc.__class__.__name__ == "ProviderError":
+            raise exc
         raise ProviderError(f"Embedding call failed: {exc}") from exc
