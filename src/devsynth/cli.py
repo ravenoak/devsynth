@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from typing import Any
 import sys
+from typing import Any
 
 from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
 from devsynth.logger import setup_logging
