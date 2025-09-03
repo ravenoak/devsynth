@@ -83,6 +83,10 @@ tasks:
     desc: Run Black/isort/Flake8/mypy/Bandit/Safety and save outputs under diagnostics/
     cmds:
       - poetry run python scripts/run_guardrails_suite.py --continue-on-error
+  typing:overrides:report:
+    desc: Generate report of mypy overrides to diagnostics/
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/list_mypy_overrides.py | tee diagnostics/list_mypy_overrides_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "python scripts/list_mypy_overrides.py" --exit-code $EXIT --artifacts "diagnostics/mypy_overrides.json,diagnostics/mypy_overrides.txt,diagnostics/list_mypy_overrides_stdout.txt" --notes "mypy overrides report"; exit $EXIT' 
 
   verify:reqids:
     desc: Verify that test functions include 'ReqID:' tags in docstrings and write report
@@ -112,7 +116,12 @@ tasks:
   tests:lmstudio-fast:
     desc: Run only LMStudio-marked fast tests
     cmds:
-      - bash -lc 'mkdir -p diagnostics; poetry run devsynth run-tests --target integration-tests --speed=fast -m "requires_resource(\'lmstudio\')" --no-parallel --maxfail=1 | tee diagnostics/lmstudio_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests lmstudio-fast" --exit-code $EXIT --artifacts "diagnostics/lmstudio_fast.txt" --notes "lmstudio fast subset"; exit $EXIT'
+      - poetry run python scripts/run_live_subsets.py --lmstudio
+
+  tests:openai-fast:
+    desc: Run only OpenAI-marked fast tests (requires OPENAI_API_KEY and DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true)
+    cmds:
+      - poetry run python scripts/run_live_subsets.py --openai
 
   tests:marker-discipline:
     desc: Run speed marker discipline script (writes test_reports/test_markers_report.json)
@@ -536,3 +545,8 @@ tasks:
       - bash -lc 'poetry run devsynth run-tests --report --speed=fast --no-parallel | tee diagnostics/test_report_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests --report fast" --exit-code $EXIT --artifacts "diagnostics/test_report_fast.txt,test_reports/" --notes "maintainer step 9"; exit $EXIT'
       - echo "[Maintainer] Step 10: Guardrails suite"
       - bash -lc 'task guardrails:all'
+
+  exit:verify:
+    desc: Verify exit criteria and capture artifacts under diagnostics/
+    cmds:
+      - poetry run python scripts/verify_exit_criteria.py
