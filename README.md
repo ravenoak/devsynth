@@ -58,6 +58,7 @@ Sanity checks
 - Full guidance: see docs/developer_guides/testing.md
 - Section 7 scripts (sanity+inventory, marker discipline): see docs/developer_guides/testing.md#using-section-7-helper-scripts-in-ci-and-locally
 - CLI options reference: see docs/user_guides/cli_command_reference.md
+- Maintainer Must-Run Sequence: see docs/tasks.md (Task 23) for the step-by-step order and commands; use Taskfile targets where provided.
 
 Optional resources (opt-in)
 - Install an extra and export the flag to enable gated tests/resources, e.g. TinyDB:
