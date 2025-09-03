@@ -47,14 +47,17 @@ def disable_network(monkeypatch: pytest.MonkeyPatch) -> None:
 
     # Optionally patch requests for clearer errors in environments not using 'responses'
     try:  # pragma: no cover - optional dependency
-        import requests  # type: ignore
         import sys
+
+        import requests  # type: ignore
+
         # If the 'responses' library is available (commonly used to stub requests),
         # do not patch requests so tests decorated with @responses.activate work.
-        responses_active = 'responses' in sys.modules
+        responses_active = "responses" in sys.modules
 
         allow_requests = responses_active or (
-            os.environ.get("DEVSYNTH_TEST_ALLOW_REQUESTS", "false").lower() in {"1", "true", "yes"}
+            os.environ.get("DEVSYNTH_TEST_ALLOW_REQUESTS", "false").lower()
+            in {"1", "true", "yes"}
         )
         if not allow_requests:
 
@@ -89,7 +92,9 @@ def disable_network(monkeypatch: pytest.MonkeyPatch) -> None:
             except Exception:
                 # Fallback to string check if URL is not httpx.URL
                 try:
-                    if str(url).startswith("http://testserver") or str(url).startswith("https://testserver"):
+                    if str(url).startswith("http://testserver") or str(url).startswith(
+                        "https://testserver"
+                    ):
                         return _orig_client_request(self, method, url, *args, **kwargs)
                 except Exception:
                     pass
@@ -102,8 +107,12 @@ def disable_network(monkeypatch: pytest.MonkeyPatch) -> None:
                     return await _orig_async_request(self, method, url, *args, **kwargs)
             except Exception:
                 try:
-                    if str(url).startswith("http://testserver") or str(url).startswith("https://testserver"):
-                        return await _orig_async_request(self, method, url, *args, **kwargs)
+                    if str(url).startswith("http://testserver") or str(url).startswith(
+                        "https://testserver"
+                    ):
+                        return await _orig_async_request(
+                            self, method, url, *args, **kwargs
+                        )
                 except Exception:
                     pass
             raise RuntimeError("Network access disabled during tests (httpx)")

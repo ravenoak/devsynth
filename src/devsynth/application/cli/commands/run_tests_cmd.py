@@ -240,7 +240,9 @@ def run_tests_cmd(
         os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
         existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
         # Prepend to ensure our flags take effect
-        os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist -p no:cov "+ existing_addopts).strip()
+        os.environ["PYTEST_ADDOPTS"] = (
+            "-p no:xdist -p no:cov " + existing_addopts
+        ).strip()
         no_parallel = True
 
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
@@ -250,6 +252,12 @@ def run_tests_cmd(
             # Allow generous timeout for subprocess-invoked runs that can load plugins
             # and perform slower startup on some machines.
             os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "120")
+        # Disable coverage plugin for integration fast runs to avoid global fail-under gating
+        # unless an HTML report is requested. This keeps fast lanes quick and non-flaky per docs.
+        if target == "integration-tests" and not report:
+            existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
+            if "-p no:cov" not in existing_addopts:
+                os.environ["PYTEST_ADDOPTS"] = (existing_addopts + " -p no:cov").strip()
 
     speed_categories = normalized_speeds or None
     feature_map = _parse_feature_options(features)

@@ -3,11 +3,10 @@ LM Studio Provider implementation for DevSynth.
 This provider connects to a local LM Studio server running on localhost.
 """
 
-from urllib.parse import urlparse
-
 import concurrent.futures
 import os
 from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 
@@ -30,6 +29,7 @@ def _require_lmstudio():
     """
     try:  # pragma: no cover - optional dependency
         import lmstudio as _lmstudio  # type: ignore
+
         return _lmstudio
     except ImportError as e:  # pragma: no cover - if lmstudio is missing tests skip
         raise DevSynthError(
@@ -52,6 +52,37 @@ class _AttrForwarder:
         return getattr(real, self._attr)(*args, **kwargs)
 
 
+class _NamespaceForwarder:
+    """A namespace forwarder that exposes attributes of lmstudio.<name> lazily.
+
+    This object is placed directly on the proxy instance (e.g., proxy.sync_api),
+    so unittest.mock.patch can target attributes like
+    devsynth.application.llm.lmstudio_provider.lmstudio.sync_api.list_downloaded_models
+    without importing the optional dependency at module import time.
+    """
+
+    def __init__(self, proxy: "_LMStudioProxy", ns_name: str) -> None:
+        self._proxy = proxy
+        self._ns_name = ns_name
+
+    def __getattr__(self, item: str):  # pragma: no cover - thin delegator
+        real = self._proxy._ensure()
+        namespace = getattr(real, self._ns_name)
+        return getattr(namespace, item)
+
+    # Provide common attributes so unittest.mock.patch can replace them without
+    # needing the underlying optional dependency to be present.
+    def list_downloaded_models(self, *args, **kwargs):  # pragma: no cover - bridge
+        real = self._proxy._ensure()
+        namespace = getattr(real, self._ns_name)
+        return namespace.list_downloaded_models(*args, **kwargs)
+
+    def configure_default_client(self, *args, **kwargs):  # pragma: no cover - bridge
+        real = self._proxy._ensure()
+        namespace = getattr(real, self._ns_name)
+        return namespace.configure_default_client(*args, **kwargs)
+
+
 class _LMStudioProxy:
     """Proxy object that defers importing lmstudio until attribute access.
 
@@ -64,7 +95,9 @@ class _LMStudioProxy:
         # Place forwarders in instance __dict__ so unittest.mock.patch can replace them.
         self.llm = _AttrForwarder(self, "llm")
         self.embedding_model = _AttrForwarder(self, "embedding_model")
-        # sync_api remains accessed via __getattr__
+        # Expose a namespace forwarder for sync_api so tests can patch its attributes
+        # even if the optional dependency is not installed in this environment.
+        self.sync_api = _NamespaceForwarder(self, "sync_api")
 
     def _ensure(self) -> Any:
         if self._real is None:
@@ -95,7 +128,10 @@ class LMStudioModelError(DevSynthError):
 
 
 class LMStudioProvider(BaseLLMProvider):
-    """LM Studio LLM provider implementation."""
+    """LM Studio LLM provider implementation.
+
+    Adds a lightweight health check and bounded handshake retry/backoff per docs/tasks.md Task 9/18.
+    """
 
     def __init__(self, config: Dict[str, Any] = None):
         """Initialize the LM Studio provider.
@@ -125,14 +161,19 @@ class LMStudioProvider(BaseLLMProvider):
         # Use module-level proxy to allow tests to patch lmstudio.llm
         self._lmstudio = lmstudio
         # Only configure the client when LM Studio resource is explicitly enabled
-        resource_enabled = os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false").lower() == "true"
+        resource_enabled = (
+            os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false").lower()
+            == "true"
+        )
         if resource_enabled:
             try:
                 self._lmstudio.sync_api.configure_default_client(self.api_host)
             except Exception as e:  # noqa: BLE001
                 logger.warning("LM Studio default client configuration failed: %s", e)
         else:
-            logger.info("LM Studio resource disabled; skipping default client configuration")
+            logger.info(
+                "LM Studio resource disabled; skipping default client configuration"
+            )
         # Retries: env override with default 1 (idempotent minimal retries)
         retries_env = os.environ.get("DEVSYNTH_LMSTUDIO_RETRIES")
         try:
@@ -185,6 +226,58 @@ class LMStudioProvider(BaseLLMProvider):
         else:
             self.model = "local_model"
             logger.info("Using default model: local_model")
+
+    def health_check(self) -> bool:
+        """Lightweight health check to the LM Studio endpoint.
+
+        Performs a GET to /v1/models via lmstudio.sync_api. If DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
+        is true but the endpoint is unreachable, tests may skip quickly with a clear reason.
+        The total time spent in retries is bounded (<= 5 seconds).
+        """
+        # If resource flag is not enabled, we consider health as not applicable/false
+        resource_enabled = (
+            os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false").lower()
+            == "true"
+        )
+        if not resource_enabled:
+            return False
+
+        # Compute bounded retries/delay to stay under 5s total
+        max_total_seconds = 5.0
+        # Default to at most 3 retries with small backoff, but cap by max_total_seconds using call_timeout as base
+        attempt = 0
+        delay = min(0.5, self.call_timeout / 4)
+        total = 0.0
+        last_exc: Exception | None = None
+        while total <= max_total_seconds and attempt < max(1, self.max_retries):
+            attempt += 1
+            try:
+                # Use the proxy's sync_api which backs the GET /v1/models call in lmstudio
+                try:
+                    self._lmstudio.sync_api.configure_default_client(self.api_host)
+                except Exception as cfg_err:  # noqa: BLE001
+                    # Don't fail health check early on configure failure; proceed to list models
+                    logger.debug(
+                        "LM Studio health_check configure_default_client failed (ignored): %s",
+                        cfg_err,
+                    )
+                models = self._lmstudio.sync_api.list_downloaded_models("llm")
+                _ = len(models)
+                return True
+            except Exception as e:  # noqa: BLE001
+                last_exc = e
+                logger.debug("LM Studio health_check attempt %d failed: %s", attempt, e)
+                # Sleep bounded by remaining budget
+                if total + delay > max_total_seconds:
+                    break
+                import time
+
+                time.sleep(delay)
+                total += delay
+                delay = min(max_total_seconds - total, delay * 2)
+        if last_exc:
+            logger.info("LM Studio health_check failed within budget: %s", last_exc)
+        return False
 
     def _should_retry(self, exc: Exception) -> bool:
         """Return ``True`` if the exception should trigger a retry."""
