@@ -15,6 +15,7 @@ from devsynth.application.cli import config_app
 from devsynth.application.cli.mvu_commands import mvu_app
 from devsynth.application.cli.registry import COMMAND_REGISTRY
 from devsynth.application.cli.requirements_commands import requirements_app
+from devsynth.application.cli.vcs_commands import vcs_app
 from devsynth.core.config_loader import load_config
 from devsynth.interface.cli import DEVSYNTH_THEME, CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge, sanitize_output
@@ -22,12 +23,12 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import register_dashboard_hook
 
 
-def init_cmd(wizard: bool = False, *, bridge: Optional[UXBridge] = None) -> None:
+def init_cmd(wizard: bool = False, *, bridge: UXBridge | None = None) -> None:
     COMMAND_REGISTRY["init"](wizard=wizard, bridge=bridge)
 
 
 def spec_cmd(
-    requirements_file: str = "requirements.md", *, bridge: Optional[UXBridge] = None
+    requirements_file: str = "requirements.md", *, bridge: UXBridge | None = None
 ) -> None:
     from devsynth.application.cli import cli_commands
     from devsynth.application.cli.commands import spec_cmd as _spec_module
@@ -36,35 +37,35 @@ def spec_cmd(
     COMMAND_REGISTRY["spec"](requirements_file=requirements_file, bridge=bridge)
 
 
-def test_cmd(spec_file: str = "specs.md", *, bridge: Optional[UXBridge] = None) -> None:
+def test_cmd(spec_file: str = "specs.md", *, bridge: UXBridge | None = None) -> None:
     COMMAND_REGISTRY["test"](spec_file=spec_file, bridge=bridge)
 
 
-def code_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+def code_cmd(*, bridge: UXBridge | None = None) -> None:
     COMMAND_REGISTRY["code"](bridge=bridge)
 
 
 def run_pipeline_cmd(
     *,
-    target: Optional[str] = None,
-    report: Optional[str] = None,
-    bridge: Optional[UXBridge] = None,
+    target: str | None = None,
+    report: str | None = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     COMMAND_REGISTRY["run-pipeline"](target=target, report=report, bridge=bridge)
 
 
 def inspect_config_cmd(
-    path: Optional[str] = None, update: bool = False, prune: bool = False
+    path: str | None = None, update: bool = False, prune: bool = False
 ) -> None:
     COMMAND_REGISTRY["inspect-config"](path=path, update=update, prune=prune)
 
 
 def completion_cmd(
-    shell: Optional[str] = None,
+    shell: str | None = None,
     install: bool = False,
-    path: Optional[Path] = None,
+    path: Path | None = None,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Generate or install shell completion scripts."""
 
@@ -172,9 +173,9 @@ class CommandHelp:
         self,
         summary: str,
         description: str = None,
-        examples: List[Dict[str, str]] = None,
-        notes: List[str] = None,
-        options: Dict[str, str] = None,
+        examples: list[dict[str, str]] = None,
+        notes: list[str] = None,
+        options: dict[str, str] = None,
     ):
         """Initialize the command help.
 
@@ -275,6 +276,7 @@ def build_app() -> typer.Typer:
 
     app.add_typer(requirements_app, name="requirements")
     app.add_typer(mvu_app, name="mvu")
+    app.add_typer(vcs_app, name="vcs", help="Git / VCS utilities")
     app.add_typer(config_app, name="config", help="Manage configuration settings")
 
     @app.command(
@@ -282,18 +284,18 @@ def build_app() -> typer.Typer:
         help="Show or install shell completion scripts (see scripts/completions).",
     )
     def completion(
-        shell: Optional[str] = typer.Option(None, "--shell", help="Shell type"),
+        shell: str | None = typer.Option(None, "--shell", help="Shell type"),
         install: bool = typer.Option(
             False, "--install", help="Install completion script"
         ),
-        path: Optional[Path] = typer.Option(None, "--path", help="Installation path"),
+        path: Path | None = typer.Option(None, "--path", help="Installation path"),
     ) -> None:
         completion_cmd(shell=shell, install=install, path=path)
 
     @app.callback(invoke_without_command=True)
     def main(
         ctx: typer.Context,
-        dashboard_hook: Optional[str] = typer.Option(
+        dashboard_hook: str | None = typer.Option(
             None,
             "--dashboard-hook",
             help="Python path to function receiving dashboard metric events",
@@ -311,7 +313,7 @@ def build_app() -> typer.Typer:
             help="Enable debug logging (equivalent to --log-level DEBUG)",
             is_eager=True,
         ),
-        log_level: Optional[str] = typer.Option(
+        log_level: str | None = typer.Option(
             None,
             "--log-level",
             help="Set log level: DEBUG, INFO, WARNING, ERROR, CRITICAL",
