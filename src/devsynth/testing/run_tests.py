@@ -13,10 +13,10 @@ import os
 import re
 import subprocess
 import sys
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple
-from collections.abc import Sequence
 
 from devsynth.logging_setup import DevSynthLogger
 
