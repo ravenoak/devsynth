@@ -284,19 +284,19 @@ The ChromaDB tests use fixtures for isolation and provider integration:
 Install the project with the extras configuration that matches your local workflow. These presets align with docs/tasks.md task 11 and are suitable for fast local iteration:
 
 - Minimal dev (quickest install; core development only):
-  
+
   ```bash
   poetry install --with dev --extras minimal
   ```
 
 - Tests baseline (sufficient for most tests, including retrieval + API paths referenced by the suite):
-  
+
   ```bash
   poetry install --with dev --extras tests retrieval chromadb api
   ```
 
 - Full feature (non-GPU):
-  
+
   ```bash
   poetry install --with dev,docs --all-extras
   ```
@@ -579,10 +579,18 @@ The following examples show how to enable optional backends locally. Prefer Poet
 
 Examples of running subsets after enabling resources:
 
+Note: Minimal backend gating smoke tests live under tests/unit/retrieval/test_backend_gating_smoke.py and are skipped by default unless the corresponding DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true environment variable is set and the package is installed.
+
 - poetry run devsynth run-tests --target unit-tests --speed=fast
 - poetry run devsynth run-tests --target integration-tests --speed=fast
 
 For more details and troubleshooting, refer to tests/README.md and .junie/guidelines.md.
+
+### Warnings policy (targeted filtering)
+
+- We do not use the global pytest option to suppress all warnings (no `-p no:warnings`).
+- Instead, we apply a targeted filter in pytest.ini to ignore only the collection-time PytestWarning emitted by pytest-bdd regarding speed markers: `ignore:.*speed marker.*:pytest.PytestWarning`.
+- Rationale: keep other warnings visible and actionable, while avoiding noise from an expected, non-actionable wrapper warning; this policy is enforced by docs/tasks.md §1.3–1.4.
 
 ### Speed Marker Discipline (mandatory)
 
@@ -649,13 +657,14 @@ Property tests still require a speed marker in addition to @pytest.mark.property
 
 ### Flakiness mitigation (quick tips)
 
-Online provider retries (limited scope)
-- To reduce transient network flakiness for resource-marked tests only, the test suite can apply retries when the pytest plugin pytest-rerunfailures is available.
+Online provider retries (disciplined; disabled by default)
+- Default: retries are disabled to avoid masking logic errors. Enable explicitly only for idempotent, online resource-marked subsets when diagnosing transient issues.
 - Configuration (environment variables / CLI):
-  - DEVSYNTH_RESOURCE_RETRIES: integer N; when >0, enables retries only for tests marked with @pytest.mark.requires_resource("<name>"). Recommended N=2 per docs/plan.md. Default 0 (disabled).
+  - DEVSYNTH_RESOURCE_RETRIES: integer N; when >0, enables retries only for tests marked with @pytest.mark.requires_resource("<name>"). Default 0 (disabled). Recommended N≤2 when explicitly enabled.
   - CLI alternative: --devsynth-resource-retries N (takes precedence over env when provided).
+  - Legacy compatibility (conftest_extensions.py): DEVSYNTH_ONLINE_TEST_RETRIES (default 0) and DEVSYNTH_ONLINE_TEST_RETRY_DELAY (default 0) control an optional flaky marker helper used by some suites; leave unset for default off.
 - Scope: Only tests explicitly marked with requires_resource("...") are eligible for retries. Offline/stubbed tests are not retried.
-- Implementation: tests/conftest.py configures pytest-rerunfailures with --reruns N and --only-rerun "requires_resource" when the plugin supports it; otherwise a fallback hook limits retries to resource-marked tests.
+- Implementation: tests/conftest.py configures pytest-rerunfailures with --reruns N and --only-rerun "requires_resource" when the plugin supports it; otherwise a fallback hook limits retries to resource-marked tests. tests/conftest_extensions.py adds a flaky marker only when the legacy env flags above are set to >0.
 - Recommendation: keep retries small (≤2) and fix underlying flakiness where feasible.
 
 - Prefer running fast tests locally during iteration: `poetry run devsynth run-tests --speed=fast`.
@@ -732,7 +741,7 @@ Use this Socratic, step-by-step checklist to isolate and resolve failures quickl
 - Re-run in smoke mode: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
 - Disable parallel: add --no-parallel and observe changes.
 - Force resource flags (enable/disable) to confirm guard behavior.
-- Pin seeds and freeze time via deterministic fixtures.
+- Pin seeds and freeze time via deterministic fixtures (see section "Deterministic seeds, time, and UUID fixtures").
 
 4) What minimal reproduction isolates the cause?
 - Run a single test file or node (use -k, -q) inside Poetry.
@@ -759,7 +768,7 @@ Quick commands
 - Sanity+Inventory bundle (writes logs under test_reports/): bash scripts/run_sanity_and_inventory.sh
 - Marker discipline report (emits test_reports/test_markers_report.json): bash scripts/run_marker_discipline.sh
 
-See also: docs/developer_guides/diagnostics.md for a diagnostics command flow checklist and .junie/guidelines.md for the authoritative practices. Track intermittent issues in docs/testing/known_flakes.md.
+See also: docs/developer_guides/diagnostics.md for a diagnostics command flow checklist and .junie/guidelines.md for the authoritative practices. Track intermittent issues in docs/testing/known_flakes.md. For common doctor findings and remediation, read docs/developer_guides/doctor_checklist.md.
 
 ## Running All Tests
 
@@ -971,7 +980,7 @@ poetry run python scripts/verify_requirements_traceability.py
 
 To maintain end-to-end traceability between requirements, issues, and tests, this guide and related documents cross-reference the following artifacts:
 
-- Issues: 
+- Issues:
   - [issues/devsynth-run-tests-hangs.md](../../issues/devsynth-run-tests-hangs.md) — runner stability and provider short-circuiting.
   - [issues/release-readiness-v0-1-0-alpha-1.md](../../issues/release-readiness-v0-1-0-alpha-1.md) — release preparation checklist context.
   - [issues/Finalize-WSDE-EDRR-workflow-logic.md](../../issues/Finalize-WSDE-EDRR-workflow-logic.md) — workflow logic alignment for BDD coverage.
@@ -1099,6 +1108,60 @@ Live-provider jobs are opt-in only and must be explicitly enabled via environmen
 
 
 ## Test Coverage
+
+### Deterministic seeds, time, and UUID fixtures
+
+To reduce flakiness and ensure reproducibility, the test harness provides deterministic fixtures:
+- deterministic_seed (session, autouse): Sets DEVSYNTH_TEST_SEED (default 1337), PYTHONHASHSEED, and seeds stdlib random; attempts to seed NumPy and PyTorch if installed. You can override with export DEVSYNTH_TEST_SEED=1234.
+- mock_datetime (function-scoped): Freezes datetime.now()/utcnow() and time.time() to 2025-01-01T12:00:00 for the duration of the test. Use this fixture explicitly in tests that assert time-dependent behavior.
+- mock_uuid (function-scoped): Patches uuid.uuid4() to return a fixed UUID within the test. Use when ID stability matters.
+
+Usage examples:
+
+```python
+import random
+
+# Deterministic RNG sequence (seed provided by deterministic_seed fixture)
+def test_random_sequence_stable():
+    seed = int(os.environ["DEVSYNTH_TEST_SEED"])  # set by fixture
+    random.seed(seed)
+    assert [random.randint(0, 10) for _ in range(3)] == [random.randint(0, 10) for _ in range(3)]
+
+# Freeze time for assertions
+def test_time_freeze(mock_datetime):
+    from datetime import datetime
+    import time
+    fixed = datetime(2025, 1, 1, 12, 0, 0)
+    assert datetime.now() == fixed
+    assert int(time.time()) == int(fixed.timestamp())
+
+# Stable UUIDs
+def test_uuid_stable(mock_uuid):
+    import uuid
+    assert str(uuid.uuid4()) == "12345678-1234-5678-1234-567812345678"
+```
+
+Notes:
+- Property-based tests are opt-in via DEVSYNTH_PROPERTY_TESTING=true.
+- For tests that must use real wall clock or real UUIDs, avoid using the mock_* fixtures.
+
+The project enforces disciplined coverage measurement and artifacts to support release gating.
+
+- Quick baseline (C1–C2):
+  - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --report --maxfail=1
+    - Generates an HTML report under test_reports/ (unit-tests segment) via the CLI wrapper.
+  - poetry run pytest -q --cov=src/devsynth --cov-report=term-missing:skip-covered --cov-report=html tests
+    - Produces terminal summary of uncovered lines (skip covered), and writes HTML to htmlcov/ (open htmlcov/index.html).
+- Targets: pre-release aim is to raise total coverage to ≥90% (see docs/tasks.md 3.2 and Acceptance Criteria AC3). Focus on modules <80% (application CLI commands, methodology helpers, provider/memory adapters).
+- Tips for local iteration:
+  - Use -k or -m to narrow test selection while iterating on a module; retain --cov to see incremental effects.
+  - Prefer smoke mode for quick sanity: poetry run devsynth run-tests --smoke --speed=fast --no-parallel.
+- Artifacts:
+  - htmlcov/ for coverage HTML; include in release branch artifacts.
+  - test_reports/ for CLI HTML test report when using --report.
+- Property tests are opt-in: export DEVSYNTH_PROPERTY_TESTING=true to include tests/property/ and mark functions with @pytest.mark.property and exactly one speed marker.
+
+See also: docs/plan.md (Track C) and docs/tasks.md (section 3) for current goals and status.
 
 ### Maintainer profile install and environment
 - Recommended full profile (no GPU):

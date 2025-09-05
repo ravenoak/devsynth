@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -8,30 +8,30 @@ repos:
       - id: check-toml
       - id: check-json
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3.12
   - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+    rev: 6.0.1
     hooks:
       - id: isort
         args: ["--profile", "black"]
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
+    rev: 7.3.0
     hooks:
       - id: flake8
         additional_dependencies: []
         args: ["--config=pyproject.toml"]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v1.17.1
     hooks:
       - id: mypy
         additional_dependencies: []
         files: ^src/
         args: ["--config-file", "pyproject.toml"]
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.17.0
+    rev: v3.20.0
     hooks:
       - id: pyupgrade
         args: ["--py312-plus"]
@@ -43,11 +43,11 @@ repos:
         language: system
         pass_filenames: true
         files: ^tests/.*\.py$
-        stages: [commit]
+        stages: [pre-commit]
       - id: verify-reqids-changed
         name: Verify ReqID docstring tags on changed test files
         entry: poetry run python scripts/verify_docstring_reqids.py --files
         language: system
         pass_filenames: true
         files: ^tests/.*\.py$
-        stages: [commit]
+        stages: [pre-commit]
