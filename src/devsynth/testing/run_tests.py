@@ -15,7 +15,8 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Tuple
+from collections.abc import Sequence
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -69,9 +70,29 @@ TARGET_PATHS = {
 logger = DevSynthLogger(__name__)
 
 
+def _sanitize_node_ids(ids: list[str]) -> list[str]:
+    """Sanitize pytest selection IDs collected from --collect-only -q output.
+
+    - Strip trailing ":<digits>" that can appear from certain plugins/formatters
+      when no function/class separator ("::") is present.
+    - Deduplicate while preserving order.
+    """
+    seen = set()
+    out: list[str] = []
+    for nid in ids:
+        cleaned = nid
+        # Only strip a trailing line number if there is no function/class delimiter.
+        if "::" not in cleaned:
+            cleaned = re.sub(r":\d+$", "", cleaned)
+        if cleaned not in seen:
+            seen.add(cleaned)
+            out.append(cleaned)
+    return out
+
+
 def collect_tests_with_cache(
-    target: str, speed_category: Optional[str] = None
-) -> List[str]:
+    target: str, speed_category: str | None = None
+) -> list[str]:
     """Collect tests for the given target and speed category.
 
     Results are cached for a short period to speed up repeated collections.
@@ -116,7 +137,7 @@ def collect_tests_with_cache(
 
     if os.path.exists(cache_file):
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 cached_data = json.load(f)
             cache_time = datetime.fromisoformat(cached_data["timestamp"])
             cached_fingerprint = cached_data.get("fingerprint", {})
@@ -187,25 +208,33 @@ def collect_tests_with_cache(
                 logger.error("Collection stderr:\n%s", collect_result.stderr)
             tips = _failure_tips(collect_result.returncode, collect_cmd)
             logger.error(tips)
-        test_list = [
+        raw_list = [
             line.strip()
             for line in collect_result.stdout.split("\n")
             if line.startswith("tests/") or line.startswith(test_path)
         ]
-
+        test_list = _sanitize_node_ids(raw_list)
+        # Prune non-existent file paths proactively to avoid stale selectors in cache
+        pruned_list: list[str] = []
+        for nid in test_list:
+            path_part = nid.split("::", 1)[0]
+            if os.path.exists(path_part):
+                pruned_list.append(nid)
         cache_data = {
             "timestamp": datetime.now().isoformat(),
-            "tests": test_list,
+            "tests": pruned_list,
             "fingerprint": {
                 "latest_mtime": latest_mtime,
                 "category_expr": category_expr,
                 "test_path": test_path,
+                # Simple signature to invalidate when set of node IDs changes significantly
+                "node_set_hash": hash("\n".join(pruned_list)),
             },
         }
         with open(cache_file, "w") as f:
             json.dump(cache_data, f, indent=2)
 
-        return test_list
+        return pruned_list
     except Exception as exc:  # pragma: no cover - defensive
         logger.error("Error collecting tests: %s", exc)
         tips = _failure_tips(-1, collect_cmd)
@@ -215,15 +244,15 @@ def collect_tests_with_cache(
 
 def run_tests(
     target: str,
-    speed_categories: Optional[Sequence[str]] = None,
+    speed_categories: Sequence[str] | None = None,
     verbose: bool = False,
     report: bool = False,
     parallel: bool = True,
     segment: bool = False,
     segment_size: int = 50,
-    maxfail: Optional[int] = None,
-    extra_marker: Optional[str] = None,
-) -> Tuple[bool, str]:
+    maxfail: int | None = None,
+    extra_marker: str | None = None,
+) -> tuple[bool, str]:
     """Execute pytest for the specified target.
 
     Args:
@@ -277,7 +306,7 @@ def run_tests(
         # these worker teardown issues.
         base_cmd += ["-n", "auto", "--no-cov"]
 
-    report_options: List[str] = []
+    report_options: list[str] = []
     if report:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         report_dir = Path(f"test_reports/{timestamp}/{target}")
@@ -318,11 +347,12 @@ def run_tests(
             collect_result = subprocess.run(
                 collect_cmd, check=False, capture_output=True, text=True
             )
-            node_ids = [
+            raw_ids = [
                 line.strip()
                 for line in collect_result.stdout.split("\n")
                 if line.startswith("tests/")
             ]
+            node_ids = _sanitize_node_ids(raw_ids)
             if not node_ids:
                 # Nothing to run is a success for subset execution
                 return True, "No tests matched the provided filters."
@@ -399,11 +429,12 @@ def run_tests(
         check_result = subprocess.run(
             collect_cmd, check=False, capture_output=True, text=True
         )
-        node_ids = [
+        raw_ids = [
             line.strip()
             for line in check_result.stdout.split("\n")
             if line.startswith("tests/")
         ]
+        node_ids = _sanitize_node_ids(raw_ids)
         if not node_ids:
             logger.info("No %s tests found for %s, skipping...", speed, target)
             continue

@@ -55,6 +55,7 @@ class ProviderEnv:
         - provider defaults to 'stub' if not explicitly set
         - offline defaults to True
         - lmstudio availability defaults to False unless explicitly set
+        - ensure OPENAI_API_KEY has a deterministic placeholder when unset
         """
         # If provider was explicitly set, respect it; otherwise default to stub
         provider = os.environ.get("DEVSYNTH_PROVIDER", self.provider)
@@ -64,6 +65,8 @@ class ProviderEnv:
         offline = self.offline or ("DEVSYNTH_OFFLINE" not in os.environ)
         # LM Studio availability: default false when unset
         lmstudio = self.lmstudio_available  # already False by default when unset
+        # Provide deterministic placeholder secrets for offline/stub paths
+        os.environ.setdefault("OPENAI_API_KEY", "test-openai-key")
         return ProviderEnv(
             provider=provider, offline=offline, lmstudio_available=lmstudio
         )
@@ -77,7 +80,7 @@ class ProviderEnv:
                 "true" if self.lmstudio_available else "false"
             )
 
-    def as_dict(self) -> Dict[str, str]:
+    def as_dict(self) -> dict[str, str]:
         return {
             "DEVSYNTH_PROVIDER": self.provider,
             "DEVSYNTH_OFFLINE": "true" if self.offline else "false",

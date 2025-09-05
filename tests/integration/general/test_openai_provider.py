@@ -12,6 +12,7 @@ from devsynth.application.llm.openai_provider import (
 )
 
 
+@pytest.mark.requires_resource("openai")
 class TestOpenAIProvider:
     """Tests for the OpenAIProvider class.
 
