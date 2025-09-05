@@ -3,9 +3,9 @@ Extensions to pytest configuration for test categorization and organization.
 """
 
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from collections.abc import Callable
 
 import pytest
 

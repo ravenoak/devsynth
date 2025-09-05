@@ -20,9 +20,9 @@ import shlex
 import subprocess
 import sys
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
-from collections.abc import Iterable
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TESTS_DIR = ROOT / "tests"

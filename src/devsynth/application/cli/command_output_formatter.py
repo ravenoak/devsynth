@@ -60,8 +60,8 @@ class StandardizedOutputFormatter:
 
     def __init__(
         self,
-        console: Optional[Console] = None,
-        base_formatter: Optional[OutputFormatter] = None,
+        console: Console | None = None,
+        base_formatter: OutputFormatter | None = None,
     ):
         """Initialize the standardized output formatter.
 
@@ -81,7 +81,7 @@ class StandardizedOutputFormatter:
             CommandOutputType.INFO: Style(color="blue"),
             CommandOutputType.DATA: Style(color="cyan"),
             CommandOutputType.HELP: Style(color="magenta"),
-            CommandOutputType.DEBUG: Style(color="dim"),
+            CommandOutputType.DEBUG: Style(dim=True),
         }
 
         # Define standard boxes for different output styles
@@ -111,10 +111,10 @@ class StandardizedOutputFormatter:
         message: str,
         output_type: CommandOutputType = CommandOutputType.RESULT,
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
-        title: Optional[str] = None,
-        subtitle: Optional[str] = None,
+        title: str | None = None,
+        subtitle: str | None = None,
         highlight: bool = False,
-    ) -> Union[str, Text, Panel]:
+    ) -> str | Text | Panel:
         """Format a message with standardized styling.
 
         Args:
@@ -178,13 +178,13 @@ class StandardizedOutputFormatter:
 
     def format_table(
         self,
-        data: Union[List[Dict[str, Any]], Dict[str, Any]],
+        data: list[dict[str, Any]] | dict[str, Any],
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
-        title: Optional[str] = None,
-        subtitle: Optional[str] = None,
+        title: str | None = None,
+        subtitle: str | None = None,
         show_header: bool = True,
-        box: Optional[Box] = None,
-        padding: Optional[Tuple[int, int]] = None,
+        box: Box | None = None,
+        padding: tuple[int, int] | None = None,
     ) -> Table:
         """Format data as a table with standardized styling.
 
@@ -251,12 +251,12 @@ class StandardizedOutputFormatter:
 
     def format_list(
         self,
-        items: List[Any],
+        items: list[Any],
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
-        title: Optional[str] = None,
-        subtitle: Optional[str] = None,
+        title: str | None = None,
+        subtitle: str | None = None,
         bullet: str = "•",
-    ) -> Union[str, Text, Panel]:
+    ) -> str | Text | Panel:
         """Format a list with standardized styling.
 
         Args:
@@ -306,11 +306,11 @@ class StandardizedOutputFormatter:
         code: str,
         language: str = "python",
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
-        title: Optional[str] = None,
-        subtitle: Optional[str] = None,
+        title: str | None = None,
+        subtitle: str | None = None,
         line_numbers: bool = True,
         word_wrap: bool = True,
-    ) -> Union[str, Syntax, Panel]:
+    ) -> str | Syntax | Panel:
         """Format code with standardized styling.
 
         Args:
@@ -369,10 +369,10 @@ class StandardizedOutputFormatter:
         command: str,
         description: str,
         usage: str,
-        examples: List[Dict[str, str]],
-        options: List[Dict[str, str]],
+        examples: list[dict[str, str]],
+        options: list[dict[str, str]],
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
-    ) -> Union[str, Text, Panel]:
+    ) -> str | Text | Panel:
         """Format help text with standardized styling.
 
         Args:
@@ -481,8 +481,8 @@ class StandardizedOutputFormatter:
         result: Any,
         output_type: CommandOutputType = CommandOutputType.RESULT,
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
-        title: Optional[str] = None,
-        subtitle: Optional[str] = None,
+        title: str | None = None,
+        subtitle: str | None = None,
     ) -> Any:
         """Format a command result with standardized styling.
 
@@ -547,8 +547,8 @@ class StandardizedOutputFormatter:
         content: Any,
         output_type: CommandOutputType = CommandOutputType.RESULT,
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
-        title: Optional[str] = None,
-        subtitle: Optional[str] = None,
+        title: str | None = None,
+        subtitle: str | None = None,
     ) -> None:
         """Display content with standardized styling.
 
