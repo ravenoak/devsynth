@@ -1101,3 +1101,34 @@ Example generation:
 See also:
 - docs/developer_guides/testing.md (segmentation, smoke mode)
 - .junie/guidelines.md (marker discipline and offline-first defaults)
+
+
+
+## vcs
+
+Utilities for working with version control (git) from DevSynth.
+
+### vcs chunk-commit
+
+Analyze pending changes and commit them in logical chunks sequentially. Files are grouped by concern (docs, tests, src, config, scripts, CI, examples, templates, chore). Commit messages include a brief Socratic and dialectical rationale to make the intent explicit.
+
+Usage:
+
+```bash
+poetry run devsynth vcs chunk-commit --dry-run     # default: show plan only
+poetry run devsynth vcs chunk-commit --execute     # perform commits
+poetry run devsynth vcs chunk-commit --execute --staged-only
+poetry run devsynth vcs chunk-commit --execute --no-verify
+poetry run devsynth vcs chunk-commit --execute --staged-only=false --include-untracked
+```
+
+Options:
+- --dry-run/--execute: Preview plan versus execute (default: --dry-run)
+- --staged-only: Only consider staged changes (default: true)
+- --include-untracked: When not staged-only, include untracked files
+- --no-verify: Pass --no-verify to git commit per chunk
+
+Notes:
+- The command operates conservatively: it commits only the files in each group via pathspecs, avoiding accidental inclusion of unrelated staged changes.
+- If a single file appears to cross-cut concerns, prefer committing it separately; the tool will place it in the "chore" group if no category matches.
+- Designed to be CI-safe; it shells out to git similarly to MVU storage helpers.
