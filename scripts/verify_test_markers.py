@@ -21,7 +21,8 @@ import subprocess
 import sys
 from collections import Counter
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+from collections.abc import Iterable
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TESTS_DIR = ROOT / "tests"
@@ -32,13 +33,13 @@ CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 MARK_RE = re.compile(r"@pytest\.mark\.([a-zA-Z_][a-zA-Z0-9_]*)")
 
 # In-memory caches (tests access these directly)
-PERSISTENT_CACHE: Dict[str, dict] = {}
-FILE_SIGNATURES: Dict[str, Tuple[float, str]] = {}
+PERSISTENT_CACHE: dict[str, dict] = {}
+FILE_SIGNATURES: dict[str, tuple[float, str]] = {}
 
 
 @dataclass
 class FileVerification:
-    markers: Dict[str, int]
+    markers: dict[str, int]
     issues: list
 
 
@@ -77,6 +78,14 @@ def get_arg_parser():
         default=str(REPORT_PATH),
         help="Path to write the JSON summary report (default: test_markers_report.json).",
     )
+    parser.add_argument(
+        "--cross-check-collection",
+        action="store_true",
+        help=(
+            "Cross-check static scan against pytest --collect-only -q inventory; "
+            "prints discrepancies and exits non-zero if any are found."
+        ),
+    )
     return parser
 
 
@@ -84,7 +93,7 @@ def _hash_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8", errors="ignore")).hexdigest()
 
 
-def _compute_signature(path: pathlib.Path) -> Tuple[float, str]:
+def _compute_signature(path: pathlib.Path) -> tuple[float, str]:
     try:
         text = path.read_text(encoding="utf-8", errors="ignore")
     except Exception:
@@ -118,14 +127,14 @@ def _save_disk_cache() -> None:
         pass
 
 
-def _collect_markers_from_text(text: str) -> Dict[str, int]:
+def _collect_markers_from_text(text: str) -> dict[str, int]:
     counts: Counter[str] = Counter()
     for m in MARK_RE.finditer(text):
         counts[m.group(1)] += 1
     return dict(counts)
 
 
-def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
+def _find_speed_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
     """Return a list of violations for the exactly-one speed marker rule.
 
     Scope for enforcement (iterative rollout per docs/plan.md):
@@ -142,7 +151,7 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
     - Exactly one must be present overall; 0 or >1 are violations.
     - Module-level markers do not satisfy this requirement.
     """
-    violations: List[dict] = []
+    violations: list[dict] = []
     try:
         tree = ast.parse(text)
     except SyntaxError:
@@ -156,7 +165,7 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
 
     speed_markers = {"fast", "medium", "slow"}
 
-    def _extract_marker_name_from_attr(a: ast.AST) -> Optional[str]:
+    def _extract_marker_name_from_attr(a: ast.AST) -> str | None:
         # Accept pytest.mark.<name> and pytest.mark.<name>()
         if isinstance(a, ast.Attribute):
             name = getattr(a, "attr", None)
@@ -171,7 +180,7 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
         for node in getattr(tree, "body", []):
             if isinstance(node, (ast.Assign, ast.AnnAssign)):
                 # Handle: pytestmark = ... or: pytestmark: Any = ...
-                target_names: List[str] = []
+                target_names: list[str] = []
                 if isinstance(node, ast.Assign):
                     for t in node.targets:
                         if isinstance(t, ast.Name):
@@ -186,7 +195,7 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
                         if isinstance(node, (ast.Assign, ast.AnnAssign))
                         else None
                     )
-                    markers_found: List[str] = []
+                    markers_found: list[str] = []
                     if isinstance(val, (ast.List, ast.Tuple)):
                         elements = list(getattr(val, "elts", []))
                     else:
@@ -202,7 +211,7 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
         # Be permissive on AST shapes we don't anticipate
         pass
 
-    def _collect_parametrize_speed_markers(dec: ast.Call) -> List[str]:
+    def _collect_parametrize_speed_markers(dec: ast.Call) -> list[str]:
         """Inspect a @pytest.mark.parametrize decorator for pytest.param marks.
 
         We only consider markers embedded in pytest.param(..., marks=...). If every
@@ -210,7 +219,7 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
         return that single marker; otherwise return [].
         """
         # Identify the argvalues argument: typically second positional arg
-        argvalues: Optional[ast.AST] = None
+        argvalues: ast.AST | None = None
         if dec.args:
             argvalues = dec.args[1] if len(dec.args) >= 2 else None
         for kw in getattr(dec, "keywords", []) or []:
@@ -220,13 +229,13 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
         if argvalues is None:
             return []
         # Normalize to a list of parameters
-        elements: List[ast.AST] = []
+        elements: list[ast.AST] = []
         if isinstance(argvalues, (ast.List, ast.Tuple)):
             elements = list(argvalues.elts)
         else:
             # Not a static list/tuple; can't analyze safely
             return []
-        all_param_markers: List[str] = []
+        all_param_markers: list[str] = []
         for el in elements:
             # We care about pytest.param(...) entries
             if isinstance(el, ast.Call):
@@ -251,7 +260,7 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
                 if mark_value is None:
                     return []
                 # marks may be a single marker or a list of markers
-                markers_here: List[str] = []
+                markers_here: list[str] = []
                 if isinstance(mark_value, (ast.List, ast.Tuple)):
                     for v in mark_value.elts:
                         name = _extract_marker_name_from_attr(v)
@@ -305,8 +314,8 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
         # feature files and scenario runners rather than executed as standalone tests.
         if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
             # Collect decorator names of the form pytest.mark.<name>
-            found: List[str] = []
-            parametrize_found: List[str] = []
+            found: list[str] = []
+            parametrize_found: list[str] = []
             for dec in node.decorator_list:
                 # Handle @pytest.mark.<name>
                 attr = None
@@ -344,13 +353,13 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
     return violations
 
 
-def _find_property_marker_violations(path: pathlib.Path, text: str) -> List[dict]:
+def _find_property_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
     """For modules under tests/property, ensure each test function has @pytest.mark.property.
 
     We do not fail the script on these violations (informational), but include them in issues
     and summary stats to aid hygiene improvements.
     """
-    violations: List[dict] = []
+    violations: list[dict] = []
     try:
         tree = ast.parse(text)
     except SyntaxError:
@@ -510,13 +519,13 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
     """
     _load_disk_cache()
 
-    files: Dict[str, FileVerification] = {}
+    files: dict[str, FileVerification] = {}
     cache_hits = 0
     cache_misses = 0
     files_with_issues = 0
     collection_errors = []
-    speed_marker_violations: List[dict] = []
-    property_marker_violations: List[dict] = []
+    speed_marker_violations: list[dict] = []
+    property_marker_violations: list[dict] = []
 
     for p in sorted(pathlib.Path(str(fp)).resolve() for fp in file_paths):
         if p.is_dir():
@@ -641,7 +650,7 @@ def invalidate_cache_for_paths(paths: Iterable[pathlib.Path | str]) -> int:
     return removed
 
 
-def _list_changed_test_files(base_ref: str = "HEAD") -> List[pathlib.Path]:
+def _list_changed_test_files(base_ref: str = "HEAD") -> list[pathlib.Path]:
     """Return changed test files relative to base_ref using git.
 
     Falls back to an empty list if git is unavailable or the command fails.
@@ -677,7 +686,7 @@ def main() -> int:
     # Expose args for verify_files to consult if needed (best effort)
     setattr(sys.modules[__name__], "args", args)
 
-    target_files: Optional[List[pathlib.Path]] = None
+    target_files: list[pathlib.Path] | None = None
 
     if args.paths:
         target_files = [pathlib.Path(p) for p in args.paths]
@@ -690,6 +699,53 @@ def main() -> int:
         result = verify_files(target_files)
     else:
         result = verify_directory_markers(str(TESTS_DIR))
+
+    # Optional cross-check with pytest collection inventory
+    cross_check_exit = 0
+    if getattr(args, "cross_check_collection", False):
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", "--collect-only", "-q"],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            collected = set()
+            for line in proc.stdout.splitlines():
+                line = line.strip()
+                if not line or line.startswith("="):
+                    continue
+                # Only consider pytest node ids which include '::'
+                if "::" not in line:
+                    continue
+                collected.add(line)
+            # Build a simple static inventory of test node ids (module::function) from our parse
+            static_nodes = set()
+            for fpath, fdata in result.get("files", {}).items():
+                module = str(pathlib.Path(fpath).relative_to(ROOT))
+                for fn in fdata.get("functions", {}).keys():
+                    static_nodes.add(f"{module}::{fn}")
+            missing_in_collection = sorted(static_nodes - collected)
+            extra_in_collection = sorted(collected - static_nodes)
+            if missing_in_collection or extra_in_collection:
+                print("[warn] cross-check discrepancies detected:")
+                if missing_in_collection:
+                    print("  - Present in static scan but not collected:")
+                    for n in missing_in_collection[:50]:
+                        print(f"    * {n}")
+                if extra_in_collection:
+                    print("  - Collected by pytest but not in static scan:")
+                    for n in extra_in_collection[:50]:
+                        print(f"    * {n}")
+                cross_check_exit = 1
+            else:
+                print(
+                    "[info] cross-check: static scan matches pytest collection inventory (basic)."
+                )
+        except Exception as e:
+            print(f"[warn] cross-check failed to execute: {e}")
+            # Do not fail the entire run due to cross-check failure
 
     # Optionally rewrite report to requested location
     try:
@@ -740,7 +796,7 @@ def main() -> int:
     )
     # Enforce discipline: fail if any speed marker violations were found.
     # Property marker advisories are informational and do not affect exit status.
-    return 1 if total_speed_violations else 0
+    return 1 if total_speed_violations or cross_check_exit else 0
 
 
 if __name__ == "__main__":

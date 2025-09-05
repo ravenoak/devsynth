@@ -4,11 +4,12 @@ Extensions to pytest configuration for test categorization and organization.
 
 import time
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from collections.abc import Callable
 
 import pytest
 
-test_times: Dict[str, float] = {}
+test_times: dict[str, float] = {}
 
 
 def pytest_configure(config):
@@ -142,12 +143,14 @@ def pytest_collection_modifyitems(config, items):
     try:
         import os
 
-        retries_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRIES", "2").strip()
+        # Retries are disabled by default to avoid masking logic errors.
+        # Enable explicitly via environment when running idempotent online subsets.
+        retries_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRIES", "0").strip()
         delay_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRY_DELAY", "0").strip()
-        retries = int(retries_raw) if retries_raw != "" else 2
+        retries = int(retries_raw) if retries_raw != "" else 0
         delay = int(delay_raw) if delay_raw != "" else 0
     except Exception:
-        retries, delay = 2, 0
+        retries, delay = 0, 0
 
     if retries > 0:
         for item in items:

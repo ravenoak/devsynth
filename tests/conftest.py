@@ -1002,6 +1002,55 @@ def pytest_collection_modifyitems(config, items):
             if not item.get_closest_marker("isolation"):
                 item.add_marker(pytest.mark.isolation)
 
+    # Broaden isolation auto-marking heuristics for fragile tests that touch filesystem/network
+    # Apply only when a test lacks an explicit @pytest.mark.isolation
+    network_keywords = ("network", "http", "https", "socket", "requests", "ftp")
+    fs_fixtures = {
+        "tmp_path",
+        "tmpdir",
+        "tmpdir_factory",
+        "temp_log_dir",
+        "tmp_project_dir",
+    }
+    for item in items:
+        try:
+            name = getattr(item, "name", "") or ""
+            nodeid = getattr(item, "nodeid", "") or ""
+            fixturenames = set(getattr(item, "fixturenames", []) or [])
+        except Exception:
+            name, nodeid, fixturenames = "", "", set()
+        if item.get_closest_marker("isolation"):
+            continue
+        name_l = name.lower()
+        nodeid_l = nodeid.lower()
+        touches_network = any(kw in name_l or kw in nodeid_l for kw in network_keywords)
+        touches_fs = bool(fs_fixtures.intersection(fixturenames))
+        if touches_network or touches_fs:
+            try:
+                item.add_marker(pytest.mark.isolation)
+            except Exception:
+                pass
+
+    # Auto-inject a default speed marker for behavior (pytest-bdd) scenario wrappers that
+    # lack an explicit function-level speed marker. This eliminates runtime warnings while
+    # preserving the repository rule of exactly one speed marker per test function.
+    # We only apply to tests under tests/behavior/ to avoid interfering with unit/integration
+    # tests where speed markers must be explicitly present in source.
+    for item in items:
+        try:
+            fspath = getattr(item, "fspath", None)
+            path_str = str(fspath) if fspath is not None else ""
+        except Exception:
+            path_str = ""
+        norm = path_str.replace("\\", "/")
+        if "/tests/behavior/" in norm or norm.endswith("/tests/behavior"):
+            # Check only own (function-level) markers to avoid counting module-level markers,
+            # which are not recognized for speed categories per repository guidelines.
+            own_marks = {m.name for m in getattr(item, "own_markers", [])}
+            has_speed = any(m in {"fast", "medium", "slow"} for m in own_marks)
+            if not has_speed:
+                item.add_marker(pytest.mark.fast)
+
     # Skip property-based tests unless enabled
     for item in items:
         if item.get_closest_marker("property") and not is_property_testing_enabled():
