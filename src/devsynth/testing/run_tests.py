@@ -241,7 +241,16 @@ def collect_tests_with_cache(
         # by retrying collection without marker filtering; if still empty and a
         # cache exists, return the cached set pruned by filesystem.
         if not test_list:
-            fallback_cmd = [sys.executable, "-m", "pytest", test_path, "--collect-only", "-q", "-o", "addopts="]
+            fallback_cmd = [
+                sys.executable,
+                "-m",
+                "pytest",
+                test_path,
+                "--collect-only",
+                "-q",
+                "-o",
+                "addopts=",
+            ]
             try:
                 orig_cwd2 = os.getcwd()
                 did_chdir2 = False
@@ -256,14 +265,18 @@ def collect_tests_with_cache(
                 if did_chdir2:
                     os.chdir(orig_cwd2)
             fallback_raw = [
-                line.strip() for line in fallback_result.stdout.split("\n") if pattern.match(line.strip())
+                line.strip()
+                for line in fallback_result.stdout.split("\n")
+                if pattern.match(line.strip())
             ]
             test_list = _sanitize_node_ids(fallback_raw)
             if not test_list and os.path.exists(cache_file):
                 try:
                     with open(cache_file) as f:
                         prev = json.load(f).get("tests", [])
-                    test_list = [nid for nid in prev if os.path.exists(nid.split("::",1)[0])]
+                    test_list = [
+                        nid for nid in prev if os.path.exists(nid.split("::", 1)[0])
+                    ]
                 except Exception:
                     test_list = []
         # Prune non-existent file paths proactively to avoid stale selectors in cache
