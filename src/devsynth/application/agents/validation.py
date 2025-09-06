@@ -2,7 +2,8 @@
 Validation agent for the DevSynth system.
 """
 
-from typing import Any, Dict, List, Mapping, MutableMapping, TypedDict, cast
+from typing import Any, Dict, List, TypedDict, cast
+from collections.abc import Mapping, MutableMapping
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -21,7 +22,7 @@ class ValidationAgent(BaseAgent):
         role: str
         is_valid: bool
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process inputs and validate code against tests."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
@@ -52,7 +53,11 @@ class ValidationAgent(BaseAgent):
         validation_report = str(self.generate_text(prompt))
 
         # Determine if the code is valid based on the report
-        is_valid = "fail" not in validation_report.lower()
+        lowered = validation_report.lower()
+        # Consider only whole-word occurrences of fail/error/exception to avoid false positives like "failures"
+        import re
+
+        is_valid = re.search(r"\b(fail|error|exception)\b", lowered) is None
 
         # Create a WSDE with the validation report
         validation_wsde = self.create_wsde(
@@ -72,9 +77,9 @@ class ValidationAgent(BaseAgent):
             "role": str(self.current_role or "validator"),
             "is_valid": is_valid,
         }
-        return cast(Dict[str, Any], out)
+        return cast(dict[str, Any], out)
 
-    def get_capabilities(self) -> List[str]:
+    def get_capabilities(self) -> list[str]:
         """Get the capabilities of this agent.
 
         Returns a default list if the base class returns an empty list or None.
