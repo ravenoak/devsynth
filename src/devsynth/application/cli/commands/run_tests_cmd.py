@@ -127,20 +127,16 @@ def run_tests_cmd(
     # When invoked programmatically (not via Typer CLI), parameters defined with
     # typer.Option(...) can be passed as Typer Option objects rather than their
     # concrete types. Normalize such values for predictable behavior in tests.
-    try:
-        from typer.models import OptionInfo as _TyperOptionInfo  # type: ignore
-    except Exception:  # pragma: no cover - typer internals not available
-        _TyperOptionInfo = tuple()  # type: ignore
-
+    # Normalize values in case this is called programmatically (not via Typer CLI)
     if not isinstance(inventory, bool):
         # Treat unspecified inventory flag as False when called directly.
-        inventory = False  # type: ignore[assignment]
+        inventory = False
 
     if not isinstance(speeds, list):  # Typer OptionInfo or None
-        speeds = []  # type: ignore[assignment]
+        speeds = []
 
     if not isinstance(features, list):  # Typer OptionInfo or None
-        features = []  # type: ignore[assignment]
+        features = []
 
     _configure_optional_providers()
 
