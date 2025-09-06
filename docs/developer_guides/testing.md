@@ -28,6 +28,15 @@ version: "0.1.0a1"
 
 This guide documents the testing standards, practices, and infrastructure for the DevSynth project. It covers the project's testing philosophy, directory structure, test types (BDD, unit, integration), test isolation practices, and guidelines for writing and running tests. It serves as the definitive reference for both human contributors and agentic LLMs working on the project's test suite.
 
+## Quick Start: Testing Essentials
+- Exactly one speed marker per test function: @pytest.mark.fast | @pytest.mark.medium | @pytest.mark.slow
+- Property tests are opt-in: export DEVSYNTH_PROPERTY_TESTING=true and mark with @pytest.mark.property + a speed marker; run tests/property/
+- Resource-gated tests default to skip; enable via DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true after installing the corresponding Poetry extras
+- Coverage tips while iterating: bypass repo addopts (including strict coverage) via -o addopts="" or PYTEST_ADDOPTS="" on focused runs
+- Prefer stable commands during triage: smoke mode and segmentation
+  - Smoke: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+  - Segment: poetry run devsynth run-tests --target all-tests --speed slow --segment --segment-size 50
+
 ## Table of Contents
 
 - [Testing Philosophy](#testing-philosophy)
@@ -534,6 +543,32 @@ requests to the stub server, enabling deterministic runs when the real
 service is unavailable.
 
 ### Quick Reference: Markers and Resource Flags
+
+#### Extras ↔ Resource flags mapping (authoritative)
+- retrieval extra → DEVSYNTH_RESOURCE_FAISS_AVAILABLE, DEVSYNTH_RESOURCE_KUZU_AVAILABLE
+  - Install: poetry install --with dev --extras retrieval
+  - Enable (example): export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true; export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
+- chromadb extra → DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE
+  - Install: poetry install --with dev --extras chromadb
+  - Enable: export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+- memory extra → DEVSYNTH_RESOURCE_TINYDB_AVAILABLE, DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE, DEVSYNTH_RESOURCE_LMDB_AVAILABLE, DEVSYNTH_RESOURCE_KUZU_AVAILABLE, DEVSYNTH_RESOURCE_FAISS_AVAILABLE, DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE
+  - Install: poetry install --with dev --extras memory
+  - Enable (pick what you need): export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true ...
+- llm extra → provider client helpers (no flag by itself); combine with DEVSYNTH_RESOURCE_OPENAI_AVAILABLE or DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE when exercising real providers
+  - Install: poetry install --with dev --extras llm
+  - Enable OpenAI (example): export DEVSYNTH_PROVIDER=openai; export OPENAI_API_KEY=...; export DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true
+- lmstudio extra → DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
+  - Install: poetry install --with dev --extras lmstudio
+  - Enable: export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true; export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234
+- webui extra → DEVSYNTH_RESOURCE_WEBUI_AVAILABLE (for UI-gated tests)
+  - Install: poetry install --with dev --extras webui
+  - Enable: export DEVSYNTH_RESOURCE_WEBUI_AVAILABLE=true
+- api extra → no specific resource flag; used by API tests which honor speed/resource markers as applicable
+- tests extra → convenience for test-only deps (no flags)
+
+Notes:
+- Resource flags default to conservative values in tests/conftest.py: LM Studio disabled; codebase and CLI enabled; memory backends default to enabled only when the corresponding packages are importable (import check) unless explicitly set to false.
+- Installing an extra does not auto-enable tests; you must export the DEVSYNTH_RESOURCE_<NAME>_AVAILABLE flag(s) to opt in for provider/backends that would otherwise be skipped.
 
 - Markers:
   - requires_resource(name): mark tests that need an external resource; e.g., @pytest.mark.requires_resource("lmstudio")
@@ -1188,6 +1223,14 @@ See also: docs/plan.md (Track C) and docs/tasks.md (section 3) for current goals
   - export DEVSYNTH_STRICT_COVERAGE=1
   - export DEVSYNTH_COV_FAIL_UNDER=90
 - Alternatively, append --cov-fail-under=90 to pytest invocations
+
+### Bypassing coverage gate for focused runs
+Sometimes you want to ignore repository-level addopts (e.g., strict coverage gates) while iterating on a small subset. Two reliable options:
+- Temporary pytest override: add `-o addopts=""` to your command to neutralize any addopts defined in pytest.ini.
+  - Example: `poetry run pytest -q -o addopts="" tests/unit/some_module/test_something.py -m fast`
+- Environment variable: set `PYTEST_ADDOPTS=""` in your shell to clear inherited addopts for the current process.
+  - Example: `PYTEST_ADDOPTS="" poetry run pytest -q tests/unit/...`
+These tips are referenced by docs/tasks.md §1.3 and are safe for local iteration; do not commit commands that permanently disable coverage gates in CI.
 
 ### Execution matrix and segmentation guidance
 - Inventory: poetry run devsynth run-tests --inventory
