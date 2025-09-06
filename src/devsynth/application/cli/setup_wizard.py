@@ -5,12 +5,19 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
+
+from devsynth.config import ProjectUnifiedConfig, load_project_config
+from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
+
+from .progress import ProgressManager
 
 
 def _env_flag(name: str) -> Optional[bool]:
@@ -47,33 +54,57 @@ def _parse_features(value: Optional[Union[List[str], str]]) -> Dict[str, bool]:
     return {}
 
 
-from devsynth.config import ProjectUnifiedConfig, load_project_config
-from devsynth.config.unified_loader import UnifiedConfigLoader
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
-
-from .progress import ProgressManager
-
-
 class SetupWizard:
     """Guide the user through project initialization."""
 
     # Help text for each option
     HELP_TEXT = {
-        "root": "The root directory of your project. This is where DevSynth will store configuration files.",
-        "structure": "Choose 'single_package' for a simple project with one main package, or 'monorepo' for a project with multiple packages.",
-        "language": "The primary programming language for your project. This affects code generation and analysis.",
-        "constraints": "Optional path to a file containing project constraints. These will guide the AI in generating code that meets your requirements.",
-        "goals": "Optional description of your project goals. This helps the AI understand what you're trying to achieve.",
-        "memory_backend": "The storage backend for DevSynth's memory system:\n- memory: In-memory storage (not persistent)\n- file: File-based storage\n- kuzu: Kuzu graph database\n- chromadb: ChromaDB vector database",
-        "offline_mode": "When enabled, DevSynth will use deterministic local providers instead of online LLM APIs.",
+        "root": (
+            "The root directory of your project. "
+            "This is where DevSynth will store configuration files."
+        ),
+        "structure": (
+            "Choose 'single_package' for a simple project with one main package, "
+            "or 'monorepo' for a project with multiple packages."
+        ),
+        "language": (
+            "The primary programming language for your project. "
+            "This affects code generation and analysis."
+        ),
+        "constraints": (
+            "Optional path to a file containing project constraints. "
+            "These will guide the AI in generating code that meets your requirements."
+        ),
+        "goals": (
+            "Optional description of your project goals. "
+            "This helps the AI understand what you're trying to achieve."
+        ),
+        "memory_backend": (
+            "The storage backend for DevSynth's memory system:\n"
+            "- memory: In-memory storage (not persistent)\n"
+            "- file: File-based storage\n"
+            "- kuzu: Kuzu graph database\n"
+            "- chromadb: ChromaDB vector database"
+        ),
+        "offline_mode": (
+            "When enabled, DevSynth will use deterministic local providers "
+            "instead of online LLM APIs."
+        ),
         "features": {
-            "wsde_collaboration": "Enable collaboration between multiple AI agents using the WSDE model.",
-            "dialectical_reasoning": "Enable dialectical reasoning for more robust decision making.",
+            "wsde_collaboration": (
+                "Enable collaboration between multiple AI agents using the WSDE model."
+            ),
+            "dialectical_reasoning": (
+                "Enable dialectical reasoning for more robust decision making."
+            ),
             "code_generation": "Enable automatic code generation from specifications.",
             "test_generation": "Enable automatic test generation from specifications.",
-            "documentation_generation": "Enable automatic documentation generation from code.",
-            "experimental_features": "Enable experimental features that may not be fully stable.",
+            "documentation_generation": (
+                "Enable automatic documentation generation from code."
+            ),
+            "experimental_features": (
+                "Enable experimental features that may not be fully stable."
+            ),
         },
     }
 
@@ -175,7 +206,8 @@ class SetupWizard:
 
         self._show_progress("Configure Features", status="selection")
         self.bridge.display_result(
-            "[italic]Configure which features to enable in your DevSynth project.[/italic]"
+            "[italic]Configure which features to enable in your "
+            "DevSynth project.[/italic]"
         )
 
         feature_list = [
@@ -269,7 +301,8 @@ class SetupWizard:
             "[bold green]Welcome to the DevSynth Setup Wizard![/bold green]"
         )
         self.bridge.display_result(
-            "[italic]This wizard will guide you through setting up your DevSynth project.[/italic]"
+            "[italic]This wizard will guide you through setting up your "
+            "DevSynth project.[/italic]"
         )
 
         # Offer quick setup option
@@ -395,7 +428,8 @@ class SetupWizard:
         self.bridge.display_result("\nFeatures:")
         for feat, enabled in features.items():
             self.bridge.display_result(
-                f"  {feat.replace('_', ' ').title()}: {'Enabled' if enabled else 'Disabled'}"
+                f"  {feat.replace('_', ' ').title()}: "
+                f"{'Enabled' if enabled else 'Disabled'}"
             )
 
         proceed = auto_confirm
