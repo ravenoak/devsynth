@@ -17,7 +17,7 @@ try:  # pragma: no cover - import guarded for optional dependency
     )
 except ImportError:  # pragma: no cover - fallback for minimal environments
 
-    class _NoopMetric:  # type: ignore[override]
+    class _NoopMetric:
         def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401
             pass
 
@@ -35,10 +35,12 @@ except ImportError:  # pragma: no cover - fallback for minimal environments
 
     Counter = Histogram = _NoopMetric
 
-    def generate_latest() -> bytes:  # type: ignore[override]
+    # Match prometheus_client.generate_latest signature to avoid overrides
+    # def generate_latest(registry: CollectorRegistry = ...) -> bytes
+    def generate_latest(registry: object | None = None) -> bytes:
         return b""
 
-    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"  # type: ignore[override]
+    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
 
 import time
 from typing import Union
