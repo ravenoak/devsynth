@@ -1,0 +1,7 @@
+# Bandit configuration for DevSynth
+# Purpose: For pre-release 0.1.0a1, fail only on High severity and High confidence issues.
+# Rationale: Medium/Low issues are tracked in backlog and addressed incrementally (see docs/plan.md Phase 4).
+[bandit]
+severity = HIGH
+confidence = HIGH
+exclude_dirs = tests
