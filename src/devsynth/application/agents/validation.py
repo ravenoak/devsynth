@@ -2,8 +2,8 @@
 Validation agent for the DevSynth system.
 """
 
-from typing import Any, Dict, List, TypedDict, cast
 from collections.abc import Mapping, MutableMapping
+from typing import Any, Dict, List, TypedDict, cast
 
 from devsynth.logging_setup import DevSynthLogger
 
