@@ -51,6 +51,10 @@ jobs:
         run: |
           poetry run bandit -r src/devsynth -x tests -q
 
+      - name: Run Flake8 (style/lint)
+        run: |
+          poetry run flake8 src/ tests/
+
       - name: Run Safety (dependency vulnerabilities)
         run: |
           poetry run safety check --full-report
