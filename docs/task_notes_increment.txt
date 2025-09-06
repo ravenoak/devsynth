@@ -1,19 +1,20 @@
-# Task Notes Increment — Iteration 7 (2025-09-02 11:09 local)
+Iteration: 2025-09-05 23:22 local
+Scope: Phase 4 – implement coverage regression guard (Task 6.3)
 
-Scope:
-- Formalize troubleshooting quick path as complete (Task 15) since all sub-items are already satisfied and evidence captured.
-- Run ReqID docstring verification to baseline gaps for Task 13; do not mark complete yet.
+Changes
+- Added scripts/compare_coverage.py: compares base vs PR coverage.json and exits non-zero if drop > allowed (default 1.0pp).
+- Marked docs/tasks.md 6.3 as [x].
 
-Actions:
-- Marked Task 15 parent checkbox as [x] in docs/tasks.md; sub-items were already [x].
-- Executed: poetry run python scripts/verify_docstring_reqids.py --report --report-file diagnostics/test_reqids_report.json
-  - Exit code: 1 (851 tests missing 'ReqID:')
-  - Artifacts: diagnostics/test_reqids_report.json; appended to diagnostics/exec_log.txt via scripts/append_exec_log.py.
+Validation
+- Dry-run examples (manual reasoning):
+  - If base totals.percent_covered=88.5 and PR=88.0 with allow-drop=1.0 → success, exit 0.
+  - If base=88.5 and PR=86.9 → failure (drop=1.6pp), exit 3.
+- Parser supports common coverage.py JSON formats: totals.percent_covered, totals.percent_covered_display, or computed covered_lines/num_statements.
 
-Evidence:
-- diagnostics/fast_smoke_run.txt, diagnostics/pytest_version.txt, diagnostics/pip_list.txt, diagnostics/utc_timestamp.txt (previous iterations) cover Task 15.
-- diagnostics/test_reqids_report.json captures Task 13 baseline.
+Notes / Alignment
+- Aligns with docs/plan.md Phase 4 (regression guard) and .junie/guidelines.md: deterministic, CLI-friendly, clear exit codes.
+- CI wiring remains pending (Task 8.x) and will be addressed in a separate iteration; today we only provide the script deliverable.
 
-Next:
-- Plan targeted updates to high-visibility tests to add "ReqID:" tags incrementally and integrate verify:reqids into pre-commit for changed test files.
-- Keep alignment with docs/plan.md and .junie/guidelines.md.
+Next Targets
+- Evaluate feasibility of 7.1 (dead code and unused type: ignore removal in run_tests_cmd.py).
+- If coverage on main ≥85% in CI, proceed to 6.1; otherwise document blocker.

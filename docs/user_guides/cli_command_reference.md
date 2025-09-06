@@ -552,6 +552,10 @@ poetry run devsynth run-tests --inventory
 # Scoped inventory to avoid heavy collection:
 poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
 poetry run devsynth run-tests --inventory --target integration-tests --speed=medium
+
+# Feature flags examples (maps to DEVSYNTH_FEATURE_<NAME>)
+poetry run devsynth run-tests --feature EXPERIMENTAL_UI --speed fast
+poetry run devsynth run-tests --feature SAFETY_CHECKS=false --speed fast --no-parallel
 ```
 
 Note on inventory:

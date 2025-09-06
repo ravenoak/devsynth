@@ -58,6 +58,7 @@ Sanity checks
 - Segmented full suite (recommended default for long runs):
   - poetry run devsynth run-tests --target all-tests --speed fast --speed medium --speed slow --no-parallel --segment --segment-size 50 --report
 - Full guidance: see docs/developer_guides/testing.md
+- Bypass coverage gate while iterating: see docs/developer_guides/testing.md#bypassing-coverage-gate-for-focused-runs
 - Section 7 scripts (sanity+inventory, marker discipline): see docs/developer_guides/testing.md#using-section-7-helper-scripts-in-ci-and-locally
 - CLI options reference: see docs/user_guides/cli_command_reference.md
 - Maintainer Must-Run Sequence: see docs/tasks.md (Task 23) for the step-by-step order and commands; use Taskfile targets where provided.
@@ -459,6 +460,22 @@ Run the full test suite with:
 ```bash
 poetry run devsynth run-tests
 poetry run devsynth run-tests --maxfail 1  # optional early exit
+```
+
+Common, stable profiles:
+
+```bash
+# Smoke mode: disables third-party plugins and xdist; fastest, most stable
+poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+# Unit fast segmented (reduce flakiness/memory pressure)
+poetry run devsynth run-tests --target unit-tests --speed=fast --segment --segment-size=50 --maxfail=1
+
+# Generate HTML report under test_reports/
+poetry run devsynth run-tests --report
+
+# Feature flags (maps to DEVSYNTH_FEATURE_<NAME>)
+poetry run devsynth run-tests --feature EXPERIMENTAL_UI --feature SAFETY_CHECKS=false --speed=fast --no-parallel
 ```
 
 Optional provider tests such as LM Studio are disabled unless explicitly
