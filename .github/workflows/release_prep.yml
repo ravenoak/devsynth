@@ -70,6 +70,29 @@ jobs:
         run: |
           poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
 
+      - name: Run coverage suite (HTML + JSON)
+        run: |
+          mkdir -p test_reports
+          poetry run pytest -q --cov=src/devsynth --cov-report=term-missing --cov-report=html --cov-report=json:coverage.json | tee pytest_output.txt
+
+      - name: Run Flake8 (style/lint)
+        run: |
+          poetry run flake8 src/ tests/
+
+      - name: Run Mypy (strict typing)
+        run: |
+          poetry run mypy src/devsynth
+
+      - name: Fail on PytestUnknownMarkWarning or PytestConfigWarning
+        if: always()
+        run: |
+          if grep -E "PytestUnknownMarkWarning|PytestConfigWarning" -n pytest_output.txt; then
+            echo "Found disallowed pytest warnings in output";
+            exit 1;
+          else
+            echo "No disallowed pytest warnings detected.";
+          fi
+
       - name: Run release:prep (dry-run validation)
         env:
           PIP_NO_INDEX: '1'
@@ -100,6 +123,8 @@ jobs:
         with:
           name: test-and-coverage-reports
           path: |
+            coverage.json
+            htmlcov/**
             coverage.xml
             test_reports/**
             test_markers_report.json
