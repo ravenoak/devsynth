@@ -27,22 +27,30 @@ def clear_cache(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.mark.fast
 @pytest.mark.isolation
-def test_parallel_and_maxfail_and_report_builds_cmd(monkeypatch: pytest.MonkeyPatch, tmp_path):
+def test_parallel_and_maxfail_and_report_builds_cmd(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+):
     """ReqID: RT-01 — run_tests composes args for parallel, maxfail, report, and speed filters."""
     calls: dict[str, Any] = {"run": [], "popen": []}
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001, ARG002
+    def fake_run(
+        cmd, check=False, capture_output=True, text=True
+    ):  # noqa: ANN001, ARG002
         calls["run"].append(cmd)
         # Simulate collect-only returning two node IDs
         out = "\n".join(["tests/unit/test_a.py::t1", "tests/unit/test_b.py::t2"]) + "\n"
+
         class R:
             def __init__(self):
                 self.returncode = 0
                 self.stdout = out
                 self.stderr = ""
+
         return R()
 
-    def fake_popen(cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001, ARG002
+    def fake_popen(
+        cmd, stdout=None, stderr=None, text=True, env=None
+    ):  # noqa: ANN001, ARG002
         calls["popen"].append(cmd)
         return DummyProc(0, stdout="ok\n", stderr="")
 
@@ -79,17 +87,23 @@ def test_segment_batches(monkeypatch: pytest.MonkeyPatch):
     """ReqID: RT-02 — segmentation runs in batches respecting segment_size."""
     calls: list[list[str]] = []
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001, ARG002
+    def fake_run(
+        cmd, check=False, capture_output=True, text=True
+    ):  # noqa: ANN001, ARG002
         # simulate 5 node ids
         out = "\n".join([f"tests/unit/test_a.py::t{i}" for i in range(5)]) + "\n"
+
         class R:
             def __init__(self):
                 self.returncode = 0
                 self.stdout = out
                 self.stderr = ""
+
         return R()
 
-    def fake_popen(cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001, ARG002
+    def fake_popen(
+        cmd, stdout=None, stderr=None, text=True, env=None
+    ):  # noqa: ANN001, ARG002
         calls.append(cmd)
         return DummyProc(0, stdout="batch\n", stderr="")
 
@@ -114,16 +128,23 @@ def test_segment_batches(monkeypatch: pytest.MonkeyPatch):
 @pytest.mark.isolation
 def test_failure_tips_appended(monkeypatch: pytest.MonkeyPatch):
     """ReqID: RT-03 — non-zero return adds troubleshooting tips and success False."""
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001, ARG002
+
+    def fake_run(
+        cmd, check=False, capture_output=True, text=True
+    ):  # noqa: ANN001, ARG002
         out = "tests/unit/test_a.py::t1\n"
+
         class R:
             def __init__(self):
                 self.returncode = 0
                 self.stdout = out
                 self.stderr = ""
+
         return R()
 
-    def fake_popen(cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001, ARG002
+    def fake_popen(
+        cmd, stdout=None, stderr=None, text=True, env=None
+    ):  # noqa: ANN001, ARG002
         return DummyProc(2, stdout="", stderr="boom")
 
     monkeypatch.setattr(rt.subprocess, "run", fake_run)
@@ -148,14 +169,18 @@ def test_collect_cache_determinism(monkeypatch: pytest.MonkeyPatch, tmp_path):
     monkeypatch.setattr(rt, "COLLECTION_CACHE_DIR", str(tmp_path))
     calls = {"run": 0}
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001, ARG002
+    def fake_run(
+        cmd, check=False, capture_output=True, text=True
+    ):  # noqa: ANN001, ARG002
         calls["run"] += 1
         out = "tests/unit/test_x.py::t1\n"
+
         class R:
             def __init__(self):
                 self.returncode = 0
                 self.stdout = out
                 self.stderr = ""
+
         return R()
 
     monkeypatch.setattr(rt.subprocess, "run", fake_run)
