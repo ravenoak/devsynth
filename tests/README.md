@@ -174,6 +174,7 @@ To run optional backends locally, install extras and set resource flags explicit
 
 Notes:
 - Resource markers: @pytest.mark.requires_resource("<name>") map to DEVSYNTH_RESOURCE_<NAME>_AVAILABLE flags.
+- Extras ↔ flags mapping: see docs/developer_guides/testing.md (Quick Reference: Extras ↔ Resource flags). For example, 'retrieval' → FAISS/KUZU flags; 'chromadb' → CHROMADB flag; 'memory' → TINYDB/DUCKDB/LMDB/KUZU/FAISS/CHROMADB flags; 'lmstudio' → LMSTUDIO flag; 'webui' → WEBUI flag.
 - The run-tests CLI defaults to offline and stub provider; override env vars explicitly when enabling real services.
 
 ## Test Speed Categories
