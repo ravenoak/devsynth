@@ -28,7 +28,7 @@ coverage.xml
 **/*,cover
 coverage_html/
 htmlcov/
-
+coverage.json
 # Type checker and linter caches (Task 2: Baseline repo hygiene)
 .mypy_cache/
 .ruff_cache/
