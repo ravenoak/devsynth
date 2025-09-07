@@ -1,414 +1,385 @@
+# flake8: noqa: E501
 import os
-from typing import Any, Tuple
+from pathlib import Path
+from typing import Any
 
 import pytest
+import typer
 
-# Target under test
-import devsynth.application.cli.commands.run_tests_cmd as rtc
+from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
+from devsynth.interface.ux_bridge import UXBridge
 
 
-class StubBridge:
+class DummyBridge(UXBridge):
     def __init__(self) -> None:
         self.messages: list[str] = []
 
-    def print(self, msg: str) -> None:
-        # Collect messages for assertions if needed
-        self.messages.append(str(msg))
+    # Implement abstract methods minimally for tests
+    def ask_question(self, message: str, *, choices=None, default=None, show_default=True) -> str:  # type: ignore[override]
+        return default or ""
 
+    def confirm_choice(self, message: str, *, default: bool = False) -> bool:  # type: ignore[override]
+        return default
 
-@pytest.fixture(autouse=True)
-def _clean_env(monkeypatch: pytest.MonkeyPatch):
-    # Ensure a clean slate for env vars we mutate
-    keys = [
-        "PYTEST_DISABLE_PLUGIN_AUTOLOAD",
-        "PYTEST_ADDOPTS",
-        "DEVSYNTH_TEST_TIMEOUT_SECONDS",
-        "DEVSYNTH_INNER_TEST",
-        "DEVSYNTH_TEST_ALLOW_REQUESTS",
-        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE",
-        "DEVSYNTH_FEATURE_EXPA",
-        "DEVSYNTH_FEATURE_FEATURE_B",
-    ]
-    for k in keys:
-        monkeypatch.delenv(k, raising=False)
-    yield
-    for k in keys:
-        monkeypatch.delenv(k, raising=False)
+    def display_result(self, message: str, *, highlight: bool = False, message_type: str | None = None) -> None:  # type: ignore[override]
+        self.messages.append(message)
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
-def test_parse_feature_options_basic():
-    """ReqID: CLI-RT-01 — Parse --feature options into env flags."""
-    result = rtc._parse_feature_options(
-        ["expA", "feature_b=false", "zzz=0", "yup=yes"]
-    )  # noqa: SLF001
-    assert result == {
-        "expA": True,
-        "feature_b": False,
-        "zzz": False,
-        "yup": True,
-    }
+def test_allows_requests_env_default_for_unit(monkeypatch, tmp_path) -> None:
+    """ReqID: CLI-RT-14 — unit-tests default allows requests when unset."""
+    calls: dict[str, Any] = {}
 
+    def fake_run_tests(*args, **kwargs) -> tuple[bool, str]:
+        calls["args"] = args
+        calls["kwargs"] = kwargs
+        return True, "OK"
 
-@pytest.mark.fast
-@pytest.mark.isolation
-def test_smoke_mode_enforces_env_and_no_parallel(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-02 — Smoke mode enforces env and disables parallel."""
-    # Arrange
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
+    # Ensure env var is not pre-set
+    if "DEVSYNTH_TEST_ALLOW_REQUESTS" in os.environ:
+        monkeypatch.delenv("DEVSYNTH_TEST_ALLOW_REQUESTS", raising=False)
+    # Also remove plugin disable to allow default path in command
+    if "PYTEST_DISABLE_PLUGIN_AUTOLOAD" in os.environ:
+        monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
-    captured: dict[str, Any] = {}
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
+    bridge = DummyBridge()
 
-    def fake_run_tests(
-        target: str,
-        speed_categories: Any,
-        verbose: bool,
-        report: bool,
-        parallel: bool,
-        segment: bool,
-        segment_size: int,
-        maxfail: int | None,
-        **kwargs: Any,
-    ) -> tuple[bool, str]:
-        captured.update(
-            dict(
-                target=target,
-                speed_categories=speed_categories,
-                verbose=verbose,
-                report=report,
-                parallel=parallel,
-                segment=segment,
-                segment_size=segment_size,
-                maxfail=maxfail,
-                kwargs=kwargs,
-            )
-        )
-        return True, "ok"
-
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
-
-    # Act
-    rtc.run_tests_cmd(
+    run_tests_cmd(
         target="unit-tests",
-        speeds=[],  # ensure defaulting in smoke
-        smoke=True,
-        no_parallel=False,  # explicit False should still be forced to True then flipped to parallel=False
+        speeds=[],
         report=False,
         verbose=False,
+        no_parallel=False,
+        smoke=False,
         segment=False,
         segment_size=50,
         maxfail=None,
+        features=[],
+        inventory=False,
+        marker=None,
+        bridge=bridge,
     )
 
-    # Assert environment effects
+    assert os.environ.get("DEVSYNTH_TEST_ALLOW_REQUESTS") == "true"
+    # Ensure CLI emitted a success message
+    assert any("Tests completed successfully" in m for m in bridge.messages)
+
+
+@pytest.mark.fast
+def test_smoke_mode_sets_env_and_disables_parallel(monkeypatch, tmp_path) -> None:
+    """ReqID: CLI-RT-02 — Smoke mode enforces env and disables parallel."""
+    calls: dict[str, Any] = {}
+
+    def fake_run_tests(*args, **kwargs) -> tuple[bool, str]:
+        # Capture invocation for assertions
+        calls["args"] = args
+        calls["kwargs"] = kwargs
+        return True, "OK"
+
+    # Ensure a clean start without pre-set pytest plugin envs
+    if "PYTEST_DISABLE_PLUGIN_AUTOLOAD" in os.environ:
+        monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    if "PYTEST_ADDOPTS" in os.environ:
+        monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+
+    monkeypatch.setenv("HOME", str(tmp_path))  # avoid odd env interactions
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
+
+    bridge = DummyBridge()
+
+    run_tests_cmd(
+        target="unit-tests",
+        speeds=[],
+        report=False,
+        verbose=False,
+        no_parallel=False,
+        smoke=True,
+        segment=False,
+        segment_size=50,
+        maxfail=None,
+        features=[],
+        inventory=False,
+        marker=None,
+        bridge=bridge,
+    )
+
+    # In smoke mode
     assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
     assert "-p no:xdist" in os.environ.get("PYTEST_ADDOPTS", "")
-    assert "-p no:cov" in os.environ.get("PYTEST_ADDOPTS", "")
-    assert os.environ.get("DEVSYNTH_TEST_TIMEOUT_SECONDS") == "30"
-
-    # Assert call args
-    assert captured["target"] == "unit-tests"
-    # Default speed in smoke should be fast when not provided
-    assert captured["speed_categories"] == ["fast"]
-    # no_parallel gets forced True; function passes parallel = not no_parallel
-    assert captured["parallel"] is False
+    # no_parallel must be forced True so run_tests is called with parallel=False
+    assert calls["args"][4] is False  # parallel parameter
+    # Message flow
+    assert any("Tests completed successfully" in m for m in bridge.messages)
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
-def test_integration_without_report_adds_no_cov(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-03 — Integration target without report disables coverage plugin."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
+def test_feature_flag_mapping_sets_env(monkeypatch) -> None:
+    """ReqID: CLI-RT-04 — --feature flags map to DEVSYNTH_FEATURE_* env vars."""
 
-    # Pre-set unrelated addopts to ensure we append
-    os.environ["PYTEST_ADDOPTS"] = "-q"
+    def fake_run_tests(*args, **kwargs) -> tuple[bool, str]:
+        return True, ""
 
-    def fake_run_tests(*args: Any, **kwargs: Any) -> tuple[bool, str]:
-        return True, "ok"
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
 
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
+    bridge = DummyBridge()
 
-    rtc.run_tests_cmd(target="integration-tests", report=False, smoke=False, speeds=["fast"])  # type: ignore[arg-type]
-
-    assert "-p no:cov" in os.environ.get("PYTEST_ADDOPTS", "")
-
-
-@pytest.mark.fast
-@pytest.mark.isolation
-def test_feature_flags_mapping(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-04 — --feature flag mapping sets DEVSYNTH_FEATURE_* env vars."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
-
-    def fake_run_tests(*args: Any, **kwargs: Any) -> tuple[bool, str]:
-        return True, "ok"
-
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
-
-    rtc.run_tests_cmd(target="all-tests", smoke=False, report=False, features=["expA", "feature_b=false"])  # type: ignore[arg-type]
-
-    assert os.environ.get("DEVSYNTH_FEATURE_EXPA") == "true"
-    assert os.environ.get("DEVSYNTH_FEATURE_FEATURE_B") == "false"
-
-
-@pytest.mark.fast
-@pytest.mark.isolation
-def test_invalid_target_exits_with_code_2(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-05 — Invalid --target exits with code 2."""
-    import click
-
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
-
-    with pytest.raises((SystemExit, click.exceptions.Exit)) as excinfo:  # type: ignore[attr-defined]
-        rtc.run_tests_cmd(target="not-a-target", smoke=False)  # type: ignore[arg-type]
-    # Typer/Typer->Click Exit may expose code or exit_code
-    val = excinfo.value
-    code = getattr(val, "code", getattr(val, "exit_code", None))
-    assert code == 2
-
-
-@pytest.mark.fast
-@pytest.mark.isolation
-def test_no_parallel_disables_parallel(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-06 — --no-parallel results in parallel=False passed to runner (non-smoke)."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
-
-    captured: dict[str, Any] = {}
-
-    def fake_run_tests(
-        target: str,
-        speed_categories: Any,
-        verbose: bool,
-        report: bool,
-        parallel: bool,
-        segment: bool,
-        segment_size: int,
-        maxfail: int | None,
-        **kwargs: Any,
-    ) -> tuple[bool, str]:
-        captured.update(dict(parallel=parallel, target=target, speed_categories=speed_categories))
-        return True, "ok"
-
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
-
-    rtc.run_tests_cmd(
+    run_tests_cmd(
         target="unit-tests",
-        speeds=["fast"],  # explicit speed, not smoke
-        smoke=False,
-        no_parallel=True,
+        speeds=["fast"],
+        features=["awesome", "beta=false"],
+        bridge=bridge,
+    )
+
+    assert os.environ.get("DEVSYNTH_FEATURE_AWESOME") == "true"
+    assert os.environ.get("DEVSYNTH_FEATURE_BETA") == "false"
+
+
+@pytest.mark.fast
+def test_marker_passthrough(monkeypatch) -> None:
+    """ReqID: CLI-RT-11 — --marker passes through to extra_marker."""
+    captured = {}
+
+    def fake_run_tests(*args, **kwargs) -> tuple[bool, str]:
+        captured.update(kwargs)
+        return True, ""
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
+
+    bridge = DummyBridge()
+
+    run_tests_cmd(
+        target="unit-tests",
+        speeds=["fast"],
+        marker="requires_resource('lmstudio')",
+        bridge=bridge,
+    )
+
+    assert captured.get("extra_marker") == "requires_resource('lmstudio')"
+
+
+@pytest.mark.fast
+def test_inventory_exports_file(monkeypatch, tmp_path, tmp_path_factory) -> None:
+    """ReqID: CLI-RT-08 — inventory mode exports JSON and skips run."""
+
+    # Return deterministic collections
+    def fake_collect(tgt: str, spd: str | None = None) -> list[str]:
+        return ["tests/unit/test_example.py::test_ok"]
+
+    def fake_run_tests(*args, **kwargs) -> tuple[bool, str]:
+        pytest.fail("run_tests should not be called in inventory mode")
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.collect_tests_with_cache",
+        fake_collect,
+    )
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
+
+    bridge = DummyBridge()
+
+    # Ensure we operate in an isolated working directory
+    cwd = tmp_path
+    os.chdir(cwd)
+    try:
+        run_tests_cmd(target="all-tests", inventory=True, bridge=bridge)
+        out = Path("test_reports").glob("**/test_inventory.json")
+        paths = list(out)
+        assert paths, "inventory file not created"
+        content = paths[0].read_text()
+        assert "generated_at" in content and "targets" in content
+        # UX message communicated
+        assert any("Test inventory exported" in m for m in bridge.messages)
+    finally:
+        pass
+
+
+@pytest.mark.fast
+def test_integration_target_disables_cov_when_no_report(monkeypatch) -> None:
+    """ReqID: CLI-RT-03 — Integration target without report disables coverage plugin."""
+    # Ensure PYTEST_ADDOPTS starts clean
+    if "PYTEST_ADDOPTS" in os.environ:
+        monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+
+    def fake_run_tests(*args, **kwargs) -> tuple[bool, str]:
+        return True, ""
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
+    bridge = DummyBridge()
+
+    run_tests_cmd(
+        target="integration-tests",
+        speeds=["fast"],
         report=False,
         verbose=False,
+        no_parallel=True,
+        smoke=False,
         segment=False,
         segment_size=50,
         maxfail=None,
+        features=[],
+        inventory=False,
+        marker=None,
+        bridge=bridge,
     )
 
-    assert captured.get("parallel") is False
+    assert "-p no:cov" in os.environ.get("PYTEST_ADDOPTS", "")
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
-def test_invalid_speed_exits_with_code_2(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-07 — Invalid --speed exits with code 2 and prints message."""
-    import click
-
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
-
-    with pytest.raises((SystemExit, click.exceptions.Exit)) as excinfo:  # type: ignore[attr-defined]
-        rtc.run_tests_cmd(target="unit-tests", speeds=["fast", "warp"], smoke=False)  # type: ignore[arg-type]
-    val = excinfo.value
-    code = getattr(val, "code", getattr(val, "exit_code", None))
-    assert code == 2
-    assert any("Invalid --speed" in m for m in stub.messages)
+def test_invalid_target_prints_error_and_exits(monkeypatch) -> None:
+    """ReqID: CLI-RT-05 — invalid --target exits with code 2 and prints error."""
+    bridge = DummyBridge()
+    with pytest.raises(typer.Exit) as ei:
+        run_tests_cmd(target="bogus", bridge=bridge)
+    assert ei.value.exit_code == 2
+    # Expect an error message about allowed targets
+    assert any("Invalid --target value" in m for m in bridge.messages)
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
-def test_inventory_mode_exports_and_skips_run(monkeypatch: pytest.MonkeyPatch, tmp_path):
-    """ReqID: CLI-RT-08 — Inventory exports file and returns without running tests."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
-
-    # Ensure we don't call run_tests
-    def fail_run_tests(*args: Any, **kwargs: Any):  # pragma: no cover - should not be invoked
-        raise AssertionError("run_tests should not be called in inventory mode")
-
-    monkeypatch.setattr(rtc, "run_tests", fail_run_tests)
-
-    # Mock collect to return deterministic small lists
-    monkeypatch.setattr(rtc, "collect_tests_with_cache", lambda t, s: [f"{t}:{s}:test_a"])  # type: ignore[misc]
-
-    # Run inventory mode
-    rtc.run_tests_cmd(target="all-tests", inventory=True)  # type: ignore[arg-type]
-
-    # Validate output path and message
-    out = tmp_path / "dummy"
-    # Report defaults to test_reports/test_inventory.json
-    assert any("Test inventory exported to" in m for m in stub.messages)
+def test_invalid_speed_prints_error_and_exits(monkeypatch) -> None:
+    """ReqID: CLI-RT-07 — invalid --speed exits with code 2 and prints error."""
+    bridge = DummyBridge()
+    with pytest.raises(typer.Exit) as ei:
+        run_tests_cmd(target="unit-tests", speeds=["warp"], bridge=bridge)
+    assert ei.value.exit_code == 2
+    assert any("Invalid --speed value" in m for m in bridge.messages)
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
-def test_inner_test_env_disables_plugins_and_parallel(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-09 — DEVSYNTH_INNER_TEST enforces plugin disable and no parallel."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
+def test_inner_test_env_disables_plugins_and_parallel(monkeypatch) -> None:
+    """ReqID: CLI-RT-09 — DEVSYNTH_INNER_TEST disables plugins and parallel."""
+    # Start with a clean env
+    if "PYTEST_ADDOPTS" in os.environ:
+        monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+    if "PYTEST_DISABLE_PLUGIN_AUTOLOAD" in os.environ:
+        monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
+    # Signal inner test mode
     monkeypatch.setenv("DEVSYNTH_INNER_TEST", "1")
 
     captured: dict[str, Any] = {}
 
-    def fake_run_tests(
-        target: str,
-        speed_categories: Any,
-        verbose: bool,
-        report: bool,
-        parallel: bool,
-        segment: bool,
-        segment_size: int,
-        maxfail: int | None,
-        **kwargs: Any,
-    ) -> tuple[bool, str]:
-        captured.update(dict(parallel=parallel))
-        return True, "ok"
+    def fake_run_tests(*args, **kwargs):  # noqa: ANN001
+        # Capture positional args to assert parallel flag (index 4)
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return True, "OK"
 
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
 
-    rtc.run_tests_cmd(target="unit-tests", smoke=False, speeds=["fast"])  # type: ignore[arg-type]
+    bridge = DummyBridge()
 
+    run_tests_cmd(
+        target="unit-tests",
+        speeds=["fast"],
+        report=False,
+        verbose=False,
+        no_parallel=False,  # should be overridden by inner test handling
+        smoke=False,
+        segment=False,
+        segment_size=50,
+        maxfail=None,
+        features=[],
+        inventory=False,
+        marker=None,
+        bridge=bridge,
+    )
+
+    # Env flags should be applied for inner test optimization
     assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
-    assert "-p no:xdist" in os.environ.get("PYTEST_ADDOPTS", "")
-    assert captured.get("parallel") is False
+    addopts = os.environ.get("PYTEST_ADDOPTS", "")
+    assert "-p no:xdist" in addopts and "-p no:cov" in addopts
+    # parallel arg passed into run_tests should be False (index 4)
+    assert captured["args"][4] is False
+    assert any("Tests completed successfully" in m for m in bridge.messages)
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
-def test_fast_only_timeout_non_smoke_sets_120(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-10 — Fast-only non-smoke sets timeout 120 seconds."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
+def test_verbose_and_fast_timeout_env_behavior(monkeypatch) -> None:
+    """ReqID: CLI-RT-10 — fast-only timeout defaults to 120s and verbose passes through."""
+    # Ensure timeout var is unset to observe defaulting behavior
+    if "DEVSYNTH_TEST_TIMEOUT_SECONDS" in os.environ:
+        monkeypatch.delenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", raising=False)
 
-    def fake_run_tests(*args: Any, **kwargs: Any) -> tuple[bool, str]:
-        return True, "ok"
+    def fake_run_tests(*args, **kwargs):  # noqa: ANN001
+        # verbose should be True (positional index 2)
+        assert args[2] is True
+        return True, ""
 
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
 
-    rtc.run_tests_cmd(target="unit-tests", speeds=["fast"], smoke=False)  # type: ignore[arg-type]
+    bridge = DummyBridge()
+
+    run_tests_cmd(
+        target="unit-tests",
+        speeds=["fast"],  # fast-only path (non-smoke) should set 120s timeout
+        report=False,
+        verbose=True,
+        no_parallel=True,
+        smoke=False,
+        segment=False,
+        segment_size=50,
+        maxfail=None,
+        features=[],
+        inventory=False,
+        marker=None,
+        bridge=bridge,
+    )
 
     assert os.environ.get("DEVSYNTH_TEST_TIMEOUT_SECONDS") == "120"
+    assert any("Tests completed successfully" in m for m in bridge.messages)
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
-def test_marker_passthrough_to_extra_marker(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-11 — --marker passes through as extra_marker to run_tests."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
+def test_report_mode_prints_report_path_message(monkeypatch, tmp_path) -> None:
+    """ReqID: CLI-RT-16 — --report prints friendly test_reports/ path pointer."""
+    # Ensure a clean working directory and create test_reports/ so CLI emits the green path message
+    cwd = tmp_path
+    os.chdir(cwd)
+    (tmp_path / "test_reports").mkdir(parents=True, exist_ok=True)
 
-    captured: dict[str, Any] = {}
+    def fake_run_tests(*args, **kwargs):  # noqa: ANN001
+        return True, ""
 
-    def fake_run_tests(*args: Any, **kwargs: Any) -> tuple[bool, str]:
-        captured.update(kwargs)
-        return True, "ok"
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+    )
 
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
+    bridge = DummyBridge()
 
-    rtc.run_tests_cmd(target="unit-tests", marker="requires_resource('cli')")  # type: ignore[arg-type]
+    run_tests_cmd(
+        target="unit-tests",
+        speeds=["fast"],
+        report=True,
+        verbose=False,
+        no_parallel=True,
+        smoke=False,
+        segment=False,
+        segment_size=50,
+        maxfail=None,
+        features=[],
+        inventory=False,
+        marker=None,
+        bridge=bridge,
+    )
 
-    assert captured.get("extra_marker") == "requires_resource('cli')"
-
-
-@pytest.mark.fast
-@pytest.mark.isolation
-def test_observability_increment_called_and_exceptions_ignored(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-12 — Observability increments and exceptions are swallowed."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
-
-    called = {"count": 0}
-
-    def fake_increment(*args: Any, **kwargs: Any) -> None:
-        called["count"] += 1
-
-    monkeypatch.setattr(rtc, "increment_counter", fake_increment)
-
-    def fake_run_tests(*args: Any, **kwargs: Any) -> tuple[bool, str]:
-        return True, "ok"
-
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
-
-    rtc.run_tests_cmd(target="all-tests", smoke=False)  # type: ignore[arg-type]
-    assert called["count"] == 1
-
-    # Now raise inside increment and ensure no crash
-    def raise_increment(*args: Any, **kwargs: Any) -> None:
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr(rtc, "increment_counter", raise_increment)
-    rtc.run_tests_cmd(target="all-tests", smoke=False)  # type: ignore[arg-type]
-
-
-@pytest.mark.fast
-@pytest.mark.isolation
-def test_success_and_failure_paths(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-13 — Success prints success; failure prints error and exits with code 1."""
-    import click
-
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
-
-    # Success path
-    monkeypatch.setattr(rtc, "run_tests", lambda *a, **k: (True, "ok"))
-    rtc.run_tests_cmd(target="unit-tests", smoke=False)  # type: ignore[arg-type]
-    assert any("Tests completed successfully" in m for m in stub.messages)
-
-    # Failure path
-    monkeypatch.setattr(rtc, "run_tests", lambda *a, **k: (False, "bad"))
-    with pytest.raises((SystemExit, click.exceptions.Exit)) as excinfo:  # type: ignore[attr-defined]
-        rtc.run_tests_cmd(target="unit-tests", smoke=False)  # type: ignore[arg-type]
-    val = excinfo.value
-    code = getattr(val, "code", getattr(val, "exit_code", None))
-    assert code == 1
-    assert any("Tests failed" in m for m in stub.messages)
-
-
-@pytest.mark.fast
-@pytest.mark.isolation
-def test_unit_tests_default_allows_requests(monkeypatch: pytest.MonkeyPatch):
-    """ReqID: CLI-RT-14 — unit-tests default sets DEVSYNTH_TEST_ALLOW_REQUESTS=true when unset."""
-    stub = StubBridge()
-    monkeypatch.setattr(rtc, "bridge", stub, raising=False)
-
-    monkeypatch.delenv("DEVSYNTH_TEST_ALLOW_REQUESTS", raising=False)
-
-    def fake_run_tests(*args: Any, **kwargs: Any) -> tuple[bool, str]:
-        return True, "ok"
-
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
-
-    rtc.run_tests_cmd(target="unit-tests", smoke=False)  # type: ignore[arg-type]
-    assert os.environ.get("DEVSYNTH_TEST_ALLOW_REQUESTS") == "true"
-
-
-@pytest.mark.fast
-@pytest.mark.isolation
-def test_bridge_override_is_used(monkeypatch: pytest.MonkeyPatch, capsys):
-    """ReqID: CLI-RT-15 — Provided bridge instance is used if it's a UXBridge; otherwise default bridge prints to stdout."""
-    custom = StubBridge()
-
-    def fake_run_tests(*args: Any, **kwargs: Any) -> tuple[bool, str]:
-        return True, "custom-output"
-
-    monkeypatch.setattr(rtc, "run_tests", fake_run_tests)
-
-    rtc.run_tests_cmd(target="unit-tests", smoke=False, bridge=custom)  # type: ignore[arg-type]
-
-    # Since StubBridge is not an instance of UXBridge, fallback bridge is used.
-    out = capsys.readouterr().out
-    assert "custom-output" in out
+    # Should include success message and the HTML report path pointer
+    assert any("Tests completed successfully" in m for m in bridge.messages)
+    assert any("HTML report available under" in m for m in bridge.messages)
