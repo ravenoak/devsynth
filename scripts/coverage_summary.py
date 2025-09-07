@@ -1,46 +1,50 @@
 #!/usr/bin/env python3
 """
-Generate a simple coverage summary from coverage.xml, listing the lowest
-coverage modules first. Intended for CI diagnostics.
+Quick helper to print overall coverage percent from coverage.json if present.
+Generates coverage.json via pytest if missing.
+Usage:
+  poetry run python scripts/coverage_summary.py
 """
 from __future__ import annotations
 
+import json
+import subprocess
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
-def main(path: str = "coverage.xml", limit: int = 10) -> int:
-    xml_path = Path(path)
-    if not xml_path.exists():
-        print(f"coverage_summary: file not found: {xml_path}")
-        return 1
-    try:
-        tree = ET.parse(xml_path)
-        root = tree.getroot()
-    except Exception as e:
-        print(f"coverage_summary: failed to parse {xml_path}: {e}")
-        return 1
-
-    packages = []
-    for pkg in root.findall("./packages/package"):
-        name = pkg.attrib.get("name", "<unknown>")
-        line_rate = float(pkg.attrib.get("line-rate", "0"))
-        packages.append((name, line_rate))
-
-    if not packages:
-        print("coverage_summary: no packages found in coverage report")
-        return 0
-
-    packages.sort(key=lambda x: x[1])
-    print("Lowest coverage modules (line-rate):")
-    for name, rate in packages[:limit]:
-        pct = round(rate * 100, 2)
-        print(f" - {name}: {pct}%")
+def main() -> int:
+    repo = Path(__file__).resolve().parents[1]
+    cov_json = repo / "coverage.json"
+    if not cov_json.exists():
+        # Generate minimal coverage json without html to save time
+        cmd = [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "--maxfail=1",
+            "--disable-warnings",
+            "--cov=src/devsynth",
+            "--cov-report=json:coverage.json",
+        ]
+        print("[info] Generating coverage.json via:", " ".join(cmd))
+        try:
+            subprocess.run(cmd, cwd=repo, check=False)
+        except Exception as e:
+            print("[warn] pytest run raised:", e)
+    if not cov_json.exists():
+        print("[error] coverage.json not found; unable to summarize.")
+        return 2
+    data = json.loads(cov_json.read_text())
+    totals = data.get("totals") or {}
+    percent = totals.get("percent_covered")
+    if percent is None:
+        print("[error] totals.percent_covered not found in coverage.json")
+        return 3
+    print(f"overall_coverage_percent={percent:.2f}")
     return 0
 
 
 if __name__ == "__main__":
-    path_arg = sys.argv[1] if len(sys.argv) > 1 else "coverage.xml"
-    limit_arg = int(sys.argv[2]) if len(sys.argv) > 2 else 10
-    raise SystemExit(main(path_arg, limit_arg))
+    raise SystemExit(main())
