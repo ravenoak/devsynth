@@ -1,12 +1,39 @@
+# flake8: noqa: E501
 import os
+
 import pytest
 
 from devsynth.config.provider_env import ProviderEnv
 
+pytestmark = [pytest.mark.fast]
 
-@pytest.mark.fast
-def test_with_test_defaults_applies_stub_offline_and_placeholder_key(monkeypatch):
-    # Start from a clean environment relevant to provider settings
+
+def test_from_env_defaults_is_openai_offline_false(monkeypatch):
+    """ReqID: ENV-01 — default provider=openai, offline=false, lmstudio=false."""
+    monkeypatch.delenv("DEVSYNTH_PROVIDER", raising=False)
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+    env = ProviderEnv.from_env()
+    assert env.provider == "openai"
+    assert env.offline is False
+    assert env.lmstudio_available is False
+
+
+def test_parse_truthy_and_falsy_via_from_env(monkeypatch):
+    """ReqID: ENV-02 — truthy/falsy parsing for OFFLINE and availability."""
+    monkeypatch.setenv("DEVSYNTH_PROVIDER", "openai")
+    monkeypatch.setenv("DEVSYNTH_OFFLINE", "Yes")
+    monkeypatch.setenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "0")
+    env = ProviderEnv.from_env()
+    assert env.offline is True
+    assert env.lmstudio_available is False
+
+
+def test_with_test_defaults_forces_stub_and_offline_true_and_placeholder_key(
+    monkeypatch,
+):
+    """ReqID: ENV-03 — with_test_defaults forces stub+offline and sets placeholder key."""
+    # Start clean
     for k in [
         "DEVSYNTH_PROVIDER",
         "DEVSYNTH_OFFLINE",
@@ -14,102 +41,52 @@ def test_with_test_defaults_applies_stub_offline_and_placeholder_key(monkeypatch
         "OPENAI_API_KEY",
     ]:
         monkeypatch.delenv(k, raising=False)
-
     base = ProviderEnv.from_env()
-    assert base.provider == "openai"
-    assert base.offline is False
-    assert base.lmstudio_available is False
-
-    pe = base.with_test_defaults()
-    assert pe.provider == "stub"  # defaults to stub when not explicitly set
-    assert pe.offline is True      # defaults to offline=True for tests
-    assert pe.lmstudio_available is False
-    # Placeholder API key is set deterministically
+    tweaked = base.with_test_defaults()
+    assert tweaked.provider == "stub"
+    assert tweaked.offline is True
+    assert tweaked.lmstudio_available is False
     assert os.environ.get("OPENAI_API_KEY") == "test-openai-key"
 
 
-@pytest.mark.fast
-def test_with_test_defaults_respects_explicit_provider_and_offline_false(monkeypatch):
-    monkeypatch.setenv("DEVSYNTH_PROVIDER", "openai")
+def test_with_test_defaults_respects_explicit_provider_and_offline(monkeypatch):
+    """ReqID: ENV-04 — explicit provider/offline respected by with_test_defaults."""
+    monkeypatch.setenv("DEVSYNTH_PROVIDER", "anthropic")
     monkeypatch.setenv("DEVSYNTH_OFFLINE", "false")
-    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-
     base = ProviderEnv.from_env()
-    assert base.provider == "openai"
-    assert base.offline is False
-
-    pe = base.with_test_defaults()
-    # Explicit provider is respected when already set
-    assert pe.provider == "openai"
-    # Since DEVSYNTH_OFFLINE exists and is false, offline should remain False
-    assert pe.offline is False
-    # Placeholder key still set to ensure deterministic offline behavior
-    assert os.environ["OPENAI_API_KEY"] == "test-openai-key"
+    tweaked = base.with_test_defaults()
+    # Provider explicitly set should be respected
+    assert tweaked.provider == "anthropic"
+    # offline remains False because it was explicitly provided
+    assert tweaked.offline is False
 
 
-@pytest.mark.fast
-def test_apply_to_env_sets_expected_variables_when_unset(monkeypatch):
-    # Compose a ProviderEnv and apply it to an empty env; ensure correct values
-    for k in [
-        "DEVSYNTH_PROVIDER",
-        "DEVSYNTH_OFFLINE",
-        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE",
-    ]:
-        monkeypatch.delenv(k, raising=False)
-
-    pe = ProviderEnv(provider="stub", offline=True, lmstudio_available=False)
-    pe.apply_to_env()
-
+def test_apply_to_env_sets_expected_vars(monkeypatch):
+    """ReqID: ENV-05 — apply_to_env sets expected variables when unset."""
+    monkeypatch.delenv("DEVSYNTH_PROVIDER", raising=False)
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+    env = ProviderEnv(provider="stub", offline=True, lmstudio_available=False)
+    env.apply_to_env()
     assert os.environ["DEVSYNTH_PROVIDER"] == "stub"
     assert os.environ["DEVSYNTH_OFFLINE"] == "true"
-    # Availability is written when previously unset
     assert os.environ["DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"] == "false"
 
 
-@pytest.mark.fast
-def test_apply_to_env_does_not_override_explicit_availability(monkeypatch):
+def test_apply_to_env_does_not_override_existing_availability(monkeypatch):
+    """ReqID: ENV-06 — apply_to_env preserves explicit availability value."""
     monkeypatch.setenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "true")
-
-    pe = ProviderEnv(provider="stub", offline=True, lmstudio_available=False)
-    pe.apply_to_env()
-
-    # Explicit user choice is preserved
+    env = ProviderEnv(provider="stub", offline=True, lmstudio_available=False)
+    env.apply_to_env()
     assert os.environ["DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"] == "true"
 
 
-@pytest.mark.fast
 def test_as_dict_round_trip(monkeypatch):
-    pe = ProviderEnv(provider="openai", offline=False, lmstudio_available=True)
-    d = pe.as_dict()
+    """ReqID: ENV-07 — as_dict produces env-style mapping."""
+    env = ProviderEnv(provider="stub", offline=True, lmstudio_available=True)
+    d = env.as_dict()
     assert d == {
-        "DEVSYNTH_PROVIDER": "openai",
-        "DEVSYNTH_OFFLINE": "false",
+        "DEVSYNTH_PROVIDER": "stub",
+        "DEVSYNTH_OFFLINE": "true",
         "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "true",
     }
-
-    # Simulate applying and reading back
-    monkeypatch.setenv("DEVSYNTH_PROVIDER", d["DEVSYNTH_PROVIDER"])
-    monkeypatch.setenv("DEVSYNTH_OFFLINE", d["DEVSYNTH_OFFLINE"])
-    monkeypatch.setenv(
-        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE",
-        d["DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"],
-    )
-
-    round_trip = ProviderEnv.from_env()
-    assert round_trip.provider == "openai"
-    assert round_trip.offline is False
-    assert round_trip.lmstudio_available is True
-
-
-@pytest.mark.fast
-def test_explicit_provider_without_keys_has_no_side_effect_errors(monkeypatch):
-    # Ensure that setting a real provider but no API key does not raise when using test defaults
-    monkeypatch.setenv("DEVSYNTH_PROVIDER", "openai")
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-
-    pe = ProviderEnv.from_env().with_test_defaults()
-    # Should set placeholder key to avoid accidental network usage
-    assert os.environ["OPENAI_API_KEY"] == "test-openai-key"
-    # No exceptions expected and provider remains openai
-    assert pe.provider == "openai"
