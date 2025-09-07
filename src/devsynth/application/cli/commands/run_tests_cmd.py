@@ -10,7 +10,7 @@ Example:
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import typer
 
@@ -25,7 +25,7 @@ logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
 
 
-def _parse_feature_options(values: List[str]) -> Dict[str, bool]:
+def _parse_feature_options(values: list[str]) -> dict[str, bool]:
     """Convert ``--feature`` options into a dictionary.
 
     Each value should be in the form ``name`` or ``name=value`` where ``value``
@@ -33,11 +33,12 @@ def _parse_feature_options(values: List[str]) -> Dict[str, bool]:
     ``True``.
     """
 
-    # Typer always passes a list for multi-option flags; guard defensively for runtime safety.
+    # Typer always passes a list for multi-option flags; guard defensively
+    # for runtime safety.
     if not values:
         return {}
 
-    result: Dict[str, bool] = {}
+    result: dict[str, bool] = {}
     for item in values:
         if "=" in item:
             name, raw = item.split("=", 1)
@@ -58,7 +59,8 @@ def _configure_optional_providers() -> None:
     typed ProviderEnv to ensure consistent parsing and defaults across the codebase.
     """
 
-    # Always default optional resources to disabled for test runs unless the user explicitly opted in.
+    # Always default optional resources to disabled for test runs unless the
+    # user explicitly opted in.
     if "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" not in os.environ:
         os.environ["DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"] = "false"
 
@@ -73,7 +75,7 @@ def run_tests_cmd(
         "--target",
         help="Test target to run",
     ),
-    speeds: List[str] = typer.Option(
+    speeds: list[str] = typer.Option(
         [],
         "--speed",
         help="Speed categories to run (can be used multiple times)",
@@ -86,7 +88,10 @@ def run_tests_cmd(
     smoke: bool = typer.Option(
         False,
         "--smoke",
-        help="Run in smoke mode: disable xdist and third-party pytest plugins for stability",
+        help=(
+            "Run in smoke mode: disable xdist and third-party pytest plugins "
+            "for stability"
+        ),
     ),
     segment: bool = typer.Option(
         False, "--segment", help="Run tests in smaller batches"
@@ -94,10 +99,10 @@ def run_tests_cmd(
     segment_size: int = typer.Option(
         50, "--segment-size", help="Number of tests per batch when segmenting"
     ),
-    maxfail: Optional[int] = typer.Option(
+    maxfail: int | None = typer.Option(
         None, "--maxfail", help="Exit after this many failures"
     ),
-    features: List[str] = typer.Option(
+    features: list[str] = typer.Option(
         [],
         "--feature",
         help="Feature flags to enable/disable (format: name or name=false)",
@@ -107,14 +112,17 @@ def run_tests_cmd(
         "--inventory",
         help="Export test inventory to test_reports/test_inventory.json and exit",
     ),
-    marker: Optional[str] = typer.Option(
+    marker: str | None = typer.Option(
         None,
         "-m",
         "--marker",
-        help="Additional pytest marker expression to AND with speed filters (e.g., requires_resource('lmstudio'))",
+        help=(
+            "Additional pytest marker expression to AND with speed filters "
+            "(e.g., requires_resource('lmstudio'))"
+        ),
     ),
     *,
-    bridge: Optional[Any] = typer.Option(None, hidden=True),
+    bridge: Any | None = typer.Option(None, hidden=True),
 ) -> None:
     """Run DevSynth test suites.
 
@@ -169,12 +177,10 @@ def run_tests_cmd(
     allowed_targets = {"all-tests", "unit-tests", "integration-tests", "behavior-tests"}
     if target not in allowed_targets:
         ux_bridge.print(
-            (
-                "[red]Invalid --target value:[/red] '"
-                + str(target)
-                + "'. Allowed: all-tests|unit-tests|integration-tests|behavior-tests. "
-                + "See docs/user_guides/cli_command_reference.md for details."
-            )
+            "[red]Invalid --target value:[/red] '"
+            + str(target)
+            + "'. Allowed: all-tests|unit-tests|integration-tests|behavior-tests. "
+            + "See docs/user_guides/cli_command_reference.md for details."
         )
         raise typer.Exit(code=2)
 
@@ -183,11 +189,9 @@ def run_tests_cmd(
     invalid_speeds = [s for s in normalized_speeds if s not in allowed_speeds]
     if invalid_speeds:
         ux_bridge.print(
-            (
-                "[red]Invalid --speed value(s):[/red] "
-                + ", ".join(invalid_speeds)
-                + ". Allowed: fast|medium|slow. Use multiple --speed flags to combine."
-            )
+            "[red]Invalid --speed value(s):[/red] "
+            + ", ".join(invalid_speeds)
+            + ". Allowed: fast|medium|slow. Use multiple --speed flags to combine."
         )
         raise typer.Exit(code=2)
 
@@ -199,7 +203,7 @@ def run_tests_cmd(
 
         targets = ["all-tests", "unit-tests", "integration-tests", "behavior-tests"]
         speeds_all = ["fast", "medium", "slow"]
-        inventory_data: Dict[str, Dict[str, List[str]]] = {}
+        inventory_data: dict[str, dict[str, list[str]]] = {}
         for tgt in targets:
             inventory_data[tgt] = {}
             for spd in speeds_all:
@@ -230,8 +234,9 @@ def run_tests_cmd(
         # Enforce a conservative per-test timeout for smoke runs unless overridden
         os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "30")
 
-    # Optimize inner subprocess validation runs used by tests: disable plugins and parallelism
-    # to avoid timeouts and reduce startup overhead, but only when explicitly indicated by tests.
+    # Optimize inner subprocess validation runs used by tests: disable plugins
+    # and parallelism to avoid timeouts and reduce startup overhead, but only
+    # when explicitly indicated by tests.
     if os.environ.get("DEVSYNTH_INNER_TEST") == "1":
         os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
         existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
@@ -248,8 +253,9 @@ def run_tests_cmd(
             # Allow generous timeout for subprocess-invoked runs that can load plugins
             # and perform slower startup on some machines.
             os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "120")
-        # Disable coverage plugin for integration fast runs to avoid global fail-under gating
-        # unless an HTML report is requested. This keeps fast lanes quick and non-flaky per docs.
+        # Disable coverage plugin for integration fast runs to avoid global
+        # fail-under gating unless an HTML report is requested. This keeps fast
+        # lanes quick and non-flaky per docs.
         if target == "integration-tests" and not report:
             existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
             if "-p no:cov" not in existing_addopts:
@@ -263,7 +269,7 @@ def run_tests_cmd(
             os.environ[env_var] = "true" if enabled else "false"
         logger.info("Feature flags: %s", feature_map)
 
-    _kwargs: Dict[str, Any] = {}
+    _kwargs: dict[str, Any] = {}
     if marker is not None:
         # Map CLI --marker to the internal run_tests extra_marker parameter.
         _kwargs["extra_marker"] = marker
@@ -285,6 +291,26 @@ def run_tests_cmd(
 
     if success:
         ux_bridge.print("[green]Tests completed successfully[/green]")
+        # Provide a friendly pointer to the HTML report location when requested.
+        if report:
+            try:
+                from pathlib import Path as _Path
+
+                report_root = _Path("test_reports")
+                if report_root.exists():
+                    ux_bridge.print(
+                        "[green]HTML report available under[/green] "
+                        + str(report_root.resolve())
+                    )
+                else:
+                    ux_bridge.print(
+                        "[yellow]Report flag was set but test_reports/ was not "
+                        "found. The pytest run may have skipped report "
+                        "generation.[/yellow]"
+                    )
+            except Exception:
+                # Do not fail UX if filesystem inspection errs
+                pass
     else:
         ux_bridge.print("[red]Tests failed[/red]")
         raise typer.Exit(code=1)
