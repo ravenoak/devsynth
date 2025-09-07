@@ -16,7 +16,6 @@ import sys
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -42,19 +41,32 @@ def _failure_tips(returncode: int, cmd: Sequence[str]) -> str:
         f"Pytest exited with code {returncode}. Command: {joined}",
         "Troubleshooting tips:",
         "- Smoke mode: reduce third-party plugin surface to isolate issues:",
-        "  poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1",
-        "- Marker discipline: default filter is '-m \"not memory_intensive\"'. Ensure each test has exactly ONE of @pytest.mark.fast|medium|slow.",
-        "- Plugin autoload: avoid setting PYTEST_DISABLE_PLUGIN_AUTOLOAD unless using --smoke; otherwise pytest options from plugins may fail.",
-        "- Diagnostics: run 'poetry run devsynth doctor' for a quick environment check.",
+        (
+            "  poetry run devsynth run-tests --smoke --speed=fast --no-parallel "
+            "--maxfail=1"
+        ),
+        "- Marker discipline: default is '-m not memory_intensive'.",
+        "  Ensure exactly ONE of @pytest.mark.fast|medium|slow per test.",
+        (
+            "- Plugin autoload: avoid PYTEST_DISABLE_PLUGIN_AUTOLOAD unless using "
+            "--smoke; plugin options may fail otherwise."
+        ),
+        (
+            "- Diagnostics: run 'poetry run devsynth doctor' for a quick "
+            "environment check."
+        ),
         "- Narrow scope: use '-k <expr>' and '-vv' to focus a failure.",
         "- Segment large suites to localize failures and flakes:",
-        "  poetry run devsynth run-tests --target unit-tests --speed=fast --segment --segment-size=50",
+        (
+            "  devsynth run-tests --target unit-tests --speed=fast --segment "
+            "--segment-size=50"
+        ),
         "- Limit failures early to speed iteration:",
         "  poetry run devsynth run-tests --target unit-tests --speed=fast --maxfail=1",
         "- Disable parallelism if xdist interaction is suspected:",
-        "  poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel",
-        "- Generate an HTML report for context (saved under test_reports/):",
-        "  poetry run devsynth run-tests --target unit-tests --speed=fast --report",
+        "  devsynth run-tests --target unit-tests --speed=fast --no-parallel",
+        ("- Generate an HTML report for context (saved under test_reports/):"),
+        "  devsynth run-tests --target unit-tests --speed=fast --report",
     ]
     return "\n" + "\n".join(tips) + "\n"
 
@@ -150,7 +162,10 @@ def collect_tests_with_cache(
                 datetime.now() - cache_time
             ).total_seconds() < COLLECTION_CACHE_TTL_SECONDS and fingerprint_matches:
                 logger.info(
-                    "Using cached test collection for %s (%s) [TTL=%ss; fingerprint ok]",
+                    (
+                        "Using cached test collection for %s (%s) [TTL=%ss; "
+                        "fingerprint ok]"
+                    ),
                     target,
                     speed_category or "all",
                     COLLECTION_CACHE_TTL_SECONDS,
@@ -204,7 +219,8 @@ def collect_tests_with_cache(
             ]
 
     try:
-        # Hermetic collection: run with CWD at test_path and disable plugin autoload unless already set
+        # Hermetic collection: run with CWD at test_path.
+        # Avoid changing plugin autoload unless already set.
         orig_cwd = os.getcwd()
         try:
             did_chdir = False
@@ -229,7 +245,6 @@ def collect_tests_with_cache(
         # with the basename of that directory rather than the absolute path. Accept
         # standard test tree (tests/...), absolute path startswith, and the
         # basename-prefixed relative path.
-        rel_prefix = os.path.basename(os.path.normpath(test_path)) + "/"
         pattern = re.compile(r".*\.py(?::\d+)?(::|$)")
         raw_list = [
             line.strip()
@@ -301,7 +316,8 @@ def collect_tests_with_cache(
                 "latest_mtime": latest_mtime,
                 "category_expr": category_expr,
                 "test_path": test_path,
-                # Simple signature to invalidate when set of node IDs changes significantly
+                # Simple signature to invalidate when the set of node IDs
+                # changes significantly
                 "node_set_hash": hash("\n".join(pruned_list)),
             },
         }
@@ -391,9 +407,10 @@ def run_tests(
         ]
         logger.info("Report will be saved to %s/report.html", report_dir)
 
-    # Determine how to apply extra filtering. Pytest '-m' does not support function-call
-    # expressions like requires_resource('lmstudio'). If such an expression is provided,
-    # approximate by using '-k lmstudio' which targets LM Studio-related modules/tests.
+    # Determine how to apply extra filtering. Pytest '-m' does not support
+    # function-call expressions like requires_resource('lmstudio'). If such
+    # an expression is provided, approximate by using '-k lmstudio' which
+    # targets LM Studio-related modules/tests.
     use_keyword_filter = False
     keyword_expr = None
     if extra_marker:
@@ -409,8 +426,9 @@ def run_tests(
         if extra_marker and not use_keyword_filter:
             category_expr = f"({category_expr}) and ({extra_marker})"
         if use_keyword_filter and keyword_expr:
-            # Narrow collection strictly to keyword-matching tests to avoid importing unrelated modules
-            # that may emit strict marker-discipline errors during collection.
+            # Narrow collection strictly to keyword-matching tests to avoid
+            # importing unrelated modules that may emit strict
+            # marker-discipline errors during collection.
             collect_cmd = base_cmd + [
                 "-q",
                 "--collect-only",
@@ -493,7 +511,8 @@ def run_tests(
         marker_expr = f"{speed} and not memory_intensive"
         if extra_marker and not use_keyword_filter:
             marker_expr = f"({marker_expr}) and ({extra_marker})"
-        # Collect matching node IDs to avoid importing unrelated modules that may fail marker checks.
+        # Collect matching node IDs to avoid importing unrelated modules
+        # that may fail marker checks.
         collect_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
         if use_keyword_filter and keyword_expr:
             collect_cmd += ["-k", keyword_expr]
@@ -534,12 +553,13 @@ def run_tests(
                 segment_size,
             )
             batch_success = True
+            total_batches = (len(test_list) + segment_size - 1) // segment_size
             for i in range(0, len(test_list), segment_size):
                 batch = test_list[i : i + segment_size]
                 logger.info(
                     "\nRunning batch %d/%d...",
                     i // segment_size + 1,
-                    (len(test_list) + segment_size - 1) // segment_size,
+                    total_batches,
                 )
                 batch_cmd = base_cmd + batch + report_options
                 batch_process = subprocess.Popen(
