@@ -2,7 +2,7 @@
 
 Version: 2025-09-07
 Owner: DevSynth Team (maintainers)
-Status: Execution in progress; plan updated with verified outcomes and fixes (2025-09-07)
+Status: Execution in progress; plan updated with new environment blocker (2025-09-08)
 
 Executive summary
 - Goal: Reach and sustain >90% coverage with a well‑functioning, reliable test suite across unit, integration, behavior, and property tests for the 0.1.0a1 release, with strict marker discipline and resource gating.
@@ -102,6 +102,7 @@ Critical evaluation of current tests (dialectical + Socratic)
   - AttributeError: _DummyTeam lacks _improve_clarity → either the dummy must implement this method or tests need to call a public interface the dummy supports.
 - Coverage hotspots: Historical diagnostics and htmlcov show low coverage in src/devsynth/application/cli/commands/run_tests_cmd.py (~14–15%), and other adapter-heavy modules show very low coverage in artifacts. Need targeted tests or broaden integration coverage.
 - Environment/config: diagnostics/doctor.txt lists many missing env vars across environments; while tests pass due to default stubbing, release QA should include doctor sanity checks and documented defaults.
+- Installation: `poetry install --with dev --all-extras` hangs repeatedly on `nvidia/__init__.py`, leaving the environment incomplete (see issues/poetry-install-nvidia-loop.md).
 - Potential mismatch between pytest.ini fail-under=90 and how contributors run focused subsets; dev tooling must aggregate coverage or provide guidance on running complete profiles locally.
 
 Standards and constraints reaffirmed
