@@ -4,15 +4,10 @@ This module extends the basic error handler with more specific error patterns
 and suggestions, as well as improved formatting for error messages.
 """
 
-import inspect
-import re
 import sys
-import traceback
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.table import Table
