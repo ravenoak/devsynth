@@ -146,7 +146,12 @@ Phase 2: Coverage uplift (Day 1–3)
   - Add/extend unit tests to cover branches: smoke mode (PYTEST_DISABLE_PLUGIN_AUTOLOAD), --no-parallel maps to -n0, inventory mode writes file and exits, --marker ANDing logic, --segment/--segment-size batching, --maxfail propagation, feature flags env mapping, provider defaults application, error paths (invalid marker expression, non-existent target).
 - Hotspot 2: adapters and stores
   - For pure-Python logic (e.g., deterministic serialization, simple transforms), add fast unit tests without requiring backends.
-  - For backend integrations (tinydb, duckdb, chromadb, faiss, kuzu): add resource-gated tests behind DEVSYNTH_RESOURCE_<NAME>_AVAILABLE flags; implement minimal smoke coverage for import and basic operations when enabled.
+  - For backend integrations (TinyDB, DuckDB, ChromaDB, FAISS, Kuzu), add resource-gated tests behind `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` flags. Implement minimal smoke coverage for each backend:
+    - TinyDB — set `DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true`; import TinyDB, insert a document, and read it back.
+    - DuckDB — set `DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=true`; connect in memory, create a table, insert a row, and select it.
+    - ChromaDB — set `DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true`; start an ephemeral client, add a document with an embedding, and query by vector.
+    - FAISS — set `DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true`; build an `IndexFlatL2`, add a vector, and perform a nearest-neighbor search.
+    - Kuzu — set `DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true`; open a temporary database, create a node table, insert a record, and retrieve it.
 - Hotspot 3: UX bridge and logging
   - Validate logging branches and user prompts in non-interactive mode; ensure CLIUXBridge basic flows have unit coverage.
 - Iterate until combined coverage >=90% locally. Keep test order independence and isolation.
