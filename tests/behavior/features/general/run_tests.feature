@@ -21,6 +21,17 @@ Feature: devsynth run-tests command
     And the output should mention no tests were run
     And the output should not contain xdist assertions
 
+  Scenario: HTML report generation prints path hint
+    Given the environment variable "PYTEST_ADDOPTS" is "-k nonexistent_test_keyword"
+    When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --report"
+    Then the command should succeed
+    And the output should mention html report path
+
+  Scenario: Smoke mode runs with plugins disabled
+    Given the environment variable "PYTEST_ADDOPTS" is "-k nonexistent_test_keyword"
+    When I invoke "devsynth run-tests --smoke --speed=fast --no-parallel"
+    Then the command should succeed
+
   Scenario: Failing tests return a non-zero exit code
     Given the environment variable "PYTEST_ADDOPTS" is "-k test_provider_logging"
     When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel"

@@ -218,6 +218,9 @@ def _generate_synthesis(
 
     # Initialize domain-specific improvements
     domain_improvements = {domain: [] for domain in domain_critiques.keys()}
+    # Ensure commonly used domains exist even if no critiques matched keywords
+    domain_improvements.setdefault("code", [])
+    domain_improvements.setdefault("content", [])
 
     # Process content improvements
     if "content" in thesis and thesis["content"]:

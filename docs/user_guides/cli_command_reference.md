@@ -565,6 +565,17 @@ Note on inventory:
 
 Recommendation:
 - For medium/slow suites, prefer segmentation with `--segment-size 50` as a starting point. Adjust to 25–100 depending on stability and runtime. Keep `--no-parallel` while triaging flakes.
+- Coverage readiness: Always aggregate coverage across fast+medium (and slow when applicable) using the run-tests CLI or combine segmented runs before asserting readiness. Avoid relying on narrow subset runs due to the global fail-under threshold (see docs/plan.md §Coverage aggregation).
+
+Coverage-only profile (documented command):
+- To produce authoritative coverage artifacts locally with the global threshold enforced, use one of the following standardized commands:
+  - Single-run aggregate (preferred):
+    - poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report 2>&1 | tee test_reports/full_fast_medium.log
+  - Segmented aggregate (memory-friendly):
+    - poetry run devsynth run-tests --speed=fast --segment --segment-size 100 --no-parallel 2>&1 | tee test_reports/seg_fast_1.log
+    - poetry run devsynth run-tests --speed=medium --segment --segment-size 100 --no-parallel 2>&1 | tee test_reports/seg_medium_1.log
+    - poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json
+- Evidence locations: htmlcov/index.html, coverage.json, test_reports/
 
 Note on segmentation and collection caching:
 - When using --segment, the runner first collects matching tests. This collection is cached to speed up repeated runs.
@@ -578,6 +589,11 @@ Behavior when no tests match a requested speed:
 Default resource gating:
 - The run-tests CLI applies offline-first defaults and disables optional remote resources unless explicitly enabled (e.g., DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false by default). Tests marked with @pytest.mark.requires_resource(...) will be skipped when their resource is unavailable.
 - Provider defaults applied for tests: `DEVSYNTH_PROVIDER=stub`, `DEVSYNTH_OFFLINE=true` (unless already set).
+
+Smoke mode guidance:
+- Use `--smoke` to disable third-party plugins and xdist for maximally stable runs.
+- Effectively sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` and disables parallelism; combine with `--no-parallel` for clarity.
+- Applies a conservative default timeout via `DEVSYNTH_TEST_TIMEOUT_SECONDS` unless already set.
 
 ### Troubleshooting run-tests
 

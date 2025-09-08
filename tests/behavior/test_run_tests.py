@@ -5,6 +5,13 @@ import os
 import pytest
 from pytest_bdd import scenarios
 
+# Ensure BDD step definitions are loaded
+from tests.behavior.steps import test_run_tests_steps  # noqa: F401
+
+pytest_plugins = [
+    "tests.behavior.steps.test_run_tests_steps",
+]
+
 FEATURE_FILE = os.path.join(
     os.path.dirname(__file__), "features", "general", "run_tests.feature"
 )

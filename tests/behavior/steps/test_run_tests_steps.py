@@ -7,6 +7,11 @@ from typing import Dict
 import pytest
 from pytest_bdd import given, parsers, then, when
 
+# Resolve repository root (three levels up from this steps file)
+_REPO_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir)
+)
+
 
 @pytest.fixture
 def command_result() -> Dict[str, str]:
@@ -157,3 +162,51 @@ def output_mentions_no_tests(command_result: Dict[str, str]) -> None:
 def output_no_xdist_assertions(command_result: Dict[str, str]) -> None:
     output = command_result.get("output", "")
     assert "INTERNALERROR" not in output
+
+
+@when(
+    'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --report"'
+)
+def invoke_run_tests_report(command_result: Dict[str, str]) -> None:
+    env = os.environ.copy()
+    env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
+    env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    cmd = [
+        "poetry",
+        "run",
+        "devsynth",
+        "run-tests",
+        "--target",
+        "unit-tests",
+        "--speed=fast",
+        "--no-parallel",
+        "--report",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    command_result["exit_code"] = result.returncode
+    command_result["output"] = result.stdout + result.stderr
+
+
+@then("the output should mention html report path")
+def output_mentions_html_report_path(command_result: Dict[str, str]) -> None:
+    output = command_result.get("output", "").lower()
+    assert "html report available under" in output
+
+
+@when('I invoke "devsynth run-tests --smoke --speed=fast --no-parallel"')
+def invoke_run_tests_smoke(command_result: Dict[str, str]) -> None:
+    env = os.environ.copy()
+    env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
+    env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    cmd = [
+        "poetry",
+        "run",
+        "devsynth",
+        "run-tests",
+        "--smoke",
+        "--speed=fast",
+        "--no-parallel",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    command_result["exit_code"] = result.returncode
+    command_result["output"] = result.stdout + result.stderr
