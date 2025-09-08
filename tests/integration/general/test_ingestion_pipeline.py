@@ -5,8 +5,6 @@ This module tests the functionality of the ingestion module, which implements
 the "Expand, Differentiate, Refine, Retrospect" methodology for project ingestion.
 """
 
-import json
-import os
 import sys
 import tempfile
 from pathlib import Path
@@ -97,7 +95,7 @@ def test_ingest_cmd_non_interactive_priority_persists(
     create_manifest_file,
     monkeypatch,
 ):
-    """Ingest command saves priority without prompting."""
+    """Ingest command saves priority without prompting. ReqID: N/A"""
 
     mock_instance = MagicMock()
     mock_instance.run_ingestion.return_value = {"success": True, "metrics": {}}
@@ -117,7 +115,7 @@ def test_ingest_cmd_non_interactive_priority_persists(
 
 @patch("devsynth.application.cli.commands.ingest_cmd._ingest_cmd")
 def test_cli_ingest_respects_env_non_interactive(mock_ingest, monkeypatch):
-    """CLI wrapper defaults to non-interactive from environment."""
+    """CLI wrapper defaults to non-interactive from environment. ReqID: N/A"""
 
     monkeypatch.setenv("DEVSYNTH_INGEST_NONINTERACTIVE", "1")
     monkeypatch.setenv("DEVSYNTH_AUTO_CONFIRM", "1")
@@ -187,6 +185,7 @@ class TestIngestionMetrics:
         metrics.warnings_generated = 3
         metrics.artifacts_by_type[ArtifactType.CODE] = 5
         metrics.artifacts_by_type[ArtifactType.TEST] = 3
+        metrics.artifacts_by_type[ArtifactType.DOCUMENTATION] = 2
         metrics.artifacts_by_status[ArtifactStatus.NEW] = 8
         metrics.artifacts_by_status[ArtifactStatus.CHANGED] = 2
         metrics.start_phase(IngestionPhase.EXPAND)
@@ -202,6 +201,12 @@ class TestIngestionMetrics:
         assert "duration_seconds" in summary
         assert "phases" in summary
         assert "EXPAND" in summary["phases"]
+        assert summary["artifacts"]["total"] == sum(
+            summary["artifacts"]["by_type"].values()
+        )
+        assert summary["artifacts"]["total"] == sum(
+            summary["artifacts"]["by_status"].values()
+        )
 
 
 class TestIngestion:
@@ -568,6 +573,7 @@ class TestIngestion:
 @pytest.mark.requires_resource("kuzu")
 @pytest.mark.requires_resource("chromadb")
 def test_sync_manager_persistence_across_backends(tmp_path, monkeypatch):
+    """Sync manager persists across backends. ReqID: N/A"""
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     monkeypatch.setenv("ENABLE_CHROMADB", "1")
     ef = pytest.importorskip("chromadb.utils.embedding_functions")
@@ -605,6 +611,7 @@ def test_sync_manager_persistence_across_backends(tmp_path, monkeypatch):
 
 
 def test_kuzu_fallback_to_chromadb(tmp_path, monkeypatch):
+    """Fallback to ChromaDB when Kuzu unavailable. ReqID: N/A"""
     monkeypatch.setenv("ENABLE_CHROMADB", "1")
     monkeypatch.setitem(sys.modules, "kuzu", None)
     import importlib

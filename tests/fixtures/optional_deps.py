@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Mapping
 from types import ModuleType
-from typing import Mapping
 
 import pytest
 
@@ -38,6 +38,13 @@ def stub_optional_deps(monkeypatch):
         "lmdb": {},
         "faiss": {},
         "httpx": {},
+        "kuzu": {},
+        "prometheus_client": {
+            "Counter": object,
+            "Histogram": object,
+            "generate_latest": lambda *a, **k: b"",
+            "CONTENT_TYPE_LATEST": "text/plain; version=0.0.4; charset=utf-8",
+        },
     }
 
     for name, attrs in modules.items():
