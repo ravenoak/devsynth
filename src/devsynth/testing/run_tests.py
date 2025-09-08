@@ -583,6 +583,16 @@ def run_tests(
                     batch_stderr = batch_stderr + tips
                 batch_success = batch_success and batch_ok
                 all_output += batch_stdout + batch_stderr
+            # If any batch failed, append a concise aggregation tip block once
+            if not batch_success:
+                aggregate_cmd = (
+                    base_cmd + [f"--maxfail={maxfail}"]
+                    if maxfail is not None
+                    else base_cmd
+                )
+                agg_tips = _failure_tips(1, aggregate_cmd)
+                logger.error(agg_tips)
+                all_output += agg_tips
             all_success = all_success and batch_success
         else:
             run_cmd = base_cmd + node_ids + report_options
