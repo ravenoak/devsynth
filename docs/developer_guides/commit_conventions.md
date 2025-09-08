@@ -28,4 +28,4 @@ CI integration:
 - Linter: scripts/commit_linter.py
 - PRs and pushes to main/develop/release branches must pass this check.
 
-This policy aligns with the principles in .junie/guidelines.md and supports SDD/TDD/BDD by making change intent explicit.
+This policy aligns with the principles in project guidelines and supports SDD/TDD/BDD by making change intent explicit.

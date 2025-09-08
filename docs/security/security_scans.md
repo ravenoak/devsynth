@@ -1,6 +1,6 @@
 # Security Scans: Bandit & Safety
 
-This document explains how DevSynth performs code and dependency security checks using Bandit and Safety, in alignment with the principles in `.junie/the_real_core.md` and the development guidelines in `.junie/guidelines.md`.
+This document explains how DevSynth performs code and dependency security checks using Bandit and Safety, in alignment with the principles in `.junie/the_real_core.md` and the development guidelines in `project guidelines`.
 
 ## Overview
 

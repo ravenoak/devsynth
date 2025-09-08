@@ -6,7 +6,7 @@ Protocol to validate expected behaviors without requiring optional extras
 Docs Task 11.3: "Expand integration tests for persistence/retrieval/cross-store sync."
 
 Style: Follows DevSynth testing guidelines (deterministic, no network, explicit
-markers, clear Arrange-Act-Assert steps) and .junie/guidelines.md principles.
+markers, clear Arrange-Act-Assert steps) and project guidelines principles.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ pytestmark = [pytest.mark.integration]
 
 @dataclass
 class _TxnState:
-    ops: List[Tuple[str, Any]]
+    ops: list[tuple[str, Any]]
     active: bool = True
 
 
@@ -36,8 +36,8 @@ class InMemoryStore(MemoryStore):
     """
 
     def __init__(self) -> None:
-        self._items: Dict[str, MemoryItem] = {}
-        self._txns: Dict[str, _TxnState] = {}
+        self._items: dict[str, MemoryItem] = {}
+        self._txns: dict[str, _TxnState] = {}
         self._next_id = 1
 
     def _generate_id(self) -> str:
@@ -52,10 +52,10 @@ class InMemoryStore(MemoryStore):
         self._items[item.id] = item
         return item.id
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         return self._items.get(item_id)
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(self, query: dict[str, Any]) -> list[MemoryItem]:
         # Minimal search: filter by memory_type or metadata exact matches
         results = list(self._items.values())
         if "memory_type" in query:

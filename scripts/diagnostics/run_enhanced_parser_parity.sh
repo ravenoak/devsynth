@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Run the enhanced test parser parity check against the tests/ directory
 # and write a JSON report under test_reports/ for later inspection.
-# Aligns with .junie/guidelines.md (run via Poetry) and docs/plan.md (determinism, diagnostics).
+# Aligns with project guidelines (run via Poetry) and docs/plan.md (determinism, diagnostics).
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT_DIR"

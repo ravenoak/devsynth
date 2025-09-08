@@ -29,6 +29,6 @@ This checklist enumerates concrete tickets required to plan and track the Atomic
 - [ ] AR-10: CI gating: ensure feature flag disabled in default CI runs
 
 ## Notes
-- Follow .junie/guidelines.md (SDD, TDD, BDD; clarity; maintainability).
+- Follow project guidelines (SDD, TDD, BDD; clarity; maintainability).
 - Keep offline-first and deterministic behavior for tests; use local mocks/stubs only.
 - Tickets should reference ReqIDs where applicable and link to test coverage.

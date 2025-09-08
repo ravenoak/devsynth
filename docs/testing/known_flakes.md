@@ -6,7 +6,7 @@ version: "0.1.0-alpha.1"
 ---
 # Known Flakes Quarantine List
 
-This living document tracks currently known flaky tests. Each entry must include a reproducible path, owner, and mitigation plan. Aligns with .junie/guidelines.md and docs/plan.md.
+This living document tracks currently known flaky tests. Each entry must include a reproducible path, owner, and mitigation plan. Aligns with project guidelines and docs/plan.md.
 
 Columns:
 - Test node (file::test_name[param])

@@ -4,7 +4,7 @@ Unified stubbing utilities for GUI and provider subsystems used in tests.
 Rationale:
 - Normalizes mocking/stubbing across GUI/provider subsystems (docs/tasks.md item 14).
 - Prevents real network/UI interactions during tests while allowing explicit opt-out.
-- Keeps deterministic, fast, and hermetic test runs aligned with .junie/guidelines.md.
+- Keeps deterministic, fast, and hermetic test runs aligned with project guidelines.
 
 Usage:
 - Imported and applied by tests/conftest.py via an autouse fixture.

@@ -6,7 +6,7 @@ version: "0.1.0-alpha.1"
 ---
 # Documentation Consolidation Plan (Single Sources of Truth)
 
-Purpose: Reduce duplication and drift by declaring canonical locations per topic and linking/retiring overlapping docs. Aligned with .junie/guidelines.md and docs/plan.md.
+Purpose: Reduce duplication and drift by declaring canonical locations per topic and linking/retiring overlapping docs. Aligned with project guidelines and docs/plan.md.
 
 ## Canonical Mapping
 - Testing (strategy, fixtures, speeds, running): docs/developer_guides/testing.md

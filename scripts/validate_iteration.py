@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Validate the current iteration runtime per docs/plan.md and .junie/guidelines.md.
+Validate the current iteration runtime per docs/plan.md and project guidelines.
 - Runs pytest collect-only, verify_test_markers report, devsynth doctor,
   and a fast unit lane in smoke mode.
 - If DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true, also runs the enabled subset

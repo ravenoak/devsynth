@@ -3,7 +3,7 @@
 This guide describes quick, repeatable checks to validate your local setup and ensure the test suite can be collected and executed as expected.
 
 Related references:
-- .junie/guidelines.md (authoritative commands and conventions)
+- project guidelines (authoritative commands and conventions)
 - docs/developer_guides/testing.md (test strategy and fixtures)
 - docs/user_guides/cli_command_reference.md (CLI options)
 
@@ -22,7 +22,7 @@ Use Poetry to guarantee the correct plugin surface and virtual environment.
 
 ## Diagnostics Command Flow Checklist
 
-Use this flow when something goes wrong. It aligns with docs/plan.md and .junie/guidelines.md.
+Use this flow when something goes wrong. It aligns with docs/plan.md and project guidelines.
 
 1. Verify environment
    - poetry --version (ensure Poetry is installed)

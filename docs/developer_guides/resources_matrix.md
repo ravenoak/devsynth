@@ -10,7 +10,7 @@ version: "0.1.0a1"
 # Resources Matrix (Extras ↔ Environment Flags)
 
 This page concisely maps Poetry extras to their associated resource flags and shows how to opt into optional backends locally. It complements:
-- .junie/guidelines.md (testing/resource gating defaults)
+- project guidelines (testing/resource gating defaults)
 - docs/developer_guides/testing.md (end-to-end testing practices)
 - docs/user_guides/cli_command_reference.md (run-tests behavior and flags)
 

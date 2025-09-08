@@ -7,7 +7,7 @@ version: 0.1.0a1
 
 # Enhanced Test Parser Parity — How to Run and Interpret
 
-This guide explains how to exercise scripts/enhanced_test_parser.py against the test suite and how to interpret parity results when compared to pytest collection. It aligns with .junie/guidelines.md (run via Poetry; offline-first) and docs/plan.md (determinism and diagnostics).
+This guide explains how to exercise scripts/enhanced_test_parser.py against the test suite and how to interpret parity results when compared to pytest collection. It aligns with project guidelines (run via Poetry; offline-first) and docs/plan.md (determinism and diagnostics).
 
 ## How to run
 
@@ -65,5 +65,5 @@ When evaluating parity, focus on:
 
 - scripts/enhanced_test_parser.py
 - docs/developer_guides/enhanced_test_parser.md (capabilities and CLI)
-- .junie/guidelines.md (testing discipline)
+- project guidelines (testing discipline)
 - docs/plan.md (stabilization priorities)

@@ -1,7 +1,7 @@
 # Feature Flags Policy
 
 This document defines how DevSynth introduces, manages, deprecates, and removes feature flags.
-It complements the guidelines in .junie/guidelines.md and the CLI contract implemented by
+It complements the guidelines in project guidelines and the CLI contract implemented by
 `devsynth run-tests --feature name[=true|false]` (maps to `DEVSYNTH_FEATURE_<NAME>`).
 
 Goals

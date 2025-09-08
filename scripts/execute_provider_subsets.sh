@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # DevSynth provider subsets executor for docs/tasks.md Tasks 21–33
-# - Aligns with docs/plan.md Section 3 and .junie/guidelines.md
+# - Aligns with docs/plan.md Section 3 and project guidelines
 # - Captures outputs under test_reports/ and diagnostics/
 # - Restores hermetic defaults when done
 #

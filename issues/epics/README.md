@@ -1,7 +1,7 @@
 # DevSynth Epics Overview (0.1.0a1)
 
 This document consolidates related issues into epics with clear dependencies and milestones to support the 0.1.0a1 readiness goals. It aligns with
-- .junie/guidelines.md (SDD, TDD, BDD; clarity and maintainability)
+- project guidelines (SDD, TDD, BDD; clarity and maintainability)
 - docs/roadmap/release_plan.md (version, milestones)
 
 Use this as the umbrella index to track progress and burndown across the most impactful workstreams.

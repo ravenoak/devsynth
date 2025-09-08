@@ -6,7 +6,7 @@ version: "0.1.0-alpha.1"
 ---
 # Security Scan Triage Workflow
 
-This document defines the standard process for running security scans (Bandit and Safety), interpreting results, and handling suppressions with documented rationale. It aligns with .junie/guidelines.md (Security tools) and the Stabilization Plan (docs/plan.md).
+This document defines the standard process for running security scans (Bandit and Safety), interpreting results, and handling suppressions with documented rationale. It aligns with project guidelines (Security tools) and the Stabilization Plan (docs/plan.md).
 
 ## Tools
 - Bandit: static analysis for Python security issues.
@@ -44,7 +44,7 @@ These policy files are present as baselines with zero suppressions to encourage 
 - None as of 2025-08-26. All findings should be addressed directly unless documented here with full rationale.
 
 ## References
-- .junie/guidelines.md (Security tooling commands)
+- project guidelines (Security tooling commands)
 - docs/plan.md (Stabilization priorities)
 - docs/policies/security.md (broader security posture)
 - .github/workflows (CI jobs that run bandit/safety)

@@ -4,7 +4,7 @@ LM Studio preflight checker.
 
 Purpose: Reduce flakes by verifying that the LM Studio-dependent test path
 is correctly configured before running tests. This supports docs/tasks.md
-Tasks 3.5 and 9.2 and aligns with .junie/guidelines.md (clarity, determinism)
+Tasks 3.5 and 9.2 and aligns with project guidelines (clarity, determinism)
 and docs/plan.md (stabilize local LM Studio path).
 
 Checks:
@@ -75,8 +75,8 @@ def main() -> int:
     if not reachable:
         ok = False
         messages.append(
-            "LM Studio endpoint appears unreachable: {}.\n".format(endpoint)
-            + "Last error: {}\n".format(last_err)
+            f"LM Studio endpoint appears unreachable: {endpoint}.\n"
+            + f"Last error: {last_err}\n"
             + "Verify LM Studio is running and listening at LM_STUDIO_ENDPOINT, or adjust the endpoint.\n"
             + "Example enablement:\n"
             + '  poetry install --with dev --extras "tests llm"\n'
