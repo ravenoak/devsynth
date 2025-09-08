@@ -1,7 +1,7 @@
 # Tasks
 
 ## 1. Release Preparation
-- [x] 1.1 Install go-task and verify environment.
+- [x] 1.1 Install go-task and verify environment (reinstalled v3.44.1).
 - [x] 1.2 Ensure devsynth package installed and fast tests pass.
 - [x] 1.3 Audit outstanding release-blocking issues.
 - [ ] 1.4 Document full release checklist and environment setup.
