@@ -18,7 +18,6 @@
     "Feature 'Performance and scalability testing' has tests but is not documented.",
     "Feature 'Release state check' has tests but is not documented.",
     "Feature 'Resolve pytest-xdist assertion errors' has tests but is not documented.",
-    "Feature 'Review and Reprioritize Open Issues' has tests but is not documented.",
     "Feature 'User Authentication' has tests but is not documented.",
     "Feature 'Version bump script' has tests but is not documented.",
     "Feature 'Complete memory system integration' is referenced in docs or tests but not in code.",
@@ -28,5 +27,7 @@
     "Feature 'Logging Setup Utilities' is referenced in docs or tests but not in code.",
     "Feature 'Performance and scalability testing' is referenced in docs or tests but not in code."
   ],
-  "resolved": []
+  "resolved": [
+    "Feature 'Review and Reprioritize Open Issues' addressed through release-blocker audit (2025-09-09)."
+  ]
 }
