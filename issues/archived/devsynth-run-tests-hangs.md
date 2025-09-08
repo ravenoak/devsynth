@@ -1,6 +1,6 @@
-# DevSynth run-tests hangs
-Milestone: 0.1.0-alpha.1
-Status: blocked
+# Issue 163: DevSynth run-tests hangs
+Milestone: 0.1.0-alpha.1 (completed 2025-09-08)
+Status: closed
 Priority: high
 Dependencies: Resolve-pytest-xdist-assertion-errors.md
 
@@ -19,6 +19,9 @@ Executing `poetry run devsynth run-tests --speed fast` or `pytest -m fast` hangs
 - 2025-08-23: After reinstalling the environment, `scripts/install_dev.sh` installed go-task v3.44.1 and `poetry install --with dev --extras "tests retrieval chromadb api"` ran. `task --version` shows 3.44.1 and `poetry run devsynth --help` displays CLI options, but `poetry run devsynth run-tests --speed=fast` exits immediately with `ModuleNotFoundError: No module named 'devsynth'`.
 
 - 2025-08-23: Installed missing Typer dependency via `pipx runpip devsynth install typer`; `devsynth --help` now fails with `ModuleNotFoundError: No module named 'jsonschema'`, leaving `devsynth run-tests` unusable.
+
+- 2025-09-08: Executed `poetry install --with dev --extras "tests retrieval chromadb api"`; `poetry run devsynth run-tests --speed=fast` now passes with 162 tests.
+- Status: closed
 
 ## References
 - issues/release-readiness-v0-1-0-alpha-1.md
