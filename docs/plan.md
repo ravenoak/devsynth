@@ -58,7 +58,7 @@ Concrete remediation tasks (actionable specifics)
      - Correct pattern:
        from hypothesis import given, example
        from hypothesis import strategies as st
-       
+
        @pytest.mark.fast
        @pytest.mark.property
        @given(st.from_type(Requirement))

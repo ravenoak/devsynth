@@ -9,7 +9,7 @@ Purpose: Validate StorageAdapter protocol shape via a pure-Python dummy, without
 This is a fast unit test and should never access network or optional deps.
 """
 
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from devsynth.application.memory.adapters.storage_adapter import StorageAdapter
 from devsynth.domain.models.memory import MemoryItem
@@ -19,18 +19,18 @@ class _DummyStore(StorageAdapter):
     backend_type = "dummy"
 
     def __init__(self) -> None:
-        self._data: Dict[str, MemoryItem] = {}
-        self._tx_active: Dict[str, bool] = {}
+        self._data: dict[str, MemoryItem] = {}
+        self._tx_active: dict[str, bool] = {}
 
     # MemoryStore protocol methods
     def store(self, item: MemoryItem) -> str:  # type: ignore[override]
         self._data[item.id] = item
         return item.id
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:  # type: ignore[override]
+    def retrieve(self, item_id: str) -> MemoryItem | None:  # type: ignore[override]
         return self._data.get(item_id)
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:  # type: ignore[override]
+    def search(self, query: dict[str, Any]) -> list[MemoryItem]:  # type: ignore[override]
         q = str(query.get("query", "")).lower()
         return [m for m in self._data.values() if q in str(m.content).lower()]
 

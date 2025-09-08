@@ -1,4 +1,5 @@
 import os
+
 import pytest
 
 # Speed marker discipline: exactly one speed marker per test
@@ -13,7 +14,9 @@ def test_chromadb_adapter_imports() -> None:
       poetry install --with dev --extras chromadb
       export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
     """
-    mod = __import__("devsynth.adapters.chromadb_memory_store", fromlist=["ChromaDBMemoryStore"])  # noqa: S401
+    mod = __import__(
+        "devsynth.adapters.chromadb_memory_store", fromlist=["ChromaDBMemoryStore"]
+    )  # noqa: S401
     assert hasattr(mod, "ChromaDBMemoryStore")
 
 
@@ -25,7 +28,9 @@ def test_kuzu_adapter_imports() -> None:
       poetry install --with dev --extras retrieval
       export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
     """
-    mod = __import__("devsynth.adapters.kuzu_memory_store", fromlist=["KuzuMemoryStore"])  # noqa: S401
+    mod = __import__(
+        "devsynth.adapters.kuzu_memory_store", fromlist=["KuzuMemoryStore"]
+    )  # noqa: S401
     assert hasattr(mod, "KuzuMemoryStore")
 
 
@@ -43,5 +48,7 @@ def test_faiss_store_imports_and_minimal() -> None:
     assert hasattr(faiss, "IndexFlatL2")
 
     # Our store is under application.memory.faiss_store
-    mod = __import__("devsynth.application.memory.faiss_store", fromlist=["FAISSStore"])  # noqa: S401
+    mod = __import__(
+        "devsynth.application.memory.faiss_store", fromlist=["FAISSStore"]
+    )  # noqa: S401
     assert hasattr(mod, "FAISSStore")
