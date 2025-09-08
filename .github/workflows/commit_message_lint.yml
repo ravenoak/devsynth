@@ -1,12 +1,8 @@
 name: Commit Message Lint
 
 on:
-  push:
-    branches: [ main, develop, "release/*" ]
-  pull_request:
-    branches: [ "**" ]
   workflow_dispatch:
-
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 jobs:
   commit-lint:
     runs-on: ubuntu-latest

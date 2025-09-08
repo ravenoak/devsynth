@@ -1,12 +1,8 @@
 name: Packaging Test (pipx)
 
 on:
-  workflow_dispatch: {}
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 jobs:
   packaging-pipx:
     name: Build and verify entry points via pipx

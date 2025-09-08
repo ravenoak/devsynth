@@ -1,10 +1,8 @@
 name: Smoke Matrix
 
 on:
-  pull_request:
-  push:
-    branches: [ main, develop ]
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 jobs:
   smoke:
     name: "Smoke (${{ matrix.os }}, py${{ matrix.python }}, extras:${{ matrix.extras }})"
@@ -68,4 +66,3 @@ jobs:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
           poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 --target unit-tests
-
