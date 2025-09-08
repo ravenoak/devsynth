@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Run baseline lint/typing/security checks for DevSynth, aligned with .junie/guidelines.md
+Run baseline lint/typing/security checks for DevSynth, aligned with project guidelines
 and docs/tasks.md §0.7. This wrapper centralizes commands and provides
 concise, deterministic output suitable for notes and CI logs.
 

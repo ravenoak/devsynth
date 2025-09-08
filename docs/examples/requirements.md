@@ -2,7 +2,7 @@
 
 This page documents the minimal installation required to run each example and gates heavier examples behind optional extras. Install via Poetry to ensure plugin availability and consistent environments.
 
-General setup options (see .junie/guidelines.md):
+General setup options (see project guidelines):
 - Minimal contributors: `poetry install --with dev --extras minimal`
 - Targeted tests baseline: `poetry install --with dev --extras "tests retrieval chromadb api"`
 - Full dev+docs (heavier): `poetry install --with dev,docs --all-extras`
@@ -24,7 +24,7 @@ Example-specific requirements:
   - `poetry install --with dev --extras minimal`
 
 Notes:
-- Resource-gated tests/examples default to skip unless their resources are available (see tests/conftest.py and .junie/guidelines.md). To force-enable a backend locally, install the extra and export the availability flag, e.g.:
+- Resource-gated tests/examples default to skip unless their resources are available (see tests/conftest.py and project guidelines). To force-enable a backend locally, install the extra and export the availability flag, e.g.:
   - `poetry add tinydb --group dev`
   - `export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true`
 - For offline/deterministic runs, keep `DEVSYNTH_OFFLINE=true` and provider set to `stub` unless intentionally testing remote providers.

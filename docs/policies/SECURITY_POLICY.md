@@ -4,7 +4,7 @@ This policy outlines how we approach security in DevSynth and how contributors c
 
 - We run automated security scans for code (Bandit) and dependencies (Safety) in CI for every push and PR. See `docs/security/security_scans.md` for details and local usage.
 - Findings are triaged promptly. Prefer fixes over suppressions; document any exception with a justification and time-bounded remediation plan.
-- Align with principles in `.junie/the_real_core.md` and development guidance in `.junie/guidelines.md`.
+- Align with principles in `.junie/the_real_core.md` and development guidance in `project guidelines`.
 - Sensitive operations (e.g., provider keys) should use environment variables and never be hard-coded or committed.
 - Example and test code must also avoid insecure patterns unless intentionally included for testing—with clear markers and isolation.
 

@@ -5,7 +5,7 @@ status: active
 ---
 # Development Setup and Common Workflows
 
-This guide outlines a reproducible developer setup and the most common workflows. It aligns with .junie/guidelines.md and the stabilization priorities in docs/plan.md.
+This guide outlines a reproducible developer setup and the most common workflows. It aligns with project guidelines and the stabilization priorities in docs/plan.md.
 
 ## Prerequisites
 - Python 3.12.x (pyproject pins <3.13,>=3.12)

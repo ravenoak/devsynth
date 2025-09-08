@@ -408,7 +408,7 @@ def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
     if "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" not in os.environ:
         monkeypatch.setenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
 
-    # Enforce hermetic provider defaults unless explicitly overridden (docs/plan.md §8; .junie/guidelines.md)
+    # Enforce hermetic provider defaults unless explicitly overridden (docs/plan.md §8; project guidelines)
     if "DEVSYNTH_PROVIDER" not in os.environ:
         monkeypatch.setenv("DEVSYNTH_PROVIDER", "stub")
     if "DEVSYNTH_OFFLINE" not in os.environ:

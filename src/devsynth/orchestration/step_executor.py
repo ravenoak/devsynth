@@ -4,7 +4,7 @@ Core orchestration step executor.
 This module centralizes business rules for executing a workflow step so that
 adapters (e.g., LangGraph adapter) remain thin and focused on integration.
 
-Aligned with .junie/guidelines.md and docs/plan.md (architecture boundaries).
+Aligned with project guidelines and docs/plan.md (architecture boundaries).
 """
 
 from __future__ import annotations
@@ -101,7 +101,7 @@ class OrchestrationService:
             }
         )
 
-        task: Dict[str, Any] = {
+        task: dict[str, Any] = {
             "step_id": step.id,
             "step_name": step.name,
             "step_description": step.description,

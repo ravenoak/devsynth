@@ -6,7 +6,7 @@ It scans test files for pytest markers, attempts a minimal 'collection' by
 executing modules in an isolated namespace to catch basic import errors, and
 uses a content-hash cache to avoid reprocessing unchanged files.
 
-Adheres to .junie/guidelines.md: deterministic behavior, clear outputs, and
+Adheres to project guidelines: deterministic behavior, clear outputs, and
 graceful failure handling. Designed to be extended along docs/plan.md.
 """
 from __future__ import annotations

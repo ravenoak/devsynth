@@ -1,6 +1,6 @@
 # Behavior-Driven (BDD) Test Suite Triage
 
-Purpose: Inventory BDD failures, map to feature files and step definitions, and create actionable sub-issues. Maintained per .junie/guidelines.md and BDD best practices.
+Purpose: Inventory BDD failures, map to feature files and step definitions, and create actionable sub-issues. Maintained per project guidelines and BDD best practices.
 
 Updated: 2025-08-24
 Owner: QA/DevInfra

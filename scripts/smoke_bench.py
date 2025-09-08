@@ -9,17 +9,18 @@ Smoke benchmarks to catch gross performance regressions quickly.
 Use:
   poetry run python scripts/smoke_bench.py
 
-This addresses docs/tasks.md item 15.2 and aligns with .junie/guidelines.md and docs/plan.md.
+This addresses docs/tasks.md item 15.2 and aligns with project guidelines and docs/plan.md.
 """
 from __future__ import annotations
 
 import json
 import time
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
+from collections.abc import Callable
 
 
-def bench(name: str, fn: Callable[[], Any], repeat: int = 50) -> Dict[str, Any]:
-    times: List[float] = []
+def bench(name: str, fn: Callable[[], Any], repeat: int = 50) -> dict[str, Any]:
+    times: list[float] = []
     for _ in range(repeat):
         t0 = time.perf_counter()
         fn()
@@ -65,7 +66,7 @@ def _cli_parse_dummy() -> None:
 
 
 def main() -> None:
-    benches: List[Tuple[str, Callable[[], Any]]] = [
+    benches: list[tuple[str, Callable[[], Any]]] = [
         ("provider_env_parse", _provider_env_parse),
         ("serialization_roundtrip", _serialization_roundtrip),
         ("cli_import_parse", _cli_parse_dummy),

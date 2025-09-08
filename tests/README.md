@@ -609,7 +609,7 @@ Generate an updated marker report after modifying tests:
 poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
 ```
 
-Contributor workflow for speed markers (aligns with docs/plan.md and .junie/guidelines.md):
+Contributor workflow for speed markers (aligns with docs/plan.md and project guidelines):
 - Before committing changed tests:
   - Run the fixer to add missing markers conservatively:
     ```bash
@@ -645,7 +645,7 @@ Including the requirement ID ensures traceability between tests and requirements
 
 ## Default-to-stability shortcuts
 
-When triaging failures or validating a fresh environment, prefer the stable, low‑surface commands below. They align with .junie/guidelines.md and docs/plan.md and are safe to copy‑paste.
+When triaging failures or validating a fresh environment, prefer the stable, low‑surface commands below. They align with project guidelines and docs/plan.md and are safe to copy‑paste.
 
 - Smoke mode (reduces plugin surface; disables xdist and third‑party plugins):
 

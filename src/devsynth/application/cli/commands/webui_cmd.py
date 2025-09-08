@@ -13,14 +13,14 @@ from devsynth.interface.ux_bridge import UXBridge
 from ..utils import _resolve_bridge
 
 
-def webui_cmd(*, bridge: Optional[UXBridge] = None) -> None:
+def webui_cmd(*, bridge: UXBridge | None = None) -> None:
     """Launch the Streamlit WebUI.
 
     Notes:
         - This command requires the optional web UI dependencies. To install:
           `poetry install --with dev --extras webui` or equivalent.
         - Implemented with a lazy import so that the main CLI remains importable
-          in minimal environments (no Streamlit installed), per .junie/guidelines.md.
+          in minimal environments (no Streamlit installed), per project guidelines.
     """
     bridge = _resolve_bridge(bridge)
     try:

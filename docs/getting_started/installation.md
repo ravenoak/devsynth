@@ -59,7 +59,7 @@ For contributors who don't need heavy optional dependencies, use the minimal ext
 poetry install --with dev --extras minimal
 ```
 
-This aligns with the project guidelines in .junie/guidelines.md and speeds up first-time setup.
+This aligns with the project guidelines in project guidelines and speeds up first-time setup.
 
 See also: [Resources Matrix](../resources_matrix.md) for mapping extras to resource flags and quick enablement commands.
 

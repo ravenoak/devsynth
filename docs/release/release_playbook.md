@@ -9,7 +9,7 @@ last_reviewed: "2025-08-26"
 
 # DevSynth Release Playbook
 
-This concise playbook describes the end-to-end process for preparing, validating, and publishing a DevSynth release. It aligns with .junie/guidelines.md and docs/plan.md and traces to tasks in docs/tasks.md (70, 73, 75, 76, 77, 78).
+This concise playbook describes the end-to-end process for preparing, validating, and publishing a DevSynth release. It aligns with project guidelines and docs/plan.md and traces to tasks in docs/tasks.md (70, 73, 75, 76, 77, 78).
 
 ## 1) Version bump and changelog
 - Ensure pyproject.toml reflects the target version (PEP 440). Example: `0.1.0a1`.
@@ -77,7 +77,7 @@ See: docs/release/post_release_validation.md
 - If docs fail: `poetry run mkdocs build` and fix broken links.
 
 ## References
-- .junie/guidelines.md
+- project guidelines
 - docs/plan.md
 - docs/release/release_readiness.md
 - docs/release/post_release_validation.md

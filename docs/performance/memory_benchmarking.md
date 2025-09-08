@@ -6,7 +6,7 @@ version: "0.1.0-alpha.1"
 ---
 # Memory Backend Benchmarking and Recommendations
 
-This guide describes how to run lightweight read/write benchmarks for optional memory backends and provides practical defaults. It aligns with .junie/guidelines.md and docs/plan.md (determinism, minimal deps).
+This guide describes how to run lightweight read/write benchmarks for optional memory backends and provides practical defaults. It aligns with project guidelines and docs/plan.md (determinism, minimal deps).
 
 ## How to Run
 
@@ -31,4 +31,4 @@ These are heuristics; always validate with your workload using the script above.
 
 ## Notes
 - Benchmarks use temp directories and avoid network access, consistent with our test isolation principles.
-- Resource flags mirror the test resource-gating system documented in .junie/guidelines.md.
+- Resource flags mirror the test resource-gating system documented in project guidelines.

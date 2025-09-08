@@ -44,4 +44,4 @@ Notes:
 ## Rationale and Alignment
 - Follows optional-by-default and lazy import principles
 - Integrates with existing MVUU utilities but exposes a top‑level entry for discoverability
-- Matches project guidelines (.junie/guidelines.md) and the improvement plan (docs/plan.md)
+- Matches project guidelines (project guidelines) and the improvement plan (docs/plan.md)

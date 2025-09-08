@@ -12,7 +12,7 @@ Validation
 - Parser supports common coverage.py JSON formats: totals.percent_covered, totals.percent_covered_display, or computed covered_lines/num_statements.
 
 Notes / Alignment
-- Aligns with docs/plan.md Phase 4 (regression guard) and .junie/guidelines.md: deterministic, CLI-friendly, clear exit codes.
+- Aligns with docs/plan.md Phase 4 (regression guard) and project guidelines: deterministic, CLI-friendly, clear exit codes.
 - CI wiring remains pending (Task 8.x) and will be addressed in a separate iteration; today we only provide the script deliverable.
 
 Next Targets

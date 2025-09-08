@@ -8,7 +8,7 @@ Lightweight read/write benchmark across optional memory backends.
 - Prints a compact JSON report to stdout.
 
 This script is intentionally dependency-light and suitable for local runs.
-It aligns with .junie/guidelines.md and docs/plan.md (determinism) and addresses docs/tasks.md item 11.3.
+It aligns with project guidelines and docs/plan.md (determinism) and addresses docs/tasks.md item 11.3.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def _bool_env(name: str) -> bool:
     return os.environ.get(name, "false").strip().lower() in {"1", "true", "yes", "y"}
 
 
-def payloads() -> List[bytes]:
+def payloads() -> list[bytes]:
     return [
         b"x" * 1024,  # 1 KiB
         b"x" * (100 * 1024),  # 100 KiB
@@ -32,7 +32,7 @@ def payloads() -> List[bytes]:
     ]
 
 
-def bench_tinydb(tmp: Path) -> Dict[str, Any]:
+def bench_tinydb(tmp: Path) -> dict[str, Any]:
     if not _bool_env("DEVSYNTH_RESOURCE_TINYDB_AVAILABLE"):
         return {"backend": "tinydb", "skipped": True, "reason": "flag false"}
     try:
@@ -41,7 +41,7 @@ def bench_tinydb(tmp: Path) -> Dict[str, Any]:
         return {"backend": "tinydb", "skipped": True, "reason": f"import error: {e}"}
 
     db_path = tmp / "tiny.json"
-    results: Dict[str, Any] = {"backend": "tinydb", "samples": []}
+    results: dict[str, Any] = {"backend": "tinydb", "samples": []}
     with TinyDB(db_path) as db:  # type: ignore
         table = db.table("bench")
         for p in payloads():
@@ -59,7 +59,7 @@ def bench_tinydb(tmp: Path) -> Dict[str, Any]:
     return results
 
 
-def bench_duckdb(tmp: Path) -> Dict[str, Any]:
+def bench_duckdb(tmp: Path) -> dict[str, Any]:
     if not _bool_env("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE"):
         return {"backend": "duckdb", "skipped": True, "reason": "flag false"}
     try:
@@ -71,7 +71,7 @@ def bench_duckdb(tmp: Path) -> Dict[str, Any]:
     con = duckdb.connect(str(db_path))  # type: ignore
     try:
         con.execute("create table if not exists bench(key varchar, blob blob)")
-        results: Dict[str, Any] = {"backend": "duckdb", "samples": []}
+        results: dict[str, Any] = {"backend": "duckdb", "samples": []}
         for p in payloads():
             t0 = time.perf_counter()
             con.execute("insert into bench values (?, ?)", ("k", p))
@@ -88,7 +88,7 @@ def bench_duckdb(tmp: Path) -> Dict[str, Any]:
         con.close()
 
 
-def bench_lmdb(tmp: Path) -> Dict[str, Any]:
+def bench_lmdb(tmp: Path) -> dict[str, Any]:
     if not _bool_env("DEVSYNTH_RESOURCE_LMDB_AVAILABLE"):
         return {"backend": "lmdb", "skipped": True, "reason": "flag false"}
     try:
@@ -97,7 +97,7 @@ def bench_lmdb(tmp: Path) -> Dict[str, Any]:
         return {"backend": "lmdb", "skipped": True, "reason": f"import error: {e}"}
 
     env = lmdb.open(str(tmp / "lmdb"), map_size=64 * 1024 * 1024)  # 64 MiB
-    results: Dict[str, Any] = {"backend": "lmdb", "samples": []}
+    results: dict[str, Any] = {"backend": "lmdb", "samples": []}
     with env.begin(write=True) as txn:
         for p in payloads():
             t0 = time.perf_counter()

@@ -2,7 +2,7 @@
 """
 Run style checks for the DevSynth repository using Black and isort.
 
-This helper mirrors the commands referenced in docs/tasks.md and .junie/guidelines.md
+This helper mirrors the commands referenced in docs/tasks.md and project guidelines
 so contributors can quickly validate formatting locally via Poetry.
 
 Behavior:
@@ -25,7 +25,7 @@ import sys
 from typing import List
 
 
-def run(cmd: List[str]) -> int:
+def run(cmd: list[str]) -> int:
     """Run a subprocess command returning its exit code, printing the command for clarity."""
     print("$", " ".join(cmd))
     try:
@@ -37,7 +37,7 @@ def run(cmd: List[str]) -> int:
         return 127
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="DevSynth style checks: Black and isort"
     )
