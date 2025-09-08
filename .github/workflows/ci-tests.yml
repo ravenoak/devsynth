@@ -1,16 +1,8 @@
 name: CI Tests Matrix
 
 on:
-  pull_request:
-    branches: [ "**" ]
-  push:
-    branches: [ main ]
-  schedule:
-    # Medium suite nightly at 02:10 UTC
-    - cron: '10 2 * * *'
-    # Slow suite weekly on Sundays at 03:20 UTC
-    - cron: '20 3 * * 0'
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 permissions:
   contents: read
 

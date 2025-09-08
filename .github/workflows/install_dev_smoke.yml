@@ -1,16 +1,8 @@
 name: Install Dev Environment (Smoke)
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'scripts/install_dev.sh'
-      - '.github/workflows/install_dev_smoke.yml'
-      - 'pyproject.toml'
-  pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch: {}
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 concurrency:
   group: install-dev-smoke-${{ github.ref }}
   cancel-in-progress: true

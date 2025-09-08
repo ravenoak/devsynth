@@ -5,6 +5,8 @@
 **What is DevSynth?**
 DevSynth implements agent services under `src/devsynth/` and supporting scripts under `scripts/`. It values clarity, collaboration, and dependable automation. For architecture and policy references, see `docs/` and `CONTRIBUTING.md`.
 
+> **NOTE:** All GitHub Actions workflows are temporarily disabled and must be triggered manually via `workflow_dispatch` until the `v0.1.0-alpha.1` tag is created (see `docs/tasks.md` item 10.1).
+
 ## Setup
 
 **How do I prepare my environment?**

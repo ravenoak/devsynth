@@ -1,11 +1,8 @@
 name: DevSynth Low-Throughput CI (post-0.1.0a1)
 
 on:
-  # Intentionally disabled by default until after the 0.1.0a1 tag.
-  # Maintainers: replace with 'push' and 'pull_request' after the release,
-  # or trigger manually via the button in GitHub UI.
   workflow_dispatch:
-
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 env:
   PYTHON_VERSION: '3.12'
 

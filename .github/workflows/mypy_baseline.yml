@@ -1,15 +1,8 @@
 name: Mypy Baseline (On-Demand)
 
 on:
-  workflow_dispatch: {}
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'src/**'
-      - 'pyproject.toml'
-      - '.github/workflows/mypy_baseline.yml'
-      - 'scripts/generate_mypy_baseline_issues.py'
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 concurrency:
   group: mypy-baseline-${{ github.ref }}
   cancel-in-progress: true

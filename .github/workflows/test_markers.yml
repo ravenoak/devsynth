@@ -1,22 +1,8 @@
 name: Test Markers Verification
 
 on:
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'tests/**'
-      - 'scripts/verify_test_markers.py'
-      - '.github/workflows/test_markers.yml'
-  push:
-    branches: [ main ]
-    paths:
-      - 'tests/**'
-      - 'scripts/verify_test_markers.py'
-      - '.github/workflows/test_markers.yml'
-  schedule:
-    - cron: '0 3 * * *'  # nightly UTC
-  workflow_dispatch: {}
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 concurrency:
   group: test-markers-${{ github.ref }}
   cancel-in-progress: true
