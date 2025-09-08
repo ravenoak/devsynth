@@ -1,16 +1,8 @@
 name: Mypy Incremental
 
 on:
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'poetry.lock'
-      - '.github/workflows/mypy_incremental.yml'
-      - 'scripts/mypy_incremental.py'
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 concurrency:
   group: mypy-incremental-${{ github.ref }}
   cancel-in-progress: true

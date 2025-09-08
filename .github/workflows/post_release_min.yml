@@ -2,23 +2,7 @@ name: Post-Release Minimal Verify
 
 on:
   workflow_dispatch:
-    inputs:
-      run_lmstudio_subset:
-        description: "Run LM Studio subset (manual opt-in)"
-        required: false
-        default: "false"
-        type: choice
-        options: ["false", "true"]
-      run_openai_subset:
-        description: "Run OpenAI subset (manual opt-in)"
-        required: false
-        default: "false"
-        type: choice
-        options: ["false", "true"]
-  schedule:
-    # Nightly minimal verification (no provider subsets by default)
-    - cron: '0 6 * * *'
-
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 concurrency:
   group: post-release-min-${{ github.ref }}
   cancel-in-progress: true

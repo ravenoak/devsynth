@@ -2,21 +2,7 @@ name: Provider Subsets (Manual)
 
 on:
   workflow_dispatch:
-    inputs:
-      subset:
-        description: "Which subset to run"
-        required: true
-        default: "all"
-        type: choice
-        options:
-          - all
-          - lmstudio
-          - openai
-      lm_studio_endpoint:
-        description: "LM Studio endpoint (optional; defaults to http://127.0.0.1:1234)"
-        required: false
-        type: string
-
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 jobs:
   run-subsets:
     runs-on: ubuntu-latest

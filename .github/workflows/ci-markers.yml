@@ -1,12 +1,8 @@
 name: Test Markers Report
 
 on:
-  pull_request:
-    branches: [ main, develop ]
-  push:
-    branches: [ main ]
-  workflow_dispatch: {}
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 permissions:
   contents: read
 

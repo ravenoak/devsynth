@@ -1,10 +1,8 @@
 name: Packaging Sanity (Poetry Build)
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
 jobs:
   build:
     name: Build sdist and wheel
