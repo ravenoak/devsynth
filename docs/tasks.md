@@ -66,8 +66,8 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 7. Behavior and Integration Completeness (Phase 3)
 7.1 [x] Ensure behavior tests cover CLI examples: unit fast no-parallel, report generation, smoke mode.
 7.2 [x] Add scenarios for feature flags and segmented runs if missing.
-7.3 [ ] Review ingestion and metrics integrations to avoid external dependencies by default; expand fixtures to simulate inputs.
-7.4 [ ] Verify metrics consistency via assertions in integration tests.
+7.3 [x] Review ingestion and metrics integrations to avoid external dependencies by default; expand fixtures to simulate inputs.
+7.4 [x] Verify metrics consistency via assertions in integration tests.
 
 8. Non-functional Quality Gates (Phase 4)
 8.1 [ ] Black formatting check: `poetry run black --check .`.
