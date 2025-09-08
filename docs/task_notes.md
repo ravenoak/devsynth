@@ -8,3 +8,6 @@
 - `task` command missing again; reinstalled via scripts/install_dev.sh (v3.44.1).
 - Fast tests pass (162 passed, 27 skipped); `scripts/verify_test_markers.py` reports zero test files.
 - Release readiness still blocked by unresolved pytest-xdist errors and unverified medium/slow tests.
+2025-09-10:
+- Reinstalled go-task via scripts/install_dev.sh; confirmed `task --version` outputs v3.44.1.
+- Dependency installation was interrupted, so additional verification steps remain.
