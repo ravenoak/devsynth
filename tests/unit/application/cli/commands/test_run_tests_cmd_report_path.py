@@ -22,7 +22,9 @@ class DummyBridge(UXBridge):
 
 
 @pytest.mark.fast
-def test_report_flag_with_missing_directory_prints_warning(tmp_path, monkeypatch) -> None:
+def test_report_flag_with_missing_directory_prints_warning(
+    tmp_path, monkeypatch
+) -> None:
     """ReqID: CLI-RT-12 — Report flag prints helpful message even if dir missing.
 
     Simulate a successful run with --report but test_reports/ absent. The CLI

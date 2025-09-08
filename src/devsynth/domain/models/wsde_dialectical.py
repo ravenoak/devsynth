@@ -20,7 +20,7 @@ logger = DevSynthLogger(__name__)
 
 def apply_dialectical_reasoning(
     self: WSDETeam,
-    task: Dict[str, Any],
+    task: dict[str, Any],
     critic_agent: Any,
     memory_integration: Any = None,
 ):
@@ -73,7 +73,7 @@ def apply_dialectical_reasoning(
     return result
 
 
-def _generate_antithesis(self: WSDETeam, thesis: Dict[str, Any], critic_agent: Any):
+def _generate_antithesis(self: WSDETeam, thesis: dict[str, Any], critic_agent: Any):
     """
     Generate an antithesis to a thesis.
 
@@ -181,7 +181,7 @@ def _generate_antithesis(self: WSDETeam, thesis: Dict[str, Any], critic_agent: A
 
 
 def _generate_synthesis(
-    self: WSDETeam, thesis: Dict[str, Any], antithesis: Dict[str, Any]
+    self: WSDETeam, thesis: dict[str, Any], antithesis: dict[str, Any]
 ):
     """
     Generate a synthesis from a thesis and antithesis.
@@ -418,7 +418,7 @@ def _generate_synthesis(
     return synthesis
 
 
-def _categorize_critiques_by_domain(self: WSDETeam, critiques: List[str]):
+def _categorize_critiques_by_domain(self: WSDETeam, critiques: list[str]):
     """
     Categorize critiques by domain.
 
@@ -494,7 +494,7 @@ def _categorize_critiques_by_domain(self: WSDETeam, critiques: List[str]):
     return domain_critiques
 
 
-def _identify_domain_conflicts(self: WSDETeam, domain_critiques: Dict[str, List[str]]):
+def _identify_domain_conflicts(self: WSDETeam, domain_critiques: dict[str, list[str]]):
     """
     Identify conflicts between critiques from different domains.
 
@@ -611,7 +611,7 @@ def _identify_domain_conflicts(self: WSDETeam, domain_critiques: Dict[str, List[
     return conflicts
 
 
-def _prioritize_critiques(self: WSDETeam, critiques: List[str]):
+def _prioritize_critiques(self: WSDETeam, critiques: list[str]):
     """
     Prioritize critiques based on severity and relevance.
 
@@ -699,9 +699,9 @@ def _calculate_priority_score(self: WSDETeam, severity: str, relevance: float):
 
 def _resolve_code_improvement_conflict(
     self: WSDETeam,
-    conflict: Dict[str, Any],
-    improvements1: List[str],
-    improvements2: List[str],
+    conflict: dict[str, Any],
+    improvements1: list[str],
+    improvements2: list[str],
 ):
     """
     Resolve conflicts between code improvements.
@@ -746,9 +746,9 @@ def _resolve_code_improvement_conflict(
 
 def _resolve_content_improvement_conflict(
     self: WSDETeam,
-    conflict: Dict[str, Any],
-    improvements1: List[str],
-    improvements2: List[str],
+    conflict: dict[str, Any],
+    improvements1: list[str],
+    improvements2: list[str],
 ):
     """
     Resolve conflicts between content improvements.
@@ -1039,11 +1039,11 @@ def _balance_performance_and_maintainability(self: WSDETeam, code: str):
 
 def _generate_detailed_synthesis_reasoning(
     self: WSDETeam,
-    domain_critiques: Dict[str, List[str]],
-    domain_improvements: Dict[str, List[str]],
-    domain_conflicts: List[Dict[str, Any]],
-    resolved_conflicts: List[Dict[str, Any]],
-    standards_compliance: Dict[str, Any],
+    domain_critiques: dict[str, list[str]],
+    domain_improvements: dict[str, list[str]],
+    domain_conflicts: list[dict[str, Any]],
+    resolved_conflicts: list[dict[str, Any]],
+    standards_compliance: dict[str, Any],
 ):
     """
     Generate detailed reasoning for the synthesis.
@@ -1089,7 +1089,7 @@ def _generate_detailed_synthesis_reasoning(
             matching_resolutions = [
                 r
                 for r in resolved_conflicts
-                if set(r["domains"]) == set([conflict["domain1"], conflict["domain2"]])
+                if set(r["domains"]) == {conflict["domain1"], conflict["domain2"]}
             ]
             if matching_resolutions:
                 resolution = matching_resolutions[0]

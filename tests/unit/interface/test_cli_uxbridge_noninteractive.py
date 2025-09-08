@@ -36,7 +36,9 @@ def test_noninteractive_returns_defaults_and_logs(monkeypatch):
     assert confirmed is True
 
     # Ensure debug logs emitted for non-interactive path
-    debug_calls = " ".join(" ".join(map(str, c.args)) for c in debug_mock.call_args_list)
+    debug_calls = " ".join(
+        " ".join(map(str, c.args)) for c in debug_mock.call_args_list
+    )
     assert "Non-interactive mode" in debug_calls
 
 

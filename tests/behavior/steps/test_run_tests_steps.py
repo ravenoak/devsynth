@@ -14,7 +14,7 @@ _REPO_ROOT = os.path.abspath(
 
 
 @pytest.fixture
-def command_result() -> Dict[str, str]:
+def command_result() -> dict[str, str]:
     """Store information about a command execution."""
     return {}
 
@@ -32,7 +32,7 @@ def unset_env(name: str, monkeypatch) -> None:
 
 
 @when('I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel"')
-def invoke_run_tests(command_result: Dict[str, str]) -> None:
+def invoke_run_tests(command_result: dict[str, str]) -> None:
     env = os.environ.copy()
     env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
     env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
@@ -52,7 +52,7 @@ def invoke_run_tests(command_result: Dict[str, str]) -> None:
 
 
 @when('I invoke "devsynth run-tests --target unit-tests --speed=fast"')
-def invoke_run_tests_parallel(command_result: Dict[str, str]) -> None:
+def invoke_run_tests_parallel(command_result: dict[str, str]) -> None:
     env = os.environ.copy()
     env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
     env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
@@ -73,7 +73,7 @@ def invoke_run_tests_parallel(command_result: Dict[str, str]) -> None:
 @when(
     'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --segment --segment-size=1"'
 )
-def invoke_run_tests_segment(command_result: Dict[str, str]) -> None:
+def invoke_run_tests_segment(command_result: dict[str, str]) -> None:
     env = os.environ.copy()
     env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
     env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
@@ -98,7 +98,7 @@ def invoke_run_tests_segment(command_result: Dict[str, str]) -> None:
 @when(
     'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --feature experimental"'
 )
-def invoke_run_tests_feature(command_result: Dict[str, str]) -> None:
+def invoke_run_tests_feature(command_result: dict[str, str]) -> None:
     env = os.environ.copy()
     env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
     env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
@@ -122,7 +122,7 @@ def invoke_run_tests_feature(command_result: Dict[str, str]) -> None:
 @when(
     'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1"'
 )
-def invoke_run_tests_maxfail(command_result: Dict[str, str]) -> None:
+def invoke_run_tests_maxfail(command_result: dict[str, str]) -> None:
     env = os.environ.copy()
     env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
     env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
@@ -143,23 +143,23 @@ def invoke_run_tests_maxfail(command_result: Dict[str, str]) -> None:
 
 
 @then("the command should succeed")
-def command_succeeds(command_result: Dict[str, str]) -> None:
+def command_succeeds(command_result: dict[str, str]) -> None:
     assert command_result.get("exit_code") == 0
 
 
 @then("the command should fail")
-def command_fails(command_result: Dict[str, str]) -> None:
+def command_fails(command_result: dict[str, str]) -> None:
     assert command_result.get("exit_code") != 0
 
 
 @then("the output should mention no tests were run")
-def output_mentions_no_tests(command_result: Dict[str, str]) -> None:
+def output_mentions_no_tests(command_result: dict[str, str]) -> None:
     output = command_result.get("output", "").lower()
     assert "collected 0 items" in output or "no tests ran" in output
 
 
 @then("the output should not contain xdist assertions")
-def output_no_xdist_assertions(command_result: Dict[str, str]) -> None:
+def output_no_xdist_assertions(command_result: dict[str, str]) -> None:
     output = command_result.get("output", "")
     assert "INTERNALERROR" not in output
 
@@ -167,7 +167,7 @@ def output_no_xdist_assertions(command_result: Dict[str, str]) -> None:
 @when(
     'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --report"'
 )
-def invoke_run_tests_report(command_result: Dict[str, str]) -> None:
+def invoke_run_tests_report(command_result: dict[str, str]) -> None:
     env = os.environ.copy()
     env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
     env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
@@ -188,13 +188,13 @@ def invoke_run_tests_report(command_result: Dict[str, str]) -> None:
 
 
 @then("the output should mention html report path")
-def output_mentions_html_report_path(command_result: Dict[str, str]) -> None:
+def output_mentions_html_report_path(command_result: dict[str, str]) -> None:
     output = command_result.get("output", "").lower()
     assert "html report available under" in output
 
 
 @when('I invoke "devsynth run-tests --smoke --speed=fast --no-parallel"')
-def invoke_run_tests_smoke(command_result: Dict[str, str]) -> None:
+def invoke_run_tests_smoke(command_result: dict[str, str]) -> None:
     env = os.environ.copy()
     env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
     env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")

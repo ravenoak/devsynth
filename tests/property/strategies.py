@@ -103,7 +103,7 @@ def requirement_change_strategy() -> st.SearchStrategy[RequirementChange]:
     return st.builds(_build, change_names, req, req)
 
 
-def consensus_outcome_strategy() -> st.SearchStrategy[Dict[str, Any]]:
+def consensus_outcome_strategy() -> st.SearchStrategy[dict[str, Any]]:
     """Generate a simplified consensus outcome dict matching WSDE dialectical shape.
 
     Keys:

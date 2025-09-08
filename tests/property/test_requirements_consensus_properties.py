@@ -49,7 +49,9 @@ class _DummyTeam(WSDETeam):
     def _check_pep8_compliance(self, code: str) -> dict:  # pragma: no cover - trivial
         return {"compliance_level": "high", "issues": [], "suggestions": []}
 
-    def _check_security_best_practices(self, code: str) -> dict:  # pragma: no cover - trivial
+    def _check_security_best_practices(
+        self, code: str
+    ) -> dict:  # pragma: no cover - trivial
         return {"compliance_level": "high", "issues": [], "suggestions": []}
 
 
@@ -60,7 +62,7 @@ class _DummyTeam(WSDETeam):
 @pytest.mark.no_network
 def test_dialectical_reasoning_returns_expected_shape_quickly(thesis_content: str):
     team = _DummyTeam()
-    task: Dict[str, Any] = {
+    task: dict[str, Any] = {
         "solution": {"content": thesis_content, "code": "x=1\nprint(x)"}
     }
     critic = _DummyCritic()
@@ -93,7 +95,7 @@ def test_dialectical_reasoning_returns_expected_shape_quickly(thesis_content: st
 @pytest.mark.medium
 @settings(max_examples=5, deadline=300)
 @given(outcome=consensus_outcome_strategy())
-def test_generated_consensus_outcome_has_expected_keys(outcome: Dict[str, Any]):
+def test_generated_consensus_outcome_has_expected_keys(outcome: dict[str, Any]):
     # Verify required keys exist and have expected types
     for key in (
         "id",
