@@ -22,3 +22,4 @@ Multi-disciplinary Dialectical Reasoning is not yet implemented, limiting DevSyn
 ## References
 - Specification: docs/specifications/multi-disciplinary-dialectical-reasoning.md
 - BDD Feature: tests/behavior/features/multi_disciplinary_dialectical_reasoning.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/multi-disciplinary-dialectical-reasoning.md](../docs/specifications/multi-disciplinary-dialectical-reasoning.md) and scenarios in [tests/behavior/features/multi_disciplinary_dialectical_reasoning.feature](../tests/behavior/features/multi_disciplinary_dialectical_reasoning.feature).

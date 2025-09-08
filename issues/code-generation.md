@@ -20,3 +20,4 @@ Code Generation is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/code-generation.md
 - BDD Feature: tests/behavior/features/code_generation.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/code-generation.md](../docs/specifications/code-generation.md) and scenarios in [tests/behavior/features/code_generation.feature](../tests/behavior/features/code_generation.feature).

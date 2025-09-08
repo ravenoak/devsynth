@@ -20,3 +20,4 @@ Memory Manager and Adapters is not yet implemented, limiting DevSynth's capabili
 ## References
 - Specification: docs/specifications/memory-manager-and-adapters.md
 - BDD Feature: tests/behavior/features/memory_manager_and_adapters.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/memory-manager-and-adapters.md](../docs/specifications/memory-manager-and-adapters.md) and scenarios in [tests/behavior/features/memory_manager_and_adapters.feature](../tests/behavior/features/memory_manager_and_adapters.feature).

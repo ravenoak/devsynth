@@ -34,6 +34,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/complete_memory_system_integration.feature`](../../tests/behavior/features/complete_memory_system_integration.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Reliable persistence and retrieval are core to DevSynth's agent workflow.
 Without a cohesive memory layer, agents encounter inconsistent behavior
 and fragile error handling when optional stores are missing.

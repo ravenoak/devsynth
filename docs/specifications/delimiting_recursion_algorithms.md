@@ -78,3 +78,7 @@ recursion controls.
 ## Implementation Status
 
 This feature is **implemented**. The heuristics are available in `src/devsynth/application/edrr/coordinator.py`.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

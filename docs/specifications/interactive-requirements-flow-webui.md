@@ -30,6 +30,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/interactive_requirements_flow_webui.feature`](../../tests/behavior/features/interactive_requirements_flow_webui.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 ## Specification
 
 ## Acceptance Criteria

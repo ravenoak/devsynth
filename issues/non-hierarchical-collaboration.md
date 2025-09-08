@@ -20,3 +20,4 @@ Non-Hierarchical Collaboration is not yet implemented, limiting DevSynth's capab
 ## References
 - Specification: docs/specifications/non-hierarchical-collaboration.md
 - BDD Feature: tests/behavior/features/non_hierarchical_collaboration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/non-hierarchical-collaboration.md](../docs/specifications/non-hierarchical-collaboration.md) and scenarios in [tests/behavior/features/non_hierarchical_collaboration.feature](../tests/behavior/features/non_hierarchical_collaboration.feature).

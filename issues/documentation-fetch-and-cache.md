@@ -20,3 +20,4 @@ Documentation Fetch and Cache is not yet implemented, limiting DevSynth's capabi
 ## References
 - Specification: docs/specifications/documentation-fetch-and-cache.md
 - BDD Feature: tests/behavior/features/documentation_fetch_and_cache.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/documentation-fetch-and-cache.md](../docs/specifications/documentation-fetch-and-cache.md) and scenarios in [tests/behavior/features/documentation_fetch_and_cache.feature](../tests/behavior/features/documentation_fetch_and_cache.feature).

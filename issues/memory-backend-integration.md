@@ -22,3 +22,4 @@ Memory Backend Integration is not yet implemented, limiting DevSynth's capabilit
 ## References
 - Specification: docs/specifications/memory-backend-integration.md
 - BDD Feature: tests/behavior/features/memory_backend_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/memory-backend-integration.md](../docs/specifications/memory-backend-integration.md) and scenarios in [tests/behavior/features/memory_backend_integration.feature](../tests/behavior/features/memory_backend_integration.feature).

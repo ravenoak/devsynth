@@ -20,3 +20,4 @@ Web Application Generation is not yet implemented, limiting DevSynth's capabilit
 ## References
 - Specification: docs/specifications/web-application-generation.md
 - BDD Feature: tests/behavior/features/web_application_generation.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/web-application-generation.md](../docs/specifications/web-application-generation.md) and scenarios in [tests/behavior/features/web_application_generation.feature](../tests/behavior/features/web_application_generation.feature).

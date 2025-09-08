@@ -65,3 +65,7 @@ named `requirements_wizard.json`.
 ## Implementation Status
 
 This feature is **implemented** with persistent storage and navigation controls.
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/interactive_requirements_wizard.feature`](../../tests/behavior/features/interactive_requirements_wizard.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

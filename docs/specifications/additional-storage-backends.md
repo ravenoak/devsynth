@@ -39,6 +39,11 @@ backend implementation.
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/additional_storage_backends.feature`](../../tests/behavior/features/additional_storage_backends.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Allow projects to opt into cloud or database storage without changing the
 `MemoryManager` API.  Configuration should determine the backend at runtime so
 tests and examples remain hermetic.

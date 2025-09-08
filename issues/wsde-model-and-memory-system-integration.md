@@ -20,3 +20,4 @@ WSDE Model and Memory System Integration is not yet implemented, limiting DevSyn
 ## References
 - Specification: docs/specifications/wsde-model-and-memory-system-integration.md
 - BDD Feature: tests/behavior/features/wsde_model_and_memory_system_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/wsde-model-and-memory-system-integration.md](../docs/specifications/wsde-model-and-memory-system-integration.md) and scenarios in [tests/behavior/features/wsde_model_and_memory_system_integration.feature](../tests/behavior/features/wsde_model_and_memory_system_integration.feature).

@@ -20,3 +20,4 @@ Code Transformation is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/code-transformation.md
 - BDD Feature: tests/behavior/features/code_transformation.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/code-transformation.md](../docs/specifications/code-transformation.md) and scenarios in [tests/behavior/features/code_transformation.feature](../tests/behavior/features/code_transformation.feature).

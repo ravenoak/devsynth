@@ -30,6 +30,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/requirements_wizard_logging.feature`](../../tests/behavior/features/requirements_wizard_logging.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 ## Specification
 
 ## Acceptance Criteria

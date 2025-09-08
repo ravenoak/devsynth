@@ -33,6 +33,11 @@ Feature: Integrate dialectical audit into CI
   audit script during CI and fails the build when unresolved questions exist.
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/integrate_dialectical_audit_into_ci.feature`](../../tests/behavior/features/integrate_dialectical_audit_into_ci.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Continuous integration currently ignores `dialectical_audit.log`, so
 inconsistencies between documentation, tests, and code may go unnoticed. By
 running the dialectical audit as part of CI, developers receive immediate

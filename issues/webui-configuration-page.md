@@ -20,3 +20,4 @@ WebUI Configuration Page is not yet implemented, limiting DevSynth's capabilitie
 ## References
 - Specification: docs/specifications/webui-configuration-page.md
 - BDD Feature: tests/behavior/features/webui_configuration_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-configuration-page.md](../docs/specifications/webui-configuration-page.md) and scenarios in [tests/behavior/features/webui_configuration_page.feature](../tests/behavior/features/webui_configuration_page.feature).

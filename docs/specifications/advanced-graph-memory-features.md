@@ -35,6 +35,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/advanced_graph_memory_features.feature`](../../tests/behavior/features/advanced_graph_memory_features.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Agents reason over relationships between memories.  Without a bounded
 traversal mechanism and durable graph storage, agents cannot reliably follow
 chains of related items or resume reasoning after a restart.  Providing a

@@ -23,6 +23,11 @@ The MVU command execution workflow dispatches MVU subcommands through the DevSyn
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/mvu_command_execution.feature`](../../tests/behavior/features/mvu_command_execution.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Developers need a dependable way to run MVU-specific commands and capture their outcomes for traceability.
 
 ## Specification

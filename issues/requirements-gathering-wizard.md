@@ -20,3 +20,4 @@ Requirements Gathering Wizard is not yet implemented, limiting DevSynth's capabi
 ## References
 - Specification: docs/specifications/requirements-gathering-wizard.md
 - BDD Feature: tests/behavior/features/requirements_gathering_wizard.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/requirements-gathering-wizard.md](../docs/specifications/requirements-gathering-wizard.md) and scenarios in [tests/behavior/features/requirements_gathering_wizard.feature](../tests/behavior/features/requirements_gathering_wizard.feature).

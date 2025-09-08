@@ -20,3 +20,4 @@ Database Schema Generation is not yet implemented, limiting DevSynth's capabilit
 ## References
 - Specification: docs/specifications/database-schema-generation.md
 - BDD Feature: tests/behavior/features/database_schema_generation.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/database-schema-generation.md](../docs/specifications/database-schema-generation.md) and scenarios in [tests/behavior/features/database_schema_generation.feature](../tests/behavior/features/database_schema_generation.feature).

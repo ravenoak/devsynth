@@ -20,3 +20,4 @@ Enhanced ChromaDB Integration is not yet implemented, limiting DevSynth's capabi
 ## References
 - Specification: docs/specifications/enhanced-chromadb-integration.md
 - BDD Feature: tests/behavior/features/enhanced_chromadb_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/enhanced-chromadb-integration.md](../docs/specifications/enhanced-chromadb-integration.md) and scenarios in [tests/behavior/features/enhanced_chromadb_integration.feature](../tests/behavior/features/enhanced_chromadb_integration.feature).

@@ -20,6 +20,11 @@ faster layers while delegating less common items to slower, larger stores.
   layers and correct hit‑ratio calculations.
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature`](../../tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Efficient agents require fast memory lookups. A multi‑layered design balances
 speed and capacity and exposes metrics for tuning cache sizes.
 

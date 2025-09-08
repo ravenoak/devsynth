@@ -20,3 +20,4 @@ Validate Manifest Command is not yet implemented, limiting DevSynth's capabiliti
 ## References
 - Specification: docs/specifications/validate-manifest-command.md
 - BDD Feature: tests/behavior/features/validate_manifest_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/validate-manifest-command.md](../docs/specifications/validate-manifest-command.md) and scenarios in [tests/behavior/features/validate_manifest_command.feature](../tests/behavior/features/validate_manifest_command.feature).

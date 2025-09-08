@@ -20,3 +20,4 @@ Refactor Command is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/refactor-command.md
 - BDD Feature: tests/behavior/features/refactor_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/refactor-command.md](../docs/specifications/refactor-command.md) and scenarios in [tests/behavior/features/refactor_command.feature](../tests/behavior/features/refactor_command.feature).

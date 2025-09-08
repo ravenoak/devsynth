@@ -20,3 +20,4 @@ WebUI Analysis Page is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-analysis-page.md
 - BDD Feature: tests/behavior/features/webui_analysis_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-analysis-page.md](../docs/specifications/webui-analysis-page.md) and scenarios in [tests/behavior/features/webui_analysis_page.feature](../tests/behavior/features/webui_analysis_page.feature).

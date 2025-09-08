@@ -24,3 +24,4 @@ CLI UI Parity and UX enhancements are not yet implemented, limiting DevSynth's c
 - BDD Feature: tests/behavior/features/cli_ui_parity.feature
 - Specification: docs/specifications/cli-ux-enhancements.md
 - BDD Feature: tests/behavior/features/cli_ux_enhancements.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/cli-ui-parity.md](../docs/specifications/cli-ui-parity.md) and scenarios in [tests/behavior/features/cli_ui_parity.feature](../tests/behavior/features/cli_ui_parity.feature).

@@ -20,3 +20,4 @@ Recursive EDRR Coordinator is not yet implemented, limiting DevSynth's capabilit
 ## References
 - Specification: docs/specifications/recursive-edrr-coordinator.md
 - BDD Feature: tests/behavior/features/recursive_edrr_coordinator.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/recursive-edrr-coordinator.md](../docs/specifications/recursive-edrr-coordinator.md) and scenarios in [tests/behavior/features/recursive_edrr_coordinator.feature](../tests/behavior/features/recursive_edrr_coordinator.feature).

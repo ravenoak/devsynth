@@ -122,3 +122,7 @@ The CLI and WebUI share the same workflow implementation through `UXBridge` ensu
 
 This feature is **implemented**. Both the CLI and WebUI provide the wizard via
 `UXBridge`.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

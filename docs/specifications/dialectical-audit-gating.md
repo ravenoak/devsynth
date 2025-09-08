@@ -29,6 +29,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/dialectical_audit_gating.feature`](../../tests/behavior/features/dialectical_audit_gating.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Prevent releases from proceeding when the dialectical audit log contains unresolved questions.
 
 ## Specification

@@ -20,3 +20,4 @@ WebUI Inspect Config Page is not yet implemented, limiting DevSynth's capabiliti
 ## References
 - Specification: docs/specifications/webui-inspect-config-page.md
 - BDD Feature: tests/behavior/features/webui_inspect_config_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-inspect-config-page.md](../docs/specifications/webui-inspect-config-page.md) and scenarios in [tests/behavior/features/webui_inspect_config_page.feature](../tests/behavior/features/webui_inspect_config_page.feature).

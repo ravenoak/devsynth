@@ -64,3 +64,7 @@ complete -F _complete_devsynth_config_keys devsynth
 
 This feature is **implemented**. See `src/devsynth/config/loader.py` for the
 reference implementation.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

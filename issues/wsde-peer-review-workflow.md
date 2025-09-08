@@ -20,3 +20,4 @@ WSDE Peer Review Workflow is not yet implemented, limiting DevSynth's capabiliti
 ## References
 - Specification: docs/specifications/wsde-peer-review-workflow.md
 - BDD Feature: tests/behavior/features/wsde_peer_review_workflow.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/wsde-peer-review-workflow.md](../docs/specifications/wsde-peer-review-workflow.md) and scenarios in [tests/behavior/features/wsde_peer_review_workflow.feature](../tests/behavior/features/wsde_peer_review_workflow.feature).

@@ -28,6 +28,11 @@ Defines the process for ingesting project documentation into DevSynth's knowledg
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/project_documentation_ingestion.feature`](../../tests/behavior/features/project_documentation_ingestion.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Project documentation is scattered across the repository, making it difficult to index and retrieve consistently. A dedicated ingestion process ensures documentation is discoverable and structured for downstream tasks.
 
 ## Specification

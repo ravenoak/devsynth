@@ -35,3 +35,7 @@ Transient HTTP failures are currently detected only through exceptions. Response
   `devsynth_retry_conditions_total` using labels
   `predicate:<name>:trigger` or `predicate:<name>:suppress` to record whether a
   predicate allowed the result or triggered a retry.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

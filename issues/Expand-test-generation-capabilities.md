@@ -35,3 +35,4 @@ Automated unit test generation works but integration coverage is lacking.
 
 - Related: [Normalize and verify test markers](archived/Normalize-and-verify-test-markers.md)
 - Related: [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md)
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/expand-test-generation-capabilities.md](../docs/specifications/expand-test-generation-capabilities.md) and scenarios in [tests/behavior/features/expand_test_generation_capabilities.feature](../tests/behavior/features/expand_test_generation_capabilities.feature).

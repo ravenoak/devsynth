@@ -20,3 +20,4 @@ WebUI Navigation and Prompts is not yet implemented, limiting DevSynth's capabil
 ## References
 - Specification: docs/specifications/webui-navigation-and-prompts.md
 - BDD Feature: tests/behavior/features/webui_navigation_and_prompts.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-navigation-and-prompts.md](../docs/specifications/webui-navigation-and-prompts.md) and scenarios in [tests/behavior/features/webui_navigation_and_prompts.feature](../tests/behavior/features/webui_navigation_and_prompts.feature).

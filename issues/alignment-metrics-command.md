@@ -20,3 +20,4 @@ Alignment Metrics Command is not yet implemented, limiting DevSynth's capabiliti
 ## References
 - Specification: docs/specifications/alignment-metrics-command.md
 - BDD Feature: tests/behavior/features/alignment_metrics_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/alignment-metrics-command.md](../docs/specifications/alignment-metrics-command.md) and scenarios in [tests/behavior/features/alignment_metrics_command.feature](../tests/behavior/features/alignment_metrics_command.feature).

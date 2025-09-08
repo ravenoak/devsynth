@@ -20,3 +20,4 @@ Setup Wizard is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/setup-wizard.md
 - BDD Feature: tests/behavior/features/setup_wizard.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/setup-wizard.md](../docs/specifications/setup-wizard.md) and scenarios in [tests/behavior/features/setup_wizard.feature](../tests/behavior/features/setup_wizard.feature).

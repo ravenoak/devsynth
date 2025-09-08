@@ -20,3 +20,4 @@ Requirement Analysis is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/requirement-analysis.md
 - BDD Feature: tests/behavior/features/requirement_analysis.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/requirement-analysis.md](../docs/specifications/requirement-analysis.md) and scenarios in [tests/behavior/features/requirement_analysis.feature](../tests/behavior/features/requirement_analysis.feature).

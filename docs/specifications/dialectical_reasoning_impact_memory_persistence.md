@@ -29,3 +29,7 @@ The dialectical reasoner stores impact assessments in the memory system with the
 
 - Behavior test: assessing a requirement change stores the impact assessment with phase `REFINE`.
 - Behavior test: memory persistence failure logs a warning without interrupting assessment.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

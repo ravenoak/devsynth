@@ -20,3 +20,4 @@ Requirements Wizard Logging is not yet implemented, limiting DevSynth's capabili
 ## References
 - Specification: docs/specifications/requirements-wizard-logging.md
 - BDD Feature: tests/behavior/features/requirements_wizard_logging.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/requirements-wizard-logging.md](../docs/specifications/requirements-wizard-logging.md) and scenarios in [tests/behavior/features/requirements_wizard_logging.feature](../tests/behavior/features/requirements_wizard_logging.feature).

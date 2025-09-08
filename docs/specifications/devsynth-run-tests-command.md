@@ -17,6 +17,11 @@ Enhances `devsynth run-tests` with flags to control parallelism, batching, and f
 - **What proofs confirm the solution?** Behavior tests invoke the command with `--no-parallel`, `--segment`, and `--feature` options; unit tests verify feature flag parsing.
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/devsynth_run_tests_command.feature`](../../tests/behavior/features/devsynth_run_tests_command.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Reliable test runs require bypassing unavailable providers, splitting large suites, and enabling optional features via environment flags.
 
 ## Specification

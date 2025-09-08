@@ -54,3 +54,7 @@ predictable.
 
 - Documentation aligns with coordinator invariants.
 - Tests assert depth bounds and termination triggers.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

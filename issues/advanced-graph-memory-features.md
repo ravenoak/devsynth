@@ -20,3 +20,4 @@ Advanced Graph Memory Features is not yet implemented, limiting DevSynth's capab
 ## References
 - Specification: docs/specifications/advanced-graph-memory-features.md
 - BDD Feature: tests/behavior/features/advanced_graph_memory_features.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/advanced-graph-memory-features.md](../docs/specifications/advanced-graph-memory-features.md) and scenarios in [tests/behavior/features/advanced_graph_memory_features.feature](../tests/behavior/features/advanced_graph_memory_features.feature).

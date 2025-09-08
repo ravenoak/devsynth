@@ -20,3 +20,4 @@ WebUI Specification Editor is not yet implemented, limiting DevSynth's capabilit
 ## References
 - Specification: docs/specifications/webui-specification-editor.md
 - BDD Feature: tests/behavior/features/webui_specification_editor.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-specification-editor.md](../docs/specifications/webui-specification-editor.md) and scenarios in [tests/behavior/features/webui_specification_editor.feature](../tests/behavior/features/webui_specification_editor.feature).

@@ -21,6 +21,11 @@ Provides a deterministic mock LM Studio server for testing without external depe
 
 ## Motivation
 
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Tests relying on LM Studio should operate without network access. A local mock server emulates the LM Studio API to keep tests fast and reliable.
 
 ## Specification

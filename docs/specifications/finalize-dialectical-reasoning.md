@@ -34,6 +34,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/finalize_dialectical_reasoning.feature`](../../tests/behavior/features/finalize_dialectical_reasoning.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 The reasoning loop guides agents toward synthesis.  Without a finalized
 process, consensus handling and memory persistence remain inconsistent.
 

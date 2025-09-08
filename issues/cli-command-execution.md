@@ -20,3 +20,4 @@ CLI Command Execution is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/cli-command-execution.md
 - BDD Feature: tests/behavior/features/cli_command_execution.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/cli-command-execution.md](../docs/specifications/cli-command-execution.md) and scenarios in [tests/behavior/features/cli_command_execution.feature](../tests/behavior/features/cli_command_execution.feature).

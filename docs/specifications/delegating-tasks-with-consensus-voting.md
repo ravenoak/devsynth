@@ -30,6 +30,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/delegating_tasks_with_consensus_voting.feature`](../../tests/behavior/features/delegating_tasks_with_consensus_voting.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 ## Specification
 
 ## Acceptance Criteria

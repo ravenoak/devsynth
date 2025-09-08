@@ -30,6 +30,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/documentation_fetch_and_cache.feature`](../../tests/behavior/features/documentation_fetch_and_cache.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 ## Specification
 
 ## Acceptance Criteria

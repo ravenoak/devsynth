@@ -22,6 +22,11 @@ DevSynth scaffolds integration tests from scenario descriptions to expand covera
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Developers need quick placeholders for complex interactions so integration gaps are visible early.
 
 ## Specification

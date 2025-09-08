@@ -20,3 +20,4 @@ Interactive Requirements Flow WebUI is not yet implemented, limiting DevSynth's 
 ## References
 - Specification: docs/specifications/interactive-requirements-flow-webui.md
 - BDD Feature: tests/behavior/features/interactive_requirements_flow_webui.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/interactive-requirements-flow-webui.md](../docs/specifications/interactive-requirements-flow-webui.md) and scenarios in [tests/behavior/features/interactive_requirements_flow_webui.feature](../tests/behavior/features/interactive_requirements_flow_webui.feature).

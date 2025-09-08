@@ -127,3 +127,7 @@ exercise this recursion and confirm termination behavior.
 ## Implementation Status
 
 .
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

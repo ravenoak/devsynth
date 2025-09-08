@@ -33,3 +33,4 @@ This issue captures remaining work from the critical recommendations report.
 - Related: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)
 - Specification: docs/specifications/critical-recommendations-follow-up.md
 - BDD Feature: tests/behavior/features/critical_recommendations_follow_up.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/critical-recommendations-follow-up.md](../docs/specifications/critical-recommendations-follow-up.md) and scenarios in [tests/behavior/features/critical_recommendations_follow_up.feature](../tests/behavior/features/critical_recommendations_follow_up.feature).

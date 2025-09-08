@@ -20,3 +20,4 @@ WSDE Message Passing and Peer Review is not yet implemented, limiting DevSynth's
 ## References
 - Specification: docs/specifications/wsde-message-passing-and-peer-review.md
 - BDD Feature: tests/behavior/features/wsde_message_passing_and_peer_review.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/wsde-message-passing-and-peer-review.md](../docs/specifications/wsde-message-passing-and-peer-review.md) and scenarios in [tests/behavior/features/wsde_message_passing_and_peer_review.feature](../tests/behavior/features/wsde_message_passing_and_peer_review.feature).

@@ -40,3 +40,7 @@ When a task marked as a critical decision is delegated to a WSDE team:
 - Tasks that yield tied votes produce a consensus result with documentation of the fallback.
 - Weighted voting tasks demonstrate that domain experts can overrule a numerical majority.
 - The system logs each voting attempt with sufficient detail to reconstruct the decision.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

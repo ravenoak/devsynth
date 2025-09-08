@@ -20,3 +20,4 @@ Serve Command is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/serve-command.md
 - BDD Feature: tests/behavior/features/serve_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/serve-command.md](../docs/specifications/serve-command.md) and scenarios in [tests/behavior/features/serve_command.feature](../tests/behavior/features/serve_command.feature).

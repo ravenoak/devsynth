@@ -22,6 +22,11 @@ The CLI entrypoint module provides a minimal interface for repository analysis o
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/cli_entrypoint.feature`](../../tests/behavior/features/cli_entrypoint.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 The project requires a single entrypoint capable of lightweight repository analysis without loading the full command stack.
 
 ## Specification

@@ -22,3 +22,4 @@ Project State Analysis is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/project-state-analysis.md
 - BDD Feature: tests/behavior/features/project_state_analysis.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/project-state-analysis.md](../docs/specifications/project-state-analysis.md) and scenarios in [tests/behavior/features/project_state_analysis.feature](../tests/behavior/features/project_state_analysis.feature).

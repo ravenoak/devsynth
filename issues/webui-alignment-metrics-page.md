@@ -20,3 +20,4 @@ WebUI Alignment Metrics Page is not yet implemented, limiting DevSynth's capabil
 ## References
 - Specification: docs/specifications/webui-alignment-metrics-page.md
 - BDD Feature: tests/behavior/features/webui_alignment_metrics_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-alignment-metrics-page.md](../docs/specifications/webui-alignment-metrics-page.md) and scenarios in [tests/behavior/features/webui_alignment_metrics_page.feature](../tests/behavior/features/webui_alignment_metrics_page.feature).

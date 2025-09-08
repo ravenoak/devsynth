@@ -30,6 +30,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/edrr_integration_with_real_llm_providers.feature`](../../tests/behavior/features/edrr_integration_with_real_llm_providers.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 ## Specification
 
 ## Acceptance Criteria

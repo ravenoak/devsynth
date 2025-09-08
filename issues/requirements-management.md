@@ -20,3 +20,4 @@ Requirements Management is not yet implemented, limiting DevSynth's capabilities
 ## References
 - Specification: docs/specifications/requirements-management.md
 - BDD Feature: tests/behavior/features/requirements_management.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/requirements-management.md](../docs/specifications/requirements-management.md) and scenarios in [tests/behavior/features/requirements_management.feature](../tests/behavior/features/requirements_management.feature).

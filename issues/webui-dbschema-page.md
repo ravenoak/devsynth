@@ -20,3 +20,4 @@ WebUI DBSchema Page is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-dbschema-page.md
 - BDD Feature: tests/behavior/features/webui_dbschema_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-dbschema-page.md](../docs/specifications/webui-dbschema-page.md) and scenarios in [tests/behavior/features/webui_dbschema_page.feature](../tests/behavior/features/webui_dbschema_page.feature).

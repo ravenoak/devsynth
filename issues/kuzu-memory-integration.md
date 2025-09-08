@@ -20,3 +20,4 @@ Kuzu memory integration is not yet implemented, limiting DevSynth's capabilities
 ## References
 - Specification: docs/specifications/kuzu-memory-integration.md
 - BDD Feature: tests/behavior/features/kuzu_memory_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/kuzu-memory-integration.md](../docs/specifications/kuzu-memory-integration.md) and scenarios in [tests/behavior/features/kuzu_memory_integration.feature](../tests/behavior/features/kuzu_memory_integration.feature).

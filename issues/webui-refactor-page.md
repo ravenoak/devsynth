@@ -20,3 +20,4 @@ WebUI Refactor Page is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-refactor-page.md
 - BDD Feature: tests/behavior/features/webui_refactor_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-refactor-page.md](../docs/specifications/webui-refactor-page.md) and scenarios in [tests/behavior/features/webui_refactor_page.feature](../tests/behavior/features/webui_refactor_page.feature).

@@ -20,3 +20,4 @@ Inspect Code Command is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/inspect-code-command.md
 - BDD Feature: tests/behavior/features/inspect_code_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/inspect-code-command.md](../docs/specifications/inspect-code-command.md) and scenarios in [tests/behavior/features/inspect_code_command.feature](../tests/behavior/features/inspect_code_command.feature).

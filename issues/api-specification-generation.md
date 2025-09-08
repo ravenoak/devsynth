@@ -20,3 +20,4 @@ reliable documentation.
 ## References
 - Specification: docs/specifications/api-specification-generation.md
 - BDD Feature: tests/behavior/features/api_specification_generation.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/api-specification-generation.md](../docs/specifications/api-specification-generation.md) and scenarios in [tests/behavior/features/api_specification_generation.feature](../tests/behavior/features/api_specification_generation.feature).

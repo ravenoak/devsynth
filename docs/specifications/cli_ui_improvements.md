@@ -25,6 +25,11 @@ Streamlines interactive workflows in the command line by aligning them with the 
 
 ## Motivation
 
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 The current CLI wizard contains redundant steps and provides little feedback during lengthy tasks. Users must also remember exact commands and flags.
 
 ## Specification

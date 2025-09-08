@@ -20,3 +20,4 @@ WSDE Agent Model Refinement is not yet implemented, limiting DevSynth's capabili
 ## References
 - Specification: docs/specifications/wsde-agent-model-refinement.md
 - BDD Feature: tests/behavior/features/wsde_agent_model_refinement.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/wsde-agent-model-refinement.md](../docs/specifications/wsde-agent-model-refinement.md) and scenarios in [tests/behavior/features/wsde_agent_model_refinement.feature](../tests/behavior/features/wsde_agent_model_refinement.feature).

@@ -20,3 +20,4 @@ WebUI Validate Metadata Page is not yet implemented, limiting DevSynth's capabil
 ## References
 - Specification: docs/specifications/webui-validate-metadata-page.md
 - BDD Feature: tests/behavior/features/webui_validate_metadata_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-validate-metadata-page.md](../docs/specifications/webui-validate-metadata-page.md) and scenarios in [tests/behavior/features/webui_validate_metadata_page.feature](../tests/behavior/features/webui_validate_metadata_page.feature).

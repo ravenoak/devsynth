@@ -20,3 +20,4 @@ WebUI Serve Page is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-serve-page.md
 - BDD Feature: tests/behavior/features/webui_serve_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-serve-page.md](../docs/specifications/webui-serve-page.md) and scenarios in [tests/behavior/features/webui_serve_page.feature](../tests/behavior/features/webui_serve_page.feature).

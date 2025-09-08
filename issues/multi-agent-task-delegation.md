@@ -20,3 +20,4 @@ Multi-agent task delegation is not yet implemented, limiting DevSynth's capabili
 ## References
 - Specification: docs/specifications/multi-agent-task-delegation.md
 - BDD Feature: tests/behavior/features/multi_agent_task_delegation.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/multi-agent-task-delegation.md](../docs/specifications/multi-agent-task-delegation.md) and scenarios in [tests/behavior/features/multi_agent_task_delegation.feature](../tests/behavior/features/multi_agent_task_delegation.feature).

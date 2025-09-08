@@ -20,3 +20,4 @@ User Guide Enhancement is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/user-guide-enhancement.md
 - BDD Feature: tests/behavior/features/user_guide_enhancement.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/user-guide-enhancement.md](../docs/specifications/user-guide-enhancement.md) and scenarios in [tests/behavior/features/user_guide_enhancement.feature](../tests/behavior/features/user_guide_enhancement.feature).

@@ -20,3 +20,4 @@ Project Initialization is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/project-initialization.md
 - BDD Feature: tests/behavior/features/project_initialization.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/project-initialization.md](../docs/specifications/project-initialization.md) and scenarios in [tests/behavior/features/project_initialization.feature](../tests/behavior/features/project_initialization.feature).

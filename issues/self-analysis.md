@@ -20,3 +20,4 @@ Self Analysis is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/self-analysis.md
 - BDD Feature: tests/behavior/features/self_analysis.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/self-analysis.md](../docs/specifications/self-analysis.md) and scenarios in [tests/behavior/features/self_analysis.feature](../tests/behavior/features/self_analysis.feature).

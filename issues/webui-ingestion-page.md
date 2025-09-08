@@ -20,3 +20,4 @@ WebUI Ingestion Page is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-ingestion-page.md
 - BDD Feature: tests/behavior/features/webui_ingestion_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-ingestion-page.md](../docs/specifications/webui-ingestion-page.md) and scenarios in [tests/behavior/features/webui_ingestion_page.feature](../tests/behavior/features/webui_ingestion_page.feature).

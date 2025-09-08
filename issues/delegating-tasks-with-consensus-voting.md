@@ -20,3 +20,4 @@ Delegating tasks with consensus voting is not yet implemented, limiting DevSynth
 ## References
 - Specification: docs/specifications/delegating-tasks-with-consensus-voting.md
 - BDD Feature: tests/behavior/features/delegating_tasks_with_consensus_voting.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/delegating-tasks-with-consensus-voting.md](../docs/specifications/delegating-tasks-with-consensus-voting.md) and scenarios in [tests/behavior/features/delegating_tasks_with_consensus_voting.feature](../tests/behavior/features/delegating_tasks_with_consensus_voting.feature).

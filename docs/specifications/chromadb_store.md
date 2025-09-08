@@ -23,6 +23,11 @@ optimization status and storage efficiency for embeddings.
 
 ## Motivation
 
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 DevSynth requires a memory store that supports vector-based queries while
 tracking how efficiently embeddings are stored. Developers need a simple way to
 confirm that the store optimizes embeddings and to inspect the efficiency

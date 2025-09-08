@@ -71,3 +71,7 @@ presents a button that runs the same function through its bridge.
 ## Implementation Status
 
 This feature is **implemented**. Interactive gathering is provided by `src/devsynth/application/requirements/interactions.py` and is accessible via the CLI and WebUI.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

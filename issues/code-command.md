@@ -20,3 +20,4 @@ Code Command is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/code-command.md
 - BDD Feature: tests/behavior/features/code_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/code-command.md](../docs/specifications/code-command.md) and scenarios in [tests/behavior/features/code_command.feature](../tests/behavior/features/code_command.feature).

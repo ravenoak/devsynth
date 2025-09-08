@@ -20,3 +20,4 @@ Cross-Interface Consistency is not yet implemented, limiting DevSynth's capabili
 ## References
 - Specification: docs/specifications/cross-interface-consistency.md
 - BDD Feature: tests/behavior/features/cross_interface_consistency.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/cross-interface-consistency.md](../docs/specifications/cross-interface-consistency.md) and scenarios in [tests/behavior/features/cross_interface_consistency.feature](../tests/behavior/features/cross_interface_consistency.feature).

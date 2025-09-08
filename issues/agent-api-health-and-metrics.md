@@ -21,3 +21,4 @@ they affect users.
 ## References
 - Specification: docs/specifications/agent-api-health-and-metrics.md
 - BDD Feature: tests/behavior/features/agent_api_health_and_metrics.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/agent-api-health-and-metrics.md](../docs/specifications/agent-api-health-and-metrics.md) and scenarios in [tests/behavior/features/agent_api_health_and_metrics.feature](../tests/behavior/features/agent_api_health_and_metrics.feature).

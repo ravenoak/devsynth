@@ -20,3 +20,4 @@ WebUI Gather Wizard is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-gather-wizard.md
 - BDD Feature: tests/behavior/features/webui_gather_wizard.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-gather-wizard.md](../docs/specifications/webui-gather-wizard.md) and scenarios in [tests/behavior/features/webui_gather_wizard.feature](../tests/behavior/features/webui_gather_wizard.feature).
