@@ -122,7 +122,7 @@ def run_tests_cmd(
         ),
     ),
     *,
-    bridge: Any | None = typer.Option(None, hidden=True),
+    bridge: str | None = typer.Option(None, hidden=True),
 ) -> None:
     """Run DevSynth test suites.
 
