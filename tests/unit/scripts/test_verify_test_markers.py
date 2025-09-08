@@ -63,3 +63,24 @@ def test_verify_test_markers_cache_invalidation(tmp_path: Path) -> None:
     assert removed == 1
     assert key not in vtm.PERSISTENT_CACHE
     assert key not in vtm.FILE_SIGNATURES
+
+
+@pytest.mark.fast
+def test_verify_test_markers_path_filter(tmp_path: Path) -> None:
+    """Limit verification to specified paths. ReqID: QA-04"""
+    file_a = tmp_path / "test_a.py"
+    file_b = tmp_path / "test_b.py"
+    content = (
+        "import pytest\n\n@pytest.mark.fast\ndef test_example():\n    assert True\n"
+    )
+
+    file_a.write_text(content, encoding="utf-8")
+    file_b.write_text(content, encoding="utf-8")
+
+    vtm.PERSISTENT_CACHE.clear()
+    vtm.FILE_SIGNATURES.clear()
+
+    result = vtm.verify_directory_markers(str(tmp_path), paths=[file_a])
+    assert result["total_files"] == 1
+    assert str(file_a) in result["files"]
+    assert str(file_b) not in result["files"]

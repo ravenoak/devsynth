@@ -9,4 +9,4 @@
 
 ## 6. Testing and Coverage
 - [x] 6.3 Ensure coverage outputs (`htmlcov/`, `coverage.json`) are generated and excluded from version control.
-- [ ] 6.4 Investigate why `scripts/verify_test_markers.py` finds no test files.
+- [x] 6.4 Investigate why `scripts/verify_test_markers.py` finds no test files.
