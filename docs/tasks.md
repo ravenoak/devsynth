@@ -100,7 +100,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 11.3 [x] Cross-reference behavior features with related issues: `grep -R "Related issue:" -n tests/behavior/ | tee diagnostics/behavior_related_issues.txt`.
 11.4 [x] When adding/updating tests, include issue filename in test docstrings (e.g., "ReqID: FR-09; Issue: issues/<file>.md").
 11.5 [x] Add behavior tests asserting presence of ReqID tags in docstrings for a representative subset; provide a small validation tool if needed.
-11.6 [ ] Audit typing_relaxations_tracking.md and schedule restorations in Phase 4.
+11.6 [x] Audit typing_relaxations_tracking.md and schedule restorations in Phase 4 (issue links added).
 
 12. Risk Management and Mitigations
 12.1 [x] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable:
