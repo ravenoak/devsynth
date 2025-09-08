@@ -20,6 +20,11 @@ The feature markers module tracks high-level features via stub functions used fo
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/feature_markers.feature`](../../tests/behavior/features/feature_markers.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Centralizing markers ensures features are discoverable for compliance and auditing processes.
 
 ## Specification

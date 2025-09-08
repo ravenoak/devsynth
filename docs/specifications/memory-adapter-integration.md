@@ -34,6 +34,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/memory_adapter_integration.feature`](../../tests/behavior/features/memory_adapter_integration.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Establishing and validating transaction invariants ensures that adapters can
 compose safely and that rollback semantics protect the persistent state.
 

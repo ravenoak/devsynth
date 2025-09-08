@@ -20,3 +20,4 @@ Agent API Interactions is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/agent-api-interactions.md
 - BDD Feature: tests/behavior/features/agent_api_interactions.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/agent-api-interactions.md](../docs/specifications/agent-api-interactions.md) and scenarios in [tests/behavior/features/agent_api_interactions.feature](../tests/behavior/features/agent_api_interactions.feature).

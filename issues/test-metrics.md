@@ -20,3 +20,4 @@ Test Metrics is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/test-metrics.md
 - BDD Feature: tests/behavior/features/test_metrics.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/test-metrics.md](../docs/specifications/test-metrics.md) and scenarios in [tests/behavior/features/test_metrics.feature](../tests/behavior/features/test_metrics.feature).

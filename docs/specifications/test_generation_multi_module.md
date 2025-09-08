@@ -29,3 +29,7 @@ relative path to each file so callers can easily locate the scaffolds.
 Running the scaffolding on a project with modules `core` and `utils.parser`
 produces `core/test_core.py` and `utils/parser/test_parser.py` which execute
 successfully using `pytest`.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

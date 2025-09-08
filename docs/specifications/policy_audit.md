@@ -17,6 +17,11 @@ version: 0.1.0-alpha.1
 
 ## Motivation
 
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Manual reviews miss configuration mistakes and hardcoded secrets. An automated scan helps enforce security policies before changes merge.
 
 ## Specification

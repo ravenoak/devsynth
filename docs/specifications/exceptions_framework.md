@@ -20,6 +20,11 @@ Defines a structured exception hierarchy for DevSynth to ensure consistent error
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/exceptions_framework.feature`](../../tests/behavior/features/exceptions_framework.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 A shared base exception simplifies diagnostics and enables uniform error messaging across components.
 
 ## Specification

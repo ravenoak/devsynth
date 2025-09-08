@@ -22,6 +22,11 @@ Defines interfaces for recording alignment and test metrics within DevSynth.
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/metrics_module.feature`](../../tests/behavior/features/metrics_module.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Unified metrics collection enables consistent reporting across CLI commands and integrations.
 
 ## Specification

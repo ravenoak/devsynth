@@ -33,6 +33,11 @@ Required metadata fields:
    cache verify correctness and eviction behaviour.
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/multi_layered_memory_system.feature`](../../tests/behavior/features/multi_layered_memory_system.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Organize agent knowledge so frequently accessed items remain fast while less
 used data persists in cheaper layers.
 

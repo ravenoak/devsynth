@@ -20,3 +20,4 @@ WebUI Doctor is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-doctor.md
 - BDD Feature: tests/behavior/features/webui_doctor.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-doctor.md](../docs/specifications/webui-doctor.md) and scenarios in [tests/behavior/features/webui_doctor.feature](../tests/behavior/features/webui_doctor.feature).

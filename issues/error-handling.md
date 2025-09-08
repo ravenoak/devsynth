@@ -20,3 +20,4 @@ Error Handling is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/error-handling.md
 - BDD Feature: tests/behavior/features/error_handling.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/error-handling.md](../docs/specifications/error-handling.md) and scenarios in [tests/behavior/features/error_handling.feature](../tests/behavior/features/error_handling.feature).

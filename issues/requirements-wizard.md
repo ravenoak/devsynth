@@ -20,3 +20,4 @@ Requirements Wizard is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/requirements-wizard.md
 - BDD Feature: tests/behavior/features/requirements_wizard.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/requirements-wizard.md](../docs/specifications/requirements-wizard.md) and scenarios in [tests/behavior/features/requirements_wizard.feature](../tests/behavior/features/requirements_wizard.feature).

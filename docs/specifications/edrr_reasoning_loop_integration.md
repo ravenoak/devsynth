@@ -20,6 +20,11 @@ version: 0.1.0-alpha.1
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 The dialectical reasoning loop currently operates independently of EDRR phase tracking. Without explicit phase integration, reasoning results are not persisted consistently and consensus failures lack dedicated logging.
 
 ## Specification

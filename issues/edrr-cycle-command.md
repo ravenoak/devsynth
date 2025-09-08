@@ -20,3 +20,4 @@ EDRR cycle command is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/edrr-cycle-command.md
 - BDD Feature: tests/behavior/features/edrr_cycle_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/edrr-cycle-command.md](../docs/specifications/edrr-cycle-command.md) and scenarios in [tests/behavior/features/edrr_cycle_command.feature](../tests/behavior/features/edrr_cycle_command.feature).

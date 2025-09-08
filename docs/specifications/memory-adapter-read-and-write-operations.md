@@ -34,6 +34,11 @@ read and write operations for key-value items.
   ``KeyError``.
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/memory_adapter_read_and_write_operations.feature`](../../tests/behavior/features/memory_adapter_read_and_write_operations.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Providing a conventional read/write interface clarifies how memory components
 are used and allows tests and adapters to interact with caches consistently.
 

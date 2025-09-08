@@ -35,6 +35,11 @@ their corresponding phases.
     alignment.
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/complete_sprint_edrr_integration.feature`](../../tests/behavior/features/complete_sprint_edrr_integration.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Teams using sprints need a lightweight way to translate planning scope and
 review feedback into EDRR outputs so DevSynth's tooling can reason about
 them consistently.

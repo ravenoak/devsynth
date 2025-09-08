@@ -16,6 +16,11 @@ version: 0.1.0-alpha.1
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Consensus decisions must be written consistently across core memory stores. Prior implementations stored team decisions in a single backend, risking divergence between LMDB, FAISS, and Kuzu layers.
 
 ## Specification

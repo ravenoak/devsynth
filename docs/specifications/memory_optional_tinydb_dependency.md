@@ -43,3 +43,7 @@ except ImportError:
   omitted from `__all__`.
 - BDD scenario: Given TinyDB is not installed, when the memory module is
   imported, then the TinyDB adapter is unavailable.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

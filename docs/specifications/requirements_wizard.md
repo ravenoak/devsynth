@@ -11,6 +11,11 @@ status: "draft"
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/requirements_wizard.feature`](../../tests/behavior/features/requirements_wizard.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 The interactive requirements wizard should provide an auditable record of each user interaction and persist the selected priority so subsequent tools can reference it.
 
 ## Specification

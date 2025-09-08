@@ -20,3 +20,4 @@ Configuration Loader is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/configuration-loader.md
 - BDD Feature: tests/behavior/features/configuration_loader.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/configuration-loader.md](../docs/specifications/configuration-loader.md) and scenarios in [tests/behavior/features/configuration_loader.feature](../tests/behavior/features/configuration_loader.feature).

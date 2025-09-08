@@ -24,3 +24,4 @@ Memory Adapter Integration, including read and write operations, is not yet impl
 - BDD Feature: tests/behavior/features/memory_adapter_integration.feature
 - Specification: docs/specifications/memory-adapter-read-and-write-operations.md
 - BDD Feature: tests/behavior/features/memory_adapter_read_and_write_operations.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/memory-adapter-integration.md](../docs/specifications/memory-adapter-integration.md) and scenarios in [tests/behavior/features/memory_adapter_integration.feature](../tests/behavior/features/memory_adapter_integration.feature).

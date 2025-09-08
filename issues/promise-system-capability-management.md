@@ -20,3 +20,4 @@ Promise System Capability Management is not yet implemented, limiting DevSynth's
 ## References
 - Specification: docs/specifications/promise-system-capability-management.md
 - BDD Feature: tests/behavior/features/promise_system_capability_management.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/promise-system-capability-management.md](../docs/specifications/promise-system-capability-management.md) and scenarios in [tests/behavior/features/promise_system_capability_management.feature](../tests/behavior/features/promise_system_capability_management.feature).

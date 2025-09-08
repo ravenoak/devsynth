@@ -20,6 +20,11 @@ Specifies low-level logging utilities that provide JSON formatting and request-c
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/logging_setup.feature`](../../tests/behavior/features/logging_setup.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Components require structured logs with optional request identifiers without configuring logging at import time.
 
 ## Specification

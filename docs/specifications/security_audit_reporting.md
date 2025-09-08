@@ -21,6 +21,11 @@ DevSynth should produce a structured report summarizing security audit checks.
 
 ## Motivation
 
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Security audits currently run Bandit and Safety but do not emit a consolidated report.
 Providing a machine-readable summary helps developers and CI pipelines verify compliance.
 

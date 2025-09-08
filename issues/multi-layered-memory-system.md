@@ -25,3 +25,4 @@ Multi-Layered Memory System is not yet implemented, limiting DevSynth's capabili
 - Specification: docs/specifications/multi-layered-memory-system-and-tiered-cache-strategy.md
 - BDD Feature: tests/behavior/features/multi_layered_memory_system.feature
 - BDD Feature: tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/multi-layered-memory-system.md](../docs/specifications/multi-layered-memory-system.md) and scenarios in [tests/behavior/features/multi_layered_memory_system.feature](../tests/behavior/features/multi_layered_memory_system.feature).

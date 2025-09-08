@@ -20,3 +20,4 @@ Prompt Management with DPSy-AI is not yet implemented, limiting DevSynth's capab
 ## References
 - Specification: docs/specifications/prompt-management-with-dpsy-ai.md
 - BDD Feature: tests/behavior/features/prompt_management_with_dpsy_ai.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/prompt-management-with-dpsy-ai.md](../docs/specifications/prompt-management-with-dpsy-ai.md) and scenarios in [tests/behavior/features/prompt_management_with_dpsy_ai.feature](../tests/behavior/features/prompt_management_with_dpsy_ai.feature).

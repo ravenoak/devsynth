@@ -20,3 +20,4 @@ Multi-Agent Collaboration is not yet implemented, limiting DevSynth's capabiliti
 ## References
 - Specification: docs/specifications/multi-agent-collaboration.md
 - BDD Feature: tests/behavior/features/multi_agent_collaboration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/multi-agent-collaboration.md](../docs/specifications/multi-agent-collaboration.md) and scenarios in [tests/behavior/features/multi_agent_collaboration.feature](../tests/behavior/features/multi_agent_collaboration.feature).

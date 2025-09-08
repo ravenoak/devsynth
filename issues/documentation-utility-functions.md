@@ -20,3 +20,4 @@ Documentation Utility Functions is not yet implemented, limiting DevSynth's capa
 ## References
 - Specification: docs/specifications/documentation-utility-functions.md
 - BDD Feature: tests/behavior/features/documentation_utility_functions.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/documentation-utility-functions.md](../docs/specifications/documentation-utility-functions.md) and scenarios in [tests/behavior/features/documentation_utility_functions.feature](../tests/behavior/features/documentation_utility_functions.feature).

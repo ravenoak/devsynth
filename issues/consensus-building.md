@@ -20,3 +20,4 @@ Consensus Building is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/consensus-building.md
 - BDD Feature: tests/behavior/features/consensus_building.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/consensus-building.md](../docs/specifications/consensus-building.md) and scenarios in [tests/behavior/features/consensus_building.feature](../tests/behavior/features/consensus_building.feature).

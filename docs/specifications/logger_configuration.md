@@ -22,6 +22,11 @@ Defines a project-level logger that normalizes `exc_info`, supports structured l
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/logger_configuration.feature`](../../tests/behavior/features/logger_configuration.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 A consistent logging interface simplifies debugging and enables centralized log formatting.
 
 ## Specification

@@ -33,6 +33,11 @@ DevSynth captures repeatable performance benchmarks for core operations.
   - Metrics files recording workload, duration, and throughput.
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/performance_and_scalability_testing.feature`](../../tests/behavior/features/performance_and_scalability_testing.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Understanding baseline performance and scalability enables regression detection and capacity planning.
 
 ## Specification

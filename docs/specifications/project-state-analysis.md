@@ -34,6 +34,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/project_state_analysis.feature`](../../tests/behavior/features/project_state_analysis.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Understanding the maturity of a codebase helps teams decide next steps in the
 engineering workflow. By inspecting available requirements, specifications,
 tests, and code, DevSynth can guide contributors toward the most impactful

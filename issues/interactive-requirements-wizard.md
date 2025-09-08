@@ -20,3 +20,4 @@ Interactive Requirements Wizard is not yet implemented, limiting DevSynth's capa
 ## References
 - Specification: docs/specifications/interactive-requirements-wizard.md
 - BDD Feature: tests/behavior/features/interactive_requirements_wizard.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/interactive-requirements-wizard.md](../docs/specifications/interactive-requirements-wizard.md) and scenarios in [tests/behavior/features/interactive_requirements_wizard.feature](../tests/behavior/features/interactive_requirements_wizard.feature).

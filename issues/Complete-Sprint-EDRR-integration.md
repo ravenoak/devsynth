@@ -32,3 +32,4 @@ Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplet
 - BDD Feature: tests/behavior/features/complete_sprint_edrr_integration.feature
 
 - Related: [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md)
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/complete-sprint-edrr-integration.md](../docs/specifications/complete-sprint-edrr-integration.md) and scenarios in [tests/behavior/features/complete_sprint_edrr_integration.feature](../tests/behavior/features/complete_sprint_edrr_integration.feature).

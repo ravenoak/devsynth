@@ -20,3 +20,4 @@ Methodology Adapters Integration is not yet implemented, limiting DevSynth's cap
 ## References
 - Specification: docs/specifications/methodology-adapters-integration.md
 - BDD Feature: tests/behavior/features/methodology_adapters_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/methodology-adapters-integration.md](../docs/specifications/methodology-adapters-integration.md) and scenarios in [tests/behavior/features/methodology_adapters_integration.feature](../tests/behavior/features/methodology_adapters_integration.feature).

@@ -20,3 +20,4 @@ WebUI Docs Generation Page is not yet implemented, limiting DevSynth's capabilit
 ## References
 - Specification: docs/specifications/webui-docs-generation-page.md
 - BDD Feature: tests/behavior/features/webui_docs_generation_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-docs-generation-page.md](../docs/specifications/webui-docs-generation-page.md) and scenarios in [tests/behavior/features/webui_docs_generation_page.feature](../tests/behavior/features/webui_docs_generation_page.feature).

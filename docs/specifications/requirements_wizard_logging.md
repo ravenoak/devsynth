@@ -17,6 +17,11 @@ See [Requirements Wizard Logging feature](../features/requirements_wizard_loggin
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/requirements_wizard_logging.feature`](../../tests/behavior/features/requirements_wizard_logging.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Reliable logs ensure troubleshooting and compliance for requirement gathering flows. This specification outlines the structure for log entries and where they are stored.
 
 ## Specification

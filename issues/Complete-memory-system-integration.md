@@ -34,3 +34,4 @@ The memory subsystem supports multiple backends but remains unstable.
 
 - [src/devsynth/adapters/memory](../src/devsynth/adapters/memory)
 - [tests/integration](../tests/integration)
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/complete-memory-system-integration.md](../docs/specifications/complete-memory-system-integration.md) and scenarios in [tests/behavior/features/complete_memory_system_integration.feature](../tests/behavior/features/complete_memory_system_integration.feature).

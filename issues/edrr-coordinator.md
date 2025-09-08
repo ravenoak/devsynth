@@ -21,3 +21,4 @@ EDRR Coordinator is not yet implemented, limiting DevSynth's capabilities.
 - Specification: docs/specifications/edrr-coordinator.md
 - BDD Feature: tests/behavior/features/edrr_coordinator.feature
 - Analysis: docs/analysis/wsde_edrr_convergence.md
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/edrr-coordinator.md](../docs/specifications/edrr-coordinator.md) and scenarios in [tests/behavior/features/edrr_coordinator.feature](../tests/behavior/features/edrr_coordinator.feature).

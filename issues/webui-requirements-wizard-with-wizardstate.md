@@ -20,3 +20,4 @@ WebUI Requirements Wizard with WizardState is not yet implemented, limiting DevS
 ## References
 - Specification: docs/specifications/webui-requirements-wizard-with-wizardstate.md
 - BDD Feature: tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-requirements-wizard-with-wizardstate.md](../docs/specifications/webui-requirements-wizard-with-wizardstate.md) and scenarios in [tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature](../tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature).

@@ -20,3 +20,4 @@ Enable optional features is not yet implemented, limiting DevSynth's capabilitie
 ## References
 - Specification: docs/specifications/enable-optional-features.md
 - BDD Feature: tests/behavior/features/enable_optional_features.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/enable-optional-features.md](../docs/specifications/enable-optional-features.md) and scenarios in [tests/behavior/features/enable_optional_features.feature](../tests/behavior/features/enable_optional_features.feature).

@@ -20,3 +20,4 @@ WebUI Command Execution is not yet implemented, limiting DevSynth's capabilities
 ## References
 - Specification: docs/specifications/webui-command-execution.md
 - BDD Feature: tests/behavior/features/webui_command_execution.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-command-execution.md](../docs/specifications/webui-command-execution.md) and scenarios in [tests/behavior/features/webui_command_execution.feature](../tests/behavior/features/webui_command_execution.feature).

@@ -560,3 +560,7 @@ This feature is **implemented**. See `src/devsynth/adapters/agents/agent_adapter
 
 - [src/devsynth/adapters/agents/agent_adapter.py](../../src/devsynth/adapters/agents/agent_adapter.py)
 - [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

@@ -34,3 +34,4 @@ Current Docker Compose workflows require manual steps.
 
 - [docker-compose.yml](../docker-compose.yml)
 - [scripts/deployment](../scripts/deployment)
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/improve-deployment-automation.md](../docs/specifications/improve-deployment-automation.md) and scenarios in [tests/behavior/features/improve_deployment_automation.feature](../tests/behavior/features/improve_deployment_automation.feature).

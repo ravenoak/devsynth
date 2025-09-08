@@ -20,3 +20,4 @@ WebUI APISpec Page is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-apispec-page.md
 - BDD Feature: tests/behavior/features/webui_apispec_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-apispec-page.md](../docs/specifications/webui-apispec-page.md) and scenarios in [tests/behavior/features/webui_apispec_page.feature](../tests/behavior/features/webui_apispec_page.feature).

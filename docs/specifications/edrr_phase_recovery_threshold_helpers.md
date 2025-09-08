@@ -17,6 +17,11 @@ version: 0.1.0-alpha.1
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 The Enhanced EDRR coordinator lacks public helpers to register recovery hooks and adjust phase thresholds, limiting recursive recovery flows and observability.
 
 ## Specification

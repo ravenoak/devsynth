@@ -33,3 +33,4 @@ Resolve pytest-xdist assertion errors is not yet implemented, limiting DevSynth'
 - Specification: docs/specifications/resolve-pytest-xdist-assertion-errors.md
 - BDD Feature: tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature
 - Analysis: docs/analysis/coverage_reset_proof.md
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/resolve-pytest-xdist-assertion-errors.md](../docs/specifications/resolve-pytest-xdist-assertion-errors.md) and scenarios in [tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature](../tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature).

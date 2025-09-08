@@ -20,3 +20,4 @@ Enhanced EDRR Recursion Handling is not yet implemented, limiting DevSynth's cap
 ## References
 - Specification: docs/specifications/enhanced-edrr-recursion-handling.md
 - BDD Feature: tests/behavior/features/enhanced_edrr_recursion_handling.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/enhanced-edrr-recursion-handling.md](../docs/specifications/enhanced-edrr-recursion-handling.md) and scenarios in [tests/behavior/features/enhanced_edrr_recursion_handling.feature](../tests/behavior/features/enhanced_edrr_recursion_handling.feature).

@@ -20,3 +20,4 @@ WSDE Voting Mechanisms for Critical Decisions is not yet implemented, limiting D
 ## References
 - Specification: docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md
 - BDD Feature: tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md](../docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md) and scenarios in [tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature](../tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature).

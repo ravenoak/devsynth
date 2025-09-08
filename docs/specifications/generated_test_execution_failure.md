@@ -22,6 +22,11 @@ Scaffolded tests execute and fail when underlying requirements are unimplemented
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Developers need immediate feedback when requirements are unmet, so scaffolded tests should fail until implemented.
 
 ## Specification

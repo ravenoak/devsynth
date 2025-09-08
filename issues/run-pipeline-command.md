@@ -20,3 +20,4 @@ Run Pipeline Command is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/run-pipeline-command.md
 - BDD Feature: tests/behavior/features/run_pipeline_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/run-pipeline-command.md](../docs/specifications/run-pipeline-command.md) and scenarios in [tests/behavior/features/run_pipeline_command.feature](../tests/behavior/features/run_pipeline_command.feature).

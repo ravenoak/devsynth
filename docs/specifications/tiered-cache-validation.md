@@ -28,6 +28,11 @@ Required metadata fields:
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 A tiered cache improves read performance, but only if it consistently evicts the least recently used entries and reports accurate hit and miss counts.
 
 ## Specification

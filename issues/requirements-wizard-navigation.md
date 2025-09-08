@@ -20,3 +20,4 @@ Requirements Wizard Navigation is not yet implemented, limiting DevSynth's capab
 ## References
 - Specification: docs/specifications/requirements-wizard-navigation.md
 - BDD Feature: tests/behavior/features/requirements_wizard_navigation.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/requirements-wizard-navigation.md](../docs/specifications/requirements-wizard-navigation.md) and scenarios in [tests/behavior/features/requirements_wizard_navigation.feature](../tests/behavior/features/requirements_wizard_navigation.feature).

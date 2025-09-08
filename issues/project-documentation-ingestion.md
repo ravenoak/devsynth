@@ -27,3 +27,4 @@ Project Documentation Ingestion is not yet implemented, limiting DevSynth's capa
 - Specification: docs/specifications/comprehensive-documentation-ingestion.md
 - BDD Feature: tests/behavior/features/project_documentation_ingestion.feature
 - BDD Feature: tests/behavior/features/comprehensive_documentation_ingestion.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/project-documentation-ingestion.md](../docs/specifications/project-documentation-ingestion.md) and scenarios in [tests/behavior/features/project_documentation_ingestion.feature](../tests/behavior/features/project_documentation_ingestion.feature).

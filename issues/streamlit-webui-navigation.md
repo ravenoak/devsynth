@@ -20,3 +20,4 @@ Streamlit WebUI Navigation is not yet implemented, limiting DevSynth's capabilit
 ## References
 - Specification: docs/specifications/streamlit-webui-navigation.md
 - BDD Feature: tests/behavior/features/streamlit_webui_navigation.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/streamlit-webui-navigation.md](../docs/specifications/streamlit-webui-navigation.md) and scenarios in [tests/behavior/features/streamlit_webui_navigation.feature](../tests/behavior/features/streamlit_webui_navigation.feature).

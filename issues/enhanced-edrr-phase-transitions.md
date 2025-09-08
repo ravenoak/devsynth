@@ -20,3 +20,4 @@ Enhanced EDRR Phase Transitions is not yet implemented, limiting DevSynth's capa
 ## References
 - Specification: docs/specifications/enhanced-edrr-phase-transitions.md
 - BDD Feature: tests/behavior/features/enhanced_edrr_phase_transitions.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/enhanced-edrr-phase-transitions.md](../docs/specifications/enhanced-edrr-phase-transitions.md) and scenarios in [tests/behavior/features/enhanced_edrr_phase_transitions.feature](../tests/behavior/features/enhanced_edrr_phase_transitions.feature).

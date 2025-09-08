@@ -20,3 +20,4 @@ User Authentication is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/user-authentication.md
 - BDD Feature: tests/behavior/features/user_authentication.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/user-authentication.md](../docs/specifications/user-authentication.md) and scenarios in [tests/behavior/features/user_authentication.feature](../tests/behavior/features/user_authentication.feature).

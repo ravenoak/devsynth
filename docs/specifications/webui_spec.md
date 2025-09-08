@@ -55,3 +55,7 @@ interfaces and keeps workflow logic in a single location.
 ## Implementation Status
 
 This feature is **implemented**. Future improvements are planned.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

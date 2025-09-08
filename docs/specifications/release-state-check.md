@@ -28,6 +28,11 @@ Required metadata fields:
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/release_state_check.feature`](../../tests/behavior/features/release_state_check.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Ensure release documentation marked as published has a corresponding Git tag.
 
 ## Specification

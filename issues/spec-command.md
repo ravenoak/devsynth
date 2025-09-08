@@ -20,3 +20,4 @@ Spec Command is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/spec-command.md
 - BDD Feature: tests/behavior/features/spec_command.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/spec-command.md](../docs/specifications/spec-command.md) and scenarios in [tests/behavior/features/spec_command.feature](../tests/behavior/features/spec_command.feature).

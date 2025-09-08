@@ -19,6 +19,11 @@ Automates adjustment of ticket priorities to reflect roadmap phases.
 - What proofs confirm the solution? Running `devsynth reprioritize-issues` updates priorities based on milestones and reports counts.
 
 ## Motivation
+
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/reprioritize_open_issues.feature`](../../tests/behavior/features/reprioritize_open_issues.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 Maintainers need a repeatable way to keep the repository issue tracker aligned with current milestones without manual review.
 
 ## Specification

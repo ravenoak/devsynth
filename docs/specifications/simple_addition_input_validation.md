@@ -22,6 +22,11 @@ Validates that the `add` function in `src/devsynth/simple_addition.py` only proc
 
 ## Motivation
 
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 The current implementation accepts arbitrary objects and may concatenate strings rather than performing numeric addition. Explicit type enforcement prevents unintended behavior.
 
 ## Specification

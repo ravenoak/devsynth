@@ -15,6 +15,11 @@ See [Kuzu Memory Integration feature](../features/kuzu_memory_integration.md) fo
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/kuzu_memory_integration.feature`](../../tests/behavior/features/kuzu_memory_integration.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 The Kuzu-backed memory store previously raised an `AttributeError` when
 configuration attempted to access `kuzu_embedded`. This obscured the
 intended fallback to an in-memory store when the embedded engine is

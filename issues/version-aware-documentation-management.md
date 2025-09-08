@@ -20,3 +20,4 @@ Version-Aware Documentation Management is not yet implemented, limiting DevSynth
 ## References
 - Specification: docs/specifications/version-aware-documentation-management.md
 - BDD Feature: tests/behavior/features/version_aware_documentation_management.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/version-aware-documentation-management.md](../docs/specifications/version-aware-documentation-management.md) and scenarios in [tests/behavior/features/version_aware_documentation_management.feature](../tests/behavior/features/version_aware_documentation_management.feature).

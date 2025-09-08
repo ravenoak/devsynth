@@ -7,6 +7,7 @@ Prepare DevSynth for the v0.1.0-alpha.1 release.
 - Python 3.12 environment with Poetry-managed virtualenv.
 - `go-task` installed; `task --version` returns 3.44.1.
 - Fast tests succeed (162 passed, 27 skipped); `scripts/verify_test_markers.py` reports zero test files.
+- Specifications now contain "What proofs confirm the solution?" sections linked to BDD features.
 - Release readiness remains blocked by unresolved pytest-xdist assertion errors and unverified medium/slow tests.
 
 ## Next Steps

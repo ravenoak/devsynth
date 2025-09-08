@@ -20,3 +20,4 @@ WebUI Validate Manifest Page is not yet implemented, limiting DevSynth's capabil
 ## References
 - Specification: docs/specifications/webui-validate-manifest-page.md
 - BDD Feature: tests/behavior/features/webui_validate_manifest_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-validate-manifest-page.md](../docs/specifications/webui-validate-manifest-page.md) and scenarios in [tests/behavior/features/webui_validate_manifest_page.feature](../tests/behavior/features/webui_validate_manifest_page.feature).

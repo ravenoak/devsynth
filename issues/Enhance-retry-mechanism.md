@@ -32,3 +32,4 @@ The fallback module implements exponential backoff but lacks metrics and conditi
 - BDD Feature: tests/behavior/features/enhance_retry_mechanism.feature
 
 - [src/devsynth/fallback.py](../src/devsynth/fallback.py)
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/enhance-retry-mechanism.md](../docs/specifications/enhance-retry-mechanism.md) and scenarios in [tests/behavior/features/enhance_retry_mechanism.feature](../tests/behavior/features/enhance_retry_mechanism.feature).

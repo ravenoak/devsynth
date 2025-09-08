@@ -20,3 +20,4 @@ Memory and Context System is not yet implemented, limiting DevSynth's capabiliti
 ## References
 - Specification: docs/specifications/memory-and-context-system.md
 - BDD Feature: tests/behavior/features/memory_and_context_system.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/memory-and-context-system.md](../docs/specifications/memory-and-context-system.md) and scenarios in [tests/behavior/features/memory_and_context_system.feature](../tests/behavior/features/memory_and_context_system.feature).

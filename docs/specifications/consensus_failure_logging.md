@@ -19,6 +19,11 @@ When WSDE teams attempt a consensus vote that does not yield a completed decisio
 
 ## Motivation
 
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 Consensus votes may fail to produce a decision due to ties or incomplete participation. Without explicit logging, these failures are hard to diagnose, and downstream processes cannot distinguish between successful votes and silent fallbacks.
 
 ## Specification

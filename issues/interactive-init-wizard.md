@@ -20,3 +20,4 @@ Interactive Init Wizard is not yet implemented, limiting DevSynth's capabilities
 ## References
 - Specification: docs/specifications/interactive-init-wizard.md
 - BDD Feature: tests/behavior/features/interactive_init_wizard.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/interactive-init-wizard.md](../docs/specifications/interactive-init-wizard.md) and scenarios in [tests/behavior/features/interactive_init_wizard.feature](../tests/behavior/features/interactive_init_wizard.feature).

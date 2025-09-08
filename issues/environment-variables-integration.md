@@ -20,3 +20,4 @@ Environment Variables Integration is not yet implemented, limiting DevSynth's ca
 ## References
 - Specification: docs/specifications/environment-variables-integration.md
 - BDD Feature: tests/behavior/features/environment_variables_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/environment-variables-integration.md](../docs/specifications/environment-variables-integration.md) and scenarios in [tests/behavior/features/environment_variables_integration.feature](../tests/behavior/features/environment_variables_integration.feature).

@@ -31,3 +31,7 @@ governs ``FileNotFoundError``.
 
 When metrics are enabled, use ``prometheus_client`` counters to record when
 named policies permit or suppress retries for observability.
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.

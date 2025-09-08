@@ -20,3 +20,4 @@ Enhanced EDRR Memory Integration is not yet implemented, limiting DevSynth's cap
 ## References
 - Specification: docs/specifications/enhanced-edrr-memory-integration.md
 - BDD Feature: tests/behavior/features/enhanced_edrr_memory_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/enhanced-edrr-memory-integration.md](../docs/specifications/enhanced-edrr-memory-integration.md) and scenarios in [tests/behavior/features/enhanced_edrr_memory_integration.feature](../tests/behavior/features/enhanced_edrr_memory_integration.feature).

@@ -20,3 +20,4 @@ Shared UXBridge across CLI and WebUI is not yet implemented, limiting DevSynth's
 ## References
 - Specification: docs/specifications/shared-uxbridge-across-cli-and-webui.md
 - BDD Feature: tests/behavior/features/shared_uxbridge_across_cli_and_webui.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/shared-uxbridge-across-cli-and-webui.md](../docs/specifications/shared-uxbridge-across-cli-and-webui.md) and scenarios in [tests/behavior/features/shared_uxbridge_across_cli_and_webui.feature](../tests/behavior/features/shared_uxbridge_across_cli_and_webui.feature).

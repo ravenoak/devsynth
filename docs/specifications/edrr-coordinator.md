@@ -43,6 +43,11 @@ terminal `completed` state is reached.
 
 ## Motivation
 
+## What proofs confirm the solution?
+- BDD scenarios in [`tests/behavior/features/edrr_coordinator.feature`](../../tests/behavior/features/edrr_coordinator.feature) ensure termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
+
 The EDRR methodology relies on strict sequencing of phases to ensure that exploration results are
 analyzed, refined, and reflected upon in a coherent manner.  Without a coordinator the cycle is
 prone to race conditions between agents and to runaway recursion when phases attempt to resolve

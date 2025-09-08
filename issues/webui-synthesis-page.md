@@ -20,3 +20,4 @@ WebUI Synthesis Page is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-synthesis-page.md
 - BDD Feature: tests/behavior/features/webui_synthesis_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-synthesis-page.md](../docs/specifications/webui-synthesis-page.md) and scenarios in [tests/behavior/features/webui_synthesis_page.feature](../tests/behavior/features/webui_synthesis_page.feature).

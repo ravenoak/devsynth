@@ -20,3 +20,4 @@ WebUI Onboarding Flow is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-onboarding-flow.md
 - BDD Feature: tests/behavior/features/webui_onboarding_flow.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-onboarding-flow.md](../docs/specifications/webui-onboarding-flow.md) and scenarios in [tests/behavior/features/webui_onboarding_flow.feature](../tests/behavior/features/webui_onboarding_flow.feature).

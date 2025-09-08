@@ -20,3 +20,4 @@ WebUI Integration is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-integration.md
 - BDD Feature: tests/behavior/features/webui_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-integration.md](../docs/specifications/webui-integration.md) and scenarios in [tests/behavior/features/webui_integration.feature](../tests/behavior/features/webui_integration.feature).

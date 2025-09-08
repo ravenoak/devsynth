@@ -20,3 +20,4 @@ WebUI Diagnostics Page is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/webui-diagnostics-page.md
 - BDD Feature: tests/behavior/features/webui_diagnostics_page.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-diagnostics-page.md](../docs/specifications/webui-diagnostics-page.md) and scenarios in [tests/behavior/features/webui_diagnostics_page.feature](../tests/behavior/features/webui_diagnostics_page.feature).

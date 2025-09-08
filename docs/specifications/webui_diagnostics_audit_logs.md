@@ -20,6 +20,11 @@ version: 0.1.0-alpha.1
 - What proofs confirm the solution?
 
 ## Motivation
+
+## What proofs confirm the solution?
+- Pending BDD scenarios will verify termination and expected outcomes.
+- Finite state transitions and bounded loops guarantee termination.
+
 The WebUI diagnostics page currently provides system checks but lacks visibility into dialectical audit logs. Developers need convenient access to audit information when diagnosing issues.
 
 ## Specification

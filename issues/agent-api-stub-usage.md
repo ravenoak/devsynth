@@ -20,3 +20,4 @@ Agent API Stub Usage is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/agent-api-stub-usage.md
 - BDD Feature: tests/behavior/features/agent_api_stub_usage.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/agent-api-stub-usage.md](../docs/specifications/agent-api-stub-usage.md) and scenarios in [tests/behavior/features/agent_api_stub_usage.feature](../tests/behavior/features/agent_api_stub_usage.feature).

@@ -20,3 +20,4 @@ WebUI Specification Editor Extended is not yet implemented, limiting DevSynth's 
 ## References
 - Specification: docs/specifications/webui-specification-editor-extended.md
 - BDD Feature: tests/behavior/features/webui_specification_editor_extended.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/webui-specification-editor-extended.md](../docs/specifications/webui-specification-editor-extended.md) and scenarios in [tests/behavior/features/webui_specification_editor_extended.feature](../tests/behavior/features/webui_specification_editor_extended.feature).

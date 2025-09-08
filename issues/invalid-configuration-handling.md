@@ -20,3 +20,4 @@ Invalid configuration handling is not yet implemented, limiting DevSynth's capab
 ## References
 - Specification: docs/specifications/invalid-configuration-handling.md
 - BDD Feature: tests/behavior/features/invalid_configuration_handling.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/invalid-configuration-handling.md](../docs/specifications/invalid-configuration-handling.md) and scenarios in [tests/behavior/features/invalid_configuration_handling.feature](../tests/behavior/features/invalid_configuration_handling.feature).

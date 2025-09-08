@@ -20,3 +20,4 @@ ChromaDB Integration is not yet implemented, limiting DevSynth's capabilities.
 ## References
 - Specification: docs/specifications/chromadb-integration.md
 - BDD Feature: tests/behavior/features/chromadb_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/chromadb-integration.md](../docs/specifications/chromadb-integration.md) and scenarios in [tests/behavior/features/chromadb_integration.feature](../tests/behavior/features/chromadb_integration.feature).

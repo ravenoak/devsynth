@@ -20,3 +20,4 @@ Training Materials for TDD/BDD-EDRR Integration is not yet implemented, limiting
 ## References
 - Specification: docs/specifications/training-materials-for-tdd-bdd-edrr-integration.md
 - BDD Feature: tests/behavior/features/training_materials_for_tdd_bdd_edrr_integration.feature
+- Proof: see 'What proofs confirm the solution?' in [docs/specifications/training-materials-for-tdd-bdd-edrr-integration.md](../docs/specifications/training-materials-for-tdd-bdd-edrr-integration.md) and scenarios in [tests/behavior/features/training_materials_for_tdd_bdd_edrr_integration.feature](../tests/behavior/features/training_materials_for_tdd_bdd_edrr_integration.feature).
