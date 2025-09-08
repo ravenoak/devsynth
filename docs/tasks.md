@@ -103,7 +103,12 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 11.6 [ ] Audit typing_relaxations_tracking.md and schedule restorations in Phase 4.
 
 12. Risk Management and Mitigations
-12.1 [ ] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable.
+12.1 [x] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable:
+12.1.1 [x] TinyDB — `DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true`; import TinyDB, insert a document, and read it back.
+12.1.2 [x] DuckDB — `DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=true`; connect in memory, create a table, insert a row, and select it.
+12.1.3 [x] ChromaDB — `DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true`; start an ephemeral client, add a document with an embedding, and query by vector.
+12.1.4 [x] FAISS — `DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true`; build an `IndexFlatL2`, add a vector, and perform a nearest-neighbor search.
+12.1.5 [x] Kuzu — `DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true`; open a temporary database, create a node table, insert a record, and retrieve it.
 12.2 [x] Default smoke mode guidance in docs to reduce plugin-related flakiness; ensure CLI reflects PYTEST_DISABLE_PLUGIN_AUTOLOAD behavior.
 12.3 [x] Provide a "coverage-only" profile or documented command to standardize local coverage runs.
 
