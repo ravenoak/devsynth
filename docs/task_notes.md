@@ -15,3 +15,6 @@
 2025-09-11:
 - Re-executed `poetry install --with dev --extras "tests retrieval chromadb api"` and confirmed CLI with `poetry run devsynth --help`.
 - Fast tests pass (162 passed, 27 skipped); verification scripts succeeded.
+
+2025-09-12:
+- Added release checklist to plan and marked task 1.4 complete.
