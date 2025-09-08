@@ -16,6 +16,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 1.5.3 [x] `poetry run pip freeze | tee diagnostics/pip_freeze.txt`
 1.5.4 [x] `poetry run devsynth doctor | tee diagnostics/doctor_run.txt`
 1.5.5 [x] `date -u '+%Y-%m-%dT%H:%M:%SZ' | tee diagnostics/run_timestamp_utc.txt`
+1.6 [ ] Investigate `poetry install --with dev --all-extras` hanging on `nvidia/__init__.py` (Issue: poetry-install-nvidia-loop.md).
 
 2. Property Tests Remediation (Phase 1)
 2.1 [x] Fix Hypothesis misuse in tests/property/test_requirements_consensus_properties.py:
