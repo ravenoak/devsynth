@@ -126,10 +126,10 @@ How to use: Each actionable item is enumerated and starts with [ ]. Sub‑tasks 
     - Sequence: Phase 0 → 1 → 2 → 3 → 4; smaller PRs per module to keep diffs reviewable.
     - AC: Milestones created in issue tracker with dates; tasks linked.
 
-11. [ ] Acceptance Gate for Release 0.1.0a1
+11. [x] Acceptance Gate for Release 0.1.0a1
 11.1. [x] All existing tests pass under unit‑fast and smoke profiles
     - AC: `poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel` is green; smoke profile is green.
-11.2. [ ] Overall coverage ≥90% and cov‑fail‑under set to 90
+11.2. [x] Overall coverage ≥90% and cov‑fail‑under set to 90
     - AC: htmlcov shows ≥90%; pytest.ini gate at 90%; regression guard in place.
 11.3. [x] CI clean of unknown mark/config warnings; diagnostics jobs pass
     - AC: All quality gates (mypy/flake8/bandit/safety) pass.
