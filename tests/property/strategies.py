@@ -33,7 +33,7 @@ def _bounded_text(min_size: int = 1, max_size: int = 80) -> st.SearchStrategy[st
 def requirement_strategy() -> st.SearchStrategy[Requirement]:
     """Generate lightweight Requirement instances with valid enums and timestamps.
 
-    - Timestamps are coherent: created_at <= updated_at.
+    - Timestamps are coherent: created_at <= updated_at <= now.
     - Titles/descriptions are short to keep tests fast.
     """
     titles = _bounded_text(3, 50)
@@ -41,6 +41,8 @@ def requirement_strategy() -> st.SearchStrategy[Requirement]:
     status = st.sampled_from(list(RequirementStatus))
     priority = st.sampled_from(list(RequirementPriority))
     rtype = st.sampled_from(list(RequirementType))
+    created_offset = st.integers(min_value=0, max_value=3600)
+    updated_offset = st.integers(min_value=0, max_value=300)
 
     def _build(
         title: str,
@@ -48,11 +50,12 @@ def requirement_strategy() -> st.SearchStrategy[Requirement]:
         stt: RequirementStatus,
         pr: RequirementPriority,
         tp: RequirementType,
+        c_off: int,
+        u_off: int,
     ):
-        created = datetime.now()
-        updated = created + timedelta(
-            seconds=st.integers(min_value=0, max_value=5).example()
-        )
+        now = datetime.now()
+        created = now - timedelta(seconds=c_off + u_off)
+        updated = created + timedelta(seconds=u_off)
         return Requirement(
             id=uuid4(),
             title=title,
@@ -68,7 +71,16 @@ def requirement_strategy() -> st.SearchStrategy[Requirement]:
             metadata={},
         )
 
-    return st.builds(_build, titles, descriptions, status, priority, rtype)
+    return st.builds(
+        _build,
+        titles,
+        descriptions,
+        status,
+        priority,
+        rtype,
+        created_offset,
+        updated_offset,
+    )
 
 
 def requirement_change_strategy() -> st.SearchStrategy[RequirementChange]:

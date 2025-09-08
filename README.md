@@ -455,6 +455,23 @@ The [Repository Structure](docs/repo_structure.md) document provides a comprehen
 
 ## Testing
 
+Offline-first defaults and provider behavior
+- By default, the test CLI configures offline execution to avoid accidental network activity.
+- Defaults applied by `devsynth run-tests` when unset:
+  - DEVSYNTH_PROVIDER=stub
+  - DEVSYNTH_OFFLINE=true
+  - DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false
+- To opt into live provider tests locally, install the appropriate extras and set:
+  - For OpenAI: export DEVSYNTH_OFFLINE=false; export DEVSYNTH_PROVIDER=openai; export OPENAI_API_KEY=...; optionally set OPENAI_MODEL/OPENAI_EMBEDDINGS_MODEL.
+  - For LM Studio: export DEVSYNTH_OFFLINE=false; export DEVSYNTH_PROVIDER=lmstudio; export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234; export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true.
+- Resource-gated tests (`@pytest.mark.requires_resource(...)`) are skipped unless the corresponding `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true` flag is set.
+
+Coverage aggregation guidance
+- The repository enforces a global `--cov-fail-under=90` in pytest.ini.
+- Avoid asserting readiness from narrow subset runs; aggregate coverage using:
+  - poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report
+  - or segmented runs followed by: poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json
+
 Run the full test suite with:
 
 ```bash

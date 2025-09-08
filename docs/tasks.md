@@ -1,143 +1,127 @@
-# DevSynth 0.1.0a1 Test & Quality Improvement Tasks (Actionable Checklist)
+# DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist
 
-Generated: 2025-09-05 14:06 local
-Source: docs/plan.md (Evidence‑Grounded Plan)
-Goal: Ensure all tests are functional and raise src/devsynth coverage to ≥90% with disciplined markers, offline defaults, and CI ratcheting.
+Version: 2025-09-07
+Source: Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)
 
-How to use: Each actionable item is enumerated and starts with [ ]. Sub‑tasks use dotted numbering (e.g., 3.1.2). Keep items checked off in order unless dependencies indicate otherwise. AC = Acceptance Criteria.
+Instructions: Check off each task when completed. Subtasks are enumerated for clarity and traceability. Follow the order for optimal flow. All commands should be run via Poetry.
 
-1. [x] Establish Baseline and Guardrails
-1.1. [x] Confirm current test collection and marker discipline
-    - AC: `poetry run pytest --collect-only -q` ≈ 4136 items; `scripts/verify_test_markers.py` reports 0 violations; attach test_markers_report.json to artifacts.
-1.2. [x] Snapshot current coverage
-    - AC: `poetry run pytest -q --cov=src/devsynth --cov-report=term-missing --cov-report=html` produces htmlcov at ~20% overall; publish as CI artifact.
-1.3. [x] Document bypassing coverage gate for focused runs
-    - Change docs: Add tip in docs/developer_guides/testing.md explaining `-o addopts=""` or `PYTEST_ADDOPTS=""`.
-    - AC: Doc PR merged; README testing section links to it.
+1. Environment and Tooling Baseline (Phase 0)
+1.1 [x] Install dependencies with full maintainer extras: `poetry install --with dev --all-extras`.
+1.2 [x] Activate Poetry shell: `poetry shell`.
+1.3 [x] Run quick sanity checks: `poetry run devsynth doctor`, `poetry run pytest --collect-only -q`.
+1.4 [x] Validate marker discipline: `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`.
+1.5 [x] Capture reproducibility diagnostics under diagnostics/:
+1.5.1 [x] `poetry run python -V | tee diagnostics/python_version.txt`
+1.5.2 [x] `poetry --version | tee diagnostics/poetry_version.txt`
+1.5.3 [x] `poetry run pip freeze | tee diagnostics/pip_freeze.txt`
+1.5.4 [x] `poetry run devsynth doctor | tee diagnostics/doctor_run.txt`
+1.5.5 [x] `date -u '+%Y-%m-%dT%H:%M:%SZ' | tee diagnostics/run_timestamp_utc.txt`
 
-2. [x] Phase 0 — Sanity, Noise Reduction, and Failing Test Fix
-2.1. [x] Fix ValidationAgent.process semantics per deterministic rule set
-    - Change: In src/devsynth/application/agents/validation.py, set is_valid=False if text contains any of {"fail","error","exception"} (case‑insensitive), else True.
-    - AC: tests/unit/application/agents/test_validation_agent.py::test_process_returns_typed_output passes; add unit tests for affirmative, neutral, and failure tokens.
-2.2. [x] Add targeted unit tests for ValidationAgent decision helper
-    - Change: Isolate decision function (no provider calls) in tests.
-    - AC: New tests pass and are @pytest.mark.fast.
-2.3. [x] Resolve PytestUnknownMarkWarning for custom marks (smoke, unit)
-    - Change: Register marks in pytest.ini under [pytest] markers (smoke/unit descriptions).
-    - AC: Running unit and smoke subsets yields no PytestUnknownMarkWarning.
-2.4. [x] Resolve PytestConfigWarning for anyio_backend in pytest.ini
-    - Change: Migrate to pytest‑asyncio config; remove `anyio_backend`, add `asyncio_mode = strict`.
-    - AC: No PytestConfigWarning related to anyio.
-2.5. [x] Ensure offline/stub defaults are enforced by run-tests for unit paths
-    - Change: Add unit tests asserting defaults `DEVSYNTH_PROVIDER=stub` and `DEVSYNTH_OFFLINE=true` when unset.
-    - AC: Tests pass without external provider calls.
+2. Property Tests Remediation (Phase 1)
+2.1 [x] Fix Hypothesis misuse in tests/property/test_requirements_consensus_properties.py:
+2.1.1 [x] Remove any example() calls at definition time; use @example decorators properly with @given.
+2.1.2 [x] Ensure strategies are provided only via @given and hypothesis.strategies.
+2.2 [x] Resolve AttributeError for _DummyTeam._improve_clarity:
+2.2.1 [x] Preferred: Update tests to target a public API that internally triggers clarity improvement (e.g., team.improve_clarity(requirement)).
+2.2.2 [x] Alternative: Implement a no-op or minimally semantic _improve_clarity on the Dummy test double to satisfy the expected interface (tests/helpers/dummies.py or equivalent).
+2.3 [x] Ensure each property test has exactly one speed marker plus @pytest.mark.property.
+2.4 [x] Re-run property tests: `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q` and confirm 0 failures.
+2.5 [x] Add/adjust fixtures as needed to keep property tests isolated and deterministic.
 
-3. [x] Phase 1 — High‑Leverage Unit Coverage
-3.1. [x] Raise coverage of src/devsynth/application/cli/commands/run_tests_cmd.py to ≥90%
-3.1.1. [x] Cover --smoke: sets PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 and disables xdist
-3.1.2. [x] Cover --no-parallel: ensures -n auto is not used
-3.1.3. [x] Cover --speed combinations: fast/medium/slow; marker expression merging via -m
-3.1.4. [x] Cover --report: injects pytest‑html args; outputs under test_reports/
-3.1.5. [x] Cover --segment/--segment-size: batches node ids from mocked collection
-3.1.6. [x] Cover --maxfail: forwarded to pytest args
-3.1.7. [x] Cover --feature name[=true|false]: maps to DEVSYNTH_FEATURE_<NAME> env vars
-3.1.8. [x] Cover observability increments (mock increment_counter)
-3.1.9. [x] Cover UX bridge messaging (happy and error paths)
-    - AC: htmlcov shows ≥90% for run_tests_cmd.py.
-3.2. [x] Add unit tests for src/devsynth/testing/run_tests.py
-    - Scope: argument translation to pytest, result code handling, collection cache determinism.
-    - AC: Module coverage ≥90%; tests are @pytest.mark.fast.
-3.3. [x] Provider environment behavior tests (src/devsynth/config/provider_env.py)
-    - Cases: stub defaults when keys missing; env precedence; safety toggles; explicit provider error paths.
-    - AC: Coverage ≥90% for this module; no external calls.
-3.4. [x] Utilities coverage (serialization, file helpers, logging)
-    - Action: Identify pure/deterministic utilities; add unit tests and optional property tests.
-    - AC: Targeted utility modules reach ≥90%.
-3.5. [x] Optional: Property‑based tests gated by DEVSYNTH_PROPERTY_TESTING
-    - Action: Place under tests/property/, add @pytest.mark.property + a speed marker.
-    - AC: With DEVSYNTH_PROPERTY_TESTING=true, property tests collect and pass.
+3. Coverage Uplift — CLI run_tests_cmd Hotspot (Phase 2)
+3.1 [x] Add or extend unit tests for src/devsynth/application/cli/commands/run_tests_cmd.py to cover the following branches/behaviors:
+3.1.1 [x] Smoke mode sets PYTEST_DISABLE_PLUGIN_AUTOLOAD=1.
+3.1.2 [x] --no-parallel maps to pytest-xdist `-n0`.
+3.1.3 [x] Inventory mode writes the inventory file and exits with correct code.
+3.1.4 [x] Marker ANDing logic builds the correct pytest -m expression.
+3.1.5 [x] --segment and --segment-size produce batched execution.
+3.1.6 [x] --maxfail propagates correctly to pytest.
+3.1.7 [x] --feature name[=true|false] sets DEVSYNTH_FEATURE_<NAME> env vars.
+3.1.8 [x] Provider defaults applied when unset (DEVSYNTH_PROVIDER=stub, DEVSYNTH_OFFLINE=true, LM Studio unavailable).
+3.1.9 [x] Invalid marker expression errors cleanly with non-zero exit code.
+3.1.10 [x] Nonexistent target exits with error and helpful message.
+3.2 [x] Ensure tests validate Typer exit codes, environment side effects, and avoid external network calls.
+3.3 [x] Achieve >90% coverage for run_tests_cmd.py (verify via coverage report).
 
-4. [x] Phase 2 — Adapter/Backend Seams and Domain Logic
-4.1. [x] Introduce lightweight fakes for heavy adapters (chromadb/faiss/kuzu/etc.)
-    - Action: Create fakes/stubs to exercise control flow without real backends.
-    - AC: Unit tests using fakes execute adapter paths; resource‑marked tests skip by default.
-4.2. [x] Write seam‑level tests with proper resource gating
-    - Action: Use @pytest.mark.requires_resource("<NAME>") and env flags (DEVSYNTH_RESOURCE_<NAME>_AVAILABLE).
-    - AC: Default CI (flags off) skips heavy tests; when flags set, tests run.
-4.3. [x] Domain agents and coordinators
-    - Action: Add tests for agent adapters, multi‑agent consensus, safety audit error branches, and validation/scaffolding agent paths.
-    - AC: Increased agents coverage; markers respected.
+4. Coverage Uplift — Adapters and Stores (Phase 2)
+4.1 [x] Identify pure-Python logic in adapters/stores (e.g., serialization/transforms) and add fast unit tests not requiring backends.
+4.2 [x] For backend integrations (tinydb, duckdb, chromadb, faiss, kuzu):
+4.2.1 [x] Add resource-gated tests using @pytest.mark.requires_resource("<NAME>").
+4.2.2 [x] Implement minimal smoke coverage (import + basic op) when DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true.
+4.2.3 [x] Document in tests how to enable each backend locally.
 
-5. [x] Phase 3 — Behavior and Integration Reinforcement
-5.1. [x] Ensure smoke‑level BDD flows run by default (fast)
-    - Action: Adjust behavior tests to run under --speed=fast without external deps; provide fixtures/fakes.
-    - AC: `poetry run devsynth run-tests --target behavior-tests --speed=fast --smoke` passes.
-5.2. [x] Behavior tests for missing CLI command groups (diagnostics, config update)
-    - AC: Happy/error paths covered with fakes; no network calls.
-5.3. [x] Align resource markers with optional extras
-    - Action: Update docs/tests so extras (e.g., tests retrieval chromadb api) map cleanly to DEVSYNTH_RESOURCE_* flags.
-    - AC: Minimal CI profile installs chosen subset and passes.
+5. Coverage Uplift — UX Bridge and Logging (Phase 2)
+5.1 [x] Add unit tests for non-interactive flows in CLI UX bridge components.
+5.2 [x] Validate logging levels and branches are covered (e.g., warnings on invalid options, info on report generation).
 
-6. [x] Phase 4 — Ratchet and Sustain
-6.1. [x] Raise coverage gate to 85% after sustained ≥85% overall
-    - Change: Update pytest.ini `--cov-fail-under=85` once CI shows ≥85% on main.
-    - AC: CI green with new threshold for 1+ run.
-6.2. [x] Raise coverage gate to 90% after two consecutive ≥90% runs on main
-    - Change: Update pytest.ini to `--cov-fail-under=90`.
-    - AC: Two consecutive main runs ≥90%; no regressions.
-6.3. [x] Add coverage regression guard job
-    - Deliverable: scripts/compare_coverage.py that compares coverage.json between base and PR; fail if drop >1%.
-    - AC: CI job in place; PRs with >1% drop fail.
-6.4. [x] Keep speed marker verifier as required CI check
-    - Change: Add CI job to run `scripts/verify_test_markers.py` and fail on unknown marks; publish test_markers_report.json.
-    - AC: Job enforced as required; unknown marks fail PRs.
+6. Coverage Execution and Aggregation (Phase 2)
+6.1 [x] Establish baseline coverage with fast+medium, no parallel: `poetry run devsynth run-tests --report --speed=fast --speed=medium --no-parallel`.
+6.2 [x] If needed, run segmented coverage and combine:
+6.2.1 [x] `poetry run devsynth run-tests --speed=fast --segment --segment-size 100 --no-parallel 2>&1 | tee test_reports/seg_fast_1.log`
+6.2.2 [x] `poetry run devsynth run-tests --speed=medium --segment --segment-size 100 --no-parallel 2>&1 | tee test_reports/seg_medium_1.log`
+6.2.3 [x] `poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json`
+6.3 [ ] Verify global threshold: ensure combined coverage >=90% with pytest.ini fail-under.
+6.4 [x] Save logs to test_reports/ and artifacts to htmlcov/ and coverage.json.
 
-7. [x] Diagnostics, Code Hygiene, and Typing
-7.1. [x] Remove dead code and unused type: ignore in run_tests_cmd.py
-    - Action: Delete unreachable branches; remove stray ignores.
-    - AC: flake8/mypy clean for these diagnostics; tests still pass.
-7.2. [x] Fix mypy issues across changed modules (strict mode)
-    - AC: `poetry run mypy src/devsynth` passes; add minimal TODOs where strictness must be temporarily relaxed.
-7.3. [x] Lint/Security hygiene
-    - AC: `poetry run flake8 src/ tests/`, `poetry run bandit -r src/devsynth -x tests`, `poetry run safety check --full-report` pass or have documented justifications.
+7. Behavior and Integration Completeness (Phase 3)
+7.1 [x] Ensure behavior tests cover CLI examples: unit fast no-parallel, report generation, smoke mode.
+7.2 [x] Add scenarios for feature flags and segmented runs if missing.
+7.3 [ ] Review ingestion and metrics integrations to avoid external dependencies by default; expand fixtures to simulate inputs.
+7.4 [ ] Verify metrics consistency via assertions in integration tests.
 
-8. [x] CI Pipeline Enhancements
-8.1. [x] Add smoke, unit‑fast segmented, and coverage report jobs via devsynth CLI
-    - Commands:
-      - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`
-      - `poetry run devsynth run-tests --target unit-tests --speed=fast --segment --segment-size=50 --maxfail=1`
-      - `poetry run pytest -q --cov=src/devsynth --cov-report=term-missing --cov-report=html`
-    - AC: Jobs green; publish htmlcov/ and test_reports/ as artifacts.
-8.2. [x] Enforce no PytestUnknownMarkWarning and no PytestConfigWarning in CI logs
-    - Change: Add a log‑scan step that fails on these warnings after fixes in 2.3/2.4.
-    - AC: CI fails if such warnings appear; baseline is clean.
+8. Non-functional Quality Gates (Phase 4)
+8.1 [ ] Black formatting check: `poetry run black --check .`.
+8.2 [ ] isort check: `poetry run isort --check-only .`.
+8.3 [ ] Flake8 lint: `poetry run flake8 src/ tests/`.
+8.4 [ ] Bandit security scan: `poetry run bandit -r src/devsynth -x tests`.
+8.5 [ ] Safety vulnerabilities: `poetry run safety check --full-report`.
+8.6 [ ] Mypy strict typing: `poetry run mypy src/devsynth`.
+8.7 [ ] For any temporary typing relaxations, add TODOs and targeted overrides in pyproject.toml; document rationale.
 
-9. [x] Documentation Updates
-9.1. [x] Update docs/developer_guides/testing.md with: speed marker discipline; property tests opt‑in; resource flags; coverage tips; segmentation usage.
-    - AC: Document reflects current practices; links validated.
-9.2. [x] Update README.md and docs/user_guides/cli_command_reference.md with examples for devsynth run‑tests options (smoke, speed, report, segment, feature flags).
-    - AC: Examples verified against behavior tests.
+9. Documentation and Developer Workflow (Phase 5)
+9.1 [x] Update docs/user_guides/cli_command_reference.md with any new CLI options or clarified behaviors.
+9.2 [x] Document maintainer setup and how to enable resource-gated backends locally (extras + env flags).
+9.3 [x] Summarize provider defaults and offline behavior in README.md and docs.
+9.4 [x] Add guidance to always aggregate coverage for readiness claims, avoiding narrow subset runs.
 
-10. [x] Ownership and Accountability
-10.1. [x] Map working groups to real owners
-    - Action: Replace TWG‑A/B/C and Release Engineering with actual names/teams.
-    - AC: Owners listed in docs/plan.md and CODEOWNERS (if present) or docs/OWNERS.md.
-10.2. [x] Plan PR sequencing and milestones
-    - Sequence: Phase 0 → 1 → 2 → 3 → 4; smaller PRs per module to keep diffs reviewable.
-    - AC: Milestones created in issue tracker with dates; tasks linked.
+10. Release Preparation and CI/CD Strategy (Phase 6)
+10.1 [ ] Keep GitHub Actions disabled until 0.1.0a1 is tagged.
+10.2 [ ] After release, enable low-throughput workflows with concurrency control:
+10.2.1 [ ] Add smoke job (fast, --no-parallel, PYTEST_DISABLE_PLUGIN_AUTOLOAD=1).
+10.2.2 [ ] Add unit+integration job (fast+medium) without xdist.
+10.2.3 [ ] Add typing+lint job (mypy/flake8/black/isort/bandit/safety).
+10.2.4 [ ] Add nightly scheduled full-suite with report upload (HTML coverage/artifacts).
+10.3 [ ] Configure caching for Poetry, pip, and .pytest_cache per plan.
+10.4 [ ] Upload artifacts on failures: test_reports/, htmlcov/, coverage.json, diagnostics/doctor_run.txt.
 
-11. [x] Acceptance Gate for Release 0.1.0a1
-11.1. [x] All existing tests pass under unit‑fast and smoke profiles
-    - AC: `poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel` is green; smoke profile is green.
-11.2. [x] Overall coverage ≥90% and cov‑fail‑under set to 90
-    - AC: htmlcov shows ≥90%; pytest.ini gate at 90%; regression guard in place.
-11.3. [x] CI clean of unknown mark/config warnings; diagnostics jobs pass
-    - AC: All quality gates (mypy/flake8/bandit/safety) pass.
+11. Issue Tracker Alignment and Traceability
+11.1 [x] Generate an issues list: `ls -1 issues/ | tee diagnostics/issues_list.txt`.
+11.2 [x] Grep for readiness-related tickets: `grep -R "readiness\|coverage\|tests\|run-tests" -n issues/ | tee diagnostics/issues_grep_readiness.txt`.
+11.3 [x] Cross-reference behavior features with related issues: `grep -R "Related issue:" -n tests/behavior/ | tee diagnostics/behavior_related_issues.txt`.
+11.4 [ ] When adding/updating tests, include issue filename in test docstrings (e.g., "ReqID: FR-09; Issue: issues/<file>.md").
+11.5 [ ] Add behavior tests asserting presence of ReqID tags in docstrings for a representative subset; provide a small validation tool if needed.
+11.6 [ ] Audit typing_relaxations_tracking.md and schedule restorations in Phase 4.
 
-Appendix: Quick Commands
-- Collect: `poetry run pytest --collect-only -q`
-- Markers report: `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`
-- Smoke: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`
-- Unit fast segmented: `poetry run devsynth run-tests --target unit-tests --speed=fast --segment --segment-size=50 --maxfail=1`
-- Coverage: `poetry run pytest -q --cov=src/devsynth --cov-report=term-missing --cov-report=html`
-- Typing/Lint/Security: `poetry run mypy src/devsynth`; `poetry run flake8 src/ tests/`; `poetry run bandit -r src/devsynth -x tests`; `poetry run safety check --full-report`
+12. Risk Management and Mitigations
+12.1 [ ] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable.
+12.2 [x] Default smoke mode guidance in docs to reduce plugin-related flakiness; ensure CLI reflects PYTEST_DISABLE_PLUGIN_AUTOLOAD behavior.
+12.3 [x] Provide a "coverage-only" profile or documented command to standardize local coverage runs.
+
+13. Acceptance Criteria Validation
+13.1 [ ] All unit, integration, and behavior tests pass locally using documented commands.
+13.2 [ ] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
+13.3 [ ] Combined coverage >= 90% with HTML report generated and saved.
+13.4 [ ] Lint, type, and security gates pass with documented exceptions (if any).
+13.5 [ ] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags, coverage guidance.
+13.6 [ ] Known environment warnings in doctor.txt triaged and documented as non-blocking by default.
+
+14. Maintainer Quick Actions (for convenience; optional but recommended)
+14.1 [x] Run smoke sanity: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` and save to test_reports/smoke_fast.log.
+14.2 [x] Full fast+medium with HTML report: `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` and archive artifacts.
+14.3 [x] Property tests (opt-in): `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/`. 
+14.4 [x] Marker discipline report regeneration: `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`. 
+
+Notes:
+- Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
+- Maintain exactly one speed marker per test function.
+- Prefer adding tests for pure logic first, then expand to gated integrations.
