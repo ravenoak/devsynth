@@ -11,7 +11,7 @@ def test_speed_option_recognized():
 
     ReqID: DEV-0000"""
     repo_root = Path(__file__).resolve().parents[3]
-    test_file = repo_root / "tests" / "test_speed_dummy.py"
+    test_file = repo_root / "tests" / "test_speed_temp.py"
     try:
         test_file.write_text(
             "import pytest\n\n@pytest.mark.fast\ndef test_dummy():\n    assert True\n"
