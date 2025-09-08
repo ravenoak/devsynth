@@ -9,7 +9,7 @@ Options:
   --strict   Exit non-zero if any issues are found (default: non-strict).
 
 Notes:
-- Designed to align with DevSynth guidelines (.junie/guidelines.md) and be CI-friendly.
+- Designed to align with DevSynth guidelines (project guidelines) and be CI-friendly.
 - Outputs:
   - bandit.json
   - safety.json

@@ -14,7 +14,7 @@ Legend:
 - Antithesis: Counter-evidence found during investigation
 - Synthesis: Final change implemented
 
-Entries reference mitigations codified in tests/conftest.py, .junie/guidelines.md, and docs/plan.md.
+Entries reference mitigations codified in tests/conftest.py, project guidelines, and docs/plan.md.
 
 ## FC-01: Non-deterministic random usage
 - Thesis: Randomized inputs cause intermittent failures.
@@ -72,7 +72,7 @@ Entries reference mitigations codified in tests/conftest.py, .junie/guidelines.m
 - Synthesis: Default DEVSYNTH_RESOURCE_* flags to false in CLI; tests rely on requires_resource; added quick recipes in testing guide to enable locally.
 
 References:
-- .junie/guidelines.md
+- project guidelines
 - docs/plan.md
 - docs/developer_guides/testing.md
 - tests/conftest.py

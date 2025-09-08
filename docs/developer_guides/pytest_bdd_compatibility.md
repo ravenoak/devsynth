@@ -6,7 +6,7 @@ version: "0.1.0-alpha.1"
 ---
 # pytest-bdd Compatibility Notes (v8.1.0)
 
-This guide documents DevSynth's expectations and compatibility notes for `pytest-bdd` version 8.1.0. It complements the CLI messaging and testing guidelines in .junie/guidelines.md and the stabilization plan in docs/plan.md.
+This guide documents DevSynth's expectations and compatibility notes for `pytest-bdd` version 8.1.0. It complements the CLI messaging and testing guidelines in project guidelines and the stabilization plan in docs/plan.md.
 
 ## Supported version
 - We validate against `pytest-bdd==8.1.0`.
@@ -38,6 +38,6 @@ This guide documents DevSynth's expectations and compatibility notes for `pytest
 - When upgrading `pytest-bdd`, review deprecations and run behavior tests in smoke and normal modes.
 
 ## References
-- .junie/guidelines.md (Testing discipline)
+- project guidelines (Testing discipline)
 - docs/plan.md (Stabilization priorities)
 - docs/user_guides/cli_command_reference.md (CLI messaging principles)

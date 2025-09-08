@@ -10,7 +10,7 @@ Behavior:
 - Prints a short summary and exits with pytest's return code.
 - No network; safe for local and CI usage.
 
-This script follows .junie/guidelines.md (clarity, determinism) and supports docs/tasks.md item 6.1.
+This script follows project guidelines (clarity, determinism) and supports docs/tasks.md item 6.1.
 """
 from __future__ import annotations
 

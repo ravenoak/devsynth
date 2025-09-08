@@ -7,7 +7,7 @@ version: "0.1.0"
 # Risk and Rollback Plan
 
 This document defines a lightweight, actionable rollback strategy for critical features and releases. It aligns with:
-- .junie/guidelines.md (safety, clarity, determinism)
+- project guidelines (safety, clarity, determinism)
 - docs/plan.md (stabilization priorities)
 - docs/roadmap/release_plan.md (release cadence and gating)
 

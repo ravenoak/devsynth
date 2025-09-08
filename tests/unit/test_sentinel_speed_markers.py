@@ -9,7 +9,7 @@ Style and design notes:
 - If pytest is unavailable in a minimal environment, we install a no-op
   fallback for pytest.mark to avoid import-time errors while preserving
   decorator syntax for marker discovery.
-- Aligns with .junie/guidelines.md (determinism, clarity, graceful failure) and
+- Aligns with project guidelines (determinism, clarity, graceful failure) and
   docs/plan.md (stabilize CI/test categorization).
 """
 

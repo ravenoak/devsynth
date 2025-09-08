@@ -619,7 +619,7 @@ Note: Minimal backend gating smoke tests live under tests/unit/retrieval/test_ba
 - poetry run devsynth run-tests --target unit-tests --speed=fast
 - poetry run devsynth run-tests --target integration-tests --speed=fast
 
-For more details and troubleshooting, refer to tests/README.md and .junie/guidelines.md.
+For more details and troubleshooting, refer to tests/README.md and project guidelines.
 
 ### Warnings policy (targeted filtering)
 
@@ -803,7 +803,7 @@ Quick commands
 - Sanity+Inventory bundle (writes logs under test_reports/): bash scripts/run_sanity_and_inventory.sh
 - Marker discipline report (emits test_reports/test_markers_report.json): bash scripts/run_marker_discipline.sh
 
-See also: docs/developer_guides/diagnostics.md for a diagnostics command flow checklist and .junie/guidelines.md for the authoritative practices. Track intermittent issues in docs/testing/known_flakes.md. For common doctor findings and remediation, read docs/developer_guides/doctor_checklist.md.
+See also: docs/developer_guides/diagnostics.md for a diagnostics command flow checklist and project guidelines for the authoritative practices. Track intermittent issues in docs/testing/known_flakes.md. For common doctor findings and remediation, read docs/developer_guides/doctor_checklist.md.
 
 ## Running All Tests
 
@@ -1049,7 +1049,7 @@ Artifacts produced by the marker verification tooling are standardized to simpli
   - The fast/smoke lanes upload test_reports/test_markers_report.json as an artifact.
   - PRs fail if violations are non-zero. Link to the artifact in the PR description when discussing remediation.
 
-This guidance complements tests/README.md and docs/plan.md §7 and follows .junie/guidelines.md (clarity, minimalism).
+This guidance complements tests/README.md and docs/plan.md §7 and follows project guidelines (clarity, minimalism).
 
 ### Using Section 7 helper scripts in CI (and locally)
 
@@ -1284,7 +1284,7 @@ _Last updated: August 23, 2025_
 
 ## Global Isolation Fixtures (autouse)
 
-DevSynth enforces hermetic test execution via autouse fixtures in tests/conftest.py, aligned with .junie/guidelines.md and docs/plan.md:
+DevSynth enforces hermetic test execution via autouse fixtures in tests/conftest.py, aligned with project guidelines and docs/plan.md:
 
 - global_test_isolation (autouse):
   - Saves/restores the entire environment (os.environ) per test.

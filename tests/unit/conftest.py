@@ -8,7 +8,7 @@
 # Rationale:
 # - Aligns with docs/plan.md Verification Protocol and docs/tasks.md P1.1 subtask 1.2.
 # - Mirrors the behavior/integration centralization pattern to reduce scattered, repetitive edits.
-# - Keeps diffs minimal and adheres to .junie/guidelines.md (clarity, determinism, hermeticity).
+# - Keeps diffs minimal and adheres to project guidelines (clarity, determinism, hermeticity).
 
 from __future__ import annotations
 

@@ -105,5 +105,5 @@ Defaults in tests (set by fixtures/CLI for isolation):
   - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`
 
 See also:
-- `.junie/guidelines.md` for authoritative development/testing practices
+- `project guidelines` for authoritative development/testing practices
 - `docs/developer_guides/testing.md` for detailed testing workflows and tips

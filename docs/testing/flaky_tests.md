@@ -6,7 +6,7 @@ version: "0.1.0-alpha.1"
 ---
 # Flaky Tests: Root Causes and Mitigations
 
-This document catalogs known sources of test flakiness in DevSynth and the mitigations we apply. It aligns with .junie/guidelines.md (determinism, isolation) and the stabilization plan in docs/plan.md.
+This document catalogs known sources of test flakiness in DevSynth and the mitigations we apply. It aligns with project guidelines (determinism, isolation) and the stabilization plan in docs/plan.md.
 
 ## Symptoms Observed
 - Intermittent timeouts when third-party plugins are active.

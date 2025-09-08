@@ -6,7 +6,7 @@ version: "0.1.0-alpha.1"
 ---
 # Performance Tests Policy (tests/performance/)
 
-This policy defines how performance/benchmark tests are organized, executed, and gated in the DevSynth repository. It aligns with .junie/guidelines.md and the stabilization plan in docs/plan.md.
+This policy defines how performance/benchmark tests are organized, executed, and gated in the DevSynth repository. It aligns with project guidelines and the stabilization plan in docs/plan.md.
 
 ## Scope and location
 - Performance and benchmarks live under `tests/performance/`.
@@ -53,6 +53,6 @@ This policy defines how performance/benchmark tests are organized, executed, and
   - Document any variability and provide guidance for interpreting trends.
 
 ## References
-- .junie/guidelines.md (Testing discipline; determinism)
+- project guidelines (Testing discipline; determinism)
 - docs/plan.md (Stabilization priorities)
 - docs/performance/performance_and_scalability_testing.md (How-to guides)

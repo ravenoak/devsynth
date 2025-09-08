@@ -5,7 +5,7 @@ This module exposes a minimal function `check_internal_links` used by unit tests
 and a CLI-style `main` for ad-hoc runs. It intentionally avoids network I/O and
 only validates local, intra-repo Markdown links.
 
-Style: Follows .junie/guidelines.md and tasks in docs/tasks.md (12.81).
+Style: Follows project guidelines and tasks in docs/tasks.md (12.81).
 """
 from __future__ import annotations
 
@@ -33,8 +33,8 @@ def _slugify_heading(text: str) -> str:
     return slug
 
 
-def _extract_headings(md_path: Path) -> List[str]:
-    headings: List[str] = []
+def _extract_headings(md_path: Path) -> list[str]:
+    headings: list[str] = []
     try:
         for line in md_path.read_text(encoding="utf-8").splitlines():
             if line.lstrip().startswith("#"):
@@ -55,7 +55,7 @@ def _extract_headings(md_path: Path) -> List[str]:
 
 def check_internal_links(
     source_md: Path | str, docs_root: Path | str
-) -> List[Dict[str, str]]:
+) -> list[dict[str, str]]:
     """Return a list of broken links found in `source_md` under `docs_root`.
 
     Each broken link is reported as a dict with keys: url, reason.
@@ -67,7 +67,7 @@ def check_internal_links(
     root = Path(docs_root)
     text = src.read_text(encoding="utf-8")
 
-    broken: List[Dict[str, str]] = []
+    broken: list[dict[str, str]] = []
     for _, url in _MD_LINK_RE.findall(text):
         if re.match(r"^[a-zA-Z]+:", url):
             # Skip absolute schemes (http, https, mailto, etc.)

@@ -612,7 +612,7 @@ Smoke mode guidance:
   - Verify env defaults: DEVSYNTH_PROVIDER=stub, DEVSYNTH_OFFLINE=true.
   - Resource flags default to false; enable explicitly if needed, e.g. export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true.
 
-For broader guidance, see .junie/guidelines.md and docs/developer_guides/testing.md.
+For broader guidance, see project guidelines and docs/developer_guides/testing.md.
 
 ## completion
 
@@ -1092,7 +1092,7 @@ This reference covers all the DevSynth CLI commands and their options. For more 
 
 - The run-tests CLI options are validated by behavior tests under `tests/behavior/steps/test_run_tests_steps.py` and unit tests under `tests/unit/application/cli/commands/`.
 - CI workflows exercise fast unit tests by default and archive HTML reports when `--report` is used; see `.github/workflows/unit_tests.yml`.
-- For determinism and resource gating defaults applied by the CLI, see `.junie/guidelines.md` and `docs/developer_guides/testing.md`.
+- For determinism and resource gating defaults applied by the CLI, see `project guidelines` and `docs/developer_guides/testing.md`.
 
 
 
@@ -1120,7 +1120,7 @@ Example generation:
 
 See also:
 - docs/developer_guides/testing.md (segmentation, smoke mode)
-- .junie/guidelines.md (marker discipline and offline-first defaults)
+- project guidelines (marker discipline and offline-first defaults)
 
 
 

@@ -6,7 +6,7 @@ version: "0.1.0-alpha.1"
 ---
 # Smoke Benchmarks
 
-Quick micro-benchmarks to detect gross performance regressions, aligned with .junie/guidelines.md and docs/plan.md.
+Quick micro-benchmarks to detect gross performance regressions, aligned with project guidelines and docs/plan.md.
 
 ## Running
 

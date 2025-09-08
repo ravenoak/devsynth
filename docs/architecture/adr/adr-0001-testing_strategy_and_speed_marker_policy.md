@@ -9,7 +9,7 @@ links:
   - ../overview.md
   - ../../developer_guides/testing.md
   - ../../../scripts/verify_test_markers.py
-  - ../../../.junie/guidelines.md
+  - ../../../project guidelines
 ---
 
 # ADR-0001: Testing Strategy and Speed Marker Policy
@@ -25,7 +25,7 @@ Decision
   - Additional markers (e.g., @pytest.mark.property, @pytest.mark.requires_resource("<NAME>")) may be present but do not substitute speed markers.
   - Property-based tests (opt-in) must include both @pytest.mark.property and a speed marker.
 - Integrate a CI job that runs scripts/verify_test_markers.py --report and publishes test_markers_report.json as an artifact on PRs and pushes to main.
-- Align testing strategy with .junie/guidelines.md and docs/plan.md principles: offline-first, isolation by default, and clear CLI ergonomics via devsynth run-tests.
+- Align testing strategy with project guidelines and docs/plan.md principles: offline-first, isolation by default, and clear CLI ergonomics via devsynth run-tests.
 
 Rationale (Dialectical)
 - Thesis: Flexible marker usage reduces contributor friction.

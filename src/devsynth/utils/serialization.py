@@ -10,7 +10,7 @@ Goals:
 These helpers are intended for cross-process exchange and caching where
 stable byte representations reduce cache misses and ease diffs.
 
-Aligned with docs/plan.md (determinism) and .junie/guidelines.md.
+Aligned with docs/plan.md (determinism) and project guidelines.
 """
 
 import json
@@ -52,5 +52,5 @@ def dump_to_file(path: str, obj: Any) -> None:
 
 def load_from_file(path: str) -> Any:
     """Read JSON from a file written by dump_to_file (UTF-8)."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return loads(f.read())

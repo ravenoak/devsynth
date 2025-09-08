@@ -1,6 +1,6 @@
 # Unit Test Suite Triage
 
-Purpose: Provide a current inventory of unit test failures, categorize by module, and create actionable sub-issues per module. This document is maintained iteratively and supports SDD/TDD/BDD alignment per .junie/guidelines.md.
+Purpose: Provide a current inventory of unit test failures, categorize by module, and create actionable sub-issues per module. This document is maintained iteratively and supports SDD/TDD/BDD alignment per project guidelines.
 
 Updated: 2025-08-24
 Owner: QA/DevInfra

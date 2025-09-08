@@ -4,7 +4,7 @@ These strategies are intentionally lightweight to ensure fast generation and
 bounded execution time in CI. They are used by property tests to validate
 structural invariants and time bounds for key workflows.
 
-Style: follows .junie/guidelines.md (PEP 8, type hints, clear docs).
+Style: follows project guidelines (PEP 8, type hints, clear docs).
 """
 
 from __future__ import annotations

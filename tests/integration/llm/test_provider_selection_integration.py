@@ -9,7 +9,7 @@ They ensure:
 - Requesting a remote provider (OpenAI) without credentials fails fast with
   a clear, typed exception, and without performing network I/O
 
-Style: Deterministic, no network, explicit markers, aligns with .junie/guidelines.md
+Style: Deterministic, no network, explicit markers, aligns with project guidelines
 and docs/tasks.md (5.41).
 """
 

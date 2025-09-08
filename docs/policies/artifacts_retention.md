@@ -49,6 +49,6 @@ Optional flags:
 - ReqID: HYGIENE-RET-02 — Document retention policy and defaults.
 
 ## References
-- `.junie/guidelines.md` (repo hygiene, isolation)
+- `project guidelines` (repo hygiene, isolation)
 - `docs/plan.md` (determinism)
 - `.github/workflows/*` (artifact upload steps)

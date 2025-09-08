@@ -1,6 +1,6 @@
 # Planned WebUI: UX Standards and Accessibility Checklist
 
-Status: Forward-looking guidance to inform the future WebUI. Aligns with .junie/guidelines.md principles (clarity, safety, determinism) and emphasizes inclusive, accessible design.
+Status: Forward-looking guidance to inform the future WebUI. Aligns with project guidelines principles (clarity, safety, determinism) and emphasizes inclusive, accessible design.
 
 ## UX Standards
 - Clear, actionable messaging

@@ -1,6 +1,6 @@
 """Validate standardized YAML front matter in Markdown docs.
 
-Rules (aligned with release_plan.md lines 34–36 and .junie/guidelines.md):
+Rules (aligned with release_plan.md lines 34–36 and project guidelines):
 - Every Markdown file under docs/ must start with YAML front matter delimited by --- lines.
 - Required keys: title, date, author, status.
 - Optional keys validated if present: version, tags, last_reviewed.
@@ -36,7 +36,7 @@ RE_H1 = re.compile(r"^#\s+(.+)$", re.MULTILINE)
 VALID_STATUS = {"draft", "published", "deprecated"}
 
 
-def parse_front_matter(text: str) -> Tuple[Dict, int, int]:
+def parse_front_matter(text: str) -> tuple[dict, int, int]:
     """Return (data, start_index, end_index) for YAML block, or ({}, -1, -1)."""
     m = RE_MD.match(text)
     if not m:
@@ -48,7 +48,7 @@ def parse_front_matter(text: str) -> Tuple[Dict, int, int]:
     return data, m.start(), m.end()
 
 
-def minimal_header_from_text(text: str) -> Dict:
+def minimal_header_from_text(text: str) -> dict:
     title = None
     m = RE_H1.search(text)
     if m:
@@ -61,8 +61,8 @@ def minimal_header_from_text(text: str) -> Dict:
     }
 
 
-def validate_header(data: Dict) -> List[str]:
-    errors: List[str] = []
+def validate_header(data: dict) -> list[str]:
+    errors: list[str] = []
     if data.get("__invalid_yaml__"):
         errors.append("invalid YAML in front matter")
         return errors
@@ -82,11 +82,11 @@ def validate_header(data: Dict) -> List[str]:
     return errors
 
 
-def find_markdown_files() -> List[Path]:
+def find_markdown_files() -> list[Path]:
     return [p for p in DOCS_DIR.rglob("*.md") if p.is_file()]
 
 
-def ensure_front_matter(path: Path, *, fix_missing: bool) -> List[str]:
+def ensure_front_matter(path: Path, *, fix_missing: bool) -> list[str]:
     text = path.read_text(encoding="utf-8")
     data, start, end = parse_front_matter(text)
 
@@ -102,14 +102,14 @@ def ensure_front_matter(path: Path, *, fix_missing: bool) -> List[str]:
     return errors
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--fix-missing", action="store_true", help="Insert minimal header when absent"
     )
     args = parser.parse_args(argv)
 
-    failures: List[str] = []
+    failures: list[str] = []
     for md in find_markdown_files():
         errs = ensure_front_matter(md, fix_missing=args.fix_missing)
         if errs:

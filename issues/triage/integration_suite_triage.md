@@ -1,6 +1,6 @@
 # Integration Test Suite Triage
 
-Purpose: Inventory integration test failures, categorize by subsystem, and create actionable sub-issues per module. Maintained iteratively per .junie/guidelines.md.
+Purpose: Inventory integration test failures, categorize by subsystem, and create actionable sub-issues per module. Maintained iteratively per project guidelines.
 
 Updated: 2025-08-24
 Owner: QA/DevInfra
