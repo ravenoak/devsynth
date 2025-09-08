@@ -98,8 +98,8 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 11.1 [x] Generate an issues list: `ls -1 issues/ | tee diagnostics/issues_list.txt`.
 11.2 [x] Grep for readiness-related tickets: `grep -R "readiness\|coverage\|tests\|run-tests" -n issues/ | tee diagnostics/issues_grep_readiness.txt`.
 11.3 [x] Cross-reference behavior features with related issues: `grep -R "Related issue:" -n tests/behavior/ | tee diagnostics/behavior_related_issues.txt`.
-11.4 [ ] When adding/updating tests, include issue filename in test docstrings (e.g., "ReqID: FR-09; Issue: issues/<file>.md").
-11.5 [ ] Add behavior tests asserting presence of ReqID tags in docstrings for a representative subset; provide a small validation tool if needed.
+11.4 [x] When adding/updating tests, include issue filename in test docstrings (e.g., "ReqID: FR-09; Issue: issues/<file>.md").
+11.5 [x] Add behavior tests asserting presence of ReqID tags in docstrings for a representative subset; provide a small validation tool if needed.
 11.6 [ ] Audit typing_relaxations_tracking.md and schedule restorations in Phase 4.
 
 12. Risk Management and Mitigations

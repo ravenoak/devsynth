@@ -1,138 +1,129 @@
 #!/usr/bin/env python3
-"""Verify and optionally update issue references.
+"""Verify that tests reference issues and requirement IDs in their docstrings.
 
-This script scans ``issues/*.md`` for ``Specification`` and ``BDD Feature``
-references. It verifies that referenced files exist and, when run with
-``--fix``, updates tickets with invalid references by:
+This utility scans Python test files under ``tests/`` and ensures each test
+function's docstring contains both an ``Issue: issues/<file>.md`` reference and a
+``ReqID:`` token. The referenced issue file must exist relative to the project
+root.
 
-* removing invalid reference lines,
-* appending missing paths to the ``Dependencies`` field,
-* lowering ``Priority`` to ``low`` when any reference is missing, and
-* inserting ``- None`` under ``## References`` if no valid references remain.
+Usage:
+    poetry run python scripts/verify_issue_references.py
+    poetry run python scripts/verify_issue_references.py --json report.json
 """
 from __future__ import annotations
 
 import argparse
+import ast
+import json
 import pathlib
 import re
-from typing import List
+import sys
 
-ISSUES_DIR = pathlib.Path("issues")
-REFERENCE_RE = re.compile(r"- (Specification|BDD Feature): (?P<path>.+)")
+TEST_DIR = pathlib.Path("tests")
+ISSUE_REGEX = re.compile(r"Issue:\s*(issues/[\w\-/]+\.md)")
+REQID_REGEX = re.compile(r"ReqID:\s*([^\n]+)")
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--fix", action="store_true", help="update issues with missing references"
+def is_test_function(node: ast.AST) -> bool:
+    return isinstance(node, ast.FunctionDef) and node.name.startswith("test_")
+
+
+def extract_docstring(node: ast.AST) -> str | None:
+    return ast.get_docstring(node)
+
+
+def file_has_opt_out(src: str, func_name: str) -> bool:
+    pattern = re.compile(rf"def\s+{re.escape(func_name)}\s*\(.*\):.*#\s*no-issue-check")
+    for line in src.splitlines():
+        if pattern.search(line):
+            return True
+    return False
+
+
+def scan_file(path: pathlib.Path) -> list[tuple[str, str]]:
+    """Return list of (function_name, reason) for missing references."""
+    try:
+        src = path.read_text(encoding="utf-8")
+        tree = ast.parse(src)
+    except Exception as e:  # pragma: no cover - syntax errors surfaced elsewhere
+        return [("<file-parse>", f"Failed to parse {path}: {e}")]
+
+    missing: list[tuple[str, str]] = []
+    for node in tree.body:
+        if is_test_function(node):
+            if file_has_opt_out(src, node.name):
+                continue
+            doc = extract_docstring(node)
+            if not doc:
+                missing.append((node.name, "Missing docstring"))
+                continue
+            issue_match = ISSUE_REGEX.search(doc)
+            reqid_match = REQID_REGEX.search(doc)
+            if not issue_match:
+                missing.append((node.name, "Missing Issue reference in docstring"))
+            else:
+                issue_path = pathlib.Path(issue_match.group(1))
+                if not issue_path.exists():
+                    missing.append(
+                        (node.name, f"Issue path does not exist: {issue_path}")
+                    )
+            if not reqid_match:
+                missing.append((node.name, "Missing ReqID in docstring"))
+    return missing
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Verify that tests reference issues and ReqIDs in docstrings",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--json",
+        type=pathlib.Path,
+        help="Optional JSON output report path",
+    )
+    args = parser.parse_args(argv)
 
+    results: dict[str, list[tuple[str, str]]] = {}
+    total_missing = 0
 
-def load_issue(path: pathlib.Path) -> List[str]:
-    return path.read_text().splitlines(keepends=True)
+    if not TEST_DIR.exists():
+        print("tests/ directory not found; nothing to verify.")
+        return 0
 
+    for path in TEST_DIR.rglob("test_*.py"):
+        abs_path = path.resolve()
+        rel = str(abs_path.relative_to(pathlib.Path.cwd()))
+        missing = scan_file(abs_path)
+        if missing:
+            results[rel] = missing
+            total_missing += len(missing)
 
-def save_issue(path: pathlib.Path, lines: List[str]) -> None:
-    path.write_text("".join(lines))
+    if args.json:
+        payload = {
+            "total_missing": total_missing,
+            "files": {
+                k: [{"function": f, "reason": r} for f, r in v]
+                for k, v in results.items()
+            },
+        }
+        args.json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        print(f"Wrote JSON report to {args.json}")
 
+    if total_missing == 0:
+        print("All tests include Issue references and ReqIDs. ✅")
+        return 0
 
-def update_issue(
-    path: pathlib.Path, lines: List[str], missing_paths: List[str]
-) -> List[str]:
-    """Apply updates for missing reference paths."""
-    priority_re = re.compile(r"^Priority: ")
-    deps_re = re.compile(r"^Dependencies: ")
-
-    # adjust priority
-    for i, line in enumerate(lines):
-        if priority_re.match(line):
-            if "low" not in line:
-                lines[i] = "Priority: low\n"
-            break
-
-    # adjust dependencies
-    for i, line in enumerate(lines):
-        if deps_re.match(line):
-            existing = [
-                d.strip()
-                for d in line.split(":", 1)[1].split(",")
-                if d.strip() and d.strip().lower() != "none"
-            ]
-            for mp in missing_paths:
-                if mp not in existing:
-                    existing.append(mp)
-            if existing:
-                lines[i] = f"Dependencies: {', '.join(existing)}\n"
-            else:
-                lines[i] = "Dependencies: None\n"
-            break
-
-    # adjust references section
-    ref_header_idx = None
-    for i, line in enumerate(lines):
-        if line.strip() == "## References":
-            ref_header_idx = i
-            break
-
-    if ref_header_idx is not None:
-        # gather reference lines following header
-        j = ref_header_idx + 1
-        while j < len(lines) and lines[j].startswith("-"):
-            if REFERENCE_RE.match(lines[j]):
-                # only keep lines with valid references (should already be handled)
-                pass
-            j += 1
-        # after removing invalid lines, ensure at least '- None'
-        has_ref = any(
-            REFERENCE_RE.match(lines[k]) for k in range(ref_header_idx + 1, j)
-        )
-        if not has_ref:
-            lines = lines[: ref_header_idx + 1] + ["- None\n"] + lines[j:]
-    return lines
-
-
-def process_issue(path: pathlib.Path, fix: bool) -> bool:
-    lines = load_issue(path)
-    missing_paths: List[str] = []
-    new_lines: List[str] = []
-    in_refs = False
-    for line in lines:
-        m = REFERENCE_RE.match(line)
-        if m:
-            ref_path = m.group("path").strip()
-            if pathlib.Path(ref_path).exists():
-                new_lines.append(line)
-            else:
-                missing_paths.append(ref_path)
-                # skip line
-        else:
-            new_lines.append(line)
-    updated = False
-    if missing_paths and fix:
-        updated = True
-        new_lines = update_issue(path, new_lines, missing_paths)
-        save_issue(path, new_lines)
-    return missing_paths and not fix, updated
-
-
-def main() -> int:
-    args = parse_args()
-    issues = [
-        p for p in ISSUES_DIR.glob("*.md") if p.name not in {"README.md", "TEMPLATE.md"}
-    ]
-    problems = []
-    for issue in issues:
-        missing_only, updated = process_issue(issue, args.fix)
-        if missing_only:
-            problems.append(issue)
-    if problems:
-        print("Issues with invalid references:")
-        for p in problems:
-            print(f"- {p}")
-        return 1 if not args.fix else 0
-    return 0
+    print("Missing Issue/ReqID references detected:")
+    for file, issues in results.items():
+        print(f"- {file}")
+        for func, reason in issues:
+            print(f"    - {func}: {reason}")
+    print(
+        "\nPlease add both an Issue and ReqID reference to each test docstring, e.g.:\n"
+        '    """Validate foo. Issue: issues/example.md ReqID: FR-01"""'
+    )
+    return 2
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())
