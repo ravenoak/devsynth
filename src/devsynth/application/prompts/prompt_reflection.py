@@ -9,7 +9,7 @@ import json
 import os
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.ports.llm_port import LLMPort
@@ -26,19 +26,20 @@ class PromptReflection:
     steps, and storing reflection results for future optimization.
     """
 
-    def __init__(self, llm_port: LLMPort, storage_path: Optional[str] = None):
+    def __init__(self, llm_port: LLMPort, storage_path: str | None = None):
         """
         Initialize the prompt reflection system.
 
         Args:
             llm_port: LLM port for generating reflections
-            storage_path: Path to store reflection data (defaults to .devsynth/prompts/reflections)
+            storage_path: Path to store reflection data
+                (defaults to .devsynth/prompts/reflections)
         """
         self.llm_port = llm_port
         self.storage_path = storage_path or os.path.join(
             os.getcwd(), ".devsynth", "prompts", "reflections"
         )
-        self.reflections: Dict[str, Dict[str, Any]] = {}
+        self.reflections: dict[str, dict[str, Any]] = {}
 
         # Create the storage directory if it doesn't exist
         os.makedirs(self.storage_path, exist_ok=True)
@@ -47,11 +48,12 @@ class PromptReflection:
         self._load_data()
 
         logger.info(
-            f"Prompt reflection system initialized with storage path: {self.storage_path}"
+            "Prompt reflection system initialized with storage path: %s",
+            self.storage_path,
         )
 
     def prepare_reflection(
-        self, template_name: str, variables: Dict[str, str], rendered_prompt: str
+        self, template_name: str, variables: dict[str, str], rendered_prompt: str
     ) -> str:
         """
         Prepare for reflection on a prompt response.
@@ -79,11 +81,13 @@ class PromptReflection:
         self._save_data()
 
         logger.debug(
-            f"Prepared reflection for template '{template_name}' with ID {reflection_id}"
+            "Prepared reflection for template %s with ID %s",
+            template_name,
+            reflection_id,
         )
         return reflection_id
 
-    def reflect(self, reflection_id: str, response: str) -> Dict[str, Any]:
+    def reflect(self, reflection_id: str, response: str) -> dict[str, Any]:
         """
         Reflect on a prompt response.
 
@@ -95,7 +99,7 @@ class PromptReflection:
             A dictionary containing the reflection results
         """
         if reflection_id not in self.reflections:
-            logger.warning(f"No reflection found for ID {reflection_id}")
+            logger.warning("No reflection found for ID %s", reflection_id)
             return {"error": f"No reflection found for ID {reflection_id}"}
 
         reflection_data = self.reflections[reflection_id]
@@ -114,10 +118,10 @@ class PromptReflection:
 
         self._save_data()
 
-        logger.info(f"Generated reflection for ID {reflection_id}")
+        logger.info("Generated reflection for ID %s", reflection_id)
         return reflection_result
 
-    def get_reflection(self, reflection_id: str) -> Optional[Dict[str, Any]]:
+    def get_reflection(self, reflection_id: str) -> dict[str, Any] | None:
         """
         Get a reflection by ID.
 
@@ -130,8 +134,8 @@ class PromptReflection:
         return self.reflections.get(reflection_id)
 
     def list_reflections(
-        self, template_name: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, template_name: str | None = None
+    ) -> list[dict[str, Any]]:
         """
         List all reflections, optionally filtered by template name.
 
@@ -160,31 +164,36 @@ class PromptReflection:
 
     def _generate_reflection(
         self, template_name: str, prompt: str, response: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate a reflection on a prompt response."""
         # Create a reflection prompt
         reflection_prompt = f"""
-        You are a prompt optimization expert. Analyze the following prompt and response pair:
-        
+        You are a prompt optimization expert. Analyze the following prompt
+        and response pair:
+
         PROMPT:
         {prompt}
-        
+
         RESPONSE:
         {response}
-        
+
         Provide a structured analysis with the following:
-        1. Effectiveness: How well did the response address the prompt's requirements?
-        2. Completeness: Did the response cover all aspects requested in the prompt?
+        1. Effectiveness: How well did the response address the prompt's
+           requirements?
+        2. Completeness: Did the response cover all aspects requested in
+           the prompt?
         3. Clarity: Was the prompt clear and unambiguous?
         4. Improvement suggestions: How could the prompt be improved?
         5. Rating: Rate the prompt's effectiveness on a scale of 1-10.
-        
+
         Format your response as JSON with the following structure:
         {{
             "effectiveness": "Your analysis here",
             "completeness": "Your analysis here",
             "clarity": "Your analysis here",
-            "improvement_suggestions": ["Suggestion 1", "Suggestion 2", ...],
+            "improvement_suggestions": [
+                "Suggestion 1", "Suggestion 2", ...
+            ],
             "rating": 7,
             "overall_assessment": "Your overall assessment here"
         }}
@@ -195,7 +204,8 @@ class PromptReflection:
             reflection_text = self.llm_port.generate(reflection_prompt)
 
             # Parse the JSON response
-            # The response might have extra text before or after the JSON, so we need to extract it
+            # The response might include non-JSON text.
+            # Extract the JSON portion first.
             try:
                 # Try to parse the entire response as JSON
                 reflection_result = json.loads(reflection_text)
@@ -210,7 +220,9 @@ class PromptReflection:
                     except json.JSONDecodeError:
                         # If that still fails, return a structured error
                         logger.error(
-                            f"Failed to parse reflection response as JSON for template '{template_name}'"
+                            "Failed to parse reflection response as JSON for "
+                            "template %s",
+                            template_name,
                         )
                         reflection_result = {
                             "error": "Failed to parse reflection response as JSON",
@@ -219,7 +231,8 @@ class PromptReflection:
                 else:
                     # If no JSON-like structure is found, return a structured error
                     logger.error(
-                        f"No JSON found in reflection response for template '{template_name}'"
+                        "No JSON found in reflection response for template %s",
+                        template_name,
                     )
                     reflection_result = {
                         "error": "No JSON found in reflection response",
@@ -229,7 +242,9 @@ class PromptReflection:
             return reflection_result
         except Exception as e:
             logger.error(
-                f"Error generating reflection for template '{template_name}': {str(e)}"
+                "Error generating reflection for template %s: %s",
+                template_name,
+                str(e),
             )
             return {
                 "error": f"Error generating reflection: {str(e)}",
@@ -241,11 +256,11 @@ class PromptReflection:
         data_file = os.path.join(self.storage_path, "reflection_data.json")
         if os.path.exists(data_file):
             try:
-                with open(data_file, "r") as f:
+                with open(data_file) as f:
                     self.reflections = json.load(f)
                 logger.debug("Loaded prompt reflection data")
             except Exception as e:
-                logger.error(f"Error loading reflection data: {str(e)}")
+                logger.error("Error loading reflection data: %s", str(e))
                 self.reflections = {}
         else:
             self.reflections = {}
@@ -258,4 +273,4 @@ class PromptReflection:
                 json.dump(self.reflections, f, indent=2)
             logger.debug("Saved prompt reflection data")
         except Exception as e:
-            logger.error(f"Error saving reflection data: {str(e)}")
+            logger.error("Error saving reflection data: %s", str(e))
