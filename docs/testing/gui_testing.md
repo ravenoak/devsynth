@@ -16,31 +16,31 @@ This project includes an optional desktop UI built with Dear PyGui. GUI tests ar
 ## Local Setup
 
 1. Install the GUI extra (and dev tools):
-   
+
    ```bash
    poetry install --with dev --extras gui
    ```
 
 2. Verify optional import-time checks
-   
+
    The `devsynth.interface.dpg_bridge` and `devsynth.interface.dpg_ui` modules guard Dear PyGui imports. If `dearpygui` is not installed, attempting to run the UI will raise a clear `RuntimeError`, while imports in non-UI contexts remain safe. Unit tests stub the `dearpygui` module to validate behavior without the extra installed.
 
 ## Running GUI Tests Locally
 
 - Only GUI tests:
-  
+
   ```bash
   poetry run pytest -m gui
   ```
 
 - Include GUI tests with the rest:
-  
+
   ```bash
   poetry run pytest -m "not slow"  # still excludes slow, includes gui
   ```
 
 - Run a specific GUI test file:
-  
+
   ```bash
   poetry run pytest tests/unit/interface/test_dpg_bridge.py -m gui
   ```

@@ -44,7 +44,7 @@ Ensure your environment is running **Python 3.12 or higher**. Managing dependenc
 
 **Issue**: Installation fails with Python version errors.
 
-**Solution**: 
+**Solution**:
 - Ensure you have Python 3.12 or higher installed
 - Check your Python version with `python --version`
 - Consider using a tool like pyenv to manage multiple Python versions

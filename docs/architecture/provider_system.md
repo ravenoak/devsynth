@@ -456,8 +456,8 @@ class FallbackProvider(BaseProvider):
             provider_type = provider.__class__.__name__.replace("Provider", "").lower()
 
             # Skip if circuit breaker is open
-            if (self.circuit_breaker_config.get("enabled", True) and 
-                provider_type in self.circuit_breakers and 
+            if (self.circuit_breaker_config.get("enabled", True) and
+                provider_type in self.circuit_breakers and
                 self.circuit_breakers[provider_type].state != "closed"):
                 logger.warning(f"Skipping provider {provider.__class__.__name__} due to open circuit breaker")
                 continue
