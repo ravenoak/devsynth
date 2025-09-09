@@ -1,11 +1,11 @@
-                                                                                
- Usage: devsynth run-tests [OPTIONS]                                            
-                                                                                
- Run DevSynth test suites.                                                      
-                                                                                
- For workflow and performance details see                                       
- ``docs/analysis/run_tests_workflow.md``.                                       
-                                                                                
+
+ Usage: devsynth run-tests [OPTIONS]
+
+ Run DevSynth test suites.
+
+ For workflow and performance details see
+ ``docs/analysis/run_tests_workflow.md``.
+
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
 │ --target                TEXT     Test target to run [default: all-tests]     │
 │ --speed                 TEXT     Speed categories to run (can be used        │
@@ -30,4 +30,3 @@
 │                                  [default: None]                             │
 │ --help          -h               Show this message and exit.                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-

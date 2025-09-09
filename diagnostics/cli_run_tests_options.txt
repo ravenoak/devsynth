@@ -4,7 +4,7 @@ Command: pytest -q -o addopts="" tests/unit/application/cli/test_run_tests_cmd_o
 
 Results:
 - 3 passed, 6 warnings in ~0.83s
-- Tests: 
+- Tests:
   * test_feature_flags_set_environment
   * test_no_parallel_flag_is_passed_to_runner
   * test_segment_options_are_propagated
