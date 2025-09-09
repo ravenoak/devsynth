@@ -57,7 +57,7 @@ tasks:
   verify:markers:
     desc: Run speed marker audit and write report artifact
     cmds:
-      - bash -lc 'mkdir -p test_reports; poetry run python scripts/verify_test_markers.py --report --report-file test_reports/test_markers_report.json | tee diagnostics/verify_markers_stdout.txt; EXIT=$?; poetry run python scripts/append_exec_log.py --command "python scripts/verify_test_markers.py --report" --exit-code $EXIT --artifacts "test_reports/test_markers_report.json,diagnostics/verify_markers_stdout.txt" --notes "marker verification"; exit $EXIT' 
+      - bash -lc 'mkdir -p test_reports; poetry run python scripts/verify_test_markers.py --report --report-file test_reports/test_markers_report.json | tee diagnostics/verify_markers_stdout.txt; EXIT=$?; poetry run python scripts/append_exec_log.py --command "python scripts/verify_test_markers.py --report" --exit-code $EXIT --artifacts "test_reports/test_markers_report.json,diagnostics/verify_markers_stdout.txt" --notes "marker verification"; exit $EXIT'
 
   verify:markers:changed:
     desc: Run speed marker audit on changed test files
@@ -86,12 +86,12 @@ tasks:
   typing:overrides:report:
     desc: Generate report of mypy overrides to diagnostics/
     cmds:
-      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/list_mypy_overrides.py | tee diagnostics/list_mypy_overrides_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "python scripts/list_mypy_overrides.py" --exit-code $EXIT --artifacts "diagnostics/mypy_overrides.json,diagnostics/mypy_overrides.txt,diagnostics/list_mypy_overrides_stdout.txt" --notes "mypy overrides report"; exit $EXIT' 
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/list_mypy_overrides.py | tee diagnostics/list_mypy_overrides_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "python scripts/list_mypy_overrides.py" --exit-code $EXIT --artifacts "diagnostics/mypy_overrides.json,diagnostics/mypy_overrides.txt,diagnostics/list_mypy_overrides_stdout.txt" --notes "mypy overrides report"; exit $EXIT'
 
   verify:reqids:
     desc: Verify that test functions include 'ReqID:' tags in docstrings and write report
     cmds:
-      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/verify_docstring_reqids.py --report --report-file diagnostics/test_reqids_report.json | tee diagnostics/verify_reqids_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "python scripts/verify_docstring_reqids.py --report" --exit-code $EXIT --artifacts "diagnostics/test_reqids_report.json,diagnostics/verify_reqids_stdout.txt" --notes "verify ReqID docstring tags"; exit $EXIT' 
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/verify_docstring_reqids.py --report --report-file diagnostics/test_reqids_report.json | tee diagnostics/verify_reqids_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "python scripts/verify_docstring_reqids.py --report" --exit-code $EXIT --artifacts "diagnostics/test_reqids_report.json,diagnostics/verify_reqids_stdout.txt" --notes "verify ReqID docstring tags"; exit $EXIT'
 
   tests:unit-fast:
     desc: Run unit tests fast lane (no xdist) for quick triage (captures diagnostics and logs)
@@ -488,7 +488,7 @@ tasks:
   tests:offline-fast-subset:
     desc: Validate offline/stub run excludes OpenAI/LM Studio resource tests; capture output
     cmds:
-      - bash -lc 'mkdir -p diagnostics; poetry run devsynth run-tests --speed=fast -m "not requires_resource('"'"'openai'"'"') and not requires_resource('"'"'lmstudio'"'"')" --no-parallel --maxfail=1 | tee diagnostics/offline_fast_subset.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests offline-fast-subset" --exit-code $EXIT --artifacts "diagnostics/offline_fast_subset.txt" --notes "offline fast excludes resource-gated"; exit $EXIT' 
+      - bash -lc 'mkdir -p diagnostics; poetry run devsynth run-tests --speed=fast -m "not requires_resource('"'"'openai'"'"') and not requires_resource('"'"'lmstudio'"'"')" --no-parallel --maxfail=1 | tee diagnostics/offline_fast_subset.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests offline-fast-subset" --exit-code $EXIT --artifacts "diagnostics/offline_fast_subset.txt" --notes "offline fast excludes resource-gated"; exit $EXIT'
 
   tests:segment-medium:
     desc: Run medium-speed unit tests with segmentation to improve stability
@@ -514,12 +514,12 @@ tasks:
   diagnostics:flake-rate:
     desc: Capture flake rate by running an LM Studio subset multiple times and writing diagnostics/flake_rate.*
     cmds:
-      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/capture_flake_rate.py --target integration-tests --speed fast --markers "requires_resource(\'lmstudio\') and not slow" --runs 3 | tee diagnostics/flake_rate_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "capture_flake_rate lmstudio" --exit-code $EXIT --artifacts "diagnostics/flake_rate.json,diagnostics/flake_rate.txt,diagnostics/flake_rate_stdout.txt" --notes "lmstudio flake-rate"; exit $EXIT' 
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/capture_flake_rate.py --target integration-tests --speed fast --markers "requires_resource(\'lmstudio\') and not slow" --runs 3 | tee diagnostics/flake_rate_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "capture_flake_rate lmstudio" --exit-code $EXIT --artifacts "diagnostics/flake_rate.json,diagnostics/flake_rate.txt,diagnostics/flake_rate_stdout.txt" --notes "lmstudio flake-rate"; exit $EXIT'
 
   env:baseline:
     desc: Capture maintainer environment baseline snapshot and record artifacts
     cmds:
-      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/capture_environment_baseline.py | tee diagnostics/environment_baseline_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "capture_environment_baseline" --exit-code $EXIT --artifacts "diagnostics/environment_baseline.json,diagnostics/environment_baseline.txt,diagnostics/environment_baseline_stdout.txt" --notes "maintainer env baseline"; exit $EXIT' 
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/capture_environment_baseline.py | tee diagnostics/environment_baseline_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "capture_environment_baseline" --exit-code $EXIT --artifacts "diagnostics/environment_baseline.json,diagnostics/environment_baseline.txt,diagnostics/environment_baseline_stdout.txt" --notes "maintainer env baseline"; exit $EXIT'
 
   maintainer:must-run:
     desc: Execute the Maintainer Must-Run Sequence end-to-end with evidence capture (docs/tasks.md §23)

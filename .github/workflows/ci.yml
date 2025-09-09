@@ -61,7 +61,7 @@ jobs:
       - name: Show tool versions
         run: |
           poetry run python --version
-        
+
           poetry --version
 
       - name: Run linters and type checks
