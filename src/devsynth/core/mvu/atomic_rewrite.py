@@ -55,4 +55,3 @@ def rewrite_history(target_path: Path, branch_name: str, dry_run: bool = False) 
 
 
 __all__ = ["cluster_commits_by_file", "rewrite_history"]
-

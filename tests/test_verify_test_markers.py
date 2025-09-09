@@ -12,7 +12,8 @@ os.environ.pop("PYTEST_DISABLE_PLUGIN_AUTOLOAD", None)
 
 @pytest.mark.fast
 def test_parameterized_marker_counts(tmp_path, monkeypatch):
-    """Ensure parameterized tests count markers once. ReqID: TEST-01"""
+    """Ensure parameterized tests count markers once.
+    Issue: issues/Expand-test-generation-capabilities.md ReqID: FR-01"""
     test_file = tmp_path / "test_param.py"
     test_file.write_text(
         "import pytest\n\n"
@@ -21,16 +22,15 @@ def test_parameterized_marker_counts(tmp_path, monkeypatch):
         "def test_example(x):\n    pass\n"
     )
     monkeypatch.chdir(tmp_path)
-    results = verify_test_markers.verify_file_markers(Path("test_param.py"))
-    fast_info = results["recognized_markers"]["fast"]
-    assert fast_info["file_count"] == 1
-    assert fast_info["pytest_count"] == 1
-    assert fast_info["recognized"] is True
+    results = verify_test_markers.verify_files([Path("test_param.py")])
+    file_result = results["files"][str((tmp_path / "test_param.py").resolve())]
+    assert file_result["markers"].get("fast") == 1
 
 
 @pytest.mark.fast
 def test_reports_collection_errors(tmp_path, monkeypatch):
-    """Syntax issues are surfaced with file context. ReqID: TEST-02"""
+    """Syntax issues are surfaced with file context.
+    Issue: issues/Expand-test-generation-capabilities.md ReqID: FR-02"""
     bad_file = tmp_path / "test_bad.py"
     bad_file.write_text(
         "import pytest\nimport non_existent_module\n\n"
@@ -38,5 +38,6 @@ def test_reports_collection_errors(tmp_path, monkeypatch):
         "def test_example():\n    pass\n"
     )
     monkeypatch.chdir(tmp_path)
-    results = verify_test_markers.verify_file_markers(bad_file)
-    assert any(issue["type"] == "collection_error" for issue in results["issues"])
+    results = verify_test_markers.verify_files([bad_file])
+    file_result = results["files"][str(bad_file.resolve())]
+    assert any(issue["type"] == "collection_error" for issue in file_result["issues"])

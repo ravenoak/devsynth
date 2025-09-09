@@ -1,4 +1,5 @@
 import time
+
 import pytest
 
 from devsynth.application.memory.circuit_breaker import (
@@ -8,6 +9,7 @@ from devsynth.application.memory.circuit_breaker import (
 )
 
 
+@pytest.mark.fast
 def test_circuit_breaker_opens_after_failures():
     breaker = CircuitBreaker("demo", failure_threshold=2, reset_timeout=1.0)
 
@@ -24,6 +26,7 @@ def test_circuit_breaker_opens_after_failures():
         breaker.execute(lambda: "ok")
 
 
+@pytest.mark.fast
 def test_registry_returns_same_instance():
     registry = CircuitBreakerRegistry()
     a = registry.get_or_create("alpha", failure_threshold=1, reset_timeout=1)

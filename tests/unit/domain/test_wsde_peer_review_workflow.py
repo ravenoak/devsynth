@@ -3,9 +3,12 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
+
 from devsynth.domain.wsde_team import WSDETeam
 
 
+@pytest.mark.fast
 def test_peer_review_cross_store_sync_succeeds():
     """Test that peer review stores data across multiple memory stores."""
 
@@ -36,10 +39,11 @@ def test_peer_review_cross_store_sync_succeeds():
     assert memory_manager.flush_updates.call_count >= 1
 
 
+@pytest.mark.fast
 def test_mvu_helpers_cover_module():
     """Import MVU helpers to satisfy coverage requirements."""
 
-    from devsynth.core.mvu import linter, parser, storage, models
+    from devsynth.core.mvu import linter, models, parser, storage
 
     mvuu = models.MVUU.from_dict(
         {

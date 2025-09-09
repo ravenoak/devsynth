@@ -5,20 +5,21 @@ This module contains methods for analyzing solutions, generating comparative ana
 and evaluating solutions.
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime
-from uuid import uuid4
 import re
-
-from devsynth.logging_setup import DevSynthLogger
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 # Import the base WSDETeam class for type hints
 from devsynth.domain.models.wsde_base import WSDETeam
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
 
-def _analyze_solution(self: WSDETeam, solution: Dict[str, Any], task: Dict[str, Any], solution_number: int) -> Dict[str, Any]:
+def _analyze_solution(
+    self: WSDETeam, solution: Dict[str, Any], task: Dict[str, Any], solution_number: int
+) -> Dict[str, Any]:
     """
     Analyze a solution for a task.
 
@@ -34,7 +35,9 @@ def _analyze_solution(self: WSDETeam, solution: Dict[str, Any], task: Dict[str, 
     Returns:
         A dictionary containing the analysis
     """
-    logger.info(f"Analyzing solution {solution_number} for task: {task.get('id', 'unknown')}")
+    logger.info(
+        f"Analyzing solution {solution_number} for task: {task.get('id', 'unknown')}"
+    )
 
     # Extract content and code from solution
     content = solution.get("content", "")
@@ -52,11 +55,13 @@ def _analyze_solution(self: WSDETeam, solution: Dict[str, Any], task: Dict[str, 
         code_match = req.lower() in code.lower()
         addressed = content_match or code_match
 
-        requirement_analyses.append({
-            "requirement": req,
-            "addressed": addressed,
-            "explanation": f"The requirement is {'addressed' if addressed else 'not clearly addressed'} in the solution."
-        })
+        requirement_analyses.append(
+            {
+                "requirement": req,
+                "addressed": addressed,
+                "explanation": f"The requirement is {'addressed' if addressed else 'not clearly addressed'} in the solution.",
+            }
+        )
 
     # Analyze how well the solution respects each constraint
     constraint_analyses = []
@@ -66,11 +71,13 @@ def _analyze_solution(self: WSDETeam, solution: Dict[str, Any], task: Dict[str, 
         code_match = constraint.lower() in code.lower()
         addressed = content_match or code_match
 
-        constraint_analyses.append({
-            "constraint": constraint,
-            "respected": addressed,
-            "explanation": f"The constraint is {'respected' if addressed else 'not clearly addressed'} in the solution."
-        })
+        constraint_analyses.append(
+            {
+                "constraint": constraint,
+                "respected": addressed,
+                "explanation": f"The constraint is {'respected' if addressed else 'not clearly addressed'} in the solution.",
+            }
+        )
 
     # Identify strengths of the solution
     strengths = []
@@ -84,9 +91,13 @@ def _analyze_solution(self: WSDETeam, solution: Dict[str, Any], task: Dict[str, 
         strengths.append("Includes code implementation")
 
     # Check for addressing most requirements
-    requirements_addressed = sum(1 for analysis in requirement_analyses if analysis["addressed"])
+    requirements_addressed = sum(
+        1 for analysis in requirement_analyses if analysis["addressed"]
+    )
     if requirements_addressed > 0.7 * len(requirements):
-        strengths.append(f"Addresses {requirements_addressed} out of {len(requirements)} requirements")
+        strengths.append(
+            f"Addresses {requirements_addressed} out of {len(requirements)} requirements"
+        )
 
     # Identify weaknesses of the solution
     weaknesses = []
@@ -102,7 +113,9 @@ def _analyze_solution(self: WSDETeam, solution: Dict[str, Any], task: Dict[str, 
     # Check for unaddressed requirements
     requirements_unaddressed = len(requirements) - requirements_addressed
     if requirements_unaddressed > 0.3 * len(requirements):
-        weaknesses.append(f"Does not address {requirements_unaddressed} out of {len(requirements)} requirements")
+        weaknesses.append(
+            f"Does not address {requirements_unaddressed} out of {len(requirements)} requirements"
+        )
 
     # Create the analysis
     analysis = {
@@ -116,14 +129,18 @@ def _analyze_solution(self: WSDETeam, solution: Dict[str, Any], task: Dict[str, 
         "weaknesses": weaknesses,
         "requirements_addressed": requirements_addressed,
         "requirements_total": len(requirements),
-        "constraints_respected": sum(1 for analysis in constraint_analyses if analysis["respected"]),
+        "constraints_respected": sum(
+            1 for analysis in constraint_analyses if analysis["respected"]
+        ),
         "constraints_total": len(constraints),
     }
 
     return analysis
 
 
-def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[str, Any]], task: Dict[str, Any]) -> Dict[str, Any]:
+def _generate_comparative_analysis(
+    self: WSDETeam, solution_analyses: List[Dict[str, Any]], task: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Generate a comparative analysis of multiple solutions.
 
@@ -138,7 +155,9 @@ def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[
     Returns:
         A dictionary containing the comparative analysis
     """
-    logger.info(f"Generating comparative analysis for task: {task.get('id', 'unknown')}")
+    logger.info(
+        f"Generating comparative analysis for task: {task.get('id', 'unknown')}"
+    )
 
     # Extract requirements and constraints from task
     requirements = task.get("requirements", [])
@@ -151,7 +170,7 @@ def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[
             "requirement": req,
             "solution_scores": {},
             "best_solution": None,
-            "explanation": ""
+            "explanation": "",
         }
 
         # Find which solutions address this requirement
@@ -160,24 +179,35 @@ def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[
             req_analyses = analysis["requirement_analyses"]
 
             # Find the analysis for this requirement
-            req_analysis = next((r for r in req_analyses if r["requirement"] == req), None)
+            req_analysis = next(
+                (r for r in req_analyses if r["requirement"] == req), None
+            )
             if req_analysis:
-                req_comparison["solution_scores"][solution_number] = 1 if req_analysis["addressed"] else 0
+                req_comparison["solution_scores"][solution_number] = (
+                    1 if req_analysis["addressed"] else 0
+                )
 
         # Determine the best solution for this requirement
         best_solutions = [
-            solution_number for solution_number, score in req_comparison["solution_scores"].items()
+            solution_number
+            for solution_number, score in req_comparison["solution_scores"].items()
             if score == 1
         ]
 
         if best_solutions:
             req_comparison["best_solution"] = best_solutions[0]
             if len(best_solutions) == 1:
-                req_comparison["explanation"] = f"Solution {best_solutions[0]} best addresses this requirement."
+                req_comparison["explanation"] = (
+                    f"Solution {best_solutions[0]} best addresses this requirement."
+                )
             else:
-                req_comparison["explanation"] = f"Solutions {', '.join(map(str, best_solutions))} equally address this requirement."
+                req_comparison["explanation"] = (
+                    f"Solutions {', '.join(map(str, best_solutions))} equally address this requirement."
+                )
         else:
-            req_comparison["explanation"] = "No solution adequately addresses this requirement."
+            req_comparison["explanation"] = (
+                "No solution adequately addresses this requirement."
+            )
 
         requirement_comparisons[req] = req_comparison
 
@@ -188,7 +218,7 @@ def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[
             "constraint": constraint,
             "solution_scores": {},
             "best_solution": None,
-            "explanation": ""
+            "explanation": "",
         }
 
         # Find which solutions respect this constraint
@@ -197,24 +227,37 @@ def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[
             constraint_analyses = analysis["constraint_analyses"]
 
             # Find the analysis for this constraint
-            constraint_analysis = next((c for c in constraint_analyses if c["constraint"] == constraint), None)
+            constraint_analysis = next(
+                (c for c in constraint_analyses if c["constraint"] == constraint), None
+            )
             if constraint_analysis:
-                constraint_comparison["solution_scores"][solution_number] = 1 if constraint_analysis["respected"] else 0
+                constraint_comparison["solution_scores"][solution_number] = (
+                    1 if constraint_analysis["respected"] else 0
+                )
 
         # Determine the best solution for this constraint
         best_solutions = [
-            solution_number for solution_number, score in constraint_comparison["solution_scores"].items()
+            solution_number
+            for solution_number, score in constraint_comparison[
+                "solution_scores"
+            ].items()
             if score == 1
         ]
 
         if best_solutions:
             constraint_comparison["best_solution"] = best_solutions[0]
             if len(best_solutions) == 1:
-                constraint_comparison["explanation"] = f"Solution {best_solutions[0]} best respects this constraint."
+                constraint_comparison["explanation"] = (
+                    f"Solution {best_solutions[0]} best respects this constraint."
+                )
             else:
-                constraint_comparison["explanation"] = f"Solutions {', '.join(map(str, best_solutions))} equally respect this constraint."
+                constraint_comparison["explanation"] = (
+                    f"Solutions {', '.join(map(str, best_solutions))} equally respect this constraint."
+                )
         else:
-            constraint_comparison["explanation"] = "No solution adequately respects this constraint."
+            constraint_comparison["explanation"] = (
+                "No solution adequately respects this constraint."
+            )
 
         constraint_comparisons[constraint] = constraint_comparison
 
@@ -224,8 +267,12 @@ def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[
         solution_number = analysis["solution_number"]
 
         # Calculate score based on requirements addressed and constraints respected
-        req_score = analysis["requirements_addressed"] / max(1, analysis["requirements_total"])
-        constraint_score = analysis["constraints_respected"] / max(1, analysis["constraints_total"])
+        req_score = analysis["requirements_addressed"] / max(
+            1, analysis["requirements_total"]
+        )
+        constraint_score = analysis["constraints_respected"] / max(
+            1, analysis["constraints_total"]
+        )
 
         # Overall score is the average of the two scores
         overall_score = (req_score + constraint_score) / 2
@@ -233,11 +280,15 @@ def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[
         overall_scores[solution_number] = {
             "requirements_score": req_score,
             "constraints_score": constraint_score,
-            "overall_score": overall_score
+            "overall_score": overall_score,
         }
 
     # Determine the best overall solution
-    best_solution = max(overall_scores.items(), key=lambda x: x[1]["overall_score"])[0] if overall_scores else None
+    best_solution = (
+        max(overall_scores.items(), key=lambda x: x[1]["overall_score"])[0]
+        if overall_scores
+        else None
+    )
 
     # Create the comparative analysis
     comparative_analysis = {
@@ -248,13 +299,21 @@ def _generate_comparative_analysis(self: WSDETeam, solution_analyses: List[Dict[
         "constraint_comparisons": constraint_comparisons,
         "overall_scores": overall_scores,
         "best_solution": best_solution,
-        "explanation": f"Solution {best_solution} has the highest overall score." if best_solution else "No solution could be determined as the best."
+        "explanation": (
+            f"Solution {best_solution} has the highest overall score."
+            if best_solution
+            else "No solution could be determined as the best."
+        ),
     }
 
     return comparative_analysis
 
 
-def _generate_multi_solution_synthesis(self: WSDETeam, solutions: List[Dict[str, Any]], comparative_analysis: Dict[str, Any]) -> Dict[str, Any]:
+def _generate_multi_solution_synthesis(
+    self: WSDETeam,
+    solutions: List[Dict[str, Any]],
+    comparative_analysis: Dict[str, Any],
+) -> Dict[str, Any]:
     """
     Generate a synthesis from multiple solutions.
 
@@ -303,12 +362,12 @@ def _generate_multi_solution_synthesis(self: WSDETeam, solutions: List[Dict[str,
             req_lower = req.lower()
 
             # Find paragraphs in the content that mention the requirement
-            paragraphs = re.split(r'\n\s*\n', req_content)
+            paragraphs = re.split(r"\n\s*\n", req_content)
             relevant_paragraphs = [p for p in paragraphs if req_lower in p.lower()]
 
             # Find functions or classes in the code that might address the requirement
             # This is a very simplistic approach
-            code_lines = req_code.split('\n')
+            code_lines = req_code.split("\n")
             relevant_code_blocks = []
             current_block = []
             in_relevant_block = False
@@ -320,23 +379,27 @@ def _generate_multi_solution_synthesis(self: WSDETeam, solutions: List[Dict[str,
                 if in_relevant_block:
                     current_block.append(line)
 
-                if in_relevant_block and line.strip() == '':
+                if in_relevant_block and line.strip() == "":
                     in_relevant_block = False
                     if current_block:
-                        relevant_code_blocks.append('\n'.join(current_block))
+                        relevant_code_blocks.append("\n".join(current_block))
                         current_block = []
 
             if current_block:
-                relevant_code_blocks.append('\n'.join(current_block))
+                relevant_code_blocks.append("\n".join(current_block))
 
             # Add the improvements
             if relevant_paragraphs:
                 content += "\n\n" + "\n\n".join(relevant_paragraphs)
-                improvements.append(f"Incorporated explanation for '{req}' from solution {best_for_req}")
+                improvements.append(
+                    f"Incorporated explanation for '{req}' from solution {best_for_req}"
+                )
 
             if relevant_code_blocks:
                 code += "\n\n" + "\n\n".join(relevant_code_blocks)
-                improvements.append(f"Incorporated code for '{req}' from solution {best_for_req}")
+                improvements.append(
+                    f"Incorporated code for '{req}' from solution {best_for_req}"
+                )
 
     # Create the synthesis
     synthesis = {
@@ -347,13 +410,18 @@ def _generate_multi_solution_synthesis(self: WSDETeam, solutions: List[Dict[str,
         "content": content,
         "code": code,
         "improvements": improvements,
-        "reasoning": f"This synthesis is based on solution {best_solution_number} as the best overall solution, with improvements incorporated from other solutions where they better address specific requirements."
+        "reasoning": f"This synthesis is based on solution {best_solution_number} as the best overall solution, with improvements incorporated from other solutions where they better address specific requirements.",
     }
 
     return synthesis
 
 
-def _generate_comparative_evaluation(self: WSDETeam, synthesis: Dict[str, Any], solutions: List[Dict[str, Any]], comparative_analysis: Dict[str, Any]) -> Dict[str, Any]:
+def _generate_comparative_evaluation(
+    self: WSDETeam,
+    synthesis: Dict[str, Any],
+    solutions: List[Dict[str, Any]],
+    comparative_analysis: Dict[str, Any],
+) -> Dict[str, Any]:
     """
     Generate an evaluation of a multi-solution synthesis.
 
@@ -369,7 +437,9 @@ def _generate_comparative_evaluation(self: WSDETeam, synthesis: Dict[str, Any], 
     Returns:
         A dictionary containing the evaluation
     """
-    logger.info(f"Generating comparative evaluation for synthesis: {synthesis.get('id', 'unknown')}")
+    logger.info(
+        f"Generating comparative evaluation for synthesis: {synthesis.get('id', 'unknown')}"
+    )
 
     # Extract content and code from synthesis
     content = synthesis.get("content", "")
@@ -393,20 +463,29 @@ def _generate_comparative_evaluation(self: WSDETeam, synthesis: Dict[str, Any], 
         if best_for_req is not None:
             # Check if an improvement was made for this requirement
             for improvement in synthesis.get("improvements", []):
-                if req.lower() in improvement.lower() and f"solution {best_for_req}" in improvement:
+                if (
+                    req.lower() in improvement.lower()
+                    and f"solution {best_for_req}" in improvement
+                ):
                     incorporated = True
                     break
 
-        requirement_evaluations.append({
-            "requirement": req,
-            "addressed": addressed,
-            "best_solution_incorporated": incorporated,
-            "explanation": f"The requirement is {'addressed' if addressed else 'not clearly addressed'} in the synthesis. The best solution for this requirement {'was' if incorporated else 'was not'} incorporated."
-        })
+        requirement_evaluations.append(
+            {
+                "requirement": req,
+                "addressed": addressed,
+                "best_solution_incorporated": incorporated,
+                "explanation": f"The requirement is {'addressed' if addressed else 'not clearly addressed'} in the synthesis. The best solution for this requirement {'was' if incorporated else 'was not'} incorporated.",
+            }
+        )
 
     # Calculate scores
-    requirements_addressed = sum(1 for eval in requirement_evaluations if eval["addressed"])
-    requirements_incorporated = sum(1 for eval in requirement_evaluations if eval["best_solution_incorporated"])
+    requirements_addressed = sum(
+        1 for eval in requirement_evaluations if eval["addressed"]
+    )
+    requirements_incorporated = sum(
+        1 for eval in requirement_evaluations if eval["best_solution_incorporated"]
+    )
     requirements_total = len(requirement_evaluations)
 
     addressed_score = requirements_addressed / max(1, requirements_total)
@@ -427,7 +506,7 @@ def _generate_comparative_evaluation(self: WSDETeam, synthesis: Dict[str, Any], 
         "addressed_score": addressed_score,
         "incorporation_score": incorporation_score,
         "overall_score": overall_score,
-        "explanation": f"The synthesis addresses {requirements_addressed} out of {requirements_total} requirements and incorporates the best solution for {requirements_incorporated} requirements. The overall score is {overall_score:.2f} out of 1.0, indicating {'excellent' if overall_score > 0.8 else 'good' if overall_score > 0.6 else 'fair' if overall_score > 0.4 else 'poor'} quality."
+        "explanation": f"The synthesis addresses {requirements_addressed} out of {requirements_total} requirements and incorporates the best solution for {requirements_incorporated} requirements. The overall score is {overall_score:.2f} out of 1.0, indicating {'excellent' if overall_score > 0.8 else 'good' if overall_score > 0.6 else 'fair' if overall_score > 0.4 else 'poor'} quality.",
     }
 
     return evaluation

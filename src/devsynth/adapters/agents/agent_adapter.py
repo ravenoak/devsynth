@@ -6,8 +6,9 @@ This implementation focuses on the single-agent design for MVP while
 preserving extension points for future multi-agent capabilities.
 """
 
-from typing import Any, Dict, List, Optional, Type
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Type
+
 import yaml
 
 # Create a logger for this module
@@ -20,7 +21,7 @@ from ...domain.models.wsde import WSDETeam
 from ...ports.llm_port import LLMPort
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError, ValidationError
+from devsynth.exceptions import ValidationError
 
 # Load default configuration
 _DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "default.yml"
@@ -32,15 +33,15 @@ except Exception:
 
 # Import specialized agent classes
 from ...application.agents.base import BaseAgent
+from ...application.agents.code import CodeAgent
+from ...application.agents.critic import CriticAgent
+from ...application.agents.diagram import DiagramAgent
+from ...application.agents.documentation import DocumentationAgent
 from ...application.agents.planner import PlannerAgent
+from ...application.agents.refactor import RefactorAgent
 from ...application.agents.specification import SpecificationAgent
 from ...application.agents.test import TestAgent
-from ...application.agents.code import CodeAgent
 from ...application.agents.validation import ValidationAgent
-from ...application.agents.refactor import RefactorAgent
-from ...application.agents.documentation import DocumentationAgent
-from ...application.agents.diagram import DiagramAgent
-from ...application.agents.critic import CriticAgent
 
 
 class SimplifiedAgentFactory(AgentFactory):
@@ -136,14 +137,18 @@ class WSDETeamCoordinator(AgentCoordinator):
     def create_team(self, team_id: str) -> WSDETeam:
         """Create a new WSDE team."""
         # Import here to avoid circular imports
-        from devsynth.application.collaboration.collaborative_wsde_team import CollaborativeWSDETeam
-        
+        from devsynth.application.collaboration.collaborative_wsde_team import (
+            CollaborativeWSDETeam,
+        )
+
         # Use CollaborativeWSDETeam if memory_manager is available, otherwise use WSDETeam
         if self.memory_manager:
-            team = CollaborativeWSDETeam(name=team_id, memory_manager=self.memory_manager)
+            team = CollaborativeWSDETeam(
+                name=team_id, memory_manager=self.memory_manager
+            )
         else:
             team = WSDETeam(name=team_id)
-            
+
         self.teams[team_id] = team
         self.current_team_id = team_id
         return team
@@ -180,13 +185,13 @@ class WSDETeamCoordinator(AgentCoordinator):
         For MVP with a single agent, this simply passes the task to that agent.
         """
         if self.current_team_id is None:
-            raise ValidationError(f"No active team. Create a team first.")
+            raise ValidationError("No active team. Create a team first.")
 
         team = self.teams[self.current_team_id]
 
         # For MVP with a single agent
         if len(team.agents) == 0:
-            raise ValidationError(f"No agents in the team.")
+            raise ValidationError("No agents in the team.")
         elif len(team.agents) == 1:
             # Just use the single agent
             agent = team.agents[0]

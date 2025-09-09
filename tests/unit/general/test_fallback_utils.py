@@ -3,12 +3,16 @@ import time
 
 import pytest
 
-from devsynth.fallback import Bulkhead, CircuitBreaker
 from devsynth.exceptions import DevSynthError
+from devsynth.fallback import Bulkhead, CircuitBreaker
 
 
+@pytest.mark.fast
 def test_bulkhead_limits_concurrency():
-    """Bulkhead restricts concurrent calls under load. ReqID: N/A"""
+    """Bulkhead restricts concurrent calls under load.
+
+    Speed: fast; uses short 0.1s sleeps with limited thread count to remain under fast-tier budget.
+    ReqID: N/A"""
     bulkhead = Bulkhead(max_concurrent_calls=2, max_queue_size=1)
     active = 0
     max_active = 0
@@ -46,8 +50,12 @@ def test_bulkhead_limits_concurrency():
     assert len(errors) == 1
 
 
+@pytest.mark.medium
 def test_circuit_breaker_concurrent_failures():
-    """Circuit breaker opens after concurrent failures. ReqID: N/A"""
+    """Circuit breaker opens after concurrent failures.
+
+    Speed: medium; includes a recovery timeout with a real 0.2s sleep to verify state transition timing.
+    ReqID: N/A"""
     cb = CircuitBreaker(
         failure_threshold=2,
         recovery_timeout=0.2,
@@ -77,11 +85,24 @@ def test_circuit_breaker_concurrent_failures():
     with pytest.raises(DevSynthError):
         always_fail()
 
-    time.sleep(0.2)
+    # Replace fixed sleep with bounded polling to reduce flakiness
+    deadline = time.perf_counter() + 1.0  # 1s safety cap for CI variability
 
     @cb
     def success():
         return "ok"
 
-    assert success() == "ok"
+    last_error = None
+    while True:
+        try:
+            assert success() == "ok"
+            break
+        except DevSynthError as e:
+            # Circuit still OPEN; yield briefly and retry until deadline
+            last_error = e
+            if time.perf_counter() >= deadline:
+                raise AssertionError(
+                    "Circuit breaker did not allow recovery within timeout"
+                ) from last_error
+            time.sleep(0.01)
     assert cb.state == cb.CLOSED

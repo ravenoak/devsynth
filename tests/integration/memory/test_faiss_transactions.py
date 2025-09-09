@@ -8,6 +8,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.medium
 def test_faiss_transaction_commit_and_rollback(tmp_path):
     """FAISSStore transactions should commit and rollback correctly."""
     store = FAISSStore(str(tmp_path))

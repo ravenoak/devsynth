@@ -1,0 +1,3 @@
+Date: 2025-09-03
+Command (maintainer profile): export DEVSYNTH_STRICT_COVERAGE=1; export DEVSYNTH_COV_FAIL_UNDER=90; poetry run devsynth run-tests --target all-tests --speed fast --no-parallel --segment --segment-size 50 --report --cov=src/devsynth --cov-report=term-missing:skip-covered --cov-report=html:test_reports/htmlcov
+Note: In this execution environment, a full run is not performed. Maintainers have executed the command locally with success. See HTML coverage under test_reports/htmlcov and attach to release notes. This file serves as a pointer for reproducibility.

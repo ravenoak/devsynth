@@ -40,26 +40,28 @@ LANGUAGE_VERIFIERS = {
     "ts": lambda code: verify_typescript(code),
 }
 
+
 def extract_code_blocks(content: str) -> List[Tuple[str, str]]:
     """
     Extracts code blocks from markdown content.
-    
+
     Args:
         content: The markdown content to extract code blocks from.
-        
+
     Returns:
         A list of tuples containing (language, code).
     """
     matches = CODE_BLOCK_REGEX.findall(content)
     return matches
 
+
 def verify_python(code: str) -> List[str]:
     """
     Verifies Python code syntax.
-    
+
     Args:
         code: The Python code to verify.
-        
+
     Returns:
         A list of error messages, or an empty list if no errors were found.
     """
@@ -70,13 +72,14 @@ def verify_python(code: str) -> List[str]:
         errors.append(f"Python syntax error: {str(e)}")
     return errors
 
+
 def verify_bash(code: str) -> List[str]:
     """
     Verifies Bash code syntax.
-    
+
     Args:
         code: The Bash code to verify.
-        
+
     Returns:
         A list of error messages, or an empty list if no errors were found.
     """
@@ -84,10 +87,7 @@ def verify_bash(code: str) -> List[str]:
     try:
         # Use bash -n to check syntax without executing
         result = subprocess.run(
-            ["bash", "-n"], 
-            input=code.encode(), 
-            capture_output=True, 
-            check=False
+            ["bash", "-n"], input=code.encode(), capture_output=True, check=False
         )
         if result.returncode != 0:
             errors.append(f"Bash syntax error: {result.stderr.decode().strip()}")
@@ -95,13 +95,14 @@ def verify_bash(code: str) -> List[str]:
         errors.append(f"Error verifying Bash code: {str(e)}")
     return errors
 
+
 def verify_javascript(code: str) -> List[str]:
     """
     Verifies JavaScript code syntax.
-    
+
     Args:
         code: The JavaScript code to verify.
-        
+
     Returns:
         A list of error messages, or an empty list if no errors were found.
     """
@@ -109,10 +110,7 @@ def verify_javascript(code: str) -> List[str]:
     try:
         # Use node -c to check syntax without executing
         result = subprocess.run(
-            ["node", "--check"], 
-            input=code.encode(), 
-            capture_output=True, 
-            check=False
+            ["node", "--check"], input=code.encode(), capture_output=True, check=False
         )
         if result.returncode != 0:
             errors.append(f"JavaScript syntax error: {result.stderr.decode().strip()}")
@@ -120,13 +118,14 @@ def verify_javascript(code: str) -> List[str]:
         errors.append(f"Error verifying JavaScript code: {str(e)}")
     return errors
 
+
 def verify_typescript(code: str) -> List[str]:
     """
     Verifies TypeScript code syntax.
-    
+
     Args:
         code: The TypeScript code to verify.
-        
+
     Returns:
         A list of error messages, or an empty list if no errors were found.
     """
@@ -136,31 +135,30 @@ def verify_typescript(code: str) -> List[str]:
         # Save code to a temporary file
         temp_file = pathlib.Path("temp_ts_code.ts")
         temp_file.write_text(code)
-        
+
         # Use tsc to check syntax without emitting JavaScript
         result = subprocess.run(
-            ["tsc", "--noEmit", str(temp_file)], 
-            capture_output=True, 
-            check=False
+            ["tsc", "--noEmit", str(temp_file)], capture_output=True, check=False
         )
-        
+
         # Clean up temporary file
         temp_file.unlink()
-        
+
         if result.returncode != 0:
             errors.append(f"TypeScript syntax error: {result.stderr.decode().strip()}")
     except Exception as e:
         errors.append(f"Error verifying TypeScript code: {str(e)}")
     return errors
 
+
 def verify_code_block(language: str, code: str) -> List[str]:
     """
     Verifies a code block based on its language.
-    
+
     Args:
         language: The language of the code block.
         code: The code to verify.
-        
+
     Returns:
         A list of error messages, or an empty list if no errors were found.
     """
@@ -169,10 +167,20 @@ def verify_code_block(language: str, code: str) -> List[str]:
         return LANGUAGE_VERIFIERS[language](code)
     return []  # Skip verification for unsupported languages
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Verify code examples in markdown files.")
-    parser.add_argument("paths", nargs='+', type=pathlib.Path, help="List of markdown files or directories to scan.")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output.")
+    parser = argparse.ArgumentParser(
+        description="Verify code examples in markdown files."
+    )
+    parser.add_argument(
+        "paths",
+        nargs="+",
+        type=pathlib.Path,
+        help="List of markdown files or directories to scan.",
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output."
+    )
 
     args = parser.parse_args()
 
@@ -210,7 +218,7 @@ def main():
 
         code_blocks = extract_code_blocks(content)
         total_code_blocks += len(code_blocks)
-        
+
         file_has_errors = False
         for language, code in code_blocks:
             errors = verify_code_block(language, code)
@@ -219,21 +227,24 @@ def main():
                     print(f"\nErrors in {md_file}:")
                     file_has_errors = True
                     files_with_errors += 1
-                
+
                 print(f"  Code block ({language}):")
                 for error in errors:
                     print(f"    - {error}")
                 total_errors += len(errors)
 
     if args.verbose:
-        print(f"\nProcessed {len(files_to_check)} files with {total_code_blocks} code blocks.")
-    
+        print(
+            f"\nProcessed {len(files_to_check)} files with {total_code_blocks} code blocks."
+        )
+
     if total_errors > 0:
         print(f"\nFound {total_errors} errors in {files_with_errors} files.")
         sys.exit(1)
     else:
         print("\nAll code examples verified successfully!")
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

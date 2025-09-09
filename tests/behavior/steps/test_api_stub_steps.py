@@ -8,8 +8,6 @@ from pytest_bdd import given, scenarios, then, when
 
 scenarios("../features/general/api_stub_usage.feature")
 
-pytestmark = [pytest.mark.medium]
-
 
 @pytest.fixture
 def api_context(monkeypatch):

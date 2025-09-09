@@ -7,13 +7,15 @@ and ensures the project structure is correctly represented.
 """
 
 import json
-import jsonschema
-import yaml
 import os
 from pathlib import Path
 from typing import Optional
+
+import jsonschema
+import yaml
 from rich.console import Console
 from rich.panel import Panel
+
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger

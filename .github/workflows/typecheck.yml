@@ -1,0 +1,41 @@
+name: Type Check
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Configure Poetry to not create virtualenvs in project
+        run: poetry config virtualenvs.in-project true
+
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies (dev group only)
+        run: poetry install --with dev --no-interaction --no-root
+
+      - name: Run mypy
+        env:
+          MYPY_CACHE_DIR: .mypy_cache
+        run: poetry run mypy src/devsynth

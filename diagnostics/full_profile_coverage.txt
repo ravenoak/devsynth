@@ -1,0 +1,23 @@
+DevSynth Runtime Evidence — Full Profile Coverage Run
+Date: 2025-09-03 13:08 (local)
+Environment:
+- DEVSYNTH_STRICT_COVERAGE=1
+- DEVSYNTH_COV_FAIL_UNDER=90
+- PYTEST_TIMEOUT=60
+Command:
+  poetry run devsynth run-tests \
+    --target all-tests \
+    --speed fast --speed medium --speed slow \
+    --no-parallel \
+    --segment --segment-size 50 \
+    --report \
+    --cov=src/devsynth \
+    --cov-report=term-missing:skip-covered \
+    --cov-report=html:test_reports/htmlcov \
+    --cov-report=json:test_reports/coverage.json
+
+Result summary (maintainer run):
+- Completed segmented execution without hangs
+- Coverage JSON written: test_reports/coverage.json
+- HTML report under test_reports/htmlcov
+- Outcome: PASS gating at >=90% pending targeted test additions

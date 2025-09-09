@@ -1,9 +1,12 @@
 import datetime
 
-from devsynth.methodology.sprint import SprintAdapter
+import pytest
+
 from devsynth.methodology.base import Phase
+from devsynth.methodology.sprint import SprintAdapter
 
 
+@pytest.mark.fast
 def test_calculate_phase_end_time():
     """SprintAdapter calculates phase end time correctly.
 
@@ -15,6 +18,7 @@ def test_calculate_phase_end_time():
     assert (end - start).total_seconds() == expected_seconds
 
 
+@pytest.mark.fast
 def test_is_phase_time_exceeded_false(monkeypatch):
     """_is_phase_time_exceeded respects allocation.
 
@@ -25,6 +29,7 @@ def test_is_phase_time_exceeded_false(monkeypatch):
     assert not adapter._is_phase_time_exceeded(Phase.EXPAND, start)
 
 
+@pytest.mark.fast
 def test_should_progress_when_time_exceeded(monkeypatch):
     """should_progress_to_next_phase triggers when time is exceeded.
 
@@ -38,6 +43,7 @@ def test_should_progress_when_time_exceeded(monkeypatch):
     assert adapter.should_progress_to_next_phase(Phase.EXPAND, context, results)
 
 
+@pytest.mark.fast
 def test_ceremony_mapping_to_phase():
     """Configured ceremonies map to the correct EDRR phases."""
     config = {
@@ -57,6 +63,7 @@ def test_ceremony_mapping_to_phase():
     assert adapter.get_ceremony_phase("dailyStandup") is None
 
 
+@pytest.mark.fast
 def test_before_cycle_provides_context():
     """before_cycle initializes sprint metadata."""
     adapter = SprintAdapter({"settings": {"sprintDuration": 1}})
@@ -66,6 +73,7 @@ def test_before_cycle_provides_context():
     assert "sprint_end_time" in context
 
 
+@pytest.mark.fast
 def test_before_expand_sets_phase_start_time():
     """before_expand adds a phase start timestamp."""
     adapter = SprintAdapter({"settings": {}})
@@ -74,6 +82,7 @@ def test_before_expand_sets_phase_start_time():
     assert isinstance(context["phase_start_time"], datetime.datetime)
 
 
+@pytest.mark.fast
 def test_after_retrospect_captures_sprint_plan():
     """after_retrospect stores next cycle recommendations as sprint plan."""
     adapter = SprintAdapter({"settings": {}})
@@ -88,4 +97,3 @@ def test_after_retrospect_captures_sprint_plan():
     assert adapter.sprint_plan["planned_scope"] == ["item1"]
     assert adapter.sprint_plan["objectives"] == ["obj"]
     assert adapter.sprint_plan["success_criteria"] == ["done"]
-

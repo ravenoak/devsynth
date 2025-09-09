@@ -1,0 +1,2 @@
+2025-09-03 13:30:48 -0700
+Updated testing.md with maintainer env, resource flags, coverage gating, execution matrix, segmentation; documented GA disabled until tag. See docs/tasks.md tasks 58 and 62 marked complete.

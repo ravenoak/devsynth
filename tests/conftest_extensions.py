@@ -3,12 +3,13 @@ Extensions to pytest configuration for test categorization and organization.
 """
 
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pytest
 
-test_times: Dict[str, float] = {}
+test_times: dict[str, float] = {}
 
 
 def pytest_configure(config):
@@ -102,7 +103,15 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Validate test speed markers and apply filtering."""
+    """Validate test speed markers and apply filtering.
+
+    Harmonization rules:
+    - Do not auto-add a default speed marker here; centralized suite conftests
+      (tests/unit|integration|behavior/conftest.py) are authoritative for defaults.
+    - Only warn when a test lacks exactly one speed marker; let the verifier and
+      suite hooks drive remediation. Apply --speed filtering only when a single
+      speed marker is present.
+    """
     speed = config.getoption("--speed")
     skip_other_speeds = None
     if speed != "all":
@@ -113,10 +122,44 @@ def pytest_collection_modifyitems(config, items):
         speed_markers = [
             name for name in ("fast", "medium", "slow") if item.get_closest_marker(name)
         ]
+        marker = None
         if len(speed_markers) != 1:
-            item.add_marker(pytest.mark.medium)
-            marker = "medium"
+            # Emit a warning so contributors add an explicit marker in-source.
+            try:
+                item.warn(
+                    pytest.PytestWarning(
+                        f"Test '{item.nodeid}' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level"
+                    )
+                )
+            except Exception:
+                pass
         else:
             marker = speed_markers[0]
-        if skip_other_speeds and marker != speed:
+        # Only apply --speed filtering when we have an unambiguous marker
+        if marker and skip_other_speeds and marker != speed:
             item.add_marker(skip_other_speeds)
+
+    # Apply flaky retries to online resource-marked tests if configured
+    try:
+        import os
+
+        # Retries are disabled by default to avoid masking logic errors.
+        # Enable explicitly via environment when running idempotent online subsets.
+        retries_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRIES", "0").strip()
+        delay_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRY_DELAY", "0").strip()
+        retries = int(retries_raw) if retries_raw != "" else 0
+        delay = int(delay_raw) if delay_raw != "" else 0
+    except Exception:
+        retries, delay = 0, 0
+
+    if retries > 0:
+        for item in items:
+            if item.get_closest_marker("requires_resource"):
+                # Add a flaky marker understood by pytest-rerunfailures if installed.
+                try:
+                    item.add_marker(
+                        pytest.mark.flaky(reruns=retries, reruns_delay=delay)
+                    )
+                except Exception:
+                    # If plugin is unavailable, marker is inert; behavior remains unchanged.
+                    pass

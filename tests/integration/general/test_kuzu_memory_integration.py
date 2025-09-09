@@ -13,7 +13,6 @@ from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 # These integration tests interact with multiple storage backends
-pytestmark = [pytest.mark.medium]
 
 
 @pytest.fixture
@@ -83,6 +82,7 @@ def mock_embed():
 
 
 @pytest.mark.parametrize("store_fixture", ["kuzu_store", "kuzu_store_embedded"])
+@pytest.mark.medium
 def test_kuzu_memory_vector_integration_succeeds(request, store_fixture):
     store = request.getfixturevalue(store_fixture)
     config = {
@@ -104,6 +104,7 @@ def test_kuzu_memory_vector_integration_succeeds(request, store_fixture):
 
 
 @pytest.mark.parametrize("store_fixture", ["kuzu_store", "kuzu_store_embedded"])
+@pytest.mark.medium
 def test_create_for_testing_with_kuzu(request, store_fixture):
     store = request.getfixturevalue(store_fixture)
     adapter = MemorySystemAdapter.create_for_testing(
@@ -115,6 +116,7 @@ def test_create_for_testing_with_kuzu(request, store_fixture):
     assert adapter.vector_store is not None
 
 
+@pytest.mark.medium
 def test_ephemeral_store_cleanup(no_kuzu):
     store = KuzuMemoryStore.create_ephemeral()
     path = store.persist_directory
@@ -124,6 +126,7 @@ def test_ephemeral_store_cleanup(no_kuzu):
     assert not os.path.exists(path)
 
 
+@pytest.mark.medium
 def test_ephemeral_store_startup_respects_env(monkeypatch, no_kuzu):
     """Explicitly disabling embedded mode still allows startup."""
     from devsynth.config import settings as settings_module
@@ -138,6 +141,7 @@ def test_ephemeral_store_startup_respects_env(monkeypatch, no_kuzu):
         store.cleanup()
 
 
+@pytest.mark.medium
 def test_configured_path_usage(fake_kuzu):
     """Store initialises at configured path when provided."""
     project_dir = Path(os.environ["DEVSYNTH_PROJECT_DIR"])
@@ -150,6 +154,7 @@ def test_configured_path_usage(fake_kuzu):
         store.cleanup()
 
 
+@pytest.mark.medium
 def test_provider_fallback_on_empty_embedding(tmp_path, no_kuzu):
     with patch("devsynth.adapters.kuzu_memory_store.embed", return_value=[[]]):
         store = KuzuMemoryStore(str(tmp_path))
@@ -158,11 +163,13 @@ def test_provider_fallback_on_empty_embedding(tmp_path, no_kuzu):
         assert emb == store.embedder("hello")
 
 
+@pytest.mark.medium
 def test_create_ephemeral_embedded_mode(kuzu_store_embedded):
     assert not kuzu_store_embedded._store._use_fallback
 
 
 @pytest.mark.parametrize("embedded", [True, False])
+@pytest.mark.medium
 def test_kuzu_embedded_env_setting(monkeypatch, embedded):
     from devsynth.config import settings as settings_module
 
@@ -172,6 +179,7 @@ def test_kuzu_embedded_env_setting(monkeypatch, embedded):
     assert s["kuzu_embedded"] is embedded
 
 
+@pytest.mark.medium
 def test_kuzu_embedded_module_export(monkeypatch):
     """settings.kuzu_embedded should mirror the environment."""
     from devsynth.config import settings as settings_module
@@ -187,6 +195,7 @@ def test_kuzu_embedded_module_export(monkeypatch):
         )
 
 
+@pytest.mark.medium
 def test_kuzu_adapter_ephemeral_cleanup(monkeypatch, tmp_path, no_kuzu):
     from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
     from devsynth.config import settings as settings_module

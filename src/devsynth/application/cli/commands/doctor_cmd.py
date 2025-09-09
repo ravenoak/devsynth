@@ -1,5 +1,6 @@
 import importlib.util
 import os
+import shutil
 import sys
 from pathlib import Path
 from typing import Optional
@@ -11,9 +12,6 @@ from devsynth.core.config_loader import _find_project_config, load_config
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.testing.run_tests import run_tests
-
-from . import align_cmd
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
@@ -61,9 +59,16 @@ def doctor_cmd(
             )
             warnings = True
 
-        if sys.version_info < (3, 11):
+        if sys.version_info < (3, 12):
             ux_bridge.print(
                 f"[yellow]Warning: Python 3.12 or higher is required. Current version: {sys.version.split()[0]}[/yellow]"
+            )
+            warnings = True
+
+        # Check Poetry availability (recommended workflow)
+        if shutil.which("poetry") is None:
+            ux_bridge.print(
+                "[yellow]Poetry is not installed or not on PATH. Install Poetry for consistent dev workflows.[/yellow]"
             )
             warnings = True
 
@@ -84,6 +89,15 @@ def doctor_cmd(
         if missing_deps:
             ux_bridge.print(
                 f"[yellow]Missing dependencies: {', '.join(missing_deps)}[/yellow]"
+            )
+            warnings = True
+
+        # WebUI alignment check (Streamlit is the declared 0.1.0a1 webui extra)
+        # This must not import streamlit; only check availability via find_spec.
+        webui_spec = importlib.util.find_spec("streamlit")
+        if webui_spec is None:
+            ux_bridge.print(
+                "[yellow]WebUI alignment: Streamlit is not installed. If you intend to use the WebUI, install the 'webui' extra: `poetry install --with dev,docs --extras \"webui\"` or add it to your current env. See docs/developer_guides/testing.md.[/yellow]"
             )
             warnings = True
 
@@ -132,7 +146,9 @@ def doctor_cmd(
             warnings = True
 
         # Load validation utilities dynamically
-        repo_root = Path(__file__).resolve().parents[4]
+        # Determine repository root (go up from src/devsynth/application/cli/commands)
+        # parents[5] points to the project root (beyond 'src')
+        repo_root = Path(__file__).resolve().parents[5]
         script_path = repo_root / "scripts" / "validate_config.py"
         spec = importlib.util.spec_from_file_location("validate_config", script_path)
         module = importlib.util.module_from_spec(spec)  # type: ignore
@@ -168,6 +184,8 @@ def doctor_cmd(
         if quick:
             ux_bridge.print("[blue]Running alignment check...[/blue]")
             try:
+                from . import align_cmd
+
                 issues = align_cmd.check_alignment(bridge=ux_bridge)
                 align_cmd.display_issues(issues, bridge=ux_bridge)
                 if issues:
@@ -180,6 +198,8 @@ def doctor_cmd(
 
             ux_bridge.print("[blue]Running unit tests...[/blue]")
             try:
+                from devsynth.testing.run_tests import run_tests
+
                 success, _ = run_tests("unit-tests")
                 if not success:
                     ux_bridge.print("[yellow]Unit tests failed[/yellow]")

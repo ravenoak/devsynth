@@ -37,6 +37,7 @@ def context():
     ctx.cleanup()
 
 
+@pytest.mark.fast
 @given("a project with a docs directory configured in project.yaml")
 def setup_project(context):
     docs_dir = context.project_root / "custom_docs"
@@ -64,11 +65,13 @@ def setup_project(context):
         yaml.safe_dump(data, f)
 
 
+@pytest.mark.fast
 @when("I ingest documentation using the project configuration")
 def ingest_docs(context):
     context.ingestion_manager.ingest_from_project_config(context.project_root)
 
 
+@pytest.mark.fast
 @then("the documentation files should be stored in memory")
 def verify_docs(context):
     results = context.memory_manager.query_by_metadata(

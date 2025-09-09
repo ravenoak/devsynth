@@ -1,6 +1,8 @@
 import types
 from typing import Union
 
+import pytest
+
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
@@ -105,6 +107,7 @@ def _setup_cli_bridge(monkeypatch) -> CLIUXBridge:
     return bridge
 
 
+@pytest.mark.medium
 def test_cli_and_api_bridges_multi_agent_consistent(monkeypatch):
     """Test that CLI and API bridges behave the same for multi-agent collaboration."""
 
@@ -128,6 +131,7 @@ class SimpleAgent:
         return {}
 
 
+@pytest.mark.medium
 def test_vote_with_role_reassignment_succeeds():
     team = CollaborativeWSDETeam(name="VoteTestTeam")
     agents = [
@@ -152,6 +156,7 @@ def test_vote_with_role_reassignment_succeeds():
     assert team.get_primus().name in {"a1", "a3"}
 
 
+@pytest.mark.medium
 def test_dynamic_role_reassignment_changes_primus():
     team = CollaborativeWSDETeam(name="RoleChangeTeam")
     agents = [

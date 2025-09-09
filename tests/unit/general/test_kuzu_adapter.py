@@ -1,12 +1,14 @@
 """Tests for the ``KuzuAdapter`` vector store."""
 
 import pytest
-from devsynth.domain.models.memory import MemoryVector
+
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+from devsynth.domain.models.memory import MemoryVector
 
 pytestmark = pytest.mark.requires_resource("kuzu")
 
 
+@pytest.mark.fast
 def test_store_and_retrieve_vector_succeeds(tmp_path):
     """Test that store and retrieve vector succeeds.
 
@@ -19,6 +21,7 @@ def test_store_and_retrieve_vector_succeeds(tmp_path):
     assert retrieved.id == "v1"
 
 
+@pytest.mark.fast
 def test_similarity_search_succeeds(tmp_path):
     """Test that similarity search succeeds.
 
@@ -34,6 +37,7 @@ def test_similarity_search_succeeds(tmp_path):
     assert res[0].id == "v0"
 
 
+@pytest.mark.fast
 def test_persistence_between_instances_succeeds(tmp_path):
     """Vectors should persist to disk across adapter instances."""
     adapter1 = KuzuAdapter(str(tmp_path))
@@ -46,9 +50,11 @@ def test_persistence_between_instances_succeeds(tmp_path):
     assert retrieved is not None
 
 
+@pytest.mark.fast
 def test_similarity_search_without_numpy_succeeds(monkeypatch, tmp_path):
     """Fallback distance calculation should work without NumPy."""
     import importlib
+
     import devsynth.adapters.memory.kuzu_adapter as kuzu_adapter
 
     monkeypatch.setattr(kuzu_adapter, "np", None)

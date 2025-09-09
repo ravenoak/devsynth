@@ -6,9 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytestmark = [pytest.mark.medium, pytest.mark.requires_resource("webui")]
+pytestmark = [pytest.mark.requires_resource("webui")]
 
 
+@pytest.mark.medium
 def test_webui_setup_wizard_runs(monkeypatch):
     """The setup wizard calls the CLI ``SetupWizard`` implementation."""
     module_name = "devsynth.interface.webui_setup"

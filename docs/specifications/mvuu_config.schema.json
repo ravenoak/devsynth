@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DevSynth MVUU Config Schema",
+  "type": "object",
+  "required": ["schema", "storage", "issues"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "type": "string",
+      "description": "Path to the MVUU record schema (JSON Schema file).",
+      "default": "docs/specifications/mvuuschema.json"
+    },
+    "storage": {
+      "type": "object",
+      "required": ["path", "format"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Location for storing MVUU records (e.g., JSON database).",
+          "default": "docs/specifications/mvuu_database.json"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json"],
+          "description": "Storage format. Currently only 'json' is supported.",
+          "default": "json"
+        }
+      }
+    },
+    "issues": {
+      "type": "object",
+      "required": [],
+      "additionalProperties": false,
+      "properties": {
+        "github": {
+          "type": "object",
+          "required": ["base_url", "token"],
+          "additionalProperties": false,
+          "properties": {
+            "base_url": {"type": "string"},
+            "token": {"type": "string"}
+          }
+        },
+        "jira": {
+          "type": "object",
+          "required": ["base_url", "token"],
+          "additionalProperties": false,
+          "properties": {
+            "base_url": {"type": "string"},
+            "token": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}

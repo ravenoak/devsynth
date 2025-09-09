@@ -2,6 +2,7 @@
 Dialectical reasoner for requirements management.
 """
 
+import os
 from dataclasses import asdict
 from datetime import datetime
 from typing import Callable, Dict, List, Optional, Tuple
@@ -197,7 +198,23 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
         # Save and persist the reasoning
         saved = self.reasoning_repository.save_reasoning(reasoning)
-        self._store_reasoning_in_memory(saved, edrr_phase=edrr_phase)
+        phase_to_use = edrr_phase
+        try:
+            # If default REFINE is provided but change type suggests another phase,
+            # map it to align with EDRR. This keeps backward compatibility while
+            # improving linkage quality.
+            from devsynth.domain.models.requirement import (  # local import to avoid cycles
+                ChangeType,
+            )
+
+            if edrr_phase == "REFINE":
+                if getattr(change, "change_type", None) == ChangeType.ADD:
+                    phase_to_use = "EXPAND"
+                elif getattr(change, "change_type", None) == ChangeType.REMOVE:
+                    phase_to_use = "RETROSPECT"
+        except Exception:
+            phase_to_use = edrr_phase
+        self._store_reasoning_in_memory(saved, edrr_phase=phase_to_use)
         return saved
 
     def process_message(
@@ -327,18 +344,54 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         self.notification_service.notify_impact_assessment_completed(saved_assessment)
 
         # Persist impact assessment with EDRR phase context
-        self._store_impact_in_memory(saved_assessment, edrr_phase=edrr_phase)
+        phase_to_use = edrr_phase
+        try:
+            from devsynth.domain.models.requirement import (  # local import to avoid cycles
+                ChangeType,
+            )
+
+            if edrr_phase == "REFINE":
+                if getattr(change, "change_type", None) == ChangeType.ADD:
+                    phase_to_use = "EXPAND"
+                elif getattr(change, "change_type", None) == ChangeType.REMOVE:
+                    phase_to_use = "RETROSPECT"
+        except Exception:
+            phase_to_use = edrr_phase
+        self._store_impact_in_memory(saved_assessment, edrr_phase=phase_to_use)
 
         return saved_assessment
 
     def _store_reasoning_in_memory(
         self, reasoning: DialecticalReasoning, edrr_phase: str = "REFINE"
     ) -> None:
-        """Persist dialectical reasoning to the memory manager if available."""
+        """Persist dialectical reasoning to the memory manager if available.
+
+        In addition to storing the full reasoning payload, this method now
+        stores a lightweight RELATIONSHIP record linking the requirement change
+        to the generated reasoning, tagged with the EDRR phase. This explicit
+        link enables BDD validation that requirement changes are associated with
+        EDRR outcomes.
+        """
         manager = getattr(self, "memory_manager", None)
         if manager is None:
             return
         try:
+            # Store an explicit relationship link: requirement change -> reasoning
+            relationship_payload = {
+                "type": "requirement_to_reasoning",
+                "change_id": str(reasoning.change_id),
+                "reasoning_id": str(reasoning.id),
+            }
+            manager.store_with_edrr_phase(
+                relationship_payload,
+                memory_type=MemoryType.RELATIONSHIP,
+                edrr_phase=edrr_phase,
+                metadata={
+                    "change_id": str(reasoning.change_id),
+                    "link": "requirement->reasoning",
+                },
+            )
+            # Store the full reasoning record
             manager.store_with_edrr_phase(
                 asdict(reasoning),
                 memory_type=MemoryType.DIALECTICAL_REASONING,
@@ -497,6 +550,29 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             current_argument.setdefault("counterargument", "")
             arguments.append(current_argument)
 
+        # Deterministic ordering (can be disabled with env flag)
+        if os.getenv("DEVSYNTH_DETERMINISTIC_REASONING", "1").lower() not in (
+            "0",
+            "false",
+            "no",
+        ):  # pragma: no cover - env branch
+
+            def _pos_rank(p: str) -> int:
+                p = (p or "").lower()
+                # Prefer supporting positions first for stability
+                if p.startswith("for") or p.startswith("thesis"):
+                    return 0
+                return 1
+
+            arguments = sorted(
+                arguments,
+                key=lambda a: (
+                    _pos_rank(a.get("position")),
+                    (a.get("content") or "").lower(),
+                    (a.get("counterargument") or "").lower(),
+                ),
+            )
+
         return arguments
 
     def _generate_synthesis(
@@ -607,9 +683,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             change: The requirement change.
 
         Returns:
-            A list of affected requirement IDs.
+            A list of affected requirement IDs (deterministic order).
         """
-        affected_requirements = []
+        affected_requirements: List[UUID] = []
 
         # If this is a modification or removal, the requirement itself is affected
         if change.requirement_id:
@@ -624,7 +700,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             if change.requirement_id and change.requirement_id in req.dependencies:
                 affected_requirements.append(req.id)
 
-        return affected_requirements
+        # Unique and deterministic
+        unique = {str(r): r for r in affected_requirements}
+        return [unique[k] for k in sorted(unique.keys())]
 
     def _identify_affected_components(self, change: RequirementChange) -> List[str]:
         """
@@ -634,10 +712,10 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             change: The requirement change.
 
         Returns:
-            A list of affected component names.
+            A list of affected component names (deterministic order).
         """
         # For now, use a simple approach based on requirement metadata
-        affected_components = []
+        affected_components: List[str] = []
 
         if change.requirement_id:
             requirement = self.requirement_repository.get_requirement(
@@ -649,8 +727,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         if change.new_state and "component" in change.new_state.metadata:
             affected_components.append(change.new_state.metadata["component"])
 
-        # Remove duplicates
-        return list(set(affected_components))
+        # Unique and deterministic
+        return sorted(set(affected_components))
 
     def _assess_risk_level(
         self, change: RequirementChange, affected_requirements: List[UUID]

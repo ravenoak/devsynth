@@ -139,6 +139,38 @@ poetry run python scripts/verify_test_markers.py --changed
 - Delete `.pytest_collection_cache.json` to force a full re-run if results seem stale.
 - Collection errors often stem from missing optional dependencies; install the package or skip the test with an environment flag.
 
+### 7. Auto Issue Commenter (auto_issue_comment.py)
+
+Posts a comment to GitHub issues referenced in the latest commit message. Safe by default with dry-run behavior when missing env vars.
+
+Usage:
+
+```bash
+# Dry-run (no env required)
+python scripts/auto_issue_comment.py --dry-run
+
+# In CI (requires GITHUB_TOKEN and GITHUB_REPOSITORY)
+python scripts/auto_issue_comment.py
+```
+
+Flags: --commit, --message, --dry-run, --body-prefix.
+
+Environment: GITHUB_TOKEN, GITHUB_REPOSITORY, GITHUB_SHA.
+
+### 8. Verify Issue References (`verify_issue_references.py`)
+
+Ensures each test function's docstring includes both an issue filename and a
+requirement identifier, matching the format:
+``Issue: issues/<file>.md ReqID: FR-XX``. The referenced issue file must exist.
+
+```bash
+# Verify all tests reference existing issues and ReqIDs
+poetry run python scripts/verify_issue_references.py
+
+# Generate a JSON report
+poetry run python scripts/verify_issue_references.py --json report.json
+```
+
 ## Best Practices
 
 These scripts follow these best practices:

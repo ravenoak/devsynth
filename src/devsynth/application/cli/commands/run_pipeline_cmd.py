@@ -72,7 +72,13 @@ def run_pipeline_cmd(
         valid_targets = ["unit-tests", "integration-tests", "behavior-tests", "all"]
         if target and target not in valid_targets:
             bridge.display_result(
-                f"[yellow]Warning: '{target}' is not a standard target. Valid targets are: {', '.join(valid_targets)}[/yellow]"
+                (
+                    "[yellow]Warning: '"
+                    + str(target)
+                    + "' is not a standard target. Valid targets are: "
+                    + ", ".join(valid_targets)
+                    + "[/yellow]"
+                )
             )
             if not (
                 auto_confirm
@@ -83,9 +89,8 @@ def run_pipeline_cmd(
                 return
 
         # Execute command
-        bridge.display_result(
-            f"[blue]Running {'target: ' + target if target else 'default pipeline'}...[/blue]"
-        )
+        running_label = "target: " + str(target) if target else "default pipeline"
+        bridge.display_result("[blue]Running " + running_label + "...[/blue]")
         result = workflows.execute_command(
             "run-pipeline", {"target": target, "report": _parse_report(report)}
         )
@@ -97,7 +102,7 @@ def run_pipeline_cmd(
                     f"[green]Successfully executed target: {target}[/green]"
                 )
             else:
-                bridge.display_result(f"[green]Pipeline execution complete.[/green]")
+                bridge.display_result("[green]Pipeline execution complete.[/green]")
 
             # Display additional result information if available
             if "output" in result:

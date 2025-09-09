@@ -26,7 +26,7 @@ pytestmark = [
     pytest.mark.skip(
         reason="Skipping FAISS tests due to known issues with FAISS library"
     ),
-    pytest.mark.medium,
+    # Speed markers must be on functions; module-level speed markers are disallowed
 ]
 
 # Register the scenarios from the feature file
@@ -102,6 +102,7 @@ def memory_port(memory_store):
 
 
 @given("the DevSynth CLI is installed")
+@pytest.mark.medium
 def devsynth_cli_installed():
     """Verify that the DevSynth CLI can be imported."""
     try:
@@ -112,6 +113,7 @@ def devsynth_cli_installed():
 
 
 @when(parsers.parse('I configure the memory store type as "{store_type}"'))
+@pytest.mark.medium
 def configure_memory_store_type(store_type):
     """Configure the memory store type."""
     # This step is handled by the memory_store fixture
@@ -124,6 +126,7 @@ def configure_memory_store_type(store_type):
 
 
 @then(parsers.parse("a {store_type} memory store should be initialized"))
+@pytest.mark.medium
 def check_store_initialized(store_type, request):
     """Verify that the specified memory store is initialized."""
     if store_type == "TinyDB":
@@ -146,6 +149,7 @@ def check_store_initialized(store_type, request):
 
 
 @given(parsers.parse('the memory store type is configured as "{store_type}"'))
+@pytest.mark.medium
 def given_memory_store_type(store_type, request):
     """Configure the memory store type."""
     # This step is handled by the memory_store fixture
@@ -175,6 +179,7 @@ def given_memory_store_type(store_type, request):
 
 
 @when("I store an item in the memory store")
+@pytest.mark.medium
 def store_item_in_memory(memory_port):
     """Store an item in the memory store."""
     # Store a test item in memory
@@ -186,6 +191,7 @@ def store_item_in_memory(memory_port):
 
 
 @then("I should be able to retrieve the item by its ID")
+@pytest.mark.medium
 def retrieve_item_by_id(memory_port):
     """Verify that an item can be retrieved by its ID."""
     # First search for the item to get its ID
@@ -204,6 +210,7 @@ def retrieve_item_by_id(memory_port):
 
 
 @given("I have stored multiple items with different content")
+@pytest.mark.medium
 def store_multiple_items(memory_port):
     """Store multiple items with different content."""
     items = [
@@ -241,6 +248,7 @@ def store_multiple_items(memory_port):
 
 
 @when("I search for items with specific criteria")
+@pytest.mark.medium
 def search_items_with_criteria(memory_port):
     """Search for items with specific criteria."""
     # Store the search results in the context for later assertion
@@ -249,6 +257,7 @@ def search_items_with_criteria(memory_port):
 
 
 @then("I should receive items matching the criteria")
+@pytest.mark.medium
 def check_search_results(memory_port):
     """Verify that items match the search criteria."""
     # Retrieve the search results from the context
@@ -271,6 +280,7 @@ def check_search_results(memory_port):
 
 
 @given("I have stored items in the memory store")
+@pytest.mark.medium
 def stored_items_in_memory(memory_port):
     """Store items in the memory store for persistence testing."""
     memory_port.store_memory(
@@ -281,6 +291,7 @@ def stored_items_in_memory(memory_port):
 
 
 @when("I restart the application")
+@pytest.mark.medium
 def restart_application(request, temp_store_path):
     """Simulate restarting the application by recreating the memory store."""
     # Get the current store type
@@ -306,6 +317,7 @@ def restart_application(request, temp_store_path):
 
 
 @then("the previously stored items should still be available")
+@pytest.mark.medium
 def check_item_persistence(request, memory_port):
     """Verify that items are still available after restart."""
     # Get the new store from the cache
@@ -331,6 +343,7 @@ def check_item_persistence(request, memory_port):
 
 
 @given("vector store is enabled")
+@pytest.mark.medium
 def vector_store_enabled(request):
     """Ensure that vector store is enabled for DuckDB or FAISS stores."""
     store_type = request.node.get_closest_marker("store_type").args[0]
@@ -341,6 +354,7 @@ def vector_store_enabled(request):
 
 
 @when("I store a vector in the vector store")
+@pytest.mark.medium
 def store_vector_in_store(request):
     """Store a vector in the vector store."""
     # Get the current store type
@@ -369,6 +383,7 @@ def store_vector_in_store(request):
 
 
 @then("I should be able to retrieve the vector by its ID")
+@pytest.mark.medium
 def retrieve_vector_by_id(request):
     """Verify that a vector can be retrieved by its ID."""
     # Get the current store type
@@ -395,6 +410,7 @@ def retrieve_vector_by_id(request):
 
 
 @given("I have stored multiple vectors with different embeddings")
+@pytest.mark.medium
 def store_multiple_vectors(request):
     """Store multiple vectors with different embeddings."""
     # Get the current store type
@@ -444,6 +460,7 @@ def store_multiple_vectors(request):
 
 
 @when("I perform a similarity search with a query embedding")
+@pytest.mark.medium
 def perform_similarity_search(request):
     """Perform a similarity search with a query embedding."""
     # Get the current store type
@@ -469,6 +486,7 @@ def perform_similarity_search(request):
 
 
 @then("I should receive vectors ranked by similarity")
+@pytest.mark.medium
 def check_similarity_search_results(request):
     """Verify that vectors are ranked by similarity."""
     # Get the search results
@@ -480,6 +498,7 @@ def check_similarity_search_results(request):
 
 
 @given("I have stored vectors in the vector store")
+@pytest.mark.medium
 def stored_vectors_in_store(request):
     """Store vectors in the vector store for persistence testing."""
     # Get the current store type
@@ -507,6 +526,7 @@ def stored_vectors_in_store(request):
 
 
 @then("the previously stored vectors should still be available")
+@pytest.mark.medium
 def check_vector_persistence(request):
     """Verify that vectors are still available after restart."""
     # Get the current store type
@@ -533,6 +553,7 @@ def check_vector_persistence(request):
 
 
 @given("I have stored multiple vectors in the vector store")
+@pytest.mark.medium
 def stored_multiple_vectors(request):
     """Store multiple vectors in the vector store for collection statistics."""
     # Get the current store type
@@ -557,6 +578,7 @@ def stored_multiple_vectors(request):
 
 
 @when("I request collection statistics")
+@pytest.mark.medium
 def request_collection_stats(request):
     """Request collection statistics from the vector store."""
     # Get the current store type
@@ -578,6 +600,7 @@ def request_collection_stats(request):
 
 
 @then("I should receive information about the vector collection")
+@pytest.mark.medium
 def check_collection_stats(request):
     """Verify that collection statistics are returned."""
     # Get the collection stats
@@ -596,6 +619,7 @@ def check_collection_stats(request):
 
 
 @when("I begin a transaction")
+@pytest.mark.medium
 def begin_transaction(request):
     """Begin a transaction in the LMDB store."""
     # This step is only applicable to LMDB
@@ -613,6 +637,7 @@ def begin_transaction(request):
 
 
 @when("I store multiple items within the transaction")
+@pytest.mark.medium
 def store_items_in_transaction(request):
     """Store multiple items within the transaction."""
     # Get the transaction
@@ -638,6 +663,7 @@ def store_items_in_transaction(request):
 
 
 @when("I commit the transaction")
+@pytest.mark.medium
 def commit_transaction(request):
     """Commit the transaction."""
     # Get the transaction
@@ -649,6 +675,7 @@ def commit_transaction(request):
 
 
 @then("all items should be stored atomically")
+@pytest.mark.medium
 def check_transaction_items(request):
     """Verify that all items were stored atomically."""
     # Get the item IDs
@@ -668,6 +695,7 @@ def check_transaction_items(request):
 
 
 @when("I modify the item within the transaction")
+@pytest.mark.medium
 def modify_item_in_transaction(request):
     """Modify an item within the transaction."""
     # Get the transaction
@@ -694,6 +722,7 @@ def modify_item_in_transaction(request):
 
 
 @when("I abort the transaction")
+@pytest.mark.medium
 def abort_transaction(request):
     """Abort the transaction."""
     # Get the transaction
@@ -705,6 +734,7 @@ def abort_transaction(request):
 
 
 @then("the item should remain unchanged")
+@pytest.mark.medium
 def check_item_unchanged(request):
     """Verify that the item remains unchanged after transaction abort."""
     # Get the LMDB store

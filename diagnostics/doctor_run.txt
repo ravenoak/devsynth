@@ -1,0 +1,61 @@
+Missing environment variables: ANTHROPIC_API_KEY
+development: : &#x27;application&#x27; is a required property
+development: : &#x27;agents&#x27; is a required property
+development: : &#x27;edrr&#x27; is a required property
+development: llm: &#x27;default_provider&#x27; is a required property
+development: llm.providers.openai: &#x27;enabled&#x27; is a required property
+development: security: &#x27;input_validation&#x27; is a required property
+testing: : &#x27;application&#x27; is a required property
+testing: edrr: &#x27;enabled&#x27; is a required property
+testing: security: &#x27;input_validation&#x27; is a required property
+staging: : &#x27;application&#x27; is a required property
+staging: edrr: &#x27;enabled&#x27; is a required property
+staging: features.experimental_features:
+&#x27;${DEVSYNTH_ENABLE_EXPERIMENTAL:-false}&#x27; is not of type
+&#x27;boolean&#x27;
+staging: Environment variable DEVSYNTH_LLM_PROVIDER referenced in
+llm.default_provider is not set
+staging: Environment variable DEVSYNTH_OPENAI_MODEL referenced in
+llm.providers.openai.model is not set
+staging: Environment variable DEVSYNTH_OPENAI_API_KEY referenced in
+llm.providers.openai.api_key is not set
+staging: Environment variable DEVSYNTH_ENABLE_ANTHROPIC referenced in
+llm.providers.anthropic.enabled is not set
+staging: Environment variable DEVSYNTH_ANTHROPIC_MODEL referenced in
+llm.providers.anthropic.model is not set
+staging: Environment variable DEVSYNTH_ANTHROPIC_API_KEY referenced in
+llm.providers.anthropic.api_key is not set
+staging: Environment variable DEVSYNTH_ENABLE_EXPERIMENTAL referenced in
+features.experimental_features is not set
+production: : &#x27;application&#x27; is a required property
+production: memory.stores.chromadb.port:
+&#x27;${DEVSYNTH_CHROMADB_PORT:-8000}&#x27; is not of type &#x27;integer&#x27;
+production: edrr: &#x27;enabled&#x27; is a required property
+production: Environment variable DEVSYNTH_CHROMADB_HOST referenced in
+memory.stores.chromadb.host is not set
+production: Environment variable DEVSYNTH_CHROMADB_PORT referenced in
+memory.stores.chromadb.port is not set
+production: Environment variable DEVSYNTH_LLM_PROVIDER referenced in
+llm.default_provider is not set
+production: Environment variable DEVSYNTH_OPENAI_MODEL referenced in
+llm.providers.openai.model is not set
+production: Environment variable DEVSYNTH_OPENAI_API_KEY referenced in
+llm.providers.openai.api_key is not set
+production: Environment variable DEVSYNTH_ENABLE_ANTHROPIC referenced in
+llm.providers.anthropic.enabled is not set
+production: Environment variable DEVSYNTH_ANTHROPIC_MODEL referenced in
+llm.providers.anthropic.model is not set
+production: Environment variable DEVSYNTH_ANTHROPIC_API_KEY referenced in
+llm.providers.anthropic.api_key is not set
+production: Environment variable DEVSYNTH_ENABLE_IP_ALLOWLIST referenced in
+security.ip_allowlist.enabled is not set
+production: Environment variable DEVSYNTH_ALLOWED_IPS referenced in
+security.ip_allowlist.allowed_ips is not set
+production: Environment variable DEVSYNTH_MAX_WORKERS referenced in
+performance.concurrency.max_workers is not set
+Environment development is missing feature flags: prompt_auto_tuning
+Environment testing is missing feature flags: prompt_auto_tuning
+Environment staging is missing feature flags: prompt_auto_tuning
+Environment production is missing feature flags: prompt_auto_tuning
+Configuration issues detected. Run &#x27;devsynth init&#x27; to generate
+defaults.

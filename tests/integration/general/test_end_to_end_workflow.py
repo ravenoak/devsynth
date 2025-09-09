@@ -6,16 +6,18 @@ from requirements to code, including project analysis at different stages.
 """
 
 import os
-import pytest
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
+
+import pytest
+
 from devsynth.application.cli.cli_commands import (
+    code_cmd,
     init_cmd,
     inspect_cmd,
     spec_cmd,
     test_cmd,
-    code_cmd,
 )
 from devsynth.application.code_analysis.project_state_analyzer import (
     ProjectStateAnalyzer,
@@ -35,6 +37,7 @@ class TestEndToEndWorkflow:
         yield temp_dir
         # No need for cleanup as pytest handles it automatically
 
+    @pytest.mark.medium
     def test_complete_workflow_succeeds(self, temp_project_dir, tmpdir, monkeypatch):
         """Test a complete workflow from requirements to code.
 
@@ -144,6 +147,7 @@ class TestEndToEndWorkflow:
         finally:
             os.chdir(original_dir)
 
+    @pytest.mark.medium
     def test_inconsistent_project_workflow_succeeds(self, temp_project_dir, tmpdir):
         """Test workflow with an inconsistent project state.
 
@@ -191,7 +195,7 @@ class TestEndToEndWorkflow:
             # Use tmpdir directly for file operations
             requirements_file = requirements_dir.join("requirements.md")
             requirements_file.write(requirements_content)
-            
+
             # Create src directory in tmpdir
             src_dir = tmpdir.join("src")
             src_dir.ensure(dir=True)

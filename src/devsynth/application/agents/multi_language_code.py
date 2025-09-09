@@ -2,10 +2,10 @@
 
 from typing import Any, Dict, List
 
-from .base import BaseAgent
-
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+
+from .base import BaseAgent
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError

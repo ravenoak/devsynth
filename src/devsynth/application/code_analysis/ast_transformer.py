@@ -7,8 +7,8 @@ manipulation. It allows for precise code modifications while preserving syntax c
 
 import ast
 import warnings
-from typing import Dict, List, Any, Optional, Union, Tuple
 from contextlib import contextmanager
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -18,9 +18,12 @@ logger = DevSynthLogger(__name__)
 # Check if astor is available
 try:
     import astor
+
     HAS_ASTOR = True
 except ImportError:
-    logger.warning("astor library not found. Using fallback implementation for to_source.")
+    logger.warning(
+        "astor library not found. Using fallback implementation for to_source."
+    )
     HAS_ASTOR = False
     astor = None
 
@@ -119,8 +122,14 @@ class AstTransformer:
             logger.error(f"Syntax error in code: {str(e)}")
             raise
 
-    def extract_function(self, code: str, start_line: int, end_line: int, 
-                        function_name: str, parameters: List[str] = None) -> str:
+    def extract_function(
+        self,
+        code: str,
+        start_line: int,
+        end_line: int,
+        function_name: str,
+        parameters: List[str] = None,
+    ) -> str:
         """
         Extract a block of code into a new function.
 
@@ -154,7 +163,7 @@ class AstTransformer:
                 raise ValueError(f"Invalid line range: {start_line+1} to {end_line+1}")
 
             # Extract the code block
-            block_lines = lines[start_line:end_line+1]
+            block_lines = lines[start_line : end_line + 1]
             block_code = "\n".join(block_lines)
 
             # Determine indentation level
@@ -184,7 +193,7 @@ class AstTransformer:
             function_call = " " * indentation + f"{function_name}({call_params})"
 
             # Create the new code
-            new_lines = lines[:start_line] + [function_call] + lines[end_line+1:]
+            new_lines = lines[:start_line] + [function_call] + lines[end_line + 1 :]
 
             # Add the function definition at the appropriate location
             # For simplicity, we'll add it at the beginning of the file
@@ -194,7 +203,9 @@ class AstTransformer:
 
             new_code = "\n".join(new_lines)
 
-            logger.info(f"Extracted function '{function_name}' from lines {start_line+1}-{end_line+1}")
+            logger.info(
+                f"Extracted function '{function_name}' from lines {start_line+1}-{end_line+1}"
+            )
             return new_code
         except SyntaxError as e:
             logger.error(f"Syntax error in code: {str(e)}")
@@ -289,8 +300,13 @@ class AstTransformer:
             logger.error(f"Syntax error in code: {str(e)}")
             raise
 
-    def convert_function_to_method(self, code: str, function_name: str, class_name: str, 
-                                  method_type: str = "instance") -> str:
+    def convert_function_to_method(
+        self,
+        code: str,
+        function_name: str,
+        class_name: str,
+        method_type: str = "instance",
+    ) -> str:
         """
         Convert a standalone function to a class method.
 
@@ -312,7 +328,9 @@ class AstTransformer:
             tree = ast.parse(code)
 
             # Create a transformer to convert the function to a method
-            transformer = FunctionToMethodConverter(function_name, class_name, method_type)
+            transformer = FunctionToMethodConverter(
+                function_name, class_name, method_type
+            )
 
             # Apply the transformation
             new_tree = transformer.visit(tree)
@@ -327,7 +345,9 @@ class AstTransformer:
             # Generate the new code
             new_code = to_source_with_suppressed_warnings(new_tree)
 
-            logger.info(f"Converted function '{function_name}' to {method_type} method in class '{class_name}'")
+            logger.info(
+                f"Converted function '{function_name}' to {method_type} method in class '{class_name}'"
+            )
             return new_code
         except SyntaxError as e:
             logger.error(f"Syntax error in code: {str(e)}")
@@ -361,7 +381,7 @@ class AstTransformer:
             transformers = [
                 DocstringFixer(),
                 UnusedImportRemover(),
-                CommonAntiPatternFixer()
+                CommonAntiPatternFixer(),
             ]
 
             # Apply each transformer in sequence
@@ -378,8 +398,14 @@ class AstTransformer:
             logger.error(f"Syntax error in code: {str(e)}")
             raise
 
-    def extract_class(self, code: str, functions: List[str], class_name: str, 
-                     base_classes: List[str] = None, docstring: str = None) -> str:
+    def extract_class(
+        self,
+        code: str,
+        functions: List[str],
+        class_name: str,
+        base_classes: List[str] = None,
+        docstring: str = None,
+    ) -> str:
         """
         Extract a set of functions into a new class.
 
@@ -402,12 +428,16 @@ class AstTransformer:
             tree = ast.parse(code)
 
             # Create a transformer to extract the functions into a class
-            transformer = FunctionToClassExtractor(functions, class_name, base_classes, docstring)
+            transformer = FunctionToClassExtractor(
+                functions, class_name, base_classes, docstring
+            )
 
             # Apply the transformation
             new_tree = transformer.visit(tree)
             if transformer.missing_functions:
-                raise ValueError(f"Functions not found: {', '.join(transformer.missing_functions)}")
+                raise ValueError(
+                    f"Functions not found: {', '.join(transformer.missing_functions)}"
+                )
 
             ast.fix_missing_locations(new_tree)
 
@@ -698,10 +728,20 @@ class DocstringAdder(ast.NodeTransformer):
             docstring_node = ast.Expr(value=ast.Constant(value=self.docstring))
 
             # If there's already a docstring, replace it
-            if node.body and isinstance(node.body[0], ast.Expr) and (
-                isinstance(node.body[0].value, ast.Constant) or 
-                # Check for ast.Str for Python < 3.14 compatibility
-                (hasattr(ast, 'Str') and isinstance(node.body[0].value, getattr(ast, 'Str', type(None))))
+            if (
+                node.body
+                and isinstance(node.body[0], ast.Expr)
+                and (
+                    isinstance(node.body[0].value, ast.Constant)
+                    or
+                    # Check for ast.Str for Python < 3.14 compatibility
+                    (
+                        hasattr(ast, "Str")
+                        and isinstance(
+                            node.body[0].value, getattr(ast, "Str", type(None))
+                        )
+                    )
+                )
             ):
                 node.body[0] = docstring_node
             else:
@@ -721,10 +761,20 @@ class DocstringAdder(ast.NodeTransformer):
             docstring_node = ast.Expr(value=ast.Constant(value=self.docstring))
 
             # If there's already a docstring, replace it
-            if node.body and isinstance(node.body[0], ast.Expr) and (
-                isinstance(node.body[0].value, ast.Constant) or 
-                # Check for ast.Str for Python < 3.14 compatibility
-                (hasattr(ast, 'Str') and isinstance(node.body[0].value, getattr(ast, 'Str', type(None))))
+            if (
+                node.body
+                and isinstance(node.body[0], ast.Expr)
+                and (
+                    isinstance(node.body[0].value, ast.Constant)
+                    or
+                    # Check for ast.Str for Python < 3.14 compatibility
+                    (
+                        hasattr(ast, "Str")
+                        and isinstance(
+                            node.body[0].value, getattr(ast, "Str", type(None))
+                        )
+                    )
+                )
             ):
                 node.body[0] = docstring_node
             else:
@@ -744,10 +794,20 @@ class DocstringAdder(ast.NodeTransformer):
             docstring_node = ast.Expr(value=ast.Constant(value=self.docstring))
 
             # If there's already a docstring, replace it
-            if node.body and isinstance(node.body[0], ast.Expr) and (
-                isinstance(node.body[0].value, ast.Constant) or 
-                # Check for ast.Str for Python < 3.14 compatibility
-                (hasattr(ast, 'Str') and isinstance(node.body[0].value, getattr(ast, 'Str', type(None))))
+            if (
+                node.body
+                and isinstance(node.body[0], ast.Expr)
+                and (
+                    isinstance(node.body[0].value, ast.Constant)
+                    or
+                    # Check for ast.Str for Python < 3.14 compatibility
+                    (
+                        hasattr(ast, "Str")
+                        and isinstance(
+                            node.body[0].value, getattr(ast, "Str", type(None))
+                        )
+                    )
+                )
             ):
                 node.body[0] = docstring_node
             else:
@@ -808,8 +868,16 @@ class TypeHintAdder(ast.NodeTransformer):
 
         # Look for isinstance checks
         for node in ast.walk(func_node):
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "isinstance":
-                if len(node.args) == 2 and isinstance(node.args[0], ast.Name) and node.args[0].id == arg_name:
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "isinstance"
+            ):
+                if (
+                    len(node.args) == 2
+                    and isinstance(node.args[0], ast.Name)
+                    and node.args[0].id == arg_name
+                ):
                     if isinstance(node.args[1], ast.Name):
                         type_name = node.args[1].id.lower()
                         if type_name in self.type_map:
@@ -866,7 +934,9 @@ class TypeHintAdder(ast.NodeTransformer):
 class FunctionToMethodConverter(ast.NodeTransformer):
     """AST transformer for converting functions to methods."""
 
-    def __init__(self, function_name: str, class_name: str, method_type: str = "instance"):
+    def __init__(
+        self, function_name: str, class_name: str, method_type: str = "instance"
+    ):
         """
         Initialize the transformer.
 
@@ -903,7 +973,7 @@ class FunctionToMethodConverter(ast.NodeTransformer):
                     args=self.function_node.args,
                     body=self.function_node.body,
                     decorator_list=[],
-                    returns=self.function_node.returns
+                    returns=self.function_node.returns,
                 )
 
                 # Add self parameter if it's an instance method
@@ -913,9 +983,13 @@ class FunctionToMethodConverter(ast.NodeTransformer):
 
                 # Add appropriate decorator
                 if self.method_type == "class":
-                    method_node.decorator_list.append(ast.Name(id="classmethod", ctx=ast.Load()))
+                    method_node.decorator_list.append(
+                        ast.Name(id="classmethod", ctx=ast.Load())
+                    )
                 elif self.method_type == "static":
-                    method_node.decorator_list.append(ast.Name(id="staticmethod", ctx=ast.Load()))
+                    method_node.decorator_list.append(
+                        ast.Name(id="staticmethod", ctx=ast.Load())
+                    )
 
                 # Add the method to the class
                 node.body.append(method_node)
@@ -937,10 +1011,15 @@ class DocstringFixer(ast.NodeTransformer):
 
         # Check if the function has a docstring
         has_docstring = (
-            node.body and 
-            isinstance(node.body[0], ast.Expr) and 
-            (isinstance(node.body[0].value, ast.Constant) or 
-             (hasattr(ast, 'Str') and isinstance(node.body[0].value, getattr(ast, 'Str', type(None)))))
+            node.body
+            and isinstance(node.body[0], ast.Expr)
+            and (
+                isinstance(node.body[0].value, ast.Constant)
+                or (
+                    hasattr(ast, "Str")
+                    and isinstance(node.body[0].value, getattr(ast, "Str", type(None)))
+                )
+            )
         )
 
         if not has_docstring:
@@ -977,10 +1056,15 @@ class DocstringFixer(ast.NodeTransformer):
 
         # Check if the class has a docstring
         has_docstring = (
-            node.body and 
-            isinstance(node.body[0], ast.Expr) and 
-            (isinstance(node.body[0].value, ast.Constant) or 
-             (hasattr(ast, 'Str') and isinstance(node.body[0].value, getattr(ast, 'Str', type(None)))))
+            node.body
+            and isinstance(node.body[0], ast.Expr)
+            and (
+                isinstance(node.body[0].value, ast.Constant)
+                or (
+                    hasattr(ast, "Str")
+                    and isinstance(node.body[0].value, getattr(ast, "Str", type(None)))
+                )
+            )
         )
 
         if not has_docstring:
@@ -1000,10 +1084,15 @@ class DocstringFixer(ast.NodeTransformer):
 
         # Check if the module has a docstring
         has_docstring = (
-            node.body and 
-            isinstance(node.body[0], ast.Expr) and 
-            (isinstance(node.body[0].value, ast.Constant) or 
-             (hasattr(ast, 'Str') and isinstance(node.body[0].value, getattr(ast, 'Str', type(None)))))
+            node.body
+            and isinstance(node.body[0], ast.Expr)
+            and (
+                isinstance(node.body[0].value, ast.Constant)
+                or (
+                    hasattr(ast, "Str")
+                    and isinstance(node.body[0].value, getattr(ast, "Str", type(None)))
+                )
+            )
         )
 
         if not has_docstring:
@@ -1027,17 +1116,25 @@ class UnusedImportRemover(ast.NodeTransformer):
         for subnode in node.body:
             if isinstance(subnode, ast.Import):
                 for name in subnode.names:
-                    imported_names.add(name.name if name.asname is None else name.asname)
+                    imported_names.add(
+                        name.name if name.asname is None else name.asname
+                    )
             elif isinstance(subnode, ast.ImportFrom):
                 for name in subnode.names:
-                    imported_names.add(name.name if name.asname is None else name.asname)
+                    imported_names.add(
+                        name.name if name.asname is None else name.asname
+                    )
 
         # Second pass: collect all used names
         used_names = set()
         for subnode in node.body:
-            if not (isinstance(subnode, ast.Import) or isinstance(subnode, ast.ImportFrom)):
+            if not (
+                isinstance(subnode, ast.Import) or isinstance(subnode, ast.ImportFrom)
+            ):
                 for name_node in ast.walk(subnode):
-                    if isinstance(name_node, ast.Name) and isinstance(name_node.ctx, ast.Load):
+                    if isinstance(name_node, ast.Name) and isinstance(
+                        name_node.ctx, ast.Load
+                    ):
                         used_names.add(name_node.id)
 
         # Find unused imports
@@ -1050,7 +1147,9 @@ class UnusedImportRemover(ast.NodeTransformer):
                 # Filter out unused imports
                 new_names = []
                 for name in subnode.names:
-                    if (name.name if name.asname is None else name.asname) not in unused_names:
+                    if (
+                        name.name if name.asname is None else name.asname
+                    ) not in unused_names:
                         new_names.append(name)
 
                 if new_names:
@@ -1060,7 +1159,9 @@ class UnusedImportRemover(ast.NodeTransformer):
                 # Filter out unused imports
                 new_names = []
                 for name in subnode.names:
-                    if (name.name if name.asname is None else name.asname) not in unused_names:
+                    if (
+                        name.name if name.asname is None else name.asname
+                    ) not in unused_names:
                         new_names.append(name)
 
                 if new_names:
@@ -1082,11 +1183,21 @@ class CommonAntiPatternFixer(ast.NodeTransformer):
         self.generic_visit(node)
 
         # Fix "x == None" to "x is None"
-        if len(node.ops) == 1 and isinstance(node.ops[0], ast.Eq) and isinstance(node.comparators[0], ast.Constant) and node.comparators[0].value is None:
+        if (
+            len(node.ops) == 1
+            and isinstance(node.ops[0], ast.Eq)
+            and isinstance(node.comparators[0], ast.Constant)
+            and node.comparators[0].value is None
+        ):
             node.ops[0] = ast.Is()
 
         # Fix "x != None" to "x is not None"
-        elif len(node.ops) == 1 and isinstance(node.ops[0], ast.NotEq) and isinstance(node.comparators[0], ast.Constant) and node.comparators[0].value is None:
+        elif (
+            len(node.ops) == 1
+            and isinstance(node.ops[0], ast.NotEq)
+            and isinstance(node.comparators[0], ast.Constant)
+            and node.comparators[0].value is None
+        ):
             node.ops[0] = ast.IsNot()
 
         return node
@@ -1099,15 +1210,17 @@ class CommonAntiPatternFixer(ast.NodeTransformer):
         # Fix "if len(x) > 0:" to "if x:"
         if isinstance(node.op, ast.Or) and len(node.values) == 2:
             for i, value in enumerate(node.values):
-                if (isinstance(value, ast.Compare) and 
-                    isinstance(value.left, ast.Call) and 
-                    isinstance(value.left.func, ast.Name) and 
-                    value.left.func.id == "len" and 
-                    len(value.left.args) == 1 and 
-                    len(value.ops) == 1 and 
-                    isinstance(value.ops[0], ast.Gt) and 
-                    isinstance(value.comparators[0], ast.Constant) and 
-                    value.comparators[0].value == 0):
+                if (
+                    isinstance(value, ast.Compare)
+                    and isinstance(value.left, ast.Call)
+                    and isinstance(value.left.func, ast.Name)
+                    and value.left.func.id == "len"
+                    and len(value.left.args) == 1
+                    and len(value.ops) == 1
+                    and isinstance(value.ops[0], ast.Gt)
+                    and isinstance(value.comparators[0], ast.Constant)
+                    and value.comparators[0].value == 0
+                ):
                     # Replace "len(x) > 0" with "x"
                     node.values[i] = value.left.args[0]
 
@@ -1117,7 +1230,13 @@ class CommonAntiPatternFixer(ast.NodeTransformer):
 class FunctionToClassExtractor(ast.NodeTransformer):
     """AST transformer for extracting functions into a new class."""
 
-    def __init__(self, functions: List[str], class_name: str, base_classes: List[str] = None, docstring: str = None):
+    def __init__(
+        self,
+        functions: List[str],
+        class_name: str,
+        base_classes: List[str] = None,
+        docstring: str = None,
+    ):
         """
         Initialize the transformer.
 
@@ -1151,7 +1270,7 @@ class FunctionToClassExtractor(ast.NodeTransformer):
             bases=[ast.Name(id=base, ctx=ast.Load()) for base in self.base_classes],
             keywords=[],
             body=[],
-            decorator_list=[]
+            decorator_list=[],
         )
 
         # Add docstring
@@ -1166,7 +1285,7 @@ class FunctionToClassExtractor(ast.NodeTransformer):
                 args=func_node.args,
                 body=func_node.body,
                 decorator_list=func_node.decorator_list,
-                returns=func_node.returns
+                returns=func_node.returns,
             )
 
             # Add self parameter if not already present
@@ -1182,7 +1301,9 @@ class FunctionToClassExtractor(ast.NodeTransformer):
 
         # Add all other nodes except the extracted functions
         for subnode in node.body:
-            if not (isinstance(subnode, ast.FunctionDef) and subnode.name in self.functions):
+            if not (
+                isinstance(subnode, ast.FunctionDef) and subnode.name in self.functions
+            ):
                 new_body.append(subnode)
 
         node.body = new_body
@@ -1247,9 +1368,13 @@ class UnusedVariableRemover(ast.NodeTransformer):
         # Remove unused variables from the module scope
         new_body = []
         for stmt in node.body:
-            if isinstance(stmt, ast.Assign) and len(stmt.targets) == 1 and isinstance(stmt.targets[0], ast.Name):
+            if (
+                isinstance(stmt, ast.Assign)
+                and len(stmt.targets) == 1
+                and isinstance(stmt.targets[0], ast.Name)
+            ):
                 var_name = stmt.targets[0].id
-                if var_name in self.variables_used or var_name.startswith('_'):
+                if var_name in self.variables_used or var_name.startswith("_"):
                     new_body.append(stmt)
             else:
                 new_body.append(stmt)
@@ -1274,9 +1399,13 @@ class UnusedVariableRemover(ast.NodeTransformer):
         # Remove unused variables from the function body
         new_body = []
         for stmt in node.body:
-            if isinstance(stmt, ast.Assign) and len(stmt.targets) == 1 and isinstance(stmt.targets[0], ast.Name):
+            if (
+                isinstance(stmt, ast.Assign)
+                and len(stmt.targets) == 1
+                and isinstance(stmt.targets[0], ast.Name)
+            ):
                 var_name = stmt.targets[0].id
-                if var_name in self.variables_used or var_name.startswith('_'):
+                if var_name in self.variables_used or var_name.startswith("_"):
                     new_body.append(stmt)
             else:
                 new_body.append(stmt)
@@ -1318,15 +1447,18 @@ class StringLiteralOptimizer(ast.NodeTransformer):
         self.generic_visit(node)
 
         # Check for patterns like: report = report + "string"
-        if (len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and
-            isinstance(node.value, ast.BinOp) and isinstance(node.value.op, ast.Add) and
-            isinstance(node.value.left, ast.Name) and node.targets[0].id == node.value.left.id):
+        if (
+            len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and isinstance(node.value, ast.BinOp)
+            and isinstance(node.value.op, ast.Add)
+            and isinstance(node.value.left, ast.Name)
+            and node.targets[0].id == node.value.left.id
+        ):
 
             # Convert to augmented assignment: report += "string"
             return ast.AugAssign(
-                target=node.targets[0],
-                op=ast.Add(),
-                value=node.value.right
+                target=node.targets[0], op=ast.Add(), value=node.value.right
             )
 
         return node
@@ -1336,29 +1468,47 @@ class StringLiteralOptimizer(ast.NodeTransformer):
         if isinstance(node.op, ast.Add):
             # Check if either operand is a string or another string concatenation
             left_is_string = (
-                isinstance(node.left, (ast.Str, ast.JoinedStr)) or
-                (isinstance(node.left, ast.Constant) and isinstance(node.left.value, str)) or
-                (isinstance(node.left, ast.BinOp) and self._is_string_concat(node.left))
+                isinstance(node.left, (ast.Str, ast.JoinedStr))
+                or (
+                    isinstance(node.left, ast.Constant)
+                    and isinstance(node.left.value, str)
+                )
+                or (
+                    isinstance(node.left, ast.BinOp)
+                    and self._is_string_concat(node.left)
+                )
             )
             right_is_string = (
-                isinstance(node.right, (ast.Str, ast.JoinedStr)) or
-                (isinstance(node.right, ast.Constant) and isinstance(node.right.value, str)) or
-                (isinstance(node.right, ast.BinOp) and self._is_string_concat(node.right))
+                isinstance(node.right, (ast.Str, ast.JoinedStr))
+                or (
+                    isinstance(node.right, ast.Constant)
+                    and isinstance(node.right.value, str)
+                )
+                or (
+                    isinstance(node.right, ast.BinOp)
+                    and self._is_string_concat(node.right)
+                )
             )
 
             # Also check for string conversion using str()
-            left_is_str_call = (isinstance(node.left, ast.Call) and 
-                               isinstance(node.left.func, ast.Name) and 
-                               node.left.func.id == 'str')
-            right_is_str_call = (isinstance(node.right, ast.Call) and 
-                                isinstance(node.right.func, ast.Name) and 
-                                node.right.func.id == 'str')
+            left_is_str_call = (
+                isinstance(node.left, ast.Call)
+                and isinstance(node.left.func, ast.Name)
+                and node.left.func.id == "str"
+            )
+            right_is_str_call = (
+                isinstance(node.right, ast.Call)
+                and isinstance(node.right.func, ast.Name)
+                and node.right.func.id == "str"
+            )
 
             # Check for variables (which might be strings)
             left_is_var = isinstance(node.left, ast.Name)
             right_is_var = isinstance(node.right, ast.Name)
 
-            return (left_is_string or left_is_str_call or left_is_var) and (right_is_string or right_is_str_call or right_is_var)
+            return (left_is_string or left_is_str_call or left_is_var) and (
+                right_is_string or right_is_str_call or right_is_var
+            )
         return False
 
     def _convert_to_fstring(self, node):
@@ -1394,7 +1544,7 @@ class CodeStyleImprover(ast.NodeTransformer):
         self.generic_visit(node)
 
         # Convert function names to snake_case
-        if not node.name.islower() and not node.name.startswith('_'):
+        if not node.name.islower() and not node.name.startswith("_"):
             # Convert camelCase or PascalCase to snake_case
             snake_case_name = self._camel_to_snake(node.name)
             node.name = snake_case_name
@@ -1410,12 +1560,12 @@ class CodeStyleImprover(ast.NodeTransformer):
         self.generic_visit(node)
 
         # Convert class names to PascalCase
-        if node.name[0].islower() and '_' in node.name:
+        if node.name[0].islower() and "_" in node.name:
             # Convert snake_case to PascalCase
             pascal_case_name = self._snake_to_pascal(node.name)
             node.name = pascal_case_name
         # Handle camelCase class names (first letter lowercase, but no underscores)
-        elif node.name[0].islower() and not node.name.startswith('_'):
+        elif node.name[0].islower() and not node.name.startswith("_"):
             # Capitalize the first letter
             pascal_case_name = node.name[0].upper() + node.name[1:]
             node.name = pascal_case_name
@@ -1435,15 +1585,16 @@ class CodeStyleImprover(ast.NodeTransformer):
     def _camel_to_snake(self, name):
         """Convert a camelCase or PascalCase name to snake_case."""
         import re
+
         # Insert underscore before uppercase letters and convert to lowercase
-        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-        s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
+        s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+        s2 = re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1)
         # Handle special case where the name starts with a capital letter
-        if s2.startswith('_') and name[0].isupper():
+        if s2.startswith("_") and name[0].isupper():
             s2 = s2[1:]
         return s2.lower()
 
     def _snake_to_pascal(self, name):
         """Convert a snake_case name to PascalCase."""
         # Split by underscore and capitalize each part
-        return ''.join(word.capitalize() for word in name.split('_'))
+        return "".join(word.capitalize() for word in name.split("_"))

@@ -1,0 +1,75 @@
+name: Minimal CI (Post-release Enablement)
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+# This workflow is intentionally minimal and disabled for push/PR triggers.
+# It is meant to be enabled manually post-release via workflow_dispatch or schedule.
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '2.1.4'
+
+      - name: Configure Poetry cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            poetry-${{ runner.os }}-
+
+      - name: Install dependencies (dev + tests + api + llm)
+        run: |
+          poetry env use 3.12
+          poetry install --with dev --extras "tests api llm" -n
+
+      - name: Environment defaults
+        run: |
+          echo "DEVSYNTH_OFFLINE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_PROVIDER=stub" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=test-openai-key" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CLI_AVAILABLE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true" >> $GITHUB_ENV
+
+      - name: Smoke fast tests (no parallel)
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+        run: |
+          poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+      - name: Verify test markers
+        run: |
+          poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+
+      - name: Lint and typing (quick)
+        run: |
+          poetry run flake8 src/ tests/
+          poetry run mypy src/devsynth
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            test_reports/
+            test_markers_report.json

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from git import Repo
 
 from devsynth.core.mvu.atomic_rewrite import cluster_commits_by_file
@@ -13,6 +14,7 @@ def _commit(repo: Repo, path: Path, content: str, message: str) -> None:
     repo.index.commit(message)
 
 
+@pytest.mark.fast
 def test_cluster_commits_by_file(tmp_path) -> None:
     repo = Repo.init(tmp_path, initial_branch="main")
     _commit(repo, tmp_path / "a.txt", "a", "a")
@@ -28,4 +30,3 @@ def test_cluster_commits_by_file(tmp_path) -> None:
     assert set(clusters) == {"a.txt", "b.txt"}
     assert [c.message.strip() for c in clusters["a.txt"]] == ["a", "ab"]
     assert [c.message.strip() for c in clusters["b.txt"]] == ["b", "ab"]
-

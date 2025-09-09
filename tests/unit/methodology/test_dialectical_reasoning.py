@@ -7,9 +7,8 @@ from devsynth.exceptions import ConsensusError
 from devsynth.methodology.base import Phase
 from devsynth.methodology.edrr import EDRRCoordinator, reasoning_loop
 
-pytestmark = pytest.mark.fast
 
-
+@pytest.mark.fast
 def test_reasoning_loop_records_results(mocker) -> None:
     """It stores results through the coordinator.
 
@@ -30,6 +29,7 @@ def test_reasoning_loop_records_results(mocker) -> None:
     coordinator.record_consensus_failure.assert_not_called()
 
 
+@pytest.mark.fast
 def test_reasoning_loop_logs_consensus_failure(mocker) -> None:
     """It delegates consensus failures to the coordinator.
 
@@ -53,6 +53,7 @@ def test_reasoning_loop_logs_consensus_failure(mocker) -> None:
     coordinator.record_consensus_failure.assert_called_once()
 
 
+@pytest.mark.fast
 def test_reasoning_loop_persists_phase_results(mocker) -> None:
     """It stores results using the memory manager.
 

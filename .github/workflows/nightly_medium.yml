@@ -1,0 +1,35 @@
+name: Nightly Medium Suite
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+concurrency:
+  group: nightly-medium-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  medium-suite:
+    runs-on: ubuntu-latest
+    env:
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      OPENAI_API_KEY: 'test-openai-key'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Install extras for nightly medium
+        run: |
+          poetry install --with dev --extras "tests retrieval chromadb api"
+      - name: Run all tests at medium speed
+        run: |
+          poetry run devsynth run-tests --target all-tests --speed=medium

@@ -16,16 +16,14 @@ from devsynth.domain.models.memory import MemoryVector
 
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
-    pytest.mark.requires_resource("memory"),
     pytest.mark.memory_intensive,
-    pytest.mark.medium,
 ]
 
 
 @pytest.fixture
 def mock_chromadb_client():
     client = MagicMock()
-    collection = MagicMock(spec=Collection)
+    collection = MagicMock()
     client.get_or_create_collection.return_value = collection
     return (client, collection)
 

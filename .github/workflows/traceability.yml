@@ -1,0 +1,44 @@
+name: Traceability and Audit
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+permissions:
+  contents: read
+
+jobs:
+  traceability:
+    name: Traceability Verification and Dialectical Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify requirements traceability (non-blocking)
+        run: |
+          python scripts/verify_requirements_traceability.py || echo "Traceability verification found issues (non-blocking in this workflow)."
+
+      - name: Run ensure_issue_links.py
+        run: |
+          python scripts/ensure_issue_links.py || echo "ensure_issue_links reported issues (non-blocking)."
+
+      - name: Generate dialectical_audit.log
+        id: audit
+        run: |
+          # Run audit but do not fail the workflow here; release jobs enforce gating
+          python scripts/dialectical_audit.py || echo "Dialectical audit raised questions (non-blocking in this workflow)."
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traceability-and-audit-artifacts
+          path: |
+            dialectical_audit.log
+            docs/requirements_traceability.md
+          if-no-files-found: warn

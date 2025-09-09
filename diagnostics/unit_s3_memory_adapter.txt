@@ -1,0 +1,15 @@
+...                                                                      [100%]
+========================= Test Categorization Summary ==========================
+Test Type Distribution:
+  Unit Tests: 3
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 3
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+============================= Top 10 Slowest Tests =============================
+1. tests/unit/application/memory/test_s3_memory_adapter.py::test_store_retrieve_delete_roundtrip: 0.26s
+2. tests/unit/application/memory/test_s3_memory_adapter.py::test_search_filters_by_type_and_metadata: 0.00s
+3. tests/unit/application/memory/test_s3_memory_adapter.py::test_transactions_are_unsupported: 0.00s

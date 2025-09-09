@@ -8,7 +8,7 @@ tags:
   - "milestones"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-15"
+last_reviewed: "2025-08-25"
 ---
 
 <div class="breadcrumbs">
@@ -27,7 +27,7 @@ This document serves as the canonical source for all roadmap information, consol
 
 ## Current Status
 
-As of August 15, 2025, the project is finalizing Phase 1 (Foundation Stabilization) with `0.1.0-alpha.1` as the current target. Achievements to date include:
+As of August 25, 2025, the project is finalizing Phase 1 (Foundation Stabilization) with `0.1.0-alpha.1` as the current target. Achievements to date include:
 
 - **Test Stabilization**:
   - Fixed pytest import issues in multiple test files

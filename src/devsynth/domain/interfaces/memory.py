@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Protocol
-from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from ...domain.models.wsde import WSDE
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
+
+from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from ...domain.models.wsde import WSDE
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
@@ -32,47 +33,47 @@ class MemoryStore(Protocol):
     def delete(self, item_id: str) -> bool:
         """Delete an item from memory."""
         ...
-        
+
     @abstractmethod
     def begin_transaction(self) -> str:
         """Begin a new transaction and return a transaction ID.
-        
+
         Transactions provide atomicity for a series of operations.
         All operations within a transaction either succeed or fail together.
         """
         ...
-        
+
     @abstractmethod
     def commit_transaction(self, transaction_id: str) -> bool:
         """Commit a transaction, making all its operations permanent.
-        
+
         Args:
             transaction_id: The ID of the transaction to commit
-            
+
         Returns:
             True if the transaction was committed successfully, False otherwise
         """
         ...
-        
+
     @abstractmethod
     def rollback_transaction(self, transaction_id: str) -> bool:
         """Rollback a transaction, undoing all its operations.
-        
+
         Args:
             transaction_id: The ID of the transaction to rollback
-            
+
         Returns:
             True if the transaction was rolled back successfully, False otherwise
         """
         ...
-        
+
     @abstractmethod
     def is_transaction_active(self, transaction_id: str) -> bool:
         """Check if a transaction is active.
-        
+
         Args:
             transaction_id: The ID of the transaction to check
-            
+
         Returns:
             True if the transaction is active, False otherwise
         """

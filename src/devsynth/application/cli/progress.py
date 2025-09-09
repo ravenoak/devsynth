@@ -49,7 +49,12 @@ class ProgressManager:
         """
         indicator = self.indicators.get(task_id)
         if indicator is not None:
-            indicator.update(advance=advance, description=description, status=status)
+            kwargs = {"advance": advance}
+            if description is not None:
+                kwargs["description"] = description
+            if status is not None:
+                kwargs["status"] = status
+            indicator.update(**kwargs)
 
     def complete_progress(self, task_id: str) -> None:
         """Complete and remove the indicator for ``task_id``."""

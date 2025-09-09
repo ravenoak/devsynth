@@ -1,0 +1,74 @@
+name: Coverage Report
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Generate test coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Cache pip wheels
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache Poetry virtualenvs
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install test baseline (dev + tests extras)
+        run: |
+          poetry env use 3.12
+          poetry install --with dev --extras "tests"
+
+      - name: Run tests with coverage
+        env:
+          DEVSYNTH_PROVIDER: stub
+          DEVSYNTH_OFFLINE: "true"
+          DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: "false"
+          DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE: "true"
+          DEVSYNTH_RESOURCE_CLI_AVAILABLE: "true"
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          poetry run pytest -q --maxfail=1 --cov=src/devsynth --cov-report=xml --cov-report=term --cov-report=html --cov-fail-under=80
+
+      - name: Coverage summary
+        run: |
+          poetry run python scripts/coverage_summary.py coverage.xml 15 || true
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            htmlcov/
+          if-no-files-found: warn

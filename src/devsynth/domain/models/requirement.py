@@ -1,7 +1,7 @@
-
 """
 Domain models for requirements management.
 """
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -11,6 +11,7 @@ from uuid import UUID, uuid4
 
 class RequirementStatus(Enum):
     """Status of a requirement."""
+
     DRAFT = "draft"
     PROPOSED = "proposed"
     APPROVED = "approved"
@@ -21,6 +22,7 @@ class RequirementStatus(Enum):
 
 class RequirementPriority(Enum):
     """Priority of a requirement."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -29,6 +31,7 @@ class RequirementPriority(Enum):
 
 class RequirementType(Enum):
     """Type of a requirement."""
+
     FUNCTIONAL = "functional"
     NON_FUNCTIONAL = "non_functional"
     CONSTRAINT = "constraint"
@@ -42,6 +45,7 @@ class Requirement:
     """
     Domain model representing a requirement.
     """
+
     id: UUID = field(default_factory=uuid4)
     title: str = ""
     description: str = ""
@@ -58,7 +62,7 @@ class Requirement:
     def update(self, **kwargs) -> None:
         """
         Update requirement attributes.
-        
+
         Args:
             **kwargs: Attributes to update.
         """
@@ -70,6 +74,7 @@ class Requirement:
 
 class ChangeType(Enum):
     """Type of change to a requirement."""
+
     ADD = "add"
     REMOVE = "remove"
     MODIFY = "modify"
@@ -80,6 +85,7 @@ class RequirementChange:
     """
     Domain model representing a change to a requirement.
     """
+
     id: UUID = field(default_factory=uuid4)
     requirement_id: Optional[UUID] = None
     change_type: ChangeType = ChangeType.MODIFY
@@ -99,6 +105,7 @@ class ImpactAssessment:
     """
     Domain model representing an impact assessment for a requirement change.
     """
+
     id: UUID = field(default_factory=uuid4)
     change_id: UUID = None
     affected_requirements: List[UUID] = field(default_factory=list)
@@ -116,6 +123,7 @@ class DialecticalReasoning:
     """
     Domain model representing a dialectical reasoning session for a requirement change.
     """
+
     id: UUID = field(default_factory=uuid4)
     change_id: UUID = None
     thesis: str = ""
@@ -134,6 +142,7 @@ class ChatMessage:
     """
     Domain model representing a chat message in a dialectical reasoning session.
     """
+
     id: UUID = field(default_factory=uuid4)
     session_id: UUID = None
     sender: str = ""
@@ -147,6 +156,7 @@ class ChatSession:
     """
     Domain model representing a chat session for dialectical reasoning.
     """
+
     id: UUID = field(default_factory=uuid4)
     user_id: str = ""
     reasoning_id: Optional[UUID] = None
@@ -159,19 +169,15 @@ class ChatSession:
     def add_message(self, sender: str, content: str) -> ChatMessage:
         """
         Add a message to the chat session.
-        
+
         Args:
             sender: The sender of the message.
             content: The content of the message.
-            
+
         Returns:
             The created chat message.
         """
-        message = ChatMessage(
-            session_id=self.id,
-            sender=sender,
-            content=content
-        )
+        message = ChatMessage(session_id=self.id, sender=sender, content=content)
         self.messages.append(message)
         self.updated_at = datetime.now()
         return message

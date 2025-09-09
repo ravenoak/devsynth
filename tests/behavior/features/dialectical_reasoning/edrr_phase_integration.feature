@@ -8,7 +8,7 @@ Feature: Reasoning loop integrates with EDRR phases
     Given a dialectical reasoner with memory
     And a requirement change
     When the change is evaluated
-    Then the reasoning result should be stored in memory with phase "REFINE"
+    Then the reasoning result should be stored in memory with phase "EXPAND"
 
   @fast
   Scenario: Consensus failure is recorded

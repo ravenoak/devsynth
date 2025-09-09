@@ -1,0 +1,111 @@
+name: Post-Release Minimal Verify
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+concurrency:
+  group: post-release-min-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  minimal-verify:
+    name: Minimal evidence pack verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Hermetic defaults (providers off by default)
+      DEVSYNTH_PROVIDER: 'stub'
+      DEVSYNTH_OFFLINE: 'true'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      OPENAI_API_KEY: 'test-openai-key'
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: ''
+      DEVSYNTH_TEST_TIMEOUT_SECONDS: '30'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install dependencies (dev + targeted extras)
+        run: |
+          poetry install --with dev --extras "tests retrieval chromadb api"
+
+      - name: Pytest collect-only (dry)
+        run: |
+          poetry run pytest --collect-only -q | tee test_reports/collect_only_output.txt
+
+      - name: Smoke fast lane (serial)
+        run: |
+          poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+      - name: Verify test markers (changed-only)
+        run: |
+          poetry run python scripts/verify_test_markers.py --changed
+
+      - name: Upload minimal artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minimal-evidence
+          path: |
+            test_reports/**
+            test_markers_report.json
+            diagnostics/**
+          if-no-files-found: warn
+
+  optional-provider-subsets:
+    name: Optional provider subsets (manual)
+    runs-on: ubuntu-latest
+    needs: minimal-verify
+    if: ${{ inputs.run_lmstudio_subset == 'true' || inputs.run_openai_subset == 'true' }}
+    timeout-minutes: 30
+    env:
+      DEVSYNTH_OFFLINE: 'false'
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'placeholder-key' }}
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: ${{ inputs.run_lmstudio_subset }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+      - uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Install provider extras (opt-in)
+        run: |
+          if [ "${{ inputs.run_lmstudio_subset }}" = "true" ]; then
+            poetry install --with dev --extras "memory llm";
+          else
+            poetry install --with dev --extras "llm";
+          fi
+      - name: Run LM Studio subset (fast, non-slow)
+        if: ${{ inputs.run_lmstudio_subset == 'true' }}
+        run: |
+          poetry run devsynth run-tests --speed=fast -m "requires_resource('lmstudio') and not slow"
+      - name: Run OpenAI subset (fast, non-slow)
+        if: ${{ inputs.run_openai_subset == 'true' }}
+        env:
+          DEVSYNTH_PROVIDER: openai
+        run: |
+          poetry run devsynth run-tests --speed=fast -m "requires_resource('openai') and not slow"
+      - name: Upload provider subset artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provider-subset-artifacts
+          path: |
+            test_reports/**
+          if-no-files-found: warn

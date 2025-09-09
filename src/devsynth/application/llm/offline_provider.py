@@ -31,10 +31,8 @@ def _load_transformer_deps() -> None:
 
     try:  # pragma: no cover - optional heavy deps
         import torch as _torch
-        from transformers import (
-            AutoModelForCausalLM as _AutoModelForCausalLM,
-            AutoTokenizer as _AutoTokenizer,
-        )
+        from transformers import AutoModelForCausalLM as _AutoModelForCausalLM
+        from transformers import AutoTokenizer as _AutoTokenizer
 
         torch = _torch  # type: ignore
         AutoModelForCausalLM = _AutoModelForCausalLM  # type: ignore
@@ -51,6 +49,11 @@ class OfflineProvider(LLMProvider):
     def __init__(self, config: Dict[str, Any] | None = None) -> None:
         self.config = config or {}
         provider_cfg = self.config.get("offline_provider", {})
+        # Accept both dict and simple string forms. If a string is provided,
+        # normalize to a mapping to maintain backward compatibility with
+        # earlier configurations/tests that used a simple provider name.
+        if isinstance(provider_cfg, str):
+            provider_cfg = {"name": provider_cfg}
         self.model_path = provider_cfg.get("model_path") or self.config.get(
             "model_path"
         )

@@ -1,0 +1,51 @@
+name: Lint (black/isort/flake8)
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Style and Lint Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry/virtualenvs
+            .venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}-lint
+
+      - name: Install dependencies (dev only)
+        run: |
+          poetry env use 3.12
+          poetry install --with dev --no-interaction --no-root
+
+      - name: Run black --check
+        run: |
+          poetry run black --check .
+
+      - name: Run isort --check-only
+        run: |
+          poetry run isort --check-only .
+
+      - name: Run flake8
+        run: |
+          poetry run flake8 src/ tests/

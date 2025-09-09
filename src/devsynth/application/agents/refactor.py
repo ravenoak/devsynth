@@ -1,16 +1,17 @@
-
 """
 Refactor agent for the DevSynth system.
 """
 
 from typing import Any, Dict, List
-from .base import BaseAgent
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from .base import BaseAgent
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
+
 
 class RefactorAgent(BaseAgent):
     """Agent responsible for improving existing code."""
@@ -63,8 +64,8 @@ class RefactorAgent(BaseAgent):
                 metadata={
                     "agent": self.name,
                     "role": self.current_role,
-                    "type": "refactored_code"
-                }
+                    "type": "refactored_code",
+                },
             )
         except Exception as e:
             logger.error(f"Error creating code WSDE: {str(e)}")
@@ -77,8 +78,8 @@ class RefactorAgent(BaseAgent):
                 metadata={
                     "agent": self.name,
                     "role": self.current_role,
-                    "type": "refactor_explanation"
-                }
+                    "type": "refactor_explanation",
+                },
             )
         except Exception as e:
             logger.error(f"Error creating explanation WSDE: {str(e)}")
@@ -89,7 +90,7 @@ class RefactorAgent(BaseAgent):
             "code_wsde": code_wsde,
             "explanation_wsde": explanation_wsde,
             "agent": self.name,
-            "role": self.current_role
+            "role": self.current_role,
         }
 
     def get_capabilities(self) -> List[str]:
@@ -102,6 +103,6 @@ class RefactorAgent(BaseAgent):
                 "improve_maintainability",
                 "optimize_performance",
                 "enhance_security",
-                "improve_testability"
+                "improve_testability",
             ]
         return capabilities

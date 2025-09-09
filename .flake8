@@ -1,0 +1,10 @@
+[flake8]
+max-line-length = 88
+extend-ignore = E203,W503
+per-file-ignores =
+    tests/behavior/*.py: E501,F401,E402
+    tests/behavior/steps/*.py: E501,F401,E402,F811
+    tests/behavior/test_cli_ux_enhancements.py: F401
+    src/devsynth/adapters/agents/agent_adapter.py: E402,F401,E501
+    src/devsynth/adapters/chromadb_memory_store.py: E501,F841
+    src/devsynth/adapters/cli/typer_adapter.py: E501,F401

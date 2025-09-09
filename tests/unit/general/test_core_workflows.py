@@ -1,9 +1,12 @@
 import json
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from devsynth.core import workflows
 
 
+@pytest.mark.fast
 def test_filter_args_removes_none_values_succeeds():
     """Test that filter args removes none values succeeds.
 
@@ -54,6 +57,7 @@ def test_filter_args_removes_none_values_succeeds():
         ),
     ],
 )
+@pytest.mark.fast
 def test_wrappers_call_execute_command_succeeds(func, command, kwargs, expected):
     """Test that wrappers call execute command succeeds.
 
@@ -65,6 +69,7 @@ def test_wrappers_call_execute_command_succeeds(func, command, kwargs, expected)
         assert result == {"success": True}
 
 
+@pytest.mark.fast
 def test_gather_requirements_creates_file_succeeds(tmp_path):
     """Test that gather requirements creates file succeeds.
 
@@ -94,6 +99,7 @@ def test_gather_requirements_creates_file_succeeds(tmp_path):
     assert data["priority"] == "high"
 
 
+@pytest.mark.fast
 def test_workflow_manager_singleton_succeeds():
     """``workflow_manager`` should reference the application singleton."""
     from devsynth.application.orchestration.workflow import (

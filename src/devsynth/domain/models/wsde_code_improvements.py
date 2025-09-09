@@ -1,7 +1,9 @@
 """Utility functions for improving code and documentation in WSDE."""
-from typing import Any
-from devsynth.logging_setup import DevSynthLogger
+
 import re
+from typing import Any
+
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
@@ -36,9 +38,7 @@ def _improve_error_handling(self: Any, code: str) -> str:
             if match:
                 func_body = match.group(1)
                 indented_body = "\n    try:" + func_body.replace("\n", "\n    ")
-                exception_handler = (
-                    "\n    except Exception as e:\n        logger.error(f'{func_name} error: {e}')\n        return None"
-                )
+                exception_handler = "\n    except Exception as e:\n        logger.error(f'{func_name} error: {e}')\n        return None"
                 new_body = indented_body + exception_handler
                 code = code.replace(func_body, new_body)
     return code
@@ -60,7 +60,9 @@ def _improve_input_validation(self: Any, code: str) -> str:
                 validation_code = "\n    # Validate inputs\n"
                 for param in param_names:
                     if param != "self":
-                        validation_code += f"    if {param} is None:\n        return None\n"
+                        validation_code += (
+                            f"    if {param} is None:\n        return None\n"
+                        )
                 code = code.replace(
                     f"def {func_name}({match.group(1)}):",
                     f"def {func_name}({match.group(1)}):{validation_code}",
@@ -126,9 +128,7 @@ def _improve_readability(self: Any, code: str) -> str:
                 has_docstring = True
                 break
         if not has_docstring:
-            docstring = (
-                f"\n    \"\"\"\n    {func_name.replace('_', ' ').title()}.\n    \"\"\"\n"
-            )
+            docstring = f"\n    \"\"\"\n    {func_name.replace('_', ' ').title()}.\n    \"\"\"\n"
             code = code.replace(
                 f"def {func_name}({params}):",
                 f"def {func_name}({params}):{docstring}",

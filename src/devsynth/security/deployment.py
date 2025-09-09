@@ -16,9 +16,10 @@ from .validation import parse_bool_env
 def require_non_root_user() -> None:
     """Raise ``RuntimeError`` if running as root when non-root is required."""
 
-    if parse_bool_env("DEVSYNTH_REQUIRE_NON_ROOT", False) and getattr(
-        os, "geteuid", lambda: 1
-    )() == 0:
+    if (
+        parse_bool_env("DEVSYNTH_REQUIRE_NON_ROOT", False)
+        and getattr(os, "geteuid", lambda: 1)() == 0
+    ):
         raise RuntimeError("Running as root is not permitted")  # pragma: no cover
 
 
@@ -28,8 +29,7 @@ def check_required_env_vars(names: Iterable[str]) -> None:
     missing = [name for name in names if not os.environ.get(name)]  # pragma: no cover
     if missing:  # pragma: no cover
         raise RuntimeError(  # pragma: no cover
-            "Missing required environment variables: "
-            + ", ".join(sorted(missing))
+            "Missing required environment variables: " + ", ".join(sorted(missing))
         )
 
 

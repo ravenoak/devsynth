@@ -25,6 +25,7 @@ class DummyBridge(UXBridge):
         pass
 
 
+@pytest.mark.fast
 def test_wizard_cmd_back_navigation_succeeds(tmp_path, monkeypatch):
     """Users should be able to revise answers using 'back'."""
     monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
@@ -47,6 +48,7 @@ def test_wizard_cmd_back_navigation_succeeds(tmp_path, monkeypatch):
     assert data["priority"] == "medium"
 
 
+@pytest.mark.fast
 def test_gather_requirements_cmd_yaml_succeeds(tmp_path, monkeypatch):
     """gather_requirements_cmd should write YAML output."""
 

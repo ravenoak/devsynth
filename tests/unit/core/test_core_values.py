@@ -18,9 +18,7 @@ find_value_conflicts = values_mod.find_value_conflicts
 check_report_for_value_conflicts = values_mod.check_report_for_value_conflicts
 
 
-pytestmark = pytest.mark.medium
-
-
+@pytest.mark.medium
 def test_load_core_values_succeeds(tmp_path):
     """Test loading core values from YAML."""
     values_dir = tmp_path / ".devsynth"
@@ -30,6 +28,7 @@ def test_load_core_values_succeeds(tmp_path):
     assert values.statements == ["integrity", "transparency"]
 
 
+@pytest.mark.medium
 def test_find_value_conflicts_succeeds():
     """Test conflict detection within text."""
     values = CoreValues(["integrity", "transparency"])
@@ -37,6 +36,7 @@ def test_find_value_conflicts_succeeds():
     assert find_value_conflicts(text, values) == ["integrity"]
 
 
+@pytest.mark.medium
 def test_check_report_for_value_conflicts_succeeds(tmp_path):
     """Test conflict detection within a report structure."""
     values_dir = tmp_path / ".devsynth"

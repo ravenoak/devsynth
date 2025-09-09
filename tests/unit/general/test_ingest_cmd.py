@@ -7,15 +7,15 @@ the 'devsynth ingest' CLI command for ingesting a project into DevSynth.
 
 import os
 import sys
+
+# Stub optional dependencies to allow direct import of ingest_cmd without
+# requiring the full runtime stack.
+import types
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
-
-# Stub optional dependencies to allow direct import of ingest_cmd without
-# requiring the full runtime stack.
-import types
 
 sys.modules.setdefault("langgraph", types.ModuleType("langgraph"))
 sys.modules.setdefault("langgraph.checkpoint", types.ModuleType("langgraph.checkpoint"))
@@ -27,9 +27,11 @@ sys.modules["langgraph.checkpoint"].base = _checkpoint_base
 _graph_module = types.ModuleType("langgraph.graph")
 setattr(_graph_module, "END", object())
 
+
 class _DummyStateGraph:  # pragma: no cover - simple placeholder
     def __init__(self, *args, **kwargs):
         pass
+
 
 _graph_module.StateGraph = _DummyStateGraph
 sys.modules["langgraph.graph"] = _graph_module
@@ -94,6 +96,7 @@ class TestIngestCmd:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_ingest_cmd_with_defaults_succeeds(
         self, mock_bridge, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
@@ -105,6 +108,7 @@ class TestIngestCmd:
         mock_load_manifest.assert_not_called()
         mock_ingestion.return_value.run_ingestion.assert_called_once()
 
+    @pytest.mark.fast
     def test_ingest_cmd_with_custom_manifest_succeeds(
         self, mock_bridge, mock_validate_manifest, mock_load_manifest
     ):
@@ -118,6 +122,7 @@ class TestIngestCmd:
         assert str(args[0]) == custom_path
         mock_load_manifest.assert_not_called()
 
+    @pytest.mark.fast
     def test_ingest_cmd_dry_run_succeeds(
         self, mock_bridge, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
@@ -131,6 +136,7 @@ class TestIngestCmd:
             dry_run=True, verbose=False
         )
 
+    @pytest.mark.fast
     def test_ingest_cmd_validate_only_is_valid(
         self, mock_bridge, mock_validate_manifest, mock_load_manifest
     ):
@@ -141,6 +147,7 @@ class TestIngestCmd:
         mock_validate_manifest.assert_called_once()
         mock_load_manifest.assert_not_called()
 
+    @pytest.mark.fast
     def test_ingest_cmd_verbose_succeeds(
         self, mock_bridge, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
@@ -158,6 +165,7 @@ class TestIngestCmd:
             dry_run=False, verbose=True
         )
 
+    @pytest.mark.fast
     def test_ingest_cmd_forwards_auto_phase_flag(
         self,
         mock_bridge,
@@ -172,6 +180,7 @@ class TestIngestCmd:
         _, kwargs = mock_ingestion.call_args
         assert kwargs.get("auto_phase_transitions") is False
 
+    @pytest.mark.fast
     def test_ingest_cmd_non_interactive_flag_sets_env(
         self,
         mock_bridge,
@@ -185,6 +194,7 @@ class TestIngestCmd:
             ingest_cmd(non_interactive=True, bridge=mock_bridge)
             assert os.environ.get("DEVSYNTH_NONINTERACTIVE") == "1"
 
+    @pytest.mark.fast
     def test_ingest_cmd_env_var_enables_non_interactive(
         self,
         mock_bridge,
@@ -202,6 +212,7 @@ class TestIngestCmd:
             ingest_cmd(bridge=mock_bridge)
             assert os.environ.get("DEVSYNTH_NONINTERACTIVE") == "1"
 
+    @pytest.mark.fast
     def test_ingest_cmd_manifest_error_raises_error(
         self, mock_bridge, mock_validate_manifest
     ):
@@ -216,6 +227,7 @@ class TestIngestCmd:
             "[red]Manifest Error:[/red] Test manifest error"
         )
 
+    @pytest.mark.fast
     def test_ingest_cmd_ingestion_error_raises_error(
         self, mock_bridge, mock_validate_manifest, mock_load_manifest, mock_ingestion
     ):
@@ -242,6 +254,7 @@ class TestValidateManifest:
 
     @patch("devsynth.application.cli.ingest_cmd.sys")
     @patch("devsynth.application.cli.ingest_cmd.Path")
+    @pytest.mark.fast
     def test_validate_manifest_success_is_valid(self, mock_path, mock_sys, mock_bridge):
         """Test validate_manifest with a valid manifest.
 
@@ -277,6 +290,7 @@ class TestValidateManifest:
                 "[green]Manifest validation successful.[/green]"
             )
 
+    @pytest.mark.fast
     def test_validate_manifest_file_not_found_is_valid(self):
         """Test validate_manifest with a non-existent manifest file.
 
@@ -289,6 +303,7 @@ class TestValidateManifest:
 
     @patch("devsynth.application.cli.ingest_cmd.sys")
     @patch("devsynth.application.cli.ingest_cmd.Path")
+    @pytest.mark.fast
     def test_validate_manifest_schema_not_found_is_valid(self, mock_path, mock_sys):
         """Test validate_manifest with a non-existent schema file.
 
@@ -316,6 +331,7 @@ class TestValidateManifest:
 
     @patch("devsynth.application.cli.ingest_cmd.sys")
     @patch("devsynth.application.cli.ingest_cmd.Path")
+    @pytest.mark.fast
     def test_validate_manifest_validation_failed_fails(self, mock_path, mock_sys):
         """Test validate_manifest with a validation failure.
 
@@ -352,6 +368,7 @@ class TestLoadManifest:
 
     @patch("builtins.open")
     @patch("yaml.safe_load")
+    @pytest.mark.fast
     def test_load_manifest_success_is_valid(self, mock_yaml_load, mock_open):
         """Test load_manifest with a valid manifest.
 
@@ -364,6 +381,7 @@ class TestLoadManifest:
 
     @patch("builtins.open")
     @patch("yaml.safe_load")
+    @pytest.mark.fast
     def test_load_manifest_yaml_error_raises_error(self, mock_yaml_load, mock_open):
         """Test load_manifest with a YAML parsing error.
 
@@ -374,6 +392,7 @@ class TestLoadManifest:
         assert "Failed to parse manifest YAML" in str(excinfo.value)
 
     @patch("builtins.open")
+    @pytest.mark.fast
     def test_load_manifest_file_error_raises_error(self, mock_open):
         """Test load_manifest with a file opening error.
 
@@ -389,6 +408,7 @@ class TestPhases:
 
     ReqID: N/A"""
 
+    @pytest.mark.fast
     def test_expand_phase_has_expected(self, mock_bridge, mock_memory_manager):
         """Test expand_phase function.
 
@@ -403,6 +423,7 @@ class TestPhases:
         assert mock_bridge.print.call_count >= 3
         mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
+    @pytest.mark.fast
     def test_differentiate_phase_has_expected(self, mock_bridge, mock_memory_manager):
         """Test differentiate_phase function.
 
@@ -420,6 +441,7 @@ class TestPhases:
         assert mock_bridge.print.call_count >= 3
         mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
+    @pytest.mark.fast
     def test_refine_phase_has_expected(self, mock_bridge, mock_memory_manager):
         """Test refine_phase function.
 
@@ -437,6 +459,7 @@ class TestPhases:
         assert mock_bridge.print.call_count >= 2
         mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
+    @pytest.mark.fast
     def test_retrospect_phase_has_expected(self, mock_bridge, mock_memory_manager):
         """Test retrospect_phase function.
 

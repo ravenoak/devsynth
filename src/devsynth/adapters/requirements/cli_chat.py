@@ -5,10 +5,10 @@ CLI chat adapter for requirements management.
 from typing import List, Optional
 from uuid import UUID
 
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.domain.models.requirement import ChatMessage, ChatSession
-from devsynth.ports.requirement_port import ChatPort, DialecticalReasonerPort
 from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.ports.requirement_port import ChatPort, DialecticalReasonerPort
 
 logger = DevSynthLogger(__name__)
 

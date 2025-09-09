@@ -1,8 +1,8 @@
 import click
+import pytest
 import typer
 import typer.main
 from typer.testing import CliRunner
-import pytest
 
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.interface.ux_bridge import UXBridge
@@ -17,13 +17,18 @@ def patch_typer_types(monkeypatch):
         if annotation in {UXBridge, typer.models.Context}:
             return click.STRING
         origin = getattr(annotation, "__origin__", None)
-        if origin in {UXBridge, typer.models.Context} or annotation is dict or origin is dict:
+        if (
+            origin in {UXBridge, typer.models.Context}
+            or annotation is dict
+            or origin is dict
+        ):
             return click.STRING
         return orig(annotation=annotation, parameter_info=parameter_info)
 
     monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
 
 
+@pytest.mark.fast
 def test_mvu_lint_cli_success(monkeypatch):
     """CLI should report success when no errors are returned."""
     runner = CliRunner()
@@ -37,6 +42,7 @@ def test_mvu_lint_cli_success(monkeypatch):
     assert "All commit messages valid" in result.output
 
 
+@pytest.mark.fast
 def test_mvu_lint_cli_failure(monkeypatch):
     """CLI should exit with error when linter reports problems."""
     runner = CliRunner()

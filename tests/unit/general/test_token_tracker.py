@@ -1,10 +1,13 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from devsynth.application.utils.token_tracker import (
-    TokenTracker,
-    TokenLimitExceededError,
     _TEST_MODE,
     _TEST_TOKEN_COUNTS,
+    TokenLimitExceededError,
+    TokenTracker,
 )
 
 
@@ -37,6 +40,7 @@ class TestTokenTracker(unittest.TestCase):
         global _TEST_MODE
         _TEST_MODE = False
 
+    @pytest.mark.fast
     def test_count_tokens_succeeds(self):
         """Test token counting.
 
@@ -45,6 +49,7 @@ class TestTokenTracker(unittest.TestCase):
         count = self.tracker.count_tokens(text)
         self.assertEqual(count, 4)
 
+    @pytest.mark.fast
     def test_count_message_tokens_succeeds(self):
         """Test token counting for a message.
 
@@ -53,6 +58,7 @@ class TestTokenTracker(unittest.TestCase):
         count = self.tracker.count_message_tokens(message)
         self.assertEqual(count, 9)
 
+    @pytest.mark.fast
     def test_count_conversation_tokens_succeeds(self):
         """Test token counting for a conversation.
 
@@ -66,6 +72,7 @@ class TestTokenTracker(unittest.TestCase):
         # Approximate token count is 26 when tiktoken data is unavailable
         self.assertEqual(count, 26)
 
+    @pytest.mark.fast
     def test_prune_conversation_succeeds(self):
         """Test conversation pruning.
 
@@ -83,6 +90,7 @@ class TestTokenTracker(unittest.TestCase):
         self.assertEqual(pruned[1]["content"], "Message 2")
         self.assertEqual(pruned[2]["content"], "Response 2")
 
+    @pytest.mark.fast
     def test_ensure_token_limit_succeeds(self):
         """Test token limit enforcement.
 
@@ -94,6 +102,7 @@ class TestTokenTracker(unittest.TestCase):
         except TokenLimitExceededError:
             self.fail("ensure_token_limit raised TokenLimitExceededError unexpectedly!")
 
+    @pytest.mark.fast
     def test_fallback_tokenizer_succeeds(self):
         """Test the fallback tokenizer when tiktoken is not available.
 

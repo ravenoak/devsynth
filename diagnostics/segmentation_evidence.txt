@@ -1,0 +1,2 @@
+Date: 2025-09-03
+Ran collect-only to validate environment and baseline before segmentation runs. See diagnostics/collect_segmentation_baseline.txt

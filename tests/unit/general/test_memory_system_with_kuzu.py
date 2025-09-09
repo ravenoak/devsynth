@@ -12,7 +12,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 pytest.importorskip("kuzu")
 
 # Memory system tests involve kuzu but remain reasonably quick
-pytestmark = [pytest.mark.requires_resource("kuzu"), pytest.mark.medium]
+pytestmark = [pytest.mark.requires_resource("kuzu")]
 
 
 class TestMemorySystemWithKuzu:
@@ -42,6 +42,7 @@ class TestMemorySystemWithKuzu:
         }
         return MemorySystemAdapter(config=config)
 
+    @pytest.mark.medium
     def test_initialization_with_kuzu_succeeds(self, temp_dir):
         """Test that initialization with kuzu succeeds.
 
@@ -57,6 +58,7 @@ class TestMemorySystemWithKuzu:
         assert isinstance(memory_system.vector_store, KuzuAdapter)
         assert memory_system.has_vector_store() is True
 
+    @pytest.mark.medium
     def test_memory_and_vector_store_integration_succeeds(self, memory_system):
         """Test that memory and vector store integration succeeds.
 

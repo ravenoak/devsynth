@@ -8,12 +8,13 @@ creating a page for each module in the project.
 import os
 from pathlib import Path
 from typing import Optional
+
 import yaml
 from rich.console import Console
 from rich.panel import Panel
+
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
-
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)

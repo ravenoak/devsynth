@@ -13,7 +13,7 @@ last_reviewed: "2025-08-16"
 
 # DevSynth Release Roadmap
 
-This roadmap outlines planned milestones and targeted features following the `0.1.0-alpha.1` release.
+This roadmap outlines planned milestones and targeted features following the `0.1.0-alpha.1` release. The canonical roadmap source is [CONSOLIDATED_ROADMAP.md](../roadmap/CONSOLIDATED_ROADMAP.md). This page is maintained as a thin wrapper for release-focused notes and defers ownership to the consolidated roadmap.
 
 ## Upcoming Milestones
 

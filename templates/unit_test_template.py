@@ -12,8 +12,11 @@ Usage:
 5. Include both positive and negative test cases
 6. Ensure tests are hermetic and deterministic
 """
+
+from typing import Any, List, Optional
+
 import pytest
-from typing import List, Any, Optional
+
 # Import the module(s) to be tested
 # from devsynth.module import Class, function
 
@@ -141,11 +144,14 @@ def test_with_fixture(example_fixture):
 
 
 # Example of a parameterized test
-@pytest.mark.parametrize("input_value,expected_output", [
-    (1, 2),
-    (2, 4),
-    (3, 6),
-])
+@pytest.mark.parametrize(
+    "input_value,expected_output",
+    [
+        (1, 2),
+        (2, 4),
+        (3, 6),
+    ],
+)
 def test_parameterized(input_value, expected_output):
     """Parameterized test example.
 

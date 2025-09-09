@@ -1,16 +1,17 @@
-
 """
 Planner agent for the DevSynth system.
 """
 
 from typing import Any, Dict, List
-from .base import BaseAgent
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from .base import BaseAgent
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
+
 
 class PlannerAgent(BaseAgent):
     """Agent responsible for creating development plans."""
@@ -53,8 +54,8 @@ class PlannerAgent(BaseAgent):
                 metadata={
                     "agent": self.name,
                     "role": self.current_role,
-                    "type": "development_plan"
-                }
+                    "type": "development_plan",
+                },
             )
         except Exception as e:
             logger.error(f"Error creating WSDE: {str(e)}")
@@ -63,7 +64,7 @@ class PlannerAgent(BaseAgent):
             "plan": plan,
             "wsde": plan_wsde,
             "agent": self.name,
-            "role": self.current_role
+            "role": self.current_role,
         }
 
     def get_capabilities(self) -> List[str]:
@@ -75,6 +76,6 @@ class PlannerAgent(BaseAgent):
                 "design_architecture",
                 "define_implementation_phases",
                 "create_testing_strategy",
-                "create_deployment_plan"
+                "create_deployment_plan",
             ]
         return capabilities

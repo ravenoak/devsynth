@@ -5,9 +5,8 @@ import pytest
 from devsynth.application.cli.commands.mvu_exec_cmd import mvu_exec_cmd
 from devsynth.interface.cli import CLIUXBridge
 
-pytestmark = pytest.mark.fast
 
-
+@pytest.mark.fast
 def test_mvu_exec_cmd_combines_streams(monkeypatch):
     """Stdout and stderr should be combined and returned."""
 
@@ -29,6 +28,7 @@ def test_mvu_exec_cmd_combines_streams(monkeypatch):
     assert "out" in printed[0] and "err" in printed[0]
 
 
+@pytest.mark.fast
 def test_mvu_exec_cmd_returns_exit_code(monkeypatch):
     """Return code should propagate from the underlying command."""
 

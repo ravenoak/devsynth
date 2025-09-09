@@ -5,6 +5,6 @@ This module re-exports the DocumentationIngestionManager class from the ingestio
 for backward compatibility.
 """
 
-from .ingestion import DocumentationIngestionManager, DocumentationIngestionError
+from .ingestion import DocumentationIngestionError, DocumentationIngestionManager
 
-__all__ = ['DocumentationIngestionManager', 'DocumentationIngestionError']
+__all__ = ["DocumentationIngestionManager", "DocumentationIngestionError"]

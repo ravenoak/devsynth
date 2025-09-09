@@ -8,8 +8,6 @@ from typer.testing import CliRunner
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.interface.ux_bridge import UXBridge
 
-pytestmark = pytest.mark.fast
-
 
 @pytest.fixture(autouse=True)
 def patch_typer_types(monkeypatch):
@@ -32,6 +30,7 @@ def patch_typer_types(monkeypatch):
     monkeypatch.setattr(typer.main, "get_click_type", patched_get_click_type)
 
 
+@pytest.mark.fast
 def test_mvu_exec_cli_success(monkeypatch):
     """CLI should output combined streams on success."""
 
@@ -51,6 +50,7 @@ def test_mvu_exec_cli_success(monkeypatch):
     assert "hi" in result.output
 
 
+@pytest.mark.fast
 def test_mvu_exec_cli_failure(monkeypatch):
     """CLI should propagate non-zero exit codes."""
 

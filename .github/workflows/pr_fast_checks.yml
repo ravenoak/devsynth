@@ -1,0 +1,74 @@
+name: PR Fast Checks
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+concurrency:
+  group: pr-fast-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  unit-fast:
+    name: Fast unit tests (no-parallel)
+    runs-on: ubuntu-latest
+    env:
+      DEVSYNTH_PROVIDER: stub
+      DEVSYNTH_OFFLINE: 'true'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE: 'true'
+      DEVSYNTH_RESOURCE_CLI_AVAILABLE: 'true'
+      OPENAI_API_KEY: 'test-openai-key'
+      LM_STUDIO_ENDPOINT: 'http://127.0.0.1:1234'
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Install dev (tests extras)
+        run: |
+          poetry install --with dev --extras "tests"
+      - name: Collect-only (sanity)
+        run: |
+          poetry run pytest --collect-only -q
+      - name: Run fast unit tests
+        run: |
+          poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel
+
+  lint-typing-security:
+    name: Lint, typing, and security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry and tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry bandit safety
+          poetry install --with dev --no-root
+      - name: Black/Isort/Flake8
+        run: |
+          poetry run black --check .
+          poetry run isort --check-only .
+          poetry run flake8 src/ tests/
+      - name: Mypy (strict)
+        run: |
+          poetry run mypy src/devsynth
+      - name: Security (bandit/safety)
+        run: |
+          poetry run bandit -r src/devsynth -x tests
+          poetry run safety check --full-report

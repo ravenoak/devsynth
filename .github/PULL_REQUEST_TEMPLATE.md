@@ -1,110 +1,62 @@
 # Pull Request
 
-## Description
+Thank you for contributing to DevSynth! Please fill out the checklist below to help us maintain determinism, clarity, and safety per .junie/guidelines.md and docs/plan.md.
 
-<!-- Provide a brief description of the changes in this PR -->
+## Summary
+- What does this change do in one or two sentences?
+- Linked issues or tasks: e.g., fixes #123; addresses docs/tasks.md items: [ ]  …
 
-## MVUU JSON
+## Scope of Change
+- [ ] Code
+- [ ] Tests
+- [ ] Docs
+- [ ] CI/Tooling
+- [ ] Other: ____________
 
-```json
-{
-  "utility_statement": "",
-  "affected_files": [],
-  "tests": [],
-  "TraceID": "",
-  "mvuu": true,
-  "issue": "#"
-}
+## Socratic Checklist
+- Assumptions tested: What assumptions did you make? How did you test them?
+- Hidden dependencies: What external systems, environment variables, files, or global state does this depend on?
+- Minimal reproducible example (MRE): What is the smallest way to reproduce the observed bug/behavior?
+- Failure modes: What can go wrong? How is it handled or made visible to users/devs?
+- Rollback plan: If this has to be reverted, are follow-ups needed?
+
+## Determinism and Test Discipline
+- [ ] Exactly one speed marker per new/changed test (@pytest.mark.fast|medium|slow)
+- [ ] Respect default marker filter (not memory_intensive) or use @pytest.mark.memory_intensive when appropriate
+- [ ] Deterministic seeding (random, numpy) via fixtures or explicit seeds
+- [ ] No real network calls unless explicitly gated (disable_network used; requires_resource flags applied)
+- [ ] Timeouts applied where appropriate (enforce_test_timeout fixture or explicit)
+- [ ] Writes constrained to tmp paths; no persistent side effects
+
+## Resource Gating and Providers
+- [ ] If optional backends are used (CHROMADB/DUCKDB/FAISS/KUZU/LMDB/RDFLIB/TINYDB), guarded by @pytest.mark.requires_resource and docs list how to enable locally
+- [ ] LLM provider calls stubbed/offline by default; opt-in flags documented (DEVSYNTH_PROVIDER=stub by default in tests)
+
+## CLI and Docs Consistency
+- [ ] Commands in docs/examples use Poetry (poetry run …) per guidelines
+- [ ] run-tests CLI options and examples align with docs/user_guides/cli_command_reference.md
+
+## Acceptance Criteria (Release Readiness)
+- [ ] Marker discipline passes for changed files (files_with_issues=0 for modified subset)
+- [ ] Coverage meets or exceeds policy when strict gating is enabled (DEVSYNTH_STRICT_COVERAGE=1 with DEVSYNTH_COV_FAIL_UNDER=90)
+- [ ] `poetry run devsynth doctor` passes in the applicable profile (no ModuleNotFoundError for webui when expected)
+- [ ] Lint/type/security gates pass for changed files (black, isort, flake8, mypy, bandit, safety as applicable)
+
+## Local Verification
+Provide minimal commands used to validate:
+```bash
+poetry run pytest --collect-only -q
+poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+poetry run python scripts/verify_test_markers.py --changed
 ```
 
-## TraceID
+## Pre-submit Checks
+- [ ] PR is linked to related issues/tickets via GitHub "Linked issues" (required)
+- [ ] scripts/verify_test_markers.py --changed passes with 0 issues on modified tests
+- [ ] Exactly one speed marker per test function is present in all modified/added tests (@pytest.mark.fast|@pytest.mark.medium|@pytest.mark.slow)
 
-<!-- Provide the TraceID associated with this work -->
+## Screenshots / Logs (if applicable)
+- Attach or paste relevant output.
 
-## Linked Issue
-
-<!-- Link to the issue using the format: Fixes #123 -->
-
-## Type of Change
-
-<!-- Mark the appropriate option with an "x" -->
-
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
-- [ ] Refactoring (no functional changes)
-- [ ] Other (please describe):
-
-## Alignment Verification
-
-<!-- Verify that your changes maintain alignment between SDLC artifacts -->
-
-### Bidirectional Traceability
-
-- [ ] Requirements affected by this change have been identified and updated
-- [ ] Specifications affected by this change have been identified and updated
-- [ ] Tests affected by this change have been identified and updated
-- [ ] Code changes are consistent with requirements and specifications
-- [ ] Traceability matrix has been updated (if applicable)
-
-### Terminology Consistency
-
-- [ ] New terms are consistent with the project glossary
-- [ ] Existing terms are used consistently with their defined meanings
-- [ ] Capitalization and naming conventions are consistent
-
-### Documentation Synchronization
-
-- [ ] Documentation reflects the changes made
-- [ ] README and other user-facing documentation is updated (if applicable)
-- [ ] API documentation is updated (if applicable)
-- [ ] Comments in code are updated
-
-## Testing
-
-<!-- Describe the testing you have performed -->
-
-- [ ] Added or updated unit tests
-- [ ] Added or updated integration tests
-- [ ] Added or updated behavior tests
-- [ ] Manually tested the changes
-
-## Checklist
-
-<!-- Verify that you have completed the following -->
-
-- [ ] PR description includes the MVUU JSON block above with TraceID and issue link
-- [ ] Commits include an MVUU JSON block
-- [ ] Commits include a TraceID and link to the relevant issue
-- [ ] `traceability.json` has been updated
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] Any dependent changes have been merged and published
-
-### Commit Message Template
-
-```text
-<type>: <summary>
-
-TraceID: <TraceID>
-Issue: #<issue-number>
-
-{
-  "MVUU": {
-    "utility_statement": "<utility_statement>",
-    "affected_files": ["path/to/file"],
-    "tests": ["poetry run pytest tests/..."],
-    "TraceID": "<TraceID>",
-    "mvuu": true,
-    "issue": "#<issue-number>"
-  }
-}
-```
-
-## Additional Notes
-
-<!-- Add any other information about the PR here -->
+## Notes
+- Additional context, trade-offs, or follow-ups.

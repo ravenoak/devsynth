@@ -53,20 +53,37 @@ class TinyDBMemoryAdapter(StorageAdapter):
     def _serialize_value(self, value: Any) -> Any:
         """Recursively convert values to JSON-serializable forms.
 
-        TinyDB relies on JSON serialization. Sets, datetimes, and enums are
-        normalized so they can be stored without raising ``TypeError``.
+        TinyDB relies on JSON serialization. We normalize common non-JSON types
+        so they can be stored without raising ``TypeError``.
+
+        Normalizations:
+        - datetime -> ISO 8601 string
+        - set/tuple -> list
+        - bytes -> UTF-8 string if decodable, otherwise base64 string
+        - Enum -> its value
+        - dict/list -> recursively normalized
+        - uuid.UUID -> string
         """
+        import base64
+        import uuid as _uuid
         from datetime import datetime
         from enum import Enum
 
         if isinstance(value, datetime):
             return value.isoformat()
-        if isinstance(value, set):
+        if isinstance(value, _uuid.UUID):
+            return str(value)
+        if isinstance(value, (set, tuple)):
             return [self._serialize_value(v) for v in value]
         if isinstance(value, list):
             return [self._serialize_value(v) for v in value]
         if isinstance(value, dict):
             return {k: self._serialize_value(v) for k, v in value.items()}
+        if isinstance(value, (bytes, bytearray)):
+            try:
+                return value.decode("utf-8")
+            except Exception:
+                return base64.b64encode(bytes(value)).decode("ascii")
         if isinstance(value, Enum):
             return value.value
         return value

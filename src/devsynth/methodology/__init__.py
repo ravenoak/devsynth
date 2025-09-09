@@ -11,3 +11,14 @@ __all__ = [
     "MilestoneAdapter",
     "reasoning_loop",
 ]
+
+# Provide attribute access to the edrr submodule for tools that resolve via getattr
+# (e.g., pytest monkeypatch path resolution): devsynth.methodology.edrr
+
+
+def __getattr__(name: str):  # PEP 562
+    if name == "edrr":
+        import importlib as _importlib
+
+        return _importlib.import_module(__name__ + ".edrr")
+    raise AttributeError(name)

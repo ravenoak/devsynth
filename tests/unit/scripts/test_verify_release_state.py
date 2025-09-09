@@ -9,8 +9,6 @@ import pytest
 
 import scripts.verify_release_state as verify_release_state
 
-pytestmark = [pytest.mark.fast]
-
 
 def setup_git_repo(root: Path) -> None:
     """Initialize a Git repository with one commit."""
@@ -37,9 +35,7 @@ def setup_git_repo(root: Path) -> None:
     )
 
 
-def create_release_file(
-    root: Path, status: str, version: str = "0.1.0-alpha.1"
-) -> Path:
+def create_release_file(root: Path, status: str, version: str = "0.1.0a1") -> Path:
     """Write a release file with the given status and version."""
     path = root / "release.md"
     path.write_text(
@@ -60,6 +56,7 @@ def patch_paths(
     )
 
 
+@pytest.mark.fast
 def test_draft_status_missing_tag(monkeypatch: pytest.MonkeyPatch) -> None:
     """Draft release without tag is allowed. ReqID: FR-95"""
     root = Path.cwd()
@@ -69,6 +66,7 @@ def test_draft_status_missing_tag(monkeypatch: pytest.MonkeyPatch) -> None:
     assert verify_release_state.main() == 0
 
 
+@pytest.mark.fast
 def test_published_status_without_tag(monkeypatch: pytest.MonkeyPatch) -> None:
     """Published release without tag fails. ReqID: FR-95"""
     root = Path.cwd()
@@ -78,13 +76,14 @@ def test_published_status_without_tag(monkeypatch: pytest.MonkeyPatch) -> None:
     assert verify_release_state.main() == 1
 
 
+@pytest.mark.fast
 def test_published_status_with_tag(monkeypatch: pytest.MonkeyPatch) -> None:
     """Published release with tag is accepted. ReqID: FR-95"""
     root = Path.cwd()
     setup_git_repo(root)
     release_file = create_release_file(root, status="published")
     subprocess.run(
-        ["git", "tag", "v0.1.0-alpha.1"], cwd=root, check=True, capture_output=True
+        ["git", "tag", "v0.1.0a1"], cwd=root, check=True, capture_output=True
     )
     patch_paths(monkeypatch, root, release_file)
     assert verify_release_state.main() == 0

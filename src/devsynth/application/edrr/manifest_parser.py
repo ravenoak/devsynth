@@ -5,16 +5,18 @@ This module provides a parser for EDRR manifests, which are used to drive the ED
 It includes enhanced functionality for phase dependency tracking, execution progress monitoring,
 and comprehensive logging and traceability.
 """
+
 import json
-import jsonschema
 import time
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Union, Set, Tuple
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
-from devsynth.methodology.base import Phase
-from devsynth.logging_setup import DevSynthLogger
+import jsonschema
+
 from devsynth.exceptions import DevSynthError
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 
 logger = DevSynthLogger(__name__)
 
@@ -37,8 +39,8 @@ MANIFEST_SCHEMA = {
                         "instructions": {"type": "string"},
                         "templates": {"type": "array", "items": {"type": "string"}},
                         "resources": {"type": "array", "items": {"type": "string"}},
-                        "metadata": {"type": "object"}
-                    }
+                        "metadata": {"type": "object"},
+                    },
                 },
                 "differentiate": {
                     "type": "object",
@@ -47,8 +49,8 @@ MANIFEST_SCHEMA = {
                         "instructions": {"type": "string"},
                         "templates": {"type": "array", "items": {"type": "string"}},
                         "resources": {"type": "array", "items": {"type": "string"}},
-                        "metadata": {"type": "object"}
-                    }
+                        "metadata": {"type": "object"},
+                    },
                 },
                 "refine": {
                     "type": "object",
@@ -57,8 +59,8 @@ MANIFEST_SCHEMA = {
                         "instructions": {"type": "string"},
                         "templates": {"type": "array", "items": {"type": "string"}},
                         "resources": {"type": "array", "items": {"type": "string"}},
-                        "metadata": {"type": "object"}
-                    }
+                        "metadata": {"type": "object"},
+                    },
                 },
                 "retrospect": {
                     "type": "object",
@@ -67,17 +69,20 @@ MANIFEST_SCHEMA = {
                         "instructions": {"type": "string"},
                         "templates": {"type": "array", "items": {"type": "string"}},
                         "resources": {"type": "array", "items": {"type": "string"}},
-                        "metadata": {"type": "object"}
-                    }
-                }
-            }
-        }
-    }
+                        "metadata": {"type": "object"},
+                    },
+                },
+            },
+        },
+    },
 }
+
 
 class ManifestParseError(DevSynthError):
     """Error raised when parsing an EDRR manifest fails."""
+
     pass
+
 
 class ManifestParser:
     """
@@ -96,7 +101,7 @@ class ManifestParser:
         self.phase_dependencies = {
             Phase.DIFFERENTIATE: {Phase.EXPAND},
             Phase.REFINE: {Phase.DIFFERENTIATE},
-            Phase.RETROSPECT: {Phase.REFINE}
+            Phase.RETROSPECT: {Phase.REFINE},
         }
         self.phase_status = {}
         self.start_time = None
@@ -120,7 +125,7 @@ class ManifestParser:
             if ".." in file_path.parts:
                 raise ManifestParseError("Invalid manifest path")
             file_path = file_path.expanduser().resolve()
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 manifest = json.load(f)
 
             # Validate the manifest
@@ -295,23 +300,23 @@ class ManifestParser:
     def start_execution(self) -> None:
         """
         Start tracking the execution of the EDRR process.
-        
+
         This method initializes the execution trace and sets the start time.
-        
+
         Raises:
             ManifestParseError: If no manifest is loaded
         """
         if not self.manifest:
             raise ManifestParseError("No manifest loaded")
-        
+
         self.start_time = time.time()
         self.execution_trace = {
             "manifest_id": self.get_manifest_id(),
             "start_time": datetime.now().isoformat(),
             "phases": {},
-            "completed": False
+            "completed": False,
         }
-        
+
         # Initialize phase status
         for phase in Phase:
             phase_key = phase.value.lower()
@@ -320,100 +325,104 @@ class ManifestParser:
                 "start_time": None,
                 "end_time": None,
                 "duration": None,
-                "dependencies_met": phase not in self.phase_dependencies
+                "dependencies_met": phase not in self.phase_dependencies,
             }
-        
-        logger.info(f"Started execution tracking for manifest: {self.get_manifest_id()}")
-    
+
+        logger.info(
+            f"Started execution tracking for manifest: {self.get_manifest_id()}"
+        )
+
     def check_phase_dependencies(self, phase: Phase) -> bool:
         """
         Check if all dependencies for a phase have been completed.
-        
+
         Args:
             phase: The phase to check dependencies for
-            
+
         Returns:
             True if all dependencies are met, False otherwise
-            
+
         Raises:
             ManifestParseError: If no manifest is loaded
         """
         if not self.manifest:
             raise ManifestParseError("No manifest loaded")
-        
+
         # If the phase has no dependencies, return True
         if phase not in self.phase_dependencies:
             return True
-        
+
         # Check if all dependencies have been completed
         for dependency in self.phase_dependencies[phase]:
             if self.phase_status.get(dependency, {}).get("status") != "completed":
-                logger.warning(f"Dependency {dependency.value} not completed for phase {phase.value}")
+                logger.warning(
+                    f"Dependency {dependency.value} not completed for phase {phase.value}"
+                )
                 return False
-        
+
         logger.info(f"All dependencies met for phase {phase.value}")
         return True
-    
+
     def start_phase(self, phase: Phase) -> None:
         """
         Start tracking the execution of a phase.
-        
+
         Args:
             phase: The phase to start tracking
-            
+
         Raises:
             ManifestParseError: If no manifest is loaded or dependencies are not met
         """
         if not self.manifest:
             raise ManifestParseError("No manifest loaded")
-        
+
         # Check if dependencies are met
         if not self.check_phase_dependencies(phase):
             raise ManifestParseError(f"Dependencies not met for phase {phase.value}")
-        
+
         # Update phase status
         self.phase_status[phase] = {
             "status": "in_progress",
             "start_time": datetime.now().isoformat(),
             "end_time": None,
             "duration": None,
-            "dependencies_met": True
+            "dependencies_met": True,
         }
-        
+
         # Update execution trace
         phase_key = phase.value.lower()
         self.execution_trace["phases"][phase_key] = {
             "status": "in_progress",
             "start_time": datetime.now().isoformat(),
             "end_time": None,
-            "duration": None
+            "duration": None,
         }
-        
+
         logger.info(f"Started phase {phase.value}")
-    
+
     def complete_phase(self, phase: Phase, result: Dict[str, Any] = None) -> None:
         """
         Complete tracking the execution of a phase.
-        
+
         Args:
             phase: The phase to complete tracking
             result: Optional result data for the phase
-            
+
         Raises:
             ManifestParseError: If no manifest is loaded or the phase is not in progress
         """
         if not self.manifest:
             raise ManifestParseError("No manifest loaded")
-        
+
         # Check if the phase is in progress
         if self.phase_status.get(phase, {}).get("status") != "in_progress":
             raise ManifestParseError(f"Phase {phase.value} is not in progress")
-        
+
         # Calculate duration
         start_time = datetime.fromisoformat(self.phase_status[phase]["start_time"])
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
-        
+
         # Update phase status
         self.phase_status[phase] = {
             "status": "completed",
@@ -421,9 +430,9 @@ class ManifestParser:
             "end_time": end_time.isoformat(),
             "duration": duration,
             "dependencies_met": True,
-            "result": result
+            "result": result,
         }
-        
+
         # Update execution trace
         phase_key = phase.value.lower()
         self.execution_trace["phases"][phase_key] = {
@@ -431,86 +440,91 @@ class ManifestParser:
             "start_time": self.phase_status[phase]["start_time"],
             "end_time": end_time.isoformat(),
             "duration": duration,
-            "result": result
+            "result": result,
         }
-        
+
         # Update dependencies for subsequent phases
         for next_phase, dependencies in self.phase_dependencies.items():
             if phase in dependencies:
                 # Check if all dependencies are now met
                 all_met = True
                 for dependency in dependencies:
-                    if self.phase_status.get(dependency, {}).get("status") != "completed":
+                    if (
+                        self.phase_status.get(dependency, {}).get("status")
+                        != "completed"
+                    ):
                         all_met = False
                         break
-                
+
                 if all_met:
                     self.phase_status[next_phase]["dependencies_met"] = True
                     logger.info(f"Dependencies now met for phase {next_phase.value}")
-        
+
         logger.info(f"Completed phase {phase.value} in {duration:.2f} seconds")
-    
+
     def complete_execution(self) -> Dict[str, Any]:
         """
         Complete tracking the execution of the EDRR process.
-        
+
         Returns:
             The execution trace
-            
+
         Raises:
             ManifestParseError: If no manifest is loaded or not all phases are completed
         """
         if not self.manifest:
             raise ManifestParseError("No manifest loaded")
-        
+
         # Check if all phases are completed
         all_completed = True
         for phase in Phase:
             if self.phase_status.get(phase, {}).get("status") != "completed":
                 all_completed = False
                 logger.warning(f"Phase {phase.value} not completed")
-        
+
         # Calculate total duration
         end_time = time.time()
         total_duration = end_time - self.start_time
-        
+
         # Update execution trace
         self.execution_trace["end_time"] = datetime.now().isoformat()
         self.execution_trace["duration"] = total_duration
         self.execution_trace["completed"] = all_completed
-        
-        logger.info(f"Completed execution in {total_duration:.2f} seconds, all phases completed: {all_completed}")
+
+        logger.info(
+            f"Completed execution in {total_duration:.2f} seconds, all phases completed: {all_completed}"
+        )
         return self.execution_trace
-    
+
     def get_execution_trace(self) -> Dict[str, Any]:
         """
         Get the current execution trace.
-        
+
         Returns:
             The execution trace
-            
+
         Raises:
             ManifestParseError: If no manifest is loaded
         """
         if not self.manifest:
             raise ManifestParseError("No manifest loaded")
-        
+
         return self.execution_trace
-    
+
     def get_phase_status(self, phase: Phase) -> Dict[str, Any]:
         """
         Get the status of a phase.
-        
+
         Args:
             phase: The phase to get the status for
-            
+
         Returns:
             The status of the phase
-            
+
         Raises:
             ManifestParseError: If no manifest is loaded
         """
         if not self.manifest:
             raise ManifestParseError("No manifest loaded")
-        
+
         return self.phase_status.get(phase, {})

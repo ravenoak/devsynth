@@ -25,6 +25,7 @@ logger = DevSynthLogger(__name__)
 DEVSYNTH = Namespace("https://github.com/ravenoak/devsynth/ontology#")
 MEMORY = Namespace("https://github.com/ravenoak/devsynth/ontology/memory#")
 
+
 def find_related_items(store: RDFLibStore, item_id: str) -> List[MemoryItem]:
     """
     Find all items related to the given item.
@@ -78,12 +79,17 @@ def find_related_items(store: RDFLibStore, item_id: str) -> List[MemoryItem]:
 
     except Exception as e:
         logger.error(f"Error finding related items: {e}")
-        raise MemoryStoreError("Error finding related items",
-                              store_type="rdflib",
-                              operation="find_related_items",
-                              original_error=e)
+        raise MemoryStoreError(
+            "Error finding related items",
+            store_type="rdflib",
+            operation="find_related_items",
+            original_error=e,
+        )
 
-def find_items_by_relationship(store: RDFLibStore, relationship: str) -> List[List[MemoryItem]]:
+
+def find_items_by_relationship(
+    store: RDFLibStore, relationship: str
+) -> List[List[MemoryItem]]:
     """
     Find all pairs of items connected by the given relationship.
 
@@ -127,15 +133,20 @@ def find_items_by_relationship(store: RDFLibStore, relationship: str) -> List[Li
                 item_pairs.append([source_item])
                 item_pairs.append([target_item])
 
-        logger.info(f"Found {len(item_pairs)} items connected by relationship '{relationship}'")
+        logger.info(
+            f"Found {len(item_pairs)} items connected by relationship '{relationship}'"
+        )
         return item_pairs
 
     except Exception as e:
         logger.error(f"Error finding items by relationship: {e}")
-        raise MemoryStoreError("Error finding items by relationship",
-                              store_type="rdflib",
-                              operation="find_items_by_relationship",
-                              original_error=e)
+        raise MemoryStoreError(
+            "Error finding items by relationship",
+            store_type="rdflib",
+            operation="find_items_by_relationship",
+            original_error=e,
+        )
+
 
 def get_item_relationships(store: RDFLibStore, item_id: str) -> List[Dict[str, Any]]:
     """
@@ -192,34 +203,43 @@ def get_item_relationships(store: RDFLibStore, item_id: str) -> List[Dict[str, A
             target_uri = row[1]
             relationship_name = str(relationship_uri).split("#")[-1]
             target_id = str(target_uri).split("/")[-1]
-            relationships.append({
-                "relationship": relationship_name,
-                "direction": "outgoing",
-                "related_item_id": target_id
-            })
+            relationships.append(
+                {
+                    "relationship": relationship_name,
+                    "direction": "outgoing",
+                    "related_item_id": target_id,
+                }
+            )
 
         for row in results_incoming:
             relationship_uri = row[0]
             source_uri = row[1]
             relationship_name = str(relationship_uri).split("#")[-1]
             source_id = str(source_uri).split("/")[-1]
-            relationships.append({
-                "relationship": relationship_name,
-                "direction": "incoming",
-                "related_item_id": source_id
-            })
+            relationships.append(
+                {
+                    "relationship": relationship_name,
+                    "direction": "incoming",
+                    "related_item_id": source_id,
+                }
+            )
 
         logger.info(f"Found {len(relationships)} relationships for item {item_id}")
         return relationships
 
     except Exception as e:
         logger.error(f"Error getting item relationships: {e}")
-        raise MemoryStoreError("Error getting item relationships",
-                              store_type="rdflib",
-                              operation="get_item_relationships",
-                              original_error=e)
+        raise MemoryStoreError(
+            "Error getting item relationships",
+            store_type="rdflib",
+            operation="get_item_relationships",
+            original_error=e,
+        )
 
-def create_relationship(store: RDFLibStore, source_id: str, target_id: str, relationship: str) -> None:
+
+def create_relationship(
+    store: RDFLibStore, source_id: str, target_id: str, relationship: str
+) -> None:
     """
     Create a relationship between two items.
 
@@ -244,16 +264,23 @@ def create_relationship(store: RDFLibStore, source_id: str, target_id: str, rela
         # Save the graph to file
         store._save_graph()
 
-        logger.info(f"Created relationship '{relationship}' from item {source_id} to item {target_id}")
+        logger.info(
+            f"Created relationship '{relationship}' from item {source_id} to item {target_id}"
+        )
 
     except Exception as e:
         logger.error(f"Error creating relationship: {e}")
-        raise MemoryStoreError("Error creating relationship",
-                              store_type="rdflib",
-                              operation="create_relationship",
-                              original_error=e)
+        raise MemoryStoreError(
+            "Error creating relationship",
+            store_type="rdflib",
+            operation="create_relationship",
+            original_error=e,
+        )
 
-def delete_relationship(store: RDFLibStore, source_id: str, target_id: str, relationship: str) -> None:
+
+def delete_relationship(
+    store: RDFLibStore, source_id: str, target_id: str, relationship: str
+) -> None:
     """
     Delete a relationship between two items.
 
@@ -278,14 +305,19 @@ def delete_relationship(store: RDFLibStore, source_id: str, target_id: str, rela
         # Save the graph to file
         store._save_graph()
 
-        logger.info(f"Deleted relationship '{relationship}' from item {source_id} to item {target_id}")
+        logger.info(
+            f"Deleted relationship '{relationship}' from item {source_id} to item {target_id}"
+        )
 
     except Exception as e:
         logger.error(f"Error deleting relationship: {e}")
-        raise MemoryStoreError("Error deleting relationship",
-                              store_type="rdflib",
-                              operation="delete_relationship",
-                              original_error=e)
+        raise MemoryStoreError(
+            "Error deleting relationship",
+            store_type="rdflib",
+            operation="delete_relationship",
+            original_error=e,
+        )
+
 
 def query_graph_pattern(store: RDFLibStore, pattern: str) -> List[Dict[str, Any]]:
     """
@@ -329,10 +361,13 @@ def query_graph_pattern(store: RDFLibStore, pattern: str) -> List[Dict[str, Any]
 
     except Exception as e:
         logger.error(f"Error querying graph pattern: {e}")
-        raise MemoryStoreError("Error querying graph pattern",
-                              store_type="rdflib",
-                              operation="query_graph_pattern",
-                              original_error=e)
+        raise MemoryStoreError(
+            "Error querying graph pattern",
+            store_type="rdflib",
+            operation="query_graph_pattern",
+            original_error=e,
+        )
+
 
 def get_subgraph(store: RDFLibStore, center_id: str, depth: int = 1) -> Dict[str, Any]:
     """
@@ -429,11 +464,13 @@ def get_subgraph(store: RDFLibStore, center_id: str, depth: int = 1) -> Dict[str
                 nodes.add(source_id)
                 nodes.add(target_id)
 
-                edges.append({
-                    "source": source_id,
-                    "target": target_id,
-                    "relationship": relationship
-                })
+                edges.append(
+                    {
+                        "source": source_id,
+                        "target": target_id,
+                        "relationship": relationship,
+                    }
+                )
 
         # Add the center node if it's not already included
         nodes.add(center_id)
@@ -443,23 +480,22 @@ def get_subgraph(store: RDFLibStore, center_id: str, depth: int = 1) -> Dict[str
         for node_id in nodes:
             item = store.retrieve(node_id)
             if item:
-                node_dicts.append({
-                    "id": node_id,
-                    "content": item.content,
-                    "metadata": item.metadata
-                })
+                node_dicts.append(
+                    {"id": node_id, "content": item.content, "metadata": item.metadata}
+                )
 
-        result = {
-            "nodes": node_dicts,
-            "edges": edges
-        }
+        result = {"nodes": node_dicts, "edges": edges}
 
-        logger.info(f"Subgraph centered on item {center_id} with depth {depth} has {len(node_dicts)} nodes and {len(edges)} edges")
+        logger.info(
+            f"Subgraph centered on item {center_id} with depth {depth} has {len(node_dicts)} nodes and {len(edges)} edges"
+        )
         return result
 
     except Exception as e:
         logger.error(f"Error getting subgraph: {e}")
-        raise MemoryStoreError("Error getting subgraph",
-                              store_type="rdflib",
-                              operation="get_subgraph",
-                              original_error=e)
+        raise MemoryStoreError(
+            "Error getting subgraph",
+            store_type="rdflib",
+            operation="get_subgraph",
+            original_error=e,
+        )

@@ -3,10 +3,10 @@ from __future__ import annotations
 """Simple workflow execution using :class:`UXBridge`."""
 
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
-from devsynth.interface.ux_bridge import UXBridge
 from devsynth.core.workflows import execute_command
+from devsynth.interface.ux_bridge import UXBridge
 
 
 @dataclass

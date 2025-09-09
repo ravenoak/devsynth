@@ -13,14 +13,15 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
 
-from devsynth.application.promises import (
+from devsynth.exceptions import DevSynthError
+
+from .broker import (
     CapabilityMetadata,
     CapabilityNotFoundError,
-    Promise,
     PromiseBroker,
     UnauthorizedAccessError,
 )
-from devsynth.exceptions import DevSynthError
+from .implementation import Promise
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -362,8 +363,9 @@ class PromiseAgentMixin:
                 promise.reject(TimeoutError(error_msg))
                 raise TimeoutError(error_msg)
 
-            # Small sleep to avoid busy waiting
-            time.sleep(0.1)
+            # Small sleep to avoid busy waiting; tuned for test stability
+            # Reduced from 0.1s to 0.02s to decrease flakiness in timer-based tests
+            time.sleep(0.02)
 
         # Promise is no longer pending
         if promise.is_rejected:

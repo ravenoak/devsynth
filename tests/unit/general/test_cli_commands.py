@@ -1,8 +1,9 @@
 import click
+import pytest
 import typer
 import typer.main
 from typer.testing import CliRunner
-import pytest
+
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.interface.ux_bridge import UXBridge
 
@@ -33,6 +34,7 @@ class TestCLIHelpOutput:
 
     runner = CliRunner()
 
+    @pytest.mark.fast
     def test_help_lists_commands_succeeds(self):
         """Test that help lists commands succeeds.
 
@@ -44,6 +46,7 @@ class TestCLIHelpOutput:
         for cmd in expected:
             assert cmd in result.output
 
+    @pytest.mark.fast
     def test_help_omits_deprecated_aliases_succeeds(self):
         """Test that help omits deprecated aliases succeeds.
 

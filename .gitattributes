@@ -1,0 +1,21 @@
+# Merge behavior for volatile and generated files to reduce PR merge conflicts
+
+# Use built-in union merge driver for noisy generated/report directories so GitHub can auto-resolve
+# (union driver keeps both sides' changes on conflict, avoiding merge blocks)
+diagnostics/** merge=union
+htmlcov/**     merge=union
+test_reports/** merge=union
+coverage.json  merge=union
+
+# Logs and transient root-level artifacts
+*.log          merge=union
+dialectical_audit.log merge=union
+
+# Heavily edited planning docs: prefer keeping base branch (main) version to avoid blocking merges
+# These files are collaborative notes; code changes remain unaffected.
+docs/task_notes.md merge=ours
+docs/plan.md       merge=ours
+docs/tasks.md      merge=ours
+
+# Default text normalization
+* text=auto eol=lf

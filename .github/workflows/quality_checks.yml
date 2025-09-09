@@ -1,0 +1,43 @@
+name: Quality Checks - Test Markers
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+jobs:
+  verify-test-markers:
+    name: Verify speed markers and publish report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Configure Poetry cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies (dev + tests minimal extras)
+        run: |
+          poetry install --with dev --extras "tests minimal"
+
+      - name: Run speed marker verifier
+        run: |
+          poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
+
+      - name: Upload marker report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test_markers_report
+          path: test_markers_report.json
+          if-no-files-found: error

@@ -1,6 +1,7 @@
-from unittest.mock import MagicMock
-import types
 import sys
+import types
+from unittest.mock import MagicMock
+
 import pytest
 
 argon2_mod = types.ModuleType("argon2")
@@ -38,10 +39,10 @@ sys.modules.setdefault("astor", astor_mod)
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
-from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
+from devsynth.application.memory.memory_manager import MemoryManager
 
 
 class VotingAgent:
@@ -62,6 +63,7 @@ class VotingAgent:
         return {"vote": self.vote}
 
 
+@pytest.mark.medium
 def test_majority_voting_succeeds():
     """Test that majority voting succeeds.
 
@@ -79,6 +81,7 @@ def test_majority_voting_succeeds():
     assert result["result"] in {"o1", "o2"}
 
 
+@pytest.mark.medium
 def test_weighted_voting_succeeds():
     """Test that weighted voting succeeds.
 
@@ -100,6 +103,7 @@ def test_weighted_voting_succeeds():
     assert result["result"] in {"o1", "o2"}
 
 
+@pytest.mark.medium
 def test_voting_result_syncs_to_memory():
     """Voting results should be stored across memory stores."""
     adapters = {

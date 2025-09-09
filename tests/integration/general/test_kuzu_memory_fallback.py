@@ -1,35 +1,52 @@
 import importlib
-import sys
-import types
-import tempfile
 import shutil
+import sys
+import tempfile
+import types
 from unittest.mock import patch
 
+import pytest
+
+from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 
 
+@pytest.mark.medium
 def test_memory_system_falls_back_when_kuzu_unavailable(monkeypatch):
     # Simulate kuzu not installed
     monkeypatch.setitem(sys.modules, "kuzu", None)
     import importlib
+
     import devsynth.application.memory.kuzu_store as kuzu_store
+
     importlib.reload(kuzu_store)
     import devsynth.adapters.kuzu_memory_store as km_store
+
     importlib.reload(km_store)
     monkeypatch.setattr(km_store, "embedding_functions", None)
     monkeypatch.setattr(km_store.KuzuMemoryStore, "__abstractmethods__", set())
-    monkeypatch.setattr(km_store.KuzuMemoryStore, "begin_transaction", lambda self, tid: tid)
-    monkeypatch.setattr(km_store.KuzuMemoryStore, "commit_transaction", lambda self, tid: True)
-    monkeypatch.setattr(km_store.KuzuMemoryStore, "is_transaction_active", lambda self, tid: False)
-    monkeypatch.setattr(km_store.KuzuMemoryStore, "rollback_transaction", lambda self, tid: None)
+    monkeypatch.setattr(
+        km_store.KuzuMemoryStore, "begin_transaction", lambda self, tid: tid
+    )
+    monkeypatch.setattr(
+        km_store.KuzuMemoryStore, "commit_transaction", lambda self, tid: True
+    )
+    monkeypatch.setattr(
+        km_store.KuzuMemoryStore, "is_transaction_active", lambda self, tid: False
+    )
+    monkeypatch.setattr(
+        km_store.KuzuMemoryStore, "rollback_transaction", lambda self, tid: None
+    )
     import devsynth.adapters.memory.memory_adapter as mem_adapter
+
     monkeypatch.setattr(mem_adapter, "KuzuMemoryStore", km_store.KuzuMemoryStore)
 
     temp_dir = tempfile.mkdtemp()
     try:
-        with patch("devsynth.adapters.kuzu_memory_store.embed", return_value=[0.1, 0.2, 0.3]):
+        with patch(
+            "devsynth.adapters.kuzu_memory_store.embed", return_value=[0.1, 0.2, 0.3]
+        ):
             adapter = MemorySystemAdapter(
                 config={
                     "memory_store_type": "kuzu",
@@ -47,4 +64,3 @@ def test_memory_system_falls_back_when_kuzu_unavailable(monkeypatch):
         assert result.content == "hi"
     finally:
         shutil.rmtree(temp_dir)
-

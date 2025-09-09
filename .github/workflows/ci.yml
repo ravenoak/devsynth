@@ -2,83 +2,191 @@ name: CI
 
 on:
   workflow_dispatch:
+  # TODO: Re-enable push, pull_request, and schedule triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1 and issues/re-enable-github-actions-triggers-post-v0-1-0a1.md)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
+  POETRY_VIRTUALENVS_CREATE: true
+  POETRY_VIRTUALENVS_IN_PROJECT: true
+  PYTHONUNBUFFERED: 1
+  DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: "false"
+  DEVSYNTH_RESOURCE_FAISS_AVAILABLE: "false"
+  DEVSYNTH_RESOURCE_KUZU_AVAILABLE: "false"
+  DEVSYNTH_RESOURCE_LMDB_AVAILABLE: "false"
+  DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: "false"
+  DEVSYNTH_PROPERTY_TESTING: "false"
+  DEVSYNTH_NO_FILE_LOGGING: "1"
 
 jobs:
-  ci:
+  typing_lint:
+    name: Typing and Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install --with dev,docs
-          venv_path=$(poetry env info --path 2>/dev/null || true)
-          if [ -z "$venv_path" ]; then
-            echo "Poetry virtualenv path not found" >&2
-            exit 1
-          fi
-          echo "Using virtualenv at $venv_path"
-      - name: Cache Task
-        id: cache-task
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.local/bin/task
-          key: ${{ runner.os }}-task-${{ hashFiles('scripts/install_dev.sh') }}
-      - name: Install Task
-        if: steps.cache-task.outputs.cache-hit != 'true'
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+            ./.venv
+            ./.pytest_cache
+          key: ${{ runner.os }}-py-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-py-
+
+      - name: Install dependencies (linting and typing)
+        run: poetry install --with dev --extras minimal
+
+      - name: Show tool versions
         run: |
-          TASK_BIN_DIR="$HOME/.local/bin"
-          mkdir -p "$TASK_BIN_DIR"
-          curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR"
-      - name: Add Task to PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-      - name: Verify tooling
+          poetry run python --version
+        
+          poetry --version
+
+      - name: Run linters and type checks
         run: |
-          poetry env info --path
-          if ! command -v task >/dev/null 2>&1; then
-            echo "Task runner not found" >&2
-            exit 1
-          fi
-          task --version
-      - name: Lint commit messages
+          poetry run black --check .
+          poetry run isort --check-only .
+          poetry run flake8 src/ tests/
+          poetry run mypy src/ tests/
+
+  smoke:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: typing_lint
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+            ./.venv
+            ./.pytest_cache
+          key: ${{ runner.os }}-py-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-py-
+
+      - name: Install dependencies (smoke)
+        run: poetry install --with dev --extras minimal
+
+      - name: Show tool versions
         run: |
-          git fetch origin main
-          python scripts/commit_linter.py --range origin/main..HEAD
-      - name: Verify MVUU references
+          poetry run python --version
+          poetry --version
+
+      - name: Run smoke tests
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
-          python scripts/verify_mvuu_references.py origin/main..HEAD
-      - name: Check test ReqIDs
+          poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 --report
+
+      - name: Collect diagnostics
+        if: failure()
         run: |
-          python scripts/check_reqid.py --rev-range origin/main..HEAD
-      - name: Verify test markers
-        run: |
-          poetry run python scripts/verify_test_markers.py
-      - name: Verify requirements traceability
-        run: |
-          python scripts/verify_requirements_traceability.py docs/requirements_traceability.md
-      - name: Dialectical audit
-        run: |
-          poetry run python scripts/dialectical_audit.py
-      - name: Upload dialectical audit log
-        if: always()
+          poetry run devsynth doctor | tee diagnostics/doctor_run.txt
+
+      - name: Upload artifacts
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: dialectical_audit
-          path: dialectical_audit.log
-      - name: Task release prep
+          name: smoke-artifacts
+          path: |
+            test_reports/
+            htmlcov/
+            coverage.json
+            diagnostics/doctor_run.txt
+
+  unit_integration:
+    name: Unit and Integration Tests
+    runs-on: ubuntu-latest
+    needs: smoke
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+            ./.venv
+            ./.pytest_cache
+          key: ${{ runner.os }}-py-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-py-
+
+      - name: Install dependencies (tests)
+        run: poetry install --with dev --extras tests retrieval chromadb api
+
+      - name: Show tool versions
         run: |
-          poetry env info --path
-          task release:prep
-      - name: Build package
+          poetry run python --version
+          poetry --version
+
+      - name: Run unit and integration tests
         run: |
-          poetry build
-      - name: Run tests
+          poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report
+
+      - name: Collect diagnostics
+        if: failure()
         run: |
-          poetry run pytest
+          poetry run devsynth doctor | tee diagnostics/doctor_run.txt
+
+      - name: Upload artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-integration-artifacts
+          path: |
+            test_reports/
+            htmlcov/
+            coverage.json
+            diagnostics/doctor_run.txt

@@ -2,11 +2,11 @@
 
 import pytest
 
-from devsynth.ports.llm_port import LLMPort
 from devsynth.adapters.llm.mock_llm_adapter import MockLLMAdapter
-from devsynth.ports.memory_port import MemoryPort
-from devsynth.domain.interfaces.memory import MemoryStore, ContextManager
+from devsynth.domain.interfaces.memory import ContextManager, MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.ports.llm_port import LLMPort
+from devsynth.ports.memory_port import MemoryPort
 from devsynth.ports.onnx_port import OnnxPort
 from tests.unit.fakes.test_fake_onnx_runtime import FakeOnnxRuntime
 
@@ -14,6 +14,7 @@ from tests.unit.fakes.test_fake_onnx_runtime import FakeOnnxRuntime
 class _InMemoryStore(MemoryStore):
     def __init__(self):
         self.items = {}
+        self._tx_snapshots: dict[str, dict[str, MemoryItem]] = {}
 
     def store(self, item: MemoryItem) -> str:
         item_id = item.id or str(len(self.items))
@@ -29,6 +30,25 @@ class _InMemoryStore(MemoryStore):
 
     def delete(self, item_id: str) -> bool:
         return self.items.pop(item_id, None) is not None
+
+    # Transaction methods expected by MemoryStore protocol
+    def begin_transaction(self) -> str:
+        tx_id = str(len(self._tx_snapshots) + 1)
+        self._tx_snapshots[tx_id] = dict(self.items)
+        return tx_id
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        return self._tx_snapshots.pop(transaction_id, None) is not None
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        snapshot = self._tx_snapshots.pop(transaction_id, None)
+        if snapshot is None:
+            return False
+        self.items = snapshot
+        return True
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        return transaction_id in self._tx_snapshots
 
 
 class _SimpleContextManager(ContextManager):

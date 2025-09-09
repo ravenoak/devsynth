@@ -66,7 +66,7 @@ def lmstudio_service(monkeypatch) -> LMStudioMockServer:
                 status_code=server.status_code, content={"error": "Internal error"}
             )
 
-        tokens = ["This", " is", " a", " test"]
+        tokens = ["This", " is", " a", " test", " response"]
 
         async def event_stream():
             for token in tokens:
@@ -87,8 +87,12 @@ def lmstudio_service(monkeypatch) -> LMStudioMockServer:
     client = TestClient(app)
     server.base_url = str(client.base_url)
 
+    DEFAULT_TIMEOUT = float(os.environ.get("DEVSYNTH_TEST_HTTP_TIMEOUT", "0.5"))
+
     def _post_stream(path: str, json_payload: Dict[str, Any]) -> str:
-        with client.stream("POST", path, json=json_payload) as response:
+        with client.stream(
+            "POST", path, json=json_payload, timeout=DEFAULT_TIMEOUT
+        ) as response:
             if response.status_code >= 400:
                 raise Exception(response.json().get("error", "error"))
             content = ""
@@ -132,7 +136,9 @@ def lmstudio_service(monkeypatch) -> LMStudioMockServer:
 
         def embed(self, text: str) -> List[float]:
             response = client.post(
-                "/v1/embeddings", json={"model": self.model, "input": text}
+                "/v1/embeddings",
+                json={"model": self.model, "input": text},
+                timeout=DEFAULT_TIMEOUT,
             )
             if response.status_code >= 400:
                 raise Exception(response.json().get("error", "error"))

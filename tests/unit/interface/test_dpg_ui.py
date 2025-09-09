@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+import json
+import sys
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import json
-import sys
+import pytest
 
 import devsynth.interface.dpg_ui as dpg_ui
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 
 
+@pytest.mark.fast
 def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
     """Every button invokes its command and updates progress."""
 
@@ -165,6 +167,7 @@ def test_all_buttons_trigger_callbacks_and_progress(monkeypatch):
     assert funcs["enable_feature_cmd"].call_args[0] == ("feat",)
 
 
+@pytest.mark.fast
 def test_requirements_wizard_dialog(tmp_path, monkeypatch):
     """Wizard dialog saves requirements and shows progress."""
 
@@ -214,6 +217,7 @@ def test_requirements_wizard_dialog(tmp_path, monkeypatch):
     assert descriptions[0].startswith("Step 1/5")
 
 
+@pytest.mark.fast
 def test_requirements_wizard_dialog_error(monkeypatch, tmp_path):
     """Errors in wizard are reported and progress closed."""
 

@@ -1,24 +1,29 @@
 import sys
 from types import ModuleType
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, call, patch
+
 import pytest
+
 from tests.unit.interface.test_webui_enhanced import _mock_streamlit
+
 
 @pytest.fixture
 def mock_streamlit(monkeypatch):
     """Fixture to mock streamlit for testing."""
     st = _mock_streamlit()
-    monkeypatch.setitem(sys.modules, 'streamlit', st)
+    monkeypatch.setitem(sys.modules, "streamlit", st)
     return st
+
 
 @pytest.fixture
 def mock_init_cmd(monkeypatch):
     """Fixture to mock init_cmd for testing."""
     init_cmd = MagicMock()
-    cli_module = ModuleType('devsynth.application.cli')
+    cli_module = ModuleType("devsynth.application.cli")
     cli_module.init_cmd = init_cmd
-    monkeypatch.setitem(sys.modules, 'devsynth.application.cli', cli_module)
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_module)
     return init_cmd
+
 
 @pytest.mark.medium
 def test_onboarding_page_succeeds(mock_streamlit, mock_init_cmd, clean_state):
@@ -26,18 +31,22 @@ def test_onboarding_page_succeeds(mock_streamlit, mock_init_cmd, clean_state):
 
     ReqID: N/A"""
     import importlib
+
     from devsynth.interface import webui
+
     # Reload the module to ensure clean state
     importlib.reload(webui)
-    
+
     from devsynth.interface.webui import WebUI
+
     bridge = WebUI()
     bridge.onboarding_page()
-    mock_streamlit.header.assert_called_with('Project Onboarding')
+    mock_streamlit.header.assert_called_with("Project Onboarding")
     assert mock_streamlit.form.called
     mock_streamlit.form_submit_button.return_value = True
     bridge.onboarding_page()
     assert mock_init_cmd.called
+
 
 @pytest.mark.medium
 def test_onboarding_page_no_submit_succeeds(mock_streamlit, mock_init_cmd):
@@ -45,9 +54,12 @@ def test_onboarding_page_no_submit_succeeds(mock_streamlit, mock_init_cmd):
 
     ReqID: N/A"""
     import importlib
+
     import devsynth.interface.webui as webui
+
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
+
     bridge = WebUI()
     mock_streamlit.form_submit_button.return_value = False
     bridge.onboarding_page()

@@ -1,0 +1,63 @@
+name: Install Dev Environment (Smoke)
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+concurrency:
+  group: install-dev-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install-dev-smoke:
+    name: Validate scripts/install_dev.sh idempotency
+    runs-on: ubuntu-latest
+    env:
+      # Default CI resource gating: skip optional backends unless explicitly enabled
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_FAISS_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_KUZU_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_TINYDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      OPENAI_API_KEY: 'test-openai-key'
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: First run of install_dev.sh
+        run: bash scripts/install_dev.sh
+
+      - name: Second run (idempotency check)
+        run: bash scripts/install_dev.sh
+
+      - name: Sanity checks
+        run: |
+          poetry env info --path
+          poetry run devsynth --help
+          poetry run python -c "import devsynth; print(getattr(devsynth, '__version__', 'unknown'))"
+
+      - name: Upload logs and reports if present
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-dev-smoke-artifacts
+          path: |
+            test_reports/**
+            dialectical_audit.log
+            .pytest_cache/**
+          if-no-files-found: ignore

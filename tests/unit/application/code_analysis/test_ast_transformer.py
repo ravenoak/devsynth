@@ -16,6 +16,7 @@ class TestAstTransformer(unittest.TestCase):
         self.transformer = AstTransformer()
         self.sample_code = '\ndef calculate_sum(a, b):\n    result = a + b\n    return result\n\ndef main():\n    x = 5\n    y = 10\n    total = calculate_sum(x, y)\n    print(f"The sum is {total}")\n\n    # Some additional code\n    for i in range(3):\n        print(f"Iteration {i}")\n'
 
+    @pytest.mark.fast
     def test_rename_function_succeeds(self):
         """Test renaming a function.
 
@@ -28,6 +29,7 @@ class TestAstTransformer(unittest.TestCase):
         self.assertIn("total = add_numbers(x, y)", new_code)
         self.assertNotIn("calculate_sum", new_code)
 
+    @pytest.mark.fast
     def test_rename_variable_succeeds(self):
         """Test renaming a variable.
 
@@ -47,6 +49,7 @@ class TestAstTransformer(unittest.TestCase):
             f"Found 'result = a + b' as a standalone identifier in the code: {new_code}",
         )
 
+    @pytest.mark.fast
     def test_rename_parameter_succeeds(self):
         """Test renaming a parameter.
 
@@ -57,6 +60,7 @@ class TestAstTransformer(unittest.TestCase):
         self.assertIn("result = num1 + b", new_code)
         self.assertNotIn("result = a + b", new_code)
 
+    @pytest.mark.fast
     def test_extract_function_succeeds(self):
         """Test extracting a block of code into a new function.
 
@@ -69,6 +73,7 @@ class TestAstTransformer(unittest.TestCase):
         self.assertIn("print_iterations(i)", new_code)
         self.assertTrue(self.transformer.validate_syntax(new_code))
 
+    @pytest.mark.fast
     def test_add_docstring_succeeds(self):
         """Test adding a docstring to a function, class, or module.
 
@@ -86,6 +91,7 @@ class TestAstTransformer(unittest.TestCase):
         self.assertIn('"""Sample module for testing."""', new_code)
         self.assertTrue(self.transformer.validate_syntax(new_code))
 
+    @pytest.mark.fast
     def test_validate_syntax_is_valid(self):
         """Test validating code syntax.
 
@@ -96,6 +102,7 @@ class TestAstTransformer(unittest.TestCase):
         )
         self.assertFalse(self.transformer.validate_syntax(invalid_code))
 
+    @pytest.mark.fast
     def test_complex_transformations_succeeds(self):
         """Test more complex transformations.
 
@@ -111,6 +118,7 @@ class TestAstTransformer(unittest.TestCase):
         self.assertNotIn("calculate_sum", code)
         self.assertTrue(self.transformer.validate_syntax(code))
 
+    @pytest.mark.fast
     def test_remove_unused_imports_and_variables_succeeds(self):
         """Test removing unused imports and variables.
 
@@ -121,6 +129,7 @@ class TestAstTransformer(unittest.TestCase):
         self.assertNotIn("sys", code)
         self.assertNotIn("unused_var", code)
 
+    @pytest.mark.fast
     def test_optimize_string_literals_succeeds(self):
         """Test optimizing string operations.
 

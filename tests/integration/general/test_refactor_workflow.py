@@ -7,13 +7,15 @@ next steps.
 """
 
 import os
-import pytest
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
+
+import pytest
+
 from devsynth.application.cli.cli_commands import init_cmd
+from devsynth.application.orchestration.refactor_workflow import RefactorWorkflowManager
 
 
 class TestRefactorWorkflowManager:
@@ -30,6 +32,7 @@ class TestRefactorWorkflowManager:
         finally:
             shutil.rmtree(temp_dir)
 
+    @pytest.mark.medium
     def test_analyze_project_state_succeeds(self, temp_project_dir):
         """Test analyzing the project state.
 
@@ -74,6 +77,7 @@ class TestRefactorWorkflowManager:
         assert project_state["test_count"] == 0
         assert project_state["code_count"] == 0
 
+    @pytest.mark.medium
     def test_determine_optimal_workflow_succeeds(self, temp_project_dir):
         """Test determining the optimal workflow based on the project state.
 
@@ -169,6 +173,7 @@ class TestRefactorWorkflowManager:
         workflow = manager.determine_optimal_workflow(project_state)
         assert workflow == "complete"
 
+    @pytest.mark.medium
     def test_suggest_next_steps_succeeds(self, temp_project_dir):
         """Test suggesting next steps based on the project state.
 
@@ -207,6 +212,7 @@ class TestRefactorWorkflowManager:
         assert "specifications" in suggestions[0]["description"].lower()
         assert suggestions[0]["priority"] == "high"
 
+    @pytest.mark.medium
     def test_initialize_workflow_succeeds(self, temp_project_dir):
         """Test initializing a workflow based on the project state.
 
@@ -244,6 +250,7 @@ class TestRefactorWorkflowManager:
         assert "specifications" in suggestions[0]["description"].lower()
         assert suggestions[0]["priority"] == "high"
 
+    @pytest.mark.medium
     def test_execute_refactor_workflow_succeeds(self, temp_project_dir, monkeypatch):
         """Test executing a refactor workflow.
 

@@ -1,4 +1,9 @@
-"""Check release state against Git tags."""
+"""Check release state against Git tags.
+
+Specification alignment:
+- See docs/specifications/release-state-check.md
+- ReqID: FR-95 (unit tests in tests/unit/scripts/test_verify_release_state.py)
+"""
 
 from __future__ import annotations
 
@@ -25,7 +30,7 @@ def parse_front_matter(path: pathlib.Path) -> dict:
 
 
 def tag_exists(tag: str) -> bool:
-    """Return True if the given Git tag exists."""
+    """Return True if the given Git tag exists in the repository at ROOT."""
     result = subprocess.run(
         [
             "git",
@@ -33,6 +38,7 @@ def tag_exists(tag: str) -> bool:
             "--list",
             tag,
         ],
+        cwd=ROOT,
         capture_output=True,
         text=True,
         check=False,

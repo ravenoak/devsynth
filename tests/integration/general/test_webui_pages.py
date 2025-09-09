@@ -2,7 +2,9 @@ import importlib
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
+
 import pytest
+
 try:  # Compatibility with older test layout
     from tests.integration.test_webui_setup import _setup_streamlit
 except ModuleNotFoundError:  # pragma: no cover - fallback path
@@ -103,7 +105,7 @@ def test_webui_pages_invoke_commands_succeeds(webui_env):
     assert mocks["edrr_cycle_cmd"].called
     bridge.alignment_page()
     assert mocks["align_cmd"].called
-    
+
     # Test metrics and configuration pages
     bridge.alignment_metrics_page()
     assert mocks["alignment_metrics_cmd"].called
@@ -115,7 +117,7 @@ def test_webui_pages_invoke_commands_succeeds(webui_env):
     assert mocks["validate_metadata_cmd"].called
     bridge.test_metrics_page()
     assert mocks["test_metrics_cmd"].called
-    
+
     # Test documentation and ingestion pages
     bridge.docs_generation_page()
     assert mocks["generate_docs_cmd"].called
@@ -123,7 +125,7 @@ def test_webui_pages_invoke_commands_succeeds(webui_env):
     assert mocks["ingest_cmd"].called
     bridge.apispec_page()
     assert mocks["apispec_cmd"].called
-    
+
     # Test refactor, webapp, serve, and dbschema pages
     bridge.refactor_page()
     assert mocks["refactor_cmd"].called, "refactor_cmd was not called by refactor_page"

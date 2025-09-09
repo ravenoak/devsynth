@@ -21,14 +21,14 @@ Options:
     --dry-run             Show what would be run without executing tests
 """
 
-import os
-import sys
-import json
 import argparse
+import json
 import multiprocessing
+import os
 import subprocess
+import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 # Presets for different test prioritization scenarios
 PRESETS = {
@@ -82,8 +82,9 @@ PRESETS = {
         "timeout": 180,
         "update_history": True,
         "report": True,
-    }
+    },
 }
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -94,43 +95,37 @@ def parse_args():
         "--preset",
         choices=list(PRESETS.keys()),
         default="balanced",
-        help="Prioritization preset to use (default: balanced)"
+        help="Prioritization preset to use (default: balanced)",
     )
     parser.add_argument(
         "--category",
         choices=["unit", "integration", "behavior", "performance", "property", "all"],
-        help="Test category to run (overrides preset)"
+        help="Test category to run (overrides preset)",
     )
     parser.add_argument(
-        "--module",
-        help="Specific module to analyze (overrides preset)"
+        "--module", help="Specific module to analyze (overrides preset)"
     )
     parser.add_argument(
-        "--processes",
-        type=int,
-        help="Override the number of processes"
+        "--processes", type=int, help="Override the number of processes"
     )
     parser.add_argument(
         "--report",
         action="store_true",
-        help="Generate a detailed risk report (overrides preset)"
+        help="Generate a detailed risk report (overrides preset)",
     )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Show detailed output"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Show detailed output")
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Show what would be run without executing tests"
+        help="Show what would be run without executing tests",
     )
     return parser.parse_args()
+
 
 def get_optimal_processes():
     """
     Determine the optimal number of processes based on available CPU cores.
-    
+
     Returns:
         int: Optimal number of processes
     """
@@ -139,79 +134,85 @@ def get_optimal_processes():
     optimal = max(2, min(8, int(cpu_count * 0.75)))
     return optimal
 
+
 def build_command(args):
     """
     Build the command to run the test prioritization script.
-    
+
     Args:
         args: Command line arguments
-        
+
     Returns:
         list: Command to run as a list of strings
     """
     # Start with the base command
     cmd = ["python", "scripts/prioritize_high_risk_tests.py"]
-    
+
     # Get the preset configuration
     preset = PRESETS[args.preset]
-    
+
     # Add category (from args or preset)
     category = args.category if args.category else preset.get("category")
     if category and category != "all":
         cmd.extend(["--category", category])
-    
+
     # Add module (from args or preset)
     module = args.module if args.module else preset.get("module")
     if module:
         cmd.extend(["--module", module])
-    
+
     # Add limit
     limit = preset.get("limit", 100)
     cmd.extend(["--limit", str(limit)])
-    
+
     # Add min-risk
     min_risk = preset.get("min_risk", 0)
     cmd.extend(["--min-risk", str(min_risk)])
-    
+
     # Add processes
-    processes = args.processes if args.processes is not None else get_optimal_processes()
+    processes = (
+        args.processes if args.processes is not None else get_optimal_processes()
+    )
     cmd.extend(["--processes", str(processes)])
-    
+
     # Add timeout
     timeout = preset.get("timeout", 60)
     cmd.extend(["--timeout", str(timeout)])
-    
+
     # Add update-history
     if preset.get("update_history", False):
         cmd.append("--update-history")
-    
+
     # Add report
     report = args.report if args.report else preset.get("report", False)
     if report:
         cmd.append("--report")
-    
+
     # Add verbose output
     if args.verbose:
         cmd.append("--verbose")
-    
+
     # Add dry-run
     if args.dry_run:
         cmd.append("--dry-run")
-    
+
     return cmd
+
 
 def main():
     """Main function."""
     args = parse_args()
-    
+
     # Build the command
     cmd = build_command(args)
-    
+
     # Print the command
     print(f"Running: {' '.join(cmd)}")
     print(f"Preset: {args.preset} - {PRESETS[args.preset]['description']}")
-    print(f"Processes: {args.processes if args.processes is not None else get_optimal_processes()}")
-    
+    print(
+        f"Processes: {args.processes if args.processes is not None else get_optimal_processes()}"
+    )
+
     # Execute the command if not a dry run
     if not args.dry_run:
         try:
@@ -221,6 +222,7 @@ def main():
             sys.exit(1)
     else:
         print("Dry run - not executing tests")
+
 
 if __name__ == "__main__":
     main()

@@ -13,6 +13,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.medium
 def test_transaction_commit_and_rollback(tmp_path, monkeypatch):
     """ChromaDB adapter should commit and rollback vector operations."""
     monkeypatch.setenv("ENABLE_CHROMADB", "1")

@@ -11,6 +11,7 @@ import pytest
 from devsynth.interface import mvuu_dashboard
 
 
+@pytest.mark.fast
 def test_load_traceability_reads_default_file():
     data = mvuu_dashboard.load_traceability()
     assert "DSY-0001" in data
@@ -18,6 +19,7 @@ def test_load_traceability_reads_default_file():
     assert entry.get("mvuu") is True
 
 
+@pytest.mark.fast
 def test_load_traceability_reads_specified_file(tmp_path: Path):
     sample = {"MVUU-9999": {"mvuu": True}}
     path = tmp_path / "trace.json"
@@ -27,8 +29,16 @@ def test_load_traceability_reads_specified_file(tmp_path: Path):
     assert data == sample
 
 
+@pytest.mark.fast
 def test_render_dashboard_invokes_streamlit(monkeypatch: pytest.MonkeyPatch):
-    data = {"DSY-0001": {"mvuu": True, "issue": "DSY-0001", "files": ["file.txt"], "features": []}}
+    data = {
+        "DSY-0001": {
+            "mvuu": True,
+            "issue": "DSY-0001",
+            "files": ["file.txt"],
+            "features": [],
+        }
+    }
 
     mock_sidebar = MagicMock()
     mock_sidebar.selectbox.return_value = "DSY-0001"

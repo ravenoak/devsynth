@@ -11,7 +11,9 @@ except ImportError:  # pragma: no cover - stubbed in tests
     END = None  # type: ignore
 from typing import Any, Dict, List, Optional
 
-from devsynth.adapters.provider_system import ProviderError
+from devsynth.adapters.provider_system import (
+    ProviderError,
+)
 from devsynth.adapters.provider_system import (
     complete as llm_complete,  # Renamed to avoid conflict
 )

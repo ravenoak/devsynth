@@ -8,9 +8,9 @@ This is part of an effort to break up the monolithic wsde_team_extended.py
 into smaller, more focused modules.
 """
 
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
 from devsynth.domain.models.wsde_facade import WSDETeam
 
@@ -38,7 +38,9 @@ class TaskManagementMixin:
             task["id"] = str(uuid.uuid4())
 
         # Log the task processing
-        self.logger.info(f"Processing task {task['id']}: {task.get('title', 'Untitled')}")
+        self.logger.info(
+            f"Processing task {task['id']}: {task.get('title', 'Untitled')}"
+        )
 
         # Dynamically reassign roles for this task based on expertise
         if hasattr(self, "dynamic_role_reassignment"):
@@ -92,8 +94,11 @@ class TaskManagementMixin:
         if not requirements and "description" in task:
             # Try to extract requirements from description
             description = task["description"]
-            requirements = [line.strip("- ") for line in description.split("\n") 
-                           if line.strip().startswith("-")]
+            requirements = [
+                line.strip("- ")
+                for line in description.split("\n")
+                if line.strip().startswith("-")
+            ]
 
         # Create a subtask for each requirement
         for i, req in enumerate(requirements):
@@ -104,13 +109,15 @@ class TaskManagementMixin:
                 "parent_task_id": task["id"],
                 "status": "pending",
                 "priority": "medium",
-                "assigned_to": None
+                "assigned_to": None,
             }
             subtasks.append(subtask)
 
         return subtasks
 
-    def associate_subtasks(self, main_task: Dict[str, Any], subtasks: List[Dict[str, Any]]) -> None:
+    def associate_subtasks(
+        self, main_task: Dict[str, Any], subtasks: List[Dict[str, Any]]
+    ) -> None:
         """
         Associate subtasks with a main task.
 
@@ -171,7 +178,9 @@ class TaskManagementMixin:
                 subtask["status"] = "assigned"
 
                 # Log the delegation
-                self.logger.info(f"Delegated subtask {subtask['id']} to {best_agent.name} (score: {best_score:.2f})")
+                self.logger.info(
+                    f"Delegated subtask {subtask['id']} to {best_agent.name} (score: {best_score:.2f})"
+                )
 
                 # Send a message to the agent
                 self.send_message(
@@ -179,28 +188,34 @@ class TaskManagementMixin:
                     recipients=[best_agent.name],
                     message_type="task_assignment",
                     subject=f"Subtask Assignment: {subtask['title']}",
-                    content=subtask
+                    content=subtask,
                 )
 
                 # Add to delegation results
-                delegation_results.append({
-                    "subtask_id": subtask["id"],
-                    "assigned_to": best_agent.name,
-                    "expertise_score": best_score,
-                    "timestamp": datetime.now().isoformat()
-                })
+                delegation_results.append(
+                    {
+                        "subtask_id": subtask["id"],
+                        "assigned_to": best_agent.name,
+                        "expertise_score": best_score,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
             else:
                 # No suitable agent found
                 subtask["status"] = "unassigned"
-                self.logger.warning(f"No suitable agent found for subtask {subtask['id']}")
+                self.logger.warning(
+                    f"No suitable agent found for subtask {subtask['id']}"
+                )
 
                 # Add to delegation results
-                delegation_results.append({
-                    "subtask_id": subtask["id"],
-                    "assigned_to": None,
-                    "expertise_score": 0,
-                    "timestamp": datetime.now().isoformat()
-                })
+                delegation_results.append(
+                    {
+                        "subtask_id": subtask["id"],
+                        "assigned_to": None,
+                        "expertise_score": 0,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
 
         return delegation_results
 
@@ -237,7 +252,9 @@ class TaskManagementMixin:
                     subtask["progress"] = progress
                     return
 
-    def reassign_subtasks_based_on_progress(self, subtasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def reassign_subtasks_based_on_progress(
+        self, subtasks: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Reassign subtasks based on progress and agent availability.
 
@@ -256,7 +273,10 @@ class TaskManagementMixin:
         low_progress_subtasks = []
         for subtask in subtasks:
             subtask_id = subtask["id"]
-            if subtask_id in self.subtask_progress and self.subtask_progress[subtask_id] < 0.3:
+            if (
+                subtask_id in self.subtask_progress
+                and self.subtask_progress[subtask_id] < 0.3
+            ):
                 if subtask["status"] != "completed" and "assigned_to" in subtask:
                     low_progress_subtasks.append(subtask)
 
@@ -264,7 +284,7 @@ class TaskManagementMixin:
         low_progress_subtasks.sort(
             key=lambda s: (
                 {"high": 0, "medium": 1, "low": 2}.get(s.get("priority", "medium"), 1),
-                self.subtask_progress.get(s["id"], 0)
+                self.subtask_progress.get(s["id"], 0),
             )
         )
 
@@ -285,7 +305,9 @@ class TaskManagementMixin:
                 expertise_score = self._calculate_expertise_score(agent, subtask)
 
                 # Adjust score based on agent workload
-                workload_factor = 1.0 - (agent_workloads.get(agent.name, 0) / max(len(subtasks), 1))
+                workload_factor = 1.0 - (
+                    agent_workloads.get(agent.name, 0) / max(len(subtasks), 1)
+                )
                 adjusted_score = expertise_score * workload_factor
 
                 # Update best agent if this one has a higher score
@@ -294,7 +316,10 @@ class TaskManagementMixin:
                     best_agent = agent
 
             # Reassign subtask if a better agent was found
-            if best_agent and best_score > self.subtask_progress.get(subtask["id"], 0) * 1.5:
+            if (
+                best_agent
+                and best_score > self.subtask_progress.get(subtask["id"], 0) * 1.5
+            ):
                 # Update subtask assignment
                 old_assignee = subtask["assigned_to"]
                 subtask["assigned_to"] = best_agent.name
@@ -314,7 +339,7 @@ class TaskManagementMixin:
                     recipients=[best_agent.name],
                     message_type="task_assignment",
                     subject=f"Subtask Reassignment: {subtask['title']}",
-                    content=subtask
+                    content=subtask,
                 )
 
                 self.send_message(
@@ -322,22 +347,33 @@ class TaskManagementMixin:
                     recipients=[old_assignee],
                     message_type="task_reassignment",
                     subject=f"Subtask Reassigned: {subtask['title']}",
-                    content={"subtask_id": subtask["id"], "new_assignee": best_agent.name}
+                    content={
+                        "subtask_id": subtask["id"],
+                        "new_assignee": best_agent.name,
+                    },
                 )
 
                 # Add to reassignment results
-                reassignment_results.append({
-                    "subtask_id": subtask["id"],
-                    "previous_assignee": old_assignee,
-                    "new_assignee": best_agent.name,
-                    "expertise_score": best_score,
-                    "progress_at_reassignment": self.subtask_progress.get(subtask["id"], 0),
-                    "timestamp": datetime.now().isoformat()
-                })
+                reassignment_results.append(
+                    {
+                        "subtask_id": subtask["id"],
+                        "previous_assignee": old_assignee,
+                        "new_assignee": best_agent.name,
+                        "expertise_score": best_score,
+                        "progress_at_reassignment": self.subtask_progress.get(
+                            subtask["id"], 0
+                        ),
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
 
                 # Update agent workloads
-                agent_workloads[old_assignee] = max(0, agent_workloads.get(old_assignee, 0) - 1)
-                agent_workloads[best_agent.name] = agent_workloads.get(best_agent.name, 0) + 1
+                agent_workloads[old_assignee] = max(
+                    0, agent_workloads.get(old_assignee, 0) - 1
+                )
+                agent_workloads[best_agent.name] = (
+                    agent_workloads.get(best_agent.name, 0) + 1
+                )
 
         return reassignment_results
 
@@ -374,7 +410,10 @@ class TaskManagementMixin:
             subtask_id = subtask["id"]
 
             # Skip if progress is already tracked and subtask is completed
-            if subtask_id in self.subtask_progress and self.subtask_progress[subtask_id] >= 1.0:
+            if (
+                subtask_id in self.subtask_progress
+                and self.subtask_progress[subtask_id] >= 1.0
+            ):
                 continue
 
             # Get messages related to this subtask
@@ -422,9 +461,11 @@ class TaskManagementMixin:
                     "title": subtask.get("title", ""),
                     "assigned_to": subtask.get("assigned_to", ""),
                     "result": latest_message["content"],
-                    "timestamp": latest_message["timestamp"].isoformat() 
-                        if isinstance(latest_message["timestamp"], datetime) 
+                    "timestamp": (
+                        latest_message["timestamp"].isoformat()
+                        if isinstance(latest_message["timestamp"], datetime)
                         else latest_message["timestamp"]
+                    ),
                 }
                 results.append(result)
 
@@ -458,7 +499,7 @@ class TaskManagementMixin:
                     "assigned_subtasks": 0,
                     "completed_subtasks": 0,
                     "total_progress": 0,
-                    "average_progress": 0
+                    "average_progress": 0,
                 }
 
             # Update metrics
@@ -473,7 +514,9 @@ class TaskManagementMixin:
                     metrics["completed_subtasks"] += 1
 
             # Calculate average progress
-            metrics["average_progress"] = metrics["total_progress"] / metrics["assigned_subtasks"]
+            metrics["average_progress"] = (
+                metrics["total_progress"] / metrics["assigned_subtasks"]
+            )
 
     def get_contribution_metrics(self, task_id: str) -> Dict[str, Dict[str, Any]]:
         """
@@ -512,8 +555,11 @@ class TaskManagementMixin:
         if not new_requirements and "description" in updated_task:
             # Try to extract requirements from description
             description = updated_task["description"]
-            new_requirements = [line.strip("- ") for line in description.split("\n") 
-                               if line.strip().startswith("-")]
+            new_requirements = [
+                line.strip("- ")
+                for line in description.split("\n")
+                if line.strip().startswith("-")
+            ]
 
         # Map existing subtasks to their requirements
         existing_req_map = {}
@@ -538,7 +584,7 @@ class TaskManagementMixin:
                     "parent_task_id": task_id,
                     "status": "pending",
                     "priority": "medium",
-                    "assigned_to": None
+                    "assigned_to": None,
                 }
                 updated_subtasks.append(new_subtask)
 

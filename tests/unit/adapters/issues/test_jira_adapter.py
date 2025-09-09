@@ -5,10 +5,9 @@ import responses
 
 from devsynth.adapters.issues import JiraIssueAdapter
 
-pytestmark = [pytest.mark.fast]
-
 
 @responses.activate
+@pytest.mark.fast
 def test_fetch_jira_issue() -> None:
     """Adapter returns title and description from the Jira API."""
     adapter = JiraIssueAdapter("https://jira.example.com", "token")

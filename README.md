@@ -1,7 +1,7 @@
 ---
 title: "DevSynth"
 date: "2025-05-20"
-version: "0.1.0-alpha.1"
+version: "0.1.0a1"
 tags:
   - "devsynth"
   - "overview"
@@ -15,11 +15,67 @@ last_reviewed: "2025-08-08"
 > Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
 
 # DevSynth
-![Coverage](https://img.shields.io/badge/coverage-77%25-yellow.svg)
+![Version](https://img.shields.io/badge/version-0.1.0a1-blue.svg) [![Pre‑release](https://img.shields.io/badge/status-pre--release-orange.svg)](docs/release/0.1.0-alpha.1.md)
+[![Readiness Checklist](https://img.shields.io/badge/readiness-checklist-blueviolet.svg)](docs/tasks.md)
+![Coverage](https://img.shields.io/badge/coverage-illustrative-lightgrey.svg)
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
-**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. Version `0.1.0-alpha.1` remains untagged; see [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md) for the full checklist. All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md). Release milestones and targeted features post-`0.1.0-alpha.1` are documented in [docs/release/roadmap.md](docs/release/roadmap.md); see [docs/roadmap/CONSOLIDATED_ROADMAP.md](docs/roadmap/CONSOLIDATED_ROADMAP.md) for the broader project plan.
+**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. Version `0.1.0a1` has been tagged; see [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md) and the prioritized readiness checklist at [docs/tasks.md](docs/tasks.md). All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md). Release milestones and targeted features post-`0.1.0a1` are documented in [docs/release/roadmap.md](docs/release/roadmap.md); see [docs/roadmap/CONSOLIDATED_ROADMAP.md](docs/roadmap/CONSOLIDATED_ROADMAP.md) for the broader project plan.
+## Quickstart
+
+Prerequisites
+- Python 3.12.x
+- Poetry
+
+Setup (choose one)
+- Recommended targeted baseline (tests without heavy GPU/LLM deps):
+  - poetry install --with dev --extras "tests retrieval chromadb api"
+- Minimal contributor setup:
+  - poetry install --with dev --extras minimal
+- Full dev + docs with all extras:
+  - poetry install --with dev,docs --all-extras
+
+Sanity checks
+- poetry run devsynth --help
+- poetry run devsynth doctor
+- poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+- Smoke mode (reduces plugin surface):
+  - poetry run devsynth run-tests --smoke --speed=fast --no-parallel
+
+## Testing Quick Start
+
+- Fast local smoke (all fast):
+  - poetry run devsynth run-tests --smoke --speed=fast --no-parallel
+- Unit fast lane:
+  - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel
+- Behavior fast lane:
+  - poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel
+- Integration fast lane:
+  - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel
+- Generate HTML test report:
+  - poetry run devsynth run-tests --report
+- Segmented full suite (recommended default for long runs):
+  - poetry run devsynth run-tests --target all-tests --speed fast --speed medium --speed slow --no-parallel --segment --segment-size 50 --report
+- Full guidance: see docs/developer_guides/testing.md
+- Bypass coverage gate while iterating: see docs/developer_guides/testing.md#bypassing-coverage-gate-for-focused-runs
+- Section 7 scripts (sanity+inventory, marker discipline): see docs/developer_guides/testing.md#using-section-7-helper-scripts-in-ci-and-locally
+- CLI options reference: see docs/user_guides/cli_command_reference.md
+- Maintainer Must-Run Sequence: see docs/tasks.md (Task 23) for the step-by-step order and commands; use Taskfile targets where provided.
+
+Optional resources (opt-in)
+- Install an extra and export the flag to enable gated tests/resources, e.g. TinyDB:
+  - poetry add tinydb --group dev
+  - export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
+- Common flags: DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE, DEVSYNTH_RESOURCE_CLI_AVAILABLE, DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
+- Note: The run-tests CLI defaults to a stub provider and offline mode in tests unless overridden.
+- See also: [Resources Matrix](docs/resources_matrix.md) for mapping extras to DEVSYNTH_RESOURCE_* flags and enablement examples.
+
+Next steps
+- Testing guidance: docs/developer_guides/testing.md (see stabilization plan: docs/plan.md and working checklist: docs/tasks.md)
+- CLI options reference: docs/user_guides/cli_command_reference.md
+- Release Playbook: docs/release/release_playbook.md
+
 ## Key Features
 - Modular, hexagonal architecture for extensibility and testability
 - Unified memory system with Kuzu, TinyDB, RDFLib, and JSON backends
@@ -61,7 +117,7 @@ Full documentation is available in the [docs/](docs/index.md) directory and onli
 - [Installation Guide](docs/getting_started/installation.md) *(includes pipx instructions)*
 - [User Guide](docs/user_guides/user_guide.md)
 - [Progressive Feature Setup](docs/user_guides/progressive_setup.md)
-- [CLI Reference](docs/user_guides/cli_reference.md)
+- [CLI Command Reference](docs/user_guides/cli_command_reference.md)
 - [API Reference Generation Guide](docs/user_guides/api_reference_generation.md)
 - [Dear PyGui Guide](docs/user_guides/dearpygui.md)
 - [Architecture Overview](docs/architecture/overview.md)
@@ -90,42 +146,81 @@ bash scripts/install_dev.sh
 
 ## Installation
 
-You can install DevSynth in a few different ways:
+### Editable Install (from source)
 
-1. **Poetry** – install from PyPI
+To run DevSynth directly from a cloned repository with an editable install using Poetry, follow these steps:
+
+1. Ensure you are using Python 3.12 and Poetry.
+2. From the project root, create the virtual environment and install dependencies:
+
+```bash
+poetry install
+```
+
+3. Run the CLI to verify that imports resolve cleanly:
+
+```bash
+poetry run devsynth --help
+```
+
+If you encounter a ModuleNotFoundError:
+- Make sure you are running within the Poetry virtual environment (use `poetry run` or `poetry shell`).
+- Confirm that the package path is correct (the project uses `packages = [{ include = "devsynth", from = "src" }]`).
+- If you plan to run tests or optional features, install the necessary extras:
+
+```bash
+# Minimal contributor setup (fast path) aligning with project guidelines
+poetry install --with dev --extras minimal
+
+# Minimal contributor setup with common tooling
+poetry install --with dev --extras "tests"
+# For retrieval or API examples add extras as needed
+poetry install --extras retrieval --extras api
+```
+
+Basic CLI usage (e.g., `--help`, `init`, `config`) does not require optional extras. Optional providers and GUIs remain lazy‑loaded and are strictly optional.
+
+### Installation
+
+Pre-release note: DevSynth 0.1.0a1 is not published on PyPI. Prefer Poetry for development installs, or pipx from a local checkout or Git URL.
+
+1. From source (development) — Poetry
 
    ```bash
-   poetry add devsynth
+   # Clone and enter the repository
+   git clone https://github.com/ravenoak/devsynth.git
+   cd devsynth
+
+   # Install development and documentation dependencies with targeted extras
+   poetry install --with dev,docs --extras "tests retrieval chromadb api"
+   # Optionally include all extras
+   poetry sync --all-extras --all-groups
    ```
 
-2. **pipx** *(end-user install)* – keep DevSynth isolated from system Python
+2. pipx (isolated end-user install) — from local path or Git
 
    ```bash
-   pipx install devsynth
+   # From a local checkout
+   pipx install .
+
+   # Or directly from Git (pin to a tag or commit for reproducibility)
+   pipx install git+https://github.com/ravenoak/devsynth.git@v0.1.0a1
    ```
 
-3. **Docker** – build and run using the provided Dockerfile
+3. Docker — build and run using the provided Dockerfile
 
    ```bash
    docker build -t devsynth .
    docker run --rm -p 8000:8000 devsynth
    ```
 
-4. **From Source for Development** – use Poetry
+4. Quick GUI preview — from source extras
 
    ```bash
-   # Install development and documentation dependencies with required extras
-   poetry install --with dev,docs --extras "tests retrieval chromadb api"
-   # Optionally include all extras
-   poetry sync --all-extras --all-groups
+   # Enable GUI extras with Poetry
+   poetry install --extras gui
+   poetry run devsynth dpg
    ```
-
-5. **Quick GUI preview** – install from PyPI and launch the Dear PyGui interface
-
-   ```bash
-   pip install 'devsynth[gui]'
-devsynth dpg
-  ```
 
 ### Shell Completion
 
@@ -136,8 +231,6 @@ devsynth --install-completion
 # or
 devsynth completion --install
 ```
-
-Use pip or pipx only when installing from PyPI.
 
 For more on Docker deployment, see the [Deployment Guide](docs/deployment/deployment_guide.md).
 
@@ -166,6 +259,8 @@ typical workflow is:
 
 ```bash
 poetry install
+pre-commit install
+pre-commit autoupdate
 poetry run pre-commit run --files <files>
 poetry run pytest
 ```
@@ -198,6 +293,12 @@ These extras enable optional vector stores such as **ChromaDB**, **Kuzu**,
 **FAISS**, and **LMDB**, additional LLM providers, the FastAPI server with
 Prometheus metrics, the NiceGUI WebUI, and the Dear PyGui interface. ChromaDB
 runs in embedded mode by default.
+
+Note on GUI extras: The NiceGUI and Dear PyGui integrations are fully optional.
+If these extras are not installed, DevSynth will stub or skip GUI code paths
+with friendly messages and will not import GUI frameworks at test collection
+or CLI startup. Install with `poetry install --extras gui` (or `pip install
+"devsynth[gui]"`) to enable these interfaces.
 
 ### Offline Mode
 
@@ -259,79 +360,42 @@ The repository includes runnable examples that walk through common workflows:
 
 ## Running Tests
 
-Always execute tests with `poetry run pytest`. Invoking plain `pytest`
-may fail because required plugins are installed only in the Poetry
-virtual environment. Environment provisioning is handled automatically
-in Codex environments. For manual setups, run `poetry install` to
-install all dependencies before running the tests.
-
-Before running the test suite manually, you **must** install DevSynth with its development extras:
+For consistency with project tooling and plugins, always run tests via Poetry and the CLI wrapper:
 
 ```bash
-# Minimal setup for contributors
+# Fast sanity subset (recommended)
+poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1
+
+# Full unit/integration targets
+poetry run devsynth run-tests --target unit-tests
+poetry run devsynth run-tests --target integration-tests
+
+# Smoke mode (reduced plugin surface)
+poetry run devsynth run-tests --smoke --speed=fast
+
+# HTML report under test_reports/
+poetry run devsynth run-tests --report
+```
+
+Install dependencies using one of the presets from our guidelines:
+
+```bash
+# Targeted baseline for local testing (no heavy GPU/LLM deps)
 poetry install --with dev --extras "tests retrieval chromadb api"
 
-# Enable GPU support if needed
-# poetry install --extras gpu
+# Minimal contributor setup
+poetry install --with dev --extras minimal
+
+# Full dev + docs with all extras
+poetry install --with dev,docs --all-extras
 ```
 
-Running the **full** test suite additionally requires the optional extras `tests`, `retrieval`, `memory`, `llm`, `api`, `webui`, `lmstudio`, `chromadb`, and `gui`:
+Notes:
+- Tests are isolated and deterministic by default; network is disabled unless explicitly enabled.
+- Optional resources (e.g., LM Studio, vector stores) are gated by env flags and extras.
 
-```bash
-  poetry install --extras tests --extras retrieval --extras memory \
-    --extras llm --extras api --extras webui --extras lmstudio \
-    --extras chromadb --extras gui
-```
-Alternatively, install them all at once:
-
-```bash
-poetry install --all-extras --all-groups
-
-To set up a complete development environment run:
-
-```bash
-poetry install --with dev,docs --extras "tests retrieval chromadb api" --all-extras
-```
-
-The test suite runs entirely in isolated temporary directories.  Ingestion and
-WSDE tests no longer require special environment variables and are executed by
-default when running `poetry run pytest`.
-
-Use pip only for installing from PyPI, not for local development.
-
-Some tests and features rely on optional vector store backends such as **ChromaDB**, **Kuzu**, **FAISS**, and **LMDB**. Install these packages if you plan to use them:
-
-```bash
-poetry install --extras retrieval
-# or install from PyPI
-pip install 'devsynth[retrieval]'
-```
-
-For a minimal install without optional extras:
-
-```bash
-poetry install --without dev --without docs
-```
-
-You can later enable specific features with `poetry install --extras retrieval --extras api`.
-
-After installation, execute the tests with:
-```bash
-poetry run pytest
-```
-If `pytest` reports missing packages, run `poetry install` to ensure all
-dependencies are installed.
-
-You can also use the `devsynth run-pipeline` command to run the entire
-suite or specific groups of tests and optionally generate an HTML report:
-
-```bash
-devsynth run-pipeline --target unit-tests            # run unit tests
-devsynth run-pipeline --target integration-tests     # run integration tests
-devsynth run-pipeline --target unit-tests --report   # generate HTML report under test_reports/
-```
-
-See [docs/developer_guides/testing.md](docs/developer_guides/testing.md) for detailed testing guidance.
+For authoritative, detailed instructions (extras matrix, resource flags, smoke mode, flakiness mitigation), see the DevSynth Testing Guide:
+- docs/developer_guides/testing.md
 
 ## Alignment and Manifest Validation
 
@@ -391,11 +455,44 @@ The [Repository Structure](docs/repo_structure.md) document provides a comprehen
 
 ## Testing
 
+Offline-first defaults and provider behavior
+- By default, the test CLI configures offline execution to avoid accidental network activity.
+- Defaults applied by `devsynth run-tests` when unset:
+  - DEVSYNTH_PROVIDER=stub
+  - DEVSYNTH_OFFLINE=true
+  - DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false
+- To opt into live provider tests locally, install the appropriate extras and set:
+  - For OpenAI: export DEVSYNTH_OFFLINE=false; export DEVSYNTH_PROVIDER=openai; export OPENAI_API_KEY=...; optionally set OPENAI_MODEL/OPENAI_EMBEDDINGS_MODEL.
+  - For LM Studio: export DEVSYNTH_OFFLINE=false; export DEVSYNTH_PROVIDER=lmstudio; export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234; export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true.
+- Resource-gated tests (`@pytest.mark.requires_resource(...)`) are skipped unless the corresponding `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true` flag is set.
+
+Coverage aggregation guidance
+- The repository enforces a global `--cov-fail-under=90` in pytest.ini.
+- Avoid asserting readiness from narrow subset runs; aggregate coverage using:
+  - poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report
+  - or segmented runs followed by: poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json
+
 Run the full test suite with:
 
 ```bash
 poetry run devsynth run-tests
 poetry run devsynth run-tests --maxfail 1  # optional early exit
+```
+
+Common, stable profiles:
+
+```bash
+# Smoke mode: disables third-party plugins and xdist; fastest, most stable
+poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+# Unit fast segmented (reduce flakiness/memory pressure)
+poetry run devsynth run-tests --target unit-tests --speed=fast --segment --segment-size=50 --maxfail=1
+
+# Generate HTML report under test_reports/
+poetry run devsynth run-tests --report
+
+# Feature flags (maps to DEVSYNTH_FEATURE_<NAME>)
+poetry run devsynth run-tests --feature EXPERIMENTAL_UI --feature SAFETY_CHECKS=false --speed=fast --no-parallel
 ```
 
 Optional provider tests such as LM Studio are disabled unless explicitly
@@ -444,4 +541,11 @@ DevSynth is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-_Last updated: August 5, 2025_
+_Last updated: August 25, 2025_
+
+## Troubleshooting (Quick Links)
+- Testing guide and fixtures: docs/developer_guides/testing.md
+- Common issues: docs/getting_started/troubleshooting.md
+- Open issues and analyses: issues/
+- If tests hang or plugins conflict: try smoke mode
+  - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1

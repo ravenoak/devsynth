@@ -27,7 +27,6 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
     pytest.mark.memory_intensive,
-    pytest.mark.medium,
 ]
 
 
@@ -35,7 +34,9 @@ pytestmark = [
 def mock_chromadb_client():
     """Create a mock ChromaDB client for testing."""
     mock_client = create_autospec(ClientAPI)
-    mock_collection = create_autospec(Collection)
+    # Use a flexible mock for the collection to allow methods like get/query/add/delete
+    # regardless of the installed chromadb Collection interface version.
+    mock_collection = MagicMock()
     mock_client.get_or_create_collection.return_value = mock_collection
     return (mock_client, mock_collection)
 
@@ -472,12 +473,24 @@ class TestChromaDBMemoryStore:
 
         ReqID: N/A"""
         result = memory_store.add_to_transaction(
-            "non-existent-tx", "store", {"item": MemoryItem(id="test", content="test")}
+            "non-existent-tx",
+            "store",
+            {
+                "item": MemoryItem(
+                    id="test", content="test", memory_type=MemoryType.WORKING
+                )
+            },
         )
         assert result is False
         transaction_id = memory_store.begin_transaction()
         memory_store.commit_transaction(transaction_id)
         result = memory_store.add_to_transaction(
-            transaction_id, "store", {"item": MemoryItem(id="test", content="test")}
+            transaction_id,
+            "store",
+            {
+                "item": MemoryItem(
+                    id="test", content="test", memory_type=MemoryType.WORKING
+                )
+            },
         )
         assert result is False

@@ -1,0 +1,163 @@
+name: CI Tests Matrix
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    name: Fast tests (PRs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry and venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-poetry-
+
+      - name: Install deps (tests baseline)
+        run: |
+          poetry install --with dev --extras "tests retrieval chromadb api minimal"
+
+      - name: Fast unit tests (smoke, no-parallel)
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+        run: |
+          poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1 --report
+
+      - name: Fast integration tests (no-parallel)
+        run: |
+          poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 --report
+
+      - name: Upload HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-fast-${{ github.run_id }}
+          path: test_reports
+
+  medium-nightly:
+    if: github.event_name == 'schedule'
+    name: Medium suite (nightly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry and venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-py3.12-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-py3.12-poetry-
+
+      - name: Install deps (tests baseline)
+        run: |
+          poetry install --with dev --extras "tests retrieval chromadb api minimal"
+
+      - name: Medium tests (unit+integration)
+        env:
+          PYTEST_ADDOPTS: "--cov-branch"
+        run: |
+          poetry run devsynth run-tests --speed=medium --no-parallel --report
+
+      - name: Upload HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-medium-${{ github.run_id }}
+          path: test_reports
+
+  slow-weekly:
+    if: github.event_name == 'schedule'
+    name: Slow suite (weekly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry and venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-py3.12-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-py3.12-poetry-
+
+      - name: Install deps (tests baseline)
+        run: |
+          poetry install --with dev --extras "tests retrieval chromadb api minimal"
+
+      - name: Slow tests (all targets)
+        env:
+          PYTEST_ADDOPTS: "--cov-branch"
+        run: |
+          poetry run devsynth run-tests --speed=slow --no-parallel --report
+
+      - name: Upload HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-slow-${{ github.run_id }}
+          path: test_reports

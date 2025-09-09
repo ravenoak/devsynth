@@ -14,8 +14,15 @@ from enum import Enum
 from functools import lru_cache, wraps
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-import httpx
-import requests
+# Optional imports for HTTP clients; guard to avoid hard deps during tests/offline modes
+try:  # pragma: no cover - optional dependency
+    import httpx  # type: ignore
+except Exception:  # pragma: no cover - absent when [llm] extra not installed
+    httpx = None  # type: ignore
+try:  # pragma: no cover - optional dependency
+    import requests  # type: ignore
+except Exception:  # pragma: no cover - absent when [llm] extra not installed
+    requests = None  # type: ignore
 
 from devsynth.config.settings import get_settings
 from devsynth.exceptions import ConfigurationError, DevSynthError
@@ -33,6 +40,8 @@ class ProviderType(Enum):
 
     OPENAI = "openai"
     LMSTUDIO = "lmstudio"
+    ANTHROPIC = "anthropic"
+    STUB = "stub"
 
 
 class ProviderError(DevSynthError):
@@ -178,6 +187,16 @@ class ProviderFactory:
                 os.environ["OPENAI_API_KEY"] = old_key
         tls_conf = tls_config or _create_tls_config(tls_settings)
 
+        # Global kill-switch for providers (useful in CI/tests)
+        if os.environ.get("DEVSYNTH_DISABLE_PROVIDERS", "").lower() in {
+            "1",
+            "true",
+            "yes",
+        }:
+            logger.warning("Providers disabled via DEVSYNTH_DISABLE_PROVIDERS.")
+            return NullProvider(reason="Disabled by DEVSYNTH_DISABLE_PROVIDERS")
+
+        explicit_request = provider_type is not None
         if provider_type is None:
             provider_type = config["default_provider"]
 
@@ -187,13 +206,59 @@ class ProviderFactory:
         else:
             provider_type_value = str(provider_type)
 
+        # Helper to choose safe default (stub/null)
+        safe_default = os.environ.get("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "stub").lower()
+
+        def _safe_provider(reason: str) -> "BaseProvider":
+            if safe_default == ProviderType.STUB.value:
+                logger.info("Falling back to Stub provider: %s", reason)
+                return StubProvider(
+                    tls_config=tls_conf,
+                    retry_config=retry_config or config.get("retry"),
+                )
+            logger.info("Falling back to Null provider: %s", reason)
+            return NullProvider(reason=reason)
+
+        # Global offline guard to prevent accidental network calls
+        if os.environ.get("DEVSYNTH_OFFLINE", "").lower() in {"1", "true", "yes"}:
+            if provider_type_value.lower() not in {ProviderType.STUB.value, "offline"}:
+                return _safe_provider("DEVSYNTH_OFFLINE active; using safe provider")
+
         try:
-            if provider_type_value.lower() == ProviderType.OPENAI.value:
-                if not config["openai"]["api_key"]:
-                    logger.warning(
-                        "OpenAI API key not found; falling back to LM Studio if available"
-                    )
-                    return ProviderFactory.create_provider(ProviderType.LMSTUDIO.value)
+            pt = provider_type_value.lower()
+            if pt == ProviderType.OPENAI.value:
+                if not config["openai"].get("api_key"):
+                    if explicit_request:
+                        logger.error(
+                            "OpenAI API key is missing for explicitly requested OpenAI provider. "
+                            "Set OPENAI_API_KEY or choose a safe provider via DEVSYNTH_PROVIDER=stub."
+                        )
+                        raise ProviderError(
+                            "Missing OPENAI_API_KEY for OpenAI provider. Set OPENAI_API_KEY or use DEVSYNTH_PROVIDER=stub."
+                        )
+                    # Attempt LM Studio only when explicitly marked available to avoid network calls by default
+                    if os.environ.get(
+                        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+                    ).lower() in {"1", "true", "yes"}:
+                        logger.warning(
+                            "OPENAI_API_KEY not found; attempting LM Studio as fallback"
+                        )
+                        try:
+                            return ProviderFactory.create_provider(
+                                ProviderType.LMSTUDIO.value
+                            )
+                        except Exception as exc:
+                            logger.warning("LM Studio unavailable: %s", exc)
+                            return _safe_provider(
+                                "No OPENAI_API_KEY and LM Studio unreachable. "
+                                "Hint: export OPENAI_API_KEY, or export DEVSYNTH_PROVIDER=stub for offline runs."
+                            )
+                    else:
+                        return _safe_provider(
+                            "No OPENAI_API_KEY; LM Studio not marked available. "
+                            "Hint: export OPENAI_API_KEY, export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true, "
+                            "or set DEVSYNTH_PROVIDER=stub for offline runs."
+                        )
                 logger.info("Using OpenAI provider")
                 return OpenAIProvider(
                     api_key=config["openai"]["api_key"],
@@ -202,22 +267,58 @@ class ProviderFactory:
                     tls_config=tls_conf,
                     retry_config=retry_config or config.get("retry"),
                 )
-            elif provider_type_value.lower() == ProviderType.LMSTUDIO.value:
+            elif pt == ProviderType.LMSTUDIO.value:
+                # Respect availability flag to avoid network calls when not desired
+                if (
+                    os.environ.get(
+                        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+                    ).lower()
+                    not in {"1", "true", "yes"}
+                    and not explicit_request
+                ):
+                    return _safe_provider("LM Studio not marked available")
                 logger.info("Using LM Studio provider")
-                return LMStudioProvider(
-                    endpoint=config["lmstudio"]["endpoint"],
-                    model=config["lmstudio"]["model"],
+                try:
+                    return LMStudioProvider(
+                        endpoint=config["lmstudio"]["endpoint"],
+                        model=config["lmstudio"]["model"],
+                        tls_config=tls_conf,
+                        retry_config=retry_config or config.get("retry"),
+                    )
+                except Exception as exc:
+                    logger.warning("LM Studio unavailable: %s", exc)
+                    return _safe_provider("LM Studio unreachable")
+            elif pt == ProviderType.ANTHROPIC.value:
+                api_key = os.environ.get("ANTHROPIC_API_KEY")
+                if not api_key:
+                    if explicit_request:
+                        logger.error(
+                            "Anthropic API key is missing for explicitly requested Anthropic provider"
+                        )
+                        raise ProviderError(
+                            "Anthropic API key is required for Anthropic provider"
+                        )
+                    return _safe_provider(
+                        "No ANTHROPIC_API_KEY; falling back to safe default"
+                    )
+                # Anthropic not implemented in this adapter layer yet
+                raise ProviderError(
+                    "Anthropic provider is not supported in adapters.provider_system; use application.llm.providers or configure OpenAI/LM Studio."
+                )
+            elif pt == ProviderType.STUB.value:
+                logger.info("Using Stub provider (deterministic, offline)")
+                return StubProvider(
                     tls_config=tls_conf,
                     retry_config=retry_config or config.get("retry"),
                 )
             else:
                 logger.warning(
-                    f"Unknown provider type '{provider_type}', falling back to OpenAI"
+                    f"Unknown provider type '{provider_type}', falling back to safe default"
                 )
-                return ProviderFactory.create_provider(ProviderType.OPENAI.value)
+                return _safe_provider("Unknown provider type")
         except Exception as e:
             logger.error(f"Failed to create provider {provider_type}: {e}")
-            raise ProviderError(f"Failed to create provider {provider_type}: {e}")
+            return NullProvider(reason=f"Provider creation failed: {e}")
 
 
 class BaseProvider:
@@ -355,6 +456,98 @@ class BaseProvider:
         raise NotImplementedError("Subclasses must implement aembed()")
 
 
+class NullProvider(BaseProvider):
+    """A no-op provider that fails fast with a clear message.
+
+    Used when remote providers are not configured or unavailable to avoid hangs.
+    """
+
+    def __init__(self, reason: str = "Provider disabled", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.reason = reason
+
+    def complete(self, *args, **kwargs) -> str:  # pragma: no cover - simple guard
+        raise ProviderError(
+            f"LLM provider is disabled: {self.reason}. Set OPENAI_API_KEY or start LM Studio."
+        )
+
+    async def acomplete(
+        self, *args, **kwargs
+    ) -> str:  # pragma: no cover - simple guard
+        raise ProviderError(
+            f"LLM provider is disabled: {self.reason}. Set OPENAI_API_KEY or start LM Studio."
+        )
+
+    def embed(self, *args, **kwargs):  # pragma: no cover - simple guard
+        raise ProviderError(
+            f"Embeddings unavailable because provider is disabled: {self.reason}."
+        )
+
+
+class StubProvider(BaseProvider):
+    """Deterministic local stub for tests and offline development.
+
+    - No network calls.
+    - Deterministic outputs based on SHA-256 of input.
+    - Useful when DEVSYNTH_PROVIDER=stub or in tests.
+    """
+
+    def __init__(self, *, name: str = "stub-llm", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.name = name
+
+    @staticmethod
+    def _to_deterministic_floats(
+        data: Union[str, bytes], *, size: int = 8
+    ) -> List[float]:
+        import hashlib
+
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+        digest = hashlib.sha256(data).digest()
+        # Map first `size` bytes into floats in [0,1)
+        return [b / 255.0 for b in digest[:size]]
+
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        sys = f"[sys:{system_prompt}] " if system_prompt else ""
+        return f"{sys}[stub:{self.name}] {prompt}"[: max_tokens or 10_000]
+
+    async def acomplete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        return self.complete(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            parameters=parameters,
+        )
+
+    def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
+        if isinstance(text, str):
+            texts = [text]
+        else:
+            texts = list(text)
+        return [self._to_deterministic_floats(t) for t in texts]
+
+    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+        return self.embed(text)
+
+
 class OpenAIProvider(BaseProvider):
     """OpenAI API provider implementation."""
 
@@ -374,6 +567,11 @@ class OpenAIProvider(BaseProvider):
             model: Model name (default: gpt-4)
             base_url: Base URL for API (default: OpenAI's API)
         """
+        if requests is None:
+            # Avoid import-time hard dependency when [llm] extra is not installed
+            raise ProviderError(
+                "The 'requests' package is required for OpenAI provider. Install the 'devsynth[llm]' extra or set DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub."
+            )
         super().__init__(
             tls_config=tls_config,
             retry_config=retry_config,
@@ -519,6 +717,10 @@ class OpenAIProvider(BaseProvider):
         max_tokens: int = 2000,
     ) -> str:
         """Asynchronously generate a completion using the OpenAI API."""
+        if httpx is None:
+            raise ProviderError(
+                "The 'httpx' package is required for async OpenAI operations. Install 'devsynth[llm]' or use synchronous methods."
+            )
 
         # Define the actual API call function
         async def _api_call():
@@ -709,6 +911,10 @@ class OpenAIProvider(BaseProvider):
 
     async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
         """Asynchronously generate embeddings using the OpenAI API."""
+        if httpx is None:
+            raise ProviderError(
+                "The 'httpx' package is required for async OpenAI operations. Install 'devsynth[llm]' or use synchronous methods."
+            )
 
         # Define the actual API call function
         async def _api_call():
@@ -806,6 +1012,11 @@ class LMStudioProvider(BaseProvider):
             endpoint: LM Studio API endpoint
             model: Model name (ignored in LM Studio, uses loaded model)
         """
+        if requests is None:
+            # Avoid import-time hard dependency when [llm] extra is not installed
+            raise ProviderError(
+                "The 'requests' package is required for LM Studio provider. Install the 'devsynth[llm]' extra or set DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub."
+            )
         super().__init__(
             tls_config=tls_config,
             retry_config=retry_config,
@@ -818,6 +1029,22 @@ class LMStudioProvider(BaseProvider):
 
         if retry_config is not None:
             self.retry_config = retry_config
+
+        # Fast short-circuit: if LM Studio is not reachable, fail fast to avoid hangs
+        try:
+            # Use a very small connect timeout to avoid test hangs; allow slightly larger read timeout
+            # Ping a lightweight endpoint to verify availability
+            health_url = f"{self.endpoint}/v1/models"
+            requests.get(
+                health_url,
+                timeout=(0.2, 1.0),
+                **self.tls_config.as_requests_kwargs(),
+            )
+        except Exception as exc:
+            raise ProviderError(
+                "LM Studio endpoint is not reachable; provider disabled. "
+                "Set OPENAI_API_KEY for OpenAI or start LM Studio at LM_STUDIO_ENDPOINT."
+            ) from exc
 
     def _should_retry(self, exc: Exception) -> bool:
         """Return ``True`` if the exception should trigger a retry."""
@@ -949,9 +1176,14 @@ class LMStudioProvider(BaseProvider):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Asynchronously generate a completion using LM Studio."""
-
+        if httpx is None:
+            raise ProviderError(
+                "The 'httpx' package is required for async LM Studio operations. Install 'devsynth[llm]' or use synchronous methods."
+            )
         # Define the actual API call function
         if parameters:
             temperature = parameters.get("temperature", temperature)
@@ -1546,6 +1778,9 @@ def embed(
     except ProviderError:
         raise
     except Exception as exc:  # pragma: no cover - unexpected
+        # Be robust to class identity mismatches across import contexts
+        if exc.__class__.__name__ == "ProviderError":
+            raise exc
         raise ProviderError(f"Embedding call failed: {exc}") from exc
 
 
@@ -1585,4 +1820,6 @@ async def aembed(
     except ProviderError:
         raise
     except Exception as exc:  # pragma: no cover - unexpected
+        if exc.__class__.__name__ == "ProviderError":
+            raise exc
         raise ProviderError(f"Embedding call failed: {exc}") from exc

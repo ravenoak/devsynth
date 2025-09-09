@@ -14,6 +14,7 @@ pytestmark = [
 ]
 
 
+@pytest.mark.medium
 def test_multi_store_persistence(tmp_path, monkeypatch):
     """LMDB, FAISS and Kuzu stores should persist across adapter instances. ReqID: FR-37"""
     # Avoid network calls by providing a trivial embedding function

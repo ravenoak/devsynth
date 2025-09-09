@@ -9,6 +9,11 @@ This directory contains tests for the DevSynth project, organized into different
 - **Sentinel Test**: `tests/test_speed_dummy.py` is a trivial fast test that exists
   to validate tooling; do not remove it.
 
+### See also
+- [Improvement Plan](../docs/plan.md)
+- [Improvement Tasks Checklist](../docs/tasks.md)
+- [CLI Command Reference](../docs/user_guides/cli_command_reference.md)
+
 ## Test Organization
 
 ### Directory Structure
@@ -99,6 +104,79 @@ poetry run devsynth run-tests --speed=fast
 
 Tests that require significant memory must be marked with `@pytest.mark.memory_intensive`. Optional external services are gated with resource markers such as `@pytest.mark.requires_resource("lmstudio")` and will be skipped automatically when the corresponding resource is unavailable.
 
+## Local resource enablement (extras + env)
+
+To run optional backends locally, install extras and set resource flags explicitly. These are disabled by default in CI and in the run-tests CLI unless overridden.
+
+- Retrieval backends (FAISS/ChromaDB used by tests):
+
+  ```bash
+  poetry install --with dev --extras "tests retrieval chromadb"
+  poetry run devsynth run-tests --speed=fast -m "not requires_resource('openai')"
+  ```
+
+### Section 7 helper tasks (sanity, inventory, and marker discipline)
+
+For quick evidence collection and parity with docs/plan.md §7 and docs/tasks.md acceptance artifacts, use the provided Taskfile targets. These commands are smoke-friendly and offline-first by default.
+
+- With Task installed:
+
+  ```bash
+  task tests:sanity-and-inventory    # runs scripts/run_sanity_and_inventory.sh
+  task tests:marker-discipline       # runs scripts/run_marker_discipline.sh
+  ```
+
+- Without Task (direct scripts):
+
+  ```bash
+  bash scripts/run_sanity_and_inventory.sh
+  bash scripts/run_marker_discipline.sh
+  ```
+
+Artifacts are written under test_reports/:
+- collect_only_output.txt (pytest --collect-only output)
+- smoke_plugin_notice.txt (PASS/FAIL via scripts/verify_smoke_notice.py)
+- test_markers_report.json (from marker discipline)
+- Any inventory output produced by the run-tests CLI when applicable
+
+These outputs are referenced by docs/tasks.md §1.6 and §2.1–§2.6 and are collected by CI workflows.
+
+To run optional backends locally, install extras and set resource flags explicitly. These are disabled by default in CI and in the run-tests CLI unless overridden.
+
+- Retrieval backends (FAISS/ChromaDB used by tests):
+
+  ```bash
+  poetry install --with dev --extras "tests retrieval chromadb"
+  poetry run devsynth run-tests --speed=fast -m "not requires_resource('openai')"
+  ```
+
+- Memory + LLM with LM Studio:
+
+  ```bash
+  poetry install --with dev --extras "tests llm"
+  export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+  export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234
+  export DEVSYNTH_LMSTUDIO_TIMEOUT_SECONDS=10
+  export DEVSYNTH_LMSTUDIO_RETRIES=1
+  # Prefer --marker to avoid shell/pytest -m quoting pitfalls
+  poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 --marker "requires_resource('lmstudio') and not slow"
+  ```
+
+- OpenAI provider (nightly/gated local):
+
+  ```bash
+  poetry install --with dev --extras llm
+  export DEVSYNTH_PROVIDER=openai
+  export OPENAI_API_KEY=your-key
+  export OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+  poetry run devsynth run-tests --speed=fast -m "requires_resource('openai') and not slow"
+  ```
+
+Notes:
+- Resource markers: @pytest.mark.requires_resource("<name>") map to DEVSYNTH_RESOURCE_<NAME>_AVAILABLE flags.
+- Extras ↔ flags mapping: see docs/developer_guides/testing.md (Quick Reference: Extras ↔ Resource flags). For example, 'retrieval' → FAISS/KUZU flags; 'chromadb' → CHROMADB flag; 'memory' → TINYDB/DUCKDB/LMDB/KUZU/FAISS/CHROMADB flags; 'lmstudio' → LMSTUDIO flag; 'webui' → WEBUI flag.
+- The run-tests CLI defaults to offline and stub provider; override env vars explicitly when enabling real services.
+
 ## Test Speed Categories
 
 Tests are grouped by runtime using pytest markers:
@@ -122,6 +200,20 @@ You can also use helper commands:
 ```bash
 poetry run devsynth run-tests --fast --medium
 ```
+
+## Property-based Tests (opt-in)
+
+Property tests using Hypothesis are disabled by default to keep fast, stable CI runs. Enable them explicitly by setting the environment variable before running tests:
+
+```bash
+export DEVSYNTH_PROPERTY_TESTING=true
+poetry run pytest tests/property/
+```
+
+Conventions:
+- Mark all property tests with `@pytest.mark.property` in addition to a speed marker (`@pytest.mark.fast|medium|slow`).
+- Property tests may also live in unit/ directories; they should still include the `property` marker.
+- The tests/property/conftest.py ensures these tests are only collected when `DEVSYNTH_PROPERTY_TESTING` is truthy (1/true/yes/on).
 
 ## Conditional Test Execution
 
@@ -295,6 +387,48 @@ def test_that_needs_my_resource():
     ...
 ```
 
+## Quickstart and Troubleshooting
+
+Quickstart (recommended minimal setup for contributors):
+
+```bash
+# Install with dev group and targeted extras to avoid heavy GPU/LLM deps
+poetry install --with dev --extras "tests retrieval chromadb api"
+# Sanity: collection-only to verify environment
+poetry run pytest --collect-only -q
+# Fast smoke lane to reduce plugin surface and avoid xdist
+poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+```
+
+Helper scripts for Section 7 (sanity, inventory, marker reports):
+
+- Standardize sanity and inventory runs and write logs/artifacts under test_reports/:
+  ```bash
+  bash scripts/run_sanity_and_inventory.sh
+  # or explicitly set smoke via env
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash scripts/run_sanity_and_inventory.sh
+  ```
+- Generate the marker verification report and run the changed-only check:
+  ```bash
+  bash scripts/run_marker_discipline.sh
+  # Produces: test_reports/test_markers_report.json
+  ```
+
+Common issues and recovery steps:
+- Plugin autoload conflicts or unexplained hangs:
+  - Re-run in smoke mode (sets PYTEST_DISABLE_PLUGIN_AUTOLOAD=1) as above.
+  - Inspect environment and plugin list:
+    ```bash
+    bash scripts/diagnostics.sh
+    ```
+- Missing extras or ModuleNotFoundError for plugins like pytest-bdd:
+  - Ensure you installed with the minimal test baseline extras (see commands above).
+- Tests making network calls or hanging on providers:
+  - Ensure offline defaults are in effect (the CLI sets DEVSYNTH_PROVIDER=stub and DEVSYNTH_OFFLINE=true for test lanes unless overridden).
+  - Do not enable resource flags unless you intend to use the corresponding backend.
+
+The diagnostics script prints an environment snapshot, the pytest plugin list (respecting smoke mode via PYTEST_DISABLE_PLUGIN_AUTOLOAD=1), and a quick discovery snapshot to help pinpoint issues.
+
 ## Running Tests
 
 To run all tests:
@@ -347,7 +481,38 @@ is unavailable:
 Each corresponding test module uses `@pytest.mark.requires_resource("<backend>")`
 to declare its dependency.
 
-To run tests for a specific type:
+#### Enabling specific resources locally
+
+For local runs, enable a resource by installing the required extra/dependency and
+setting the corresponding environment flag to `true` before running tests.
+
+- TinyDB
+  - Install: `poetry add tinydb --group dev` or `pip install tinydb`
+  - Enable: `export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true`
+- DuckDB
+  - Install: `poetry add duckdb --group dev` or `pip install duckdb`
+  - Enable: `export DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=true`
+- LMDB
+  - Install: `poetry add lmdb --group dev` or `pip install lmdb`
+  - Enable: `export DEVSYNTH_RESOURCE_LMDB_AVAILABLE=true`
+- FAISS (CPU)
+  - Install: `poetry add faiss-cpu --group dev` or `pip install faiss-cpu`
+  - Enable: `export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true`
+- Kuzu
+  - Install: `poetry add kuzu --group dev` or `pip install kuzu`
+  - Enable: `export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true`
+- ChromaDB
+  - Install: `poetry add chromadb tiktoken --group dev` or `pip install "chromadb>=0.5" tiktoken`
+  - Enable: `export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true`
+- RDFLib (if used by RDF adapters)
+  - Install: `poetry add rdflib --group dev` or `pip install rdflib`
+  - Enable: `export DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE=true`
+- LM Studio (local LLM)
+  - Install extras (optional): `poetry install --extras llm`
+  - Configure: `export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234`
+  - Enable: `export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true`
+
+After enabling resources, run the desired subset or the full suite:
 
 ```bash
 poetry run pytest tests/unit/
@@ -386,6 +551,12 @@ For additional utilities like flaky-test fixes and incremental categorization, s
 
 All tests should include the requirement ID they verify in the test's docstring. This links the test back to the relevant entry in `docs/requirements_traceability.md`.
 
+You can verify compliance locally:
+
+```bash
+poetry run python scripts/verify_reqid_references.py --json test_reqid_report.json
+```
+
 Example:
 
 ```python
@@ -394,7 +565,43 @@ def test_workflow_progress_tracking():
     ...
 ```
 
-## Test Marker Report
+## Test Marker Report and Contributor Workflow
+
+### HOWTO: Move module-level speed markers to function level
+
+If you find `pytestmark = pytest.mark.fast` (or medium/slow) at the top of a test module, migrate these markers to function level. The verifier and repository policy require exactly one speed marker per test function; module-level speed markers are not recognized.
+
+Steps:
+- Remove the module-level assignment line containing the speed marker.
+- Add exactly one of `@pytest.mark.fast | @pytest.mark.medium | @pytest.mark.slow` immediately above each test function definition in that file.
+- If a test already has a speed marker, do not add another; ensure there is exactly one.
+- Re-run the verifier on changed files to confirm compliance:
+  ```bash
+  poetry run python scripts/verify_test_markers.py --changed
+  ```
+
+Example before:
+```python
+import pytest
+
+pytestmark = pytest.mark.fast
+
+def test_adds_numbers():
+    assert 1 + 1 == 2
+```
+
+Example after:
+```python
+import pytest
+
+@pytest.mark.fast
+def test_adds_numbers():
+    assert 1 + 1 == 2
+```
+
+Notes:
+- Do not use module-level speed markers. They are intentionally not recognized in this repository to avoid ambiguity.
+- Keep one and only one speed marker per test function. Use the verifier script to validate.
 
 Generate an updated marker report after modifying tests:
 
@@ -402,7 +609,29 @@ Generate an updated marker report after modifying tests:
 poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
 ```
 
-The script caches `pytest --collect-only` results and records subprocess durations so slow collections can be profiled.
+Contributor workflow for speed markers (aligns with docs/plan.md and project guidelines):
+- Before committing changed tests:
+  - Run the fixer to add missing markers conservatively:
+    ```bash
+    poetry run python scripts/fix_missing_markers.py --paths tests/
+    ```
+  - Normalize duplicates to exactly one speed marker per test:
+    ```bash
+    poetry run python scripts/fix_duplicate_markers.py --paths tests/
+    ```
+  - Re-verify only changed files to keep iterations fast:
+    ```bash
+    poetry run python scripts/verify_test_markers.py --changed
+    ```
+- The pre-commit hook also runs the verifier on changed test files and will block commits on violations. Use:
+  ```bash
+  poetry run pre-commit run --files <changed test files>
+  ```
+  to reproduce the hook locally.
+
+Policy reminders:
+- Exactly one of `@pytest.mark.fast | @pytest.mark.medium | @pytest.mark.slow` must be present on each test function.
+- Module-level `pytestmark` with speed markers is not allowed; apply markers at the function level.
 
 For large suites, pass `--changed` to verify only tests modified since the last
 commit and speed up runs:
@@ -412,3 +641,30 @@ poetry run python scripts/verify_test_markers.py --changed
 ```
 
 Including the requirement ID ensures traceability between tests and requirements.
+
+
+## Default-to-stability shortcuts
+
+When triaging failures or validating a fresh environment, prefer the stable, low‑surface commands below. They align with project guidelines and docs/plan.md and are safe to copy‑paste.
+
+- Smoke mode (reduces plugin surface; disables xdist and third‑party plugins):
+
+  ```bash
+  poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+  ```
+
+- Segmentation for medium/slow suites (batch execution to avoid long tails):
+
+  ```bash
+  poetry run devsynth run-tests --segment --segment-size 50 --no-parallel
+  ```
+
+- Inventory scoping (fast collection-only to discover targets and node IDs):
+
+  ```bash
+  poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
+  ```
+
+See also:
+- docs/developer_guides/testing.md (Smoke Mode, Inventory, Segmentation)
+- docs/user_guides/cli_command_reference.md (full CLI options)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from git import Repo
 
 from devsynth.core.mvu.atomic_rewrite import rewrite_history
@@ -13,6 +14,7 @@ def _commit(repo: Repo, path: Path, content: str, message: str) -> None:
     repo.index.commit(message)
 
 
+@pytest.mark.medium
 def test_atomic_rewrite_round_trip(tmp_path) -> None:
     repo_path = tmp_path / "repo"
     repo = Repo.init(repo_path, initial_branch="main")
@@ -23,4 +25,3 @@ def test_atomic_rewrite_round_trip(tmp_path) -> None:
 
     diff = repo.git.diff("atomic", "main")
     assert diff == ""
-

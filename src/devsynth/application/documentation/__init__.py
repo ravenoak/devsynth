@@ -5,8 +5,8 @@ This module provides a system for fetching, storing, and querying version-specif
 documentation for libraries, frameworks, and languages.
 """
 
-from .documentation_manager import DocumentationManager
 from .documentation_fetcher import DocumentationFetcher
+from .documentation_manager import DocumentationManager
 from .documentation_repository import DocumentationRepository
 from .version_monitor import VersionMonitor
 

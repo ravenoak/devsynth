@@ -5,8 +5,6 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.exceptions import DevSynthError
 
-pytestmark = pytest.mark.fast
-
 scenarios("../features/exceptions_framework.feature")
 
 

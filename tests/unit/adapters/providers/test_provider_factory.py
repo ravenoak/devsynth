@@ -9,7 +9,6 @@ if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
 pytestmark = [
     pytest.mark.requires_resource("lmstudio"),
     pytest.mark.memory_intensive,
-    pytest.mark.medium,
 ]
 
 from devsynth.adapters.providers.provider_factory import (

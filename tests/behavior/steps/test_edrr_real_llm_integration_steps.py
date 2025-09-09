@@ -45,28 +45,24 @@ def context():
     return Context()
 
 
-# Skip scenarios if no LLM provider is configured
+# Skip scenarios if no live LLM provider is configured
 @pytest.fixture(autouse=True)
-def check_llm_provider(request, monkeypatch):
-    """Skip tests marked with requires_llm_provider if no provider is configured."""
+def check_llm_provider(monkeypatch):
+    """Skip these steps if neither OpenAI nor LM Studio is configured."""
     # Unset the mock environment variables set by the patch_env_and_cleanup fixture
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("LM_STUDIO_ENDPOINT", raising=False)
 
-    # Check if the test is marked with requires_llm_provider
-    if (
-        request.node.get_closest_marker("requires_llm_provider")
-        or "requires_llm_provider" in request.keywords
+    if not os.environ.get("OPENAI_API_KEY") and not os.environ.get(
+        "LM_STUDIO_ENDPOINT"
     ):
-        if not os.environ.get("OPENAI_API_KEY") and not os.environ.get(
-            "LM_STUDIO_ENDPOINT"
-        ):
-            pytest.skip(
-                "No LLM provider configured. Set OPENAI_API_KEY or LM_STUDIO_ENDPOINT."
-            )
+        pytest.skip(
+            "No LLM provider configured. Set OPENAI_API_KEY or LM_STUDIO_ENDPOINT."
+        )
 
 
 @given("an initialized EDRR coordinator with real LLM provider")
+@pytest.mark.medium
 def step_initialized_edrr_coordinator_with_real_llm(context):
     # Set up memory components
     context.memory_adapter = TinyDBMemoryAdapter()
@@ -91,6 +87,7 @@ def step_initialized_edrr_coordinator_with_real_llm(context):
 
 
 @given("a sample Flask application with code quality issues")
+@pytest.mark.medium
 def step_sample_flask_application(context):
     # Create a temporary directory for the project
     context.project_dir = Path(tempfile.mkdtemp()) / "test_project"
@@ -133,6 +130,7 @@ flask==2.0.1
 
 
 @given("a configured graph memory system")
+@pytest.mark.medium
 def step_configured_graph_memory_system(context):
     # Create a new memory manager with both adapters
     context.graph_memory_adapter = GraphMemoryAdapter()
@@ -146,6 +144,7 @@ def step_configured_graph_memory_system(context):
 
 
 @when(parsers.parse('I start an EDRR cycle for "{task_description}"'))
+@pytest.mark.medium
 def step_start_edrr_cycle(context, task_description):
     # Create a task for testing
     context.task = {
@@ -159,6 +158,7 @@ def step_start_edrr_cycle(context, task_description):
 
 
 @when(parsers.parse('I start an EDRR cycle to "{task_description}"'))
+@pytest.mark.medium
 def step_start_edrr_cycle_for_project(context, task_description):
     # Create a task for testing with project path
     context.task = {
@@ -173,6 +173,7 @@ def step_start_edrr_cycle_for_project(context, task_description):
 
 
 @when("I progress through all EDRR phases")
+@pytest.mark.medium
 def step_progress_through_all_phases(context):
     # Progress through all phases
     for phase in [Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
@@ -185,6 +186,7 @@ def step_progress_through_all_phases(context):
 
 
 @then("the cycle should complete successfully")
+@pytest.mark.medium
 def step_cycle_completes_successfully(context):
     # Verify results
     assert context.report["cycle_id"] == context.coordinator.cycle_id
@@ -197,6 +199,7 @@ def step_cycle_completes_successfully(context):
 
 
 @then("the final solution should contain a factorial function")
+@pytest.mark.medium
 def step_solution_contains_factorial(context):
     # Get the final solution
     final_solution = None
@@ -209,6 +212,7 @@ def step_solution_contains_factorial(context):
 
 
 @then("the solution should handle edge cases")
+@pytest.mark.medium
 def step_solution_handles_edge_cases(context):
     # Get the final solution
     final_solution = None
@@ -227,6 +231,7 @@ def step_solution_handles_edge_cases(context):
 
 
 @then("the final solution should address validation issues")
+@pytest.mark.medium
 def step_solution_addresses_validation(context):
     # Get the final solution
     final_solution = None
@@ -242,6 +247,7 @@ def step_solution_addresses_validation(context):
 
 
 @then("the final solution should include error handling")
+@pytest.mark.medium
 def step_solution_includes_error_handling(context):
     # Get the final solution
     final_solution = None
@@ -257,6 +263,7 @@ def step_solution_includes_error_handling(context):
 
 
 @then("the final solution should follow Flask best practices")
+@pytest.mark.medium
 def step_solution_follows_flask_best_practices(context):
     # Get the final solution
     final_solution = None
@@ -283,6 +290,7 @@ def step_solution_follows_flask_best_practices(context):
 
 
 @then("the memory system should store phase results correctly")
+@pytest.mark.medium
 def step_memory_system_stores_results(context):
     # Check that the memory system has stored the phase results
     if hasattr(context, "graph_memory_adapter"):
@@ -302,6 +310,7 @@ def step_memory_system_stores_results(context):
 
 
 @then("the final solution should reference previous phase insights")
+@pytest.mark.medium
 def step_solution_references_previous_insights(context):
     # Get the final solution and phase data
     final_solution = None

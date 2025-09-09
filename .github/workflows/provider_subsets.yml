@@ -1,0 +1,88 @@
+name: Provider Subsets (Manual)
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+jobs:
+  run-subsets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      POETRY_VIRTUALENVS_CREATE: true
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
+      PYTHONUNBUFFERED: 1
+      # Hermetic defaults; script will override where needed
+      DEVSYNTH_OFFLINE: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache virtualenv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Base install for dev
+        run: |
+          poetry --version
+          poetry install --with dev --extras "tests retrieval chromadb api" -n
+
+      - name: Run provider subsets
+        id: run_subsets
+        env:
+          # Optional provider secrets
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LM_STUDIO_ENDPOINT: ${{ github.event.inputs.lm_studio_endpoint || 'http://127.0.0.1:1234' }}
+        run: |
+          set -euxo pipefail
+          mkdir -p test_reports diagnostics
+          echo "Dispatch requested subset: ${{ github.event.inputs.subset }}"
+          case "${{ github.event.inputs.subset }}" in
+            lmstudio)
+              bash scripts/execute_provider_subsets.sh lmstudio || true
+              ;;
+            openai)
+              # Only run if an API key is available; otherwise record a skip note
+              if [ -n "${OPENAI_API_KEY:-}" ]; then
+                bash scripts/execute_provider_subsets.sh openai || true
+              else
+                echo "OPENAI subset skipped: OPENAI_API_KEY not provided." | tee -a diagnostics/exec_log.txt
+              fi
+              ;;
+            all)
+              # LM Studio does not require secrets; may still fail if endpoint is not available — acceptable, we capture output
+              bash scripts/execute_provider_subsets.sh lmstudio || true
+              if [ -n "${OPENAI_API_KEY:-}" ]; then
+                bash scripts/execute_provider_subsets.sh openai || true
+              else
+                echo "OPENAI subset skipped: OPENAI_API_KEY not provided." | tee -a diagnostics/exec_log.txt
+              fi
+              ;;
+            *)
+              echo "Unknown subset: ${{ github.event.inputs.subset }}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Upload artifacts (test_reports and diagnostics)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provider-subsets-artifacts
+          path: |
+            test_reports
+            diagnostics
+          if-no-files-found: warn

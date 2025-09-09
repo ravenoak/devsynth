@@ -2,6 +2,11 @@
 
 This example walks through a typical DevSynth workflow using only the command line. It demonstrates how to go from requirements to working code using `devsynth` commands.
 
+## Requirements
+- Poetry environment with minimal extras:
+  - `poetry install --with dev --extras minimal`
+- See also: docs/examples/requirements.md
+
 ## Steps
 
 1. **Initialize the project**

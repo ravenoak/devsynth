@@ -9,7 +9,14 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, Optional, Sequence
 
-from nicegui import app, ui
+try:
+    from nicegui import app, ui
+
+    _HAS_NICEGUI = True
+except Exception:  # pragma: no cover - optional dependency not installed
+    app = None  # type: ignore
+    ui = None  # type: ignore
+    _HAS_NICEGUI = False
 
 from devsynth.interface.progress_utils import run_with_progress
 from devsynth.interface.shared_bridge import SharedBridgeMixin
@@ -18,15 +25,36 @@ from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_o
 _session_store: Dict[str, Any] = {}
 
 
+def _require_nicegui() -> None:
+    """Ensure NiceGUI is available, otherwise raise a friendly error.
+
+    This prevents accidental import-time crashes in environments where the
+    optional GUI dependency is not installed (e.g., CI, headless tests).
+    """
+    if not _HAS_NICEGUI:
+        raise RuntimeError(
+            "NiceGUI is not installed. Install with 'poetry install --extras gui' "
+            "or 'pip install devsynth[gui]' to enable the WebUI."
+        )
+
+
 class NiceGUIProgressIndicator(ProgressIndicator):
-    """Simple progress bar using NiceGUI widgets."""
+    """Simple progress bar using NiceGUI widgets.
+
+    If NiceGUI is not available, this becomes a no-op indicator so callers can
+    still execute code paths (e.g., tests) without GUI dependencies.
+    """
 
     def __init__(self, description: str, total: int) -> None:
         self._total = total
         self._current = 0
-        with ui.row().classes("items-center"):
-            self.label = ui.label(description)
-            self.bar = ui.linear_progress(value=0)
+        if _HAS_NICEGUI and ui is not None:
+            with ui.row().classes("items-center"):
+                self.label = ui.label(description)
+                self.bar = ui.linear_progress(value=0)
+        else:
+            self.label = None  # type: ignore[assignment]
+            self.bar = None  # type: ignore[assignment]
 
     def update(
         self,
@@ -36,12 +64,14 @@ class NiceGUIProgressIndicator(ProgressIndicator):
         status: Optional[str] = None,
     ) -> None:
         self._current += advance
-        if description is not None:
-            self.label.text = sanitize_output(str(description))
-        self.bar.value = min(1.0, self._current / float(self._total))
+        if _HAS_NICEGUI and self.label is not None and self.bar is not None:  # type: ignore[truthy-bool]
+            if description is not None:
+                self.label.text = sanitize_output(str(description))
+            self.bar.value = min(1.0, self._current / float(self._total))
 
     def complete(self) -> None:
-        self.bar.value = 1
+        if _HAS_NICEGUI and self.bar is not None:
+            self.bar.value = 1
 
 
 class NiceGUIBridge(SharedBridgeMixin, UXBridge):
@@ -70,7 +100,12 @@ class NiceGUIBridge(SharedBridgeMixin, UXBridge):
         formatted = self._format_for_output(
             message, highlight=highlight, message_type=message_type
         )
-        ui.notify(formatted, type=message_type or "info")
+        if _HAS_NICEGUI:
+            try:
+                ui.notify(formatted, type=message_type or "info")
+            except Exception:
+                # Fallback to message buffer if UI notification fails
+                pass
         self.messages.append(str(formatted))
 
     def create_progress(
@@ -81,15 +116,19 @@ class NiceGUIBridge(SharedBridgeMixin, UXBridge):
     @staticmethod
     def get_session_value(key: str, default=None):
         try:
+            if not _HAS_NICEGUI or app is None:
+                raise RuntimeError("NiceGUI not available")
             return app.storage.user.get(key, default)
-        except RuntimeError:
+        except Exception:
             return _session_store.get(key, default)
 
     @staticmethod
     def set_session_value(key: str, value) -> None:
         try:
+            if not _HAS_NICEGUI or app is None:
+                raise RuntimeError("NiceGUI not available")
             app.storage.user[key] = value
-        except RuntimeError:
+        except Exception:
             _session_store[key] = value
 
 
@@ -158,6 +197,7 @@ def _render_nav() -> None:
 
 
 def _register_pages(bridge: NiceGUIBridge) -> None:
+    _require_nicegui()
     for name, handler in NAV_ITEMS.items():
         path = "/" + _slug(name)
 
@@ -179,6 +219,7 @@ def _register_pages(bridge: NiceGUIBridge) -> None:
 
 def main() -> None:
     """Launch the NiceGUI WebUI."""
+    _require_nicegui()
     bridge = NiceGUIBridge()
     _register_pages(bridge)
     ui.run()

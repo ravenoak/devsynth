@@ -1,21 +1,35 @@
-# In-Repo Issue Tracking
+# Issues Review Protocol (DevSynth 0.1.0a1)
 
-This directory contains the active ticketing system for DevSynth. It does not integrate with GitHub Issues.
+This directory holds lightweight issue records used during pre‑release stabilization. Follow this protocol:
 
-## Naming Conventions
+- When a non‑green run occurs (tests or guardrails), create or update an issue markdown file under issues/ with:
+  - Title and date
+  - Reproduction command(s)
+  - Exit code
+  - Diagnostics artifact paths (under diagnostics/ or test_reports/)
+  - Suspected root cause and next actions
+  - Status: open/closed; Close only after a green re‑run with artifacts attached.
+- Reference the issue ID/file name in related commits and PR titles.
 
-- Each ticket filename is a slug of its title (e.g., `CLI-and-UI-improvements.md`).
-- The first line must be `# <title>`.
+Template:
 
-## Ticket Template
+---
+Title: `concise title`
+Date: `YYYY‑MM‑DD HH:MM local`
+Status: open | closed
+Affected Area: `tests|guardrails|provider|docs|infra`
+Reproduction:
+  - `command`
+Exit Code: `int`
+Artifacts:
+  - diagnostics/`file`
+  - test_reports/`file`
+Suspected Cause: `text`
+Next Actions:
+  - [ ] step 1
+  - [ ] step 2
+Resolution Evidence:
+  - link to green run artifacts
+---
 
-- Start new tickets by copying `TEMPLATE.md` and renaming it to a slug of its title.
-- Populate the Milestone, Status, Priority, Dependencies, Problem Statement, Action Plan, Progress, and References sections.
-- Reference archived dependencies with `archived/<slug>.md` paths.
-- Update a ticket's `Status` when all dependencies are resolved.
-
-## Archive Policy
-
-- When a ticket is closed, move it to `archived/<slug>.md`.
-- Archived files are immutable; open new tickets for follow-up work.
-- Archived tickets use the legacy format `# Issue <number>: <title>`.
+Example issue files may be added and updated during iterations.

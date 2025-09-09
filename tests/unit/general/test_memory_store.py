@@ -1,4 +1,5 @@
 import pytest
+
 from devsynth.ports.memory_store import MemoryStore
 
 
@@ -20,10 +21,11 @@ class DummyStore(MemoryStore):
         raise NotImplementedError
 
 
+@pytest.mark.fast
 def test_memory_store_abstract_methods_succeeds():
     """Test that memory store abstract methods succeeds.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     store = DummyStore()
     with pytest.raises(NotImplementedError):
         store.add({})

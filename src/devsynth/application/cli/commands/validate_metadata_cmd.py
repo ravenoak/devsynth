@@ -6,18 +6,18 @@ checking for required fields, date formats, version formats, and other constrain
 """
 
 import os
-import re
 import pathlib
+import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+import yaml
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
-
-import yaml
-
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)

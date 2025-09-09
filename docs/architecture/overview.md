@@ -1,22 +1,16 @@
 ---
-
 title: "DevSynth Architecture Overview"
+author: "DevSynth Team"
 date: "2025-06-16"
 version: "0.1.0-alpha.1"
-tags:
-  - "architecture"
-  - "design"
-  - "components"
-  - "structure"
-
 status: "published"
-author: "DevSynth Team"
+tags:
+  - architecture
+  - design
+  - components
+  - structure
 last_reviewed: "2025-08-02"
 ---
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture Overview
-</div>
-
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; DevSynth Architecture Overview
 </div>
@@ -105,6 +99,59 @@ graph LR
 - **Automated Knowledge Base**: Documentation and code are indexed for semantic search and agentic retrieval (see [Comprehensive DevSynth Enhancement Plan](../../Comprehensive%20DevSynth%20Enhancement%20Plan.md)).
 - **Role-Based SDLC Policies**: Multi-agent and human roles are defined with clear responsibilities, SOPs, and review/approval workflows (see [SDLC Policy Corpus](../policies/README.md)).
 
+## Ports and Adapters Boundaries and Invariants
+
+This section documents the explicit boundaries and invariants required by our hexagonal architecture. The core domain (use cases, orchestration policies, business rules) is framework-agnostic. Framework- and IO-specific integrations live in adapters on the outside, and all interactions occur via well-defined ports (interfaces/ABCs).
+
+```mermaid
+flowchart LR
+  subgraph UI[Inbound Adapters]
+    CLI[CLI (Typer)]
+    WebUI[NiceGUI]
+    API[FastAPI]
+  end
+
+  subgraph CORE[Core Domain]
+    Orchestrator[Orchestration Policies]
+    UseCases[Use Cases]
+    Ports[Ports (LLM, Memory, Retrieval)]
+  end
+
+  subgraph OUT[Outbound Adapters]
+    LLMAdapters[LLM Providers (OpenAI, LM Studio, Stub)]
+    MemoryAdapters[Memory Stores (TinyDB, ChromaDB, JSON, FAISS, Kuzu)]
+    RetrievalAdapters[Retrieval Integrations]
+  end
+
+  CLI --> Orchestrator
+  WebUI --> Orchestrator
+  API --> Orchestrator
+  Orchestrator <--> UseCases
+  UseCases <--> Ports
+  Ports --> LLMAdapters
+  Ports --> MemoryAdapters
+  Ports --> RetrievalAdapters
+```
+
+Invariants (non-exhaustive):
+- Core must not import from UI or adapter frameworks (Typer/FastAPI/NiceGUI/httpx/DB clients).
+- Ports are defined as typed protocols/ABCs in `src/devsynth/ports/` and only referenced by the core.
+- Adapters implement ports in `src/devsynth/adapters/` and may depend on frameworks/backends.
+- Configuration enters at the edge; normalize to typed config objects before crossing into the core.
+- Errors crossing boundaries are mapped to domain exceptions; low-level exceptions must not leak.
+- Side effects (network, filesystem, DB) occur only in adapters; core remains pure/deterministic.
+- Tests for the core mock ports; adapter tests may use resource markers and are skipped by default unless available.
+
+Audit (2025-08-25):
+- Implemented scripts/check_domain_dependencies.py to statically verify the domain layer imports no forbidden frameworks/backends. Current status: PASS (no violations found).
+- Implemented scripts/verify_resource_markers.py to validate that all @pytest.mark.requires_resource("<name>") markers correspond to a checker in tests/conftest.py. Current status: PASS (all markers recognized).
+- Ports and interfaces: VectorStore/MemoryStore protocols live in `src/devsynth/domain/interfaces/` and adapter-facing ports in `src/devsynth/ports/`. Adapters under `src/devsynth/adapters/` remain thin and integration-focused.
+
+Cross-cutting policies:
+- Logging is injected via facades; secrets must not be logged.
+- Feature flags are read at the edge and exposed to the core via explicit parameters or config objects.
+- Offline mode must be honored by all outbound adapters, preventing network calls by default in CI.
+
 
 ## Documentation Harmony & SDLC Alignment
 
@@ -159,5 +206,18 @@ DevSynth follows a comprehensive set of SDLC policies and documentation standard
 - [Requirements Traceability Matrix](../requirements_traceability.md)
 - [WSDE/EDRR Convergence Analysis](../analysis/wsde_edrr_convergence.md)
 
+## Diagrams
+
+The following static diagrams complement the Mermaid diagrams above:
+
+- [DPG Overview](diagrams/dpg_overview.svg)
+- [Init Workflow (1)](diagrams/init_workflow-1.svg)
+- [Init Workflow (2)](diagrams/init_workflow-2.svg)
+- [WebUI Overview (1)](diagrams/webui_overview-1.svg)
+- [WebUI Overview (2)](diagrams/webui_overview-2.svg)
+- [WebUI Overview (3)](diagrams/webui_overview-3.svg)
+- [WebUI Overview (4)](diagrams/webui_overview-4.svg)
+- [WebUI Overview (5)](diagrams/webui_overview-5.svg)
+- [WSDE/EDRR Integration](diagrams/wsde_edrr_integration-1.svg)
 
 ---

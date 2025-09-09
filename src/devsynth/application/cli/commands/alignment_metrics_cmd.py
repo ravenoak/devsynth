@@ -4,27 +4,29 @@ Command handler for the 'alignment-metrics' command.
 This module provides functionality to collect and report on alignment metrics.
 """
 
-import os
-import json
 import datetime
+import json
+import os
 from typing import Dict, List, Optional
+
 from rich.console import Console
 from rich.table import Table
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
+
 from devsynth.application.cli.commands.align_cmd import (
-    get_all_files,
-    is_file_of_type,
-    extract_references,
+    CODE_FILES,
     REQ_REF_PATTERN,
-    SPEC_REF_PATTERN,
-    TEST_REF_PATTERN,
     REQUIREMENT_FILES,
+    SPEC_REF_PATTERN,
     SPECIFICATION_FILES,
     TEST_FILES,
-    CODE_FILES,
+    TEST_REF_PATTERN,
+    extract_references,
+    get_all_files,
+    is_file_of_type,
 )
+from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -159,8 +161,8 @@ def calculate_alignment_issues(files: List[str]) -> Dict:
     from devsynth.application.cli.commands.align_cmd import (
         check_requirement_references,
         check_specification_references,
-        check_test_references,
         check_terminology_consistency,
+        check_test_references,
     )
 
     # Run checks

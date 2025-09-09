@@ -13,9 +13,12 @@ from devsynth.exceptions import DevSynthError
 from devsynth.metrics import get_retry_metrics, reset_metrics
 
 # These unit tests execute quickly
-pytestmark = [pytest.mark.fast, pytest.mark.requires_resource("lmstudio")]
+pytestmark = [
+    pytest.mark.requires_resource("lmstudio")
+]  # speed markers on functions only
 
 
+@pytest.mark.fast
 def test_provider_logging_cleanup(lmstudio_service, capsys):
     """Providers should not log after logging.shutdown.
 
@@ -44,6 +47,7 @@ def test_provider_logging_cleanup(lmstudio_service, capsys):
     assert "I/O operation on closed file" not in capsys.readouterr().err
 
 
+@pytest.mark.fast
 def test_lmstudio_retry_metrics_and_circuit_breaker(lmstudio_service):
     """Failures increment retry metrics and open the circuit breaker.
 

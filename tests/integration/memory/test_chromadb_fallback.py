@@ -10,6 +10,7 @@ from devsynth.domain.models.memory import MemoryVector
 pytestmark = [pytest.mark.requires_resource("chromadb")]
 
 
+@pytest.mark.medium
 def test_chromadb_falls_back_to_ephemeral_client(tmp_path, monkeypatch):
     """Adapter should fall back to an in-memory client when LMDB is missing. ReqID: FR-60"""
     ef = pytest.importorskip("chromadb.utils.embedding_functions")

@@ -9,13 +9,14 @@ into a single agent that can handle all MVP tasks.
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
-
 import os
 from typing import Any, Dict, List, Union
-from .base import BaseAgent
-from ..prompts.auto_tuning import BasicPromptTuner
+
+from devsynth.exceptions import DevSynthError
+
 from ...domain.models.agent import AgentConfig, AgentType
+from ..prompts.auto_tuning import BasicPromptTuner
+from .base import BaseAgent
 
 # Define MVP capabilities
 MVP_CAPABILITIES = [
@@ -25,8 +26,9 @@ MVP_CAPABILITIES = [
     "generate_tests",
     "generate_code",
     "validate_implementation",
-    "track_token_usage"
+    "track_token_usage",
 ]
+
 
 class UnifiedAgent(BaseAgent):
     """
@@ -61,12 +63,16 @@ class UnifiedAgent(BaseAgent):
         self.initialize(config)
 
     def record_prompt_feedback(
-        self, success: Union[bool, None] = None, feedback_score: Union[float, None] = None
+        self,
+        success: Union[bool, None] = None,
+        feedback_score: Union[float, None] = None,
     ) -> None:
         """Record feedback used for tuning future prompts."""
         self.prompt_tuner.adjust(success, feedback_score)
 
-    def generate_text(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
+    def generate_text(
+        self, prompt: str, parameters: Dict[str, Any] | None = None
+    ) -> str:
         params = self.prompt_tuner.parameters()
         if parameters:
             params.update(parameters)
@@ -133,7 +139,9 @@ class UnifiedAgent(BaseAgent):
         specification = self.generate_text(prompt)
 
         # If the LLM is not available, generate a simple specification
-        if specification.startswith("Placeholder text") or specification.startswith("Error generating text"):
+        if specification.startswith("Placeholder text") or specification.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback specification generation")
             specification = f"Specification (created by {self.name})"
 
@@ -141,30 +149,23 @@ class UnifiedAgent(BaseAgent):
         spec_wsde = self.create_wsde(
             content=specification,
             content_type="text",
-            metadata={
-                "agent": self.name,
-                "type": "specification"
-            }
+            metadata={"agent": self.name, "type": "specification"},
         )
 
-        return {
-            "specification": specification,
-            "wsde": spec_wsde,
-            "agent": self.name
-        }
+        return {"specification": specification, "wsde": spec_wsde, "agent": self.name}
 
     def _process_test_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process a test generation task."""
         # Extract test framework from inputs or default to pytest
-        test_framework = inputs.get('test_framework', 'pytest').lower()
+        test_framework = inputs.get("test_framework", "pytest").lower()
 
         # Extract programming language from inputs or default to Python
-        language = inputs.get('language', 'python').lower()
+        language = inputs.get("language", "python").lower()
 
         # Create a prompt for the LLM with enhanced guidance
         prompt = f"""
-        You are an expert in software testing with deep knowledge of test-driven development and 
-        comprehensive test strategies. Your task is to generate high-quality tests based on the 
+        You are an expert in software testing with deep knowledge of test-driven development and
+        comprehensive test strategies. Your task is to generate high-quality tests based on the
         provided specification.
 
         Specification:
@@ -215,7 +216,7 @@ class UnifiedAgent(BaseAgent):
         """
 
         # Add framework-specific guidance
-        if test_framework == 'pytest':
+        if test_framework == "pytest":
             prompt += """
            - Use pytest fixtures for setup and teardown
            - Leverage pytest's parameterize decorator for multiple test cases
@@ -223,7 +224,7 @@ class UnifiedAgent(BaseAgent):
            - Utilize pytest's built-in assertions for readable tests
            - Implement conftest.py for shared fixtures when appropriate
         """
-        elif test_framework == 'unittest':
+        elif test_framework == "unittest":
             prompt += """
            - Use setUp and tearDown methods for test preparation and cleanup
            - Extend unittest.TestCase for test classes
@@ -231,7 +232,7 @@ class UnifiedAgent(BaseAgent):
            - Group related tests in test suites
            - Use subTest for parameterized testing
         """
-        elif test_framework == 'behave' or test_framework == 'cucumber':
+        elif test_framework == "behave" or test_framework == "cucumber":
             prompt += """
            - Write tests in Gherkin syntax (Given-When-Then)
            - Create clear, reusable step definitions
@@ -250,7 +251,9 @@ class UnifiedAgent(BaseAgent):
         tests = self.generate_text(prompt)
 
         # If the LLM is not available, generate simple tests
-        if tests.startswith("Placeholder text") or tests.startswith("Error generating text"):
+        if tests.startswith("Placeholder text") or tests.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback test generation")
             tests = f"Tests (created by {self.name})"
 
@@ -262,27 +265,23 @@ class UnifiedAgent(BaseAgent):
                 "agent": self.name,
                 "type": "tests",
                 "test_framework": test_framework,
-                "language": language
-            }
+                "language": language,
+            },
         )
 
-        return {
-            "tests": tests,
-            "wsde": tests_wsde,
-            "agent": self.name
-        }
+        return {"tests": tests, "wsde": tests_wsde, "agent": self.name}
 
     def _process_code_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process a code generation task."""
         # Extract programming language from inputs or default to Python
-        language = inputs.get('language', 'python').lower()
+        language = inputs.get("language", "python").lower()
 
         # Determine the programming paradigm (OOP, functional, etc.)
-        paradigm = inputs.get('paradigm', 'object_oriented').lower()
+        paradigm = inputs.get("paradigm", "object_oriented").lower()
 
         # Create a prompt for the LLM with enhanced guidance
         prompt = f"""
-        You are an expert software engineer specializing in clean, maintainable, and robust code. 
+        You are an expert software engineer specializing in clean, maintainable, and robust code.
         Your task is to implement high-quality code based on the provided tests and specifications.
 
         Specification:
@@ -337,7 +336,9 @@ class UnifiedAgent(BaseAgent):
         code = self.generate_text(prompt)
 
         # If the LLM is not available, generate simple code
-        if code.startswith("Placeholder text") or code.startswith("Error generating text"):
+        if code.startswith("Placeholder text") or code.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback code generation")
             code = f"Code (created by {self.name})"
 
@@ -349,15 +350,11 @@ class UnifiedAgent(BaseAgent):
                 "agent": self.name,
                 "type": "code",
                 "language": language,
-                "paradigm": paradigm
-            }
+                "paradigm": paradigm,
+            },
         )
 
-        return {
-            "code": code,
-            "wsde": code_wsde,
-            "agent": self.name
-        }
+        return {"code": code, "wsde": code_wsde, "agent": self.name}
 
     def _process_validation_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process a validation task."""
@@ -385,7 +382,9 @@ class UnifiedAgent(BaseAgent):
         validation = self.generate_text(prompt)
 
         # If the LLM is not available, generate a simple validation
-        if validation.startswith("Placeholder text") or validation.startswith("Error generating text"):
+        if validation.startswith("Placeholder text") or validation.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback validation generation")
             validation = f"Validation (created by {self.name})"
 
@@ -393,28 +392,21 @@ class UnifiedAgent(BaseAgent):
         validation_wsde = self.create_wsde(
             content=validation,
             content_type="text",
-            metadata={
-                "agent": self.name,
-                "type": "validation"
-            }
+            metadata={"agent": self.name, "type": "validation"},
         )
 
-        return {
-            "validation": validation,
-            "wsde": validation_wsde,
-            "agent": self.name
-        }
+        return {"validation": validation, "wsde": validation_wsde, "agent": self.name}
 
     def _process_documentation_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process a documentation generation task."""
         # Extract documentation format from inputs or default to Markdown
-        doc_format = inputs.get('doc_format', 'markdown').lower()
+        doc_format = inputs.get("doc_format", "markdown").lower()
 
         # Extract documentation type from inputs or default to comprehensive
-        doc_type = inputs.get('doc_type', 'comprehensive').lower()
+        doc_type = inputs.get("doc_type", "comprehensive").lower()
 
         # Extract programming language from inputs or default to Python
-        language = inputs.get('language', 'python').lower()
+        language = inputs.get("language", "python").lower()
 
         # Create a prompt for the LLM with enhanced guidance
         prompt = f"""
@@ -473,7 +465,7 @@ class UnifiedAgent(BaseAgent):
         """
 
         # Add format-specific guidance
-        if doc_format == 'markdown':
+        if doc_format == "markdown":
             prompt += """
         Markdown-Specific Guidelines:
            - Use # for main headings, ## for subheadings, etc.
@@ -485,7 +477,7 @@ class UnifiedAgent(BaseAgent):
            - Use --- for horizontal rules to separate sections
            - Use appropriate syntax highlighting for code blocks
         """
-        elif doc_format == 'restructuredtext' or doc_format == 'rst':
+        elif doc_format == "restructuredtext" or doc_format == "rst":
             prompt += """
         reStructuredText-Specific Guidelines:
            - Use === for main headings, --- for subheadings, etc.
@@ -498,7 +490,7 @@ class UnifiedAgent(BaseAgent):
            - Use .. code-block:: language for syntax highlighting
            - Use proper directives for tables and other elements
         """
-        elif doc_format == 'html':
+        elif doc_format == "html":
             prompt += """
         HTML-Specific Guidelines:
            - Use proper HTML5 semantic elements (<header>, <section>, <nav>, etc.)
@@ -512,7 +504,7 @@ class UnifiedAgent(BaseAgent):
         """
 
         # Add type-specific guidance
-        if doc_type == 'user_guide':
+        if doc_type == "user_guide":
             prompt += """
         User Guide-Specific Guidelines:
            - Focus on how to use the software from a user's perspective
@@ -522,7 +514,7 @@ class UnifiedAgent(BaseAgent):
            - Include troubleshooting information and FAQs
            - Organize content based on user workflows
         """
-        elif doc_type == 'api_reference':
+        elif doc_type == "api_reference":
             prompt += """
         API Reference-Specific Guidelines:
            - Focus on comprehensive coverage of all API elements
@@ -533,7 +525,7 @@ class UnifiedAgent(BaseAgent):
            - Include cross-references between related API elements
            - Note any performance considerations or limitations
         """
-        elif doc_type == 'developer_guide':
+        elif doc_type == "developer_guide":
             prompt += """
         Developer Guide-Specific Guidelines:
            - Focus on how to extend or modify the software
@@ -555,7 +547,9 @@ class UnifiedAgent(BaseAgent):
         documentation = self.generate_text(prompt)
 
         # If the LLM is not available, generate simple documentation
-        if documentation.startswith("Placeholder text") or documentation.startswith("Error generating text"):
+        if documentation.startswith("Placeholder text") or documentation.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback documentation generation")
             documentation = f"Documentation (created by {self.name})"
 
@@ -568,17 +562,15 @@ class UnifiedAgent(BaseAgent):
                 "type": "documentation",
                 "doc_format": doc_format,
                 "doc_type": doc_type,
-                "language": language
-            }
+                "language": language,
+            },
         )
 
-        return {
-            "documentation": documentation,
-            "wsde": doc_wsde,
-            "agent": self.name
-        }
+        return {"documentation": documentation, "wsde": doc_wsde, "agent": self.name}
 
-    def _process_project_initialization_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_project_initialization_task(
+        self, inputs: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Process a project initialization task."""
         # Create a prompt for the LLM
         prompt = f"""
@@ -601,7 +593,9 @@ class UnifiedAgent(BaseAgent):
         project_structure = self.generate_text(prompt)
 
         # If the LLM is not available, generate a simple project structure
-        if project_structure.startswith("Placeholder text") or project_structure.startswith("Error generating text"):
+        if project_structure.startswith(
+            "Placeholder text"
+        ) or project_structure.startswith("Error generating text"):
             logger.warning("Using fallback project structure generation")
             project_structure = f"Project structure (created by {self.name})"
 
@@ -609,16 +603,13 @@ class UnifiedAgent(BaseAgent):
         structure_wsde = self.create_wsde(
             content=project_structure,
             content_type="text",
-            metadata={
-                "agent": self.name,
-                "type": "project_structure"
-            }
+            metadata={"agent": self.name, "type": "project_structure"},
         )
 
         return {
             "project_structure": project_structure,
             "wsde": structure_wsde,
-            "agent": self.name
+            "agent": self.name,
         }
 
     def _process_generic_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -638,7 +629,9 @@ class UnifiedAgent(BaseAgent):
         result = self.generate_text(prompt)
 
         # If the LLM is not available, generate a simple result
-        if result.startswith("Placeholder text") or result.startswith("Error generating text"):
+        if result.startswith("Placeholder text") or result.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback result generation")
             result = f"Result (created by {self.name})"
 
@@ -646,17 +639,10 @@ class UnifiedAgent(BaseAgent):
         result_wsde = self.create_wsde(
             content=result,
             content_type="text",
-            metadata={
-                "agent": self.name,
-                "type": "generic"
-            }
+            metadata={"agent": self.name, "type": "generic"},
         )
 
-        return {
-            "result": result,
-            "wsde": result_wsde,
-            "agent": self.name
-        }
+        return {"result": result, "wsde": result_wsde, "agent": self.name}
 
     def _process_analyze_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process a requirements analysis task."""
@@ -696,7 +682,9 @@ class UnifiedAgent(BaseAgent):
         summary = self.generate_text(prompt)
 
         # If the LLM is not available, generate a simple summary
-        if summary.startswith("Placeholder text") or summary.startswith("Error generating text"):
+        if summary.startswith("Placeholder text") or summary.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback summary generation")
             summary = f"""# Requirements Summary
 
@@ -721,12 +709,12 @@ This is a summary of the requirements.
 """
 
         # Write the summary to a file
-        project_root = inputs.get('project_root', '.')
+        project_root = inputs.get("project_root", ".")
         logger.info(f"Project root for summary file: {project_root}")
         summary_file = os.path.join(project_root, "requirements_summary.md")
         logger.info(f"Attempting to write requirements summary to {summary_file}")
         try:
-            with open(summary_file, 'w') as f:
+            with open(summary_file, "w") as f:
                 f.write(summary)
             logger.info(f"Requirements summary written to {summary_file}")
         except Exception as e:
@@ -736,17 +724,14 @@ This is a summary of the requirements.
         summary_wsde = self.create_wsde(
             content=summary,
             content_type="text",
-            metadata={
-                "agent": self.name,
-                "type": "requirements_summary"
-            }
+            metadata={"agent": self.name, "type": "requirements_summary"},
         )
 
         return {
             "summary": summary,
             "summary_file": summary_file,
             "wsde": summary_wsde,
-            "agent": self.name
+            "agent": self.name,
         }
 
     def _process_feedback_task(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -756,13 +741,15 @@ This is a summary of the requirements.
         to generated artifacts and storing patterns for future use.
         """
         # Extract the original artifact and the modified version
-        original_artifact = inputs.get('original_artifact', '')
-        modified_artifact = inputs.get('modified_artifact', '')
-        artifact_type = inputs.get('artifact_type', 'code')  # code, tests, documentation, etc.
+        original_artifact = inputs.get("original_artifact", "")
+        modified_artifact = inputs.get("modified_artifact", "")
+        artifact_type = inputs.get(
+            "artifact_type", "code"
+        )  # code, tests, documentation, etc.
 
         # Create a prompt for the LLM to analyze the differences
         prompt = f"""
-        You are an expert in continuous learning and improvement. Your task is to analyze 
+        You are an expert in continuous learning and improvement. Your task is to analyze
         the differences between an original AI-generated artifact and the human-modified version.
 
         Original {artifact_type}:
@@ -785,7 +772,9 @@ This is a summary of the requirements.
         analysis = self.generate_text(prompt)
 
         # If the LLM is not available, generate a simple analysis
-        if analysis.startswith("Placeholder text") or analysis.startswith("Error generating text"):
+        if analysis.startswith("Placeholder text") or analysis.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback analysis generation")
             analysis = f"Feedback analysis (created by {self.name})"
 
@@ -810,9 +799,11 @@ This is a summary of the requirements.
         patterns_json = self.generate_text(extract_prompt)
 
         # If the LLM is not available, generate simple patterns
-        if patterns_json.startswith("Placeholder text") or patterns_json.startswith("Error generating text"):
+        if patterns_json.startswith("Placeholder text") or patterns_json.startswith(
+            "Error generating text"
+        ):
             logger.warning("Using fallback patterns generation")
-            patterns_json = '{}'
+            patterns_json = "{}"
 
         # Create a WSDE with the analysis and patterns
         feedback_wsde = self.create_wsde(
@@ -822,24 +813,29 @@ This is a summary of the requirements.
                 "agent": self.name,
                 "type": "feedback_analysis",
                 "artifact_type": artifact_type,
-                "patterns": patterns_json
-            }
+                "patterns": patterns_json,
+            },
         )
 
         # Store the patterns for future use (in a real implementation, this would save to a database or file)
         # For now, we'll just log that we would store these patterns
-        logger.info(f"Learned {len(patterns_json)} patterns from user feedback on {artifact_type}")
+        logger.info(
+            f"Learned {len(patterns_json)} patterns from user feedback on {artifact_type}"
+        )
 
         return {
             "analysis": analysis,
             "patterns": patterns_json,
             "wsde": feedback_wsde,
-            "agent": self.name
+            "agent": self.name,
         }
 
     def get_capabilities(self) -> List[str]:
         """Get the capabilities of this agent."""
         capabilities = super().get_capabilities()
         if not capabilities:
-            capabilities = MVP_CAPABILITIES + ["process_feedback", "continuous_learning"]
+            capabilities = MVP_CAPABILITIES + [
+                "process_feedback",
+                "continuous_learning",
+            ]
         return capabilities

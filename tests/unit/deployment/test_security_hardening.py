@@ -4,9 +4,8 @@ import pytest
 
 from devsynth.security import deployment as secdeploy
 
-pytestmark = pytest.mark.fast
 
-
+@pytest.mark.fast
 def test_require_non_root_user_noop_without_flag(monkeypatch):
     """require_non_root_user is a no-op when flag not set.
 
@@ -16,6 +15,7 @@ def test_require_non_root_user_noop_without_flag(monkeypatch):
     secdeploy.require_non_root_user()
 
 
+@pytest.mark.fast
 def test_require_non_root_user_raises_for_root(monkeypatch):
     """require_non_root_user raises when running as root.
 
@@ -26,6 +26,7 @@ def test_require_non_root_user_raises_for_root(monkeypatch):
         secdeploy.require_non_root_user()
 
 
+@pytest.mark.fast
 def test_check_required_env_vars(monkeypatch):
     """check_required_env_vars enforces presence of variables.
 
@@ -37,6 +38,7 @@ def test_check_required_env_vars(monkeypatch):
     secdeploy.check_required_env_vars(["FOO"])
 
 
+@pytest.mark.fast
 def test_apply_secure_umask(monkeypatch):
     """apply_secure_umask sets restrictive mask and returns previous.
 
@@ -53,14 +55,19 @@ def test_apply_secure_umask(monkeypatch):
     assert called["mask"] == 0o077
 
 
+@pytest.mark.fast
 def test_harden_runtime_invokes_helpers(monkeypatch):
     """harden_runtime calls helper functions.
 
     ReqID: SEC-05"""
     calls = {}
     monkeypatch.setenv("FOO", "1")
-    monkeypatch.setattr(secdeploy, "require_non_root_user", lambda: calls.setdefault("non_root", True))
-    monkeypatch.setattr(secdeploy, "apply_secure_umask", lambda: calls.setdefault("umask", True))
+    monkeypatch.setattr(
+        secdeploy, "require_non_root_user", lambda: calls.setdefault("non_root", True)
+    )
+    monkeypatch.setattr(
+        secdeploy, "apply_secure_umask", lambda: calls.setdefault("umask", True)
+    )
 
     def fake_check(names):
         calls["required_env"] = list(names)
@@ -72,12 +79,19 @@ def test_harden_runtime_invokes_helpers(monkeypatch):
     assert calls["required_env"] == ["FOO"]
 
 
+@pytest.mark.fast
 def test_harden_runtime_raises_when_env_missing(monkeypatch):
     """harden_runtime propagates missing env variable errors.
 
     ReqID: SEC-06"""
     monkeypatch.delenv("MISSING", raising=False)
-    monkeypatch.setattr(secdeploy, "apply_secure_umask", lambda: (_ for _ in ()).throw(AssertionError))
-    monkeypatch.setattr(secdeploy, "require_non_root_user", lambda: (_ for _ in ()).throw(AssertionError))
+    monkeypatch.setattr(
+        secdeploy, "apply_secure_umask", lambda: (_ for _ in ()).throw(AssertionError)
+    )
+    monkeypatch.setattr(
+        secdeploy,
+        "require_non_root_user",
+        lambda: (_ for _ in ()).throw(AssertionError),
+    )
     with pytest.raises(RuntimeError):
         secdeploy.harden_runtime(["MISSING"])

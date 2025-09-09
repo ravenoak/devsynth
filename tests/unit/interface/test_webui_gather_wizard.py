@@ -30,9 +30,7 @@ def stub_streamlit(monkeypatch):
 @pytest.fixture
 def mock_gather_requirements(monkeypatch):
     gather_mock = MagicMock()
-    monkeypatch.setattr(
-        "devsynth.core.workflows.gather_requirements", gather_mock
-    )
+    monkeypatch.setattr("devsynth.core.workflows.gather_requirements", gather_mock)
     return gather_mock
 
 
@@ -41,6 +39,7 @@ def test_gather_wizard_start_button_not_clicked(
     stub_streamlit, mock_gather_requirements
 ):
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -50,10 +49,7 @@ def test_gather_wizard_start_button_not_clicked(
     WebUI()._gather_wizard()
     mock_gather_requirements.assert_not_called()
     stub_streamlit.button.assert_called_once()
-    assert (
-        stub_streamlit.button.call_args.kwargs["key"]
-        == "start_gather_wizard_button"
-    )
+    assert stub_streamlit.button.call_args.kwargs["key"] == "start_gather_wizard_button"
 
 
 @pytest.mark.medium
@@ -61,6 +57,7 @@ def test_gather_wizard_finish_calls_gather_requirements(
     stub_streamlit, mock_gather_requirements
 ):
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -89,6 +86,7 @@ def test_gather_wizard_finish_calls_gather_requirements(
 @pytest.mark.medium
 def test_gather_wizard_import_error(stub_streamlit, monkeypatch):
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -103,7 +101,9 @@ def test_gather_wizard_import_error(stub_streamlit, monkeypatch):
         "gather_wizard_resource_location": "/docs",
         "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
     }
-    stub_streamlit.button.side_effect = lambda label, key=None, **kwargs: key == "finish_button"
+    stub_streamlit.button.side_effect = (
+        lambda label, key=None, **kwargs: key == "finish_button"
+    )
     monkeypatch.setattr(webui, "gather_requirements", None)
     ui = WebUI()
     ui.display_result = MagicMock()
@@ -115,6 +115,7 @@ def test_gather_wizard_import_error(stub_streamlit, monkeypatch):
 @pytest.mark.medium
 def test_gather_wizard_exception(stub_streamlit, mock_gather_requirements):
     import importlib
+
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
@@ -129,7 +130,9 @@ def test_gather_wizard_exception(stub_streamlit, mock_gather_requirements):
         "gather_wizard_resource_location": "/docs",
         "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
     }
-    stub_streamlit.button.side_effect = lambda label, key=None, **kwargs: key == "finish_button"
+    stub_streamlit.button.side_effect = (
+        lambda label, key=None, **kwargs: key == "finish_button"
+    )
     mock_gather_requirements.side_effect = RuntimeError("boom")
     ui = WebUI()
     ui.display_result = MagicMock()

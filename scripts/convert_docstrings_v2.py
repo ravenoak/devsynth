@@ -7,15 +7,15 @@ without affecting function signatures or introducing syntax errors.
 """
 
 import ast
-import re
 import os
+import re
 import sys
 
 try:
     import astor
 except ImportError:  # pragma: no cover - simple import guard
     astor = None
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class DocstringConverter(ast.NodeVisitor):

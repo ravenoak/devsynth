@@ -477,7 +477,21 @@ class EDRRCoordinator:
             self.performance_metrics.setdefault("consensus_failures", []).append(
                 {"method": "dialectical_reasoning", "cycle_id": self.cycle_id}
             )
+            # Best-effort flush to ensure any buffered memory operations complete.
+            if hasattr(self.memory_manager, "flush_updates"):
+                try:
+                    self.memory_manager.flush_updates()
+                except Exception:
+                    logger.debug(
+                        "flush_updates failed after consensus failure", exc_info=True
+                    )
             return {}
+        # Successful path: flush any pending memory updates before returning final result.
+        if hasattr(self.memory_manager, "flush_updates"):
+            try:
+                self.memory_manager.flush_updates()
+            except Exception:
+                logger.debug("flush_updates failed on success path", exc_info=True)
         return results[-1]
 
     def _execute_peer_review(

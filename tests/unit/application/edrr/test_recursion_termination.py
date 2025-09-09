@@ -44,6 +44,7 @@ def coordinator_factory():
     return factory
 
 
+@pytest.mark.property
 @given(max_depth=st.integers(min_value=1, max_value=3))
 @settings(max_examples=5, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @pytest.mark.fast
@@ -71,6 +72,7 @@ def test_micro_cycle_respects_depth_bounds(max_depth: int, coordinator_factory):
             )
 
 
+@pytest.mark.property
 @given(complexity_score=st.floats(min_value=0.71, max_value=1.0))
 @settings(max_examples=5, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @pytest.mark.fast

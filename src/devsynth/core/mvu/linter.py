@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import jsonschema
 import re
 import subprocess
 import sys
 from pathlib import Path
 from typing import List, Optional
+
+import jsonschema
 
 from .schema import MVUU_SCHEMA
 

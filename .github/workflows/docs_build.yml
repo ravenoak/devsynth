@@ -1,0 +1,43 @@
+name: Docs Build
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+permissions:
+  contents: read
+
+jobs:
+  docs-build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Install docs environment
+        run: |
+          poetry install --with docs --all-extras
+
+      - name: Build docs (MkDocs)
+        run: |
+          poetry run mkdocs build --strict
+
+      - name: Upload site (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site
+          if-no-files-found: ignore

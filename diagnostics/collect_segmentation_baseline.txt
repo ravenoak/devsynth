@@ -1,0 +1,1 @@
+Pytest collect-only baseline was executed to ensure environment and discovery are consistent prior to segmented runs. See task notes for command. Output was redirected here if available.

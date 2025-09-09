@@ -13,6 +13,7 @@ from devsynth.application.memory.tiered_cache import TieredCache
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
+@pytest.mark.property
 @given(st.lists(st.text(min_size=1), min_size=1, max_size=50))
 @pytest.mark.medium
 def test_lru_eviction_matches_reference(accesses):
@@ -31,6 +32,7 @@ def test_lru_eviction_matches_reference(accesses):
     assert cache.get_keys() == list(reference.keys())
 
 
+@pytest.mark.property
 @given(st.lists(st.text(min_size=1), min_size=1, max_size=30))
 @pytest.mark.medium
 def test_hit_miss_counts_match_reference(accesses):

@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 import pytest
 
-from devsynth.config import load_project_config
-from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.config import load_project_config
 
 
 @pytest.fixture
@@ -20,6 +20,7 @@ def project_dir(tmp_path):
     return project
 
 
+@pytest.mark.medium
 def test_project_startup_with_kuzu(project_dir, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(project_dir))
     # Prevent actual embedding calls

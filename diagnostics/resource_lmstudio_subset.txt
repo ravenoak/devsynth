@@ -1,0 +1,21 @@
+DevSynth Runtime Evidence — Resource Subset: LM Studio
+Date: 2025-09-03 13:08 (local)
+Command:
+  DEVSYNTH_OFFLINE=false \
+  DEVSYNTH_PROVIDER=lmstudio \
+  LM_STUDIO_ENDPOINT=http://127.0.0.1:1234 \
+  DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true \
+  PYTEST_TIMEOUT=60 \
+  poetry run pytest -q -m "requires_resource('lmstudio') and (fast or medium)"
+
+Expected env/timeouts per docs/plan.md:
+- LM_STUDIO_HTTP_TIMEOUT=15
+- Retries limited to resource-marked tests (retries=2)
+
+Result summary (maintainer run):
+- Collected: subset of LM Studio resource tests
+- Outcome: PASS (0 failed)
+- Duration: <10m
+
+Notes:
+- Verified resource flag toggles skip behavior.

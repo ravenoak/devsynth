@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -exo pipefail
 
+START_TIME=$(date +%s)
+MAX_SECONDS=$((15 * 60))
+WARN_SECONDS=$((10 * 60))
+
 # NOTE: This script provisions the Codex testing environment only. It is not
-# intended for regular development setup.
+# intended for regular development setup. To keep the ephemeral workspace
+# responsive, it targets completion in under 10 minutes and fails if it
+# exceeds 15 minutes.
 # See AGENTS.md for repository instructions; only AGENTS.md and this file should
 # reference AGENTS guidelines or `codex_setup.sh`.
 
@@ -75,9 +81,13 @@ poetry env info --path >/dev/null
 echo "DIALECTICAL CHECKPOINT: What dependencies are truly required?"
 echo "DIALECTICAL CHECKPOINT: How do we verify the cache reproduces identical environments?"
 
-EXPECTED_VERSION="0.1.0-alpha.1"
+# Accept either the legacy 0.1.0-alpha.1 notation or the PEP 440-compliant
+# 0.1.0a1 form. Normalize the current version to the latter for comparison so
+# future releases can switch schemes without breaking setup.
+EXPECTED_VERSION="0.1.0a1"
 CURRENT_VERSION="$(poetry version -s)"
-if [[ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]]; then
+NORMALIZED_VERSION="${CURRENT_VERSION/-alpha./a}"
+if [[ "$NORMALIZED_VERSION" != "$EXPECTED_VERSION" ]]; then
   echo "Project version $CURRENT_VERSION does not match $EXPECTED_VERSION" >&2
   exit 1
 fi
@@ -237,9 +247,10 @@ fi
 poetry run pytest tests/behavior/steps/test_alignment_metrics_steps.py --maxfail=1
 
 # Use the CLI to run a fast, non-interactive test sweep. The timeout prevents
-# hangs while the log aids in diagnosing failures.
+# hangs while the log aids in diagnosing failures. Keeping this step under
+# ten minutes helps the overall setup stay within the target runtime.
 # What evidence shows the CLI can run tests non-interactively?
-timeout 15m poetry run devsynth run-tests --speed=fast | tee devsynth_cli_tests.log
+timeout 10m poetry run devsynth run-tests --speed=fast | tee devsynth_cli_tests.log
 
 # Run the dialectical audit and surface any unanswered questions.
 poetry run python scripts/dialectical_audit.py || true
@@ -265,3 +276,13 @@ run_check "Security audit" DEVSYNTH_PRE_DEPLOY_APPROVED=true poetry run python s
 
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED
+
+END_TIME=$(date +%s)
+ELAPSED=$((END_TIME - START_TIME))
+echo "codex_setup completed in ${ELAPSED}s"
+if (( ELAPSED > MAX_SECONDS )); then
+  echo "codex_setup exceeded ${MAX_SECONDS}s limit" >&2
+  exit 1
+elif (( ELAPSED > WARN_SECONDS )); then
+  echo "[warning] codex_setup exceeded ${WARN_SECONDS}s target" >&2
+fi

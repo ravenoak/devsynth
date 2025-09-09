@@ -3,9 +3,12 @@
 import logging
 from unittest.mock import patch
 
+import pytest
+
 from devsynth.core import workflows
 
 
+@pytest.mark.medium
 def test_generate_code_todo_triggers_critique_warning(caplog):
     """Critique warns when generated code contains TODO markers."""
 
@@ -21,6 +24,7 @@ def test_generate_code_todo_triggers_critique_warning(caplog):
             assert "Critique issues" in caplog.text
 
 
+@pytest.mark.medium
 def test_generate_tests_clean_passes_critique():
     """Critique approves when no issues are present."""
 
@@ -32,4 +36,3 @@ def test_generate_tests_clean_passes_critique():
         result = workflows.generate_tests("spec.yaml")
         assert result["critique_approved"] is True
         assert result["critique"] == []
-

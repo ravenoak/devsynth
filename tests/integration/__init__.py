@@ -1,6 +1,4 @@
 """Integration tests for DevSynth component interactions."""
 
-import pytest
-
-# Integration tests generally run longer than unit tests
-pytestmark = [pytest.mark.medium]
+# Note: Do not set module-level speed markers here.
+# Each test function must declare exactly one speed marker (fast|medium|slow).

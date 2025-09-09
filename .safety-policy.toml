@@ -1,0 +1,16 @@
+# Safety policy for DevSynth
+# Aligns with .junie/guidelines.md and docs/plan.md
+# Keep ignores empty by default. Any future ignore entries must include full rationale,
+# an expiry date, and a link to a tracking issue.
+
+version = 1
+
+[policy]
+# Optional global settings can be configured here.
+
+[[ignore]]
+# Example of a documented ignore (commented out):
+# id = "PYSEC-2024-XXXX"        # Vulnerability ID
+# reason = "False positive due to vendor backport; see ISSUE-1234 for full analysis"
+# expires = "2025-12-31"        # ISO date when this ignore must be re-evaluated
+# additional_info = "https://github.com/ravenoak/devsynth/issues/1234"

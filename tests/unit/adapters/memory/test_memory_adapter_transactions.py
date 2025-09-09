@@ -5,7 +5,7 @@ import types
 
 import pytest
 
-pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation, pytest.mark.medium]
+pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
 
 
 def _import_adapter():
@@ -103,6 +103,7 @@ def _make_adapter():
     )
 
 
+@pytest.mark.medium
 def test_begin_transaction_unsupported_store_raises_error():
     """``begin_transaction`` should raise when store lacks transaction support."""
 
@@ -112,6 +113,7 @@ def test_begin_transaction_unsupported_store_raises_error():
         adapter.begin_transaction()
 
 
+@pytest.mark.medium
 def test_commit_transaction_unsupported_store_raises_error():
     """``commit_transaction`` should raise when store lacks transaction support."""
 

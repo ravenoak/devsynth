@@ -5,11 +5,11 @@ This module defines the templates used by the EDRR framework for each phase.
 It provides functions to register these templates with the PromptManager.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from devsynth.application.requirements.prompt_manager import PromptManager
-from devsynth.methodology.base import Phase
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.methodology.base import Phase
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -111,10 +111,11 @@ Extract learnings, identify patterns, integrate knowledge, and generate improvem
 - What new knowledge was gained that should be preserved?
 """
 
+
 def register_edrr_templates(prompt_manager: PromptManager) -> None:
     """
     Register all EDRR phase templates with the prompt manager.
-    
+
     Args:
         prompt_manager: The prompt manager to register templates with
     """
@@ -124,37 +125,37 @@ def register_edrr_templates(prompt_manager: PromptManager) -> None:
             name="expand_phase",
             description="Template for the Expand phase of the EDRR cycle",
             template_text=EXPAND_PHASE_TEMPLATE,
-            edrr_phase="EXPAND"
+            edrr_phase="EXPAND",
         )
         logger.info("Registered expand_phase template")
-        
+
         # Register Differentiate phase template
         prompt_manager.register_template(
             name="differentiate_phase",
             description="Template for the Differentiate phase of the EDRR cycle",
             template_text=DIFFERENTIATE_PHASE_TEMPLATE,
-            edrr_phase="DIFFERENTIATE"
+            edrr_phase="DIFFERENTIATE",
         )
         logger.info("Registered differentiate_phase template")
-        
+
         # Register Refine phase template
         prompt_manager.register_template(
             name="refine_phase",
             description="Template for the Refine phase of the EDRR cycle",
             template_text=REFINE_PHASE_TEMPLATE,
-            edrr_phase="REFINE"
+            edrr_phase="REFINE",
         )
         logger.info("Registered refine_phase template")
-        
+
         # Register Retrospect phase template
         prompt_manager.register_template(
             name="retrospect_phase",
             description="Template for the Retrospect phase of the EDRR cycle",
             template_text=RETROSPECT_PHASE_TEMPLATE,
-            edrr_phase="RETROSPECT"
+            edrr_phase="RETROSPECT",
         )
         logger.info("Registered retrospect_phase template")
-        
+
     except ValueError as e:
         # This might happen if templates are already registered
         logger.warning(f"Error registering EDRR templates: {str(e)}")

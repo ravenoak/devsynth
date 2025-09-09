@@ -1,0 +1,141 @@
+name: Tests Matrix (fast lanes)
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+concurrency:
+  group: tests-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    name: Setup (cache env)
+    runs-on: ubuntu-latest
+    outputs:
+      python-version: ${{ steps.py.outputs.python-version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        id: py
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry/virtualenvs
+            .venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}-tests-matrix
+
+  unit-fast:
+    name: Unit (fast)
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      DEVSYNTH_PROVIDER: stub
+      DEVSYNTH_OFFLINE: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Use cached virtualenv and install deps (dev only)
+        run: |
+          poetry env use 3.12
+          poetry install --with dev --no-interaction --no-root
+      - name: Run unit fast lane
+        run: |
+          poetry run devsynth run-tests --target unit-tests --speed=fast
+
+  behavior-fast:
+    name: Behavior (fast)
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      DEVSYNTH_PROVIDER: stub
+      DEVSYNTH_OFFLINE: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Use cached virtualenv and install deps (dev only)
+        run: |
+          poetry env use 3.12
+          poetry install --with dev --no-interaction --no-root
+      - name: Run behavior fast lane
+        run: |
+          poetry run devsynth run-tests --target behavior-tests --speed=fast
+
+  integration-fast:
+    name: Integration (fast)
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      DEVSYNTH_PROVIDER: stub
+      DEVSYNTH_OFFLINE: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Use cached virtualenv and install deps (dev + targeted extras)
+        run: |
+          poetry env use 3.12
+          # Install dev plus minimal extras suitable for tests by default
+          poetry install --with dev --extras tests --no-interaction --no-root
+      - name: Run integration fast lane
+        env:
+          # Disable third-party plugin autoload only if needed; keep parallelism by default
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: ''
+        run: |
+          poetry run devsynth run-tests --target integration-tests --speed=fast
+
+  integration-chromadb-optional:
+    name: Integration (chromadb optional backend)
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      DEVSYNTH_PROVIDER: stub
+      DEVSYNTH_OFFLINE: 'true'
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+      - name: Use cached virtualenv and install deps (dev + chromadb extras)
+        run: |
+          poetry env use 3.12
+          # Install test plugins and chromadb extras to exercise optional backend
+          poetry install --with dev --extras "tests chromadb" --no-interaction --no-root
+      - name: Run integration tests requiring chromadb availability
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: ''
+        run: |
+          poetry run devsynth run-tests --target integration-tests --speed=fast

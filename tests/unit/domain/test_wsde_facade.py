@@ -1,5 +1,7 @@
 import types
 
+import pytest
+
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
@@ -10,6 +12,7 @@ class SimpleAgent:
         self.config = types.SimpleNamespace(parameters={"expertise": self.expertise})
 
 
+@pytest.mark.fast
 def test_summarize_consensus_result_outputs_expected_sections():
     team = WSDETeam(name="facade")
     team.add_agents([SimpleAgent("a")])
@@ -28,6 +31,7 @@ def test_summarize_consensus_result_outputs_expected_sections():
     assert "Explanation: because" in summary
 
 
+@pytest.mark.fast
 def test_summarize_voting_result_reports_winner_and_counts():
     team = WSDETeam(name="facade")
     team.add_agents([SimpleAgent("a"), SimpleAgent("b")])

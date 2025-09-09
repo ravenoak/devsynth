@@ -11,7 +11,7 @@ ahead of time.
 from __future__ import annotations
 
 # Version and metadata
-__version__ = "0.1.0-alpha.1"
+__version__ = "0.1.0a1"
 
 # Names that are re-exported lazily from :mod:`devsynth.logger`
 _EXPORTED = {
@@ -41,6 +41,17 @@ def __getattr__(name: str):
         value = getattr(_logger, name)
         globals()[name] = value  # Cache for future lookups
         return value
+
+    # Fallback: try to resolve unknown attributes as subpackages/modules
+    try:
+        import importlib
+
+        module = importlib.import_module(f"{__name__}.{name}")
+        globals()[name] = module  # Cache the loaded submodule on the package
+        return module
+    except Exception:
+        pass
+
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

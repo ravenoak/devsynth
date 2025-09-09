@@ -1,4 +1,5 @@
 import pytest
+
 from devsynth.application.collaboration.wsde_team_extended import CollaborativeWSDETeam
 from devsynth.domain.models.memory import MemoryType
 

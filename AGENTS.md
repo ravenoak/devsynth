@@ -5,6 +5,8 @@
 **What is DevSynth?**
 DevSynth implements agent services under `src/devsynth/` and supporting scripts under `scripts/`. It values clarity, collaboration, and dependable automation. For architecture and policy references, see `docs/` and `CONTRIBUTING.md`.
 
+> **NOTE:** All GitHub Actions workflows are temporarily disabled and must be triggered manually via `workflow_dispatch` until the `v0.1.0a1` tag is created (see `docs/tasks.md` item 10.1). No `push`, `pull_request`, or `schedule` triggers may be added during this period. The CI workflow provides smoke, unit+integration, and typing+lint jobs with concurrency controls and caches for Poetry, pip, and `.pytest_cache`; on failures it uploads `test_reports/`, `htmlcov/`, `coverage.json`, and `diagnostics/doctor_run.txt`.
+
 ## Setup
 
 **How do I prepare my environment?**
@@ -20,7 +22,7 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
 2. Provision the environment:
    ```bash
    bash scripts/install_dev.sh      # general setup (auto-installs go-task)
-   bash scripts/codex_setup.sh      # Codex agents
+    bash scripts/codex_setup.sh      # Codex agents (finishes <15m, warns >10m)
    task --version                   # verify Taskfile is available
    ```
    The install script downloads `go-task` to `$HOME/.local/bin` and adds it to

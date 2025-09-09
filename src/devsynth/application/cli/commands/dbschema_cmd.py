@@ -1,4 +1,7 @@
-"""Generate a database schema for the specified database type."""
+"""[experimental] Generate a database schema for the specified database type.
+
+This generator provides basic schemas; production-grade outputs may require manual adjustments.
+"""
 
 from __future__ import annotations
 

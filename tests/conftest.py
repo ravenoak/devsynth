@@ -5,10 +5,11 @@ This module provides fixtures for ensuring all tests are hermetic (isolated from
 and don't pollute the developer's environment, file system, or depend on external services.
 """
 
-pytest_plugins = ["tests.conftest_extensions"]
+pytest_plugins = ["tests.conftest_extensions", "tests.fixtures.backends"]
 
 import logging
 import os
+import random
 import shutil
 import socket
 import sys
@@ -19,6 +20,43 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+# Normalized subsystem stubs (GUI/providers)
+try:
+    from tests.fixtures.mock_subsystems import apply_normalized_stubs
+except Exception:  # pragma: no cover - fallback if pathing changes
+    apply_normalized_stubs = None  # type: ignore
+
+# Configure Hypothesis defaults for property-based tests when available
+try:  # pragma: no cover - only active when hypothesis is installed
+    from hypothesis import HealthCheck, Phase, Verbosity, settings
+
+    # Allow environment overrides for CI/local tuning
+    _hyp_deadline = os.environ.get("DEVSYNTH_HYPOTHESIS_DEADLINE_MS", "500")
+    _hyp_max_examples = os.environ.get("DEVSYNTH_HYPOTHESIS_MAX_EXAMPLES", "50")
+    try:
+        _deadline_ms = int(_hyp_deadline)
+    except Exception:
+        _deadline_ms = 500
+    try:
+        _max_examples = int(_hyp_max_examples)
+    except Exception:
+        _max_examples = 50
+
+    settings.register_profile(
+        "devsynth",
+        settings(
+            deadline=_deadline_ms,
+            suppress_health_check=[HealthCheck.too_slow],
+            phases=(Phase.explicit, Phase.generate, Phase.shrink),
+            max_examples=_max_examples,
+            verbosity=Verbosity.normal,
+        ),
+    )
+    settings.load_profile(os.environ.get("DEVSYNTH_HYPOTHESIS_PROFILE", "devsynth"))
+except Exception:
+    # Hypothesis not installed or configuration failed; tests/property/ are skipped by gating anyway
+    pass
 
 try:
     import yaml
@@ -53,6 +91,33 @@ def pytest_configure(config):
         "markers",
         "property: mark test as a Hypothesis property-based test",
     )
+    config.addinivalue_line(
+        "markers",
+        "performance: mark test as a performance/benchmark test (opt-in)",
+    )
+    # Register derived static markers for known resources to allow '-m resource_<name>' selection
+    for _res in [
+        "anthropic",
+        "llm_provider",
+        "lmstudio",
+        "openai",
+        "codebase",
+        "cli",
+        "chromadb",
+        "tinydb",
+        "duckdb",
+        "faiss",
+        "kuzu",
+        "lmdb",
+        "rdflib",
+        "memory",
+        "test_resource",
+        "webui",
+    ]:
+        config.addinivalue_line(
+            "markers",
+            f"resource_{_res}: derived marker for requires_resource('{_res}')",
+        )
 
     # Limit worker restarts to avoid xdist hangs when collecting coverage
     if (
@@ -62,8 +127,12 @@ def pytest_configure(config):
         config.option.maxworkerrestart = 2
 
 
-@pytest.fixture
-def test_environment(tmp_path, monkeypatch):
+# Extracted to tests/fixtures/determinism.py
+from tests.fixtures.determinism import deterministic_seed
+
+
+@pytest.fixture(name="test_environment")
+def _test_environment(tmp_path, monkeypatch):
     """Create a completely isolated test environment with temporary directories and patched environment variables. ReqID: none
     This fixture is NOT automatically used for all tests - use global_test_isolation instead.
 
@@ -189,15 +258,26 @@ def tmp_project_dir():
 
 
 @pytest.fixture
-def mock_datetime():
+def mock_datetime(monkeypatch):
     """
-    Patch datetime.now() to return a fixed value for reproducible tests.
+    Patch datetime.datetime.now/utcnow and time.time to return a fixed, timezone-stable value.
+
+    Notes:
+    - Uses a fixed naive datetime (interpreted consistently) and a fixed epoch timestamp for time.time.
+    - Helps avoid wall-clock drift and timezone-related flakiness across platforms.
     """
     fixed_dt = datetime(2025, 1, 1, 12, 0, 0)
+    # Patch datetime.datetime methods used by code under test
     with patch("datetime.datetime") as mock_dt:
         mock_dt.now.return_value = fixed_dt
+        mock_dt.utcnow.return_value = fixed_dt
         mock_dt.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
-        yield mock_dt
+        # Patch time.time to a fixed timestamp derived from fixed_dt
+        import time as _time  # local import to avoid global side effects
+
+        fixed_ts = int(fixed_dt.timestamp())
+        with patch.object(_time, "time", return_value=fixed_ts):
+            yield mock_dt
 
 
 @pytest.fixture
@@ -293,6 +373,14 @@ def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
     checkpoints_dir.mkdir(exist_ok=True)
     workflows_dir.mkdir(exist_ok=True)
 
+    # Establish a temporary HOME for tests to enforce tmp-only writes
+    home_dir = tmp_path / "home"
+    home_dir.mkdir(exist_ok=True)
+    # Common XDG locations under HOME
+    (home_dir / ".cache").mkdir(exist_ok=True)
+    (home_dir / ".config").mkdir(exist_ok=True)
+    (home_dir / ".local" / "share").mkdir(parents=True, exist_ok=True)
+
     # Set up a basic project structure
     with open(devsynth_dir / "config.json", "w") as f:
         f.write('{"model": "test-model", "project_name": "test-project"}')
@@ -304,11 +392,27 @@ def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
     monkeypatch.setenv("DEVSYNTH_CHECKPOINTS_PATH", str(checkpoints_dir))
     monkeypatch.setenv("DEVSYNTH_WORKFLOWS_PATH", str(workflows_dir))
 
+    # Redirect HOME (and Windows USERPROFILE) to temporary directory
+    monkeypatch.setenv("HOME", str(home_dir))
+    monkeypatch.setenv("USERPROFILE", str(home_dir))
+    monkeypatch.setenv("XDG_CACHE_HOME", str(home_dir / ".cache"))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(home_dir / ".config"))
+    monkeypatch.setenv("XDG_DATA_HOME", str(home_dir / ".local" / "share"))
+
+    # Patch Path.home() to return the temporary HOME
+    monkeypatch.setattr(Path, "home", lambda: home_dir)
+
     # Set standard test credentials
     monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
     monkeypatch.setenv("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234")
     if "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" not in os.environ:
         monkeypatch.setenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+
+    # Enforce hermetic provider defaults unless explicitly overridden (docs/plan.md §8; project guidelines)
+    if "DEVSYNTH_PROVIDER" not in os.environ:
+        monkeypatch.setenv("DEVSYNTH_PROVIDER", "stub")
+    if "DEVSYNTH_OFFLINE" not in os.environ:
+        monkeypatch.setenv("DEVSYNTH_OFFLINE", "true")
 
     # Explicitly disable file logging for tests
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
@@ -366,14 +470,66 @@ def global_test_isolation(monkeypatch, tmp_path, reset_global_state):
                 print(f"Warning: Failed to clean up {path}: {str(e)}")
 
 
+# Extracted to tests/fixtures/networking.py
+from tests.fixtures.networking import disable_network
+
+
 @pytest.fixture(autouse=True)
-def disable_network(monkeypatch):
-    """Disable network access during tests."""
+def normalize_subsystem_stubs():
+    """Apply normalized stubs for GUI and provider subsystems by default.
 
-    def guard_connect(*args, **kwargs):
-        raise RuntimeError("Network access disabled during tests")
+    - Honors env vars:
+      - DEVSYNTH_TEST_ALLOW_GUI
+      - DEVSYNTH_TEST_ALLOW_PROVIDERS
+    - No-ops if helper is unavailable.
+    """
+    if apply_normalized_stubs is not None:
+        apply_normalized_stubs()
 
-    monkeypatch.setattr(socket.socket, "connect", guard_connect)
+
+# Extracted to tests/fixtures/determinism.py
+from tests.fixtures.determinism import enforce_test_timeout
+
+
+@pytest.fixture(autouse=True)
+def _default_timeout_by_speed(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Set a default per-test timeout based on speed markers when not explicitly set.
+
+    Non-smoke defaults (local/dev):
+    - fast: 3s (quick signal)
+    - medium: 10s (integration guidance)
+    - slow: 30s (generous cap; keep tests bounded)
+
+    Smoke mode (plugins disabled via PYTEST_DISABLE_PLUGIN_AUTOLOAD=1):
+    - fast: 2s
+    - medium: 5s
+    - slow: 15s
+
+    This only applies when DEVSYNTH_TEST_TIMEOUT_SECONDS is not already set, so
+    explicit CLI/env control remains authoritative. The actual enforcement is
+    performed by tests.fixtures.determinism.enforce_test_timeout.
+    """
+    # Respect explicit configuration
+    if os.environ.get("DEVSYNTH_TEST_TIMEOUT_SECONDS"):
+        return
+
+    # Determine if we're in smoke mode (plugins disabled)
+    smoke = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "0").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+    # Determine closest speed marker and set default timeout accordingly
+    if request.node.get_closest_marker("fast") is not None:
+        monkeypatch.setenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", "2" if smoke else "3")
+    elif request.node.get_closest_marker("medium") is not None:
+        monkeypatch.setenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", "5" if smoke else "10")
+    elif request.node.get_closest_marker("slow") is not None:
+        # Provide an upper bound while allowing intentionally longer tests
+        monkeypatch.setenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", "15" if smoke else "30")
 
 
 @pytest.fixture
@@ -486,27 +642,47 @@ def is_lmstudio_available() -> bool:
 
 
 def is_codebase_available() -> bool:
-    """Check if the DevSynth codebase is available for analysis."""
-    # Check environment variable override
+    """Check if the DevSynth codebase is available for analysis.
+
+    Default behavior: available (True) unless explicitly disabled via
+    DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=false. This aligns with docs/tasks.md
+    expectation for CI/local defaults.
+    """
+    # Respect explicit opt-out
     if (
-        os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "false").lower()
+        os.environ.get("DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE", "true").lower()
         == "false"
     ):
         return False
 
-    # Actual availability check
+    # Actual availability check (best effort)
     try:
-        # Check if the src directory exists
         return Path("src/devsynth").exists()
     except Exception:
-        return False
+        # If in doubt, assume available to avoid over-skipping
+        return True
 
 
 def is_cli_available() -> bool:
-    """Check if the DevSynth CLI is available for testing."""
-    # Check environment variable override
-    if os.environ.get("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "false").lower() == "false":
+    """Check if the DevSynth CLI is available for testing.
+
+    Default behavior: available (True) unless explicitly disabled via
+    DEVSYNTH_RESOURCE_CLI_AVAILABLE=false. When available, optionally sanity-check
+    that invoking `devsynth --help` succeeds; failures fall back to True to avoid
+    over-skipping in environments without the entry-point.
+    """
+    # Respect explicit opt-out
+    if os.environ.get("DEVSYNTH_RESOURCE_CLI_AVAILABLE", "true").lower() == "false":
         return False
+    # Best-effort health check
+    try:
+        import subprocess
+
+        proc = subprocess.run(["devsynth", "--help"], capture_output=True, text=True)
+        return proc.returncode == 0
+    except Exception:
+        # Assume available if the subprocess cannot be executed in this environment
+        return True
 
 
 def is_webui_available() -> bool:
@@ -560,6 +736,30 @@ def is_chromadb_available() -> bool:
         return False
 
 
+def is_tinydb_available() -> bool:
+    """Check if the tinydb package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_TINYDB_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import tinydb  # type: ignore  # noqa: F401
+
+        return True
+    except Exception:
+        return False
+
+
+def is_duckdb_available() -> bool:
+    """Check if the duckdb package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import duckdb  # type: ignore  # noqa: F401
+
+        return True
+    except Exception:
+        return False
+
+
 def is_faiss_available() -> bool:
     """Check if the faiss package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_FAISS_AVAILABLE", "true").lower() == "false":
@@ -595,14 +795,39 @@ def is_lmdb_available() -> bool:
     except Exception:
         return False
 
-    # Actual availability check
-    try:
-        import subprocess
 
-        result = subprocess.run(["devsynth", "--help"], capture_output=True, text=True)
-        return result.returncode == 0
+def is_rdflib_available() -> bool:
+    """Check if the rdflib package is installed."""
+    if os.environ.get("DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE", "true").lower() == "false":
+        return False
+    try:  # pragma: no cover - simple import check
+        import rdflib  # noqa: F401
+
+        return True
     except Exception:
         return False
+
+
+def is_openai_available() -> bool:
+    """Check if OpenAI is configured via API key."""
+    if os.environ.get("DEVSYNTH_RESOURCE_OPENAI_AVAILABLE", "true").lower() == "false":
+        return False
+    return bool(os.environ.get("OPENAI_API_KEY"))
+
+
+def is_memory_available() -> bool:
+    """Generic 'memory' resource gate for memory-heavy tests (opt-out via env)."""
+    return (
+        os.environ.get("DEVSYNTH_RESOURCE_MEMORY_AVAILABLE", "true").lower() != "false"
+    )
+
+
+def is_test_resource_available() -> bool:
+    """Test sentinel resource used by unit tests to validate resource gating."""
+    return (
+        os.environ.get("DEVSYNTH_RESOURCE_TEST_RESOURCE_AVAILABLE", "false").lower()
+        == "true"
+    )
 
 
 def is_anthropic_available() -> bool:
@@ -651,12 +876,18 @@ def is_resource_available(resource: str) -> bool:
         "anthropic": is_anthropic_available,
         "llm_provider": is_llm_provider_available,
         "lmstudio": is_lmstudio_available,
+        "openai": is_openai_available,
         "codebase": is_codebase_available,
         "cli": is_cli_available,
         "chromadb": is_chromadb_available,
+        "tinydb": is_tinydb_available,
+        "duckdb": is_duckdb_available,
         "faiss": is_faiss_available,
         "kuzu": is_kuzu_available,
         "lmdb": is_lmdb_available,
+        "rdflib": is_rdflib_available,
+        "memory": is_memory_available,
+        "test_resource": is_test_resource_available,
         "webui": is_webui_available,
     }
 
@@ -672,18 +903,153 @@ def is_resource_available(resource: str) -> bool:
 
 def pytest_collection_modifyitems(config, items):
     """
-    Skip tests that depend on external resources unless explicitly marked.
-    Mark expected failures based on known issues.
+    Normalize and enforce resource gating, smoke-mode behavior, property-based testing collection,
+    and conservative xdist-parallel safety.
+
+    - Resource gating: validate @pytest.mark.requires_resource("<name>") and skip when unavailable or malformed/unknown.
+    - Smoke mode: when PYTEST_DISABLE_PLUGIN_AUTOLOAD=1, skip tests under tests/behavior/ that rely on third-party plugins.
+    - Property-based tests: skip unless DEVSYNTH_PROPERTY_TESTING is enabled.
+    - Xdist safety: conservatively mark integration and performance tests as @pytest.mark.isolation to avoid parallelization issues.
     """
+    # Validate and apply resource gating
     for item in items:
-        # Check for resource markers
         for marker in item.iter_markers(name="requires_resource"):
-            resource = marker.args[0]
+            # Validate marker arguments
+            if (
+                not marker.args
+                or not isinstance(marker.args[0], str)
+                or not marker.args[0].strip()
+            ):
+                item.add_marker(
+                    pytest.mark.skip(
+                        reason="Malformed requires_resource marker: expected a non-empty resource name"
+                    )
+                )
+                continue
+            resource = marker.args[0].strip()
+
+            # Validate known resource
+            known_resources = {
+                "anthropic",
+                "llm_provider",
+                "lmstudio",
+                "openai",
+                "codebase",
+                "cli",
+                "chromadb",
+                "tinydb",
+                "duckdb",
+                "faiss",
+                "kuzu",
+                "lmdb",
+                "rdflib",
+                "memory",
+                "test_resource",
+                "webui",
+            }
+            if resource not in known_resources:
+                item.add_marker(
+                    pytest.mark.skip(
+                        reason=f"Unknown resource '{resource}' not recognized by test harness"
+                    )
+                )
+                continue
+
+            # Add a derived static marker to enable '-m resource_<name>' selection
+            try:
+                item.add_marker(getattr(pytest.mark, f"resource_{resource}"))
+            except Exception:
+                # Defensive: do not fail collection if dynamic marker attachment has issues
+                pass
+
+            # Skip if resource is not available
             if not is_resource_available(resource):
-                # Skip the test if the resource is not available
                 item.add_marker(
                     pytest.mark.skip(reason=f"Resource '{resource}' not available")
                 )
+
+    # Smoke-mode behavior: skip behavior tests when plugins are disabled
+    smoke = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "0").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if smoke:
+        skip_behavior = pytest.mark.skip(
+            reason=(
+                "Smoke mode (plugins disabled): skipping behavior tests that require third-party plugins"
+            )
+        )
+        for item in items:
+            try:
+                fspath = getattr(item, "fspath", None)
+                path_str = str(fspath) if fspath is not None else ""
+            except Exception:
+                path_str = ""
+            norm = path_str.replace("\\", "/")
+            if "/tests/behavior/" in norm or norm.endswith("/tests/behavior"):
+                item.add_marker(skip_behavior)
+
+    # Conservatively mark integration and performance tests as isolation for xdist safety
+    for item in items:
+        try:
+            fspath = getattr(item, "fspath", None)
+            path_str = str(fspath) if fspath is not None else ""
+        except Exception:
+            path_str = ""
+        norm = path_str.replace("\\", "/")
+        if "/tests/integration/" in norm or "/tests/performance/" in norm:
+            if not item.get_closest_marker("isolation"):
+                item.add_marker(pytest.mark.isolation)
+
+    # Broaden isolation auto-marking heuristics for fragile tests that touch filesystem/network
+    # Apply only when a test lacks an explicit @pytest.mark.isolation
+    network_keywords = ("network", "http", "https", "socket", "requests", "ftp")
+    fs_fixtures = {
+        "tmp_path",
+        "tmpdir",
+        "tmpdir_factory",
+        "temp_log_dir",
+        "tmp_project_dir",
+    }
+    for item in items:
+        try:
+            name = getattr(item, "name", "") or ""
+            nodeid = getattr(item, "nodeid", "") or ""
+            fixturenames = set(getattr(item, "fixturenames", []) or [])
+        except Exception:
+            name, nodeid, fixturenames = "", "", set()
+        if item.get_closest_marker("isolation"):
+            continue
+        name_l = name.lower()
+        nodeid_l = nodeid.lower()
+        touches_network = any(kw in name_l or kw in nodeid_l for kw in network_keywords)
+        touches_fs = bool(fs_fixtures.intersection(fixturenames))
+        if touches_network or touches_fs:
+            try:
+                item.add_marker(pytest.mark.isolation)
+            except Exception:
+                pass
+
+    # Auto-inject a default speed marker for behavior (pytest-bdd) scenario wrappers that
+    # lack an explicit function-level speed marker. This eliminates runtime warnings while
+    # preserving the repository rule of exactly one speed marker per test function.
+    # We only apply to tests under tests/behavior/ to avoid interfering with unit/integration
+    # tests where speed markers must be explicitly present in source.
+    for item in items:
+        try:
+            fspath = getattr(item, "fspath", None)
+            path_str = str(fspath) if fspath is not None else ""
+        except Exception:
+            path_str = ""
+        norm = path_str.replace("\\", "/")
+        if "/tests/behavior/" in norm or norm.endswith("/tests/behavior"):
+            # Check only own (function-level) markers to avoid counting module-level markers,
+            # which are not recognized for speed categories per repository guidelines.
+            own_marks = {m.name for m in getattr(item, "own_markers", [])}
+            has_speed = any(m in {"fast", "medium", "slow"} for m in own_marks)
+            if not has_speed:
+                item.add_marker(pytest.mark.fast)
 
     # Skip property-based tests unless enabled
     for item in items:
@@ -691,15 +1057,104 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Property testing disabled"))
 
 
-def is_property_testing_enabled() -> bool:
-    """Return True if property-based tests should run."""
-    flag = os.environ.get("DEVSYNTH_PROPERTY_TESTING")
-    if flag is not None:
-        return flag.strip().lower() in {"1", "true", "yes"}
-    cfg_path = Path(__file__).resolve().parents[1] / "config" / "default.yml"
+# Extracted to tests/fixtures/resources.py
+from tests.fixtures.resources import is_property_testing_enabled
+
+
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    """
+    When running under xdist workers, skip tests marked with @pytest.mark.isolation unless
+    explicitly allowed via DEVSYNTH_ALLOW_ISOLATION_IN_XDIST=true. This prevents known
+    shared-state or resource-contention issues from causing flakes under parallel execution.
+    """
+    allow_isolation = os.environ.get(
+        "DEVSYNTH_ALLOW_ISOLATION_IN_XDIST", ""
+    ).lower() in {"1", "true", "yes"}
+    running_in_xdist = os.environ.get("PYTEST_XDIST_WORKER") is not None
+    if (
+        running_in_xdist
+        and item.get_closest_marker("isolation")
+        and not allow_isolation
+    ):
+        pytest.skip(
+            "Isolation test skipped under xdist (parallel). Rerun with -n0/--no-parallel or set "
+            "DEVSYNTH_ALLOW_ISOLATION_IN_XDIST=true to force-run in parallel."
+        )
+
+
+# NOTE: Merged into the unified pytest_collection_modifyitems above to avoid duplicate hook definitions.
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Add command-line option to enable limited retries for resource-marked tests.
+
+    Controlled by either:
+    - CLI: --devsynth-resource-retries N
+    - Env: DEVSYNTH_RESOURCE_RETRIES=N (used if CLI not supplied)
+
+    Default is 0 (disabled). This is intentionally scoped to resource-marked tests
+    to keep unit tests deterministic and fast, per docs/plan.md Section "Key risks
+    and mitigations" (retries=2 for online subsets).
+    """
+    parser.addoption(
+        "--devsynth-resource-retries",
+        action="store",
+        dest="devsynth_resource_retries",
+        default=None,
+        help="Enable reruns for tests marked requires_resource; value is integer N (default 0).",
+    )
+
+
+def pytest_configure(config: pytest.Config):  # type: ignore[override]
+    """Inject rerun configuration only for resource-marked tests.
+
+    We leverage pytest-rerunfailures if installed. If the plugin is not available,
+    we simply no-op. The rerun count is pulled from the CLI option above or from
+    DEVSYNTH_RESOURCE_RETRIES env var. Scope is limited using the plugin's
+    --reruns and --only-rerun marked expression support when available; otherwise
+    we set a custom hook to re-schedule failures selectively.
+    """
     try:
-        with open(cfg_path, "r") as f:
-            data = yaml.safe_load(f) or {}
-        return bool(data.get("formalVerification", {}).get("propertyTesting", False))
+        import pytest_rerunfailures  # type: ignore  # noqa: F401
     except Exception:
-        return False
+        return  # plugin not installed, do nothing
+
+    # Determine retries
+    cli_val = config.getoption("devsynth_resource_retries", default=None)
+    env_val = os.environ.get("DEVSYNTH_RESOURCE_RETRIES")
+    retries = None
+    if cli_val is not None:
+        try:
+            retries = int(cli_val)
+        except Exception:
+            retries = 0
+    elif env_val is not None:
+        try:
+            retries = int(env_val)
+        except Exception:
+            retries = 0
+    else:
+        retries = 0
+
+    if retries and retries > 0:
+        # Configure plugin options programmatically. Prefer selective reruns via marker expression.
+        # Newer pytest-rerunfailures supports --only-rerun <expr>.
+        try:
+            # Equivalent of: --reruns <retries> --only-rerun "requires_resource"
+            setattr(config.option, "reruns", retries)
+            setattr(config.option, "only_rerun", "requires_resource")
+        except Exception:
+            # Fallback: set global reruns (less ideal). We further reduce impact by
+            # lowering retries for non-resource tests to 0 via a custom hook below.
+            setattr(config.option, "reruns", retries)
+
+            @pytest.hookimpl(hookwrapper=True, tryfirst=True)
+            def pytest_runtest_makereport(item, call):  # type: ignore
+                outcome = yield
+                rep = outcome.get_result()
+                # If the test is not resource-marked, clear reruns to avoid retrying it
+                if not item.get_closest_marker("requires_resource"):
+                    setattr(config.option, "reruns", 0)
+                else:
+                    setattr(config.option, "reruns", retries)
+                return rep

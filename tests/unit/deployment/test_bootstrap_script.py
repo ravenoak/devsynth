@@ -10,9 +10,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS_DIR = ROOT / "scripts" / "deployment"
 
-pytestmark = pytest.mark.fast
 
-
+@pytest.mark.fast
 def test_bootstrap_script_rejects_invalid_environment():
     """bootstrap.sh should reject unknown environments.
 
@@ -32,6 +31,7 @@ def test_bootstrap_script_rejects_invalid_environment():
         shutil.rmtree(workdir)
 
 
+@pytest.mark.fast
 def test_bootstrap_script_requires_docker():
     """bootstrap.sh should require docker to be installed.
 
@@ -51,6 +51,7 @@ def test_bootstrap_script_requires_docker():
         shutil.rmtree(workdir)
 
 
+@pytest.mark.fast
 def test_install_dev_installs_task(tmp_path):
     """install_dev.sh should install go-task when absent.
 

@@ -1,8 +1,11 @@
 import runpy
 from pathlib import Path
+
+import pytest
 import yaml
 
 
+@pytest.mark.fast
 def test_mvu_init_cmd_creates_file(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     repo_root = Path(__file__).resolve().parents[3]

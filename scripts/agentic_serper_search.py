@@ -55,11 +55,11 @@ from enum import Enum
 from typing import Optional
 
 from dotenv import load_dotenv
+from langchain.agents import AgentExecutor, create_react_agent
 from langchain.prompts import PromptTemplate
 from langchain.tools.base import BaseTool
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_react_agent
 
 
 class Provider(str, Enum):
@@ -154,7 +154,6 @@ def run_search_agent(query: str) -> str:
     search_tool = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
 
     # Define the tool in a format compatible with LangGraph
-    from langchain.tools.base import BaseTool
 
     class WebSearchTool(BaseTool):
         name: str = "WebSearch"

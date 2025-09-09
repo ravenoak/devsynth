@@ -18,6 +18,7 @@ def no_kuzu(monkeypatch):
     monkeypatch.delitem(sys.modules, "kuzu", raising=False)
 
 
+@pytest.mark.medium
 def test_transactional_sync_rollback(tmp_path, monkeypatch):
     """Rolls back when synchronization target fails. ReqID: FR-60"""
 

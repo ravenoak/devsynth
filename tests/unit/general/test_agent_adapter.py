@@ -1,16 +1,16 @@
-from devsynth.adapters.agents.agent_adapter import SimplifiedAgentFactory
 import pytest
+
+from devsynth.adapters.agents.agent_adapter import SimplifiedAgentFactory
 
 
 @pytest.mark.medium
 def test_register_agent_type_succeeds():
     """Test that register agent type succeeds.
 
-ReqID: N/A"""
+    ReqID: N/A"""
     factory = SimplifiedAgentFactory()
 
+    class Dummy: ...
 
-    class Dummy:
-        ...
-    factory.register_agent_type('dummy', Dummy)
-    assert 'dummy' in factory.agent_types
+    factory.register_agent_type("dummy", Dummy)
+    assert "dummy" in factory.agent_types

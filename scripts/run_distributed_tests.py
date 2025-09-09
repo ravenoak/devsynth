@@ -21,14 +21,14 @@ Options:
     --dry-run             Show what would be run without executing tests
 """
 
-import os
-import sys
-import json
 import argparse
+import json
 import multiprocessing
+import os
 import subprocess
+import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 # Presets for different test execution scenarios
 PRESETS = {
@@ -81,8 +81,9 @@ PRESETS = {
         "balance_load": True,
         "use_history": True,
         "html": True,
-    }
+    },
 }
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -93,44 +94,37 @@ def parse_args():
         "--preset",
         choices=list(PRESETS.keys()),
         default="balanced",
-        help="Execution preset to use (default: balanced)"
+        help="Execution preset to use (default: balanced)",
     )
     parser.add_argument(
         "--category",
         choices=["unit", "integration", "behavior", "performance", "property", "all"],
-        help="Test category to run (overrides preset)"
+        help="Test category to run (overrides preset)",
     )
     parser.add_argument(
         "--speed",
         choices=["fast", "medium", "slow", "all", "unmarked"],
-        help="Test speed category (overrides preset)"
+        help="Test speed category (overrides preset)",
     )
     parser.add_argument(
-        "--workers",
-        type=int,
-        help="Override the number of worker processes"
+        "--workers", type=int, help="Override the number of worker processes"
     )
     parser.add_argument(
-        "--html",
-        action="store_true",
-        help="Generate HTML report (overrides preset)"
+        "--html", action="store_true", help="Generate HTML report (overrides preset)"
     )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Show detailed output"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Show detailed output")
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Show what would be run without executing tests"
+        help="Show what would be run without executing tests",
     )
     return parser.parse_args()
+
 
 def get_optimal_workers():
     """
     Determine the optimal number of worker processes based on available CPU cores.
-    
+
     Returns:
         int: Optimal number of worker processes
     """
@@ -139,79 +133,83 @@ def get_optimal_workers():
     optimal = max(2, min(8, int(cpu_count * 0.75)))
     return optimal
 
+
 def build_command(args):
     """
     Build the command to run the distributed test runner.
-    
+
     Args:
         args: Command line arguments
-        
+
     Returns:
         list: Command to run as a list of strings
     """
     # Start with the base command
     cmd = ["python", "scripts/distributed_test_runner_enhanced.py"]
-    
+
     # Get the preset configuration
     preset = PRESETS[args.preset]
-    
+
     # Add workers
     workers = args.workers if args.workers is not None else get_optimal_workers()
     cmd.extend(["--workers", str(workers)])
-    
+
     # Add category (from args or preset)
     category = args.category if args.category else preset.get("category")
     if category and category != "all":
         cmd.extend(["--category", category])
-    
+
     # Add speed (from args or preset)
     speed = args.speed if args.speed else preset.get("speed")
     if speed and speed != "all":
         cmd.extend(["--speed", speed])
-    
+
     # Add module if specified in preset
     if "module" in preset:
         cmd.extend(["--test-dir", preset["module"]])
-    
+
     # Add batch size
     batch_size = preset.get("batch_size", 20)
     cmd.extend(["--batch-size", str(batch_size)])
-    
+
     # Add timeout
     timeout = preset.get("timeout", 300)
     cmd.extend(["--timeout", str(timeout)])
-    
+
     # Add load balancing
     if preset.get("balance_load", False):
         cmd.append("--balance-load")
-    
+
     # Add history usage
     if preset.get("use_history", False):
         cmd.append("--use-history")
-    
+
     # Add HTML report generation
     html = args.html if args.html else preset.get("html", False)
     if html:
         cmd.append("--html")
-    
+
     # Add verbose output
     if args.verbose:
         cmd.append("--verbose")
-    
+
     return cmd
+
 
 def main():
     """Main function."""
     args = parse_args()
-    
+
     # Build the command
     cmd = build_command(args)
-    
+
     # Print the command
     print(f"Running: {' '.join(cmd)}")
     print(f"Preset: {args.preset} - {PRESETS[args.preset]['description']}")
-    print(f"Workers: {args.workers if args.workers is not None else get_optimal_workers()}")
-    
+    print(
+        f"Workers: {args.workers if args.workers is not None else get_optimal_workers()}"
+    )
+
     # Execute the command if not a dry run
     if not args.dry_run:
         try:
@@ -221,6 +219,7 @@ def main():
             sys.exit(1)
     else:
         print("Dry run - not executing tests")
+
 
 if __name__ == "__main__":
     main()

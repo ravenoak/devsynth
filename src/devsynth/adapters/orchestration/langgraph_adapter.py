@@ -21,16 +21,15 @@ from langgraph.checkpoint.base import BaseCheckpointSaver, empty_checkpoint
 # Updated imports for LangGraph 0.4.3
 from langgraph.graph import END, StateGraph
 
-from devsynth.exceptions import DevSynthError
+from devsynth.exceptions import (
+    DevSynthError,
+)
 from devsynth.exceptions import (
     NeedsHumanInterventionError as BaseNeedsHumanInterventionError,
 )
 
-from ...adapters.agents.agent_adapter import AgentAdapter
-from ...application.llm.providers import LMStudioProvider, SimpleLLMProviderFactory
 from ...domain.interfaces.orchestration import WorkflowEngine, WorkflowRepository
 from ...domain.models.workflow import Workflow, WorkflowStatus, WorkflowStep
-from ...ports.llm_port import LLMPort
 
 
 # Add Pregel class for testing compatibility
@@ -169,10 +168,37 @@ class LangGraphWorkflowEngine(WorkflowEngine):
     def _create_workflow_executor(self, workflow: Workflow):
         """Create a function that executes the entire workflow."""
 
+        def _is_cancelled(ctx: Dict[str, Any]) -> bool:
+            # Cancellation cooperative checks: function is_cancelled or event-like with is_set()
+            if not isinstance(ctx, dict):
+                return False
+            try:
+                is_cancelled_fn = ctx.get("is_cancelled")
+                if callable(is_cancelled_fn) and is_cancelled_fn():
+                    return True
+                cancel_event = ctx.get("cancel_event")
+                if hasattr(cancel_event, "is_set") and callable(cancel_event.is_set):
+                    return bool(cancel_event.is_set())
+            except Exception:
+                # Be conservative; if checks fail, do not cancel.
+                return False
+            return False
+
         def workflow_executor(state):
             """Execute the entire workflow."""
             # Process each step in sequence
             for step in workflow.steps:
+                # Cooperative cancellation
+                if _is_cancelled(state.context):
+                    state.status = WorkflowStatus.PAUSED.value
+                    state.messages.append(
+                        {
+                            "role": "system",
+                            "content": "Execution paused by cancellation",
+                        }
+                    )
+                    return state
+
                 # Check if human intervention is needed
                 if state.needs_human:
                     # This would normally pause for human input
@@ -213,107 +239,85 @@ class LangGraphWorkflowEngine(WorkflowEngine):
     def _create_step_function(self, step: WorkflowStep):
         """Create a function for a workflow step."""
 
+        def _get_stream_cb(
+            ctx: Dict[str, Any],
+        ) -> Optional[Callable[[Dict[str, Any]], None]]:
+            cb = None
+            if isinstance(ctx, dict):
+                cb = ctx.get("stream_callback")
+            return cb if callable(cb) else None
+
         def step_function(state: WorkflowState) -> WorkflowState:
             # Update current step
             state.current_step = step.id
 
-            try:
-                # Create an LLM port with LM Studio provider
-                llm_factory = SimpleLLMProviderFactory()
-                llm_provider = llm_factory.create_provider(
-                    "lmstudio",
-                    {
-                        "api_base": "http://localhost:1234/v1",
-                        "model": "local_model",
-                        "max_tokens": 2048,
-                    },
-                )
-                llm_port = LLMPort(llm_factory)
-                llm_port.set_default_provider(
-                    "lmstudio",
-                    {
-                        "api_base": "http://localhost:1234/v1",
-                        "model": "local_model",
-                        "max_tokens": 2048,
-                    },
-                )
-
-                # Create an agent adapter with the LLM port
-                agent_adapter = AgentAdapter(llm_port)
-
-                # Create a team for this step
-                team_id = f"{state.workflow_id}_{step.id}"
-                team = agent_adapter.create_team(team_id)
-
-                # Create and add agents to the team based on the step's agent_type
-                # For now, we'll add all agent types to demonstrate the WSDE organization model
-                agent_types = [
-                    "planner",
-                    "specification",
-                    "test",
-                    "code",
-                    "validation",
-                    "refactor",
-                    "documentation",
-                    "diagram",
-                    "critic",
-                ]
-
-                for agent_type in agent_types:
-                    agent = agent_adapter.create_agent(
-                        agent_type,
+            # Optional streaming: notify step start
+            stream_cb = _get_stream_cb(state.context)
+            if stream_cb:
+                try:
+                    stream_cb(
                         {
-                            "name": f"{agent_type}_agent",
-                            "description": f"Agent for {agent_type} tasks",
-                            "capabilities": [],
-                        },
+                            "event": "step_started",
+                            "step_id": step.id,
+                            "step_name": step.name,
+                        }
                     )
-                    agent_adapter.add_agent_to_team(agent)
+                except Exception:
+                    pass
 
-                # Log the step execution
+            max_retries = 0
+            try:
+                if isinstance(state.context, dict):
+                    max_retries = int(state.context.get("max_retries", 0))
+            except Exception:
+                max_retries = 0
+
+            attempt = 0
+            last_err: Optional[Exception] = None
+            while attempt <= max_retries:
+                try:
+                    # Delegate step processing to orchestration core service
+                    from devsynth.orchestration.step_executor import (
+                        OrchestrationService,
+                    )
+
+                    service = OrchestrationService()
+                    state = service.process_step(state, step)
+
+                    # Optional streaming: notify last message when available
+                    if stream_cb and state.messages:
+                        try:
+                            stream_cb(
+                                {"event": "message", "message": state.messages[-1]}
+                            )
+                        except Exception:
+                            pass
+                    return state
+                except Exception as e:
+                    last_err = e
+                    attempt += 1
+                    if attempt > max_retries:
+                        # Log the error and fail
+                        state.messages.append(
+                            {
+                                "role": "system",
+                                "content": f"Error in step {step.name}: {str(e)}",
+                            }
+                        )
+                        state.status = WorkflowStatus.FAILED.value
+                        return state
+                    # else: backoff could be added; for now, just loop and retry
+
+            # If we somehow exit loop without return, fail safely
+            if last_err is not None:
                 state.messages.append(
                     {
                         "role": "system",
-                        "content": f"Executing step: {step.name} - {step.description} with agent type: {step.agent_type}",
-                    }
-                )
-
-                # Process the task using the agent team
-                task = {
-                    "step_id": step.id,
-                    "step_name": step.name,
-                    "step_description": step.description,
-                    "context": state.context,
-                    "messages": state.messages,
-                    "project_root": state.project_root,
-                    "task_type": step.agent_type,
-                }
-
-                result = agent_adapter.process_task(task)
-
-                # Update the state with the result
-                state.messages.append(
-                    {"role": "agent", "content": f"Agent result: {result}"}
-                )
-
-                # Check if human intervention is needed
-                if result.get("needs_human", False):
-                    state.needs_human = True
-                    state.human_message = result.get(
-                        "human_message", f"Human input needed for step {step.name}"
-                    )
-
-                return state
-            except Exception as e:
-                # Log the error
-                state.messages.append(
-                    {
-                        "role": "system",
-                        "content": f"Error in step {step.name}: {str(e)}",
+                        "content": f"Error in step {step.name}: {str(last_err)}",
                     }
                 )
                 state.status = WorkflowStatus.FAILED.value
-                return state
+            return state
 
         return step_function
 
@@ -380,8 +384,14 @@ class LangGraphWorkflowEngine(WorkflowEngine):
             # Update workflow status based on result
             result_state = WorkflowState.from_dict(result_dict)
 
-            # Set workflow status directly to COMPLETED
-            workflow.status = WorkflowStatus.COMPLETED
+            # Set workflow status based on result state
+            status_str = (result_state.status or "").lower()
+            if status_str == WorkflowStatus.PAUSED.value:
+                workflow.status = WorkflowStatus.PAUSED
+            elif status_str == WorkflowStatus.FAILED.value:
+                workflow.status = WorkflowStatus.FAILED
+            else:
+                workflow.status = WorkflowStatus.COMPLETED
             workflow.updated_at = datetime.now()
 
         except Exception as e:

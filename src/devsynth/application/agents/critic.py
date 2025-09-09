@@ -1,16 +1,17 @@
-
 """
 Critic agent for the DevSynth system.
 """
 
 from typing import Any, Dict, List
-from .base import BaseAgent
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from .base import BaseAgent
+
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
+
 
 class CriticAgent(BaseAgent):
     """Agent responsible for applying dialectical methods to critique and improve outputs."""
@@ -79,8 +80,8 @@ class CriticAgent(BaseAgent):
                 metadata={
                     "agent": self.name,
                     "role": self.current_role,
-                    "type": "critique"
-                }
+                    "type": "critique",
+                },
             )
         except Exception as e:
             logger.error(f"Error creating WSDE: {str(e)}")
@@ -89,7 +90,7 @@ class CriticAgent(BaseAgent):
             "critique": critique,
             "wsde": critique_wsde,
             "agent": self.name,
-            "role": self.current_role
+            "role": self.current_role,
         }
 
     def get_capabilities(self) -> List[str]:
@@ -101,6 +102,6 @@ class CriticAgent(BaseAgent):
                 "identify_assumptions",
                 "challenge_claims",
                 "propose_improvements",
-                "resolve_contradictions"
+                "resolve_contradictions",
             ]
         return capabilities

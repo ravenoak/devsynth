@@ -42,15 +42,19 @@ nav:
     - Quick Start: getting_started/quick_start_guide.md
     - Installation: getting_started/installation.md
     - Basic Usage: getting_started/basic_usage.md
+    - Troubleshooting: getting_started/troubleshooting.md
   - User Guides:
     - Overview: user_guides/index.md
     - User Guide: user_guides/user_guide.md
+    - CLI Command Reference: user_guides/cli_command_reference.md
   - Developer Guides:
     - Overview: developer_guides/index.md
     - Onboarding Guide: developer_guides/onboarding.md
     - Contributing: developer_guides/contributing.md
     - Development Setup: developer_guides/development_setup.md
     - Testing Guide: developer_guides/testing.md
+    - Diagnostics: developer_guides/diagnostics.md
+    - Resources Matrix: resources_matrix.md
     - Code Style: developer_guides/code_style.md
     - Documentation Style Guide: policies/documentation_style_guide.md
     - Repository Structure: repo_structure.md
@@ -63,12 +67,15 @@ nav:
     - Dialectical Reasoning: architecture/dialectical_reasoning.md
     - EDRR Framework: architecture/edrr_framework.md
     - WSDE Agent Model: architecture/wsde_agent_model.md
+    - Docs Consolidation Plan: architecture/docs_consolidation_plan.md
   - Technical Reference:
     - Overview: technical_reference/index.md
     - API Reference: technical_reference/api_reference/index.md
     - Error Handling: technical_reference/error_handling.md
     - Performance: technical_reference/performance.md
     - EDRR Methodology: technical_reference/expand_differentiate_refine_retrospect.md
+  - Rationales:
+    - Test Fixes (Dialectical Review): rationales/test_fixes.md
   - Project Analysis:
     - Overview: analysis/index.md
     - Executive Summary: analysis/executive_summary.md
@@ -76,6 +83,7 @@ nav:
     - Technical Deep Dive: analysis/technical_deep_dive.md
     - Dialectical Evaluation: analysis/dialectical_evaluation.md
     - Project Inventory: analysis/inventory.md
+    - Flaky Case Log: analysis/flaky_case_log.md
   - Implementation Status:
     - Overview: implementation/index.md
     - Feature Status Matrix: implementation/feature_status_matrix.md
@@ -104,6 +112,11 @@ nav:
     - Development Status: roadmap/development_status.md
     - Documentation Policies: roadmap/documentation_policies.md
     - Testing Infrastructure: specifications/testing_infrastructure.md
+  - Release:
+    - Release Notes (0.1.0‑alpha.1): release/0.1.0-alpha.1.md
+    - Release Playbook: release/release_playbook.md
+    - Readiness Gates: release/release_readiness.md
+    - Post‑release Validation: release/post_release_validation.md
   - Changelog: CHANGELOG.md
 
 markdown_extensions:

@@ -8,12 +8,12 @@ This is part of an effort to break up the monolithic wsde_team_extended.py
 into smaller, more focused modules.
 """
 
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
-from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 class CollaborativeWSDETeam(WSDETeam):

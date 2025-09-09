@@ -14,6 +14,7 @@ def _agent(name: str, expertise: list[str], used: bool = False):
     return agent
 
 
+@pytest.mark.fast
 def test_first_time_selection_prioritizes_unused_agents_succeeds():
     """Test that first time selection prioritizes unused agents succeeds.
 
@@ -27,6 +28,7 @@ def test_first_time_selection_prioritizes_unused_agents_succeeds():
     assert newbie.has_been_primus
 
 
+@pytest.mark.fast
 def test_rotation_resets_after_all_have_served_succeeds():
     """Test that rotation resets after all have served succeeds.
 
@@ -49,6 +51,7 @@ def test_rotation_resets_after_all_have_served_succeeds():
     assert not other.has_been_primus
 
 
+@pytest.mark.fast
 def test_current_primus_considered_in_selection_succeeds():
     """Current primus remains candidate when reselection occurs.
 
@@ -66,6 +69,7 @@ def test_current_primus_considered_in_selection_succeeds():
     assert team.get_primus() is py
 
 
+@pytest.mark.fast
 def test_documentation_tasks_prefer_doc_experts_succeeds():
     """Test that documentation tasks prefer doc experts succeeds.
 
@@ -80,6 +84,7 @@ def test_documentation_tasks_prefer_doc_experts_succeeds():
     assert doc.has_been_primus
 
 
+@pytest.mark.fast
 def test_nested_task_metadata_is_flattened_succeeds():
     """Test that nested task metadata is flattened succeeds.
 
@@ -93,6 +98,7 @@ def test_nested_task_metadata_is_flattened_succeeds():
     assert team.get_primus() is py
 
 
+@pytest.mark.fast
 def test_rotation_when_all_agents_used_resets_flags_succeeds():
     """Test that rotation when all agents used resets flags succeeds.
 
@@ -107,6 +113,7 @@ def test_rotation_when_all_agents_used_resets_flags_succeeds():
     assert not a2.has_been_primus
 
 
+@pytest.mark.fast
 def test_select_primus_by_expertise_coverage_succeeds():
     """Test that select primus by expertise coverage succeeds.
 

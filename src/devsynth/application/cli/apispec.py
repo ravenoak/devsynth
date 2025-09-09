@@ -36,7 +36,7 @@ def apispec_cmd(
     """Generate an API specification for the specified API type and format."""
     try:
         # Show a welcome message for the apispec command
-        console.print(
+        bridge.print(
             Panel(
                 f"[bold blue]DevSynth API Specification Generator[/bold blue]\n\n"
                 f"This command will generate an API specification for a {api_type} API in {format_type} format.",
@@ -66,7 +66,7 @@ def apispec_cmd(
             api_table.add_row("graphql", "Query language and runtime for APIs")
             api_table.add_row("grpc", "High-performance RPC framework")
 
-            console.print(api_table)
+            bridge.print(api_table)
 
             api_type = bridge.prompt(
                 "[blue]Select an API type[/blue]",
@@ -414,7 +414,7 @@ message DeleteUserResponse {{
         # Show detailed error information
         import traceback
 
-        console.print(
+        bridge.print(
             Panel(
                 traceback.format_exc(),
                 title="Detailed Error Information",

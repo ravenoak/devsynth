@@ -1,0 +1,43 @@
+name: Packaging Test (pipx)
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+jobs:
+  packaging-pipx:
+    name: Build and verify entry points via pipx
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Upgrade pip and install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pipx
+
+      - name: Install with pipx (from source)
+        shell: bash
+        run: |
+          # Ensure local bin is on PATH for pipx-installed entry points
+          python -m pipx ensurepath || true
+          export PATH="$HOME/.local/bin:$PATH"
+          # Install the current repo as a package in an isolated venv
+          python -m pipx install .
+          # Show what got installed
+          which devsynth || true
+          python -m pipx list
+
+      - name: Verify CLI entry point works
+        shell: bash
+        env:
+          # Ensure no external network is attempted by default
+          DEVSYNTH_DISABLE_NETWORK: "1"
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          devsynth --help

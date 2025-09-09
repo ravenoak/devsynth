@@ -1,14 +1,36 @@
-"""Authentication utilities using Argon2 password hashing."""
+"""Authentication utilities using Argon2 password hashing.
+
+Security defaults:
+- Use Argon2id (PasswordHasher default) with explicit safe parameters.
+- Provide strong memory and time cost to resist GPU attacks.
+These values follow widely recommended baselines and can be revised centrally.
+"""
 
 from typing import Dict
+
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from devsynth.exceptions import AuthenticationError
+
 from .validation import parse_bool_env
 
-# Argon2 password hasher instance
-_password_hasher = PasswordHasher()
+# Argon2id safe defaults (see OWASP and PHC recommendations)
+# Note: tune memory_cost based on deployment constraints.
+_ARGON2_TIME_COST = 3
+_ARGON2_MEMORY_COST = 65536  # in KiB (64 MiB)
+_ARGON2_PARALLELISM = 4
+_ARGON2_HASH_LEN = 32
+_ARGON2_SALT_LEN = 16
+
+# Argon2 password hasher instance (Argon2id by default)
+_password_hasher = PasswordHasher(
+    time_cost=_ARGON2_TIME_COST,
+    memory_cost=_ARGON2_MEMORY_COST,
+    parallelism=_ARGON2_PARALLELISM,
+    hash_len=_ARGON2_HASH_LEN,
+    salt_len=_ARGON2_SALT_LEN,
+)
 
 
 def hash_password(password: str) -> str:

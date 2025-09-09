@@ -3,15 +3,10 @@ LM Studio Provider implementation for DevSynth.
 This provider connects to a local LM Studio server running on localhost.
 """
 
-from urllib.parse import urlparse
-
-try:  # pragma: no cover - optional dependency
-    import lmstudio
-except ImportError as e:  # pragma: no cover - if lmstudio is missing tests skip
-    raise ImportError(
-        "LMStudioProvider requires the 'lmstudio' package. Install it with 'pip install lmstudio' or use the 'lmstudio' extra."
-    ) from e
+import concurrent.futures
+import os
 from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 
@@ -27,6 +22,99 @@ logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
 
+def _require_lmstudio():
+    """Lazy import for the optional lmstudio package.
+
+    Returns the imported module or raises a clear DevSynthError with guidance.
+    """
+    try:  # pragma: no cover - optional dependency
+        import lmstudio as _lmstudio  # type: ignore
+
+        return _lmstudio
+    except ImportError as e:  # pragma: no cover - if lmstudio is missing tests skip
+        raise DevSynthError(
+            "LMStudio support requires the 'lmstudio' package. Install it with 'pip install lmstudio' or use 'poetry install --extras \"llm\"'."
+        ) from e
+
+
+class _AttrForwarder:
+    """An attribute object that forwards callable access to the real lmstudio attribute.
+
+    This lives on the proxy instance's __dict__ so unittest.mock.patch can replace it.
+    """
+
+    def __init__(self, proxy: "_LMStudioProxy", attr: str) -> None:
+        self._proxy = proxy
+        self._attr = attr
+
+    def __call__(self, *args, **kwargs):  # pragma: no cover - thin forwarder
+        real = self._proxy._ensure()
+        return getattr(real, self._attr)(*args, **kwargs)
+
+
+class _NamespaceForwarder:
+    """A namespace forwarder that exposes attributes of lmstudio.<name> lazily.
+
+    This object is placed directly on the proxy instance (e.g., proxy.sync_api),
+    so unittest.mock.patch can target attributes like
+    devsynth.application.llm.lmstudio_provider.lmstudio.sync_api.list_downloaded_models
+    without importing the optional dependency at module import time.
+    """
+
+    def __init__(self, proxy: "_LMStudioProxy", ns_name: str) -> None:
+        self._proxy = proxy
+        self._ns_name = ns_name
+
+    def __getattr__(self, item: str):  # pragma: no cover - thin delegator
+        real = self._proxy._ensure()
+        namespace = getattr(real, self._ns_name)
+        return getattr(namespace, item)
+
+    # Provide common attributes so unittest.mock.patch can replace them without
+    # needing the underlying optional dependency to be present.
+    def list_downloaded_models(self, *args, **kwargs):  # pragma: no cover - bridge
+        real = self._proxy._ensure()
+        namespace = getattr(real, self._ns_name)
+        return namespace.list_downloaded_models(*args, **kwargs)
+
+    def configure_default_client(self, *args, **kwargs):  # pragma: no cover - bridge
+        real = self._proxy._ensure()
+        namespace = getattr(real, self._ns_name)
+        return namespace.configure_default_client(*args, **kwargs)
+
+
+class _LMStudioProxy:
+    """Proxy object that defers importing lmstudio until attribute access.
+
+    This enables tests to patch devsynth.application.llm.lmstudio_provider.lmstudio.llm
+    without importing the optional dependency at module import time.
+    """
+
+    def __init__(self) -> None:
+        self._real: Any | None = None
+        # Place forwarders in instance __dict__ so unittest.mock.patch can replace them.
+        self.llm = _AttrForwarder(self, "llm")
+        self.embedding_model = _AttrForwarder(self, "embedding_model")
+        # Expose a namespace forwarder for sync_api so tests can patch its attributes
+        # even if the optional dependency is not installed in this environment.
+        self.sync_api = _NamespaceForwarder(self, "sync_api")
+
+    def _ensure(self) -> Any:
+        if self._real is None:
+            self._real = _require_lmstudio()
+        return self._real
+
+    def __getattr__(self, name: str) -> Any:  # pragma: no cover - simple delegator
+        real = self._ensure()
+        return getattr(real, name)
+
+
+# Module-level proxy to satisfy patch paths in tests:
+#   patch("devsynth.application.llm.lmstudio_provider.lmstudio.llm")
+# This keeps optional import semantics while allowing attribute patching.
+lmstudio = _LMStudioProxy()
+
+
 class LMStudioConnectionError(DevSynthError):
     """Exception raised when there's an issue connecting to LM Studio."""
 
@@ -40,7 +128,10 @@ class LMStudioModelError(DevSynthError):
 
 
 class LMStudioProvider(BaseLLMProvider):
-    """LM Studio LLM provider implementation."""
+    """LM Studio LLM provider implementation.
+
+    Adds a lightweight health check and bounded handshake retry/backoff per docs/tasks.md Task 9/18.
+    """
 
     def __init__(self, config: Dict[str, Any] = None):
         """Initialize the LM Studio provider.
@@ -61,17 +152,52 @@ class LMStudioProvider(BaseLLMProvider):
         super().__init__(merged_config)
 
         # Set instance variables from config
-        self.api_base = self.config.get("api_base")
+        endpoint_default = os.environ.get("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234")
+        self.api_base = self.config.get("api_base") or endpoint_default
         self.max_tokens = self.config.get("max_tokens")
         self.temperature = self.config.get("temperature")
         parsed = urlparse(self.api_base)
         self.api_host = parsed.netloc or parsed.path.split("/")[0]
-        lmstudio.sync_api.configure_default_client(self.api_host)
-        self.max_retries = self.config.get("max_retries", 3)
+        # Use module-level proxy to allow tests to patch lmstudio.llm
+        self._lmstudio = lmstudio
+        # Only configure the client when LM Studio resource is explicitly enabled
+        resource_enabled = (
+            os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false").lower()
+            == "true"
+        )
+        if resource_enabled:
+            try:
+                self._lmstudio.sync_api.configure_default_client(self.api_host)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("LM Studio default client configuration failed: %s", e)
+        else:
+            logger.info(
+                "LM Studio resource disabled; skipping default client configuration"
+            )
+        # Retries: env override with default 1 (idempotent minimal retries)
+        retries_env = os.environ.get("DEVSYNTH_LMSTUDIO_RETRIES")
+        try:
+            self.max_retries = (
+                int(retries_env)
+                if retries_env is not None
+                else int(self.config.get("max_retries", 1))
+            )
+        except (TypeError, ValueError):
+            self.max_retries = 1
         self.circuit_breaker = CircuitBreaker(
             failure_threshold=self.config.get("failure_threshold", 3),
             recovery_timeout=self.config.get("recovery_timeout", 60),
         )
+        # Deterministic per-call timeout (seconds) with env default via LM_STUDIO_HTTP_TIMEOUT (Task 70)
+        timeout_env = os.environ.get("LM_STUDIO_HTTP_TIMEOUT")
+        try:
+            self.call_timeout = (
+                float(timeout_env)
+                if timeout_env is not None
+                else float(self.config.get("call_timeout", 10))
+            )
+        except (TypeError, ValueError):
+            self.call_timeout = 10.0
         self.token_tracker = TokenTracker()
 
         # Auto-select model if not specified
@@ -101,6 +227,58 @@ class LMStudioProvider(BaseLLMProvider):
             self.model = "local_model"
             logger.info("Using default model: local_model")
 
+    def health_check(self) -> bool:
+        """Lightweight health check to the LM Studio endpoint.
+
+        Performs a GET to /v1/models via lmstudio.sync_api. If DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
+        is true but the endpoint is unreachable, tests may skip quickly with a clear reason.
+        The total time spent in retries is bounded (<= 5 seconds).
+        """
+        # If resource flag is not enabled, we consider health as not applicable/false
+        resource_enabled = (
+            os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false").lower()
+            == "true"
+        )
+        if not resource_enabled:
+            return False
+
+        # Compute bounded retries/delay to stay under 5s total
+        max_total_seconds = 5.0
+        # Default to at most 3 retries with small backoff, but cap by max_total_seconds using call_timeout as base
+        attempt = 0
+        delay = min(0.5, self.call_timeout / 4)
+        total = 0.0
+        last_exc: Exception | None = None
+        while total <= max_total_seconds and attempt < max(1, self.max_retries):
+            attempt += 1
+            try:
+                # Use the proxy's sync_api which backs the GET /v1/models call in lmstudio
+                try:
+                    self._lmstudio.sync_api.configure_default_client(self.api_host)
+                except Exception as cfg_err:  # noqa: BLE001
+                    # Don't fail health check early on configure failure; proceed to list models
+                    logger.debug(
+                        "LM Studio health_check configure_default_client failed (ignored): %s",
+                        cfg_err,
+                    )
+                models = self._lmstudio.sync_api.list_downloaded_models("llm")
+                _ = len(models)
+                return True
+            except Exception as e:  # noqa: BLE001
+                last_exc = e
+                logger.debug("LM Studio health_check attempt %d failed: %s", attempt, e)
+                # Sleep bounded by remaining budget
+                if total + delay > max_total_seconds:
+                    break
+                import time
+
+                time.sleep(delay)
+                total += delay
+                delay = min(max_total_seconds - total, delay * 2)
+        if last_exc:
+            logger.info("LM Studio health_check failed within budget: %s", last_exc)
+        return False
+
     def _should_retry(self, exc: Exception) -> bool:
         """Return ``True`` if the exception should trigger a retry."""
         status = getattr(exc, "status_code", None)
@@ -129,7 +307,12 @@ class LMStudioProvider(BaseLLMProvider):
             on_retry=self._on_retry,
         )
         def _wrapped():
-            return self.circuit_breaker.call(func, *args, **kwargs)
+            # Execute in a worker with a strict timeout to avoid hangs
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    self.circuit_breaker.call, func, *args, **kwargs
+                )
+                return future.result(timeout=self.call_timeout)
 
         return _wrapped()
 
@@ -143,7 +326,7 @@ class LMStudioProvider(BaseLLMProvider):
             LMStudioConnectionError: If there's an issue connecting to LM Studio
         """
         try:
-            models = lmstudio.sync_api.list_downloaded_models("llm")
+            models = self._lmstudio.sync_api.list_downloaded_models("llm")
             logger.info(f"Found {len(models)} models from LM Studio")
             return [{"id": m.model_key, "name": m.display_name} for m in models]
         except Exception as e:  # noqa: BLE001
@@ -204,12 +387,13 @@ class LMStudioProvider(BaseLLMProvider):
 
         try:
             result = self._execute_with_resilience(
-                lmstudio.llm(self.model).complete,
+                self._lmstudio.llm(self.model).complete,
                 prompt,
                 config=params,
             )
-            if hasattr(result, "content"):
-                return result.content
+            content = getattr(result, "content", None)
+            if isinstance(content, str) and content:
+                return content
             raise LMStudioModelError("Invalid response from LM Studio")
         except LMStudioModelError:
             raise
@@ -257,7 +441,7 @@ class LMStudioProvider(BaseLLMProvider):
 
         try:
             result = self._execute_with_resilience(
-                lmstudio.llm(self.model).respond,
+                self._lmstudio.llm(self.model).respond,
                 {"messages": messages},
                 config=params,
             )
@@ -286,7 +470,7 @@ class LMStudioProvider(BaseLLMProvider):
         """
         try:
             result = self._execute_with_resilience(
-                lmstudio.embedding_model(self.model).embed,
+                self._lmstudio.embedding_model(self.model).embed,
                 text,
             )
             if isinstance(result, list) and result:

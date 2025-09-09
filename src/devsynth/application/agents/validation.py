@@ -1,53 +1,64 @@
-
 """
 Validation agent for the DevSynth system.
 """
 
-from typing import Any, Dict, List
-from .base import BaseAgent
+from collections.abc import Mapping, MutableMapping
+from typing import Any, Dict, List, TypedDict, cast
 
-# Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from .base import BaseAgent
+
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
+
 
 class ValidationAgent(BaseAgent):
     """Agent responsible for verifying code against tests."""
-    
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+
+    class ProcessOutput(TypedDict):
+        validation_report: str
+        wsde: Any
+        agent: str
+        role: str
+        is_valid: bool
+
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process inputs and validate code against tests."""
         # Get role-specific prompt
         role_prompt = self.get_role_prompt()
-        
+
         # Create a prompt for the LLM
         prompt = f"""
         {role_prompt}
-        
+
         You are a validation expert. Your task is to verify code against tests.
-        
+
         Project context:
         {inputs.get('context', '')}
-        
+
         Specifications:
         {inputs.get('specifications', '')}
-        
+
         Tests:
         {inputs.get('tests', '')}
-        
+
         Code:
         {inputs.get('code', '')}
-        
+
         Verify that the code passes the tests and meets the specifications.
         Provide a detailed validation report.
         """
-        
+
         # Generate the validation report using the LLM port
-        validation_report = self.generate_text(prompt)
+        validation_report = str(self.generate_text(prompt))
 
         # Determine if the code is valid based on the report
-        is_valid = "fail" not in validation_report.lower()
-        
+        lowered = validation_report.lower()
+        # Consider only whole-word occurrences of fail/error/exception to avoid false positives like "failures"
+        import re
+
+        is_valid = re.search(r"\b(fail|error|exception)\b", lowered) is None
+
         # Create a WSDE with the validation report
         validation_wsde = self.create_wsde(
             content=validation_report,
@@ -55,20 +66,24 @@ class ValidationAgent(BaseAgent):
             metadata={
                 "agent": self.name,
                 "role": self.current_role,
-                "type": "validation_report"
-            }
+                "type": "validation_report",
+            },
         )
-        
-        return {
+
+        out: ValidationAgent.ProcessOutput = {
             "validation_report": validation_report,
             "wsde": validation_wsde,
             "agent": self.name,
-            "role": self.current_role,
+            "role": str(self.current_role or "validator"),
             "is_valid": is_valid,
         }
-    
-    def get_capabilities(self) -> List[str]:
-        """Get the capabilities of this agent."""
+        return cast(dict[str, Any], out)
+
+    def get_capabilities(self) -> list[str]:
+        """Get the capabilities of this agent.
+
+        Returns a default list if the base class returns an empty list or None.
+        """
         capabilities = super().get_capabilities()
         if not capabilities:
             capabilities = [
@@ -76,6 +91,6 @@ class ValidationAgent(BaseAgent):
                 "validate_specifications",
                 "check_code_quality",
                 "identify_bugs",
-                "suggest_improvements"
+                "suggest_improvements",
             ]
         return capabilities

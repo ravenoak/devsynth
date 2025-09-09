@@ -1,0 +1,68 @@
+name: Smoke Matrix
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+jobs:
+  smoke:
+    name: "Smoke (${{ matrix.os }}, py${{ matrix.python }}, extras:${{ matrix.extras }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.12"]
+        extras: ["minimal", "tests retrieval chromadb api"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            .venv
+          key: ${{ runner.os }}-poetry-${{ matrix.python }}-${{ hashFiles('**/poetry.lock') }}-${{ matrix.extras }}
+
+      - name: "Install dependencies (extras: ${{ matrix.extras }})"
+        run: |
+          poetry --version
+          poetry install --with dev --extras "${{ matrix.extras }}"
+
+      - name: Environment defaults
+        run: |
+          echo "DEVSYNTH_PROVIDER=stub" >> $GITHUB_ENV
+          echo "DEVSYNTH_OFFLINE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true" >> $GITHUB_ENV
+          echo "DEVSYNTH_RESOURCE_CLI_AVAILABLE=true" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=test-openai-key" >> $GITHUB_ENV
+          echo "LM_STUDIO_ENDPOINT=http://127.0.0.1:1234" >> $GITHUB_ENV
+
+      - name: Sanity - Collect tests only
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          poetry run pytest --collect-only -q
+
+      - name: Doctor
+        run: |
+          poetry run devsynth doctor
+
+      - name: Fast smoke tests
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 --target unit-tests

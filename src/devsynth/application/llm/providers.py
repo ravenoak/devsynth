@@ -1,3 +1,4 @@
+import inspect
 import os
 from typing import Any, Dict, List, Optional
 
@@ -171,10 +172,18 @@ class AnthropicProvider(BaseLLMProvider):
 
 
 class SimpleLLMProviderFactory(LLMProviderFactory):
-    """Simple implementation of LLMProviderFactory."""
+    """Simple implementation of LLMProviderFactory with lazy provider resolution.
+
+    The registry accepts either:
+    - a provider class type; or
+    - a callable taking a config dict and returning either an instance or a class.
+
+    This design ensures that test-time stubs applied to provider modules are respected,
+    aligning with tasks in docs/tasks.md (13, 31, 32).
+    """
 
     def __init__(self):
-        self.provider_types: Dict[str, type] = {}
+        self.provider_types: Dict[str, Any] = {}
 
     def create_provider(
         self, provider_type: str, config: Dict[str, Any] = None
@@ -187,26 +196,89 @@ class SimpleLLMProviderFactory(LLMProviderFactory):
                 )
             raise ValidationError(f"Unknown provider type: {provider_type}")
 
-        provider_class = self.provider_types[provider_type]
-        return provider_class(config)
+        entry = self.provider_types[provider_type]
+        cfg = config or {}
+        # If entry is callable, invoke it. It may return an instance or a class.
+        if callable(entry):
+            obj = entry(cfg)
+            # If the callable returned a class, instantiate it; otherwise, assume it's an instance and return it.
+            if inspect.isclass(obj):  # type: ignore[arg-type]
+                return obj(cfg)  # type: ignore[misc]
+            return obj  # type: ignore[return-value]
+        # Otherwise, assume it's a class type
+        provider_class = entry
+        return provider_class(cfg)  # type: ignore[call-arg]
 
-    def register_provider_type(self, provider_type: str, provider_class: type) -> None:
-        """Register a new provider type."""
-        self.provider_types[provider_type] = provider_class
+    def register_provider_type(
+        self, provider_type: str, provider_class_or_factory: Any
+    ) -> None:
+        """Register a new provider type or factory."""
+        self.provider_types[provider_type] = provider_class_or_factory
 
 
 # Provider selection logic
 def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
-    """Return an LLM provider based on configuration."""
+    """Return an LLM provider based on configuration.
+
+    Safe-by-default policy:
+    - If offline_mode is true, select 'offline'.
+    - If DEVSYNTH_OFFLINE=true (env), force 'offline'.
+    - If a provider is explicitly configured, use it but validate required credentials.
+    - If 'lmstudio' is requested but not marked available via DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE, fall back to 'offline'.
+    - Otherwise, default to 'offline'.
+    """
 
     cfg = config or load_config().as_dict()
     offline = cfg.get("offline_mode", False)
+
+    # Honor global offline kill-switch
+    offline_env = os.getenv("DEVSYNTH_OFFLINE", "").lower() in {"1", "true", "yes"}
+    if offline_env:
+        offline = True
+
+    # Tests default: require explicit opt-in to use real providers
+    allow_providers = os.getenv("DEVSYNTH_TEST_ALLOW_PROVIDERS", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if not allow_providers:
+        offline = True
 
     llm_cfg = get_llm_settings()
     if "offline_provider" in cfg:
         llm_cfg["offline_provider"] = cfg["offline_provider"]
 
-    provider_type = "offline" if offline else llm_cfg.get("provider", "openai")
+    # Determine provider safely
+    if offline:
+        provider_type = "offline"
+    else:
+        provider_type = llm_cfg.get("provider") or "offline"
+
+    # Enforce LM Studio availability flag
+    pt_lower = str(provider_type).lower()
+    if pt_lower == "lmstudio":
+        lmstudio_available = os.getenv(
+            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
+        ).lower() in {"1", "true", "yes"}
+        if not lmstudio_available:
+            provider_type = "offline"
+            pt_lower = "offline"
+
+    # Validate credentials if a remote provider is explicitly requested
+    if pt_lower == "openai":
+        api_key = llm_cfg.get("api_key") or os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValidationError(
+                "OpenAI provider requested but no OPENAI_API_KEY configured"
+            )
+    elif pt_lower == "anthropic":
+        api_key = llm_cfg.get("api_key") or os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ValidationError(
+                "Anthropic provider requested but no ANTHROPIC_API_KEY configured"
+            )
+
     return factory.create_provider(provider_type, llm_cfg)
 
 
@@ -222,17 +294,65 @@ if lmstudio_requested:  # pragma: no cover - optional dependency
         logger.warning("LMStudioProvider not available: %s", exc)
 else:  # pragma: no cover - optional dependency
     LMStudioProvider = None
-from .local_provider import LocalProvider
-from .offline_provider import OfflineProvider
-from .openai_provider import OpenAIProvider
+# Avoid importing provider modules at import time to keep this module inert.
+# Only import within factory callables to prevent side effects during test collection.
+from . import offline_provider as _offline_provider
+
+# Re-export only the offline provider (safe/local and side-effect free)
+OfflineProvider = _offline_provider.OfflineProvider
+
+# Provide a patchable OpenAIProvider symbol for tests; lazily resolved if available.
+try:  # pragma: no cover - symbol exposure for patching in tests
+    from .openai_provider import OpenAIProvider as _OpenAIProvider  # type: ignore
+
+    OpenAIProvider = _OpenAIProvider  # type: ignore
+except Exception:  # pragma: no cover - fallback sentinel
+
+    class OpenAIProvider:  # type: ignore
+        """Sentinel to allow patching in tests when openai not installed."""
+
+        pass
+
+
+# Provide LocalProvider symbol for explicit imports and registration in provider_factory
+try:  # pragma: no cover - symbol exposure for imports/registration
+    from .local_provider import LocalProvider as _LocalProvider  # type: ignore
+
+    LocalProvider = _LocalProvider  # type: ignore
+except Exception:  # pragma: no cover - fallback sentinel
+
+    class LocalProvider:  # type: ignore
+        """Sentinel LocalProvider; real implementation resides in local_provider.py."""
+
+        pass
+
 
 # Create factory instance
 factory = SimpleLLMProviderFactory()
 
-# Register providers
-factory.register_provider_type("anthropic", AnthropicProvider)
+# Register providers using callables to resolve classes at call time (lazy import)
+factory.register_provider_type("anthropic", lambda cfg: AnthropicProvider(cfg))
 if LMStudioProvider is not None:
-    factory.register_provider_type("lmstudio", LMStudioProvider)
-factory.register_provider_type("openai", OpenAIProvider)
-factory.register_provider_type("local", LocalProvider)
-factory.register_provider_type("offline", OfflineProvider)
+    # Keep direct reference for optional provider; requires explicit opt-in via env flag
+    factory.register_provider_type("lmstudio", lambda cfg: LMStudioProvider(cfg))
+
+# Lazy import inside the lambda to avoid import-time side effects
+factory.register_provider_type(
+    "openai",
+    lambda cfg: (
+        __import__(
+            "devsynth.application.llm.openai_provider", fromlist=["OpenAIProvider"]
+        ).OpenAIProvider
+    )(cfg),
+)
+factory.register_provider_type(
+    "local",
+    lambda cfg: (
+        __import__(
+            "devsynth.application.llm.local_provider", fromlist=["LocalProvider"]
+        ).LocalProvider
+    )(cfg),
+)
+factory.register_provider_type(
+    "offline", lambda cfg: _offline_provider.OfflineProvider(cfg)
+)

@@ -22,6 +22,12 @@ tasks:
     cmds:
       - poetry install --with dev,docs
 
+  setup:test-baseline:
+    desc: Install test baseline extras and run pytest collect-only to validate env
+    cmds:
+      - poetry install --with dev --extras "tests retrieval chromadb api"
+      - poetry run pytest --collect-only -q
+
   setup:dev:
     desc: Install development dependencies only
     cmds:
@@ -32,11 +38,127 @@ tasks:
     cmds:
       - poetry install --with docs
 
+  setup:minimal:
+    desc: Install minimal extras for a clean environment (no heavy optional deps)
+    cmds:
+      - poetry install --with dev --extras minimal
+
+  tests:collect:
+    desc: Run quick sanity collection and capture output under diagnostics/
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run pytest --collect-only -q | tee diagnostics/pytest_collect.txt; exit ${PIPESTATUS[0]}'
+
   # Testing tasks
   test:
-    desc: Run all tests
+    desc: Run all tests (pytest direct)
     cmds:
       - poetry run pytest {{.PYTEST_ARGS}}
+
+  verify:markers:
+    desc: Run speed marker audit and write report artifact
+    cmds:
+      - bash -lc 'mkdir -p test_reports; poetry run python scripts/verify_test_markers.py --report --report-file test_reports/test_markers_report.json | tee diagnostics/verify_markers_stdout.txt; EXIT=$?; poetry run python scripts/append_exec_log.py --command "python scripts/verify_test_markers.py --report" --exit-code $EXIT --artifacts "test_reports/test_markers_report.json,diagnostics/verify_markers_stdout.txt" --notes "marker verification"; exit $EXIT' 
+
+  verify:markers:changed:
+    desc: Run speed marker audit on changed test files
+    cmds:
+      - poetry run python scripts/verify_test_markers.py --changed
+
+  validate:matrix:
+    desc: Orchestrate baseline validations and capture artifacts under diagnostics/
+    cmds:
+      - poetry run python scripts/run_validation_matrix.py
+
+  tests:sanity-and-inventory:
+    desc: Run Section 7 sanity and inventory commands (writes artifacts under test_reports/)
+    cmds:
+      - bash scripts/run_sanity_and_inventory.sh
+
+  tests:inventory-snapshot:
+    desc: Capture devsynth test inventory to diagnostics/ via helper script (Section 8.1)
+    cmds:
+      - poetry run python scripts/run_inventory_snapshot.py --target unit-tests --speed fast --smoke
+
+  guardrails:all:
+    desc: Run Black/isort/Flake8/mypy/Bandit/Safety and save outputs under diagnostics/
+    cmds:
+      - poetry run python scripts/run_guardrails_suite.py --continue-on-error
+  typing:overrides:report:
+    desc: Generate report of mypy overrides to diagnostics/
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/list_mypy_overrides.py | tee diagnostics/list_mypy_overrides_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "python scripts/list_mypy_overrides.py" --exit-code $EXIT --artifacts "diagnostics/mypy_overrides.json,diagnostics/mypy_overrides.txt,diagnostics/list_mypy_overrides_stdout.txt" --notes "mypy overrides report"; exit $EXIT' 
+
+  verify:reqids:
+    desc: Verify that test functions include 'ReqID:' tags in docstrings and write report
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/verify_docstring_reqids.py --report --report-file diagnostics/test_reqids_report.json | tee diagnostics/verify_reqids_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "python scripts/verify_docstring_reqids.py --report" --exit-code $EXIT --artifacts "diagnostics/test_reqids_report.json,diagnostics/verify_reqids_stdout.txt" --notes "verify ReqID docstring tags"; exit $EXIT' 
+
+  tests:unit-fast:
+    desc: Run unit tests fast lane (no xdist) for quick triage (captures diagnostics and logs)
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1 | tee diagnostics/unit_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1" --exit-code $EXIT --artifacts "diagnostics/unit_fast.txt" --notes "unit fast"; exit $EXIT'
+
+  tests:integration-fast:
+    desc: Run integration tests fast lane (no xdist) for quick triage (captures diagnostics and logs)
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 | tee diagnostics/integration_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1" --exit-code $EXIT --artifacts "diagnostics/integration_fast.txt" --notes "integration fast"; exit $EXIT'
+
+  tests:behavior-fast-smoke:
+    desc: Run behavior tests in smoke mode (disables xdist and third-party plugins)
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel --smoke --maxfail=1 | tee diagnostics/behavior_fast_smoke.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests behavior-fast-smoke" --exit-code $EXIT --artifacts "diagnostics/behavior_fast_smoke.txt" --notes "behavior smoke fast"; exit $EXIT'
+
+  doctor:lmstudio:
+    desc: Quick LM Studio readiness check (respects DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE and LM_STUDIO_ENDPOINT)
+    cmds:
+      - poetry run python scripts/lmstudio_doctor.py
+
+  tests:lmstudio-fast:
+    desc: Run only LMStudio-marked fast tests
+    cmds:
+      - poetry run python scripts/run_live_subsets.py --lmstudio
+
+  tests:openai-fast:
+    desc: Run only OpenAI-marked fast tests (requires OPENAI_API_KEY and DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true)
+    cmds:
+      - poetry run python scripts/run_live_subsets.py --openai
+
+  tests:marker-discipline:
+    desc: Run speed marker discipline script (writes test_reports/test_markers_report.json)
+    cmds:
+      - bash scripts/run_marker_discipline.sh
+
+  tests:collect-smoke-timing:
+    desc: Run smoke fast lane locally and write test_reports/smoke_fast_timing.txt
+    cmds:
+      - bash scripts/collect_smoke_timing.sh
+
+  tests:security-and-typing:
+    desc: Run typing (mypy) and security (Bandit, Safety) checks and write artifacts under test_reports/
+    cmds:
+      - bash -lc 'mkdir -p test_reports; poetry run mypy src/devsynth | tee test_reports/mypy_report.txt; exit ${PIPESTATUS[0]}'
+      - poetry run bandit -r src/devsynth -x tests -q -f txt -o test_reports/bandit_report.txt
+      - bash -lc 'mkdir -p test_reports; poetry run safety check --full-report | tee test_reports/safety_report.txt; exit ${PIPESTATUS[0]}'
+
+  tests:property:
+    desc: Run opt-in property tests (requires DEVSYNTH_PROPERTY_TESTING=true)
+    cmds:
+      - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/
+
+  test:pr-fast:
+    desc: PR fast gate via devsynth CLI (unit fast, hermetic)
+    cmds:
+      - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+
+  typecheck:
+    desc: Run mypy type checks
+    cmds:
+      - poetry run mypy src/devsynth
+
+  typecheck:baseline:
+    desc: Generate mypy baseline and triage issues (outputs mypy_baseline.json and issues/triage/mypy/*.md)
+    cmds:
+      - poetry run python scripts/generate_mypy_baseline_issues.py
 
   test:unit:
     desc: Run unit tests only
@@ -51,7 +173,29 @@ tasks:
   test:bdd:
     desc: Run BDD tests
     cmds:
-      - poetry run pytest {{.PYTEST_ARGS}} tests/bdd
+      - poetry run pytest {{.PYTEST_ARGS}} tests/behavior
+
+  test:fast:
+    desc: Run fast test suite via devsynth CLI (smoke-friendly defaults)
+    cmds:
+      - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
+
+  test:behavior:fast:
+    desc: Run behavior (BDD) tests limited to fast scenarios via devsynth CLI
+    cmds:
+      - poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel
+
+  test:all:
+    desc: Run full test suite via devsynth CLI with HTML report
+    cmds:
+      - poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --speed=slow --report
+
+  final:smoke:
+    desc: Run final smoke commands for release gating (fast default, integration, behavior)
+    cmds:
+      - poetry run pytest
+      - poetry run pytest tests/integration/
+      - poetry run pytest tests/behavior/
 
   test:coverage:
     desc: Run tests with coverage
@@ -61,7 +205,7 @@ tasks:
   test:smoke:
     desc: Run a minimal smoke test suite
     cmds:
-      - poetry run pytest --maxfail=1
+      - PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 poetry run pytest -p no:cov -p no:xdist --maxfail=1 -q
 
   # Performance benchmarking tasks
   bench:
@@ -164,6 +308,19 @@ tasks:
     cmds:
       - poetry build
 
+
+  verify:build:
+    desc: Verify poetry build succeeds without warnings
+    cmds:
+      - poetry run python scripts/verify_poetry_build.py
+
+  verify:minimal:
+    desc: Verify minimal extras installation path (CLI+imports)
+    deps:
+      - setup:minimal
+    cmds:
+      - poetry run python scripts/verify_minimal_install.py
+
   build:wheel:
     desc: Build wheel distribution
     cmds:
@@ -196,6 +353,7 @@ tasks:
       - task: test:smoke
       - poetry run python scripts/verify_test_markers.py
       - task: security:audit
+      - task: verify:minimal
       - poetry run python scripts/verify_release_state.py
       - poetry run python scripts/dialectical_audit.py
 
@@ -207,6 +365,12 @@ tasks:
     cmds:
       - git describe --tags --exact-match >/dev/null
       - poetry run python scripts/bump_version.py {{.NEXT_VERSION}}
+
+  release:tag:
+    desc: Tag v0.1.0a1 and push to origin
+    cmds:
+      - git tag v0.1.0a1
+      - git push origin v0.1.0a1
   # Development workflow tasks
   dev:
     desc: Run common development tasks (format, lint, test)
@@ -221,7 +385,7 @@ tasks:
       - task: manifest:validate
       - task: lint
       - task: test:coverage
-      - poetry run python scripts/verify_test_markers.py
+      - task: verify:markers
       - poetry run python scripts/update_traceability.py
       - poetry run python scripts/dialectical_audit.py
       - task: docs:build
@@ -241,6 +405,11 @@ tasks:
     desc: Run the CLI application
     cmds:
       - poetry run devsynth {{.CLI_ARGS}}
+
+  execlog:append:
+    desc: Append an entry to diagnostics/exec_log.txt
+    cmds:
+      - poetry run python scripts/append_exec_log.py --command "{{.CMD}}" --exit-code {{.EXIT_CODE}} --artifacts "{{.ARTIFACTS}}" --notes "{{.NOTES}}"
 
   # Docker container tasks
   docker:build:
@@ -289,6 +458,11 @@ tasks:
       - task: security:safety
       - poetry run python scripts/security_audit.py --skip-bandit --skip-safety
 
+  kpi:nightly-pass-rate:
+    desc: Compute or stub nightly provider pass rate KPI (writes test_reports/nightly_pass_rate.json)
+    cmds:
+      - poetry run python scripts/ci_kpis/nightly_pass_rate.py
+
   policy:gate:
     desc: Enforce security policy checks before deployment
     cmds:
@@ -299,3 +473,80 @@ tasks:
     cmds:
       - task: policy:gate
       - bash deployment/deploy_production.sh
+
+
+  tests:smoke-fast:
+    desc: Run smoke mode fast lane via devsynth CLI (reduced plugin surface)
+    cmds:
+      - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+  tests:inventory:
+    desc: Inventory scoping to quickly list fast unit tests via devsynth CLI
+    cmds:
+      - poetry run devsynth run-tests --inventory --target unit-tests --speed=fast
+
+  tests:offline-fast-subset:
+    desc: Validate offline/stub run excludes OpenAI/LM Studio resource tests; capture output
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run devsynth run-tests --speed=fast -m "not requires_resource('"'"'openai'"'"') and not requires_resource('"'"'lmstudio'"'"')" --no-parallel --maxfail=1 | tee diagnostics/offline_fast_subset.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests offline-fast-subset" --exit-code $EXIT --artifacts "diagnostics/offline_fast_subset.txt" --notes "offline fast excludes resource-gated"; exit $EXIT' 
+
+  tests:segment-medium:
+    desc: Run medium-speed unit tests with segmentation to improve stability
+    cmds:
+      - poetry run devsynth run-tests --target unit-tests --speed=medium --segment --segment-size 50 --no-parallel
+
+  tests:segment-slow:
+    desc: Run slow-speed unit tests with segmentation to improve stability
+    cmds:
+      - poetry run devsynth run-tests --target unit-tests --speed=slow --segment --segment-size 50 --no-parallel
+
+
+  tests:lmstudio-stability:
+    desc: Run LM Studio-enabled subset 3× (fast, no-parallel, maxfail=1) for stability
+    cmds:
+      - echo "[LMSTUDIO] Run 1/3"
+      - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
+      - echo "[LMSTUDIO] Run 2/3"
+      - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
+      - echo "[LMSTUDIO] Run 3/3"
+      - poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('lmstudio') and not slow"
+
+  diagnostics:flake-rate:
+    desc: Capture flake rate by running an LM Studio subset multiple times and writing diagnostics/flake_rate.*
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/capture_flake_rate.py --target integration-tests --speed fast --markers "requires_resource(\'lmstudio\') and not slow" --runs 3 | tee diagnostics/flake_rate_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "capture_flake_rate lmstudio" --exit-code $EXIT --artifacts "diagnostics/flake_rate.json,diagnostics/flake_rate.txt,diagnostics/flake_rate_stdout.txt" --notes "lmstudio flake-rate"; exit $EXIT' 
+
+  env:baseline:
+    desc: Capture maintainer environment baseline snapshot and record artifacts
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/capture_environment_baseline.py | tee diagnostics/environment_baseline_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "capture_environment_baseline" --exit-code $EXIT --artifacts "diagnostics/environment_baseline.json,diagnostics/environment_baseline.txt,diagnostics/environment_baseline_stdout.txt" --notes "maintainer env baseline"; exit $EXIT' 
+
+  maintainer:must-run:
+    desc: Execute the Maintainer Must-Run Sequence end-to-end with evidence capture (docs/tasks.md §23)
+    cmds:
+      - echo "[Maintainer] Step 1: Install with full extras"
+      - bash -lc 'poetry install --with dev --extras "tests retrieval chromadb api llm memory lmstudio"; EXIT=$?; poetry run python scripts/append_exec_log.py --command "poetry install --with dev --extras \"tests retrieval chromadb api llm memory lmstudio\"" --exit-code $EXIT --artifacts "" --notes "maintainer step 1"; exit $EXIT'
+      - echo "[Maintainer] Step 2: Collect and verify markers"
+      - bash -lc 'task tests:collect; EXIT=$?; poetry run python scripts/append_exec_log.py --command "task tests:collect" --exit-code $EXIT --artifacts "diagnostics/pytest_collect.txt" --notes "maintainer step 2a"; exit 0'
+      - bash -lc 'task verify:markers; EXIT=$?; exit $EXIT'
+      - echo "[Maintainer] Step 3: Unit fast"
+      - bash -lc 'task tests:unit-fast'
+      - echo "[Maintainer] Step 4: Integration fast"
+      - bash -lc 'task tests:integration-fast'
+      - echo "[Maintainer] Step 5: Behavior fast (no-parallel)"
+      - bash -lc 'poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel --maxfail=1 | tee diagnostics/behavior_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests behavior-fast" --exit-code $EXIT --artifacts "diagnostics/behavior_fast.txt" --notes "maintainer step 5"; exit $EXIT'
+      - echo "[Maintainer] Step 6: Offline fast subset excludes OpenAI/LM Studio"
+      - bash -lc 'task tests:offline-fast-subset'
+      - echo "[Maintainer] Step 7: Live OpenAI (opt-in) — skipped unless DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true"
+      - bash -lc 'if [ "${DEVSYNTH_RESOURCE_OPENAI_AVAILABLE:-false}" = "true" ]; then poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('"'"'openai'"'"') and not slow" | tee diagnostics/openai_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests openai-fast" --exit-code $EXIT --artifacts "diagnostics/openai_fast.txt" --notes "maintainer step 7"; exit $EXIT; else echo "[Maintainer] OpenAI fast subset skipped (env flag not set)"; fi'
+      - echo "[Maintainer] Step 8: Live LM Studio (opt-in)"
+      - bash -lc 'if [ "${DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE:-false}" = "true" ]; then task doctor:lmstudio; task tests:lmstudio-fast; else echo "[Maintainer] LM Studio subset skipped (env flag not set)"; fi'
+      - echo "[Maintainer] Step 9: HTML report for fast suite"
+      - bash -lc 'poetry run devsynth run-tests --report --speed=fast --no-parallel | tee diagnostics/test_report_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests --report fast" --exit-code $EXIT --artifacts "diagnostics/test_report_fast.txt,test_reports/" --notes "maintainer step 9"; exit $EXIT'
+      - echo "[Maintainer] Step 10: Guardrails suite"
+      - bash -lc 'task guardrails:all'
+
+  exit:verify:
+    desc: Verify exit criteria and capture artifacts under diagnostics/
+    cmds:
+      - poetry run python scripts/verify_exit_criteria.py

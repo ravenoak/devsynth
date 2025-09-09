@@ -1,16 +1,18 @@
-
 from dataclasses import dataclass
-from typing import Dict, List, Any, Optional
-from enum import Enum
 from datetime import datetime
-from devsynth.logging_setup import DevSynthLogger
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 from devsynth.exceptions import DevSynthError
+from devsynth.logging_setup import DevSynthLogger
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
+
 class MemoryType(Enum):
     """Types of memory in the DevSynth system."""
+
     SHORT_TERM = "short_term"
     LONG_TERM = "long_term"
     WORKING = "working"
@@ -36,12 +38,15 @@ class MemoryType(Enum):
     COLLABORATION_TEAM = "collaboration_team"
     PEER_REVIEW = "peer_review"
 
+
 # Alias for backward compatibility and for use in tests
 MemoryItemType = MemoryType
+
 
 @dataclass
 class MemoryItem:
     """A single item stored in memory."""
+
     id: str
     content: Any
     memory_type: MemoryType
@@ -54,9 +59,11 @@ class MemoryItem:
         if self.created_at is None:
             self.created_at = datetime.now()
 
+
 @dataclass
 class MemoryVector:
     """A vector representation of a memory item."""
+
     id: str
     content: Any
     embedding: List[float]
