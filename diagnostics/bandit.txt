@@ -9,7 +9,7 @@ Test results:
 51	        return module
 52	    except Exception:
 53	        pass
-54	
+54
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -30,7 +30,7 @@ Test results:
 256	            self.close()
 257	        except Exception:  # pragma: no cover - defensive
 258	            pass
-259	
+259
 
 --------------------------------------------------
 >> Issue: [B604:any_other_function_with_shell_equals_true] Function call with shell=True parameter identified, possible security issue.
@@ -42,7 +42,7 @@ Test results:
 78	        prog_name=prog_name, complete_var=complete_var, shell=shell_name
 79	    )
 80	    progress.update(status="script generated", advance=1)
-81	
+81
 
 --------------------------------------------------
 >> Issue: [B604:any_other_function_with_shell_equals_true] Function call with shell=True parameter identified, possible security issue.
@@ -64,7 +64,7 @@ Test results:
    Location: src/devsynth/adapters/cli/typer_adapter.py:291:8
 290	    ) -> None:
 291	        completion_cmd(shell=shell, install=install, path=path)
-292	
+292
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -76,7 +76,7 @@ Test results:
 350	                except Exception:
 351	                    # Do not crash CLI due to logging issues
 352	                    pass
-353	
+353
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -112,7 +112,7 @@ Test results:
 96	                cls.__abstractmethods__ = frozenset()
 97	            except Exception:
 98	                pass
-99	
+99
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -164,7 +164,7 @@ Test results:
 264	                    )
 265	                except Exception:
 266	                    pass
-267	
+267
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -185,7 +185,7 @@ Test results:
    Location: src/devsynth/adapters/orchestration/langgraph_adapter.py:460:15
 459	            data = data.encode("utf-8")
 460	        return pickle.loads(data)
-461	
+461
 
 --------------------------------------------------
 >> Issue: [B403:blacklist] Consider possible security implications associated with pickle module.
@@ -195,7 +195,7 @@ Test results:
    Location: src/devsynth/adapters/orchestration/langgraph_adapter.py:483:12
 482	        if "pytest" in sys.modules:
 483	            import pickle
-484	
+484
 
 --------------------------------------------------
 >> Issue: [B113:request_without_timeout] Call to requests without timeout
@@ -203,7 +203,7 @@ Test results:
    CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
    Location: src/devsynth/adapters/provider_system.py:679:23
-678	
+678
 679	            response = requests.post(
 680	                url,
 681	                headers=self.headers,
@@ -218,9 +218,9 @@ Test results:
    CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
    Location: src/devsynth/adapters/provider_system.py:811:47
-810	
+810
 811	                        delay = delay * (0.5 + random.random())
-812	
+812
 
 --------------------------------------------------
 >> Issue: [B113:request_without_timeout] Call to requests without timeout
@@ -228,7 +228,7 @@ Test results:
    CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
    Location: src/devsynth/adapters/provider_system.py:877:23
-876	
+876
 877	            response = requests.post(
 878	                url,
 879	                headers=self.headers,
@@ -243,9 +243,9 @@ Test results:
    CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
    Location: src/devsynth/adapters/provider_system.py:979:47
-978	
+978
 979	                        delay = delay * (0.5 + random.random())
-980	
+980
 
 --------------------------------------------------
 >> Issue: [B113:request_without_timeout] Call to requests without timeout
@@ -253,7 +253,7 @@ Test results:
    CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
    Location: src/devsynth/adapters/provider_system.py:1132:23
-1131	
+1131
 1132	            response = requests.post(
 1133	                url,
 1134	                headers=self.headers,
@@ -268,9 +268,9 @@ Test results:
    CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
    Location: src/devsynth/adapters/provider_system.py:1275:47
-1274	
+1274
 1275	                        delay = delay * (0.5 + random.random())
-1276	
+1276
 
 --------------------------------------------------
 >> Issue: [B113:request_without_timeout] Call to requests without timeout
@@ -278,7 +278,7 @@ Test results:
    CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
    Location: src/devsynth/adapters/provider_system.py:1342:23
-1341	
+1341
 1342	            response = requests.post(
 1343	                url,
 1344	                headers=self.headers,
@@ -293,9 +293,9 @@ Test results:
    CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
    Location: src/devsynth/adapters/provider_system.py:1440:47
-1439	
+1439
 1440	                        delay = delay * (0.5 + random.random())
-1441	
+1441
 
 --------------------------------------------------
 >> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
@@ -323,7 +323,7 @@ Test results:
    CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
    Location: src/devsynth/application/agents/test.py:127:17
-126	
+126
 127	        result = subprocess.run(
 128	            [sys.executable, "-m", "pytest", "-q"],
 129	            cwd=str(directory),
@@ -394,7 +394,7 @@ Test results:
    CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
    Location: src/devsynth/application/cli/commands/mvu_exec_cmd.py:7:0
-6	
+6
 7	import subprocess
 8	from typing import List, Optional
 
@@ -474,7 +474,7 @@ Test results:
 168	    except Exception:
 169	        # Never let observability failures interfere with CLI behavior
 170	        pass
-171	
+171
 
 --------------------------------------------------
 >> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
@@ -545,7 +545,7 @@ Test results:
    CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
    Location: src/devsynth/application/cli/commands/test_metrics_cmd.py:8:0
-7	
+7
 8	import subprocess
 9	from datetime import datetime
 
@@ -666,7 +666,7 @@ Test results:
 655	                        pass
 656	            except Exception:
 657	                pass
-658	
+658
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -688,7 +688,7 @@ Test results:
 1007	                    pass
 1008	        except Exception:
 1009	            pass
-1010	
+1010
 
 --------------------------------------------------
 >> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
@@ -738,7 +738,7 @@ Test results:
    Location: src/devsynth/application/documentation/documentation_fetcher.py:199:12
 198	            # Create virtual environment
 199	            subprocess.run(["python", "-m", "venv", venv_dir], check=True)
-200	
+200
 
 --------------------------------------------------
 >> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
@@ -748,7 +748,7 @@ Test results:
    Location: src/devsynth/application/documentation/documentation_fetcher.py:199:12
 198	            # Create virtual environment
 199	            subprocess.run(["python", "-m", "venv", venv_dir], check=True)
-200	
+200
 
 --------------------------------------------------
 >> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
@@ -758,7 +758,7 @@ Test results:
    Location: src/devsynth/application/documentation/documentation_fetcher.py:207:12
 206	            )
 207	            subprocess.run([pip_path, "install", f"{library}=={version}"], check=True)
-208	
+208
 
 --------------------------------------------------
 >> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
@@ -770,7 +770,7 @@ Test results:
 224	            result = subprocess.run(
 225	                [python_path, script_path], capture_output=True, text=True, check=False
 226	            )
-227	
+227
 
 --------------------------------------------------
 >> Issue: [B112:try_except_continue] Try, Except, Continue detected.
@@ -782,7 +782,7 @@ Test results:
 560	            except Exception as e:
 561	                # Skip this value if there's an error
 562	                continue
-563	
+563
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -804,7 +804,7 @@ Test results:
 158	            )
 159	        except Exception:
 160	            pass
-161	
+161
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -913,7 +913,7 @@ Test results:
 655	                            maybe_add(it)
 656	                    except Exception:
 657	                        continue
-658	
+658
 
 --------------------------------------------------
 >> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
@@ -963,7 +963,7 @@ Test results:
    Location: src/devsynth/application/prompts/auto_tuning.py:238:23
 237	        else:  # "random"
 238	            selected = random.choice(variants)
-239	
+239
 
 --------------------------------------------------
 >> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
@@ -981,7 +981,7 @@ Test results:
    CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
    Location: src/devsynth/application/prompts/auto_tuning.py:365:59
-364	
+364
 365	        if "detailed feedback" not in template.lower() and random.random() < 0.5:
 366	            template += "\n\nPlease provide detailed feedback."
 
@@ -1021,9 +1021,9 @@ Test results:
    CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
    Location: src/devsynth/application/prompts/auto_tuning.py:442:17
-441	
+441
 442	        detail = random.choice(details)
-443	
+443
 
 --------------------------------------------------
 >> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
@@ -1099,7 +1099,7 @@ Test results:
    Location: src/devsynth/application/prompts/auto_tuning.py:552:33
 551	                # Choose an emphasis style
 552	                emphasis_style = random.choice(["**", "_", "UPPERCASE"])
-553	
+553
 
 --------------------------------------------------
 >> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
@@ -1109,7 +1109,7 @@ Test results:
    Location: src/devsynth/application/prompts/auto_tuning.py:578:18
 577	            # Select a random important word
 578	            idx = random.choice(important_indices)
-579	
+579
 
 --------------------------------------------------
 >> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
@@ -1119,7 +1119,7 @@ Test results:
    Location: src/devsynth/application/prompts/auto_tuning.py:581:29
 580	            # Choose an emphasis style
 581	            emphasis_style = random.choice(["**", "_", "UPPERCASE"])
-582	
+582
 
 --------------------------------------------------
 >> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
@@ -1127,7 +1127,7 @@ Test results:
    CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
    More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
    Location: src/devsynth/core/mvu/api.py:5:0
-4	
+4
 5	import subprocess
 6	from datetime import datetime
 
@@ -1291,7 +1291,7 @@ Test results:
 20	    return subprocess.check_output(
 21	        ["git", "log", "-1", "--pretty=%B", commit], text=True
 22	    )
-23	
+23
 
 --------------------------------------------------
 >> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
@@ -1303,7 +1303,7 @@ Test results:
 20	    return subprocess.check_output(
 21	        ["git", "log", "-1", "--pretty=%B", commit], text=True
 22	    )
-23	
+23
 
 --------------------------------------------------
 >> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
@@ -1378,7 +1378,7 @@ Test results:
 288	                    notify(None)
 289	                except Exception:
 290	                    pass
-291	
+291
 
 --------------------------------------------------
 >> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
@@ -1478,7 +1478,7 @@ Test results:
 71	            except Exception:
 72	                # Fallback for objects that can't be safely converted to string
 73	                pass
-74	
+74
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -1490,7 +1490,7 @@ Test results:
 150	            except Exception:
 151	                # Fallback for objects that can't be safely converted to string
 152	                pass
-153	
+153
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -1502,7 +1502,7 @@ Test results:
 249	            except Exception:
 250	                # Fallback for objects that can't be safely converted to string
 251	                pass
-252	
+252
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -1524,7 +1524,7 @@ Test results:
 45	            self.memory_manager.flush_updates()
 46	        except Exception:
 47	            pass
-48	
+48
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -1546,7 +1546,7 @@ Test results:
 64	            np.random.seed(deterministic_seed)  # type: ignore[attr-defined]
 65	        except Exception:
 66	            pass
-67	
+67
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -1558,7 +1558,7 @@ Test results:
 145	            except Exception:
 146	                # Ignore unknown phases and keep current_phase
 147	                pass
-148	
+148
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -1569,7 +1569,7 @@ Test results:
 170	            _dashboard_hook(event)
 171	        except Exception:  # pragma: no cover - hooks should not break metrics
 172	            pass
-173	
+173
 
 --------------------------------------------------
 >> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
@@ -1598,7 +1598,7 @@ Test results:
 43	            "src",
 44	        ]
 45	    )
-46	
+46
 
 --------------------------------------------------
 >> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
@@ -1617,7 +1617,7 @@ Test results:
 43	            "src",
 44	        ]
 45	    )
-46	
+46
 
 --------------------------------------------------
 >> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
@@ -1742,7 +1742,7 @@ Test results:
 300	                keyword_expr = "lmstudio"
 301	        except Exception:
 302	            pass
-303	
+303
 
 --------------------------------------------------
 >> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.

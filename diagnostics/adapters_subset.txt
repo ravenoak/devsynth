@@ -27,20 +27,20 @@ max_tokens = 2000
     ) -> str:
         """
         Generate a completion using OpenAI API.
-    
+
         Args:
             prompt: User prompt
             system_prompt: Optional system prompt
             temperature: Sampling temperature (0.0 to 1.0)
             max_tokens: Maximum number of tokens to generate
-    
+
         Returns:
             str: Generated completion
-    
+
         Raises:
             ProviderError: If API call fails
         """
-    
+
         # Define the actual API call function
         if parameters:
             temperature = parameters.get("temperature", temperature)
@@ -48,17 +48,17 @@ max_tokens = 2000
             top_p = parameters.get("top_p")
             frequency_penalty = parameters.get("frequency_penalty")
             presence_penalty = parameters.get("presence_penalty")
-    
+
             if not 0 <= temperature <= 2:
                 raise ProviderError("temperature must be between 0 and 2")
             if max_tokens <= 0:
                 raise ProviderError("max_tokens must be positive")
             if top_p is not None and not 0 <= top_p <= 1:
                 raise ProviderError("top_p must be between 0 and 1")
-    
+
         def _api_call():
             url = f"{self.base_url}/chat/completions"
-    
+
             if parameters and "messages" in parameters:
                 messages = list(parameters["messages"])
             else:
@@ -66,7 +66,7 @@ max_tokens = 2000
                 if system_prompt:
                     messages.append({"role": "system", "content": system_prompt})
                 messages.append({"role": "user", "content": prompt})
-    
+
             payload = {
                 "model": self.model,
                 "messages": messages,
@@ -80,7 +80,7 @@ max_tokens = 2000
                     if k not in {"temperature", "max_tokens"}
                 }
                 payload.update(extra)
-    
+
             response = requests.post(
                 url,
                 headers=self.headers,
@@ -89,12 +89,12 @@ max_tokens = 2000
             )
             response.raise_for_status()
             response_data = response.json()
-    
+
             if "choices" in response_data and len(response_data["choices"]) > 0:
                 return response_data["choices"][0]["message"]["content"]
             else:
                 raise ProviderError(f"Invalid response format: {response_data}")
-    
+
         # Use retry with exponential backoff
         try:
             retry_config = self._get_retry_config()
@@ -111,8 +111,8 @@ max_tokens = 2000
                 on_retry=self._emit_retry_telemetry,
             )(_api_call)()
 
-/Users/ravenoak/Projects/github.com/ravenoak/devsynth/src/devsynth/adapters/provider_system.py:696: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/src/devsynth/adapters/provider_system.py:696:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 /Users/ravenoak/Projects/github.com/ravenoak/devsynth/src/devsynth/adapters/provider_system.py:685: in _api_call
     response.raise_for_status()
 /opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1139: in __call__
@@ -121,7 +121,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 /opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1143: in _mock_call
     return self._execute_mock_call(*args, **kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 self = <MagicMock name='mock.raise_for_status' id='4897296304'>, args = ()
 kwargs = {}, effect = HTTPError('429 Client Error')
@@ -129,7 +129,7 @@ kwargs = {}, effect = HTTPError('429 Client Error')
     def _execute_mock_call(self, /, *args, **kwargs):
         # separate from _increment_mock_call so that awaited functions are
         # executed separately from their call, also AsyncMock overrides this method
-    
+
         effect = self.side_effect
         if effect is not None:
             if _is_exception(effect):
@@ -146,16 +146,16 @@ mock_post = <MagicMock name='post' id='4897326144'>
     @pytest.mark.medium
     def test_openai_provider_complete_retry_has_expected(mock_post):
         """Test retry mechanism in the complete method of OpenAIProvider.
-    
+
         ReqID: FR-89"""
-    
+
         def mock_decorator(*args, **kwargs):
-    
+
             def wrapper(func):
                 return func
-    
+
             return wrapper
-    
+
         with patch(
             "devsynth.adapters.provider_system.retry_with_exponential_backoff",
             side_effect=mock_decorator,
@@ -176,8 +176,8 @@ mock_post = <MagicMock name='post' id='4897326144'>
             with pytest.raises(ProviderError):
 >               provider.complete("Test prompt")
 
-/Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/unit/adapters/test_provider_system.py:418: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/unit/adapters/test_provider_system.py:418:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 self = <devsynth.adapters.provider_system.OpenAIProvider object at 0x123e33a40>
 prompt = 'Test prompt', system_prompt = None, temperature = 0.7
@@ -194,20 +194,20 @@ max_tokens = 2000
     ) -> str:
         """
         Generate a completion using OpenAI API.
-    
+
         Args:
             prompt: User prompt
             system_prompt: Optional system prompt
             temperature: Sampling temperature (0.0 to 1.0)
             max_tokens: Maximum number of tokens to generate
-    
+
         Returns:
             str: Generated completion
-    
+
         Raises:
             ProviderError: If API call fails
         """
-    
+
         # Define the actual API call function
         if parameters:
             temperature = parameters.get("temperature", temperature)
@@ -215,17 +215,17 @@ max_tokens = 2000
             top_p = parameters.get("top_p")
             frequency_penalty = parameters.get("frequency_penalty")
             presence_penalty = parameters.get("presence_penalty")
-    
+
             if not 0 <= temperature <= 2:
                 raise ProviderError("temperature must be between 0 and 2")
             if max_tokens <= 0:
                 raise ProviderError("max_tokens must be positive")
             if top_p is not None and not 0 <= top_p <= 1:
                 raise ProviderError("top_p must be between 0 and 1")
-    
+
         def _api_call():
             url = f"{self.base_url}/chat/completions"
-    
+
             if parameters and "messages" in parameters:
                 messages = list(parameters["messages"])
             else:
@@ -233,7 +233,7 @@ max_tokens = 2000
                 if system_prompt:
                     messages.append({"role": "system", "content": system_prompt})
                 messages.append({"role": "user", "content": prompt})
-    
+
             payload = {
                 "model": self.model,
                 "messages": messages,
@@ -247,7 +247,7 @@ max_tokens = 2000
                     if k not in {"temperature", "max_tokens"}
                 }
                 payload.update(extra)
-    
+
             response = requests.post(
                 url,
                 headers=self.headers,
@@ -256,12 +256,12 @@ max_tokens = 2000
             )
             response.raise_for_status()
             response_data = response.json()
-    
+
             if "choices" in response_data and len(response_data["choices"]) > 0:
                 return response_data["choices"][0]["message"]["content"]
             else:
                 raise ProviderError(f"Invalid response format: {response_data}")
-    
+
         # Use retry with exponential backoff
         try:
             retry_config = self._get_retry_config()
