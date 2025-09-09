@@ -12,16 +12,13 @@ Conventions:
 
 This module aligns with docs/plan.md Phase 2 and docs/tasks.md §4.1.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from devsynth.domain.interfaces.memory import MemoryStore, VectorStore
-from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from devsynth.logging_setup import DevSynthLogger
-
-logger = DevSynthLogger(__name__)
+from devsynth.domain.models.memory import MemoryItem, MemoryVector
 
 
 class FakeMemoryStore(MemoryStore):
@@ -33,8 +30,8 @@ class FakeMemoryStore(MemoryStore):
     """
 
     def __init__(self) -> None:
-        self._store: Dict[str, MemoryItem] = {}
-        self._tx_buffers: Dict[str, List[Tuple[str, Any]]] = {}
+        self._store: dict[str, MemoryItem] = {}
+        self._tx_buffers: dict[str, list[tuple[str, Any]]] = {}
         self._next_id = 1
 
     def _gen_id(self) -> str:
@@ -42,21 +39,27 @@ class FakeMemoryStore(MemoryStore):
         self._next_id += 1
         return nid
 
-    def store(self, item: MemoryItem, transaction_id: str | None = None) -> str:  # type: ignore[override]
+    def store(  # type: ignore[override]
+        self, item: MemoryItem, transaction_id: str | None = None
+    ) -> str:
         item_id = item.id or self._gen_id()
         if transaction_id:
-            self._tx_buffers.setdefault(transaction_id, []).append(("store", (item_id, item)))
+            self._tx_buffers.setdefault(transaction_id, []).append(
+                ("store", (item_id, item))
+            )
             return item_id
-        self._store[item_id] = MemoryItem(id=item_id, **{k: v for k, v in item.__dict__.items() if k != "id"})
+        self._store[item_id] = MemoryItem(
+            id=item_id, **{k: v for k, v in item.__dict__.items() if k != "id"}
+        )
         return item_id
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:  # type: ignore[override]
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         return self._store.get(item_id)
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:  # type: ignore[override]
+    def search(self, query: dict[str, Any]) -> list[MemoryItem]:
         text = str(query.get("text", "")).lower()
         mtype = query.get("type")
-        results: List[MemoryItem] = []
+        results: list[MemoryItem] = []
         for itm in self._store.values():
             if mtype is not None and itm.memory_type != mtype:
                 continue
@@ -65,7 +68,9 @@ class FakeMemoryStore(MemoryStore):
             results.append(itm)
         return results
 
-    def delete(self, item_id: str, transaction_id: str | None = None) -> bool:  # type: ignore[override]
+    def delete(  # type: ignore[override]
+        self, item_id: str, transaction_id: str | None = None
+    ) -> bool:
         if transaction_id:
             self._tx_buffers.setdefault(transaction_id, []).append(("delete", item_id))
             return True
@@ -76,23 +81,25 @@ class FakeMemoryStore(MemoryStore):
         self._tx_buffers[tx_id] = []
         return tx_id
 
-    def commit_transaction(self, transaction_id: str) -> bool:  # type: ignore[override]
+    def commit_transaction(self, transaction_id: str) -> bool:
         ops = self._tx_buffers.pop(transaction_id, None)
         if ops is None:
             return False
         for op, payload in ops:
             if op == "store":
                 item_id, item = payload
-                self._store[item_id] = MemoryItem(id=item_id, **{k: v for k, v in item.__dict__.items() if k != "id"})
+                self._store[item_id] = MemoryItem(
+                    id=item_id, **{k: v for k, v in item.__dict__.items() if k != "id"}
+                )
             elif op == "delete":
                 item_id = payload
                 self._store.pop(item_id, None)
         return True
 
-    def rollback_transaction(self, transaction_id: str) -> bool:  # type: ignore[override]
+    def rollback_transaction(self, transaction_id: str) -> bool:
         return self._tx_buffers.pop(transaction_id, None) is not None
 
-    def is_transaction_active(self, transaction_id: str) -> bool:  # type: ignore[override]
+    def is_transaction_active(self, transaction_id: str) -> bool:
         return transaction_id in self._tx_buffers
 
 
@@ -100,7 +107,7 @@ class FakeVectorStore(VectorStore):
     """A simple in-memory vector store with cosine similarity for tests."""
 
     def __init__(self) -> None:
-        self._vectors: Dict[str, MemoryVector] = {}
+        self._vectors: dict[str, MemoryVector] = {}
         self._next_id = 1
 
     def _gen_id(self) -> str:
@@ -110,14 +117,21 @@ class FakeVectorStore(VectorStore):
 
     def store_vector(self, vector: MemoryVector) -> str:  # type: ignore[override]
         vid = vector.id or self._gen_id()
-        self._vectors[vid] = MemoryVector(id=vid, content=vector.content, embedding=vector.embedding, metadata=vector.metadata)
+        self._vectors[vid] = MemoryVector(
+            id=vid,
+            content=vector.content,
+            embedding=vector.embedding,
+            metadata=vector.metadata,
+        )
         return vid
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:  # type: ignore[override]
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         return self._vectors.get(vector_id)
 
-    def similarity_search(self, query_embedding: List[float], top_k: int = 5) -> List[MemoryVector]:  # type: ignore[override]
-        def cosine(a: List[float], b: List[float]) -> float:
+    def similarity_search(
+        self, query_embedding: list[float], top_k: int = 5
+    ) -> list[MemoryVector]:
+        def cosine(a: list[float], b: list[float]) -> float:
             if not a or not b or len(a) != len(b):
                 return -1.0
             import math
@@ -130,7 +144,8 @@ class FakeVectorStore(VectorStore):
             return dot / (na * nb)
 
         scored = [
-            (cosine(vec.embedding, query_embedding), vec) for vec in self._vectors.values()
+            (cosine(vec.embedding, query_embedding), vec)
+            for vec in self._vectors.values()
         ]
         scored.sort(key=lambda t: t[0], reverse=True)
         return [vec for _score, vec in scored[: top_k or 5]]
@@ -138,5 +153,5 @@ class FakeVectorStore(VectorStore):
     def delete_vector(self, vector_id: str) -> bool:  # type: ignore[override]
         return self._vectors.pop(vector_id, None) is not None
 
-    def get_collection_stats(self) -> Dict[str, Any]:  # type: ignore[override]
+    def get_collection_stats(self) -> dict[str, Any]:  # type: ignore[override]
         return {"count": len(self._vectors)}
