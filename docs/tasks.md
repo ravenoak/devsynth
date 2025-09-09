@@ -17,6 +17,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 1.5.4 [x] `poetry run devsynth doctor | tee diagnostics/doctor_run.txt`
 1.5.5 [x] `date -u '+%Y-%m-%dT%H:%M:%SZ' | tee diagnostics/run_timestamp_utc.txt`
 1.6 [ ] Investigate `poetry install --with dev --all-extras` hanging on `nvidia/__init__.py` (Issue: poetry-install-nvidia-loop.md).
+1.7 [ ] Resolve scripts/codex_setup.sh version mismatch (project 0.1.0a1 vs expected 0.1.0-alpha.1).
 
 2. Property Tests Remediation (Phase 1)
 2.1 [x] Fix Hypothesis misuse in tests/property/test_requirements_consensus_properties.py:
@@ -25,9 +26,10 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 2.2 [x] Resolve AttributeError for _DummyTeam._improve_clarity:
 2.2.1 [x] Preferred: Update tests to target a public API that internally triggers clarity improvement (e.g., team.improve_clarity(requirement)).
 2.2.2 [x] Alternative: Implement a no-op or minimally semantic _improve_clarity on the Dummy test double to satisfy the expected interface (tests/helpers/dummies.py or equivalent).
-2.3 [x] Ensure each property test has exactly one speed marker plus @pytest.mark.property.
+2.3 [ ] Ensure each property test has exactly one speed marker plus @pytest.mark.property.
 2.4 [x] Re-run property tests: `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q` and confirm 0 failures.
 2.5 [x] Add/adjust fixtures as needed to keep property tests isolated and deterministic.
+2.6 [ ] Tag missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py and re-run `verify_test_markers.py` (Issue: property-marker-advisories-in-reasoning-loop-tests.md).
 
 3. Coverage Uplift — CLI run_tests_cmd Hotspot (Phase 2)
 3.1 [x] Add or extend unit tests for src/devsynth/application/cli/commands/run_tests_cmd.py to cover the following branches/behaviors:

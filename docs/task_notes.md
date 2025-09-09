@@ -110,3 +110,8 @@ Date: 2025-09-08T10:00 Local
 - Smoke test command failed: ModuleNotFoundError: devsynth.
   - `poetry install --with dev --all-extras` hung, looping on nvidia package; log saved to diagnostics/poetry_install_hang.txt; issue poetry-install-nvidia-loop.md opened.
 - Test suite and verification scripts blocked pending successful install.
+Date: 2025-09-09T00:57Z
+- Installed go-task via scripts/install_dev.sh (pre-commit init interrupted but tool now available).
+- scripts/codex_setup.sh failed: Project version 0.1.0a1 does not match 0.1.0-alpha.1.
+- verify_test_markers flagged 2 property_violations in tests/property/test_reasoning_loop_properties.py; issue file opened.
+- Smoke run and marker checks otherwise green.
