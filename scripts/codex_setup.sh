@@ -75,9 +75,13 @@ poetry env info --path >/dev/null
 echo "DIALECTICAL CHECKPOINT: What dependencies are truly required?"
 echo "DIALECTICAL CHECKPOINT: How do we verify the cache reproduces identical environments?"
 
-EXPECTED_VERSION="0.1.0-alpha.1"
+# Accept either the legacy 0.1.0-alpha.1 notation or the PEP 440-compliant
+# 0.1.0a1 form. Normalize the current version to the latter for comparison so
+# future releases can switch schemes without breaking setup.
+EXPECTED_VERSION="0.1.0a1"
 CURRENT_VERSION="$(poetry version -s)"
-if [[ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]]; then
+NORMALIZED_VERSION="${CURRENT_VERSION/-alpha./a}"
+if [[ "$NORMALIZED_VERSION" != "$EXPECTED_VERSION" ]]; then
   echo "Project version $CURRENT_VERSION does not match $EXPECTED_VERSION" >&2
   exit 1
 fi
