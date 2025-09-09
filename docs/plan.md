@@ -2,7 +2,7 @@
 
 Version: 2025-09-07
 Owner: DevSynth Team (maintainers)
-Status: Execution in progress; plan updated with new environment blocker (2025-09-08)
+Status: Execution in progress; install loop closed (2025-09-09); property marker advisories remain
 
 Executive summary
 - Goal: Reach and sustain >90% coverage with a well‑functioning, reliable test suite across unit, integration, behavior, and property tests for the 0.1.0a1 release, with strict marker discipline and resource gating.
@@ -10,8 +10,8 @@ Executive summary
   - Test collection succeeds across a large suite (unit/integration/behavior/property).
   - Fast smoke/unit/integration/behavior profiles run successfully via the CLI.
 - Speed-marker discipline validated (0 violations).
-- Property marker verification flags missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py (2 property_violations).
-- Property tests (opt-in) reveal 2 failures; must be fixed before release to claim full readiness.
+ - Property marker verification flags missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py (2 property_violations).
+ - Property tests (opt-in) reveal 2 failures; must be fixed before release to claim full readiness.
   - Diagnostics indicate environment/config gaps for non-test environments (doctor.txt) used by the app; tests succeed due to defaults and gating, but this requires documentation and guardrails.
   - Coverage report artifact (htmlcov) shows 20% from a prior run; targeted property-only run showed 8% and triggered coverage threshold failure. The global pytest.ini threshold is 90%, so any authoritative release run must aggregate full-suite coverage.
 
@@ -21,8 +21,8 @@ Commands executed (audit trail)
 - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1 → Success.
 - poetry run devsynth run-tests --target behavior-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
 - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
-- poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → property marker advisories (2 property_violations) in tests/property/test_reasoning_loop_properties.py.
-- DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → 2 failing tests; coverage fail-under triggered (8% on this narrow subset).
+ - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → property marker advisories (2 property_violations) in tests/property/test_reasoning_loop_properties.py.
+ - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → 2 failing tests; coverage fail-under triggered (8% on this narrow subset).
 - Environment: Python 3.12.x (pyproject constraint), Poetry 2.1.4; coverage artifacts present under htmlcov/ and coverage.json.
 
 Environment snapshot and reproducibility (authoritative)
@@ -71,7 +71,7 @@ Concrete remediation tasks (actionable specifics)
      - Alternative: Extend the Dummy test double to implement _improve_clarity with a no-op or minimal semantics in tests/helpers/dummies.py (or the appropriate test utility module), ensuring interface compatibility.
   - Re-run: DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q 2>&1 | tee test_reports/property_tests.log
   - Success criteria: 0 failures; exactly one speed marker per function.
-  3) Tag tests/property/test_reasoning_loop_properties.py::check with @pytest.mark.property and a single speed marker; rerun verify_test_markers to confirm 0 property_violations (Issue: issues/property-marker-advisories-in-reasoning-loop-tests.md).
+   3) Tag tests/property/test_reasoning_loop_properties.py::check with @pytest.mark.property and a single speed marker; rerun verify_test_markers to confirm 0 property_violations (Issue: issues/property-marker-advisories-in-reasoning-loop-tests.md).
 - run_tests_cmd coverage uplift (src/devsynth/application/cli/commands/run_tests_cmd.py): add unit tests to cover these branches/behaviors with clear test names:
   - test_smoke_mode_sets_pytest_autoload_off
   - test_no_parallel_maps_to_n0
@@ -104,7 +104,7 @@ Critical evaluation of current tests (dialectical + Socratic)
   - AttributeError: _DummyTeam lacks _improve_clarity → either the dummy must implement this method or tests need to call a public interface the dummy supports.
 - Coverage hotspots: Historical diagnostics and htmlcov show low coverage in src/devsynth/application/cli/commands/run_tests_cmd.py (~14–15%), and other adapter-heavy modules show very low coverage in artifacts. Need targeted tests or broaden integration coverage.
 - Environment/config: diagnostics/doctor.txt lists many missing env vars across environments; while tests pass due to default stubbing, release QA should include doctor sanity checks and documented defaults.
-- Installation: `poetry install --with dev --all-extras` hangs repeatedly on `nvidia/__init__.py`, leaving the environment incomplete (see issues/poetry-install-nvidia-loop.md).
+- Installation: earlier hang on `poetry install --with dev --all-extras` (nvidia/__init__.py) resolved per issues/poetry-install-nvidia-loop.md (closed).
 - Potential mismatch between pytest.ini fail-under=90 and how contributors run focused subsets; dev tooling must aggregate coverage or provide guidance on running complete profiles locally.
 
 Standards and constraints reaffirmed
