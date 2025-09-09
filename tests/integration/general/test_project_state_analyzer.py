@@ -136,12 +136,12 @@ class TestProjectStateAnalyzer:
         requirements_file.write_text(
             """
         # Project Requirements
-        
+
         ## User Authentication
         1. The system shall provide user registration functionality
         2. The system shall support login with username and password
         3. The system shall implement password reset via email
-        
+
         ## Data Management
         1. The system shall store user data securely
         2. The system shall provide CRUD operations for user profiles
@@ -156,15 +156,15 @@ class TestProjectStateAnalyzer:
             def __init__(self, username, password):
                 self.username = username
                 self.password = password
-                
+
             def register(self):
                 # Implementation for user registration
                 pass
-                
+
             def login(self):
                 # Implementation for user login
                 pass
-                
+
             def reset_password(self):
                 # Implementation for password reset
                 pass

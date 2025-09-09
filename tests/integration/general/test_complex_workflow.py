@@ -72,19 +72,19 @@ class TestComplexWorkflow:
             os.makedirs(requirements_dir, exist_ok=True)
             requirements_content = """
             # Data Processing API Requirements
-            
+
             ## Data Ingestion
             1. The system shall accept CSV file uploads
             2. The system shall accept JSON file uploads
             3. The system shall validate file formats before processing
             4. The system shall handle files up to 100MB in size
-            
+
             ## Data Processing
             1. The system shall parse CSV files into structured data
             2. The system shall parse JSON files into structured data
             3. The system shall transform data according to user-defined rules
             4. The system shall aggregate data based on specified criteria
-            
+
             ## Data Export
             1. The system shall export processed data as CSV
             2. The system shall export processed data as JSON
@@ -95,9 +95,9 @@ class TestComplexWorkflow:
                 f.write(requirements_content)
             specs_content = """
             # Data Processing API Specifications
-            
+
             ## Data Ingestion API
-            
+
             ### CSV Upload Endpoint
             - **Endpoint**: POST /api/upload/csv
             - **Description**: Uploads a CSV file for processing
@@ -108,7 +108,7 @@ class TestComplexWorkflow:
               - 200 OK: File uploaded successfully
               - 400 Bad Request: Invalid file format
               - 413 Payload Too Large: File exceeds size limit
-            
+
             ### JSON Upload Endpoint
             - **Endpoint**: POST /api/upload/json
             - **Description**: Uploads a JSON file for processing
@@ -119,9 +119,9 @@ class TestComplexWorkflow:
               - 200 OK: File uploaded successfully
               - 400 Bad Request: Invalid file format
               - 413 Payload Too Large: File exceeds size limit
-            
+
             ## Data Processing API
-            
+
             ### Process CSV Endpoint
             - **Endpoint**: POST /api/process/csv
             - **Description**: Processes a previously uploaded CSV file
@@ -141,45 +141,45 @@ class TestComplexWorkflow:
             class DataIngestion:
                 def __init__(self, max_file_size=104857600):  # 100MB in bytes
                     self.max_file_size = max_file_size
-                
+
                 def upload_csv(self, file):
                     # Check file size
                     if len(file.read()) > self.max_file_size:
                         return {"status": "error", "message": "File exceeds size limit"}
-                    
+
                     # Reset file pointer
                     file.seek(0)
-                    
+
                     # Validate CSV format
                     try:
                         # Implementation for CSV validation
                         pass
                     except Exception as e:
                         return {"status": "error", "message": f"Invalid CSV format: {str(e)}"}
-                    
+
                     # Store the file
                     # Implementation for file storage
-                    
+
                     return {"status": "success", "message": "CSV file uploaded successfully"}
-                
+
                 def upload_json(self, file):
                     # Check file size
                     if len(file.read()) > self.max_file_size:
                         return {"status": "error", "message": "File exceeds size limit"}
-                    
+
                     # Reset file pointer
                     file.seek(0)
-                    
+
                     # Validate JSON format
                     try:
                         # Implementation for JSON validation
                         pass
                     except Exception as e:
                         return {"status": "error", "message": f"Invalid JSON format: {str(e)}"}
-                    
+
                     # Store the file
                     # Implementation for file storage
-                    
+
                     return {"status": "success", "message": "JSON file uploaded successfully"}
             """
             with open(os.path.join(src_dir, "data_ingestion.py"), "w") as f:
@@ -189,24 +189,24 @@ class TestComplexWorkflow:
             test_data_ingestion_code = """
             import unittest
             from src.data_ingestion import DataIngestion
-            
+
             class TestDataIngestion(unittest.TestCase):
                 def setUp(self):
                     self.data_ingestion = DataIngestion()
-                
+
                 def test_upload_csv_file_too_large(self):
                     # Mock a file that's too large
                     class MockFile:
                         def read(self):
                             return b'x' * (104857600 + 1)  # 100MB + 1 byte
-                        
+
                         def seek(self, position):
                             pass
-                    
+
                     result = self.data_ingestion.upload_csv(MockFile())
                     self.assertEqual(result["status"], "error")
                     self.assertEqual(result["message"], "File exceeds size limit")
-            
+
             if __name__ == '__main__':
                 unittest.main()
             """
@@ -243,9 +243,9 @@ class TestComplexWorkflow:
                       - 200 OK: File processed successfully
                       - 404 Not Found: File not found
                       - 500 Internal Server Error: Processing error
-                    
+
                     ## Data Export API
-                    
+
                     ### Export CSV Endpoint
                     - **Endpoint**: GET /api/export/csv
                     - **Description**: Exports processed data as CSV
@@ -256,7 +256,7 @@ class TestComplexWorkflow:
                       - 200 OK: Data exported successfully
                       - 404 Not Found: No data to export
                       - 500 Internal Server Error: Export error
-                    
+
                     ### Export JSON Endpoint
                     - **Endpoint**: GET /api/export/json
                     - **Description**: Exports processed data as JSON
@@ -277,11 +277,11 @@ class TestComplexWorkflow:
                     class DataProcessing:
                         def __init__(self):
                             pass
-                        
+
                         def process_csv(self, file_id, parameters):
                             # Implementation for CSV processing
                             return {"status": "success", "message": "CSV file processed successfully"}
-                        
+
                         def process_json(self, file_id, parameters):
                             # Implementation for JSON processing
                             return {"status": "success", "message": "JSON file processed successfully"}
@@ -292,11 +292,11 @@ class TestComplexWorkflow:
                     class DataExport:
                         def __init__(self):
                             pass
-                        
+
                         def export_csv(self, data_id, parameters):
                             # Implementation for CSV export
                             return {"status": "success", "message": "Data exported as CSV successfully"}
-                        
+
                         def export_json(self, data_id, parameters):
                             # Implementation for JSON export
                             return {"status": "success", "message": "Data exported as JSON successfully"}
