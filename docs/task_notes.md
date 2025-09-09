@@ -18,3 +18,6 @@
 
 2025-09-12:
 - Added release checklist to plan and marked task 1.4 complete.
+2025-09-13:
+- `poetry run devsynth run-tests --target unit-tests --speed=medium` reported 66 failures but no pytest-xdist assertion errors; `--speed=slow` found no tests.
+- Marked task 1.5 complete.
