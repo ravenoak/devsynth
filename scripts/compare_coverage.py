@@ -4,7 +4,9 @@ Compare two coverage.json files and exit with non-zero status if coverage drops
 by more than an allowed threshold.
 
 Usage:
-  poetry run python scripts/compare_coverage.py --base path/to/base/coverage.json --pr path/to/pr/coverage.json [--allow-drop 1.0]
+  poetry run python scripts/compare_coverage.py \
+    --base path/to/base/coverage.json \
+    --pr path/to/pr/coverage.json [--allow-drop 1.0]
 
 - The script reads total coverage percentage from the "totals" block if present,
   preferring keys: "percent_covered", "percent_covered_display", or computed as
@@ -22,12 +24,14 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 
-def _extract_percent(totals: Dict[str, Any]) -> Optional[float]:
+def _extract_percent(totals: dict[str, Any]) -> float | None:
     # Common coverage.py JSON formats
-    if "percent_covered" in totals and isinstance(totals["percent_covered"], (int, float)):
+    if "percent_covered" in totals and isinstance(
+        totals["percent_covered"], (int, float)
+    ):
         return float(totals["percent_covered"])
     if "percent_covered_display" in totals:
         try:
@@ -36,13 +40,17 @@ def _extract_percent(totals: Dict[str, Any]) -> Optional[float]:
             pass
     # Compute if possible
     covered = totals.get("covered_lines") or totals.get("covered")
-    num = totals.get("num_statements") or totals.get("num_lines") or totals.get("num_statements")
+    num = (
+        totals.get("num_statements")
+        or totals.get("num_lines")
+        or totals.get("num_statements")
+    )
     if isinstance(covered, (int, float)) and isinstance(num, (int, float)) and num:
         return 100.0 * float(covered) / float(num)
     return None
 
 
-def _read_total_coverage(path: Path) -> Tuple[float, Dict[str, Any]]:
+def _read_total_coverage(path: Path) -> tuple[float, dict[str, Any]]:
     try:
         data = json.loads(path.read_text())
     except Exception as e:
@@ -52,16 +60,26 @@ def _read_total_coverage(path: Path) -> Tuple[float, Dict[str, Any]]:
     totals = data.get("totals") or data.get("summary") or {}
     percent = _extract_percent(totals)
     if percent is None:
-        print(f"error: could not determine total coverage percent from {path}", file=sys.stderr)
+        print(
+            f"error: could not determine total coverage percent from {path}",
+            file=sys.stderr,
+        )
         sys.exit(2)
     return percent, totals
 
 
-def main(argv: Optional[list[str]] = None) -> int:
-    p = argparse.ArgumentParser(description="Compare total coverage between base and PR runs.")
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(
+        description="Compare total coverage between base and PR runs."
+    )
     p.add_argument("--base", required=True, help="Path to base (main) coverage.json")
     p.add_argument("--pr", required=True, help="Path to PR coverage.json")
-    p.add_argument("--allow-drop", type=float, default=1.0, help="Allowed percentage drop before failing (default: 1.0)")
+    p.add_argument(
+        "--allow-drop",
+        type=float,
+        default=1.0,
+        help="Allowed percentage drop before failing (default: 1.0)",
+    )
     args = p.parse_args(argv)
 
     base_path = Path(args.base)
@@ -78,7 +96,16 @@ def main(argv: Optional[list[str]] = None) -> int:
     pr_pct, pr_totals = _read_total_coverage(pr_path)
 
     drop = base_pct - pr_pct
-    print(f"base={base_pct:.2f}% pr={pr_pct:.2f}% drop={drop:.2f}pp allow={args.allow_drop:.2f}pp")
+    print(
+        "base="
+        f"{base_pct:.2f}% "
+        "pr="
+        f"{pr_pct:.2f}% "
+        "drop="
+        f"{drop:.2f}pp "
+        "allow="
+        f"{args.allow_drop:.2f}pp"
+    )
 
     if drop > args.allow_drop:
         print(
