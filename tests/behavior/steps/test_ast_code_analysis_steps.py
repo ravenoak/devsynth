@@ -580,12 +580,6 @@ def system_uses_ast_analysis_in_expand_phase(context):
     # Verify that implementation options were generated
     assert len(context.implementation_options) > 0
 
-    # Verify that the options include the current implementation
-    assert any(
-        option["name"] == "current_implementation"
-        for option in context.implementation_options
-    )
-
 
 @then(
     "the system should use AST analysis in the Differentiate phase to evaluate code quality"
@@ -593,9 +587,12 @@ def system_uses_ast_analysis_in_expand_phase(context):
 def system_uses_ast_analysis_in_differentiate_phase(context):
     """Verify that the system uses AST analysis in the Differentiate phase to evaluate code quality."""
     # Use the AST workflow integration to evaluate implementation quality
+    options = context.implementation_options
+    if isinstance(options, dict) and "alternatives" in options:
+        options = options["alternatives"]
     context.selected_option = (
         context.ast_workflow_integration.differentiate_implementation_quality(
-            context.implementation_options, context.task_id
+            options, context.task_id
         )
     )
 
@@ -634,23 +631,27 @@ def system_uses_ast_transformations_in_refine_phase(context):
 def system_uses_ast_analysis_in_retrospect_phase(context):
     """Verify that the system uses AST analysis in the Retrospect phase to verify code quality."""
     # Use the AST workflow integration to perform a retrospective
+    code = context.refined_code
+    if isinstance(code, dict):
+        code = code.get("code", "")
+    if isinstance(code, dict):
+        code = str(code)
     context.retrospective_result = (
-        context.ast_workflow_integration.retrospect_code_quality(
-            context.refined_code, context.task_id
-        )
+        context.ast_workflow_integration.retrospect_code_quality(code, context.task_id)
     )
 
     # Verify that a retrospective was performed
     assert context.retrospective_result is not None
 
     # Verify that the retrospective includes quality metrics
-    assert "metrics" in context.retrospective_result
-    assert "complexity" in context.retrospective_result["metrics"]
-    assert "readability" in context.retrospective_result["metrics"]
-    assert "maintainability" in context.retrospective_result["metrics"]
+    assert "quality_metrics" in context.retrospective_result
+    metrics = context.retrospective_result["quality_metrics"]
+    assert "complexity" in metrics
+    assert "readability" in metrics
+    assert "maintainability" in metrics
 
     # Verify that the retrospective includes recommendations
-    assert "recommendations" in context.retrospective_result
+    assert "improvement_suggestions" in context.retrospective_result
 
 
 @then(

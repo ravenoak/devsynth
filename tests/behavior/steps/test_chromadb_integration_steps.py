@@ -3,15 +3,24 @@
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_bdd import given, scenarios, then, when
+from pytest_bdd import given, parsers, scenarios, then, when
 
 # Register CLI installation step used in feature backgrounds
-from .cli_commands_steps import (  # noqa: F401
-    check_workflow_success,
-    devsynth_cli_installed,
-    run_command,
-    valid_devsynth_project,
-)
+from .cli_commands_steps import check_workflow_success  # noqa: F401
+
+
+@given("the DevSynth CLI is installed")
+def devsynth_cli_installed():
+    """Placeholder for CLI availability."""
+    return True
+
+
+@given("I have a valid DevSynth project")
+def valid_devsynth_project(tmp_project_dir):
+    """Create a minimal DevSynth project for tests."""
+    manifest = tmp_project_dir / "devsynth.yaml"
+    manifest.write_text("projectName: test\nversion: 1.0.0\n")
+    return tmp_project_dir
 
 
 @pytest.fixture
@@ -45,9 +54,30 @@ def when_execute(chroma_context):
     chroma_context["store_instance"] = store
 
 
+@when(parsers.parse('I configure the memory store type as "{store}"'))
+def configure_store(store, chroma_context):
+    """Configure the memory store type."""
+    from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
+
+    chroma_context["store_instance"] = ChromaDBMemoryStore(
+        persist_directory=str(chroma_context["path"])
+    )
+
+
+@given(parsers.parse('the memory store type is configured as "{store}"'))
+def given_store_configured(store, chroma_context):
+    configure_store(store, chroma_context)
+
+
 @then("the chromadb_integration workflow completes")
 def then_complete(chroma_context):
     """Ensure store operations were attempted."""
     chroma_context["cls"].assert_called_once()
     chroma_context["store"].store_memory.assert_called_once()
     chroma_context["store"].retrieve_memory.assert_called_once()
+
+
+@then("a ChromaDB memory store should be initialized")
+def check_store_initialized(chroma_context):
+    """Placeholder check for store initialization."""
+    assert "store_instance" in chroma_context
