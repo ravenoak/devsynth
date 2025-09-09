@@ -21,3 +21,6 @@
 2025-09-13:
 - `poetry run devsynth run-tests --target unit-tests --speed=medium` reported 66 failures but no pytest-xdist assertion errors; `--speed=slow` found no tests.
 - Marked task 1.5 complete.
+2025-09-14:
+- Attempted medium suite after stubbing missing BDD steps; residual failures persist (ChromaDB integration, AST workflow).
+- `scripts/verify_test_markers.py` run on changed files; no marker issues detected.

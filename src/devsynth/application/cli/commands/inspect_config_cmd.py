@@ -5,15 +5,16 @@ This command was previously called ``analyze-manifest``.
 """
 
 import os
-import yaml
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+import yaml
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
-
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -45,7 +46,7 @@ def inspect_config_cmd(
 
     try:
         # Show a welcome message for the inspect-config command
-        bridge.print(
+        console.print(
             Panel(
                 "[bold blue]DevSynth Configuration Analysis[/bold blue]\n\n"
                 "This command will analyze the project configuration file (devsynth.yaml) and the project structure, "
@@ -127,7 +128,7 @@ def inspect_config_cmd(
                     dir_type, ", ".join(paths) if paths else "None"
                 )
 
-            bridge.print(directories_table)
+            console.print(directories_table)
 
         # Display differences
         if differences:
@@ -140,7 +141,7 @@ def inspect_config_cmd(
             for diff in differences:
                 differences_table.add_row(diff["type"], diff["path"], diff["status"])
 
-            bridge.print(differences_table)
+            console.print(differences_table)
 
             # Update configuration if requested
             if update:
