@@ -9,8 +9,9 @@ Executive summary
 - Current state (evidence):
   - Test collection succeeds across a large suite (unit/integration/behavior/property).
   - Fast smoke/unit/integration/behavior profiles run successfully via the CLI.
-  - Speed-marker discipline validated (0 violations).
-  - Property tests (opt-in) reveal 2 failures; must be fixed before release to claim full readiness.
+- Speed-marker discipline validated (0 violations).
+- Property marker verification flags missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py (2 property_violations).
+- Property tests (opt-in) reveal 2 failures; must be fixed before release to claim full readiness.
   - Diagnostics indicate environment/config gaps for non-test environments (doctor.txt) used by the app; tests succeed due to defaults and gating, but this requires documentation and guardrails.
   - Coverage report artifact (htmlcov) shows 20% from a prior run; targeted property-only run showed 8% and triggered coverage threshold failure. The global pytest.ini threshold is 90%, so any authoritative release run must aggregate full-suite coverage.
 
@@ -20,7 +21,7 @@ Commands executed (audit trail)
 - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1 → Success.
 - poetry run devsynth run-tests --target behavior-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
 - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
-- poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → 0 issues, 0 violations.
+- poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → property marker advisories (2 property_violations) in tests/property/test_reasoning_loop_properties.py.
 - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → 2 failing tests; coverage fail-under triggered (8% on this narrow subset).
 - Environment: Python 3.12.x (pyproject constraint), Poetry 2.1.4; coverage artifacts present under htmlcov/ and coverage.json.
 
@@ -70,6 +71,7 @@ Concrete remediation tasks (actionable specifics)
      - Alternative: Extend the Dummy test double to implement _improve_clarity with a no-op or minimal semantics in tests/helpers/dummies.py (or the appropriate test utility module), ensuring interface compatibility.
   - Re-run: DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q 2>&1 | tee test_reports/property_tests.log
   - Success criteria: 0 failures; exactly one speed marker per function.
+  3) Tag tests/property/test_reasoning_loop_properties.py::check with @pytest.mark.property and a single speed marker; rerun verify_test_markers to confirm 0 property_violations (Issue: issues/property-marker-advisories-in-reasoning-loop-tests.md).
 - run_tests_cmd coverage uplift (src/devsynth/application/cli/commands/run_tests_cmd.py): add unit tests to cover these branches/behaviors with clear test names:
   - test_smoke_mode_sets_pytest_autoload_off
   - test_no_parallel_maps_to_n0
@@ -258,3 +260,5 @@ Notes and next actions
 - Immediate: Fix the two property test failures; add targeted tests for run_tests_cmd branches; re-generate coverage report and iterate on hotspots below 80% coverage.
 - Short-term: Align docs with current CLI behaviors and ensure issues/ action items are traced to tests.
 - Post-release: Introduce low-throughput GH Actions pipeline as specified and expand nightly coverage runs.
+- verify_test_markers reports missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py; track under issues/property-marker-advisories-in-reasoning-loop-tests.md and resolve before release.
+- scripts/codex_setup.sh exits early due to version mismatch (project version 0.1.0a1 vs expected 0.1.0-alpha.1); reconcile versioning or adjust the setup script.
