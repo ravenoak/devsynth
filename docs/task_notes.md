@@ -118,3 +118,10 @@ Date: 2025-09-09T00:57Z
 Date: 2025-09-09T02:31Z
 - Ran scripts/install_dev.sh; go-task 3.44.1 installed under \$HOME/.local/bin.
 - Confirmed `task --version` outputs 3.44.1 in a new shell.
+Date: 2025-09-09T03:17Z
+- Verified Python 3.12.10 and poetry env path /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Re-ran scripts/install_dev.sh; task --version 3.44.1.
+- verify_test_markers reports property advisories for tests/property/test_reasoning_loop_properties.py::check; issue property-marker-advisories-in-reasoning-loop-tests.md opened.
+- Updated docs/plan.md and docs/tasks.md (1.6, 10.1 marked complete; property-marker tasks remain open).
+- Confirmed .github workflows are workflow_dispatch-only.
+- Next: address property markers (tasks 2.3/2.6), coverage threshold (6.3), and acceptance criteria tasks (13.*).

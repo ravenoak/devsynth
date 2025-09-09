@@ -16,7 +16,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 1.5.3 [x] `poetry run pip freeze | tee diagnostics/pip_freeze.txt`
 1.5.4 [x] `poetry run devsynth doctor | tee diagnostics/doctor_run.txt`
 1.5.5 [x] `date -u '+%Y-%m-%dT%H:%M:%SZ' | tee diagnostics/run_timestamp_utc.txt`
-1.6 [ ] Investigate `poetry install --with dev --all-extras` hanging on `nvidia/__init__.py` (Issue: poetry-install-nvidia-loop.md).
+1.6 [x] Investigate `poetry install --with dev --all-extras` hanging on `nvidia/__init__.py` (Issue: poetry-install-nvidia-loop.md).
 1.7 [x] Resolve scripts/codex_setup.sh version mismatch (project 0.1.0a1 vs expected 0.1.0-alpha.1).
 
 2. Property Tests Remediation (Phase 1)
@@ -88,7 +88,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 9.4 [x] Add guidance to always aggregate coverage for readiness claims, avoiding narrow subset runs.
 
 10. Release Preparation and CI/CD Strategy (Phase 6)
-10.1 [ ] Keep GitHub Actions disabled until 0.1.0a1 is tagged.
+10.1 [x] Keep GitHub Actions disabled until 0.1.0a1 is tagged.
 10.2 [x] After release, enable low-throughput workflows with concurrency control:
 10.2.1 [x] Add smoke job (fast, --no-parallel, PYTEST_DISABLE_PLUGIN_AUTOLOAD=1).
 10.2.2 [x] Add unit+integration job (fast+medium) without xdist.
