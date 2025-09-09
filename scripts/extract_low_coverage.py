@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Extract <90% coverage modules under src/devsynth from coverage.json and append a prioritized list to docs/task_notes.md with tentative owners.
+Extract <90% coverage modules under src/devsynth from coverage.json and append
+a prioritized list to docs/task_notes.md with tentative owners.
 
 Usage:
   poetry run python scripts/extract_low_coverage.py \
@@ -9,16 +10,20 @@ Usage:
     --notes docs/task_notes.md
 
 Behavior:
-- Reads pytest coverage JSON (generated with --cov-report=json:test_reports/coverage.json).
+- Reads pytest coverage JSON (generated with
+  --cov-report=json:test_reports/coverage.json).
 - Filters to files under src/devsynth/ with percent_covered < threshold.
 - Sorts ascending by coverage, then by missing lines desc.
-- Appends a section to docs/task_notes.md with a timestamp, including a simple table and owner column.
+- Appends a section to docs/task_notes.md with a timestamp,
+  including a simple table and owner column.
 - Owner mapping heuristic:
-  * Looks for path segments under src/devsynth/<package>/ and assigns owner to that package name.
+  * Looks for path segments under src/devsynth/<package>/ and
+    assigns owner to that package name.
   * If no rule applies, owner = "unassigned".
 
 Idempotence:
-- Adds a new dated section each run. Keep notes under 600 lines as per repo guideline; trims oldest auto-generated sections if exceeding.
+- Adds a new dated section each run. Keep notes under 600 lines as per repo guideline;
+  trims oldest auto-generated sections if exceeding.
 
 References:
 - docs/plan.md Section I snippet
@@ -33,7 +38,7 @@ import sys
 from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 DEFAULT_INPUT = "test_reports/coverage.json"
 DEFAULT_NOTES = "docs/task_notes.md"
@@ -148,7 +153,9 @@ def append_to_notes(notes_path: str, table: str) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
-        description="Extract <threshold coverage from coverage.json and append to task notes"
+        description=(
+            "Extract <threshold coverage from coverage.json " "and append to task notes"
+        ),
     )
     p.add_argument(
         "--input",
@@ -169,7 +176,8 @@ def main(argv: list[str] | None = None) -> int:
     table = format_table(rows)
     append_to_notes(args.notes, table)
     print(
-        f"[extract_low_coverage] Appended {len(rows)} entries under {args.threshold:.1f}% to {args.notes}"
+        f"[extract_low_coverage] Appended {len(rows)} entries under "
+        f"{args.threshold:.1f}% to {args.notes}"
     )
     return 0
 
