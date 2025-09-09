@@ -27,6 +27,7 @@ Resolve pytest-xdist assertion errors is not yet implemented, limiting DevSynth'
 - 2025-08-19: Corrected missing CLI stub in `test_agent_api_steps` and verified MVU subcommands; `poetry run devsynth run-tests --speed=medium` and `--speed=slow` now complete without hanging.
 - 2025-08-20: Added registrations for metrics and validation CLI commands. `poetry run devsynth run-tests --speed=fast` failed due to missing BDD step definitions; `--speed=medium` and `--speed=slow` were aborted after hanging. No pytest-xdist assertion errors observed.
 - 2025-09-09: Fast tests pass (162 passed, 27 skipped); `scripts/verify_test_markers.py` reports no test files, and medium/slow test suites remain unverified.
+- 2025-09-10: `poetry run devsynth run-tests --target unit-tests --speed=medium` completed with 66 failures, 45 passed, 54 skipped; `--speed=slow` reported no tests. No pytest-xdist assertion errors observed.
 
 ## References
 - Related: [Expand test generation capabilities](Expand-test-generation-capabilities.md)
