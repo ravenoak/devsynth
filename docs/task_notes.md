@@ -115,3 +115,6 @@ Date: 2025-09-09T00:57Z
 - scripts/codex_setup.sh failed: Project version 0.1.0a1 does not match 0.1.0-alpha.1.
 - verify_test_markers flagged 2 property_violations in tests/property/test_reasoning_loop_properties.py; issue file opened.
 - Smoke run and marker checks otherwise green.
+Date: 2025-09-09T02:31Z
+- Ran scripts/install_dev.sh; go-task 3.44.1 installed under \$HOME/.local/bin.
+- Confirmed `task --version` outputs 3.44.1 in a new shell.
