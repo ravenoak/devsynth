@@ -97,14 +97,8 @@ def main(argv: list[str] | None = None) -> int:
 
     drop = base_pct - pr_pct
     print(
-        "base="
-        f"{base_pct:.2f}% "
-        "pr="
-        f"{pr_pct:.2f}% "
-        "drop="
-        f"{drop:.2f}pp "
-        "allow="
-        f"{args.allow_drop:.2f}pp"
+        f"base={base_pct:.2f}% pr={pr_pct:.2f}% "
+        f"drop={drop:.2f}pp allow={args.allow_drop:.2f}pp"
     )
 
     if drop > args.allow_drop:
