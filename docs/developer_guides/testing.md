@@ -1247,6 +1247,8 @@ These tips are referenced by docs/tasks.md §1.3 and are safe for local iteratio
 - GitHub Actions remain disabled until the 0.1.0a1 tag.
 - Maintainers should use the above full-profile commands locally and attach artifacts under diagnostics/.
 - After release, enable low-throughput CI (marker verification, unit fast path, lint/type/security gates) and schedule nightlies for full profile.
+- Run `poetry run devsynth doctor` before test runs to surface environment warnings. Missing optional backends are non-blocking unless explicitly enabled via `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true` and should be documented.
+- Aggregate coverage by invoking `poetry run devsynth run-tests --speed=fast --speed=medium --speed=slow --report` or by combining segmented runs with `poetry run coverage combine` prior to enforcing thresholds.
 
 Coverage gating is relaxed by default to keep fast/local runs green. Maintainers can enable strict coverage in rehearsal or release readiness flows via environment variables:
 - export DEVSYNTH_STRICT_COVERAGE=1
