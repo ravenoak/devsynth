@@ -236,11 +236,17 @@ def test_get_provider_succeeds():
     ReqID: N/A"""
     # Ensure offline guard does not force safe defaults during this test
     with patch.dict(os.environ, {"DEVSYNTH_OFFLINE": "false"}, clear=False):
-        with patch.object(provider_system.ProviderFactory, "create_provider") as mock_create:
+        with patch.object(
+            provider_system.ProviderFactory, "create_provider"
+        ) as mock_create:
             mock_create.return_value = MagicMock(spec=OpenAIProvider)
-            provider = provider_system.get_provider(provider_type="openai", fallback=True)
+            provider = provider_system.get_provider(
+                provider_type="openai", fallback=True
+            )
             assert provider.__class__.__name__ == "FallbackProvider"
-            provider = provider_system.get_provider(provider_type="openai", fallback=False)
+            provider = provider_system.get_provider(
+                provider_type="openai", fallback=False
+            )
             assert not isinstance(provider, FallbackProvider)
             mock_create.assert_called_with("openai")
 
@@ -274,8 +280,13 @@ def test_provider_initialization_succeeds(provider_class, config):
 
     ReqID: N/A"""
     if provider_class is LMStudioProvider:
-        with patch("devsynth.adapters.provider_system.TLSConfig.as_requests_kwargs", return_value={}), \
-             patch("devsynth.adapters.provider_system.requests.get") as mock_get:
+        with (
+            patch(
+                "devsynth.adapters.provider_system.TLSConfig.as_requests_kwargs",
+                return_value={},
+            ),
+            patch("devsynth.adapters.provider_system.requests.get") as mock_get,
+        ):
             mock_get.return_value.status_code = 200
             provider = provider_class(**config)
     else:
