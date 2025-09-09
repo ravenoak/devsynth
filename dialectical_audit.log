@@ -6,9 +6,7 @@
     "Feature 'Critical recommendations follow-up' has tests but is not documented.",
     "Feature 'Dialectical audit gating' has tests but is not documented.",
     "Feature 'Enhance retry mechanism' has tests but is not documented.",
-    "Feature 'Exceptions Framework' has tests but is not documented.",
     "Feature 'Expand test generation capabilities' has tests but is not documented.",
-    "Feature 'Feature Markers' has tests but is not documented.",
     "Feature 'Finalize WSDE/EDRR workflow logic' has tests but is not documented.",
     "Feature 'Finalize dialectical reasoning' has tests but is not documented.",
     "Feature 'Improve deployment automation' has tests but is not documented.",
@@ -21,8 +19,6 @@
     "Feature 'User Authentication' has tests but is not documented.",
     "Feature 'Version bump script' has tests but is not documented.",
     "Feature 'Complete memory system integration' is referenced in docs or tests but not in code.",
-    "Feature 'Exceptions Framework' is referenced in docs or tests but not in code.",
-    "Feature 'Feature Markers' is referenced in docs or tests but not in code.",
     "Feature 'Finalize dialectical reasoning' is referenced in docs or tests but not in code.",
     "Feature 'Logging Setup Utilities' is referenced in docs or tests but not in code.",
     "Feature 'Performance and scalability testing' is referenced in docs or tests but not in code."

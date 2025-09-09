@@ -11,6 +11,9 @@ from typing import Any, Dict, List, Optional
 # Import will be done after DevSynthLogger is defined to avoid circular imports
 # Logger will be initialized at the end of the file
 
+# Public interface of this module
+__all__ = ["DevSynthError", "log_exception"]
+
 
 class DevSynthError(Exception):
     """Base exception class for all DevSynth errors."""
