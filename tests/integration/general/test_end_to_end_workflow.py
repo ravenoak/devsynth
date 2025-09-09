@@ -68,20 +68,20 @@ class TestEndToEndWorkflow:
             requirements_dir.ensure(dir=True)
             requirements_content = """
             # Task Manager API Requirements
-            
+
             ## User Management
             1. The system shall allow users to register with a username and password
             2. The system shall allow users to log in with their credentials
             3. The system shall allow users to log out
             4. The system shall allow users to update their profile information
-            
+
             ## Task Management
             1. The system shall allow users to create new tasks with a title and description
             2. The system shall allow users to view their tasks
             3. The system shall allow users to update their tasks
             4. The system shall allow users to delete their tasks
             5. The system shall allow users to mark tasks as completed
-            
+
             ## API Requirements
             1. The API shall use REST principles
             2. The API shall return responses in JSON format
@@ -177,17 +177,17 @@ class TestEndToEndWorkflow:
             requirements_dir.ensure(dir=True)
             requirements_content = """
             # User Authentication Requirements
-            
+
             ## Registration
             1. The system shall allow users to register with email and password
             2. The system shall validate email format
             3. The system shall enforce password complexity rules
-            
+
             ## Authentication
             1. The system shall allow users to log in with email and password
             2. The system shall provide token-based authentication
             3. The system shall allow users to log out
-            
+
             ## Password Management
             1. The system shall allow users to reset their password
             2. The system shall allow users to change their password
@@ -205,21 +205,21 @@ class TestEndToEndWorkflow:
                     self.email = email
                     self.password = password
                     self.is_authenticated = False
-                
+
                 def register(self):
                     # Implementation for user registration
                     pass
-                
+
                 def login(self):
                     # Implementation for user login
                     self.is_authenticated = True
                     return True
-                
+
                 def logout(self):
                     # Implementation for user logout
                     self.is_authenticated = False
                     return True
-                
+
                 def reset_password(self, new_password):
                     # Implementation for password reset
                     self.password = new_password

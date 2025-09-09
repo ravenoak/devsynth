@@ -48,11 +48,11 @@ class TestRefactorWorkflowManager:
         os.makedirs(requirements_dir, exist_ok=True)
         requirements_content = """
         # Project Requirements
-        
+
         ## Feature 1
         1. Requirement 1
         2. Requirement 2
-        
+
         ## Feature 2
         1. Requirement 3
         2. Requirement 4
@@ -93,11 +93,11 @@ class TestRefactorWorkflowManager:
         os.makedirs(requirements_dir, exist_ok=True)
         requirements_content = """
         # Project Requirements
-        
+
         ## Feature 1
         1. Requirement 1
         2. Requirement 2
-        
+
         ## Feature 2
         1. Requirement 3
         2. Requirement 4
@@ -110,11 +110,11 @@ class TestRefactorWorkflowManager:
         assert workflow == "specifications"
         specifications_content = """
         # Project Specifications
-        
+
         ## Feature 1
         1. Specification 1
         2. Specification 2
-        
+
         ## Feature 2
         1. Specification 3
         2. Specification 4
@@ -130,7 +130,7 @@ class TestRefactorWorkflowManager:
         def test_feature_1():
             # Test implementation
             pass
-        
+
         def test_feature_2():
             # Test implementation
             pass
@@ -146,23 +146,23 @@ class TestRefactorWorkflowManager:
         class Feature1:
             def __init__(self):
                 pass
-            
+
             def method1(self):
                 # Implementation
                 pass
-            
+
             def method2(self):
                 # Implementation
                 pass
-        
+
         class Feature2:
             def __init__(self):
                 pass
-            
+
             def method1(self):
                 # Implementation
                 pass
-            
+
             def method2(self):
                 # Implementation
                 pass
@@ -195,11 +195,11 @@ class TestRefactorWorkflowManager:
         os.makedirs(requirements_dir, exist_ok=True)
         requirements_content = """
         # Project Requirements
-        
+
         ## Feature 1
         1. Requirement 1
         2. Requirement 2
-        
+
         ## Feature 2
         1. Requirement 3
         2. Requirement 4
@@ -228,11 +228,11 @@ class TestRefactorWorkflowManager:
         os.makedirs(requirements_dir, exist_ok=True)
         requirements_content = """
         # Project Requirements
-        
+
         ## Feature 1
         1. Requirement 1
         2. Requirement 2
-        
+
         ## Feature 2
         1. Requirement 3
         2. Requirement 4
@@ -266,11 +266,11 @@ class TestRefactorWorkflowManager:
         os.makedirs(requirements_dir, exist_ok=True)
         requirements_content = """
         # Project Requirements
-        
+
         ## Feature 1
         1. Requirement 1
         2. Requirement 2
-        
+
         ## Feature 2
         1. Requirement 3
         2. Requirement 4
