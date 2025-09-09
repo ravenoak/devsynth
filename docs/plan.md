@@ -7,15 +7,15 @@ Prepare DevSynth for the v0.1.0-alpha.1 release.
 - Python 3.12 environment with Poetry-managed virtualenv.
 - `go-task` installed; `task --version` returns 3.44.1.
 - Fast tests succeed (162 passed, 27 skipped).
-- `scripts/verify_test_markers.py` now scans changed files without marker issues.
+- `scripts/verify_test_markers.py` reports zero test files; marker enforcement pending.
 - Medium test run surfaced numerous missing step definitions and a failing AST workflow test; suite still red.
 - Specifications now contain "What proofs confirm the solution?" sections linked to BDD features.
 - Release readiness remains blocked by failing medium tests and unverified slow tests.
 
 ## Next Steps
-1. Follow the release checklist below to finalize environment setup.
-2. Stub or implement missing BDD steps so medium suite completes.
-3. After medium tests pass, execute slow suite and address remaining failures.
+1. Investigate why `scripts/verify_test_markers.py` reports no test files and restore marker validation.
+2. Resolve missing BDD steps and pytest-xdist errors so the medium suite completes, then re-run the slow suite.
+3. After test suites and marker checks pass, follow the release checklist to finalize the release.
 
 ## Release Checklist
 Refer to the [0.1.0-alpha.1 release guide](release/0.1.0-alpha.1.md) for detailed commands:

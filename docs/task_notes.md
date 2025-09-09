@@ -1,26 +1,4 @@
-2025-09-08:
-- Environment lacked `task`; ran scripts/install_dev.sh to install v3.44.1.
-- Executed `poetry install --with dev --extras "tests retrieval chromadb api"` to fix missing `devsynth` module.
-- Restored missing sentinel test `tests/test_speed_dummy.py` to satisfy organization checks.
-- Fast tests now pass; verify scripts succeed.
-- Outstanding: validate medium/slow tests and resolve pytest-xdist errors.
-2025-09-09:
-- `task` command missing again; reinstalled via scripts/install_dev.sh (v3.44.1).
-- Fast tests pass (162 passed, 27 skipped); `scripts/verify_test_markers.py` reports zero test files.
-- Release readiness still blocked by unresolved pytest-xdist errors and unverified medium/slow tests.
-2025-09-10:
-- Reinstalled go-task via scripts/install_dev.sh; confirmed `task --version` outputs v3.44.1.
-- Dependency installation was interrupted, so additional verification steps remain.
-
-2025-09-11:
-- Re-executed `poetry install --with dev --extras "tests retrieval chromadb api"` and confirmed CLI with `poetry run devsynth --help`.
-- Fast tests pass (162 passed, 27 skipped); verification scripts succeeded.
-
-2025-09-12:
-- Added release checklist to plan and marked task 1.4 complete.
-2025-09-13:
-- `poetry run devsynth run-tests --target unit-tests --speed=medium` reported 66 failures but no pytest-xdist assertion errors; `--speed=slow` found no tests.
-- Marked task 1.5 complete.
-2025-09-14:
-- Attempted medium suite after stubbing missing BDD steps; residual failures persist (ChromaDB integration, AST workflow).
-- `scripts/verify_test_markers.py` run on changed files; no marker issues detected.
+2025-09-15:
+- Reopened task 1.5 to confirm medium and slow test suites run without pytest-xdist errors.
+- Reopened task 6.4 after `scripts/verify_test_markers.py` reported zero test files.
+- Updated release plan and tasks to track these outstanding issues.
