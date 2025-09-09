@@ -25,14 +25,20 @@ jobs:
             exit 1
           fi
           echo "Using virtualenv at $venv_path"
+      - name: Cache Task
+        id: cache-task
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/task
+          key: ${{ runner.os }}-task-${{ hashFiles('scripts/install_dev.sh') }}
       - name: Install Task
+        if: steps.cache-task.outputs.cache-hit != 'true'
         run: |
-          if ! command -v task >/dev/null 2>&1; then
-            TASK_BIN_DIR="$HOME/.local/bin"
-            mkdir -p "$TASK_BIN_DIR"
-            curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR"
-            echo "$TASK_BIN_DIR" >> $GITHUB_PATH
-          fi
+          TASK_BIN_DIR="$HOME/.local/bin"
+          mkdir -p "$TASK_BIN_DIR"
+          curl -sSL https://taskfile.dev/install.sh | bash -s -- -b "$TASK_BIN_DIR"
+      - name: Add Task to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Verify tooling
         run: |
           poetry env info --path
