@@ -1,13 +1,15 @@
 """Property-based tests for the reasoning loop convergence. ReqID: DRL-001"""
 
-import pytest
-
-pytest.importorskip("hypothesis")
 import importlib
 from unittest.mock import MagicMock
 
-from hypothesis import given
-from hypothesis import strategies as st
+import pytest
+
+try:
+    from hypothesis import given
+    from hypothesis import strategies as st
+except ImportError:  # pragma: no cover
+    pytest.skip("hypothesis not available", allow_module_level=True)
 
 reasoning_loop_module = importlib.import_module(
     "devsynth.methodology.edrr.reasoning_loop"
@@ -19,6 +21,8 @@ reasoning_loop_module = importlib.import_module(
 def test_reasoning_loop_stops_on_completion(monkeypatch):
     """Loop halts on the first completed status. ReqID: DRL-001"""
 
+    @pytest.mark.property
+    @pytest.mark.medium
     @given(
         st.lists(st.sampled_from(["in_progress", "completed"]), min_size=1, max_size=5)
     )
@@ -61,6 +65,8 @@ def test_reasoning_loop_stops_on_completion(monkeypatch):
 def test_reasoning_loop_respects_max_iterations(monkeypatch):
     """Loop runs at most max_iterations times. ReqID: DRL-001"""
 
+    @pytest.mark.property
+    @pytest.mark.medium
     @given(st.integers(min_value=1, max_value=5))
     def check(max_iterations):
         def fake_apply(team, task, critic, memory):
