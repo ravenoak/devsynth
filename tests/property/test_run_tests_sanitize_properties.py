@@ -1,10 +1,15 @@
-"""Property-based tests for _sanitize_node_ids behavior. ReqID: FR-09"""
+"""Property-based tests for _sanitize_node_ids behavior.
+
+Issue: issues/Expand-test-generation-capabilities.md ReqID: FR-09
+"""
 
 import pytest
 
-pytest.importorskip("hypothesis")
-from hypothesis import given
-from hypothesis import strategies as st
+try:
+    from hypothesis import given
+    from hypothesis import strategies as st
+except ImportError:  # pragma: no cover
+    pytest.skip("hypothesis not available", allow_module_level=True)
 
 from devsynth.testing.run_tests import _sanitize_node_ids
 
@@ -32,6 +37,10 @@ def _with_optional_line_suffix(s: str) -> str:
 )
 @pytest.mark.medium
 def test_sanitize_strips_trailing_line_when_no_function(ids):
+    """Strip trailing line numbers when no function part is present.
+
+    Issue: issues/Expand-test-generation-capabilities.md ReqID: FR-09
+    """
     # Build inputs: ensure no '::' present in base strings
     raw = [f"tests/unit/{s}" if not s.startswith("tests/") else s for s in ids]
     out = _sanitize_node_ids(raw)

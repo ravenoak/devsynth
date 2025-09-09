@@ -1,5 +1,10 @@
+"""Property-based tests for requirement consensus utilities.
+
+Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+"""
+
 import time
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 from hypothesis import given, settings
@@ -17,7 +22,10 @@ from .strategies import consensus_outcome_strategy, requirement_strategy
 @settings(deadline=300)  # 300ms per example to keep CI stable
 @given(req=requirement_strategy())
 def test_requirement_update_timestamp_is_monotonic(req: Requirement):
-    # Act: perform an update and verify updated_at does not go backwards
+    """Updating a requirement should not regress its timestamp.
+
+    Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+    """
     before = req.updated_at
     req.update(title=req.title + "!")
     after = req.updated_at
@@ -61,6 +69,10 @@ class _DummyTeam(WSDETeam):
 @given(thesis_content=st.text(min_size=5, max_size=80))
 @pytest.mark.no_network
 def test_dialectical_reasoning_returns_expected_shape_quickly(thesis_content: str):
+    """dialectical reasoning yields expected keys quickly.
+
+    Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+    """
     team = _DummyTeam()
     task: dict[str, Any] = {
         "solution": {"content": thesis_content, "code": "x=1\nprint(x)"}
@@ -96,7 +108,10 @@ def test_dialectical_reasoning_returns_expected_shape_quickly(thesis_content: st
 @settings(max_examples=5, deadline=300)
 @given(outcome=consensus_outcome_strategy())
 def test_generated_consensus_outcome_has_expected_keys(outcome: dict[str, Any]):
-    # Verify required keys exist and have expected types
+    """Generated consensus outcomes provide required keys.
+
+    Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+    """
     for key in (
         "id",
         "task_id",

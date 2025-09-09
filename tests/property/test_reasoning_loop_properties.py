@@ -1,4 +1,7 @@
-"""Property-based tests for the reasoning loop convergence. ReqID: DRL-001"""
+"""Property-based tests for the reasoning loop convergence.
+
+Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+"""
 
 import importlib
 from unittest.mock import MagicMock
@@ -19,10 +22,11 @@ reasoning_loop_module = importlib.import_module(
 @pytest.mark.property
 @pytest.mark.medium
 def test_reasoning_loop_stops_on_completion(monkeypatch):
-    """Loop halts on the first completed status. ReqID: DRL-001"""
+    """Loop halts on the first completed status.
 
-    @pytest.mark.property
-    @pytest.mark.medium
+    Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+    """
+
     @given(
         st.lists(st.sampled_from(["in_progress", "completed"]), min_size=1, max_size=5)
     )
@@ -63,10 +67,11 @@ def test_reasoning_loop_stops_on_completion(monkeypatch):
 @pytest.mark.property
 @pytest.mark.medium
 def test_reasoning_loop_respects_max_iterations(monkeypatch):
-    """Loop runs at most max_iterations times. ReqID: DRL-001"""
+    """Loop runs at most max_iterations times.
 
-    @pytest.mark.property
-    @pytest.mark.medium
+    Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+    """
+
     @given(st.integers(min_value=1, max_value=5))
     def check(max_iterations):
         def fake_apply(team, task, critic, memory):
