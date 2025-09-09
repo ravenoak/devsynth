@@ -15,3 +15,5 @@ def test_add_raises_type_error_on_non_numeric():
     """ReqID: DEMO-ADD-2 | Non-numeric inputs raise a TypeError."""
     with pytest.raises(TypeError):
         add("1", 2)
+    with pytest.raises(TypeError):
+        add(1, "2")

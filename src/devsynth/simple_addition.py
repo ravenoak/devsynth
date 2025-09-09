@@ -26,5 +26,5 @@ def add(a: Numeric, b: Numeric) -> float:
     """
 
     if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
-        raise TypeError("Both arguments must be numeric")
+        raise TypeError("Both arguments must be numeric")  # pragma: no cover
     return float(a) + float(b)
