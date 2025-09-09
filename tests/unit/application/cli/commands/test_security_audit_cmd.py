@@ -1,11 +1,12 @@
-import os
 import builtins
+import os
+
 import pytest
 
 from devsynth.application.cli.commands.security_audit_cmd import (
-    security_audit_cmd,
     check_required_env,
     run_secrets_scan,
+    security_audit_cmd,
 )
 
 
@@ -26,6 +27,7 @@ def test_security_audit_cmd_happy_path_with_skips(monkeypatch):
     class DummyAudit:
         def run_safety(self):
             called["safety"] = True
+
         def run_bandit(self):
             called["bandit"] = True
 
@@ -33,10 +35,13 @@ def test_security_audit_cmd_happy_path_with_skips(monkeypatch):
 
     # Patch module's audit reference
     import devsynth.application.cli.commands.security_audit_cmd as mod
+
     monkeypatch.setattr(mod, "audit", DummyAudit())
 
     # Skip all heavy checks so function mainly exercises flow
-    security_audit_cmd(skip_static=True, skip_safety=True, skip_secrets=True, skip_owasp=True)
+    security_audit_cmd(
+        skip_static=True, skip_safety=True, skip_secrets=True, skip_owasp=True
+    )
 
     # Since we skipped, these should still be False
     assert called["safety"] is False
@@ -52,14 +57,18 @@ def test_security_audit_runs_when_not_skipped(monkeypatch):
     class DummyAudit:
         def run_safety(self):
             flags["safety"] = True
+
         def run_bandit(self):
             flags["bandit"] = True
 
     import devsynth.application.cli.commands.security_audit_cmd as mod
+
     monkeypatch.setattr(mod, "audit", DummyAudit())
 
     # Also skip secrets/owasp to avoid file and subprocess scanning
-    security_audit_cmd(skip_static=False, skip_safety=False, skip_secrets=True, skip_owasp=True)
+    security_audit_cmd(
+        skip_static=False, skip_safety=False, skip_secrets=True, skip_owasp=True
+    )
 
     assert flags == {"safety": True, "bandit": True}
 

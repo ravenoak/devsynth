@@ -38,12 +38,16 @@ def test_store_retrieve_delete_roundtrip(monkeypatch):
                 del storage[Key]
 
     # Monkeypatch module-level boto3 and ClientError so constructor works
-    monkeypatch.setattr(s3_mod, "boto3", SimpleNamespace(client=lambda *_: FakeClient()))
+    monkeypatch.setattr(
+        s3_mod, "boto3", SimpleNamespace(client=lambda *_: FakeClient())
+    )
     monkeypatch.setattr(s3_mod, "ClientError", Exception)
 
     adapter = S3MemoryAdapter(bucket="test-bucket")
 
-    item = MemoryItem(id="", content="hello", memory_type=MemoryType.WORKING, metadata={})
+    item = MemoryItem(
+        id="", content="hello", memory_type=MemoryType.WORKING, metadata={}
+    )
     item_id = adapter.store(item)
     assert item_id
 
@@ -84,7 +88,9 @@ def test_search_filters_by_type_and_metadata(monkeypatch):
         def list_objects_v2(self, Bucket):  # noqa: N803
             return {"Contents": [{"Key": k} for k in storage.keys()]}
 
-    monkeypatch.setattr(s3_mod, "boto3", SimpleNamespace(client=lambda *_: FakeClient()))
+    monkeypatch.setattr(
+        s3_mod, "boto3", SimpleNamespace(client=lambda *_: FakeClient())
+    )
     monkeypatch.setattr(s3_mod, "ClientError", Exception)
 
     adapter = S3MemoryAdapter(bucket="b")
@@ -100,8 +106,12 @@ def test_search_filters_by_type_and_metadata(monkeypatch):
             }
         )
 
-    a = MemoryItem(id="a", content="A", memory_type=MemoryType.WORKING, metadata={"tag": "x"})
-    b = MemoryItem(id="b", content="B", memory_type=MemoryType.LONG_TERM, metadata={"tag": "y"})
+    a = MemoryItem(
+        id="a", content="A", memory_type=MemoryType.WORKING, metadata={"tag": "x"}
+    )
+    b = MemoryItem(
+        id="b", content="B", memory_type=MemoryType.LONG_TERM, metadata={"tag": "y"}
+    )
     storage["a"] = dump(a)
     storage["b"] = dump(b)
 
@@ -122,9 +132,16 @@ def test_transactions_are_unsupported(monkeypatch):
     adapter = S3MemoryAdapter(bucket="b")
 
     with pytest.raises(MemoryTransactionError):
-        adapter.store(MemoryItem(id="1", content="c", memory_type=MemoryType.WORKING), transaction_id="tx")
+        adapter.store(
+            MemoryItem(id="1", content="c", memory_type=MemoryType.WORKING),
+            transaction_id="tx",
+        )
 
-    for fn in (adapter.begin_transaction, lambda: adapter.commit_transaction("tx"), lambda: adapter.rollback_transaction("tx")):
+    for fn in (
+        adapter.begin_transaction,
+        lambda: adapter.commit_transaction("tx"),
+        lambda: adapter.rollback_transaction("tx"),
+    ):
         with pytest.raises(MemoryTransactionError):
             fn()
     assert adapter.is_transaction_active("tx") is False

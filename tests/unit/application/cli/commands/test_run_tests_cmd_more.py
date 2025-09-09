@@ -119,7 +119,9 @@ def test_observability_and_error_path(monkeypatch: pytest.MonkeyPatch):
 
     calls: list[tuple[str, dict[str, str]]] = []
 
-    def fake_increment_counter(name: str, labels: dict[str, str], description: str | None = None) -> None:  # noqa: ARG001
+    def fake_increment_counter(
+        name: str, labels: dict[str, str], description: str | None = None
+    ) -> None:  # noqa: ARG001
         calls.append((name, labels))
 
     monkeypatch.setattr(rtc, "increment_counter", fake_increment_counter)

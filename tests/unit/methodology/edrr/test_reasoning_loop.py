@@ -1,6 +1,6 @@
 import pytest
 
-from devsynth.methodology.edrr.reasoning_loop import reasoning_loop, Phase
+from devsynth.methodology.edrr.reasoning_loop import Phase, reasoning_loop
 
 
 @pytest.mark.fast
