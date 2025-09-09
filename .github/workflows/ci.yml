@@ -2,7 +2,12 @@ name: CI
 
 on:
   workflow_dispatch:
-  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+  # TODO: Re-enable push, pull_request, and schedule triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1 and issues/re-enable-github-actions-triggers-post-v0-1-0a1.md)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -11,19 +16,17 @@ env:
   POETRY_VIRTUALENVS_CREATE: true
   POETRY_VIRTUALENVS_IN_PROJECT: true
   PYTHONUNBUFFERED: 1
-  # Default resource flags to prevent external calls in CI per docs/tasks.md
   DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: "false"
   DEVSYNTH_RESOURCE_FAISS_AVAILABLE: "false"
   DEVSYNTH_RESOURCE_KUZU_AVAILABLE: "false"
   DEVSYNTH_RESOURCE_LMDB_AVAILABLE: "false"
   DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: "false"
   DEVSYNTH_PROPERTY_TESTING: "false"
-  # Ensure no file logging in tests
   DEVSYNTH_NO_FILE_LOGGING: "1"
 
 jobs:
-  lint_fast:
-    name: Lint and Fast Tests
+  typing_lint:
+    name: Typing and Lint
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -40,52 +43,98 @@ jobs:
         with:
           poetry-version: '1.8.3'
 
-      - name: Cache Poetry
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pypoetry
+            ~/.cache/pip
             ./.venv
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+            ./.pytest_cache
+          key: ${{ runner.os }}-py-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-
+            ${{ runner.os }}-py-
 
-      - name: Install dependencies (minimal for lint + tests)
-        run: |
-          poetry install --with dev --extras minimal
+      - name: Install dependencies (linting and typing)
+        run: poetry install --with dev --extras minimal
 
       - name: Show tool versions
         run: |
           poetry run python --version
           poetry --version
 
-      - name: Run code style checks (Black)
+      - name: Run linters and type checks
         run: |
           poetry run black --check .
-
-      - name: Run import sorting checks (isort)
-        run: |
           poetry run isort --check-only .
-
-      - name: Run flake8
-        run: |
           poetry run flake8 src/ tests/
+          poetry run mypy src/ tests/
 
-      - name: Run fast tests (no parallel, fail fast)
+  smoke:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: typing_lint
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+            ./.venv
+            ./.pytest_cache
+          key: ${{ runner.os }}-py-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-py-
+
+      - name: Install dependencies (smoke)
+        run: poetry install --with dev --extras minimal
+
+      - name: Show tool versions
         run: |
-          poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1 --report
+          poetry run python --version
+          poetry --version
 
-      - name: Upload fast test report
-        if: always()
+      - name: Run smoke tests
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: |
+          poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 --report
+
+      - name: Collect diagnostics
+        if: failure()
+        run: |
+          poetry run devsynth doctor | tee diagnostics/doctor_run.txt
+
+      - name: Upload artifacts
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: fast-test-report
-          path: test_reports/
+          name: smoke-artifacts
+          path: |
+            test_reports/
+            htmlcov/
+            coverage.json
+            diagnostics/doctor_run.txt
 
-  full_suite:
-    name: Full Test Suite (All markers, resources off)
+  unit_integration:
+    name: Unit and Integration Tests
     runs-on: ubuntu-latest
-    needs: lint_fast
+    needs: smoke
     timeout-minutes: 60
     steps:
       - name: Checkout
@@ -101,36 +150,42 @@ jobs:
         with:
           poetry-version: '1.8.3'
 
-      - name: Cache Poetry
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pypoetry
+            ~/.cache/pip
             ./.venv
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+            ./.pytest_cache
+          key: ${{ runner.os }}-py-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-
+            ${{ runner.os }}-py-
 
-      - name: Install dependencies (tests baseline extras)
-        run: |
-          poetry install --with dev --extras tests retrieval chromadb api
+      - name: Install dependencies (tests)
+        run: poetry install --with dev --extras tests retrieval chromadb api
 
       - name: Show tool versions
         run: |
           poetry run python --version
           poetry --version
 
-      - name: Run full tests (all markers, HTML report)
-        env:
-          # Explicitly disable network for tests that rely on it by default
-          # If tests provide a dedicated fixture to disable network, they should still pass.
-          DEVSYNTH_DISABLE_NETWORK: "true"
+      - name: Run unit and integration tests
         run: |
-          poetry run devsynth run-tests --speed=all --no-parallel --maxfail=1 --report
+          poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report
 
-      - name: Upload full test report
-        if: always()
+      - name: Collect diagnostics
+        if: failure()
+        run: |
+          poetry run devsynth doctor | tee diagnostics/doctor_run.txt
+
+      - name: Upload artifacts
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: full-test-report
-          path: test_reports/
+          name: unit-integration-artifacts
+          path: |
+            test_reports/
+            htmlcov/
+            coverage.json
+            diagnostics/doctor_run.txt

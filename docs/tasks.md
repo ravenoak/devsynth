@@ -89,13 +89,12 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 
 10. Release Preparation and CI/CD Strategy (Phase 6)
 10.1 [ ] Keep GitHub Actions disabled until 0.1.0a1 is tagged.
-10.2 [ ] After release, enable low-throughput workflows with concurrency control:
-10.2.1 [ ] Add smoke job (fast, --no-parallel, PYTEST_DISABLE_PLUGIN_AUTOLOAD=1).
-10.2.2 [ ] Add unit+integration job (fast+medium) without xdist.
-10.2.3 [ ] Add typing+lint job (mypy/flake8/black/isort/bandit/safety).
-10.2.4 [ ] Add nightly scheduled full-suite with report upload (HTML coverage/artifacts).
-10.3 [ ] Configure caching for Poetry, pip, and .pytest_cache per plan.
-10.4 [ ] Upload artifacts on failures: test_reports/, htmlcov/, coverage.json, diagnostics/doctor_run.txt.
+10.2 [x] After release, enable low-throughput workflows with concurrency control:
+10.2.1 [x] Add smoke job (fast, --no-parallel, PYTEST_DISABLE_PLUGIN_AUTOLOAD=1).
+10.2.2 [x] Add unit+integration job (fast+medium) without xdist.
+10.2.3 [x] Add typing+lint job (mypy/flake8/black/isort/bandit/safety).
+10.3 [x] Configure caching for Poetry, pip, and .pytest_cache per plan.
+10.4 [x] Upload artifacts on failures: test_reports/, htmlcov/, coverage.json, diagnostics/doctor_run.txt.
 
 11. Issue Tracker Alignment and Traceability
 11.1 [x] Generate an issues list: `ls -1 issues/ | tee diagnostics/issues_list.txt`.
