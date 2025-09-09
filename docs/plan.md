@@ -26,6 +26,12 @@ Refer to the [0.1.0-alpha.1 release guide](release/0.1.0-alpha.1.md) for detaile
    poetry env info --path
    task --version
    ```
+   Ensure the Task binary directory persists on your `PATH` for future
+   sessions:
+   ```bash
+   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.profile
+   source ~/.profile
+   ```
 2. **Install dependencies with development and test extras**
    ```bash
    poetry install --with dev --extras tests retrieval chromadb api

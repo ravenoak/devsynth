@@ -9,6 +9,7 @@ set -exo pipefail
 # Ensure pipx is available for installing the CLI. When rerunning offline,
 # skip installation if pipx is already present so the script can proceed
 # without network access.
+PIPX_BIN_DIR="$HOME/.local/bin"
 if ! command -v pipx >/dev/null; then
   if command -v apt-get >/dev/null; then
     for _ in 1 2 3; do
@@ -29,8 +30,13 @@ if ! command -v pipx >/dev/null; then
       echo "[warning] pip install pipx failed" >&2
   fi
 fi
-export PATH="$HOME/.local/bin:$PATH"
+if [[ ":$PATH:" != *":$PIPX_BIN_DIR:"* ]]; then
+  export PATH="$PIPX_BIN_DIR:$PATH"
+fi
 pipx ensurepath
+if [ -w "$HOME/.profile" ] && ! grep -F "$PIPX_BIN_DIR" "$HOME/.profile" >/dev/null 2>&1; then
+  echo "export PATH=\"$PIPX_BIN_DIR:\$PATH\"" >> "$HOME/.profile"
+fi
 
 # Run commands and exit with a clear message on failure
 run_check() {
