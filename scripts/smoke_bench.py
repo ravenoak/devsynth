@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import json
 import time
-from typing import Any, Dict, List, Tuple
 from collections.abc import Callable
+from typing import Any, Dict, List, Tuple
 
 
 def bench(name: str, fn: Callable[[], Any], repeat: int = 50) -> dict[str, Any]:

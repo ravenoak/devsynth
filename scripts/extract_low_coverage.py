@@ -30,9 +30,10 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 DEFAULT_INPUT = "test_reports/coverage.json"
 DEFAULT_NOTES = "docs/task_notes.md"
@@ -41,20 +42,24 @@ MAX_NOTES_LINES = 600
 AUTO_SECTION_MARK = "<!-- auto:low-coverage -->"
 
 
-def load_coverage(path: str) -> Dict[str, Any]:
+def load_coverage(path: str) -> dict[str, Any]:
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"[extract_low_coverage] coverage file not found: {path}", file=sys.stderr)
+        print(
+            f"[extract_low_coverage] coverage file not found: {path}", file=sys.stderr
+        )
         sys.exit(2)
     except json.JSONDecodeError as e:
         print(f"[extract_low_coverage] invalid JSON in {path}: {e}", file=sys.stderr)
         sys.exit(2)
 
 
-def collect_under_threshold(data: Dict[str, Any], threshold: float) -> List[Tuple[str, float, int]]:
-    rows: List[Tuple[str, float, int]] = []
+def collect_under_threshold(
+    data: dict[str, Any], threshold: float
+) -> list[tuple[str, float, int]]:
+    rows: list[tuple[str, float, int]] = []
     for filename, metrics in data.get("files", {}).items():
         norm = filename.replace("\\", "/")
         if not norm.startswith("src/devsynth/"):
@@ -80,7 +85,7 @@ def guess_owner(path: str) -> str:
     return "unassigned"
 
 
-def format_table(rows: Iterable[Tuple[str, float, int]]) -> str:
+def format_table(rows: Iterable[tuple[str, float, int]]) -> str:
     header = "Rank  %Cov   Missing  Owner         File"
     lines = [header, "-" * len(header)]
     for i, (filename, pct, missing) in enumerate(rows, start=1):
@@ -101,7 +106,7 @@ def trim_notes_lines(text: str, max_lines: int) -> str:
         return text
     # Remove oldest auto-generated sections to fit within limit
     # Identify blocks by AUTO_SECTION_MARK lines
-    blocks: List[Tuple[int, int]] = []
+    blocks: list[tuple[int, int]] = []
     start = None
     for idx, line in enumerate(lines):
         if line.strip() == AUTO_SECTION_MARK:
@@ -111,7 +116,7 @@ def trim_notes_lines(text: str, max_lines: int) -> str:
                 blocks.append((start, idx))
                 start = None
     # Remove from earliest blocks until under limit
-    for (s, e) in blocks:
+    for s, e in blocks:
         if len(lines) <= max_lines:
             break
         del lines[s : e + 1]
@@ -141,10 +146,21 @@ def append_to_notes(notes_path: str, table: str) -> None:
     Path(notes_path).write_text(updated, encoding="utf-8")
 
 
-def main(argv: List[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Extract <threshold coverage from coverage.json and append to task notes")
-    p.add_argument("--input", default=DEFAULT_INPUT, help="Path to coverage.json (default: test_reports/coverage.json)")
-    p.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD, help="Coverage threshold percent (default: 90)")
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(
+        description="Extract <threshold coverage from coverage.json and append to task notes"
+    )
+    p.add_argument(
+        "--input",
+        default=DEFAULT_INPUT,
+        help="Path to coverage.json (default: test_reports/coverage.json)",
+    )
+    p.add_argument(
+        "--threshold",
+        type=float,
+        default=DEFAULT_THRESHOLD,
+        help="Coverage threshold percent (default: 90)",
+    )
     p.add_argument("--notes", default=DEFAULT_NOTES, help="Path to docs/task_notes.md")
     args = p.parse_args(argv)
 
@@ -152,7 +168,9 @@ def main(argv: List[str] | None = None) -> int:
     rows = collect_under_threshold(data, args.threshold)
     table = format_table(rows)
     append_to_notes(args.notes, table)
-    print(f"[extract_low_coverage] Appended {len(rows)} entries under {args.threshold:.1f}% to {args.notes}")
+    print(
+        f"[extract_low_coverage] Appended {len(rows)} entries under {args.threshold:.1f}% to {args.notes}"
+    )
     return 0
 
 
