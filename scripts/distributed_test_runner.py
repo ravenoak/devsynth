@@ -155,7 +155,7 @@ def parse_args():
 
 def collect_tests(
     category: str, speed: str = "all", use_cache: bool = True
-) -> List[str]:
+) -> list[str]:
     """
     Collect tests to run based on category and speed.
 
@@ -211,8 +211,8 @@ def collect_tests(
 
 
 def collect_all_tests(
-    categories: List[str], speed: str = "all", use_cache: bool = True
-) -> Dict[str, List[str]]:
+    categories: list[str], speed: str = "all", use_cache: bool = True
+) -> dict[str, list[str]]:
     """
     Collect tests from multiple categories.
 
@@ -233,8 +233,8 @@ def collect_all_tests(
 
 
 def create_test_batches(
-    tests_by_category: Dict[str, List[str]], batch_size: int
-) -> List[List[str]]:
+    tests_by_category: dict[str, list[str]], batch_size: int
+) -> list[list[str]]:
     """
     Create batches of tests for distributed execution.
 
@@ -258,7 +258,7 @@ def create_test_batches(
     return batches
 
 
-def run_test_batch(batch: List[str], timeout: int, batch_id: int) -> Dict[str, Any]:
+def run_test_batch(batch: list[str], timeout: int, batch_id: int) -> dict[str, Any]:
     """
     Run a batch of tests.
 
@@ -350,13 +350,13 @@ def run_test_batch(batch: List[str], timeout: int, batch_id: int) -> Dict[str, A
 
 
 def run_distributed_tests(
-    batches: List[List[str]],
+    batches: list[list[str]],
     num_workers: int,
     timeout: int,
     max_retries: int,
     fail_fast: bool,
     verbose: bool,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Run tests in a distributed manner across multiple processes.
 
@@ -478,7 +478,7 @@ def run_distributed_tests(
     return results
 
 
-def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+def aggregate_results(batch_results: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Aggregate results from multiple batches.
 
@@ -530,7 +530,7 @@ def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     return aggregated
 
 
-def save_results(results: Dict[str, Any], filename: str):
+def save_results(results: dict[str, Any], filename: str):
     """
     Save results to a file.
 
@@ -543,7 +543,7 @@ def save_results(results: Dict[str, Any], filename: str):
     print(f"Results saved to {filename}")
 
 
-def generate_html_report(results: Dict[str, Any], filename: str):
+def generate_html_report(results: dict[str, Any], filename: str):
     """
     Generate an HTML report from the results.
 
@@ -589,7 +589,7 @@ def generate_html_report(results: Dict[str, Any], filename: str):
     </head>
     <body>
         <h1>Distributed Test Results</h1>
-        
+
         <div class="summary">
             <h2>Summary</h2>
             <div class="metric">
@@ -661,10 +661,10 @@ def generate_html_report(results: Dict[str, Any], filename: str):
         html += f"""
         <div class="batch">
             <div class="batch-header" onclick="toggleBatch({batch['batch_id']})">
-                Batch {batch['batch_id'] + 1} {status} - 
-                Passed: {len(batch['passed'])}, 
-                Failed: {len(batch['failed'])}, 
-                Skipped: {len(batch['skipped'])}, 
+                Batch {batch['batch_id'] + 1} {status} -
+                Passed: {len(batch['passed'])},
+                Failed: {len(batch['failed'])},
+                Skipped: {len(batch['skipped'])},
                 Time: {batch['execution_time']:.2f}s
                 {' (Timeout)' if batch['timeout'] else ''}
             </div>
@@ -702,7 +702,7 @@ def generate_html_report(results: Dict[str, Any], filename: str):
     print(f"HTML report saved to {filename}")
 
 
-def print_summary(results: Dict[str, Any], execution_time: float):
+def print_summary(results: dict[str, Any], execution_time: float):
     """
     Print a summary of the results.
 

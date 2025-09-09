@@ -151,7 +151,7 @@ def clear_cache():
         print(f"Cleared cache directory: {cache_dir}")
 
 
-def collect_tests(category: str, speed: str = "all") -> List[str]:
+def collect_tests(category: str, speed: str = "all") -> list[str]:
     """
     Collect tests to run based on category and speed.
 
@@ -227,8 +227,8 @@ def collect_tests(category: str, speed: str = "all") -> List[str]:
 
 
 def collect_all_tests(
-    categories: List[str], speed: str = "all"
-) -> Dict[str, List[str]]:
+    categories: list[str], speed: str = "all"
+) -> dict[str, list[str]]:
     """
     Collect tests from multiple categories.
 
@@ -248,8 +248,8 @@ def collect_all_tests(
 
 
 def create_test_batches(
-    tests_by_category: Dict[str, List[str]], batch_size: int
-) -> List[Tuple[str, List[str]]]:
+    tests_by_category: dict[str, list[str]], batch_size: int
+) -> list[tuple[str, list[str]]]:
     """
     Create batches of tests for processing.
 
@@ -270,7 +270,7 @@ def create_test_batches(
     return batches
 
 
-def run_test_batch(category: str, batch: List[str], timeout: int) -> Dict[str, Any]:
+def run_test_batch(category: str, batch: list[str], timeout: int) -> dict[str, Any]:
     """
     Run a batch of tests.
 
@@ -362,13 +362,13 @@ def run_test_batch(category: str, batch: List[str], timeout: int) -> Dict[str, A
 
 
 def process_batches(
-    batches: List[Tuple[str, List[str]]],
+    batches: list[tuple[str, list[str]]],
     timeout: int,
     max_batches: int,
     parallel: bool,
     workers: int,
     verbose: bool,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Process test batches.
 
@@ -482,7 +482,7 @@ def process_batches(
     return results
 
 
-def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+def aggregate_results(batch_results: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Aggregate results from multiple batches.
 
@@ -563,7 +563,7 @@ def aggregate_results(batch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     return aggregated
 
 
-def save_results(results: Dict[str, Any], output_file: str):
+def save_results(results: dict[str, Any], output_file: str):
     """
     Save results to a file.
 
@@ -576,7 +576,7 @@ def save_results(results: Dict[str, Any], output_file: str):
     print(f"Results saved to {output_file}")
 
 
-def generate_html_report(results: Dict[str, Any], output_file: str):
+def generate_html_report(results: dict[str, Any], output_file: str):
     """
     Generate an HTML report from the results.
 
@@ -622,7 +622,7 @@ def generate_html_report(results: Dict[str, Any], output_file: str):
     </head>
     <body>
         <h1>Test Metrics Report</h1>
-        
+
         <div class="summary">
             <h2>Summary</h2>
             <div class="metric">
@@ -774,7 +774,7 @@ def generate_html_report(results: Dict[str, Any], output_file: str):
     print(f"HTML report saved to {output_file}")
 
 
-def generate_dashboard(results: Dict[str, Any], output_file: str):
+def generate_dashboard(results: dict[str, Any], output_file: str):
     """
     Generate a test execution dashboard.
 
@@ -841,7 +841,7 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
                         }}
                     }}
                 }});
-                
+
                 // Test Counts Chart
                 var ctxTestCounts = document.getElementById('chart-test-counts').getContext('2d');
                 var testCountsChart = new Chart(ctxTestCounts, {{
@@ -865,7 +865,7 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
                         }}]
                     }}
                 }});
-                
+
                 // Execution Time Chart
                 var ctxExecutionTime = document.getElementById('chart-execution-time').getContext('2d');
                 var executionTimeChart = new Chart(ctxExecutionTime, {{
@@ -888,7 +888,7 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
                         }}
                     }}
                 }});
-                
+
                 // Test Distribution Chart
                 var ctxTestDistribution = document.getElementById('chart-test-distribution').getContext('2d');
                 var testDistributionChart = new Chart(ctxTestDistribution, {{
@@ -921,7 +921,7 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
     </head>
     <body>
         <h1>Test Execution Dashboard</h1>
-        
+
         <div class="summary">
             <h2>Summary</h2>
             <div class="metric">
@@ -948,7 +948,7 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
                 <span class="metric-name">Total Execution Time:</span>
                 <span class="metric-value">{results['summary']['total_execution_time']:.2f}s</span>
             </div>
-            
+
             <div class="progress-bar">
                 <div class="progress progress-passed" style="width: {results['summary']['total_passed'] / results['summary']['total_tests'] * 100 if results['summary']['total_tests'] > 0 else 0}%;"></div>
             </div>
@@ -959,29 +959,29 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
                 <div class="progress progress-skipped" style="width: {results['summary']['total_skipped'] / results['summary']['total_tests'] * 100 if results['summary']['total_tests'] > 0 else 0}%;"></div>
             </div>
         </div>
-        
+
         <div class="dashboard">
             <div class="dashboard-item">
                 <h3>Pass Rates by Category</h3>
                 <canvas id="chart-pass-rates" class="chart"></canvas>
             </div>
-            
+
             <div class="dashboard-item">
                 <h3>Test Results</h3>
                 <canvas id="chart-test-counts" class="chart"></canvas>
             </div>
-            
+
             <div class="dashboard-item">
                 <h3>Execution Time by Category</h3>
                 <canvas id="chart-execution-time" class="chart"></canvas>
             </div>
-            
+
             <div class="dashboard-item">
                 <h3>Test Distribution by Category</h3>
                 <canvas id="chart-test-distribution" class="chart"></canvas>
             </div>
         </div>
-        
+
         <h2>Category Details</h2>
         <table>
             <tr>
@@ -1015,7 +1015,7 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
 
     html += f"""
         </table>
-        
+
         <div class="timestamp">
             Generated on: {results['timestamp']}
         </div>
@@ -1028,7 +1028,7 @@ def generate_dashboard(results: Dict[str, Any], output_file: str):
     print(f"Dashboard saved to {output_file}")
 
 
-def print_summary(results: Dict[str, Any], execution_time: float):
+def print_summary(results: dict[str, Any], execution_time: float):
     """
     Print a summary of the results.
 
