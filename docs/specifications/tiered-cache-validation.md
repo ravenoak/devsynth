@@ -25,11 +25,20 @@ Required metadata fields:
 
 ## Socratic Checklist
 - What is the problem?
+  The tiered cache lacks a formal argument that its eviction loop terminates
+  and preserves the configured bound.
 - What proofs confirm the solution?
+  The termination proof in
+  [`docs/analysis/tiered_cache_termination_proof.md`](../analysis/tiered_cache_termination_proof.md)
+  establishes that each operation touches at most `max_size` entries, and
+  [`tests/unit/application/memory/test_tiered_cache_termination.py`](../../tests/unit/application/memory/test_tiered_cache_termination.py)
+  validates the bound.
 
 ## Motivation
 
 ## What proofs confirm the solution?
+- Analysis: [`Tiered Cache Termination Proof`](../analysis/tiered_cache_termination_proof.md)
+- Unit test: [`test_tiered_cache_termination.py`](../../tests/unit/application/memory/test_tiered_cache_termination.py)
 - Pending BDD scenarios will verify termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
@@ -45,3 +54,8 @@ A tiered cache improves read performance, but only if it consistently evicts the
 - Cache size never exceeds `max_size` during any access sequence.
 - After exceeding capacity, the evicted key is the one least recently accessed.
 - Hit and miss counters reflect observed cache behavior.
+
+## References
+
+- [Analysis: Tiered Cache Termination Proof](../analysis/tiered_cache_termination_proof.md)
+- [Issue: Multi-Layered Memory System](../../issues/multi-layered-memory-system.md)
