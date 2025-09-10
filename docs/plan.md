@@ -2,7 +2,7 @@
 
 Version: 2025-09-07
 Owner: DevSynth Team (maintainers)
-Status: Execution in progress; install loop closed (2025-09-09); property marker advisories remain
+Status: Execution in progress; install loop closed (2025-09-09); property marker advisories resolved; flake8 and bandit scans failing (2025-09-10)
 
 Executive summary
 - Goal: Reach and sustain >90% coverage with a well‑functioning, reliable test suite across unit, integration, behavior, and property tests for the 0.1.0a1 release, with strict marker discipline and resource gating.
@@ -21,7 +21,7 @@ Commands executed (audit trail)
 - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1 → Success.
 - poetry run devsynth run-tests --target behavior-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
 - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
- - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → property marker advisories (2 property_violations) in tests/property/test_reasoning_loop_properties.py due to nested Hypothesis helpers.
+ - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → verify_test_markers now reports 0 property_violations after helper logic refinement.
  - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → 2 failing tests; coverage fail-under triggered (8% on this narrow subset).
 - Environment: Python 3.12.x (pyproject constraint), Poetry 2.1.4; coverage artifacts present under htmlcov/ and coverage.json.
 
@@ -259,6 +259,7 @@ Maintainer quickstart (authoritative commands)
 Notes and next actions
 - Immediate: Fix the two property test failures; add targeted tests for run_tests_cmd branches; re-generate coverage report and iterate on hotspots below 80% coverage.
 - Short-term: Align docs with current CLI behaviors and ensure issues/ action items are traced to tests.
+- Guardrails: diagnostics/flake8_2025-09-10_run2.txt shows E501/F401 in tests/unit/testing/test_run_tests_module.py; bandit scan (diagnostics/bandit_2025-09-10_run2.txt) reports 158 low and 12 medium issues.
 - Post-release: Introduce low-throughput GH Actions pipeline as specified and expand nightly coverage runs.
 - verify_test_markers reports missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py; track under issues/property-marker-advisories-in-reasoning-loop-tests.md and resolve before release.
 - scripts/codex_setup.sh exits early due to version mismatch (project version 0.1.0a1 vs expected 0.1.0-alpha.1); reconcile versioning or adjust the setup script.
