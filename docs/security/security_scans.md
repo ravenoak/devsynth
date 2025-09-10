@@ -53,7 +53,7 @@ Follow these steps for each finding:
 
 ### Current Justifications
 
-- None at this time. Add entries here as part of iterative triage.
+- Bandit scan on 2025-09-10 reported 160 high, 2 medium, and 8 low severity issues across `src/`. These findings are temporarily accepted and tracked in `issues/bandit-findings.md` for remediation.
 
 ## CI Integration Notes
 
