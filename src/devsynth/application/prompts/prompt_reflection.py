@@ -181,16 +181,14 @@ RESPONSE:
 {response}
 
 Provide a structured analysis with the following:
-1. Effectiveness: How well did the response address the prompt's
-   requirements?
-2. Completeness: Did the response cover all aspects requested in
-   the prompt?
+1. Effectiveness: How well did the response address the prompt's requirements?
+2. Completeness: Did the response cover all aspects requested in the prompt?
 3. Clarity: Was the prompt clear and unambiguous?
 4. Improvement suggestions: How could the prompt be improved?
 5. Rating: Rate the prompt's effectiveness on a scale of 1-10.
 
 Format your response as JSON with the following structure:
-{
+{{
     "effectiveness": "Your analysis here",
     "completeness": "Your analysis here",
     "clarity": "Your analysis here",
@@ -199,7 +197,7 @@ Format your response as JSON with the following structure:
     ],
     "rating": 7,
     "overall_assessment": "Your overall assessment here"
-}
+}}
 """
         )
 
