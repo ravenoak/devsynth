@@ -16,3 +16,4 @@ Test execution halts early due to failing tests, and coverage percentage cannot 
 ## Notes
 - Tasks `docs/tasks.md` items 13.3 and 13.4 remain unchecked pending resolution.
 - Address flake8 lint failures, as they may contribute to test instability.
+- 2025-09-19: `devsynth` installed; smoke and property tests pass. Full coverage run not executed this iteration; threshold remains unverified.

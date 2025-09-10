@@ -1,7 +1,7 @@
 {
   "markers": {
-    "fast": 1037,
-    "medium": 1539,
+    "fast": 1038,
+    "medium": 1541,
     "gui": 1,
     "requires_resource": 55,
     "isolation": 8,
@@ -14,12 +14,12 @@
     "asyncio": 11,
     "integration": 1,
     "skipif": 3,
-    "property": 17,
+    "property": 19,
     "anyio": 3,
-    "unit": 5,
+    "unit": 6,
     "smoke": 4,
     "skip": 2
   },
-  "files_scanned": 1030,
+  "files_scanned": 1031,
   "files_with_issues": 0
 }
