@@ -1,6 +1,6 @@
 Title: DevSynth run-tests missing test_first_metrics file
 Date: 2025-09-10 14:16 UTC
-Status: open
+Status: closed
 Affected Area: tests
 Reproduction:
   - `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`
@@ -11,7 +11,7 @@ Artifacts:
   - htmlcov/ (empty)
 Suspected Cause: Test invocation references `unit/general/test_test_first_metrics.py` which does not exist; expected `tests/unit/general/test_test_first_metrics.py`.
 Next Actions:
-  - [ ] Correct the test path or update invocation to use `tests/unit/general/test_test_first_metrics.py`.
-  - [ ] Rerun `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`.
+  - [x] Correct the test path or update invocation to use `tests/unit/general/test_test_first_metrics.py`.
+  - [x] Rerun `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`.
 Resolution Evidence:
-  - pending green run artifacts
+  - [test_reports/test_first_metrics.log](../test_reports/test_first_metrics.log)
