@@ -16,3 +16,8 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - Adjust verify_test_markers or mark nested helpers to resolve property marker advisories.
   - Re-run verify_test_markers after fix and close issue.
   - Continue coverage and acceptance tasks (docs/tasks.md sections 6 and 13).
+
+## Iteration 2025-09-17
+- Reviewed open issues; closed duplicates (methodology-sprint, domain-models-requirement, adapters-requirements) and resolved run-tests missing test_first_metrics file.
+- Test evidence: `poetry run pytest tests/unit/general/test_test_first_metrics.py -q` (see test_reports/test_first_metrics.log).
+- Remaining blockers: flake8-violations.md and bandit-findings.md keep guardrails suite red.

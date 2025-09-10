@@ -104,6 +104,9 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 11.4 [x] When adding/updating tests, include issue filename in test docstrings (e.g., "ReqID: FR-09; Issue: issues/<file>.md").
 11.5 [x] Add behavior tests asserting presence of ReqID tags in docstrings for a representative subset; provide a small validation tool if needed.
 11.6 [x] Audit typing_relaxations_tracking.md and schedule restorations in Phase 4 (issue links added).
+11.7 [x] Closed redundant typing tickets: methodology-sprint, domain-models-requirement, adapters-requirements.
+11.8 [x] Resolved run-tests missing test_first_metrics file; see test_reports/test_first_metrics.log.
+11.9 [ ] Guardrails suite failures persist; flake8-violations.md and bandit-findings.md remain open.
 
 12. Risk Management and Mitigations
 12.1 [x] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable:
