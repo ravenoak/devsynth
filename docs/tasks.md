@@ -18,6 +18,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 1.5.5 [x] `date -u '+%Y-%m-%dT%H:%M:%SZ' | tee diagnostics/run_timestamp_utc.txt`
 1.6 [x] Investigate `poetry install --with dev --all-extras` hanging on `nvidia/__init__.py` (Issue: poetry-install-nvidia-loop.md).
 1.7 [x] Resolve scripts/codex_setup.sh version mismatch (project 0.1.0a1 vs expected 0.1.0-alpha.1).
+1.8 [x] Ensure `devsynth` CLI entry point is installed; run `poetry install --with dev --all-extras` if missing.
 
 2. Property Tests Remediation (Phase 1)
 2.1 [x] Fix Hypothesis misuse in tests/property/test_requirements_consensus_properties.py:
