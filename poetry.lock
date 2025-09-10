@@ -8032,4 +8032,4 @@ webui-nicegui = ["nicegui"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.12"
-content-hash = "f11cebebf857a73038c83e409702dd5f78915becc2a702ebc6ec6df7db4cdd01"
+content-hash = "fe0e96d613c20330462465faa93607c6000a216d81ae7ebe748062fb3290474f"

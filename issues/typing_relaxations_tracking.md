@@ -31,3 +31,4 @@ How to use this document:
 Notes:
 - This table is seeded automatically from pyproject.toml relaxations as of 2025-09-02. Keep it updated as overrides are narrowed or removed.
 - Add TODO comments in modules when touching code to remind about the strictness restoration deadline.
+- 2025-09-10: Removed the mypy override for `devsynth.cli` after upgrading Typer to a typed release.

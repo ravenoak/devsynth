@@ -32,7 +32,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "<3.13,>=3.12"
-typer = "*"
+typer = "^0.17.4"
 rich = "*"
 pydantic = "*"
 pydantic-settings = "*"
@@ -411,12 +411,6 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = "devsynth.application.cli.help"
 ignore_errors = true
-
-# Added for tasks item 8.7: typer lacks bundled stubs
-[[tool.mypy.overrides]]
-module = "devsynth.cli"
-ignore_missing_imports = true
-# TODO: remove once typer provides type hints or stubs are added
 
 
 [build-system]
