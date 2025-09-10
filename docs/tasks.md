@@ -26,11 +26,11 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 2.2 [x] Resolve AttributeError for _DummyTeam._improve_clarity:
 2.2.1 [x] Preferred: Update tests to target a public API that internally triggers clarity improvement (e.g., team.improve_clarity(requirement)).
 2.2.2 [x] Alternative: Implement a no-op or minimally semantic _improve_clarity on the Dummy test double to satisfy the expected interface (tests/helpers/dummies.py or equivalent).
-2.3 [ ] Ensure each property test has exactly one speed marker plus @pytest.mark.property. (verify_test_markers currently reports false positives for nested Hypothesis `check` helpers)
+2.3 [x] Ensure each property test has exactly one speed marker plus @pytest.mark.property.
 2.4 [x] Re-run property tests: `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q` and confirm 0 failures.
 2.5 [x] Add/adjust fixtures as needed to keep property tests isolated and deterministic.
-2.6 [ ] Resolve property marker advisories in tests/property/test_reasoning_loop_properties.py (Issue: property-marker-advisories-in-reasoning-loop-tests.md).
-2.6.1 [ ] Refine scripts/verify_test_markers.py to ignore nested Hypothesis helper functions or mark the helpers explicitly; re-run `verify_test_markers.py` to confirm 0 property_violations.
+2.6 [x] Resolve property marker advisories in tests/property/test_reasoning_loop_properties.py (Issue: property-marker-advisories-in-reasoning-loop-tests.md).
+2.6.1 [x] Refine scripts/verify_test_markers.py to ignore nested Hypothesis helper functions or mark the helpers explicitly; re-run `verify_test_markers.py` to confirm 0 property_violations.
 
 3. Coverage Uplift — CLI run_tests_cmd Hotspot (Phase 2)
 3.1 [x] Add or extend unit tests for src/devsynth/application/cli/commands/run_tests_cmd.py to cover the following branches/behaviors:

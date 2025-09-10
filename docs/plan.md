@@ -71,7 +71,7 @@ Concrete remediation tasks (actionable specifics)
      - Alternative: Extend the Dummy test double to implement _improve_clarity with a no-op or minimal semantics in tests/helpers/dummies.py (or the appropriate test utility module), ensuring interface compatibility.
   - Re-run: DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q 2>&1 | tee test_reports/property_tests.log
   - Success criteria: 0 failures; exactly one speed marker per function.
-  3) Refine scripts/verify_test_markers.py to ignore nested Hypothesis helper functions or explicitly mark the `check` helpers in tests/property/test_reasoning_loop_properties.py; rerun verify_test_markers to confirm 0 property_violations (Issue: issues/property-marker-advisories-in-reasoning-loop-tests.md).
+  3) Resolved: scripts/verify_test_markers.py now ignores nested Hypothesis helper functions, and reruns confirm 0 property_violations (Issue: issues/property-marker-advisories-in-reasoning-loop-tests.md).
 - run_tests_cmd coverage uplift (src/devsynth/application/cli/commands/run_tests_cmd.py): add unit tests to cover these branches/behaviors with clear test names:
   - test_smoke_mode_sets_pytest_autoload_off
   - test_no_parallel_maps_to_n0
