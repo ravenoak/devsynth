@@ -1,6 +1,6 @@
 # Flake8 violations in src and tests
 Date: 2025-09-10 16:19 UTC
-Status: open
+Status: closed
 Affected Area: guardrails
 
 Reproduction:
@@ -17,8 +17,8 @@ Suspected Cause:
   - Latest run shows E501/F401/F841 in tests/unit/testing/test_run_tests_module.py and related files.
 
 Next Actions:
-  - [ ] Audit and fix flake8 warnings in src
-  - [ ] Audit and fix flake8 warnings in tests
+  - [x] Audit and fix flake8 warnings in src
+  - [x] Audit and fix flake8 warnings in tests
 
 Resolution Evidence:
-  - Pending
+  - `poetry run flake8 src tests`
