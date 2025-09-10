@@ -1,5 +1,3 @@
-import os
-import re
 from typing import Any
 
 import pytest
@@ -24,7 +22,8 @@ def clean_env(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.mark.fast
 def test_sanitize_node_ids_dedup_and_strip_line_numbers():
-    """ReqID: RTM-01 — _sanitize_node_ids de-duplicates and strips trailing line numbers except after '::'."""
+    """ReqID: RTM-01 — _sanitize_node_ids de-duplicates and strips trailing line
+    numbers except after '::'."""
     # has line numbers and duplicates and function ids
     raw = [
         "tests/unit/foo/test_a.py:12",
@@ -45,7 +44,8 @@ def test_sanitize_node_ids_dedup_and_strip_line_numbers():
 def test_collect_tests_with_cache_uses_cache_and_respects_ttl(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ):
-    """ReqID: RTM-02 — collect_tests_with_cache caches and reuses results respecting TTL and fingerprint."""
+    """ReqID: RTM-02 — collect_tests_with_cache caches and reuses results
+    respecting TTL and fingerprint."""
     # Point TARGET_PATHS to tmp tests dir
     tests_dir = tmp_path / "tests" / "unit"
     tests_dir.mkdir(parents=True)
@@ -61,7 +61,9 @@ def test_collect_tests_with_cache_uses_cache_and_respects_ttl(
             self.stdout = out
             self.returncode = 0
 
-    def fake_run(cmd: list[str], check: bool, capture_output: bool, text: bool):  # type: ignore[override]
+    def fake_run(
+        cmd: list[str], check: bool, capture_output: bool, text: bool
+    ):  # type: ignore[override]
         assert "--collect-only" in cmd
         # emulate -q output: one per line
         return DummyProc(out=f"{tests_dir}/test_sample.py\n")
@@ -72,7 +74,8 @@ def test_collect_tests_with_cache_uses_cache_and_respects_ttl(
     ids1 = rt.collect_tests_with_cache("unit-tests", speed_category=None)
     assert ids1 == [str(tests_dir / "test_sample.py")]
 
-    # Create cache by calling again with same params; replace subprocess to raise if called
+    # Create cache by calling again with same params; replace subprocess to
+    # raise if called
     def fail_run(
         *a: Any, **k: Any
     ):  # pragma: no cover - would indicate cache miss unexpectedly
@@ -88,7 +91,8 @@ def test_collect_tests_with_cache_uses_cache_and_respects_ttl(
 def test_run_tests_translates_args_and_handles_return_codes(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ):
-    """ReqID: RTM-03 — run_tests translates args, treats code 0/5 as success, and omits -n when parallel=False."""
+    """ReqID: RTM-03 — run_tests translates args, treats code 0/5 as success,
+    and omits -n when parallel=False."""
     # Arrange base to avoid plugin interactions and filesystem writes
     tests_dir = tmp_path / "tests"
     tests_dir.mkdir()
@@ -113,7 +117,9 @@ def test_run_tests_translates_args_and_handles_return_codes(
         def returncode(self) -> int:
             return self._code
 
-    def fake_popen(cmd: list[str], stdout, stderr, text: bool, env: dict[str, str]):  # type: ignore[override]
+    def fake_popen(
+        cmd: list[str], stdout, stderr, text: bool, env: dict[str, str]
+    ):  # type: ignore[override]
         captured["cmd"] = cmd
         captured["env"] = env
         # Succeed with code 0 first
@@ -126,7 +132,8 @@ def test_run_tests_translates_args_and_handles_return_codes(
     )
     assert ok is True
     assert "ok" in output or output == ""  # output may be empty in our fake
-    # Command should include pytest module runner and our test path followed by node ids; since we passed a speed, it should collect then run
+    # Command should include pytest module runner and our test path followed by
+    # node ids; since we passed a speed, it should collect then run
     cmd = captured["cmd"]
     assert cmd is not None
     assert cmd[0:3] == [rt.sys.executable, "-m", "pytest"]
@@ -148,8 +155,10 @@ def test_run_tests_translates_args_and_handles_return_codes(
 def test_run_tests_keyword_filter_for_extra_marker_lmstudio(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ):
-    """ReqID: RTM-04 — extra_marker 'requires_resource(\'lmstudio\')' uses keyword filter and early success on no matches."""
-    # Arrange: ensure keyword narrowing path is exercised with no matches -> early success
+    """ReqID: RTM-04 — extra_marker 'requires_resource("lmstudio")' uses
+    keyword filter and early success on no matches."""
+    # Arrange: ensure keyword narrowing path is exercised with no matches ->
+    # early success
     tests_dir = tmp_path / "tests"
     tests_dir.mkdir()
     monkeypatch.setattr(
@@ -161,7 +170,9 @@ def test_run_tests_keyword_filter_for_extra_marker_lmstudio(
             self.stdout = stdout
             self.returncode = returncode
 
-    def fake_run(cmd, check: bool, capture_output: bool, text: bool):  # type: ignore[override]
+    def fake_run(
+        cmd, check: bool, capture_output: bool, text: bool
+    ):  # type: ignore[override]
         # '--collect-only' path with '-k lmstudio' produces no items
         assert "--collect-only" in cmd
         return Dummy(stdout="")
