@@ -190,7 +190,7 @@ Provide a structured analysis with the following:
 5. Rating: Rate the prompt's effectiveness on a scale of 1-10.
 
 Format your response as JSON with the following structure:
-{{
+{
     "effectiveness": "Your analysis here",
     "completeness": "Your analysis here",
     "clarity": "Your analysis here",
@@ -199,7 +199,7 @@ Format your response as JSON with the following structure:
     ],
     "rating": 7,
     "overall_assessment": "Your overall assessment here"
-}}
+}
 """
         )
 
