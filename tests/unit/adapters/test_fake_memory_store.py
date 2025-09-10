@@ -62,9 +62,12 @@ def test_fake_vector_store_similarity_and_stats():
     v3 = MemoryVector(
         id="", content="x+y", embedding=[1.0, 1.0, 0.0], metadata={"name": "x+y"}
     )
-    _ = vs.store_vector(v1)
+    id1 = vs.store_vector(v1)
     id2 = vs.store_vector(v2)
     id3 = vs.store_vector(v3)
+
+    # Basic retrieval check for assigned id1 to avoid unused variable
+    assert vs.retrieve_vector(id1).metadata["name"] == "x"
 
     # Similarity to [1,0,0] should prefer v1 then v3
     results = vs.similarity_search([1.0, 0.0, 0.0], top_k=2)
