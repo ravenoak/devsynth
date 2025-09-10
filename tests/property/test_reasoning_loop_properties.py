@@ -30,6 +30,8 @@ def test_reasoning_loop_stops_on_completion(monkeypatch):
     @given(
         st.lists(st.sampled_from(["in_progress", "completed"]), min_size=1, max_size=5)
     )
+    @pytest.mark.property
+    @pytest.mark.medium
     def check(statuses):
         call_index = {"i": 0}
 
@@ -72,6 +74,8 @@ def test_reasoning_loop_respects_max_iterations(monkeypatch):
     Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
     """
 
+    @pytest.mark.property
+    @pytest.mark.medium
     @given(st.integers(min_value=1, max_value=5))
     def check(max_iterations):
         def fake_apply(team, task, critic, memory):
