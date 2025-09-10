@@ -5,13 +5,13 @@ Status: open
 Affected Area: tests
 Reproduction:
   - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
-Exit Code: 0
+Exit Code: 0 (property_violations=2)
 Artifacts:
   - test_markers_report.json
-Suspected Cause: tests/property/test_reasoning_loop_properties.py lacked @pytest.mark.property, causing verify_test_markers warnings.
+Suspected Cause: verify_test_markers treats nested Hypothesis `@given` helpers named `check` as test functions, so they appear unmarked.
 Next Actions:
-  - [ ] add missing marker and single speed marker
-  - [ ] re-run verify_test_markers
+  - [ ] refine scripts/verify_test_markers.py to ignore nested Hypothesis helpers or mark those helpers explicitly
+  - [ ] re-run verify_test_markers and attach updated report
 Resolution Evidence:
   - pending
 ---
