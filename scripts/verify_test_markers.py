@@ -16,13 +16,11 @@ import hashlib
 import json
 import pathlib
 import re
-import shlex
 import subprocess
 import sys
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TESTS_DIR = ROOT / "tests"
@@ -48,7 +46,8 @@ def get_arg_parser():
 
     parser = argparse.ArgumentParser(
         description=(
-            "Verify pytest markers with caching. By default scans the tests/ directory. "
+            "Verify pytest markers with caching. "
+            "By default scans the tests/ directory. "
             "Use --changed to scan only changed test files since a base ref."
         )
     )
@@ -76,7 +75,10 @@ def get_arg_parser():
     parser.add_argument(
         "--report-file",
         default=str(REPORT_PATH),
-        help="Path to write the JSON summary report (default: test_markers_report.json).",
+        help=(
+            "Path to write the JSON summary report "
+            "(default: test_markers_report.json)."
+        ),
     )
     parser.add_argument(
         "--cross-check-collection",
@@ -175,7 +177,8 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
             return name if isinstance(name, str) and name in speed_markers else None
         return None
 
-    # Detect module-level speed markers assigned to pytestmark (informational during grace period)
+    # Detect module-level speed markers assigned to pytestmark (informational
+    # during grace period)
     try:
         for node in getattr(tree, "body", []):
             if isinstance(node, (ast.Assign, ast.AnnAssign)):
@@ -204,8 +207,9 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
                         name = _extract_marker_name_from_attr(el)
                         if name:
                             markers_found.append(name)
-                    # During marker hygiene grace, do not flag module-level speed markers as violations.
-                    # Future iterations may re-enable this once function-level backfill is complete.
+                    # During marker hygiene grace, do not flag module-level
+                    # speed markers as violations. Future iterations may
+                    # re-enable this once function-level backfill is complete.
                     pass
     except Exception:
         # Be permissive on AST shapes we don't anticipate
@@ -287,7 +291,8 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
     def _has_bdd_step_decorator(fn: ast.FunctionDef) -> bool:
         step_names = {"given", "when", "then", "step"}
         for dec in getattr(fn, "decorator_list", []) or []:
-            # Accept @pytest_bdd.given / @pytest_bdd.when / ... or imported names like @given
+            # Accept @pytest_bdd.given / @pytest_bdd.when / ... or imported names
+            # like @given
             if isinstance(dec, ast.Attribute):
                 if isinstance(dec.value, ast.Name) and dec.attr in step_names:
                     return True
@@ -334,10 +339,12 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
                         param_speed = _collect_parametrize_speed_markers(dec)
                         if param_speed:
                             parametrize_found.extend(param_speed)
-            # Reconcile: prefer function-level marker; else consider parametrize-only
+            # Reconcile: prefer function-level marker; else consider
+            # parametrize-only
             effective = found or parametrize_found
-            # Iterative grace: treat missing speed marker as implicitly 'fast' for this verification
-            # cycle to reduce noise while we backfill markers. Only flag if multiple markers present.
+            # Iterative grace: treat missing speed marker as implicitly 'fast'
+            # to reduce noise while we backfill markers. Only flag if multiple
+            # markers are present.
             if len(effective) > 1:
                 violations.append(
                     {
@@ -346,7 +353,8 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
                         "file": str(path),
                         "markers_found": effective,
                         "message": (
-                            f"Function {node.name} has multiple speed markers; exactly one expected"
+                            f"Function {node.name} has multiple speed markers; "
+                            "exactly one expected"
                         ),
                     }
                 )
@@ -354,10 +362,11 @@ def _find_speed_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
 
 
 def _find_property_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
-    """For modules under tests/property, ensure each test function has @pytest.mark.property.
+    """For modules under tests/property, ensure each test function has
+    @pytest.mark.property.
 
-    We do not fail the script on these violations (informational), but include them in issues
-    and summary stats to aid hygiene improvements.
+    We do not fail the script on these violations (informational), but
+    include them in issues and summary stats to aid hygiene improvements.
     """
     violations: list[dict] = []
     try:
@@ -395,10 +404,34 @@ def _find_property_marker_violations(path: pathlib.Path, text: str) -> list[dict
                         return True
         return False
 
+    def _is_hypothesis_given(dec: ast.AST) -> bool:
+        """Return True if decorator represents Hypothesis' @given."""
+        if isinstance(dec, ast.Name):
+            return dec.id == "given"
+        if isinstance(dec, ast.Attribute):
+            return getattr(dec, "attr", None) == "given"
+        if isinstance(dec, ast.Call):
+            func = dec.func
+            if isinstance(func, ast.Name):
+                return func.id == "given"
+            if isinstance(func, ast.Attribute):
+                return getattr(func, "attr", None) == "given"
+        return False
+
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef) and (
             node.name.startswith("test_") or _has_bdd_step_decorator(node)
         ):
+            # Ignore nested Hypothesis helpers named ``check`` which serve as
+            # helpers inside test functions. They are decorated with @given and
+            # inherit the parent's markers, so requiring an explicit property
+            # marker would be redundant.
+            if (
+                node.name == "check"
+                and node.col_offset > 0
+                and any(_is_hypothesis_given(d) for d in (node.decorator_list or []))
+            ):
+                continue
             has_property = any(
                 _has_property_marker(dec) for dec in (node.decorator_list or [])
             )
@@ -409,7 +442,8 @@ def _find_property_marker_violations(path: pathlib.Path, text: str) -> list[dict
                         "function": node.name,
                         "file": str(path),
                         "message": (
-                            "tests/property/ require @pytest.mark.property in addition to one speed marker"
+                            "tests/property/ require @pytest.mark.property "
+                            "in addition to one speed marker"
                         ),
                     }
                 )
@@ -533,7 +567,7 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
             for sub in sorted(p.rglob("*.py")):
                 # Re-enqueue sub files by tail recursion-like approach
                 for _k, _v in verify_files([sub]).items():
-                    # This branch is only used for side-effect updates, not ideal to merge dicts here
+                    # Only used for side-effect updates; merging dicts here is avoided
                     pass
             continue
         key = str(p)
@@ -559,7 +593,8 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
             try:
                 if "tests/property" in str(p):
                     prop_violations = _find_property_marker_violations(p, text)
-                    # Do NOT include property violations in file issues; collect only for summary (informational)
+                    # Do NOT include property violations in file issues; collect
+                    # only for summary (informational)
                     for v in prop_violations:
                         if v.get("type") == "property_marker_violation":
                             property_marker_violations.append(v)
@@ -569,8 +604,9 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
             file_result = {"markers": markers, "issues": issues}
             PERSISTENT_CACHE[key] = {"hash": sig[1], "verification": file_result}
 
-        # Count a file as having 'marker issues' only if speed/property marker violations exist.
-        # Collection errors are informative but do not contribute to files_with_issues for Task 10 metrics.
+        # Count a file as having marker issues only if speed/property marker
+        # violations exist. Collection errors are informative but do not
+        # contribute to files_with_issues for Task 10 metrics.
         if file_result["issues"]:
             has_marker_issue = any(
                 i.get("type") in {"speed_marker_violation", "property_marker_violation"}
@@ -607,15 +643,8 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
         "files_scanned": len(files),
         "files_with_issues": files_with_issues,
     }
-    # Write report to requested location (legacy flag --report is accepted but optional)
+    # Write report to default location; main() may rewrite if --report-file provided.
     report_target = REPORT_PATH
-    try:
-        # Allow overriding report path via CLI
-        arg_report_file = getattr(sys.modules.get("__main__"), "args", None)
-    except Exception:
-        arg_report_file = None
-    # We cannot reliably access parsed args from here unless passed; we'll handle in main()
-    # Default write to REPORT_PATH here; main() may also rewrite if --report-file provided.
     report_target.parent.mkdir(parents=True, exist_ok=True)
     report_target.write_text(
         json.dumps(summary_report, indent=2) + "\n", encoding="utf-8"
@@ -720,7 +749,8 @@ def main() -> int:
                 if "::" not in line:
                     continue
                 collected.add(line)
-            # Build a simple static inventory of test node ids (module::function) from our parse
+            # Build a simple static inventory of test node ids (module::function)
+            # from our parse
             static_nodes = set()
             for fpath, fdata in result.get("files", {}).items():
                 module = str(pathlib.Path(fpath).relative_to(ROOT))
@@ -741,7 +771,8 @@ def main() -> int:
                 cross_check_exit = 1
             else:
                 print(
-                    "[info] cross-check: static scan matches pytest collection inventory (basic)."
+                    "[info] cross-check: static scan matches pytest collection "
+                    "inventory (basic)."
                 )
         except Exception as e:
             print(f"[warn] cross-check failed to execute: {e}")
@@ -768,7 +799,8 @@ def main() -> int:
         print("[error] speed marker violations detected:")
         for v in result["speed_marker_violations"][:50]:  # limit output
             print(
-                f" - {v.get('file')}::{v.get('function')}: found markers {v.get('markers_found')}"
+                f" - {v.get('file')}::{v.get('function')}: "
+                f"found markers {v.get('markers_found')}"
             )
         if total_speed_violations > 50:
             print(f" ... and {total_speed_violations - 50} more")
@@ -778,13 +810,15 @@ def main() -> int:
         print("[info] property marker advisories (informational) in tests/property:")
         for v in result["property_marker_violations"][:50]:
             print(
-                f" - {v.get('file')}::{v.get('function')}: missing @pytest.mark.property"
+                f" - {v.get('file')}::{v.get('function')}: "
+                "missing @pytest.mark.property"
             )
         if total_property_violations > 50:
             print(f" ... and {total_property_violations - 50} more")
 
     print(
-        "[info] verify_test_markers: files=%d, cache_hits=%d, cache_misses=%d, issues=%d, speed_violations=%d, property_violations=%d"
+        "[info] verify_test_markers: files=%d, cache_hits=%d, cache_misses=%d, "
+        "issues=%d, speed_violations=%d, property_violations=%d"
         % (
             len(result["files"]),
             result["cache_hits"],
