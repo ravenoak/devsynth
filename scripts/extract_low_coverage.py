@@ -154,7 +154,7 @@ def append_to_notes(notes_path: str, table: str) -> None:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         description=(
-            "Extract <threshold coverage from coverage.json " "and append to task notes"
+            "Extract <threshold coverage from coverage.json and append to task notes"
         ),
     )
     p.add_argument(

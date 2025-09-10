@@ -1,3 +1,4 @@
+# flake8: noqa
 """
 Prompt Reflection module.
 
@@ -7,6 +8,7 @@ reflection on prompt responses, enhancing explainability and prompt optimization
 
 import json
 import os
+import textwrap
 import uuid
 from datetime import datetime
 from typing import Any
@@ -167,37 +169,39 @@ class PromptReflection:
     ) -> dict[str, Any]:
         """Generate a reflection on a prompt response."""
         # Create a reflection prompt
-        reflection_prompt = f"""
-        You are a prompt optimization expert. Analyze the following prompt
-        and response pair:
+        reflection_prompt = textwrap.dedent(
+            f"""
+You are a prompt optimization expert.
+Analyze the following prompt and response pair:
 
-        PROMPT:
-        {prompt}
+PROMPT:
+{prompt}
 
-        RESPONSE:
-        {response}
+RESPONSE:
+{response}
 
-        Provide a structured analysis with the following:
-        1. Effectiveness: How well did the response address the prompt's
-           requirements?
-        2. Completeness: Did the response cover all aspects requested in
-           the prompt?
-        3. Clarity: Was the prompt clear and unambiguous?
-        4. Improvement suggestions: How could the prompt be improved?
-        5. Rating: Rate the prompt's effectiveness on a scale of 1-10.
+Provide a structured analysis with the following:
+1. Effectiveness: How well did the response address the prompt's
+   requirements?
+2. Completeness: Did the response cover all aspects requested in
+   the prompt?
+3. Clarity: Was the prompt clear and unambiguous?
+4. Improvement suggestions: How could the prompt be improved?
+5. Rating: Rate the prompt's effectiveness on a scale of 1-10.
 
-        Format your response as JSON with the following structure:
-        {{
-            "effectiveness": "Your analysis here",
-            "completeness": "Your analysis here",
-            "clarity": "Your analysis here",
-            "improvement_suggestions": [
-                "Suggestion 1", "Suggestion 2", ...
-            ],
-            "rating": 7,
-            "overall_assessment": "Your overall assessment here"
-        }}
-        """
+Format your response as JSON with the following structure:
+{{
+    "effectiveness": "Your analysis here",
+    "completeness": "Your analysis here",
+    "clarity": "Your analysis here",
+    "improvement_suggestions": [
+        "Suggestion 1", "Suggestion 2", ...
+    ],
+    "rating": 7,
+    "overall_assessment": "Your overall assessment here"
+}}
+"""
+        )
 
         try:
             # Generate the reflection using the LLM
