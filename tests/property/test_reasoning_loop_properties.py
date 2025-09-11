@@ -14,8 +14,10 @@ try:
 except ImportError:  # pragma: no cover
     pytest.skip("hypothesis not available", allow_module_level=True)
 
+from devsynth.methodology.base import Phase
+
 reasoning_loop_module = importlib.import_module(
-    "devsynth.methodology.edrr.reasoning_loop"
+    "devsynth.methodology.edrr.reasoning_loop",
 )
 
 
@@ -92,5 +94,86 @@ def test_reasoning_loop_respects_max_iterations(monkeypatch):
         )
 
         assert len(results) == max_iterations
+
+    check()
+
+
+@pytest.mark.property
+@pytest.mark.medium
+def test_reasoning_loop_phase_transitions(monkeypatch):
+    """Loop advances according to `next_phase` or fallback map.
+
+    Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+    """
+
+    @given(
+        st.lists(
+            st.one_of(st.none(), st.sampled_from(list(Phase))),
+            min_size=1,
+            max_size=5,
+        )
+    )
+    @pytest.mark.property
+    @pytest.mark.medium
+    def check(next_phases):
+        phase_map = {
+            Phase.EXPAND: Phase.DIFFERENTIATE,
+            Phase.DIFFERENTIATE: Phase.REFINE,
+            Phase.REFINE: Phase.REFINE,
+        }
+        current = Phase.EXPAND
+        expected: list[Phase] = []
+        results = []
+        for idx, np_phase in enumerate(next_phases):
+            expected.append(current)
+            result = {
+                "status": "completed" if idx == len(next_phases) - 1 else "in_progress",
+                "phase": current.value,
+            }
+            if np_phase is not None:
+                result["next_phase"] = np_phase.value
+                current = np_phase
+            else:
+                current = phase_map[current]
+            results.append(result)
+
+        call_idx = {"i": 0}
+
+        def fake_apply(team, task, critic, memory):
+            res = results[call_idx["i"]]
+            call_idx["i"] += 1
+            return res
+
+        monkeypatch.setattr(
+            reasoning_loop_module,
+            "_apply_dialectical_reasoning",
+            fake_apply,
+        )
+
+        recorded: list[Phase] = []
+
+        class Recorder:
+            def record_expand_results(self, result):
+                recorded.append(Phase.EXPAND)
+                return result
+
+            def record_differentiate_results(self, result):
+                recorded.append(Phase.DIFFERENTIATE)
+                return result
+
+            def record_refine_results(self, result):
+                recorded.append(Phase.REFINE)
+                return result
+
+        reasoning_loop_module.reasoning_loop(
+            MagicMock(),
+            {},
+            MagicMock(),
+            coordinator=Recorder(),
+            phase=Phase.EXPAND,
+            max_iterations=len(next_phases),
+        )
+
+        assert recorded == expected
 
     check()

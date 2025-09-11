@@ -11,7 +11,6 @@ How to use this document:
 | Module pattern | Current relaxations | Owner | Issue link | Target date | Status |
 |---|---|---|---|---|---|
 | devsynth.application.cli.commands.inspect_code_cmd | disallow_untyped_defs=false, check_untyped_defs=false | TBD | [restore-strict-typing-inspect-code-cmd.md](restore-strict-typing-inspect-code-cmd.md) | 2025-10-01 | open |
-| devsynth.methodology.edrr.reasoning_loop | disallow_untyped_defs=false, check_untyped_defs=false | TBD | [restore-strict-typing-edrr-reasoning-loop.md](restore-strict-typing-edrr-reasoning-loop.md) | 2025-10-01 | open |
 | devsynth.feature_markers | disallow_untyped_defs=false, check_untyped_defs=false | TBD | [restore-strict-typing-feature-markers.md](restore-strict-typing-feature-markers.md) | 2025-10-01 | open |
 | devsynth.core.mvu.* | disallow_untyped_defs=false, check_untyped_defs=false, ignore_missing_imports=true | TBD | [restore-strict-typing-core-mvu.md](restore-strict-typing-core-mvu.md) | 2025-10-01 | open |
 | devsynth.application.documentation.* | ignore_errors=true | TBD | [restore-strict-typing-application-documentation.md](restore-strict-typing-application-documentation.md) | 2025-10-01 | open |
@@ -32,3 +31,4 @@ Notes:
 - This table is seeded automatically from pyproject.toml relaxations as of 2025-09-02. Keep it updated as overrides are narrowed or removed.
 - Add TODO comments in modules when touching code to remind about the strictness restoration deadline.
 - 2025-09-10: Removed the mypy override for `devsynth.cli` after upgrading Typer to a typed release.
+- 2025-09-11: Removed the mypy override for `devsynth.methodology.edrr.reasoning_loop` after adding type annotations.
