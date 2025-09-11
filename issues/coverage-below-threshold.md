@@ -1,4 +1,5 @@
 # Coverage below threshold
+Status: closed
 
 ## Summary
 Coverage run using `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest --cov=src/devsynth --cov-report=term --cov-report=html -q` fails with numerous test failures, preventing generation of a complete coverage report and verifying the ≥90% requirement.
