@@ -66,6 +66,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 6.2.2 [x] `poetry run devsynth run-tests --speed=medium --segment --segment-size 100 --no-parallel 2>&1 | tee test_reports/seg_medium_1.log`
 6.2.3 [x] `poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json`
 6.3 [ ] Verify global threshold: ensure combined coverage >=90% with pytest.ini fail-under.
+6.3.1 [ ] Investigate missing coverage data after smoke run; ensure coverage is captured before threshold validation.
 6.4 [x] Save logs to test_reports/ and artifacts to htmlcov/ and coverage.json.
 
 7. Behavior and Integration Completeness (Phase 3)
