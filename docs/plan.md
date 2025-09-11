@@ -244,6 +244,8 @@ Acceptance checklist
 Maintainer quickstart (authoritative commands)
 - Setup:
   poetry install --with dev --all-extras
+  bash scripts/install_dev.sh  # installs go-task to $HOME/.local/bin
+  task --version  # verify go-task is on PATH; add $HOME/.local/bin if missing
   poetry run devsynth doctor
 - Fast smoke sanity:
   poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
@@ -266,3 +268,4 @@ Notes and next actions
 - 2025-09-19: `devsynth` package initially missing; reran `poetry install --with dev --all-extras` to restore CLI. Smoke and property tests pass; flake8 and bandit still failing; coverage aggregation (tasks 6.3, 13.3) pending.
 - 2025-09-30: `task --version` not found; smoke run produced no coverage data (`coverage report --fail-under=90` → "No data to report"); flake8 and bandit scans still failing.
 - 2025-10-01: `poetry install --with dev --all-extras` restored the `devsynth` CLI; smoke run reported "Tests completed successfully" but `task --version` remains missing and coverage thresholds are still unverified.
+- 2025-10-02: `bash scripts/install_dev.sh` installed go-task; `task --version` now reports 3.44.1 and PATH includes `$HOME/.local/bin`.
