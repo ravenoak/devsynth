@@ -74,3 +74,18 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - Install go-task or add to PATH.
   - Ensure run-tests captures coverage before verifying threshold.
   - Address lint and Bandit findings; pursue coverage ≥90%.
+
+## Iteration 2025-10-01
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Commands:
+  - `poetry install --with dev --all-extras` – restored `devsynth` CLI.
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – Tests completed successfully.
+  - `poetry run python tests/verify_test_organization.py` – 914 test files detected.
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` – issues=0.
+  - `poetry run python scripts/verify_requirements_traceability.py` – silent success.
+  - `poetry run python scripts/verify_version_sync.py` – OK 0.1.0a1.
+  - `task --version` – command not found.
+- Observations: go-task binary still absent; coverage thresholds remain unverified.
+- Next:
+  - Install go-task or ensure `$HOME/.local/bin` is on PATH.
+  - Generate and check combined coverage ≥90%.

@@ -21,6 +21,7 @@ Test execution halts early due to failing tests, and coverage percentage cannot 
 - 2025-09-27: Segmented coverage run executed for fast and medium tests, combined via `coverage combine`; HTML and JSON reports archived outside version control (`coverage-artifacts.tar.gz`). Threshold still unverified.
 - 2025-09-28: Combined report `coverage report --fail-under=90` returned 5% total coverage, confirming the ≥90% requirement is unmet.
 - 2025-09-30: `poetry run coverage report --fail-under=90` after smoke run reported "No data to report"; coverage instrumentation missing.
+- 2025-10-01: After reinstalling dependencies, `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` completed but produced only "Tests completed successfully" without coverage data.
 
 ## Coverage Gap Analysis
 
