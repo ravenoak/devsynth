@@ -14,6 +14,7 @@ Dependencies: scripts/install_dev.sh
 
 ## Progress
 - 2025-09-30: Detected absence of `task` CLI during environment validation.
+- 2025-10-01: `task --version` still reports command not found after `poetry install`.
 
 ## References
 - docs/plan.md section on environment baseline
