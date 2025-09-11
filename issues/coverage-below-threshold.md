@@ -20,3 +20,35 @@ Test execution halts early due to failing tests, and coverage percentage cannot 
 - 2025-09-19: `devsynth` installed; smoke and property tests pass. Full coverage run not executed this iteration; threshold remains unverified.
 - 2025-09-27: Segmented coverage run executed for fast and medium tests, combined via `coverage combine`; HTML and JSON reports archived outside version control (`coverage-artifacts.tar.gz`). Threshold still unverified.
 - 2025-09-28: Combined report `coverage report --fail-under=90` returned 5% total coverage, confirming the ≥90% requirement is unmet.
+
+## Coverage Gap Analysis
+
+Recent exploratory run with `pytest --cov=src/devsynth --cov-report=term-missing --continue-on-collection-errors` produced a valid report showing an aggregate 20 % coverage across `src/devsynth` (38 918 statements, 31 100 missed)【50587d†L1】. The table below highlights representative files requiring substantial attention:
+
+| Module | Stmts | Cover | Additional lines to reach 90 % | Key missing regions |
+| --- | --- | --- | --- | --- |
+| `adapters/provider_system.py` | 675 | 12 % | ≈526 | `55`, `60‑85`, `90`, `106‑151`, `178‑321`, `335‑350`, `354‑361`, `378`, `466‑467`, `496‑497`, `503‑509`, `520‑521`, `532`, `541‑545`, `548`, `570‑591`, `595‑600`, `604`, `640‑710`, `720‑827`, `837‑843`, `864‑910`, `914‑995`, `1015‑1044`, `1051‑1056`, `1060`, `1096‑1171`, `1183‑1295`, `1305‑1311`, `1332‑1378`, `1384‑1460`, `1474‑1493`, `1500‑1523`, `1527`, `1530‑1538`, `1543‑1571`, `1583‑1606`, `1620‑1643`, `1649‑1666`, `1672‑1689`, `1708‑1711`, `1738‑1751`, `1770‑1779`, `1796‑1798`, `1812‑1821`【168681†L1-L3】 |
+| `interface/webui.py` | 1053 | 10 % | ≈839 | `51‑59`, `64‑65`, `119‑123`, `202‑227`, `254‑318`, `331‑336`, `339`, `351‑446`, `458`, `469‑494`, `566`, `577‑627`, `631‑644`, `648‑701`, `711‑731`, `735‑744`, `757‑777`, `781‑794`, `806‑815`, `823‑834`, `840`, `847‑869`, `873‑985`, `989‑999`, `1005‑1029`, `1052‑1090`, `1107‑1248`, `1253‑1384`, `1391‑1392`, `1397‑1414`, `1419‑1429`, `1434‑1505`, `1518‑1556`, `1560‑1594`, `1603‑1659`, `1667‑1749`, `1757‑1813`, `1817‑1835`, `1839‑1866`, `1870‑1895`, `1899‑1922`, `1926‑1951`, `1955‑1977`, `1981‑2004`, `2008‑2033`, `2037‑2062`, `2066‑2079`, `2083‑2103`, `2107‑2121`, `2125‑2145`, `2149‑2162`, `2166‑2191`, `2198‑2373`, `2378`【66a050†L1-L3】 |
+| `interface/output_formatter.py` | 258 | 22 % | ≈176 | `110‑120`, `131‑148`, `164‑198`, `207‑221`, `229`, `241‑254`, `269‑279`, `294‑354`, `368‑399`, `411‑427`, `441‑456`, `470‑496`, `509‑512`, `527‑541`, `553‑558`, `577‑584`【7d791d†L1-L2】 |
+| `interface/webui_bridge.py` | 205 | 19 % | ≈147 | `29`, `45‑50`, `67‑99`, `103`, `116‑130`, `142‑154`, `162‑171`, `191‑216`, `235‑294`, `303‑314`, `325‑326`, `350‑371`, `390‑423`, `447‑450`, `465‑468`, `474‑500`, `514`, `534`, `551`【aaa475†L1-L2】 |
+| `logging_setup.py` | 243 | 38 % | ≈126 | `68`, `72‑76`, `80`, `83‑84`, `88‑94`, `108‑113`, `123‑180`, `198‑201`, `206‑207`, `217‑219`, `229‑232`, `255‑304`, `328‑457`, `498‑503`, `531`, `534‑538`, `542`, `544`, `546`, `548`, `566`, `570`, `574‑575`【d6b265†L1-L4】 |
+| `methodology/edrr/reasoning_loop.py` | 79 | 14 % | ≈61 | `24`, `54‑178`【fc6bba†L1-L2】 |
+| `testing/run_tests.py` | 277 | 7 % | ≈230 | `29‑31`, `39‑71`, `92‑102`, `123‑327`, `364‑619`【95c072†L1-L2】 |
+| `ports/requirement_port.py` | 114 | 70 % | ≈23 | `33`, `43`, `56`, `69`, `82`, `95`, `112`, `127`, `140`, `153`, `170`, `185`, `198`, `215`, `230`, `243`, `260`, `273`, `286`, `299`, `312`, `332`, `349`, `365`, `381`, `395`, `405`, `415`, `425`, `444`, `460`, `473`, `486`, `499`【1746f7†L1-L3】 |
+
+## Dialectical Examination
+
+- **Thesis:** Raising coverage above 90 % yields higher confidence in system behavior and eases regression detection.
+- **Antithesis:** Pursuing coverage mechanically may overlook critical paths or encourage brittle tests.
+- **Synthesis:** Combine quantitative targets with qualitative review—prioritize meaningful scenarios, refactor for testability, and retire obsolete code.
+
+## Socratic Action Plan
+
+1. **Question:** *Which behaviors are untested in the largest modules?*
+   **Answer:** The regions listed above show unexercised branches; each deserves targeted unit or integration tests.
+2. **Question:** *What dependencies block execution?*
+   **Answer:** Missing optional packages (`faiss`, `chromadb`) halted collection; installing dev extras or guarding imports enables broader test execution.
+3. **Question:** *How can cross-discipline practices help?*
+   **Answer:** Pair TDD with static analysis and design reviews, leveraging QA expertise to craft acceptance criteria that map to the uncovered lines.
+4. **Question:** *What proves success?*
+   **Answer:** A rerun of the coverage command with `--fail-under=90` passing, coupled with peer-reviewed test cases covering the highlighted regions.
