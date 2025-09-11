@@ -90,7 +90,7 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - Install go-task or ensure `$HOME/.local/bin` is on PATH.
   - Generate and check combined coverage ≥90%.
 
-## Iteration 2025-10-02
+## Iteration 2025-09-11
 - Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
 - Installation: `bash scripts/install_dev.sh` to install go-task 3.44.1; `poetry install --with dev --all-extras`.
 - Commands:

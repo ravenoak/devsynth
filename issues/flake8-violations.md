@@ -21,8 +21,8 @@ Next Actions:
   - [x] Audit and fix flake8 warnings in tests
 
 Progress:
-- 2025-10-01: `poetry run flake8 src/ tests/` still reports E501/F401/F841; issue reopened.
-- 2025-10-02: flake8 passes with no E501/F401/F841 warnings.
+- 2025-09-10: `poetry run flake8 src/ tests/` still reports E501/F401/F841; issue reopened.
+- 2025-09-11: flake8 passes with no E501/F401/F841 warnings.
 
 Resolution Evidence:
   - `poetry run flake8 src tests`
