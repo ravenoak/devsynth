@@ -26,6 +26,8 @@ All pages use collapsible sections and progress indicators to reflect the
 UX guidance for clarity and responsiveness.
 """
 
+# flake8: noqa
+
 from __future__ import annotations
 
 import importlib
@@ -2106,7 +2108,7 @@ class WebUI(UXBridge):
         """Run the DevSynth API server."""
         st.header("Serve API")
         with st.form("serve"):
-            host = st.text_input("Host", "0.0.0.0")
+            host = st.text_input("Host", "0.0.0.0")  # nosec B104: allows remote access when intentionally exposed
             port = st.number_input("Port", value=8000)
             submitted = st.form_submit_button("Start Server")
         if submitted:

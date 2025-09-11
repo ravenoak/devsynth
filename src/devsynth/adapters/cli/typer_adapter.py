@@ -76,14 +76,14 @@ def completion_cmd(
     prog_name = "devsynth"
     complete_var = f"_{prog_name}_COMPLETE".replace("-", "_").upper()
     script = typer_completion.get_completion_script(
-        prog_name=prog_name, complete_var=complete_var, shell=shell_name
+        prog_name=prog_name, complete_var=complete_var, shell=shell_name  # nosec B604: shell arg specifies completion target
     )
     progress.update(status="script generated", advance=1)
 
     if install:
         if path is None:
             _, target_path = typer_completion.install(
-                shell=shell_name, prog_name=prog_name, complete_var=complete_var
+                shell=shell_name, prog_name=prog_name, complete_var=complete_var  # nosec B604: shell arg specifies completion target
             )
         else:
             target_path = path
@@ -290,7 +290,7 @@ def build_app() -> typer.Typer:
         ),
         path: Path | None = typer.Option(None, "--path", help="Installation path"),
     ) -> None:
-        completion_cmd(shell=shell, install=install, path=path)
+        completion_cmd(shell=shell, install=install, path=path)  # nosec B604: shell arg selects completion target
 
     @app.callback(invoke_without_command=True)
     def main(
