@@ -20,5 +20,8 @@ Next Actions:
   - [ ] Review high-severity findings and apply fixes or justifications
   - [ ] Document accepted risks or suppressions as appropriate
 
+Progress:
+  - 2025-09-30: Re-ran bandit scan; 158 low and 12 medium issues persist.
+
 Resolution Evidence:
   - Pending
