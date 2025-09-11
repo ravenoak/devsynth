@@ -25,3 +25,4 @@ Progress:
 
 Resolution Evidence:
   - 2025-09-11 bandit scan clean (`poetry run bandit -r src -ll`)
+Related Task: [docs/tasks.md item 11.9.2](../docs/tasks.md)

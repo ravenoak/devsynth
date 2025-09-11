@@ -14,4 +14,5 @@ Next Actions:
   - [x] Retry poetry install after adjustment.
 Resolution Evidence:
   - diagnostics/poetry_install_hang.txt shows successful install
+Related Task: [docs/tasks.md item 1.6](../docs/tasks.md)
 ---

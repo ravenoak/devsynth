@@ -15,3 +15,4 @@ Next Actions:
   - [x] Rerun `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`.
 Resolution Evidence:
   - [test_reports/test_first_metrics.log](../test_reports/test_first_metrics.log)
+Related Task: [docs/tasks.md item 11.8](../docs/tasks.md)

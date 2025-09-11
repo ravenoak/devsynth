@@ -16,10 +16,10 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 1.5.3 [x] `poetry run pip freeze | tee diagnostics/pip_freeze.txt`
 1.5.4 [x] `poetry run devsynth doctor | tee diagnostics/doctor_run.txt`
 1.5.5 [x] `date -u '+%Y-%m-%dT%H:%M:%SZ' | tee diagnostics/run_timestamp_utc.txt`
-1.6 [x] Investigate `poetry install --with dev --all-extras` hanging on `nvidia/__init__.py` (Issue: poetry-install-nvidia-loop.md).
+1.6 [x] Investigate `poetry install --with dev --all-extras` hanging on `nvidia/__init__.py` (Issue: [poetry-install-nvidia-loop.md](../issues/poetry-install-nvidia-loop.md)).
 1.7 [x] Resolve scripts/codex_setup.sh version mismatch (project 0.1.0a1 vs expected 0.1.0-alpha.1).
 1.8 [x] Ensure `devsynth` CLI entry point is installed; run `poetry install --with dev --all-extras` if missing.
-1.9 [x] Ensure `task` CLI is available on the PATH: run `task --version`; if missing, run `bash scripts/install_dev.sh` and add `$HOME/.local/bin` to PATH.
+1.9 [x] Ensure `task` CLI is available on the PATH: run `task --version`; if missing, run `bash scripts/install_dev.sh` and add `$HOME/.local/bin` to PATH (Issue: [task-cli-missing.md](../issues/task-cli-missing.md)).
 
 2. Property Tests Remediation (Phase 1)
 2.1 [x] Fix Hypothesis misuse in tests/property/test_requirements_consensus_properties.py:
@@ -108,10 +108,10 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 11.5 [x] Add behavior tests asserting presence of ReqID tags in docstrings for a representative subset; provide a small validation tool if needed.
 11.6 [x] Audit typing_relaxations_tracking.md and schedule restorations in Phase 4 (issue links added).
 11.7 [x] Closed redundant typing tickets: methodology-sprint, domain-models-requirement, adapters-requirements.
-11.8 [x] Resolved run-tests missing test_first_metrics file; see test_reports/test_first_metrics.log.
-11.9 [x] Guardrails suite failures persist; flake8-violations.md and bandit-findings.md remain open.
-11.9.1 [x] Regenerate flake8 report and resolve E501/F401 in tests/unit/testing/test_run_tests_module.py and related files.
-11.9.2 [x] Review bandit scan (158 low, 0 medium) and address or justify findings.
+11.8 [x] Resolved run-tests missing test_first_metrics file; see test_reports/test_first_metrics.log (Issue: [run-tests-missing-test-first-metrics-file.md](../issues/run-tests-missing-test-first-metrics-file.md)).
+11.9 [x] Guardrails suite resolved; see [flake8-violations.md](../issues/flake8-violations.md) and [bandit-findings.md](../issues/bandit-findings.md).
+11.9.1 [x] Regenerate flake8 report and resolve E501/F401 in tests/unit/testing/test_run_tests_module.py and related files (Issue: [flake8-violations.md](../issues/flake8-violations.md)).
+11.9.2 [x] Review bandit scan (158 low, 0 medium) and address or justify findings (Issue: [bandit-findings.md](../issues/bandit-findings.md)).
 
 12. Risk Management and Mitigations
 12.1 [x] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable:
