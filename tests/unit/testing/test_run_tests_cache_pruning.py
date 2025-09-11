@@ -9,6 +9,7 @@ from devsynth.testing.run_tests import COLLECTION_CACHE_DIR, collect_tests_with_
 
 @pytest.mark.fast
 def test_prunes_nonexistent_paths_and_uses_cache(tmp_path, monkeypatch):
+    """ReqID: CACHE-PRUNE-1"""
     # Prepare a fake cache with a nonexistent test path and an existent one
     os.makedirs(COLLECTION_CACHE_DIR, exist_ok=True)
     cache_file = os.path.join(COLLECTION_CACHE_DIR, "unit-tests_all_tests.json")
@@ -38,7 +39,8 @@ def test_prunes_nonexistent_paths_and_uses_cache(tmp_path, monkeypatch):
 
     # Monkeypatch TTL to be huge so cache would be used if fingerprint matches
     monkeypatch.setenv("DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS", "999999")
-    # Force fingerprint mismatch by changing latest_mtime via monkeypatching os.path.getmtime
+    # Force fingerprint mismatch by changing latest_mtime via
+    # monkeypatching os.path.getmtime
     original_getmtime = os.path.getmtime
 
     def fake_getmtime(path):

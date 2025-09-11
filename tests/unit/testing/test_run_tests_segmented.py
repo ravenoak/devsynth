@@ -1,4 +1,3 @@
-import itertools
 from types import SimpleNamespace
 
 import pytest
@@ -9,7 +8,8 @@ from devsynth.testing.run_tests import run_tests
 @pytest.mark.fast
 @pytest.mark.requires_resource("codebase")
 def test_run_tests_segmented_batches_execute(monkeypatch):
-    """
+    """ReqID: RUN-TESTS-SEGMENTED-1
+
     Cover the segmented execution branch: when speed_categories are provided and
     segment=True, run_tests should execute tests in batches via Popen.
     """

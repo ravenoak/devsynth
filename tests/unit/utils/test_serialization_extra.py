@@ -1,5 +1,4 @@
 import json
-import os
 
 import pytest
 
@@ -13,6 +12,7 @@ from devsynth.utils.serialization import (
 
 @pytest.mark.fast
 def test_dumps_and_loads_deterministic_round_trip_unicode_and_newline():
+    """ReqID: SERIALIZE-EXTRA-1"""
     obj = {"b": 2, "a": "☃"}
     s = dumps_deterministic(obj)
     # Deterministic properties
@@ -26,6 +26,7 @@ def test_dumps_and_loads_deterministic_round_trip_unicode_and_newline():
 
 @pytest.mark.fast
 def test_dump_and_load_file_round_trip_handles_utf8(tmp_path):
+    """ReqID: SERIALIZE-EXTRA-2"""
     path = tmp_path / "data.json"
     payload = {"greeting": "こんにちは", "n": 3}
     dump_to_file(str(path), payload)
@@ -39,6 +40,7 @@ def test_dump_and_load_file_round_trip_handles_utf8(tmp_path):
 
 @pytest.mark.fast
 def test_loads_accepts_without_trailing_newline():
+    """ReqID: SERIALIZE-EXTRA-3"""
     obj = {"k": 1}
     s = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     # No newline on purpose

@@ -1,6 +1,4 @@
 import sys
-from types import SimpleNamespace
-from typing import List
 
 import pytest
 
@@ -23,7 +21,12 @@ def test_run_tests_lmstudio_keyword_filter_with_no_matches_returns_success(monke
             self.stderr = ""
             self.returncode = returncode
 
-    def fake_run(cmd: list[str], check: bool = False, capture_output: bool = True, text: bool = True):  # type: ignore[no-redef]
+    def fake_run(
+        cmd: list[str],
+        check: bool = False,
+        capture_output: bool = True,
+        text: bool = True,
+    ):  # type: ignore[no-redef]
         # Ensure we're calling a python -m pytest command with '--collect-only'
         assert cmd[:3] == [sys.executable, "-m", "pytest"], cmd
         assert "--collect-only" in cmd

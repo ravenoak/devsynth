@@ -1,5 +1,3 @@
-from types import SimpleNamespace
-
 import pytest
 
 from devsynth.testing.run_tests import run_tests
@@ -7,7 +5,8 @@ from devsynth.testing.run_tests import run_tests
 
 @pytest.mark.fast
 def test_run_tests_parallel_adds_no_cov_and_n_auto(monkeypatch):
-    """
+    """ReqID: RUN-TESTS-PARALLEL-1
+
     When parallel=True and no explicit node ids are collected (single-pass branch),
     run_tests should include '-n auto' and '--no-cov' in the pytest command.
     """

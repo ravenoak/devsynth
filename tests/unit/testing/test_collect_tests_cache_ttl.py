@@ -1,7 +1,5 @@
 import json
-import os
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import pytest
 
@@ -11,6 +9,7 @@ from devsynth.testing.run_tests import collect_tests_with_cache
 @pytest.mark.fast
 @pytest.mark.requires_resource("codebase")
 def test_cache_uses_fresh_cache_without_subprocess_call(tmp_path, monkeypatch):
+    """ReqID: CACHE-TTL-1"""
     # Arrange isolated tests dir and cache dir
     tests_dir = tmp_path / "isolated_tests_fresh"
     tests_dir.mkdir(parents=True, exist_ok=True)
@@ -62,6 +61,7 @@ def test_cache_uses_fresh_cache_without_subprocess_call(tmp_path, monkeypatch):
 @pytest.mark.fast
 @pytest.mark.requires_resource("codebase")
 def test_cache_ttl_expired_triggers_subprocess_and_refresh(tmp_path, monkeypatch):
+    """ReqID: CACHE-TTL-2"""
     # Arrange isolated tests dir and cache dir
     tests_dir = tmp_path / "isolated_tests_ttl"
     tests_dir.mkdir(parents=True, exist_ok=True)
@@ -82,9 +82,11 @@ def test_cache_ttl_expired_triggers_subprocess_and_refresh(tmp_path, monkeypatch
     # Expire quickly: TTL = 1 second
     monkeypatch.setenv("DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS", "1")
     # Re-import TTL constant by reloading module-level var
-    # Note: the module reads TTL at import; our code in run_tests.py guards ValueError and sets default.
-    # For simplicity we won't force re-import; collect_tests_with_cache reads the env only at import
-    # time for TTL, but it uses the module-level int COLLECTION_CACHE_TTL_SECONDS.
+    # Note: the module reads TTL at import; our code in run_tests.py guards
+    # ValueError and sets default.
+    # For simplicity we won't force re-import. collect_tests_with_cache reads
+    # the env only at import time for TTL, but it uses the module-level int
+    # COLLECTION_CACHE_TTL_SECONDS.
     # We'll monkeypatch that directly for this test.
     monkeypatch.setattr(rt, "COLLECTION_CACHE_TTL_SECONDS", 1)
 
