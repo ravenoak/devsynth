@@ -1,9 +1,8 @@
 import asyncio
-import json
 import os
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 import pytest
 import requests
 
@@ -18,7 +17,6 @@ from devsynth.adapters.provider_system import (
     get_env_or_default,
     get_provider_config,
 )
-from devsynth.fallback import retry_with_exponential_backoff
 
 # Do not use import-time gating; tests are fully mocked/offline by default.
 # Resource gating is applied only in truly live-provider tests.
@@ -488,9 +486,18 @@ def test_openai_provider_embed_has_expected(mock_post):
     assert kwargs["json"]["input"] == ["Test text"]
 
 
+@patch(
+    "devsynth.adapters.provider_system.TLSConfig.as_requests_kwargs",
+    return_value={"timeout": 1},
+)
+@patch(
+    "devsynth.adapters.provider_system.TLSConfig.as_requests_kwargs",
+    return_value={},
+)
+@patch("requests.get")
 @patch("requests.post")
 @pytest.mark.medium
-def test_lmstudio_provider_complete_has_expected(mock_post):
+def test_lmstudio_provider_complete_has_expected(mock_post, mock_get, mock_tls):
     """Test the complete method of LMStudioProvider.
 
     ReqID: N/A"""
@@ -500,6 +507,7 @@ def test_lmstudio_provider_complete_has_expected(mock_post):
         "choices": [{"message": {"content": "LM Studio completion"}}]
     }
     mock_post.return_value = mock_response
+    mock_get.return_value.status_code = 200
     provider = LMStudioProvider(endpoint="http://test-endpoint")
     result = provider.complete("Test prompt", system_prompt="System prompt")
     assert result == "LM Studio completion"
@@ -556,13 +564,21 @@ def test_provider_with_empty_inputs_has_expected():
         assert result == "Empty prompt response"
         args, kwargs = mock_post.call_args
         assert kwargs["json"]["messages"][0]["content"] == ""
-    with patch("requests.post") as mock_post:
+    with (
+        patch("requests.post") as mock_post,
+        patch("devsynth.adapters.provider_system.requests.get") as mock_get,
+        patch(
+            "devsynth.adapters.provider_system.TLSConfig.as_requests_kwargs",
+            return_value={},
+        ),
+    ):
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
             "choices": [{"message": {"content": "Empty prompt response"}}]
         }
         mock_post.return_value = mock_response
+        mock_get.return_value.status_code = 200
         provider = LMStudioProvider()
         result = provider.complete("")
         assert result == "Empty prompt response"
@@ -570,7 +586,9 @@ def test_provider_with_empty_inputs_has_expected():
 
 @pytest.mark.medium
 def test_provider_factory_injected_config_selects_provider():
-    """ProviderFactory should respect injected configuration."""
+    """ProviderFactory should respect injected configuration.
+
+    ReqID: N/A"""
     custom_config = {
         "default_provider": "openai",
         "openai": {"api_key": "x", "model": "gpt-4", "base_url": "http://api"},
@@ -583,17 +601,27 @@ def test_provider_factory_injected_config_selects_provider():
             "jitter": False,
         },
     }
-    provider = ProviderFactory.create_provider("openai", config=custom_config)
-    assert isinstance(provider, OpenAIProvider)
-    provider = ProviderFactory.create_provider("lmstudio", config=custom_config)
-    assert isinstance(provider, LMStudioProvider)
-    provider = ProviderFactory.create_provider(config=custom_config)
-    assert isinstance(provider, OpenAIProvider)
+    with (
+        patch("devsynth.adapters.provider_system.requests.get") as mock_get,
+        patch(
+            "devsynth.adapters.provider_system.TLSConfig.as_requests_kwargs",
+            return_value={},
+        ),
+    ):
+        mock_get.return_value.status_code = 200
+        provider = ProviderFactory.create_provider("openai", config=custom_config)
+        assert isinstance(provider, OpenAIProvider)
+        provider = ProviderFactory.create_provider("lmstudio", config=custom_config)
+        assert isinstance(provider, LMStudioProvider)
+        provider = ProviderFactory.create_provider(config=custom_config)
+        assert isinstance(provider, OpenAIProvider)
 
 
 @pytest.mark.medium
 def test_fallback_provider_respects_order(monkeypatch):
-    """FallbackProvider should instantiate providers based on order."""
+    """FallbackProvider should instantiate providers based on order.
+
+    ReqID: N/A"""
     created: list[str] = []
 
     class FakeFactory:
@@ -617,3 +645,118 @@ def test_fallback_provider_respects_order(monkeypatch):
     fallback = FallbackProvider(config=config, provider_factory=FakeFactory)
     assert created == ["openai", "lmstudio"]
     assert len(fallback.providers) == 2
+
+
+@patch("devsynth.adapters.provider_system.requests.post")
+@patch("time.sleep", return_value=None)
+@pytest.mark.medium
+def test_openai_provider_retries_after_transient_failure(mock_sleep, mock_post):
+    """OpenAIProvider retries once on transient failure.
+
+    ReqID: N/A"""
+
+    success_response = MagicMock()
+    success_response.status_code = 200
+    success_response.json.return_value = {"choices": [{"message": {"content": "ok"}}]}
+    success_response.raise_for_status.return_value = None
+    mock_post.side_effect = [
+        requests.exceptions.RequestException("boom"),
+        success_response,
+    ]
+    provider = OpenAIProvider(
+        api_key="k",
+        model="gpt-4",
+        retry_config={
+            "max_retries": 1,
+            "initial_delay": 0,
+            "exponential_base": 2,
+            "max_delay": 1,
+            "jitter": False,
+        },
+    )
+    result = provider.complete("hello")
+    assert result == "ok"
+    assert mock_post.call_count == 2
+
+
+@pytest.mark.medium
+def test_fallback_provider_circuit_breaker_blocks_after_failure():
+    """Circuit breaker prevents repeated failing calls.
+
+    ReqID: N/A"""
+
+    failing = MagicMock(spec=BaseProvider)
+    failing.complete.side_effect = ProviderError("fail")
+
+    class FailFactory:
+        @staticmethod
+        def create_provider(provider_type: str, **kwargs):
+            return failing
+
+    config = {
+        "fallback": {"enabled": True, "order": ["base"]},
+        "circuit_breaker": {
+            "enabled": True,
+            "failure_threshold": 1,
+            "recovery_timeout": 60.0,
+        },
+        "retry": {
+            "max_retries": 1,
+            "initial_delay": 0,
+            "exponential_base": 2,
+            "max_delay": 1,
+            "jitter": False,
+        },
+    }
+    fb = FallbackProvider(config=config, provider_factory=FailFactory)
+    with pytest.raises(ProviderError):
+        fb.complete("prompt")
+    assert failing.complete.call_count == 1
+    assert fb.circuit_breakers["base"].state == "OPEN"
+    with pytest.raises(ProviderError):
+        fb.complete("prompt")
+    assert failing.complete.call_count == 1
+
+
+@pytest.mark.medium
+def test_complete_falls_back_to_next_provider():
+    """Top-level complete falls back when first provider fails.
+
+    ReqID: N/A"""
+
+    provider1 = MagicMock(spec=BaseProvider)
+    provider1.complete.side_effect = ProviderError("nope")
+    provider2 = MagicMock(spec=BaseProvider)
+    provider2.complete.return_value = "second"
+
+    def create_provider_side_effect(ptype: str, **_: Any):
+        return provider1 if ptype == "openai" else provider2
+
+    config = {
+        "default_provider": "openai",
+        "openai": {"api_key": "x", "model": "gpt-4"},
+        "lmstudio": {"endpoint": "http://lm", "model": "default"},
+        "retry": {
+            "max_retries": 1,
+            "initial_delay": 0,
+            "exponential_base": 2,
+            "max_delay": 1,
+            "jitter": False,
+        },
+        "fallback": {"enabled": True, "order": ["openai", "lmstudio"]},
+        "circuit_breaker": {"enabled": False},
+    }
+
+    provider_system.get_provider_config.cache_clear()
+    with (
+        patch.object(provider_system, "get_provider_config", return_value=config),
+        patch.object(
+            provider_system.ProviderFactory,
+            "create_provider",
+            side_effect=create_provider_side_effect,
+        ),
+    ):
+        result = provider_system.complete("prompt", fallback=True)
+    assert result == "second"
+    provider1.complete.assert_called_once()
+    provider2.complete.assert_called_once()

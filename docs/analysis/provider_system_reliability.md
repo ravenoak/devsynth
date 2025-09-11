@@ -44,7 +44,17 @@ success 9906 fail 94 cb_opens 31
 
 Observed success rate (99.06 %) closely matches the theoretical value `1 - 0.3^4 ≈ 99.19 %`, while the breaker opened 31 times (≈0.31 %) as only a subset of failure sequences reached the threshold because retries reset the failure counter.
 
+## Proof of reliability
+
+Let `p` denote the probability that a single provider call fails independently, `r` the maximum number of retries, and `k` the circuit‑breaker failure threshold.
+
+* **Overall failure probability.** The system succeeds unless every attempt fails, giving `p^{r+1}` as the chance of an overall failure.
+* **Breaker trip probability.** The circuit breaker trips only after `k` consecutive failures, so the probability of tripping on any run is `p^k`.
+
+For example, with `p = 0.2`, `r = 2`, and `k = 3`, the probability of complete failure is `0.2^3 = 0.008` (0.8 %), yielding a reliability of `1 - 0.008 = 99.2 %`. The breaker trips with the same probability `0.2^3`, demonstrating mathematically that the combined retry and breaker strategy sharply reduces risk.
+
 ## References
 
 * `src/devsynth/application/llm/lmstudio_provider.py`
 * `src/devsynth/fallback.py`
+* [issues/coverage-below-threshold.md](../../issues/coverage-below-threshold.md)
