@@ -84,6 +84,9 @@ Concrete remediation tasks (actionable specifics)
   - test_invalid_marker_expression_errors
   - test_nonexistent_target_exits_with_error
   - Ensure tests validate Typer exit codes and environment side effects without external network calls.
+- WebUI core coverage uplift: add fast unit tests for rendering (mvuu_dashboard),
+  routing (query_router), and formatting (command_output) utilities, targeting
+  ≥70% coverage across these modules.
 
 Critical evaluation of current tests (dialectical + Socratic)
 1) Alignment with 0.1.0a1 requirements
