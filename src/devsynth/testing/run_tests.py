@@ -513,7 +513,14 @@ def run_tests(
             marker_expr = f"({marker_expr}) and ({extra_marker})"
         # Collect matching node IDs to avoid importing unrelated modules
         # that may fail marker checks.
-        collect_cmd = base_cmd + ["-m", marker_expr, "--collect-only", "-q"]
+        collect_cmd = base_cmd + [
+            "-m",
+            marker_expr,
+            "--collect-only",
+            "-q",
+            "-o",
+            "addopts=",
+        ]
         if use_keyword_filter and keyword_expr:
             collect_cmd += ["-k", keyword_expr]
         # Temporarily change CWD to the test path to stabilize relative node ids
