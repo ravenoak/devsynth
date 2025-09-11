@@ -11,7 +11,7 @@ from ..utils import _resolve_bridge
 
 
 def serve_cmd(
-    host: str = "0.0.0.0",
+    host: str = "0.0.0.0",  # nosec B104: default open binding for developer convenience
     port: int = 8000,
     *,
     bridge: Optional[UXBridge] = None,
@@ -29,7 +29,8 @@ def serve_cmd(
         uvicorn.run("devsynth.api:app", host=host, port=port, log_level="info")
     except ImportError:  # pragma: no cover - optional dependency
         bridge.display_result(
-            "[red]Serve command requires the 'uvicorn' package. Install it with 'pip install uvicorn' or use the dev extras.[/red]",
+            "[red]Serve command requires the 'uvicorn' package. "
+            "Install it with 'pip install uvicorn' or use the dev extras.[/red]",
             highlight=False,
         )
     except Exception as err:  # pragma: no cover - defensive

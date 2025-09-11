@@ -31,6 +31,7 @@ class GitHubProjectAdapter:
             self._endpoint,
             json={"query": query, "variables": variables},
             headers=self._headers,
+            timeout=10,
         )
         response.raise_for_status()
         payload = response.json()

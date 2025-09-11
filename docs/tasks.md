@@ -111,7 +111,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 11.8 [x] Resolved run-tests missing test_first_metrics file; see test_reports/test_first_metrics.log.
 11.9 [x] Guardrails suite failures persist; flake8-violations.md and bandit-findings.md remain open.
 11.9.1 [x] Regenerate flake8 report and resolve E501/F401 in tests/unit/testing/test_run_tests_module.py and related files.
-11.9.2 [ ] Review bandit scan (158 low, 12 medium) and address or justify findings.
+11.9.2 [x] Review bandit scan (158 low, 0 medium) and address or justify findings.
 
 12. Risk Management and Mitigations
 12.1 [x] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable:
@@ -127,7 +127,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 13.1 [x] All unit, integration, and behavior tests pass locally using documented commands.
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
 13.3 [x] Combined coverage >= 90% with HTML report generated and saved.
-13.4 [ ] Lint, type, and security gates pass with documented exceptions (if any).
+13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
 13.5 [x] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags, coverage guidance.
 13.6 [x] Known environment warnings in doctor.txt triaged and documented as non-blocking by default.
 

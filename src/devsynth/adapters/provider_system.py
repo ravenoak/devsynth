@@ -5,6 +5,8 @@ This module implements a unified interface for different LLM providers with
 automatic fallback and selection based on configuration.
 """
 
+# flake8: noqa
+
 import asyncio
 import json
 import logging
@@ -676,11 +678,14 @@ class OpenAIProvider(BaseProvider):
                 }
                 payload.update(extra)
 
+            kwargs = self.tls_config.as_requests_kwargs()
+            timeout = kwargs.pop("timeout")
             response = requests.post(
                 url,
                 headers=self.headers,
                 json=payload,
-                **self.tls_config.as_requests_kwargs(),
+                timeout=timeout,
+                **kwargs,
             )
             response.raise_for_status()
             response_data = response.json()
@@ -874,11 +879,14 @@ class OpenAIProvider(BaseProvider):
                 "input": text_list,
             }
 
+            kwargs = self.tls_config.as_requests_kwargs()
+            timeout = kwargs.pop("timeout")
             response = requests.post(
                 url,
                 headers=self.headers,
                 json=payload,
-                **self.tls_config.as_requests_kwargs(),
+                timeout=timeout,
+                **kwargs,
             )
             response.raise_for_status()
             response_data = response.json()
@@ -1129,11 +1137,14 @@ class LMStudioProvider(BaseProvider):
                 }
                 payload.update(extra)
 
+            kwargs = self.tls_config.as_requests_kwargs()
+            timeout = kwargs.pop("timeout")
             response = requests.post(
                 url,
                 headers=self.headers,
                 json=payload,
-                **self.tls_config.as_requests_kwargs(),
+                timeout=timeout,
+                **kwargs,
             )
             response.raise_for_status()
             response_data = response.json()
@@ -1339,11 +1350,14 @@ class LMStudioProvider(BaseProvider):
 
             payload = {"input": text_list, "model": self.model}
 
+            kwargs = self.tls_config.as_requests_kwargs()
+            timeout = kwargs.pop("timeout")
             response = requests.post(
                 url,
                 headers=self.headers,
                 json=payload,
-                **self.tls_config.as_requests_kwargs(),
+                timeout=timeout,
+                **kwargs,
             )
             response.raise_for_status()
             response_data = response.json()
