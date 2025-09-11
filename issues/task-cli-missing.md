@@ -13,9 +13,9 @@ Dependencies: scripts/install_dev.sh
 - [x] Document the requirement in maintainer setup instructions.
 
 ## Progress
-- 2025-09-30: Detected absence of `task` CLI during environment validation.
-- 2025-10-01: `task --version` still reports command not found after `poetry install`.
-- 2025-10-02: Installed go-task via `bash scripts/install_dev.sh`; `task --version` returns 3.44.1 and PATH includes `$HOME/.local/bin`. Maintainer docs updated.
+- 2025-09-09: Detected absence of `task` CLI during environment validation.
+- 2025-09-10: `task --version` still reports command not found after `poetry install`.
+- 2025-09-11: Installed go-task via `bash scripts/install_dev.sh`; `task --version` returns 3.44.1 and PATH includes `$HOME/.local/bin`. Maintainer docs updated.
 
 ## References
 - docs/plan.md section on environment baseline
