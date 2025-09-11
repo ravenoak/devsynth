@@ -244,13 +244,6 @@ disallow_untyped_defs = false
 check_untyped_defs = false
 
 [[tool.mypy.overrides]]
-module = "devsynth.methodology.edrr.reasoning_loop"
-disallow_untyped_defs = false
-check_untyped_defs = false
-
-# Temporary relaxations added by Task 6.3 (Iteration 2025-08-31).
-# TODO: Restore strictness by 2025-10-01.
-[[tool.mypy.overrides]]
 module = "devsynth.feature_markers"
 ignore_errors = true
 

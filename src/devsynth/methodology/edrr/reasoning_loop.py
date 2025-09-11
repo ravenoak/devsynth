@@ -1,15 +1,13 @@
 """Dialectical reasoning loop utilities for EDRR workflows.
 
-NOTE (mypy override): This module currently has relaxed mypy settings per
-pyproject.toml [tool.mypy.overrides] while the API is stabilizing.
-TODO(typing): Re-enable disallow_untyped_defs and check_untyped_defs once
-signatures and coordinator interactions are fully typed. Target: 2025-10-01. See docs/tasks.md (Static analysis).
+The implementation enforces strict typing for consistent static analysis.
 """
 
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from devsynth.domain.models.wsde_dialectical import (
     apply_dialectical_reasoning as _apply_dialectical_reasoning,
@@ -26,20 +24,23 @@ if TYPE_CHECKING:  # avoid runtime circular imports
 logger = DevSynthLogger(__name__)
 
 
+ResultDict = dict[str, Any]
+
+
 def reasoning_loop(
     wsde_team: Any,
-    task: Dict[str, Any],
+    task: dict[str, Any],
     critic_agent: Any,
-    memory_integration: Optional[Any] = None,
+    memory_integration: Any | None = None,
     *,
     phase: Phase = Phase.REFINE,
     max_iterations: int = 3,
-    coordinator: Optional[EDRRCoordinator] = None,
+    coordinator: EDRRCoordinator | None = None,
     retry_attempts: int = 1,
     retry_backoff: float = 0.05,
-    deterministic_seed: Optional[int] = None,
-    max_total_seconds: Optional[float] = None,
-) -> List[Dict[str, Any]]:
+    deterministic_seed: int | None = None,
+    max_total_seconds: float | None = None,
+) -> list[ResultDict]:
     """Iteratively apply dialectical reasoning until completion or failure.
 
     Improvements:
@@ -67,12 +68,12 @@ def reasoning_loop(
 
     start_time = time.monotonic()
 
-    results: List[Dict[str, Any]] = []
-    current_task = task
+    results: list[ResultDict] = []
+    current_task: dict[str, Any] = task
     current_phase: Phase = phase
 
     # Deterministic fallback transition map (keeps refine idempotent by default)
-    phase_transition = {
+    phase_transition: dict[Phase, Phase] = {
         Phase.EXPAND: Phase.DIFFERENTIATE,
         Phase.DIFFERENTIATE: Phase.REFINE,
         Phase.REFINE: Phase.REFINE,
@@ -90,7 +91,7 @@ def reasoning_loop(
         logger.info("Dialectical reasoning iteration %s", iteration + 1)
 
         # Inner retry loop for transient exceptions
-        result: Optional[Dict[str, Any]] = None
+        result: ResultDict | None = None
         stop = False
         attempts = 0
         while True:
@@ -147,7 +148,7 @@ def reasoning_loop(
                 pass
 
         if coordinator is not None:
-            record_map = {
+            record_map: dict[Phase, Callable[[ResultDict], ResultDict]] = {
                 Phase.EXPAND: coordinator.record_expand_results,
                 Phase.DIFFERENTIATE: coordinator.record_differentiate_results,
                 Phase.REFINE: coordinator.record_refine_results,
