@@ -13,9 +13,12 @@ import re
 import sys
 
 
-def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
-    """Return 0 if requirements and specs have code, test, and feature links."""
+def verify_traceability(
+    matrix: pathlib.Path, spec_dir: pathlib.Path
+) -> tuple[list[str], int, int]:
+    """Collect traceability errors and counts for requirements and specs."""
     errors: list[str] = []
+    req_count = 0
     for lineno, line in enumerate(matrix.read_text().splitlines(), start=1):
         if (
             not line.startswith("| FR")
@@ -23,6 +26,7 @@ def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
             and not line.startswith("| IR")
         ):
             continue
+        req_count += 1
         parts = [p.strip() for p in line.split("|")[1:-1]]
         if len(parts) < 6:
             continue
@@ -31,6 +35,7 @@ def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
             errors.append(f"{req_id} missing code reference (line {lineno})")
         if not test_cell or test_cell.lower() == "n/a":
             errors.append(f"{req_id} missing test reference (line {lineno})")
+    spec_count = 0
     for spec in spec_dir.glob("*.md"):
         if spec.name in {"index.md", "spec_template.md"}:
             continue
@@ -45,6 +50,7 @@ def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
                     status = match.group(1).lower()
         if status != "published":
             continue
+        spec_count += 1
         has_code = "src/" in text
         has_test = "tests/" in text
         feature_refs = set(
@@ -55,18 +61,19 @@ def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
         )
         if not has_code:
             errors.append(
-                f"{spec.relative_to(pathlib.Path('.'))} missing code reference"
+                f"{spec.relative_to(pathlib.Path('.'))} missing code reference",
             )
         if not has_test:
             errors.append(
-                f"{spec.relative_to(pathlib.Path('.'))} missing test reference"
+                f"{spec.relative_to(pathlib.Path('.'))} missing test reference",
             )
         if not feature_refs:
             errors.append(
-                f"{spec.relative_to(pathlib.Path('.'))} missing BDD feature reference"
+                f"{spec.relative_to(pathlib.Path('.'))} missing BDD feature reference",
             )
         else:
             repo_root = pathlib.Path(".").resolve()
+            spec_rel = spec.relative_to(pathlib.Path("."))
             for ref in feature_refs:
                 ref_path = pathlib.Path(ref)
                 if ref.startswith("tests/"):
@@ -74,20 +81,16 @@ def verify_traceability(matrix: pathlib.Path, spec_dir: pathlib.Path) -> int:
                 else:
                     feature_path = (spec.parent / ref_path).resolve()
                 if not feature_path.is_file():
+                    missing_feature = feature_path.relative_to(repo_root)
                     errors.append(
-                        f"{spec.relative_to(pathlib.Path('.'))} references missing feature {feature_path.relative_to(repo_root)}"
+                        f"{spec_rel} references missing feature {missing_feature}",
                     )
-
-    if errors:
-        for err in errors:
-            print(err, file=sys.stderr)
-        return 1
-    return 0
+    return errors, req_count, spec_count
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Verify requirements traceability matrix"
+        description="Verify requirements traceability matrix",
     )
     parser.add_argument(
         "matrix",
@@ -102,8 +105,32 @@ def main() -> None:
         default=pathlib.Path("docs/specifications"),
         help="Directory containing specification docs",
     )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="Only print errors",
+    )
     args = parser.parse_args()
-    sys.exit(verify_traceability(args.matrix, args.spec_dir))
+    errors, req_count, spec_count = verify_traceability(args.matrix, args.spec_dir)
+    if errors:
+        for err in errors:
+            print(err, file=sys.stderr)
+        if not args.quiet:
+            print(
+                "Traceability check failed: "
+                f"{len(errors)} issues found across {req_count} requirements "
+                f"and {spec_count} published specs.",
+                file=sys.stdout,
+            )
+        sys.exit(1)
+    if not args.quiet:
+        print(
+            f"Verified {req_count} requirements and {spec_count} published "
+            "specs; all traceability references present.",
+            file=sys.stdout,
+        )
+    sys.exit(0)
 
 
 if __name__ == "__main__":
