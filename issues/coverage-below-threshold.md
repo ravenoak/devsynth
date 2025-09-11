@@ -16,6 +16,7 @@ Test execution halts early due to failing tests, and coverage percentage cannot 
 ## Notes
 - Tasks `docs/tasks.md` items 13.3 and 13.4 remain unchecked pending resolution.
 - Address flake8 lint failures, as they may contribute to test instability.
+- 2025-09-11: `poetry run pytest -q --cov-fail-under=90 -k "nonexistent_to_force_no_tests"` fails during test collection due to missing modules `faiss` and `chromadb`; coverage remains unverified.
 - 2025-09-19: `devsynth` installed; smoke and property tests pass. Full coverage run not executed this iteration; threshold remains unverified.
 - 2025-09-27: Segmented coverage run executed for fast and medium tests, combined via `coverage combine`; HTML and JSON reports archived outside version control (`coverage-artifacts.tar.gz`). Threshold still unverified.
 - 2025-09-28: Combined report `coverage report --fail-under=90` returned 5% total coverage, confirming the ≥90% requirement is unmet.
