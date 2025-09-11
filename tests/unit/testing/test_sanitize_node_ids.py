@@ -5,9 +5,11 @@ from devsynth.testing.run_tests import _sanitize_node_ids
 
 @pytest.mark.fast
 def test_sanitize_node_ids_strips_line_numbers_without_function_selector():
+    """ReqID: SANITIZE-2"""
     raw = [
         "tests/unit/pkg/test_mod.py:123",  # no ::, should strip :123
-        "tests/unit/pkg/test_mod.py::TestClass::test_func:456",  # has ::, must keep :456
+        # has ::, must keep :456
+        "tests/unit/pkg/test_mod.py::TestClass::test_func:456",
         "tests/unit/other/test_file.py:9",
         "tests/unit/pkg/test_mod.py",  # duplicate after stripping should dedupe
     ]
@@ -22,6 +24,7 @@ def test_sanitize_node_ids_strips_line_numbers_without_function_selector():
 
 @pytest.mark.fast
 def test_sanitize_node_ids_preserves_order():
+    """ReqID: SANITIZE-3"""
     raw = [
         "tests/a.py:1",
         "tests/b.py:2",

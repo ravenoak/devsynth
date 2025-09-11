@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import pytest
@@ -14,18 +13,21 @@ from devsynth.utils.serialization import (
 
 @pytest.mark.fast
 def test_dumps_deterministic_round_trip_simple():
+    """ReqID: SERIALIZE-1"""
     obj = {"b": 2, "a": 1, "nested": {"z": [3, 2, 1], "ä": "ü"}}
     s = dumps_deterministic(obj)
     # deterministic: trailing newline present
     assert s.endswith("\n")
     # deterministic: keys sorted (a before b, nested before others)
-    # rather than asserting exact string, ensure that removing newline parses identically
+    # Rather than asserting exact string, ensure that removing newline
+    # parses identically
     parsed = loads(s)
     assert parsed == obj
 
 
 @pytest.mark.fast
 def test_dump_and_load_file_round_trip(tmp_path: Path):
+    """ReqID: SERIALIZE-2"""
     obj = {"x": 1, "y": [1, 2, 3]}
     p = tmp_path / "data.json"
     dump_to_file(str(p), obj)
@@ -40,6 +42,7 @@ def test_dump_and_load_file_round_trip(tmp_path: Path):
 
 @pytest.mark.fast
 def test_provider_env_as_dict_deterministic_serialization():
+    """ReqID: SERIALIZE-3"""
     env = ProviderEnv(provider="stub", offline=True, lmstudio_available=False)
     data = env.as_dict()
     s1 = dumps_deterministic(data)

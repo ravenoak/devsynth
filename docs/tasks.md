@@ -127,7 +127,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 13.1 [x] All unit, integration, and behavior tests pass locally using documented commands.
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
 13.3 [x] Combined coverage >= 90% with HTML report generated and saved.
-13.4 [ ] Lint, type, and security gates pass with documented exceptions (if any).
+13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
 13.5 [x] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags, coverage guidance.
 13.6 [x] Known environment warnings in doctor.txt triaged and documented as non-blocking by default.
 
