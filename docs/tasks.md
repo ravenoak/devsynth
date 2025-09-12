@@ -160,3 +160,9 @@ Notes:
 
 17. Documentation Maintenance
 17.1 [x] Deduplicate historical entries in docs/task_notes.md to keep the iteration log concise.
+
+18. Release Readiness Follow-ups (Phase 7)
+18.1 [ ] Implement release state check feature per docs/specifications/release-state-check.md and add BDD scenarios.
+18.2 [ ] Address high-priority gaps from issues/missing-bdd-tests.md (e.g., agent_api_stub.md, chromadb_store.md).
+18.3 [ ] Review components for missing proofs or simulations and document any gaps.
+18.4 [ ] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
