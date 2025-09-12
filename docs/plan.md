@@ -1,6 +1,6 @@
 # DevSynth 0.1.0a1 Test Readiness and Coverage Improvement Plan
 
-Version: 2025-10-06
+Version: 2025-10-07
 Owner: DevSynth Team (maintainers)
 Status: Execution in progress; install loop closed (2025-09-09); property marker advisories resolved; flake8 and bandit scans resolved (2025-09-11); go-task installed (2025-09-11)
 
@@ -274,3 +274,4 @@ Notes and next actions
 - 2025-10-06: Environment booted without `task` CLI; ran `bash scripts/install_dev.sh` to restore `task --version` 3.44.1.
 - 2025-09-11: `bash scripts/install_dev.sh` installed go-task; `task --version` now reports 3.44.1 and PATH includes `$HOME/.local/bin`.
 - 2025-09-11: flake8 and bandit issues resolved; see issues/flake8-violations.md and issues/bandit-findings.md for closure details.
+- 2025-10-07: Documented go-task installation requirement and opened issue `task-cli-persistence.md` to explore caching or automatic installation.
