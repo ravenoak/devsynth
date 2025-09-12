@@ -13,7 +13,7 @@ Executive summary
  - Property marker verification reports two violations stemming from nested Hypothesis `check` helpers in tests/property/test_reasoning_loop_properties.py; the verifier requires refinement to ignore such helpers or the helpers must be explicitly marked.
  - Property tests (opt-in) reveal 2 failures; must be fixed before release to claim full readiness.
   - Diagnostics indicate environment/config gaps for non-test environments (doctor.txt) used by the app; tests succeed due to defaults and gating, but this requires documentation and guardrails.
-  - Coverage report artifact (htmlcov) shows 20% from a prior run; targeted property-only run showed 8% and triggered coverage threshold failure. The global pytest.ini threshold is 90%, so any authoritative release run must aggregate full-suite coverage.
+  - Coverage report artifact is unavailable (0% reported); targeted property-only run showed 8% and triggered coverage threshold failure. The global pytest.ini threshold is 90%, so any authoritative release run must aggregate full-suite coverage.
 
 Commands executed (audit trail)
 - poetry run pytest --collect-only -q → Collected successfully (very large suite).

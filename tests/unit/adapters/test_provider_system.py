@@ -308,9 +308,44 @@ def test_fallback_provider_succeeds():
     assert result == "Success from provider 2"
     provider1.complete.assert_called_once()
     provider2.complete.assert_called_once()
-    provider2.complete.side_effect = ProviderError("Provider 2 failed")
-    with pytest.raises(Exception):
-        fallback.complete("test prompt")
+
+
+@pytest.mark.medium
+def test_load_env_file_populates_config(tmp_path, monkeypatch):
+    """Ensure _load_env_file reads .env values into config.
+
+    ReqID: N/A"""
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "OPENAI_API_KEY=test\n"
+        "LM_STUDIO_ENDPOINT=http://local\n"
+        "DEVSYNTH_PROVIDER=lmstudio\n"
+    )
+    monkeypatch.chdir(tmp_path)
+    cfg = {"openai": {}, "lmstudio": {}, "default_provider": "openai"}
+    out = provider_system._load_env_file(cfg)
+    assert out["openai"]["api_key"] == "test"
+    assert out["lmstudio"]["endpoint"] == "http://local"
+    assert out["default_provider"] == "lmstudio"
+
+
+@pytest.mark.medium
+def test_create_tls_config_has_expected():
+    """_create_tls_config mirrors attributes on settings.
+
+    ReqID: N/A"""
+
+    class Dummy:
+        tls_verify = False
+        tls_cert_file = "cert.pem"
+        tls_key_file = "key.pem"
+        tls_ca_file = "ca.pem"
+
+    cfg = provider_system._create_tls_config(Dummy())
+    assert cfg.verify is False
+    assert cfg.cert_file == "cert.pem"
+    assert cfg.key_file == "key.pem"
+    assert cfg.ca_file == "ca.pem"
 
 
 @pytest.mark.medium

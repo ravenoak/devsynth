@@ -1,13 +1,13 @@
 """Tests for the OutputFormatter class."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from devsynth.interface.output_formatter import OutputFormatter, formatter
+from devsynth.interface.output_formatter import OutputFormat, OutputFormatter, formatter
 
 
 class TestOutputFormatter:
@@ -197,6 +197,17 @@ class TestOutputFormatter:
         result = formatter.format_list(items)
         assert "• &lt;div&gt;Some content&lt;/div&gt;" in result
         assert "• Item 2" in result
+
+    @pytest.mark.medium
+    def test_format_structured_json_yaml(self, formatter):
+        """Structured formatting for JSON and YAML.
+
+        ReqID: N/A"""
+        data = {"a": 1}
+        json_out = formatter.format_structured(data, OutputFormat.JSON)
+        assert '"a": 1' in json_out
+        yaml_out = formatter.format_structured(data, OutputFormat.YAML)
+        assert "a: 1" in yaml_out
 
     @pytest.mark.medium
     def test_formatter_singleton_succeeds(self):
