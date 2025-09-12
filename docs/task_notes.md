@@ -180,3 +180,11 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run python scripts/verify_requirements_traceability.py` – missing feature references.
   - `poetry run python scripts/verify_version_sync.py` – OK.
 - Observations: Clarified that 90% coverage applies to aggregated suite; created issues/missing-bdd-tests.md to track absent behavior tests.
+## Iteration 2025-10-14
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Commands:
+  - `bash scripts/install_dev.sh` (hung during optional extras cache; go-task installed).
+  - `task --version` – 3.44.1.
+  - Python inventory script comparing docs/specifications vs tests/behavior/features → 57 specs without BDD coverage.
+- Observations: install_dev.sh may hang after go-task install; BDD gap list added to issues/missing-bdd-tests.md.
+- Next: develop behavior tests for listed specifications and monitor install script reliability.
