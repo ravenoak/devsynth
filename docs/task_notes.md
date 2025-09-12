@@ -127,3 +127,10 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
 - Observations: Added go-task installation note to docs; opened issue on CLI persistence.
 - Next:
   - Explore caching or auto-install strategies for go-task.
+## Iteration 2025-10-08
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Installation: `bash scripts/install_dev.sh` installed go-task 3.44.1.
+- Verification: `task --version` – 3.44.1.
+- Persistence: add `$HOME/.local/bin` to PATH or rerun the install script to restore `task` in fresh environments.
+- Next:
+  - Track `task-cli-persistence.md` for automated caching options.

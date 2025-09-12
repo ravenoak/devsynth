@@ -1,6 +1,6 @@
 # DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist
 
-Version: 2025-10-06
+Version: 2025-10-08
 Source: Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)
 
 Instructions: Check off each task when completed. Subtasks are enumerated for clarity and traceability. Follow the order for optimal flow. All commands should be run via Poetry.
@@ -140,6 +140,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 15. Environment Setup Reliability
 15.1 [x] Document that fresh environments may lack the `task` CLI and instruct maintainers to run `bash scripts/install_dev.sh`.
 15.2 [x] Evaluate caching or automatic installation to ensure `task` persists across sessions.
+15.3 [x] Document go-task installation and persistence strategy in plan and task notes.
 
 Notes:
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
