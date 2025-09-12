@@ -3,6 +3,10 @@ Provider System for abstracting LLM providers (OpenAI, LM Studio).
 
 This module implements a unified interface for different LLM providers with
 automatic fallback and selection based on configuration.
+
+Proof of fallback correctness:
+    docs/implementation/provider_system_invariants.md
+Issue: issues/edrr-integration-with-real-llm-providers.md
 """
 
 # flake8: noqa
@@ -12,9 +16,10 @@ import json
 import logging
 import os
 import time
+from collections.abc import Callable
 from enum import Enum
 from functools import lru_cache, wraps
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Optional imports for HTTP clients; guard to avoid hard deps during tests/offline modes
 try:  # pragma: no cover - optional dependency
@@ -52,19 +57,19 @@ class ProviderError(DevSynthError):
     pass
 
 
-def get_env_or_default(env_var: str, default: str = None) -> Optional[str]:
+def get_env_or_default(env_var: str, default: str = None) -> str | None:
     """Get environment variable or return default value."""
     return os.environ.get(env_var, default)
 
 
-def _load_env_file(config: Dict[str, Any]) -> Dict[str, Any]:
+def _load_env_file(config: dict[str, Any]) -> dict[str, Any]:
     """Load values from a local ``.env`` file into the provided config."""
     env_path = os.path.join(os.getcwd(), ".env")
     if not os.path.exists(env_path):
         return config
 
     try:
-        with open(env_path, "r") as f:
+        with open(env_path) as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith("#"):
@@ -98,7 +103,7 @@ def _create_tls_config(settings: Any) -> TLSConfig:
 
 
 @lru_cache(maxsize=1)
-def get_provider_config() -> Dict[str, Any]:
+def get_provider_config() -> dict[str, Any]:
     """
     Get provider configuration from environment variables or .env file.
 
@@ -158,11 +163,11 @@ class ProviderFactory:
 
     @staticmethod
     def create_provider(
-        provider_type: Optional[str] = None,
+        provider_type: str | None = None,
         *,
-        config: Optional[Dict[str, Any]] = None,
-        tls_config: Optional[TLSConfig] = None,
-        retry_config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
+        tls_config: TLSConfig | None = None,
+        retry_config: dict[str, Any] | None = None,
     ) -> "BaseProvider":
         """
         Create a provider instance based on the specified type or config.
@@ -329,8 +334,8 @@ class BaseProvider:
     def __init__(
         self,
         *,
-        tls_config: Union[TLSConfig, None] = None,
-        retry_config: Optional[Dict[str, Any]] = None,
+        tls_config: TLSConfig | None = None,
+        retry_config: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize the provider with implementation-specific kwargs."""
@@ -364,9 +369,9 @@ class BaseProvider:
 
     def get_retry_decorator(
         self,
-        retryable_exceptions: Tuple[Exception, ...] = (Exception,),
+        retryable_exceptions: tuple[Exception, ...] = (Exception,),
         *,
-        should_retry: Optional[Callable[[Exception], bool]] = None,
+        should_retry: Callable[[Exception], bool] | None = None,
     ):
         """
         Get a retry decorator configured with the provider's retry settings.
@@ -393,11 +398,11 @@ class BaseProvider:
     def complete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """
         Generate a completion from the LLM.
@@ -419,14 +424,14 @@ class BaseProvider:
     def complete_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
+        context: list[dict[str, str]],
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Generate a completion given a chat ``context``."""
         raise NotImplementedError("Subclasses must implement complete_with_context()")
 
-    def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    def embed(self, text: str | list[str]) -> list[list[float]]:
         """
         Generate embeddings for input text.
 
@@ -444,16 +449,16 @@ class BaseProvider:
     async def acomplete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Asynchronous version of :meth:`complete`."""
         raise NotImplementedError("Subclasses must implement acomplete()")
 
-    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    async def aembed(self, text: str | list[str]) -> list[list[float]]:
         """Asynchronous version of :meth:`embed`."""
         raise NotImplementedError("Subclasses must implement aembed()")
 
@@ -499,9 +504,7 @@ class StubProvider(BaseProvider):
         self.name = name
 
     @staticmethod
-    def _to_deterministic_floats(
-        data: Union[str, bytes], *, size: int = 8
-    ) -> List[float]:
+    def _to_deterministic_floats(data: str | bytes, *, size: int = 8) -> list[float]:
         import hashlib
 
         if isinstance(data, str):
@@ -513,11 +516,11 @@ class StubProvider(BaseProvider):
     def complete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         sys = f"[sys:{system_prompt}] " if system_prompt else ""
         return f"{sys}[stub:{self.name}] {prompt}"[: max_tokens or 10_000]
@@ -525,11 +528,11 @@ class StubProvider(BaseProvider):
     async def acomplete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         return self.complete(
             prompt=prompt,
@@ -539,14 +542,14 @@ class StubProvider(BaseProvider):
             parameters=parameters,
         )
 
-    def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    def embed(self, text: str | list[str]) -> list[list[float]]:
         if isinstance(text, str):
             texts = [text]
         else:
             texts = list(text)
         return [self._to_deterministic_floats(t) for t in texts]
 
-    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    async def aembed(self, text: str | list[str]) -> list[list[float]]:
         return self.embed(text)
 
 
@@ -558,8 +561,8 @@ class OpenAIProvider(BaseProvider):
         api_key: str,
         model: str = "gpt-4",
         base_url: str = "https://api.openai.com/v1",
-        tls_config: Union[TLSConfig, None] = None,
-        retry_config: Optional[Dict[str, Any]] = None,
+        tls_config: TLSConfig | None = None,
+        retry_config: dict[str, Any] | None = None,
     ):
         """
         Initialize OpenAI provider.
@@ -616,11 +619,11 @@ class OpenAIProvider(BaseProvider):
     def complete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """
         Generate a completion using OpenAI API.
@@ -717,7 +720,7 @@ class OpenAIProvider(BaseProvider):
     async def acomplete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
     ) -> str:
@@ -834,9 +837,9 @@ class OpenAIProvider(BaseProvider):
     def complete_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
+        context: list[dict[str, str]],
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Generate a completion using provided chat ``context`` messages."""
         messages = list(context) + [{"role": "user", "content": prompt}]
@@ -851,7 +854,7 @@ class OpenAIProvider(BaseProvider):
             parameters={**(parameters or {}), "messages": messages},
         )
 
-    def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    def embed(self, text: str | list[str]) -> list[list[float]]:
         """
         Generate embeddings using OpenAI API.
 
@@ -917,7 +920,7 @@ class OpenAIProvider(BaseProvider):
             logger.error(f"OpenAI embedding API error: {e}")
             raise ProviderError(f"OpenAI embedding API error: {e}")
 
-    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    async def aembed(self, text: str | list[str]) -> list[list[float]]:
         """Asynchronously generate embeddings using the OpenAI API."""
         if httpx is None:
             raise ProviderError(
@@ -1010,8 +1013,8 @@ class LMStudioProvider(BaseProvider):
         self,
         endpoint: str = "http://127.0.0.1:1234",
         model: str = "default",
-        tls_config: Union[TLSConfig, None] = None,
-        retry_config: Optional[Dict[str, Any]] = None,
+        tls_config: TLSConfig | None = None,
+        retry_config: dict[str, Any] | None = None,
     ):
         """
         Initialize LM Studio provider.
@@ -1078,11 +1081,11 @@ class LMStudioProvider(BaseProvider):
     def complete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """
         Generate a completion using LM Studio API.
@@ -1184,11 +1187,11 @@ class LMStudioProvider(BaseProvider):
     async def acomplete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Asynchronously generate a completion using LM Studio."""
         if httpx is None:
@@ -1308,9 +1311,9 @@ class LMStudioProvider(BaseProvider):
     def complete_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
+        context: list[dict[str, str]],
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Generate a completion using chat ``context``."""
         messages = list(context) + [{"role": "user", "content": prompt}]
@@ -1325,7 +1328,7 @@ class LMStudioProvider(BaseProvider):
             parameters={**(parameters or {}), "messages": messages},
         )
 
-    def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    def embed(self, text: str | list[str]) -> list[list[float]]:
         """
         Generate embeddings using the LM Studio API.
 
@@ -1391,7 +1394,7 @@ class LMStudioProvider(BaseProvider):
             logger.error("%s: %s", msg, e)
             raise ProviderError(msg) from e
 
-    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    async def aembed(self, text: str | list[str]) -> list[list[float]]:
         """Asynchronously generate embeddings using the LM Studio API."""
 
         # Define the actual API call function
@@ -1479,9 +1482,9 @@ class FallbackProvider(BaseProvider):
 
     def __init__(
         self,
-        providers: Optional[List[BaseProvider]] = None,
+        providers: list[BaseProvider] | None = None,
         *,
-        config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
         provider_factory: Any = ProviderFactory,
     ) -> None:
         """Initialize with optional provider list and config."""
@@ -1497,7 +1500,7 @@ class FallbackProvider(BaseProvider):
             {"enabled": True, "failure_threshold": 5, "recovery_timeout": 60.0},
         )
 
-        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        self.circuit_breakers: dict[str, CircuitBreaker] = {}
         self.provider_factory = provider_factory
         self.providers = providers or self._initialize_providers()
 
@@ -1509,9 +1512,9 @@ class FallbackProvider(BaseProvider):
             ", ".join(p.__class__.__name__ for p in self.providers),
         )
 
-    def _initialize_providers(self) -> List[BaseProvider]:
+    def _initialize_providers(self) -> list[BaseProvider]:
         """Create provider instances based on config order."""
-        providers: List[BaseProvider] = []
+        providers: list[BaseProvider] = []
         provider_order = self.fallback_config["order"]
 
         for provider_type in provider_order:
@@ -1587,11 +1590,11 @@ class FallbackProvider(BaseProvider):
     def complete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Try providers sequentially until one succeeds."""
         last_error = None
@@ -1624,11 +1627,11 @@ class FallbackProvider(BaseProvider):
     async def acomplete(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
         *,
-        parameters: Optional[Dict[str, Any]] = None,
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Asynchronously try providers until one succeeds."""
         last_error = None
@@ -1658,7 +1661,7 @@ class FallbackProvider(BaseProvider):
             f"All providers failed for completion. Last error: {last_error}"
         )
 
-    def embed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    def embed(self, text: str | list[str]) -> list[list[float]]:
         """Try providers sequentially to generate embeddings."""
         last_error = None
         providers = self.providers
@@ -1681,7 +1684,7 @@ class FallbackProvider(BaseProvider):
             f"All providers failed for embeddings. Last error: {last_error}"
         )
 
-    async def aembed(self, text: Union[str, List[str]]) -> List[List[float]]:
+    async def aembed(self, text: str | list[str]) -> list[list[float]]:
         """Asynchronously try providers for embeddings."""
         last_error = None
         providers = self.providers
@@ -1707,7 +1710,7 @@ class FallbackProvider(BaseProvider):
 
 # Simplified API for common usage
 def get_provider(
-    provider_type: Optional[str] = None, fallback: bool = False
+    provider_type: str | None = None, fallback: bool = False
 ) -> BaseProvider:
     """
     Get a provider instance, optionally with fallback capability.
@@ -1727,13 +1730,13 @@ def get_provider(
 
 def complete(
     prompt: str,
-    system_prompt: Optional[str] = None,
+    system_prompt: str | None = None,
     temperature: float = 0.7,
     max_tokens: int = 2000,
-    provider_type: Optional[str] = None,
+    provider_type: str | None = None,
     fallback: bool = True,
     *,
-    parameters: Optional[Dict[str, Any]] = None,
+    parameters: dict[str, Any] | None = None,
 ) -> str:
     """
     Generate a completion using the configured provider.
@@ -1766,10 +1769,10 @@ def complete(
 
 
 def embed(
-    text: Union[str, List[str]],
-    provider_type: Optional[str] = None,
+    text: str | list[str],
+    provider_type: str | None = None,
     fallback: bool = True,
-) -> List[List[float]]:
+) -> list[list[float]]:
     """
     Generate embeddings using the configured provider.
 
@@ -1800,10 +1803,10 @@ def embed(
 
 async def acomplete(
     prompt: str,
-    system_prompt: Optional[str] = None,
+    system_prompt: str | None = None,
     temperature: float = 0.7,
     max_tokens: int = 2000,
-    provider_type: Optional[str] = None,
+    provider_type: str | None = None,
     fallback: bool = True,
 ) -> str:
     """Asynchronously generate a completion using the configured provider."""
@@ -1818,10 +1821,10 @@ async def acomplete(
 
 
 async def aembed(
-    text: Union[str, List[str]],
-    provider_type: Optional[str] = None,
+    text: str | list[str],
+    provider_type: str | None = None,
     fallback: bool = True,
-) -> List[List[float]]:
+) -> list[list[float]]:
     """Asynchronously generate embeddings using the configured provider."""
     provider = get_provider(provider_type=provider_type, fallback=fallback)
     inc_provider("aembed")
