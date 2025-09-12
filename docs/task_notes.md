@@ -36,3 +36,15 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
 - Observations: Added BDD feature files for devsynth_specification, specification_evaluation, devsynth_specification_mvp_updated, testing_infrastructure, and executive_summary; traceability clean.
 - Next: implement step definitions; fix remaining lint and security issues; maintain ≥90% coverage.
 - Maintenance: deduplicated task notes and coalesced historical entries for clarity.
+
+## Iteration 2025-09-12 (Env restore)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Commands:
+  - `poetry install --with dev --all-extras` – restored missing `devsynth` entry point.
+  - `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --maxfail=1` – pass; `test_reports/fast_medium.log` saved.
+  - `poetry run python tests/verify_test_organization.py` – 920 test files detected.
+  - `poetry run python scripts/verify_test_markers.py` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – all references present.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+- Observations: Closed issue run-tests-hangs-with-multiple-speed-flags.md after confirming multiple speed flags work. Opened release planning issue release-blockers-0-1-0a1.md.
+- Next: implement release state check feature and add missing BDD coverage per new tasks.
