@@ -166,3 +166,4 @@ Notes:
 18.2 [ ] Address high-priority gaps from issues/missing-bdd-tests.md (e.g., agent_api_stub.md, chromadb_store.md).
 18.3 [ ] Review components for missing proofs or simulations and document any gaps.
 18.4 [ ] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
+18.5 [ ] Investigate full fast+medium coverage run failure (`ERROR unit/general/test_test_first_metrics.py`) and restore coverage artifact generation.
