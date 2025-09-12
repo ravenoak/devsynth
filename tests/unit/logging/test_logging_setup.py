@@ -147,3 +147,16 @@ def test_ensure_log_dir_redirects_under_test_project_dir(monkeypatch, tmp_path):
     assert str(out_dir).startswith(str(tmp_path))
     # Directory should be created under tmp_path
     assert os.path.isdir(out_dir)
+
+
+@pytest.mark.fast
+def test_short_secret_not_redacted(monkeypatch):
+    """Secrets shorter than 8 chars remain visible; mask handles empty.
+
+    ReqID: N/A"""
+    monkeypatch.setenv("OPENAI_API_KEY", "short")
+    logger, stream = _make_logger("devsynth.test.short")
+    logger.info("using key %s", "short")
+    data = json.loads(stream.getvalue().strip())
+    assert "short" in data["message"]
+    assert RedactSecretsFilter._mask("") == ""

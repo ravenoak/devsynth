@@ -66,8 +66,8 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 6.2.1 [x] `poetry run devsynth run-tests --speed=fast --segment --segment-size 100 --no-parallel 2>&1 | tee test_reports/seg_fast_1.log`
 6.2.2 [x] `poetry run devsynth run-tests --speed=medium --segment --segment-size 100 --no-parallel 2>&1 | tee test_reports/seg_medium_1.log`
 6.2.3 [x] `poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json`
-6.3 [x] Verify global threshold: ensure combined coverage >=90% with pytest.ini fail-under.
-6.3.1 [x] Investigate missing coverage data after smoke run; ensure coverage is captured before threshold validation.
+6.3 [ ] Verify global threshold: ensure combined coverage >=90% with pytest.ini fail-under.
+6.3.1 [ ] Investigate missing coverage data after smoke run; ensure coverage is captured before threshold validation.
 6.4 [x] Save logs to test_reports/ and artifacts to htmlcov/ and coverage.json.
 
 7. Behavior and Integration Completeness (Phase 3)
@@ -126,7 +126,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 13. Acceptance Criteria Validation
 13.1 [x] All unit, integration, and behavior tests pass locally using documented commands.
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
-13.3 [x] Combined coverage >= 90% with HTML report generated and saved.
+13.3 [ ] Combined coverage >= 90% with HTML report generated and saved.
 13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
 13.5 [x] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags, coverage guidance.
 13.6 [x] Known environment warnings in doctor.txt triaged and documented as non-blocking by default.
