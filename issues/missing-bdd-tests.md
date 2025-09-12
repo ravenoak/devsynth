@@ -21,8 +21,6 @@ Many specifications lack corresponding behavior-driven tests, which limits confi
 - consensus_failure_logging.md
 - consensus_transactional_memory.md
 - delimiting_recursion_algorithms.md
-- devsynth_specification.md
-- devsynth_specification_mvp_updated.md
 - dialectical_reasoning.md
 - dialectical_reasoning_impact_memory_persistence.md
 - dialectical_reasoning_memory_persistence.md
@@ -34,7 +32,6 @@ Many specifications lack corresponding behavior-driven tests, which limits confi
 - edrr_phase_recovery_threshold_helpers.md
 - edrr_reasoning_loop_integration.md
 - end_to_end_deployment.md
-- executive_summary.md
 - generated_test_execution_failure.md
 - hybrid_memory_architecture.md
 - index.md
@@ -54,9 +51,7 @@ Many specifications lack corresponding behavior-driven tests, which limits confi
 - security_audit_reporting.md
 - simple_addition_input_validation.md
 - spec_template.md
-- specification_evaluation.md
 - test_generation_multi_module.md
-- testing_infrastructure.md
 - tiered-cache-validation.md
 - unified_configuration_loader.md
 - uxbridge_extension.md
@@ -77,3 +72,4 @@ Many specifications lack corresponding behavior-driven tests, which limits confi
 
 ## Progress
 - 2025-10-15: `poetry run python scripts/verify_requirements_traceability.py` flagged missing feature files for devsynth_specification, specification_evaluation, devsynth_specification_mvp_updated, testing_infrastructure, and executive_summary.
+- 2025-10-16: Added feature files for these specifications and reran traceability check – all references present.
