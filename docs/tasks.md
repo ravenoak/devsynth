@@ -162,12 +162,12 @@ Notes:
 17.1 [x] Deduplicate historical entries in docs/task_notes.md to keep the iteration log concise.
 
 18. Release Readiness Follow-ups (Phase 7)
-18.1 [ ] Implement release state check feature per docs/specifications/release-state-check.md and add BDD scenarios.
+18.1 [x] Implement release state check feature per docs/specifications/release-state-check.md and add BDD scenarios.
 18.2 [ ] Address high-priority gaps from issues/missing-bdd-tests.md.
-18.2.1 [ ] Add BDD feature for agent_api_stub.md.
-18.2.2 [ ] Add BDD feature for chromadb_store.md.
-18.2.3 [ ] Add BDD feature for dialectical_reasoning.md.
+18.2.1 [x] Add BDD feature for agent_api_stub.md.
+18.2.2 [x] Add BDD feature for chromadb_store.md.
+18.2.3 [x] Add BDD feature for dialectical_reasoning.md.
 18.3 [ ] Review components for missing proofs or simulations and document any gaps.
-18.4 [ ] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
+18.4 [x] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
 18.5 [ ] Investigate full fast+medium coverage run failure (`ERROR unit/general/test_test_first_metrics.py`) and restore coverage artifact generation.
 18.6 [ ] Automate provisioning of `devsynth` CLI and `task` in fresh environments (issues/devsynth-cli-missing.md, issues/task-cli-persistence.md).

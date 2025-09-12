@@ -73,3 +73,13 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run python scripts/verify_version_sync.py` – OK.
 - Observations: `task` and `devsynth` CLI missing on boot; manual reinstall required. Coverage aggregation and release-state check still pending.
 - Next: automate CLI/tool provisioning; implement release state check; add BDD coverage for agent_api_stub, chromadb_store, dialectical_reasoning; resolve coverage failure in unit/general/test_test_first_metrics.py.
+
+## Iteration 2025-09-12 (Release state and BDD features)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Commands:
+  - `poetry run pre-commit run --files tests/behavior/features/agent_api_stub.feature tests/behavior/steps/test_api_stub_steps.py tests/behavior/features/release_state_check.feature tests/behavior/steps/release_state_steps.py tests/behavior/features/dialectical_reasoning.feature tests/behavior/steps/test_dialectical_reasoning_hooks_steps.py docs/tasks.md docs/task_notes.md docs/plan.md issues/release-state-check.md issues/agent-api-stub-usage.md` – pass.
+  - `poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1` – pass.
+  - `poetry run python scripts/verify_test_markers.py` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – success.
+- Observations: Added release-state verification and new BDD features for agent API stub and dialectical reasoning; GitHub Actions confirmed dispatch-only; coverage aggregation still needs artifact generation.
+- Next: Review proofs for gaps and automate CLI/tool provisioning; restore coverage artifact generation.

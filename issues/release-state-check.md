@@ -1,6 +1,6 @@
 # Release state check
 Milestone: 0.1.0-beta.1
-Status: in progress
+Status: closed
 Priority: medium
 Dependencies: docs/specifications/release-state-check.md, tests/behavior/features/release_state_check.feature
 
@@ -15,7 +15,8 @@ Release state check is not yet implemented, limiting DevSynth's release governan
 
 ## Progress
 - 2025-09-09: extracted from dialectical audit backlog.
- - 2025-09-12: Reviewed specification and existing BDD feature; implementation and step definitions pending.
+- 2025-09-12: Reviewed specification and existing BDD feature; implementation and step definitions pending.
+- 2025-09-12: Implemented release-state check script with passing and failing scenarios; issue closed.
 
 ## References
 - Specification: docs/specifications/release-state-check.md
