@@ -60,3 +60,16 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report` – failed with `ERROR unit/general/test_test_first_metrics.py`.
 - Observations: Smoke and verification commands succeed; full coverage run fails due to missing test path; coverage artifacts not generated.
 - Next: investigate coverage failure, implement release state check feature, and add BDD coverage for high-priority specs.
+
+## Iteration 2025-09-12 (Environment verification)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Commands:
+  - `bash scripts/install_dev.sh` – restored `task --version` 3.44.1.
+  - `poetry install --with dev --all-extras` – installed `devsynth` entry point.
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – pass.
+  - `poetry run python tests/verify_test_organization.py` – 920 files.
+  - `poetry run python scripts/verify_test_markers.py` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – all references present.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+- Observations: `task` and `devsynth` CLI missing on boot; manual reinstall required. Coverage aggregation and release-state check still pending.
+- Next: automate CLI/tool provisioning; implement release state check; add BDD coverage for agent_api_stub, chromadb_store, dialectical_reasoning; resolve coverage failure in unit/general/test_test_first_metrics.py.
