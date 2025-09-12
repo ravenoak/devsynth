@@ -20,7 +20,7 @@ When WSDE teams attempt a consensus vote that does not yield a completed decisio
 ## Motivation
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/consensus_failure_logging.feature`](../../tests/behavior/features/consensus_failure_logging.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
 

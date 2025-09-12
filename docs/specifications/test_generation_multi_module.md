@@ -31,5 +31,5 @@ produces `core/test_core.py` and `utils/parser/test_parser.py` which execute
 successfully using `pytest`.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/test_generation_multi_module.feature`](../../tests/behavior/features/test_generation_multi_module.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

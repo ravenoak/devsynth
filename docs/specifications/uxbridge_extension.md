@@ -76,5 +76,5 @@ both textual and graphical UIs and allow tests to mock the interface easily.
 This feature is **implemented**. See `src/devsynth/interface/ux_bridge.py` for the reference implementation.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/uxbridge_extension.feature`](../../tests/behavior/features/uxbridge_extension.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

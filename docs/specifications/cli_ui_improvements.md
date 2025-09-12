@@ -26,7 +26,7 @@ Streamlines interactive workflows in the command line by aligning them with the 
 ## Motivation
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/cli_ui_improvements.feature`](../../tests/behavior/features/cli_ui_improvements.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
 

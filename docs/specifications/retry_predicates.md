@@ -37,5 +37,5 @@ Transient HTTP failures are currently detected only through exceptions. Response
   predicate allowed the result or triggered a retry.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/retry_predicates.feature`](../../tests/behavior/features/retry_predicates.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

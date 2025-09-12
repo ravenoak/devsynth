@@ -25,7 +25,7 @@ Provides a single command to deploy the DevSynth stack with environment validati
 ## Motivation
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/end_to_end_deployment.feature`](../../tests/behavior/features/end_to_end_deployment.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
 Existing deployment utilities are fragmented and do not expose one clear entry point with pre-flight validation. A unified script reduces operational risk and standardizes checks.

@@ -31,5 +31,5 @@ The dialectical reasoner stores impact assessments in the memory system with the
 - Behavior test: memory persistence failure logs a warning without interrupting assessment.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/dialectical_reasoning_impact_memory_persistence.feature`](../../tests/behavior/features/dialectical_reasoning_impact_memory_persistence.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

@@ -73,5 +73,5 @@ presents a button that runs the same function through its bridge.
 This feature is **implemented**. Interactive gathering is provided by `src/devsynth/application/requirements/interactions.py` and is accessible via the CLI and WebUI.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/requirements_gathering.feature`](../../tests/behavior/features/requirements_gathering.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

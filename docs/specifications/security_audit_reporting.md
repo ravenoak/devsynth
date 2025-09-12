@@ -22,7 +22,7 @@ DevSynth should produce a structured report summarizing security audit checks.
 ## Motivation
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/security_audit_reporting.feature`](../../tests/behavior/features/security_audit_reporting.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
 

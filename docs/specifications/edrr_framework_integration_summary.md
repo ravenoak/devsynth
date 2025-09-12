@@ -149,5 +149,5 @@ The multi-disciplined best-practices approach with dialectical reasoning ensured
 This feature is **implemented**. Recursive EDRR coordination is handled in `src/devsynth/application/edrr/edrr_coordinator_enhanced.py`.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/edrr_framework_integration_summary.feature`](../../tests/behavior/features/edrr_framework_integration_summary.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

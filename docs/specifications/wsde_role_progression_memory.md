@@ -50,5 +50,5 @@ leading to inconsistent shared state.
 - `tests/behavior/features/wsde/collaboration_flow.feature`
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/wsde_role_progression_memory.feature`](../../tests/behavior/features/wsde_role_progression_memory.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

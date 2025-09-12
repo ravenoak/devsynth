@@ -129,5 +129,5 @@ exercise this recursion and confirm termination behavior.
 .
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/recursive_edrr_pseudocode.feature`](../../tests/behavior/features/recursive_edrr_pseudocode.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

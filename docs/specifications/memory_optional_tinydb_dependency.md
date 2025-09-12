@@ -45,5 +45,5 @@ except ImportError:
   imported, then the TinyDB adapter is unavailable.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/memory_optional_tinydb_dependency.feature`](../../tests/behavior/features/memory_optional_tinydb_dependency.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

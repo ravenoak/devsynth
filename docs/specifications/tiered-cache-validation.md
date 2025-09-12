@@ -39,7 +39,7 @@ Required metadata fields:
 ## What proofs confirm the solution?
 - Analysis: [`Tiered Cache Termination Proof`](../analysis/tiered_cache_termination_proof.md)
 - Unit test: [`test_tiered_cache_termination.py`](../../tests/unit/application/memory/test_tiered_cache_termination.py)
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/tiered_cache_validation.feature`](../../tests/behavior/features/tiered_cache_validation.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
 A tiered cache improves read performance, but only if it consistently evicts the least recently used entries and reports accurate hit and miss counts.

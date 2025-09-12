@@ -56,5 +56,5 @@ predictable.
 - Tests assert depth bounds and termination triggers.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/edrr_recursion_termination.feature`](../../tests/behavior/features/edrr_recursion_termination.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

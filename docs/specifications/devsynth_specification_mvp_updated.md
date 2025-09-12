@@ -1929,5 +1929,5 @@ Mutation testing will be deferred to a future version.
 - [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/devsynth_specification_mvp_updated.feature`](../../tests/behavior/features/devsynth_specification_mvp_updated.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
