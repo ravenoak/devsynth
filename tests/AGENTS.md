@@ -33,6 +33,7 @@ poetry run python scripts/verify_test_markers.py
 - Each test includes exactly one speed marker (`fast`, `medium`, `slow`) from `tests/conftest_extensions.py`; combine with context markers when needed.
 - Guard optional services with `pytest.importorskip` and env vars like `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE`.
 - Keep commit messages Conventional and follow root AGENTS guidance for pull‑request workflow.
+- Use system time when recording the current date or datetime.
 
 ## Further Reading
 

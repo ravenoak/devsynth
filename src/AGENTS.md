@@ -25,6 +25,7 @@ poetry run devsynth run-tests --speed=<fast|medium|slow>
 - Follow the specification-first BDD workflow: draft specs in `../docs/specifications/` and failing features in `../tests/behavior/features/` before writing code.
 - Adhere to the [Security Policy](../docs/policies/security.md), the [Dialectical Audit Policy](../docs/policies/dialectical_audit.md), and all documents under `../docs/policies/`; resolve `dialectical_audit.log`.
 - Keep commit messages Conventional, invoke `make_pr` with a clear title and test summary, and update AGENTS files when workflows evolve.
+- Use system time when recording the current date or datetime.
 
 ## Further Reading
 
