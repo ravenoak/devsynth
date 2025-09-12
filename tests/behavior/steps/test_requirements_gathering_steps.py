@@ -1,6 +1,7 @@
 import os
 import sys
-from typing import Optional, Sequence
+from collections.abc import Sequence
+from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest
@@ -26,8 +27,8 @@ class DummyBridge(UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         response = self.answers[self.index]
@@ -41,7 +42,10 @@ class DummyBridge(UXBridge):
         pass
 
 
+pytestmark = pytest.mark.fast
+
 scenarios("../features/general/requirements_gathering.feature")
+scenarios("../features/interactive_requirements_gathering.feature")
 
 
 @given("the DevSynth CLI is installed")

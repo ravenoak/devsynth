@@ -163,7 +163,7 @@ Notes:
 
 18. Release Readiness Follow-ups (Phase 7)
 18.1 [x] Implement release state check feature per docs/specifications/release-state-check.md and add BDD scenarios.
-18.2 [ ] Address high-priority gaps from issues/missing-bdd-tests.md.
+18.2 [x] Address high-priority gaps from issues/missing-bdd-tests.md.
 18.2.1 [x] Add BDD feature for agent_api_stub.md.
 18.2.2 [x] Add BDD feature for chromadb_store.md.
 18.2.3 [x] Add BDD feature for dialectical_reasoning.md.
