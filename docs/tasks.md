@@ -1,6 +1,6 @@
 # DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist
 
-Version: 2025-09-07
+Version: 2025-10-06
 Source: Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)
 
 Instructions: Check off each task when completed. Subtasks are enumerated for clarity and traceability. Follow the order for optimal flow. All commands should be run via Poetry.
@@ -136,6 +136,10 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 14.2 [x] Full fast+medium with HTML report: `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` and archive artifacts.
 14.3 [x] Property tests (opt-in): `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/`.
 14.4 [x] Marker discipline report regeneration: `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`.
+
+15. Environment Setup Reliability
+15.1 [ ] Document that fresh environments may lack the `task` CLI and instruct maintainers to run `bash scripts/install_dev.sh`.
+15.2 [ ] Evaluate caching or automatic installation to ensure `task` persists across sessions.
 
 Notes:
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
