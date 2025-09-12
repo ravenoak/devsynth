@@ -260,6 +260,9 @@ Maintainer quickstart (authoritative commands)
   poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
 - Static analysis and typing:
   poetry run black --check . && poetry run isort --check-only . && poetry run flake8 src/ tests/ && poetry run mypy src/devsynth && poetry run bandit -r src/devsynth -x tests && poetry run safety check --full-report
+- Persistence strategy:
+  - `scripts/install_dev.sh` installs go-task into `$HOME/.local/bin`.
+  - Ensure `$HOME/.local/bin` is on your PATH or rerun the install script if `task` is missing.
 
 Notes and next actions
 - Immediate: Fix the two property test failures; add targeted tests for run_tests_cmd branches; re-generate coverage report and iterate on hotspots below 80% coverage.
@@ -275,3 +278,4 @@ Notes and next actions
 - 2025-09-11: `bash scripts/install_dev.sh` installed go-task; `task --version` now reports 3.44.1 and PATH includes `$HOME/.local/bin`.
 - 2025-09-11: flake8 and bandit issues resolved; see issues/flake8-violations.md and issues/bandit-findings.md for closure details.
 - 2025-10-07: Documented go-task installation requirement and opened issue `task-cli-persistence.md` to explore caching or automatic installation.
+- 2025-10-08: Clarified go-task persistence strategy in docs/plan.md and docs/task_notes.md.
