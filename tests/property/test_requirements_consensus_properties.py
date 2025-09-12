@@ -12,7 +12,7 @@ from hypothesis import strategies as st
 
 from devsynth.domain.models.requirement import Requirement
 from devsynth.domain.models.wsde_dialectical import apply_dialectical_reasoning
-from devsynth.domain.models.wsde_facade import WSDETeam
+from tests.helpers.dummies import _DummyTeam
 
 from .strategies import consensus_outcome_strategy, requirement_strategy
 
@@ -38,29 +38,6 @@ class _DummyCritic:
 
     def critique(self, *_args, **_kwargs):  # not used by current implementation
         return {"notes": "ok"}
-
-
-class _DummyTeam(WSDETeam):
-    def __init__(self):
-        super().__init__(name="TestTeam")
-
-    # Minimal implementation to satisfy apply_dialectical_reasoning contract
-    # and keep property tests fast and offline.
-    def _improve_clarity(self, content: str) -> str:  # pragma: no cover - trivial
-        # Return content as-is (or lightly normalized) to avoid external deps.
-        return content.strip()
-
-    def _improve_with_examples(self, content: str) -> str:  # pragma: no cover - trivial
-        # No-op enhancement for property testing context.
-        return content
-
-    def _check_pep8_compliance(self, code: str) -> dict:  # pragma: no cover - trivial
-        return {"compliance_level": "high", "issues": [], "suggestions": []}
-
-    def _check_security_best_practices(
-        self, code: str
-    ) -> dict:  # pragma: no cover - trivial
-        return {"compliance_level": "high", "issues": [], "suggestions": []}
 
 
 @pytest.mark.property
