@@ -36,10 +36,11 @@ This guide describes how to install DevSynth with minimal features and progressi
    pipx install devsynth
    ```
 
-   For development from source, clone the repository and run:
+   For development from source, clone the repository and run the provisioning script:
 
    ```bash
-   poetry install --with dev,docs
+   bash scripts/install_dev.sh  # installs go-task and runs poetry install --with dev --all-extras
+   task --version && poetry run devsynth --help
    ```
 
 2. Initialize a new project:

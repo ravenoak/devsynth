@@ -39,7 +39,7 @@ Environment snapshot and reproducibility (authoritative)
   - poetry run devsynth run-tests --target behavior-tests --speed=fast --smoke --no-parallel --maxfail=1 2>&1 | tee test_reports/behavior_fast_smoke.log
   - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 2>&1 | tee test_reports/integration_fast_smoke.log
 - Maintainer guardrails (mandatory extras):
-  - Ensure all extras are installed (we are providers, nothing is optional): poetry install --with dev --all-extras
+  - Ensure all extras are installed (we are providers, nothing is optional): scripts/install_dev.sh runs `poetry install --with dev --all-extras`
   - If doctor surfaces missing optional backends, treat as non-blocking unless explicitly enabled via DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true.
 
 Coverage aggregation (authoritative)
@@ -247,9 +247,9 @@ Acceptance checklist
 
 Maintainer quickstart (authoritative commands)
 - Setup:
-  poetry install --with dev --all-extras
-  bash scripts/install_dev.sh  # installs go-task to $HOME/.local/bin
+  bash scripts/install_dev.sh  # runs poetry install --with dev --all-extras and installs go-task to $HOME/.local/bin
   task --version  # verify go-task is on PATH; add $HOME/.local/bin if missing
+  poetry run devsynth --help   # verify devsynth entry point
   poetry run devsynth doctor
 - Fast smoke sanity:
   poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
