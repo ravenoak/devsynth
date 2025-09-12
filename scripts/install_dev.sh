@@ -73,6 +73,11 @@ if ! command -v task >/dev/null 2>&1; then
     echo "[error] task command failed to run after installation" >&2
     exit 1
   fi
+  task_path="$(command -v task)"
+  if [[ "$task_path" != "$TASK_BIN_DIR/task" ]]; then
+    echo "[error] task installed to unexpected location: $task_path" >&2
+    exit 1
+  fi
 fi
 
 # Ensure the Task binary directory is on PATH for current and future sessions
@@ -161,8 +166,8 @@ fi
 
 export PIP_FIND_LINKS="$WHEEL_DIR"
 
-# Install DevSynth with development and documentation dependencies and required extras
-poetry install --with dev,docs --extras "tests retrieval chromadb api"
+# Install DevSynth with development dependencies and all optional extras
+poetry install --with dev --all-extras
 
 # Fail fast if Poetry did not create a virtual environment
 if ! venv_path="$(poetry env info --path 2>/dev/null)"; then
@@ -175,9 +180,10 @@ if [[ -z "$venv_path" ]]; then
 fi
 echo "[info] poetry virtualenv: $venv_path"
 
-# Confirm the DevSynth CLI is available
+# Confirm the DevSynth CLI entry point is available
 if ! poetry run devsynth --help >/dev/null 2>&1; then
   echo "[error] devsynth console script not found" >&2
+  echo "[hint] try rerunning 'poetry install --with dev --all-extras'" >&2
   exit 1
 fi
 

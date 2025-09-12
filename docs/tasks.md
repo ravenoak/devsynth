@@ -172,4 +172,4 @@ Notes:
 18.3.2 [x] Provider system invariants documented in docs/implementation/provider_system_invariants.md.
 18.4 [x] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
 18.5 [x] Investigate full fast+medium coverage run failure (`ERROR unit/general/test_test_first_metrics.py`) and restore coverage artifact generation.
-18.6 [ ] Automate provisioning of `devsynth` CLI and `task` in fresh environments (issues/devsynth-cli-missing.md, issues/task-cli-persistence.md).
+18.6 [x] Automate provisioning of `devsynth` CLI and `task` in fresh environments (issues/devsynth-cli-missing.md, issues/task-cli-persistence.md).

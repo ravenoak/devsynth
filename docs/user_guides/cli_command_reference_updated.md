@@ -602,6 +602,9 @@ paths:
 ### Basic Project Setup
 
 ```bash
+# Provision the environment (installs go-task and ensures devsynth CLI)
+bash scripts/install_dev.sh
+
 # Initialize a new project
 devsynth init --wizard
 

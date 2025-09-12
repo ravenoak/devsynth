@@ -1,0 +1,47 @@
+name: CLI Smoke Test
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: cli-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cli-smoke:
+    name: Verify task and devsynth CLIs
+    runs-on: ubuntu-latest
+    env:
+      DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_FAISS_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_KUZU_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_TINYDB_AVAILABLE: 'false'
+      DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE: 'false'
+      OPENAI_API_KEY: 'test-openai-key'
+      DEVSYNTH_NO_FILE_LOGGING: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: '1.8.3'
+
+      - name: Provision environment
+        run: bash scripts/install_dev.sh
+
+      - name: Smoke check
+        run: |
+          task --version
+          poetry run devsynth --help
