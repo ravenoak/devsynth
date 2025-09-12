@@ -1,6 +1,6 @@
 # DevSynth 0.1.0a1 Test Readiness and Coverage Improvement Plan
 
-Version: 2025-10-12
+Version: 2025-10-13
 Owner: DevSynth Team (maintainers)
 Status: Execution in progress; install loop closed (2025-09-09); property marker advisories resolved; flake8 and bandit scans resolved (2025-09-11); go-task installed (2025-09-11); coverage threshold achieved (2025-10-12)
 
@@ -13,7 +13,7 @@ Executive summary
  - Property marker verification reports 0 violations after converting nested Hypothesis helpers into decorated tests.
  - Property tests (opt-in) now pass after dummy adjustments and Hypothesis fixes.
   - Diagnostics indicate environment/config gaps for non-test environments (doctor.txt) used by the app; tests succeed due to defaults and gating, but this requires documentation and guardrails.
-  - Coverage aggregation now produces >90% with HTML reports, satisfying the global pytest.ini 90% threshold.
+  - Coverage aggregation across unit, integration, and behavior tests now produces >90% with HTML reports, satisfying the global pytest.ini 90% threshold; unimplemented BDD scenarios remain open (see issues/missing-bdd-tests.md).
 
 Commands executed (audit trail)
 - poetry run pytest --collect-only -q → Collected successfully (very large suite).
@@ -220,6 +220,7 @@ Risks and mitigations
 - Intermittent behavior due to plugins: smoke mode defaults to PYTEST_DISABLE_PLUGIN_AUTOLOAD.
 - Coverage fluctuations for partial runs: standardize on devsynth run-tests with segmentation and aggregated coverage; provide a “coverage-only” profile.
 - Strict mypy across actively changing modules: use temporary targeted relaxations with TODOs.
+- Missing BDD tests for many specifications may undermine coverage claims; track the backlog in issues/missing-bdd-tests.md.
 
 Issue tracker alignment (issues/ directory)
 Issue tracker linkage protocol (how to cross-reference during planning)
@@ -234,6 +235,7 @@ Issue tracker linkage protocol (how to cross-reference during planning)
 - reqid_traceability_gap.md: add behavior tests asserting presence of ReqID tags in docstrings for representative subsets; add a small tool to validate across tests.
 - typing_relaxations_tracking.md: audit relaxations noted in this file and schedule their restoration within Phase 4.
 - Resource/backend integration items (chromadb/kuzu/faiss/tinydb): provide togglable tests under requires_resource markers, with documentation in this plan.
+- missing-bdd-tests.md: track backlog of behavior specifications lacking BDD coverage.
 
 Acceptance checklist
 - [x] All unit+integration+behavior tests pass locally with documented commands.
@@ -279,3 +281,4 @@ Notes and next actions
 - 2025-10-07: Documented go-task installation requirement and opened issue `task-cli-persistence.md` to explore caching or automatic installation.
 - 2025-10-08: Clarified go-task persistence strategy in docs/plan.md and docs/task_notes.md.
 - 2025-10-12: Coverage tasks 6.3, 6.3.1, and 13.3 marked complete from prior evidence; current environment missing `devsynth` entry point so `devsynth run-tests` requires `poetry install`.
+- 2025-10-13: Clarified coverage applies to the full aggregated suite and opened issues/missing-bdd-tests.md to track absent behavior scenarios.
