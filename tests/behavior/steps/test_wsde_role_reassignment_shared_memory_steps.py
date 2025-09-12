@@ -4,6 +4,10 @@ from datetime import datetime
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+# Optional dependencies
+lmdb_mod = pytest.importorskip("lmdb")
+pytest.importorskip("faiss")
+
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
@@ -12,8 +16,8 @@ from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.memory_manager import MemoryManager
 
-lmdb_mod = pytest.importorskip("lmdb")
-pytest.importorskip("faiss")
+pytestmark = pytest.mark.fast
+
 if not hasattr(lmdb_mod, "open"):
     pytest.skip("lmdb unavailable", allow_module_level=True)
 

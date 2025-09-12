@@ -17,7 +17,6 @@ Many specifications lack corresponding behavior-driven tests, which limits confi
 - chromadb_store.md
 - cli_overhaul_pseudocode.md
 - cli_ui_improvements.md
-- consensus_transactional_memory.md
 - delimiting_recursion_algorithms.md
 - dialectical_reasoning.md
 - dialectical_reasoning_impact_memory_persistence.md
