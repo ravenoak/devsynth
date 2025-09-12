@@ -16,3 +16,5 @@ fresh environments or container sessions, requiring manual reinstallation.
 ## References
 - docs/tasks.md item 15.2
 - docs/plan.md Notes section (2025-10-07 entry)
+## Progress
+- 2025-09-12: Fresh environment lacked `task`; ran `bash scripts/install_dev.sh` to install version 3.44.1. Persistence strategy still required.

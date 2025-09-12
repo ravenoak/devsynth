@@ -15,6 +15,7 @@ Release state check is not yet implemented, limiting DevSynth's release governan
 
 ## Progress
 - 2025-09-09: extracted from dialectical audit backlog.
+ - 2025-09-12: Reviewed specification and existing BDD feature; implementation and step definitions pending.
 
 ## References
 - Specification: docs/specifications/release-state-check.md

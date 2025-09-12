@@ -14,5 +14,7 @@ Next Actions:
   - [ ] Review components for missing proofs or simulations and document gaps.
   - [ ] Confirm all GitHub Actions workflows remain dispatch-only until release.
   - [ ] Investigate fast+medium coverage run failure (`ERROR unit/general/test_test_first_metrics.py`) and ensure coverage artifact generation.
+Progress:
+- 2025-09-12: Restored `devsynth` CLI and `task` via `poetry install --with dev --all-extras` and `bash scripts/install_dev.sh`; smoke tests and verification scripts pass. Coverage aggregation and release state check remain pending.
 Resolution Evidence:
   -
