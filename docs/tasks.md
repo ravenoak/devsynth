@@ -143,6 +143,16 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 15.2 [x] Evaluate caching or automatic installation to ensure `task` persists across sessions.
 15.3 [x] Document go-task installation and persistence strategy in plan and task notes.
 
+16. Requirements Traceability Alignment
+16.1 [ ] Add BDD feature files for specifications referenced in verify_requirements_traceability failures:
+16.1.1 [ ] devsynth_specification.md → tests/behavior/features/devsynth_specification.feature
+16.1.2 [ ] specification_evaluation.md → tests/behavior/features/specification_evaluation.feature
+16.1.3 [ ] devsynth_specification_mvp_updated.md → tests/behavior/features/devsynth_specification_mvp_updated.feature
+16.1.4 [ ] testing_infrastructure.md → tests/behavior/features/testing_infrastructure.feature
+16.1.5 [ ] executive_summary.md → tests/behavior/features/executive_summary.feature
+16.2 [ ] Re-run `poetry run python scripts/verify_requirements_traceability.py` until no missing feature references.
+16.3 [ ] Update issues/missing-bdd-tests.md and docs/plan.md with progress.
+
 Notes:
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
 - Maintain exactly one speed marker per test function.
