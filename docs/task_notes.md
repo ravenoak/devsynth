@@ -2,20 +2,6 @@
 
 Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep this file under 200 lines.
 
-## Iteration 2025-09-16
-- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
-- Installation: `poetry install --with dev --all-extras`.
-- Commands:
-  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – pass.
-  - `poetry run python scripts/verify_test_markers.py --report --report-file test_reports/test_markers_report.json` – reports 2 property violations from nested Hypothesis `check` helpers.
-  - `poetry run python tests/verify_test_organization.py` – 913 test files detected.
-  - `poetry run python scripts/verify_requirements_traceability.py` – silent success.
-- Observations: verify_test_markers needs refinement to ignore nested Hypothesis helpers; property marker issue remains open.
-- Next:
-  - Adjust verify_test_markers or mark nested helpers to resolve property marker advisories.
-  - Re-run verify_test_markers after fix and close issue.
-  - Continue coverage and acceptance tasks (docs/tasks.md sections 6 and 13).
-
 ## Iteration 2025-09-17
 - Reviewed open issues; closed duplicates (methodology-sprint, domain-models-requirement, adapters-requirements) and resolved run-tests missing test_first_metrics file.
 - Test evidence: `poetry run pytest tests/unit/general/test_test_first_metrics.py -q` (see test_reports/test_first_metrics.log).
@@ -194,3 +180,15 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
 - Cmds: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` pass; `poetry run python tests/verify_test_organization.py` 920 files; `poetry run python scripts/verify_test_markers.py` 0 issues; `poetry run python scripts/verify_requirements_traceability.py` missing features (devsynth_specification, specification_evaluation, devsynth_specification_mvp_updated, testing_infrastructure, executive_summary); `poetry run python scripts/verify_version_sync.py` OK.
 - Obs: traceability gaps remain, tracked via issues/missing-bdd-tests.md.
 - Next: author BDD features for listed specs and rerun traceability check.
+
+## Iteration 2025-10-16
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Commands:
+  - `poetry install --with dev --all-extras` – restored `devsynth` entry point.
+  - `poetry run python scripts/verify_requirements_traceability.py` – all references present.
+  - `poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1` – pass.
+  - `poetry run python tests/verify_test_organization.py` – 920 test files.
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` – 0 issues.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+  - `poetry run pre-commit run --files tests/behavior/features/devsynth_specification.feature tests/behavior/features/devsynth_specification_mvp_updated.feature tests/behavior/features/executive_summary.feature tests/behavior/features/specification_evaluation.feature tests/behavior/features/testing_infrastructure.feature docs/tasks.md docs/plan.md docs/task_notes.md issues/missing-bdd-tests.md test_markers_report.json` – pass.
+- Observations: Added BDD feature files for devsynth_specification, specification_evaluation, devsynth_specification_mvp_updated, testing_infrastructure, and executive_summary; traceability script now passes.

@@ -1,6 +1,6 @@
 {
   "markers": {
-    "fast": 1048,
+    "fast": 1055,
     "medium": 1546,
     "gui": 1,
     "requires_resource": 55,
@@ -14,12 +14,12 @@
     "asyncio": 11,
     "integration": 1,
     "skipif": 3,
-    "property": 21,
+    "property": 18,
     "anyio": 3,
     "unit": 6,
     "smoke": 4,
     "skip": 2
   },
-  "files_scanned": 1033,
+  "files_scanned": 1039,
   "files_with_issues": 0
 }

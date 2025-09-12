@@ -284,3 +284,4 @@ Notes and next actions
 - 2025-10-13: Clarified coverage applies to the full aggregated suite and opened issues/missing-bdd-tests.md to track absent behavior scenarios.
 - 2025-10-14: Audited specifications and recorded 57 missing BDD features in issues/missing-bdd-tests.md.
 - 2025-10-15: Environment bootstrapped (Python 3.12.10, virtualenv active); smoke tests and marker checks pass, but `scripts/verify_requirements_traceability.py` reports missing feature files for devsynth_specification, specification_evaluation, devsynth_specification_mvp_updated, testing_infrastructure, and executive_summary (tracked in issues/missing-bdd-tests.md).
+- 2025-10-16: Added BDD feature files for the above specifications and updated traceability; `scripts/verify_requirements_traceability.py` now reports all references present.
