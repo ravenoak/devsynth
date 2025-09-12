@@ -77,10 +77,10 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 7.4 [x] Verify metrics consistency via assertions in integration tests.
 
 8. Non-functional Quality Gates (Phase 4)
-8.1 [x] Black formatting check: `poetry run black --check .` – FAIL (8 files would be reformatted).
-8.2 [x] isort check: `poetry run isort --check-only .` – FAIL (4 files with unsorted imports).
-8.3 [x] Flake8 lint: `poetry run flake8 src/ tests/` – FAIL (numerous lint errors across tests).
-8.4 [x] Bandit security scan: `poetry run bandit -r src/devsynth -x tests` – 153 low / 12 medium issues.
+8.1 [x] Black formatting check: `poetry run black --check .` – PASS.
+8.2 [x] isort check: `poetry run isort --check-only .` – PASS.
+8.3 [x] Flake8 lint: `poetry run flake8 src/ tests/` – FAIL (lint errors persist across tests).
+8.4 [x] Bandit security scan: `poetry run bandit -r src/devsynth -x tests` – 158 low issues.
 8.5 [x] Safety vulnerabilities: `poetry run safety check --full-report` – no known vulnerabilities.
 8.6 [x] Mypy strict typing: `poetry run mypy src/devsynth` – missing `typer` type hints.
 8.7 [x] Added targeted override for `devsynth.cli` in pyproject.toml with TODO until stubs exist.
