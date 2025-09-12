@@ -17,8 +17,6 @@ Many specifications lack corresponding behavior-driven tests, which limits confi
 - chromadb_store.md
 - cli_overhaul_pseudocode.md
 - cli_ui_improvements.md
-- config_loader_spec.md
-- consensus_failure_logging.md
 - consensus_transactional_memory.md
 - delimiting_recursion_algorithms.md
 - dialectical_reasoning.md
@@ -36,7 +34,6 @@ Many specifications lack corresponding behavior-driven tests, which limits confi
 - hybrid_memory_architecture.md
 - index.md
 - integration_test_generation.md
-- interactive_requirements_gathering.md
 - lmstudio_integration.md
 - memory_optional_tinydb_dependency.md
 - metrics_system.md
