@@ -267,6 +267,9 @@ Maintainer quickstart (authoritative commands)
 
 Notes and next actions
 - Immediate: Fix the two property test failures; add targeted tests for run_tests_cmd branches; re-generate coverage report and iterate on hotspots below 80% coverage.
+- Formal proofs for reasoning loop and provider system invariants recorded in
+  docs/implementation/reasoning_loop_invariants.md and
+  docs/implementation/provider_system_invariants.md.
 - Short-term: Align docs with current CLI behaviors and ensure issues/ action items are traced to tests.
 - Guardrails: diagnostics/flake8_2025-09-10_run2.txt shows E501/F401 in tests/unit/testing/test_run_tests_module.py; bandit scan (diagnostics/bandit_2025-09-10_run2.txt) reports 158 low and 12 medium issues.
 - Post-release: Introduce low-throughput GH Actions pipeline as specified and expand nightly coverage runs.

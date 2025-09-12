@@ -1,6 +1,10 @@
 """Dialectical reasoning loop utilities for EDRR workflows.
 
 The implementation enforces strict typing for consistent static analysis.
+
+Proof of convergence and invariants:
+    docs/implementation/reasoning_loop_invariants.md
+Issue: issues/Finalize-dialectical-reasoning.md
 """
 
 from __future__ import annotations

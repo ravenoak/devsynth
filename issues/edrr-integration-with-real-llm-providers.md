@@ -21,3 +21,4 @@ EDRR Integration with Real LLM Providers is not yet implemented, limiting DevSyn
 - Specification: docs/specifications/edrr-integration-with-real-llm-providers.md
 - BDD Feature: tests/behavior/features/edrr_integration_with_real_llm_providers.feature
 - Proof: see 'What proofs confirm the solution?' in [docs/specifications/edrr-integration-with-real-llm-providers.md](../docs/specifications/edrr-integration-with-real-llm-providers.md) and scenarios in [tests/behavior/features/edrr_integration_with_real_llm_providers.feature](../tests/behavior/features/edrr_integration_with_real_llm_providers.feature).
+- Formal invariants: [docs/implementation/provider_system_invariants.md](../docs/implementation/provider_system_invariants.md)

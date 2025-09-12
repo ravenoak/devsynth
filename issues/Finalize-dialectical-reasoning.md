@@ -34,3 +34,4 @@ This issue tracks tasks needed to finish the dialectical reasoning framework.
 - Specification: docs/specifications/finalize-dialectical-reasoning.md
 - BDD Feature: tests/behavior/features/finalize_dialectical_reasoning.feature
 - Proof: see 'What proofs confirm the solution?' in [docs/specifications/finalize-dialectical-reasoning.md](../docs/specifications/finalize-dialectical-reasoning.md) and scenarios in [tests/behavior/features/finalize_dialectical_reasoning.feature](../tests/behavior/features/finalize_dialectical_reasoning.feature).
+- Formal invariants: [docs/implementation/reasoning_loop_invariants.md](../docs/implementation/reasoning_loop_invariants.md)

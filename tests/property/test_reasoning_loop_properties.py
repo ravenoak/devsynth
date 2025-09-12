@@ -4,6 +4,7 @@ Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
 """
 
 import importlib
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -171,3 +172,37 @@ def test_reasoning_loop_phase_transitions(monkeypatch, next_phases):
     )
 
     assert recorded == expected
+
+
+@pytest.mark.property
+@pytest.mark.medium
+@given(syntheses=st.lists(st.text(min_size=1), min_size=1, max_size=5))
+@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+def test_reasoning_loop_propagates_synthesis(monkeypatch, syntheses):
+    """Each synthesis becomes the next iteration's solution.
+
+    Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
+    """
+
+    call = {"i": 0}
+    tasks: list[dict[str, Any]] = []
+
+    def fake_apply(team, task, critic, memory):
+        tasks.append(task.copy())
+        idx = call["i"]
+        status = "completed" if idx == len(syntheses) - 1 else "in_progress"
+        call["i"] += 1
+        return {"status": status, "synthesis": syntheses[idx]}
+
+    monkeypatch.setattr(
+        reasoning_loop_module,
+        "_apply_dialectical_reasoning",
+        fake_apply,
+    )
+
+    reasoning_loop_module.reasoning_loop(
+        MagicMock(), {}, MagicMock(), max_iterations=len(syntheses)
+    )
+
+    for i in range(1, len(tasks)):
+        assert tasks[i]["solution"] == syntheses[i - 1]
