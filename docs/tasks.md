@@ -138,8 +138,8 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 14.4 [x] Marker discipline report regeneration: `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`.
 
 15. Environment Setup Reliability
-15.1 [ ] Document that fresh environments may lack the `task` CLI and instruct maintainers to run `bash scripts/install_dev.sh`.
-15.2 [ ] Evaluate caching or automatic installation to ensure `task` persists across sessions.
+15.1 [x] Document that fresh environments may lack the `task` CLI and instruct maintainers to run `bash scripts/install_dev.sh`.
+15.2 [x] Evaluate caching or automatic installation to ensure `task` persists across sessions.
 
 Notes:
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.

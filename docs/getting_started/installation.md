@@ -32,6 +32,8 @@ This guide provides step-by-step instructions for installing DevSynth in various
 
 - Python 3.12.x (CI and docs assume Python 3.12)
 - Poetry 1.8.x (CI uses 1.8.3; install via https://install.python-poetry.org)
+- go-task ≥3.44.1 (Taskfile runner). Fresh environments may not include the `task` CLI;
+  run `bash scripts/install_dev.sh` and ensure `$HOME/.local/bin` is on your `PATH`.
 
 > Platform support: Linux and macOS are first-class development platforms. On Windows,
 > we recommend Windows Subsystem for Linux (WSL2) with Ubuntu and running commands inside the WSL shell.
