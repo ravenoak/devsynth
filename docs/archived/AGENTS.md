@@ -42,6 +42,7 @@ CI runs this verification to ensure tests include appropriate speed markers.
 - Honor [Documentation Policies](policies/documentation_policies.md), the [Dialectical Audit Policy](policies/dialectical_audit.md), and all files under `policies/`; resolve `dialectical_audit.log`.
 - Treat `inspirational_docs/` as brainstorming only; papers in `external_research_papers/` may be cited.
 - Keep commit messages Conventional and follow the root AGENTS for pull‑request steps.
+- Use system time when recording the current date or datetime.
 
 ## Further Reading
 

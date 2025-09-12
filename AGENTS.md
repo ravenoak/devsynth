@@ -58,6 +58,7 @@ CI runs `poetry run python scripts/verify_test_markers.py` to ensure each test c
 - Begin with the Socratic checklist: *What is the problem?* and *What proofs confirm the solution?*
 - Follow the specification-first BDD workflow: draft specs in `docs/specifications/` and pair them with failing features under `tests/behavior/features/` before implementation.
 - Use [Conventional Commits](https://www.conventionalcommits.org/) with a one-line summary and descriptive body, then open a pull request with `make_pr` that summarizes changes and test evidence.
+- Use system time when recording the current date or datetime.
 - Honor all policies under `docs/policies/` (security, audit, etc.), including the [Dialectical Audit Policy](docs/policies/dialectical_audit.md); resolve `dialectical_audit.log` before submission.
 - Use the in-repo issue tracker (`issues/`; see `issues/README.md`).
 - Consult `docs/release/0.1.0-alpha.1.md` for release steps and `.github/workflows/` for automation guidelines.
