@@ -71,5 +71,5 @@ For a formal convergence argument, see the analysis in
 ``docs/analysis/dialectical_reasoning_loop_convergence.md``.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/dialectical_reasoning.feature`](../../tests/behavior/features/dialectical_reasoning.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

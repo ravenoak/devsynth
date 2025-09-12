@@ -57,5 +57,5 @@ interfaces and keeps workflow logic in a single location.
 This feature is **implemented**. Future improvements are planned.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/webui_spec.feature`](../../tests/behavior/features/webui_spec.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

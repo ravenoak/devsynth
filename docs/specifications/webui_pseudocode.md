@@ -83,5 +83,5 @@ This design keeps the presentation layer thin while core logic remains reusable 
 This feature is **implemented**. See the NiceGUI implementation in `src/devsynth/interface/webui.py`.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/webui_pseudocode.feature`](../../tests/behavior/features/webui_pseudocode.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

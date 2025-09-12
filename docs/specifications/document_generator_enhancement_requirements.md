@@ -185,5 +185,5 @@ A system that maintains up-to-date, comprehensive documentation throughout the s
 - [tests/behavior/features/workflow_execution.feature](../../tests/behavior/features/workflow_execution.feature)
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/document_generator_enhancement_requirements.feature`](../../tests/behavior/features/document_generator_enhancement_requirements.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

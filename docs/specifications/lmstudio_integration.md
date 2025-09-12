@@ -22,7 +22,7 @@ Provides a deterministic mock LM Studio server for testing without external depe
 ## Motivation
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/lmstudio_integration.feature`](../../tests/behavior/features/lmstudio_integration.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
 

@@ -189,5 +189,5 @@ function handle_request(path, body):
 This feature is **implemented**. The API routes are defined in `src/devsynth/interface/agentapi.py` and expose the CLI workflows over HTTP.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/agent_api_stub.feature`](../../tests/behavior/features/agent_api_stub.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

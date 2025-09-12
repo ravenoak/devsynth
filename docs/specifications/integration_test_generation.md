@@ -24,7 +24,7 @@ DevSynth scaffolds integration tests from scenario descriptions to expand covera
 ## Motivation
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/integration_test_generation.feature`](../../tests/behavior/features/integration_test_generation.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
 Developers need quick placeholders for complex interactions so integration gaps are visible early.

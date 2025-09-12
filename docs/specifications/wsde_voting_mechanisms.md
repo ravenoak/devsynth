@@ -42,5 +42,5 @@ When a task marked as a critical decision is delegated to a WSDE team:
 - The system logs each voting attempt with sufficient detail to reconstruct the decision.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/wsde_voting_mechanisms.feature`](../../tests/behavior/features/wsde_voting_mechanisms.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

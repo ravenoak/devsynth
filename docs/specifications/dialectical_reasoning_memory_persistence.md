@@ -30,5 +30,5 @@ The dialectical reasoner stores generated reasoning in the memory system with th
 - Behavior test: an invalid consensus response raises an error and stores the reasoning with phase `RETROSPECT`.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/dialectical_reasoning_memory_persistence.feature`](../../tests/behavior/features/dialectical_reasoning_memory_persistence.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

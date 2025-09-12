@@ -60,5 +60,5 @@ EDRR results.
 - [WSDE Interaction Specification](wsde_interaction_specification.md)
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/wsde_edrr_collaboration.feature`](../../tests/behavior/features/wsde_edrr_collaboration.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

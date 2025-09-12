@@ -24,7 +24,7 @@ Scaffolded tests execute and fail when underlying requirements are unimplemented
 ## Motivation
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/generated_test_execution_failure.feature`](../../tests/behavior/features/generated_test_execution_failure.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
 
 Developers need immediate feedback when requirements are unmet, so scaffolded tests should fail until implemented.

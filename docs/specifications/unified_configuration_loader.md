@@ -66,5 +66,5 @@ This feature is **implemented**. See `src/devsynth/config/loader.py` for the
 reference implementation.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/unified_configuration_loader.feature`](../../tests/behavior/features/unified_configuration_loader.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.

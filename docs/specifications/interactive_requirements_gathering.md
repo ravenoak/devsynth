@@ -124,5 +124,5 @@ This feature is **implemented**. Both the CLI and WebUI provide the wizard via
 `UXBridge`.
 
 ## What proofs confirm the solution?
-- Pending BDD scenarios will verify termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/interactive_requirements_gathering.feature`](../../tests/behavior/features/interactive_requirements_gathering.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
