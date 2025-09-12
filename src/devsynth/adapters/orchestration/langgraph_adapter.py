@@ -7,9 +7,10 @@ Implements the WorkflowEngine and WorkflowRepository interfaces.
 
 import os
 import pickle
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from devsynth.config.settings import ensure_path_exists
 
@@ -57,8 +58,8 @@ class NeedsHumanInterventionError(BaseNeedsHumanInterventionError):
         message: str,
         workflow_id: str,
         step_id: str,
-        reason: Optional[str] = None,
-        error_code: Optional[str] = None,
+        reason: str | None = None,
+        error_code: str | None = None,
     ):
         # Convert reason to options list if provided
         options = [reason] if reason else None
@@ -78,20 +79,20 @@ class WorkflowState:
     workflow_id: str
     command: str
     project_root: str
-    context: Dict[str, Any] = field(default_factory=dict)
-    messages: List[Dict[str, Any]] = field(default_factory=list)
+    context: dict[str, Any] = field(default_factory=dict)
+    messages: list[dict[str, Any]] = field(default_factory=list)
     current_step: str = None
     needs_human: bool = False
     human_message: str = ""
-    result: Dict[str, Any] = field(default_factory=dict)
+    result: dict[str, Any] = field(default_factory=dict)
     status: str = WorkflowStatus.PENDING.value
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert state to dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "WorkflowState":
+    def from_dict(cls, data: dict[str, Any]) -> "WorkflowState":
         """Create state from dictionary."""
         return cls(**data)
 
@@ -118,7 +119,7 @@ class FileSystemCheckpointSaver:
         """Get the path for a checkpoint file."""
         return os.path.join(self._directory_path, f"{thread_id}.pkl")
 
-    def get(self, config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def get(self, config: dict[str, Any]) -> dict[str, Any] | None:
         """Get a checkpoint for a thread."""
         thread_id = config.get("configurable", {}).get("thread_id")
         if not thread_id:
@@ -127,11 +128,13 @@ class FileSystemCheckpointSaver:
         path = self.get_checkpoint_path(thread_id)
         if os.path.exists(path):
             with open(path, "rb") as f:
-                return pickle.load(f)  # nosec B301: internal checkpoints from trusted source
+                return pickle.load(
+                    f
+                )  # nosec B301: internal checkpoints from trusted source
         return None
 
     def put(
-        self, config: Dict[str, Any], checkpoint: Dict[str, Any], *args, **kwargs
+        self, config: dict[str, Any], checkpoint: dict[str, Any], *args, **kwargs
     ) -> None:
         """Save a checkpoint for a thread."""
         thread_id = config.get("configurable", {}).get("thread_id")
@@ -146,7 +149,7 @@ class FileSystemCheckpointSaver:
 class LangGraphWorkflowEngine(WorkflowEngine):
     """LangGraph implementation of the WorkflowEngine interface."""
 
-    def __init__(self, human_intervention_callback: Optional[Callable] = None):
+    def __init__(self, human_intervention_callback: Callable | None = None):
         self.graphs = {}  # Store workflow graphs by ID
         self.checkpoint_saver = FileSystemCheckpointSaver()
         self.human_intervention_callback = human_intervention_callback
@@ -170,7 +173,7 @@ class LangGraphWorkflowEngine(WorkflowEngine):
     def _create_workflow_executor(self, workflow: Workflow):
         """Create a function that executes the entire workflow."""
 
-        def _is_cancelled(ctx: Dict[str, Any]) -> bool:
+        def _is_cancelled(ctx: dict[str, Any]) -> bool:
             # Cancellation cooperative checks: function is_cancelled or event-like with is_set()
             if not isinstance(ctx, dict):
                 return False
@@ -242,8 +245,8 @@ class LangGraphWorkflowEngine(WorkflowEngine):
         """Create a function for a workflow step."""
 
         def _get_stream_cb(
-            ctx: Dict[str, Any],
-        ) -> Optional[Callable[[Dict[str, Any]], None]]:
+            ctx: dict[str, Any],
+        ) -> Callable[[dict[str, Any]], None] | None:
             cb = None
             if isinstance(ctx, dict):
                 cb = ctx.get("stream_callback")
@@ -275,7 +278,7 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                 max_retries = 0
 
             attempt = 0
-            last_err: Optional[Exception] = None
+            last_err: Exception | None = None
             while attempt <= max_retries:
                 try:
                     # Delegate step processing to orchestration core service
@@ -347,7 +350,7 @@ class LangGraphWorkflowEngine(WorkflowEngine):
         return state
 
     def execute_workflow(
-        self, workflow: Workflow, context: Dict[str, Any] = None
+        self, workflow: Workflow, context: dict[str, Any] = None
     ) -> Workflow:
         """Execute a workflow with the given context."""
         # Update workflow status
@@ -404,7 +407,7 @@ class LangGraphWorkflowEngine(WorkflowEngine):
 
         return workflow
 
-    def get_workflow_status(self, workflow_id: str) -> Dict[str, Any]:
+    def get_workflow_status(self, workflow_id: str) -> dict[str, Any]:
         """Get the status of a workflow."""
         # In a real implementation, we would retrieve the workflow state from storage
         # For now, we'll just return a basic status
@@ -459,7 +462,9 @@ class FileSystemWorkflowRepository(WorkflowRepository):
                 )
             # Convert string to bytes if needed (for tests)
             data = data.encode("utf-8")
-        return pickle.loads(data)  # nosec B301: workflows stored and loaded locally only
+        return pickle.loads(
+            data
+        )  # nosec B301: workflows stored and loaded locally only
 
     def save(self, workflow: Workflow) -> None:
         """Save a workflow."""
@@ -467,7 +472,7 @@ class FileSystemWorkflowRepository(WorkflowRepository):
         with open(path, "wb") as f:
             f.write(self._serialize_workflow(workflow))
 
-    def get(self, workflow_id: str) -> Optional[Workflow]:
+    def get(self, workflow_id: str) -> Workflow | None:
         """Get a workflow by ID."""
         path = self._get_workflow_path(workflow_id)
         if os.path.exists(path):
@@ -476,7 +481,7 @@ class FileSystemWorkflowRepository(WorkflowRepository):
                 return self._deserialize_workflow(data)
         return None
 
-    def list(self, filters: Dict[str, Any] = None) -> List[Workflow]:
+    def list(self, filters: dict[str, Any] = None) -> list[Workflow]:
         """List workflows matching the filters."""
         # Special handling for test environment
         import sys
@@ -532,7 +537,7 @@ class FileSystemWorkflowRepository(WorkflowRepository):
 
         return workflows
 
-    def _matches_filters(self, workflow: Workflow, filters: Dict[str, Any]) -> bool:
+    def _matches_filters(self, workflow: Workflow, filters: dict[str, Any]) -> bool:
         """Check if a workflow matches the given filters."""
         for key, value in filters.items():
             if key == "status":

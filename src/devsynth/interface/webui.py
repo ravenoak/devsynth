@@ -35,17 +35,18 @@ import json
 import os
 import time
 import traceback
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 # Optional dependency: Streamlit may not be installed in minimal/test environments.
 # Do not import Streamlit at module scope; use a lazy proxy and a guarded importer.
 from types import ModuleType
-from typing import Any, Callable, Optional, Sequence, TypeVar
+from typing import Any, Optional, TypeVar
 from unittest.mock import MagicMock
 
 from devsynth.exceptions import DevSynthError
 
-_STREAMLIT: Optional[ModuleType] = None
+_STREAMLIT: ModuleType | None = None
 
 
 def _require_streamlit() -> ModuleType:
@@ -241,7 +242,7 @@ class WebUI(UXBridge):
         error_message: str = "An error occurred",
         *args: Any,
         **kwargs: Any,
-    ) -> Optional[T]:
+    ) -> T | None:
         """Execute a command with error handling.
 
         Args:
@@ -326,8 +327,8 @@ class WebUI(UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         if choices:
@@ -706,8 +707,8 @@ class WebUI(UXBridge):
             self,
             *,
             advance: float = 1,
-            description: Optional[str] = None,
-            status: Optional[str] = None,
+            description: str | None = None,
+            status: str | None = None,
         ) -> None:
             """Update the progress indicator."""
             self._current += advance
@@ -796,7 +797,7 @@ class WebUI(UXBridge):
             containers["bar"].progress(progress_pct)
 
         def update_subtask(
-            self, task_id: str, advance: float = 1, description: Optional[str] = None
+            self, task_id: str, advance: float = 1, description: str | None = None
         ) -> None:
             """Update a subtask's progress.
 
@@ -932,7 +933,7 @@ class WebUI(UXBridge):
 
             if st.button("Load Spec", key="load_spec") and spec_path:
                 try:
-                    with open(spec_path, "r", encoding="utf-8") as f:
+                    with open(spec_path, encoding="utf-8") as f:
                         st.session_state.spec_content = f.read()
                     st.success(f"Loaded specification from {spec_path}")
                 except FileNotFoundError:
@@ -1001,7 +1002,7 @@ class WebUI(UXBridge):
         return True
 
     def _save_requirements(
-        self, wizard_manager, temp_keys: Optional[Sequence[str]] = None
+        self, wizard_manager, temp_keys: Sequence[str] | None = None
     ):
         """Persist requirements to disk and reset wizard state."""
         try:
@@ -1041,7 +1042,7 @@ class WebUI(UXBridge):
         self,
         wizard_manager,
         wizard_state,
-        temp_keys: Optional[Sequence[str]] = None,
+        temp_keys: Sequence[str] | None = None,
     ):
         """Handle navigation and saving actions for the requirements wizard.
 
@@ -2108,7 +2109,9 @@ class WebUI(UXBridge):
         """Run the DevSynth API server."""
         st.header("Serve API")
         with st.form("serve"):
-            host = st.text_input("Host", "0.0.0.0")  # nosec B104: allows remote access when intentionally exposed
+            host = st.text_input(
+                "Host", "0.0.0.0"
+            )  # nosec B104: allows remote access when intentionally exposed
             port = st.number_input("Port", value=8000)
             submitted = st.form_submit_button("Start Server")
         if submitted:
