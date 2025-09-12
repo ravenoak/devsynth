@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/consensus_transactional_memory.md
 Feature: Role reassignment uses shared memory
   Reassigning roles and reaching consensus should commit decisions to all core stores.
 
