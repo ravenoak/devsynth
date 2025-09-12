@@ -157,3 +157,6 @@ Notes:
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
 - Maintain exactly one speed marker per test function.
 - Prefer adding tests for pure logic first, then expand to gated integrations.
+
+17. Documentation Maintenance
+17.1 [x] Deduplicate historical entries in docs/task_notes.md to keep the iteration log concise.
