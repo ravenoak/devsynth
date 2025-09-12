@@ -13,5 +13,6 @@ Next Actions:
   - [ ] Add BDD coverage for high-priority specs listed in issues/missing-bdd-tests.md.
   - [ ] Review components for missing proofs or simulations and document gaps.
   - [ ] Confirm all GitHub Actions workflows remain dispatch-only until release.
+  - [ ] Investigate fast+medium coverage run failure (`ERROR unit/general/test_test_first_metrics.py`) and ensure coverage artifact generation.
 Resolution Evidence:
   -
