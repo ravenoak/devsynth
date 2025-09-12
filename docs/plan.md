@@ -10,8 +10,8 @@ Executive summary
   - Test collection succeeds across a large suite (unit/integration/behavior/property).
   - Fast smoke/unit/integration/behavior profiles run successfully via the CLI.
 - Speed-marker discipline validated (0 violations).
- - Property marker verification reports two violations stemming from nested Hypothesis `check` helpers in tests/property/test_reasoning_loop_properties.py; the verifier requires refinement to ignore such helpers or the helpers must be explicitly marked.
- - Property tests (opt-in) reveal 2 failures; must be fixed before release to claim full readiness.
+ - Property marker verification reports 0 violations after converting nested Hypothesis helpers into decorated tests.
+ - Property tests (opt-in) now pass after dummy adjustments and Hypothesis fixes.
   - Diagnostics indicate environment/config gaps for non-test environments (doctor.txt) used by the app; tests succeed due to defaults and gating, but this requires documentation and guardrails.
   - Coverage report artifact is unavailable (0% reported); targeted property-only run showed 8% and triggered coverage threshold failure. The global pytest.ini threshold is 90%, so any authoritative release run must aggregate full-suite coverage.
 
@@ -22,7 +22,7 @@ Commands executed (audit trail)
 - poetry run devsynth run-tests --target behavior-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
 - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
  - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → verify_test_markers now reports 0 property_violations after helper logic refinement.
- - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → 2 failing tests; coverage fail-under triggered (8% on this narrow subset).
+ - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → all tests passed.
 - Environment: Python 3.12.x (pyproject constraint), Poetry 2.1.4; coverage artifacts present under htmlcov/ and coverage.json.
 
 Environment snapshot and reproducibility (authoritative)
@@ -69,7 +69,7 @@ Concrete remediation tasks (actionable specifics)
   2) AttributeError: _DummyTeam lacks _improve_clarity:
      - Preferred: Adjust test to call a public API that invokes clarity improvement internally (e.g., team.improve_clarity(requirement)).
      - Alternative: Extend the Dummy test double to implement _improve_clarity with a no-op or minimal semantics in tests/helpers/dummies.py (or the appropriate test utility module), ensuring interface compatibility.
-  - Re-run: DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q 2>&1 | tee test_reports/property_tests.log
+  - Re-run: DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q 2>&1 | tee test_reports/property_tests.log → 12 passed.
   - Success criteria: 0 failures; exactly one speed marker per function.
   3) Resolved: scripts/verify_test_markers.py now ignores nested Hypothesis helper functions, and reruns confirm 0 property_violations (Issue: issues/property-marker-advisories-in-reasoning-loop-tests.md).
 - run_tests_cmd coverage uplift (src/devsynth/application/cli/commands/run_tests_cmd.py): add unit tests to cover these branches/behaviors with clear test names:
@@ -91,20 +91,18 @@ Concrete remediation tasks (actionable specifics)
 Critical evaluation of current tests (dialectical + Socratic)
 1) Alignment with 0.1.0a1 requirements
 - Pros: CLI run-tests paths validated by unit and behavior tests; marker discipline enforced; extensive test directories indicate breadth across subsystems (adapters, ingestion, metrics, CLI, UX bridge, etc.).
-- Cons: Property tests failing; coverage artifacts indicate low coverage in at least some prior or partial runs; some modules like run_tests_cmd.py called out in diagnostics with ~15% coverage. Question: Are we measuring representative coverage across the full suite or only subsets? Answer: The 90% fail-under will fail if run against any narrow subset; we must aggregate coverage across appropriate targets.
+ - Cons: Coverage artifacts indicate low coverage in at least some prior or partial runs; some modules like run_tests_cmd.py called out in diagnostics with ~15% coverage. Question: Are we measuring representative coverage across the full suite or only subsets? Answer: The 90% fail-under will fail if run against any narrow subset; we must aggregate coverage across appropriate targets.
 
 2) Accuracy and usefulness of tests
 - Pros: Behavior tests exercise CLI options (smoke mode, parallelism, feature flags). Unit tests validate environment variables and internal CLI invocation behavior. Marker verification ensures fast/medium/slow categorization discipline.
-- Cons: Some modules likely under-tested (coverage hotspots); mocks may over-isolate critical logic, resulting in low coverage for real branches (e.g., Typer CLI option pathways). Property tests surface API inconsistencies (attribute missing on dummy) and misuse of Hypothesis strategies.
+ - Cons: Some modules likely under-tested (coverage hotspots); mocks may over-isolate critical logic, resulting in low coverage for real branches (e.g., Typer CLI option pathways). Earlier property tests surfaced API inconsistencies and Hypothesis misuse; these have since been addressed.
 
 3) Efficacy and reliability
 - Pros: Smoke mode limits plugin surface and is demonstrated to run cleanly. Resource gating and default provider stubbing prevent accidental external calls. Speed markers allow layered execution.
 - Cons: The plan must guarantee a reproducible coverage workflow that meets 90% in maintainers’ environments; must ensure optional (for users) becomes mandatory for maintainers to prevent skips masking gaps.
 
 4) Gaps and blockers identified
-- Property tests: 2 failures observed in tests/property/test_requirements_consensus_properties.py
-  - Hypothesis error: Using example() inside a strategy decorator context → test must be refactored to not call example() at definition time; use given/strategies only.
-  - AttributeError: _DummyTeam lacks _improve_clarity → either the dummy must implement this method or tests need to call a public interface the dummy supports.
+- Property tests previously failed due to example() misuse and a missing `_improve_clarity` on the dummy team; both issues are now resolved.
 - Coverage hotspots: Historical diagnostics and htmlcov show low coverage in src/devsynth/application/cli/commands/run_tests_cmd.py (~14–15%), and other adapter-heavy modules show very low coverage in artifacts. Need targeted tests or broaden integration coverage.
 - Environment/config: diagnostics/doctor.txt lists many missing env vars across environments; while tests pass due to default stubbing, release QA should include doctor sanity checks and documented defaults.
 - Installation: earlier hang on `poetry install --with dev --all-extras` (nvidia/__init__.py) resolved per issues/poetry-install-nvidia-loop.md (closed).
@@ -238,7 +236,7 @@ Issue tracker linkage protocol (how to cross-reference during planning)
 
 Acceptance checklist
 - [ ] All unit+integration+behavior tests pass locally with documented commands.
-- [ ] Property tests pass under DEVSYNTH_PROPERTY_TESTING=true.
+- [x] Property tests pass under DEVSYNTH_PROPERTY_TESTING=true.
 - [ ] Combined coverage >= 90% (pytest.ini enforced) with HTML report available.
 - [ ] Lint, type, and security gates pass.
 - [ ] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags.

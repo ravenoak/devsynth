@@ -21,7 +21,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 1.8 [x] Ensure `devsynth` CLI entry point is installed; run `poetry install --with dev --all-extras` if missing.
 1.9 [x] Ensure `task` CLI is available on the PATH: run `task --version`; if missing, run `bash scripts/install_dev.sh` and add `$HOME/.local/bin` to PATH (Issue: [task-cli-missing.md](../issues/task-cli-missing.md)).
 
-2. Property Tests Remediation (Phase 1)
+2. [x] Property Tests Remediation (Phase 1)
 2.1 [x] Fix Hypothesis misuse in tests/property/test_requirements_consensus_properties.py:
 2.1.1 [x] Remove any example() calls at definition time; use @example decorators properly with @given.
 2.1.2 [x] Ensure strategies are provided only via @given and hypothesis.strategies.
