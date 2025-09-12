@@ -282,3 +282,4 @@ Notes and next actions
 - 2025-10-08: Clarified go-task persistence strategy in docs/plan.md and docs/task_notes.md.
 - 2025-10-12: Coverage tasks 6.3, 6.3.1, and 13.3 marked complete from prior evidence; current environment missing `devsynth` entry point so `devsynth run-tests` requires `poetry install`.
 - 2025-10-13: Clarified coverage applies to the full aggregated suite and opened issues/missing-bdd-tests.md to track absent behavior scenarios.
+- 2025-10-14: Audited specifications and recorded 57 missing BDD features in issues/missing-bdd-tests.md.
