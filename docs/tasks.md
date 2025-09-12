@@ -75,6 +75,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 7.2 [x] Add scenarios for feature flags and segmented runs if missing.
 7.3 [x] Review ingestion and metrics integrations to avoid external dependencies by default; expand fixtures to simulate inputs.
 7.4 [x] Verify metrics consistency via assertions in integration tests.
+7.5 [ ] Audit missing BDD tests and link gaps in issues/missing-bdd-tests.md.
 
 8. Non-functional Quality Gates (Phase 4)
 8.1 [x] Black formatting check: `poetry run black --check .` – PASS.
