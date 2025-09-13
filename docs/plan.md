@@ -285,7 +285,6 @@ Notes and next actions
 - Guardrails: diagnostics/flake8_2025-09-10_run2.txt shows E501/F401 in tests/unit/testing/test_run_tests_module.py; bandit scan (diagnostics/bandit_2025-09-10_run2.txt) reports 158 low and 12 medium issues.
 - Post-release: Introduce low-throughput GH Actions pipeline as specified and expand nightly coverage runs.
 - verify_test_markers reports missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py; track under issues/property-marker-advisories-in-reasoning-loop-tests.md and resolve before release.
-- scripts/codex_setup.sh exits early due to version mismatch (project version 0.1.0a1 vs expected 0.1.0-alpha.1); reconcile versioning or adjust the setup script.
 - 2025-09-12: Deduplicated docs/task_notes.md to remove redundant entries and keep the iteration log concise.
 - 2025-09-19: `devsynth` package initially missing; reran `poetry install --with dev --all-extras` to restore CLI. Smoke and property tests pass; flake8 and bandit still failing; coverage aggregation (tasks 6.3, 13.3) pending.
 - 2025-09-30: `task --version` not found; smoke run produced no coverage data (`coverage report --fail-under=90` → "No data to report"); flake8 and bandit scans still failing.

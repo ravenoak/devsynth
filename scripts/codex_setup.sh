@@ -85,7 +85,12 @@ echo "DIALECTICAL CHECKPOINT: How do we verify the cache reproduces identical en
 # 0.1.0a1 form. Normalize the current version to the latter for comparison so
 # future releases can switch schemes without breaking setup.
 EXPECTED_VERSION="0.1.0a1"
-CURRENT_VERSION="$(poetry version -s)"
+CURRENT_VERSION="$(python - <<'PY'
+import tomllib
+with open('pyproject.toml', 'rb') as f:
+    print(tomllib.load(f)['tool']['poetry']['version'])
+PY
+)"
 NORMALIZED_VERSION="${CURRENT_VERSION/-alpha./a}"
 if [[ "$NORMALIZED_VERSION" != "$EXPECTED_VERSION" ]]; then
   echo "Project version $CURRENT_VERSION does not match $EXPECTED_VERSION" >&2
