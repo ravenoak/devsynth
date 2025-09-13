@@ -18,7 +18,6 @@ How to use this document:
 | devsynth.application.performance | ignore_errors=true | TBD | [restore-strict-typing-application-performance.md](restore-strict-typing-application-performance.md) | 2025-10-01 | open |
 | devsynth.adapters.requirements.* | ignore_errors=true | TBD | [restore-strict-typing-adapters-requirements.md](restore-strict-typing-adapters-requirements.md) | 2025-10-01 | open |
 | devsynth.application.memory.adapters.* | ignore_errors=true | TBD | [restore-strict-typing-application-memory-adapters.md](restore-strict-typing-application-memory-adapters.md) | 2025-10-01 | open |
-| devsynth.adapters.* | ignore_errors=true | TBD | [restore-strict-typing-adapters.md](restore-strict-typing-adapters.md) | 2025-10-01 | open |
 | devsynth.exceptions | ignore_errors=true | TBD | [restore-strict-typing-exceptions.md](restore-strict-typing-exceptions.md) | 2025-10-01 | open |
 | devsynth.testing.* | ignore_errors=true | TBD | [restore-strict-typing-testing.md](restore-strict-typing-testing.md) | 2025-10-01 | open |
 | devsynth.methodology.sprint | ignore_errors=true | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | open |
@@ -31,4 +30,5 @@ Notes:
 - Add TODO comments in modules when touching code to remind about the strictness restoration deadline.
 - 2025-09-10: Removed the mypy override for `devsynth.cli` after upgrading Typer to a typed release.
 - 2025-09-11: Removed the mypy override for `devsynth.methodology.edrr.reasoning_loop` after adding type annotations.
- - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
+- 2025-09-13: Removed the mypy override for `devsynth.adapters.*` after restoring type coverage.
+- 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.

@@ -274,12 +274,6 @@ module = "devsynth.application.memory.adapters.*"
 # Complex memory adapters with pending annotations
 ignore_errors = true
 
-# Broad adapters temp relaxation; narrow in future iterations
-# TODO: Restore strictness by 2025-10-01.
-[[tool.mypy.overrides]]
-module = "devsynth.adapters.*"
-ignore_errors = true
-
 [[tool.mypy.overrides]]
 module = "devsynth.testing.*"
 ignore_errors = true

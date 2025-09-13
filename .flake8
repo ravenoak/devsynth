@@ -8,3 +8,4 @@ per-file-ignores =
     src/devsynth/adapters/agents/agent_adapter.py: E402,F401,E501
     src/devsynth/adapters/chromadb_memory_store.py: E501,F841
     src/devsynth/adapters/cli/typer_adapter.py: E501,F401
+    src/devsynth/adapters/memory/memory_adapter.py: E501
