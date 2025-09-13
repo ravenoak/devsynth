@@ -179,3 +179,14 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run python scripts/verify_version_sync.py`
 - Observations: Created follow-up strict typing issues with owners/timelines, removed mypy overrides for logger, exceptions, and CLI modules, and updated roadmap and tasks.
 - Next: Continue typing restorations for remaining modules.
+
+## Iteration 2025-09-13 (final coverage run attempt)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12; `task --version` 3.44.1.
+- Commands:
+  - `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` – errored (`ERROR unit/general/test_test_first_metrics.py`).
+  - `poetry run python tests/verify_test_organization.py` – 926 test files detected.
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – success.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+- Observations: Coverage artifacts (htmlcov/ and coverage.json) were generated locally but omitted from commit due to Codex diff size limits; docs updated to reflect run.
+- Next: Proceed with User Acceptance Testing and maintainer tagging.

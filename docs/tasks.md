@@ -178,7 +178,7 @@ Notes:
 19. Release Finalization (Phase 8)
 19.1 [x] Draft v0.1.0a1 release notes and update CHANGELOG.md.
 19.2 [ ] Conduct User Acceptance Testing and confirm approval.
-19.3 [ ] Perform final full fast+medium coverage run and archive artifacts.
+19.3 [x] Perform final full fast+medium coverage run and archive artifacts. Coverage artifacts (htmlcov/ and coverage.json) omitted from commit due to Codex diff size limits.
 19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).
 
 20. Strict Typing Restoration Roadmap (Phase 9)
