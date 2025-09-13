@@ -22,14 +22,16 @@ from functools import lru_cache, wraps
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Optional imports for HTTP clients; guard to avoid hard deps during tests/offline modes
+httpx: Any | None
 try:  # pragma: no cover - optional dependency
-    import httpx  # type: ignore
+    import httpx
 except Exception:  # pragma: no cover - absent when [llm] extra not installed
-    httpx = None  # type: ignore
+    httpx = None
+requests: Any | None
 try:  # pragma: no cover - optional dependency
-    import requests  # type: ignore
+    import requests
 except Exception:  # pragma: no cover - absent when [llm] extra not installed
-    requests = None  # type: ignore
+    requests = None
 
 from devsynth.config.settings import get_settings
 from devsynth.exceptions import ConfigurationError, DevSynthError

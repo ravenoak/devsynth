@@ -4,48 +4,46 @@ See ``docs/specifications/complete-memory-system-integration.md`` for
 the full specification guiding this adapter's behavior.
 """
 
-import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
-# Create a logger for this module early so optional imports can log failures
+from devsynth.exceptions import MemoryStoreError
 from devsynth.logging_setup import DevSynthLogger
 
+from ...adapters.kuzu_memory_store import KuzuMemoryStore
 from ...application.memory.context_manager import InMemoryStore, SimpleContextManager
 from ...application.memory.duckdb_store import DuckDBStore
 from ...application.memory.json_file_store import JSONFileStore
+from ...application.memory.persistent_context_manager import PersistentContextManager
 from ...application.memory.tiered_cache import TieredCache
 from ...application.memory.tinydb_store import TinyDBStore
+from ...config.settings import ensure_path_exists, get_settings
 from ...domain.interfaces.memory import ContextManager, MemoryStore, VectorStore
 
 logger = DevSynthLogger(__name__)
 
+FAISSStore: type[VectorStore] | None
 try:  # pragma: no cover - optional dependency
     from ...application.memory.faiss_store import FAISSStore
 except Exception as exc:  # pragma: no cover - graceful fallback
     logger.debug("FAISSStore unavailable: %s", exc)
-    FAISSStore = None  # type: ignore[assignment]
+    FAISSStore = None
 
+LMDBStore: type[MemoryStore] | None
+_LMDB_ERROR: Exception | None = None
 try:  # pragma: no cover - optional dependency
     from ...application.memory.lmdb_store import LMDBStore
 except Exception as exc:  # pragma: no cover - graceful fallback
     logger.debug("LMDBStore unavailable: %s", exc)
-    LMDBStore = None  # type: ignore[assignment]
+    LMDBStore = None
     _LMDB_ERROR = exc
 
-
+RDFLibStore: type[MemoryStore] | None
 try:  # pragma: no cover - optional dependency
     from ...application.memory.rdflib_store import RDFLibStore
 except Exception as exc:  # pragma: no cover - graceful fallback
     logger.debug("RDFLibStore unavailable: %s", exc)
-    RDFLibStore = None  # type: ignore[assignment]
-
-from devsynth.exceptions import DevSynthError, MemoryStoreError
-
-from ...adapters.kuzu_memory_store import KuzuMemoryStore
-from ...adapters.memory.kuzu_adapter import KuzuAdapter
-from ...application.memory.persistent_context_manager import PersistentContextManager
-from ...config.settings import ensure_path_exists, get_settings
+    RDFLibStore = None
 
 
 class MemorySystemAdapter:
@@ -81,10 +79,10 @@ class MemorySystemAdapter:
 
     def __init__(
         self,
-        config: Dict[str, Any] = None,
-        memory_store: Optional[MemoryStore] = None,
-        context_manager: Optional[ContextManager] = None,
-        vector_store: Optional[VectorStore] = None,
+        config: dict[str, Any] = None,
+        memory_store: MemoryStore | None = None,
+        context_manager: ContextManager | None = None,
+        vector_store: VectorStore | None = None,
         create_paths: bool = True,
     ):
         """
@@ -144,7 +142,7 @@ class MemorySystemAdapter:
         self.vector_store = vector_store
 
         # Tiered cache attributes
-        self.cache: Optional[TieredCache[Any]] = None
+        self.cache: TieredCache[Any] | None = None
         self.cache_enabled = False
         self.cache_stats = {"hits": 0, "misses": 0}
 
@@ -418,7 +416,7 @@ class MemorySystemAdapter:
 
         return self.cache_enabled
 
-    def get_cache_stats(self) -> Dict[str, int]:
+    def get_cache_stats(self) -> dict[str, int]:
         """Return cache hit/miss statistics."""
 
         return self.cache_stats
@@ -444,7 +442,7 @@ class MemorySystemAdapter:
         """Get the context manager."""
         return self.context_manager
 
-    def get_vector_store(self) -> Optional[VectorStore]:
+    def get_vector_store(self) -> VectorStore | None:
         """Get the vector store if available."""
         return self.vector_store
 
@@ -452,7 +450,7 @@ class MemorySystemAdapter:
         """Check if a vector store is available."""
         return self.vector_store is not None
 
-    def get_token_usage(self) -> Dict[str, int]:
+    def get_token_usage(self) -> dict[str, int]:
         """Get token usage statistics."""
         # Get token usage from store and context manager if they support it
         store_tokens = getattr(self.memory_store, "get_token_usage", lambda: 0)()
@@ -507,7 +505,7 @@ class MemorySystemAdapter:
         """
         return self.store(memory_item)
 
-    def query_by_type(self, memory_type: Any) -> List[Any]:
+    def query_by_type(self, memory_type: Any) -> list[Any]:
         """
         Query memory items by type.
 
@@ -539,10 +537,10 @@ class MemorySystemAdapter:
             return self.memory_store.search({"memory_type": memory_type_value})
 
         # If neither method is available, return an empty list
-        logger.warning(f"Memory store does not support query_by_type or search")
+        logger.warning("Memory store does not support query_by_type or search")
         return []
 
-    def query_by_metadata(self, metadata: Dict[str, Any]) -> List[Any]:
+    def query_by_metadata(self, metadata: dict[str, Any]) -> list[Any]:
         """
         Query memory items by metadata.
 
@@ -568,10 +566,10 @@ class MemorySystemAdapter:
             return self.memory_store.search(metadata)
 
         # If neither method is available, return an empty list
-        logger.warning(f"Memory store does not support query_by_metadata or search")
+        logger.warning("Memory store does not support query_by_metadata or search")
         return []
 
-    def search(self, query: Dict[str, Any]) -> List[Any]:
+    def search(self, query: dict[str, Any]) -> list[Any]:
         """
         Search for memory items matching the query.
 
@@ -621,7 +619,7 @@ class MemorySystemAdapter:
         """
         return self.retrieve(item_id)
 
-    def get_all(self) -> List[Any]:
+    def get_all(self) -> list[Any]:
         """
         Get all memory items.
 
@@ -754,7 +752,7 @@ class MemorySystemAdapter:
             )
 
     def execute_in_transaction(
-        self, operations: List[callable], fallback_operations: List[callable] = None
+        self, operations: list[callable], fallback_operations: list[callable] = None
     ) -> Any:
         """
         Execute a series of operations within a transaction.
@@ -812,7 +810,7 @@ class MemorySystemAdapter:
     def create_for_testing(
         cls,
         storage_type: str = "memory",
-        memory_path: Optional[Union[str, Path]] = None,
+        memory_path: str | Path | None = None,
     ) -> "MemorySystemAdapter":
         """
         Create a memory system adapter configured specifically for testing.

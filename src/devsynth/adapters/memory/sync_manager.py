@@ -10,39 +10,45 @@ Kuzu store.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
+from ...application.memory.memory_manager import MemoryManager
+from ...application.memory.sync_manager import SyncManager
 from ...logging_setup import DevSynthLogger
 
 # Optional backend imports -------------------------------------------------
 # These stores depend on optional system libraries. Import them lazily so the
 # module can be imported even when the dependencies are missing, providing a
 # clearer error message when an adapter is instantiated.
+KuzuMemoryStore: type[Any] | None
+_KUZU_ERROR: Exception | None = None
 try:  # pragma: no cover - optional dependency
     from ...adapters.kuzu_memory_store import KuzuMemoryStore
 except Exception as exc:  # pragma: no cover - graceful fallback
-    KuzuMemoryStore = None  # type: ignore[assignment]
+    KuzuMemoryStore = None
     _KUZU_ERROR = exc
 
+FAISSStore: type[Any] | None
+_FAISS_ERROR: Exception | None = None
 try:  # pragma: no cover - optional dependency
     from ...application.memory.faiss_store import FAISSStore
 except Exception as exc:  # pragma: no cover - graceful fallback
-    FAISSStore = None  # type: ignore[assignment]
+    FAISSStore = None
     _FAISS_ERROR = exc
 
+LMDBStore: type[Any] | None
+_LMDB_ERROR: Exception | None = None
 try:  # pragma: no cover - optional dependency
     from ...application.memory.lmdb_store import LMDBStore
 except Exception as exc:  # pragma: no cover - graceful fallback
-    LMDBStore = None  # type: ignore[assignment]
+    LMDBStore = None
     _LMDB_ERROR = exc
 
+KuzuStore: type[Any] | None
 try:  # pragma: no cover - optional dependency
     from ...application.memory.kuzu_store import KuzuStore
 except Exception:  # pragma: no cover - graceful fallback
-    KuzuStore = None  # type: ignore[assignment]
-
-from ...application.memory.memory_manager import MemoryManager
-from ...application.memory.sync_manager import SyncManager
+    KuzuStore = None
 
 logger = DevSynthLogger(__name__)
 
@@ -106,7 +112,7 @@ class MultiStoreSyncManager:
         self.sync_manager = SyncManager(self.manager)
         logger.info("Initialized multi-store sync manager at %s", base_path)
 
-    def synchronize_all(self) -> Dict[str, int]:
+    def synchronize_all(self) -> dict[str, int]:
         """Synchronize LMDB and FAISS contents into the Kuzu store.
 
         Returns

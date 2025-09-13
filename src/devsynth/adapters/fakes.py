@@ -33,18 +33,17 @@ class FakeMemoryStore(MemoryStore):
         self._store: dict[str, MemoryItem] = {}
         self._tx_buffers: dict[str, list[tuple[str, Any]]] = {}
         self._next_id = 1
+        self._active_tx: str | None = None
 
     def _gen_id(self) -> str:
         nid = str(self._next_id)
         self._next_id += 1
         return nid
 
-    def store(  # type: ignore[override]
-        self, item: MemoryItem, transaction_id: str | None = None
-    ) -> str:
+    def store(self, item: MemoryItem) -> str:
         item_id = item.id or self._gen_id()
-        if transaction_id:
-            self._tx_buffers.setdefault(transaction_id, []).append(
+        if self._active_tx:
+            self._tx_buffers.setdefault(self._active_tx, []).append(
                 ("store", (item_id, item))
             )
             return item_id
@@ -68,20 +67,21 @@ class FakeMemoryStore(MemoryStore):
             results.append(itm)
         return results
 
-    def delete(  # type: ignore[override]
-        self, item_id: str, transaction_id: str | None = None
-    ) -> bool:
-        if transaction_id:
-            self._tx_buffers.setdefault(transaction_id, []).append(("delete", item_id))
+    def delete(self, item_id: str) -> bool:
+        if self._active_tx:
+            self._tx_buffers.setdefault(self._active_tx, []).append(("delete", item_id))
             return True
         return self._store.pop(item_id, None) is not None
 
-    def begin_transaction(self) -> str:  # type: ignore[override]
+    def begin_transaction(self) -> str:
         tx_id = f"tx-{len(self._tx_buffers)+1}"
         self._tx_buffers[tx_id] = []
+        self._active_tx = tx_id
         return tx_id
 
     def commit_transaction(self, transaction_id: str) -> bool:
+        if transaction_id != self._active_tx:
+            return False
         ops = self._tx_buffers.pop(transaction_id, None)
         if ops is None:
             return False
@@ -94,13 +94,17 @@ class FakeMemoryStore(MemoryStore):
             elif op == "delete":
                 item_id = payload
                 self._store.pop(item_id, None)
+        self._active_tx = None
         return True
 
     def rollback_transaction(self, transaction_id: str) -> bool:
+        if transaction_id != self._active_tx:
+            return False
+        self._active_tx = None
         return self._tx_buffers.pop(transaction_id, None) is not None
 
     def is_transaction_active(self, transaction_id: str) -> bool:
-        return transaction_id in self._tx_buffers
+        return transaction_id == self._active_tx
 
 
 class FakeVectorStore(VectorStore):
@@ -115,7 +119,7 @@ class FakeVectorStore(VectorStore):
         self._next_id += 1
         return nid
 
-    def store_vector(self, vector: MemoryVector) -> str:  # type: ignore[override]
+    def store_vector(self, vector: MemoryVector) -> str:
         vid = vector.id or self._gen_id()
         self._vectors[vid] = MemoryVector(
             id=vid,
@@ -150,8 +154,8 @@ class FakeVectorStore(VectorStore):
         scored.sort(key=lambda t: t[0], reverse=True)
         return [vec for _score, vec in scored[: top_k or 5]]
 
-    def delete_vector(self, vector_id: str) -> bool:  # type: ignore[override]
+    def delete_vector(self, vector_id: str) -> bool:
         return self._vectors.pop(vector_id, None) is not None
 
-    def get_collection_stats(self) -> dict[str, Any]:  # type: ignore[override]
+    def get_collection_stats(self) -> dict[str, Any]:
         return {"count": len(self._vectors)}

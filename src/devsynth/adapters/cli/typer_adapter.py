@@ -105,7 +105,9 @@ def _patch_typer_types() -> None:
 
     orig = typer.main.get_click_type
 
-    def patched_get_click_type(*, annotation, parameter_info):  # type: ignore[override]
+    def patched_get_click_type(
+        annotation: Any, parameter_info: typer.models.ParameterInfo
+    ) -> click.types.ParamType:
         if annotation in {UXBridge, typer.models.Context, Any}:
             return click.STRING
         origin = getattr(annotation, "__origin__", None)
@@ -385,10 +387,12 @@ def build_app() -> typer.Typer:
     if hasattr(app, "add_completion"):
         app.add_completion()
     else:  # pragma: no cover - compatibility for older Typer versions
-        try:
-            app._add_completion()  # type: ignore[attr-defined]
-        except Exception:
-            pass
+        method = getattr(app, "_add_completion", None)
+        if callable(method):
+            try:
+                method()
+            except Exception:
+                pass
     return app
 
 
