@@ -7,14 +7,11 @@ before implementation, and generates metrics on test-first development adherence
 """
 import argparse
 import json
-import os
 import subprocess
-import sys
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
-def get_commit_history(days: int = 30) -> List[Dict[str, Any]]:
+def get_commit_history(days: int = 30) -> list[dict[str, Any]]:
     """
     Get the commit history from git for the specified number of days.
 
@@ -59,7 +56,7 @@ def get_commit_history(days: int = 30) -> List[Dict[str, Any]]:
     return commits
 
 
-def analyze_commit(commit: Dict[str, Any]) -> Dict[str, Any]:
+def analyze_commit(commit: dict[str, Any]) -> dict[str, Any]:
     """
     Analyze a commit to determine if it follows test-first development.
 
@@ -98,7 +95,7 @@ def analyze_commit(commit: Dict[str, Any]) -> Dict[str, Any]:
     return commit
 
 
-def calculate_metrics(commits: List[Dict[str, Any]]) -> Dict[str, Any]:
+def calculate_metrics(commits: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Calculate metrics from commit data.
 
@@ -214,7 +211,7 @@ def calculate_metrics(commits: List[Dict[str, Any]]) -> Dict[str, Any]:
     return metrics
 
 
-def generate_metrics_report(metrics: Dict[str, Any]) -> str:
+def generate_metrics_report(metrics: dict[str, Any]) -> str:
     """
     Generate a human-readable report from the metrics.
 
@@ -250,7 +247,8 @@ def generate_metrics_report(metrics: Dict[str, Any]) -> str:
         report.append(f"Total commits: {author_metrics['total_commits']}")
         report.append(f"Test-first commits: {author_metrics['test_first_commits']}")
         report.append(
-            f"Implementation-first commits: {author_metrics['implementation_first_commits']}"
+            "Implementation-first commits: "
+            f"{author_metrics['implementation_first_commits']}"
         )
         report.append(
             f"Test-first percentage: {author_metrics['test_first_percentage']}%"
@@ -266,7 +264,8 @@ def generate_metrics_report(metrics: Dict[str, Any]) -> str:
         report.append(f"Total commits: {date_metrics['total_commits']}")
         report.append(f"Test-first commits: {date_metrics['test_first_commits']}")
         report.append(
-            f"Implementation-first commits: {date_metrics['implementation_first_commits']}"
+            "Implementation-first commits: "
+            f"{date_metrics['implementation_first_commits']}"
         )
         report.append(
             f"Test-first percentage: {date_metrics['test_first_percentage']}%"
@@ -276,7 +275,7 @@ def generate_metrics_report(metrics: Dict[str, Any]) -> str:
     return "\n".join(report)
 
 
-def main(days: int = 30, output_file: Optional[str] = None) -> None:
+def main(days: int = 30, output_file: str | None = None) -> None:
     """
     Main function to generate test-first development metrics.
 

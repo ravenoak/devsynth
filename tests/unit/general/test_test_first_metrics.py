@@ -8,8 +8,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-sys.path.append("scripts")
-from test_first_metrics import (
+# Ensure the scripts directory is on the import path regardless of CWD
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+sys.path.append(str(PROJECT_ROOT / "scripts"))
+from test_first_metrics import (  # noqa: E402
     analyze_commit,
     calculate_metrics,
     generate_metrics_report,
@@ -221,7 +223,7 @@ class TestTestFirstMetrics(unittest.TestCase):
         mock_generate_report.assert_called_once_with(self.expected_metrics)
         mock_print.assert_any_call("Test report")
         self.assertTrue(os.path.exists(self.metrics_file))
-        with open(self.metrics_file, "r") as f:
+        with open(self.metrics_file) as f:
             saved_metrics = json.load(f)
         self.assertEqual(saved_metrics, self.expected_metrics)
 
