@@ -139,7 +139,11 @@ if ! poetry env use "$py_exec" >/dev/null 2>&1; then
   exit 1
 fi
 
-optional_pkgs=$(python - <<'PY'
+export PIP_FIND_LINKS="$WHEEL_DIR"
+
+# Install DevSynth with development dependencies and all optional extras if the CLI is missing
+if ! poetry run devsynth --help >/dev/null 2>&1; then
+  optional_pkgs=$(python - <<'PY'
 import re, tomllib
 
 heavy = {"torch", "transformers"}
@@ -160,23 +164,23 @@ print(" ".join(sorted(pkgs)))
 PY
 )
 
-missing_pkgs=()
-for pkg in $optional_pkgs; do
-  if ! ls "$WHEEL_DIR"/"$pkg"-*.whl >/dev/null 2>&1; then
-    missing_pkgs+=("$pkg")
-  fi
-done
+  missing_pkgs=()
+  for pkg in $optional_pkgs; do
+    if ! ls "$WHEEL_DIR"/"$pkg"-*.whl >/dev/null 2>&1; then
+      missing_pkgs+=("$pkg")
+    fi
+  done
 
-if [[ "${PIP_NO_INDEX:-0}" != "1" && ${#missing_pkgs[@]} -gt 0 ]]; then
-  if ! pip wheel "${missing_pkgs[@]}" -w "$WHEEL_DIR" >/dev/null; then
-    echo "[warning] failed to cache optional extras" >&2
+  if [[ "${PIP_NO_INDEX:-0}" != "1" && ${#missing_pkgs[@]} -gt 0 ]]; then
+    if ! pip wheel "${missing_pkgs[@]}" -w "$WHEEL_DIR" >/dev/null; then
+      echo "[warning] failed to cache optional extras" >&2
+    fi
   fi
+
+  poetry install --with dev --all-extras
+else
+  echo "[info] devsynth CLI already present; skipping poetry install" >&2
 fi
-
-export PIP_FIND_LINKS="$WHEEL_DIR"
-
-# Install DevSynth with development dependencies and all optional extras
-poetry install --with dev --all-extras
 
 # Fail fast if Poetry did not create a virtual environment
 if ! venv_path="$(poetry env info --path 2>/dev/null)"; then
