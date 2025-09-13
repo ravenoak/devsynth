@@ -180,3 +180,8 @@ Notes:
 19.2 [ ] Conduct User Acceptance Testing and confirm approval.
 19.3 [ ] Perform final full fast+medium coverage run and archive artifacts.
 19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).
+
+20. Strict Typing Restoration Roadmap (Phase 9)
+20.1 [ ] Consolidate open strict typing tickets into issues/strict-typing-roadmap.md for unified tracking.
+20.2 [ ] Sequence post-release PRs to reintroduce strict typing to logger, exceptions, and CLI modules.
+20.3 [ ] Document typing restoration decisions in docs/plan.md and update related issue files upon completion.
