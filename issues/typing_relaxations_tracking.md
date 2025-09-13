@@ -13,7 +13,7 @@ How to use this document:
 | devsynth.application.cli.commands.inspect_code_cmd | disallow_untyped_defs=false, check_untyped_defs=false | TBD | [restore-strict-typing-inspect-code-cmd.md](restore-strict-typing-inspect-code-cmd.md) | 2025-10-01 | open |
 | devsynth.feature_markers | disallow_untyped_defs=false, check_untyped_defs=false | TBD | [restore-strict-typing-feature-markers.md](restore-strict-typing-feature-markers.md) | 2025-10-01 | open |
 | devsynth.core.mvu.* | disallow_untyped_defs=false, check_untyped_defs=false, ignore_missing_imports=true | TBD | [restore-strict-typing-core-mvu.md](restore-strict-typing-core-mvu.md) | 2025-10-01 | open |
-| devsynth.application.documentation.* | ignore_errors=true | TBD | [restore-strict-typing-application-documentation.md](restore-strict-typing-application-documentation.md) | 2025-10-01 | open |
+| devsynth.application.documentation.* | removed | TBD | [restore-strict-typing-application-documentation.md](restore-strict-typing-application-documentation.md) | 2025-10-01 | closed |
 | devsynth.domain.models.requirement | ignore_errors=true | TBD | [restore-strict-typing-domain-models-requirement.md](restore-strict-typing-domain-models-requirement.md) | 2025-10-01 | open |
 | devsynth.application.performance | ignore_errors=true | TBD | [restore-strict-typing-application-performance.md](restore-strict-typing-application-performance.md) | 2025-10-01 | open |
 | devsynth.adapters.requirements.* | ignore_errors=true | TBD | [restore-strict-typing-adapters-requirements.md](restore-strict-typing-adapters-requirements.md) | 2025-10-01 | open |
