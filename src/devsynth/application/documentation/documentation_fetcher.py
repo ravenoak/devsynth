@@ -12,9 +12,7 @@ import shutil
 import subprocess
 import tempfile
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Tuple
-from urllib.parse import urljoin
+from typing import Any
 
 import requests
 
@@ -30,7 +28,7 @@ class DocumentationSource(ABC):
     @abstractmethod
     def fetch_documentation(
         self, library: str, version: str, offline: bool = False
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Fetch documentation for a library version.
 
@@ -59,7 +57,7 @@ class DocumentationSource(ABC):
         raise NotImplementedError("supports_library must be implemented by subclasses")
 
     @abstractmethod
-    def get_available_versions(self, library: str) -> List[str]:
+    def get_available_versions(self, library: str) -> list[str]:
         """
         Get available versions for a library.
 
@@ -82,7 +80,7 @@ class PyPIDocumentationSource(DocumentationSource):
         self.cache_dir = os.path.join(tempfile.gettempdir(), "devsynth_docs_cache")
         os.makedirs(self.cache_dir, exist_ok=True)
 
-    def fetch_documentation(self, library: str, version: str) -> List[Dict[str, Any]]:
+    def fetch_documentation(self, library: str, version: str) -> list[dict[str, Any]]:
         """Fetch documentation for a Python library."""
         logger.info(
             f"Fetching documentation for {library} {version} from PyPI/ReadTheDocs"
@@ -111,7 +109,7 @@ class PyPIDocumentationSource(DocumentationSource):
             logger.warning(f"Error checking PyPI for {library}: {str(e)}")
             return False
 
-    def get_available_versions(self, library: str) -> List[str]:
+    def get_available_versions(self, library: str) -> list[str]:
         """Get available versions for a library from PyPI."""
         try:
             response = requests.get(f"https://pypi.org/pypi/{library}/json", timeout=10)
@@ -125,7 +123,7 @@ class PyPIDocumentationSource(DocumentationSource):
 
     def _fetch_from_readthedocs(
         self, library: str, version: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Fetch documentation from ReadTheDocs."""
         # Try common ReadTheDocs URL patterns
         urls = [
@@ -146,7 +144,7 @@ class PyPIDocumentationSource(DocumentationSource):
 
         return []
 
-    def _fetch_from_pypi(self, library: str, version: str) -> List[Dict[str, Any]]:
+    def _fetch_from_pypi(self, library: str, version: str) -> list[dict[str, Any]]:
         """Fetch documentation from PyPI."""
         try:
             response = requests.get(
@@ -185,7 +183,7 @@ class PyPIDocumentationSource(DocumentationSource):
             )
             return []
 
-    def _extract_docstrings(self, library: str, version: str) -> List[Dict[str, Any]]:
+    def _extract_docstrings(self, library: str, version: str) -> list[dict[str, Any]]:
         """Extract docstrings from a Python package."""
         logger.info(f"Attempting to extract docstrings from {library} {version}")
 
@@ -252,9 +250,9 @@ class PyPIDocumentationSource(DocumentationSource):
 
     def _parse_html_documentation(
         self, html: str, base_url: str, library: str, version: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Parse HTML documentation into chunks."""
-        # This is a simple implementation that could be enhanced with a proper HTML parser
+        # Simplistic implementation; a full HTML parser could improve accuracy
         chunks = []
 
         # Split by headings
@@ -314,7 +312,7 @@ class PyPIDocumentationSource(DocumentationSource):
 
     def _parse_markdown_documentation(
         self, markdown: str, library: str, version: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Parse Markdown documentation into chunks."""
         chunks = []
 
@@ -339,7 +337,9 @@ class PyPIDocumentationSource(DocumentationSource):
                                 "title": current_title,
                                 "content": current_content.strip(),
                                 "metadata": {
-                                    "source_url": f"https://pypi.org/project/{library}/{version}/",
+                                    "source_url": (
+                                        f"https://pypi.org/project/{library}/{version}/"
+                                    ),
                                     "section": current_title,
                                     "library": library,
                                     "version": version,
@@ -358,7 +358,9 @@ class PyPIDocumentationSource(DocumentationSource):
                     "title": current_title,
                     "content": current_content.strip(),
                     "metadata": {
-                        "source_url": f"https://pypi.org/project/{library}/{version}/",
+                        "source_url": (
+                            f"https://pypi.org/project/{library}/{version}/"
+                        ),
                         "section": current_title,
                         "library": library,
                         "version": version,
@@ -369,8 +371,8 @@ class PyPIDocumentationSource(DocumentationSource):
         return chunks
 
     def _convert_docstrings_to_chunks(
-        self, docstrings: Dict[str, Any], library: str, version: str
-    ) -> List[Dict[str, Any]]:
+        self, docstrings: dict[str, Any], library: str, version: str
+    ) -> list[dict[str, Any]]:
         """Convert extracted docstrings to documentation chunks."""
         chunks = []
 
@@ -383,7 +385,9 @@ class PyPIDocumentationSource(DocumentationSource):
                         "title": f"Module: {module_name}",
                         "content": docstring,
                         "metadata": {
-                            "source_url": f"https://pypi.org/project/{library}/{version}/",
+                            "source_url": (
+                                f"https://pypi.org/project/{library}/{version}/"
+                            ),
                             "section": "Modules",
                             "library": library,
                             "version": version,
@@ -401,7 +405,9 @@ class PyPIDocumentationSource(DocumentationSource):
                         "title": f"Class: {class_name}",
                         "content": docstring,
                         "metadata": {
-                            "source_url": f"https://pypi.org/project/{library}/{version}/",
+                            "source_url": (
+                                f"https://pypi.org/project/{library}/{version}/"
+                            ),
                             "section": "Classes",
                             "library": library,
                             "version": version,
@@ -419,7 +425,9 @@ class PyPIDocumentationSource(DocumentationSource):
                             "title": f"Method: {class_name}.{method_name}",
                             "content": docstring,
                             "metadata": {
-                                "source_url": f"https://pypi.org/project/{library}/{version}/",
+                                "source_url": (
+                                    f"https://pypi.org/project/{library}/{version}/"
+                                ),
                                 "section": "Methods",
                                 "library": library,
                                 "version": version,
@@ -438,7 +446,9 @@ class PyPIDocumentationSource(DocumentationSource):
                         "title": f"Function: {function_name}",
                         "content": docstring,
                         "metadata": {
-                            "source_url": f"https://pypi.org/project/{library}/{version}/",
+                            "source_url": (
+                                f"https://pypi.org/project/{library}/{version}/"
+                            ),
                             "section": "Functions",
                             "library": library,
                             "version": version,
@@ -475,7 +485,9 @@ def extract_docstrings(library_name):
         }}
 
         # Find all submodules
-        for _, name, is_pkg in pkgutil.iter_modules(library.__path__, library.__name__ + '.'):
+        for _, name, is_pkg in pkgutil.iter_modules(
+            library.__path__, library.__name__ + '.'
+        ):
             try:
                 module = importlib.import_module(name)
                 result["modules"][name] = {{
@@ -489,7 +501,9 @@ def extract_docstrings(library_name):
 
                     if inspect.isclass(obj):
                         methods = {{}}
-                        for method_name, method in inspect.getmembers(obj, inspect.isfunction):
+                          for method_name, method in inspect.getmembers(
+                              obj, inspect.isfunction
+                          ):
                             if not method_name.startswith('_'):
                                 methods[method_name] = {{
                                     "docstring": inspect.getdoc(method) or ""
@@ -505,9 +519,15 @@ def extract_docstrings(library_name):
                             "docstring": inspect.getdoc(obj) or ""
                         }}
             except Exception as e:
-                print(f"Error processing module {name}: {e}", file=sys.stderr)
+                print(
+                    f"Error processing module {{name}}: {{e}}",
+                    file=sys.stderr,
+                )
     except Exception as e:
-        print(f"Failed to import library {library_name}: {e}", file=sys.stderr)
+        print(
+            f"Failed to import library {{library_name}}: {{e}}",
+            file=sys.stderr,
+        )
 
     return result
 
@@ -528,7 +548,7 @@ class DocumentationFetcher:
 
     def __init__(self):
         """Initialize the documentation fetcher."""
-        self.sources: List[DocumentationSource] = [PyPIDocumentationSource()]
+        self.sources: list[DocumentationSource] = [PyPIDocumentationSource()]
 
         # Directory for caching fetched documentation
         self.cache_dir = os.path.join(tempfile.gettempdir(), "devsynth_docs_cache")
@@ -538,7 +558,7 @@ class DocumentationFetcher:
 
     def fetch_documentation(
         self, library: str, version: str, offline: bool = False
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Fetch documentation for a library version.
 
         Args:
@@ -560,7 +580,7 @@ class DocumentationFetcher:
         # Return cached documentation if available
         if os.path.exists(cache_file):
             try:
-                with open(cache_file, "r", encoding="utf-8") as f:
+                with open(cache_file, encoding="utf-8") as f:
                     return json.load(f)
             except Exception:
                 logger.warning("Failed to read cached documentation")
@@ -581,13 +601,14 @@ class DocumentationFetcher:
                         logger.debug("Failed to cache documentation")
 
                     logger.info(
-                        f"Fetched {len(chunks)} documentation chunks for {library} {version}"
+                        f"Fetched {len(chunks)} documentation chunks for {library}"
+                        f" {version}"
                     )
                     return chunks
 
         raise ValueError(f"No documentation source found for {library} {version}")
 
-    def get_available_versions(self, library: str) -> List[str]:
+    def get_available_versions(self, library: str) -> list[str]:
         """
         Get available versions for a library.
 
@@ -628,7 +649,7 @@ class DocumentationFetcher:
                 return True
         return False
 
-    def _version_key(self, version: str) -> Tuple:
+    def _version_key(self, version: str) -> tuple:
         """Convert a version string to a tuple for sorting."""
         # Convert each part to an integer if possible, otherwise use string
         parts = []

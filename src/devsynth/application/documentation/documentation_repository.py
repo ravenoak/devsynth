@@ -9,8 +9,7 @@ import json
 import os
 import re
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
@@ -29,21 +28,20 @@ class DocumentationRepository:
     knowledge graph.
     """
 
-    def __init__(
-        self, memory_manager: MemoryManager, storage_path: Optional[str] = None
-    ):
+    def __init__(self, memory_manager: MemoryManager, storage_path: str | None = None):
         """
         Initialize the documentation repository.
 
         Args:
             memory_manager: The memory manager to use for storage
-            storage_path: Path to store documentation metadata (defaults to .devsynth/documentation)
+            storage_path: Path for documentation metadata
+                (default: .devsynth/documentation)
         """
         self.memory_manager = memory_manager
         self.storage_path = storage_path or os.path.join(
             os.getcwd(), ".devsynth", "documentation"
         )
-        self.metadata: Dict[str, Dict[str, Any]] = {}
+        self.metadata: dict[str, dict[str, Any]] = {}
 
         # Create the storage directory if it doesn't exist
         os.makedirs(self.storage_path, exist_ok=True)
@@ -52,11 +50,12 @@ class DocumentationRepository:
         self._load_metadata()
 
         logger.info(
-            f"Documentation repository initialized with storage path: {self.storage_path}"
+            "Documentation repository initialized with storage path: %s",
+            self.storage_path,
         )
 
     def store_documentation(
-        self, library: str, version: str, chunks: List[Dict[str, Any]]
+        self, library: str, version: str, chunks: list[dict[str, Any]]
     ) -> str:
         """
         Store documentation for a library version.
@@ -64,7 +63,7 @@ class DocumentationRepository:
         Args:
             library: The name of the library
             version: The version of the library
-            chunks: List of documentation chunks, each with 'content', 'title', and 'metadata'
+            chunks: Documentation chunks with ``content``, ``title`` and ``metadata``
 
         Returns:
             A unique ID for this documentation set
@@ -96,7 +95,8 @@ class DocumentationRepository:
                     "type": "documentation",
                     "chunk_index": i,
                 },
-                memory_type=MemoryType.KNOWLEDGE_GRAPH,  # Using KNOWLEDGE_GRAPH since DOCUMENTATION is not in MemoryType
+                # Using KNOWLEDGE_GRAPH since DOCUMENTATION is not in MemoryType
+                memory_type=MemoryType.KNOWLEDGE_GRAPH,
             )
 
             # Store in vector memory for semantic search
@@ -117,7 +117,7 @@ class DocumentationRepository:
         )
         return doc_id
 
-    def get_documentation(self, library: str, version: str) -> Optional[Dict[str, Any]]:
+    def get_documentation(self, library: str, version: str) -> dict[str, Any] | None:
         """
         Get documentation metadata for a library version.
 
@@ -148,17 +148,18 @@ class DocumentationRepository:
     def query_documentation(
         self,
         query: str,
-        libraries: Optional[List[str]] = None,
-        version_constraints: Optional[Dict[str, str]] = None,
+        libraries: list[str] | None = None,
+        version_constraints: dict[str, str] | None = None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Query documentation using semantic search.
 
         Args:
             query: The query string
             libraries: Optional list of libraries to search in
-            version_constraints: Optional version constraints (e.g., {"numpy": ">= 1.20.0"})
+            version_constraints: Optional version constraints
+                (e.g., {"numpy": ">= 1.20.0"})
             limit: Maximum number of results to return
 
         Returns:
@@ -172,7 +173,8 @@ class DocumentationRepository:
         # Perform semantic search
         results = self.memory_manager.search_memory(
             query=query,
-            memory_type="DOCUMENTATION",  # Using string instead of enum since DOCUMENTATION is not in MemoryType
+            # Using string instead of enum since DOCUMENTATION is not in MemoryType
+            memory_type="DOCUMENTATION",
             metadata_filter=metadata_filter,
             limit=limit * 2,  # Get more results than needed for filtering
         )
@@ -210,7 +212,7 @@ class DocumentationRepository:
             for result in results
         ]
 
-    def list_libraries(self) -> List[Dict[str, Any]]:
+    def list_libraries(self) -> list[dict[str, Any]]:
         """
         List all libraries with available documentation.
 
@@ -288,12 +290,11 @@ class DocumentationRepository:
         return True
 
     def _store_relationships(
-        self, library: str, version: str, chunk: Dict[str, Any]
+        self, library: str, version: str, chunk: dict[str, Any]
     ) -> None:
         """Store relationships in the knowledge graph."""
         # Extract entities and relationships from the chunk
         content = chunk["content"]
-        title = chunk.get("title", "")
         metadata = chunk.get("metadata", {})
 
         # Add library-version relationship
@@ -400,7 +401,7 @@ class DocumentationRepository:
         metadata_file = os.path.join(self.storage_path, "metadata.json")
         if os.path.exists(metadata_file):
             try:
-                with open(metadata_file, "r") as f:
+                with open(metadata_file) as f:
                     self.metadata = json.load(f)
                 logger.debug("Loaded documentation metadata")
             except Exception as e:

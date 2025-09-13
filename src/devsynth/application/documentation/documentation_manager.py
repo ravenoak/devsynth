@@ -5,11 +5,8 @@ This module defines the DocumentationManager class for coordinating documentatio
 fetching, storage, and querying in a version-aware manner.
 """
 
-import json
 import os
-import re
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from devsynth.application.documentation.documentation_fetcher import (
     DocumentationFetcher,
@@ -35,17 +32,18 @@ class DocumentationManager:
 
     def __init__(
         self,
-        memory_manager: Union[MemoryManager, None] = None,
-        storage_path: Optional[str] = None,
+        memory_manager: MemoryManager | None = None,
+        storage_path: str | None = None,
     ):
         """
         Initialize the documentation manager.
 
         Args:
-            memory_manager: Optional memory manager to use for storage. If
-                ``None`` a default :class:`~devsynth.application.memory.memory_manager.MemoryManager`
+            memory_manager: Optional memory manager. If ``None`` a default
+                :class:`~devsynth.application.memory.memory_manager.MemoryManager`
                 will be created.
-            storage_path: Path to store documentation (defaults to .devsynth/documentation)
+            storage_path: Path for documentation storage
+                (default: .devsynth/documentation)
         """
         self.storage_path = storage_path or os.path.join(
             os.getcwd(), ".devsynth", "documentation"
@@ -68,7 +66,7 @@ class DocumentationManager:
 
     def fetch_documentation(
         self, library: str, version: str, force: bool = False, offline: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Fetch documentation for a library version.
 
@@ -81,7 +79,8 @@ class DocumentationManager:
             A dictionary with information about the fetched documentation
 
         Raises:
-            ValueError: If the library is not supported or documentation cannot be fetched
+            ValueError: If the library is unsupported or documentation
+                cannot be fetched
         """
         # Check if documentation already exists
         if not force and self.repository.has_documentation(library, version):
@@ -123,17 +122,18 @@ class DocumentationManager:
     def query_documentation(
         self,
         query: str,
-        libraries: Optional[List[str]] = None,
-        version_constraints: Optional[Dict[str, str]] = None,
+        libraries: list[str] | None = None,
+        version_constraints: dict[str, str] | None = None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Query documentation using semantic search.
 
         Args:
             query: The query string
             libraries: Optional list of libraries to search in
-            version_constraints: Optional version constraints (e.g., {"numpy": ">= 1.20.0"})
+            version_constraints: Optional version constraints
+                (e.g., {"numpy": ">= 1.20.0"})
             limit: Maximum number of results to return
 
         Returns:
@@ -143,7 +143,7 @@ class DocumentationManager:
             query, libraries, version_constraints, limit
         )
 
-    def list_libraries(self) -> List[Dict[str, Any]]:
+    def list_libraries(self) -> list[dict[str, Any]]:
         """
         List all libraries with available documentation.
 
@@ -152,7 +152,7 @@ class DocumentationManager:
         """
         return self.repository.list_libraries()
 
-    def check_for_updates(self) -> List[Dict[str, Any]]:
+    def check_for_updates(self) -> list[dict[str, Any]]:
         """
         Check for updates to documented libraries.
 
@@ -210,7 +210,7 @@ class DocumentationManager:
 
     def update_documentation(
         self, library: str, from_version: str, to_version: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update documentation from one version to another.
 
@@ -223,7 +223,8 @@ class DocumentationManager:
             A dictionary with information about the update
 
         Raises:
-            ValueError: If the library is not supported or documentation cannot be fetched
+            ValueError: If the library is unsupported or documentation
+                cannot be fetched
         """
         # Check if the current version exists
         if not self.repository.has_documentation(library, from_version):
@@ -243,7 +244,7 @@ class DocumentationManager:
             "result": result,
         }
 
-    def get_documentation_status(self, library: str, version: str) -> Dict[str, Any]:
+    def get_documentation_status(self, library: str, version: str) -> dict[str, Any]:
         """
         Get the status of documentation for a library version.
 
@@ -297,15 +298,17 @@ class DocumentationManager:
                 "error": str(e),
             }
 
-    def get_function_documentation(self, function_name: str) -> List[Dict[str, Any]]:
+    def get_function_documentation(self, function_name: str) -> list[dict[str, Any]]:
         """
         Get documentation for a specific function.
 
         Args:
-            function_name: The fully qualified name of the function (e.g., "pandas.DataFrame.groupby")
+            function_name: Fully qualified function name
+                (e.g., "pandas.DataFrame.groupby")
 
         Returns:
-            A list of documentation chunks for the function, with additional metadata
+            A list of documentation chunks for the function with
+            additional metadata
         """
         # Extract the library name from the function name
         library = function_name.split(".")[0]
@@ -314,7 +317,7 @@ class DocumentationManager:
         query = f"function:{function_name}"
         results = self.query_documentation(query, libraries=[library])
 
-        # Process results to ensure they include parameter descriptions, return values, and examples
+        # Ensure results include parameter descriptions, return values, and examples
         for result in results:
             if "parameters" not in result:
                 result["parameters"] = []
@@ -324,19 +327,22 @@ class DocumentationManager:
                 result["examples"] = []
 
         logger.info(
-            f"Retrieved {len(results)} documentation chunks for function {function_name}"
+            f"Retrieved {len(results)} documentation chunks for function"
+            f" {function_name}"
         )
         return results
 
-    def get_class_documentation(self, class_name: str) -> List[Dict[str, Any]]:
+    def get_class_documentation(self, class_name: str) -> list[dict[str, Any]]:
         """
         Get documentation for a specific class.
 
         Args:
-            class_name: The fully qualified name of the class (e.g., "sklearn.ensemble.RandomForestClassifier")
+            class_name: Fully qualified class name
+                (e.g., "sklearn.ensemble.RandomForestClassifier")
 
         Returns:
-            A list of documentation chunks for the class, with additional metadata
+            A list of documentation chunks for the class with
+            additional metadata
         """
         # Extract the library name from the class name
         library = class_name.split(".")[0]
@@ -345,7 +351,7 @@ class DocumentationManager:
         query = f"class:{class_name}"
         results = self.query_documentation(query, libraries=[library])
 
-        # Process results to ensure they include constructor parameters, methods, and inheritance
+        # Ensure results include constructor parameters, methods, and inheritance
         for result in results:
             if "constructor_params" not in result:
                 result["constructor_params"] = []
@@ -359,7 +365,7 @@ class DocumentationManager:
         )
         return results
 
-    def get_usage_examples(self, item_name: str) -> List[Dict[str, Any]]:
+    def get_usage_examples(self, item_name: str) -> list[dict[str, Any]]:
         """
         Get usage examples for a specific function, class, or module.
 
@@ -388,8 +394,8 @@ class DocumentationManager:
         return results
 
     def get_api_compatibility(
-        self, function_name: str, versions: List[str]
-    ) -> Dict[str, Any]:
+        self, function_name: str, versions: list[str]
+    ) -> dict[str, Any]:
         """
         Get compatibility information for a function across multiple versions.
 
@@ -418,7 +424,7 @@ class DocumentationManager:
                 )
             except Exception as e:
                 logger.warning(
-                    f"Error getting documentation for {library} {version}: {str(e)}"
+                    f"Error getting documentation for {library} {version}:" f" {str(e)}"
                 )
                 version_info.append({"version": version, "error": str(e)})
 
@@ -426,11 +432,12 @@ class DocumentationManager:
         version_info.sort(key=lambda v: self._version_key(v["version"]))
 
         logger.info(
-            f"Retrieved compatibility information for {function_name} across {len(versions)} versions"
+            f"Retrieved compatibility information for {function_name}"
+            f" across {len(versions)} versions"
         )
         return {"function": function_name, "versions": version_info}
 
-    def get_related_functions(self, function_name: str) -> Dict[str, Any]:
+    def get_related_functions(self, function_name: str) -> dict[str, Any]:
         """
         Get related functions for a specific function.
 
@@ -465,7 +472,8 @@ class DocumentationManager:
                     )
                 except Exception as e:
                     logger.warning(
-                        f"Error getting documentation for related function {rel_func}: {str(e)}"
+                        f"Error getting documentation for related function {rel_func}:"
+                        f" {str(e)}"
                     )
                     related_functions.append(
                         {
@@ -481,7 +489,7 @@ class DocumentationManager:
         )
         return {"function": function_name, "related_functions": related_functions}
 
-    def get_usage_patterns(self, function_name: str) -> Dict[str, Any]:
+    def get_usage_patterns(self, function_name: str) -> dict[str, Any]:
         """
         Get common usage patterns for a specific function.
 
@@ -522,7 +530,7 @@ class DocumentationManager:
             "common_params": common_params,
         }
 
-    def _version_key(self, version: str) -> Tuple:
+    def _version_key(self, version: str) -> tuple:
         """Convert a version string to a tuple for sorting."""
         # Convert each part to an integer if possible, otherwise use string
         parts = []

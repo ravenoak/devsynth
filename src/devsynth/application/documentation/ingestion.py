@@ -1,7 +1,8 @@
 """
 Documentation Ingestion Module
 
-This module provides components for ingesting and processing documentation from various sources.
+This module provides components for ingesting and processing
+documentation from various sources.
 """
 
 import hashlib
@@ -10,7 +11,7 @@ import os
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import requests
 
@@ -18,6 +19,7 @@ from devsynth.exceptions import DevSynthError
 
 from ...domain.models.memory import MemoryItem, MemoryType
 from ...logging_setup import DevSynthLogger
+from ..memory.memory_manager import MemoryManager
 
 logger = DevSynthLogger(__name__)
 
@@ -36,7 +38,7 @@ class DocumentationIngestionManager:
     URLs, and other sources, processing it, and storing it in the memory system.
     """
 
-    def __init__(self, memory_manager=None):
+    def __init__(self, memory_manager: MemoryManager | None = None):
         """
         Initialize the Documentation Ingestion Manager.
 
@@ -55,8 +57,10 @@ class DocumentationIngestionManager:
         logger.info("Documentation Ingestion Manager initialized")
 
     def ingest_file(
-        self, file_path: Union[str, Path], metadata: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+        self,
+        file_path: str | Path,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Ingest documentation from a file.
 
@@ -83,7 +87,7 @@ class DocumentationIngestionManager:
                 raise DocumentationIngestionError(f"Unsupported file type: {file_ext}")
 
             # Read the file content
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Process the file based on its type
@@ -123,25 +127,27 @@ class DocumentationIngestionManager:
 
     def ingest_directory(
         self,
-        dir_path: Union[str, Path],
+        dir_path: str | Path,
         recursive: bool = True,
-        file_types: List[str] = None,
-        metadata: Dict[str, Any] = None,
-    ) -> List[Dict[str, Any]]:
+        file_types: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Ingest documentation from all supported files in a directory.
 
         Args:
             dir_path: The path to the directory to ingest
             recursive: Whether to recursively ingest files in subdirectories
-            file_types: Optional list of file extensions to ingest (e.g., [".md", ".txt"])
+            file_types: Optional list of file extensions to ingest
+                (e.g., [".md", ".txt"])
             metadata: Optional metadata to associate with all documentation
 
         Returns:
             A list of dictionaries containing the ingested documentation
 
         Raises:
-            DocumentationIngestionError: If the directory cannot be read or processed
+            DocumentationIngestionError: If the directory cannot be read
+                or processed
         """
         try:
             dir_path = Path(dir_path)
@@ -186,7 +192,8 @@ class DocumentationIngestionManager:
                     logger.warning(f"Failed to ingest file {file_path}: {e}")
 
             logger.info(
-                f"Ingested {len(results)} documentation files from directory: {dir_path}"
+                f"Ingested {len(results)} documentation files from directory:"
+                f" {dir_path}"
             )
             return results
         except Exception as e:
@@ -195,7 +202,9 @@ class DocumentationIngestionManager:
                 f"Failed to ingest documentation from directory: {e}"
             )
 
-    def ingest_url(self, url: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+    def ingest_url(
+        self, url: str, metadata: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Ingest documentation from a URL.
 
@@ -274,7 +283,8 @@ class DocumentationIngestionManager:
             The processed content
         """
         # Remove Markdown formatting for simplicity
-        # This is a basic implementation; a more sophisticated one would use a Markdown parser
+        # Basic implementation; a more sophisticated one would use a
+        # Markdown parser
 
         # Remove headers
         content = re.sub(r"#{1,6}\s+", "", content)
@@ -368,7 +378,7 @@ class DocumentationIngestionManager:
             The processed content
         """
         # Remove HTML tags for simplicity
-        # This is a basic implementation; a more sophisticated one would use an HTML parser
+        # Basic implementation; a full HTML parser would be better
         content = re.sub(r"<[^>]*>", "", content)
 
         # Remove extra whitespace
@@ -387,7 +397,7 @@ class DocumentationIngestionManager:
             The processed content
         """
         # Remove RST formatting for simplicity
-        # This is a basic implementation; a more sophisticated one would use an RST parser
+        # Basic implementation; a full RST parser would be better
 
         # Remove section headers
         content = re.sub(r'[=\-`:\'"~^_*+#<>]{3,}\n', "", content)
@@ -400,7 +410,7 @@ class DocumentationIngestionManager:
 
         return content.strip()
 
-    def _store_in_memory(self, content: str, metadata: Dict[str, Any]) -> str:
+    def _store_in_memory(self, content: str, metadata: dict[str, Any]) -> str:
         """
         Store documentation in memory.
 
@@ -443,8 +453,8 @@ class DocumentationIngestionManager:
         self,
         query: str,
         limit: int = 10,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Any]:
+        metadata_filter: dict[str, Any] | None = None,
+    ) -> list[Any]:
         """Search ingested documentation using the memory manager."""
 
         if not self.memory_manager:
@@ -468,18 +478,18 @@ class DocumentationIngestionManager:
 
         return results
 
-    def semantic_search(self, query: str, limit: int = 10) -> List[Any]:
+    def semantic_search(self, query: str, limit: int = 10) -> list[Any]:
         """Alias for :meth:`search_documentation` for compatibility."""
 
         return self.search_documentation(query, limit=limit)
 
     def ingest_from_project_config(
         self,
-        project_root: Union[str, Path] | None = None,
-        manifest_path: Union[str, Path] | None = None,
-        docs_dirs: Optional[List[str]] = None,
+        project_root: str | Path | None = None,
+        manifest_path: str | Path | None = None,
+        docs_dirs: list[str] | None = None,
         non_interactive: bool = False,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Ingest documentation based on ``.devsynth/project.yaml``.
 
         Args:
@@ -508,7 +518,7 @@ class DocumentationIngestionManager:
             config = load_project_config(root)
 
         docs_dirs = docs_dirs or config.config.directories.get("docs", ["docs"])
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
 
         for rel in docs_dirs:
             doc_dir = root / rel

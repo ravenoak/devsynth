@@ -8,7 +8,7 @@ and detecting updates.
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -26,17 +26,18 @@ class VersionMonitor:
     and maintaining version history.
     """
 
-    def __init__(self, storage_path: Optional[str] = None):
+    def __init__(self, storage_path: str | None = None):
         """
         Initialize the version monitor.
 
         Args:
-            storage_path: Path to store version data (defaults to .devsynth/documentation)
+            storage_path: Path to store version data
+                (default: .devsynth/documentation)
         """
         self.storage_path = storage_path or os.path.join(
             os.getcwd(), ".devsynth", "documentation"
         )
-        self.libraries: Dict[str, Dict[str, Any]] = {}
+        self.libraries: dict[str, dict[str, Any]] = {}
 
         # Create the storage directory if it doesn't exist
         os.makedirs(self.storage_path, exist_ok=True)
@@ -67,7 +68,7 @@ class VersionMonitor:
 
         logger.info(f"Registered library {library} version {version}")
 
-    def check_for_updates(self, library: str) -> Dict[str, Any]:
+    def check_for_updates(self, library: str) -> dict[str, Any]:
         """
         Check for updates to a library.
 
@@ -126,7 +127,7 @@ class VersionMonitor:
             logger.warning(f"Error checking for updates to {library}: {str(e)}")
             return {"error": str(e)}
 
-    def check_all_libraries(self) -> List[Dict[str, Any]]:
+    def check_all_libraries(self) -> list[dict[str, Any]]:
         """
         Check for updates to all registered libraries.
 
@@ -142,7 +143,7 @@ class VersionMonitor:
 
         return results
 
-    def get_library_info(self, library: str) -> Optional[Dict[str, Any]]:
+    def get_library_info(self, library: str) -> dict[str, Any] | None:
         """
         Get information about a registered library.
 
@@ -160,7 +161,7 @@ class VersionMonitor:
 
         return library_info
 
-    def list_libraries(self) -> List[Dict[str, Any]]:
+    def list_libraries(self) -> list[dict[str, Any]]:
         """
         List all registered libraries.
 
@@ -192,7 +193,7 @@ class VersionMonitor:
         data_file = os.path.join(self.storage_path, "version_data.json")
         if os.path.exists(data_file):
             try:
-                with open(data_file, "r") as f:
+                with open(data_file) as f:
                     self.libraries = json.load(f)
                 logger.debug("Loaded version data")
             except Exception as e:
