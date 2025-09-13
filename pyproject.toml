@@ -374,10 +374,6 @@ module = "devsynth.methodology.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "devsynth.domain.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 module = "devsynth.application.edrr.*"
 ignore_errors = true
 

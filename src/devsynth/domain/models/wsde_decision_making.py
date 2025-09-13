@@ -14,14 +14,15 @@ from devsynth.domain.models.wsde_base import WSDETeam
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+# TODO: Restore strict typing and remove temporary relaxations by 2025-10-01.
 
 
 def generate_diverse_ideas(
     self: WSDETeam,
-    task: Dict[str, Any],
+    task: dict[str, Any],
     max_ideas: int = 10,
     diversity_threshold: float = 0.7,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Generate diverse ideas for a task.
 
@@ -94,7 +95,7 @@ def generate_diverse_ideas(
 
 
 def _calculate_idea_similarity(
-    self: WSDETeam, idea1: Dict[str, Any], idea2: Dict[str, Any]
+    self: WSDETeam, idea1: dict[str, Any], idea2: dict[str, Any]
 ) -> float:
     """
     Calculate the similarity between two ideas.
@@ -128,8 +129,8 @@ def _calculate_idea_similarity(
 
 
 def create_comparison_matrix(
-    self: WSDETeam, ideas: List[Dict[str, Any]], evaluation_criteria: List[str]
-) -> Dict[str, Dict[str, float]]:
+    self: WSDETeam, ideas: list[dict[str, Any]], evaluation_criteria: list[str]
+) -> dict[str, dict[str, float]]:
     """
     Create a comparison matrix for evaluating ideas.
 
@@ -177,10 +178,10 @@ def create_comparison_matrix(
 
 def evaluate_options(
     self: WSDETeam,
-    ideas: List[Dict[str, Any]],
-    comparison_matrix: Dict[str, Dict[str, float]],
-    weighting_scheme: Dict[str, float],
-) -> List[Dict[str, Any]]:
+    ideas: list[dict[str, Any]],
+    comparison_matrix: dict[str, dict[str, float]],
+    weighting_scheme: dict[str, float],
+) -> list[dict[str, Any]]:
     """
     Evaluate options based on a comparison matrix and weighting scheme.
 
@@ -244,10 +245,10 @@ def evaluate_options(
 
 def analyze_trade_offs(
     self: WSDETeam,
-    evaluated_options: List[Dict[str, Any]],
+    evaluated_options: list[dict[str, Any]],
     conflict_detection_threshold: float = 0.7,
     identify_complementary_options: bool = True,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Analyze trade-offs between evaluated options.
 
@@ -332,12 +333,12 @@ def analyze_trade_offs(
 
 def formulate_decision_criteria(
     self: WSDETeam,
-    task: Dict[str, Any],
-    evaluated_options: List[Dict[str, Any]],
-    trade_offs: List[Dict[str, Any]],
+    task: dict[str, Any],
+    evaluated_options: list[dict[str, Any]],
+    trade_offs: list[dict[str, Any]],
     contextualize_with_code: bool = False,
     code_analyzer: Any = None,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     Formulate decision criteria based on evaluated options and trade-offs.
 
@@ -418,9 +419,9 @@ def formulate_decision_criteria(
 
 def select_best_option(
     self: WSDETeam,
-    evaluated_options: List[Dict[str, Any]],
-    decision_criteria: Dict[str, float],
-) -> Dict[str, Any]:
+    evaluated_options: list[dict[str, Any]],
+    decision_criteria: dict[str, float],
+) -> dict[str, Any]:
     """
     Select the best option based on decision criteria.
 
@@ -462,8 +463,8 @@ def select_best_option(
 
 
 def elaborate_details(
-    self: WSDETeam, selected_option: Dict[str, Any]
-) -> List[Dict[str, Any]]:
+    self: WSDETeam, selected_option: dict[str, Any]
+) -> list[dict[str, Any]]:
     """
     Elaborate details for a selected option.
 
@@ -512,8 +513,8 @@ def elaborate_details(
 
 
 def create_implementation_plan(
-    self: WSDETeam, details: List[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
+    self: WSDETeam, details: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """
     Create an implementation plan from elaborated details.
 
@@ -558,8 +559,8 @@ def create_implementation_plan(
 
 
 def _topological_sort_steps(
-    self: WSDETeam, steps: List[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
+    self: WSDETeam, steps: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """
     Sort steps topologically based on dependencies.
 
@@ -590,7 +591,7 @@ def _topological_sort_steps(
     temp_visited = set()
     order = []
 
-    def visit(node):
+    def visit(node: str) -> None:
         if node in temp_visited:
             # Cycle detected
             return
@@ -622,10 +623,10 @@ def _topological_sort_steps(
 
 def optimize_implementation(
     self: WSDETeam,
-    plan: List[Dict[str, Any]],
-    optimization_targets: List[str],
+    plan: list[dict[str, Any]],
+    optimization_targets: list[str],
     code_analyzer: Any = None,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Optimize an implementation plan.
 
@@ -666,8 +667,8 @@ def optimize_implementation(
 
 
 def _optimize_for_performance(
-    self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None
-) -> List[Dict[str, Any]]:
+    self: WSDETeam, plan: list[dict[str, Any]], code_analyzer: Any = None
+) -> list[dict[str, Any]]:
     """
     Optimize an implementation plan for performance.
 
@@ -710,8 +711,8 @@ def _optimize_for_performance(
 
 
 def _optimize_for_maintainability(
-    self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None
-) -> List[Dict[str, Any]]:
+    self: WSDETeam, plan: list[dict[str, Any]], code_analyzer: Any = None
+) -> list[dict[str, Any]]:
     """
     Optimize an implementation plan for maintainability.
 
@@ -754,8 +755,8 @@ def _optimize_for_maintainability(
 
 
 def _optimize_for_security(
-    self: WSDETeam, plan: List[Dict[str, Any]], code_analyzer: Any = None
-) -> List[Dict[str, Any]]:
+    self: WSDETeam, plan: list[dict[str, Any]], code_analyzer: Any = None
+) -> list[dict[str, Any]]:
     """
     Optimize an implementation plan for security.
 
@@ -802,10 +803,10 @@ def _optimize_for_security(
 
 def perform_quality_assurance(
     self: WSDETeam,
-    plan: List[Dict[str, Any]],
-    check_categories: List[str],
+    plan: list[dict[str, Any]],
+    check_categories: list[str],
     code_analyzer: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Perform quality assurance on an implementation plan.
 
@@ -867,7 +868,7 @@ def perform_quality_assurance(
 
 
 def _check_completeness(
-    self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]
+    self: WSDETeam, plan: list[dict[str, Any]], qa_results: dict[str, Any]
 ) -> None:
     """
     Check the completeness of an implementation plan.
@@ -977,7 +978,7 @@ def _check_completeness(
 
 
 def _check_consistency(
-    self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]
+    self: WSDETeam, plan: list[dict[str, Any]], qa_results: dict[str, Any]
 ) -> None:
     """
     Check the consistency of an implementation plan.
@@ -1003,7 +1004,7 @@ def _check_consistency(
         return
 
     # Check for duplicate steps
-    descriptions = {}
+    descriptions: dict[str, int] = {}
 
     for i, step in enumerate(plan):
         description = step.get("description", "").lower()
@@ -1052,7 +1053,7 @@ def _check_consistency(
         )
 
     # Suggest standardizing terminology
-    terms = {}
+    terms: dict[str, int] = {}
 
     for i, step in enumerate(plan):
         description = step.get("description", "").lower()
@@ -1073,7 +1074,7 @@ def _check_consistency(
 
 
 def _check_testability(
-    self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]
+    self: WSDETeam, plan: list[dict[str, Any]], qa_results: dict[str, Any]
 ) -> None:
     """
     Check the testability of an implementation plan.
@@ -1182,7 +1183,7 @@ def _check_testability(
 
 
 def _check_security(
-    self: WSDETeam, plan: List[Dict[str, Any]], qa_results: Dict[str, Any]
+    self: WSDETeam, plan: list[dict[str, Any]], qa_results: dict[str, Any]
 ) -> None:
     """
     Check the security considerations in an implementation plan.

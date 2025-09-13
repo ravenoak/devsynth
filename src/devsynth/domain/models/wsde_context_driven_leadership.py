@@ -8,7 +8,7 @@ and adaptive leadership selection based on task context.
 
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 from uuid import uuid4
 
 # Import the base WSDETeam class for type hints
@@ -17,10 +17,11 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
 
 logger = DevSynthLogger(__name__)
+# TODO: Restore strict typing and remove temporary relaxations by 2025-10-01.
 
 
 def enhanced_calculate_expertise_score(
-    self: WSDETeam, agent: Any, task: Dict[str, Any]
+    self: WSDETeam, agent: Any, task: dict[str, Any]
 ) -> float:
     """
     Calculate an enhanced expertise score for an agent based on a task.
@@ -40,7 +41,7 @@ def enhanced_calculate_expertise_score(
         Expertise score (higher is better)
     """
     # Get agent expertise
-    agent_expertise: List[str] = []
+    agent_expertise: list[str] = []
 
     # Try different ways to get agent expertise
     if hasattr(agent, "expertise"):
@@ -57,10 +58,10 @@ def enhanced_calculate_expertise_score(
         return 0.0
 
     # Extract keywords from the task
-    task_keywords = {}
+    task_keywords: dict[str, str] = {}
 
     # Helper function to flatten nested dictionaries for keyword extraction
-    def _flatten(prefix: str, value: Any, out: Dict[str, Any]):
+    def _flatten(prefix: str, value: Any, out: dict[str, Any]) -> None:
         if isinstance(value, dict):
             for k, v in value.items():
                 _flatten(f"{prefix}.{k}" if prefix else k, v, out)
@@ -71,7 +72,7 @@ def enhanced_calculate_expertise_score(
             out[prefix] = value
 
     # Flatten the task dictionary to extract all text
-    flattened_task = {}
+    flattened_task: dict[str, Any] = {}
     _flatten("", task, flattened_task)
 
     # Extract all string values for keyword analysis
@@ -164,7 +165,7 @@ def enhanced_calculate_expertise_score(
 
 
 def enhanced_calculate_phase_expertise_score(
-    self: WSDETeam, agent: Any, task: Dict[str, Any], phase_keywords: List[str]
+    self: WSDETeam, agent: Any, task: dict[str, Any], phase_keywords: list[str]
 ) -> float:
     """
     Calculate an enhanced expertise score that considers phase-specific requirements.
@@ -182,10 +183,10 @@ def enhanced_calculate_phase_expertise_score(
         A score representing how well the agent's expertise matches the phase requirements
     """
     # Get the base expertise score using the enhanced method
-    base_score = self.enhanced_calculate_expertise_score(agent, task)
+    base_score = cast(float, self.enhanced_calculate_expertise_score(agent, task))
 
     # Get agent expertise
-    agent_expertise: List[str] = []
+    agent_expertise: list[str] = []
 
     # Try different ways to get agent expertise
     if hasattr(agent, "expertise"):
@@ -251,8 +252,8 @@ def enhanced_calculate_phase_expertise_score(
 
 
 def enhanced_select_primus_by_expertise(
-    self: WSDETeam, task: Dict[str, Any]
-) -> Optional[Any]:
+    self: WSDETeam, task: dict[str, Any]
+) -> Any | None:
     """
     Select the Primus based on task context and agent expertise with enhanced logic.
 
@@ -335,8 +336,8 @@ def enhanced_select_primus_by_expertise(
 
 
 def dynamic_role_reassignment_enhanced(
-    self: WSDETeam, task: Dict[str, Any]
-) -> Dict[str, Any]:
+    self: WSDETeam, task: dict[str, Any]
+) -> dict[str, Any]:
     """
     Dynamically reassign roles based on the current task with enhanced logic.
 
@@ -407,7 +408,7 @@ def dynamic_role_reassignment_enhanced(
         return self.roles
 
     # Calculate role-specific expertise scores for each available agent
-    role_scores = {}
+    role_scores: dict[str, dict[str, float]] = {}
     for agent in available_agents:
         role_scores[agent.name] = {}
         for role, keywords in role_expertise.items():
