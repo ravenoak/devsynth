@@ -22,5 +22,6 @@ Progress:
 - 2025-09-13: Re-ran smoke tests and verification scripts; full coverage run attempted but timed out. Opened issues/strict-typing-roadmap.md to consolidate remaining typing tasks.
 - 2025-09-13: Final fast+medium coverage run attempted; run reported `ERROR unit/general/test_test_first_metrics.py`. Coverage artifacts omitted from commit due to Codex diff size limits.
 - 2025-09-13: Verified fresh environment with `poetry install`; smoke tests and verification scripts passed; awaiting UAT and maintainer tagging.
+- 2025-09-13: Fixed path handling for `test_first_metrics` and reran coverage; committed updated reports.
 Resolution Evidence:
   - docs/tasks.md item 19
