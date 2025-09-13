@@ -1,3 +1,4 @@
+# Related issue: ../../docs/specifications/dialectical_reasoning.md
 Feature: Dialectical reasoner evaluation hooks
   As a quality engineer
   I want hooks to observe reasoning outcomes

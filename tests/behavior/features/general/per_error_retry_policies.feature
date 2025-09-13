@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/per_error_retry_policies.md
 Feature: Per-error retry policies
   As a developer
   I want retries to honour per-error policies

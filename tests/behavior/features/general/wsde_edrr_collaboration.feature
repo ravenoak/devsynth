@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/wsde_edrr_collaboration.md
 Feature: WSDE and EDRR collaboration
   The WSDE team and EDRR coordinator should share phase state
   and ensure memory consistency across transitions.

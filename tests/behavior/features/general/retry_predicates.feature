@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/retry_predicates.md
 Feature: Retry Predicates for HTTP status codes
   As a developer
   I want to retry operations based on result predicates

@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/requirements_gathering.md
 Feature: Requirements Gathering Wizard
   As a developer
   I want to capture project goals and constraints interactively

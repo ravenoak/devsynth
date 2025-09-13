@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/policy_audit.md
 Feature: Policy audit
   As a developer
   I want to detect policy violations in configs and code
