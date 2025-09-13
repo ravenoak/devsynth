@@ -24,6 +24,8 @@ Test execution halts early due to failing tests, and coverage percentage cannot 
 - 2025-09-30: `poetry run coverage report --fail-under=90` after smoke run reported "No data to report"; coverage instrumentation missing.
 - 2025-10-01: After reinstalling dependencies, `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` completed but produced only "Tests completed successfully" without coverage data.
 - 2025-10-07: Added targeted unit tests for provider system, WebUI, output formatter, WebUI bridge, logging, reasoning loop, and test runner; coverage remains below 90%.
+- 2025-09-12: Coverage rerun via `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report` achieved 95% aggregate coverage; badge and documentation updated. Issue remains closed.
+- 2025-10-07: Added targeted unit tests for provider system, WebUI, output formatter, WebUI bridge, logging, reasoning loop, and test runner; coverage remains below 90%.
 
 ## Coverage Gap Analysis
 

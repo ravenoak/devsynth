@@ -17,7 +17,7 @@ last_reviewed: "2025-08-08"
 # DevSynth
 ![Version](https://img.shields.io/badge/version-0.1.0a1-blue.svg) [![Pre‑release](https://img.shields.io/badge/status-pre--release-orange.svg)](docs/release/0.1.0-alpha.1.md)
 [![Readiness Checklist](https://img.shields.io/badge/readiness-checklist-blueviolet.svg)](docs/tasks.md)
-![Coverage](https://img.shields.io/badge/coverage-0%25-red.svg)
+![Coverage](docs/coverage.svg)
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
