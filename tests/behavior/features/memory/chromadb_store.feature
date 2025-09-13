@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/chromadb_store.md
 Feature: ChromaDB memory store
   In order to store optimized embeddings
   As a developer

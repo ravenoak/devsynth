@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/simple_addition_input_validation.md
 Feature: Simple addition input validation
   The add function should reject non-numeric inputs.
 

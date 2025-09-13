@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/dialectical_reasoning_memory_persistence.md
 Feature: Dialectical reasoning persists results to memory
   As a requirements engineer
   I want dialectical reasoning results stored in memory

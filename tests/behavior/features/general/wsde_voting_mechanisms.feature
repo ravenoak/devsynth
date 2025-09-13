@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/wsde_voting_mechanisms.md
 Feature: WSDE Voting Mechanisms for Critical Decisions
   As a developer using DevSynth
   I want to use voting mechanisms for critical decisions in the WSDE model

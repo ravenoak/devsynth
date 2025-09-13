@@ -1,3 +1,4 @@
+# Related issue: ../../../../docs/specifications/security_audit_reporting.md
 Feature: Security audit reporting
   As a developer
   I want the security audit command to produce a summary report

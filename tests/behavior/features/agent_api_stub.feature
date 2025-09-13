@@ -1,3 +1,4 @@
+# Related issue: ../../docs/specifications/agent_api_stub.md
 Feature: Agent API stub
   As an integration developer
   I want the stub to invoke CLI workflows
