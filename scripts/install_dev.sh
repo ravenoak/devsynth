@@ -125,8 +125,17 @@ fi
 
 poetry config virtualenvs.create true
 poetry env remove --all >/dev/null 2>&1 || true
-if ! poetry env use 3.12 >/dev/null 2>&1; then
-  echo "[error] Python 3.12 not available for Poetry" >&2
+# Prefer an explicit Python 3.12 interpreter. Fall back to the active python
+# if pyenv does not expose a dedicated shim.
+py_exec=""
+if command -v pyenv >/dev/null 2>&1; then
+  py_exec="$(pyenv which python3.12 2>/dev/null || true)"
+fi
+if [[ -z "$py_exec" ]]; then
+  py_exec="$(command -v python3.12 2>/dev/null || command -v python)"
+fi
+if ! poetry env use "$py_exec" >/dev/null 2>&1; then
+  echo "[error] Python 3.12 executable not available for Poetry: $py_exec" >&2
   exit 1
 fi
 
