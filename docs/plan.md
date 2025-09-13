@@ -277,6 +277,10 @@ Notes and next actions
   docs/implementation/memory_system_invariants.md and
   docs/implementation/webui_invariants.md (Issues:
   issues/memory-and-context-system.md, issues/webui-integration.md).
+- Formal proofs for run-tests CLI and EDRR invariants recorded in
+  docs/implementation/run_tests_cli_invariants.md and
+  docs/implementation/edrr_invariants.md (Issues:
+  issues/run-tests-cli-invariants.md, issues/edrr-invariants.md).
 - Short-term: Align docs with current CLI behaviors and ensure issues/ action items are traced to tests.
 - Guardrails: diagnostics/flake8_2025-09-10_run2.txt shows E501/F401 in tests/unit/testing/test_run_tests_module.py; bandit scan (diagnostics/bandit_2025-09-10_run2.txt) reports 158 low and 12 medium issues.
 - Post-release: Introduce low-throughput GH Actions pipeline as specified and expand nightly coverage runs.
