@@ -1,8 +1,11 @@
 # Missing BDD tests
 Milestone: 0.1.0a1
-Status: open
+Status: closed
 Priority: medium
 Dependencies:
+
+## Summary
+All specifications now include BDD feature coverage, leaving the gap inventory empty. Implementation committed in [a7b84d4](../commit/a7b84d4) with coverage verified by the [full profile coverage run](../diagnostics/full_profile_coverage.txt).
 
 ## Problem Statement
 Many specifications lack corresponding behavior-driven tests, which limits confidence that 90% coverage reflects system-wide behavior.
