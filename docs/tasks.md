@@ -180,6 +180,7 @@ Notes:
 19.2 [ ] Conduct User Acceptance Testing and confirm approval.
 19.3 [x] Perform final full fast+medium coverage run and archive artifacts. Coverage artifacts (htmlcov/ and coverage.json) omitted from commit due to Codex diff size limits.
 19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).
+19.5 [ ] Close issues/release-finalization-uat.md after tagging is complete.
 
 20. Strict Typing Restoration Roadmap (Phase 9)
 20.1 [x] Consolidate open strict typing tickets into issues/strict-typing-roadmap.md for unified tracking.
