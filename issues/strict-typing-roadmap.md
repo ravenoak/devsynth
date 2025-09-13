@@ -29,6 +29,6 @@ Inventory (2025-09-13):
 Suspected Cause: Multiple open 'restore-strict-typing-*' tickets lack consolidation.
 Next Actions:
   - [x] Inventory all 'restore-strict-typing-*' issues.
-  - [ ] Prioritize modules and schedule PRs.
+  - [x] Prioritize modules and schedule PRs by creating follow-up issues with owners and timelines.
 Resolution Evidence:
   - Inventory recorded 2025-09-13.

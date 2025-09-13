@@ -167,3 +167,15 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run python scripts/verify_version_sync.py` – OK.
 - Observations: Cataloged all 'restore-strict-typing-*' issues in strict-typing-roadmap.md and marked task 20.1 complete; smoke tests and verification scripts pass.
 - Next: Run full fast+medium coverage, conduct UAT, and prioritize strict typing restorations.
+
+## Iteration 2025-09-13 (strict typing follow-ups)
+- Environment: Python 3.12.3; `poetry env info --path` unavailable.
+- Commands:
+  - `poetry run pre-commit run --files pyproject.toml docs/tasks.md docs/plan.md docs/task_notes.md issues/strict-typing-roadmap.md issues/strict-typing-*-follow-up.md`
+  - `poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1`
+  - `poetry run python tests/verify_test_organization.py`
+  - `poetry run python scripts/verify_test_markers.py`
+  - `poetry run python scripts/verify_requirements_traceability.py`
+  - `poetry run python scripts/verify_version_sync.py`
+- Observations: Created follow-up strict typing issues with owners/timelines, removed mypy overrides for logger, exceptions, and CLI modules, and updated roadmap and tasks.
+- Next: Continue typing restorations for remaining modules.
