@@ -176,7 +176,7 @@ Notes:
 18.6 [x] Automate provisioning of `devsynth` CLI and `task` in fresh environments (issues/devsynth-cli-missing.md, issues/task-cli-persistence.md).
 
 19. Release Finalization (Phase 8)
-19.1 [ ] Draft v0.1.0a1 release notes and update CHANGELOG.md.
+19.1 [x] Draft v0.1.0a1 release notes and update CHANGELOG.md.
 19.2 [ ] Conduct User Acceptance Testing and confirm approval.
 19.3 [ ] Perform final full fast+medium coverage run and archive artifacts.
 19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).

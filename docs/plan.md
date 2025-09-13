@@ -300,3 +300,4 @@ Notes and next actions
 - 2025-09-13: Clarified that maintainers will create the `v0.1.0a1` tag on GitHub after User Acceptance Testing; agents prepare the repository for handoff.
 - 2025-09-13: Restored `devsynth` CLI with `poetry install --only-root` and `poetry install --with dev --extras tests`; smoke test run and verification scripts succeeded. `scripts/install_dev.sh` reported "Python 3.12 not available for Poetry"—tracked in docs/tasks.md item 15.4.
 - 2025-09-13: Updated `scripts/install_dev.sh` to detect a Python 3.12 interpreter via `pyenv` or PATH, resolving the setup failure.
+- 2025-09-13: Drafted release notes and updated CHANGELOG; final coverage run, UAT, and tagging remain.
