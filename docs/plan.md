@@ -298,3 +298,4 @@ Notes and next actions
 - 2025-09-12: Regenerated coverage with `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report`; aggregate coverage reached 95% and badge updated in docs/coverage.svg.
 - 2025-09-13: Environment restored via scripts/install_dev.sh; smoke tests and verification commands pass; release-blockers-0-1-0a1.md closed after confirming dispatch-only workflows and documented proofs.
 - 2025-09-13: Clarified that maintainers will create the `v0.1.0a1` tag on GitHub after User Acceptance Testing; agents prepare the repository for handoff.
+- 2025-09-13: Restored `devsynth` CLI with `poetry install --only-root` and `poetry install --with dev --extras tests`; smoke test run and verification scripts succeeded. `scripts/install_dev.sh` reported "Python 3.12 not available for Poetry"—tracked in docs/tasks.md item 15.4.
