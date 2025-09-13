@@ -516,6 +516,11 @@ tasks:
     cmds:
       - bash -lc 'mkdir -p diagnostics; poetry run python scripts/capture_flake_rate.py --target integration-tests --speed fast --markers "requires_resource(\'lmstudio\') and not slow" --runs 3 | tee diagnostics/flake_rate_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "capture_flake_rate lmstudio" --exit-code $EXIT --artifacts "diagnostics/flake_rate.json,diagnostics/flake_rate.txt,diagnostics/flake_rate_stdout.txt" --notes "lmstudio flake-rate"; exit $EXIT'
 
+  env:verify:
+    desc: Fail if required tooling is missing
+    cmds:
+      - bash -lc 'missing=0; if ! command -v task >/dev/null 2>&1; then echo "[error] task command unavailable; run bash scripts/install_dev.sh" >&2; missing=1; fi; if ! poetry run devsynth --version >/dev/null 2>&1; then echo "[error] devsynth CLI unavailable; run '\''poetry install --with dev --all-extras'\''" >&2; missing=1; fi; exit $missing'
+
   env:baseline:
     desc: Capture maintainer environment baseline snapshot and record artifacts
     cmds:

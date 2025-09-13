@@ -248,11 +248,12 @@ Acceptance checklist
 - [ ] User Acceptance Testing passes; maintainers will tag v0.1.0a1 on GitHub after approval.
 
 Maintainer quickstart (authoritative commands)
-- Setup:
-  bash scripts/install_dev.sh  # runs poetry install --with dev --all-extras and installs go-task to $HOME/.local/bin
-  task --version  # verify go-task is on PATH; add $HOME/.local/bin if missing
-  poetry run devsynth --help   # verify devsynth entry point
-  poetry run devsynth doctor
+  - Setup:
+    bash scripts/install_dev.sh  # runs poetry install --with dev --all-extras and installs go-task to $HOME/.local/bin
+    task --version  # verify go-task is on PATH; add $HOME/.local/bin if missing
+    task env:verify  # fail early if task or the devsynth CLI is unavailable
+    poetry run devsynth --help   # verify devsynth entry point
+    poetry run devsynth doctor
 - Fast smoke sanity:
   poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
 - Full fast+medium with HTML report:

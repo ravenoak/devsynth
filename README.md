@@ -37,6 +37,7 @@ Setup (choose one)
   - poetry install --with dev,docs --all-extras
 
 Sanity checks
+- task env:verify  # ensure go-task and the devsynth CLI are available
 - poetry run devsynth --help
 - poetry run devsynth doctor
 - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1
