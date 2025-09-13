@@ -249,10 +249,10 @@ Acceptance checklist
 
 Maintainer quickstart (authoritative commands)
   - Setup:
-    bash scripts/install_dev.sh  # runs poetry install --with dev --all-extras and installs go-task to $HOME/.local/bin
+    bash scripts/install_dev.sh  # installs dev dependencies and go-task to $HOME/.local/bin
     task --version  # verify go-task is on PATH; add $HOME/.local/bin if missing
-    task env:verify  # fail early if task or the devsynth CLI is unavailable
     poetry run devsynth --help   # verify devsynth entry point
+    task env:verify  # fail early if task or the devsynth CLI is unavailable
     poetry run devsynth doctor
 - Fast smoke sanity:
   poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1

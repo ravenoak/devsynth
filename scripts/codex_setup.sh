@@ -77,6 +77,40 @@ poetry env use "$(command -v python3.12)"
 # Verify that the virtual environment was created
 poetry env info --path >/dev/null
 
+# Ensure go-task is available for Taskfile workflows
+TASK_BIN_DIR="${HOME}/.local/bin"
+mkdir -p "$TASK_BIN_DIR"
+if ! command -v task >/dev/null 2>&1; then
+  echo "[info] task command missing; installing go-task" >&2
+  os=$(uname -s | tr '[:upper:]' '[:lower:]')
+  arch=$(uname -m)
+  case "$arch" in
+    x86_64|amd64) arch="amd64" ;;
+    arm64|aarch64) arch="arm64" ;;
+    *) echo "[error] unsupported architecture: $arch" >&2; exit 1 ;;
+  esac
+  case "$os" in
+    linux|darwin) : ;;
+    *) echo "[error] unsupported OS: $os" >&2; exit 1 ;;
+  esac
+  TASK_URL="https://github.com/go-task/task/releases/latest/download/task_${os}_${arch}.tar.gz"
+  if command -v curl >/dev/null 2>&1; then
+    curl -sSL "$TASK_URL" | tar -xz -C "$TASK_BIN_DIR" task >/tmp/task_install.log 2>&1
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO- "$TASK_URL" | tar -xz -C "$TASK_BIN_DIR" task >/tmp/task_install.log 2>&1
+  else
+    echo "[error] neither curl nor wget is available" >&2
+    exit 1
+  fi
+  export PATH="$TASK_BIN_DIR:$PATH"
+fi
+if [[ ":$PATH:" != *":$TASK_BIN_DIR:"* ]]; then
+  export PATH="$TASK_BIN_DIR:$PATH"
+fi
+if [ -w "$HOME/.profile" ] && ! grep -F "$TASK_BIN_DIR" "$HOME/.profile" >/dev/null 2>&1; then
+  echo "export PATH=\"$TASK_BIN_DIR:\$PATH\"" >> "$HOME/.profile"
+fi
+
 # Dialectical checkpoints
 echo "DIALECTICAL CHECKPOINT: What dependencies are truly required?"
 echo "DIALECTICAL CHECKPOINT: How do we verify the cache reproduces identical environments?"
@@ -97,7 +131,6 @@ if [[ "$NORMALIZED_VERSION" != "$EXPECTED_VERSION" ]]; then
   exit 1
 fi
 
-EXTRAS="tests retrieval chromadb api"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/devsynth"
 WHEEL_DIR="$CACHE_DIR/wheels"
 mkdir -p "$WHEEL_DIR"
@@ -130,10 +163,14 @@ if [[ "${PIP_NO_INDEX:-0}" != "1" && -n "$optional_pkgs" ]]; then
 fi
 
 export PIP_FIND_LINKS="$WHEEL_DIR"
-poetry install \
-  --with dev \
-  --extras "$EXTRAS" \
-  --no-interaction
+if ! poetry run devsynth --help >/dev/null 2>&1; then
+  poetry install \
+    --with dev \
+    --all-extras \
+    --no-interaction
+else
+  echo "[info] devsynth CLI already present; skipping poetry install" >&2
+fi
 
 # Ensure prometheus-client is available after installation
 poetry run python -c "import prometheus_client"
@@ -278,6 +315,10 @@ run_check "Test marker verification" poetry run python scripts/verify_test_marke
 run_check "Requirements traceability verification" poetry run python scripts/verify_requirements_traceability.py
 run_check "Version synchronization verification" poetry run python scripts/verify_version_sync.py
 run_check "Security audit" DEVSYNTH_PRE_DEPLOY_APPROVED=true poetry run python scripts/security_audit.py
+
+# Final checks to confirm task and DevSynth CLI availability
+task --version
+poetry run devsynth --help
 
 # Cleanup any failure marker if the setup completes successfully
 [ -f CODEX_ENVIRONMENT_SETUP_FAILED ] && rm CODEX_ENVIRONMENT_SETUP_FAILED

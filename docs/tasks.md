@@ -6,7 +6,9 @@ Source: Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)
 Instructions: Check off each task when completed. Subtasks are enumerated for clarity and traceability. Follow the order for optimal flow. All commands should be run via Poetry.
 
 1. Environment and Tooling Baseline (Phase 0)
-1.1 [x] Install dependencies with full maintainer extras: `poetry install --with dev --all-extras`.
+1.1 [x] Provision environment and install go-task: `bash scripts/install_dev.sh`.
+1.1.1 [x] Verify `task` CLI is available: `task --version`.
+1.1.2 [x] Verify `devsynth` CLI is installed: `poetry run devsynth --help`.
 1.2 [x] Activate Poetry shell: `poetry shell`.
 1.3 [x] Run quick sanity checks: `poetry run devsynth doctor`, `poetry run pytest --collect-only -q`.
 1.4 [x] Validate marker discipline: `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`.
@@ -18,8 +20,6 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 1.5.5 [x] `date -u '+%Y-%m-%dT%H:%M:%SZ' | tee diagnostics/run_timestamp_utc.txt`
 1.6 [x] Investigate `poetry install --with dev --all-extras` hanging on `nvidia/__init__.py` (Issue: [poetry-install-nvidia-loop.md](../issues/poetry-install-nvidia-loop.md)).
 1.7 [x] Resolve scripts/codex_setup.sh version mismatch (project 0.1.0a1 vs expected 0.1.0-alpha.1).
-1.8 [x] Ensure `devsynth` CLI entry point is installed; run `poetry install --with dev --all-extras` if missing.
-1.9 [x] Ensure `task` CLI is available on the PATH: run `task --version`; if missing, run `bash scripts/install_dev.sh` and add `$HOME/.local/bin` to PATH (Issue: [task-cli-missing.md](../issues/task-cli-missing.md)).
 
 2. [x] Property Tests Remediation (Phase 1)
 2.1 [x] Fix Hypothesis misuse in tests/property/test_requirements_consensus_properties.py:
