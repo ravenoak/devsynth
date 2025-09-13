@@ -239,11 +239,6 @@ disallow_incomplete_defs = false
 # while avoiding blocking changes. Add TODOs in modules to restore strictness.
 # Target to restore strictness: 2025-10-01
 [[tool.mypy.overrides]]
-module = "devsynth.application.cli.commands.inspect_code_cmd"
-disallow_untyped_defs = false
-check_untyped_defs = false
-
-[[tool.mypy.overrides]]
 module = "devsynth.feature_markers"
 ignore_errors = true
 
@@ -286,10 +281,6 @@ module = "devsynth.adapters.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "devsynth.exceptions"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 module = "devsynth.testing.*"
 ignore_errors = true
 
@@ -316,19 +307,11 @@ module = "devsynth.api"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "devsynth.application.cli.cli_commands"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 module = "devsynth.methodology.sprint"
 ignore_errors = true
 
 # Temporary relaxations for remaining hotspots (Iteration 2025-08-31)
 # TODO: Restore strictness by 2025-10-01.
-[[tool.mypy.overrides]]
-module = "devsynth.logger"
-ignore_errors = true
-
 [[tool.mypy.overrides]]
 module = "devsynth.logging_setup"
 ignore_errors = true
@@ -392,15 +375,6 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = "devsynth.interface.agentapi_enhanced"
 ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.application.cli.autocomplete"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.application.cli.help"
-ignore_errors = true
-
 
 [build-system]
 requires = ["poetry-core"]
