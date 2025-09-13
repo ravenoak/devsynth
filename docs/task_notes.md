@@ -131,3 +131,15 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run python scripts/verify_version_sync.py` – OK.
 - Observations: `scripts/install_dev.sh` now locates Python 3.12 via pyenv or PATH, preventing false setup failures; task 15.4 completed and issue closed.
 - Next: Draft release notes, perform final coverage run, complete User Acceptance Testing, and hand off tagging to maintainers on GitHub.
+
+## Iteration 2025-09-13 (release notes drafted)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12; `task --version` 3.44.1.
+- Commands:
+  - `poetry run pre-commit run --files docs/release/0.1.0-alpha.1.md CHANGELOG.md docs/tasks.md docs/plan.md docs/task_notes.md issues/release-finalization-uat.md` – pass.
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – pass.
+  - `poetry run python tests/verify_test_organization.py` – 923 test files detected.
+  - `poetry run python scripts/verify_test_markers.py` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – success.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+- Observations: Release notes drafted and CHANGELOG updated; release-finalization issue ticked. Tools available after reinstall.
+- Next: Perform final coverage run, complete User Acceptance Testing, and hand off tagging to maintainers on GitHub.
