@@ -306,3 +306,4 @@ Notes and next actions
 - 2025-09-13: Restored `devsynth` CLI with `poetry install --only-root` and `poetry install --with dev --extras tests`; smoke test run and verification scripts succeeded. `scripts/install_dev.sh` reported "Python 3.12 not available for Poetry"—tracked in docs/tasks.md item 15.4.
 - 2025-09-13: Updated `scripts/install_dev.sh` to detect a Python 3.12 interpreter via `pyenv` or PATH, resolving the setup failure.
 - 2025-09-13: Drafted release notes and updated CHANGELOG; final coverage run, UAT, and tagging remain.
+- 2025-09-13: Verified environment post-install_dev.sh (task 3.44.1); smoke test and verification scripts succeeded. Full fast+medium coverage run attempted but timed out; strict typing roadmap issue opened to consolidate remaining typing tickets.
