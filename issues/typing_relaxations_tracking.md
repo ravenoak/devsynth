@@ -24,7 +24,6 @@ How to use this document:
 | devsynth.methodology.sprint | ignore_errors=true | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | open |
 | devsynth.logger | ignore_errors=true | TBD | [restore-strict-typing-logger.md](restore-strict-typing-logger.md) | 2025-10-01 | open |
 | devsynth.methodology.* | ignore_errors=true | TBD | [restore-strict-typing-methodology.md](restore-strict-typing-methodology.md) | 2025-10-01 | open |
-| devsynth.domain.* | ignore_errors=true | TBD | [restore-strict-typing-domain.md](restore-strict-typing-domain.md) | 2025-10-01 | open |
 | devsynth.application.edrr.* | ignore_errors=true | TBD | [restore-strict-typing-application-edrr.md](restore-strict-typing-application-edrr.md) | 2025-10-01 | open |
 
 Notes:
@@ -32,3 +31,4 @@ Notes:
 - Add TODO comments in modules when touching code to remind about the strictness restoration deadline.
 - 2025-09-10: Removed the mypy override for `devsynth.cli` after upgrading Typer to a typed release.
 - 2025-09-11: Removed the mypy override for `devsynth.methodology.edrr.reasoning_loop` after adding type annotations.
+ - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
