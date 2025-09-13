@@ -1,6 +1,6 @@
 # DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist
 
-Version: 2025-10-08
+Version: 2025-09-13
 Source: Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)
 
 Instructions: Check off each task when completed. Subtasks are enumerated for clarity and traceability. Follow the order for optimal flow. All commands should be run via Poetry.
@@ -173,3 +173,9 @@ Notes:
 18.4 [x] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
 18.5 [x] Investigate full fast+medium coverage run failure (`ERROR unit/general/test_test_first_metrics.py`) and restore coverage artifact generation.
 18.6 [x] Automate provisioning of `devsynth` CLI and `task` in fresh environments (issues/devsynth-cli-missing.md, issues/task-cli-persistence.md).
+
+19. Release Finalization (Phase 8)
+19.1 [ ] Draft v0.1.0a1 release notes and update CHANGELOG.md.
+19.2 [ ] Conduct User Acceptance Testing and confirm approval.
+19.3 [ ] Perform final full fast+medium coverage run and archive artifacts.
+19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).
