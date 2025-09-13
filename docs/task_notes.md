@@ -106,3 +106,16 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run python scripts/verify_version_sync.py` – OK.
 - Observations: Plan and tasks updated to clarify manual GitHub tagging after UAT; opened release-finalization-uat issue.
 - Next: Draft release notes, run final coverage, complete User Acceptance Testing, and hand off tagging to maintainers on GitHub.
+
+## Iteration 2025-09-13 (Environment bootstrap check)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12; `task --version` 3.44.1.
+- Commands:
+  - `poetry install --only-root`
+  - `poetry install --with dev --extras tests`
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – pass.
+  - `poetry run python tests/verify_test_organization.py` – 923 test files detected.
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – success.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+- Observations: `scripts/install_dev.sh` initially reported "Python 3.12 not available for Poetry"; added task 15.4. DevSynth CLI required explicit installation steps.
+- Next: Draft release notes, perform final coverage run, complete User Acceptance Testing, and hand off tagging to maintainers on GitHub.
