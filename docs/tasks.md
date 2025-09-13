@@ -142,7 +142,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 15.1 [x] Document that fresh environments may lack the `task` CLI and instruct maintainers to run `bash scripts/install_dev.sh`.
 15.2 [x] Evaluate caching or automatic installation to ensure `task` persists across sessions.
 15.3 [x] Document go-task installation and persistence strategy in plan and task notes.
-15.4 [ ] Investigate `scripts/install_dev.sh` reporting "Python 3.12 not available for Poetry" and ensure the script reliably provisions the environment.
+15.4 [x] Investigate `scripts/install_dev.sh` reporting "Python 3.12 not available for Poetry" and ensure the script reliably provisions the environment.
 
 16. Requirements Traceability Alignment
 16.1 [x] Add BDD feature files for specifications referenced in verify_requirements_traceability failures:
