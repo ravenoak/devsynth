@@ -1,11 +1,12 @@
 # DevSynth 0.1.0a1 Test Readiness and Coverage Improvement Plan
 
-Version: 2025-10-13
+Version: 2025-09-13
 Owner: DevSynth Team (maintainers)
 Status: Execution in progress; install loop closed (2025-09-09); property marker advisories resolved; flake8 and bandit scans resolved (2025-09-11); go-task installed (2025-09-11); coverage threshold achieved (2025-10-12)
 
 Executive summary
 - Goal: Reach and sustain >90% coverage with a well‑functioning, reliable test suite across unit, integration, behavior, and property tests for the 0.1.0a1 release, with strict marker discipline and resource gating.
+- Hand-off: The `v0.1.0a1` tag will be created on GitHub by human maintainers after User Acceptance Testing; LLM agents prepare the repository for tagging.
 - Current state (evidence):
   - Test collection succeeds across a large suite (unit/integration/behavior/property).
   - Fast smoke/unit/integration/behavior profiles run successfully via the CLI.
@@ -197,7 +198,7 @@ Maintainer setup quickstart (resource-gated backends)
   - `poetry run pytest tests/property/ -q`
 
 Phase 6: Release preparation and CI/CD strategy (post 0.1.0a1 cut)
-- Keep GitHub Actions disabled until 0.1.0a1 is tagged.
+- Keep GitHub Actions disabled until maintainers tag 0.1.0a1 on GitHub after User Acceptance Testing; agents do not create tags.
 - Afterward, enable low-throughput workflows:
   - on: workflow_dispatch and minimal on: push (main) with concurrency group (e.g., concurrency: { group: "devsynth-main", cancel-in-progress: true }).
   - Jobs:
@@ -244,6 +245,7 @@ Acceptance checklist
 - [x] Lint, type, and security gates pass.
 - [x] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags.
 - [x] Known environment warnings in doctor.txt triaged and documented; non-blocking for tests by default.
+- [ ] User Acceptance Testing passes; maintainers will tag v0.1.0a1 on GitHub after approval.
 
 Maintainer quickstart (authoritative commands)
 - Setup:
@@ -293,4 +295,6 @@ Notes and next actions
 - 2025-09-12: Smoke, marker, traceability, and version-sync checks pass after reinstall; full coverage run (`devsynth run-tests --speed=fast --speed=medium --no-parallel --report`) reported `ERROR unit/general/test_test_first_metrics.py` and produced no coverage artifact. Investigate run-tests invocation and ensure coverage generation is stable before release.
 - 2025-09-12: Fresh session lacked `task` and `devsynth` entry point; ran `bash scripts/install_dev.sh` and `poetry install --with dev --all-extras` to restore tools. `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`, `verify_test_organization`, `verify_test_markers`, `verify_requirements_traceability`, and `verify_version_sync` all succeeded. Coverage aggregation and release-state-check implementation remain outstanding.
 - 2025-09-12: Added release-state check feature with BDD scenarios; introduced agent API stub and dialectical reasoning features; verified workflows remain dispatch-only. Coverage artifact generation still pending.
- - 2025-09-12: Regenerated coverage with `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report`; aggregate coverage reached 95% and badge updated in docs/coverage.svg.
+- 2025-09-12: Regenerated coverage with `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report`; aggregate coverage reached 95% and badge updated in docs/coverage.svg.
+- 2025-09-13: Environment restored via scripts/install_dev.sh; smoke tests and verification commands pass; release-blockers-0-1-0a1.md closed after confirming dispatch-only workflows and documented proofs.
+- 2025-09-13: Clarified that maintainers will create the `v0.1.0a1` tag on GitHub after User Acceptance Testing; agents prepare the repository for handoff.

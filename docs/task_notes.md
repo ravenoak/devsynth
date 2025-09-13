@@ -83,3 +83,26 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run python scripts/verify_requirements_traceability.py` – success.
 - Observations: Added release-state verification and new BDD features for agent API stub and dialectical reasoning; GitHub Actions confirmed dispatch-only; coverage aggregation still needs artifact generation.
 - Next: Review proofs for gaps and automate CLI/tool provisioning; restore coverage artifact generation.
+
+## Iteration 2025-09-13
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Commands:
+  - `task --version` – 3.44.1 after `bash scripts/install_dev.sh`.
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – pass.
+  - `poetry run python tests/verify_test_organization.py` – 923 test files detected.
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – success.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+- Observations: Environment booted without go-task; reinstall succeeded. Closed release-blockers-0-1-0a1.md after confirming dispatch-only workflows.
+- Next: Draft release notes, perform final coverage run, complete User Acceptance Testing, and hand off tagging to maintainers on GitHub.
+
+## Iteration 2025-09-13 (Tagging clarified)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
+- Commands:
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – pass.
+  - `poetry run python tests/verify_test_organization.py` – 923 test files detected.
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – success.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+- Observations: Plan and tasks updated to clarify manual GitHub tagging after UAT; opened release-finalization-uat issue.
+- Next: Draft release notes, run final coverage, complete User Acceptance Testing, and hand off tagging to maintainers on GitHub.
