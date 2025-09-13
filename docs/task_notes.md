@@ -155,3 +155,15 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - Attempted `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report` – timed out before completion.
 - Observations: Smoke validation succeeded; full coverage run requires further investigation. Created issues/strict-typing-roadmap.md to consolidate typing tickets.
 - Next: Complete full coverage run, perform UAT, and hand off tagging to maintainers.
+
+## Iteration 2025-09-13 (strict typing inventory)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12; `task --version` 3.44.1 after `bash scripts/install_dev.sh`.
+- Commands:
+  - `poetry run pre-commit run --files docs/plan.md docs/tasks.md docs/task_notes.md issues/strict-typing-roadmap.md` – pass.
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – pass.
+  - `poetry run python tests/verify_test_organization.py` – 926 test files detected.
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` – 0 issues.
+  - `poetry run python scripts/verify_requirements_traceability.py` – success.
+  - `poetry run python scripts/verify_version_sync.py` – OK.
+- Observations: Cataloged all 'restore-strict-typing-*' issues in strict-typing-roadmap.md and marked task 20.1 complete; smoke tests and verification scripts pass.
+- Next: Run full fast+medium coverage, conduct UAT, and prioritize strict typing restorations.
