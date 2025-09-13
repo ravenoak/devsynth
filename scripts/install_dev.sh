@@ -226,3 +226,6 @@ poetry run python scripts/verify_test_markers.py
 poetry run python scripts/verify_test_markers.py
 poetry run python scripts/verify_requirements_traceability.py
 poetry run python scripts/verify_version_sync.py
+
+task --version
+poetry run devsynth --help
