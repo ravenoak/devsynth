@@ -5,10 +5,9 @@ and traditional Agile sprint practices.
 """
 
 import datetime
-import time
-from importlib import import_module
-from typing import Any, Dict, List, Optional, cast
 from collections.abc import Callable
+from importlib import import_module
+from typing import Any, TypedDict, cast
 
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
@@ -16,6 +15,18 @@ from devsynth.methodology.sprint_adapter import (
     CEREMONY_PHASE_MAP,
     map_ceremony_to_phase,
 )
+
+
+class SprintMetrics(TypedDict):
+    """Typed structure for sprint metrics tracking."""
+
+    planned_scope: list[Any]
+    actual_scope: list[Any]
+    quality_metrics: dict[int, Any]
+    velocity: list[dict[str, int]]
+    retrospective_reviews: list[dict[str, Any]]
+    inconsistencies_detected: list[Any]
+    relationships_modeled: list[Any]
 
 
 def _map_requirements_to_plan(req_analysis: dict[str, Any]) -> dict[str, Any]:
@@ -53,32 +64,34 @@ class SprintAdapter(BaseMethodologyAdapter):
         super().__init__(config)
 
         # Extract sprint-specific settings
-        self.sprint_settings = self.config.get("settings", {})
-        self.sprint_duration = self.sprint_settings.get("sprintDuration", 2)  # Weeks
+        self.sprint_settings: dict[str, Any] = self.config.get("settings", {})
+        self.sprint_duration: int = int(self.sprint_settings.get("sprintDuration", 2))
 
         # Sprint state
-        self.sprint_start_time = None
-        self.sprint_end_time = None
-        self.current_sprint_number = 0
+        self.sprint_start_time: datetime.datetime | None = None
+        self.sprint_end_time: datetime.datetime | None = None
+        self.current_sprint_number: int = 0
 
         # Phase time allocations (percentage of sprint)
-        self.phase_allocations = {
-            Phase.EXPAND: self.sprint_settings.get("phaseAllocations", {}).get(
-                "expand", 30
+        self.phase_allocations: dict[Phase, float] = {
+            Phase.EXPAND: float(
+                self.sprint_settings.get("phaseAllocations", {}).get("expand", 30)
             ),
-            Phase.DIFFERENTIATE: self.sprint_settings.get("phaseAllocations", {}).get(
-                "differentiate", 30
+            Phase.DIFFERENTIATE: float(
+                self.sprint_settings.get("phaseAllocations", {}).get(
+                    "differentiate", 30
+                )
             ),
-            Phase.REFINE: self.sprint_settings.get("phaseAllocations", {}).get(
-                "refine", 25
+            Phase.REFINE: float(
+                self.sprint_settings.get("phaseAllocations", {}).get("refine", 25)
             ),
-            Phase.RETROSPECT: self.sprint_settings.get("phaseAllocations", {}).get(
-                "retrospect", 15
+            Phase.RETROSPECT: float(
+                self.sprint_settings.get("phaseAllocations", {}).get("retrospect", 15)
             ),
         }
 
         # Initialize metrics
-        self.metrics = {
+        self.metrics: SprintMetrics = {
             "planned_scope": [],
             "actual_scope": [],
             "quality_metrics": {},
@@ -88,9 +101,12 @@ class SprintAdapter(BaseMethodologyAdapter):
             "relationships_modeled": [],
         }
 
+        # Sprint planning placeholder
+        self.sprint_plan: dict[str, Any] | None = None
+
         # Map sprint ceremonies to their corresponding EDRR phases. Start with
         # default mappings and allow configuration to override them.
-        self.ceremony_phase_map = dict(CEREMONY_PHASE_MAP)
+        self.ceremony_phase_map: dict[str, Phase | None] = dict(CEREMONY_PHASE_MAP)
         ceremony_mapping = self.sprint_settings.get("ceremonyMapping", {})
         for ceremony, target in ceremony_mapping.items():
             self.ceremony_phase_map[ceremony] = self._extract_phase_from_mapping(target)
@@ -132,8 +148,8 @@ class SprintAdapter(BaseMethodologyAdapter):
         if self.sprint_start_time is None:
             return False
 
-        phase_start_time = context.get("phase_start_time")
-        if not phase_start_time:
+        phase_start_time: datetime.datetime | None = context.get("phase_start_time")
+        if phase_start_time is None:
             return False
 
         expected_phase_end_time = self._calculate_phase_end_time(
@@ -237,8 +253,6 @@ class SprintAdapter(BaseMethodologyAdapter):
                     self.sprint_plan.get("planned_scope", [])
                 )
 
-        retrospect_results = results.get("retrospect", {})
-
         # Generate retrospective report
         self._generate_retrospective_report(results)
 
@@ -333,7 +347,9 @@ class SprintAdapter(BaseMethodologyAdapter):
     def after_retrospect(
         self, context: dict[str, Any], results: dict[str, Any]
     ) -> dict[str, Any]:
-        """Sprint-specific activities after the Retrospect phase, including sprint planning.
+        """Sprint-specific activities after the Retrospect phase.
+
+        Includes sprint planning for the next iteration.
 
         Args:
             context: Context data from the phase.
@@ -374,7 +390,10 @@ class SprintAdapter(BaseMethodologyAdapter):
         Returns:
             List of generated reports.
         """
-        reports = []
+        reports: list[dict[str, Any]] = []
+
+        if self.sprint_start_time is None or self.sprint_end_time is None:
+            raise RuntimeError("Sprint timing information is missing")
 
         # Sprint review report
         review_report = {
@@ -433,7 +452,7 @@ class SprintAdapter(BaseMethodologyAdapter):
         Returns:
             JSON schema dictionary.
         """
-        base_schema = super().get_config_schema()
+        base_schema: dict[str, Any] = super().get_config_schema()
 
         # Add sprint-specific configuration options
         sprint_schema = {
@@ -454,7 +473,10 @@ class SprintAdapter(BaseMethodologyAdapter):
                             "properties": {
                                 phase.value: {
                                     "type": "number",
-                                    "description": f"Percentage of sprint allocated to {phase.value} phase",
+                                    "description": (
+                                        "Percentage of sprint allocated to "
+                                        f"{phase.value} phase"
+                                    ),
                                     "minimum": 5,
                                     "maximum": 70,
                                 }
@@ -482,9 +504,9 @@ class SprintAdapter(BaseMethodologyAdapter):
 
     def _calculate_phase_duration_seconds(self, phase: Phase) -> float:
         """Calculate the allotted duration for a phase in seconds."""
-        sprint_seconds = self.sprint_duration * 7 * 24 * 60 * 60
-        allocation_pct = self.phase_allocations[phase] / 100
-        return sprint_seconds * allocation_pct
+        sprint_seconds: int = self.sprint_duration * 7 * 24 * 60 * 60
+        allocation_pct: float = self.phase_allocations[phase] / 100
+        return float(sprint_seconds * allocation_pct)
 
     def _calculate_phase_end_time(
         self, phase: Phase, start_time: datetime.datetime
