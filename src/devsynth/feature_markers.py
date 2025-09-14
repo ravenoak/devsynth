@@ -1,9 +1,12 @@
 """Feature markers for dialectical audit."""
 
+from __future__ import annotations
+
 import inspect
 import sys
 from collections.abc import Callable
 from enum import Enum
+from types import ModuleType
 from typing import TYPE_CHECKING
 
 
@@ -1021,7 +1024,7 @@ if TYPE_CHECKING:
 
 def _discover_markers() -> dict[str, Callable[[], None]]:
     """Return mapping of feature names to marker callables."""
-    current_module = sys.modules[__name__]
+    current_module: ModuleType = sys.modules[__name__]
     prefix = "feature_"
     markers: dict[str, Callable[[], None]] = {}
     for name, obj in inspect.getmembers(current_module, inspect.isfunction):
@@ -1031,7 +1034,7 @@ def _discover_markers() -> dict[str, Callable[[], None]]:
     return markers
 
 
-_MARKER_FUNCTIONS = _discover_markers()
+_MARKER_FUNCTIONS: dict[str, Callable[[], None]] = _discover_markers()
 
 if not TYPE_CHECKING:
     FeatureMarker = Enum(  # noqa: F811
@@ -1039,6 +1042,6 @@ if not TYPE_CHECKING:
     )
 
 
-def get_marker(marker: "FeatureMarker") -> Callable[[], None]:
+def get_marker(marker: FeatureMarker) -> Callable[[], None]:
     """Return the marker function associated with ``marker``."""
     return _MARKER_FUNCTIONS[marker.name]

@@ -10,4 +10,4 @@ Status: closed
 - [x] Remove the override from `pyproject.toml`.
 - [x] Update `issues/typing_relaxations_tracking.md` and close this issue.
 
-Closed on 2025-09-14 after removing mypy override and adding annotations.
+Closed on 2025-09-14 after removing the mypy override, eliminating ``type: ignore`` comments, and adding explicit annotations.
