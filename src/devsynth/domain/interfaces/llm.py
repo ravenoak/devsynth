@@ -1,18 +1,20 @@
-from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Dict, List, Optional, Protocol
+from __future__ import annotations
+
+from abc import abstractmethod
+from collections.abc import AsyncGenerator
+from typing import Any, Protocol
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class LLMProvider(Protocol):
     """Protocol for LLM providers."""
 
     @abstractmethod
-    def generate(self, prompt: str, parameters: Dict[str, Any] = None) -> str:
+    def generate(self, prompt: str, parameters: dict[str, Any] | None = None) -> str:
         """Generate text from a prompt."""
         ...
 
@@ -20,14 +22,14 @@ class LLMProvider(Protocol):
     def generate_with_context(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] | None = None,
     ) -> str:
         """Generate text from a prompt with conversation context."""
         ...
 
     @abstractmethod
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         """Get an embedding vector for the given text."""
         ...
 
@@ -37,8 +39,8 @@ class StreamingLLMProvider(LLMProvider, Protocol):
 
     @abstractmethod
     async def generate_stream(
-        self, prompt: str, parameters: Dict[str, Any] = None
-    ) -> AsyncGenerator[str, None]:
+        self, prompt: str, parameters: dict[str, Any] | None = None
+    ) -> AsyncGenerator[str]:
         """Generate text from a prompt with streaming."""
         ...
 
@@ -46,9 +48,9 @@ class StreamingLLMProvider(LLMProvider, Protocol):
     async def generate_with_context_stream(
         self,
         prompt: str,
-        context: List[Dict[str, str]],
-        parameters: Dict[str, Any] = None,
-    ) -> AsyncGenerator[str, None]:
+        context: list[dict[str, str]],
+        parameters: dict[str, Any] | None = None,
+    ) -> AsyncGenerator[str]:
         """Generate text from a prompt with conversation context with streaming."""
         ...
 
@@ -58,7 +60,7 @@ class LLMProviderFactory(Protocol):
 
     @abstractmethod
     def create_provider(
-        self, provider_type: str, config: Dict[str, Any] = None
+        self, provider_type: str, config: dict[str, Any] | None = None
     ) -> LLMProvider:
         """Create an LLM provider of the specified type."""
         ...

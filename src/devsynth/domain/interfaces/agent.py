@@ -1,14 +1,14 @@
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Protocol
+from __future__ import annotations
+
+from abc import abstractmethod
+from typing import Any, Protocol
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.models.agent import AgentConfig
-from ...domain.models.wsde import WSDE
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class Agent(Protocol):
@@ -20,12 +20,12 @@ class Agent(Protocol):
         ...
 
     @abstractmethod
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process inputs and produce outputs."""
         ...
 
     @abstractmethod
-    def get_capabilities(self) -> List[str]:
+    def get_capabilities(self) -> list[str]:
         """Get the capabilities of this agent."""
         ...
 
@@ -34,7 +34,9 @@ class AgentFactory(Protocol):
     """Protocol for creating agents."""
 
     @abstractmethod
-    def create_agent(self, agent_type: str, config: Dict[str, Any] = None) -> Agent:
+    def create_agent(
+        self, agent_type: str, config: dict[str, Any] | None = None
+    ) -> Agent:
         """Create an agent of the specified type."""
         ...
 
@@ -53,6 +55,6 @@ class AgentCoordinator(Protocol):
         ...
 
     @abstractmethod
-    def delegate_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def delegate_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """Delegate a task to the appropriate agent(s)."""
         ...

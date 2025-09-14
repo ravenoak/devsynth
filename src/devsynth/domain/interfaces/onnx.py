@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -15,6 +18,6 @@ class OnnxRuntime(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def run(self, inputs: Dict[str, Any]) -> Iterable[Any]:
+    def run(self, inputs: dict[str, Any]) -> Iterable[Any]:
         """Run inference on the loaded model."""
         raise NotImplementedError

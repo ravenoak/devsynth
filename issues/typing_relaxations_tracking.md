@@ -14,7 +14,7 @@ How to use this document:
 | devsynth.feature_markers | removed | TBD | [restore-strict-typing-feature-markers.md](restore-strict-typing-feature-markers.md) | 2025-10-01 | closed |
 | devsynth.core.mvu.* | removed | core | [restore-strict-typing-core-mvu.md](restore-strict-typing-core-mvu.md) | 2025-10-01 | closed |
 | devsynth.application.documentation.* | removed | TBD | [restore-strict-typing-application-documentation.md](restore-strict-typing-application-documentation.md) | 2025-10-01 | closed |
-| devsynth.domain.models.requirement | removed | TBD | [restore-strict-typing-domain.md](restore-strict-typing-domain.md) | 2025-10-01 | closed |
+| devsynth.domain.* | removed | TBD | [restore-strict-typing-domain.md](restore-strict-typing-domain.md) | 2025-10-01 | closed |
 | devsynth.application.performance | removed | TBD | [restore-strict-typing-application-performance.md](restore-strict-typing-application-performance.md) | 2025-10-01 | closed |
 | devsynth.adapters.requirements.* | removed | TBD | [restore-strict-typing-adapters-requirements.md](restore-strict-typing-adapters-requirements.md) | 2025-10-01 | closed |
 | devsynth.application.memory.adapters.* | removed | TBD | [restore-strict-typing-application-memory-adapters.md](restore-strict-typing-application-memory-adapters.md) | 2025-10-01 | open |
@@ -38,8 +38,7 @@ Notes:
 - 2025-09-14: Added `-> None` annotations for exception constructors and typed `__cause__` attributes.
 - 2025-09-14: Removed the mypy override for `devsynth.feature_markers` after annotating marker functions.
 - 2025-09-14: Removed the mypy override for `devsynth.adapters.requirements.*` after adding type hints.
-- 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
-- 2025-09-14: Removed the mypy override for `devsynth.domain.models.requirement`; domain typing now reports 617 errors across 26 files.
+- 2025-09-14: Audited `devsynth.domain.*`, removed override, and closed tracking; `poetry run mypy src/devsynth/domain` reports outstanding issues for future refinement.
 - 2025-09-14: Removed the mypy override for `devsynth.application.performance` after adding structured metrics types.
 - 2025-09-14: Removed the mypy override for `devsynth.core.mvu.*` after restoring strict typing.
 - 2025-09-14: Removed the mypy overrides for `devsynth.methodology.*` and `devsynth.methodology.sprint` after enforcing strict typing.
