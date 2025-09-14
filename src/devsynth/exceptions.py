@@ -6,9 +6,8 @@ providing specific exception types for different categories of errors.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-# Import will be done after DevSynthLogger is defined to avoid circular imports
 # Logger will be initialized at the end of the file
 
 
@@ -18,15 +17,15 @@ class DevSynthError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
     ):
-        self.message = message
-        self.error_code = error_code
-        self.details = details or {}
+        self.message: str = message
+        self.error_code: str | None = error_code
+        self.details: dict[str, Any] = details or {}
         super().__init__(message)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert the exception to a dictionary for structured logging."""
         return {
             "error_type": self.__class__.__name__,
@@ -51,10 +50,10 @@ class ValidationError(UserInputError):
     def __init__(
         self,
         message: str,
-        field: Optional[str] = None,
+        field: str | None = None,
         value: Any = None,
-        constraints: Optional[Dict[str, Any]] = None,
-        error_code: Optional[str] = None,
+        constraints: dict[str, Any] | None = None,
+        error_code: str | None = None,
     ):
         details = {"field": field, "value": value, "constraints": constraints or {}}
         super().__init__(
@@ -68,9 +67,9 @@ class ConfigurationError(UserInputError):
     def __init__(
         self,
         message: str,
-        config_key: Optional[str] = None,
+        config_key: str | None = None,
         config_value: Any = None,
-        error_code: Optional[str] = None,
+        error_code: str | None = None,
     ):
         details = {"config_key": config_key, "config_value": config_value}
         super().__init__(
@@ -84,9 +83,9 @@ class CommandError(UserInputError):
     def __init__(
         self,
         message: str,
-        command: Optional[str] = None,
-        args: Optional[Dict[str, Any]] = None,
-        error_code: Optional[str] = None,
+        command: str | None = None,
+        args: dict[str, Any] | None = None,
+        error_code: str | None = None,
     ):
         details = {"command": command, "args": args or {}}
         super().__init__(
@@ -109,9 +108,9 @@ class InternalError(SystemError):
     def __init__(
         self,
         message: str,
-        component: Optional[str] = None,
-        error_code: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        component: str | None = None,
+        error_code: str | None = None,
+        cause: Exception | None = None,
     ):
         details = {
             "component": component,
@@ -129,9 +128,9 @@ class ResourceExhaustedError(SystemError):
     def __init__(
         self,
         message: str,
-        resource_type: Optional[str] = None,
+        resource_type: str | None = None,
         limit: Any = None,
-        error_code: Optional[str] = None,
+        error_code: str | None = None,
     ):
         details = {"resource_type": resource_type, "limit": limit}
         super().__init__(
@@ -160,9 +159,9 @@ class MemoryCorruptionError(MemoryError):
     def __init__(
         self,
         message: str,
-        store_type: Optional[str] = None,
-        item_id: Optional[str] = None,
-        error_code: Optional[str] = None,
+        store_type: str | None = None,
+        item_id: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"store_type": store_type, "item_id": item_id}
         super().__init__(
@@ -176,10 +175,10 @@ class ProviderError(AdapterError):
     def __init__(
         self,
         message: str,
-        provider: Optional[str] = None,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
-        provider_error: Optional[Dict[str, Any]] = None,
+        provider: str | None = None,
+        operation: str | None = None,
+        error_code: str | None = None,
+        provider_error: dict[str, Any] | None = None,
     ):
         details = {
             "provider": provider,
@@ -197,10 +196,10 @@ class LLMError(ProviderError):
     def __init__(
         self,
         message: str,
-        provider: Optional[str] = None,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
-        provider_error: Optional[Dict[str, Any]] = None,
+        provider: str | None = None,
+        operation: str | None = None,
+        error_code: str | None = None,
+        provider_error: dict[str, Any] | None = None,
     ):
         super().__init__(
             message,
@@ -219,8 +218,8 @@ class TokenLimitExceededError(LLMError):
         message: str,
         current_tokens: int,
         max_tokens: int,
-        provider: Optional[str] = None,
-        operation: Optional[str] = None,
+        provider: str | None = None,
+        operation: str | None = None,
     ):
         details = {
             "current_tokens": current_tokens,
@@ -242,9 +241,9 @@ class ProviderTimeoutError(ProviderError):
     def __init__(
         self,
         message: str,
-        provider: Optional[str] = None,
-        operation: Optional[str] = None,
-        timeout_seconds: Optional[float] = None,
+        provider: str | None = None,
+        operation: str | None = None,
+        timeout_seconds: float | None = None,
     ):
         # Call parent constructor
         super().__init__(
@@ -261,7 +260,7 @@ class ProviderTimeoutError(ProviderError):
 class ProviderAuthenticationError(ProviderError):
     """Exception raised when authentication with a provider fails."""
 
-    def __init__(self, message: str, provider: Optional[str] = None):
+    def __init__(self, message: str, provider: str | None = None):
         super().__init__(
             message, provider=provider, error_code="PROVIDER_AUTHENTICATION_ERROR"
         )
@@ -273,9 +272,9 @@ class MemoryAdapterError(AdapterError):
     def __init__(
         self,
         message: str,
-        store_type: Optional[str] = None,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        store_type: str | None = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"store_type": store_type, "operation": operation}
         super().__init__(
@@ -289,11 +288,16 @@ class MemoryNotFoundError(MemoryAdapterError):
     def __init__(
         self,
         message: str,
-        item_id: Optional[str] = None,
-        store_type: Optional[str] = None,
+        item_id: str | None = None,
+        store_type: str | None = None,
     ):
-        details = {"item_id": item_id, "store_type": store_type}
-        super().__init__(message, error_code="MEMORY_NOT_FOUND", details=details)
+        super().__init__(
+            message,
+            store_type=store_type,
+            error_code="MEMORY_NOT_FOUND",
+        )
+        if item_id:
+            self.details["item_id"] = item_id
 
 
 class MemoryItemNotFoundError(MemoryAdapterError):
@@ -302,11 +306,16 @@ class MemoryItemNotFoundError(MemoryAdapterError):
     def __init__(
         self,
         message: str,
-        item_id: Optional[str] = None,
-        store_type: Optional[str] = None,
+        item_id: str | None = None,
+        store_type: str | None = None,
     ):
-        details = {"item_id": item_id, "store_type": store_type}
-        super().__init__(message, error_code="MEMORY_ITEM_NOT_FOUND", details=details)
+        super().__init__(
+            message,
+            store_type=store_type,
+            error_code="MEMORY_ITEM_NOT_FOUND",
+        )
+        if item_id:
+            self.details["item_id"] = item_id
 
 
 class MemoryStoreError(MemoryAdapterError):
@@ -315,9 +324,9 @@ class MemoryStoreError(MemoryAdapterError):
     def __init__(
         self,
         message: str,
-        store_type: Optional[str] = None,
-        operation: Optional[str] = None,
-        original_error: Optional[Exception] = None,
+        store_type: str | None = None,
+        operation: str | None = None,
+        original_error: Exception | None = None,
     ):
         # Call parent constructor with the appropriate parameters
         super().__init__(
@@ -341,10 +350,10 @@ class MemoryTransactionError(MemoryAdapterError):
     def __init__(
         self,
         message: str,
-        transaction_id: Optional[str] = None,
-        store_type: Optional[str] = None,
-        operation: Optional[str] = None,
-        original_error: Optional[Exception] = None,
+        transaction_id: str | None = None,
+        store_type: str | None = None,
+        operation: str | None = None,
+        original_error: Exception | None = None,
     ):
         # Call parent constructor with the appropriate parameters
         super().__init__(
@@ -355,7 +364,7 @@ class MemoryTransactionError(MemoryAdapterError):
         )
 
         # Store transaction_id
-        self.transaction_id = transaction_id
+        self.transaction_id: str | None = transaction_id
 
         # Add transaction_id and original_error to details dictionary
         if transaction_id:
@@ -373,10 +382,10 @@ class CircuitBreakerOpenError(MemoryAdapterError):
     def __init__(
         self,
         message: str,
-        circuit_name: Optional[str] = None,
-        reset_time: Optional[float] = None,
-        store_type: Optional[str] = None,
-        operation: Optional[str] = None,
+        circuit_name: str | None = None,
+        reset_time: float | None = None,
+        store_type: str | None = None,
+        operation: str | None = None,
     ):
         # Call parent constructor with the appropriate parameters
         super().__init__(
@@ -387,8 +396,8 @@ class CircuitBreakerOpenError(MemoryAdapterError):
         )
 
         # Store circuit_name and reset_time
-        self.circuit_name = circuit_name
-        self.reset_time = reset_time
+        self.circuit_name: str | None = circuit_name
+        self.reset_time: float | None = reset_time
 
         # Add circuit_name and reset_time to details dictionary
         if circuit_name:
@@ -412,9 +421,9 @@ class AgentError(DomainError):
     def __init__(
         self,
         message: str,
-        agent_id: Optional[str] = None,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        agent_id: str | None = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"agent_id": agent_id, "operation": operation}
         super().__init__(
@@ -428,9 +437,9 @@ class WorkflowError(DomainError):
     def __init__(
         self,
         message: str,
-        workflow_id: Optional[str] = None,
-        step: Optional[str] = None,
-        error_code: Optional[str] = None,
+        workflow_id: str | None = None,
+        step: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"workflow_id": workflow_id, "step": step}
         super().__init__(
@@ -444,12 +453,12 @@ class NeedsHumanInterventionError(WorkflowError):
     def __init__(
         self,
         message: str,
-        workflow_id: Optional[str] = None,
-        step: Optional[str] = None,
-        options: Optional[List[str]] = None,
+        workflow_id: str | None = None,
+        step: str | None = None,
+        options: list[str] | None = None,
     ):
         # Create details dictionary for this class
-        self.options = options or []
+        self.options: list[str] = options or []
 
         # Call parent constructor without passing details
         super().__init__(
@@ -466,9 +475,9 @@ class ContextError(DomainError):
     def __init__(
         self,
         message: str,
-        context_id: Optional[str] = None,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        context_id: str | None = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"context_id": context_id, "operation": operation}
         super().__init__(
@@ -482,9 +491,9 @@ class DialecticalReasoningError(DomainError):
     def __init__(
         self,
         message: str,
-        phase: Optional[str] = None,
-        arguments: Optional[List[str]] = None,
-        error_code: Optional[str] = None,
+        phase: str | None = None,
+        arguments: list[str] | None = None,
+        error_code: str | None = None,
     ):
         details = {"phase": phase, "arguments": arguments}
         super().__init__(
@@ -498,9 +507,9 @@ class ProjectModelError(DomainError):
     def __init__(
         self,
         message: str,
-        model_id: Optional[str] = None,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        model_id: str | None = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"model_id": model_id, "operation": operation}
         super().__init__(
@@ -523,9 +532,9 @@ class PromiseError(ApplicationError):
     def __init__(
         self,
         message: str,
-        promise_id: Optional[str] = None,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        promise_id: str | None = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"promise_id": promise_id, "operation": operation}
         super().__init__(
@@ -539,9 +548,9 @@ class PromiseStateError(PromiseError):
     def __init__(
         self,
         message: str,
-        promise_id: Optional[str] = None,
-        from_state: Optional[str] = None,
-        to_state: Optional[str] = None,
+        promise_id: str | None = None,
+        from_state: str | None = None,
+        to_state: str | None = None,
     ):
         # Call parent constructor with state_transition as the operation
         super().__init__(
@@ -562,9 +571,9 @@ class IngestionError(ApplicationError):
     def __init__(
         self,
         message: str,
-        phase: Optional[str] = None,
-        artifact_path: Optional[str] = None,
-        error_code: Optional[str] = None,
+        phase: str | None = None,
+        artifact_path: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"phase": phase, "artifact_path": artifact_path}
         super().__init__(
@@ -578,9 +587,9 @@ class DocumentationError(ApplicationError):
     def __init__(
         self,
         message: str,
-        doc_type: Optional[str] = None,
-        doc_path: Optional[str] = None,
-        error_code: Optional[str] = None,
+        doc_type: str | None = None,
+        doc_path: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"doc_type": doc_type, "doc_path": doc_path}
         super().__init__(
@@ -594,9 +603,9 @@ class ManifestError(ApplicationError):
     def __init__(
         self,
         message: str,
-        field: Optional[str] = None,
-        manifest_path: Optional[str] = None,
-        error_code: Optional[str] = None,
+        field: str | None = None,
+        manifest_path: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"field": field, "manifest_path": manifest_path}
         super().__init__(
@@ -610,9 +619,9 @@ class CodeGenerationError(ApplicationError):
     def __init__(
         self,
         message: str,
-        language: Optional[str] = None,
-        component: Optional[str] = None,
-        error_code: Optional[str] = None,
+        language: str | None = None,
+        component: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"language": language, "component": component}
         super().__init__(
@@ -628,9 +637,9 @@ class TestGenerationException(ApplicationError):
     def __init__(
         self,
         message: str,
-        test_type: Optional[str] = None,
-        target: Optional[str] = None,
-        error_code: Optional[str] = None,
+        test_type: str | None = None,
+        target: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"test_type": test_type, "target": target}
         super().__init__(
@@ -644,9 +653,9 @@ class EDRRCoordinatorError(ApplicationError):
     def __init__(
         self,
         message: str,
-        phase: Optional[str] = None,
-        component: Optional[str] = None,
-        error_code: Optional[str] = None,
+        phase: str | None = None,
+        component: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"phase": phase, "component": component}
         super().__init__(
@@ -663,10 +672,10 @@ class CollaborationError(DomainError):
     def __init__(
         self,
         message: str,
-        agent_id: Optional[str] = None,
-        role: Optional[str] = None,
-        task: Optional[str] = None,
-        error_code: Optional[str] = None,
+        agent_id: str | None = None,
+        role: str | None = None,
+        task: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"agent_id": agent_id, "role": role, "task": task}
         super().__init__(
@@ -680,11 +689,10 @@ class AgentExecutionError(CollaborationError):
     def __init__(
         self,
         message: str,
-        agent_id: Optional[str] = None,
-        task: Optional[str] = None,
-        error_code: Optional[str] = None,
+        agent_id: str | None = None,
+        task: str | None = None,
+        error_code: str | None = None,
     ):
-        details = {"agent_id": agent_id, "task": task}
         super().__init__(
             message,
             agent_id=agent_id,
@@ -699,14 +707,12 @@ class ConsensusError(CollaborationError):
     def __init__(
         self,
         message: str,
-        agent_ids: Optional[List[str]] = None,
-        topic: Optional[str] = None,
-        error_code: Optional[str] = None,
+        agent_ids: list[str] | None = None,
+        topic: str | None = None,
+        error_code: str | None = None,
     ):
-        details = {"agent_ids": agent_ids, "topic": topic}
-        super().__init__(
-            message, error_code=error_code or "CONSENSUS_ERROR", details=details
-        )
+        super().__init__(message, error_code=error_code or "CONSENSUS_ERROR")
+        self.details.update({"agent_ids": agent_ids, "topic": topic})
 
 
 class RoleAssignmentError(CollaborationError):
@@ -715,11 +721,10 @@ class RoleAssignmentError(CollaborationError):
     def __init__(
         self,
         message: str,
-        agent_id: Optional[str] = None,
-        role: Optional[str] = None,
-        error_code: Optional[str] = None,
+        agent_id: str | None = None,
+        role: str | None = None,
+        error_code: str | None = None,
     ):
-        details = {"agent_id": agent_id, "role": role}
         super().__init__(
             message,
             agent_id=agent_id,
@@ -734,15 +739,11 @@ class TeamConfigurationError(CollaborationError):
     def __init__(
         self,
         message: str,
-        team_id: Optional[str] = None,
-        error_code: Optional[str] = None,
+        team_id: str | None = None,
+        error_code: str | None = None,
     ):
-        details = {"team_id": team_id}
-        super().__init__(
-            message,
-            error_code=error_code or "TEAM_CONFIGURATION_ERROR",
-            details=details,
-        )
+        super().__init__(message, error_code=error_code or "TEAM_CONFIGURATION_ERROR")
+        self.details["team_id"] = team_id
 
 
 # Ports Errors
@@ -760,8 +761,8 @@ class MemoryPortError(PortError):
     def __init__(
         self,
         message: str,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"operation": operation}
         super().__init__(
@@ -775,8 +776,8 @@ class ProviderPortError(PortError):
     def __init__(
         self,
         message: str,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"operation": operation}
         super().__init__(
@@ -790,8 +791,8 @@ class AgentPortError(PortError):
     def __init__(
         self,
         message: str,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"operation": operation}
         super().__init__(
@@ -814,8 +815,8 @@ class FileNotFoundError(FileSystemError):
     def __init__(
         self,
         message: str,
-        file_path: Optional[str] = None,
-        error_code: Optional[str] = None,
+        file_path: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"file_path": file_path}
         super().__init__(
@@ -829,9 +830,9 @@ class FilePermissionError(FileSystemError):
     def __init__(
         self,
         message: str,
-        file_path: Optional[str] = None,
-        operation: Optional[str] = None,
-        error_code: Optional[str] = None,
+        file_path: str | None = None,
+        operation: str | None = None,
+        error_code: str | None = None,
     ):
         details = {"file_path": file_path, "operation": operation}
         super().__init__(
@@ -845,10 +846,10 @@ class FileOperationError(FileSystemError):
     def __init__(
         self,
         message: str,
-        file_path: Optional[str] = None,
-        operation: Optional[str] = None,
-        original_error: Optional[Exception] = None,
-        error_code: Optional[str] = None,
+        file_path: str | None = None,
+        operation: str | None = None,
+        original_error: Exception | None = None,
+        error_code: str | None = None,
     ):
         details = {
             "file_path": file_path,
@@ -883,14 +884,7 @@ class InputSanitizationError(SecurityError):
 
 
 # Initialize logger at the end to avoid circular imports
-try:
-    from devsynth.logging_setup import get_logger
-
-    logger = get_logger(__name__)
-except ImportError:
-    import logging
-
-    logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def log_exception(exc: DevSynthError, *, level: int = logging.ERROR) -> None:

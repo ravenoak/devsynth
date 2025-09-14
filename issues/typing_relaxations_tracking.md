@@ -18,7 +18,7 @@ How to use this document:
 | devsynth.application.performance | removed | TBD | [restore-strict-typing-application-performance.md](restore-strict-typing-application-performance.md) | 2025-10-01 | closed |
 | devsynth.adapters.requirements.* | ignore_errors=true | TBD | [restore-strict-typing-adapters-requirements.md](restore-strict-typing-adapters-requirements.md) | 2025-10-01 | open |
 | devsynth.application.memory.adapters.* | removed | TBD | [restore-strict-typing-application-memory-adapters.md](restore-strict-typing-application-memory-adapters.md) | 2025-10-01 | closed |
-| devsynth.exceptions | ignore_errors=true | TBD | [restore-strict-typing-exceptions.md](restore-strict-typing-exceptions.md) | 2025-10-01 | open |
+| devsynth.exceptions | removed | TBD | [restore-strict-typing-exceptions.md](restore-strict-typing-exceptions.md) | 2025-10-01 | closed |
 | devsynth.testing.* | ignore_errors=true | TBD | [restore-strict-typing-testing.md](restore-strict-typing-testing.md) | 2025-10-01 | open |
 | devsynth.methodology.sprint | ignore_errors=true | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | open |
 | devsynth.logger | ignore_errors=true | TBD | [restore-strict-typing-logger.md](restore-strict-typing-logger.md) | 2025-10-01 | open |
@@ -33,5 +33,6 @@ Notes:
 - 2025-09-13: Removed the mypy override for `devsynth.adapters.*` after restoring type coverage.
 - 2025-09-13: Attempted to remove the `devsynth.application.edrr.*` override, but `poetry run mypy src/devsynth/application/edrr`
   reported 430 errors; the ignore remains in place.
+- 2025-09-14: Removed the mypy override for `devsynth.exceptions` after adding type hints.
 - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
 - 2025-09-16: Removed the mypy override for `devsynth.application.performance` after adding structured metrics types.

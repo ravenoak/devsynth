@@ -10,6 +10,9 @@ ahead of time.
 
 from __future__ import annotations
 
+import importlib
+from typing import Any
+
 # Version and metadata
 __version__ = "0.1.0a1"
 
@@ -25,7 +28,7 @@ _EXPORTED = {
 __all__ = sorted(_EXPORTED | {"initialize_subpackages", "__version__"})
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Dynamically import attributes from :mod:`devsynth.logger`.
 
     This keeps the package import light-weight while preserving the public API
@@ -34,18 +37,16 @@ def __getattr__(name: str):
 
     if name in _EXPORTED:
         try:
-            from . import logger as _logger  # Local import for lazy loading
+            _log_mod = importlib.import_module(f"{__name__}.logger")
         except ModuleNotFoundError:  # pragma: no cover - fallback for missing module
-            from . import logging_setup as _logger
+            _log_mod = importlib.import_module(f"{__name__}.logging_setup")
 
-        value = getattr(_logger, name)
+        value = getattr(_log_mod, name)
         globals()[name] = value  # Cache for future lookups
         return value
 
     # Fallback: try to resolve unknown attributes as subpackages/modules
     try:
-        import importlib
-
         module = importlib.import_module(f"{__name__}.{name}")
         globals()[name] = module  # Cache the loaded submodule on the package
         return module
@@ -62,7 +63,6 @@ def initialize_subpackages() -> None:
     that rely on these side effects should call this helper instead.
     """
 
-    import importlib
     import sys
 
     for module in ("devsynth.application", "devsynth.application.memory"):
