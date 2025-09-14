@@ -42,8 +42,12 @@ class RequirementType(Enum):
 
 @dataclass
 class Requirement:
-    """
-    Domain model representing a requirement.
+    """Represent a requirement with immutable identity and tracked metadata.
+
+    Guarantees:
+        * ``id`` uniquely identifies the requirement within the system.
+        * ``dependencies`` only contains UUIDs referencing other requirements.
+        * ``updated_at`` is refreshed on any call to :meth:`update`.
     """
 
     id: UUID = field(default_factory=uuid4)
@@ -55,9 +59,9 @@ class Requirement:
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
     created_by: str = ""
-    dependencies: List[UUID] = field(default_factory=list)
-    tags: List[str] = field(default_factory=list)
-    metadata: Dict[str, str] = field(default_factory=dict)
+    dependencies: list[UUID] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    metadata: dict[str, str] = field(default_factory=dict)
 
     def update(self, **kwargs) -> None:
         """
@@ -82,46 +86,57 @@ class ChangeType(Enum):
 
 @dataclass
 class RequirementChange:
-    """
-    Domain model representing a change to a requirement.
+    """Capture a single change applied to a :class:`Requirement`.
+
+    Guarantees:
+        * ``id`` uniquely identifies the change event.
+        * ``previous_state`` and ``new_state`` hold snapshots of the
+          requirement before and after modification.
     """
 
     id: UUID = field(default_factory=uuid4)
-    requirement_id: Optional[UUID] = None
+    requirement_id: UUID | None = None
     change_type: ChangeType = ChangeType.MODIFY
-    previous_state: Optional[Requirement] = None
-    new_state: Optional[Requirement] = None
+    previous_state: Requirement | None = None
+    new_state: Requirement | None = None
     created_at: datetime = field(default_factory=datetime.now)
     created_by: str = ""
     reason: str = ""
     approved: bool = False
-    approved_at: Optional[datetime] = None
-    approved_by: Optional[str] = None
-    comments: List[str] = field(default_factory=list)
+    approved_at: datetime | None = None
+    approved_by: str | None = None
+    comments: list[str] = field(default_factory=list)
 
 
 @dataclass
 class ImpactAssessment:
-    """
-    Domain model representing an impact assessment for a requirement change.
+    """Summarize the projected impact of a change.
+
+    Guarantees:
+        * ``affected_requirements`` and ``affected_components`` are populated
+          with identifiers rather than nested objects.
+        * ``created_at`` records when the assessment was produced.
     """
 
     id: UUID = field(default_factory=uuid4)
     change_id: UUID = None
-    affected_requirements: List[UUID] = field(default_factory=list)
-    affected_components: List[str] = field(default_factory=list)
+    affected_requirements: list[UUID] = field(default_factory=list)
+    affected_components: list[str] = field(default_factory=list)
     risk_level: str = "low"
     estimated_effort: str = "low"
     analysis: str = ""
-    recommendations: List[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.now)
     created_by: str = ""
 
 
 @dataclass
 class DialecticalReasoning:
-    """
-    Domain model representing a dialectical reasoning session for a requirement change.
+    """Record the reasoning process around a proposed change.
+
+    Guarantees:
+        * ``arguments`` preserves the sequence of thesis/antithesis exchanges.
+        * ``updated_at`` advances whenever new arguments are appended.
     """
 
     id: UUID = field(default_factory=uuid4)
@@ -129,7 +144,7 @@ class DialecticalReasoning:
     thesis: str = ""
     antithesis: str = ""
     synthesis: str = ""
-    arguments: List[Dict[str, str]] = field(default_factory=list)
+    arguments: list[dict[str, str]] = field(default_factory=list)
     conclusion: str = ""
     recommendation: str = ""
     created_at: datetime = field(default_factory=datetime.now)
@@ -139,8 +154,11 @@ class DialecticalReasoning:
 
 @dataclass
 class ChatMessage:
-    """
-    Domain model representing a chat message in a dialectical reasoning session.
+    """A single message within a :class:`ChatSession`.
+
+    Guarantees:
+        * ``timestamp`` is set when the message is created.
+        * ``metadata`` stores arbitrary string key/value pairs.
     """
 
     id: UUID = field(default_factory=uuid4)
@@ -148,20 +166,23 @@ class ChatMessage:
     sender: str = ""
     content: str = ""
     timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
 class ChatSession:
-    """
-    Domain model representing a chat session for dialectical reasoning.
+    """Manage chat messages tied to a reasoning session.
+
+    Guarantees:
+        * ``messages`` contains only :class:`ChatMessage` instances.
+        * ``updated_at`` reflects the timestamp of the most recent message.
     """
 
     id: UUID = field(default_factory=uuid4)
     user_id: str = ""
-    reasoning_id: Optional[UUID] = None
-    change_id: Optional[UUID] = None
-    messages: List[ChatMessage] = field(default_factory=list)
+    reasoning_id: UUID | None = None
+    change_id: UUID | None = None
+    messages: list[ChatMessage] = field(default_factory=list)
     status: str = "active"
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)

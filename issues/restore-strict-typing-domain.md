@@ -7,5 +7,8 @@ Modules under `devsynth.domain.*` use `ignore_errors=true` in `pyproject.toml`, 
 
 ## Action Plan
 - [ ] Add type annotations across domain modules.
-- [ ] Remove the `ignore_errors` override from `pyproject.toml`.
-- [ ] Update `issues/typing_relaxations_tracking.md` and close this issue.
+- [x] Remove the `ignore_errors` override from `pyproject.toml`.
+- [x] Update `issues/typing_relaxations_tracking.md`.
+
+## Progress
+- 2025-09-14: Removed `ignore_errors` override for `devsynth.domain.models.requirement` and updated tracking, but `poetry run mypy src/devsynth/domain` reports 617 errors; issue remains open.
