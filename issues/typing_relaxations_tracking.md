@@ -37,7 +37,7 @@ Notes:
 - 2025-09-14: Removed the mypy override for `devsynth.feature_markers` after annotating marker functions.
 - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
 - 2025-09-14: Removed the mypy override for `devsynth.domain.models.requirement`; domain typing now reports 617 errors across 26 files.
-- 2025-09-16: Removed the mypy override for `devsynth.application.performance` after adding structured metrics types.
+- 2025-09-14: Removed the mypy override for `devsynth.application.performance` after adding structured metrics types.
 - 2025-09-14: Removed the mypy override for `devsynth.core.mvu.*` after restoring strict typing.
 - 2025-09-14: Removed the mypy overrides for `devsynth.methodology.*` and `devsynth.methodology.sprint` after enforcing strict typing.
 - 2025-09-14: Removed the mypy override for `devsynth.testing.*` after clarifying helper contracts.

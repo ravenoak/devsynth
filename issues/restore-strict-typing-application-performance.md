@@ -2,6 +2,8 @@
 Milestone: 0.1.0-alpha.1
 Status: closed
 
+Closed: 2025-09-14
+
 ## Problem Statement
 `devsynth.application.performance` used `ignore_errors=true` in `pyproject.toml`, bypassing type checks.
 
