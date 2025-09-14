@@ -9,3 +9,7 @@ Modules under `devsynth.testing.*` use `ignore_errors=true` in `pyproject.toml`,
 - [x] Add type annotations to testing utilities.
 - [x] Remove the `ignore_errors` override from `pyproject.toml`.
 - [x] Update `issues/typing_relaxations_tracking.md` and close this issue.
+
+## Resolution Evidence
+- 2025-09-14: `poetry run mypy src/devsynth/testing` reports no errors.
+- 2025-09-14: `poetry run devsynth run-tests --speed=fast` passes.
