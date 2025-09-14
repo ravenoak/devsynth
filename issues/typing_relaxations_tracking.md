@@ -42,3 +42,4 @@ Notes:
 - 2025-09-14: Removed the mypy override for `devsynth.core.mvu.*` after restoring strict typing.
 - 2025-09-14: Removed the mypy overrides for `devsynth.methodology.*` and `devsynth.methodology.sprint` after enforcing strict typing.
 - 2025-09-14: Removed the mypy override for `devsynth.testing.*` after clarifying helper contracts.
+- 2025-09-14: Verified `devsynth.cli` uses strict typing with no remaining `type: ignore` comments.
