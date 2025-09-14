@@ -338,6 +338,10 @@ module = "devsynth"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
+module = "devsynth.logger"
+ignore_errors = false
+
+[[tool.mypy.overrides]]
 module = "devsynth.methodology.*"
 ignore_errors = true
 

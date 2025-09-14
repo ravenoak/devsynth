@@ -15,9 +15,10 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from collections.abc import Mapping
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from devsynth.logging_setup import DevSynthLogger as _BaseDevSynthLogger
 from devsynth.logging_setup import (
@@ -39,7 +40,7 @@ class DevSynthLogger(_BaseDevSynthLogger):
     base logger.
     """
 
-    def _log(self, level: int, msg: str, *args, **kwargs) -> None:  # type: ignore[override]
+    def _log(self, level: int, msg: str, *args: Any, **kwargs: Any) -> None:
         """Normalize ``exc_info`` and delegate to the base logger.
 
         The standard :mod:`logging` API expects ``exc_info`` to either be a
@@ -153,7 +154,7 @@ def setup_logging(name: str, log_level: int | str | None = None) -> DevSynthLogg
 def log_consensus_failure(
     logger: DevSynthLogger,
     error: Exception,
-    extra: Dict[str, Any] | None = None,
+    extra: Mapping[str, object] | None = None,
 ) -> None:
     """Log a consensus failure using ``logger``.
 
@@ -166,7 +167,7 @@ def log_consensus_failure(
         error: The exception that triggered the failure.
         extra: Optional additional context for the log record.
     """
-    data: Dict[str, Any] = {
+    data: dict[str, object] = {
         "error": str(error),
         "error_type": error.__class__.__name__,
     }
