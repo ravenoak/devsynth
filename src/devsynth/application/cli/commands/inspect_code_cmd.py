@@ -1,14 +1,10 @@
 """
-Command to inspect a codebase and provide insights about its architecture, structure, and quality.
-
-NOTE (mypy override): This module currently has relaxed mypy settings per
-pyproject.toml [tool.mypy.overrides] to allow incremental stabilization.
-TODO(typing): Restore disallow_untyped_defs and check_untyped_defs after
-refining public API types and internal helpers. Target: 2025-10-01. See docs/tasks.md (Static analysis).
+Command to inspect a codebase and provide insights about its architecture,
+structure, and quality.
 """
 
-import os
-from typing import Optional
+from pathlib import Path
+from typing import Any
 
 from rich.console import Console
 from rich.panel import Panel
@@ -27,9 +23,9 @@ cli_bridge: UXBridge = CLIUXBridge()
 
 
 def inspect_code_cmd(
-    path: Optional[str] = None,
+    path: str | Path | None = None,
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Inspect a codebase to understand its architecture and quality.
 
@@ -37,8 +33,12 @@ def inspect_code_cmd(
         `devsynth inspect-code --path ./my-project`
 
     Args:
-        path: Path to the codebase to inspect (default: current directory)
-        bridge: Optional UXBridge for user feedback
+        path: Path to the codebase to inspect. Uses the current directory when
+            ``None``.
+        bridge: Optional UXBridge for user feedback.
+
+    Returns:
+        None
     """
     bridge = bridge or cli_bridge
     console = Console()
@@ -48,28 +48,28 @@ def inspect_code_cmd(
         console.print(
             Panel(
                 "[bold blue]DevSynth Code Inspection[/bold blue]\n\n"
-                "This command will inspect a codebase and provide insights about its architecture, structure, and quality.",
+                "This command will inspect a codebase and provide insights "
+                "about its architecture, structure, and quality.",
                 title="Code Inspection",
                 border_style="blue",
             )
         )
 
         # Determine the path to inspect
-        if path is None:
-            path = os.getcwd()
-        else:
-            path = os.path.abspath(path)
-            if not os.path.exists(path):
-                os.makedirs(path, exist_ok=True)
+        path_obj = Path(path).resolve() if path is not None else Path.cwd()
+        if not path_obj.exists():
+            path_obj.mkdir(parents=True, exist_ok=True)
 
-        console.print(f"[bold]Inspecting codebase at:[/bold] {sanitize_output(path)}")
+        console.print(
+            f"[bold]Inspecting codebase at:[/bold] {sanitize_output(str(path_obj))}"
+        )
 
         # Create a progress panel
         analysis_failed = False
         with console.status("[bold green]Inspecting codebase...[/bold green]"):
             try:
-                analyzer = SelfAnalyzer(path)
-                result = analyzer.analyze()
+                analyzer = SelfAnalyzer(str(path_obj))
+                result: dict[str, Any] = analyzer.analyze()
                 # Detect per-file analysis errors and surface as a user-visible error
                 files = result.get("code_analysis", {}).get("files", {})
                 error_files = [
@@ -115,13 +115,14 @@ def inspect_code_cmd(
                     }
                 }
             try:
-                project_analyzer = ProjectStateAnalyzer(path)
-                project_state = project_analyzer.analyze()
+                project_analyzer = ProjectStateAnalyzer(str(path_obj))
+                project_state: dict[str, Any] = project_analyzer.analyze()
             except Exception as e:
                 analysis_failed = True
                 logger.error(f"Project state analysis failed: {e}")
                 console.print(
-                    f"[red]Error analyzing project state: {sanitize_output(str(e))}[/red]"
+                    "[red]Error analyzing project state: "
+                    f"{sanitize_output(str(e))}[/red]"
                 )
                 project_state = {}
 
@@ -131,7 +132,9 @@ def inspect_code_cmd(
         # Display architecture information
         architecture = result["insights"]["architecture"]
         console.print(
-            f"\n[bold]Architecture:[/bold] {sanitize_output(str(architecture['type']))} (confidence: {architecture['confidence']:.2f})"
+            "\n[bold]Architecture:[/bold] "
+            f"{sanitize_output(str(architecture['type']))} "
+            f"(confidence: {architecture['confidence']:.2f})"
         )
 
         # Display layers
@@ -231,7 +234,8 @@ def inspect_code_cmd(
         # Display project health score
         health_score = project_state.get("health_score", 0.0)
         console.print(
-            f"\n[bold]Project Health Score:[/bold] {sanitize_output(f'{health_score:.2f}')}/10.0"
+            "\n[bold]Project Health Score:[/bold] "
+            f"{sanitize_output(f'{health_score:.2f}')}/10.0"
         )
 
         # Display improvement opportunities

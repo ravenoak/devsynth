@@ -10,7 +10,7 @@ How to use this document:
 
 | Module pattern | Current relaxations | Owner | Issue link | Target date | Status |
 |---|---|---|---|---|---|
-| devsynth.application.cli.commands.inspect_code_cmd | disallow_untyped_defs=false, check_untyped_defs=false | TBD | [restore-strict-typing-inspect-code-cmd.md](restore-strict-typing-inspect-code-cmd.md) | 2025-10-01 | open |
+| devsynth.application.cli.commands.inspect_code_cmd | removed | TBD | [restore-strict-typing-inspect-code-cmd.md](restore-strict-typing-inspect-code-cmd.md) | 2025-10-01 | closed |
 | devsynth.feature_markers | disallow_untyped_defs=false, check_untyped_defs=false | TBD | [restore-strict-typing-feature-markers.md](restore-strict-typing-feature-markers.md) | 2025-10-01 | open |
 | devsynth.core.mvu.* | disallow_untyped_defs=false, check_untyped_defs=false, ignore_missing_imports=true | TBD | [restore-strict-typing-core-mvu.md](restore-strict-typing-core-mvu.md) | 2025-10-01 | open |
 | devsynth.application.documentation.* | removed | TBD | [restore-strict-typing-application-documentation.md](restore-strict-typing-application-documentation.md) | 2025-10-01 | closed |
