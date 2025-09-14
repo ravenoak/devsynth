@@ -1,4 +1,5 @@
 import importlib
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -65,7 +66,7 @@ def completion_cmd(
     install: bool = False,
     path: Path | None = None,
     *,
-    bridge: UXBridge | None = None,
+    bridge: CLIUXBridge | None = None,
 ) -> None:
     """Generate or install shell completion scripts."""
 
@@ -125,13 +126,13 @@ logger = DevSynthLogger(__name__)
 
 
 class EnhancedHelpFormatter(click.HelpFormatter):
-    """Custom help formatter that provides more detailed and better formatted help text."""
+    """Custom help formatter that provides enhanced Rich-based output."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.console = Console(theme=DEVSYNTH_THEME)
 
-    def write_usage(self, prog, args="", prefix="Usage: "):
+    def write_usage(self, prog: str, args: str = "", prefix: str = "Usage: ") -> None:
         """Write the usage line with enhanced formatting."""
         usage_text = f"{prefix}{prog} {args}"
 
@@ -139,16 +140,16 @@ class EnhancedHelpFormatter(click.HelpFormatter):
         panel = Panel(usage_text, title="Command Usage", border_style="cyan")
         self.console.print(panel)
 
-    def write_heading(self, heading):
+    def write_heading(self, heading: str) -> None:
         """Write a heading with enhanced formatting."""
         # Use Rich to format the heading
         self.console.print(f"\n[bold blue]{heading}[/bold blue]")
 
-    def write_paragraph(self):
+    def write_paragraph(self) -> None:
         """Write a paragraph separator."""
         self.console.print("")
 
-    def write_text(self, text):
+    def write_text(self, text: str) -> None:
         """Write text with enhanced formatting."""
         # Use Rich to format the text
         if text.startswith("  "):
@@ -158,15 +159,19 @@ class EnhancedHelpFormatter(click.HelpFormatter):
             # Regular text
             self.console.print(text)
 
-    def write_dl(self, rows, col_max=30, col_spacing=2):
+    def write_dl(
+        self,
+        rows: Iterable[tuple[str, str]],
+        col_max: int = 30,
+        col_spacing: int = 2,
+    ) -> None:
         """Write a definition list with enhanced formatting."""
         # Create a Rich table for the definition list
         table = Table(box=ROUNDED, show_header=False, expand=True)
         table.add_column("Option", style="cyan", width=col_max)
         table.add_column("Description", style="white")
 
-        for row in rows:
-            option, description = row
+        for option, description in rows:
             table.add_row(option, description)
 
         self.console.print(table)
@@ -178,11 +183,11 @@ class CommandHelp:
     def __init__(
         self,
         summary: str,
-        description: str = None,
-        examples: list[dict[str, str]] = None,
-        notes: list[str] = None,
-        options: dict[str, str] = None,
-    ):
+        description: str | None = None,
+        examples: list[dict[str, str]] | None = None,
+        notes: list[str] | None = None,
+        options: dict[str, str] | None = None,
+    ) -> None:
         """Initialize the command help.
 
         Args:
@@ -354,12 +359,8 @@ def build_app() -> typer.Typer:
                     log_level=getattr(_logging, chosen_level, _logging.INFO)
                 )
             except Exception:
-                # As a fallback, try configuring with the string level
-                try:
-                    configure_logging(log_level=chosen_level)
-                except Exception:
-                    # Do not crash CLI due to logging issues
-                    pass
+                # Do not crash CLI due to logging issues
+                pass
 
         # Handle --version eagerly after logging configured
         if version:
@@ -422,7 +423,7 @@ def show_help() -> None:
     app = build_app()
 
     # Extract the help text from the app
-    help_text = app.info.help or "DevSynth CLI"
+    help_text = (app.info.help if app.info else "DevSynth CLI") or "DevSynth CLI"
 
     # Create a panel with the help text
     main_panel = Panel(

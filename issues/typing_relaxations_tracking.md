@@ -46,3 +46,4 @@ Notes:
 - 2025-09-14: Verified `devsynth.cli` uses strict typing with no remaining `type: ignore` comments.
 - 2025-09-14: Restored strict typing for `devsynth.application.cli.commands.inspect_code_cmd` and removed module override.
 - 2025-09-14: Removed the mypy override for `devsynth.logger` after typing handlers and log records.
+- 2025-09-14: Confirmed removal of `devsynth.adapters.*` override and closed tracking issue.
