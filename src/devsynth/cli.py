@@ -15,9 +15,11 @@ exposes shell completion installation via ``--install-completion``.
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import sys
-from typing import Any
+from collections.abc import Callable
+from typing import Any, cast
 
 from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
 from devsynth.logger import setup_logging
@@ -38,7 +40,7 @@ def main(argv: list[str] | None = None) -> None:
             devsynth --analyze-repo .
     """
 
-    parser = argparse.ArgumentParser(
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(
         add_help=False,
         description="DevSynth command line interface",
     )
@@ -47,6 +49,8 @@ def main(argv: list[str] | None = None) -> None:
         metavar="PATH",
         help="Analyze a repository and output JSON data",
     )
+    args: argparse.Namespace
+    remaining: list[str]
     args, remaining = parser.parse_known_args(argv)
 
     if args.analyze_repo:
@@ -54,7 +58,8 @@ def main(argv: list[str] | None = None) -> None:
         # Some test scenarios may have previously imported the CLI; clearing here
         # guarantees this code path does not rely on it and keeps import-time light.
         sys.modules.pop("devsynth.adapters.cli.typer_adapter", None)
-        analyzer = RepoAnalyzer(args.analyze_repo)
+        analyze_repo = cast(str, args.analyze_repo)
+        analyzer: RepoAnalyzer = RepoAnalyzer(analyze_repo)
         result: dict[str, Any] = analyzer.analyze()
         print(json.dumps(result, indent=2))
     else:
@@ -76,7 +81,7 @@ def main(argv: list[str] | None = None) -> None:
                 handle_error(CLIUXBridge(), msg)
                 raise SystemExit(1)
 
-            app = typer.Typer(add_completion=False)
+            app: typer.Typer = typer.Typer(add_completion=False)
             app.command("run-tests")(run_tests_cmd)
             try:
                 app(prog_name="devsynth", args=remaining)
@@ -85,7 +90,8 @@ def main(argv: list[str] | None = None) -> None:
                 raise SystemExit(1)
         else:
             try:
-                from devsynth.adapters.cli.typer_adapter import run_cli
+                module = importlib.import_module("devsynth.adapters.cli.typer_adapter")
+                run_cli = cast(Callable[[], None], getattr(module, "run_cli"))
             except ModuleNotFoundError as exc:  # pragma: no cover - optional deps
                 msg = (
                     f"Missing optional dependency: {exc.name}. "

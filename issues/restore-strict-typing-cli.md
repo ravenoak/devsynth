@@ -10,3 +10,6 @@ Status: closed
 - [x] Remove the `ignore_missing_imports` override from `pyproject.toml`.
 - [x] Verify `poetry run mypy src/devsynth` passes.
 - [x] Update `issues/typing_relaxations_tracking.md`.
+
+Closed on 2025-09-14 after confirming `devsynth.cli` has fully annotated
+parameters and return types with no remaining `type: ignore` comments.
