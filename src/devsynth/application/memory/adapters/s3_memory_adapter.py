@@ -4,20 +4,35 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any, Dict, List, Optional
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, cast
 
 from ....domain.models.memory import MemoryItem, MemoryType
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from .storage_adapter import StorageAdapter
 
+if TYPE_CHECKING:  # pragma: no cover - type-checking import
+    import boto3 as boto3_module
+
+    S3Client = boto3_module.client("s3")
+else:
+    from typing import Any as S3Client
+
+_BOTO3_ERROR: ModuleNotFoundError | None = None
 try:  # pragma: no cover - optional dependency
-    import boto3
-    from botocore.exceptions import ClientError
-except Exception as exc:  # pragma: no cover - missing optional dependency
-    boto3 = None  # type: ignore[assignment]
-    ClientError = Exception  # type: ignore[misc]
+    import boto3 as _boto3
+    from botocore.exceptions import ClientError as _ClientError
+except ModuleNotFoundError as exc:  # pragma: no cover - missing optional dependency
+    _boto3 = cast(Any, None)
+
+    class _ClientError(Exception):
+        """Fallback client error when botocore isn't installed."""
+
     _BOTO3_ERROR = exc
+
+boto3 = _boto3
+ClientError = _ClientError
 
 logger = DevSynthLogger(__name__)
 
@@ -27,11 +42,11 @@ class S3MemoryAdapter(StorageAdapter):
 
     backend_type = "s3"
 
-    def __init__(self, bucket: str, client: Any | None = None):
+    def __init__(self, bucket: str, client: S3Client | None = None):
         if boto3 is None:  # pragma: no cover - defensive
             raise ImportError("boto3 is required for S3MemoryAdapter") from _BOTO3_ERROR
         self.bucket = bucket
-        self.client = client or boto3.client("s3")
+        self.client: S3Client = client or boto3.client("s3")
 
     # ------------------------------------------------------------------
     # Core storage operations
@@ -62,7 +77,7 @@ class S3MemoryAdapter(StorageAdapter):
         self.client.put_object(Bucket=self.bucket, Key=item.id, Body=data)
         return item.id
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         try:
             obj = self.client.get_object(Bucket=self.bucket, Key=item_id)
         except ClientError:
@@ -76,8 +91,8 @@ class S3MemoryAdapter(StorageAdapter):
             metadata=data.get("metadata", {}),
         )
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
-        items: List[MemoryItem] = []
+    def search(self, query: Mapping[str, str | MemoryType]) -> list[MemoryItem]:
+        items: list[MemoryItem] = []
         resp = self.client.list_objects_v2(Bucket=self.bucket)
         for obj in resp.get("Contents", []):
             item = self.retrieve(obj["Key"])
@@ -86,7 +101,10 @@ class S3MemoryAdapter(StorageAdapter):
             match = True
             for key, value in query.items():
                 if key == "type":
-                    if item.memory_type != value:
+                    expected = (
+                        value if isinstance(value, MemoryType) else MemoryType(value)
+                    )
+                    if item.memory_type != expected:
                         match = False
                         break
                 elif item.metadata.get(key) != value:
