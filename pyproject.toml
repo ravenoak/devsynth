@@ -313,7 +313,24 @@ ignore_errors = true
 # Broad temporary relaxation for application layer to unblock typing gate while we add annotations iteratively.
 # TODO: Narrow and remove by 2025-10-15; track in docs/plan.md Phase 4.
 [[tool.mypy.overrides]]
-module = "devsynth.application.*"
+module = [
+  "devsynth.application.agents.*",
+  "devsynth.application.cli.*",
+  "devsynth.application.code_analysis.*",
+  "devsynth.application.collaboration.*",
+  "devsynth.application.config.*",
+  "devsynth.application.documentation.*",
+  "devsynth.application.ingestion.*",
+  "devsynth.application.issues.*",
+  "devsynth.application.llm.*",
+  "devsynth.application.memory.*",
+  "devsynth.application.orchestration.*",
+  "devsynth.application.promises.*",
+  "devsynth.application.prompts.*",
+  "devsynth.application.server.*",
+  "devsynth.application.sprint.*",
+  "devsynth.application.utils.*",
+]
 ignore_errors = true
 
 # Added by Task 54 (2025-09-03): targeted temporary relaxations based on strict mypy run

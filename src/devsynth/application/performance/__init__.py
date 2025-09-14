@@ -32,7 +32,7 @@ def _run_workload(workload: int) -> int:
     Returns:
         Accumulated value from the synthetic workload.
     """
-    total = 0
+    total: int = 0
     for i in range(workload):
         total += i * i
     return total
@@ -50,10 +50,10 @@ def capture_baseline_metrics(
     Returns:
         Metrics dictionary with workload, duration, and throughput.
     """
-    start = time.perf_counter()
+    start: float = time.perf_counter()
     _run_workload(workload)
-    duration = time.perf_counter() - start
-    throughput = workload / duration if duration else 0.0
+    duration: float = time.perf_counter() - start
+    throughput: float = workload / duration if duration else 0.0
     metrics: PerformanceMetrics = {
         "workload": workload,
         "duration_seconds": duration,
@@ -79,10 +79,10 @@ def capture_scalability_metrics(
     """
     results: list[PerformanceMetrics] = []
     for workload in workloads:
-        start = time.perf_counter()
+        start: float = time.perf_counter()
         _run_workload(workload)
-        duration = time.perf_counter() - start
-        throughput = workload / duration if duration else 0.0
+        duration: float = time.perf_counter() - start
+        throughput: float = workload / duration if duration else 0.0
         results.append(
             {
                 "workload": workload,
