@@ -238,11 +238,6 @@ disallow_incomplete_defs = false
 # Rationale: these modules are actively evolving; we keep global strictness high
 # while avoiding blocking changes. Add TODOs in modules to restore strictness.
 # Target to restore strictness: 2025-10-01
-[[tool.mypy.overrides]]
-module = "devsynth.core.mvu.*"
-disallow_untyped_defs = false
-check_untyped_defs = false
-ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "devsynth.domain.models.requirement"

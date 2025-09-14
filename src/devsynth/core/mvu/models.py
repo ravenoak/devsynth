@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -11,21 +11,23 @@ class MVUU:
     """Dataclass representing MVUU metadata."""
 
     utility_statement: str
-    affected_files: List[str]
-    tests: List[str]
+    affected_files: list[str]
+    tests: list[str]
     TraceID: str
     mvuu: bool
     issue: str
-    notes: Optional[str] = None
+    notes: str | None = None
+    issue_title: str | None = None
+    acceptance_criteria: str | None = None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MVUU":
+    def from_dict(cls, data: dict[str, Any]) -> MVUU:
         """Create an MVUU instance from a dictionary."""
         return cls(**data)
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Return metadata as a dictionary."""
-        data: Dict[str, Any] = {
+        data: dict[str, Any] = {
             "utility_statement": self.utility_statement,
             "affected_files": self.affected_files,
             "tests": self.tests,

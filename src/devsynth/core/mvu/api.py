@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Iterator
 from datetime import datetime
 from functools import lru_cache
-from typing import Iterator, List, Tuple
+from typing import Protocol
 
 from devsynth.adapters.issues import GitHubIssueAdapter, JiraIssueAdapter
 from devsynth.core.config_loader import load_config
@@ -15,12 +16,22 @@ from .parser import parse_commit_message
 from .storage import read_commit_message
 
 
+class IssueAdapter(Protocol):
+    """Protocol describing minimal issue adapter capabilities."""
+
+    def fetch(
+        self, issue_ref: str
+    ) -> dict[str, str] | None:  # pragma: no cover - protocol
+        """Return metadata for ``issue_ref`` if available."""
+        ...
+
+
 @lru_cache(maxsize=1)
-def _issue_adapters() -> dict[str, object]:
+def _issue_adapters() -> dict[str, IssueAdapter]:
     """Instantiate issue adapters based on configuration."""
     cfg = load_config().mvuu or {}
     issues_cfg = cfg.get("issues", {})
-    adapters = {}
+    adapters: dict[str, IssueAdapter] = {}
     gh = issues_cfg.get("github")
     if gh and gh.get("token") and gh.get("base_url"):
         adapters["github"] = GitHubIssueAdapter(gh["base_url"], gh["token"])
@@ -31,14 +42,14 @@ def _issue_adapters() -> dict[str, object]:
 
 
 def _enrich_mvuu(mvuu: MVUU) -> None:
-    """Populate MVUU with external issue metadata when available."""
+    """Populate ``mvuu`` with external issue metadata when available."""
     adapters = _issue_adapters()
     trace = mvuu.TraceID
-    meta = None
+    meta: dict[str, str] | None = None
     if trace.startswith("#") and "github" in adapters:
-        meta = adapters["github"].fetch(trace)  # type: ignore[attr-defined]
+        meta = adapters["github"].fetch(trace)
     elif "-" in trace and "jira" in adapters:
-        meta = adapters["jira"].fetch(trace)  # type: ignore[attr-defined]
+        meta = adapters["jira"].fetch(trace)
     if meta:
         mvuu.issue_title = meta.get("title")
         mvuu.acceptance_criteria = meta.get("acceptance_criteria")
@@ -46,7 +57,7 @@ def _enrich_mvuu(mvuu: MVUU) -> None:
 
 def iter_mvuu_commits(
     ref: str = "HEAD", enrich: bool = False
-) -> Iterator[Tuple[str, MVUU]]:
+) -> Iterator[tuple[str, MVUU]]:
     """Yield commits containing MVUU metadata starting from ``ref``.
 
     Args:
@@ -67,7 +78,7 @@ def iter_mvuu_commits(
 
 def get_by_trace_id(
     trace_id: str, ref: str = "HEAD", *, enrich: bool = False
-) -> List[Tuple[str, MVUU]]:
+) -> list[tuple[str, MVUU]]:
     """Return commits whose MVUU TraceID matches ``trace_id``.
 
     Args:
@@ -84,7 +95,7 @@ def get_by_trace_id(
 
 def get_by_affected_path(
     path: str, ref: str = "HEAD", *, enrich: bool = False
-) -> List[Tuple[str, MVUU]]:
+) -> list[tuple[str, MVUU]]:
     """Return commits whose MVUU affected files include ``path``.
 
     Args:
@@ -101,7 +112,7 @@ def get_by_affected_path(
 
 def get_by_date_range(
     start: datetime, end: datetime, ref: str = "HEAD", *, enrich: bool = False
-) -> List[Tuple[str, MVUU]]:
+) -> list[tuple[str, MVUU]]:
     """Return commits within a date range containing MVUU metadata.
 
     Args:
@@ -124,7 +135,7 @@ def get_by_date_range(
         text=True,
     )
     commits = revs.strip().splitlines()
-    results: List[Tuple[str, MVUU]] = []
+    results: list[tuple[str, MVUU]] = []
     for commit in commits:
         try:
             message = read_commit_message(commit)
