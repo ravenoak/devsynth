@@ -2,37 +2,35 @@
 
 from __future__ import annotations
 
+import importlib
 import json
 import uuid
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any  # S3 client treated as dynamic ``Any``
+from typing import Any as S3Client
+from typing import cast
 
 from ....domain.models.memory import MemoryItem, MemoryType
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from .storage_adapter import StorageAdapter
 
-if TYPE_CHECKING:  # pragma: no cover - type-checking import
-    import boto3 as boto3_module
-
-    S3Client = boto3_module.client("s3")
-else:
-    from typing import Any as S3Client
-
 _BOTO3_ERROR: ModuleNotFoundError | None = None
 try:  # pragma: no cover - optional dependency
-    import boto3 as _boto3
-    from botocore.exceptions import ClientError as _ClientError
+    _boto3 = importlib.import_module("boto3")
+    _exceptions = importlib.import_module("botocore.exceptions")
+    _ImportedClientError = getattr(_exceptions, "ClientError")
 except ModuleNotFoundError as exc:  # pragma: no cover - missing optional dependency
     _boto3 = cast(Any, None)
 
-    class _ClientError(Exception):
+    class _FallbackClientError(Exception):
         """Fallback client error when botocore isn't installed."""
 
     _BOTO3_ERROR = exc
+    _ImportedClientError = _FallbackClientError
 
 boto3 = _boto3
-ClientError = _ClientError
+ClientError = _ImportedClientError
 
 logger = DevSynthLogger(__name__)
 
@@ -75,7 +73,7 @@ class S3MemoryAdapter(StorageAdapter):
             }
         )
         self.client.put_object(Bucket=self.bucket, Key=item.id, Body=data)
-        return item.id
+        return str(item.id)
 
     def retrieve(self, item_id: str) -> MemoryItem | None:
         try:
@@ -124,13 +122,15 @@ class S3MemoryAdapter(StorageAdapter):
     # ------------------------------------------------------------------
     # Transaction API (unsupported)
     # ------------------------------------------------------------------
-    def begin_transaction(self) -> str:  # pragma: no cover - simple
+    def begin_transaction(
+        self, transaction_id: str | None = None
+    ) -> str:  # pragma: no cover - simple
         raise MemoryTransactionError(
             "Transactions are not supported", store_type=self.backend_type
         )
 
     def commit_transaction(
-        self, transaction_id: str
+        self, transaction_id: str | None = None
     ) -> bool:  # pragma: no cover - simple
         raise MemoryTransactionError(
             "Transactions are not supported",
@@ -139,7 +139,7 @@ class S3MemoryAdapter(StorageAdapter):
         )
 
     def rollback_transaction(
-        self, transaction_id: str
+        self, transaction_id: str | None = None
     ) -> bool:  # pragma: no cover - simple
         raise MemoryTransactionError(
             "Transactions are not supported",

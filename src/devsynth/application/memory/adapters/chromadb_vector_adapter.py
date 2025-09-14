@@ -11,15 +11,21 @@ Typical usage::
 
 """
 
+import importlib
 import uuid
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
 from typing import Any
 
+# ``chromadb`` lacks stable typing information and triggers deep imports.
+# Load it dynamically and treat its objects as ``Any`` so mypy focuses on
+# DevSynth code while still raising an ImportError at runtime when absent.
+chromadb: Any
+Settings: Any
 try:  # pragma: no cover - optional dependency
-    import chromadb
-    from chromadb.config import Settings
+    chromadb = importlib.import_module("chromadb")
+    Settings = importlib.import_module("chromadb.config").Settings
 except Exception as e:  # pragma: no cover - if chromadb is missing the tests skip
     raise ImportError(
         "ChromaDBVectorAdapter requires the 'chromadb' package. Install it with "
@@ -57,6 +63,7 @@ class ChromaDBVectorAdapter(VectorStore):
         self.persist_directory = persist_directory
         self.vectors: dict[str, MemoryVector] = {}
 
+        self.client: Any
         if persist_directory:
             self.client = chromadb.PersistentClient(path=persist_directory)
         else:
@@ -64,7 +71,7 @@ class ChromaDBVectorAdapter(VectorStore):
             settings = Settings(anonymized_telemetry=False)
             self.client = chromadb.EphemeralClient(settings)
 
-        self.collection = self.client.get_or_create_collection(collection_name)
+        self.collection: Any = self.client.get_or_create_collection(collection_name)
         logger.info(
             "ChromaDB Vector Adapter initialized with collection '%s'",
             collection_name,
@@ -158,7 +165,7 @@ class ChromaDBVectorAdapter(VectorStore):
 
         self.vectors[vector.id] = vector
         logger.info("Stored memory vector with ID %s in ChromaDB", vector.id)
-        return vector.id
+        return str(vector.id)
 
     def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """

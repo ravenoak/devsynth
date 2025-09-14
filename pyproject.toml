@@ -186,6 +186,7 @@ mvuu-dashboard = "devsynth.application.cli.commands.mvuu_dashboard_cmd:mvuu_dash
 [tool.mypy]
 python_version = "3.12"
 warn_return_any = true
+follow_imports = "skip"
 exclude = [
   # Exclude nothing at path-level; use per-module overrides below.
 ]

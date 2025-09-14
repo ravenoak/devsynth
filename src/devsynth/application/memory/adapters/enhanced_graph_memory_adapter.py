@@ -10,65 +10,31 @@ This module provides an enhanced version of the GraphMemoryAdapter that supports
 """
 
 import datetime
-from collections.abc import Mapping
-from typing import TYPE_CHECKING
-
-try:  # pragma: no cover - optional dependency
-    import rdflib
-    from rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
-    from rdflib.namespace import DC, FOAF
-except Exception:  # pragma: no cover - fallback when rdflib is missing
-    rdflib = None
-
-    class URIRef(str):  # noqa: F811
-        """Fallback URI reference when ``rdflib`` is unavailable."""
-
-    class Graph:  # noqa: F811
-        """Simplified graph stub used when ``rdflib`` is not installed."""
-
-        def parse(self, *args, **kwargs):  # pragma: no cover
-            raise NotImplementedError("rdflib is required for graph operations")
-
-        def serialize(self, *args, **kwargs):  # pragma: no cover
-            raise NotImplementedError("rdflib is required for graph operations")
-
-        def add(self, *args, **kwargs):  # pragma: no cover
-            raise NotImplementedError("rdflib is required for graph operations")
-
-        def bind(self, *args, **kwargs):  # pragma: no cover
-            raise NotImplementedError("rdflib is required for graph operations")
-
-        def objects(self, *args, **kwargs):  # pragma: no cover
-            return iter(())
-
-        def triples(self, *args, **kwargs):  # pragma: no cover
-            return iter(())
-
-        def value(self, *args, **kwargs):  # pragma: no cover
-            return None
-
-    class Literal(str):  # noqa: F811
-        """Fallback literal when ``rdflib`` is unavailable."""
-
-    class _RDFType:
-        """Placeholder for RDF namespace attributes."""
-
-    OWL = RDF = FOAF = DC = _RDFType()
-
-    def Namespace(uri: str) -> str:  # noqa: F811
-        """Return ``rdflib.term.URIRef`` when available, else a plain string."""
-        return uri
-
-
-if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
-    from rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef  # noqa: F401,F811
-    from rdflib.namespace import DC, FOAF  # noqa: F401,F811
+import importlib
+from collections.abc import Iterator, Mapping
+from typing import Any, cast
 
 from devsynth.exceptions import MemoryItemNotFoundError, MemoryStoreError
 
 from ....domain.models.memory import MemoryItem, MemoryType
 from ....logging_setup import DevSynthLogger
 from .graph_memory_adapter import GraphMemoryAdapter
+
+try:
+    rdflib = importlib.import_module("rdflib")
+    namespace_module = importlib.import_module("rdflib.namespace")
+    OWL = rdflib.OWL
+    RDF = rdflib.RDF
+    Graph = rdflib.Graph
+    Literal = rdflib.Literal
+    Namespace = rdflib.Namespace
+    URIRef = rdflib.URIRef
+    DC = namespace_module.DC
+    FOAF = namespace_module.FOAF
+except Exception:  # pragma: no cover - fallback when rdflib is missing
+    rdflib = None
+    URIRef = Graph = Literal = Namespace = OWL = RDF = DC = FOAF = cast(Any, None)
+
 
 # Setup logger
 logger = DevSynthLogger(__name__)
@@ -142,7 +108,11 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
         # Add version information if updating existing content
         if "previous_version" in metadata_dict:
-            metadata_dict["version"] = metadata_dict.get("version", 0) + 1
+            existing_version = metadata_dict.get("version")
+            if isinstance(existing_version, int):
+                metadata_dict["version"] = existing_version + 1
+            else:
+                metadata_dict["version"] = 1
         else:
             metadata_dict["version"] = 1
 
@@ -292,15 +262,17 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 and rdflib is not None
             ):
                 logger.debug("Adding context-relevant items")
-                context_items = self._retrieve_context_relevant_items(
-                    metadata.get("task_id"), edrr_phase
-                )
-                # Add only items that aren't already in matching_items
-                existing_ids = {item.id for item in matching_items}
-                for item in context_items:
-                    if item.id not in existing_ids:
-                        matching_items.append(item)
-                        existing_ids.add(item.id)
+                task_id = metadata.get("task_id")
+                if isinstance(task_id, str):
+                    context_items = self._retrieve_context_relevant_items(
+                        task_id, edrr_phase
+                    )
+                    # Add only items that aren't already in matching_items
+                    existing_ids = {item.id for item in matching_items}
+                    for item in context_items:
+                        if item.id not in existing_ids:
+                            matching_items.append(item)
+                            existing_ids.add(item.id)
 
             # If include_previous_cycles is enabled, include items from previous cycles
             if (
@@ -310,15 +282,17 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 and rdflib is not None
             ):
                 logger.debug("Adding items from previous cycles")
-                cycle_items = self._retrieve_previous_cycle_items(
-                    metadata.get("cycle_id"), edrr_phase
-                )
-                # Add only items that aren't already in matching_items
-                existing_ids = {item.id for item in matching_items}
-                for item in cycle_items:
-                    if item.id not in existing_ids:
-                        matching_items.append(item)
-                        existing_ids.add(item.id)
+                cycle_id = metadata.get("cycle_id")
+                if isinstance(cycle_id, str):
+                    cycle_items = self._retrieve_previous_cycle_items(
+                        cycle_id, edrr_phase
+                    )
+                    # Add only items that aren't already in matching_items
+                    existing_ids = {item.id for item in matching_items}
+                    for item in cycle_items:
+                        if item.id not in existing_ids:
+                            matching_items.append(item)
+                            existing_ids.add(item.id)
 
             # Rank items by relevance if context-aware retrieval is enabled
             if context_aware and matching_items:
@@ -336,12 +310,12 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 )
                 return [
                     {
-                        "content": item["item"].content,
-                        "relevance": item["relevance"],
-                        "id": item["item"].id,
-                        "metadata": item["item"].metadata,
+                        "content": cast(MemoryItem, entry["item"]).content,
+                        "relevance": cast(float, entry["relevance"]),
+                        "id": cast(MemoryItem, entry["item"]).id,
+                        "metadata": cast(MemoryItem, entry["item"]).metadata,
                     }
-                    for item in ranked_items
+                    for entry in ranked_items
                 ]
 
             logger.debug(

@@ -7,13 +7,16 @@ using TinyDB. It also normalizes common Python types (e.g., ``set`` or
 errors.
 """
 
+import importlib
 import uuid
 from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any
+from typing import Any, cast
 
-from tinydb import Query, TinyDB
-from tinydb.storages import MemoryStorage
+tinydb = importlib.import_module("tinydb")
+Query = tinydb.Query
+TinyDB = tinydb.TinyDB
+MemoryStorage = getattr(importlib.import_module("tinydb.storages"), "MemoryStorage")
 
 from ....domain.models.memory import MemoryItem, MemoryType
 from ....exceptions import MemoryTransactionError
@@ -201,7 +204,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 item.id,
             )
 
-        return item.id
+        return str(item.id)
 
     def retrieve(self, item_id: str) -> MemoryItem | None:
         """
@@ -262,7 +265,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         # Convert to MemoryItem objects
         return [self._dict_to_memory_item(item_dict) for item_dict in results]
 
-    def delete(self, item_id: str, transaction_id: str = None) -> bool:
+    def delete(self, item_id: str, transaction_id: str | None = None) -> bool:
         """
         Delete a memory item from TinyDB.
 
@@ -347,7 +350,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         Returns:
             The retrieved item or an empty dictionary if not found.
         """
-        search_meta = metadata.copy() if metadata else {}
+        search_meta = dict(metadata) if metadata else {}
         search_meta["edrr_phase"] = edrr_phase
 
         # Build TinyDB query
@@ -368,7 +371,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
         return {}
 
-    def close(self):
+    def close(self) -> None:
         """Close the TinyDB database."""
         self.db.close()
 
@@ -557,7 +560,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         """
         return {item.id: deepcopy(item) for item in self.get_all()}
 
-    def restore(self, snapshot: Mapping[str, MemoryItem]) -> bool:
+    def restore(self, snapshot: Mapping[str, MemoryItem] | None) -> bool:
         """
         Restore from a snapshot.
 

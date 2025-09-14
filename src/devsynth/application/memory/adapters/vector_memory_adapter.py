@@ -5,12 +5,13 @@ This module provides a memory adapter that handles vector-based operations
 for similarity search.
 """
 
+import importlib
 import uuid
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
-from typing import TypedDict
+from typing import Any, TypedDict, cast
 
-import numpy as np
+np = cast(Any, importlib.import_module("numpy"))
 
 from ....domain.interfaces.memory import VectorStore
 from ....domain.models.memory import MemoryVector
@@ -33,7 +34,7 @@ class VectorMemoryAdapter(VectorStore):
     retrieving, and searching vectors.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the Vector Memory Adapter."""
         self.vectors: dict[str, MemoryVector] = {}
         self.embeddings: dict[str, np.ndarray] = {}
@@ -62,7 +63,7 @@ class VectorMemoryAdapter(VectorStore):
         logger.info(
             f"Stored memory vector with ID {vector.id} in Vector Memory Adapter"
         )
-        return vector.id
+        return str(vector.id)
 
     def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """
@@ -312,7 +313,7 @@ class VectorMemoryAdapter(VectorStore):
         """
         return deepcopy(self.vectors)
 
-    def restore(self, snapshot: Mapping[str, MemoryVector]) -> bool:
+    def restore(self, snapshot: Mapping[str, MemoryVector] | None) -> bool:
         """
         Restore from a snapshot.
 
@@ -326,7 +327,7 @@ class VectorMemoryAdapter(VectorStore):
             return False
 
         try:
-            self.vectors = deepcopy(snapshot)
+            self.vectors = deepcopy(dict(snapshot))
             self.embeddings = {
                 vid: np.array(vec.embedding) for vid, vec in self.vectors.items()
             }
