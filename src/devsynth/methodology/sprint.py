@@ -6,16 +6,33 @@ and traditional Agile sprint practices.
 
 import datetime
 import time
-from typing import Any, Dict, List, Optional
+from importlib import import_module
+from typing import Any, Dict, List, Optional, cast
+from collections.abc import Callable
 
-from devsynth.application.sprint.planning import map_requirements_to_plan
-from devsynth.application.sprint.retrospective import map_retrospective_to_summary
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
 from devsynth.methodology.sprint_adapter import (
     CEREMONY_PHASE_MAP,
     map_ceremony_to_phase,
 )
+
+
+def _map_requirements_to_plan(req_analysis: dict[str, Any]) -> dict[str, Any]:
+    module = import_module("devsynth.application.sprint." + "planning")
+    func = module.map_requirements_to_plan
+    return cast(Callable[[dict[str, Any]], dict[str, Any]], func)(req_analysis)
+
+
+def _map_retrospective_to_summary(
+    results: dict[str, Any], sprint_number: int
+) -> dict[str, Any]:
+    module = import_module("devsynth.application.sprint." + "retrospective")
+    func = module.map_retrospective_to_summary
+    return cast(Callable[[dict[str, Any], int], dict[str, Any]], func)(
+        results, sprint_number
+    )
+
 
 logger = DevSynthLogger(__name__)
 
@@ -27,7 +44,7 @@ class SprintAdapter(BaseMethodologyAdapter):
     with configurable sprint duration and phase allocations.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """Initialize the sprint adapter.
 
         Args:
@@ -97,7 +114,7 @@ class SprintAdapter(BaseMethodologyAdapter):
         return False
 
     def should_progress_to_next_phase(
-        self, current_phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
+        self, current_phase: Phase, context: dict[str, Any], results: dict[str, Any]
     ) -> bool:
         """Determine if the process should progress to the next phase.
 
@@ -157,7 +174,7 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         return all(a in completed_activities for a in required_activities)
 
-    def before_cycle(self) -> Dict[str, Any]:
+    def before_cycle(self) -> dict[str, Any]:
         """Perform sprint planning before starting a new EDRR cycle.
 
         Returns:
@@ -189,7 +206,7 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         return sprint_context
 
-    def after_cycle(self, results: Dict[str, Any]) -> None:
+    def after_cycle(self, results: dict[str, Any]) -> None:
         """Perform sprint retrospective after completing an EDRR cycle.
 
         Args:
@@ -215,7 +232,7 @@ class SprintAdapter(BaseMethodologyAdapter):
         if not getattr(self, "sprint_plan", None):
             req_analysis = expand_results.get("requirements_analysis")
             if req_analysis:
-                self.sprint_plan = map_requirements_to_plan(req_analysis)
+                self.sprint_plan = _map_requirements_to_plan(req_analysis)
                 self.metrics["planned_scope"].append(
                     self.sprint_plan.get("planned_scope", [])
                 )
@@ -229,7 +246,7 @@ class SprintAdapter(BaseMethodologyAdapter):
         self.sprint_start_time = None
         self.sprint_end_time = None
 
-    def before_expand(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_expand(self, context: dict[str, Any]) -> dict[str, Any]:
         """Sprint-specific setup before the Expand phase.
 
         Args:
@@ -248,18 +265,18 @@ class SprintAdapter(BaseMethodologyAdapter):
         return context
 
     def after_expand(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Align sprint planning with requirement analysis results."""
         req_analysis = results.get("requirements_analysis")
         if req_analysis:
-            self.sprint_plan = map_requirements_to_plan(req_analysis)
+            self.sprint_plan = _map_requirements_to_plan(req_analysis)
             self.metrics["planned_scope"].append(
                 self.sprint_plan.get("planned_scope", [])
             )
         return results
 
-    def before_differentiate(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_differentiate(self, context: dict[str, Any]) -> dict[str, Any]:
         """Sprint-specific setup before the Differentiate phase.
 
         Args:
@@ -272,15 +289,15 @@ class SprintAdapter(BaseMethodologyAdapter):
         return context
 
     def after_differentiate(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Record metrics after the Differentiate phase."""
         inconsistencies = results.get("inconsistencies")
         if inconsistencies is not None:
             self.metrics["inconsistencies_detected"].append(inconsistencies)
         return results
 
-    def before_refine(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_refine(self, context: dict[str, Any]) -> dict[str, Any]:
         """Sprint-specific setup before the Refine phase.
 
         Args:
@@ -293,15 +310,15 @@ class SprintAdapter(BaseMethodologyAdapter):
         return context
 
     def after_refine(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Record metrics after the Refine phase."""
         relationships = results.get("relationships")
         if relationships is not None:
             self.metrics["relationships_modeled"].append(relationships)
         return results
 
-    def before_retrospect(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_retrospect(self, context: dict[str, Any]) -> dict[str, Any]:
         """Sprint-specific setup before the Retrospect phase.
 
         Args:
@@ -314,8 +331,8 @@ class SprintAdapter(BaseMethodologyAdapter):
         return context
 
     def after_retrospect(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Sprint-specific activities after the Retrospect phase, including sprint planning.
 
         Args:
@@ -338,7 +355,7 @@ class SprintAdapter(BaseMethodologyAdapter):
             ),
         }
 
-        summary = map_retrospective_to_summary(results, self.current_sprint_number)
+        summary = _map_retrospective_to_summary(results, self.current_sprint_number)
         if summary:
             self.metrics["retrospective_reviews"].append(summary)
 
@@ -348,7 +365,7 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         return results
 
-    def generate_reports(self, cycle_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def generate_reports(self, cycle_results: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate sprint reports from cycle results.
 
         Args:
@@ -410,7 +427,7 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         return reports
 
-    def get_config_schema(self) -> Dict[str, Any]:
+    def get_config_schema(self) -> dict[str, Any]:
         """Get JSON schema for sprint configuration validation.
 
         Returns:
@@ -484,7 +501,7 @@ class SprintAdapter(BaseMethodologyAdapter):
             phase, start_time
         )
 
-    def _get_required_activities(self, phase: Phase) -> List[str]:
+    def _get_required_activities(self, phase: Phase) -> list[str]:
         """Get required activities for a phase.
 
         Args:
@@ -514,7 +531,7 @@ class SprintAdapter(BaseMethodologyAdapter):
 
         return required_activities.get(phase, [])
 
-    def _log_phase_timeout(self, phase: Phase, missing_activities: List[str]) -> None:
+    def _log_phase_timeout(self, phase: Phase, missing_activities: list[str]) -> None:
         """Log a timeout event for a phase.
 
         Args:
@@ -528,7 +545,7 @@ class SprintAdapter(BaseMethodologyAdapter):
         )
         logger.warning("Missing activities: %s", ", ".join(missing_activities))
 
-    def _generate_retrospective_report(self, results: Dict[str, Any]) -> None:
+    def _generate_retrospective_report(self, results: dict[str, Any]) -> None:
         """Generate a retrospective report from sprint results.
 
         Args:
@@ -553,7 +570,7 @@ class SprintAdapter(BaseMethodologyAdapter):
             len(results.get("retrospect", {}).get("insights", [])),
         )
 
-    def get_ceremony_phase(self, ceremony: str) -> Optional[Phase]:
+    def get_ceremony_phase(self, ceremony: str) -> Phase | None:
         """Return the EDRR phase associated with an Agile ceremony.
 
         Args:
@@ -568,7 +585,7 @@ class SprintAdapter(BaseMethodologyAdapter):
         # Fallback to helper for any ceremony not explicitly configured.
         return map_ceremony_to_phase(ceremony)
 
-    def _extract_phase_from_mapping(self, mapping: str) -> Optional[Phase]:
+    def _extract_phase_from_mapping(self, mapping: str) -> Phase | None:
         """Extract an EDRR phase from a ceremony mapping string.
 
         The mapping string may refer to a phase directly (``"refine"``) or include

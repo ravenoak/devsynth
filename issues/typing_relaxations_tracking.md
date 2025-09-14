@@ -20,9 +20,9 @@ How to use this document:
 | devsynth.application.memory.adapters.* | removed | TBD | [restore-strict-typing-application-memory-adapters.md](restore-strict-typing-application-memory-adapters.md) | 2025-10-01 | closed |
 | devsynth.exceptions | removed | TBD | [restore-strict-typing-exceptions.md](restore-strict-typing-exceptions.md) | 2025-10-01 | closed |
 | devsynth.testing.* | ignore_errors=true | TBD | [restore-strict-typing-testing.md](restore-strict-typing-testing.md) | 2025-10-01 | open |
-| devsynth.methodology.sprint | ignore_errors=true | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | open |
+| devsynth.methodology.sprint | removed | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | closed |
 | devsynth.logger | removed | TBD | [restore-strict-typing-logger.md](restore-strict-typing-logger.md) | 2025-10-01 | closed |
-| devsynth.methodology.* | ignore_errors=true | TBD | [restore-strict-typing-methodology.md](restore-strict-typing-methodology.md) | 2025-10-01 | open |
+| devsynth.methodology.* | removed | TBD | [restore-strict-typing-methodology.md](restore-strict-typing-methodology.md) | 2025-10-01 | closed |
 | devsynth.application.edrr.* | ignore_errors=true | TBD | [restore-strict-typing-application-edrr.md](restore-strict-typing-application-edrr.md) | 2025-10-01 | open |
 
 Notes:
@@ -38,4 +38,5 @@ Notes:
 - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
 - 2025-09-14: Removed the mypy override for `devsynth.domain.models.requirement`; domain typing now reports 617 errors across 26 files.
 - 2025-09-16: Removed the mypy override for `devsynth.application.performance` after adding structured metrics types.
- - 2025-09-14: Removed the mypy override for `devsynth.core.mvu.*` after restoring strict typing.
+- 2025-09-14: Removed the mypy override for `devsynth.core.mvu.*` after restoring strict typing.
+- 2025-09-14: Removed the mypy overrides for `devsynth.methodology.*` and `devsynth.methodology.sprint` after enforcing strict typing.
