@@ -1,15 +1,37 @@
-"""Performance measurement utilities."""
+"""Performance measurement utilities.
+
+Helpers to benchmark synthetic workloads. The functions here return
+structured metrics to help evaluate the performance of basic CPU-bound
+workloads. Metrics can optionally be written to JSON files for later
+inspection.
+"""
 
 from __future__ import annotations
 
 import json
 import time
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import TypedDict
 
 
-def _run_workload(workload: int) -> None:
-    """Execute a CPU-bound workload to benchmark."""
+class PerformanceMetrics(TypedDict):
+    """Measured metrics for a workload execution."""
+
+    workload: int
+    duration_seconds: float
+    throughput_ops_per_s: float
+
+
+def _run_workload(workload: int) -> int:
+    """Execute a CPU-bound workload to benchmark.
+
+    Args:
+        workload: Number of loop iterations.
+
+    Returns:
+        Accumulated value from the synthetic workload.
+    """
     total = 0
     for i in range(workload):
         total += i * i
@@ -18,7 +40,7 @@ def _run_workload(workload: int) -> None:
 
 def capture_baseline_metrics(
     workload: int, output_path: Path | None = None
-) -> Dict[str, float]:
+) -> PerformanceMetrics:
     """Capture baseline metrics for a workload.
 
     Args:
@@ -32,7 +54,7 @@ def capture_baseline_metrics(
     _run_workload(workload)
     duration = time.perf_counter() - start
     throughput = workload / duration if duration else 0.0
-    metrics = {
+    metrics: PerformanceMetrics = {
         "workload": workload,
         "duration_seconds": duration,
         "throughput_ops_per_s": throughput,
@@ -45,7 +67,7 @@ def capture_baseline_metrics(
 
 def capture_scalability_metrics(
     workloads: Iterable[int], output_path: Path | None = None
-) -> List[Dict[str, float]]:
+) -> list[PerformanceMetrics]:
     """Capture scalability metrics across workloads.
 
     Args:
@@ -55,7 +77,7 @@ def capture_scalability_metrics(
     Returns:
         List of metrics dictionaries for each workload.
     """
-    results = []
+    results: list[PerformanceMetrics] = []
     for workload in workloads:
         start = time.perf_counter()
         _run_workload(workload)
@@ -74,4 +96,8 @@ def capture_scalability_metrics(
     return results
 
 
-__all__ = ["capture_baseline_metrics", "capture_scalability_metrics"]
+__all__ = [
+    "PerformanceMetrics",
+    "capture_baseline_metrics",
+    "capture_scalability_metrics",
+]
