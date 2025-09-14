@@ -413,7 +413,7 @@ class DocumentationManager:
         version_info = []
         for version in versions:
             try:
-                doc = self.repository.get_documentation(library, version)
+                doc = self.repository.get_documentation(library, version) or {}
                 version_info.append(
                     {
                         "version": version,
@@ -462,14 +462,28 @@ class DocumentationManager:
             # Get documentation for each related function
             for rel_func in related:
                 try:
-                    doc = self.repository.get_documentation(library, None, rel_func)
-                    related_functions.append(
-                        {
-                            "name": rel_func,
-                            "description": doc.get("description", ""),
-                            "relationship": doc.get("relationship", "Related function"),
-                        }
+                    doc_results = self.query_documentation(
+                        f"function:{rel_func}", libraries=[library]
                     )
+                    if doc_results:
+                        doc = doc_results[0]
+                        related_functions.append(
+                            {
+                                "name": rel_func,
+                                "description": doc.get("description", ""),
+                                "relationship": doc.get(
+                                    "relationship", "Related function"
+                                ),
+                            }
+                        )
+                    else:
+                        related_functions.append(
+                            {
+                                "name": rel_func,
+                                "description": "No description available",
+                                "relationship": "Related function",
+                            }
+                        )
                 except Exception as e:
                     logger.warning(
                         f"Error getting documentation for related function {rel_func}:"
@@ -530,10 +544,10 @@ class DocumentationManager:
             "common_params": common_params,
         }
 
-    def _version_key(self, version: str) -> tuple:
+    def _version_key(self, version: str) -> tuple[int | str, ...]:
         """Convert a version string to a tuple for sorting."""
         # Convert each part to an integer if possible, otherwise use string
-        parts = []
+        parts: list[int | str] = []
         for part in version.split("."):
             try:
                 parts.append(int(part))

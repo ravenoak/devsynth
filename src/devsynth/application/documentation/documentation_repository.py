@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Any
 
 from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.logging_setup import DevSynthLogger
 
 # Create a logger for this module
@@ -37,7 +37,7 @@ class DocumentationRepository:
             storage_path: Path for documentation metadata
                 (default: .devsynth/documentation)
         """
-        self.memory_manager = memory_manager
+        self.memory_manager: Any = memory_manager
         self.storage_path = storage_path or os.path.join(
             os.getcwd(), ".devsynth", "documentation"
         )
@@ -100,10 +100,10 @@ class DocumentationRepository:
             )
 
             # Store in vector memory for semantic search
-            self.memory_manager.store_memory_item(memory_item)
+            self.memory_manager.store_item(memory_item)
 
             # Store relationships in knowledge graph if available
-            if self.memory_manager.has_graph_store():
+            if hasattr(self.memory_manager, "add_graph_triple"):
                 self._store_relationships(library, version, chunk)
 
             chunk_ids.append(memory_item.id)
@@ -166,16 +166,16 @@ class DocumentationRepository:
             A list of documentation chunks matching the query
         """
         # Build metadata filter
-        metadata_filter = {}
+        metadata_filter: dict[str, Any] = {}
         if libraries:
             metadata_filter["library"] = {"$in": libraries}
 
         # Perform semantic search
-        results = self.memory_manager.search_memory(
+        results: list[MemoryVector] = self.memory_manager.search_memory(
             query=query,
             # Using string instead of enum since DOCUMENTATION is not in MemoryType
             memory_type="DOCUMENTATION",
-            metadata_filter=metadata_filter,
+            metadata_filter=metadata_filter or {},
             limit=limit * 2,  # Get more results than needed for filtering
         )
 
@@ -186,7 +186,7 @@ class DocumentationRepository:
                 library = result.metadata.get("library")
                 version = result.metadata.get("version")
 
-                if library in version_constraints:
+                if library in version_constraints and isinstance(version, str):
                     constraint = version_constraints[library]
                     if self._version_satisfies_constraint(version, constraint):
                         filtered_results.append(result)
@@ -280,7 +280,8 @@ class DocumentationRepository:
 
         # Delete each chunk from memory
         for chunk_id in chunk_ids:
-            self.memory_manager.delete_memory_item(chunk_id)
+            if hasattr(self.memory_manager, "delete_memory_item"):
+                self.memory_manager.delete_memory_item(chunk_id)
 
         # Delete metadata
         del self.metadata[doc_id]

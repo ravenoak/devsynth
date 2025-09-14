@@ -177,10 +177,10 @@ class VersionMonitor:
             for library, info in self.libraries.items()
         ]
 
-    def _version_key(self, version: str) -> tuple:
+    def _version_key(self, version: str) -> tuple[int | str, ...]:
         """Convert a version string to a tuple for sorting."""
         # Convert each part to an integer if possible, otherwise use string
-        parts = []
+        parts: list[int | str] = []
         for part in version.split("."):
             try:
                 parts.append(int(part))
