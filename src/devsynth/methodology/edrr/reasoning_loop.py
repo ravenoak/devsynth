@@ -11,8 +11,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from importlib import import_module
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Protocol
 
 from devsynth.exceptions import ConsensusError
 from devsynth.logging_setup import DevSynthLogger
@@ -20,6 +19,8 @@ from devsynth.logging_setup import DevSynthLogger
 from ..base import Phase
 
 if TYPE_CHECKING:  # avoid runtime circular imports
+    from devsynth.domain.models.wsde_base import WSDETeam
+
     from .coordinator import EDRRCoordinator
 
 logger = DevSynthLogger(__name__)
@@ -28,19 +29,32 @@ logger = DevSynthLogger(__name__)
 ResultDict = dict[str, Any]
 
 
-def _import_apply_dialectical_reasoning() -> (
-    Callable[[Any, dict[str, Any], Any, Any | None], ResultDict]
-):
-    module = import_module("devsynth.domain.models." + "wsde_dialectical")
-    func = module.apply_dialectical_reasoning
-    return cast(Callable[[Any, dict[str, Any], Any, Any | None], ResultDict], func)
+class MemoryIntegration(Protocol):
+    """Protocol for memory integrations used in dialectical reasoning."""
+
+    def store_dialectical_result(
+        self, task: dict[str, Any], result: dict[str, Any]
+    ) -> None:
+        """Persist a dialectical reasoning result."""
+
+
+ApplyDialecticalReasoning = Callable[
+    ["WSDETeam", dict[str, Any], Any, "MemoryIntegration | None"],
+    ResultDict,
+]
+
+
+def _import_apply_dialectical_reasoning() -> ApplyDialecticalReasoning:
+    from devsynth.domain.models import wsde_dialectical
+
+    return wsde_dialectical.apply_dialectical_reasoning
 
 
 def reasoning_loop(
-    wsde_team: Any,
+    wsde_team: WSDETeam,
     task: dict[str, Any],
     critic_agent: Any,
-    memory_integration: Any | None = None,
+    memory_integration: MemoryIntegration | None = None,
     *,
     phase: Phase = Phase.REFINE,
     max_iterations: int = 3,
@@ -103,7 +117,9 @@ def reasoning_loop(
         result: ResultDict | None = None
         stop = False
         attempts = 0
-        apply_dialectical_reasoning = _import_apply_dialectical_reasoning()
+        apply_dialectical_reasoning: ApplyDialecticalReasoning = (
+            _import_apply_dialectical_reasoning()
+        )
         while True:
             try:
                 result = apply_dialectical_reasoning(

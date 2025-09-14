@@ -29,7 +29,7 @@ Notes:
 - This table is seeded automatically from pyproject.toml relaxations as of 2025-09-02. Keep it updated as overrides are narrowed or removed.
 - Add TODO comments in modules when touching code to remind about the strictness restoration deadline.
 - 2025-09-10: Removed the mypy override for `devsynth.cli` after upgrading Typer to a typed release.
-- 2025-09-11: Removed the mypy override for `devsynth.methodology.edrr.reasoning_loop` after adding type annotations.
+- 2025-09-14: Removed the mypy override for `devsynth.methodology.edrr.reasoning_loop` after adding type annotations.
 - 2025-09-13: Removed the mypy override for `devsynth.adapters.*` after restoring type coverage.
 - 2025-09-13: Attempted to remove the `devsynth.application.edrr.*` override, but `poetry run mypy src/devsynth/application/edrr`
   reported 430 errors; the ignore remains in place.

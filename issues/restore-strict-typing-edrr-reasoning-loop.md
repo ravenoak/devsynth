@@ -9,3 +9,5 @@ Status: closed
 - [x] Refactor `reasoning_loop` for full type annotations.
 - [x] Remove the mypy override from `pyproject.toml`.
 - [x] Update `issues/typing_relaxations_tracking.md` and close this issue.
+
+Closed on 2025-09-14 after annotating `reasoning_loop` and confirming the mypy override removal.
