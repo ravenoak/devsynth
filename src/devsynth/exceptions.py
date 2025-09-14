@@ -19,7 +19,7 @@ class DevSynthError(Exception):
         message: str,
         error_code: str | None = None,
         details: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         self.message: str = message
         self.error_code: str | None = error_code
         self.details: dict[str, Any] = details or {}
@@ -54,7 +54,7 @@ class ValidationError(UserInputError):
         value: Any = None,
         constraints: dict[str, Any] | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"field": field, "value": value, "constraints": constraints or {}}
         super().__init__(
             message, error_code=error_code or "VALIDATION_ERROR", details=details
@@ -70,7 +70,7 @@ class ConfigurationError(UserInputError):
         config_key: str | None = None,
         config_value: Any = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"config_key": config_key, "config_value": config_value}
         super().__init__(
             message, error_code=error_code or "CONFIGURATION_ERROR", details=details
@@ -86,7 +86,7 @@ class CommandError(UserInputError):
         command: str | None = None,
         args: dict[str, Any] | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"command": command, "args": args or {}}
         super().__init__(
             message, error_code=error_code or "COMMAND_ERROR", details=details
@@ -111,7 +111,7 @@ class InternalError(SystemError):
         component: str | None = None,
         error_code: str | None = None,
         cause: Exception | None = None,
-    ):
+    ) -> None:
         details = {
             "component": component,
             "original_error": str(cause) if cause else None,
@@ -119,7 +119,7 @@ class InternalError(SystemError):
         super().__init__(
             message, error_code=error_code or "INTERNAL_ERROR", details=details
         )
-        self.__cause__ = cause
+        self.__cause__: Exception | None = cause
 
 
 class ResourceExhaustedError(SystemError):
@@ -131,7 +131,7 @@ class ResourceExhaustedError(SystemError):
         resource_type: str | None = None,
         limit: Any = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"resource_type": resource_type, "limit": limit}
         super().__init__(
             message, error_code=error_code or "RESOURCE_EXHAUSTED", details=details
@@ -162,7 +162,7 @@ class MemoryCorruptionError(MemoryError):
         store_type: str | None = None,
         item_id: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"store_type": store_type, "item_id": item_id}
         super().__init__(
             message, error_code=error_code or "MEMORY_CORRUPTION", details=details
@@ -179,7 +179,7 @@ class ProviderError(AdapterError):
         operation: str | None = None,
         error_code: str | None = None,
         provider_error: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         details = {
             "provider": provider,
             "operation": operation,
@@ -200,7 +200,7 @@ class LLMError(ProviderError):
         operation: str | None = None,
         error_code: str | None = None,
         provider_error: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(
             message,
             provider=provider,
@@ -220,7 +220,7 @@ class TokenLimitExceededError(LLMError):
         max_tokens: int,
         provider: str | None = None,
         operation: str | None = None,
-    ):
+    ) -> None:
         details = {
             "current_tokens": current_tokens,
             "max_tokens": max_tokens,
@@ -244,7 +244,7 @@ class ProviderTimeoutError(ProviderError):
         provider: str | None = None,
         operation: str | None = None,
         timeout_seconds: float | None = None,
-    ):
+    ) -> None:
         # Call parent constructor
         super().__init__(
             message,
@@ -260,7 +260,7 @@ class ProviderTimeoutError(ProviderError):
 class ProviderAuthenticationError(ProviderError):
     """Exception raised when authentication with a provider fails."""
 
-    def __init__(self, message: str, provider: str | None = None):
+    def __init__(self, message: str, provider: str | None = None) -> None:
         super().__init__(
             message, provider=provider, error_code="PROVIDER_AUTHENTICATION_ERROR"
         )
@@ -275,7 +275,7 @@ class MemoryAdapterError(AdapterError):
         store_type: str | None = None,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"store_type": store_type, "operation": operation}
         super().__init__(
             message, error_code=error_code or "MEMORY_ERROR", details=details
@@ -290,7 +290,7 @@ class MemoryNotFoundError(MemoryAdapterError):
         message: str,
         item_id: str | None = None,
         store_type: str | None = None,
-    ):
+    ) -> None:
         super().__init__(
             message,
             store_type=store_type,
@@ -308,7 +308,7 @@ class MemoryItemNotFoundError(MemoryAdapterError):
         message: str,
         item_id: str | None = None,
         store_type: str | None = None,
-    ):
+    ) -> None:
         super().__init__(
             message,
             store_type=store_type,
@@ -327,7 +327,7 @@ class MemoryStoreError(MemoryAdapterError):
         store_type: str | None = None,
         operation: str | None = None,
         original_error: Exception | None = None,
-    ):
+    ) -> None:
         # Call parent constructor with the appropriate parameters
         super().__init__(
             message,
@@ -341,7 +341,7 @@ class MemoryStoreError(MemoryAdapterError):
             self.details["original_error"] = str(original_error)
 
         # Set the cause for proper exception chaining
-        self.__cause__ = original_error
+        self.__cause__: Exception | None = original_error
 
 
 class MemoryTransactionError(MemoryAdapterError):
@@ -354,7 +354,7 @@ class MemoryTransactionError(MemoryAdapterError):
         store_type: str | None = None,
         operation: str | None = None,
         original_error: Exception | None = None,
-    ):
+    ) -> None:
         # Call parent constructor with the appropriate parameters
         super().__init__(
             message,
@@ -373,7 +373,7 @@ class MemoryTransactionError(MemoryAdapterError):
             self.details["original_error"] = str(original_error)
 
         # Set the cause for proper exception chaining
-        self.__cause__ = original_error
+        self.__cause__: Exception | None = original_error
 
 
 class CircuitBreakerOpenError(MemoryAdapterError):
@@ -386,7 +386,7 @@ class CircuitBreakerOpenError(MemoryAdapterError):
         reset_time: float | None = None,
         store_type: str | None = None,
         operation: str | None = None,
-    ):
+    ) -> None:
         # Call parent constructor with the appropriate parameters
         super().__init__(
             message,
@@ -424,7 +424,7 @@ class AgentError(DomainError):
         agent_id: str | None = None,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"agent_id": agent_id, "operation": operation}
         super().__init__(
             message, error_code=error_code or "AGENT_ERROR", details=details
@@ -440,7 +440,7 @@ class WorkflowError(DomainError):
         workflow_id: str | None = None,
         step: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"workflow_id": workflow_id, "step": step}
         super().__init__(
             message, error_code=error_code or "WORKFLOW_ERROR", details=details
@@ -456,7 +456,7 @@ class NeedsHumanInterventionError(WorkflowError):
         workflow_id: str | None = None,
         step: str | None = None,
         options: list[str] | None = None,
-    ):
+    ) -> None:
         # Create details dictionary for this class
         self.options: list[str] = options or []
 
@@ -478,7 +478,7 @@ class ContextError(DomainError):
         context_id: str | None = None,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"context_id": context_id, "operation": operation}
         super().__init__(
             message, error_code=error_code or "CONTEXT_ERROR", details=details
@@ -494,7 +494,7 @@ class DialecticalReasoningError(DomainError):
         phase: str | None = None,
         arguments: list[str] | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"phase": phase, "arguments": arguments}
         super().__init__(
             message, error_code=error_code or "REASONING_ERROR", details=details
@@ -510,7 +510,7 @@ class ProjectModelError(DomainError):
         model_id: str | None = None,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"model_id": model_id, "operation": operation}
         super().__init__(
             message, error_code=error_code or "PROJECT_MODEL_ERROR", details=details
@@ -535,7 +535,7 @@ class PromiseError(ApplicationError):
         promise_id: str | None = None,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"promise_id": promise_id, "operation": operation}
         super().__init__(
             message, error_code=error_code or "PROMISE_ERROR", details=details
@@ -551,7 +551,7 @@ class PromiseStateError(PromiseError):
         promise_id: str | None = None,
         from_state: str | None = None,
         to_state: str | None = None,
-    ):
+    ) -> None:
         # Call parent constructor with state_transition as the operation
         super().__init__(
             message,
@@ -574,7 +574,7 @@ class IngestionError(ApplicationError):
         phase: str | None = None,
         artifact_path: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"phase": phase, "artifact_path": artifact_path}
         super().__init__(
             message, error_code=error_code or "INGESTION_ERROR", details=details
@@ -590,7 +590,7 @@ class DocumentationError(ApplicationError):
         doc_type: str | None = None,
         doc_path: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"doc_type": doc_type, "doc_path": doc_path}
         super().__init__(
             message, error_code=error_code or "DOCUMENTATION_ERROR", details=details
@@ -606,7 +606,7 @@ class ManifestError(ApplicationError):
         field: str | None = None,
         manifest_path: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"field": field, "manifest_path": manifest_path}
         super().__init__(
             message, error_code=error_code or "MANIFEST_ERROR", details=details
@@ -622,7 +622,7 @@ class CodeGenerationError(ApplicationError):
         language: str | None = None,
         component: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"language": language, "component": component}
         super().__init__(
             message, error_code=error_code or "CODE_GENERATION_ERROR", details=details
@@ -640,7 +640,7 @@ class TestGenerationException(ApplicationError):
         test_type: str | None = None,
         target: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"test_type": test_type, "target": target}
         super().__init__(
             message, error_code=error_code or "TEST_GENERATION_ERROR", details=details
@@ -656,7 +656,7 @@ class EDRRCoordinatorError(ApplicationError):
         phase: str | None = None,
         component: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"phase": phase, "component": component}
         super().__init__(
             message, error_code=error_code or "EDRR_COORDINATOR_ERROR", details=details
@@ -676,7 +676,7 @@ class CollaborationError(DomainError):
         role: str | None = None,
         task: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"agent_id": agent_id, "role": role, "task": task}
         super().__init__(
             message, error_code=error_code or "COLLABORATION_ERROR", details=details
@@ -692,7 +692,7 @@ class AgentExecutionError(CollaborationError):
         agent_id: str | None = None,
         task: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         super().__init__(
             message,
             agent_id=agent_id,
@@ -710,7 +710,7 @@ class ConsensusError(CollaborationError):
         agent_ids: list[str] | None = None,
         topic: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         super().__init__(message, error_code=error_code or "CONSENSUS_ERROR")
         self.details.update({"agent_ids": agent_ids, "topic": topic})
 
@@ -724,7 +724,7 @@ class RoleAssignmentError(CollaborationError):
         agent_id: str | None = None,
         role: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         super().__init__(
             message,
             agent_id=agent_id,
@@ -741,7 +741,7 @@ class TeamConfigurationError(CollaborationError):
         message: str,
         team_id: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         super().__init__(message, error_code=error_code or "TEAM_CONFIGURATION_ERROR")
         self.details["team_id"] = team_id
 
@@ -763,7 +763,7 @@ class MemoryPortError(PortError):
         message: str,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"operation": operation}
         super().__init__(
             message, error_code=error_code or "MEMORY_PORT_ERROR", details=details
@@ -778,7 +778,7 @@ class ProviderPortError(PortError):
         message: str,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"operation": operation}
         super().__init__(
             message, error_code=error_code or "PROVIDER_PORT_ERROR", details=details
@@ -793,7 +793,7 @@ class AgentPortError(PortError):
         message: str,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"operation": operation}
         super().__init__(
             message, error_code=error_code or "AGENT_PORT_ERROR", details=details
@@ -817,7 +817,7 @@ class FileNotFoundError(FileSystemError):
         message: str,
         file_path: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"file_path": file_path}
         super().__init__(
             message, error_code=error_code or "FILE_NOT_FOUND", details=details
@@ -833,7 +833,7 @@ class FilePermissionError(FileSystemError):
         file_path: str | None = None,
         operation: str | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {"file_path": file_path, "operation": operation}
         super().__init__(
             message, error_code=error_code or "FILE_PERMISSION_ERROR", details=details
@@ -850,7 +850,7 @@ class FileOperationError(FileSystemError):
         operation: str | None = None,
         original_error: Exception | None = None,
         error_code: str | None = None,
-    ):
+    ) -> None:
         details = {
             "file_path": file_path,
             "operation": operation,
@@ -859,7 +859,7 @@ class FileOperationError(FileSystemError):
         super().__init__(
             message, error_code=error_code or "FILE_OPERATION_ERROR", details=details
         )
-        self.__cause__ = original_error
+        self.__cause__: Exception | None = original_error
 
 
 # Security Errors
