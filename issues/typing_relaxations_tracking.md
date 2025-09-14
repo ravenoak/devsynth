@@ -12,7 +12,7 @@ How to use this document:
 |---|---|---|---|---|---|
 | devsynth.application.cli.commands.inspect_code_cmd | removed | TBD | [restore-strict-typing-inspect-code-cmd.md](restore-strict-typing-inspect-code-cmd.md) | 2025-10-01 | closed |
 | devsynth.feature_markers | removed | TBD | [restore-strict-typing-feature-markers.md](restore-strict-typing-feature-markers.md) | 2025-10-01 | closed |
-| devsynth.core.mvu.* | removed | TBD | [restore-strict-typing-core-mvu.md](restore-strict-typing-core-mvu.md) | 2025-10-01 | closed |
+| devsynth.core.mvu.* | removed | core | [restore-strict-typing-core-mvu.md](restore-strict-typing-core-mvu.md) | 2025-10-01 | closed |
 | devsynth.application.documentation.* | removed | TBD | [restore-strict-typing-application-documentation.md](restore-strict-typing-application-documentation.md) | 2025-10-01 | closed |
 | devsynth.domain.models.requirement | removed | TBD | [restore-strict-typing-domain.md](restore-strict-typing-domain.md) | 2025-10-01 | closed |
 | devsynth.application.performance | removed | TBD | [restore-strict-typing-application-performance.md](restore-strict-typing-application-performance.md) | 2025-10-01 | closed |

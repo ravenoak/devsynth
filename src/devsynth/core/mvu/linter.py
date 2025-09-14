@@ -8,7 +8,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, cast
 
 import jsonschema
 
@@ -19,21 +19,21 @@ CONVENTIONAL_RE = re.compile(
 )
 
 
-def _extract_mvuu_json(message: str) -> dict:
+def _extract_mvuu_json(message: str) -> dict[str, Any]:
     """Extract the MVUU JSON block from a commit message."""
     pattern = re.compile(r"```json\n(.*?)\n```", re.DOTALL)
     match = pattern.search(message)
     if not match:
         raise ValueError("Missing MVUU JSON block fenced with ```json … ```")
     try:
-        return json.loads(match.group(1))
+        return cast(dict[str, Any], json.loads(match.group(1)))
     except json.JSONDecodeError as exc:  # pragma: no cover - defensive
         raise ValueError(f"MVUU JSON is not valid JSON: {exc.msg}") from exc
 
 
-def lint_commit_message(message: str) -> List[str]:
+def lint_commit_message(message: str) -> list[str]:
     """Validate a commit message against conventional and MVUU rules."""
-    errors: List[str] = []
+    errors: list[str] = []
     header = message.splitlines()[0]
     if not CONVENTIONAL_RE.match(header):
         errors.append(
@@ -61,9 +61,9 @@ def lint_commit_message(message: str) -> List[str]:
     return errors
 
 
-def lint_range(rev_range: str) -> List[str]:
+def lint_range(rev_range: str) -> list[str]:
     """Lint all commit messages within a git revision range."""
-    errors: List[str] = []
+    errors: list[str] = []
     hashes = (
         subprocess.check_output(["git", "rev-list", rev_range], text=True)
         .strip()
@@ -79,7 +79,7 @@ def lint_range(rev_range: str) -> List[str]:
     return errors
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """Command-line entry point for commit message linting."""
     parser = argparse.ArgumentParser(
         description="Lint commit messages using MVUU schema."

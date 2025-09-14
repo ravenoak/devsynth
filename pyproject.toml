@@ -246,9 +246,12 @@ module = "devsynth.security.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "devsynth.memory.*"
+module = "devsynth.adapters.*"
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+module = "devsynth.memory.*"
+ignore_errors = true
 [[tool.mypy.overrides]]
 module = "devsynth.core.*"
 ignore_errors = true
@@ -256,6 +259,10 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = "devsynth.agents.*"
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "devsynth.core.mvu.*"
+ignore_errors = false
 
 [[tool.mypy.overrides]]
 module = "devsynth.api"
@@ -310,6 +317,7 @@ module = [
   "devsynth.application.ingestion.*",
   "devsynth.application.issues.*",
   "devsynth.application.llm.*",
+  "devsynth.application.edrr.*",
   "devsynth.application.orchestration.*",
   "devsynth.application.promises.*",
   "devsynth.application.prompts.*",

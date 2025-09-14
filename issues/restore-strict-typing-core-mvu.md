@@ -14,3 +14,4 @@ Modules under `devsynth.core.mvu.*` disable `disallow_untyped_defs`, `check_unty
 ## Resolution
 
 - [x] 2025-09-14: Added annotations, provided stubs, and removed the mypy override for `devsynth.core.mvu.*`. The tracking table was updated accordingly.
+- [x] 2025-09-14: Dropped `disallow_untyped_defs`, `check_untyped_defs`, and `ignore_missing_imports` overrides and verified no `type: ignore` comments remain.
