@@ -12,18 +12,18 @@ Typical usage::
 """
 
 import uuid
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
-
-import numpy as np
+from typing import Any
 
 try:  # pragma: no cover - optional dependency
     import chromadb
     from chromadb.config import Settings
 except Exception as e:  # pragma: no cover - if chromadb is missing the tests skip
     raise ImportError(
-        "ChromaDBVectorAdapter requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
+        "ChromaDBVectorAdapter requires the 'chromadb' package. Install it with "
+        "'pip install chromadb' or use the dev extras."
     ) from e
 
 from ....domain.interfaces.memory import VectorStore
@@ -35,25 +35,27 @@ logger = DevSynthLogger(__name__)
 
 class ChromaDBVectorAdapter(VectorStore):
     """
-    ChromaDB Vector Adapter handles vector-based operations for similarity search using ChromaDB.
+    ChromaDB Vector Adapter handles vector-based operations for similarity
+    search using ChromaDB.
 
     It implements the VectorStore interface and provides methods for storing,
     retrieving, and searching vectors using ChromaDB as the backend.
     """
 
     def __init__(
-        self, collection_name: str = "default", persist_directory: Optional[str] = None
+        self, collection_name: str = "default", persist_directory: str | None = None
     ):
         """
         Initialize the ChromaDB Vector Adapter.
 
         Args:
             collection_name: Name of the ChromaDB collection
-            persist_directory: Directory to persist ChromaDB data (if None, in-memory only)
+            persist_directory: Directory to persist ChromaDB data (if None,
+                in-memory only)
         """
         self.collection_name = collection_name
         self.persist_directory = persist_directory
-        self.vectors: Dict[str, MemoryVector] = {}
+        self.vectors: dict[str, MemoryVector] = {}
 
         if persist_directory:
             self.client = chromadb.PersistentClient(path=persist_directory)
@@ -64,19 +66,22 @@ class ChromaDBVectorAdapter(VectorStore):
 
         self.collection = self.client.get_or_create_collection(collection_name)
         logger.info(
-            "ChromaDB Vector Adapter initialized with collection '%s'", collection_name
+            "ChromaDB Vector Adapter initialized with collection '%s'",
+            collection_name,
         )
 
         # Storage for active transactions - maps transaction ID to snapshot
-        self._active_transactions: Dict[str, Dict[str, MemoryVector]] = {}
+        self._active_transactions: dict[str, dict[str, MemoryVector]] = {}
 
     # ------------------------------------------------------------------
-    def begin_transaction(self, transaction_id: Optional[str] = None) -> str:
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
         """Begin a transaction by taking a snapshot of current vectors."""
         transaction_id = transaction_id or str(uuid.uuid4())
         if transaction_id in self._active_transactions:
             raise ValueError(f"Transaction {transaction_id} already active")
-        snapshot = {v.id: deepcopy(v) for v in self.get_all_vectors()}
+        snapshot: dict[str, MemoryVector] = {
+            v.id: deepcopy(v) for v in self.get_all_vectors()
+        }
         self._active_transactions[transaction_id] = snapshot
         logger.debug("Began ChromaDB transaction %s", transaction_id)
         return transaction_id
@@ -121,7 +126,7 @@ class ChromaDBVectorAdapter(VectorStore):
         return transaction_id in self._active_transactions
 
     @contextmanager
-    def transaction(self, transaction_id: Optional[str] = None):
+    def transaction(self, transaction_id: str | None = None) -> Iterator[str]:
         """Context manager wrapper around transaction methods."""
         tid = self.begin_transaction(transaction_id)
         try:
@@ -155,7 +160,7 @@ class ChromaDBVectorAdapter(VectorStore):
         logger.info("Stored memory vector with ID %s in ChromaDB", vector.id)
         return vector.id
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """
         Retrieve a vector from the vector store.
 
@@ -180,8 +185,8 @@ class ChromaDBVectorAdapter(VectorStore):
         return None
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: Sequence[float], top_k: int = 5
+    ) -> list[MemoryVector]:
         """
         Search for vectors similar to the query embedding.
 
@@ -233,7 +238,7 @@ class ChromaDBVectorAdapter(VectorStore):
         logger.info("Deleted memory vector with ID %s from ChromaDB", vector_id)
         return True
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, int | str | None]:
         """
         Get statistics about the vector store collection.
 
@@ -243,7 +248,7 @@ class ChromaDBVectorAdapter(VectorStore):
         # Note: In a real implementation, we would get stats from ChromaDB
         # count = self.collection.count()
 
-        result = self.collection.get(include=["embeddings"])
+        result: dict[str, Any] | None = self.collection.get(include=["embeddings"])
         count = len(result.get("ids", [])) if result else 0
         dimension = 0
         if count > 0 and result.get("embeddings"):
@@ -257,13 +262,13 @@ class ChromaDBVectorAdapter(VectorStore):
             "embedding_dimensions": dimension,
         }
 
-    def get_all_vectors(self) -> List[MemoryVector]:
+    def get_all_vectors(self) -> list[MemoryVector]:
         """Return all vectors stored in the adapter."""
         if self.vectors:
             return list(self.vectors.values())
 
         result = self.collection.get(include=["embeddings", "metadatas", "documents"])
-        vectors: List[MemoryVector] = []
+        vectors: list[MemoryVector] = []
         for i, vid in enumerate(result.get("ids", [])):
             vectors.append(
                 MemoryVector(

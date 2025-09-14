@@ -8,8 +8,9 @@ errors.
 """
 
 import uuid
+from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from tinydb import Query, TinyDB
 from tinydb.storages import MemoryStorage
@@ -37,7 +38,8 @@ class TinyDBMemoryAdapter(StorageAdapter):
         Initialize the TinyDB Memory Adapter.
 
         Args:
-            db_path: Path to the TinyDB database file. If None, an in-memory database is used.
+            db_path: Path to the TinyDB database file. If None, an in-memory
+                database is used.
         """
         # Use in-memory storage if no path is provided
         if db_path is None:
@@ -88,7 +90,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
             return value.value
         return value
 
-    def _memory_item_to_dict(self, item: MemoryItem) -> Dict[str, Any]:
+    def _memory_item_to_dict(self, item: MemoryItem) -> dict[str, Any]:
         """
         Convert a MemoryItem to a dictionary for storage in TinyDB.
 
@@ -111,7 +113,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
             "created_at": self._serialize_value(item.created_at),
         }
 
-    def _dict_to_memory_item(self, item_dict: Dict[str, Any]) -> MemoryItem:
+    def _dict_to_memory_item(self, item_dict: Mapping[str, Any]) -> MemoryItem:
         """
         Convert a dictionary from TinyDB to a MemoryItem.
 
@@ -178,7 +180,10 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 self.items_table.insert(item_dict)
 
             logger.info(
-                f"Stored memory item with ID {item.id} in TinyDB Memory Adapter (transaction: {transaction_id})"
+                "Stored memory item with ID %s in TinyDB Memory Adapter "
+                "(transaction: %s)",
+                item.id,
+                transaction_id,
             )
         else:
             # Not part of a transaction, store normally
@@ -192,12 +197,13 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 self.items_table.insert(item_dict)
 
             logger.info(
-                f"Stored memory item with ID {item.id} in TinyDB Memory Adapter"
+                "Stored memory item with ID %s in TinyDB Memory Adapter",
+                item.id,
             )
 
         return item.id
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """
         Retrieve a memory item from TinyDB.
 
@@ -212,7 +218,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
             return self._dict_to_memory_item(item_dict)
         return None
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(self, query: Mapping[str, Any]) -> list[MemoryItem]:
         """
         Search for memory items in TinyDB matching the query.
 
@@ -288,7 +294,10 @@ class TinyDBMemoryAdapter(StorageAdapter):
             removed = self.items_table.remove(Query().id == item_id)
             if removed:
                 logger.info(
-                    f"Deleted memory item with ID {item_id} from TinyDB Memory Adapter (transaction: {transaction_id})"
+                    "Deleted memory item with ID %s from TinyDB Memory Adapter "
+                    "(transaction: %s)",
+                    item_id,
+                    transaction_id,
                 )
                 return True
             return False
@@ -297,17 +306,19 @@ class TinyDBMemoryAdapter(StorageAdapter):
             removed = self.items_table.remove(Query().id == item_id)
             if removed:
                 logger.info(
-                    f"Deleted memory item with ID {item_id} from TinyDB Memory Adapter"
+                    "Deleted memory item with ID %s from TinyDB Memory Adapter",
+                    item_id,
                 )
                 return True
             return False
 
-    def query_structured_data(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def query_structured_data(self, query: Mapping[str, Any]) -> list[MemoryItem]:
         """
         Query structured data in TinyDB.
 
-        This method provides a more flexible way to query TinyDB than the standard search method.
-        It supports complex queries with nested fields and operators.
+        This method provides a more flexible way to query TinyDB than the
+        standard search method. It supports complex queries with nested
+        fields and operators.
 
         Args:
             query: The query dictionary
@@ -323,7 +334,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         self,
         item_type: str,
         edrr_phase: str,
-        metadata: Dict[str, Any] | None = None,
+        metadata: Mapping[str, Any] | None = None,
     ) -> Any:
         """
         Retrieve an item stored with a specific EDRR phase.
@@ -361,7 +372,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         """Close the TinyDB database."""
         self.db.close()
 
-    def get_all(self) -> List[MemoryItem]:
+    def get_all(self) -> list[MemoryItem]:
         """
         Get all memory items from TinyDB.
 
@@ -400,7 +411,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
         # Store the transaction ID and create a snapshot of the current state
         self._transaction_id = transaction_id
-        self._transaction_snapshot = {
+        self._transaction_snapshot: dict[str, MemoryItem] = {
             item.id: deepcopy(item) for item in self.get_all()
         }
 
@@ -537,7 +548,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
             hasattr(self, "_transaction_id") and self._transaction_id == transaction_id
         )
 
-    def snapshot(self) -> Dict[str, MemoryItem]:
+    def snapshot(self) -> dict[str, MemoryItem]:
         """
         Create a snapshot of the current state.
 
@@ -546,7 +557,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         """
         return {item.id: deepcopy(item) for item in self.get_all()}
 
-    def restore(self, snapshot: Dict[str, MemoryItem]) -> bool:
+    def restore(self, snapshot: Mapping[str, MemoryItem]) -> bool:
         """
         Restore from a snapshot.
 

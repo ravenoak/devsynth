@@ -6,8 +6,9 @@ for similarity search.
 """
 
 import uuid
+from collections.abc import Mapping, Sequence
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import TypedDict
 
 import numpy as np
 
@@ -17,6 +18,11 @@ from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
+
+class _TransactionState(TypedDict):
+    snapshot: dict[str, MemoryVector]
+    prepared: bool
 
 
 class VectorMemoryAdapter(VectorStore):
@@ -29,8 +35,8 @@ class VectorMemoryAdapter(VectorStore):
 
     def __init__(self):
         """Initialize the Vector Memory Adapter."""
-        self.vectors = {}  # Dictionary of memory vectors by ID
-        self.embeddings = {}  # Dictionary of embeddings by ID for fast lookup
+        self.vectors: dict[str, MemoryVector] = {}
+        self.embeddings: dict[str, np.ndarray] = {}
         logger.info("Vector Memory Adapter initialized")
 
     def store_vector(self, vector: MemoryVector) -> str:
@@ -58,7 +64,7 @@ class VectorMemoryAdapter(VectorStore):
         )
         return vector.id
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """
         Retrieve a vector from the vector store.
 
@@ -71,8 +77,8 @@ class VectorMemoryAdapter(VectorStore):
         return self.vectors.get(vector_id)
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: Sequence[float], top_k: int = 5
+    ) -> list[MemoryVector]:
         """
         Search for vectors similar to the query embedding.
 
@@ -90,7 +96,7 @@ class VectorMemoryAdapter(VectorStore):
         query_embedding_np = np.array(query_embedding)
 
         # Calculate cosine similarity for all vectors
-        similarities = {}
+        similarities: dict[str, float] = {}
         for vector_id, embedding in self.embeddings.items():
             # Normalize embeddings
             query_norm = np.linalg.norm(query_embedding_np)
@@ -142,7 +148,7 @@ class VectorMemoryAdapter(VectorStore):
 
         return False
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, int]:
         """
         Get statistics about the vector store collection.
 
@@ -156,7 +162,7 @@ class VectorMemoryAdapter(VectorStore):
             ),
         }
 
-    def get_all(self) -> List[MemoryVector]:
+    def get_all(self) -> list[MemoryVector]:
         """
         Get all vectors from the vector store.
 
@@ -165,32 +171,18 @@ class VectorMemoryAdapter(VectorStore):
         """
         return list(self.vectors.values())
 
-    def begin_transaction(self, transaction_id: str) -> str:
-        """
-        Begin a transaction.
+    def begin_transaction(self, transaction_id: str | None = None) -> str:
+        """Begin a transaction."""
 
-        Args:
-            transaction_id: The ID of the transaction
-
-        Returns:
-            The transaction ID
-
-        Raises:
-            MemoryTransactionError: If the transaction cannot be started
-        """
+        if transaction_id is None:
+            transaction_id = str(uuid.uuid4())
         logger.debug(f"Beginning transaction {transaction_id} in VectorMemoryAdapter")
 
-        # Store the transaction ID
         if not hasattr(self, "_active_transactions"):
-            self._active_transactions = {}
+            self._active_transactions: dict[str, _TransactionState] = {}
 
-        # Create a snapshot of the current state
-        snapshot = {
-            "vectors": deepcopy(self.vectors),
-            "embeddings": deepcopy(self.embeddings),
-        }
+        snapshot: dict[str, MemoryVector] = deepcopy(self.vectors)
 
-        # Store the snapshot with the transaction ID
         self._active_transactions[transaction_id] = {
             "snapshot": snapshot,
             "prepared": False,
@@ -234,7 +226,7 @@ class VectorMemoryAdapter(VectorStore):
 
         return True
 
-    def commit_transaction(self, transaction_id: str) -> bool:
+    def commit_transaction(self, transaction_id: str | None = None) -> bool:
         """
         Commit a transaction.
 
@@ -251,7 +243,8 @@ class VectorMemoryAdapter(VectorStore):
 
         # Check if this is an active transaction
         if (
-            not hasattr(self, "_active_transactions")
+            transaction_id is None
+            or not hasattr(self, "_active_transactions")
             or transaction_id not in self._active_transactions
         ):
             raise MemoryTransactionError(
@@ -266,7 +259,7 @@ class VectorMemoryAdapter(VectorStore):
 
         return True
 
-    def rollback_transaction(self, transaction_id: str) -> bool:
+    def rollback_transaction(self, transaction_id: str | None = None) -> bool:
         """
         Rollback a transaction.
 
@@ -285,7 +278,8 @@ class VectorMemoryAdapter(VectorStore):
 
         # Check if this is an active transaction
         if (
-            not hasattr(self, "_active_transactions")
+            transaction_id is None
+            or not hasattr(self, "_active_transactions")
             or transaction_id not in self._active_transactions
         ):
             raise MemoryTransactionError(
@@ -299,27 +293,26 @@ class VectorMemoryAdapter(VectorStore):
         snapshot = self._active_transactions[transaction_id]["snapshot"]
 
         # Restore from the snapshot
-        self.vectors = snapshot["vectors"]
-        self.embeddings = snapshot["embeddings"]
+        self.vectors = snapshot
+        self.embeddings = {
+            vid: np.array(vec.embedding) for vid, vec in snapshot.items()
+        }
 
         # Remove the transaction from the active transactions
         del self._active_transactions[transaction_id]
 
         return True
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, MemoryVector]:
         """
         Create a snapshot of the current state.
 
         Returns:
             A dictionary containing the current state
         """
-        return {
-            "vectors": deepcopy(self.vectors),
-            "embeddings": deepcopy(self.embeddings),
-        }
+        return deepcopy(self.vectors)
 
-    def restore(self, snapshot: Dict[str, Any]) -> bool:
+    def restore(self, snapshot: Mapping[str, MemoryVector]) -> bool:
         """
         Restore from a snapshot.
 
@@ -333,8 +326,10 @@ class VectorMemoryAdapter(VectorStore):
             return False
 
         try:
-            self.vectors = snapshot["vectors"]
-            self.embeddings = snapshot["embeddings"]
+            self.vectors = deepcopy(snapshot)
+            self.embeddings = {
+                vid: np.array(vec.embedding) for vid, vec in self.vectors.items()
+            }
             return True
         except Exception as e:
             logger.error(f"Failed to restore from snapshot: {e}")
