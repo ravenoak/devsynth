@@ -314,3 +314,4 @@ Notes and next actions
 - 2025-09-13: Follow-up strict typing issues filed with owners and timelines; removed pyproject overrides for logger, exceptions, and CLI modules; tasks 20.2 and 20.3 marked complete.
 - 2025-09-13: Attempted final fast+medium coverage run; htmlcov/ and coverage.json omitted from commit due to Codex diff size limits and run reported `ERROR unit/general/test_test_first_metrics.py`.
 - 2025-09-13: Restored `devsynth` via `poetry install`; smoke tests and verification scripts passed in fresh session; UAT and maintainer tagging remain outstanding.
+- 2025-09-14: Smoke tests and verification scripts pass; full coverage run still references `unit/general/test_test_first_metrics.py` and produces no artifact. Reopened [run-tests-missing-test-first-metrics-file.md](../issues/run-tests-missing-test-first-metrics-file.md) to track fix before UAT and tagging.
