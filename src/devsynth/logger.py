@@ -15,9 +15,11 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from collections.abc import Mapping
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any
+from types import TracebackType
+from typing import cast
 
 from devsynth.logging_setup import DevSynthLogger as _BaseDevSynthLogger
 from devsynth.logging_setup import (
@@ -39,7 +41,7 @@ class DevSynthLogger(_BaseDevSynthLogger):
     base logger.
     """
 
-    def _log(self, level: int, msg: str, *args: Any, **kwargs: Any) -> None:
+    def _log(self, level: int, msg: str, *args: object, **kwargs: object) -> None:
         """Normalize ``exc_info`` and delegate to the base logger.
 
         The standard :mod:`logging` API expects ``exc_info`` to either be a
@@ -51,22 +53,35 @@ class DevSynthLogger(_BaseDevSynthLogger):
         """
 
         exc = kwargs.pop("exc_info", None)
+        normalized_exc: (
+            tuple[type[BaseException], BaseException, TracebackType | None] | None
+        )
         if isinstance(exc, BaseException):
             # Convert bare exception objects to the tuple form expected by the
             # standard logging machinery so the traceback is preserved.
-            exc = (exc.__class__, exc, exc.__traceback__)
+            normalized_exc = (exc.__class__, exc, exc.__traceback__)
         elif exc is True:
             # ``True`` means "use the current exception"; normalize to a tuple
             # to keep behaviour consistent with our exception-object handling.
-            exc = sys.exc_info()
+            normalized_exc = cast(
+                tuple[type[BaseException], BaseException, TracebackType | None],
+                sys.exc_info(),
+            )
         elif exc not in (None, False):
             # Guard against unsupported ``exc_info`` types (e.g. strings or
             # improperly formed tuples) which would otherwise raise exceptions
             # when the base logger tries to format the record.
-            if not (isinstance(exc, tuple) and len(exc) == 3):
-                exc = None
-        if exc is not None:
-            kwargs["exc_info"] = exc
+            if isinstance(exc, tuple) and len(exc) == 3:
+                normalized_exc = cast(
+                    tuple[type[BaseException], BaseException, TracebackType | None],
+                    exc,
+                )
+            else:
+                normalized_exc = None
+        else:
+            normalized_exc = None
+        if normalized_exc is not None:
+            kwargs["exc_info"] = normalized_exc
         super()._log(level, msg, *args, **kwargs)
 
 
@@ -153,7 +168,7 @@ def setup_logging(name: str, log_level: int | str | None = None) -> DevSynthLogg
 def log_consensus_failure(
     logger: DevSynthLogger,
     error: Exception,
-    extra: dict[str, Any] | None = None,
+    extra: Mapping[str, object] | None = None,
 ) -> None:
     """Log a consensus failure using ``logger``.
 
@@ -166,7 +181,7 @@ def log_consensus_failure(
         error: The exception that triggered the failure.
         extra: Optional additional context for the log record.
     """
-    data: dict[str, Any] = {
+    data: dict[str, object] = {
         "error": str(error),
         "error_type": error.__class__.__name__,
     }
