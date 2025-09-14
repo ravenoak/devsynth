@@ -1,8 +1,6 @@
-"""
-CLI chat adapter for requirements management.
-"""
+"""CLI chat adapter for requirements management."""
 
-from typing import List, Optional
+from typing import Any, cast
 from uuid import UUID
 
 from devsynth.domain.models.requirement import ChatMessage, ChatSession
@@ -14,15 +12,12 @@ logger = DevSynthLogger(__name__)
 
 
 class CLIChatAdapter(ChatPort):
-    """
-    CLI implementation of the chat port.
-    """
+    """CLI implementation of the chat port."""
 
     def __init__(
         self, dialectical_reasoner: DialecticalReasonerPort, *, bridge: UXBridge
-    ):
-        """
-        Initialize the CLI chat adapter.
+    ) -> None:
+        """Initialize the CLI chat adapter.
 
         Args:
             dialectical_reasoner: The dialectical reasoner service.
@@ -46,7 +41,7 @@ class CLIChatAdapter(ChatPort):
         return self.dialectical_reasoner.process_message(session_id, message, user_id)
 
     def create_session(
-        self, user_id: str, change_id: Optional[UUID] = None
+        self, user_id: str, change_id: UUID | None = None
     ) -> ChatSession:
         """
         Create a new chat session.
@@ -60,7 +55,7 @@ class CLIChatAdapter(ChatPort):
         """
         return self.dialectical_reasoner.create_session(user_id, change_id)
 
-    def get_session(self, session_id: UUID) -> Optional[ChatSession]:
+    def get_session(self, session_id: UUID) -> ChatSession | None:
         """
         Get a chat session by ID.
 
@@ -71,15 +66,13 @@ class CLIChatAdapter(ChatPort):
             The chat session if found, None otherwise.
         """
         # This is delegated to the dialectical reasoner, which uses the chat repository
-        # We could implement this directly using the chat repository, but for simplicity,
-        # we'll reuse the dialectical reasoner's implementation
-        session = self.dialectical_reasoner.create_session(
-            "system"
-        )  # Create a temporary session
-        # This is a hack to get access to the chat repository
-        return self.dialectical_reasoner.chat_repository.get_session(session_id)
+        # We could implement this directly using the chat repository,
+        # but we'll reuse the dialectical reasoner's implementation
+        self.dialectical_reasoner.create_session("system")
+        chat_repo = cast(Any, self.dialectical_reasoner).chat_repository
+        return cast(ChatSession | None, chat_repo.get_session(session_id))
 
-    def get_sessions_for_user(self, user_id: str) -> List[ChatSession]:
+    def get_sessions_for_user(self, user_id: str) -> list[ChatSession]:
         """
         Get chat sessions for a user.
 
@@ -89,13 +82,13 @@ class CLIChatAdapter(ChatPort):
         Returns:
             A list of chat sessions for the user.
         """
-        # Similar to get_session, we'll use the dialectical reasoner's chat repository
-        session = self.dialectical_reasoner.create_session(
-            "system"
-        )  # Create a temporary session
-        return self.dialectical_reasoner.chat_repository.get_sessions_for_user(user_id)
+        # Similar to get_session, we'll use the dialectical reasoner's
+        # chat repository
+        self.dialectical_reasoner.create_session("system")
+        chat_repo = cast(Any, self.dialectical_reasoner).chat_repository
+        return cast(list[ChatSession], chat_repo.get_sessions_for_user(user_id))
 
-    def get_messages_for_session(self, session_id: UUID) -> List[ChatMessage]:
+    def get_messages_for_session(self, session_id: UUID) -> list[ChatMessage]:
         """
         Get messages for a chat session.
 
@@ -105,13 +98,11 @@ class CLIChatAdapter(ChatPort):
         Returns:
             A list of messages for the chat session.
         """
-        # Similar to get_session, we'll use the dialectical reasoner's chat repository
-        session = self.dialectical_reasoner.create_session(
-            "system"
-        )  # Create a temporary session
-        return self.dialectical_reasoner.chat_repository.get_messages_for_session(
-            session_id
-        )
+        # Similar to get_session, we'll use the dialectical reasoner's
+        # chat repository
+        self.dialectical_reasoner.create_session("system")
+        chat_repo = cast(Any, self.dialectical_reasoner).chat_repository
+        return cast(list[ChatMessage], chat_repo.get_messages_for_session(session_id))
 
     def display_message(self, message: ChatMessage) -> None:
         """

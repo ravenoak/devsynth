@@ -239,13 +239,6 @@ disallow_incomplete_defs = false
 # while avoiding blocking changes. Add TODOs in modules to restore strictness.
 # Target to restore strictness: 2025-10-01
 
-# Additional temporary relaxations added by Task 6.3 (Iteration 2025-08-31).
-# TODO: Restore strictness by 2025-10-01.
-[[tool.mypy.overrides]]
-module = "devsynth.adapters.requirements.*"
-# High-churn requirements adapters
-ignore_errors = true
-
 # Temporary relaxations to achieve green typing while we incrementally add annotations.
 # TODO: Restore strictness by 2025-10-15; prioritize modules cited in docs/plan.md Phase 4.
 [[tool.mypy.overrides]]
