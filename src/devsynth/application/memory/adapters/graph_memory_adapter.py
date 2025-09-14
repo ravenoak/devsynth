@@ -6,63 +6,13 @@ using a graph-based approach with RDFLib. It integrates with RDFLibStore for enh
 functionality and improved integration between different memory stores.
 """
 
+import importlib
 import json
 import os
 import uuid
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
-
-try:  # pragma: no cover - optional dependency
-    import rdflib
-    from rdflib import RDF, Graph, Literal, Namespace, URIRef
-    from rdflib.namespace import DC, FOAF
-except Exception:  # pragma: no cover - fallback when rdflib is missing
-    rdflib = None
-
-    class URIRef(str):  # noqa: F811
-        """Fallback URI reference when ``rdflib`` is unavailable."""
-
-    class Graph:  # noqa: F811
-        """Simplified graph stub used when ``rdflib`` is not installed."""
-
-        def parse(self, *args, **kwargs):  # pragma: no cover
-            raise NotImplementedError("rdflib is required for graph operations")
-
-        def serialize(self, *args, **kwargs):  # pragma: no cover
-            raise NotImplementedError("rdflib is required for graph operations")
-
-        def add(self, *args, **kwargs):  # pragma: no cover
-            raise NotImplementedError("rdflib is required for graph operations")
-
-        def bind(self, *args, **kwargs):  # pragma: no cover
-            raise NotImplementedError("rdflib is required for graph operations")
-
-        def objects(self, *args, **kwargs):  # pragma: no cover
-            return iter(())
-
-        def triples(self, *args, **kwargs):  # pragma: no cover
-            return iter(())
-
-        def value(self, *args, **kwargs):  # pragma: no cover
-            return None
-
-    class Literal(str):  # noqa: F811
-        """Fallback literal when ``rdflib`` is unavailable."""
-
-    class _RDFType:
-        """Placeholder for RDF namespace attributes."""
-
-    RDF = FOAF = DC = _RDFType()
-
-    def Namespace(uri: str) -> str:  # noqa: F811
-        """Return ``rdflib.term.URIRef`` when available, else a plain string."""
-        return uri
-
-
-if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
-    from rdflib import RDF, Graph, Literal, Namespace, URIRef  # noqa: F401,F811
-    from rdflib.namespace import DC, FOAF  # noqa: F401,F811
+from typing import Any, cast
 
 from devsynth.exceptions import MemoryStoreError
 
@@ -71,6 +21,20 @@ from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from ..rdflib_store import RDFLibStore
+
+try:  # pragma: no cover - optional dependency
+    rdflib = importlib.import_module("rdflib")
+    namespace_module = importlib.import_module("rdflib.namespace")
+    RDF = rdflib.RDF
+    Graph = rdflib.Graph
+    Literal = rdflib.Literal
+    Namespace = rdflib.Namespace
+    URIRef = rdflib.URIRef
+    DC = namespace_module.DC
+    FOAF = namespace_module.FOAF
+except Exception:  # pragma: no cover - fallback when rdflib is missing
+    rdflib = None
+    RDF = Graph = Literal = Namespace = URIRef = DC = FOAF = cast(Any, None)
 
 logger = DevSynthLogger(__name__)
 
@@ -150,7 +114,9 @@ class GraphMemoryAdapter(MemoryStore):
         if self.use_rdflib_store and self.rdflib_store:
             # Ensure the RDFLibStore uses the same graph file
             self.rdflib_store.graph_file = getattr(
-                self, "graph_file", os.path.join(self.base_path, "graph_memory.ttl")
+                self,
+                "graph_file",
+                os.path.join(self.base_path or "", "graph_memory.ttl"),
             )
             logger.debug("Using RDFLibStore to save the graph")
             self.rdflib_store._save_graph()
@@ -165,7 +131,7 @@ class GraphMemoryAdapter(MemoryStore):
 
     # transactional support -------------------------------------------------
     @contextmanager
-    def transaction(self):
+    def transaction(self) -> Iterator[None]:
         """Provide a rollback context for graph updates."""
         transaction_id = str(uuid.uuid4())
         self.begin_transaction(transaction_id)
@@ -357,9 +323,9 @@ class GraphMemoryAdapter(MemoryStore):
         Returns:
             A serialized representation of the graph
         """
-        return self.graph.serialize(format="turtle")
+        return cast(str, self.graph.serialize(format="turtle"))
 
-    def restore(self, snapshot: str) -> bool:
+    def restore(self, snapshot: str | None) -> bool:
         """
         Restore from a snapshot.
 
@@ -388,7 +354,7 @@ class GraphMemoryAdapter(MemoryStore):
             and self.rdflib_store
             and hasattr(self.rdflib_store, "get_all_vectors")
         ):
-            return self.rdflib_store.get_all_vectors()
+            return cast(list[MemoryVector], self.rdflib_store.get_all_vectors())
         return []
 
     def _memory_item_to_triples(self, item: MemoryItem) -> URIRef:
@@ -592,7 +558,7 @@ class GraphMemoryAdapter(MemoryStore):
             self._save_graph()
 
             logger.info(f"Stored memory item with ID {item.id} in Graph Memory Adapter")
-            return item.id
+            return str(item.id)
         except Exception as e:
             logger.error(f"Failed to store memory item: {e}")
             raise MemoryStoreError(f"Failed to store memory item: {e}")
@@ -795,7 +761,7 @@ class GraphMemoryAdapter(MemoryStore):
             A dictionary of relationships by item ID
         """
         try:
-            relationships = {}
+            relationships: dict[str, set[str]] = {}
 
             # Query all relatedTo relationships
             for s, p, o in self.graph.triples((None, DEVSYNTH.relatedTo, None)):

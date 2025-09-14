@@ -12,14 +12,20 @@ from .vector_memory_adapter import VectorMemoryAdapter
 
 logger = DevSynthLogger(__name__)
 
+KuzuAdapter: type[StorageAdapter] | None
 try:  # pragma: no cover - optional dependency
-    from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
+    from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter as _KuzuAdapter
+
+    KuzuAdapter = _KuzuAdapter
 except Exception as exc:  # pragma: no cover - missing optional dependency
     KuzuAdapter = None
     logger.warning("KuzuAdapter not available: %s", exc)
 
+S3MemoryAdapter: type[StorageAdapter] | None
 try:  # pragma: no cover - optional dependency
-    from .s3_memory_adapter import S3MemoryAdapter
+    from .s3_memory_adapter import S3MemoryAdapter as _S3MemoryAdapter
+
+    S3MemoryAdapter = _S3MemoryAdapter
 except Exception as exc:  # pragma: no cover - missing optional dependency
     S3MemoryAdapter = None
     logger.warning("S3MemoryAdapter not available: %s", exc)
