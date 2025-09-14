@@ -47,3 +47,4 @@ Notes:
 - 2025-09-14: Restored strict typing for `devsynth.application.cli.commands.inspect_code_cmd` and removed module override.
 - 2025-09-14: Removed the mypy override for `devsynth.logger` after typing handlers and log records.
 - 2025-09-14: Confirmed removal of `devsynth.adapters.*` override and closed tracking issue.
+- 2025-09-14: Verified removal of `devsynth.application.documentation.*` override after adding type annotations.

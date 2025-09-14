@@ -12,7 +12,7 @@ import shutil
 import subprocess
 import tempfile
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, cast
 
 import requests
 
@@ -75,12 +75,14 @@ class DocumentationSource(ABC):
 class PyPIDocumentationSource(DocumentationSource):
     """Fetches documentation from PyPI and ReadTheDocs."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the PyPI documentation source."""
         self.cache_dir = os.path.join(tempfile.gettempdir(), "devsynth_docs_cache")
         os.makedirs(self.cache_dir, exist_ok=True)
 
-    def fetch_documentation(self, library: str, version: str) -> list[dict[str, Any]]:
+    def fetch_documentation(
+        self, library: str, version: str, offline: bool = False
+    ) -> list[dict[str, Any]]:
         """Fetch documentation for a Python library."""
         logger.info(
             f"Fetching documentation for {library} {version} from PyPI/ReadTheDocs"
@@ -546,7 +548,7 @@ class DocumentationFetcher:
     documentation sites, package repositories, and GitHub.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the documentation fetcher."""
         self.sources: list[DocumentationSource] = [PyPIDocumentationSource()]
 
@@ -581,7 +583,7 @@ class DocumentationFetcher:
         if os.path.exists(cache_file):
             try:
                 with open(cache_file, encoding="utf-8") as f:
-                    return json.load(f)
+                    return cast(list[dict[str, Any]], json.load(f))
             except Exception:
                 logger.warning("Failed to read cached documentation")
 
@@ -649,10 +651,10 @@ class DocumentationFetcher:
                 return True
         return False
 
-    def _version_key(self, version: str) -> tuple:
+    def _version_key(self, version: str) -> tuple[int | str, ...]:
         """Convert a version string to a tuple for sorting."""
         # Convert each part to an integer if possible, otherwise use string
-        parts = []
+        parts: list[int | str] = []
         for part in version.split("."):
             try:
                 parts.append(int(part))

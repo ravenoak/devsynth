@@ -9,3 +9,6 @@ Modules under `devsynth.application.documentation.*` use `ignore_errors=true` in
 - [x] Add type annotations and resolve typing issues.
 - [x] Remove the `ignore_errors` override from `pyproject.toml`.
 - [x] Update `issues/typing_relaxations_tracking.md` and close this issue.
+
+## Resolution
+Closed on 2025-09-14 after restoring strict typing and updating project tracking.

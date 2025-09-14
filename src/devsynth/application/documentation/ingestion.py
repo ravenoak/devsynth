@@ -9,15 +9,16 @@ import hashlib
 import json
 import os
 import re
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import requests
 
 from devsynth.exceptions import DevSynthError
 
-from ...domain.models.memory import MemoryItem, MemoryType
+from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ...logging_setup import DevSynthLogger
 from ..memory.memory_manager import MemoryManager
 
@@ -45,8 +46,8 @@ class DocumentationIngestionManager:
         Args:
             memory_manager: Optional memory manager to use for storing documentation
         """
-        self.memory_manager = memory_manager
-        self.supported_file_types = {
+        self.memory_manager: MemoryManager | None = memory_manager
+        self.supported_file_types: dict[str, Callable[[str], str]] = {
             ".md": self._process_markdown,
             ".txt": self._process_text,
             ".json": self._process_json,
@@ -425,6 +426,7 @@ class DocumentationIngestionManager:
             raise DocumentationIngestionError(
                 "No memory manager provided for storing documentation"
             )
+        assert self.memory_manager is not None
 
         # Create a unique ID based on content and source
         source = metadata.get("source", "unknown")
@@ -444,7 +446,7 @@ class DocumentationIngestionManager:
         )
 
         # Store the memory item
-        stored_id = self.memory_manager.store(memory_item)
+        stored_id = cast(str, self.memory_manager.store(memory_item))
 
         logger.info(f"Stored documentation in memory with ID: {stored_id}")
         return stored_id
@@ -454,18 +456,19 @@ class DocumentationIngestionManager:
         query: str,
         limit: int = 10,
         metadata_filter: dict[str, Any] | None = None,
-    ) -> list[Any]:
+    ) -> list[MemoryVector | MemoryItem]:
         """Search ingested documentation using the memory manager."""
 
         if not self.memory_manager:
             raise DocumentationIngestionError(
                 "No memory manager provided for searching documentation"
             )
+        assert self.memory_manager is not None
 
-        results = self.memory_manager.search_memory(
+        results: list[MemoryVector | MemoryItem] = self.memory_manager.search_memory(
             query=query,
             memory_type=MemoryType.DOCUMENTATION,
-            metadata_filter=metadata_filter,
+            metadata_filter=metadata_filter or {},
             limit=limit,
         )
 
@@ -478,7 +481,9 @@ class DocumentationIngestionManager:
 
         return results
 
-    def semantic_search(self, query: str, limit: int = 10) -> list[Any]:
+    def semantic_search(
+        self, query: str, limit: int = 10
+    ) -> list[MemoryVector | MemoryItem]:
         """Alias for :meth:`search_documentation` for compatibility."""
 
         return self.search_documentation(query, limit=limit)
