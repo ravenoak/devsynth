@@ -310,7 +310,6 @@ module = [
   "devsynth.application.ingestion.*",
   "devsynth.application.issues.*",
   "devsynth.application.llm.*",
-  "devsynth.application.memory.*",
   "devsynth.application.orchestration.*",
   "devsynth.application.promises.*",
   "devsynth.application.prompts.*",
@@ -319,6 +318,40 @@ module = [
   "devsynth.application.utils.*",
 ]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.application.memory.chromadb_store",
+  "devsynth.application.memory.circuit_breaker",
+  "devsynth.application.memory.context_manager",
+  "devsynth.application.memory.duckdb_store",
+  "devsynth.application.memory.error_logger",
+  "devsynth.application.memory.faiss_store",
+  "devsynth.application.memory.fallback",
+  "devsynth.application.memory.json_file_store",
+  "devsynth.application.memory.knowledge_graph_utils",
+  "devsynth.application.memory.kuzu_store",
+  "devsynth.application.memory.lmdb_store",
+  "devsynth.application.memory.memory_integration",
+  "devsynth.application.memory.memory_manager",
+  "devsynth.application.memory.multi_layered_memory",
+  "devsynth.application.memory.persistent_context_manager",
+  "devsynth.application.memory.query_router",
+  "devsynth.application.memory.rdflib_store",
+  "devsynth.application.memory.recovery",
+  "devsynth.application.memory.retry",
+  "devsynth.application.memory.search_patterns",
+  "devsynth.application.memory.sync_manager",
+  "devsynth.application.memory.tiered_cache",
+  "devsynth.application.memory.tinydb_store",
+  "devsynth.application.memory.transaction_context",
+  "devsynth.application.memory.vector_providers",
+]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["chromadb", "chromadb.*"]
+ignore_missing_imports = true
 
 # Added by Task 54 (2025-09-03): targeted temporary relaxations based on strict mypy run
 # TODO: Restore strictness by 2025-10-15 after incremental typing

@@ -33,7 +33,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
     backend_type = "tinydb"
 
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: str | None = None) -> None:
         """
         Initialize the TinyDB Memory Adapter.
 
@@ -43,7 +43,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         """
         # Use in-memory storage if no path is provided
         if db_path is None:
-            self.db = TinyDB(storage=MemoryStorage)
+            self.db: TinyDB = TinyDB(storage=MemoryStorage)
         else:
             self.db = TinyDB(db_path)
 

@@ -1,14 +1,9 @@
-from abc import ABC, abstractmethod
+from __future__ import annotations
+
+from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Protocol
 
-# Create a logger for this module
-from devsynth.logging_setup import DevSynthLogger
-
-from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from ...domain.models.wsde import WSDE
-
-logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
+from ...domain.models.memory import MemoryItem, MemoryVector
 
 
 class MemoryStore(Protocol):

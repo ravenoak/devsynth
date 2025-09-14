@@ -52,7 +52,7 @@ class KanbanAdapter(BaseMethodologyAdapter):
         results["cycle_closed"] = True
         self.board_state = {phase: 0 for phase in Phase}
 
-    def generate_reports(self, cycle_results: Dict[str, Any]):
+    def generate_reports(self, cycle_results: Dict[str, Any]) -> list[dict[str, Any]]:
         return [
             {
                 "title": "Kanban Flow Summary",

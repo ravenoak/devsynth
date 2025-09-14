@@ -1,12 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
 
-# Create a logger for this module
 logger = DevSynthLogger(__name__)
 
 
@@ -50,10 +50,10 @@ class MemoryItem:
     id: str
     content: Any
     memory_type: MemoryType
-    metadata: Dict[str, Any] = None
-    created_at: datetime = None
+    metadata: dict[str, Any] | None = None
+    created_at: datetime | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.metadata is None:
             self.metadata = {}
         if self.created_at is None:
@@ -66,11 +66,11 @@ class MemoryVector:
 
     id: str
     content: Any
-    embedding: List[float]
-    metadata: Dict[str, Any] = None
-    created_at: datetime = None
+    embedding: list[float]
+    metadata: dict[str, Any] | None = None
+    created_at: datetime | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.metadata is None:
             self.metadata = {}
         if self.created_at is None:

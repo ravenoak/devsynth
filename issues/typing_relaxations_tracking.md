@@ -17,7 +17,7 @@ How to use this document:
 | devsynth.domain.models.requirement | removed | TBD | [restore-strict-typing-domain.md](restore-strict-typing-domain.md) | 2025-10-01 | closed |
 | devsynth.application.performance | removed | TBD | [restore-strict-typing-application-performance.md](restore-strict-typing-application-performance.md) | 2025-10-01 | closed |
 | devsynth.adapters.requirements.* | removed | TBD | [restore-strict-typing-adapters-requirements.md](restore-strict-typing-adapters-requirements.md) | 2025-10-01 | closed |
-| devsynth.application.memory.adapters.* | removed | TBD | [restore-strict-typing-application-memory-adapters.md](restore-strict-typing-application-memory-adapters.md) | 2025-10-01 | closed |
+| devsynth.application.memory.adapters.* | removed | TBD | [restore-strict-typing-application-memory-adapters.md](restore-strict-typing-application-memory-adapters.md) | 2025-10-01 | open |
 | devsynth.exceptions | removed | TBD | [restore-strict-typing-exceptions.md](restore-strict-typing-exceptions.md) | 2025-10-01 | closed |
 | devsynth.testing.* | removed | TBD | [restore-strict-typing-testing.md](restore-strict-typing-testing.md) | 2025-10-01 | closed |
 | devsynth.methodology.sprint | removed | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | closed |

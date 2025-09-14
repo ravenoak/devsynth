@@ -1,12 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
-# Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class AgentType(Enum):
@@ -45,12 +45,12 @@ class AgentConfig:
     name: str = "UnnamedAgent"
     agent_type: AgentType = AgentType.EXPERT
     description: str = ""
-    capabilities: List[str] | None = None
-    expertise: List[str] | None = None
-    parameters: Dict[str, Any] | None = None
-    workspace_dir: Optional[str] | None = None
+    capabilities: list[str] | None = None
+    expertise: list[str] | None = None
+    parameters: dict[str, Any] | None = None
+    workspace_dir: Optional[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.parameters is None:
             self.parameters = {}
         if self.capabilities is None:
