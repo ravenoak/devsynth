@@ -239,10 +239,6 @@ disallow_incomplete_defs = false
 # while avoiding blocking changes. Add TODOs in modules to restore strictness.
 # Target to restore strictness: 2025-10-01
 [[tool.mypy.overrides]]
-module = "devsynth.feature_markers"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 module = "devsynth.core.mvu.*"
 disallow_untyped_defs = false
 check_untyped_defs = false
