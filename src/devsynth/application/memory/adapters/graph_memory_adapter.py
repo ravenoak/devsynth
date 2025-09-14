@@ -9,35 +9,66 @@ functionality and improved integration between different memory stores.
 import json
 import os
 import uuid
+from collections.abc import Mapping
 from contextlib import contextmanager
-from copy import deepcopy
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import TYPE_CHECKING
 
-try:
+try:  # pragma: no cover - optional dependency
     import rdflib
-    from rdflib import RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
+    from rdflib import RDF, Graph, Literal, Namespace, URIRef
     from rdflib.namespace import DC, FOAF
-
-    from ....exceptions import MemoryTransactionError
-
-    try:
-        Namespace("test")
-    except Exception:
-        raise ImportError
-except Exception:
+except Exception:  # pragma: no cover - fallback when rdflib is missing
     rdflib = None
-    Graph = Literal = URIRef = object  # type: ignore
-    RDF = RDFS = XSD = object  # type: ignore
-    FOAF = DC = object  # type: ignore
 
-    def Namespace(uri: str):  # type: ignore
+    class URIRef(str):  # noqa: F811
+        """Fallback URI reference when ``rdflib`` is unavailable."""
+
+    class Graph:  # noqa: F811
+        """Simplified graph stub used when ``rdflib`` is not installed."""
+
+        def parse(self, *args, **kwargs):  # pragma: no cover
+            raise NotImplementedError("rdflib is required for graph operations")
+
+        def serialize(self, *args, **kwargs):  # pragma: no cover
+            raise NotImplementedError("rdflib is required for graph operations")
+
+        def add(self, *args, **kwargs):  # pragma: no cover
+            raise NotImplementedError("rdflib is required for graph operations")
+
+        def bind(self, *args, **kwargs):  # pragma: no cover
+            raise NotImplementedError("rdflib is required for graph operations")
+
+        def objects(self, *args, **kwargs):  # pragma: no cover
+            return iter(())
+
+        def triples(self, *args, **kwargs):  # pragma: no cover
+            return iter(())
+
+        def value(self, *args, **kwargs):  # pragma: no cover
+            return None
+
+    class Literal(str):  # noqa: F811
+        """Fallback literal when ``rdflib`` is unavailable."""
+
+    class _RDFType:
+        """Placeholder for RDF namespace attributes."""
+
+    RDF = FOAF = DC = _RDFType()
+
+    def Namespace(uri: str) -> str:  # noqa: F811
+        """Return ``rdflib.term.URIRef`` when available, else a plain string."""
         return uri
 
 
-from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStoreError
+if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
+    from rdflib import RDF, Graph, Literal, Namespace, URIRef  # noqa: F401,F811
+    from rdflib.namespace import DC, FOAF  # noqa: F401,F811
+
+from devsynth.exceptions import MemoryStoreError
 
 from ....domain.interfaces.memory import MemoryStore, VectorStore
 from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from ..rdflib_store import RDFLibStore
 
@@ -60,7 +91,7 @@ class GraphMemoryAdapter(MemoryStore):
     such as vector storage and retrieval, SPARQL queries, and improved memory volatility controls.
     """
 
-    def __init__(self, base_path: str = None, use_rdflib_store: bool = False):
+    def __init__(self, base_path: str | None = None, use_rdflib_store: bool = False):
         """
         Initialize the Graph Memory Adapter.
 
@@ -73,7 +104,7 @@ class GraphMemoryAdapter(MemoryStore):
         """
         self.base_path = base_path
         self.use_rdflib_store = use_rdflib_store
-        self._transaction_stack: List[str] = []
+        self._transaction_stack: list[str] = []
 
         if use_rdflib_store and base_path:
             # Use RDFLibStore for enhanced functionality
@@ -113,13 +144,6 @@ class GraphMemoryAdapter(MemoryStore):
                         logger.error(f"Failed to load RDF graph: {e}")
 
             logger.info("Graph Memory Adapter initialized with basic RDFLib")
-
-    # ------------------------------------------------------------------
-    def is_transaction_active(
-        self, transaction_id: str
-    ) -> bool:  # pragma: no cover - simple interface compliance
-        """Return False as GraphMemoryAdapter does not track transactions."""
-        return False
 
     def _save_graph(self) -> None:
         """Save the RDF graph to disk if a base path is provided."""
@@ -357,7 +381,7 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to restore graph from snapshot: {e}")
             return False
 
-    def get_all_vectors(self) -> List[MemoryVector]:
+    def get_all_vectors(self) -> list[MemoryVector]:
         """Return all vectors from the underlying RDFLibStore if available."""
         if (
             self.use_rdflib_store
@@ -438,7 +462,7 @@ class GraphMemoryAdapter(MemoryStore):
 
         return item_uri
 
-    def _triples_to_memory_item(self, item_uri: URIRef) -> Optional[MemoryItem]:
+    def _triples_to_memory_item(self, item_uri: URIRef) -> MemoryItem | None:
         """
         Convert RDF triples to a memory item.
 
@@ -573,7 +597,7 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to store memory item: {e}")
             raise MemoryStoreError(f"Failed to store memory item: {e}")
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """
         Retrieve a memory item by ID.
 
@@ -604,7 +628,7 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to retrieve memory item: {e}")
             raise MemoryStoreError(f"Failed to retrieve memory item: {e}")
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(self, query: Mapping[str, object]) -> list[MemoryItem]:
         """
         Search for memory items matching the query.
 
@@ -725,7 +749,7 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to delete memory item: {e}")
             raise MemoryStoreError(f"Failed to delete memory item: {e}")
 
-    def query_related_items(self, item_id: str) -> List[MemoryItem]:
+    def query_related_items(self, item_id: str) -> list[MemoryItem]:
         """
         Query for items related to a given item ID.
 
@@ -763,7 +787,7 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to query related items: {e}")
             raise MemoryStoreError(f"Failed to query related items: {e}")
 
-    def get_all_relationships(self) -> Dict[str, Set[str]]:
+    def get_all_relationships(self) -> dict[str, set[str]]:
         """
         Get all relationships in the graph.
 
@@ -786,13 +810,13 @@ class GraphMemoryAdapter(MemoryStore):
                 # Add relationship
                 relationships[subject_id].add(object_id)
 
-            logger.info(f"Retrieved all relationships from Graph Memory Adapter")
+            logger.info("Retrieved all relationships from Graph Memory Adapter")
             return relationships
         except Exception as e:
             logger.error(f"Failed to get all relationships: {e}")
             raise MemoryStoreError(f"Failed to get all relationships: {e}")
 
-    def traverse_graph(self, start_id: str, max_depth: int = 1) -> Set[str]:
+    def traverse_graph(self, start_id: str, max_depth: int = 1) -> set[str]:
         """
         Traverse related nodes starting from the given item ID.
 
@@ -808,12 +832,12 @@ class GraphMemoryAdapter(MemoryStore):
             return set()
 
         try:
-            visited: Set[str] = set()
-            frontier: Set[str] = {start_id}
+            visited: set[str] = set()
+            frontier: set[str] = {start_id}
             depth = 0
 
             while frontier and depth < max_depth:
-                next_frontier: Set[str] = set()
+                next_frontier: set[str] = set()
                 for current_id in frontier:
                     item_uri = URIRef(f"{MEMORY}{current_id}")
                     for related_uri in self.graph.objects(item_uri, DEVSYNTH.relatedTo):
@@ -865,20 +889,20 @@ class GraphMemoryAdapter(MemoryStore):
                     PREFIX memory: <http://devsynth.ai/memory/>
                     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-                    INSERT {
+                    INSERT {{
                         ?item devsynth:confidence "1.0"^^<http://www.w3.org/2001/XMLSchema#float> .
-                        ?item devsynth:decayRate "%f"^^<http://www.w3.org/2001/XMLSchema#float> .
-                        ?item devsynth:confidenceThreshold "%f"^^<http://www.w3.org/2001/XMLSchema#float> .
+                        ?item devsynth:decayRate "{:f}"^^<http://www.w3.org/2001/XMLSchema#float> .
+                        ?item devsynth:confidenceThreshold "{:f}"^^<http://www.w3.org/2001/XMLSchema#float> .
                         ?item devsynth:lastAccessTime ?now .
                         ?item devsynth:accessCount "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
                         ?item devsynth:volatilityEnabled "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-                    }
-                    WHERE {
+                    }}
+                    WHERE {{
                         ?item rdf:type devsynth:MemoryItem .
-                        FILTER NOT EXISTS { ?item devsynth:confidence ?conf }
+                        FILTER NOT EXISTS {{ ?item devsynth:confidence ?conf }}
                         BIND(NOW() as ?now)
-                    }
-                """ % (
+                    }}
+                """.format(
                     decay_rate,
                     threshold,
                 )
@@ -913,7 +937,7 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to add memory volatility controls: {e}")
             raise MemoryStoreError(f"Failed to add memory volatility controls: {e}")
 
-    def apply_memory_decay(self, advanced_decay: bool = False) -> List[str]:
+    def apply_memory_decay(self, advanced_decay: bool = False) -> list[str]:
         """
         Apply memory decay to all items in the graph.
 
@@ -1067,10 +1091,10 @@ class GraphMemoryAdapter(MemoryStore):
 
     def store_with_edrr_phase(
         self,
-        content: Any,
-        memory_type: Union[str, MemoryType],
+        content: object,
+        memory_type: str | MemoryType,
         edrr_phase: str,
-        metadata: Dict[str, Any] = None,
+        metadata: Mapping[str, object] | None = None,
     ) -> str:
         """
         Store a memory item with an EDRR phase.
@@ -1085,12 +1109,8 @@ class GraphMemoryAdapter(MemoryStore):
             The ID of the stored memory item
         """
         # Create metadata with EDRR phase
-        if metadata is None:
-            metadata = {}
-
-        # Make a copy of the metadata to avoid modifying the original
-        metadata_copy = metadata.copy()
-        metadata_copy["edrr_phase"] = edrr_phase
+        metadata_dict = dict(metadata) if metadata else {}
+        metadata_dict["edrr_phase"] = edrr_phase
 
         # Convert memory_type to MemoryType enum if it's a string
         if isinstance(memory_type, str):
@@ -1107,7 +1127,7 @@ class GraphMemoryAdapter(MemoryStore):
 
         # Create the memory item
         memory_item = MemoryItem(
-            id="", content=content, memory_type=memory_type_enum, metadata=metadata_copy
+            id="", content=content, memory_type=memory_type_enum, metadata=metadata_dict
         )
 
         # Store the memory item
@@ -1117,8 +1137,8 @@ class GraphMemoryAdapter(MemoryStore):
         self,
         item_type: str,
         edrr_phase: str,
-        metadata: Dict[str, Any] | None = None,
-    ) -> Any:
+        metadata: Mapping[str, object] | None = None,
+    ) -> object:
         """
         Retrieve an item stored with a specific EDRR phase.
 
@@ -1189,7 +1209,7 @@ class GraphMemoryAdapter(MemoryStore):
 
     def integrate_with_store(
         self,
-        other_store: Union[MemoryStore, VectorStore],
+        other_store: MemoryStore | VectorStore,
         sync_mode: str = "bidirectional",
     ) -> None:
         """
@@ -1278,7 +1298,7 @@ class GraphMemoryAdapter(MemoryStore):
             if has_vector_store_methods and self.use_rdflib_store and self.rdflib_store:
                 # Import vectors from the other store
                 if sync_mode in ["import", "bidirectional"]:
-                    vectors: List[MemoryVector] = []
+                    vectors: list[MemoryVector] = []
                     if hasattr(other_store, "get_all_vectors"):
                         vectors = other_store.get_all_vectors()
                     elif hasattr(other_store, "vectors"):

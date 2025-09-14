@@ -10,36 +10,64 @@ This module provides an enhanced version of the GraphMemoryAdapter that supports
 """
 
 import datetime
-import json
-import os
-import uuid
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
-try:
+try:  # pragma: no cover - optional dependency
     import rdflib
-    from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
+    from rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
     from rdflib.namespace import DC, FOAF
-
-    try:
-        Namespace("test")
-    except Exception:
-        raise ImportError
-except Exception:
+except Exception:  # pragma: no cover - fallback when rdflib is missing
     rdflib = None
-    Graph = Literal = URIRef = OWL = object  # type: ignore
-    RDF = RDFS = XSD = object  # type: ignore
-    FOAF = DC = object  # type: ignore
 
-    def Namespace(uri: str):  # type: ignore
+    class URIRef(str):  # noqa: F811
+        """Fallback URI reference when ``rdflib`` is unavailable."""
+
+    class Graph:  # noqa: F811
+        """Simplified graph stub used when ``rdflib`` is not installed."""
+
+        def parse(self, *args, **kwargs):  # pragma: no cover
+            raise NotImplementedError("rdflib is required for graph operations")
+
+        def serialize(self, *args, **kwargs):  # pragma: no cover
+            raise NotImplementedError("rdflib is required for graph operations")
+
+        def add(self, *args, **kwargs):  # pragma: no cover
+            raise NotImplementedError("rdflib is required for graph operations")
+
+        def bind(self, *args, **kwargs):  # pragma: no cover
+            raise NotImplementedError("rdflib is required for graph operations")
+
+        def objects(self, *args, **kwargs):  # pragma: no cover
+            return iter(())
+
+        def triples(self, *args, **kwargs):  # pragma: no cover
+            return iter(())
+
+        def value(self, *args, **kwargs):  # pragma: no cover
+            return None
+
+    class Literal(str):  # noqa: F811
+        """Fallback literal when ``rdflib`` is unavailable."""
+
+    class _RDFType:
+        """Placeholder for RDF namespace attributes."""
+
+    OWL = RDF = FOAF = DC = _RDFType()
+
+    def Namespace(uri: str) -> str:  # noqa: F811
+        """Return ``rdflib.term.URIRef`` when available, else a plain string."""
         return uri
 
 
-from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStoreError
+if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
+    from rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef  # noqa: F401,F811
+    from rdflib.namespace import DC, FOAF  # noqa: F401,F811
 
-from ....domain.interfaces.memory import MemoryStore, VectorStore
-from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from devsynth.exceptions import MemoryItemNotFoundError, MemoryStoreError
+
+from ....domain.models.memory import MemoryItem, MemoryType
 from ....logging_setup import DevSynthLogger
-from ..rdflib_store import RDFLibStore
 from .graph_memory_adapter import GraphMemoryAdapter
 
 # Setup logger
@@ -60,7 +88,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
     advanced features for EDRR framework integration.
     """
 
-    def __init__(self, base_path: str = None, use_rdflib_store: bool = False):
+    def __init__(self, base_path: str | None = None, use_rdflib_store: bool = False):
         """
         Initialize the EnhancedGraphMemoryAdapter.
 
@@ -88,10 +116,10 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
     def store_with_edrr_phase(
         self,
-        content: Any,
-        memory_type: Union[str, MemoryType],
+        content: object,
+        memory_type: str | MemoryType,
         edrr_phase: str,
-        metadata: Dict[str, Any] = None,
+        metadata: Mapping[str, object] | None = None,
     ) -> str:
         """
         Store a memory item with an EDRR phase with enhanced metadata.
@@ -106,26 +134,22 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             The ID of the stored memory item
         """
         # Create metadata with EDRR phase and enhanced properties
-        if metadata is None:
-            metadata = {}
-
-        # Make a copy of the metadata to avoid modifying the original
-        metadata_copy = metadata.copy()
-        metadata_copy["edrr_phase"] = edrr_phase
+        metadata_dict = dict(metadata) if metadata else {}
+        metadata_dict["edrr_phase"] = edrr_phase
 
         # Add timestamp for temporal awareness
-        metadata_copy["timestamp"] = datetime.datetime.now().isoformat()
+        metadata_dict["timestamp"] = datetime.datetime.now().isoformat()
 
         # Add version information if updating existing content
-        if "previous_version" in metadata_copy:
-            metadata_copy["version"] = metadata_copy.get("version", 0) + 1
+        if "previous_version" in metadata_dict:
+            metadata_dict["version"] = metadata_dict.get("version", 0) + 1
         else:
-            metadata_copy["version"] = 1
+            metadata_dict["version"] = 1
 
         # Store domain information for cross-cycle persistence
-        if "domain" in metadata_copy:
+        if "domain" in metadata_dict:
             # Ensure we can query by domain later
-            metadata_copy["domain_tag"] = f"domain:{metadata_copy['domain']}"
+            metadata_dict["domain_tag"] = f"domain:{metadata_dict['domain']}"
 
         # Convert memory_type to MemoryType enum if it's a string
         if isinstance(memory_type, str):
@@ -142,7 +166,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
         # Create the memory item
         memory_item = MemoryItem(
-            id="", content=content, memory_type=memory_type_enum, metadata=metadata_copy
+            id="", content=content, memory_type=memory_type_enum, metadata=metadata_dict
         )
 
         # Store the memory item
@@ -157,23 +181,23 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             self.graph.add((item_uri, EDRR.hasPhase, phase_uri))
 
             # Add cycle relationship if cycle_id is provided
-            if "cycle_id" in metadata_copy:
-                cycle_uri = URIRef(f"{CYCLE}{metadata_copy['cycle_id']}")
+            if "cycle_id" in metadata_dict:
+                cycle_uri = URIRef(f"{CYCLE}{metadata_dict['cycle_id']}")
                 self.graph.add((item_uri, CYCLE.belongsToCycle, cycle_uri))
 
                 # Link to previous cycles in the same domain
-                if "domain" in metadata_copy and "previous_cycle_id" in metadata_copy:
+                if "domain" in metadata_dict and "previous_cycle_id" in metadata_dict:
                     prev_cycle_uri = URIRef(
-                        f"{CYCLE}{metadata_copy['previous_cycle_id']}"
+                        f"{CYCLE}{metadata_dict['previous_cycle_id']}"
                     )
                     self.graph.add((cycle_uri, CYCLE.followsCycle, prev_cycle_uri))
                     self.graph.add((prev_cycle_uri, CYCLE.precededBy, cycle_uri))
 
             # Add content relationships if specified
-            if "related_to" in metadata_copy and isinstance(
-                metadata_copy["related_to"], list
+            if "related_to" in metadata_dict and isinstance(
+                metadata_dict["related_to"], list
             ):
-                for related_concept in metadata_copy["related_to"]:
+                for related_concept in metadata_dict["related_to"]:
                     concept_uri = URIRef(f"{DEVSYNTH}concept_{related_concept}")
                     self.graph.add((item_uri, RELATION.relatedTo, concept_uri))
 
@@ -186,11 +210,11 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
         self,
         item_type: str,
         edrr_phase: str,
-        metadata: Dict[str, Any] | None = None,
+        metadata: Mapping[str, object] | None = None,
         context_aware: bool = True,
         semantic_similarity: bool = True,
         include_previous_cycles: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, object]]:
         """
         Retrieve items stored with a specific EDRR phase with enhanced context awareness.
 
@@ -329,8 +353,8 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             return []
 
     def _retrieve_with_semantic_similarity(
-        self, item_type: str, edrr_phase: str, metadata: Dict[str, Any] | None
-    ) -> List[MemoryItem]:
+        self, item_type: str, edrr_phase: str, metadata: Mapping[str, object] | None
+    ) -> list[MemoryItem]:
         """
         Retrieve items using semantic similarity rather than exact matches.
 
@@ -401,7 +425,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
     def _retrieve_context_relevant_items(
         self, task_id: str, edrr_phase: str
-    ) -> List[MemoryItem]:
+    ) -> list[MemoryItem]:
         """
         Retrieve items that are relevant to the current context (task).
 
@@ -438,7 +462,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
     def _retrieve_previous_cycle_items(
         self, cycle_id: str, edrr_phase: str
-    ) -> List[MemoryItem]:
+    ) -> list[MemoryItem]:
         """
         Retrieve items from previous cycles that are related to the current cycle.
 
@@ -480,8 +504,8 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
         return cycle_items
 
     def _rank_items_by_relevance(
-        self, items: List[MemoryItem], metadata: Dict[str, Any] | None
-    ) -> List[Dict[str, Any]]:
+        self, items: list[MemoryItem], metadata: Mapping[str, object] | None
+    ) -> list[dict[str, object]]:
         """
         Rank items by relevance to the current context.
 
@@ -545,7 +569,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
         return ranked_items
 
-    def query_by_edrr_phase(self, edrr_phase: str) -> List[MemoryItem]:
+    def query_by_edrr_phase(self, edrr_phase: str) -> list[MemoryItem]:
         """
         Query memory items by EDRR phase.
 
@@ -568,7 +592,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             logger.error(f"Failed to query by EDRR phase: {e}")
             return []
 
-    def query_evolution_across_edrr_phases(self, item_id: str) -> List[MemoryItem]:
+    def query_evolution_across_edrr_phases(self, item_id: str) -> list[MemoryItem]:
         """
         Query the evolution of an item across different EDRR phases.
 
@@ -618,7 +642,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             logger.error(f"Failed to query evolution across EDRR phases: {e}")
             return []
 
-    def find_related_concepts(self, concept: str, max_depth: int = 2) -> List[str]:
+    def find_related_concepts(self, concept: str, max_depth: int = 2) -> list[str]:
         """
         Find concepts related to the given concept using transitive inference.
 
@@ -644,7 +668,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
             # Find transitively related concepts up to max_depth
             current_depth = 1
-            current_concepts = set([concept_uri])
+            current_concepts = {concept_uri}
 
             while current_depth < max_depth:
                 next_concepts = set()
@@ -667,7 +691,10 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             return []
 
     def store_version_history(
-        self, item_id: str, new_content: Any, metadata: Dict[str, Any] = None
+        self,
+        item_id: str,
+        new_content: object,
+        metadata: Mapping[str, object] | None = None,
     ) -> str:
         """
         Store a new version of an existing item with version history.
@@ -725,7 +752,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             logger.error(f"Failed to store version history: {e}")
             raise MemoryStoreError(f"Failed to store version history: {e}")
 
-    def get_version_history(self, item_id: str) -> List[MemoryItem]:
+    def get_version_history(self, item_id: str) -> list[MemoryItem]:
         """
         Get the version history of an item.
 
@@ -745,7 +772,6 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             history = [item]
 
             # Traverse the version history backwards
-            current_id = item_id
             while "previous_version" in history[-1].metadata:
                 prev_id = history[-1].metadata["previous_version"]
                 prev_item = self.retrieve(prev_id)
