@@ -3,12 +3,10 @@
 # - from devsynth.methodology.edrr import reasoning_loop  -> returns callable
 # - import devsynth.methodology.edrr.reasoning_loop as rl -> returns submodule
 
-from typing import Any
-
-__all__ = ["EDRRCoordinator", "reasoning_loop"]
+__all__: list[str] = ["EDRRCoordinator", "reasoning_loop"]
 
 
-def __getattr__(name: str) -> Any:  # PEP 562
+def __getattr__(name: str) -> object:  # PEP 562
     if name == "EDRRCoordinator":
         from .coordinator import EDRRCoordinator as _EDRRCoordinator
 

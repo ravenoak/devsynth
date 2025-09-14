@@ -7,9 +7,9 @@ assignments are updated and queued memory operations are flushed.
 
 from __future__ import annotations
 
-from importlib import import_module
-from typing import Any, Dict, Optional, cast
 from collections.abc import Callable
+from importlib import import_module
+from typing import Any, cast
 
 from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
