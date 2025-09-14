@@ -16,10 +16,11 @@ import logging
 import os
 import sys
 from collections.abc import Mapping
+from logging import Logger
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from types import TracebackType
-from typing import cast
+from typing import TextIO, cast
 
 from devsynth.logging_setup import DevSynthLogger as _BaseDevSynthLogger
 from devsynth.logging_setup import (
@@ -120,12 +121,12 @@ def configure_logging(
             else getattr(logging, env_level, logging.INFO)
         )
 
-    root = logging.getLogger()
+    root: Logger = logging.getLogger()
     root.setLevel(level)
 
-    formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
+    formatter: logging.Formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
 
-    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler: logging.StreamHandler[TextIO] = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     root.addHandler(console_handler)
 
@@ -136,7 +137,7 @@ def configure_logging(
     }
     if not no_file_logging:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        file_handler = RotatingFileHandler(
+        file_handler: RotatingFileHandler = RotatingFileHandler(
             LOG_FILE, maxBytes=max_bytes, backupCount=backup_count
         )
         file_handler.setFormatter(JSONFormatter())
