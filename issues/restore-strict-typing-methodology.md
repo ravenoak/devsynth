@@ -9,3 +9,8 @@ Modules under `devsynth.methodology.*` use `ignore_errors=true` in `pyproject.to
 - [x] Add type annotations throughout methodology modules.
 - [x] Remove the `ignore_errors` override from `pyproject.toml`.
 - [x] Update `issues/typing_relaxations_tracking.md` and close this issue.
+
+## Resolution
+
+- 2025-09-15: Confirmed methodology modules are fully typed and no mypy
+  ignore overrides remain.

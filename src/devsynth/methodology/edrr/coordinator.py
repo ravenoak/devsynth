@@ -6,7 +6,7 @@ using sprint integration helpers.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from devsynth.application.sprint.retrospective import map_retrospective_to_summary
 from devsynth.domain.models.memory import MemoryType
@@ -19,7 +19,7 @@ logger = DevSynthLogger(__name__)
 class EDRRCoordinator:
     """Coordinate simple EDRR routines for methodology adapters."""
 
-    def __init__(self, memory_manager: Optional[Any] = None) -> None:
+    def __init__(self, memory_manager: Any | None = None) -> None:
         """Initialize the coordinator.
 
         Args:
@@ -29,7 +29,7 @@ class EDRRCoordinator:
         self.memory_manager = memory_manager
 
     def _store_phase_result(
-        self, data: Dict[str, Any], memory_type: MemoryType, phase: str
+        self, data: dict[str, Any], memory_type: MemoryType, phase: str
     ) -> None:
         """Persist phase data with the configured memory manager.
 
@@ -45,19 +45,19 @@ class EDRRCoordinator:
         except Exception:
             pass
 
-    def record_expand_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def record_expand_results(self, results: dict[str, Any]) -> dict[str, Any]:
         """Record results from the Expand phase."""
 
         self._store_phase_result(results, MemoryType.KNOWLEDGE, "EXPAND")
         return results
 
-    def record_differentiate_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def record_differentiate_results(self, results: dict[str, Any]) -> dict[str, Any]:
         """Record results from the Differentiate phase."""
 
         self._store_phase_result(results, MemoryType.KNOWLEDGE, "DIFFERENTIATE")
         return results
 
-    def record_refine_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def record_refine_results(self, results: dict[str, Any]) -> dict[str, Any]:
         """Record results from the Refine phase."""
 
         self._store_phase_result(results, MemoryType.KNOWLEDGE, "REFINE")
@@ -69,8 +69,8 @@ class EDRRCoordinator:
         log_consensus_failure(logger, error)
 
     def automate_retrospective_review(
-        self, retrospective: Dict[str, Any], sprint: int
-    ) -> Dict[str, Any]:
+        self, retrospective: dict[str, Any], sprint: int
+    ) -> dict[str, Any]:
         """Return a standardized retrospective summary.
 
         Args:

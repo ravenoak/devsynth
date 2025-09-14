@@ -9,13 +9,13 @@ that sprint adapters can automatically link ceremonies with EDRR phases.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .base import Phase
 
 # Mapping of common sprint ceremonies to EDRR phases. Keys are stored in
 # lower-case to allow case-insensitive lookups.
-CEREMONY_PHASE_MAP: Dict[str, Optional[Phase]] = {
+CEREMONY_PHASE_MAP: dict[str, Phase | None] = {
     # Sprint planning occurs before the Expand phase and prepares the scope
     # for the upcoming cycle.
     "planning": Phase.EXPAND,
@@ -28,7 +28,7 @@ CEREMONY_PHASE_MAP: Dict[str, Optional[Phase]] = {
 }
 
 
-def map_ceremony_to_phase(ceremony: str) -> Optional[Phase]:
+def map_ceremony_to_phase(ceremony: str) -> Phase | None:
     """Return the EDRR phase for a sprint ceremony.
 
     Args:
@@ -42,7 +42,7 @@ def map_ceremony_to_phase(ceremony: str) -> Optional[Phase]:
     return CEREMONY_PHASE_MAP.get(ceremony.lower())
 
 
-def align_sprint_planning(planning_sections: Dict[str, Any]) -> Dict[Phase, Any]:
+def align_sprint_planning(planning_sections: dict[str, Any]) -> dict[Phase, Any]:
     """Align sprint planning data with EDRR phases.
 
     The provided ``planning_sections`` dictionary should have ceremony names
@@ -59,7 +59,7 @@ def align_sprint_planning(planning_sections: Dict[str, Any]) -> Dict[Phase, Any]
         mapping. Ceremonies without a mapping are ignored.
     """
 
-    aligned: Dict[Phase, Any] = {}
+    aligned: dict[Phase, Any] = {}
     for ceremony, data in planning_sections.items():
         phase = map_ceremony_to_phase(ceremony)
         if phase is not None:
@@ -67,7 +67,7 @@ def align_sprint_planning(planning_sections: Dict[str, Any]) -> Dict[Phase, Any]
     return aligned
 
 
-def align_sprint_review(review_sections: Dict[str, Any]) -> Dict[Phase, Any]:
+def align_sprint_review(review_sections: dict[str, Any]) -> dict[Phase, Any]:
     """Align sprint review data with EDRR phases.
 
     This helper mirrors :func:`align_sprint_planning` but operates on review
@@ -83,7 +83,7 @@ def align_sprint_review(review_sections: Dict[str, Any]) -> Dict[Phase, Any]:
         mapping. Ceremonies without a mapping are ignored.
     """
 
-    aligned: Dict[Phase, Any] = {}
+    aligned: dict[Phase, Any] = {}
     for ceremony, data in review_sections.items():
         phase = map_ceremony_to_phase(ceremony)
         if phase is not None:

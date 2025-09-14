@@ -5,7 +5,8 @@ for teams without a formal process or individual contributors.
 """
 
 import datetime
-from typing import Any, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any, cast
 
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
@@ -25,7 +26,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
     - Specialized or targeted analysis
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """Initialize the ad-hoc adapter.
 
         Args:
@@ -34,7 +35,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
         super().__init__(config)
 
         # Extract ad-hoc specific settings
-        self.adhoc_settings = self.config.get("settings", {})
+        self.adhoc_settings: dict[str, Any] = self.config.get("settings", {})
 
         # Track completed phases and phase execution history
         self.completed_phases: set[Phase] = set()
@@ -44,7 +45,10 @@ class AdHocAdapter(BaseMethodologyAdapter):
         self.cycle_in_progress: bool = False
 
         # Optional callback for phase completion notification
-        self.completion_callback: Any = self.adhoc_settings.get("completionCallback")
+        self.completion_callback: Callable[[dict[str, Any]], None] | None = cast(
+            Callable[[dict[str, Any]], None] | None,
+            self.adhoc_settings.get("completionCallback"),
+        )
         self.phase_results: dict[Phase, dict[str, Any]] = {}
 
     def should_start_cycle(self) -> bool:
@@ -64,7 +68,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
         return not self.cycle_in_progress and user_requested
 
     def should_progress_to_next_phase(
-        self, current_phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
+        self, current_phase: Phase, context: dict[str, Any], results: dict[str, Any]
     ) -> bool:
         """Determine if the process should progress to the next phase.
 
@@ -100,7 +104,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
 
         return False
 
-    def before_cycle(self) -> Dict[str, Any]:
+    def before_cycle(self) -> dict[str, Any]:
         """Perform setup before starting a new EDRR cycle.
 
         Returns:
@@ -120,7 +124,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
 
         return cycle_context
 
-    def after_cycle(self, results: Dict[str, Any]) -> None:
+    def after_cycle(self, results: dict[str, Any]) -> None:
         """Perform wrap-up after completing an EDRR cycle.
 
         Args:
@@ -141,7 +145,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
             except Exception as e:
                 logger.exception("Error in completion callback: %s", e)
 
-    def before_phase(self, phase: Phase, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_phase(self, phase: Phase, context: dict[str, Any]) -> dict[str, Any]:
         """Setup before entering any phase.
 
         Args:
@@ -163,8 +167,8 @@ class AdHocAdapter(BaseMethodologyAdapter):
         return context
 
     def after_phase(
-        self, phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, phase: Phase, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Wrap-up after completing any phase.
 
         Args:
@@ -191,7 +195,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
 
         return results
 
-    def generate_reports(self, cycle_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def generate_reports(self, cycle_results: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate reports from cycle results.
 
         For ad-hoc execution, reports are more focused on executed steps
@@ -236,7 +240,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
 
         return reports
 
-    def get_config_schema(self) -> Dict[str, Any]:
+    def get_config_schema(self) -> dict[str, Any]:
         """Get JSON schema for ad-hoc configuration validation.
 
         Returns:
@@ -262,11 +266,17 @@ class AdHocAdapter(BaseMethodologyAdapter):
                         },
                         "completionCallback": {
                             "type": "string",
-                            "description": "Python dotted path to a callback function to call when cycle completes",
+                            "description": (
+                                "Python dotted path to a callback function "
+                                "to call when cycle completes"
+                            ),
                         },
                         "enableIndividualPhaseExecution": {
                             "type": "boolean",
-                            "description": "Allow phases to be run independently without requiring a full cycle",
+                            "description": (
+                                "Allow phases to be run independently without "
+                                "requiring a full cycle"
+                            ),
                             "default": True,
                         },
                     },
@@ -279,7 +289,7 @@ class AdHocAdapter(BaseMethodologyAdapter):
 
         return base_schema
 
-    def _summarize_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _summarize_results(self, results: dict[str, Any]) -> dict[str, Any]:
         """Create a brief summary of phase results.
 
         Args:

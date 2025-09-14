@@ -1,10 +1,12 @@
+from types import ModuleType
+
 from .adhoc import AdHocAdapter
 from .edrr import reasoning_loop
 from .kanban import KanbanAdapter
 from .milestone import MilestoneAdapter
 from .sprint import SprintAdapter
 
-__all__ = [
+__all__: list[str] = [
     "AdHocAdapter",
     "SprintAdapter",
     "KanbanAdapter",
@@ -16,10 +18,7 @@ __all__ = [
 # (e.g., pytest monkeypatch path resolution): devsynth.methodology.edrr
 
 
-from typing import Any
-
-
-def __getattr__(name: str) -> Any:  # PEP 562
+def __getattr__(name: str) -> ModuleType:  # PEP 562
     if name == "edrr":
         import importlib as _importlib
 
