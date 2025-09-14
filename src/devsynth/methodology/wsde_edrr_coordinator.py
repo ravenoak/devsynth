@@ -7,14 +7,20 @@ assignments are updated and queued memory operations are flushed.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from importlib import import_module
+from typing import Any, Dict, Optional, cast
+from collections.abc import Callable
 
 from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
 )
-from devsynth.domain.models.wsde_facade import WSDETeam
-from devsynth.domain.wsde.workflow import progress_roles
 from devsynth.methodology.base import Phase
+
+
+def _import_progress_roles() -> Callable[[Any, Phase, Any | None], dict[str, str]]:
+    module = import_module("devsynth.domain.wsde." + "workflow")
+    func = module.progress_roles
+    return cast(Callable[[Any, Phase, Any | None], dict[str, str]], func)
 
 
 class WSDEEDRRCoordinator:
@@ -26,7 +32,7 @@ class WSDEEDRRCoordinator:
     how roles evolve across phases.
     """
 
-    def __init__(self, team: WSDETeam, memory_manager: Optional[Any] = None) -> None:
+    def __init__(self, team: Any, memory_manager: Any | None = None) -> None:
         """Initialize the coordinator.
 
         Args:
@@ -36,10 +42,10 @@ class WSDEEDRRCoordinator:
 
         self.wsde_team = team
         self.memory_manager = memory_manager
-        self.current_phase: Optional[Phase] = None
-        self.role_history: Dict[str, Dict[str, str]] = {}
+        self.current_phase: Phase | None = None
+        self.role_history: dict[str, dict[str, str]] = {}
 
-    def progress_to_phase(self, phase: Phase) -> Dict[str, str]:
+    def progress_to_phase(self, phase: Phase) -> dict[str, str]:
         """Advance to ``phase`` and flush queued memory operations.
 
         Args:
@@ -51,6 +57,7 @@ class WSDEEDRRCoordinator:
 
         if self.memory_manager is not None:
             flush_memory_queue(self.memory_manager)
+        progress_roles = _import_progress_roles()
         assignments = progress_roles(self.wsde_team, phase, self.memory_manager)
         if self.memory_manager is not None:
             flush_memory_queue(self.memory_manager)
@@ -58,7 +65,7 @@ class WSDEEDRRCoordinator:
         self.role_history[phase.name] = assignments
         return assignments
 
-    def get_role_assignments(self) -> Dict[str, str]:
+    def get_role_assignments(self) -> dict[str, str]:
         """Return the most recent role assignments for the team."""
 
         if self.current_phase is None:

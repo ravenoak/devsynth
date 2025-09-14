@@ -6,7 +6,8 @@ with different development workflows and practices.
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
+from collections.abc import Callable
 
 
 class Phase(Enum):
@@ -34,15 +35,15 @@ class BaseMethodologyAdapter(ABC):
     sequence of the EDRR phases.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """Initialize the methodology adapter.
 
         Args:
             config: Configuration dictionary from the manifest.yaml file.
         """
         self.config = config
-        self.current_phase = None
-        self.phase_results = {}
+        self.current_phase: Phase | None = None
+        self.phase_results: dict[Phase, dict[str, Any]] = {}
 
     @abstractmethod
     def should_start_cycle(self) -> bool:
@@ -57,7 +58,7 @@ class BaseMethodologyAdapter(ABC):
 
     @abstractmethod
     def should_progress_to_next_phase(
-        self, current_phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
+        self, current_phase: Phase, context: dict[str, Any], results: dict[str, Any]
     ) -> bool:
         """Determine if the process should progress to the next phase.
 
@@ -73,7 +74,7 @@ class BaseMethodologyAdapter(ABC):
             "should_progress_to_next_phase must be implemented by subclasses"
         )
 
-    def before_cycle(self) -> Dict[str, Any]:
+    def before_cycle(self) -> dict[str, Any]:
         """Perform actions before starting a new EDRR cycle.
 
         Returns:
@@ -81,7 +82,7 @@ class BaseMethodologyAdapter(ABC):
         """
         return {}
 
-    def after_cycle(self, results: Dict[str, Any]) -> None:
+    def after_cycle(self, results: dict[str, Any]) -> None:
         """Perform actions after completing an EDRR cycle.
 
         Args:
@@ -89,7 +90,7 @@ class BaseMethodologyAdapter(ABC):
         """
         raise NotImplementedError("after_cycle must be implemented by subclasses")
 
-    def before_phase(self, phase: Phase, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_phase(self, phase: Phase, context: dict[str, Any]) -> dict[str, Any]:
         """Perform actions before entering a phase.
 
         Args:
@@ -100,13 +101,14 @@ class BaseMethodologyAdapter(ABC):
             Updated context data for the phase.
         """
         phase_method = getattr(self, f"before_{phase.value}", None)
-        if phase_method:
-            return phase_method(context)
+        if callable(phase_method):
+            method = cast(Callable[[dict[str, Any]], dict[str, Any]], phase_method)
+            return method(context)
         return context
 
     def after_phase(
-        self, phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, phase: Phase, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Perform actions after completing a phase.
 
         Args:
@@ -118,11 +120,15 @@ class BaseMethodologyAdapter(ABC):
             Updated results.
         """
         phase_method = getattr(self, f"after_{phase.value}", None)
-        if phase_method:
-            return phase_method(context, results)
+        if callable(phase_method):
+            method = cast(
+                Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],
+                phase_method,
+            )
+            return method(context, results)
         return results
 
-    def register_external_events(self) -> List[Dict[str, Any]]:
+    def register_external_events(self) -> list[dict[str, Any]]:
         """Register for external events/webhooks if needed.
 
         Returns:
@@ -130,7 +136,7 @@ class BaseMethodologyAdapter(ABC):
         """
         return []
 
-    def generate_reports(self, cycle_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def generate_reports(self, cycle_results: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate reports from cycle results.
 
         Args:
@@ -141,7 +147,7 @@ class BaseMethodologyAdapter(ABC):
         """
         return []
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Get metadata about the methodology.
 
         Returns:
@@ -153,7 +159,7 @@ class BaseMethodologyAdapter(ABC):
             "config_schema": self.get_config_schema(),
         }
 
-    def get_config_schema(self) -> Dict[str, Any]:
+    def get_config_schema(self) -> dict[str, Any]:
         """Get JSON schema for configuration validation.
 
         Returns:
@@ -182,72 +188,72 @@ class BaseMethodologyAdapter(ABC):
         }
 
     # These methods can be overridden by subclasses for phase-specific behavior
-    def before_expand(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_expand(self, context: dict[str, Any]) -> dict[str, Any]:
         """Actions before the Expand phase."""
         return context
 
     def after_expand(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Actions after the Expand phase."""
         return results
 
-    def before_differentiate(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_differentiate(self, context: dict[str, Any]) -> dict[str, Any]:
         """Actions before the Differentiate phase."""
         return context
 
     def after_differentiate(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Actions after the Differentiate phase."""
         return results
 
-    def before_refine(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_refine(self, context: dict[str, Any]) -> dict[str, Any]:
         """Actions before the Refine phase."""
         return context
 
     def after_refine(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Actions after the Refine phase."""
         return results
 
-    def before_retrospect(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_retrospect(self, context: dict[str, Any]) -> dict[str, Any]:
         """Actions before the Retrospect phase."""
         return context
 
     def after_retrospect(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Actions after the Retrospect phase."""
         return results
 
-    def before_analysis(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_analysis(self, context: dict[str, Any]) -> dict[str, Any]:
         """Actions before the Analysis phase."""
         return context
 
     def after_analysis(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Actions after the Analysis phase."""
         return results
 
-    def before_implementation(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_implementation(self, context: dict[str, Any]) -> dict[str, Any]:
         """Actions before the Implementation phase."""
         return context
 
     def after_implementation(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Actions after the Implementation phase."""
         return results
 
-    def before_refinement(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def before_refinement(self, context: dict[str, Any]) -> dict[str, Any]:
         """Actions before the Refinement phase."""
         return context
 
     def after_refinement(
-        self, context: Dict[str, Any], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Actions after the Refinement phase."""
         return results

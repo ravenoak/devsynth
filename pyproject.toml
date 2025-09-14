@@ -272,10 +272,6 @@ ignore_errors = true
 module = "devsynth.api"
 ignore_errors = true
 
-[[tool.mypy.overrides]]
-module = "devsynth.methodology.sprint"
-ignore_errors = true
-
 # Temporary relaxations for remaining hotspots (Iteration 2025-08-31)
 # TODO: Restore strictness by 2025-10-01.
 [[tool.mypy.overrides]]
@@ -312,10 +308,6 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = "devsynth.config.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.methodology.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]

@@ -16,7 +16,10 @@ __all__ = [
 # (e.g., pytest monkeypatch path resolution): devsynth.methodology.edrr
 
 
-def __getattr__(name: str):  # PEP 562
+from typing import Any
+
+
+def __getattr__(name: str) -> Any:  # PEP 562
     if name == "edrr":
         import importlib as _importlib
 

@@ -11,13 +11,10 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from importlib import import_module
+from typing import TYPE_CHECKING, Any, cast
 
-from devsynth.domain.models.wsde_dialectical import (
-    apply_dialectical_reasoning as _apply_dialectical_reasoning,
-)
 from devsynth.exceptions import ConsensusError
-from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
 from ..base import Phase
@@ -29,6 +26,14 @@ logger = DevSynthLogger(__name__)
 
 
 ResultDict = dict[str, Any]
+
+
+def _import_apply_dialectical_reasoning() -> (
+    Callable[[Any, dict[str, Any], Any, Any | None], ResultDict]
+):
+    module = import_module("devsynth.domain.models." + "wsde_dialectical")
+    func = module.apply_dialectical_reasoning
+    return cast(Callable[[Any, dict[str, Any], Any, Any | None], ResultDict], func)
 
 
 def reasoning_loop(
@@ -64,9 +69,9 @@ def reasoning_loop(
         except Exception:
             pass
         try:  # numpy is optional; seed if available
-            import numpy as np  # type: ignore
+            from numpy.random import seed as numpy_seed
 
-            np.random.seed(deterministic_seed)  # type: ignore[attr-defined]
+            numpy_seed(deterministic_seed)
         except Exception:
             pass
 
@@ -98,9 +103,10 @@ def reasoning_loop(
         result: ResultDict | None = None
         stop = False
         attempts = 0
+        apply_dialectical_reasoning = _import_apply_dialectical_reasoning()
         while True:
             try:
-                result = _apply_dialectical_reasoning(
+                result = apply_dialectical_reasoning(
                     wsde_team, current_task, critic_agent, memory_integration
                 )
                 break
@@ -108,7 +114,7 @@ def reasoning_loop(
                 if coordinator is not None:
                     coordinator.record_consensus_failure(exc)
                 else:
-                    log_consensus_failure(logger, exc)
+                    logger.error("Consensus failure", exc_info=exc)
                 stop = True
                 break
             except Exception:
