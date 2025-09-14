@@ -113,6 +113,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 11.9 [x] Guardrails suite resolved; see [flake8-violations.md](../issues/flake8-violations.md) and [bandit-findings.md](../issues/bandit-findings.md).
 11.9.1 [x] Regenerate flake8 report and resolve E501/F401 in tests/unit/testing/test_run_tests_module.py and related files (Issue: [flake8-violations.md](../issues/flake8-violations.md)).
 11.9.2 [x] Review bandit scan (158 low, 0 medium) and address or justify findings (Issue: [bandit-findings.md](../issues/bandit-findings.md)).
+11.10 [ ] Reopen run-tests-missing-test-first-metrics-file.md due to recurring path error; fix reference and rerun full coverage.
 
 12. Risk Management and Mitigations
 12.1 [x] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable:
