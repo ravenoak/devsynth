@@ -1,25 +1,20 @@
-"""
-Console notification adapter for requirements management.
-"""
+"""Console notification adapter for requirements management."""
 
 import logging
-from typing import Optional
 
 from devsynth.domain.models.requirement import ImpactAssessment, RequirementChange
 from devsynth.ports.requirement_port import NotificationPort
 
 
 class ConsoleNotificationAdapter(NotificationPort):
-    """
-    Console implementation of the notification port.
-    """
+    """Console implementation of the notification port."""
 
-    def __init__(self, logger: Optional[logging.Logger] = None):
-        """
-        Initialize the console notification adapter.
+    def __init__(self, logger: logging.Logger | None = None) -> None:
+        """Initialize the console notification adapter.
 
         Args:
-            logger: Logger to use for notifications. If None, a new logger will be created.
+            logger: Logger to use for notifications. If ``None``,
+                a new logger will be created.
         """
         self.logger = logger or logging.getLogger(__name__)
 
@@ -43,7 +38,9 @@ class ConsoleNotificationAdapter(NotificationPort):
         elif change.change_type.value == "modify":
             if change.previous_state and change.new_state:
                 self.logger.info(
-                    f"  Modifying requirement: {change.previous_state.title} -> {change.new_state.title}"
+                    "  Modifying requirement: %s -> %s",
+                    change.previous_state.title,
+                    change.new_state.title,
                 )
 
     def notify_change_approved(self, change: RequirementChange) -> None:

@@ -1,8 +1,5 @@
-"""
-In-memory repository implementations for requirements management.
-"""
+"""In-memory repository implementations for requirements management."""
 
-from typing import Dict, List, Optional
 from uuid import UUID
 
 from devsynth.domain.models.requirement import (
@@ -23,15 +20,13 @@ from devsynth.ports.requirement_port import (
 
 
 class InMemoryRequirementRepository(RequirementRepositoryPort):
-    """
-    In-memory implementation of the requirement repository.
-    """
+    """In-memory implementation of the requirement repository."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the repository."""
-        self.requirements: Dict[UUID, Requirement] = {}
+        self.requirements: dict[UUID, Requirement] = {}
 
-    def get_requirement(self, requirement_id: UUID) -> Optional[Requirement]:
+    def get_requirement(self, requirement_id: UUID) -> Requirement | None:
         """
         Get a requirement by ID.
 
@@ -43,78 +38,39 @@ class InMemoryRequirementRepository(RequirementRepositoryPort):
         """
         return self.requirements.get(requirement_id)
 
-    def get_all_requirements(self) -> List[Requirement]:
-        """
-        Get all requirements.
-
-        Returns:
-            A list of all requirements.
-        """
+    def get_all_requirements(self) -> list[Requirement]:
+        """Get all requirements."""
         return list(self.requirements.values())
 
     def save_requirement(self, requirement: Requirement) -> Requirement:
-        """
-        Save a requirement.
-
-        Args:
-            requirement: The requirement to save.
-
-        Returns:
-            The saved requirement.
-        """
+        """Save a requirement."""
         self.requirements[requirement.id] = requirement
         return requirement
 
     def delete_requirement(self, requirement_id: UUID) -> bool:
-        """
-        Delete a requirement.
-
-        Args:
-            requirement_id: The ID of the requirement to delete.
-
-        Returns:
-            True if the requirement was deleted, False otherwise.
-        """
+        """Delete a requirement."""
         if requirement_id in self.requirements:
             del self.requirements[requirement_id]
             return True
         return False
 
-    def get_requirements_by_status(self, status: str) -> List[Requirement]:
-        """
-        Get requirements by status.
-
-        Args:
-            status: The status to filter by.
-
-        Returns:
-            A list of requirements with the specified status.
-        """
+    def get_requirements_by_status(self, status: str) -> list[Requirement]:
+        """Get requirements by status."""
         return [req for req in self.requirements.values() if req.status.value == status]
 
-    def get_requirements_by_type(self, type_: str) -> List[Requirement]:
-        """
-        Get requirements by type.
-
-        Args:
-            type_: The type to filter by.
-
-        Returns:
-            A list of requirements with the specified type.
-        """
+    def get_requirements_by_type(self, type_: str) -> list[Requirement]:
+        """Get requirements by type."""
         return [req for req in self.requirements.values() if req.type.value == type_]
 
 
 class InMemoryChangeRepository(ChangeRepositoryPort):
-    """
-    In-memory implementation of the change repository.
-    """
+    """In-memory implementation of the change repository."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the repository."""
-        self.changes: Dict[UUID, RequirementChange] = {}
+        self.changes: dict[UUID, RequirementChange] = {}
 
-    def get_change(self, change_id: UUID) -> Optional[RequirementChange]:
+    def get_change(self, change_id: UUID) -> RequirementChange | None:
         """
         Get a change by ID.
 
@@ -128,7 +84,7 @@ class InMemoryChangeRepository(ChangeRepositoryPort):
 
     def get_changes_for_requirement(
         self, requirement_id: UUID
-    ) -> List[RequirementChange]:
+    ) -> list[RequirementChange]:
         """
         Get changes for a requirement.
 
@@ -174,16 +130,14 @@ class InMemoryChangeRepository(ChangeRepositoryPort):
 
 
 class InMemoryImpactAssessmentRepository(ImpactAssessmentRepositoryPort):
-    """
-    In-memory implementation of the impact assessment repository.
-    """
+    """In-memory implementation of the impact assessment repository."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the repository."""
-        self.assessments: Dict[UUID, ImpactAssessment] = {}
-        self.change_to_assessment: Dict[UUID, UUID] = {}
+        self.assessments: dict[UUID, ImpactAssessment] = {}
+        self.change_to_assessment: dict[UUID, UUID] = {}
 
-    def get_impact_assessment(self, assessment_id: UUID) -> Optional[ImpactAssessment]:
+    def get_impact_assessment(self, assessment_id: UUID) -> ImpactAssessment | None:
         """
         Get an impact assessment by ID.
 
@@ -197,7 +151,7 @@ class InMemoryImpactAssessmentRepository(ImpactAssessmentRepositoryPort):
 
     def get_impact_assessment_for_change(
         self, change_id: UUID
-    ) -> Optional[ImpactAssessment]:
+    ) -> ImpactAssessment | None:
         """
         Get an impact assessment for a change.
 
@@ -213,15 +167,7 @@ class InMemoryImpactAssessmentRepository(ImpactAssessmentRepositoryPort):
         return None
 
     def save_impact_assessment(self, assessment: ImpactAssessment) -> ImpactAssessment:
-        """
-        Save an impact assessment.
-
-        Args:
-            assessment: The impact assessment to save.
-
-        Returns:
-            The saved impact assessment.
-        """
+        """Save an impact assessment."""
         self.assessments[assessment.id] = assessment
         if assessment.change_id:
             self.change_to_assessment[assessment.change_id] = assessment.id
@@ -229,16 +175,14 @@ class InMemoryImpactAssessmentRepository(ImpactAssessmentRepositoryPort):
 
 
 class InMemoryDialecticalReasoningRepository(DialecticalReasoningRepositoryPort):
-    """
-    In-memory implementation of the dialectical reasoning repository.
-    """
+    """In-memory implementation of the dialectical reasoning repository."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the repository."""
-        self.reasonings: Dict[UUID, DialecticalReasoning] = {}
-        self.change_to_reasoning: Dict[UUID, UUID] = {}
+        self.reasonings: dict[UUID, DialecticalReasoning] = {}
+        self.change_to_reasoning: dict[UUID, UUID] = {}
 
-    def get_reasoning(self, reasoning_id: UUID) -> Optional[DialecticalReasoning]:
+    def get_reasoning(self, reasoning_id: UUID) -> DialecticalReasoning | None:
         """
         Get a dialectical reasoning by ID.
 
@@ -250,9 +194,7 @@ class InMemoryDialecticalReasoningRepository(DialecticalReasoningRepositoryPort)
         """
         return self.reasonings.get(reasoning_id)
 
-    def get_reasoning_for_change(
-        self, change_id: UUID
-    ) -> Optional[DialecticalReasoning]:
+    def get_reasoning_for_change(self, change_id: UUID) -> DialecticalReasoning | None:
         """
         Get a dialectical reasoning for a change.
 
@@ -268,15 +210,7 @@ class InMemoryDialecticalReasoningRepository(DialecticalReasoningRepositoryPort)
         return None
 
     def save_reasoning(self, reasoning: DialecticalReasoning) -> DialecticalReasoning:
-        """
-        Save a dialectical reasoning.
-
-        Args:
-            reasoning: The dialectical reasoning to save.
-
-        Returns:
-            The saved dialectical reasoning.
-        """
+        """Save a dialectical reasoning."""
         self.reasonings[reasoning.id] = reasoning
         if reasoning.change_id:
             self.change_to_reasoning[reasoning.change_id] = reasoning.id
@@ -284,17 +218,15 @@ class InMemoryDialecticalReasoningRepository(DialecticalReasoningRepositoryPort)
 
 
 class InMemoryChatRepository(ChatRepositoryPort):
-    """
-    In-memory implementation of the chat repository.
-    """
+    """In-memory implementation of the chat repository."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the repository."""
-        self.sessions: Dict[UUID, ChatSession] = {}
-        self.messages: Dict[UUID, ChatMessage] = {}
-        self.user_sessions: Dict[str, List[UUID]] = {}
+        self.sessions: dict[UUID, ChatSession] = {}
+        self.messages: dict[UUID, ChatMessage] = {}
+        self.user_sessions: dict[str, list[UUID]] = {}
 
-    def get_session(self, session_id: UUID) -> Optional[ChatSession]:
+    def get_session(self, session_id: UUID) -> ChatSession | None:
         """
         Get a chat session by ID.
 
@@ -306,7 +238,7 @@ class InMemoryChatRepository(ChatRepositoryPort):
         """
         return self.sessions.get(session_id)
 
-    def get_sessions_for_user(self, user_id: str) -> List[ChatSession]:
+    def get_sessions_for_user(self, user_id: str) -> list[ChatSession]:
         """
         Get chat sessions for a user.
 
@@ -324,15 +256,7 @@ class InMemoryChatRepository(ChatRepositoryPort):
         ]
 
     def save_session(self, session: ChatSession) -> ChatSession:
-        """
-        Save a chat session.
-
-        Args:
-            session: The chat session to save.
-
-        Returns:
-            The saved chat session.
-        """
+        """Save a chat session."""
         self.sessions[session.id] = session
 
         # Update user sessions mapping
@@ -344,26 +268,10 @@ class InMemoryChatRepository(ChatRepositoryPort):
         return session
 
     def save_message(self, message: ChatMessage) -> ChatMessage:
-        """
-        Save a chat message.
-
-        Args:
-            message: The chat message to save.
-
-        Returns:
-            The saved chat message.
-        """
+        """Save a chat message."""
         self.messages[message.id] = message
         return message
 
-    def get_messages_for_session(self, session_id: UUID) -> List[ChatMessage]:
-        """
-        Get messages for a chat session.
-
-        Args:
-            session_id: The ID of the chat session.
-
-        Returns:
-            A list of messages for the chat session.
-        """
+    def get_messages_for_session(self, session_id: UUID) -> list[ChatMessage]:
+        """Get messages for a chat session."""
         return [msg for msg in self.messages.values() if msg.session_id == session_id]

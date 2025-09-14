@@ -16,7 +16,7 @@ How to use this document:
 | devsynth.application.documentation.* | removed | TBD | [restore-strict-typing-application-documentation.md](restore-strict-typing-application-documentation.md) | 2025-10-01 | closed |
 | devsynth.domain.models.requirement | removed | TBD | [restore-strict-typing-domain.md](restore-strict-typing-domain.md) | 2025-10-01 | closed |
 | devsynth.application.performance | removed | TBD | [restore-strict-typing-application-performance.md](restore-strict-typing-application-performance.md) | 2025-10-01 | closed |
-| devsynth.adapters.requirements.* | ignore_errors=true | TBD | [restore-strict-typing-adapters-requirements.md](restore-strict-typing-adapters-requirements.md) | 2025-10-01 | open |
+| devsynth.adapters.requirements.* | removed | TBD | [restore-strict-typing-adapters-requirements.md](restore-strict-typing-adapters-requirements.md) | 2025-10-01 | closed |
 | devsynth.application.memory.adapters.* | removed | TBD | [restore-strict-typing-application-memory-adapters.md](restore-strict-typing-application-memory-adapters.md) | 2025-10-01 | closed |
 | devsynth.exceptions | removed | TBD | [restore-strict-typing-exceptions.md](restore-strict-typing-exceptions.md) | 2025-10-01 | closed |
 | devsynth.testing.* | removed | TBD | [restore-strict-typing-testing.md](restore-strict-typing-testing.md) | 2025-10-01 | closed |
@@ -35,6 +35,7 @@ Notes:
   reported 430 errors; the ignore remains in place.
 - 2025-09-14: Removed the mypy override for `devsynth.exceptions` after adding type hints.
 - 2025-09-14: Removed the mypy override for `devsynth.feature_markers` after annotating marker functions.
+- 2025-09-14: Removed the mypy override for `devsynth.adapters.requirements.*` after adding type hints.
 - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
 - 2025-09-14: Removed the mypy override for `devsynth.domain.models.requirement`; domain typing now reports 617 errors across 26 files.
 - 2025-09-14: Removed the mypy override for `devsynth.application.performance` after adding structured metrics types.
