@@ -3,4 +3,4 @@ Milestone: 0.1.0-alpha.1
 Status: closed
 
 ## Resolution
-Merged into [restore-strict-typing-domain.md](restore-strict-typing-domain.md).
+2025-09-14: Refined type hints in `src/devsynth/domain/models/requirement.py` and removed temporary ignores. No pyproject overrides remain.
