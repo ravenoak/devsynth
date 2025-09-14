@@ -308,7 +308,6 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = [
   "devsynth.application.agents.*",
-  "devsynth.application.cli.*",
   "devsynth.application.code_analysis.*",
   "devsynth.application.collaboration.*",
   "devsynth.application.config.*",

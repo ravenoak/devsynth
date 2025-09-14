@@ -9,3 +9,8 @@ Status: closed
 - [x] Refactor `inspect_code_cmd` to satisfy strict typing.
 - [x] Remove the mypy override from `pyproject.toml`.
 - [x] Update `issues/typing_relaxations_tracking.md` and close this issue.
+
+## Resolution
+Closed on 2025-09-14 after reinstating strict typing for
+`devsynth.application.cli.commands.inspect_code_cmd` and removing the
+module-specific mypy override.
