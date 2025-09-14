@@ -266,11 +266,6 @@ module = "devsynth.adapters.requirements.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "devsynth.application.memory.adapters.*"
-# Complex memory adapters with pending annotations
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 module = "devsynth.testing.*"
 ignore_errors = true
 
