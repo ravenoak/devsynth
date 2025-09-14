@@ -31,4 +31,6 @@ Notes:
 - 2025-09-10: Removed the mypy override for `devsynth.cli` after upgrading Typer to a typed release.
 - 2025-09-11: Removed the mypy override for `devsynth.methodology.edrr.reasoning_loop` after adding type annotations.
 - 2025-09-13: Removed the mypy override for `devsynth.adapters.*` after restoring type coverage.
+- 2025-09-13: Attempted to remove the `devsynth.application.edrr.*` override, but `poetry run mypy src/devsynth/application/edrr`
+  reported 430 errors; the ignore remains in place.
 - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.

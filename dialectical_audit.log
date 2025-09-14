@@ -27,6 +27,7 @@
     "Feature 'Feature Markers' reference discrepancy resolved (2025-09-09).",
     "Feature 'Finalize dialectical reasoning' reference discrepancy resolved (2025-09-09).",
     "Feature 'Logging Setup Utilities' reference discrepancy resolved (2025-09-09).",
-    "Feature 'Performance and scalability testing' reference discrepancy resolved (2025-09-09)."
+    "Feature 'Performance and scalability testing' reference discrepancy resolved (2025-09-09).",
+    "Restoring strict typing for devsynth.application.edrr.* deferred after mypy reported 430 errors (2025-09-13)."
   ]
 }
