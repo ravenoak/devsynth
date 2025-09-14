@@ -11,7 +11,7 @@ How to use this document:
 | Module pattern | Current relaxations | Owner | Issue link | Target date | Status |
 |---|---|---|---|---|---|
 | devsynth.application.cli.commands.inspect_code_cmd | removed | TBD | [restore-strict-typing-inspect-code-cmd.md](restore-strict-typing-inspect-code-cmd.md) | 2025-10-01 | closed |
-| devsynth.feature_markers | disallow_untyped_defs=false, check_untyped_defs=false | TBD | [restore-strict-typing-feature-markers.md](restore-strict-typing-feature-markers.md) | 2025-10-01 | open |
+| devsynth.feature_markers | removed | TBD | [restore-strict-typing-feature-markers.md](restore-strict-typing-feature-markers.md) | 2025-10-01 | closed |
 | devsynth.core.mvu.* | disallow_untyped_defs=false, check_untyped_defs=false, ignore_missing_imports=true | TBD | [restore-strict-typing-core-mvu.md](restore-strict-typing-core-mvu.md) | 2025-10-01 | open |
 | devsynth.application.documentation.* | removed | TBD | [restore-strict-typing-application-documentation.md](restore-strict-typing-application-documentation.md) | 2025-10-01 | closed |
 | devsynth.domain.models.requirement | ignore_errors=true | TBD | [restore-strict-typing-domain-models-requirement.md](restore-strict-typing-domain-models-requirement.md) | 2025-10-01 | open |
@@ -34,5 +34,6 @@ Notes:
 - 2025-09-13: Attempted to remove the `devsynth.application.edrr.*` override, but `poetry run mypy src/devsynth/application/edrr`
   reported 430 errors; the ignore remains in place.
 - 2025-09-14: Removed the mypy override for `devsynth.exceptions` after adding type hints.
+- 2025-09-14: Removed the mypy override for `devsynth.feature_markers` after annotating marker functions.
 - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
 - 2025-09-16: Removed the mypy override for `devsynth.application.performance` after adding structured metrics types.
