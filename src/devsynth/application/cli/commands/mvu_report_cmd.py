@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import typer
 
@@ -12,11 +12,15 @@ from devsynth.core.mvu.report import generate_report
 if TYPE_CHECKING:  # pragma: no cover - type checking import
     from devsynth.interface.ux_bridge import UXBridge
 else:  # pragma: no cover - fallback for optional dependency
-    UXBridge = object  # type: ignore[misc,assignment]
+
+    class UXBridge:  # pragma: no cover
+        """Runtime stub used when :class:`UXBridge` isn't installed."""
+
+        pass
 
 
 def mvu_report_cmd(
-    since: Optional[str] = typer.Option(
+    since: str | None = typer.Option(
         None,
         "--since",
         help="Git revision to start scanning from (e.g. origin/main).",
@@ -26,13 +30,13 @@ def mvu_report_cmd(
         "--format",
         help="Output format: markdown or html.",
     ),
-    output: Optional[Path] = typer.Option(
+    output: Path | None = typer.Option(
         None,
         "--output",
         help="Destination file. Prints to stdout when omitted.",
     ),
     *,
-    bridge: Optional[UXBridge] = None,
+    bridge: UXBridge | None = None,
 ) -> None:
     """Generate a traceability matrix from MVU metadata in git history."""
 

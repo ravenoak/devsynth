@@ -14,7 +14,7 @@ Inventory (2025-09-13):
   - restore-strict-typing-application-edrr.md
   - restore-strict-typing-application-memory-adapters.md
   - restore-strict-typing-application-performance.md
-  - restore-strict-typing-cli.md
+  - ~~restore-strict-typing-cli.md~~
   - restore-strict-typing-core-mvu.md
   - restore-strict-typing-domain-models-requirement.md
   - restore-strict-typing-domain.md
@@ -32,3 +32,4 @@ Next Actions:
   - [x] Prioritize modules and schedule PRs by creating follow-up issues with owners and timelines.
 Resolution Evidence:
   - Inventory recorded 2025-09-13.
+  - 2025-09-14: `restore-strict-typing-cli.md` completed; removed remaining type ignore in `mvu_report_cmd` and verified `poetry run mypy src/devsynth/application/cli/commands/mvu_report_cmd.py`.

@@ -13,3 +13,5 @@ Status: closed
 
 Closed on 2025-09-14 after confirming `devsynth.cli` has fully annotated
 parameters and return types with no remaining `type: ignore` comments.
+2025-09-14: Removed residual `type: ignore` in `application.cli.commands.mvu_report_cmd`
+and re-verified with `poetry run mypy src/devsynth/application/cli/commands/mvu_report_cmd.py`.
