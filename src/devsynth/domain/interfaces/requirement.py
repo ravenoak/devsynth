@@ -2,12 +2,9 @@
 Domain interfaces for requirements management.
 """
 
-from typing import Dict, List, Optional
+from __future__ import annotations
+
 from uuid import UUID
-
-from devsynth.logging_setup import DevSynthLogger
-
-logger = DevSynthLogger(__name__)
 
 from devsynth.domain.models.requirement import (
     ChatMessage,
@@ -17,18 +14,21 @@ from devsynth.domain.models.requirement import (
     Requirement,
     RequirementChange,
 )
+from devsynth.logging_setup import DevSynthLogger
+
+logger = DevSynthLogger(__name__)
 
 
 class RequirementRepositoryInterface:
     """Simple in-memory requirement repository."""
 
     def __init__(self) -> None:
-        self.requirements: Dict[UUID, Requirement] = {}
+        self.requirements: dict[UUID, Requirement] = {}
 
-    def get_requirement(self, requirement_id: UUID) -> Optional[Requirement]:
+    def get_requirement(self, requirement_id: UUID) -> Requirement | None:
         return self.requirements.get(requirement_id)
 
-    def get_all_requirements(self) -> List[Requirement]:
+    def get_all_requirements(self) -> list[Requirement]:
         return list(self.requirements.values())
 
     def save_requirement(self, requirement: Requirement) -> Requirement:
@@ -41,10 +41,10 @@ class RequirementRepositoryInterface:
             return True
         return False
 
-    def get_requirements_by_status(self, status: str) -> List[Requirement]:
+    def get_requirements_by_status(self, status: str) -> list[Requirement]:
         return [r for r in self.requirements.values() if r.status.value == status]
 
-    def get_requirements_by_type(self, type_: str) -> List[Requirement]:
+    def get_requirements_by_type(self, type_: str) -> list[Requirement]:
         return [r for r in self.requirements.values() if r.type.value == type_]
 
 
@@ -52,14 +52,14 @@ class ChangeRepositoryInterface:
     """Simple in-memory repository for requirement changes."""
 
     def __init__(self) -> None:
-        self.changes: Dict[UUID, RequirementChange] = {}
+        self.changes: dict[UUID, RequirementChange] = {}
 
-    def get_change(self, change_id: UUID) -> Optional[RequirementChange]:
+    def get_change(self, change_id: UUID) -> RequirementChange | None:
         return self.changes.get(change_id)
 
     def get_changes_for_requirement(
         self, requirement_id: UUID
-    ) -> List[RequirementChange]:
+    ) -> list[RequirementChange]:
         return [c for c in self.changes.values() if c.requirement_id == requirement_id]
 
     def save_change(self, change: RequirementChange) -> RequirementChange:
@@ -77,15 +77,15 @@ class ImpactAssessmentRepositoryInterface:
     """Simple in-memory impact assessment repository."""
 
     def __init__(self) -> None:
-        self.assessments: Dict[UUID, ImpactAssessment] = {}
-        self.change_to_assessment: Dict[UUID, UUID] = {}
+        self.assessments: dict[UUID, ImpactAssessment] = {}
+        self.change_to_assessment: dict[UUID, UUID] = {}
 
-    def get_impact_assessment(self, assessment_id: UUID) -> Optional[ImpactAssessment]:
+    def get_impact_assessment(self, assessment_id: UUID) -> ImpactAssessment | None:
         return self.assessments.get(assessment_id)
 
     def get_impact_assessment_for_change(
         self, change_id: UUID
-    ) -> Optional[ImpactAssessment]:
+    ) -> ImpactAssessment | None:
         assessment_id = self.change_to_assessment.get(change_id)
         if assessment_id:
             return self.assessments.get(assessment_id)
@@ -102,15 +102,13 @@ class DialecticalReasoningRepositoryInterface:
     """Simple in-memory dialectical reasoning repository."""
 
     def __init__(self) -> None:
-        self.reasonings: Dict[UUID, DialecticalReasoning] = {}
-        self.change_to_reasoning: Dict[UUID, UUID] = {}
+        self.reasonings: dict[UUID, DialecticalReasoning] = {}
+        self.change_to_reasoning: dict[UUID, UUID] = {}
 
-    def get_reasoning(self, reasoning_id: UUID) -> Optional[DialecticalReasoning]:
+    def get_reasoning(self, reasoning_id: UUID) -> DialecticalReasoning | None:
         return self.reasonings.get(reasoning_id)
 
-    def get_reasoning_for_change(
-        self, change_id: UUID
-    ) -> Optional[DialecticalReasoning]:
+    def get_reasoning_for_change(self, change_id: UUID) -> DialecticalReasoning | None:
         reasoning_id = self.change_to_reasoning.get(change_id)
         if reasoning_id:
             return self.reasonings.get(reasoning_id)
@@ -127,14 +125,14 @@ class ChatRepositoryInterface:
     """Simple in-memory chat repository."""
 
     def __init__(self) -> None:
-        self.sessions: Dict[UUID, ChatSession] = {}
-        self.messages: Dict[UUID, ChatMessage] = {}
-        self.user_sessions: Dict[str, List[UUID]] = {}
+        self.sessions: dict[UUID, ChatSession] = {}
+        self.messages: dict[UUID, ChatMessage] = {}
+        self.user_sessions: dict[str, list[UUID]] = {}
 
-    def get_session(self, session_id: UUID) -> Optional[ChatSession]:
+    def get_session(self, session_id: UUID) -> ChatSession | None:
         return self.sessions.get(session_id)
 
-    def get_sessions_for_user(self, user_id: str) -> List[ChatSession]:
+    def get_sessions_for_user(self, user_id: str) -> list[ChatSession]:
         session_ids = self.user_sessions.get(user_id, [])
         return [self.sessions[sid] for sid in session_ids if sid in self.sessions]
 
@@ -149,7 +147,7 @@ class ChatRepositoryInterface:
         self.messages[message.id] = message
         return message
 
-    def get_messages_for_session(self, session_id: UUID) -> List[ChatMessage]:
+    def get_messages_for_session(self, session_id: UUID) -> list[ChatMessage]:
         return [m for m in self.messages.values() if m.session_id == session_id]
 
 
@@ -173,7 +171,7 @@ class DialecticalReasonerInterface:
         return ChatMessage(session_id=session_id, sender="system", content=message)
 
     def create_session(
-        self, user_id: str, change_id: Optional[UUID] = None
+        self, user_id: str, change_id: UUID | None = None
     ) -> ChatSession:
         return ChatSession(user_id=user_id, change_id=change_id)
 
@@ -262,7 +260,7 @@ class SimpleDialecticalReasoner(DialecticalReasonerInterface):
         return response
 
     def create_session(
-        self, user_id: str, change_id: Optional[UUID] = None
+        self, user_id: str, change_id: UUID | None = None
     ) -> ChatSession:
         session = ChatSession(user_id=user_id, change_id=change_id)
         self.chat_repo.save_session(session)

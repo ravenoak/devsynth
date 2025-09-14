@@ -1,11 +1,12 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class CLIInterface(ABC):
@@ -32,13 +33,13 @@ class CLIInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def run(self, target: Optional[str] = None) -> None:
+    def run(self, target: str | None = None) -> None:
         """Execute the generated code or a specific target."""
         raise NotImplementedError
 
     @abstractmethod
     def configure(
-        self, key: Optional[str] = None, value: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, key: str | None = None, value: str | None = None
+    ) -> dict[str, Any]:
         """View or set configuration options."""
         raise NotImplementedError

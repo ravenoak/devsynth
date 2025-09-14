@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
 from ...domain.models.memory import MemoryItem, MemoryVector
 
@@ -15,12 +15,12 @@ class MemoryStore(Protocol):
         ...
 
     @abstractmethod
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """Retrieve an item from memory by ID."""
         ...
 
     @abstractmethod
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(self, query: dict[str, Any]) -> list[MemoryItem]:
         """Search for items in memory matching the query."""
         ...
 
@@ -84,14 +84,14 @@ class VectorStore(Protocol):
         ...
 
     @abstractmethod
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """Retrieve a vector from the vector store by ID."""
         ...
 
     @abstractmethod
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: list[float], top_k: int = 5
+    ) -> list[MemoryVector]:
         """Search for vectors similar to the query embedding."""
         ...
 
@@ -101,7 +101,7 @@ class VectorStore(Protocol):
         ...
 
     @abstractmethod
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, Any]:
         """Get statistics about the vector store collection."""
         ...
 
@@ -115,12 +115,12 @@ class ContextManager(Protocol):
         ...
 
     @abstractmethod
-    def get_from_context(self, key: str) -> Optional[Any]:
+    def get_from_context(self, key: str) -> Any | None:
         """Get a value from the current context."""
         ...
 
     @abstractmethod
-    def get_full_context(self) -> Dict[str, Any]:
+    def get_full_context(self) -> dict[str, Any]:
         """Get the full current context."""
         ...
 
@@ -135,7 +135,7 @@ class VectorStoreProviderFactory(Protocol):
 
     @abstractmethod
     def create_provider(
-        self, provider_type: str, config: Dict[str, Any] | None = None
+        self, provider_type: str, config: dict[str, Any] | None = None
     ) -> VectorStore:
         """Create a VectorStore provider of the specified type."""
         ...
