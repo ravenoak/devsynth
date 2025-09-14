@@ -113,8 +113,9 @@ class WSDETeam:
     # ------------------------------------------------------------------
     def set_agent_opinion(self, agent: Any, option_id: str, opinion: str) -> None:
         """Record an agent's opinion on a decision option."""
-        agent_name = getattr(getattr(agent, "config", None), "name", None) or getattr(
-            agent, "name", "Agent"
+        agent_name: str = (
+            getattr(getattr(agent, "config", None), "name", None)
+            or getattr(agent, "name", "Agent")
         )
         self.agent_opinions.setdefault(agent_name, {})[option_id] = opinion
 
@@ -148,7 +149,7 @@ class WSDETeam:
             self.roles["primus"] = primus
         return primus
 
-    def get_agent_by_role(self, role: str):
+    def get_agent_by_role(self, role: str) -> Any | None:
         """Get an agent with the specified role."""
         if role.lower() == "primus":
             return self.get_primus()

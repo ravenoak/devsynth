@@ -251,7 +251,7 @@ class ChromaDBVectorAdapter(VectorStore):
         result: dict[str, Any] | None = self.collection.get(include=["embeddings"])
         count = len(result.get("ids", [])) if result else 0
         dimension = 0
-        if count > 0 and result.get("embeddings"):
+        if count > 0 and result and result.get("embeddings"):
             first = result["embeddings"][0]
             dimension = len(first) if not hasattr(first, "shape") else first.shape[0]
 

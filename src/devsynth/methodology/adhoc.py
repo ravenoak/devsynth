@@ -37,14 +37,15 @@ class AdHocAdapter(BaseMethodologyAdapter):
         self.adhoc_settings = self.config.get("settings", {})
 
         # Track completed phases and phase execution history
-        self.completed_phases = set()
-        self.phase_history = []
+        self.completed_phases: set[Phase] = set()
+        self.phase_history: list[dict[str, Any]] = []
 
         # Track if a cycle is currently in progress
-        self.cycle_in_progress = False
+        self.cycle_in_progress: bool = False
 
         # Optional callback for phase completion notification
-        self.completion_callback = self.adhoc_settings.get("completionCallback", None)
+        self.completion_callback: Any = self.adhoc_settings.get("completionCallback")
+        self.phase_results: dict[Phase, dict[str, Any]] = {}
 
     def should_start_cycle(self) -> bool:
         """Determine if a new cycle should begin.

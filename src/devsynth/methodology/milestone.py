@@ -27,11 +27,11 @@ class MilestoneAdapter(BaseMethodologyAdapter):
     def should_progress_to_next_phase(
         self, current_phase: Phase, context: Dict[str, Any], results: Dict[str, Any]
     ) -> bool:
-        if not results.get("phase_complete"):
+        if not bool(results.get("phase_complete")):
             return False
         key = f"after{current_phase.name.title()}"
         if self.approval_required.get(key, False):
-            return results.get("approved", False)
+            return bool(results.get("approved", False))
         return True
 
     def before_cycle(self) -> Dict[str, Any]:
@@ -40,7 +40,7 @@ class MilestoneAdapter(BaseMethodologyAdapter):
     def after_cycle(self, results: Dict[str, Any]) -> None:
         results["milestone_complete"] = True
 
-    def generate_reports(self, cycle_results: Dict[str, Any]):
+    def generate_reports(self, cycle_results: Dict[str, Any]) -> list[dict[str, Any]]:
         return [
             {
                 "title": "Milestone Compliance Report",

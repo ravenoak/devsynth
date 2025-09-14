@@ -11,8 +11,7 @@ from typing import Any, Dict, Optional
 from devsynth.application.sprint.retrospective import map_retrospective_to_summary
 from devsynth.domain.models.memory import MemoryType
 from devsynth.exceptions import ConsensusError
-from devsynth.logger import log_consensus_failure
-from devsynth.logging_setup import DevSynthLogger
+from devsynth.logger import DevSynthLogger, log_consensus_failure
 
 logger = DevSynthLogger(__name__)
 
