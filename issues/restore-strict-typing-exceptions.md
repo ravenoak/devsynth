@@ -6,10 +6,10 @@ Status: closed
 `devsynth.exceptions` used `ignore_errors=true` in `pyproject.toml`, bypassing type checks.
 
 ## Resolution
-- Added type hints for custom exception fields.
+- Added type hints for custom exception fields and annotated all constructors with `-> None`.
 - Removed the `ignore_errors` override from `pyproject.toml`.
-- `poetry run mypy src/devsynth/exceptions` reported no issues.
-- `poetry run devsynth run-tests --speed=fast` passed.
+- `poetry run mypy src/devsynth/exceptions.py` reported no issues.
+- `poetry run devsynth run-tests --speed=fast` produced no output in this environment.
 - Closed on 2025-09-14.
 
 ## Action Plan

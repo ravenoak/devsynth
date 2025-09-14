@@ -34,6 +34,7 @@ Notes:
 - 2025-09-13: Attempted to remove the `devsynth.application.edrr.*` override, but `poetry run mypy src/devsynth/application/edrr`
   reported 430 errors; the ignore remains in place.
 - 2025-09-14: Removed the mypy override for `devsynth.exceptions` after adding type hints.
+- 2025-09-14: Added `-> None` annotations for exception constructors and typed `__cause__` attributes.
 - 2025-09-14: Removed the mypy override for `devsynth.feature_markers` after annotating marker functions.
 - 2025-09-14: Removed the mypy override for `devsynth.adapters.requirements.*` after adding type hints.
 - 2025-09-15: Removed broad mypy override for `devsynth.domain.*`; current run reports 549 errors across 22 files.
