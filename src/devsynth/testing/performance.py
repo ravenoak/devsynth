@@ -78,4 +78,4 @@ def capture_scalability_metrics(
     return results
 
 
-__all__ = ["capture_baseline_metrics", "capture_scalability_metrics"]
+__all__: list[str] = ["capture_baseline_metrics", "capture_scalability_metrics"]

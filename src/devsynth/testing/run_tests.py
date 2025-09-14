@@ -21,7 +21,7 @@ from typing import Any, cast
 from devsynth.logging_setup import DevSynthLogger
 
 # Cache directory for test collection
-COLLECTION_CACHE_DIR = ".test_collection_cache"
+COLLECTION_CACHE_DIR: str = ".test_collection_cache"
 # TTL for collection cache in seconds (default: 3600); configurable via env var
 try:
     COLLECTION_CACHE_TTL_SECONDS: int = int(
@@ -78,7 +78,7 @@ def _failure_tips(returncode: int, cmd: Sequence[str]) -> str:
 
 
 # Mapping of CLI targets to test paths
-TARGET_PATHS = {
+TARGET_PATHS: dict[str, str] = {
     "unit-tests": "tests/unit/",
     "integration-tests": "tests/integration/",
     "behavior-tests": "tests/behavior/",

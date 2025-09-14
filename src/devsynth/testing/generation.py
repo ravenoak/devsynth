@@ -8,8 +8,8 @@ added.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable
 
 PLACEHOLDER_TEMPLATE = (
     '"""Scaffolded integration test for {name}.\n\n'
@@ -19,10 +19,10 @@ PLACEHOLDER_TEMPLATE = (
     "    assert 2 + 2 == 4\n"
 )
 
-__all__ = ["scaffold_integration_tests", "write_scaffolded_tests"]
+__all__: list[str] = ["scaffold_integration_tests", "write_scaffolded_tests"]
 
 
-def scaffold_integration_tests(names: Iterable[str]) -> Dict[str, str]:
+def scaffold_integration_tests(names: Iterable[str]) -> dict[str, str]:
     """Create placeholder integration test modules.
 
     Args:
@@ -31,7 +31,7 @@ def scaffold_integration_tests(names: Iterable[str]) -> Dict[str, str]:
     Returns:
         Mapping of filenames to placeholder test content.
     """
-    placeholders: Dict[str, str] = {}
+    placeholders: dict[str, str] = {}
     sanitized = list(names) or ["placeholder"]
     for raw in sanitized:
         name = raw.strip().lower().replace(" ", "_")
@@ -40,7 +40,7 @@ def scaffold_integration_tests(names: Iterable[str]) -> Dict[str, str]:
     return placeholders
 
 
-def write_scaffolded_tests(directory: Path, names: Iterable[str]) -> Dict[Path, str]:
+def write_scaffolded_tests(directory: Path, names: Iterable[str]) -> dict[Path, str]:
     """Write placeholder integration tests to ``directory``.
 
     This helper builds on :func:`scaffold_integration_tests` by emitting the
@@ -58,7 +58,7 @@ def write_scaffolded_tests(directory: Path, names: Iterable[str]) -> Dict[Path, 
 
     directory.mkdir(parents=True, exist_ok=True)
     generated = scaffold_integration_tests(names)
-    written: Dict[Path, str] = {}
+    written: dict[Path, str] = {}
     for filename, content in generated.items():
         path = directory / filename
         path.write_text(content)
