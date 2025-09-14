@@ -246,10 +246,6 @@ module = "devsynth.adapters.requirements.*"
 # High-churn requirements adapters
 ignore_errors = true
 
-[[tool.mypy.overrides]]
-module = "devsynth.testing.*"
-ignore_errors = true
-
 # Temporary relaxations to achieve green typing while we incrementally add annotations.
 # TODO: Restore strictness by 2025-10-15; prioritize modules cited in docs/plan.md Phase 4.
 [[tool.mypy.overrides]]

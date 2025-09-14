@@ -16,6 +16,7 @@ import sys
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
+from typing import Any, cast
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -34,7 +35,12 @@ except ValueError:
 def _failure_tips(returncode: int, cmd: Sequence[str]) -> str:
     """Return actionable tips for troubleshooting pytest failures.
 
-    This does not change behavior; it augments logs/output with guidance.
+    Args:
+        returncode: Exit code emitted by the ``pytest`` invocation.
+        cmd: Command executed to run tests.
+
+    Returns:
+        A newline-prefixed string containing suggested next steps.
     """
     joined = " ".join(cmd)
     tips = [
@@ -83,11 +89,14 @@ logger = DevSynthLogger(__name__)
 
 
 def _sanitize_node_ids(ids: list[str]) -> list[str]:
-    """Sanitize pytest selection IDs collected from --collect-only -q output.
+    """Normalize and deduplicate pytest selection IDs.
 
-    - Strip trailing ":<digits>" that can appear from certain plugins/formatters
-      when no function/class separator ("::") is present.
-    - Deduplicate while preserving order.
+    Args:
+        ids: Raw node identifiers collected from ``pytest --collect-only``.
+
+    Returns:
+        A list of unique node identifiers with redundant line-number suffixes
+        removed.
     """
     seen = set()
     out: list[str] = []
@@ -150,7 +159,7 @@ def collect_tests_with_cache(
     if os.path.exists(cache_file):
         try:
             with open(cache_file) as f:
-                cached_data = json.load(f)
+                cached_data: dict[str, Any] = json.load(f)
             cache_time = datetime.fromisoformat(cached_data["timestamp"])
             cached_fingerprint = cached_data.get("fingerprint", {})
             fingerprint_matches = (
@@ -170,7 +179,7 @@ def collect_tests_with_cache(
                     speed_category or "all",
                     COLLECTION_CACHE_TTL_SECONDS,
                 )
-                return cached_data["tests"]
+                return cast(list[str], cached_data["tests"])
         except (json.JSONDecodeError, KeyError, ValueError):
             # Fall through to regenerate
             pass
