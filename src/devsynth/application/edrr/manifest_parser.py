@@ -107,7 +107,7 @@ class ManifestParser:
         self.start_time = None
         logger.info("Manifest Parser initialized with enhanced traceability")
 
-    def parse_file(self, file_path: Union[str, Path]) -> Dict[str, Any]:
+    def parse_file(self, file_path: str | Path) -> dict[str, Any]:
         """
         Parse an EDRR manifest from a file.
 
@@ -125,7 +125,7 @@ class ManifestParser:
             if ".." in file_path.parts:
                 raise ManifestParseError("Invalid manifest path")
             file_path = file_path.expanduser().resolve()
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 manifest = json.load(f)
 
             # Validate the manifest
@@ -140,7 +140,7 @@ class ManifestParser:
             logger.error(f"Failed to parse EDRR manifest from file: {e}")
             raise ManifestParseError(f"Failed to parse EDRR manifest from file: {e}")
 
-    def parse_string(self, manifest_str: str) -> Dict[str, Any]:
+    def parse_string(self, manifest_str: str) -> dict[str, Any]:
         """
         Parse an EDRR manifest from a string.
 
@@ -168,7 +168,7 @@ class ManifestParser:
             logger.error(f"Failed to parse EDRR manifest from string: {e}")
             raise ManifestParseError(f"Failed to parse EDRR manifest from string: {e}")
 
-    def validate(self, manifest: Dict[str, Any]) -> None:
+    def validate(self, manifest: dict[str, Any]) -> None:
         """
         Validate an EDRR manifest against the schema.
 
@@ -208,7 +208,7 @@ class ManifestParser:
 
         return self.manifest["phases"][phase_key]["instructions"]
 
-    def get_phase_templates(self, phase: Phase) -> List[str]:
+    def get_phase_templates(self, phase: Phase) -> list[str]:
         """
         Get the templates for a specific phase from the manifest.
 
@@ -230,7 +230,7 @@ class ManifestParser:
 
         return self.manifest["phases"][phase_key].get("templates", [])
 
-    def get_phase_resources(self, phase: Phase) -> List[str]:
+    def get_phase_resources(self, phase: Phase) -> list[str]:
         """
         Get the resources for a specific phase from the manifest.
 
@@ -282,7 +282,7 @@ class ManifestParser:
 
         return self.manifest["description"]
 
-    def get_manifest_metadata(self) -> Dict[str, Any]:
+    def get_manifest_metadata(self) -> dict[str, Any]:
         """
         Get the metadata of the manifest.
 
@@ -400,7 +400,9 @@ class ManifestParser:
 
         logger.info(f"Started phase {phase.value}")
 
-    def complete_phase(self, phase: Phase, result: Dict[str, Any] = None) -> None:
+    def complete_phase(
+        self, phase: Phase, result: dict[str, Any] | None = None
+    ) -> None:
         """
         Complete tracking the execution of a phase.
 
@@ -462,7 +464,7 @@ class ManifestParser:
 
         logger.info(f"Completed phase {phase.value} in {duration:.2f} seconds")
 
-    def complete_execution(self) -> Dict[str, Any]:
+    def complete_execution(self) -> dict[str, Any]:
         """
         Complete tracking the execution of the EDRR process.
 
@@ -496,7 +498,7 @@ class ManifestParser:
         )
         return self.execution_trace
 
-    def get_execution_trace(self) -> Dict[str, Any]:
+    def get_execution_trace(self) -> dict[str, Any]:
         """
         Get the current execution trace.
 
@@ -511,7 +513,7 @@ class ManifestParser:
 
         return self.execution_trace
 
-    def get_phase_status(self, phase: Phase) -> Dict[str, Any]:
+    def get_phase_status(self, phase: Phase) -> dict[str, Any]:
         """
         Get the status of a phase.
 

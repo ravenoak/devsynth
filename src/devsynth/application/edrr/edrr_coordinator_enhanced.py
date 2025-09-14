@@ -48,10 +48,10 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         prompt_manager: PromptManager,
         documentation_manager: DocumentationManager,
         enable_enhanced_logging: bool = False,
-        parent_cycle_id: str = None,
+        parent_cycle_id: str | None = None,
         recursion_depth: int = 0,
-        parent_phase: Phase = None,
-        config: Optional[Dict[str, Any]] = None,
+        parent_phase: Phase | None = None,
+        config: dict[str, Any] | None = None,
     ):
         """
         Initialize the EnhancedEDRRCoordinator.
@@ -119,7 +119,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         self.phase_metrics.register_recovery_hook(phase, hook)
 
     def configure_phase_thresholds(
-        self, phase: Phase, thresholds: Dict[str, float]
+        self, phase: Phase, thresholds: dict[str, float]
     ) -> None:
         """Configure threshold overrides for ``phase``."""
         self.phase_metrics.configure_thresholds(phase, thresholds)
@@ -154,7 +154,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
                 f"Failed to progress to phase {phase.value}: {e}"
             )
 
-    def _enhanced_decide_next_phase(self) -> Optional[Phase]:
+    def _enhanced_decide_next_phase(self) -> Phase | None:
         """
         Determine if the coordinator should automatically move to the next phase.
 
@@ -285,7 +285,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         """
         return calculate_enhanced_quality_score(result)
 
-    def get_phase_metrics(self, phase: Optional[Phase] = None) -> Dict[str, Any]:
+    def get_phase_metrics(self, phase: Phase | None = None) -> dict[str, Any]:
         """
         Get the metrics for a specific phase or the current phase.
 
@@ -303,7 +303,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
 
         return self.phase_metrics.get_phase_metrics(phase)
 
-    def get_all_metrics(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_metrics(self) -> dict[str, dict[str, Any]]:
         """
         Get all metrics for all phases.
 
@@ -312,7 +312,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         """
         return self.phase_metrics.get_all_metrics()
 
-    def get_metrics_history(self) -> List[Dict[str, Any]]:
+    def get_metrics_history(self) -> list[dict[str, Any]]:
         """
         Get the history of phase transitions and metrics.
 
@@ -322,7 +322,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         return self.phase_metrics.get_history()
 
     def create_micro_cycle(
-        self, task: Dict[str, Any], parent_phase: Phase
+        self, task: dict[str, Any], parent_phase: Phase
     ) -> "EnhancedEDRRCoordinator":
         """
         Create a micro-EDRR cycle within the current phase.
@@ -386,7 +386,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         return micro_cycle
 
     def _get_llm_response(
-        self, prompt: str, system_prompt: Union[str, None] = None
+        self, prompt: str, system_prompt: str | None = None
     ) -> str:
         """Return an LLM completion for ``prompt`` using the provider system."""
         from devsynth.adapters.provider_system import complete
@@ -399,9 +399,9 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
 
     def _execute_peer_review(
         self,
-        work_product: Dict[str, Any],
+        work_product: dict[str, Any],
         phase: Phase,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute a peer review for the given work product in the current phase.
 
@@ -516,7 +516,9 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
             )
             return {"error": f"Peer review failed: {str(e)}"}
 
-    def execute_current_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def execute_current_phase(
+        self, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Execute the current phase of the EDRR cycle with integrated peer review.
 
@@ -629,11 +631,11 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
 
     def execute_single_agent_task(
         self,
-        task: Dict[str, Any],
+        task: dict[str, Any],
         agent_name: str,
         phase: Phase,
-        llm_prompt: Union[str, None] = None,
-    ) -> Dict[str, Any]:
+        llm_prompt: str | None = None,
+    ) -> dict[str, Any]:
         """Execute ``task`` with a specific agent and store results."""
 
         agent = self.wsde_team.get_agent(agent_name)

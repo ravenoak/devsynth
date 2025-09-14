@@ -13,7 +13,9 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from types import MethodType
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from collections.abc import Callable
 from unittest.mock import MagicMock
 
 import yaml
@@ -45,7 +47,7 @@ logger = DevSynthLogger(__name__)
 # Load default configuration for feature flags
 _DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "default.yml"
 try:
-    with open(_DEFAULT_CONFIG_PATH, "r") as f:
+    with open(_DEFAULT_CONFIG_PATH) as f:
         _DEFAULT_CONFIG = yaml.safe_load(f) or {}
 except Exception:
     _DEFAULT_CONFIG = {}
@@ -58,9 +60,9 @@ class EDRRCoordinatorError(DevSynthError):
         self,
         message: str,
         *,
-        phase: Optional[Phase] = None,
-        error_code: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        phase: Phase | None = None,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         """Create an error instance with optional phase context."""
         details = details or {}
@@ -143,7 +145,7 @@ class EDRRCoordinator:
             return default
         return value
 
-    def _get_phase_quality_threshold(self, phase: Phase) -> Optional[float]:
+    def _get_phase_quality_threshold(self, phase: Phase) -> float | None:
         """Fetch configured quality threshold for a phase."""
 
         thresholds = (
@@ -156,7 +158,7 @@ class EDRRCoordinator:
             return None
         return self._sanitize_threshold(value, 0.7)
 
-    def _get_micro_cycle_config(self) -> Tuple[int, float]:
+    def _get_micro_cycle_config(self) -> tuple[int, float]:
         """Return sanitized micro-cycle iteration count and quality threshold."""
 
         cfg = self.config.get("edrr", {}).get("micro_cycles", {})
@@ -173,10 +175,10 @@ class EDRRCoordinator:
         prompt_manager: PromptManager,
         documentation_manager: DocumentationManager,
         enable_enhanced_logging: bool = False,
-        parent_cycle_id: str = None,
+        parent_cycle_id: str | None = None,
         recursion_depth: int = 0,
-        parent_phase: Phase = None,
-        config: Optional[Dict[str, Any]] = None,
+        parent_phase: Phase | None = None,
+        config: dict[str, Any] | None = None,
     ):
         """
         Initialize the EDRR coordinator.
@@ -216,16 +218,16 @@ class EDRRCoordinator:
         self._enable_enhanced_logging = enable_enhanced_logging
         self._execution_traces = {} if enable_enhanced_logging else None
         self._execution_history = [] if enable_enhanced_logging else None
-        self.performance_metrics: Dict[str, Any] = {}
+        self.performance_metrics: dict[str, Any] = {}
         # Wrap WSDE team to capture consensus failures unless it's a mock
         if not isinstance(wsde_team, MagicMock):
             self.wsde_team = WSDETeamProxy(
                 wsde_team, logger, self.performance_metrics, lambda: self.cycle_id
             )
-        self.manual_next_phase: Optional[Phase] = None
-        self._preserved_context: Dict[str, Any] = {}
+        self.manual_next_phase: Phase | None = None
+        self._preserved_context: dict[str, Any] = {}
 
-        self._phase_start_times: Dict[Phase, datetime] = {}
+        self._phase_start_times: dict[Phase, datetime] = {}
 
         # Recursive EDRR attributes
         self.parent_cycle_id = parent_cycle_id
@@ -238,10 +240,10 @@ class EDRRCoordinator:
         )
 
         # Micro-cycle monitoring hooks
-        self._micro_cycle_hooks: Dict[str, List] = {"start": [], "end": []}
+        self._micro_cycle_hooks: dict[str, list] = {"start": [], "end": []}
 
         # Synchronization hooks invoked after memory flushes
-        self._sync_hooks: List[Callable[[Optional[Any]], None]] = []
+        self._sync_hooks: list[Callable[[Any | None], None]] = []
         if self.memory_manager is not None:
             try:
                 self.memory_manager.register_sync_hook(self._invoke_sync_hooks)
@@ -249,7 +251,7 @@ class EDRRCoordinator:
                 logger.debug("Could not register memory sync hook", exc_info=True)
 
         # Error recovery hooks keyed by phase name. "GLOBAL" applies to all phases.
-        self._recovery_hooks: Dict[str, List] = {"GLOBAL": []}
+        self._recovery_hooks: dict[str, list] = {"GLOBAL": []}
 
         self.manifest_parser = ManifestParser()
         self._manifest_parser = None
@@ -259,13 +261,13 @@ class EDRRCoordinator:
         self.cycle_id = None
         self.manifest = None
         # Loaded from memory when starting a cycle
-        self._historical_data: List[dict] = []
+        self._historical_data: list[dict] = []
 
         logger.info(
             f"EDRR coordinator initialized (recursion depth: {recursion_depth})"
         )
 
-    def set_manual_phase_override(self, phase: Optional[Phase]) -> None:
+    def set_manual_phase_override(self, phase: Phase | None) -> None:
         """Manually override the next phase transition."""
 
         self.manual_next_phase = phase
@@ -283,9 +285,9 @@ class EDRRCoordinator:
         event: str,
         phase: Phase,
         iteration: int,
-        cycle: Union["EDRRCoordinator", None] = None,
-        results: Union[Dict[str, Any], None] = None,
-        task: Union[Dict[str, Any], None] = None,
+        cycle: Optional["EDRRCoordinator"] = None,
+        results: dict[str, Any] | None = None,
+        task: dict[str, Any] | None = None,
     ) -> None:
         """Invoke registered micro-cycle hooks."""
 
@@ -309,12 +311,12 @@ class EDRRCoordinator:
                 logger.warning("Micro-cycle hook error: %s", exc)
 
     # ------------------------------------------------------------------
-    def register_sync_hook(self, hook: Callable[[Optional[Any]], None]) -> None:
+    def register_sync_hook(self, hook: Callable[[Any | None], None]) -> None:
         """Register a callback invoked after memory synchronization."""
 
         self._sync_hooks.append(hook)
 
-    def _invoke_sync_hooks(self, item: Optional[Any]) -> None:
+    def _invoke_sync_hooks(self, item: Any | None) -> None:
         """Invoke registered synchronization hooks with ``item``."""
 
         for hook in list(self._sync_hooks):
@@ -324,7 +326,7 @@ class EDRRCoordinator:
                 logger.debug(f"Sync hook failed: {exc}")
 
     # ------------------------------------------------------------------
-    def register_recovery_hook(self, phase: Optional[Phase], hook: Any) -> None:
+    def register_recovery_hook(self, phase: Phase | None, hook: Any) -> None:
         """Register an error recovery hook.
 
         Args:
@@ -335,13 +337,13 @@ class EDRRCoordinator:
         key = phase.name if phase else "GLOBAL"
         self._recovery_hooks.setdefault(key, []).append(hook)
 
-    def _execute_recovery_hooks(self, error: Exception, phase: Phase) -> Dict[str, Any]:
+    def _execute_recovery_hooks(self, error: Exception, phase: Phase) -> dict[str, Any]:
         """Execute registered recovery hooks for ``phase`` and global hooks."""
 
         hooks = self._recovery_hooks.get("GLOBAL", []) + self._recovery_hooks.get(
             phase.name, []
         )
-        info: Dict[str, Any] = {"recovered": False}
+        info: dict[str, Any] = {"recovered": False}
         for hook in hooks:
             try:
                 result = hook(error=error, phase=phase, coordinator=self)
@@ -362,10 +364,10 @@ class EDRRCoordinator:
     def _safe_store_with_edrr_phase(
         self,
         content: Any,
-        memory_type: Union[str, MemoryType],
+        memory_type: str | MemoryType,
         edrr_phase: str,
-        metadata: Dict[str, Any] = None,
-    ) -> Optional[str]:
+        metadata: dict[str, Any] | None = None,
+    ) -> str | None:
         """
         Safely store a memory item with an EDRR phase.
 
@@ -405,7 +407,7 @@ class EDRRCoordinator:
         self,
         item_type: str,
         edrr_phase: str,
-        metadata: Dict[str, Any] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> Any:
         """
         Safely retrieve an item stored with a specific EDRR phase.
@@ -453,10 +455,10 @@ class EDRRCoordinator:
 
     def apply_dialectical_reasoning(
         self,
-        task: Dict[str, Any],
+        task: dict[str, Any],
         critic_agent: Any,
-        memory_integration: Optional[Any] = None,
-    ) -> Dict[str, Any]:
+        memory_integration: Any | None = None,
+    ) -> dict[str, Any]:
         """Apply the dialectical reasoning loop and handle consensus failures."""
 
         logger.info("EDRRCoordinator invoking dialectical reasoning")
@@ -495,8 +497,8 @@ class EDRRCoordinator:
         return results[-1]
 
     def _execute_peer_review(
-        self, phase: Phase, work_product: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, phase: Phase, work_product: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Execute a basic peer review for the given ``work_product``."""
 
         if not hasattr(self.wsde_team, "request_peer_review"):
@@ -545,7 +547,7 @@ class EDRRCoordinator:
             metadata,
         )
 
-    def start_cycle(self, task: Dict[str, Any]) -> None:
+    def start_cycle(self, task: dict[str, Any]) -> None:
         """Start a new EDRR cycle with the given task.
 
         Args:
@@ -630,7 +632,7 @@ class EDRRCoordinator:
         )
 
     def start_cycle_from_manifest(
-        self, manifest_path_or_string: Union[str, Path], is_file: bool = True
+        self, manifest_path_or_string: str | Path, is_file: bool = True
     ) -> None:
         """
         Start a new EDRR cycle using a manifest.
@@ -891,7 +893,7 @@ class EDRRCoordinator:
         next_phase = phase_order[idx + 1]
         self.progress_to_phase(next_phase)
 
-    def _decide_next_phase(self) -> Optional[Phase]:
+    def _decide_next_phase(self) -> Phase | None:
         """Determine if the coordinator should automatically move to the next phase."""
         if self.manual_next_phase is not None:
             phase = self.manual_next_phase
@@ -954,7 +956,7 @@ class EDRRCoordinator:
             self.progress_to_phase(next_phase)
 
     def create_micro_cycle(
-        self, task: Dict[str, Any], parent_phase: Phase
+        self, task: dict[str, Any], parent_phase: Phase
     ) -> "EDRRCoordinator":
         """
         Create a micro-EDRR cycle within the current phase.
@@ -1015,21 +1017,22 @@ class EDRRCoordinator:
         # aggregated results as well so that the parent always has the latest
         # child data.
         original_aggregate = micro_cycle._aggregate_results
+        parent = self
 
-        def _aggregate_with_parent() -> None:  # type: ignore[override]
+        def _aggregate_with_parent(self: "EDRRCoordinator") -> None:
             original_aggregate()
             phase_key = parent_phase.name
-            if phase_key not in self.results:
-                self.results[phase_key] = {}
-            if "micro_cycle_results" not in self.results[phase_key]:
-                self.results[phase_key]["micro_cycle_results"] = {}
-            self.results[phase_key]["micro_cycle_results"][micro_cycle.cycle_id] = {
-                **micro_cycle.results,
+            if phase_key not in parent.results:
+                parent.results[phase_key] = {}
+            if "micro_cycle_results" not in parent.results[phase_key]:
+                parent.results[phase_key]["micro_cycle_results"] = {}
+            parent.results[phase_key]["micro_cycle_results"][self.cycle_id] = {
+                **self.results,
                 "task": task,
             }
-            self._aggregate_results()
+            parent._aggregate_results()
 
-        micro_cycle._aggregate_results = _aggregate_with_parent
+        micro_cycle._aggregate_results = MethodType(_aggregate_with_parent, micro_cycle)
 
         # Start the micro cycle with the given task or manifest
         if isinstance(task, dict) and "manifest" in task:
@@ -1083,7 +1086,7 @@ class EDRRCoordinator:
         )
         return micro_cycle
 
-    def should_terminate_recursion(self, task: Dict[str, Any]) -> Tuple[bool, str]:
+    def should_terminate_recursion(self, task: dict[str, Any]) -> tuple[bool, str]:
         """
         Determine whether recursion should be terminated based on delimiting principles.
 
@@ -1512,7 +1515,7 @@ class EDRRCoordinator:
         return False, None
 
     def _maybe_create_micro_cycles(
-        self, context: Dict[str, Any], parent_phase: Phase, results: Dict[str, Any]
+        self, context: dict[str, Any], parent_phase: Phase, results: dict[str, Any]
     ) -> None:
         """Create micro cycles for tasks provided in the context."""
         micro_tasks = context.get("micro_tasks", []) if context else []
@@ -1533,7 +1536,9 @@ class EDRRCoordinator:
                     "error": str(exc)
                 }
 
-    def _execute_expand_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def _execute_expand_phase(
+        self, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Execute the Expand phase of the EDRR cycle.
 
@@ -1551,7 +1556,7 @@ class EDRRCoordinator:
 
         logger.info(f"Executing Expand phase (recursion depth: {self.recursion_depth})")
 
-        results: Dict[str, Any] = {}
+        results: dict[str, Any] = {}
 
         expand_prompt = self.prompt_manager.render_prompt(
             "expand_phase", {"task_description": self.task.get("description", "")}
@@ -1619,8 +1624,8 @@ class EDRRCoordinator:
         return results
 
     def _execute_differentiate_phase(
-        self, context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Execute the Differentiate phase of the EDRR cycle.
 
@@ -1639,7 +1644,7 @@ class EDRRCoordinator:
         logger.info(
             f"Executing Differentiate phase (recursion depth: {self.recursion_depth})"
         )
-        results: Dict[str, Any] = {}
+        results: dict[str, Any] = {}
 
         diff_prompt = self.prompt_manager.render_prompt(
             "differentiate_phase",
@@ -1759,7 +1764,9 @@ class EDRRCoordinator:
         )
         return results
 
-    def _execute_refine_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def _execute_refine_phase(
+        self, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Execute the Refine phase of the EDRR cycle.
 
@@ -1776,7 +1783,7 @@ class EDRRCoordinator:
             context = {}
 
         logger.info(f"Executing Refine phase (recursion depth: {self.recursion_depth})")
-        results: Dict[str, Any] = {}
+        results: dict[str, Any] = {}
 
         refine_prompt = self.prompt_manager.render_prompt(
             "refine_phase", {"task_description": self.task.get("description", "")}
@@ -1921,8 +1928,8 @@ class EDRRCoordinator:
         return results
 
     def _execute_retrospect_phase(
-        self, context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Execute the Retrospect phase of the EDRR cycle.
 
@@ -1941,7 +1948,7 @@ class EDRRCoordinator:
         logger.info(
             f"Executing Retrospect phase (recursion depth: {self.recursion_depth})"
         )
-        results: Dict[str, Any] = {}
+        results: dict[str, Any] = {}
 
         retro_prompt = self.prompt_manager.render_prompt(
             "retrospect_phase", {"task_description": self.task.get("description", "")}
@@ -2099,7 +2106,7 @@ class EDRRCoordinator:
         )
         return results
 
-    def generate_final_report(self, cycle_data: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_final_report(self, cycle_data: dict[str, Any]) -> dict[str, Any]:
         """
         Generate a final report for the EDRR cycle.
 
@@ -2220,10 +2227,10 @@ class EDRRCoordinator:
         )
         return report
 
-    def _extract_key_insights(self, expand_results: Dict[str, Any]) -> List[str]:
+    def _extract_key_insights(self, expand_results: dict[str, Any]) -> list[str]:
         """Extract key insights from expand phase results."""
 
-        insights: List[str] = []
+        insights: list[str] = []
 
         ideas = expand_results.get("ideas", [])
         if ideas:
@@ -2244,8 +2251,8 @@ class EDRRCoordinator:
         return insights
 
     def _summarize_implementation(
-        self, implementation_plan: Union[List[Dict[str, Any]], Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, implementation_plan: list[dict[str, Any]] | dict[str, Any]
+    ) -> dict[str, Any]:
         """Summarize the implementation plan."""
 
         if isinstance(implementation_plan, dict):
@@ -2256,7 +2263,7 @@ class EDRRCoordinator:
             steps_data = []
 
         steps = len(steps_data)
-        components: Set[str] = set()
+        components: set[str] = set()
         for step in steps_data:
             if isinstance(step, dict):
                 component = step.get("component")
@@ -2277,8 +2284,8 @@ class EDRRCoordinator:
         }
 
     def _summarize_quality_checks(
-        self, quality_checks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, quality_checks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Summarize quality checks."""
 
         issues = quality_checks.get("issues", [])
@@ -2291,7 +2298,7 @@ class EDRRCoordinator:
             "areas_of_concern": sorted(a for a in areas if a),
         }
 
-    def _extract_key_learnings(self, learnings: List[Dict[str, Any]]) -> List[str]:
+    def _extract_key_learnings(self, learnings: list[dict[str, Any]]) -> list[str]:
         """Extract key learnings."""
 
         if not learnings:
@@ -2306,7 +2313,7 @@ class EDRRCoordinator:
 
         return summaries
 
-    def _generate_next_steps(self, cycle_data: Dict[str, Any]) -> List[str]:
+    def _generate_next_steps(self, cycle_data: dict[str, Any]) -> list[str]:
         """Generate recommended next steps."""
 
         steps = []
@@ -2327,8 +2334,8 @@ class EDRRCoordinator:
         return steps
 
     def _extract_future_considerations(
-        self, retrospect_results: Dict[str, Any]
-    ) -> List[str]:
+        self, retrospect_results: dict[str, Any]
+    ) -> list[str]:
         """Extract future considerations."""
 
         considerations = []
@@ -2343,7 +2350,9 @@ class EDRRCoordinator:
 
         return considerations
 
-    def execute_current_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def execute_current_phase(
+        self, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Execute the current phase of the EDRR cycle.
 
@@ -2479,7 +2488,7 @@ class EDRRCoordinator:
                 f"Failed to execute phase {self.current_phase.value}: {e}"
             )
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate a high level report for the entire cycle."""
         phase_data = {phase.name: self.results.get(phase.name, {}) for phase in Phase}
         final_report = self.generate_final_report(
@@ -2504,15 +2513,15 @@ class EDRRCoordinator:
 
         return report
 
-    def get_execution_traces(self) -> Dict[str, Any]:
+    def get_execution_traces(self) -> dict[str, Any]:
         """Return collected execution traces."""
         return copy.deepcopy(self._execution_traces) if self._execution_traces else {}
 
-    def get_execution_history(self) -> List[Dict[str, Any]]:
+    def get_execution_history(self) -> list[dict[str, Any]]:
         """Return chronological execution history events."""
         return list(self._execution_history) if self._execution_history else []
 
-    def get_performance_metrics(self) -> Dict[str, Any]:
+    def get_performance_metrics(self) -> dict[str, Any]:
         """Return simple performance metrics for each phase."""
         return copy.deepcopy(self.performance_metrics)
 
@@ -2600,12 +2609,12 @@ class EDRRCoordinator:
 
     def _process_phase_results(
         self,
-        phase_results: Dict[str, Any],
+        phase_results: dict[str, Any],
         phase: Phase,
         merge_similar: bool = True,
         prioritize_by_quality: bool = True,
         handle_conflicts: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Process results from a specific phase, applying advanced aggregation techniques.
 
@@ -2757,11 +2766,11 @@ class EDRRCoordinator:
 
     def _merge_cycle_results(
         self,
-        cycles: List["EDRRCoordinator"],
+        cycles: list["EDRRCoordinator"],
         merge_similar: bool = True,
         prioritize_by_quality: bool = True,
         handle_conflicts: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Merge results from multiple cycles.
 
@@ -2970,7 +2979,7 @@ class EDRRCoordinator:
             # For other types, use the string representation
             return str(result)
 
-    def _merge_similar_results(self, results: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    def _merge_similar_results(self, results: list[tuple[str, Any]]) -> dict[str, Any]:
         """
         Merge similar results.
 
@@ -3023,8 +3032,8 @@ class EDRRCoordinator:
         return merged
 
     def _merge_dicts(
-        self, dict1: Dict[str, Any], dict2: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, dict1: dict[str, Any], dict2: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Merge two dictionaries recursively.
 
@@ -3050,7 +3059,7 @@ class EDRRCoordinator:
 
         return result
 
-    def _merge_lists(self, list1: List[Any], list2: List[Any]) -> List[Any]:
+    def _merge_lists(self, list1: list[Any], list2: list[Any]) -> list[Any]:
         """
         Merge two lists, removing duplicates.
 
@@ -3159,8 +3168,8 @@ class EDRRCoordinator:
         return max(0.0, min(1.0, score))
 
     def _identify_conflicts(
-        self, results: Dict[str, Any]
-    ) -> Dict[str, List[Tuple[str, Any]]]:
+        self, results: dict[str, Any]
+    ) -> dict[str, list[tuple[str, Any]]]:
         """
         Identify conflicts between results.
 
@@ -3230,8 +3239,8 @@ class EDRRCoordinator:
         return conflicts
 
     def _resolve_conflict(
-        self, conflicting_results: List[Tuple[str, List[Tuple[str, Any]]]]
-    ) -> Tuple[Dict[str, Any], str]:
+        self, conflicting_results: list[tuple[str, list[tuple[str, Any]]]]
+    ) -> tuple[dict[str, Any], str]:
         """
         Resolve conflicts between results.
 
@@ -3407,7 +3416,7 @@ class EDRRCoordinator:
 
         return resolved, explanation
 
-    def _calculate_recursion_metrics(self) -> Dict[str, Any]:
+    def _calculate_recursion_metrics(self) -> dict[str, Any]:
         """
         Calculate metrics for recursion effectiveness.
 
@@ -3481,7 +3490,7 @@ class EDRRCoordinator:
         """Return current timestamp in ISO format."""
         return datetime.now().isoformat()
 
-    def _create_micro_cycle_task(self, phase: Phase, iteration: int) -> Dict[str, Any]:
+    def _create_micro_cycle_task(self, phase: Phase, iteration: int) -> dict[str, Any]:
         """Create a simple micro-cycle task structure."""
         return {
             "id": f"{self.cycle_id}_micro_{iteration}",
@@ -3490,8 +3499,8 @@ class EDRRCoordinator:
         }
 
     def _aggregate_micro_cycle_results(
-        self, phase: Phase, iteration: int, results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, phase: Phase, iteration: int, results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Aggregate micro-cycle results and store them for analysis."""
         phase_key = phase.name
         phase_data = self.results.setdefault(phase_key, {})
@@ -3508,7 +3517,7 @@ class EDRRCoordinator:
         phase_data["aggregated_results"] = aggregated
         return copy.deepcopy(phase_data)
 
-    def _execute_micro_cycle(self, phase: Phase, iteration: int) -> Dict[str, Any]:
+    def _execute_micro_cycle(self, phase: Phase, iteration: int) -> dict[str, Any]:
         """Execute a single micro-cycle using the WSDE team."""
         task = self._create_micro_cycle_task(phase, iteration)
 
@@ -3564,7 +3573,7 @@ class EDRRCoordinator:
 
         return wsde_results
 
-    def _assess_result_quality(self, results: Dict[str, Any]) -> float:
+    def _assess_result_quality(self, results: dict[str, Any]) -> float:
         """Simple heuristic quality score for results."""
         if not results:
             return 0.0
@@ -3577,7 +3586,7 @@ class EDRRCoordinator:
                 )
         return min(1.0, len(str(results)) / 1000)
 
-    def _assess_phase_quality(self, phase: Union[Phase, None] = None) -> Dict[str, Any]:
+    def _assess_phase_quality(self, phase: Phase | None = None) -> dict[str, Any]:
         """Assess stored results for a phase."""
         phase = phase or self.current_phase
         if phase is None:
@@ -3596,7 +3605,7 @@ class EDRRCoordinator:
         return str(current) == str(previous)
 
     def _should_continue_micro_cycles(
-        self, phase: Phase, iteration: int, results: Dict[str, Any]
+        self, phase: Phase, iteration: int, results: dict[str, Any]
     ) -> bool:
         """Determine whether additional micro-cycles are required."""
         max_it, threshold = self._get_micro_cycle_config()
@@ -3606,8 +3615,8 @@ class EDRRCoordinator:
         return quality < threshold
 
     def _execute_phase(
-        self, phase: Phase, context: Union[Dict[str, Any], None] = None
-    ) -> Dict[str, Any]:
+        self, phase: Phase, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Execute a phase dispatcher used by error recovery."""
         context = context or {}
         executors = {
@@ -3621,7 +3630,7 @@ class EDRRCoordinator:
             raise EDRRCoordinatorError(f"No executor for phase {phase}")
         return executor(context)
 
-    def _attempt_recovery(self, error: Exception, phase: Phase) -> Dict[str, Any]:
+    def _attempt_recovery(self, error: Exception, phase: Phase) -> dict[str, Any]:
         """Attempt a simple recovery strategy after errors."""
         logger.warning("Attempting recovery from %s in phase %s", error, phase)
 
@@ -3641,8 +3650,8 @@ class EDRRCoordinator:
             return info
 
     def _run_micro_cycles(
-        self, phase: Phase, base_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, phase: Phase, base_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Run iterative micro-cycles for a phase until quality thresholds are met."""
         results = base_results
         iteration = 0

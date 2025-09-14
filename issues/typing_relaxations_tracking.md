@@ -23,7 +23,7 @@ How to use this document:
 | devsynth.methodology.sprint | removed | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | closed |
 | devsynth.logger | removed | TBD | [restore-strict-typing-logger.md](restore-strict-typing-logger.md) | 2025-10-01 | closed |
 | devsynth.methodology.* | removed | TBD | [restore-strict-typing-methodology.md](restore-strict-typing-methodology.md) | 2025-10-01 | closed |
-| devsynth.application.edrr.* | ignore_errors=true | TBD | [restore-strict-typing-application-edrr.md](restore-strict-typing-application-edrr.md) | 2025-10-01 | open |
+| devsynth.application.edrr.* | removed | TBD | [restore-strict-typing-application-edrr.md](restore-strict-typing-application-edrr.md) | 2025-10-01 | closed |
 
 Notes:
 - This table is seeded automatically from pyproject.toml relaxations as of 2025-09-02. Keep it updated as overrides are narrowed or removed.
@@ -33,6 +33,7 @@ Notes:
 - 2025-09-13: Removed the mypy override for `devsynth.adapters.*` after restoring type coverage.
 - 2025-09-13: Attempted to remove the `devsynth.application.edrr.*` override, but `poetry run mypy src/devsynth/application/edrr`
   reported 430 errors; the ignore remains in place.
+- 2025-09-14: Removed the mypy override for `devsynth.application.edrr.*` after annotating EDRR modules.
 - 2025-09-14: Removed the mypy override for `devsynth.exceptions` after adding type hints.
 - 2025-09-14: Added `-> None` annotations for exception constructors and typed `__cause__` attributes.
 - 2025-09-14: Removed the mypy override for `devsynth.feature_markers` after annotating marker functions.

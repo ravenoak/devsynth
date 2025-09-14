@@ -299,10 +299,6 @@ ignore_errors = true
 module = "devsynth.config.*"
 ignore_errors = true
 
-[[tool.mypy.overrides]]
-module = "devsynth.application.edrr.*"
-ignore_errors = true
-
 # Broad temporary relaxation for application layer to unblock typing gate while we add annotations iteratively.
 # TODO: Narrow and remove by 2025-10-15; track in docs/plan.md Phase 4.
 [[tool.mypy.overrides]]
