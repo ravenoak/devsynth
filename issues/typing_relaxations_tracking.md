@@ -21,7 +21,7 @@ How to use this document:
 | devsynth.exceptions | removed | TBD | [restore-strict-typing-exceptions.md](restore-strict-typing-exceptions.md) | 2025-10-01 | closed |
 | devsynth.testing.* | ignore_errors=true | TBD | [restore-strict-typing-testing.md](restore-strict-typing-testing.md) | 2025-10-01 | open |
 | devsynth.methodology.sprint | ignore_errors=true | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | open |
-| devsynth.logger | ignore_errors=true | TBD | [restore-strict-typing-logger.md](restore-strict-typing-logger.md) | 2025-10-01 | open |
+| devsynth.logger | removed | TBD | [restore-strict-typing-logger.md](restore-strict-typing-logger.md) | 2025-10-01 | closed |
 | devsynth.methodology.* | ignore_errors=true | TBD | [restore-strict-typing-methodology.md](restore-strict-typing-methodology.md) | 2025-10-01 | open |
 | devsynth.application.edrr.* | ignore_errors=true | TBD | [restore-strict-typing-application-edrr.md](restore-strict-typing-application-edrr.md) | 2025-10-01 | open |
 
