@@ -253,11 +253,6 @@ module = "devsynth.domain.models.requirement"
 # UUID/None typing fixes pending
 ignore_errors = true
 
-[[tool.mypy.overrides]]
-module = "devsynth.application.performance"
-# __init__ typing cleanups pending
-ignore_errors = true
-
 # Additional temporary relaxations added by Task 6.3 (Iteration 2025-08-31).
 # TODO: Restore strictness by 2025-10-01.
 [[tool.mypy.overrides]]
