@@ -58,10 +58,10 @@ class EDRRCoordinatorCore:
         prompt_manager: PromptManager,
         documentation_manager: DocumentationManager,
         enable_enhanced_logging: bool = False,
-        parent_cycle_id: str = None,
+        parent_cycle_id: str | None = None,
         recursion_depth: int = 0,
-        parent_phase: Phase = None,
-        config: Optional[Dict[str, Any]] = None,
+        parent_phase: Phase | None = None,
+        config: dict[str, Any] | None = None,
     ):
         """
         Initialize the EDRR Coordinator.
@@ -100,7 +100,7 @@ class EDRRCoordinatorCore:
         self.current_phase = None
         self.task = None
         self.phase_results = {}
-        self.child_cycles: List["EDRRCoordinatorCore"] = []
+        self.child_cycles: list["EDRRCoordinatorCore"] = []
         self.max_recursion_depth = (
             self.config.get("edrr", {})
             .get("recursion", {})
@@ -124,7 +124,7 @@ class EDRRCoordinatorCore:
                 f"  Parent phase: {parent_phase.name if parent_phase else None}"
             )
 
-    def start_cycle(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def start_cycle(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Start a new EDRR cycle with the given task.
 
@@ -185,8 +185,8 @@ class EDRRCoordinatorCore:
         return report
 
     def start_cycle_from_manifest(
-        self, manifest_path_or_string: Union[str, Path], is_file: bool = True
-    ) -> Dict[str, Any]:
+        self, manifest_path_or_string: str | Path, is_file: bool = True
+    ) -> dict[str, Any]:
         """
         Start a new EDRR cycle from a manifest file or string.
 
@@ -231,7 +231,7 @@ class EDRRCoordinatorCore:
             self.logger.error(error_msg)
             raise ManifestParseError(error_msg) from e
 
-    def progress_to_phase(self, phase: Phase) -> Dict[str, Any]:
+    def progress_to_phase(self, phase: Phase) -> dict[str, Any]:
         """
         Progress to the specified phase.
 
@@ -321,7 +321,7 @@ class EDRRCoordinatorCore:
 
         return results
 
-    def progress_to_next_phase(self) -> Optional[Dict[str, Any]]:
+    def progress_to_next_phase(self) -> dict[str, Any] | None:
         """
         Progress to the next phase in the EDRR cycle.
 
@@ -347,7 +347,7 @@ class EDRRCoordinatorCore:
         # Progress to next phase
         return self.progress_to_phase(next_phase)
 
-    def _decide_next_phase(self) -> Optional[Phase]:
+    def _decide_next_phase(self) -> Phase | None:
         """
         Decide the next phase based on the current phase.
 
@@ -392,7 +392,7 @@ class EDRRCoordinatorCore:
                 break
 
     def create_micro_cycle(
-        self, task: Dict[str, Any], parent_phase: Phase
+        self, task: dict[str, Any], parent_phase: Phase
     ) -> "EDRRCoordinatorCore":
         """Create a nested EDRRCoordinatorCore for recursion."""
         if self.recursion_depth >= self.max_recursion_depth:
@@ -420,7 +420,7 @@ class EDRRCoordinatorCore:
         self.child_cycles.append(micro_cycle)
         return micro_cycle
 
-    def should_terminate_recursion(self, task: Dict[str, Any]) -> Tuple[bool, str]:
+    def should_terminate_recursion(self, task: dict[str, Any]) -> tuple[bool, str]:
         """Simple heuristics to decide if recursion should stop."""
         thresholds = (
             self.config.get("edrr", {}).get("recursion", {}).get("thresholds", {})
@@ -435,7 +435,9 @@ class EDRRCoordinatorCore:
 
         return False, ""
 
-    def execute_current_phase(self, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def execute_current_phase(
+        self, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Execute the current phase.
 
@@ -469,7 +471,7 @@ class EDRRCoordinatorCore:
             self.logger.error(error_msg)
             raise EDRRCoordinatorError(error_msg)
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """
         Generate a report for the current cycle.
 
@@ -491,7 +493,7 @@ class EDRRCoordinatorCore:
         # Generate report
         return self.generate_final_report(cycle_data)
 
-    def get_execution_traces(self) -> List[Dict[str, Any]]:
+    def get_execution_traces(self) -> list[dict[str, Any]]:
         """
         Get the execution traces for the current cycle.
 
@@ -500,7 +502,7 @@ class EDRRCoordinatorCore:
         """
         return self.execution_traces
 
-    def get_execution_history(self) -> List[Dict[str, Any]]:
+    def get_execution_history(self) -> list[dict[str, Any]]:
         """
         Get the execution history for the current cycle.
 
@@ -509,7 +511,7 @@ class EDRRCoordinatorCore:
         """
         return self.execution_history
 
-    def get_performance_metrics(self) -> Dict[str, Any]:
+    def get_performance_metrics(self) -> dict[str, Any]:
         """
         Get the performance metrics for the current cycle.
 
@@ -518,7 +520,7 @@ class EDRRCoordinatorCore:
         """
         return self.performance_metrics
 
-    def _execute_expand_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_expand_phase(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the EXPAND phase.
 
@@ -532,7 +534,7 @@ class EDRRCoordinatorCore:
         # Implementation would go here
         return {"phase": "expand", "status": "completed"}
 
-    def _execute_differentiate_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_differentiate_phase(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the DIFFERENTIATE phase.
 
@@ -546,7 +548,7 @@ class EDRRCoordinatorCore:
         # Implementation would go here
         return {"phase": "differentiate", "status": "completed"}
 
-    def _execute_refine_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_refine_phase(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the REFINE phase.
 
@@ -560,7 +562,7 @@ class EDRRCoordinatorCore:
         # Implementation would go here
         return {"phase": "refine", "status": "completed"}
 
-    def _execute_retrospect_phase(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_retrospect_phase(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the RETROSPECT phase.
 
@@ -574,7 +576,7 @@ class EDRRCoordinatorCore:
         # Implementation would go here
         return {"phase": "retrospect", "status": "completed"}
 
-    def _aggregate_results(self) -> Dict[str, Any]:
+    def _aggregate_results(self) -> dict[str, Any]:
         """
         Aggregate results from all phases.
 
@@ -585,7 +587,7 @@ class EDRRCoordinatorCore:
         # Implementation would go here
         return {"status": "completed", "phases": self.phase_results}
 
-    def generate_final_report(self, cycle_data: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_final_report(self, cycle_data: dict[str, Any]) -> dict[str, Any]:
         """
         Generate a final report for the cycle.
 
