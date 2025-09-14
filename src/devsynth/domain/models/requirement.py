@@ -5,7 +5,7 @@ Domain models for requirements management.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import Any
 from uuid import UUID, uuid4
 
 
@@ -63,7 +63,7 @@ class Requirement:
     tags: list[str] = field(default_factory=list)
     metadata: dict[str, str] = field(default_factory=dict)
 
-    def update(self, **kwargs) -> None:
+    def update(self, **kwargs: Any) -> None:
         """
         Update requirement attributes.
 
@@ -119,7 +119,7 @@ class ImpactAssessment:
     """
 
     id: UUID = field(default_factory=uuid4)
-    change_id: UUID = None
+    change_id: UUID | None = None
     affected_requirements: list[UUID] = field(default_factory=list)
     affected_components: list[str] = field(default_factory=list)
     risk_level: str = "low"
@@ -140,7 +140,7 @@ class DialecticalReasoning:
     """
 
     id: UUID = field(default_factory=uuid4)
-    change_id: UUID = None
+    change_id: UUID | None = None
     thesis: str = ""
     antithesis: str = ""
     synthesis: str = ""
@@ -162,7 +162,7 @@ class ChatMessage:
     """
 
     id: UUID = field(default_factory=uuid4)
-    session_id: UUID = None
+    session_id: UUID | None = None
     sender: str = ""
     content: str = ""
     timestamp: datetime = field(default_factory=datetime.now)
