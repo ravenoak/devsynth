@@ -56,13 +56,13 @@ def inspect_code_cmd(
         )
 
         # Determine the path to inspect
-        path_obj = Path(path).resolve() if path is not None else Path.cwd()
+        path_obj: Path = Path(path).resolve() if path is not None else Path.cwd()
         if not path_obj.exists():
             path_obj.mkdir(parents=True, exist_ok=True)
 
-        console.print(
-            f"[bold]Inspecting codebase at:[/bold] {sanitize_output(str(path_obj))}"
-        )
+        safe_path = sanitize_output(str(path_obj))
+        console.print(f"[bold]Inspecting codebase at:[/bold] {safe_path}")
+        bridge.display_result(f"Inspecting codebase at: {safe_path}")
 
         # Create a progress panel
         analysis_failed = False
@@ -263,8 +263,12 @@ def inspect_code_cmd(
                 console.print(f"- {sanitize_output(str(recommendation))}")
 
         if not analysis_failed:
-            console.print("\n[green]Inspection completed successfully![/green]")
+            success_msg = "Inspection completed successfully!"
+            console.print(f"\n[green]{success_msg}[/green]")
+            bridge.display_result(success_msg, message_type="success")
 
     except Exception as e:
         logger.error(f"Error analyzing codebase: {str(e)}")
-        console.print(f"[red]Error analyzing codebase: {sanitize_output(str(e))}[/red]")
+        error_msg = sanitize_output(str(e))
+        console.print(f"[red]Error analyzing codebase: {error_msg}[/red]")
+        bridge.handle_error(error_msg)
