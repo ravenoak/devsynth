@@ -111,7 +111,7 @@ def configure_logging(
         return
 
     if isinstance(log_level, str):
-        level = getattr(logging, log_level.upper(), logging.INFO)
+        level: int = getattr(logging, log_level.upper(), logging.INFO)
     else:
         env_level = os.getenv("DEVSYNTH_LOG_LEVEL", "INFO").upper()
         level = (
@@ -120,12 +120,12 @@ def configure_logging(
             else getattr(logging, env_level, logging.INFO)
         )
 
-    root = logging.getLogger()
+    root: logging.Logger = logging.getLogger()
     root.setLevel(level)
 
-    formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
+    formatter: logging.Formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
 
-    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler: logging.Handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     root.addHandler(console_handler)
 
@@ -136,7 +136,7 @@ def configure_logging(
     }
     if not no_file_logging:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        file_handler = RotatingFileHandler(
+        file_handler: RotatingFileHandler = RotatingFileHandler(
             LOG_FILE, maxBytes=max_bytes, backupCount=backup_count
         )
         file_handler.setFormatter(JSONFormatter())

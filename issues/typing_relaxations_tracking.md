@@ -21,7 +21,6 @@ How to use this document:
 | devsynth.exceptions | removed | TBD | [restore-strict-typing-exceptions.md](restore-strict-typing-exceptions.md) | 2025-10-01 | closed |
 | devsynth.testing.* | removed | TBD | [restore-strict-typing-testing.md](restore-strict-typing-testing.md) | 2025-10-01 | closed |
 | devsynth.methodology.sprint | removed | TBD | [restore-strict-typing-methodology-sprint.md](restore-strict-typing-methodology-sprint.md) | 2025-10-01 | closed |
-| devsynth.logger | removed | TBD | [restore-strict-typing-logger.md](restore-strict-typing-logger.md) | 2025-10-01 | closed |
 | devsynth.methodology.* | removed | TBD | [restore-strict-typing-methodology.md](restore-strict-typing-methodology.md) | 2025-10-01 | closed |
 | devsynth.application.edrr.* | ignore_errors=true | TBD | [restore-strict-typing-application-edrr.md](restore-strict-typing-application-edrr.md) | 2025-10-01 | open |
 
@@ -44,3 +43,4 @@ Notes:
 - 2025-09-14: Removed the mypy overrides for `devsynth.methodology.*` and `devsynth.methodology.sprint` after enforcing strict typing.
 - 2025-09-14: Removed the mypy override for `devsynth.testing.*` after clarifying helper contracts.
 - 2025-09-14: Verified `devsynth.cli` uses strict typing with no remaining `type: ignore` comments.
+- 2025-09-14: Confirmed `devsynth.logger` uses strict typing; removed tracking entry.
