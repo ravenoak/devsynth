@@ -2,21 +2,27 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List
 
 
 def _run_workload(workload: int) -> None:
-    """Execute a simple CPU-bound workload for benchmarking."""
+    """Execute a simple CPU-bound workload for benchmarking.
+
+    Args:
+        workload: Number of iterations to perform.
+
+    This helper intentionally discards its intermediate results; it merely
+    performs arithmetic to consume CPU cycles.
+    """
     total = 0
     for i in range(workload):
         total += i * i
-    return total
 
 
 def capture_baseline_metrics(
     workload: int, output_path: Path | None = None
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Capture baseline metrics for a given workload.
 
     Args:
@@ -30,7 +36,7 @@ def capture_baseline_metrics(
     _run_workload(workload)
     duration = time.perf_counter() - start
     throughput = workload / duration if duration else 0.0
-    metrics = {
+    metrics: dict[str, float] = {
         "workload": workload,
         "duration_seconds": duration,
         "throughput_ops_per_s": throughput,
@@ -43,7 +49,7 @@ def capture_baseline_metrics(
 
 def capture_scalability_metrics(
     workloads: Iterable[int], output_path: Path | None = None
-) -> List[Dict[str, float]]:
+) -> list[dict[str, float]]:
     """Capture scalability metrics across multiple workloads.
 
     Args:
@@ -53,7 +59,7 @@ def capture_scalability_metrics(
     Returns:
         List of metrics dictionaries for each workload.
     """
-    results = []
+    results: list[dict[str, float]] = []
     for workload in workloads:
         start = time.perf_counter()
         _run_workload(workload)
