@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, List
 
 from .api import iter_mvuu_commits
 from .models import MVUU
@@ -17,7 +17,7 @@ class TraceRecord:
     mvuu: MVUU
 
 
-def scan_history(since: str | None = None) -> List[TraceRecord]:
+def scan_history(since: str | None = None) -> list[TraceRecord]:
     """Return MVU records starting from ``since`` until ``HEAD``.
 
     Args:
@@ -70,14 +70,21 @@ def _html_table(records: Iterable[TraceRecord]) -> str:
     lines = [
         "<table>",
         "  <thead>",
-        "    <tr><th>TraceID</th><th>Utility Statement</th><th>Affected Files</th><th>Tests</th><th>Issue</th><th>Commit</th></tr>",
+        (
+            "    <tr><th>TraceID</th><th>Utility Statement</th>"
+            "<th>Affected Files</th><th>Tests</th>"
+            "<th>Issue</th><th>Commit</th></tr>"
+        ),
         "  </thead>",
         "  <tbody>",
     ]
     for rec in records:
         mvuu = rec.mvuu
         lines.append(
-            "    <tr><td>{tid}</td><td>{util}</td><td>{files}</td><td>{tests}</td><td>{issue}</td><td>{commit}</td></tr>".format(
+            (
+                "    <tr><td>{tid}</td><td>{util}</td><td>{files}</td>"
+                "<td>{tests}</td><td>{issue}</td><td>{commit}</td></tr>"
+            ).format(
                 tid=mvuu.TraceID,
                 util=mvuu.utility_statement,
                 files=", ".join(mvuu.affected_files),

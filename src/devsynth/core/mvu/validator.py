@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Iterable, List
+from collections.abc import Iterable
+from typing import Any
 
 import jsonschema
 
@@ -16,7 +17,7 @@ CONVENTIONAL_RE = re.compile(
 )
 
 
-def validate_data(data: MVUU | Dict[str, Any]) -> MVUU:
+def validate_data(data: MVUU | dict[str, Any]) -> MVUU:
     """Validate MVUU data against the JSON schema."""
     if isinstance(data, MVUU):
         payload = data.as_dict()
@@ -35,11 +36,11 @@ def validate_commit_message(message: str) -> MVUU:
     return validate_data(mvuu)
 
 
-def validate_affected_files(mvuu: MVUU, changed_files: Iterable[str]) -> List[str]:
+def validate_affected_files(mvuu: MVUU, changed_files: Iterable[str]) -> list[str]:
     """Return discrepancies between MVUU affected files and actual changes."""
     affected = set(mvuu.affected_files)
     changed = set(changed_files)
-    errors: List[str] = []
+    errors: list[str] = []
     if affected != changed:
         missing = changed - affected
         extra = affected - changed

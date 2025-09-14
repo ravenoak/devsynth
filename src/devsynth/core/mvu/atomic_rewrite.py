@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import importlib
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Dict, List, Sequence
-
-from git import Commit, Repo
+from typing import Any
 
 
-def cluster_commits_by_file(commits: Sequence[Commit]) -> Dict[str, List[Commit]]:
+def cluster_commits_by_file(commits: Sequence[Any]) -> dict[str, list[Any]]:
     """Group commits by the files they modify.
 
     Parameters
@@ -18,18 +18,18 @@ def cluster_commits_by_file(commits: Sequence[Commit]) -> Dict[str, List[Commit]
 
     Returns
     -------
-    Dict[str, List[Commit]]
+    dict[str, list[Any]]
         Mapping of file paths to commits that touched them.
     """
 
-    clusters: Dict[str, List[Commit]] = {}
+    clusters: dict[str, list[Any]] = {}
     for commit in commits:
         for path in commit.stats.files:
-            clusters.setdefault(path, []).append(commit)
+            clusters.setdefault(str(path), []).append(commit)
     return clusters
 
 
-def rewrite_history(target_path: Path, branch_name: str, dry_run: bool = False) -> Repo:
+def rewrite_history(target_path: Path, branch_name: str, dry_run: bool = False) -> Any:
     """Create a new branch with the current history.
 
     Parameters
@@ -47,7 +47,8 @@ def rewrite_history(target_path: Path, branch_name: str, dry_run: bool = False) 
         The repository instance representing ``target_path``.
     """
 
-    repo = Repo(str(target_path))
+    git = importlib.import_module("git")
+    repo = git.Repo(str(target_path))
     if dry_run:
         return repo
     repo.git.branch(branch_name, "HEAD")

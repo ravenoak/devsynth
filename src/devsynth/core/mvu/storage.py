@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import subprocess
-from typing import Optional
 
 from .models import MVUU
 from .parser import parse_commit_message
@@ -22,7 +21,7 @@ def read_commit_message(commit: str) -> str:
     )
 
 
-def read_mvuu_from_commit(commit: str) -> Optional[MVUU]:
+def read_mvuu_from_commit(commit: str) -> MVUU | None:
     """Return MVUU metadata embedded in a commit message."""
     try:
         message = read_commit_message(commit)
@@ -39,7 +38,7 @@ def append_mvuu_footer(message: str, mvuu: MVUU) -> str:
     return message + "\n" + footer + "\n"
 
 
-def read_note(commit: str) -> Optional[MVUU]:
+def read_note(commit: str) -> MVUU | None:
     """Read MVUU metadata from a git note if present."""
     try:
         note = subprocess.check_output(

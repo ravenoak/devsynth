@@ -27,7 +27,7 @@ repos:
     rev: v1.17.1
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests]
+        additional_dependencies: [types-requests, types-PyYAML, types-jsonschema]
         files: ^src/
         args: ["--config-file", "pyproject.toml"]
   - repo: https://github.com/asottile/pyupgrade
