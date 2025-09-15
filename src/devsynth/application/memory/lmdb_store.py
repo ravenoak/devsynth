@@ -8,6 +8,9 @@ and retrieve memory items with transaction support.
 import json
 import os
 import uuid
+from contextlib import contextmanager
+from datetime import datetime
+from typing import Any, ContextManager
 
 import tiktoken
 
@@ -15,17 +18,10 @@ try:  # pragma: no cover - optional dependency
     import lmdb  # type: ignore[import]
 except Exception:  # pragma: no cover - graceful fallback
     lmdb = None  # type: ignore[assignment]
-from contextlib import contextmanager
-from datetime import datetime
-from typing import Any, ContextManager, Dict, List, Optional, Union
 
-from devsynth.exceptions import (
-    DevSynthError,
-    MemoryError,
-    MemoryItemNotFoundError,
-    MemoryStoreError,
-)
+from devsynth.exceptions import MemoryStoreError
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.security.audit import audit_event
 from devsynth.security.encryption import decrypt_bytes, encrypt_bytes
 
 from ...domain.interfaces.memory import MemoryStore
@@ -33,7 +29,6 @@ from ...domain.models.memory import MemoryItem, MemoryType
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
-from devsynth.security.audit import audit_event
 
 
 class LMDBStore(MemoryStore):
@@ -50,7 +45,7 @@ class LMDBStore(MemoryStore):
         map_size: int = 10485760,
         *,
         encryption_enabled: bool = False,
-        encryption_key: Union[str, None] = None,
+        encryption_key: str | None = None,
     ):
         """
         Initialize a LMDBStore.
@@ -61,7 +56,8 @@ class LMDBStore(MemoryStore):
         """
         if lmdb is None:
             raise ImportError(
-                "LMDBStore requires the 'lmdb' package. Install it with 'pip install lmdb' or use the dev extras."
+                "LMDBStore requires the 'lmdb' package. Install it with "
+                "'pip install lmdb' or use the dev extras."
             )
 
         self.base_path = base_path
@@ -90,9 +86,11 @@ class LMDBStore(MemoryStore):
         # Initialize the tokenizer for token counting
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
-        except Exception as e:
+        except Exception as exc:
             logger.warning(
-                f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
+                "Failed to initialize tokenizer: %s. "
+                "Token counting will be approximate.",
+                exc,
             )
             self.tokenizer = None
 
@@ -100,7 +98,7 @@ class LMDBStore(MemoryStore):
         # rollback even when the context manager form isn't used. Each entry
         # maps a transaction identifier to the underlying LMDB transaction
         # object.
-        self._transactions: Dict[str, lmdb.Transaction] = {}
+        self._transactions: dict[str, lmdb.Transaction] = {}
 
     def close(self):
         """Close the LMDB environment."""
@@ -157,6 +155,11 @@ class LMDBStore(MemoryStore):
         except Exception as exc:
             logger.error(f"LMDB rollback failed for {transaction_id}: {exc}")
             raise
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return ``True`` if an explicit transaction is still active."""
+
+        return transaction_id in self._transactions
 
     def _count_tokens(self, text: str) -> int:
         """
@@ -275,19 +278,17 @@ class LMDBStore(MemoryStore):
         if item.metadata:
             for key, value in item.metadata.items():
                 # Create a composite key for metadata: key:value:id
-                metadata_key = f"metadata:{key}:{value}:{item.id}".encode("utf-8")
+                metadata_key = f"metadata:{key}:{value}:{item.id}".encode()
                 txn.put(metadata_key, b"1", db=self.metadata_db)
 
         # Store memory_type for searching
         if item.memory_type:
-            memory_type_key = f"memory_type:{item.memory_type.value}:{item.id}".encode(
-                "utf-8"
-            )
+            memory_type_key = f"memory_type:{item.memory_type.value}:{item.id}".encode()
             txn.put(memory_type_key, b"1", db=self.metadata_db)
 
         # Store content for searching
         if item.content:
-            content_key = f"content:{item.id}".encode("utf-8")
+            content_key = f"content:{item.id}".encode()
             content_bytes = item.content.encode("utf-8")
             if self.encryption_enabled:
                 content_bytes = self._encrypt(content_bytes)
@@ -329,7 +330,7 @@ class LMDBStore(MemoryStore):
             logger.error(f"Failed to store item in LMDB: {e}")
             raise MemoryStoreError(f"Failed to store item: {e}")
 
-    def retrieve_in_transaction(self, txn, item_id: str) -> Optional[MemoryItem]:
+    def retrieve_in_transaction(self, txn, item_id: str) -> MemoryItem | None:
         """
         Retrieve an item from memory within a transaction by ID.
 
@@ -353,7 +354,7 @@ class LMDBStore(MemoryStore):
 
         return item
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """
         Retrieve an item from memory by ID.
 
@@ -398,7 +399,7 @@ class LMDBStore(MemoryStore):
             logger.error(f"Error retrieving item from LMDB: {e}")
             raise MemoryStoreError(f"Error retrieving item: {e}")
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(self, query: dict[str, Any]) -> list[MemoryItem]:
         """
         Search for items in memory matching the query.
 
@@ -424,7 +425,7 @@ class LMDBStore(MemoryStore):
 
                     if key == "memory_type" and isinstance(value, MemoryType):
                         # Search by memory_type
-                        prefix = f"memory_type:{value.value}:".encode("utf-8")
+                        prefix = f"memory_type:{value.value}:".encode()
                         cursor = txn.cursor(db=self.metadata_db)
                         if cursor.set_range(prefix):
                             while cursor.key().startswith(prefix):
@@ -453,7 +454,7 @@ class LMDBStore(MemoryStore):
                         field = key.split(".", 1)[1]
 
                         # Search by metadata field
-                        prefix = f"metadata:{field}:{value}:".encode("utf-8")
+                        prefix = f"metadata:{field}:{value}:".encode()
                         cursor = txn.cursor(db=self.metadata_db)
                         if cursor.set_range(prefix):
                             while cursor.key().startswith(prefix):
@@ -520,22 +521,18 @@ class LMDBStore(MemoryStore):
                 # Delete metadata entries
                 if item.metadata:
                     for key, value in item.metadata.items():
-                        metadata_key = f"metadata:{key}:{value}:{item_id}".encode(
-                            "utf-8"
-                        )
+                        metadata_key = f"metadata:{key}:{value}:{item_id}".encode()
                         txn.delete(metadata_key, db=self.metadata_db)
 
                 # Delete memory_type entry
                 if item.memory_type:
                     memory_type_key = (
-                        f"memory_type:{item.memory_type.value}:{item_id}".encode(
-                            "utf-8"
-                        )
+                        f"memory_type:{item.memory_type.value}:{item_id}".encode()
                     )
                     txn.delete(memory_type_key, db=self.metadata_db)
 
                 # Delete content entry
-                content_key = f"content:{item_id}".encode("utf-8")
+                content_key = f"content:{item_id}".encode()
                 txn.delete(content_key, db=self.metadata_db)
 
                 # Delete the item itself
@@ -563,10 +560,10 @@ class LMDBStore(MemoryStore):
         """
         return self.token_count
 
-    def get_all_items(self) -> List[MemoryItem]:
+    def get_all_items(self) -> list[MemoryItem]:
         """Return all stored :class:`MemoryItem` objects."""
 
-        items: List[MemoryItem] = []
+        items: list[MemoryItem] = []
         try:
             with self.begin_transaction(write=False) as txn:
                 cursor = txn.cursor(db=self.items_db)

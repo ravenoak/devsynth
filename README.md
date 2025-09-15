@@ -68,6 +68,9 @@ Optional resources (opt-in)
 - Install an extra and export the flag to enable gated tests/resources, e.g. TinyDB:
   - poetry add tinydb --group dev
   - export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
+- Enable LMDB-backed memory tests and tooling:
+  - poetry install --extras retrieval
+  - export DEVSYNTH_RESOURCE_LMDB_AVAILABLE=1
 - Common flags: DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE, DEVSYNTH_RESOURCE_CLI_AVAILABLE, DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
 - Note: The run-tests CLI defaults to a stub provider and offline mode in tests unless overridden.
 - See also: [Resources Matrix](docs/resources_matrix.md) for mapping extras to DEVSYNTH_RESOURCE_* flags and enablement examples.

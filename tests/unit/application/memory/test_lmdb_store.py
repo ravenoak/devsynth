@@ -1,19 +1,16 @@
-import json
 import os
 import shutil
 import uuid
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
 
 import pytest
 
+from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytest.importorskip("lmdb")
 if os.environ.get("DEVSYNTH_RESOURCE_LMDB_AVAILABLE", "true").lower() == "false":
     pytest.skip("LMDB resource not available", allow_module_level=True)
-from devsynth.application.memory.lmdb_store import LMDBStore
-from devsynth.exceptions import MemoryStoreError
 
 pytestmark = pytest.mark.requires_resource("lmdb")
 
@@ -109,10 +106,10 @@ class TestLMDBStore:
             store.store(item)
         results = store.search({"memory_type": MemoryType.SHORT_TERM})
         assert len(results) == 2
-        assert all((item.memory_type == MemoryType.SHORT_TERM for item in results))
+        assert all(item.memory_type == MemoryType.SHORT_TERM for item in results)
         results = store.search({"metadata.tag": "test"})
         assert len(results) == 2
-        assert all((item.metadata.get("tag") == "test" for item in results))
+        assert all(item.metadata.get("tag") == "test" for item in results)
         results = store.search({"content": "Content 2"})
         assert len(results) == 1
         assert results[0].content == "Content 2"
@@ -259,3 +256,100 @@ class TestLMDBStore:
             pass
         assert store.retrieve(item2_id) is None
         assert store.retrieve(item1_id).content == "Outside transaction"
+
+    @pytest.mark.fast
+    def test_begin_transaction_tracks_and_cleans_up(self, store):
+        """Ensure explicit transactions are tracked and removed on failure.
+
+        ReqID: N/A"""
+
+        transaction_id = str(uuid.uuid4())
+
+        with pytest.raises(RuntimeError):
+            with store.begin_transaction(transaction_id=transaction_id):
+                assert store.is_transaction_active(transaction_id)
+                raise RuntimeError("abort for cleanup check")
+
+        assert not store.is_transaction_active(transaction_id)
+
+    @pytest.mark.fast
+    def test_commit_transaction_persists_explicit_changes(self, store):
+        """Explicit commits should persist data and clear tracking state.
+
+        ReqID: N/A"""
+
+        transaction_id = str(uuid.uuid4())
+        txn = store.env.begin(write=True)
+        store._transactions[transaction_id] = txn
+
+        item = MemoryItem(
+            id="",
+            content="Explicit commit",
+            memory_type=MemoryType.SHORT_TERM,
+            metadata={"scope": "commit"},
+            created_at=datetime.now(),
+        )
+        item_id = store.store_in_transaction(txn, item)
+
+        assert store.is_transaction_active(transaction_id)
+        store.commit_transaction(transaction_id)
+
+        assert not store.is_transaction_active(transaction_id)
+        retrieved = store.retrieve(item_id)
+        assert retrieved is not None
+        assert retrieved.content == "Explicit commit"
+
+    @pytest.mark.fast
+    def test_rollback_transaction_discards_explicit_changes(self, store):
+        """Explicit rollbacks should discard data and clear tracking state.
+
+        ReqID: N/A"""
+
+        transaction_id = str(uuid.uuid4())
+        txn = store.env.begin(write=True)
+        store._transactions[transaction_id] = txn
+
+        item = MemoryItem(
+            id="",
+            content="Explicit rollback",
+            memory_type=MemoryType.SHORT_TERM,
+            metadata={"scope": "rollback"},
+            created_at=datetime.now(),
+        )
+        item_id = store.store_in_transaction(txn, item)
+
+        assert store.is_transaction_active(transaction_id)
+        store.rollback_transaction(transaction_id)
+
+        assert not store.is_transaction_active(transaction_id)
+        assert store.retrieve(item_id) is None
+
+    @pytest.mark.fast
+    def test_get_all_items_returns_everything(self, store):
+        """get_all_items should surface each stored item exactly once.
+
+        ReqID: N/A"""
+
+        items = [
+            MemoryItem(
+                id="",
+                content="First",
+                memory_type=MemoryType.SHORT_TERM,
+                metadata={"order": 1},
+                created_at=datetime.now(),
+            ),
+            MemoryItem(
+                id="",
+                content="Second",
+                memory_type=MemoryType.LONG_TERM,
+                metadata={"order": 2},
+                created_at=datetime.now(),
+            ),
+        ]
+
+        stored_ids = {store.store(item) for item in items}
+
+        retrieved_items = store.get_all_items()
+
+        assert {item.id for item in retrieved_items} == stored_ids
+        assert {item.content for item in retrieved_items} == {"First", "Second"}
