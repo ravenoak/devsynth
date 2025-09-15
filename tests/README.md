@@ -115,6 +115,13 @@ To run optional backends locally, install extras and set resource flags explicit
   poetry run devsynth run-tests --speed=fast -m "not requires_resource('openai')"
   ```
 
+- ChromaDB memory store tests:
+
+  ```bash
+  poetry install --extras chromadb
+  export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=1
+  ```
+
 ### Section 7 helper tasks (sanity, inventory, and marker discipline)
 
 For quick evidence collection and parity with docs/plan.md §7 and docs/tasks.md acceptance artifacts, use the provided Taskfile targets. These commands are smoke-friendly and offline-first by default.
