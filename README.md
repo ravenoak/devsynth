@@ -468,6 +468,7 @@ Offline-first defaults and provider behavior
 - To opt into live provider tests locally, install the appropriate extras and set:
   - For OpenAI: export DEVSYNTH_OFFLINE=false; export DEVSYNTH_PROVIDER=openai; export OPENAI_API_KEY=...; optionally set OPENAI_MODEL/OPENAI_EMBEDDINGS_MODEL.
   - For LM Studio: export DEVSYNTH_OFFLINE=false; export DEVSYNTH_PROVIDER=lmstudio; export LM_STUDIO_ENDPOINT=http://127.0.0.1:1234; export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true.
+  - For Kuzu-backed stores: export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true after installing `poetry install --extras retrieval` (or the `memory` extra) to pull in the `kuzu` dependency. Kuzu-specific tests live under `tests/integration/memory/` and are marked `@pytest.mark.requires_resource("kuzu")`.
 - Resource-gated tests (`@pytest.mark.requires_resource(...)`) are skipped unless the corresponding `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true` flag is set.
 
 Coverage aggregation guidance
