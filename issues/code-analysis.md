@@ -21,3 +21,4 @@ Code Analysis is not yet implemented, limiting DevSynth's capabilities.
 - Specification: docs/specifications/code-analysis.md
 - BDD Feature: tests/behavior/features/code_analysis.feature
 - Proof: see 'What proofs confirm the solution?' in [docs/specifications/code-analysis.md](../docs/specifications/code-analysis.md) and scenarios in [tests/behavior/features/code_analysis.feature](../tests/behavior/features/code_analysis.feature).
+- Invariants: docs/implementation/code_analysis_invariants.md
