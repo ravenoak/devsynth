@@ -5,10 +5,9 @@ This module contains tests for the SelfAnalyzer class, which analyzes
 the codebase itself, including its architecture, code quality, and test coverage.
 """
 
-import os
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -81,26 +80,51 @@ def project_dir_fixture():
             "class User:\n    def __init__(self, name):\n        self.name = name"
         )
         (project_dir / "src" / "domain" / "services" / "user_service.py").write_text(
-            "from src.domain.models.user import User\nfrom src.adapters.repositories.user_repository import UserRepository\n\nclass UserService:\n    def __init__(self, repository):\n        self.repository = repository\n\n    def get_user(self, user_id):\n        return self.repository.find_by_id(user_id)"
+            "from src.domain.models.user import User\n"
+            "from src.adapters.repositories.user_repository import "
+            "UserRepository\n\n"
+            "class UserService:\n"
+            "    def __init__(self, repository):\n"
+            "        self.repository = repository\n\n"
+            "    def get_user(self, user_id):\n"
+            "        return self.repository.find_by_id(user_id)"
         )
         (
             project_dir / "src" / "application" / "controllers" / "user_controller.py"
         ).write_text(
-            "from src.domain.services.user_service import UserService\n\nclass UserController:\n    def __init__(self, service):\n        self.service = service\n\n    def get_user(self, user_id):\n        return self.service.get_user(user_id)"
+            "from src.domain.services.user_service import UserService\n\n"
+            "class UserController:\n"
+            "    def __init__(self, service):\n"
+            "        self.service = service\n\n"
+            "    def get_user(self, user_id):\n"
+            "        return self.service.get_user(user_id)"
         )
         (
             project_dir / "src" / "adapters" / "repositories" / "user_repository.py"
         ).write_text(
-            "from src.domain.models.user import User\n\nclass UserRepository:\n    def find_by_id(self, user_id):\n        return User('Test')"
+            "from src.domain.models.user import User\n\n"
+            "class UserRepository:\n"
+            "    def find_by_id(self, user_id):\n"
+            "        return User('Test')"
         )
         (project_dir / "src" / "adapters" / "api" / "user_api.py").write_text(
-            "from src.application.controllers.user_controller import UserController\n\ndef get_user_endpoint(user_id):\n    controller = UserController(None)\n    return controller.get_user(user_id)"
+            "from src.application.controllers.user_controller import "
+            "UserController\n\n"
+            "def get_user_endpoint(user_id):\n"
+            "    controller = UserController(None)\n"
+            "    return controller.get_user(user_id)"
         )
         (project_dir / "tests" / "unit" / "test_user.py").write_text(
-            "def user_creation_test():\n    from src.domain.models.user import User\n    user = User('Test')\n    assert user.name == 'Test'"
+            "def user_creation_test():\n"
+            "    from src.domain.models.user import User\n"
+            "    user = User('Test')\n"
+            "    assert user.name == 'Test'"
         )
         (project_dir / "tests" / "integration" / "test_user_api.py").write_text(
-            "def get_user_endpoint_test():\n    from src.adapters.api.user_api import get_user_endpoint\n    user = get_user_endpoint(1)\n    assert user.name == 'Test'"
+            "def get_user_endpoint_test():\n"
+            "    from src.adapters.api.user_api import get_user_endpoint\n"
+            "    user = get_user_endpoint(1)\n"
+            "    assert user.name == 'Test'"
         )
         yield str(project_dir)
 
@@ -167,6 +191,18 @@ class TestSelfAnalyzer:
         assert 0 <= confidence <= 1
 
     @pytest.mark.fast
+    def test_detect_architecture_type_unknown(self):
+        """Return Unknown when no patterns match.
+
+        ReqID: N/A"""
+        analyzer = SelfAnalyzer()
+        empty_analysis = MagicMock(spec=CodeAnalysis)
+        empty_analysis.get_files.return_value = {}
+        arch, confidence = analyzer._detect_architecture_type(empty_analysis)
+        assert arch == "Unknown"
+        assert confidence == 0.1
+
+    @pytest.mark.fast
     def test_identify_layers_succeeds(self, mock_code_analysis):
         """Test the _identify_layers method.
 
@@ -175,7 +211,7 @@ class TestSelfAnalyzer:
         layers = analyzer._identify_layers(mock_code_analysis)
         assert len(layers) > 0
         assert isinstance(layers, dict)
-        assert any((isinstance(components, list) for components in layers.values()))
+        assert any(isinstance(components, list) for components in layers.values())
 
     @pytest.mark.fast
     def test_analyze_layer_dependencies_succeeds(self, mock_code_analysis):
@@ -199,7 +235,7 @@ class TestSelfAnalyzer:
         assert "domain" in dependencies
         assert "application" in dependencies
         assert "adapters" in dependencies
-        assert all((isinstance(deps, set) for deps in dependencies.values()))
+        assert all(isinstance(deps, set) for deps in dependencies.values())
 
     @pytest.mark.fast
     def test_check_architecture_violations_succeeds(self):
@@ -271,7 +307,10 @@ class TestSelfAnalyzer:
                 {
                     "source_layer": "domain",
                     "target_layer": "adapters",
-                    "description": "Layer 'domain' should not depend on layer 'adapters' in Hexagonal architecture",
+                    "description": (
+                        "Layer 'domain' should not depend on layer 'adapters' in "
+                        "Hexagonal architecture"
+                    ),
                 }
             ],
         }
@@ -293,6 +332,6 @@ class TestSelfAnalyzer:
             test_coverage_insights,
         )
         assert len(opportunities) > 0
-        assert any((opp["type"] == "architecture_violation" for opp in opportunities))
-        assert any((opp["type"] == "low_docstring_coverage" for opp in opportunities))
-        assert any((opp["type"] == "low_test_coverage" for opp in opportunities))
+        assert any(opp["type"] == "architecture_violation" for opp in opportunities)
+        assert any(opp["type"] == "low_docstring_coverage" for opp in opportunities)
+        assert any(opp["type"] == "low_test_coverage" for opp in opportunities)

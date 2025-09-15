@@ -1,7 +1,12 @@
-import pytest
+"""Unit tests for the AST transformer.
 
-"\nUnit tests for the AST transformer.\n\nThis module contains tests for the AstTransformer class, which provides\nutilities for transforming Python code using AST manipulation.\n"
+This module contains tests for the AstTransformer class, which provides
+utilities for transforming Python code using AST manipulation.
+"""
+
 import unittest
+
+import pytest
 
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 
@@ -14,7 +19,19 @@ class TestAstTransformer(unittest.TestCase):
     def setUp(self):
         """Set up the test environment."""
         self.transformer = AstTransformer()
-        self.sample_code = '\ndef calculate_sum(a, b):\n    result = a + b\n    return result\n\ndef main():\n    x = 5\n    y = 10\n    total = calculate_sum(x, y)\n    print(f"The sum is {total}")\n\n    # Some additional code\n    for i in range(3):\n        print(f"Iteration {i}")\n'
+        self.sample_code = (
+            "\ndef calculate_sum(a, b):\n"
+            "    result = a + b\n"
+            "    return result\n\n"
+            "def main():\n"
+            "    x = 5\n"
+            "    y = 10\n"
+            "    total = calculate_sum(x, y)\n"
+            '    print(f"The sum is {total}")\n\n'
+            "    # Some additional code\n"
+            "    for i in range(3):\n"
+            '        print(f"Iteration {i}")\n'
+        )
 
     @pytest.mark.fast
     def test_rename_function_succeeds(self):
@@ -46,7 +63,10 @@ class TestAstTransformer(unittest.TestCase):
         match = re.search(pattern, new_code)
         self.assertIsNone(
             match,
-            f"Found 'result = a + b' as a standalone identifier in the code: {new_code}",
+            (
+                "Found 'result = a + b' as a standalone identifier in the code: "
+                f"{new_code}"
+            ),
         )
 
     @pytest.mark.fast
@@ -59,6 +79,16 @@ class TestAstTransformer(unittest.TestCase):
         self.assertIn("def calculate_sum(num1, b):", new_code)
         self.assertIn("result = num1 + b", new_code)
         self.assertNotIn("result = a + b", new_code)
+
+    @pytest.mark.fast
+    def test_rename_identifier_no_change(self):
+        """Ensure code is unchanged when identifier is absent.
+
+        ReqID: N/A"""
+        code = "def foo():\n    return 1\n"
+        transformer = AstTransformer()
+        new_code = transformer.rename_identifier(code, "bar", "baz")
+        self.assertEqual(code, new_code)
 
     @pytest.mark.fast
     def test_extract_function_succeeds(self):
@@ -123,7 +153,12 @@ class TestAstTransformer(unittest.TestCase):
         """Test removing unused imports and variables.
 
         ReqID: N/A"""
-        code = "\nimport os\nimport sys\n\ndef func():\n    unused_var = 1\n    return os.path.basename('x')\n"
+        code = (
+            "\nimport os\nimport sys\n\n"
+            "def func():\n"
+            "    unused_var = 1\n"
+            "    return os.path.basename('x')\n"
+        )
         code = self.transformer.remove_unused_imports(code)
         code = self.transformer.remove_unused_variables(code)
         self.assertNotIn("sys", code)
@@ -134,7 +169,11 @@ class TestAstTransformer(unittest.TestCase):
         """Test optimizing string operations.
 
         ReqID: N/A"""
-        code = '\ndef greet(name):\n    greeting = "Hello, " + name + "!"\n    return greeting\n'
+        code = (
+            "\ndef greet(name):\n"
+            '    greeting = "Hello, " + name + "!"\n'
+            "    return greeting\n"
+        )
         optimized = self.transformer.optimize_string_literals(code)
         self.assertIn("Hello, {name}!", optimized)
 
