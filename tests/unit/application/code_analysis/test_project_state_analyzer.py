@@ -6,10 +6,9 @@ the state of a project, including its architecture, components, and alignment
 between requirements, specifications, and code.
 """
 
-import os
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -37,19 +36,33 @@ def project_dir_fixture():
             "class User:\n    def __init__(self, name):\n        self.name = name"
         )
         (project_dir / "src" / "controllers" / "user_controller.py").write_text(
-            "from src.models.user import User\n\nclass UserController:\n    def get_user(self, user_id):\n        return User('Test')"
+            "from src.models.user import User\n\n"
+            "class UserController:\n"
+            "    def get_user(self, user_id):\n"
+            "        return User('Test')"
         )
         (project_dir / "src" / "views" / "user_view.py").write_text(
-            "class UserView:\n    def render_user(self, user):\n        return f'User: {user.name}'"
+            "class UserView:\n"
+            "    def render_user(self, user):\n"
+            "        return f'User: {user.name}'"
         )
         (project_dir / "docs" / "requirements.md").write_text(
-            "# Requirements\n\n1. The system shall allow users to create accounts.\n2. The system shall allow users to log in."
+            "# Requirements\n\n"
+            "1. The system shall allow users to create accounts.\n"
+            "2. The system shall allow users to log in."
         )
         (project_dir / "docs" / "specifications.md").write_text(
-            "# Specifications\n\n1. User Creation: The system will provide an API endpoint for user creation.\n2. User Authentication: The system will support username/password authentication."
+            "# Specifications\n\n"
+            "1. User Creation: The system will provide an API endpoint for "
+            "user creation.\n"
+            "2. User Authentication: The system will support "
+            "username/password authentication."
         )
         (project_dir / "tests" / "test_user.py").write_text(
-            "def user_creation_test():\n    from src.models.user import User\n    user = User('Test')\n    assert user.name == 'Test'"
+            "def user_creation_test():\n"
+            "    from src.models.user import User\n"
+            "    user = User('Test')\n"
+            "    assert user.name == 'Test'"
         )
         yield str(project_dir)
 
@@ -151,6 +164,29 @@ class TestProjectStateAnalyzer:
             assert "percentage" in lang_info
             assert 0 <= lang_info["percentage"] <= 1
 
+    @pytest.mark.fast
+    def test_categorize_file_assigns_lists(self, tmp_path):
+        """Ensure files are categorized deterministically.
+
+        ReqID: N/A"""
+        analyzer = ProjectStateAnalyzer(str(tmp_path))
+        code_file = tmp_path / "module.py"
+        code_file.write_text("print('hi')")
+        doc_file = tmp_path / "README.md"
+        doc_file.write_text("docs")
+        test_dir = tmp_path / "tests"
+        test_dir.mkdir()
+        test_file = test_dir / "test_mod.py"
+        test_file.write_text("assert True")
+
+        analyzer._categorize_file(str(code_file), "module.py", ".py")
+        analyzer._categorize_file(str(doc_file), "README.md", ".md")
+        analyzer._categorize_file(str(test_file), "tests/test_mod.py", ".py")
+
+        assert "module.py" in analyzer.code_files
+        assert "README.md" in analyzer.documentation_files
+        assert "tests/test_mod.py" in analyzer.test_files
+
     def test_infer_architecture_succeeds(self, project_dir_fixture):
         """Test the _infer_architecture method.
 
@@ -238,7 +274,10 @@ class TestProjectStateAnalyzer:
                 ]
                 mock_extract_spec.return_value = [
                     {
-                        "text": "User Creation: The system will provide an API endpoint for user creation.",
+                        "text": (
+                            "User Creation: The system will provide an API "
+                            "endpoint for user creation."
+                        ),
                         "section": "Specifications",
                         "source_file": "docs/specifications.md",
                     }
