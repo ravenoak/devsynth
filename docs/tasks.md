@@ -189,3 +189,6 @@ Notes:
 20.1 [x] Consolidate open strict typing tickets into issues/strict-typing-roadmap.md for unified tracking.
 20.2 [x] Sequence post-release PRs to reintroduce strict typing to logger, exceptions, and CLI modules.
 20.3 [x] Document typing restoration decisions in docs/plan.md and update related issue files upon completion.
+
+Notes:
+- 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.
