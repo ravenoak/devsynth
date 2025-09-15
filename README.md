@@ -77,6 +77,8 @@ Optional resources (opt-in)
 - RDFLib knowledge graph memory backend:
   - rdflib installs with the core package; `poetry install --extras memory` keeps companion adapters aligned
   - export DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE=true  # set to false to skip RDFLib-specific tests
+- Streamlit/Web UI workflows:
+  - export DEVSYNTH_RESOURCE_WEBUI_AVAILABLE=1  # enable WebUI and agent HTTP interface tests
 - Common flags: DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE, DEVSYNTH_RESOURCE_CLI_AVAILABLE, DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
 - Note: The run-tests CLI defaults to a stub provider and offline mode in tests unless overridden.
 - See also: [Resources Matrix](docs/resources_matrix.md) for mapping extras to DEVSYNTH_RESOURCE_* flags and enablement examples.
