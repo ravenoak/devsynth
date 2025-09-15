@@ -4,11 +4,12 @@ from devsynth.testing.run_tests import run_tests
 
 
 @pytest.mark.fast
-def test_run_tests_parallel_adds_no_cov_and_n_auto(monkeypatch):
+def test_run_tests_parallel_includes_cov_and_n_auto(monkeypatch):
     """ReqID: RUN-TESTS-PARALLEL-1
 
     When parallel=True and no explicit node ids are collected (single-pass branch),
-    run_tests should include '-n auto' and '--no-cov' in the pytest command.
+    run_tests should include '-n auto' and explicit coverage instrumentation in the
+    pytest command.
     """
 
     import devsynth.testing.run_tests as rt
@@ -22,7 +23,13 @@ def test_run_tests_parallel_adds_no_cov_and_n_auto(monkeypatch):
         ):  # noqa: ANN001
             # Assert parallel-related flags are present
             assert "-n" in cmd and "auto" in cmd, f"parallel flags missing in: {cmd}"
-            assert "--no-cov" in cmd, f"--no-cov missing in: {cmd}"
+            cov_flag = f"--cov={rt.COVERAGE_TARGET}"
+            json_flag = f"--cov-report=json:{rt.COVERAGE_JSON_PATH}"
+            html_flag = f"--cov-report=html:{rt.COVERAGE_HTML_DIR}"
+            assert cov_flag in cmd, f"{cov_flag} missing in: {cmd}"
+            assert json_flag in cmd, f"{json_flag} missing in: {cmd}"
+            assert html_flag in cmd, f"{html_flag} missing in: {cmd}"
+            assert "--cov-append" in cmd, f"--cov-append missing in: {cmd}"
             self.returncode = 0
 
         def communicate(self):

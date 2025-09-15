@@ -22,6 +22,11 @@ from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
 
 
+@pytest.fixture(autouse=True)
+def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(module, "enforce_coverage_threshold", lambda *a, **k: 100.0)
+
+
 @pytest.mark.fast
 def test_inventory_mode_exports_json_and_skips_run(monkeypatch, tmp_path):
     """--inventory should write a JSON file and not call run_tests.

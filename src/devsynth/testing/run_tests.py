@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 from collections.abc import Sequence
@@ -22,6 +23,11 @@ from devsynth.logging_setup import DevSynthLogger
 
 # Cache directory for test collection
 COLLECTION_CACHE_DIR: str = ".test_collection_cache"
+# Standardized coverage outputs
+COVERAGE_TARGET = "src/devsynth"
+COVERAGE_JSON_PATH = Path("test_reports/coverage.json")
+COVERAGE_HTML_DIR = Path("test_reports/htmlcov")
+DEFAULT_COVERAGE_THRESHOLD = 90.0
 # TTL for collection cache in seconds (default: 3600); configurable via env var
 try:
     COLLECTION_CACHE_TTL_SECONDS: int = int(
@@ -88,12 +94,37 @@ TARGET_PATHS: dict[str, str] = {
 logger = DevSynthLogger(__name__)
 
 
+def _reset_coverage_artifacts() -> None:
+    """Remove stale coverage artifacts before starting a test run."""
+
+    COVERAGE_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+    for path in (
+        Path(".coverage"),
+        COVERAGE_JSON_PATH,
+        Path("coverage.json"),
+    ):
+        try:
+            if path.exists():
+                path.unlink()
+        except OSError:
+            # Never fail test execution due to cleanup issues
+            logger.debug("Unable to remove coverage artifact: %s", path)
+    for directory in (COVERAGE_HTML_DIR, Path("htmlcov")):
+        try:
+            if directory.exists():
+                shutil.rmtree(directory)
+        except OSError:
+            logger.debug("Unable to remove coverage directory: %s", directory)
+
+
 def _ensure_coverage_artifacts() -> None:
     """Generate standard coverage artifacts regardless of test count."""
-    try:
-        from pathlib import Path
 
+    try:
         from coverage import Coverage  # type: ignore[import-not-found]
+
+        COVERAGE_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+        COVERAGE_HTML_DIR.parent.mkdir(parents=True, exist_ok=True)
 
         cov = Coverage(data_file=".coverage")
         try:
@@ -103,17 +134,76 @@ def _ensure_coverage_artifacts() -> None:
             cov.stop()
             cov.save()
         try:
-            cov.html_report(directory="htmlcov")
+            cov.html_report(directory=str(COVERAGE_HTML_DIR))
         except Exception:
-            Path("htmlcov").mkdir(exist_ok=True)
-            (Path("htmlcov") / "index.html").write_text("")
+            COVERAGE_HTML_DIR.mkdir(parents=True, exist_ok=True)
+            (COVERAGE_HTML_DIR / "index.html").write_text("")
         try:
-            cov.json_report(outfile="coverage.json")
+            cov.json_report(outfile=str(COVERAGE_JSON_PATH))
         except Exception:
-            Path("coverage.json").write_text("{}")
+            COVERAGE_JSON_PATH.write_text("{}")
     except Exception:
         # Never let coverage generation failures break the run
         pass
+
+
+def enforce_coverage_threshold(
+    coverage_file: Path | str = COVERAGE_JSON_PATH,
+    minimum_percent: float = DEFAULT_COVERAGE_THRESHOLD,
+    *,
+    exit_on_failure: bool = True,
+) -> float:
+    """Ensure the aggregated coverage percentage meets the required minimum."""
+
+    path = Path(coverage_file)
+    try:
+        raw = path.read_text()
+    except FileNotFoundError:
+        message = f"Coverage report not found at {path}."
+        logger.error(message)
+        if exit_on_failure:
+            raise SystemExit(1)
+        raise RuntimeError(message)
+
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        message = f"Coverage JSON at {path} is invalid: {exc}"
+        logger.error(message)
+        if exit_on_failure:
+            raise SystemExit(1)
+        raise RuntimeError(message) from exc
+
+    totals = payload.get("totals") if isinstance(payload, dict) else None
+    percent_value: float | None = None
+    if isinstance(totals, dict):
+        raw_percent = totals.get("percent_covered")
+        if isinstance(raw_percent, (int, float)):
+            percent_value = float(raw_percent)
+
+    if percent_value is None:
+        message = (
+            f"Unable to determine total coverage from {path}; 'totals.percent_covered'"
+            " missing."
+        )
+        logger.error(message)
+        if exit_on_failure:
+            raise SystemExit(1)
+        raise RuntimeError(message)
+
+    if percent_value < minimum_percent:
+        message = (
+            f"Coverage {percent_value:.2f}% is below the required {minimum_percent:.2f}%"
+        )
+        logger.error(message)
+        if exit_on_failure:
+            raise SystemExit(1)
+        raise RuntimeError(message)
+
+    logger.info(
+        "Coverage %.2f%% meets the %.2f%% threshold.", percent_value, minimum_percent
+    )
+    return percent_value
 
 
 def _sanitize_node_ids(ids: list[str]) -> list[str]:
@@ -408,11 +498,27 @@ def run_tests(
     )
     logger.info("%s", "=" * 80)
 
-    base_cmd = [sys.executable, "-m", "pytest"]
+    _reset_coverage_artifacts()
+
+    pytest_base = [sys.executable, "-m", "pytest"]
     if maxfail is not None:
-        base_cmd.append(f"--maxfail={maxfail}")
+        pytest_base.append(f"--maxfail={maxfail}")
+
+    coverage_args = [
+        f"--cov={COVERAGE_TARGET}",
+        "--cov-report=term-missing",
+        f"--cov-report=json:{COVERAGE_JSON_PATH}",
+        f"--cov-report=html:{COVERAGE_HTML_DIR}",
+        "--cov-append",
+    ]
+
+    xdist_args: list[str] = []
+    if parallel:
+        xdist_args = ["-n", "auto"]
+
     test_path = TARGET_PATHS.get(target, TARGET_PATHS["all-tests"])
-    base_cmd.append(test_path)
+    collect_base_cmd = pytest_base + [test_path]
+    run_base_cmd = pytest_base + coverage_args + xdist_args + [test_path]
 
     # When not running in parallel, force-disable auto-loading of third-party
     # pytest plugins to avoid hangs and unintended side effects in smoke/fast
@@ -425,13 +531,8 @@ def run_tests(
     # explicitly via the CLI layer.
 
     if verbose:
-        base_cmd.append("-v")
-    if parallel:
-        # ``pytest-cov`` interacts poorly with ``pytest-xdist`` when workers
-        # terminate unexpectedly, leading to internal ``KeyError`` exceptions
-        # during teardown. Disabling coverage collection in parallel runs avoids
-        # these worker teardown issues.
-        base_cmd += ["-n", "auto", "--no-cov"]
+        collect_base_cmd.append("-v")
+        run_base_cmd.append("-v")
 
     report_options: list[str] = []
     if report:
@@ -466,7 +567,7 @@ def run_tests(
             # Narrow collection strictly to keyword-matching tests to avoid
             # importing unrelated modules that may emit strict
             # marker-discipline errors during collection.
-            collect_cmd = base_cmd + [
+            collect_cmd = collect_base_cmd + [
                 "-q",
                 "--collect-only",
             ]
@@ -486,7 +587,7 @@ def run_tests(
             if not node_ids:
                 # Nothing to run is a success for subset execution
                 return True, "No tests matched the provided filters."
-            run_cmd = base_cmd + node_ids + report_options
+            run_cmd = run_base_cmd + node_ids + report_options
             try:
                 process = subprocess.Popen(
                     run_cmd,
@@ -512,7 +613,7 @@ def run_tests(
                 tips = _failure_tips(-1, run_cmd)
                 return False, f"{exc}\n{tips}"
         else:
-            cmd = base_cmd + ["-m", category_expr]
+            cmd = run_base_cmd + ["-m", category_expr]
             cmd += report_options
             try:
                 process = subprocess.Popen(
@@ -550,7 +651,7 @@ def run_tests(
             marker_expr = f"({marker_expr}) and ({extra_marker})"
         # Collect matching node IDs to avoid importing unrelated modules
         # that may fail marker checks.
-        collect_cmd = base_cmd + [
+        collect_cmd = collect_base_cmd + [
             "-m",
             marker_expr,
             "--collect-only",
@@ -605,7 +706,7 @@ def run_tests(
                     i // segment_size + 1,
                     total_batches,
                 )
-                batch_cmd = base_cmd + batch + report_options
+                batch_cmd = run_base_cmd + batch + report_options
                 batch_process = subprocess.Popen(
                     batch_cmd,
                     stdout=subprocess.PIPE,
@@ -629,17 +730,13 @@ def run_tests(
                 all_output += batch_stdout + batch_stderr
             # If any batch failed, append a concise aggregation tip block once
             if not batch_success:
-                aggregate_cmd = (
-                    base_cmd + [f"--maxfail={maxfail}"]
-                    if maxfail is not None
-                    else base_cmd
-                )
+                aggregate_cmd = run_base_cmd
                 agg_tips = _failure_tips(1, aggregate_cmd)
                 logger.error(agg_tips)
                 all_output += agg_tips
             all_success = all_success and batch_success
         else:
-            run_cmd = base_cmd + node_ids + report_options
+            run_cmd = run_base_cmd + node_ids + report_options
             process = subprocess.Popen(
                 run_cmd,
                 stdout=subprocess.PIPE,

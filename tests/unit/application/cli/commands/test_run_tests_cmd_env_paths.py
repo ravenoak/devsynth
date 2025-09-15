@@ -28,6 +28,7 @@ def _clean_env(monkeypatch: pytest.MonkeyPatch):
     ]
     for k in keys:
         monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(rtc, "enforce_coverage_threshold", lambda *a, **k: 100.0)
     yield
     for k in keys:
         monkeypatch.delenv(k, raising=False)
@@ -89,7 +90,7 @@ def test_inner_test_env_tightening_forces_no_parallel(monkeypatch: pytest.Monkey
     # Assert environment effects of inner test mode
     assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
     addopts = os.environ.get("PYTEST_ADDOPTS", "")
-    assert "-p no:xdist" in addopts and "-p no:cov" in addopts
+    assert "-p no:xdist" in addopts and "-p no:cov" not in addopts
 
     # And parallel should be False due to forced no_parallel=True in inner mode
     assert captured["parallel"] is False

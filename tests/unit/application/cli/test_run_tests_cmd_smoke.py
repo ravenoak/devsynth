@@ -10,6 +10,11 @@ from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
 
 
+@pytest.fixture(autouse=True)
+def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(module, "enforce_coverage_threshold", lambda *a, **k: 100.0)
+
+
 @pytest.mark.fast
 def test_smoke_mode_sets_pytest_disable_plugin_autoload_env(monkeypatch) -> None:
     """--smoke should set PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 and disable xdist.
@@ -29,5 +34,5 @@ def test_smoke_mode_sets_pytest_disable_plugin_autoload_env(monkeypatch) -> None
         assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
         addopts = os.environ.get("PYTEST_ADDOPTS", "")
         assert "-p no:xdist" in addopts
-        assert "-p no:cov" in addopts
+        assert "-p no:cov" not in addopts
         mock_run.assert_called_once()
