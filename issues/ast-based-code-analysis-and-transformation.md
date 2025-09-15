@@ -21,3 +21,4 @@ AST-Based Code Analysis and Transformation is not yet implemented, limiting DevS
 - Specification: docs/specifications/ast-based-code-analysis-and-transformation.md
 - BDD Feature: tests/behavior/features/ast_based_code_analysis_and_transformation.feature
 - Proof: see 'What proofs confirm the solution?' in [docs/specifications/ast-based-code-analysis-and-transformation.md](../docs/specifications/ast-based-code-analysis-and-transformation.md) and scenarios in [tests/behavior/features/ast_based_code_analysis_and_transformation.feature](../tests/behavior/features/ast_based_code_analysis_and_transformation.feature).
+- Invariants: docs/implementation/code_analysis_invariants.md
