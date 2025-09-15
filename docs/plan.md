@@ -315,3 +315,4 @@ Notes and next actions
 - 2025-09-13: Attempted final fast+medium coverage run; htmlcov/ and coverage.json omitted from commit due to Codex diff size limits and run reported `ERROR tests/unit/general/test_test_first_metrics.py`.
 - 2025-09-13: Restored `devsynth` via `poetry install`; smoke tests and verification scripts passed in fresh session; UAT and maintainer tagging remain outstanding.
 - 2025-09-14: Smoke tests and verification scripts pass; full coverage run still references `tests/unit/general/test_test_first_metrics.py` and produces no artifact. Reopened [run-tests-missing-test-first-metrics-file.md](../issues/run-tests-missing-test-first-metrics-file.md) to track fix before UAT and tagging.
+- 2025-09-15: Environment lacked go-task; `bash scripts/install_dev.sh` restored it. Smoke tests and verification scripts pass; awaiting UAT and maintainer tagging.
