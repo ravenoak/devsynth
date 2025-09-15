@@ -21,7 +21,7 @@ last_reviewed: "2025-08-08"
 
 DevSynth is an agentic software engineering platform that leverages LLMs, advanced memory systems, and dialectical reasoning to automate and enhance the software development lifecycle. The system is designed for extensibility, resilience, and traceability, supporting both autonomous and collaborative workflows.
 
-**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. Version `0.1.0a1` has been tagged; see [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md) and the prioritized readiness checklist at [docs/tasks.md](docs/tasks.md). All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md). Release milestones and targeted features post-`0.1.0a1` are documented in [docs/release/roadmap.md](docs/release/roadmap.md); see [docs/roadmap/CONSOLIDATED_ROADMAP.md](docs/roadmap/CONSOLIDATED_ROADMAP.md) for the broader project plan.
+**Pre-release notice:** DevSynth is still pre-0.1.0 and no package has been published on PyPI. Version `0.1.0a1` has been tagged as `v0.1.0a1`; see [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md) and the prioritized readiness checklist at [docs/tasks.md](docs/tasks.md). All versions should be considered experimental. Version labels follow our [Semantic Versioning+ policy](docs/policies/semantic_versioning.md). Release milestones and targeted features post-`0.1.0a1` are documented in [docs/release/roadmap.md](docs/release/roadmap.md); see [docs/roadmap/CONSOLIDATED_ROADMAP.md](docs/roadmap/CONSOLIDATED_ROADMAP.md) for the broader project plan.
 ## Quickstart
 
 Prerequisites
