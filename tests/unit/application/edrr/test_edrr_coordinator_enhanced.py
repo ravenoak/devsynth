@@ -1,5 +1,4 @@
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -9,13 +8,12 @@ from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
-from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinatorError
+from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
 from devsynth.application.edrr.edrr_phase_transitions import MetricType
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.memory import MemoryType
-from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
@@ -205,7 +203,8 @@ class TestEnhancedEDRRCoordinator:
             enhanced_coordinator, "_safe_store_with_edrr_phase"
         ) as mock_store:
             with patch(
-                "devsynth.application.edrr.edrr_coordinator_enhanced.collect_phase_metrics"
+                "devsynth.application.edrr.edrr_coordinator_enhanced."
+                "collect_phase_metrics"
             ) as mock_collect_metrics:
                 mock_collect_metrics.return_value = {
                     "duration": 10.5,
@@ -270,7 +269,9 @@ class TestEnhancedEDRRCoordinator:
 
     @pytest.mark.medium
     def test_phase_failure_hook_called(self, enhanced_coordinator):
-        """Failure hooks run when phase cannot transition."""
+        """Failure hooks run when phase cannot transition.
+
+        ReqID: N/A"""
         task = {"name": "t"}
         enhanced_coordinator.start_cycle(task)
         metrics = {
@@ -499,7 +500,8 @@ class TestEnhancedEDRRCoordinator:
             enhanced_coordinator, "should_terminate_recursion", return_value=(False, "")
         ) as mock_should_terminate:
             with patch(
-                "devsynth.application.edrr.edrr_coordinator_enhanced.EnhancedEDRRCoordinator"
+                "devsynth.application.edrr.edrr_coordinator_enhanced."
+                "EnhancedEDRRCoordinator"
             ) as mock_constructor:
                 mock_micro_coordinator = MagicMock()
                 mock_constructor.return_value = mock_micro_coordinator
@@ -514,7 +516,9 @@ class TestEnhancedEDRRCoordinator:
                     ast_transformer=enhanced_coordinator.ast_transformer,
                     prompt_manager=enhanced_coordinator.prompt_manager,
                     documentation_manager=enhanced_coordinator.documentation_manager,
-                    enable_enhanced_logging=enhanced_coordinator._enable_enhanced_logging,
+                    enable_enhanced_logging=(
+                        enhanced_coordinator._enable_enhanced_logging
+                    ),
                     parent_cycle_id=enhanced_coordinator.cycle_id,
                     recursion_depth=enhanced_coordinator.recursion_depth + 1,
                     parent_phase=Phase.DIFFERENTIATE,
@@ -522,3 +526,23 @@ class TestEnhancedEDRRCoordinator:
                 )
                 mock_micro_coordinator.start_cycle.assert_called_once_with(micro_task)
                 assert result == mock_micro_coordinator
+
+
+@pytest.mark.fast
+def test_enhanced_decide_next_phase_respects_auto_phase(enhanced_coordinator):
+    """Quality metrics guide automatic transitions.
+
+    ReqID: N/A"""
+    enhanced_coordinator.current_phase = Phase.EXPAND
+    enhanced_coordinator.results = {Phase.EXPAND.name: {}}
+    enhanced_coordinator.auto_phase_transitions = True
+    enhanced_coordinator.quality_based_transitions = True
+    enhanced_coordinator.phase_metrics.should_transition = MagicMock(
+        return_value=(True, {})
+    )
+
+    next_phase = enhanced_coordinator._enhanced_decide_next_phase()
+    assert next_phase == Phase.DIFFERENTIATE
+
+    enhanced_coordinator.auto_phase_transitions = False
+    assert enhanced_coordinator._enhanced_decide_next_phase() is None
