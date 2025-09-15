@@ -1,30 +1,15 @@
+# Related issue: ../../../docs/specifications/consensus-building.md
 Feature: Consensus Building
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a decision-making system
+  I want to derive a consensus from agent votes
+  So that teams can agree on a single option
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+  Scenario: Consensus reached with majority
+    Given votes "A,B,A"
+    When we build consensus
+    Then consensus decision is "A"
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: No consensus reached
+    Given votes "A,B"
+    When we build consensus with threshold 0.6
+    Then no consensus decision is made
