@@ -281,6 +281,11 @@ Notes and next actions
   docs/implementation/run_tests_cli_invariants.md and
   docs/implementation/edrr_invariants.md (Issues:
   issues/run-tests-cli-invariants.md, issues/edrr-invariants.md).
+- Formal proofs for release-state check invariants recorded in
+  docs/implementation/release_state_check_invariants.md (BDD scenarios in
+  tests/behavior/features/release_state_check.feature and
+  tests/behavior/features/dialectical_audit_gating.feature; unit tests in
+  tests/unit/scripts/test_verify_release_state.py).
 - Short-term: Align docs with current CLI behaviors and ensure issues/ action items are traced to tests.
 - Guardrails: diagnostics/flake8_2025-09-10_run2.txt shows E501/F401 in tests/unit/testing/test_run_tests_module.py; bandit scan (diagnostics/bandit_2025-09-10_run2.txt) reports 158 low and 12 medium issues.
 - Post-release: Introduce low-throughput GH Actions pipeline as specified and expand nightly coverage runs.
