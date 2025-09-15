@@ -198,3 +198,11 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
 - Commands: poetry install --with dev --all-extras; devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1; verify_test_organization; verify_test_markers; verify_requirements_traceability; verify_version_sync.
 - Observations: all pass; awaiting UAT/tagging.
 - Next: UAT then maintainer tagging.
+
+## Iteration 2025-09-16 (coverage artifact regression)
+- Environment: Python 3.12.10; `poetry env info --path` -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12; `task --version` 3.44.1.
+- Commands:
+  - `poetry run devsynth run-tests --speed=fast --marker test_metrics --no-parallel --maxfail=1 --report` – pass.
+  - `poetry run python scripts/verify_test_markers.py` – 0 issues.
+- Observations: Added regression test to ensure htmlcov/ and coverage.json are produced even when no tests are collected.
+- Next: Monitor coverage runs for stability.
