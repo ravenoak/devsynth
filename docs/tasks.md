@@ -113,7 +113,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 11.9 [x] Guardrails suite resolved; see [flake8-violations.md](../issues/flake8-violations.md) and [bandit-findings.md](../issues/bandit-findings.md).
 11.9.1 [x] Regenerate flake8 report and resolve E501/F401 in tests/unit/testing/test_run_tests_module.py and related files (Issue: [flake8-violations.md](../issues/flake8-violations.md)).
 11.9.2 [x] Review bandit scan (158 low, 0 medium) and address or justify findings (Issue: [bandit-findings.md](../issues/bandit-findings.md)).
-11.10 [ ] Reopen run-tests-missing-test-first-metrics-file.md due to recurring path error; fix reference and rerun full coverage.
+11.10 [x] Reopen run-tests-missing-test-first-metrics-file.md due to recurring path error; fix reference to `tests/unit/general/test_test_first_metrics.py` and rerun full coverage.
 
 12. Risk Management and Mitigations
 12.1 [x] Document minimal smoke coverage expectations for optional backends (macOS/Windows) and how to enable:
@@ -173,7 +173,7 @@ Notes:
 18.3.1 [x] Reasoning loop invariants documented in docs/implementation/reasoning_loop_invariants.md.
 18.3.2 [x] Provider system invariants documented in docs/implementation/provider_system_invariants.md.
 18.4 [x] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
-18.5 [x] Investigate full fast+medium coverage run failure (`ERROR unit/general/test_test_first_metrics.py`) and restore coverage artifact generation.
+18.5 [x] Investigate full fast+medium coverage run failure (`ERROR tests/unit/general/test_test_first_metrics.py`) and restore coverage artifact generation.
 18.6 [x] Automate provisioning of `devsynth` CLI and `task` in fresh environments (issues/devsynth-cli-missing.md, issues/task-cli-persistence.md).
 
 19. Release Finalization (Phase 8)
