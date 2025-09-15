@@ -1,5 +1,3 @@
-from datetime import datetime
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -253,7 +251,7 @@ class TestEDRRCoordinatorCore:
 
         ReqID: N/A"""
         manifest_path = tmp_path / "test_manifest.yaml"
-        manifest_content = "\n        name: Test Task\n        description: This is a test task\n        requirements:\n          - req1\n          - req2\n        "
+        manifest_content = "\n        name: Test Task\n        description: This is a test task\n        requirements:\n          - req1\n          - req2\n        "  # noqa: E501
         manifest_path.write_text(manifest_content)
         with patch(
             "devsynth.application.edrr.coordinator_core.ManifestParser"
@@ -275,7 +273,7 @@ class TestEDRRCoordinatorCore:
         """Test starting a cycle from a manifest string.
 
         ReqID: N/A"""
-        manifest_string = "\n        name: Test Task\n        description: This is a test task\n        requirements:\n          - req1\n          - req2\n        "
+        manifest_string = "\n        name: Test Task\n        description: This is a test task\n        requirements:\n          - req1\n          - req2\n        "  # noqa: E501
         with patch(
             "devsynth.application.edrr.coordinator_core.ManifestParser"
         ) as MockManifestParser:
@@ -549,3 +547,35 @@ class TestEDRRCoordinatorCore:
         ReqID: N/A"""
         with pytest.raises(EDRRCoordinatorError):
             coordinator_core.generate_report()
+
+
+@pytest.mark.fast
+def test_maybe_auto_progress_respects_flag():
+    """Auto progress runs only when enabled.
+
+    ReqID: N/A"""
+    core = EDRRCoordinatorCore(
+        memory_manager=MagicMock(spec=MemoryManager),
+        wsde_team=MagicMock(spec=WSDETeam),
+        code_analyzer=MagicMock(spec=CodeAnalyzer),
+        ast_transformer=MagicMock(spec=AstTransformer),
+        prompt_manager=MagicMock(spec=PromptManager),
+        documentation_manager=MagicMock(spec=DocumentationManager),
+    )
+
+    core.current_phase = Phase.EXPAND
+    core.task = {"name": "task"}
+
+    core.config = {"auto_progress": True}
+    with patch.object(
+        core, "_decide_next_phase", return_value=Phase.DIFFERENTIATE
+    ) as decide:
+        with patch.object(core, "progress_to_phase") as progress:
+            core._maybe_auto_progress()
+    decide.assert_called_once()
+    progress.assert_called_once_with(Phase.DIFFERENTIATE)
+
+    core.config = {"auto_progress": False}
+    with patch.object(core, "progress_to_phase") as progress:
+        core._maybe_auto_progress()
+    progress.assert_not_called()
