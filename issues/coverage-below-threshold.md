@@ -1,18 +1,24 @@
 # Coverage below threshold
-Status: closed
+Status: open
 
 ## Summary
-Coverage run using `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest --cov=src/devsynth --cov-report=term --cov-report=html -q` fails with numerous test failures, preventing generation of a complete coverage report and verifying the ≥90% requirement.
+Aggregated coverage runs complete but only produce 13.68 % line coverage (`test_reports/coverage.json`) and an empty `htmlcov/index.html`, so the ≥90 % gate remains unsatisfied even though the test command exits successfully.
 
 ## Steps to Reproduce
 1. Ensure dependencies installed via `poetry install --with dev --all-extras`.
 2. Execute the coverage command above.
+3. Alternatively run `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` and inspect `test_reports/coverage.json`.
 
 ## Expected Behavior
 Coverage report completes with ≥90% coverage.
 
 ## Actual Behavior
-Test execution halts early due to failing tests, and coverage percentage cannot be determined.
+Coverage command exits successfully but reports only 13.68 % line coverage and produces empty HTML output, so the fail-under=90 guard is not satisfied.
+
+## Next Actions
+- [ ] Update `devsynth run-tests` to enforce coverage instrumentation for `src/devsynth` and regenerate htmlcov/coverage.json with ≥90 % results.
+- [ ] Add targeted unit/integration tests for modules highlighted in docs/tasks.md §21 (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests).
+- [ ] Automate a coverage gate that inspects `test_reports/coverage.json` and fails when coverage <90 %.
 
 ## Notes
 - Tasks `docs/tasks.md` items 13.3 and 13.4 remain unchecked pending resolution.
@@ -23,7 +29,7 @@ Test execution halts early due to failing tests, and coverage percentage cannot 
 - 2025-09-28: Combined report `coverage report --fail-under=90` returned 5% total coverage, confirming the ≥90% requirement is unmet.
 - 2025-09-30: `poetry run coverage report --fail-under=90` after smoke run reported "No data to report"; coverage instrumentation missing.
 - 2025-10-01: After reinstalling dependencies, `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` completed but produced only "Tests completed successfully" without coverage data.
-- 2025-10-07: Added targeted unit tests for provider system, WebUI, output formatter, WebUI bridge, logging, reasoning loop, and test runner; coverage remains below 90%.
+- 2025-09-15: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` completed yet `test_reports/coverage.json` reported 13.68 % and `htmlcov/index.html` remained empty; issue reopened and coverage remediation tasks added to docs/tasks.md section 21.
 - 2025-09-12: Coverage rerun via `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report` achieved 95% aggregate coverage; badge and documentation updated. Issue remains closed.
 - 2025-10-07: Added targeted unit tests for provider system, WebUI, output formatter, WebUI bridge, logging, reasoning loop, and test runner; coverage remains below 90%.
 

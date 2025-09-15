@@ -1,12 +1,12 @@
 {
   "markers": {
-    "fast": 1055,
-    "medium": 1552,
+    "fast": 1110,
+    "medium": 1525,
     "gui": 1,
-    "requires_resource": 55,
+    "requires_resource": 61,
     "isolation": 8,
     "no_network": 12,
-    "parametrize": 38,
+    "parametrize": 39,
     "docker": 2,
     "slow": 52,
     "memory_intensive": 1,
@@ -18,8 +18,9 @@
     "anyio": 3,
     "unit": 6,
     "smoke": 4,
-    "skip": 2
+    "skip": 2,
+    "test_metrics": 1
   },
-  "files_scanned": 1047,
+  "files_scanned": 1076,
   "files_with_issues": 0
 }

@@ -25,5 +25,6 @@ Progress:
 - 2025-09-13: Fixed path handling for `test_first_metrics` and reran coverage; committed updated reports.
 - 2025-09-15: Reinstalled go-task, executed smoke tests and verification scripts; awaiting UAT and maintainer tagging.
 - 2025-09-15: Reinstalled dependencies and reran smoke/verification scripts; UAT and tagging pending.
+- 2025-09-15: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` succeeded but coverage stayed at 13.68 % with empty HTML output; coverage remediation reopened (see docs/tasks.md §21 and issues/coverage-below-threshold.md).
 Resolution Evidence:
   - docs/tasks.md item 19
