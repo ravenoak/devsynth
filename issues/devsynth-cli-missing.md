@@ -15,6 +15,7 @@ Fresh environments lack the `devsynth` CLI entry point, producing `ModuleNotFoun
 ## Progress
 - 2025-09-12: Encountered missing `devsynth` CLI; running `poetry install --with dev --all-extras` restored functionality.
 - 2025-09-12: scripts/install_dev.sh now runs `poetry install --with dev --all-extras` and verifies the `devsynth` entry point.
+- 2025-09-15: Reproduced missing CLI in fresh session; `poetry install --with dev --all-extras` restored entry point and smoke tests passed.
 
 ## References
 - docs/plan.md (2025-09-12 entry)
