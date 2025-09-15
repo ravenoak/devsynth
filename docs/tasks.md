@@ -192,3 +192,4 @@ Notes:
 
 Notes:
 - 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.
+- 2025-09-15: Reinstalled dependencies and reran smoke/verification; tasks 19.2, 19.4, 19.5 remain.
