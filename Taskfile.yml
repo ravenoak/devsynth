@@ -519,7 +519,7 @@ tasks:
   env:verify:
     desc: Fail if required tooling is missing
     cmds:
-      - bash -lc 'missing=0; if ! command -v task >/dev/null 2>&1; then echo "[error] task command unavailable; run bash scripts/install_dev.sh" >&2; missing=1; fi; if ! poetry run devsynth --version >/dev/null 2>&1; then echo "[error] devsynth CLI unavailable; run '\''poetry install --with dev --all-extras'\''" >&2; missing=1; fi; exit $missing'
+      - bash -lc 'missing=0; if ! task --version >/dev/null 2>&1; then echo "[error] task command unavailable; run bash scripts/install_dev.sh" >&2; missing=1; fi; if ! poetry run devsynth --version >/dev/null 2>&1; then echo "[error] devsynth CLI unavailable; run '\''poetry install --with dev --all-extras'\''" >&2; missing=1; fi; exit $missing'
 
   env:baseline:
     desc: Capture maintainer environment baseline snapshot and record artifacts
