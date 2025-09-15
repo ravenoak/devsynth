@@ -24,5 +24,6 @@ Progress:
 - 2025-09-13: Verified fresh environment with `poetry install`; smoke tests and verification scripts passed; awaiting UAT and maintainer tagging.
 - 2025-09-13: Fixed path handling for `test_first_metrics` and reran coverage; committed updated reports.
 - 2025-09-15: Reinstalled go-task, executed smoke tests and verification scripts; awaiting UAT and maintainer tagging.
+- 2025-09-15: Reinstalled dependencies and reran smoke/verification scripts; UAT and tagging pending.
 Resolution Evidence:
   - docs/tasks.md item 19

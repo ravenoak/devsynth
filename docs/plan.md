@@ -322,3 +322,4 @@ Notes and next actions
 - 2025-09-14: Smoke tests and verification scripts pass; full coverage run still references `tests/unit/general/test_test_first_metrics.py` and produces no artifact. Reopened [run-tests-missing-test-first-metrics-file.md](../issues/run-tests-missing-test-first-metrics-file.md) to track fix before UAT and tagging.
 - 2025-09-15: Environment lacked go-task; `bash scripts/install_dev.sh` restored it. Smoke tests and verification scripts pass; awaiting UAT and maintainer tagging.
 - 2025-09-15: `devsynth` CLI initially missing; ran `poetry install --with dev --all-extras` and reran smoke/verification commands successfully; UAT and tagging remain.
+- 2025-09-15: Reinstalled dependencies, confirmed smoke tests and verification scripts; UAT and maintainer tagging remain.

@@ -193,3 +193,8 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep thi
   - `poetry run python scripts/verify_version_sync.py` – OK.
 - Observations: Fresh session reported `ModuleNotFoundError: devsynth`; running `poetry install --with dev --all-extras` restored the entry point and all verification commands passed. Remaining tasks: UAT and maintainer tagging.
 - Next: Complete UAT and coordinate tagging; re-enable CI workflows post-release.
+## Iteration 2025-09-15 (smoke+verify)
+- Env: Python 3.12.10; venv /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12; task 3.44.1.
+- Commands: poetry install --with dev --all-extras; devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1; verify_test_organization; verify_test_markers; verify_requirements_traceability; verify_version_sync.
+- Observations: all pass; awaiting UAT/tagging.
+- Next: UAT then maintainer tagging.
