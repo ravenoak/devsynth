@@ -198,8 +198,9 @@ Notes:
 21.5 [ ] Extend tests for `src/devsynth/logging_setup.py` to validate log level overrides, JSON formatting, and handler wiring (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 21.6 [ ] Add deterministic unit tests for `src/devsynth/methodology/edrr/reasoning_loop.py` demonstrating recursion safeguards and invariants (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 21.7 [ ] Increase coverage for `src/devsynth/testing/run_tests.py` by validating CLI invocation paths and error handling distinct from `run_tests_cmd` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
-21.8 [ ] Implement a coverage gate that parses `test_reports/coverage.json` and fails when coverage <90 % to prevent silent regressions (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
-21.9 [ ] Document the remediated coverage workflow in docs/plan.md and docs/tasks.md after instrumentation and new tests land (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+21.8 [ ] Ensure smoke profile coverage enforcement is coherent: either force-load `pytest-cov` when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` or skip threshold enforcement when coverage data is intentionally unavailable (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+21.9 [ ] Implement a coverage gate that parses `test_reports/coverage.json` and fails when coverage <90 % to prevent silent regressions (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+21.10 [ ] Document the remediated coverage workflow in docs/plan.md and docs/tasks.md after instrumentation and new tests land (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 
 Notes:
 - 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.

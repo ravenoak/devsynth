@@ -72,3 +72,12 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - Parsed `test_reports/coverage.json` → 13.68 % coverage; observed empty `htmlcov/index.html`.
 - Observations: Aggregated coverage regressed to 13.68 % despite successful run; htmlcov output zero bytes; reopened issues/coverage-below-threshold.md; added docs/tasks.md section 21 for coverage remediation; plan/tasks updated to reflect unmet coverage gate.
 - Next: Repair coverage instrumentation, raise coverage for highlighted modules (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests), implement automated coverage gate, regenerate artifacts before UAT.
+
+## Iteration 2025-09-15B – Smoke profile coverage gap
+- Environment: Python 3.12.10; Poetry env `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`; `task --version` 3.45.3.
+- Commands:
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` → initial attempt failed with `ModuleNotFoundError: No module named 'devsynth'` until `poetry install --with dev --all-extras` restored the entry point.
+  - Re-ran the smoke command post-install; CLI completed but emitted "Unable to determine total coverage…" twice and `test_reports/coverage.json` contained `{}` with zero-byte HTML coverage.
+  - Confirmed existing aggregated coverage artifact still reports 13.68 % via JSON totals.
+- Observations: Smoke mode sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`, preventing pytest-cov from writing `.coverage`, so enforcement degrades to a warning; added docs/tasks.md §21.8 and plan updates to capture remediation options.
+- Next: Track a fix ensuring smoke runs either load pytest-cov explicitly or bypass coverage enforcement when intentionally skipping instrumentation; coordinate with issues/coverage-below-threshold.md.
