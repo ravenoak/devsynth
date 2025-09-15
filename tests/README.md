@@ -115,6 +115,18 @@ To run optional backends locally, install extras and set resource flags explicit
   poetry run devsynth run-tests --speed=fast -m "not requires_resource('openai')"
   ```
 
+- FAISS vector store unit tests (requires the retrieval extra and explicit opt-in):
+
+  ```bash
+  poetry install --with dev --extras "tests retrieval"
+  export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=1
+  poetry run pytest tests/unit/application/memory/test_faiss_store.py --maxfail=1 --disable-warnings
+  ```
+
+  The environment flag mirrors the resource marker `@pytest.mark.requires_resource("faiss")`.
+  When unset or `false`, FAISS tests are skipped automatically. The retrieval
+  extra installs the lightweight `faiss-cpu` wheel used by the memory backend.
+
 - ChromaDB memory store tests:
 
   ```bash

@@ -1,1 +1,2 @@
+overall_coverage_percent=7.26
 [report_coverage_hotspots] No coverage entries found under src/.
