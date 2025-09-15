@@ -576,6 +576,7 @@ Coverage-only profile (documented command):
     - poetry run devsynth run-tests --speed=medium --segment --segment-size 100 --no-parallel 2>&1 | tee test_reports/seg_medium_1.log
     - poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json
 - Evidence locations: htmlcov/index.html, coverage.json, test_reports/
+- The run-tests command now emits htmlcov/ and coverage.json even when no tests match the selection.
 
 Note on segmentation and collection caching:
 - When using --segment, the runner first collects matching tests. This collection is cached to speed up repeated runs.
