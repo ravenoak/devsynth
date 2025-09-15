@@ -5,6 +5,7 @@ This module tests the functionality of the ingest_cmd module, which provides
 the 'devsynth ingest' CLI command for ingesting a project into DevSynth.
 """
 
+import importlib
 import os
 import sys
 
@@ -35,6 +36,8 @@ class _DummyStateGraph:  # pragma: no cover - simple placeholder
 
 _graph_module.StateGraph = _DummyStateGraph
 sys.modules["langgraph.graph"] = _graph_module
+
+ingest_module = importlib.import_module("devsynth.application.cli.ingest_cmd")
 
 from devsynth.application.cli.ingest_cmd import (
     differentiate_phase,
@@ -211,6 +214,41 @@ class TestIngestCmd:
         ):
             ingest_cmd(bridge=mock_bridge)
             assert os.environ.get("DEVSYNTH_NONINTERACTIVE") == "1"
+
+    @pytest.mark.fast
+    def test_ingest_cmd_priority_updates_config(
+        self,
+        tmp_path,
+        mock_bridge,
+        mock_validate_manifest,
+        mock_ingestion,
+        monkeypatch,
+    ):
+        """Priority flag should persist to the unified configuration."""
+
+        config = types.SimpleNamespace(
+            config=types.SimpleNamespace(priority=None)
+        )
+        loader = types.SimpleNamespace(
+            load=MagicMock(return_value=config),
+            save=MagicMock(),
+        )
+        monkeypatch.setattr(ingest_module, "UnifiedConfigLoader", loader)
+
+        manifest_dir = tmp_path / ".devsynth"
+        manifest_dir.mkdir()
+        manifest_path = manifest_dir / "project.yaml"
+        manifest_path.write_text("name: example")
+
+        ingest_cmd(
+            manifest_path=str(manifest_path),
+            priority="urgent",
+            bridge=mock_bridge,
+        )
+
+        loader.load.assert_called_once_with(tmp_path)
+        assert config.config.priority == "urgent"
+        loader.save.assert_called_once_with(config)
 
     @pytest.mark.fast
     def test_ingest_cmd_manifest_error_raises_error(

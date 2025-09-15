@@ -5,6 +5,8 @@ import typer
 from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import (
+    CommandHelp,
+    _format_cli_error,
     _warn_if_features_disabled,
     build_app,
     completion_cmd,
@@ -160,3 +162,43 @@ def test_dashboard_hook_option_registers(mock_reg):
     result = runner.invoke(build_app(), ["--dashboard-hook", path])
     assert result.exit_code == 0
     mock_reg.assert_called_once()
+
+
+@pytest.mark.fast
+def test_format_cli_error_usage_hint() -> None:
+    """_format_cli_error should sanitize usage errors and append guidance."""
+
+    message = _format_cli_error("unknown <flag>", kind="usage")
+
+    assert message.startswith("Usage error: unknown &lt;flag&gt;")
+    assert message.endswith("Run 'devsynth --help' for usage.")
+
+
+@pytest.mark.fast
+def test_format_cli_error_runtime_hint() -> None:
+    """_format_cli_error should provide actionable runtime guidance."""
+
+    message = _format_cli_error("failed <step>", kind="runtime")
+
+    assert message.startswith("Error: failed &lt;step&gt;")
+    assert message.endswith("Re-run with --help for usage or check logs.")
+
+
+@pytest.mark.fast
+def test_command_help_format_includes_sections() -> None:
+    """CommandHelp.format should assemble all optional sections."""
+
+    help_text = CommandHelp(
+        summary="Summary",
+        description="Details",
+        examples=[{"command": "devsynth foo", "description": "does foo"}],
+        notes=["remember bar"],
+        options={"--flag": "toggle"},
+    ).format()
+
+    assert "Summary" in help_text
+    assert "Details" in help_text
+    assert "$ devsynth foo" in help_text
+    assert "does foo" in help_text
+    assert "remember bar" in help_text
+    assert "--flag: toggle" in help_text
