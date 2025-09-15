@@ -16,6 +16,11 @@ from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
 
 
+@pytest.fixture(autouse=True)
+def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(module, "enforce_coverage_threshold", lambda *a, **k: 100.0)
+
+
 @pytest.mark.fast
 def test_inner_test_mode_disables_plugins_and_parallel(
     monkeypatch: pytest.MonkeyPatch,
@@ -23,7 +28,7 @@ def test_inner_test_mode_disables_plugins_and_parallel(
     """ReqID: FR-11.2 — Inner test mode disables plugins and parallel.
 
     Verifies DEVSYNTH_INNER_TEST=1 forces PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 and
-    injects -p no:xdist -p no:cov, and passes parallel=False to run_tests.
+    injects -p no:xdist while leaving coverage instrumentation enabled.
     """
     # Ensure a clean environment for the test
     monkeypatch.setenv("DEVSYNTH_INNER_TEST", "1")
@@ -53,7 +58,7 @@ def test_inner_test_mode_disables_plugins_and_parallel(
     assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
     addopts = os.environ.get("PYTEST_ADDOPTS", "")
     assert "-p no:xdist" in addopts
-    assert "-p no:cov" in addopts
+    assert "-p no:cov" not in addopts
 
     # run_tests should have been invoked with parallel=False due to no_parallel=True
     # Signature:

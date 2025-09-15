@@ -25,6 +25,16 @@ class DummyBridge(UXBridge):
         self.messages.append(message)
 
 
+@pytest.fixture(autouse=True)
+def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ensure coverage enforcement is treated as passing in CLI tests."""
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.enforce_coverage_threshold",
+        lambda *args, **kwargs: 100.0,
+    )
+
+
 @pytest.mark.fast
 def test_allows_requests_env_default_for_unit(monkeypatch, tmp_path) -> None:
     """ReqID: CLI-RT-14 — unit-tests default allows requests when unset."""
@@ -204,8 +214,8 @@ def test_inventory_exports_file(monkeypatch, tmp_path, tmp_path_factory) -> None
 
 
 @pytest.mark.fast
-def test_integration_target_disables_cov_when_no_report(monkeypatch) -> None:
-    """ReqID: CLI-RT-03 — Integration target without report disables coverage plugin."""
+def test_integration_target_retains_cov_when_no_report(monkeypatch) -> None:
+    """ReqID: CLI-RT-03 — Integration target without report keeps coverage active."""
     # Ensure PYTEST_ADDOPTS starts clean
     if "PYTEST_ADDOPTS" in os.environ:
         monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
@@ -234,7 +244,8 @@ def test_integration_target_disables_cov_when_no_report(monkeypatch) -> None:
         bridge=bridge,
     )
 
-    assert "-p no:cov" in os.environ.get("PYTEST_ADDOPTS", "")
+    assert "-p no:cov" not in os.environ.get("PYTEST_ADDOPTS", "")
+    assert any("Coverage" in message for message in bridge.messages)
 
 
 @pytest.mark.fast
@@ -303,7 +314,7 @@ def test_inner_test_env_disables_plugins_and_parallel(monkeypatch) -> None:
     # Env flags should be applied for inner test optimization
     assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
     addopts = os.environ.get("PYTEST_ADDOPTS", "")
-    assert "-p no:xdist" in addopts and "-p no:cov" in addopts
+    assert "-p no:xdist" in addopts and "-p no:cov" not in addopts
     # parallel arg passed into run_tests should be False (index 4)
     assert captured["args"][4] is False
     assert any("Tests completed successfully" in m for m in bridge.messages)

@@ -8,6 +8,14 @@ from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
 from devsynth.interface.ux_bridge import UXBridge
 
 
+@pytest.fixture(autouse=True)
+def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.enforce_coverage_threshold",
+        lambda *a, **k: 100.0,
+    )
+
+
 class DummyBridge(UXBridge):
     def __init__(self) -> None:
         self.messages: list[str] = []

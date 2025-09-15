@@ -1,15 +1,15 @@
 import pytest
 
+import devsynth.testing.run_tests as rt
 from devsynth.testing.run_tests import run_tests
 
 
 @pytest.mark.fast
-def test_parallel_injects_no_cov_and_xdist_auto(monkeypatch):
-    """ReqID: TR-RT-11 — Parallel path injects -n auto and --no-cov.
+def test_parallel_injects_cov_reports_and_xdist_auto(monkeypatch):
+    """ReqID: TR-RT-11 — Parallel path injects -n auto with coverage reports.
 
-    Verify that when parallel=True, run_tests injects xdist flags and disables
-    coverage collection via --no-cov to avoid known pytest-xdist/pytest-cov
-    teardown issues.
+    Verify that when parallel=True, run_tests injects xdist flags and preserves
+    coverage instrumentation so JSON/HTML artifacts are generated.
     """
 
     called = {}
@@ -62,7 +62,13 @@ def test_parallel_injects_no_cov_and_xdist_auto(monkeypatch):
 
     # Assert xdist auto and coverage disabled flags are present
     assert "-n" in cmd and "auto" in cmd, f"xdist flags not present in cmd: {cmd}"
-    assert "--no-cov" in cmd, f"--no-cov not present in cmd: {cmd}"
+    cov_flag = f"--cov={rt.COVERAGE_TARGET}"
+    json_flag = f"--cov-report=json:{rt.COVERAGE_JSON_PATH}"
+    html_flag = f"--cov-report=html:{rt.COVERAGE_HTML_DIR}"
+    assert cov_flag in cmd, f"{cov_flag} not present in cmd: {cmd}"
+    assert json_flag in cmd, f"{json_flag} not present in cmd: {cmd}"
+    assert html_flag in cmd, f"{html_flag} not present in cmd: {cmd}"
+    assert "--cov-append" in cmd, f"--cov-append not present in cmd: {cmd}"
 
     # Node ids from collection should be passed through to the run command
     assert any(isinstance(x, str) and x.endswith("foo_test.py::test_one") for x in cmd)

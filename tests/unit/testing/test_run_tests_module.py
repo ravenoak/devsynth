@@ -1,6 +1,8 @@
 from typing import Any
 from types import SimpleNamespace
 
+import json
+
 import pytest
 
 import devsynth.testing.run_tests as rt
@@ -105,6 +107,23 @@ def test_run_tests_translates_args_and_handles_return_codes(
     # Capture the command built for the run path (no speed_categories provided)
     captured = {"cmd": None, "env": None}
 
+    class CollectResult:
+        def __init__(self, out: str) -> None:
+            self.stdout = out
+            self.stderr = ""
+            self.returncode = 0
+
+    def fake_run(
+        cmd: list[str],
+        check: bool,
+        capture_output: bool,
+        text: bool,
+    ) -> CollectResult:  # type: ignore[override]
+        assert "--collect-only" in cmd
+        return CollectResult(f"{tests_dir}/test_x.py::test_one\n")
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_run)
+
     class P:
         def __init__(self, cmd: list[str], code: int, out: str = "ok\n", err: str = ""):
             self.args = cmd
@@ -165,6 +184,12 @@ def test_run_tests_translates_args_and_handles_return_codes(
     assert cmd[0:3] == [rt.sys.executable, "-m", "pytest"]
     # parallel=False ensures '-n auto' is not present
     assert "-n" not in cmd
+    assert f"--cov={rt.COVERAGE_TARGET}" in cmd
+    assert (
+        f"--cov-report=json:{rt.COVERAGE_JSON_PATH}" in cmd
+    )
+    assert f"--cov-report=html:{rt.COVERAGE_HTML_DIR}" in cmd
+    assert "--cov-append" in cmd
 
     # Now simulate non-zero but xfail/skip-only exit 5 being treated as success
     def popen_code5(
@@ -318,3 +343,25 @@ def test_collect_unknown_target_uses_all_tests_path(monkeypatch, tmp_path):
     assert result == ["test_sample.py::test_ok"]
     assert observed, "expected subprocess.run to be invoked"
     assert observed[0][3] == str(tests_dir)
+
+
+@pytest.mark.fast
+def test_enforce_coverage_threshold_exit_and_return(tmp_path):
+    """ReqID: RTM-05 — Coverage helper returns percent and exits on failure."""
+
+    cov_file = tmp_path / "coverage.json"
+    cov_file.write_text(json.dumps({"totals": {"percent_covered": 95.25}}))
+    percent = rt.enforce_coverage_threshold(
+        coverage_file=cov_file, exit_on_failure=False
+    )
+    assert percent == pytest.approx(95.25)
+
+    cov_file.write_text(json.dumps({"totals": {"percent_covered": 81.7}}))
+    with pytest.raises(RuntimeError):
+        rt.enforce_coverage_threshold(
+            coverage_file=cov_file, exit_on_failure=False
+        )
+
+    with pytest.raises(SystemExit) as excinfo:
+        rt.enforce_coverage_threshold(coverage_file=cov_file)
+    assert excinfo.value.code == 1

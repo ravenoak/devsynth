@@ -16,6 +16,11 @@ from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
 
 
+@pytest.fixture(autouse=True)
+def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(module, "enforce_coverage_threshold", lambda *a, **k: 100.0)
+
+
 class _DummyBridge:
     def print(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover - trivial
         pass

@@ -28,6 +28,7 @@ def _clean_env(monkeypatch: pytest.MonkeyPatch):
     ]
     for k in keys:
         monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(rtc, "enforce_coverage_threshold", lambda *a, **k: 100.0)
     yield
     for k in keys:
         monkeypatch.delenv(k, raising=False)
