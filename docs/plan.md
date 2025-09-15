@@ -1,6 +1,6 @@
 # DevSynth 0.1.0a1 Test Readiness and Coverage Improvement Plan
 
-Version: 2025-09-13
+Version: 2025-09-15
 Owner: DevSynth Team (maintainers)
 Status: Execution in progress; install loop closed (2025-09-09); property marker advisories resolved; flake8 and bandit scans resolved (2025-09-11); go-task installed (2025-09-11); coverage threshold previously achieved (2025-10-12) but regressed to 13.68 % on 2025-09-15 (see issues/coverage-below-threshold.md)
 
@@ -25,6 +25,8 @@ Commands executed (audit trail)
  - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → verify_test_markers now reports 0 property_violations after helper logic refinement.
  - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → all tests passed.
 - poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1 → command succeeds but the generated `test_reports/coverage.json` reports 13.68 % coverage and `htmlcov/index.html` is zero bytes; aggregation and instrumentation require remediation.
+- poetry install --with dev --all-extras → reinstalls the entry point so `poetry run devsynth …` works after a fresh session.
+- poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 → succeeds but coverage enforcement reports `totals.percent_covered` missing because smoke mode disables plugin autoload, leaving `test_reports/coverage.json` as `{}`.
 - Environment: Python 3.12.x (pyproject constraint), Poetry 2.2.0; coverage artifacts stored under `test_reports/20250915_212138/` and `test_reports/coverage.json`, but aggregated HTML output (`htmlcov/index.html`) is empty and the JSON report confirms only 13.68 % coverage.
 
 Environment snapshot and reproducibility (authoritative)
@@ -41,6 +43,7 @@ Environment snapshot and reproducibility (authoritative)
   - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 2>&1 | tee test_reports/integration_fast_smoke.log
 - Maintainer guardrails (mandatory extras):
   - Ensure all extras are installed (we are providers, nothing is optional): scripts/install_dev.sh runs `poetry install --with dev --all-extras`
+  - When a new shell starts without the CLI entry point, rerun `poetry install --with dev --all-extras` to restore `devsynth` before invoking CLI commands.
   - If doctor surfaces missing optional backends, treat as non-blocking unless explicitly enabled via DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true.
 
 Coverage aggregation (authoritative)
@@ -54,6 +57,8 @@ Coverage aggregation (authoritative)
 - Verify the combined threshold: poetry run pytest -q --maxfail=1 --no-header --no-summary --disable-warnings --cov-fail-under=90 -k "nonexistent_to_force_no_tests" || true
 - Narrow subsets will not meet the global threshold; always use the single-run or segmented+combine approach above when asserting readiness.
 - Current failure mode (2025-09-15): despite the run completing, coverage data reflects only 13.68 % (`test_reports/coverage.json`) and HTML output is empty, signalling instrumentation or inclusion gaps; coordinate with issues/coverage-below-threshold.md for remediation work.
+- Smoke profile guardrail: ensure `pytest-cov` still loads (e.g., append `-p pytest_cov` when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`) or adjust the CLI to skip threshold enforcement when coverage instrumentation is intentionally disabled. Track under docs/tasks.md §21.8.
+- Smoke profile note (2025-09-15): coverage enforcement prints "Unable to determine total coverage…" because smoke mode sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`, preventing `pytest-cov` from writing `.coverage`; the CLI currently treats this as a soft warning but still masks the missing coverage data.
 
 Concrete remediation tasks (actionable specifics)
 - Property tests (tests/property/test_requirements_consensus_properties.py):
