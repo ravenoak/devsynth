@@ -39,8 +39,15 @@ fi
 # Ensure go-task is available for Taskfile-based workflows
 TASK_BIN_DIR="${HOME}/.local/bin"
 mkdir -p "$TASK_BIN_DIR"
-if ! command -v task >/dev/null 2>&1; then
-  echo "[info] task command missing; installing go-task" >&2
+
+# Ensure Task's installation directory is on PATH so an existing binary is detected
+if [[ ":$PATH:" != *":$TASK_BIN_DIR:"* ]]; then
+  export PATH="$TASK_BIN_DIR:$PATH"
+fi
+
+# Verify task binary; install go-task if the check fails
+if ! task --version >/dev/null 2>&1; then
+  echo "[info] task command missing or not functioning; installing go-task" >&2
 
   os=$(uname -s | tr '[:upper:]' '[:lower:]')
   arch=$(uname -m)
@@ -64,7 +71,11 @@ if ! command -v task >/dev/null 2>&1; then
     exit 1
   fi
 
-  export PATH="$TASK_BIN_DIR:$PATH"
+  if ! [ -x "$TASK_BIN_DIR/task" ]; then
+    echo "[error] task binary missing or not executable at $TASK_BIN_DIR/task" >&2
+    exit 1
+  fi
+
   if ! command -v task >/dev/null 2>&1; then
     echo "[error] task binary not found on PATH after installation" >&2
     exit 1
@@ -80,10 +91,7 @@ if ! command -v task >/dev/null 2>&1; then
   fi
 fi
 
-# Ensure the Task binary directory is on PATH for current and future sessions
-if [[ ":$PATH:" != *":$TASK_BIN_DIR:"* ]]; then
-  export PATH="$TASK_BIN_DIR:$PATH"
-fi
+# Ensure the Task binary directory is on PATH for future sessions
 if [ -w "$HOME/.profile" ] && ! grep -F "$TASK_BIN_DIR" "$HOME/.profile" >/dev/null 2>&1; then
   echo "export PATH=\"$TASK_BIN_DIR:\$PATH\"" >> "$HOME/.profile"
 fi

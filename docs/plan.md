@@ -249,8 +249,8 @@ Acceptance checklist
 
 Maintainer quickstart (authoritative commands)
   - Setup:
-    bash scripts/install_dev.sh  # installs dev dependencies and go-task to $HOME/.local/bin
-    task --version  # verify go-task is on PATH; add $HOME/.local/bin if missing
+    bash scripts/install_dev.sh  # installs dev dependencies and go-task, adds $HOME/.local/bin to PATH
+    task --version  # verify go-task is available
     poetry run devsynth --help   # verify devsynth entry point
     task env:verify  # fail early if task or the devsynth CLI is unavailable
     poetry run devsynth doctor
@@ -265,8 +265,8 @@ Maintainer quickstart (authoritative commands)
 - Static analysis and typing:
   poetry run black --check . && poetry run isort --check-only . && poetry run flake8 src/ tests/ && poetry run mypy src/devsynth && poetry run bandit -r src/devsynth -x tests && poetry run safety check --full-report
 - Persistence strategy:
-  - `scripts/install_dev.sh` installs go-task into `$HOME/.local/bin`.
-  - Ensure `$HOME/.local/bin` is on your PATH or rerun the install script if `task` is missing.
+  - `scripts/install_dev.sh` installs go-task into `$HOME/.local/bin` and adds it to PATH automatically.
+  - Running `task --version` verifies the installation.
 
 Notes and next actions
 - Immediate: Fix the two property test failures; add targeted tests for run_tests_cmd branches; re-generate coverage report and iterate on hotspots below 80% coverage.
