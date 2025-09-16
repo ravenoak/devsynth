@@ -203,10 +203,10 @@ Notes:
 21.10 [x] Document the remediated coverage workflow in docs/plan.md and docs/tasks.md after instrumentation lands (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 
 22. Coverage Instrumentation Recovery (Phase 2C)
-22.1 [ ] Diagnose why `.coverage` is absent after `devsynth run-tests` when coverage warnings appear; ensure `_ensure_coverage_artifacts()` only runs once real data is available (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
-22.2 [ ] Add an integration test around `run_tests_cmd` that simulates a successful pytest run and asserts `test_reports/coverage.json` contains `totals.percent_covered` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
-22.3 [ ] Update enforcement logic to detect placeholder coverage artifacts and surface actionable remediation guidance in the CLI output (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
-22.4 [ ] Document the instrumentation recovery steps and minimum reproducible command in docs/plan.md and docs/task_notes.md once fixed.
+22.1 [x] Diagnose why `.coverage` is absent after `devsynth run-tests` when coverage warnings appear; ensure `_ensure_coverage_artifacts()` only runs once real data is available (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+22.2 [x] Add an integration test around `run_tests_cmd` that simulates a successful pytest run and asserts `test_reports/coverage.json` contains `totals.percent_covered` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+22.3 [x] Update enforcement logic to detect placeholder coverage artifacts and surface actionable remediation guidance in the CLI output (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+22.4 [x] Document the instrumentation recovery steps and minimum reproducible command in docs/plan.md and docs/task_notes.md once fixed.
 
 23. Academic Rigor Alignment (Phase 5B)
 23.1 [ ] Promote `docs/implementation/output_formatter_invariants.md` from draft to reviewed status after new tests cover formatting branches (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [documentation-utility-functions.md](../issues/documentation-utility-functions.md)).

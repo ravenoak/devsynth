@@ -7,7 +7,12 @@ command relies on without importing :mod:`run_tests_cmd`, ensuring coverage for
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
+import types
+import sys
+import json
+import logging
 
 import pytest
 
@@ -15,8 +20,13 @@ import devsynth.testing.run_tests as rt
 
 
 @pytest.fixture(autouse=True)
-def _patch_artifact_helpers(monkeypatch: pytest.MonkeyPatch) -> None:
+def _patch_artifact_helpers(
+    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> None:
     """Prevent tests from mutating coverage artifacts on disk."""
+
+    if request.node.get_closest_marker("allow_real_coverage_artifacts"):
+        return
 
     monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
@@ -302,3 +312,80 @@ def test_cli_report_mode_adds_html_argument(
     assert html_args, run_commands[0]
     assert html_args[0].startswith("--html=test_reports/")
     assert (tmp_path / "test_reports").exists()
+
+
+@pytest.mark.fast
+@pytest.mark.allow_real_coverage_artifacts
+def test_run_tests_generates_coverage_totals(
+    monkeypatch: pytest.MonkeyPatch, tmp_path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """ReqID: RUN-TESTS-COVERAGE-1 — Successful run yields coverage totals."""
+
+    monkeypatch.chdir(tmp_path)
+
+    stub_module = types.ModuleType("coverage")
+
+    class StubCoverage:
+        json_outputs: list[str] = []
+        html_outputs: list[str] = []
+
+        def __init__(self, data_file: str = ".coverage") -> None:
+            self.data_file = data_file
+
+        def load(self) -> None:  # pragma: no cover - simple stub
+            return None
+
+        def get_data(self) -> SimpleNamespace:
+            return SimpleNamespace(measured_files=lambda: ["stub.py"])
+
+        def html_report(self, directory: str) -> None:
+            StubCoverage.html_outputs.append(directory)
+            out_dir = Path(directory)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "index.html").write_text("<html><body>ok</body></html>")
+
+        def json_report(self, outfile: str) -> None:
+            StubCoverage.json_outputs.append(outfile)
+            Path(outfile).write_text(
+                json.dumps({"totals": {"percent_covered": 99.0}})
+            )
+
+    stub_module.Coverage = StubCoverage  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "coverage", stub_module)
+    (tmp_path / ".coverage").write_text("stub")
+
+    caplog.set_level(logging.WARNING, logger="devsynth.testing.run_tests")
+    rt._ensure_coverage_artifacts()
+
+    assert StubCoverage.json_outputs, "Expected coverage JSON to be generated"
+
+    coverage_json = tmp_path / rt.COVERAGE_JSON_PATH
+    assert coverage_json.exists()
+    payload = json.loads(coverage_json.read_text())
+    totals = payload.get("totals") if isinstance(payload, dict) else None
+    assert isinstance(totals, dict)
+    assert "percent_covered" in totals
+
+    html_index = tmp_path / rt.COVERAGE_HTML_DIR / "index.html"
+    assert html_index.exists()
+    assert "No coverage data available" not in html_index.read_text()
+
+
+@pytest.mark.fast
+@pytest.mark.allow_real_coverage_artifacts
+def test_run_tests_skips_placeholder_artifacts(
+    monkeypatch: pytest.MonkeyPatch, tmp_path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """ReqID: RUN-TESTS-COVERAGE-2 — Missing coverage data avoids placeholders."""
+
+    monkeypatch.chdir(tmp_path)
+    caplog.set_level(logging.WARNING, logger="devsynth.testing.run_tests")
+    rt._ensure_coverage_artifacts()
+    coverage_json = tmp_path / rt.COVERAGE_JSON_PATH
+    html_dir = tmp_path / rt.COVERAGE_HTML_DIR
+
+    assert not coverage_json.exists()
+    assert not html_dir.exists()
+
+    warning_messages = [record.getMessage() for record in caplog.records]
+    assert any("Coverage artifact generation skipped" in msg for msg in warning_messages)

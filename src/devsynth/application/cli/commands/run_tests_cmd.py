@@ -25,6 +25,7 @@ from devsynth.testing.run_tests import (
     COVERAGE_JSON_PATH,
     DEFAULT_COVERAGE_THRESHOLD,
     collect_tests_with_cache,
+    coverage_artifacts_status,
     enforce_coverage_threshold,
     run_tests,
 )
@@ -393,7 +394,38 @@ def run_tests_cmd(
                 pass
 
         coverage_enabled, skip_reason = _coverage_instrumentation_status()
-        if coverage_enabled:
+        if not coverage_enabled:
+            detail = f" ({skip_reason})" if skip_reason else ""
+            message = (
+                "[yellow]Coverage enforcement skipped: pytest-cov instrumentation "
+                "disabled"
+                f"{detail}.[/yellow]"
+            )
+            ux_bridge.print(message)
+
+            if skip_reason and "pytest plugin autoload disabled" in skip_reason:
+                remediation = (
+                    "[red]Coverage artifacts were not generated because pytest-cov was "
+                    "disabled. Unset PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 or append "
+                    "'-p pytest_cov' to PYTEST_ADDOPTS, then rerun the command.[/red]"
+                )
+                ux_bridge.print(remediation)
+                raise typer.Exit(code=1)
+        else:
+            artifacts_ok, artifact_issue = coverage_artifacts_status()
+            if not artifacts_ok:
+                detail = f" ({artifact_issue})" if artifact_issue else ""
+                remediation = (
+                    "Ensure pytest-cov is active for this session. Remove "
+                    "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 or supply '-p pytest_cov' when "
+                    "using custom PYTEST_ADDOPTS."
+                )
+                ux_bridge.print(
+                    "[red]Coverage artifacts missing or empty"
+                    f"{detail}. {remediation}[/red]"
+                )
+                raise typer.Exit(code=1)
+
             try:
                 coverage_percent = enforce_coverage_threshold(exit_on_failure=False)
             except RuntimeError as exc:
@@ -406,14 +438,6 @@ def run_tests_cmd(
                     ).format(coverage_percent, DEFAULT_COVERAGE_THRESHOLD)
                 )
                 _emit_coverage_artifact_messages(ux_bridge)
-        else:
-            detail = f" ({skip_reason})" if skip_reason else ""
-            message = (
-                "[yellow]Coverage enforcement skipped: pytest-cov instrumentation "
-                "disabled"
-                f"{detail}.[/yellow]"
-            )
-            ux_bridge.print(message)
     else:
         ux_bridge.print("[red]Tests failed[/red]")
         raise typer.Exit(code=1)

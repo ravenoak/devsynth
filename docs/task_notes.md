@@ -90,3 +90,11 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1`.
 - Observations: Both commands print "Unable to determine total coverage" and leave `.coverage` missing even though `--cov` arguments are passed; `test_reports/coverage.json` reverts to 13.68 % only after restoring the previous artifact from git. Added docs/tasks.md §22–23 to capture instrumentation fixes and documentation promotions.
 - Next: Diagnose missing `.coverage`, add regression tests for `totals.percent_covered`, and promote draft invariant notes once coverage improvements land.
+
+## Iteration 2025-09-16B – Coverage artifact remediation
+- Environment: Python 3.12.10; Poetry env `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`.
+- Commands:
+  - `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTEST_ADDOPTS="-k test_that_does_not_exist --maxfail=1" poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report` – now exits with remediation instead of leaving `{}` coverage artifacts.【7cb697†L1-L3】
+  - `poetry run pytest tests/unit/testing/test_run_tests_cli_invocation.py::test_run_tests_generates_coverage_totals tests/unit/application/cli/test_run_tests_cmd.py::test_cli_reports_coverage_percent` (new regression coverage suite).
+- Observations: `_ensure_coverage_artifacts()` now refuses to emit placeholders when `.coverage` is missing and the CLI surfaces actionable guidance. The regression tests confirm `test_reports/coverage.json` includes `totals.percent_covered`, meeting the ≥90 % gate precondition.
+- Next: Run the full aggregate profile once remaining coverage hot spots receive tests so the gate can pass without manual intervention.
