@@ -202,6 +202,18 @@ Notes:
 21.9 [x] Implement a coverage gate that parses `test_reports/coverage.json`, prints the measured percentage, and fails when coverage <90 % to prevent silent regressions (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 21.10 [x] Document the remediated coverage workflow in docs/plan.md and docs/tasks.md after instrumentation lands (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 
+22. Coverage Instrumentation Recovery (Phase 2C)
+22.1 [ ] Diagnose why `.coverage` is absent after `devsynth run-tests` when coverage warnings appear; ensure `_ensure_coverage_artifacts()` only runs once real data is available (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+22.2 [ ] Add an integration test around `run_tests_cmd` that simulates a successful pytest run and asserts `test_reports/coverage.json` contains `totals.percent_covered` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+22.3 [ ] Update enforcement logic to detect placeholder coverage artifacts and surface actionable remediation guidance in the CLI output (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+22.4 [ ] Document the instrumentation recovery steps and minimum reproducible command in docs/plan.md and docs/task_notes.md once fixed.
+
+23. Academic Rigor Alignment (Phase 5B)
+23.1 [ ] Promote `docs/implementation/output_formatter_invariants.md` from draft to reviewed status after new tests cover formatting branches (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [documentation-utility-functions.md](../issues/documentation-utility-functions.md)).
+23.2 [ ] Promote `docs/implementation/reasoning_loop_invariants.md` from draft to reviewed status once recursion safeguards gain property/unit coverage (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [Finalize-dialectical-reasoning.md](../issues/Finalize-dialectical-reasoning.md)).
+23.3 [ ] Promote `docs/implementation/webui_invariants.md` from draft to reviewed status after WebUI bridge/navigation coverage increases (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [webui-integration.md](../issues/webui-integration.md)).
+23.4 [ ] Audit remaining specifications tagged `status: draft` and pair them with verified BDD features before UAT sign-off (Issue: [release-finalization-uat.md](../issues/release-finalization-uat.md)).
+
 Notes:
 - 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.
 - 2025-09-15: Reinstalled dependencies and reran smoke/verification; tasks 19.2, 19.4, 19.5 remain.
