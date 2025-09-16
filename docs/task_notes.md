@@ -81,3 +81,12 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - Confirmed existing aggregated coverage artifact still reports 13.68 % via JSON totals.
 - Observations: Smoke mode sets `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`, preventing pytest-cov from writing `.coverage`, so enforcement degrades to a warning; added docs/tasks.md §21.8 and plan updates to capture remediation options.
 - Next: Track a fix ensuring smoke runs either load pytest-cov explicitly or bypass coverage enforcement when intentionally skipping instrumentation; coordinate with issues/coverage-below-threshold.md.
+
+## Iteration 2025-09-16 – Coverage instrumentation audit
+- Environment: Python 3.12.10; `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`; `~/.local/bin/task --version` 3.45.3 after `bash scripts/install_dev.sh`.
+- Commands:
+  - `poetry install --with dev --all-extras` (clean reinstall to restore `devsynth` entry point).
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`.
+  - `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1`.
+- Observations: Both commands print "Unable to determine total coverage" and leave `.coverage` missing even though `--cov` arguments are passed; `test_reports/coverage.json` reverts to 13.68 % only after restoring the previous artifact from git. Added docs/tasks.md §22–23 to capture instrumentation fixes and documentation promotions.
+- Next: Diagnose missing `.coverage`, add regression tests for `totals.percent_covered`, and promote draft invariant notes once coverage improvements land.
