@@ -10,6 +10,7 @@ Example:
 from __future__ import annotations
 
 import os
+import shlex
 from typing import Any
 
 import typer
@@ -103,6 +104,56 @@ def _emit_coverage_artifact_messages(ux_bridge: UXBridge) -> None:
         )
 
 
+def _parse_pytest_addopts(addopts: str | None) -> list[str]:
+    """Parse ``PYTEST_ADDOPTS`` into discrete tokens."""
+
+    if not addopts or not addopts.strip():
+        return []
+    try:
+        return shlex.split(addopts)
+    except ValueError:
+        # Fall back to a naive split when quoting is imbalanced; pytest will
+        # still receive the original string and surface the parsing error.
+        return addopts.split()
+
+
+def _addopts_has_plugin(tokens: list[str], plugin: str) -> bool:
+    """Check whether a ``-p`` plugin directive exists for the given plugin."""
+
+    for index, token in enumerate(tokens):
+        if token == "-p" and index + 1 < len(tokens) and tokens[index + 1] == plugin:
+            return True
+        if token.startswith("-p") and token[2:] == plugin:
+            return True
+    return False
+
+
+def _coverage_instrumentation_disabled(tokens: list[str]) -> bool:
+    """Return ``True`` when coverage instrumentation is explicitly disabled."""
+
+    if "--no-cov" in tokens:
+        return True
+    if _addopts_has_plugin(tokens, "no:cov"):
+        return True
+    return False
+
+
+def _coverage_instrumentation_status() -> tuple[bool, str | None]:
+    """Determine whether pytest-cov instrumentation is active."""
+
+    addopts = os.environ.get("PYTEST_ADDOPTS", "")
+    tokens = _parse_pytest_addopts(addopts)
+    if "--no-cov" in tokens:
+        return False, "PYTEST_ADDOPTS contains --no-cov"
+    if _addopts_has_plugin(tokens, "no:cov"):
+        return False, "PYTEST_ADDOPTS disables pytest-cov via -p no:cov"
+    if os.environ.get(
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD"
+    ) == "1" and not _addopts_has_plugin(tokens, "pytest_cov"):
+        return False, "pytest plugin autoload disabled without -p pytest_cov"
+    return True, None
+
+
 def run_tests_cmd(
     target: str = typer.Option(
         "all-tests",
@@ -170,15 +221,11 @@ def run_tests_cmd(
     # typer.Option(...) can be passed as Typer Option objects rather than their
     # concrete types. Normalize such values for predictable behavior in tests.
     # Normalize values in case this is called programmatically (not via Typer CLI)
-    if not isinstance(inventory, bool):
-        # Treat unspecified inventory flag as False when called directly.
-        inventory = False
+    inventory = inventory if isinstance(inventory, bool) else False
 
-    if not isinstance(speeds, list):  # Typer OptionInfo or None
-        speeds = []
+    speeds = speeds if isinstance(speeds, list) else []
 
-    if not isinstance(features, list):  # Typer OptionInfo or None
-        features = []
+    features = features if isinstance(features, list) else []
 
     _configure_optional_providers()
 
@@ -259,8 +306,17 @@ def run_tests_cmd(
     # Smoke mode: minimize plugin surface and disable xdist
     if smoke:
         os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
-        # Explicitly disable xdist plugin if present
-        os.environ.setdefault("PYTEST_ADDOPTS", "-p no:xdist")
+        # Preserve user-provided PYTEST_ADDOPTS while ensuring coverage instrumentation
+        # is available unless explicitly disabled.
+        addopts_value = os.environ.get("PYTEST_ADDOPTS", "")
+        if not addopts_value.strip():
+            addopts_value = "-p no:xdist"
+        tokens = _parse_pytest_addopts(addopts_value)
+        if not _coverage_instrumentation_disabled(tokens) and not _addopts_has_plugin(
+            tokens, "pytest_cov"
+        ):
+            addopts_value = f"{addopts_value} -p pytest_cov"
+        os.environ["PYTEST_ADDOPTS"] = addopts_value.strip()
         no_parallel = True
         # In smoke mode, default to fast tests when no explicit speeds are provided.
         if not normalized_speeds:
@@ -275,9 +331,7 @@ def run_tests_cmd(
         os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
         existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
         # Prepend to ensure our flags take effect
-        os.environ["PYTEST_ADDOPTS"] = (
-            "-p no:xdist " + existing_addopts
-        ).strip()
+        os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist " + existing_addopts).strip()
         no_parallel = True
 
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
@@ -338,18 +392,28 @@ def run_tests_cmd(
                 # Do not fail UX if filesystem inspection errs
                 pass
 
-        try:
-            coverage_percent = enforce_coverage_threshold(exit_on_failure=False)
-        except RuntimeError as exc:
-            ux_bridge.print(f"[red]{exc}[/red]")
-            raise typer.Exit(code=1)
-        else:
-            ux_bridge.print(
-                "[green]Coverage {0:.2f}% meets the {1:.0f}% threshold[/green]".format(
-                    coverage_percent, DEFAULT_COVERAGE_THRESHOLD
+        coverage_enabled, skip_reason = _coverage_instrumentation_status()
+        if coverage_enabled:
+            try:
+                coverage_percent = enforce_coverage_threshold(exit_on_failure=False)
+            except RuntimeError as exc:
+                ux_bridge.print(f"[red]{exc}[/red]")
+                raise typer.Exit(code=1)
+            else:
+                ux_bridge.print(
+                    (
+                        "[green]Coverage {:.2f}% meets the {:.0f}% threshold[/green]"
+                    ).format(coverage_percent, DEFAULT_COVERAGE_THRESHOLD)
                 )
+                _emit_coverage_artifact_messages(ux_bridge)
+        else:
+            detail = f" ({skip_reason})" if skip_reason else ""
+            message = (
+                "[yellow]Coverage enforcement skipped: pytest-cov instrumentation "
+                "disabled"
+                f"{detail}.[/yellow]"
             )
-            _emit_coverage_artifact_messages(ux_bridge)
+            ux_bridge.print(message)
     else:
         ux_bridge.print("[red]Tests failed[/red]")
         raise typer.Exit(code=1)
