@@ -22,14 +22,14 @@ EDRR cycles managed by the coordinator.
 ## Invariants
 
 - The coordinator enforces a default maximum recursion depth of three and
-  sanitizes the configured limit before use【F:src/devsynth/application/edrr/coordinator.py†L88-L97】【F:src/devsynth/application/edrr/coordinator.py†L235-L238】
+  sanitizes the configured limit before use【F:src/devsynth/application/edrr/coordinator/core.py†L90-L101】【F:src/devsynth/application/edrr/coordinator/core.py†L103-L130】
 - Micro cycles may only be created when the current depth is below the maximum;
-  attempts beyond that bound raise an error【F:src/devsynth/application/edrr/coordinator.py†L960-L968】
+  attempts beyond that bound raise an error【F:src/devsynth/application/edrr/coordinator/core.py†L664-L674】
 
 ## Termination Conditions
 
 Recursion halts when any of the following criteria evaluated by
-`should_terminate_recursion` are satisfied【F:src/devsynth/application/edrr/coordinator.py†L1072-L1099】:
+`should_terminate_recursion` are satisfied【F:src/devsynth/application/edrr/coordinator/core.py†L773-L915】:
 
 1. Human override directives
 2. Granularity falls below the threshold

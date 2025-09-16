@@ -11,3 +11,4 @@ per-file-ignores =
     src/devsynth/adapters/memory/memory_adapter.py: E501
     src/devsynth/application/memory/adapters/graph_memory_adapter.py: E501,F811
     src/devsynth/application/memory/adapters/enhanced_graph_memory_adapter.py: E501,F811
+    src/devsynth/application/edrr/coordinator/core.py: E501

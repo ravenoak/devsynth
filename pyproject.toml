@@ -221,6 +221,7 @@ per-file-ignores = [
   # Adapters contain deliberate import ordering and long lines due to external API constraints; documented in code comments
   "src/devsynth/adapters/agents/agent_adapter.py: E402,F401,E501",
   "src/devsynth/adapters/chromadb_memory_store.py: E501",
+  "src/devsynth/application/edrr/coordinator/core.py: E501",
 ]
 
 [tool.devsynth]
