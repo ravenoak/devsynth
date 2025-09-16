@@ -177,3 +177,128 @@ def test_cli_segment_batches_follow_segment_size(
     second_batch = [part for part in commands[1] if part in node_ids]
     assert first_batch == node_ids[:2]
     assert second_batch == node_ids[2:]
+
+
+@pytest.mark.fast
+def test_cli_keyword_filter_handles_resource_marker(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """ReqID: RUN-TESTS-CLI-ARGS-2 — resource markers trigger keyword filtering."""
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tmp_path))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(tmp_path))
+
+    test_file = tmp_path / "test_lmstudio.py"
+    test_file.write_text("def test_stub():\n    assert True\n")
+
+    collect_commands: list[list[str]] = []
+
+    def fake_collect(
+        cmd: list[str],
+        check: bool = False,
+        capture_output: bool = True,
+        text: bool = True,
+    ) -> SimpleNamespace:
+        collect_commands.append(cmd)
+        return SimpleNamespace(stdout=f"{test_file.name}::test_stub\n", stderr="", returncode=0)
+
+    run_commands: list[list[str]] = []
+
+    class DummyProcess:
+        def __init__(
+            self,
+            cmd: list[str],
+            stdout=None,
+            stderr=None,
+            text: bool = False,
+            env: dict[str, str] | None = None,
+        ) -> None:
+            run_commands.append(cmd)
+            self.returncode = 0
+
+        def communicate(self) -> tuple[str, str]:
+            return ("ok", "")
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_collect)
+    monkeypatch.setattr(rt.subprocess, "Popen", DummyProcess)
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=None,
+        verbose=False,
+        report=False,
+        parallel=False,
+        extra_marker="requires_resource('lmstudio')",
+    )
+
+    assert success is True
+    assert "ok" in output
+    assert collect_commands, "Expected collection command to run"
+    assert run_commands, "Expected run command to execute"
+
+    collect_tail = collect_commands[0][-2:]
+    assert collect_tail == ["-k", "lmstudio"], collect_commands[0]
+    assert test_file.name + "::test_stub" in run_commands[0]
+
+
+@pytest.mark.fast
+def test_cli_report_mode_adds_html_argument(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """ReqID: RUN-TESTS-CLI-REPORT-1 — report flag appends HTML output options."""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tmp_path))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(tmp_path))
+
+    test_file = tmp_path / "test_report.py"
+    test_file.write_text("def test_report():\n    assert True\n")
+
+    def fake_collect(
+        cmd: list[str],
+        check: bool = False,
+        capture_output: bool = True,
+        text: bool = True,
+    ) -> SimpleNamespace:
+        return SimpleNamespace(stdout=f"{test_file.name}::test_report\n", stderr="", returncode=0)
+
+    run_commands: list[list[str]] = []
+
+    class DummyProcess:
+        def __init__(
+            self,
+            cmd: list[str],
+            stdout=None,
+            stderr=None,
+            text: bool = False,
+            env: dict[str, str] | None = None,
+        ) -> None:
+            run_commands.append(cmd)
+            self.returncode = 0
+
+        def communicate(self) -> tuple[str, str]:
+            return ("report ok", "")
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_collect)
+    monkeypatch.setattr(rt.subprocess, "Popen", DummyProcess)
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=None,
+        verbose=False,
+        report=True,
+        parallel=False,
+    )
+
+    assert success is True
+    assert "report ok" in output
+    assert run_commands, "Expected report-mode command to run"
+
+    html_args = [arg for arg in run_commands[0] if arg.startswith("--html=")]
+    assert html_args, run_commands[0]
+    assert html_args[0].startswith("--html=test_reports/")
+    assert (tmp_path / "test_reports").exists()

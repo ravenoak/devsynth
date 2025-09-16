@@ -120,3 +120,62 @@ def test_display_result_respects_sanitization_flag(monkeypatch):
     assert handshake["count"] == 1
     assert fake_st.calls == [("info", raw)]
     assert bridge.messages == [raw]
+
+
+@pytest.mark.fast
+def test_display_result_highlight_routes_to_info(monkeypatch):
+    """Highlighted messages route through Streamlit ``info`` after handshake."""
+
+    fake_st = FakeStreamlit()
+    handshake = {"count": 0}
+
+    def fake_require() -> FakeStreamlit:
+        handshake["count"] += 1
+        webui_bridge.st = fake_st
+        return fake_st
+
+    monkeypatch.setattr(webui_bridge, "_require_streamlit", fake_require)
+    monkeypatch.setattr(webui_bridge, "st", None, raising=False)
+
+    def passthrough(self, message: str, message_type=None, highlight=False):  # type: ignore[override]
+        return message
+
+    monkeypatch.setattr(webui_bridge.OutputFormatter, "format_message", passthrough)
+
+    bridge = webui_bridge.WebUIBridge()
+    message = "<b>highlight me</b>"
+    bridge.display_result(message, highlight=True)
+
+    expected = html.escape(message)
+    assert handshake["count"] == 1
+    assert ("info", expected) in fake_st.calls
+    assert bridge.messages == [expected]
+
+
+@pytest.mark.fast
+def test_display_result_success_routes_to_success(monkeypatch):
+    """Success messages route to Streamlit ``success`` channel."""
+
+    fake_st = FakeStreamlit()
+    handshake = {"count": 0}
+
+    def fake_require() -> FakeStreamlit:
+        handshake["count"] += 1
+        webui_bridge.st = fake_st
+        return fake_st
+
+    monkeypatch.setattr(webui_bridge, "_require_streamlit", fake_require)
+    monkeypatch.setattr(webui_bridge, "st", None, raising=False)
+
+    def passthrough(self, message: str, message_type=None, highlight=False):  # type: ignore[override]
+        return message
+
+    monkeypatch.setattr(webui_bridge.OutputFormatter, "format_message", passthrough)
+
+    bridge = webui_bridge.WebUIBridge()
+    bridge.display_result("<em>done</em>", message_type="success")
+
+    expected = html.escape("<em>done</em>")
+    assert handshake["count"] == 1
+    assert ("success", expected) in fake_st.calls
+    assert bridge.messages == [expected]
