@@ -20,6 +20,8 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.observability.metrics import increment_counter
 from devsynth.testing.run_tests import (
+    COVERAGE_HTML_DIR,
+    COVERAGE_JSON_PATH,
     DEFAULT_COVERAGE_THRESHOLD,
     collect_tests_with_cache,
     enforce_coverage_threshold,
@@ -72,6 +74,33 @@ def _configure_optional_providers() -> None:
     # Apply offline-first, stub-by-default provider settings for tests
     env = ProviderEnv.from_env().with_test_defaults()
     env.apply_to_env()
+
+
+def _emit_coverage_artifact_messages(ux_bridge: UXBridge) -> None:
+    """Provide operator feedback about generated coverage artifacts."""
+
+    html_index = COVERAGE_HTML_DIR / "index.html"
+    if html_index.exists() and html_index.stat().st_size > 0:
+        ux_bridge.print(
+            "[green]HTML coverage report available at[/green] "
+            + str(html_index.resolve())
+        )
+    else:
+        ux_bridge.print(
+            "[yellow]HTML coverage report missing or empty at[/yellow] "
+            + str(html_index.resolve())
+        )
+
+    if COVERAGE_JSON_PATH.exists() and COVERAGE_JSON_PATH.stat().st_size > 0:
+        ux_bridge.print(
+            "[green]Coverage JSON written to[/green] "
+            + str(COVERAGE_JSON_PATH.resolve())
+        )
+    else:
+        ux_bridge.print(
+            "[yellow]Coverage JSON missing or empty at[/yellow] "
+            + str(COVERAGE_JSON_PATH.resolve())
+        )
 
 
 def run_tests_cmd(
@@ -320,6 +349,7 @@ def run_tests_cmd(
                     coverage_percent, DEFAULT_COVERAGE_THRESHOLD
                 )
             )
+            _emit_coverage_artifact_messages(ux_bridge)
     else:
         ux_bridge.print("[red]Tests failed[/red]")
         raise typer.Exit(code=1)

@@ -122,3 +122,28 @@ def test_no_parallel_maps_to_n0(monkeypatch) -> None:
     run_tests_cmd(target="unit-tests", speeds=["fast"], no_parallel=True, bridge=bridge)
 
     assert captured["args"][4] is False  # type: ignore[index]
+
+
+@pytest.mark.fast
+def test_emit_coverage_messages_reports_artifacts(tmp_path, monkeypatch) -> None:
+    """Coverage helper announces artifact locations when present."""
+
+    from devsynth.application.cli.commands import run_tests_cmd as module
+
+    html_dir = tmp_path / "htmlcov"
+    html_dir.mkdir()
+    (html_dir / "index.html").write_text("<html>ok</html>")
+
+    json_path = tmp_path / "test_reports" / "coverage.json"
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text("{\n  \"totals\": {\"percent_covered\": 100.0}\n}")
+
+    monkeypatch.setattr(module, "COVERAGE_HTML_DIR", html_dir)
+    monkeypatch.setattr(module, "COVERAGE_JSON_PATH", json_path)
+
+    bridge = DummyBridge()
+    module._emit_coverage_artifact_messages(bridge)
+
+    joined = "\n".join(bridge.messages)
+    assert "HTML coverage report available" in joined
+    assert "Coverage JSON written to" in joined
