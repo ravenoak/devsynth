@@ -1,7 +1,7 @@
 ---
-author: DevSynth Team
+author: AI Assistant
 date: '2025-09-16'
-status: draft
+status: active
 tags:
 - implementation
 - invariants
@@ -57,31 +57,24 @@ phases can recover prior results.【F:src/devsynth/application/edrr/coordinator/
 
 ## Deterministic Next-Phase Decisions
 
-`_decide_next_phase` honors manual overrides first, then quality thresholds, and
-finally elapsed timeouts. Only when all guards pass does it advance to the next
-phase in sequence.【F:src/devsynth/application/edrr/coordinator/phase_management.py†L162-L210】
+`_decide_next_phase` honours manual overrides first, then quality thresholds,
+and finally elapsed timeouts. Only when all guards pass does it advance to the
+next phase in sequence.【F:src/devsynth/application/edrr/coordinator/phase_management.py†L162-L210】
 
-```python
-from devsynth.application.edrr.coordinator import PhaseManagementMixin
-from devsynth.methodology.base import Phase
+The decision routine also enforces the following safeguards:
 
-
-class DemoCoordinator(PhaseManagementMixin):
-    def __init__(self) -> None:
-        self.manual_next_phase = Phase.REFINE
-        self.auto_phase_transitions = True
-        self.current_phase = Phase.DIFFERENTIATE
-        self.results = {"DIFFERENTIATE": {"phase_complete": True}}
-        self._phase_start_times = {}
-        self.phase_transition_timeout = 10
-
-    def _get_phase_quality_threshold(self, phase: Phase) -> float | None:
-        return None
-
-
-demo = DemoCoordinator()
-assert demo._decide_next_phase() == Phase.REFINE
-```
+- Manual overrides are consumed exactly once, preventing stale selections from
+  leaking into later decisions. See
+  [`test_decide_next_phase_consumes_manual_override`](../../tests/unit/application/edrr/test_phase_management_module.py).
+- Automatic transitions require `auto_phase_transitions` to be enabled; when it
+  is disabled the coordinator holds position even if the current phase has been
+  marked complete. Verified by
+  [`test_decide_next_phase_requires_auto_transitions`](../../tests/unit/application/edrr/test_phase_management_module.py).
+- The RETROSPECT phase terminates the sequence—automatic routing returns
+  ``None`` and explicit advancement raises `EDRRCoordinatorError`. Guarded by
+  [`test_decide_next_phase_returns_none_for_final_phase`](../../tests/unit/application/edrr/test_phase_management_module.py)
+  and
+  [`test_progress_to_next_phase_rejects_final_phase`](../../tests/unit/application/edrr/test_phase_management_module.py).
 
 ## Bounded Auto-Progression
 

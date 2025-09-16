@@ -119,3 +119,50 @@ def test_maybe_auto_progress_invokes_progression(coordinator: StubCoordinator) -
     coordinator._maybe_auto_progress()
 
     coordinator.progress_to_phase.assert_called_once_with(Phase.REFINE)
+
+
+def test_decide_next_phase_consumes_manual_override(
+    coordinator: StubCoordinator,
+) -> None:
+    """ReqID: N/A"""
+
+    coordinator.manual_next_phase = Phase.REFINE
+    coordinator.auto_phase_transitions = False
+    coordinator.current_phase = Phase.DIFFERENTIATE
+
+    assert coordinator._decide_next_phase() == Phase.REFINE
+    assert coordinator.manual_next_phase is None
+
+
+def test_decide_next_phase_requires_auto_transitions(
+    coordinator: StubCoordinator,
+) -> None:
+    """ReqID: N/A"""
+
+    coordinator.auto_phase_transitions = False
+    coordinator.current_phase = Phase.EXPAND
+    coordinator.results = {"EXPAND": {"phase_complete": True}}
+
+    assert coordinator._decide_next_phase() is None
+
+
+def test_decide_next_phase_returns_none_for_final_phase(
+    coordinator: StubCoordinator,
+) -> None:
+    """ReqID: N/A"""
+
+    coordinator.auto_phase_transitions = True
+    coordinator.current_phase = Phase.RETROSPECT
+
+    assert coordinator._decide_next_phase() is None
+
+
+def test_progress_to_next_phase_rejects_final_phase(
+    coordinator: StubCoordinator,
+) -> None:
+    """ReqID: N/A"""
+
+    coordinator.current_phase = Phase.RETROSPECT
+
+    with pytest.raises(EDRRCoordinatorError):
+        coordinator.progress_to_next_phase()

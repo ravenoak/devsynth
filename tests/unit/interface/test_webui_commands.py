@@ -1,9 +1,12 @@
 import sys
+from types import ModuleType
 
 import pytest
 
+import devsynth.interface.webui.commands as commands
 from devsynth.interface import webui
 from devsynth.interface.webui.commands import CommandHandlingMixin
+from devsynth.exceptions import DevSynthError
 from tests.fixtures.streamlit_mocks import make_streamlit_mock
 
 pytestmark = [pytest.mark.requires_resource("webui"), pytest.mark.fast]
@@ -88,3 +91,38 @@ def test_handle_command_errors_generic_exception(monkeypatch):
     assert dummy._handle_command_errors(raising, "While performing task") is None
     assert any("While performing task" in message for message in dummy.results)
     assert any("Boom" in message for message in dummy.results)
+
+
+def test_cli_uses_cli_module_when_available(monkeypatch):
+    """ReqID: FR-215 resolve commands from the CLI module when present."""
+
+    dummy = DummyCommands()
+
+    module = ModuleType("devsynth.application.cli")
+
+    def sentinel():
+        return "cli"
+
+    module.cli_command = sentinel
+    monkeypatch.setattr(commands, "_cli_mod", module, raising=False)
+
+    assert dummy._cli("cli_command") is sentinel
+
+
+def test_handle_command_errors_reraises_devsynth_error(monkeypatch):
+    """ReqID: FR-216 propagate DevSynthError without interception."""
+
+    dummy = DummyCommands()
+    st = make_streamlit_mock()
+    monkeypatch.setitem(sys.modules, "streamlit", st)
+
+    class Boom(DevSynthError):
+        """Sentinel exception for propagation checks."""
+
+    def raising():
+        raise Boom("fail")
+
+    with pytest.raises(Boom):
+        dummy._handle_command_errors(raising, "ignored")
+
+    assert dummy.results == []

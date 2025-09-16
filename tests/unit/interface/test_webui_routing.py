@@ -92,3 +92,37 @@ def test_router_requires_pages(stub_streamlit):
     ui = StubUI(stub_streamlit)
     with pytest.raises(ValueError):
         Router(ui, {})
+
+
+def test_router_honors_explicit_default(stub_streamlit):
+    """ReqID: FR-213 select the configured default page when no state exists."""
+
+    pages = {
+        "Onboarding": MagicMock(),
+        "Requirements": MagicMock(),
+    }
+    stub_streamlit.session_state.pop("nav", None)
+    stub_streamlit.sidebar.radio.return_value = "Requirements"
+    ui = StubUI(stub_streamlit)
+
+    router = Router(ui, pages, default="Requirements")
+    router.run()
+
+    stub_streamlit.sidebar.radio.assert_called_with(
+        "Navigation", ["Onboarding", "Requirements"], index=1
+    )
+    pages["Requirements"].assert_called_once()
+
+
+def test_router_reports_missing_page_handler(stub_streamlit):
+    """ReqID: FR-214 surface invalid selections instead of crashing."""
+
+    pages = {"Onboarding": MagicMock()}
+    stub_streamlit.sidebar.radio.return_value = "Ghost"
+    ui = StubUI(stub_streamlit)
+
+    router = Router(ui, pages)
+    router.run()
+
+    assert ui.messages == ["ERROR: Invalid navigation option"]
+    pages["Onboarding"].assert_not_called()
