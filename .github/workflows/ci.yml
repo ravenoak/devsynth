@@ -116,6 +116,9 @@ jobs:
         run: |
           poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 --report
 
+      - name: Verify coverage threshold
+        run: poetry run python scripts/verify_coverage_threshold.py
+
       - name: Collect diagnostics
         if: failure()
         run: |
@@ -174,6 +177,9 @@ jobs:
       - name: Run unit and integration tests
         run: |
           poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report
+
+      - name: Verify coverage threshold
+        run: poetry run python scripts/verify_coverage_threshold.py
 
       - name: Collect diagnostics
         if: failure()

@@ -51,3 +51,10 @@ repos:
         pass_filenames: true
         files: ^tests/.*\.py$
         stages: [pre-commit]
+      - id: verify-coverage-threshold
+        name: Verify coverage threshold
+        entry: poetry run python scripts/verify_coverage_threshold.py
+        language: system
+        pass_filenames: false
+        stages: [manual]
+        always_run: true
