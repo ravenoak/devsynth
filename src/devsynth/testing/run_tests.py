@@ -26,7 +26,8 @@ COLLECTION_CACHE_DIR: str = ".test_collection_cache"
 # Standardized coverage outputs
 COVERAGE_TARGET = "src/devsynth"
 COVERAGE_JSON_PATH = Path("test_reports/coverage.json")
-COVERAGE_HTML_DIR = Path("test_reports/htmlcov")
+COVERAGE_HTML_DIR = Path("htmlcov")
+LEGACY_HTML_DIRS: tuple[Path, ...] = (Path("test_reports/htmlcov"),)
 DEFAULT_COVERAGE_THRESHOLD = 90.0
 # TTL for collection cache in seconds (default: 3600); configurable via env var
 try:
@@ -109,7 +110,7 @@ def _reset_coverage_artifacts() -> None:
         except OSError:
             # Never fail test execution due to cleanup issues
             logger.debug("Unable to remove coverage artifact: %s", path)
-    for directory in (COVERAGE_HTML_DIR, Path("htmlcov")):
+    for directory in {COVERAGE_HTML_DIR, *LEGACY_HTML_DIRS}:
         try:
             if directory.exists():
                 shutil.rmtree(directory)
@@ -124,7 +125,9 @@ def _ensure_coverage_artifacts() -> None:
         from coverage import Coverage  # type: ignore[import-not-found]
 
         COVERAGE_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
-        COVERAGE_HTML_DIR.parent.mkdir(parents=True, exist_ok=True)
+        COVERAGE_HTML_DIR.mkdir(parents=True, exist_ok=True)
+        for legacy_dir in LEGACY_HTML_DIRS:
+            legacy_dir.parent.mkdir(parents=True, exist_ok=True)
 
         cov = Coverage(data_file=".coverage")
         try:
@@ -136,12 +139,32 @@ def _ensure_coverage_artifacts() -> None:
         try:
             cov.html_report(directory=str(COVERAGE_HTML_DIR))
         except Exception:
+            pass
+
+        html_index = COVERAGE_HTML_DIR / "index.html"
+        if not html_index.exists() or html_index.stat().st_size == 0:
             COVERAGE_HTML_DIR.mkdir(parents=True, exist_ok=True)
-            (COVERAGE_HTML_DIR / "index.html").write_text("")
+            html_index.write_text(
+                "<html><body><p>No coverage data available.</p></body></html>"
+            )
+
+        for legacy_dir in LEGACY_HTML_DIRS:
+            try:
+                if legacy_dir.exists():
+                    shutil.rmtree(legacy_dir)
+                shutil.copytree(COVERAGE_HTML_DIR, legacy_dir, dirs_exist_ok=True)
+            except Exception:
+                pass
+
         try:
             cov.json_report(outfile=str(COVERAGE_JSON_PATH))
         except Exception:
             COVERAGE_JSON_PATH.write_text("{}")
+
+        try:
+            shutil.copyfile(COVERAGE_JSON_PATH, Path("coverage.json"))
+        except Exception:
+            pass
     except Exception:
         # Never let coverage generation failures break the run
         pass
