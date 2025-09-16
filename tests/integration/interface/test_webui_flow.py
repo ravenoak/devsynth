@@ -245,3 +245,49 @@ def test_webui_navigation_prompt_and_command(fake_streamlit: FakeStreamlit, monk
     assert result == "processed:payload"
     assert executed == ["payload"]
     assert all(call[0] != "error" for call in fake_streamlit.calls)
+
+
+def test_webui_run_resets_invalid_navigation(fake_streamlit: FakeStreamlit, monkeypatch):
+    """Invalid stored navigation falls back to the default page on run."""
+
+    ui = webui.WebUI()
+    fake_streamlit.session_state["nav"] = "Nonexistent"
+
+    visited: list[str] = []
+    monkeypatch.setattr(ui, "onboarding_page", lambda: visited.append("onboarding"))
+
+    ui.run()
+
+    assert visited == ["onboarding"]
+    assert fake_streamlit.session_state["nav"] == "Onboarding"
+
+    nav_calls = [call for call in fake_streamlit.calls if call[0] == "sidebar_radio"]
+    assert nav_calls, "Expected sidebar navigation to be invoked"
+    _, label, options, index = nav_calls[0]
+    assert label == "Navigation"
+    assert options[0] == "Onboarding"
+    assert index == 0
+
+
+def test_command_error_feedback_surfaces_actionable_guidance(
+    fake_streamlit: FakeStreamlit,
+):
+    """Command execution failures provide actionable Streamlit feedback."""
+
+    ui = webui.WebUI()
+
+    def failing_command(*_args: Any, **_kwargs: Any) -> None:
+        raise FileNotFoundError(2, "missing", "requirements.md")
+
+    result = ui._handle_command_errors(
+        failing_command, "processing request", "requirements.md"
+    )
+
+    assert result is None
+
+    error_messages = [call[1] for call in fake_streamlit.calls if call[0] == "error"]
+    assert any("File not found" in message for message in error_messages)
+
+    written_messages = [call[1] for call in fake_streamlit.calls if call[0] == "write"]
+    assert any("Make sure the file exists" in message for message in written_messages)
+    assert all(call[0] != "expander" for call in fake_streamlit.calls)
