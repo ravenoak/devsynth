@@ -29,3 +29,79 @@ def test_cli_accepts_feature_flags() -> None:
         )
         assert result.exit_code == 0
         mock_run.assert_called_once()
+
+
+@pytest.mark.fast
+def test_cli_reports_coverage_percent() -> None:
+    """Successful runs print the measured coverage percentage."""
+
+    runner = CliRunner()
+    app = build_app()
+
+    with patch.object(module, "run_tests", return_value=(True, "")), patch.object(
+        module, "_configure_optional_providers", return_value=None
+    ), patch.object(module, "_emit_coverage_artifact_messages", return_value=None), patch.object(
+        module, "enforce_coverage_threshold", return_value=92.5
+    ) as mock_enforce, patch.object(
+        module, "_coverage_instrumentation_status", return_value=(True, None)
+    ), patch.object(
+        module, "coverage_artifacts_status", return_value=(True, None)
+    ), patch.object(
+        module, "increment_counter", return_value=None
+    ):
+        result = runner.invoke(app, ["run-tests", "--report"])
+
+    assert result.exit_code == 0
+    assert "Coverage 92.50% meets the 90% threshold" in result.output
+    mock_enforce.assert_called_once()
+
+
+@pytest.mark.fast
+def test_cli_errors_when_plugins_disabled() -> None:
+    """CLI fails fast when pytest-cov was disabled by plugin autoload settings."""
+
+    runner = CliRunner()
+    app = build_app()
+
+    with patch.object(module, "run_tests", return_value=(True, "")), patch.object(
+        module, "_configure_optional_providers", return_value=None
+    ), patch.object(module, "_emit_coverage_artifact_messages", return_value=None), patch.object(
+        module, "enforce_coverage_threshold", return_value=95.0
+    ), patch.object(
+        module,
+        "_coverage_instrumentation_status",
+        return_value=(False, "pytest plugin autoload disabled without -p pytest_cov"),
+    ), patch.object(
+        module,
+        "coverage_artifacts_status",
+        return_value=(False, "Coverage JSON missing at test_reports/coverage.json"),
+    ), patch.object(module, "increment_counter", return_value=None):
+        result = runner.invoke(app, ["run-tests"])
+
+    assert result.exit_code == 1
+    assert "Unset PYTEST_DISABLE_PLUGIN_AUTOLOAD" in result.output
+
+
+@pytest.mark.fast
+def test_cli_errors_when_artifacts_missing() -> None:
+    """CLI reports actionable remediation when coverage artifacts are absent."""
+
+    runner = CliRunner()
+    app = build_app()
+
+    with patch.object(module, "run_tests", return_value=(True, "")), patch.object(
+        module, "_configure_optional_providers", return_value=None
+    ), patch.object(module, "_emit_coverage_artifact_messages", return_value=None), patch.object(
+        module, "enforce_coverage_threshold", return_value=95.0
+    ) as mock_enforce, patch.object(
+        module, "_coverage_instrumentation_status", return_value=(True, None)
+    ), patch.object(
+        module,
+        "coverage_artifacts_status",
+        return_value=(False, "Coverage JSON missing at test_reports/coverage.json"),
+    ), patch.object(module, "increment_counter", return_value=None):
+        result = runner.invoke(app, ["run-tests"])
+
+    assert result.exit_code == 1
+    assert "Coverage artifacts missing or empty" in result.output
+    mock_enforce.assert_not_called()

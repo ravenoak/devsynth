@@ -119,55 +119,117 @@ def _reset_coverage_artifacts() -> None:
 
 
 def _ensure_coverage_artifacts() -> None:
-    """Generate standard coverage artifacts regardless of test count."""
+    """Generate coverage artifacts when real coverage data exists."""
 
     try:
         from coverage import Coverage  # type: ignore[import-not-found]
+    except Exception:
+        logger.debug("coverage library unavailable; skipping artifact generation")
+        return
 
-        COVERAGE_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
-        COVERAGE_HTML_DIR.mkdir(parents=True, exist_ok=True)
-        for legacy_dir in LEGACY_HTML_DIRS:
-            legacy_dir.parent.mkdir(parents=True, exist_ok=True)
+    data_path = Path(".coverage")
+    if not data_path.exists():
+        logger.warning(
+            "Coverage artifact generation skipped: data file missing",
+            extra={"coverage_data_file": str(data_path)},
+        )
+        return
 
-        cov = Coverage(data_file=".coverage")
-        try:
-            cov.load()
-        except Exception:
-            cov.start()
-            cov.stop()
-            cov.save()
-        try:
-            cov.html_report(directory=str(COVERAGE_HTML_DIR))
-        except Exception:
-            pass
+    try:
+        cov = Coverage(data_file=str(data_path))
+        cov.load()
+    except Exception as exc:  # pragma: no cover - defensive guard
+        logger.warning(
+            "Coverage artifact generation skipped: unable to load data",
+            extra={"error": str(exc), "coverage_data_file": str(data_path)},
+        )
+        return
 
-        html_index = COVERAGE_HTML_DIR / "index.html"
-        if not html_index.exists() or html_index.stat().st_size == 0:
-            COVERAGE_HTML_DIR.mkdir(parents=True, exist_ok=True)
-            html_index.write_text(
-                "<html><body><p>No coverage data available.</p></body></html>"
-            )
+    try:
+        measured_files = list(cov.get_data().measured_files())
+    except Exception as exc:  # pragma: no cover - defensive guard
+        logger.warning(
+            "Coverage artifact generation skipped: coverage data unreadable",
+            extra={"error": str(exc)},
+        )
+        return
 
+    if not measured_files:
+        logger.warning(
+            "Coverage artifact generation skipped: no measured files present",
+            extra={"coverage_data_file": str(data_path)},
+        )
+        return
+
+    COVERAGE_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+    COVERAGE_HTML_DIR.mkdir(parents=True, exist_ok=True)
+    for legacy_dir in LEGACY_HTML_DIRS:
+        legacy_dir.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        cov.html_report(directory=str(COVERAGE_HTML_DIR))
+    except Exception as exc:  # pragma: no cover - defensive guard
+        logger.warning(
+            "Failed to write coverage HTML report",
+            extra={"error": str(exc), "output_dir": str(COVERAGE_HTML_DIR)},
+        )
+    else:
         for legacy_dir in LEGACY_HTML_DIRS:
             try:
                 if legacy_dir.exists():
                     shutil.rmtree(legacy_dir)
                 shutil.copytree(COVERAGE_HTML_DIR, legacy_dir, dirs_exist_ok=True)
-            except Exception:
-                pass
+            except Exception as exc:  # pragma: no cover - defensive guard
+                logger.debug(
+                    "Unable to synchronize legacy coverage directory",
+                    extra={"error": str(exc), "legacy_dir": str(legacy_dir)},
+                )
 
-        try:
-            cov.json_report(outfile=str(COVERAGE_JSON_PATH))
-        except Exception:
-            COVERAGE_JSON_PATH.write_text("{}")
-
+    try:
+        cov.json_report(outfile=str(COVERAGE_JSON_PATH))
+    except Exception as exc:  # pragma: no cover - defensive guard
+        logger.warning(
+            "Failed to write coverage JSON report",
+            extra={"error": str(exc), "output_file": str(COVERAGE_JSON_PATH)},
+        )
+    else:
         try:
             shutil.copyfile(COVERAGE_JSON_PATH, Path("coverage.json"))
-        except Exception:
-            pass
-    except Exception:
-        # Never let coverage generation failures break the run
-        pass
+        except Exception as exc:  # pragma: no cover - defensive guard
+            logger.debug(
+                "Unable to copy coverage JSON to legacy location",
+                extra={"error": str(exc)},
+            )
+
+
+def coverage_artifacts_status() -> tuple[bool, str | None]:
+    """Return whether generated coverage artifacts contain useful data."""
+
+    if not COVERAGE_JSON_PATH.exists():
+        return False, f"Coverage JSON missing at {COVERAGE_JSON_PATH}"
+
+    try:
+        payload = json.loads(COVERAGE_JSON_PATH.read_text())
+    except json.JSONDecodeError as exc:
+        return False, f"Coverage JSON invalid: {exc}"
+
+    totals = payload.get("totals") if isinstance(payload, dict) else None
+    if not isinstance(totals, dict) or "percent_covered" not in totals:
+        return False, "Coverage JSON missing totals.percent_covered"
+
+    html_index = COVERAGE_HTML_DIR / "index.html"
+    if not html_index.exists():
+        return False, f"Coverage HTML missing at {html_index}"
+
+    try:
+        html_body = html_index.read_text()
+    except OSError as exc:  # pragma: no cover - defensive guard
+        return False, f"Coverage HTML unreadable: {exc}"
+
+    if "No coverage data available" in html_body:
+        return False, "Coverage HTML indicates no recorded data"
+
+    return True, None
 
 
 def enforce_coverage_threshold(

@@ -52,21 +52,19 @@ Environment snapshot and reproducibility (authoritative)
 
 Coverage instrumentation and gating (authoritative)
 - `src/devsynth/testing/run_tests.py` now resets coverage artifacts at the start of every CLI invocation and injects
-  `--cov=src/devsynth --cov-report=json:test_reports/coverage.json --cov-report=html:htmlcov --cov-append`. Even if no tests
-  run, `_ensure_coverage_artifacts()` synthesizes a minimal `htmlcov/index.html` and JSON stub so downstream tooling never sees
-  empty files again. Smoke runs automatically add `-p pytest_cov` when autoload is disabled, closing the instrumentation gap
-  documented in [issues/coverage-below-threshold.md](../issues/coverage-below-threshold.md).
-- `src/devsynth/application/cli/commands/run_tests_cmd.py` enforces the default 90 % threshold by calling
-  `enforce_coverage_threshold`. When coverage drops below the target, the Typer command exits with code 1 and prints the error;
-  when instrumentation is explicitly disabled (e.g., `PYTEST_ADDOPTS="--no-cov"` or `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` without
-  `-p pytest_cov`), the CLI emits a yellow warning explaining why the gate was skipped. Override the minimum locally with
-  `DEVSYNTH_COV_FAIL_UNDER=<int>` while rehearsing alternate targets.
+  `--cov=src/devsynth --cov-report=json:test_reports/coverage.json --cov-report=html:htmlcov --cov-append`. `_ensure_coverage_artifacts()`
+  only emits HTML/JSON once `.coverage` exists and contains measured files; otherwise it logs a structured warning and leaves
+  the artifacts absent so downstream tooling can fail fast.【F:src/devsynth/testing/run_tests.py†L121-L192】
+- `src/devsynth/application/cli/commands/run_tests_cmd.py` still enforces the default 90 % threshold via
+  `enforce_coverage_threshold`, but it now double-checks both pytest instrumentation and the generated artifacts. If
+  `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` is set without `-p pytest_cov` or the coverage JSON lacks `totals.percent_covered`, the
+  command exits with remediation instead of synthesizing placeholders.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L214-L276】
 - Single-run aggregate (preferred for release readiness and the strict gate):
   ```bash
   poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report
   ```
   The command covers unit/integration/behavior defaults, writes artifacts to `htmlcov/` and `test_reports/coverage.json`, and
-  prints `[green]Coverage … meets the 90% threshold[/green]` when successful.
+  prints `[green]Coverage … meets the 90% threshold[/green]` once the JSON contains `totals.percent_covered`.
 - Segmented aggregate (memory-aware) — coverage data is appended automatically between segments:
   ```bash
   poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --segment --segment-size 75 --no-parallel --report
@@ -76,7 +74,9 @@ Coverage instrumentation and gating (authoritative)
 - Historical context and ongoing remediation (coverage still at 13.68 % on 2025-09-15) remain tracked in
   [issues/coverage-below-threshold.md](../issues/coverage-below-threshold.md) and docs/tasks.md §21. The new gate surfaces the
   shortfall explicitly instead of silently passing.
-- 2025-09-16: Despite the CLI passing `--cov` flags, smoke and aggregated profiles leave `.coverage` absent so `_ensure_coverage_artifacts()` writes placeholder HTML/JSON; the enforcement hook must detect this state before parsing totals.
+- 2025-09-16: Re-running with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` now terminates with remediation instead of writing empty
+  artifacts, e.g. `poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report`
+  advises unsetting the environment variable before retrying.【7cb697†L1-L3】
 
 Concrete remediation tasks (actionable specifics)
 - Property tests (tests/property/test_requirements_consensus_properties.py):
@@ -126,7 +126,8 @@ Critical evaluation of current tests (dialectical + Socratic)
 3) Efficacy and reliability
 - Pros: Smoke mode limits plugin surface and is demonstrated to run cleanly. Resource gating and default provider stubbing prevent accidental external calls. Speed markers allow layered execution.
 - Cons: The plan must guarantee a reproducible coverage workflow that meets 90% in maintainers’ environments; maintainers need clear instructions for intentionally bypassing the gate (e.g., `PYTEST_ADDOPTS="--no-cov"`) when iterating on narrow subsets so partial runs do not appear as failures.
-- Cons (2025-09-16 update): Coverage instrumentation currently degrades to placeholder artifacts even when `--cov` flags are provided, so the gate cannot measure actual totals; determining why `.coverage` is absent is now the highest priority before expanding tests.【50195f†L1-L5】
+- Cons (2025-09-16 update): Coverage instrumentation previously degraded to placeholder artifacts when `.coverage` was absent;
+  the updated helpers now skip artifact generation and force the CLI to surface remediation when that state occurs.【F:src/devsynth/testing/run_tests.py†L121-L192】【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L214-L276】
 
 4) Gaps and blockers identified
 - Property tests previously failed due to example() misuse and a missing `_improve_clarity` on the dummy team; both issues are now resolved.
