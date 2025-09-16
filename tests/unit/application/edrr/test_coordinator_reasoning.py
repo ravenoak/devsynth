@@ -30,9 +30,11 @@ def coordinator():
 
 
 def test_apply_dialectical_reasoning_success(coordinator):
+    """ReqID: N/A"""
+
     final = {"status": "completed", "synthesis": "done"}
     with patch(
-        "devsynth.application.edrr.coordinator.reasoning_loop",
+        "devsynth.application.edrr.coordinator.core.reasoning_loop",
         return_value=[{"synthesis": "next"}, final],
     ) as rl:
         result = coordinator.apply_dialectical_reasoning(
@@ -44,7 +46,12 @@ def test_apply_dialectical_reasoning_success(coordinator):
 
 
 def test_apply_dialectical_reasoning_consensus_failure(coordinator, caplog):
-    with patch("devsynth.application.edrr.coordinator.reasoning_loop", return_value=[]):
+    """ReqID: N/A"""
+
+    with patch(
+        "devsynth.application.edrr.coordinator.core.reasoning_loop",
+        return_value=[],
+    ):
         with caplog.at_level(logging.WARNING):
             result = coordinator.apply_dialectical_reasoning(
                 {"solution": "initial"}, MagicMock()

@@ -475,7 +475,7 @@ Planned improvements to the EDRR implementation:
 The EDRR provides a structured framework for iterative development in DevSynth, enabling systematic exploration, evaluation, improvement, and learning. By integrating with the WSDE model and hybrid memory system, it supports collaborative, knowledge-driven software development.
 ## Implementation Status
 
-This feature is **implemented**. Core functionality resides in `src/devsynth/application/edrr/coordinator.py` and `edrr_coordinator_enhanced.py`.
+This feature is **implemented**. Core functionality resides in `src/devsynth/application/edrr/coordinator/core.py` and `edrr_coordinator_enhanced.py`.
 
 ## What proofs confirm the solution?
 - BDD scenarios in [`tests/behavior/features/edrr_cycle_specification.feature`](../../tests/behavior/features/edrr_cycle_specification.feature) ensure termination and expected outcomes.

@@ -77,7 +77,7 @@ recursion controls.
 
 ## Implementation Status
 
-This feature is **implemented**. The heuristics are available in `src/devsynth/application/edrr/coordinator.py`.
+This feature is **implemented**. The heuristics are available in `src/devsynth/application/edrr/coordinator/core.py`.
 
 ## What proofs confirm the solution?
 - BDD scenarios in [`tests/behavior/features/delimiting_recursion_algorithms.feature`](../../tests/behavior/features/delimiting_recursion_algorithms.feature) ensure termination and expected outcomes.
