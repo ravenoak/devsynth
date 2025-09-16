@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from rich.panel import Panel
 from rich.text import Text
 
 from devsynth.interface.output_formatter import OutputFormatter
@@ -101,3 +102,48 @@ def test_format_message_applies_status_styles(monkeypatch: pytest.MonkeyPatch) -
         "WARNING: Heads up",
         "SUCCESS: All good",
     ]
+
+
+def test_display_highlight_branch_emits_panel(monkeypatch: pytest.MonkeyPatch) -> None:
+    """display should emit a Panel with emphasis styling when highlight is True.
+
+    ReqID: N/A
+    """
+
+    formatter = OutputFormatter()
+    sanitized: list[str] = []
+
+    def fake_sanitize(self: OutputFormatter, text: str) -> str:
+        sanitized.append(text)
+        return f"sanitized:{text}"
+
+    monkeypatch.setattr(OutputFormatter, "sanitize_output", fake_sanitize)
+
+    printed: list[tuple[object, str | None]] = []
+
+    class FakeConsole:
+        def print(self, renderable, style=None):
+            printed.append((renderable, style))
+
+    formatter.set_console(FakeConsole())
+    formatter.display("Important alert", highlight=True)
+
+    assert sanitized == ["Important alert"]
+    assert printed, "display should forward the panel to the console"
+
+    renderable, style = printed[0]
+    assert isinstance(renderable, Panel)
+    assert renderable.renderable == "sanitized:Important alert"
+    assert style == "bold white on blue"
+
+
+def test_display_without_console_raises_value_error() -> None:
+    """display should fail fast when no console has been configured.
+
+    ReqID: N/A
+    """
+
+    formatter = OutputFormatter()
+
+    with pytest.raises(ValueError):
+        formatter.display("orphaned message")

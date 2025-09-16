@@ -1,3 +1,4 @@
+# Linked documentation: ../../../../docs/implementation/output_formatter_invariants.md
 Feature: Cross-Interface Consistency
   As a developer
   I want all interfaces (CLI, WebUI, and Agent API) to behave consistently
@@ -13,6 +14,7 @@ Feature: Cross-Interface Consistency
     Then all interfaces should produce identical results
     And all interfaces should use the same UXBridge methods
     And all interfaces should handle progress indicators consistently
+    And the output formatting invariants guide interface styling
 
     Examples:
       | command     |

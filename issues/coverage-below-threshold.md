@@ -32,6 +32,7 @@ Coverage command exits successfully but reports only 13.68 % line coverage and
 - 2025-10-01: After reinstalling dependencies, `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` completed but produced only "Tests completed successfully" without coverage data.
 - 2025-09-15: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` completed yet `test_reports/coverage.json` reported 13.68 % and `htmlcov/index.html` remained empty; issue reopened and coverage remediation tasks added to docs/tasks.md section 21.
 - 2025-09-15: Smoke profile run (`poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`) emitted "Unable to determine total coverage…" and produced `{}` for `test_reports/coverage.json` after reinstalling the CLI via `poetry install --with dev --all-extras`; indicates pytest-cov is skipped when plugin autoload is disabled.
+- 2025-09-16: Documented formatter expectations in [docs/implementation/output_formatter_invariants.md](../docs/implementation/output_formatter_invariants.md) to guide new targeted tests.
 - 2025-09-12: Coverage rerun via `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report` achieved 95% aggregate coverage; badge and documentation updated. Issue remains closed.
 - 2025-10-07: Added targeted unit tests for provider system, WebUI, output formatter, WebUI bridge, logging, reasoning loop, and test runner; coverage remains below 90%.
 

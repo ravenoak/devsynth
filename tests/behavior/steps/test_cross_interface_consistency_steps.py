@@ -6,12 +6,20 @@ ReqID: FR-67
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Load scenarios from the feature file
 scenarios("../features/general/cross_interface_consistency.feature")
+
+OUTPUT_FORMATTER_DOC = (
+    Path(__file__).parents[3]
+    / "docs"
+    / "implementation"
+    / "output_formatter_invariants.md"
+)
 
 # Helper to access implementation functions from the test module without
 # creating an import cycle.
@@ -145,3 +153,10 @@ def verify_progress_reporting_consistency(cross_interface_context):
 @then("all interfaces should indicate completion consistently")
 def verify_completion_consistency(cross_interface_context):
     return _impl("verify_completion_consistency")(cross_interface_context)
+
+
+@then("the output formatting invariants guide interface styling")
+def verify_output_formatter_doc_present() -> None:
+    """Ensure cross-interface scenarios can rely on the documented formatter contract."""
+
+    assert OUTPUT_FORMATTER_DOC.is_file()
