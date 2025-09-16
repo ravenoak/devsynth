@@ -34,4 +34,4 @@ def test_with_clean_state(clean_state, monkeypatch):
     importlib.reload(webui)
 
     assert webui.spec_cmd is None
-    assert webui._cli("code_cmd") is None
+    assert webui.WebUI()._cli("code_cmd") is None

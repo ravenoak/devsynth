@@ -1,7 +1,6 @@
 import importlib
 import sys
 from pathlib import Path
-from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
@@ -17,13 +16,7 @@ def stub_streamlit(monkeypatch):
 
 
 def _reload_webui():
-
-    import importlib
-
     from devsynth.interface import webui
-
-    # Reload the module to ensure clean state
-    importlib.reload(module_2)
 
     importlib.reload(webui)
     return webui
@@ -31,7 +24,7 @@ def _reload_webui():
 
 @pytest.mark.medium
 def test_navigation_persists_wizard_state(monkeypatch, stub_streamlit):
-    """Wizard step should persist when navigating between pages."""
+    """ReqID: FR-201 ensure wizard state persists across navigation."""
     webui = _reload_webui()
     ui = webui.WebUI()
 
@@ -62,7 +55,7 @@ def test_navigation_persists_wizard_state(monkeypatch, stub_streamlit):
 
 @pytest.mark.medium
 def test_analysis_page_invalid_path_shows_error(monkeypatch, stub_streamlit):
-    """Invalid analysis path should trigger an error message."""
+    """ReqID: FR-202 surface an error when analysis path is invalid."""
     webui = _reload_webui()
     ui = webui.WebUI()
 
