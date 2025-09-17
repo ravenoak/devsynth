@@ -190,6 +190,110 @@ def test_cli_segment_batches_follow_segment_size(
 
 
 @pytest.mark.fast
+def test_cli_segment_failure_emits_aggregate_tips(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """ReqID: RUN-TESTS-CLI-SEGMENT-2 — failing batch surfaces aggregate tips."""
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tmp_path))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(tmp_path))
+
+    test_file = tmp_path / "test_segmented.py"
+    test_file.write_text(
+        "def test_batch_one():\n    assert True\n\n"
+        "def test_batch_two():\n    assert True\n"
+    )
+
+    node_ids = [
+        f"{test_file}::test_batch_one",
+        f"{test_file}::test_batch_two",
+    ]
+
+    def fake_collect(
+        cmd: list[str],
+        check: bool = False,
+        capture_output: bool = True,
+        text: bool = True,
+    ) -> SimpleNamespace:
+        return SimpleNamespace(stdout="\n".join(node_ids), stderr="", returncode=0)
+
+    batch_commands: list[list[str]] = []
+    responses = [
+        ("batch one ok", "", 0),
+        ("batch two fail", "collected errors", 2),
+    ]
+    tips_record: list[tuple[int, tuple[str, ...], str]] = []
+
+    def fake_failure_tips(returncode: int, cmd: list[str]) -> str:
+        tip = f"[tip {returncode} #{len(tips_record)}]"
+        tips_record.append((returncode, tuple(cmd), tip))
+        return tip
+
+    call_index = {"value": 0}
+
+    class DummyBatchProcess:
+        def __init__(
+            self,
+            cmd: list[str],
+            stdout=None,
+            stderr=None,
+            text: bool = False,
+            env: dict[str, str] | None = None,
+        ) -> None:
+            idx = call_index["value"]
+            batch_commands.append(cmd)
+            stdout_payload, stderr_payload, returncode = responses[idx]
+            self._stdout = stdout_payload
+            self._stderr = stderr_payload
+            self.returncode = returncode
+            call_index["value"] += 1
+
+        def communicate(self) -> tuple[str, str]:
+            return (self._stdout, self._stderr)
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_collect)
+    monkeypatch.setattr(rt.subprocess, "Popen", DummyBatchProcess)
+    monkeypatch.setattr(rt, "_failure_tips", fake_failure_tips)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=True,
+        segment_size=1,
+    )
+
+    assert success is False
+    assert len(batch_commands) == 2, "Segmented execution should spawn two batches"
+    assert tips_record, "Expected failure tips to be generated"
+
+    failing_tip = tips_record[0]
+    aggregate_tip = tips_record[1]
+
+    assert failing_tip[0] == responses[1][2]
+    assert failing_tip[2] in output
+
+    expected_run_base = [
+        sys.executable,
+        "-m",
+        "pytest",
+        f"--cov={rt.COVERAGE_TARGET}",
+        "--cov-report=term-missing",
+        f"--cov-report=json:{rt.COVERAGE_JSON_PATH}",
+        f"--cov-report=html:{rt.COVERAGE_HTML_DIR}",
+        "--cov-append",
+        str(tmp_path),
+    ]
+
+    assert aggregate_tip[0] == 1
+    assert list(aggregate_tip[1]) == expected_run_base
+    assert aggregate_tip[2] in output
+    assert output.count(aggregate_tip[2]) == 1
+
+
+@pytest.mark.fast
 def test_cli_keyword_filter_handles_resource_marker(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
@@ -251,6 +355,71 @@ def test_cli_keyword_filter_handles_resource_marker(
     collect_tail = collect_commands[0][-2:]
     assert collect_tail == ["-k", "lmstudio"], collect_commands[0]
     assert test_file.name + "::test_stub" in run_commands[0]
+
+
+@pytest.mark.fast
+def test_cli_marker_filters_merge_extra_marker(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """ReqID: RUN-TESTS-CLI-ARGS-3 — speed markers combine with extra filter."""
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tmp_path))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(tmp_path))
+
+    test_file = tmp_path / "test_filters.py"
+    test_file.write_text("def test_placeholder():\n    assert True\n")
+
+    collect_invocations: list[list[str]] = []
+
+    def fake_collect(
+        cmd: list[str],
+        check: bool = False,
+        capture_output: bool = True,
+        text: bool = True,
+    ) -> SimpleNamespace:
+        collect_invocations.append(cmd)
+        return SimpleNamespace(
+            stdout=f"{test_file}::test_placeholder\n", stderr="", returncode=0
+        )
+
+    run_commands: list[list[str]] = []
+
+    class DummyProcess:
+        def __init__(
+            self,
+            cmd: list[str],
+            stdout=None,
+            stderr=None,
+            text: bool = False,
+            env: dict[str, str] | None = None,
+        ) -> None:
+            run_commands.append(cmd)
+            self.returncode = 0
+
+        def communicate(self) -> tuple[str, str]:
+            return ("ok", "")
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_collect)
+    monkeypatch.setattr(rt.subprocess, "Popen", DummyProcess)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=["fast", "slow"],
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=False,
+        extra_marker="custom_marker",
+    )
+
+    assert success is True
+    assert run_commands, "Expected run commands for each speed"
+    assert collect_invocations, "Expected collection to occur"
+    assert output.count("ok") == len(run_commands)
+
+    collect_strings = [" ".join(cmd) for cmd in collect_invocations]
+    assert any("(fast and not memory_intensive) and (custom_marker)" in cmd for cmd in collect_strings)
+    assert any("(slow and not memory_intensive) and (custom_marker)" in cmd for cmd in collect_strings)
 
 
 @pytest.mark.fast
@@ -389,3 +558,132 @@ def test_run_tests_skips_placeholder_artifacts(
 
     warning_messages = [record.getMessage() for record in caplog.records]
     assert any("Coverage artifact generation skipped" in msg for msg in warning_messages)
+
+
+@pytest.mark.fast
+def test_cli_env_passthrough_and_coverage_lifecycle(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """ReqID: RUN-TESTS-CLI-ENV-1 — env vars propagate and coverage lifecycle runs."""
+
+    lifecycle: list[str] = []
+
+    def fake_reset() -> None:
+        lifecycle.append("reset")
+
+    def fake_ensure() -> None:
+        lifecycle.append("ensure")
+
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", fake_reset)
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", fake_ensure)
+
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    monkeypatch.setenv("DEVSYNTH_FEATURE_SAMPLE", "enabled")
+
+    test_file = tmp_path / "test_env.py"
+    test_file.write_text("def test_env_marker():\n    assert True\n")
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tmp_path))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(tmp_path))
+
+    def fake_collect(
+        cmd: list[str],
+        check: bool = False,
+        capture_output: bool = True,
+        text: bool = True,
+    ) -> SimpleNamespace:
+        return SimpleNamespace(stdout=f"{test_file}::test_env_marker\n", stderr="", returncode=0)
+
+    popen_calls: list[dict[str, object]] = []
+
+    class DummyProcess:
+        def __init__(
+            self,
+            cmd: list[str],
+            stdout=None,
+            stderr=None,
+            text: bool = False,
+            env: dict[str, str] | None = None,
+        ) -> None:
+            popen_calls.append({"cmd": cmd, "env": env})
+            self.returncode = 0
+
+        def communicate(self) -> tuple[str, str]:
+            return ("done", "")
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_collect)
+    monkeypatch.setattr(rt.subprocess, "Popen", DummyProcess)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=False,
+    )
+
+    assert success is True
+    assert output == "done"
+    assert lifecycle == ["reset", "ensure"], lifecycle
+    assert len(popen_calls) == 1
+
+    env = popen_calls[0]["env"]
+    assert isinstance(env, dict)
+    assert env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
+    assert env.get("DEVSYNTH_FEATURE_SAMPLE") == "enabled"
+
+
+@pytest.mark.fast
+def test_cli_keyword_filter_returns_success_when_no_matches(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """ReqID: RUN-TESTS-CLI-ARGS-4 — keyword fallback exits cleanly when empty."""
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tmp_path))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(tmp_path))
+
+    lifecycle: list[str] = []
+
+    def fake_reset() -> None:
+        lifecycle.append("reset")
+
+    def fake_ensure() -> None:
+        lifecycle.append("ensure")
+
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", fake_reset)
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", fake_ensure)
+
+    collect_commands: list[list[str]] = []
+
+    def fake_collect(
+        cmd: list[str],
+        check: bool = False,
+        capture_output: bool = True,
+        text: bool = True,
+    ) -> SimpleNamespace:
+        collect_commands.append(cmd)
+        return SimpleNamespace(stdout="", stderr="", returncode=0)
+
+    def fail_popen(*args, **kwargs):
+        raise AssertionError("Popen should not be invoked when no tests match")
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_collect)
+    monkeypatch.setattr(rt.subprocess, "Popen", fail_popen)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=None,
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=False,
+        extra_marker="requires_resource('lmstudio')",
+    )
+
+    assert collect_commands, "Expected keyword-filter collection to execute"
+    collect_tokens = " ".join(collect_commands[0])
+    assert "-k lmstudio" in collect_tokens
+
+    assert success is True
+    assert output == "No tests matched the provided filters."
+    assert lifecycle == ["reset"]
