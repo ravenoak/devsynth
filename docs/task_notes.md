@@ -117,3 +117,12 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run coverage run -m pytest --override-ini addopts="" tests/unit/application/cli/commands/test_run_tests_cmd_inventory.py` to document run-tests CLI inventory instrumentation (32.77 %).【4a0778†L1-L19】【7e4fe3†L1-L9】
   - `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest --override-ini addopts="" tests/property/test_reasoning_loop_properties.py` → fails because tests still monkeypatch `_apply_dialectical_reasoning`; flagged for follow-up before re-enabling property coverage claims.【df7365†L1-L55】
 - Observations: All four invariant notes are now published with artifact links and quantitative coverage baselines; reasoning loop property suite requires repair to align with the new `_import_apply_dialectical_reasoning` helper.
+- Next: Run the full aggregate profile once remaining coverage hot spots receive tests so the gate can pass without manual intervention.
+
+## Iteration 2025-09-17D – Adapter lint/bandit remediation
+- Environment: Python 3.12.10; Poetry env `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`; `task --version` 3.45.3.
+- Commands:
+  - `poetry run flake8 src/ tests/ | tee diagnostics/flake8_2025-09-17_run1.txt`.
+  - `poetry run bandit -r src/devsynth -x tests | tee diagnostics/bandit_2025-09-17.txt`.
+- Observations: Trimmed long lines, removed unused imports, and replaced `except ... pass` in adapters, `__init__`, and Kuzu store; flake8 run still fails due to historic violations in tests, while bandit reports 146 low-confidence subprocess warnings pending broader risk review.
+- Next: Schedule follow-up to refactor legacy test fixtures and review remaining subprocess usage across CLI and MVU utilities.

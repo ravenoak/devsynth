@@ -16,7 +16,10 @@ Executive summary
   - Diagnostics indicate environment/config gaps for non-test environments (doctor.txt) used by the app; tests succeed due to defaults and gating, but this requires documentation and guardrails.
 - Coverage aggregation across unit, integration, and behavior tests previously reached 95% on 2025-09-12. The most recent full fast+medium profile (`poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1`) now exits with an error because `.coverage` is not created; coverage JSON and HTML are absent even though the last captured run before cleanup showed only 20.78 % line coverage.【cbc560†L1-L3】【20dbec†L1-L5】【45de43†L1-L2】
 - 2025-09-17: Running `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report` after adding the latest deterministic suites produced artifacts under `test_reports/coverage.json`, but coverage remains 20.78 % overall with key modules far below threshold (`logging_setup.py` 44.44 %, `methodology/edrr/reasoning_loop.py` 17.24 %, `testing/run_tests.py` 7.89 %). Additional uplift is required before the ≥90 % gate can pass.【0233c7†L1-L15】
-  - 2025-09-16: Re-running the same fast+medium profile still prints "Unable to determine total coverage" because the synthesized coverage JSON lacks `totals.percent_covered`; instrumentation must be repaired before the gate can pass.【50195f†L1-L5】
+- 2025-09-16: Re-running the same fast+medium profile still prints "Unable to determine total coverage" because the synthesized coverage JSON lacks `totals.percent_covered`; instrumentation must be repaired before the gate can pass.【50195f†L1-L5】
+- 2025-09-17: Targeted lint/security cleanup for adapters and memory stores completed; `poetry run flake8 src/ tests/`
+  (diagnostics/flake8_2025-09-17_run1.txt) still reports legacy violations in tests, while `poetry run bandit -r src/devsynth -x
+  tests` (diagnostics/bandit_2025-09-17.txt) shows the expected 146 low-confidence findings pending broader remediation.
 
 Commands executed (audit trail)
 - poetry run pytest --collect-only -q → Collected successfully (very large suite).

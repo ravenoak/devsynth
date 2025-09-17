@@ -9,17 +9,19 @@ Proof of fallback correctness:
 Issue: issues/edrr-integration-with-real-llm-providers.md
 """
 
-# flake8: noqa
-
 import asyncio
-import json
-import logging
 import os
-import time
 from collections.abc import Callable
 from enum import Enum
-from functools import lru_cache, wraps
-from typing import Any, Dict, List, Optional, Tuple, Union
+from functools import lru_cache
+from typing import Any
+
+from devsynth.config.settings import get_settings
+from devsynth.exceptions import ConfigurationError, DevSynthError
+from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
+from devsynth.logging_setup import DevSynthLogger
+from devsynth.metrics import inc_provider
+from devsynth.security.tls import TLSConfig
 
 # Optional imports for HTTP clients; guard to avoid hard deps during tests/offline modes
 httpx: Any | None
@@ -32,13 +34,6 @@ try:  # pragma: no cover - optional dependency
     import requests
 except Exception:  # pragma: no cover - absent when [llm] extra not installed
     requests = None
-
-from devsynth.config.settings import get_settings
-from devsynth.exceptions import ConfigurationError, DevSynthError
-from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
-from devsynth.logging_setup import DevSynthLogger
-from devsynth.metrics import inc_provider
-from devsynth.security.tls import TLSConfig
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -239,13 +234,18 @@ class ProviderFactory:
                 if not config["openai"].get("api_key"):
                     if explicit_request:
                         logger.error(
-                            "OpenAI API key is missing for explicitly requested OpenAI provider. "
-                            "Set OPENAI_API_KEY or choose a safe provider via DEVSYNTH_PROVIDER=stub."
+                            "OpenAI API key is missing for explicitly "
+                            "requested OpenAI provider. "
+                            "Set OPENAI_API_KEY or choose a safe provider "
+                            "via DEVSYNTH_PROVIDER=stub."
                         )
                         raise ProviderError(
-                            "Missing OPENAI_API_KEY for OpenAI provider. Set OPENAI_API_KEY or use DEVSYNTH_PROVIDER=stub."
+                            "Missing OPENAI_API_KEY for OpenAI provider. "
+                            "Set OPENAI_API_KEY or use DEVSYNTH_PROVIDER="
+                            "stub."
                         )
-                    # Attempt LM Studio only when explicitly marked available to avoid network calls by default
+                    # Attempt LM Studio only when explicitly marked available
+                    # to avoid network calls by default
                     if os.environ.get(
                         "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
                     ).lower() in {"1", "true", "yes"}:
@@ -260,12 +260,14 @@ class ProviderFactory:
                             logger.warning("LM Studio unavailable: %s", exc)
                             return _safe_provider(
                                 "No OPENAI_API_KEY and LM Studio unreachable. "
-                                "Hint: export OPENAI_API_KEY, or export DEVSYNTH_PROVIDER=stub for offline runs."
+                                "Hint: export OPENAI_API_KEY, or export "
+                                "DEVSYNTH_PROVIDER=stub for offline runs."
                             )
                     else:
                         return _safe_provider(
                             "No OPENAI_API_KEY; LM Studio not marked available. "
-                            "Hint: export OPENAI_API_KEY, export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true, "
+                            "Hint: export OPENAI_API_KEY, export "
+                            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true, "
                             "or set DEVSYNTH_PROVIDER=stub for offline runs."
                         )
                 logger.info("Using OpenAI provider")
@@ -302,7 +304,8 @@ class ProviderFactory:
                 if not api_key:
                     if explicit_request:
                         logger.error(
-                            "Anthropic API key is missing for explicitly requested Anthropic provider"
+                            "Anthropic API key is missing for explicitly "
+                            "requested Anthropic provider"
                         )
                         raise ProviderError(
                             "Anthropic API key is required for Anthropic provider"
@@ -312,7 +315,9 @@ class ProviderFactory:
                     )
                 # Anthropic not implemented in this adapter layer yet
                 raise ProviderError(
-                    "Anthropic provider is not supported in adapters.provider_system; use application.llm.providers or configure OpenAI/LM Studio."
+                    "Anthropic provider is not supported in "
+                    "adapters.provider_system; use application.llm.providers "
+                    "or configure OpenAI/LM Studio."
                 )
             elif pt == ProviderType.STUB.value:
                 logger.info("Using Stub provider (deterministic, offline)")
@@ -322,7 +327,8 @@ class ProviderFactory:
                 )
             else:
                 logger.warning(
-                    f"Unknown provider type '{provider_type}', falling back to safe default"
+                    "Unknown provider type '%s', falling back to safe default",
+                    provider_type,
                 )
                 return _safe_provider("Unknown provider type")
         except Exception as e:
@@ -476,16 +482,20 @@ class NullProvider(BaseProvider):
         self.reason = reason
 
     def complete(self, *args, **kwargs) -> str:  # pragma: no cover - simple guard
-        raise ProviderError(
-            f"LLM provider is disabled: {self.reason}. Set OPENAI_API_KEY or start LM Studio."
+        message = (
+            f"LLM provider is disabled: {self.reason}. "
+            "Set OPENAI_API_KEY or start LM Studio."
         )
+        raise ProviderError(message)
 
     async def acomplete(
         self, *args, **kwargs
     ) -> str:  # pragma: no cover - simple guard
-        raise ProviderError(
-            f"LLM provider is disabled: {self.reason}. Set OPENAI_API_KEY or start LM Studio."
+        message = (
+            f"LLM provider is disabled: {self.reason}. "
+            "Set OPENAI_API_KEY or start LM Studio."
         )
+        raise ProviderError(message)
 
     def embed(self, *args, **kwargs):  # pragma: no cover - simple guard
         raise ProviderError(
@@ -577,7 +587,9 @@ class OpenAIProvider(BaseProvider):
         if requests is None:
             # Avoid import-time hard dependency when [llm] extra is not installed
             raise ProviderError(
-                "The 'requests' package is required for OpenAI provider. Install the 'devsynth[llm]' extra or set DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub."
+                "The 'requests' package is required for OpenAI provider. "
+                "Install the 'devsynth[llm]' extra or set "
+                "DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub."
             )
         super().__init__(
             tls_config=tls_config,
@@ -648,8 +660,6 @@ class OpenAIProvider(BaseProvider):
             temperature = parameters.get("temperature", temperature)
             max_tokens = parameters.get("max_tokens", max_tokens)
             top_p = parameters.get("top_p")
-            frequency_penalty = parameters.get("frequency_penalty")
-            presence_penalty = parameters.get("presence_penalty")
 
             if not 0 <= temperature <= 2:
                 raise ProviderError("temperature must be between 0 and 2")
@@ -729,7 +739,8 @@ class OpenAIProvider(BaseProvider):
         """Asynchronously generate a completion using the OpenAI API."""
         if httpx is None:
             raise ProviderError(
-                "The 'httpx' package is required for async OpenAI operations. Install 'devsynth[llm]' or use synchronous methods."
+                "The 'httpx' package is required for async OpenAI operations. "
+                "Install 'devsynth[llm]' or use synchronous methods."
             )
 
         # Define the actual API call function
@@ -763,7 +774,7 @@ class OpenAIProvider(BaseProvider):
         try:
             retry_config = self._get_retry_config()
 
-            # For async functions, we need to create a wrapper that handles the async nature
+            # For async functions, create a wrapper that handles the async nature
             async def _retry_async_wrapper():
                 decorator = retry_with_exponential_backoff(
                     max_retries=retry_config["max_retries"],
@@ -926,7 +937,8 @@ class OpenAIProvider(BaseProvider):
         """Asynchronously generate embeddings using the OpenAI API."""
         if httpx is None:
             raise ProviderError(
-                "The 'httpx' package is required for async OpenAI operations. Install 'devsynth[llm]' or use synchronous methods."
+                "The 'httpx' package is required for async OpenAI operations. "
+                "Install 'devsynth[llm]' or use synchronous methods."
             )
 
         # Define the actual API call function
@@ -996,12 +1008,12 @@ class OpenAIProvider(BaseProvider):
                     await asyncio.sleep(delay)
 
             # If we've exhausted all retries, raise the last exception
-            logger.error(
-                f"OpenAI embedding API error after {max_retries} retries: {last_exception}"
+            message = (
+                "OpenAI embedding API error after "
+                f"{max_retries} retries: {last_exception}"
             )
-            raise ProviderError(
-                f"OpenAI embedding API error after {max_retries} retries: {last_exception}"
-            )
+            logger.error(message)
+            raise ProviderError(message)
 
         except httpx.HTTPError as e:
             logger.error(f"OpenAI embedding API error: {e}")
@@ -1028,7 +1040,9 @@ class LMStudioProvider(BaseProvider):
         if requests is None:
             # Avoid import-time hard dependency when [llm] extra is not installed
             raise ProviderError(
-                "The 'requests' package is required for LM Studio provider. Install the 'devsynth[llm]' extra or set DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub."
+                "The 'requests' package is required for LM Studio provider. "
+                "Install the 'devsynth[llm]' extra or set "
+                "DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub."
             )
         super().__init__(
             tls_config=tls_config,
@@ -1043,9 +1057,11 @@ class LMStudioProvider(BaseProvider):
         if retry_config is not None:
             self.retry_config = retry_config
 
-        # Fast short-circuit: if LM Studio is not reachable, fail fast to avoid hangs
+        # Fast short-circuit: if LM Studio is unreachable, fail fast to avoid
+        # hangs
         try:
-            # Use a very small connect timeout to avoid test hangs; allow slightly larger read timeout
+            # Use a very small connect timeout to avoid test hangs; allow a
+            # slightly larger read timeout
             # Ping a lightweight endpoint to verify availability
             health_url = f"{self.endpoint}/v1/models"
             requests.get(
@@ -1056,7 +1072,8 @@ class LMStudioProvider(BaseProvider):
         except Exception as exc:
             raise ProviderError(
                 "LM Studio endpoint is not reachable; provider disabled. "
-                "Set OPENAI_API_KEY for OpenAI or start LM Studio at LM_STUDIO_ENDPOINT."
+                "Set OPENAI_API_KEY for OpenAI or start LM Studio at "
+                "LM_STUDIO_ENDPOINT."
             ) from exc
 
     def _should_retry(self, exc: Exception) -> bool:
@@ -1198,7 +1215,8 @@ class LMStudioProvider(BaseProvider):
         """Asynchronously generate a completion using LM Studio."""
         if httpx is None:
             raise ProviderError(
-                "The 'httpx' package is required for async LM Studio operations. Install 'devsynth[llm]' or use synchronous methods."
+                "The 'httpx' package is required for async LM Studio operations. "
+                "Install 'devsynth[llm]' or use synchronous methods."
             )
         # Define the actual API call function
         if parameters:
@@ -1296,8 +1314,8 @@ class LMStudioProvider(BaseProvider):
 
             # If we've exhausted all retries, raise the last exception
             msg = (
-                f"LM Studio endpoint {self.endpoint} is unreachable after {max_retries} "
-                f"retries: {last_exception}"
+                f"LM Studio endpoint {self.endpoint} is unreachable after "
+                f"{max_retries} retries: {last_exception}"
             )
             logger.error(msg)
             raise ProviderError(msg)
@@ -1464,8 +1482,8 @@ class LMStudioProvider(BaseProvider):
 
             # If we've exhausted all retries, raise the last exception
             msg = (
-                f"LM Studio endpoint {self.endpoint} is unreachable after {max_retries} "
-                f"retries: {last_exception}"
+                f"LM Studio endpoint {self.endpoint} is unreachable after "
+                f"{max_retries} retries: {last_exception}"
             )
             logger.error(msg)
             raise ProviderError(msg)
@@ -1607,7 +1625,8 @@ class FallbackProvider(BaseProvider):
         for provider in providers:
             try:
                 logger.info(
-                    f"Trying completion with provider: {provider.__class__.__name__}"
+                    "Trying completion with provider: %s",
+                    provider.__class__.__name__,
                 )
                 return self._call_sync(
                     provider,
@@ -1619,7 +1638,11 @@ class FallbackProvider(BaseProvider):
                     parameters=parameters,
                 )
             except Exception as exc:
-                logger.warning(f"Provider {provider.__class__.__name__} failed: {exc}")
+                logger.warning(
+                    "Provider %s failed: %s",
+                    provider.__class__.__name__,
+                    exc,
+                )
                 last_error = exc
 
         raise ProviderError(
@@ -1644,7 +1667,8 @@ class FallbackProvider(BaseProvider):
         for provider in providers:
             try:
                 logger.info(
-                    f"Trying async completion with provider: {provider.__class__.__name__}"
+                    "Trying async completion with provider: %s",
+                    provider.__class__.__name__,
                 )
                 return await self._call_async(
                     provider,
@@ -1656,7 +1680,11 @@ class FallbackProvider(BaseProvider):
                     parameters=parameters,
                 )
             except Exception as exc:
-                logger.warning(f"Provider {provider.__class__.__name__} failed: {exc}")
+                logger.warning(
+                    "Provider %s failed: %s",
+                    provider.__class__.__name__,
+                    exc,
+                )
                 last_error = exc
 
         raise ProviderError(
@@ -1673,12 +1701,15 @@ class FallbackProvider(BaseProvider):
         for provider in providers:
             try:
                 logger.info(
-                    f"Trying embeddings with provider: {provider.__class__.__name__}"
+                    "Trying embeddings with provider: %s",
+                    provider.__class__.__name__,
                 )
                 return self._call_sync(provider, "embed", text=text)
             except Exception as exc:
                 logger.warning(
-                    f"Provider {provider.__class__.__name__} failed for embeddings: {exc}"
+                    "Provider %s failed for embeddings: %s",
+                    provider.__class__.__name__,
+                    exc,
                 )
                 last_error = exc
 
@@ -1696,12 +1727,15 @@ class FallbackProvider(BaseProvider):
         for provider in providers:
             try:
                 logger.info(
-                    f"Trying async embeddings with provider: {provider.__class__.__name__}"
+                    "Trying async embeddings with provider: %s",
+                    provider.__class__.__name__,
                 )
                 return await self._call_async(provider, "aembed", text=text)
             except Exception as exc:
                 logger.warning(
-                    f"Provider {provider.__class__.__name__} failed for embeddings: {exc}"
+                    "Provider %s failed for embeddings: %s",
+                    provider.__class__.__name__,
+                    exc,
                 )
                 last_error = exc
 

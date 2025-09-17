@@ -16,7 +16,8 @@ class JiraIssueAdapter:
         """Initialize the adapter with authentication details.
 
         Args:
-            base_url: Base URL of the Jira instance, e.g. ``https://jira.example.com``.
+            base_url: Base URL of the Jira instance, e.g.
+                ``https://jira.example.com``.
             token: API token or bearer token for authentication.
         """
         self.base_url = base_url.rstrip("/")
@@ -30,7 +31,8 @@ class JiraIssueAdapter:
             issue_key: Jira issue key such as ``"PROJ-123"``.
 
         Returns:
-            Mapping with ``title`` and ``acceptance_criteria`` if successful, otherwise ``None``.
+            Mapping with ``title`` and ``acceptance_criteria`` if successful,
+            otherwise ``None``.
         """
         url = f"{self.base_url}/rest/api/2/issue/{issue_key}"
         headers = {

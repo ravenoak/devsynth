@@ -1,13 +1,14 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
 
-# Create a logger for this module
+from typing import Any, Dict
+
 from devsynth.logging_setup import DevSynthLogger
 
 from ...application.llm.providers import factory
-from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
+from ...domain.interfaces.llm import LLMProvider
 
+# Create a logger for this module
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class LLMBackendAdapter:

@@ -23,6 +23,7 @@ Next Actions:
 Progress:
 - 2025-09-10: `poetry run flake8 src/ tests/` still reports E501/F401/F841; issue reopened.
 - 2025-09-11: flake8 passes with no E501/F401/F841 warnings.
+- 2025-09-17: Adapters/memory stores cleaned; diagnostics/flake8_2025-09-17_run1.txt still lists legacy violations in tests awaiting broader sweep.
 
 Resolution Evidence:
   - `poetry run flake8 src tests`
