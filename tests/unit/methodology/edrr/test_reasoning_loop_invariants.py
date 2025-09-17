@@ -1,119 +1,163 @@
-"""Tests for reasoning loop recursion invariants documented in reasoning_loop_invariants.md."""
-
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable
+from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 
-from devsynth.methodology.edrr.reasoning_loop import Phase
+from devsynth.methodology.base import Phase
 
-rl = importlib.import_module("devsynth.methodology.edrr.reasoning_loop")
-
-
-class _RecordingCoordinator:
-    """Coordinator that captures the order of recorded EDRR phases."""
-
-    def __init__(self) -> None:
-        self.recorded_phases: list[Phase] = []
-        self.consensus_failures: list[Exception] = []
-
-    def _remember(self, phase: Phase, result: dict[str, Any]) -> dict[str, Any]:
-        self.recorded_phases.append(phase)
-        return result
-
-    def record_expand_results(self, result: dict[str, Any]) -> dict[str, Any]:
-        return self._remember(Phase.EXPAND, result)
-
-    def record_differentiate_results(self, result: dict[str, Any]) -> dict[str, Any]:
-        return self._remember(Phase.DIFFERENTIATE, result)
-
-    def record_refine_results(self, result: dict[str, Any]) -> dict[str, Any]:
-        return self._remember(Phase.REFINE, result)
-
-    def record_consensus_failure(self, error: Exception) -> None:  # pragma: no cover - defensive
-        self.consensus_failures.append(error)
-
-
-@pytest.fixture
-def _patch_reasoning_loop(monkeypatch: pytest.MonkeyPatch) -> Callable[[Callable[..., dict[str, Any]]], None]:
-    """Patch the reasoning loop internals to use a deterministic callable."""
-
-    def _apply(fake: Callable[..., dict[str, Any]]) -> None:
-        monkeypatch.setattr(
-            rl, "_apply_dialectical_reasoning", fake, raising=False
-        )
-        monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: fake)
-
-    return _apply
+reasoning_loop_module = importlib.import_module(
+    "devsynth.methodology.edrr.reasoning_loop",
+)
 
 
 @pytest.mark.fast
-def test_reasoning_loop_converges_to_refine_without_next_phase(
-    _patch_reasoning_loop: Callable[[Callable[..., dict[str, Any]]], None],
+def test_reasoning_loop_enforces_total_time_budget(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """The fallback phase transition reaches REFINE within two recursive iterations."""
+    """ReqID: DRL-UNIT-01 — Max total seconds halts recursion."""
 
-    coordinator = _RecordingCoordinator()
-    calls: list[dict[str, Any]] = []
+    call_count = {"value": 0}
 
-    def fake_apply(_: Any, task: dict[str, Any], __: Any, ___: Any) -> dict[str, Any]:
-        calls.append(task.copy())
-        if len(calls) < 3:
-            return {"status": "in_progress"}
-        return {"status": "completed"}
+    def fake_apply(_team, task, _critic, _memory):
+        call_count["value"] += 1
+        return {"status": "in_progress", "task_snapshot": task.copy()}
 
-    _patch_reasoning_loop(fake_apply)
-
-    results = rl.reasoning_loop(
-        wsde_team=None,
-        task={"solution": "initial"},
-        critic_agent=None,
-        coordinator=coordinator,
-        phase=Phase.EXPAND,
-        max_iterations=5,
+    monkeypatch.setattr(
+        reasoning_loop_module,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
     )
 
-    assert len(results) == 3
-    assert [phase.value for phase in coordinator.recorded_phases] == [
-        Phase.EXPAND.value,
-        Phase.DIFFERENTIATE.value,
-        Phase.REFINE.value,
-    ], "Phase convergence invariant violated; see docs/implementation/reasoning_loop_invariants.md"
+    ticks = iter([0.0, 0.01, 0.06, 0.2])
+
+    def fake_monotonic() -> float:
+        try:
+            return next(ticks)
+        except StopIteration:  # pragma: no cover - defensive
+            return 0.2
+
+    sleep_calls: list[float] = []
+
+    monkeypatch.setattr(reasoning_loop_module.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(reasoning_loop_module.time, "sleep", sleep_calls.append)
+
+    results = reasoning_loop_module.reasoning_loop(
+        MagicMock(),
+        {"id": "task-1"},
+        MagicMock(),
+        max_iterations=5,
+        max_total_seconds=0.05,
+    )
+
+    assert call_count["value"] == 1
+    assert len(results) == 1
+    assert sleep_calls == []
 
 
 @pytest.mark.fast
-def test_reasoning_loop_propagates_synthesis_between_iterations(
-    _patch_reasoning_loop: Callable[[Callable[..., dict[str, Any]]], None]
+def test_reasoning_loop_retries_until_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    """ReqID: DRL-UNIT-02 — Retries apply exponential backoff for transient failures."""
+
+    outcomes = iter([RuntimeError("transient-1"), RuntimeError("transient-2"), "ok"])
+
+    def fake_apply(_team, task, _critic, _memory):
+        outcome = next(outcomes)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return {"status": "completed", "synthesis": task.get("solution")}
+
+    monkeypatch.setattr(
+        reasoning_loop_module,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
+    )
+
+    sleep_durations: list[float] = []
+
+    def fake_sleep(duration: float) -> None:
+        sleep_durations.append(duration)
+
+    monkeypatch.setattr(reasoning_loop_module.time, "sleep", fake_sleep)
+
+    results = reasoning_loop_module.reasoning_loop(
+        MagicMock(),
+        {"solution": {"step": 0}},
+        MagicMock(),
+        retry_attempts=2,
+        retry_backoff=0.1,
+    )
+
+    assert len(results) == 1
+    assert sleep_durations == [0.1, 0.2]
+
+
+@pytest.mark.fast
+def test_reasoning_loop_fallback_transitions_and_propagation(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Each recursive call receives the prior synthesis as the next solution."""
+    """ReqID: DRL-UNIT-03 — Fallback transitions advance phases and propagate state."""
 
-    observed_solutions: list[str] = []
-    syntheses = ["draft", "refined", "final"]
+    payloads: list[dict[str, Any]] = [
+        {"status": "in_progress", "synthesis": {"step": 1}, "next_phase": "unknown"},
+        {"status": "in_progress", "synthesis": {"step": 2}},
+        {"status": "completed", "synthesis": {"step": 3}},
+    ]
+    call_index = {"value": 0}
+    observed_tasks: list[dict[str, Any]] = []
 
-    def fake_apply(_: Any, task: dict[str, Any], __: Any, ___: Any) -> dict[str, Any]:
-        observed_solutions.append(task["solution"])
-        index = len(observed_solutions) - 1
-        payload = {"synthesis": syntheses[index]}
-        if index < 2:
-            payload["status"] = "in_progress"
-        else:
-            payload["status"] = "completed"
+    def fake_apply(_team, task, _critic, _memory):
+        observed_tasks.append(task.copy())
+        payload = payloads[call_index["value"]]
+        call_index["value"] += 1
         return payload
 
-    _patch_reasoning_loop(fake_apply)
-
-    results = rl.reasoning_loop(
-        wsde_team=None,
-        task={"solution": "initial"},
-        critic_agent=None,
-        max_iterations=3,
+    monkeypatch.setattr(
+        reasoning_loop_module,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
     )
 
-    assert observed_solutions == [
-        "initial",
-        "draft",
-        "refined",
-    ], "Synthesis propagation invariant violated; see docs/implementation/reasoning_loop_invariants.md"
-    assert [result["synthesis"] for result in results] == syntheses
+    class Recorder:
+        def __init__(self) -> None:
+            self.phases: list[Phase] = []
+
+        def record_expand_results(self, result: dict[str, Any]) -> dict[str, Any]:
+            self.phases.append(Phase.EXPAND)
+            return result
+
+        def record_differentiate_results(
+            self, result: dict[str, Any]
+        ) -> dict[str, Any]:
+            self.phases.append(Phase.DIFFERENTIATE)
+            return result
+
+        def record_refine_results(self, result: dict[str, Any]) -> dict[str, Any]:
+            self.phases.append(Phase.REFINE)
+            return result
+
+    recorder = Recorder()
+
+    results = reasoning_loop_module.reasoning_loop(
+        MagicMock(),
+        {"id": "task-2"},
+        MagicMock(),
+        coordinator=recorder,
+        phase=Phase.EXPAND,
+        max_iterations=len(payloads),
+    )
+
+    assert [payload["status"] for payload in results] == [
+        "in_progress",
+        "in_progress",
+        "completed",
+    ]
+    assert recorder.phases == [
+        Phase.EXPAND,
+        Phase.DIFFERENTIATE,
+        Phase.REFINE,
+    ]
+    assert observed_tasks[1]["solution"] == {"step": 1}
+    assert observed_tasks[2]["solution"] == {"step": 2}
