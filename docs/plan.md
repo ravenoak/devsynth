@@ -2,7 +2,7 @@
 
 Version: 2025-09-15
 Owner: DevSynth Team (maintainers)
-Status: Execution in progress; install loop closed (2025-09-09); property marker advisories resolved; flake8 and bandit scans resolved (2025-09-11); go-task installed (2025-09-11); coverage threshold previously achieved (2025-10-12) but regressed to 13.68 % on 2025-09-15 (see issues/coverage-below-threshold.md)
+Status: Execution in progress; install loop closed (2025-09-09); property marker advisories resolved; flake8 and bandit scans resolved (2025-09-11); go-task installed (2025-09-11); coverage threshold previously achieved (2025-10-12) but the latest instrumentation run fails to emit coverage artifacts (2025-09-17) despite the last captured report showing only 20.78 % line coverage (see issues/coverage-below-threshold.md).【cbc560†L1-L3】【20dbec†L1-L5】
 
 Executive summary
 - Goal: Reach and sustain >90% coverage with a well‑functioning, reliable test suite across unit, integration, behavior, and property tests for the 0.1.0a1 release, with strict marker discipline and resource gating.
@@ -14,7 +14,7 @@ Executive summary
  - Property marker verification reports 0 violations after converting nested Hypothesis helpers into decorated tests.
  - Property tests (opt-in) now pass after dummy adjustments and Hypothesis fixes.
   - Diagnostics indicate environment/config gaps for non-test environments (doctor.txt) used by the app; tests succeed due to defaults and gating, but this requires documentation and guardrails.
-  - Coverage aggregation across unit, integration, and behavior tests previously reached 95% on 2025-09-12, but the latest fast+medium run (`poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1`) on 2025-09-15 now forces coverage instrumentation, reports only 13.68 % line coverage, and fails the 90 % gate (artifacts persist under `htmlcov/` and `test_reports/coverage.json`).
+  - Coverage aggregation across unit, integration, and behavior tests previously reached 95% on 2025-09-12. The most recent full fast+medium profile (`poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1`) now exits with an error because `.coverage` is not created; coverage JSON and HTML are absent even though the last captured run before cleanup showed only 20.78 % line coverage.【cbc560†L1-L3】【20dbec†L1-L5】【45de43†L1-L2】
   - 2025-09-16: Re-running the same fast+medium profile still prints "Unable to determine total coverage" because the synthesized coverage JSON lacks `totals.percent_covered`; instrumentation must be repaired before the gate can pass.【50195f†L1-L5】
 
 Commands executed (audit trail)
@@ -25,8 +25,8 @@ Commands executed (audit trail)
 - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
  - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → verify_test_markers now reports 0 property_violations after helper logic refinement.
  - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → all tests passed.
-- poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1 → command now forces coverage instrumentation, writes `htmlcov/` plus `test_reports/coverage.json`, and exits with the new 90 % gate reporting only 13.68 % coverage (see issues/coverage-below-threshold.md).
-- 2025-09-16: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 → succeeds but prints the coverage warning because the JSON artifact lacks totals.
+- poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1 → currently exits with code 1 after tests pass because `.coverage` is missing; coverage JSON and HTML are not produced, preventing gate evaluation.【20dbec†L1-L5】【45de43†L1-L2】
+- poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 → succeeds but still reports "Coverage artifact generation skipped" and leaves `test_reports/coverage.json` absent, confirming smoke instrumentation regression.【d5fad8†L1-L4】
 - 2025-09-16: poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1 → reproduces the coverage warning even though pytest exits successfully.
 - poetry install --with dev --all-extras → reinstalls the entry point so `poetry run devsynth …` works after a fresh session.
 - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 → auto-injects `-p pytest_cov` to keep instrumentation active; expect the coverage gate to fail (<90 %) when running smoke alone. Set `PYTEST_ADDOPTS="--no-cov"` to intentionally bypass coverage during smoke rehearsals.
@@ -49,6 +49,7 @@ Environment snapshot and reproducibility (authoritative)
   - When a new shell starts without the CLI entry point, rerun `poetry install --with dev --all-extras` to restore `devsynth` before invoking CLI commands.
   - If doctor surfaces missing optional backends, treat as non-blocking unless explicitly enabled via DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true.
   - 2025-09-16: New shells still need `scripts/install_dev.sh` to place go-task on PATH; confirm `task --version` prints 3.45.3 post-install.【fbd80f†L1-L3】
+  - 2025-09-17: Re-ran `scripts/install_dev.sh` in a fresh session; `task --version` now reports 3.45.3, confirming the helper recovers the CLI toolchain after environment resets.【1c714f†L1-L3】
 
 Coverage instrumentation and gating (authoritative)
 - `src/devsynth/testing/run_tests.py` now resets coverage artifacts at the start of every CLI invocation and injects
@@ -132,7 +133,7 @@ Critical evaluation of current tests (dialectical + Socratic)
 4) Gaps and blockers identified
 - Property tests previously failed due to example() misuse and a missing `_improve_clarity` on the dummy team; both issues are now resolved.
 - Coverage hotspots: Historical diagnostics and htmlcov show low coverage in src/devsynth/application/cli/commands/run_tests_cmd.py (~14–15%), and other adapter-heavy modules show very low coverage in artifacts. Need targeted tests or broaden integration coverage.
-- Coverage regression (2025-09-15): Latest aggregated run still reports only 13.68 % despite the hardened instrumentation; `htmlcov/` and `test_reports/coverage.json` persist but the new gate continues to fail until additional suites and hotspots raise coverage.
+- Coverage regression (2025-09-17): The fast+medium aggregate now fails because `.coverage` is never written; coverage JSON/HTML are deleted during startup and never regenerated, so the gate cannot compute a percentage and exits with code 1 even when pytest reports success.【20dbec†L1-L5】【45de43†L1-L2】
 - Environment/config: diagnostics/doctor.txt lists many missing env vars across environments; while tests pass due to default stubbing, release QA should include doctor sanity checks and documented defaults.
 - Installation: earlier hang on `poetry install --with dev --all-extras` (nvidia/__init__.py) resolved per issues/poetry-install-nvidia-loop.md (closed).
 - Potential mismatch between pytest.ini fail-under=90 and how contributors run focused subsets; dev tooling must aggregate coverage or provide guidance on running complete profiles locally.
@@ -156,9 +157,10 @@ Spec-first, domain-driven, and behavior-driven alignment check (2025-09-17)
   - Output formatter invariants now cite cross-interface specifications, BDD coverage, and the new fast regressions for sanitization, styling, fallbacks, and command overrides.【F:docs/implementation/output_formatter_invariants.md†L1-L74】【F:docs/specifications/cross-interface-consistency.md†L1-L40】【F:tests/behavior/features/general/cross_interface_consistency.feature†L1-L40】【F:tests/unit/interface/test_output_formatter_core_behaviors.py†L14-L149】【F:tests/unit/interface/test_output_formatter_fallbacks.py†L28-L146】
   - Reasoning loop invariants reference the dialectical reasoning specification, termination features, and both property-based and deterministic unit suites covering convergence, synthesis propagation, retry safeguards, and time budgets.【F:docs/implementation/reasoning_loop_invariants.md†L1-L88】【F:docs/specifications/finalize-dialectical-reasoning.md†L1-L78】【F:tests/behavior/features/finalize_dialectical_reasoning.feature†L1-L16】【F:tests/property/test_reasoning_loop_properties.py†L25-L208】【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L16-L163】
   - WebUI invariants align with the integration specification, wizard behavior features, and property tests that bound navigation and convergence for `WizardState` APIs.【F:docs/implementation/webui_invariants.md†L1-L66】【F:docs/specifications/webui-integration.md†L1-L40】【F:tests/behavior/features/webui/requirements_wizard_with_state.feature†L1-L66】【F:tests/property/test_webui_properties.py†L22-L44】
+- Many supporting specifications remain in `status: draft` (e.g., requirements flows, recursive coordinators, onboarding wizards), so the spec-first pipeline is incomplete for several subsystems and needs targeted promotion to review status.【65dc7a†L1-L10】
 
 Academic rigor and coverage gaps (2025-09-16)
-- Latest coverage aggregation continues to report only 13.68 % across `src/devsynth`, confirming the ≥90 % gate is unmet.【F:test_reports/coverage.json†L1-L29】
+- Latest captured coverage aggregation before the artifacts were purged reported only 20.78 % across `src/devsynth`; subsequent executions fail to regenerate `.coverage`, so the ≥90 % gate remains unmet and currently cannot evaluate at all.【cbc560†L1-L3】【20dbec†L1-L5】
 - Modules flagged in docs/tasks.md §21 (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests) lack sufficient fast unit/property coverage to demonstrate their stated invariants; future PRs must pair the new tests with updates to the corresponding invariant notes.
 
 Remediation plan to >90% coverage and full readiness
@@ -189,6 +191,7 @@ Phase 2: Coverage uplift (Day 1–3)
   poetry run devsynth run-tests --speed=fast --speed=medium --segment --segment-size 100 --no-parallel --report
   - Segmented runs append to the shared coverage file; artifacts and gate evaluation occur automatically at the end.
 - Inspect coverage.json/htmlcov to identify modules <80% and <50%.
+- Diagnose why `.coverage` is not produced even when pytest-cov is requested; capture logs from smoke and fast+medium runs and add regression tests so the CLI fails early when instrumentation is suppressed by `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.【d5fad8†L1-L4】【20dbec†L1-L5】
 - Hotspot 1: run_tests_cmd.py
   - Add/extend unit tests to cover branches: smoke mode (PYTEST_DISABLE_PLUGIN_AUTOLOAD), --no-parallel maps to -n0, inventory mode writes file and exits, --marker ANDing logic, --segment/--segment-size batching, --maxfail propagation, feature flags env mapping, provider defaults application, error paths (invalid marker expression, non-existent target).
 - Hotspot 2: adapters and stores
@@ -310,7 +313,7 @@ Maintainer quickstart (authoritative commands)
   - Running `task --version` verifies the installation.
 
 Notes and next actions
-- Immediate: Fix the two property test failures; add targeted tests for run_tests_cmd branches; re-generate coverage report and iterate on hotspots below 80% coverage.
+- Immediate: Repair coverage instrumentation so both smoke and fast+medium profiles emit `.coverage`, then resume adding targeted tests for run_tests_cmd, logging_setup, webui, and reasoning_loop before regenerating the coverage report above 90%.【d5fad8†L1-L4】【20dbec†L1-L5】
 - Formal proofs for reasoning loop and provider system invariants recorded in
   docs/implementation/reasoning_loop_invariants.md and
   docs/implementation/provider_system_invariants.md.
@@ -332,6 +335,7 @@ Notes and next actions
 - Post-release: Introduce low-throughput GH Actions pipeline as specified and expand nightly coverage runs.
 - verify_test_markers reports missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py; track under issues/property-marker-advisories-in-reasoning-loop-tests.md and resolve before release.
 - 2025-09-12: Deduplicated docs/task_notes.md to remove redundant entries and keep the iteration log concise.
+- 2025-09-17: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` now exits with code 1 because coverage artifacts are missing; smoke mode shows the same regression, so coverage remediation items remain blocking tasks 6.3 and 13.3.【d5fad8†L1-L4】【20dbec†L1-L5】【45de43†L1-L2】
 - 2025-09-19: `devsynth` package initially missing; reran `poetry install --with dev --all-extras` to restore CLI. Smoke and property tests pass; flake8 and bandit still failing; coverage aggregation (tasks 6.3, 13.3) pending.
 - 2025-09-30: `task --version` not found; smoke run produced no coverage data (`coverage report --fail-under=90` → "No data to report"); flake8 and bandit scans still failing.
 - 2025-10-01: `poetry install --with dev --all-extras` restored the `devsynth` CLI; smoke run reported "Tests completed successfully" but `task --version` remains missing and coverage thresholds are still unverified.

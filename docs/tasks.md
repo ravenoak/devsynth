@@ -66,8 +66,8 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 6.2 [x] Use segmented coverage when memory/runtime pressure surfaces; instrumentation appends between batches.
 6.2.1 [x] Segmented aggregate example: `poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --segment --segment-size 75 --no-parallel --report`.
 6.2.2 [x] Optional manual combine when mixing CLI runs with ad-hoc pytest invocations: `poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json`.
-6.3 [ ] Verify global threshold: the coverage gate still reports 13.68 % (<90 %); coordinate follow-ups via [issues/coverage-below-threshold.md](../issues/coverage-below-threshold.md).
-6.3.1 [ ] Document smoke profile expectations: auto `-p pytest_cov` keeps instrumentation active; set `PYTEST_ADDOPTS="--no-cov"` to bypass coverage intentionally during smoke rehearsals and record the skip rationale.
+6.3 [ ] Verify global threshold: the coverage gate now exits with code 1 because coverage artifacts are missing entirely; restore `.coverage` generation and re-run until ≥90 % is observed (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+6.3.1 [ ] Document smoke profile expectations and the current regression: smoke mode still skips coverage artifacts unless pytest-cov is force-loaded; update guidance once instrumentation is fixed so maintainers know when to set `PYTEST_ADDOPTS="--no-cov"` intentionally.
 6.4 [x] Save logs to test_reports/ and artifacts to htmlcov/ and coverage.json.
 
 7. Behavior and Integration Completeness (Phase 3)
@@ -128,7 +128,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 13. Acceptance Criteria Validation
 13.1 [x] All unit, integration, and behavior tests pass locally using documented commands.
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
-13.3 [ ] Combined coverage >= 90% with HTML report generated and saved (latest gate result: 13.68 % with artifacts present but below threshold).
+13.3 [ ] Combined coverage >= 90% with HTML report generated and saved (latest gate attempt fails because coverage artifacts are missing; remediation tracked under §6.3 and §21.8).
 13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
 13.5 [x] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags, coverage guidance.
 13.6 [x] Known environment warnings in doctor.txt triaged and documented as non-blocking by default.
@@ -181,7 +181,7 @@ Notes:
 19. Release Finalization (Phase 8)
 19.1 [x] Draft v0.1.0a1 release notes and update CHANGELOG.md.
 19.2 [ ] Conduct User Acceptance Testing and confirm approval.
-19.3 [ ] Perform final full fast+medium coverage run and archive artifacts with ≥90 % coverage. Latest attempt (2025-09-15) produced only 13.68 %; the new gate fails accordingly even though htmlcov/ and coverage.json are now generated automatically.
+19.3 [ ] Perform final full fast+medium coverage run and archive artifacts with ≥90 % coverage. Latest attempt (2025-09-17) exited early because `.coverage` was never written, so no HTML/JSON artifacts exist to archive.
 19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).
 19.5 [ ] Close issues/release-finalization-uat.md after tagging is complete.
 
@@ -198,9 +198,13 @@ Notes:
 21.5 [ ] Extend tests for `src/devsynth/logging_setup.py` to validate log level overrides, JSON formatting, and handler wiring (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 21.6 [ ] Add deterministic unit tests for `src/devsynth/methodology/edrr/reasoning_loop.py` demonstrating recursion safeguards and invariants (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 21.7 [ ] Increase coverage for `src/devsynth/testing/run_tests.py` by validating CLI invocation paths and error handling distinct from `run_tests_cmd` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
-21.8 [x] Ensure smoke profile coverage enforcement is coherent: auto-inject `-p pytest_cov` when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` so instrumentation remains active, while allowing intentional skips via `PYTEST_ADDOPTS="--no-cov"` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+21.8 [ ] Restore smoke profile coverage enforcement: ensure auto-injected `-p pytest_cov` produces `.coverage` when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`, and keep support for intentional skips via `PYTEST_ADDOPTS="--no-cov"` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+21.8.1 [ ] Add an integration test (Typer CLI invocation) that runs `devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` in-process and asserts `.coverage` plus `test_reports/coverage.json` exist afterward (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+21.8.2 [ ] Update docs/plan.md and docs/tasks.md with the new smoke instrumentation behavior once the regression test passes (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 21.9 [x] Implement a coverage gate that parses `test_reports/coverage.json`, prints the measured percentage, and fails when coverage <90 % to prevent silent regressions (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 21.10 [x] Document the remediated coverage workflow in docs/plan.md and docs/tasks.md after instrumentation lands (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+21.11 [ ] Ensure the default fast+medium aggregate run writes `.coverage`, HTML, and JSON artifacts when no manual environment overrides are present; add a regression test that asserts `enforce_coverage_threshold` reports a numeric percentage after invoking the Typer command (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+21.11.1 [ ] Capture CLI logs for the failing fast+medium run and attach them to issues/coverage-below-threshold.md to aid debugging (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 
 22. Coverage Instrumentation Recovery (Phase 2C)
 22.1 [x] Diagnose why `.coverage` is absent after `devsynth run-tests` when coverage warnings appear; ensure `_ensure_coverage_artifacts()` only runs once real data is available (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
@@ -209,10 +213,15 @@ Notes:
 22.4 [x] Document the instrumentation recovery steps and minimum reproducible command in docs/plan.md and docs/task_notes.md once fixed.
 
 23. Academic Rigor Alignment (Phase 5B)
-23.1 [ ] Promote `docs/implementation/output_formatter_invariants.md` from draft to reviewed status after new tests cover formatting branches (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [documentation-utility-functions.md](../issues/documentation-utility-functions.md)).
-23.2 [ ] Promote `docs/implementation/reasoning_loop_invariants.md` from draft to reviewed status once recursion safeguards gain property/unit coverage (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [Finalize-dialectical-reasoning.md](../issues/Finalize-dialectical-reasoning.md)).
-23.3 [ ] Promote `docs/implementation/webui_invariants.md` from draft to reviewed status after WebUI bridge/navigation coverage increases (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [webui-integration.md](../issues/webui-integration.md)).
-23.4 [ ] Audit remaining specifications tagged `status: draft` and pair them with verified BDD features before UAT sign-off (Issue: [release-finalization-uat.md](../issues/release-finalization-uat.md)).
+23.1 [ ] Promote `docs/implementation/output_formatter_invariants.md` from review to published status once renewed tests and coverage evidence land (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [documentation-utility-functions.md](../issues/documentation-utility-functions.md)).
+23.2 [ ] Promote `docs/implementation/reasoning_loop_invariants.md` from review to published status after recursion safeguards regain deterministic test coverage (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [Finalize-dialectical-reasoning.md](../issues/Finalize-dialectical-reasoning.md)).
+23.3 [ ] Promote `docs/implementation/webui_invariants.md` from review to published status once WebUI bridge/navigation coverage increases and remains stable (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [webui-integration.md](../issues/webui-integration.md)).
+23.4 [ ] Audit remaining specifications tagged `status: draft` (e.g., requirements wizards, recursive coordinators, onboarding flows) and pair them with verified BDD features before UAT sign-off (Issue: [release-finalization-uat.md](../issues/release-finalization-uat.md)).
+
+24. Proof and Simulation Backfill (Phase 5C)
+24.1 [ ] Extend `docs/implementation/run_tests_cli_invariants.md` with a section covering coverage instrumentation guarantees once §21.8/§21.11 land, including references to the new regression tests (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+24.2 [ ] Add quantitative analysis (expected coverage deltas, cost of segmented runs) to `docs/implementation/provider_system_invariants.md` so the reasoning loop, provider defaults, and coverage metrics remain synchronized (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [provider-system-invariants.md](../issues/provider-system-invariants.md)).
+24.3 [ ] Capture a simulation or formula demonstrating how the coverage gate enforces ≥90 % when multiple segments append to `.coverage`, and document the proof in `docs/plan.md` and `docs/task_notes.md` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 
 Notes:
 - 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.

@@ -28,5 +28,6 @@ Progress:
 - 2025-09-15: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` succeeded but coverage stayed at 13.68 % with empty HTML output; coverage remediation reopened (see docs/tasks.md §21 and issues/coverage-below-threshold.md).
 - 2025-09-15: Smoke profile run after reinstalling `devsynth` (`poetry install --with dev --all-extras`) emitted coverage warning (`totals.percent_covered` missing) and wrote empty coverage artifacts, confirming instrumentation gaps remain before UAT can proceed.
 - 2025-09-16: Full reinstall plus smoke and fast+medium runs reproduced the coverage warning and left `.coverage` missing; gating cannot proceed until instrumentation writes real totals (`poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`, `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1`).【63011a†L1-L4】【50195f†L1-L5】
+- 2025-09-17: Repeated smoke and fast+medium commands exit with "Coverage artifact generation skipped" and code 1 because `.coverage` is absent; last captured coverage JSON before cleanup reported only 20.78 %, so coverage remediation remains a release blocker.【d5fad8†L1-L4】【20dbec†L1-L5】【45de43†L1-L2】【cbc560†L1-L3】
 Resolution Evidence:
   - docs/tasks.md item 19
