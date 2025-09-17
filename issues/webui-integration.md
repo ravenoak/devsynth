@@ -16,6 +16,7 @@ WebUI Integration is not yet implemented, limiting DevSynth's capabilities.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-17: Promoted the WebUI invariants note to review with traceable coverage from the integration specification, wizard behavior scenarios, and property tests that enforce navigation bounds and convergence for `WizardState`.【F:docs/implementation/webui_invariants.md†L1-L66】【F:docs/specifications/webui-integration.md†L1-L40】【F:tests/behavior/features/webui/requirements_wizard_with_state.feature†L1-L66】【F:tests/property/test_webui_properties.py†L22-L44】
 
 ## References
 - Specification: docs/specifications/webui-integration.md
