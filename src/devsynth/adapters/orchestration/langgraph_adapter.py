@@ -267,8 +267,12 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                             "step_name": step.name,
                         }
                     )
-                except Exception:
-                    pass
+                except Exception as exc:  # pragma: no cover - best effort
+                    logger.debug(
+                        "Stream callback 'step_started' failed for %s: %s",
+                        step.id,
+                        exc,
+                    )
 
             max_retries = 0
             try:
@@ -295,8 +299,12 @@ class LangGraphWorkflowEngine(WorkflowEngine):
                             stream_cb(
                                 {"event": "message", "message": state.messages[-1]}
                             )
-                        except Exception:
-                            pass
+                        except Exception as exc:  # pragma: no cover - best effort
+                            logger.debug(
+                                "Stream callback 'message' failed for %s: %s",
+                                step.id,
+                                exc,
+                            )
                     return state
                 except Exception as e:
                     last_err = e

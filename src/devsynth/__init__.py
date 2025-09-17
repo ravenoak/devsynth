@@ -11,6 +11,7 @@ ahead of time.
 from __future__ import annotations
 
 import importlib
+import logging
 from typing import Any
 
 # Version and metadata
@@ -48,10 +49,18 @@ def __getattr__(name: str) -> Any:
     # Fallback: try to resolve unknown attributes as subpackages/modules
     try:
         module = importlib.import_module(f"{__name__}.{name}")
+    except ModuleNotFoundError:
+        module = None
+    except Exception as exc:  # pragma: no cover - defensive logging
+        logging.getLogger(__name__).warning(
+            "Error importing devsynth.%s: %s",
+            name,
+            exc,
+        )
+        module = None
+    else:
         globals()[name] = module  # Cache the loaded submodule on the package
         return module
-    except Exception:
-        pass
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
@@ -70,5 +79,13 @@ def initialize_subpackages() -> None:
             continue
         try:  # pragma: no cover - best effort
             importlib.import_module(module)
-        except Exception:  # pragma: no cover - ignore if unavailable
-            pass
+        except ModuleNotFoundError:  # pragma: no cover - optional
+            logging.getLogger(__name__).debug(
+                "Optional subpackage %s not available", module
+            )
+        except Exception as exc:  # pragma: no cover - defensive
+            logging.getLogger(__name__).warning(
+                "Error importing optional subpackage %s: %s",
+                module,
+                exc,
+            )

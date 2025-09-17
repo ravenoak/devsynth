@@ -148,8 +148,8 @@ class KuzuStore(MemoryStore):
         if self.tokenizer:
             try:
                 return len(self.tokenizer.encode(text))
-            except Exception:  # pragma: no cover - defensive
-                pass
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug("Tokenizer encode failed: %s", exc)
         return len(text) // 4
 
     def _serialise(self, item: MemoryItem) -> str:
@@ -188,8 +188,8 @@ class KuzuStore(MemoryStore):
         else:  # pragma: no cover - requires kuzu
             try:
                 self.conn.execute("BEGIN TRANSACTION")
-            except Exception:
-                pass
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Failed to begin Kuzu transaction: %s", exc)
         self._transactions[tx_id] = snapshot or {}
         return tx_id
 
@@ -199,8 +199,8 @@ class KuzuStore(MemoryStore):
         if not self._use_fallback:  # pragma: no cover - requires kuzu
             try:
                 self.conn.execute("COMMIT")
-            except Exception:
-                pass
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Commit failed for Kuzu transaction %s: %s", transaction_id, exc)
         return True
 
     def rollback_transaction(self, transaction_id: str) -> bool:
@@ -212,8 +212,12 @@ class KuzuStore(MemoryStore):
         else:  # pragma: no cover - requires kuzu
             try:
                 self.conn.execute("ROLLBACK")
-            except Exception:
-                pass
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning(
+                    "Rollback failed for Kuzu transaction %s: %s",
+                    transaction_id,
+                    exc,
+                )
         return True
 
     @contextmanager
@@ -439,23 +443,23 @@ class KuzuStore(MemoryStore):
             if getattr(self, "conn", None):
                 try:
                     self.conn.execute("COMMIT")
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Commit during close failed: %s", exc)
                 if hasattr(self.conn, "close"):
                     try:
                         self.conn.close()
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.debug("Connection close failed: %s", exc)
             if getattr(self, "db", None) and hasattr(self.db, "close"):
                 try:
                     self.db.close()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Database close failed: %s", exc)
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Failed to close Kuzu resources: %s", exc)
 
     def __del__(self):  # pragma: no cover - defensive
         try:
             self.close()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Exception during KuzuStore __del__: %s", exc)

@@ -11,14 +11,13 @@ try:
     import chromadb
 except ImportError as e:  # pragma: no cover - optional dependency
     raise ImportError(
-        "ChromaDBAdapter requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras."
+        "ChromaDBAdapter requires the 'chromadb' package. Install it with "
+        "'pip install chromadb' or use the dev extras."
     ) from e
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
-import numpy as np
-
-from devsynth.exceptions import DevSynthError, MemoryItemNotFoundError, MemoryStoreError
+from devsynth.exceptions import MemoryStoreError
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -76,26 +75,37 @@ class ChromaDBAdapter(VectorStore):
                     # missing fall back to an in-memory client so tests can run
                     # without the optional binary package.
                     logger.warning(
-                        "Persistent ChromaDB unavailable (%s); falling back to in-memory client",
+                        "Persistent ChromaDB unavailable (%s); "
+                        "falling back to in-memory client",
                         exc,
                     )
                     self.client = chromadb.EphemeralClient()
-        except Exception as e:
-            logger.error(f"Failed to initialize ChromaDB client: {e}")
-            raise MemoryStoreError(f"Failed to initialize ChromaDB client: {e}")
+        except Exception as exc:
+            message = f"Failed to initialize ChromaDB client: {exc}"
+            logger.error(message)
+            raise MemoryStoreError(message)
 
         # Get or create the collection
         try:
             self.collection = self.client.get_collection(name=collection_name)
-            logger.info(f"Using existing ChromaDB collection: {collection_name}")
+            logger.info(
+                "Using existing ChromaDB collection: %s",
+                collection_name,
+            )
         except Exception:
             # Collection doesn't exist, create it
             try:
-                self.collection = self.client.create_collection(name=collection_name)
-                logger.info(f"Created new ChromaDB collection: {collection_name}")
-            except Exception as e:
-                logger.error(f"Failed to create ChromaDB collection: {e}")
-                raise MemoryStoreError(f"Failed to create ChromaDB collection: {e}")
+                self.collection = self.client.create_collection(
+                    name=collection_name
+                )
+                logger.info(
+                    "Created new ChromaDB collection: %s",
+                    collection_name,
+                )
+            except Exception as exc:
+                message = f"Failed to create ChromaDB collection: {exc}"
+                logger.error(message)
+                raise MemoryStoreError(message)
 
     # ------------------------------------------------------------------
     # Transaction helpers

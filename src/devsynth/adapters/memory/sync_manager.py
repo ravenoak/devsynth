@@ -100,8 +100,12 @@ class MultiStoreSyncManager:
                 continue
             try:  # pragma: no cover - defensive
                 cls.__abstractmethods__ = frozenset()
-            except Exception:
-                pass
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug(
+                    "Unable to reset abstract methods on %s: %s",
+                    cls,
+                    exc,
+                )
 
         self.lmdb = LMDBStore(str(base / "lmdb"))
         self.faiss = FAISSStore(str(base / "faiss"), dimension=vector_dimension)
@@ -203,11 +207,18 @@ class MultiStoreSyncManager:
             if callable(close):
                 try:  # pragma: no cover - defensive
                     close()
-                except Exception:
-                    pass
+                except Exception as exc:  # pragma: no cover - defensive
+                    logger.debug(
+                        "Error while closing store %s: %s",
+                        store,
+                        exc,
+                    )
         # The Kuzu memory store uses a custom cleanup helper
         if hasattr(self.kuzu, "cleanup"):
             try:  # pragma: no cover - defensive
                 self.kuzu.cleanup()
-            except Exception:
-                pass
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug(
+                    "Error during Kuzu cleanup: %s",
+                    exc,
+                )

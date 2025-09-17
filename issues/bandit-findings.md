@@ -23,7 +23,8 @@ Next Actions:
 
 Progress:
   - 2025-09-11: Addressed medium findings with timeouts and nosec rationales; bandit reports 158 low and 0 medium issues.
-  - 2025-09-13: Verified bandit scan remains at 158 low and 0 medium issues; no new action required.
+- 2025-09-13: Verified bandit scan remains at 158 low and 0 medium issues; no new action required.
+- 2025-09-17: Adapter and Kuzu store `except ... pass` blocks replaced; diagnostics/bandit_2025-09-17.txt reports 146 low findings (primarily subprocess usage) pending broader review.
 
 Resolution Evidence:
   - 2025-09-11 bandit scan clean (`poetry run bandit -r src -ll`)

@@ -16,7 +16,8 @@ class GitHubIssueAdapter:
         """Initialize the adapter with authentication details.
 
         Args:
-            base_url: Base API URL for the repository, e.g. ``https://api.github.com/repos/org/repo``.
+            base_url: Base API URL for the repository, e.g.
+                ``https://api.github.com/repos/org/repo``.
             token: Personal access token used for authentication.
         """
         self.base_url = base_url.rstrip("/")
@@ -30,7 +31,8 @@ class GitHubIssueAdapter:
             issue_ref: Issue reference such as ``"#123"`` or ``"123"``.
 
         Returns:
-            Mapping with ``title`` and ``acceptance_criteria`` if successful, otherwise ``None``.
+            Mapping with ``title`` and ``acceptance_criteria`` if successful,
+            otherwise ``None``.
         """
         issue_number = issue_ref.lstrip("#")
         url = f"{self.base_url}/issues/{issue_number}"

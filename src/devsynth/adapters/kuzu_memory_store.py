@@ -51,8 +51,10 @@ class KuzuMemoryStore(MemoryStore):
         """Initialize a KuzuMemoryStore with the given parameters.
 
         Args:
-            persist_directory: Directory to store data in. If None, uses the default path.
-            use_provider_system: Whether to use the provider system for embeddings.
+            persist_directory: Directory to store data in. If ``None``, uses
+                the default path.
+            use_provider_system: Whether to use the provider system for
+                embeddings.
             provider_type: Type of provider to use for embeddings.
             collection_name: Name of the collection to use for vectors.
         """
@@ -287,12 +289,20 @@ class KuzuMemoryStore(MemoryStore):
             # Try to clean up any partial storage
             try:
                 self.vector.delete_vector(item.id)
-            except (MemoryStoreError, OSError):
-                pass
+            except (MemoryStoreError, OSError) as cleanup_error:
+                logger.warning(
+                    "Failed to delete vector for %s during rollback: %s",
+                    item.id,
+                    cleanup_error,
+                )
             try:
                 self._store.delete(item.id)
-            except (MemoryStoreError, OSError):
-                pass
+            except (MemoryStoreError, OSError) as cleanup_error:
+                logger.warning(
+                    "Failed to delete item %s during rollback cleanup: %s",
+                    item.id,
+                    cleanup_error,
+                )
             raise MemoryStoreError(f"Failed to store item {item.id}: {e}") from e
 
     def retrieve(self, item_id: str) -> Optional[MemoryItem]:
@@ -336,8 +346,11 @@ class KuzuMemoryStore(MemoryStore):
                     # Log inconsistency but don't fail
                     if vector_deleted != item_deleted:
                         logger.warning(
-                            f"Inconsistent delete results for item {item_id}: "
-                            f"vector_deleted={vector_deleted}, item_deleted={item_deleted}"
+                            "Inconsistent delete results for item %s: "
+                            "vector_deleted=%s, item_deleted=%s",
+                            item_id,
+                            vector_deleted,
+                            item_deleted,
                         )
 
                     # Return True if either was deleted
@@ -412,8 +425,12 @@ class KuzuMemoryStore(MemoryStore):
                 try:
                     os.remove(vector_temp_file)
                     logger.debug(f"Removed vector temp file: {vector_temp_file}")
-                except OSError:
-                    pass
+                except OSError as exc:
+                    logger.warning(
+                        "Failed to remove vector temp file %s: %s",
+                        vector_temp_file,
+                        exc,
+                    )
         except OSError as e:
             logger.warning(f"Error during vector store cleanup: {e}")
 
@@ -433,20 +450,36 @@ class KuzuMemoryStore(MemoryStore):
                         for file in files:
                             try:
                                 os.remove(os.path.join(root, file))
-                            except OSError:
-                                pass
+                            except OSError as remove_error:
+                                logger.debug(
+                                    "Unable to remove temporary file %s: %s",
+                                    os.path.join(root, file),
+                                    remove_error,
+                                )
                         for dir in dirs:
                             try:
                                 os.rmdir(os.path.join(root, dir))
-                            except OSError:
-                                pass
+                            except OSError as remove_error:
+                                logger.debug(
+                                    "Unable to remove temporary directory %s: %s",
+                                    os.path.join(root, dir),
+                                    remove_error,
+                                )
                     # Try to remove the root directory again
                     try:
                         os.rmdir(temp_dir)
-                    except OSError:
-                        pass
-                except OSError:
-                    pass
+                    except OSError as remove_error:
+                        logger.debug(
+                            "Unable to remove temporary root directory %s: %s",
+                            temp_dir,
+                            remove_error,
+                        )
+                except OSError as cleanup_error:
+                    logger.warning(
+                        "Error during fallback cleanup of temporary directory %s: %s",
+                        temp_dir,
+                        cleanup_error,
+                    )
 
         if temp_dir:
             self._temp_dir = None
