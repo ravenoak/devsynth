@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
-date: '2025-09-16'
-status: review
+date: '2025-09-17'
+status: published
 tags:
 - implementation
 - invariants
@@ -34,6 +34,12 @@ formatter.display("SUCCESS: Tests completed", highlight=True)
 ```
 
 The example above guarantees sanitized content and produces a `Panel` styled `bold white on blue`, satisfying the highlight invariant while preserving semantic coloring for downstream consumers.
+
+## Coverage and Regression Evidence (2025-09-17)
+
+- **Targeted coverage sweep:** `poetry run coverage run -m pytest --override-ini addopts="" tests/unit/interface/test_output_formatter_core_behaviors.py tests/unit/interface/test_output_formatter_fallbacks.py` exercises the sanitization, semantic styling, and structured fallback suites without repository-wide fail-under noise.【674ed7†L1-L24】 The generated artifacts live at `test_reports/output_formatter_coverage.json` and `test_reports/htmlcov_output_formatter/index.html` for maintainers who want to inspect line-by-line deltas.
+- **Measured coverage:** The focused run covers 63 of 258 statements (24.42 % line coverage) in `src/devsynth/interface/output_formatter.py`, providing a fresh quantitative baseline for the remaining untested branches.【3eb35b†L1-L9】 The JSON artifact is versioned alongside this note to track future uplifts.
+- **Behavioral confirmation:** The same command replays the Rich panel/highlight contracts and structured formatting fallbacks asserted in the `core_behaviors` and `fallbacks` suites, ensuring the published invariants are still guarded by executable tests.【674ed7†L1-L24】
 
 ## Error Handling Properties
 

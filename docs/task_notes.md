@@ -107,3 +107,13 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` → exited with code 1 because `.coverage` was missing even though tests completed; coverage HTML/JSON not generated.【20dbec†L1-L5】【45de43†L1-L2】
   - `jq '.totals.percent_covered' test_reports/coverage.json` before the regression cleaned the artifact → 20.78 % (last captured measurement prior to deletion).【cbc560†L1-L3】
 - Observations: Smoke and aggregate runs both drop `.coverage`; coverage gate cannot evaluate, blocking tasks 6.3, 13.3, 19.3, and §21.8/§21.11. Need to add regression tests ensuring `.coverage` persists when the CLI injects `-p pytest_cov` under `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.
+
+## Iteration 2025-09-17C – Invariant publications and targeted coverage refresh
+- Environment: Python 3.12.10; reused `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`.
+- Commands:
+  - `poetry run coverage run -m pytest --override-ini addopts="" tests/unit/interface/test_output_formatter_core_behaviors.py tests/unit/interface/test_output_formatter_fallbacks.py` followed by `coverage json/html` to capture formatter coverage artifacts (24.42 % line coverage).【674ed7†L1-L24】【3eb35b†L1-L9】
+  - `poetry run coverage run -m pytest --override-ini addopts="" tests/unit/methodology/edrr/test_reasoning_loop_invariants.py` and corresponding `coverage json/html` to lock reasoning loop safeguards (54.02 % coverage).【368e8f†L1-L18】【cd0fac†L1-L9】
+  - `DEVSYNTH_PROPERTY_TESTING=true poetry run coverage run -m pytest --override-ini addopts="" tests/property/test_webui_properties.py` to produce WebUI state coverage (52.24 %) without requiring Streamlit.【52a70d†L1-L17】【a9203c†L1-L9】
+  - `poetry run coverage run -m pytest --override-ini addopts="" tests/unit/application/cli/commands/test_run_tests_cmd_inventory.py` to document run-tests CLI inventory instrumentation (32.77 %).【4a0778†L1-L19】【7e4fe3†L1-L9】
+  - `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest --override-ini addopts="" tests/property/test_reasoning_loop_properties.py` → fails because tests still monkeypatch `_apply_dialectical_reasoning`; flagged for follow-up before re-enabling property coverage claims.【df7365†L1-L55】
+- Observations: All four invariant notes are now published with artifact links and quantitative coverage baselines; reasoning loop property suite requires repair to align with the new `_import_apply_dialectical_reasoning` helper.

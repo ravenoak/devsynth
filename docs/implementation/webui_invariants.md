@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
-date: '2025-09-13'
-status: review
+date: '2025-09-17'
+status: published
 tags:
 - implementation
 - invariants
@@ -41,6 +41,12 @@ assert state.get_current_step() == state.get_total_steps()
 ```
 
 This behavior is exercised by `tests/property/test_webui_properties.py::test_next_step_converges_to_completion`.
+
+## Coverage Signal (2025-09-17)
+
+- **Property-driven sweep:** `DEVSYNTH_PROPERTY_TESTING=true poetry run coverage run -m pytest --override-ini addopts="" tests/property/test_webui_properties.py` executes the navigation properties without requiring the optional Streamlit dependency and persists artifacts at `test_reports/webui_state_coverage.json` and `test_reports/htmlcov_webui_state/index.html` for audit trails.【52a70d†L1-L17】
+- **Measured coverage:** The focused run exercises 70 of 134 statements (52.24 % line coverage) in `src/devsynth/interface/webui_state.py`, confirming the bounded navigation invariants while flagging remaining Streamlit-dependent branches for future work.【a9203c†L1-L9】
+- **Limitations:** The broader unit suite still requires the optional `webui` extra (Streamlit); until that dependency is vendored into CI, rely on the property harness above for quick regression checks.
 
 ## Traceability
 

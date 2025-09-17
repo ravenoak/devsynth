@@ -16,6 +16,7 @@ Documentation Utility Functions is not yet implemented, limiting DevSynth's capa
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-17: Output formatter invariants published with targeted coverage artifacts (24 % baseline) to anchor future documentation utilities work.【F:docs/implementation/output_formatter_invariants.md†L1-L42】【3eb35b†L1-L9】
 
 ## References
 - Specification: docs/specifications/documentation-utility-functions.md
