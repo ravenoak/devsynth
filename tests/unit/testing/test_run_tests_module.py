@@ -365,3 +365,138 @@ def test_enforce_coverage_threshold_exit_and_return(tmp_path):
     with pytest.raises(SystemExit) as excinfo:
         rt.enforce_coverage_threshold(coverage_file=cov_file)
     assert excinfo.value.code == 1
+
+
+@pytest.mark.fast
+def test_failure_tips_includes_segmentation_guidance() -> None:
+    """ReqID: RTM-06 — _failure_tips returns actionable suggestions."""
+
+    cmd = ["python", "-m", "pytest", "tests/unit"]
+
+    tips = rt._failure_tips(3, cmd)
+
+    assert tips.startswith("\n") and tips.endswith("\n")
+    assert "Pytest exited with code 3" in tips
+    assert "Troubleshooting tips" in tips
+    assert "Segment large suites to localize failures" in tips
+    assert "devsynth run-tests --target unit-tests --speed=fast --segment" in tips
+
+
+@pytest.mark.fast
+def test_run_tests_segment_appends_aggregation_tips(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """ReqID: RTM-07 — Segmented failures append aggregate troubleshooting tips."""
+
+    tests_dir = tmp_path / "segmented"
+    tests_dir.mkdir()
+    (tests_dir / "test_one.py").write_text("def test_one():\n    assert True\n")
+    (tests_dir / "test_two.py").write_text("def test_two():\n    assert True\n")
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tests_dir))
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
+
+    class CollectProc:
+        def __init__(self, out: str) -> None:
+            self.stdout = out
+            self.stderr = ""
+            self.returncode = 0
+
+    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+        assert "--collect-only" in cmd
+        stdout = "\n".join(["test_one.py::test_one", "test_two.py::test_two"])
+        return CollectProc(stdout)
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_run)
+
+    batch_calls: list[list[str]] = []
+
+    class FakeBatchProcess:
+        def __init__(
+            self,
+            cmd,
+            stdout=None,
+            stderr=None,
+            text=False,
+            env=None,
+        ) -> None:  # noqa: ANN001
+            batch_calls.append(cmd)
+            self.args = cmd
+            index = len(batch_calls) - 1
+            if index == 0:
+                self._stdout = "batch-1\n"
+                self._stderr = ""
+                self._returncode = 0
+            else:
+                self._stdout = "batch-2\n"
+                self._stderr = "boom"
+                self._returncode = 1
+
+        def communicate(self):  # noqa: D401 - simple stub
+            return self._stdout, self._stderr
+
+        @property
+        def returncode(self) -> int:
+            return self._returncode
+
+    monkeypatch.setattr(rt.subprocess, "Popen", FakeBatchProcess)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=True,
+        segment_size=1,
+        maxfail=None,
+        extra_marker=None,
+    )
+
+    assert success is False
+    assert len(batch_calls) == 2
+
+    expected_agg_cmd = [
+        rt.sys.executable,
+        "-m",
+        "pytest",
+        f"--cov={rt.COVERAGE_TARGET}",
+        "--cov-report=term-missing",
+        f"--cov-report=json:{rt.COVERAGE_JSON_PATH}",
+        f"--cov-report=html:{rt.COVERAGE_HTML_DIR}",
+        "--cov-append",
+        str(tests_dir),
+    ]
+    aggregate_tip = rt._failure_tips(1, expected_agg_cmd)
+
+    assert aggregate_tip in output
+
+
+@pytest.mark.fast
+def test_enforce_coverage_threshold_errors_on_missing_file(tmp_path):
+    """ReqID: RTM-08 — Missing coverage file raises helpful errors."""
+
+    cov_file = tmp_path / "missing.json"
+
+    with pytest.raises(RuntimeError) as excinfo:
+        rt.enforce_coverage_threshold(coverage_file=cov_file, exit_on_failure=False)
+    assert "Coverage report not found" in str(excinfo.value)
+
+    with pytest.raises(SystemExit):
+        rt.enforce_coverage_threshold(coverage_file=cov_file)
+
+
+@pytest.mark.fast
+def test_enforce_coverage_threshold_errors_on_invalid_json(tmp_path):
+    """ReqID: RTM-09 — Invalid JSON surfaces explicit diagnostics."""
+
+    cov_file = tmp_path / "invalid.json"
+    cov_file.write_text("{not json")
+
+    with pytest.raises(RuntimeError) as excinfo:
+        rt.enforce_coverage_threshold(coverage_file=cov_file, exit_on_failure=False)
+    assert "invalid" in str(excinfo.value)
+
+    with pytest.raises(SystemExit):
+        rt.enforce_coverage_threshold(coverage_file=cov_file)
