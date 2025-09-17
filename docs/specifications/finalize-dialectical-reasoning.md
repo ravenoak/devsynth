@@ -1,8 +1,8 @@
 ---
 author: DevSynth Team
 date: 2025-08-19
-last_reviewed: 2025-08-19
-status: draft
+last_reviewed: 2025-09-17
+status: review
 tags:
 
 - specification
@@ -35,8 +35,10 @@ Required metadata fields:
 ## Motivation
 
 ## What proofs confirm the solution?
-- BDD scenarios in [`tests/behavior/features/finalize_dialectical_reasoning.feature`](../../tests/behavior/features/finalize_dialectical_reasoning.feature) ensure termination and expected outcomes.
-- Finite state transitions and bounded loops guarantee termination.
+- Behavior scenarios in [`tests/behavior/features/finalize_dialectical_reasoning.feature`](../../tests/behavior/features/finalize_dialectical_reasoning.feature) assert bounded recursion and guardrails for Python's recursion limit.
+- Property suites cover convergence, termination bounds, and synthesis propagation for the reasoning loop and related consensus utilities ([`tests/property/test_reasoning_loop_properties.py`](../../tests/property/test_reasoning_loop_properties.py), [`tests/property/test_requirements_consensus_properties.py`](../../tests/property/test_requirements_consensus_properties.py)).
+- Unit tests verify deterministic recursion halting, retries, and WSDE team integration ([`tests/unit/methodology/edrr/test_reasoning_loop_invariants.py`](../../tests/unit/methodology/edrr/test_reasoning_loop_invariants.py), [`tests/unit/application/edrr/test_enhanced_recursion_termination.py`](../../tests/unit/application/edrr/test_enhanced_recursion_termination.py), [`tests/unit/domain/models/test_wsde_dialectical_reasoning.py`](../../tests/unit/domain/models/test_wsde_dialectical_reasoning.py), [`tests/unit/general/test_dialectical_reasoner.py`](../../tests/unit/general/test_dialectical_reasoner.py)).
+- Finite state transitions and bounded loops guarantee termination, formalized by the invariant suite in [`docs/implementation/reasoning_loop_invariants.md`](../implementation/reasoning_loop_invariants.md).
 
 
 The reasoning loop guides agents toward synthesis.  Without a finalized
