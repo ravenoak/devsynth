@@ -28,6 +28,7 @@ This issue tracks tasks needed to finish the dialectical reasoning framework.
 - 2025-08-17: dependencies resolved; finalizing reasoning loop.
 
 - 2025-08-20: specification expanded; WSDE knowledge utilities link to it.
+- 2025-09-17: Added deterministic safeguards via `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::{test_reasoning_loop_enforces_total_time_budget,test_reasoning_loop_retries_until_success,test_reasoning_loop_fallback_transitions_and_propagation}` (seed: deterministic/no RNG) to cover recursion limits, retries, and synthesis propagation.
 
 ## References
 - Related: [Resolve remaining dialectical audit questions](archived/Resolve-remaining-dialectical-audit-questions.md)

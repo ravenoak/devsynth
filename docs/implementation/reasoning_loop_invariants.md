@@ -35,6 +35,8 @@ for _ in range(3):
 assert phase is Phase.REFINE
 ```
 
+Unit coverage: `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_fallback_transitions_and_propagation` drives the loop without explicit `phase` hints and confirms the fallback transition map records `expand→differentiate→refine` deterministically.
+
 ## Synthesis Propagation
 
 If iteration *i* produces `synthesis_i`, the next iteration receives
@@ -42,7 +44,12 @@ If iteration *i* produces `synthesis_i`, the next iteration receives
 state.
 
 This behavior is verified by
-`tests/property/test_reasoning_loop_properties.py::test_reasoning_loop_propagates_synthesis`.
+`tests/property/test_reasoning_loop_properties.py::test_reasoning_loop_propagates_synthesis` and the deterministic
+`tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_fallback_transitions_and_propagation`.
+
+## Recursion Safeguards
+
+`tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_enforces_total_time_budget` demonstrates that `max_total_seconds` halts additional iterations, while `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_retries_until_success` covers the retry/backoff guard for transient failures.
 
 ## References
 

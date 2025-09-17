@@ -24,6 +24,7 @@ Coverage command exits successfully but reports only 13.68 % line coverage and
 
 ## Notes
 - Tasks `docs/tasks.md` items 13.3 and 13.4 remain unchecked pending resolution.
+- 2025-09-17: Added fast deterministic coverage via `tests/unit/logging/test_logging_setup_contexts.py::{test_cli_context_wires_console_and_json_file_handlers,test_test_context_redirects_and_supports_console_only_toggle,test_create_dir_toggle_disables_json_file_handler}` and `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::{test_reasoning_loop_enforces_total_time_budget,test_reasoning_loop_retries_until_success,test_reasoning_loop_fallback_transitions_and_propagation}` (seed: deterministic/no RNG) to exercise logging handler wiring and reasoning-loop safeguards.
 - Address flake8 lint failures, as they may contribute to test instability.
 - 2025-09-11: `poetry run pytest -q --cov-fail-under=90 -k "nonexistent_to_force_no_tests"` fails during test collection due to missing modules `faiss` and `chromadb`; coverage remains unverified.
 - 2025-09-19: `devsynth` installed; smoke and property tests pass. Full coverage run not executed this iteration; threshold remains unverified.
