@@ -72,6 +72,7 @@ Coverage command exits with a failure after tests pass because `.coverage` is mi
 - 2025-09-12: Coverage rerun via `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report` achieved 95% aggregate coverage; badge and documentation updated. Issue remains closed.
 - 2025-09-17: Output formatter invariants promoted to review with explicit spec, behavior, and unit evidence to anchor new regression cases for sanitization, styling, structured fallbacks, and command overrides.【F:docs/implementation/output_formatter_invariants.md†L1-L74】【F:docs/specifications/cross-interface-consistency.md†L1-L40】【F:tests/behavior/features/general/cross_interface_consistency.feature†L1-L40】【F:tests/unit/interface/test_output_formatter_core_behaviors.py†L14-L149】【F:tests/unit/interface/test_output_formatter_fallbacks.py†L28-L146】
 - 2025-10-07: Added targeted unit tests for provider system, WebUI, output formatter, WebUI bridge, logging, reasoning loop, and test runner; coverage remains below 90%.
+- 2025-09-17: Added fast regression tests for `devsynth.testing.run_tests` option parsing and coverage-artifact status helpers to prevent regressions in the CLI shim. Full `devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report` still fails because pytest receives node IDs such as `integration/collaboration/test_role_reassignment_shared_memory.py` (missing the `tests/` prefix) during aggregated runs, so coverage artifacts were not regenerated this pass.
 
 ## Coverage Gap Analysis
 
