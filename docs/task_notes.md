@@ -98,3 +98,12 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run pytest tests/unit/testing/test_run_tests_cli_invocation.py::test_run_tests_generates_coverage_totals tests/unit/application/cli/test_run_tests_cmd.py::test_cli_reports_coverage_percent` (new regression coverage suite).
 - Observations: `_ensure_coverage_artifacts()` now refuses to emit placeholders when `.coverage` is missing and the CLI surfaces actionable guidance. The regression tests confirm `test_reports/coverage.json` includes `totals.percent_covered`, meeting the ≥90 % gate precondition.
 - Next: Run the full aggregate profile once remaining coverage hot spots receive tests so the gate can pass without manual intervention.
+
+## Iteration 2025-09-17 – Coverage instrumentation regression resurfaced
+- Environment: Python 3.12.10 (`python --version`) with Poetry env `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`; reran `bash scripts/install_dev.sh` and confirmed `task --version` 3.45.3 afterward.【a5710f†L1-L2】【1c714f†L1-L3】
+- Commands:
+  - `bash scripts/install_dev.sh` (restored go-task and refreshed verification hooks).【c08481†L1-L4】
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` → success but printed "Coverage artifact generation skipped" and left `test_reports/coverage.json` absent.【d5fad8†L1-L4】
+  - `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` → exited with code 1 because `.coverage` was missing even though tests completed; coverage HTML/JSON not generated.【20dbec†L1-L5】【45de43†L1-L2】
+  - `jq '.totals.percent_covered' test_reports/coverage.json` before the regression cleaned the artifact → 20.78 % (last captured measurement prior to deletion).【cbc560†L1-L3】
+- Observations: Smoke and aggregate runs both drop `.coverage`; coverage gate cannot evaluate, blocking tasks 6.3, 13.3, 19.3, and §21.8/§21.11. Need to add regression tests ensuring `.coverage` persists when the CLI injects `-p pytest_cov` under `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.

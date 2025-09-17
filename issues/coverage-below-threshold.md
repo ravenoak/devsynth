@@ -2,7 +2,7 @@
 Status: open
 
 ## Summary
-Aggregated coverage runs complete but only produce 13.68 % line coverage (`test_reports/coverage.json`) and an empty `htmlcov/index.html`, so the ≥90 % gate remains unsatisfied even though the test command exits successfully.
+Aggregated coverage runs now exit with code 1 because `.coverage` is never written; `test_reports/coverage.json` and `htmlcov/index.html` are missing entirely. The last captured artifact before the regression was cleaned reported only 20.78 % line coverage, so the ≥90 % gate remains unsatisfied.
 
 ## Steps to Reproduce
 1. Ensure dependencies installed via `poetry install --with dev --all-extras`.
@@ -13,17 +13,18 @@ Aggregated coverage runs complete but only produce 13.68 % line coverage (`tes
 Coverage report completes with ≥90% coverage.
 
 ## Actual Behavior
-Coverage command exits successfully but reports only 13.68 % line coverage and produces empty HTML output, so the fail-under=90 guard is not satisfied.
+Coverage command exits with a failure after tests pass because `.coverage` is missing; no JSON or HTML coverage artifacts are generated, so the fail-under=90 guard cannot compute a percentage.
 
 ## Next Actions
-- [ ] Update `devsynth run-tests` to enforce coverage instrumentation for `src/devsynth` and regenerate htmlcov/coverage.json with ≥90 % results.
-- [ ] Investigate why `.coverage` is missing after the 2025-09-16 smoke and aggregated runs despite passing `--cov`; ensure pytest-cov writes usable data before enforcement runs.
+- [ ] Restore `.coverage` generation for both smoke and fast+medium CLI profiles; ensure pytest-cov loads even when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` is set implicitly (docs/tasks.md §6.3, §21.8, §21.11).
+- [ ] Add Typer-level regression tests that invoke `devsynth run-tests --smoke …` and `--speed=fast --speed=medium …` in-process and assert `.coverage`, `test_reports/coverage.json`, and HTML outputs exist after the command succeeds (docs/tasks.md §21.8.1, §21.11).
+- [ ] Capture CLI logs from the failing fast+medium run and attach them here to aid diagnosis (docs/tasks.md §21.11.1).
 - [ ] Add targeted unit/integration tests for modules highlighted in docs/tasks.md §21 (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests).
-- [ ] Automate a coverage gate that inspects `test_reports/coverage.json` and fails when coverage <90 %.
-- [ ] Resolve smoke profile coverage gap: either force-load pytest-cov when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` or bypass enforcement when coverage is intentionally omitted (docs/tasks.md §21.8).
+- [ ] Regenerate coverage artifacts once instrumentation is fixed and confirm the fail-under gate passes at ≥90 %.
 
 ## Notes
 - Tasks `docs/tasks.md` items 13.3 and 13.4 remain unchecked pending resolution.
+- 2025-09-17: Smoke (`poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`) and fast+medium (`poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1`) profiles both report "Coverage artifact generation skipped" and exit with code 1 because `.coverage` never materializes; the last captured JSON report before cleanup showed 20.78 % coverage.【d5fad8†L1-L4】【20dbec†L1-L5】【45de43†L1-L2】【cbc560†L1-L3】
 - 2025-09-17: Added fast deterministic coverage via `tests/unit/logging/test_logging_setup_contexts.py::{test_cli_context_wires_console_and_json_file_handlers,test_test_context_redirects_and_supports_console_only_toggle,test_create_dir_toggle_disables_json_file_handler}` and `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::{test_reasoning_loop_enforces_total_time_budget,test_reasoning_loop_retries_until_success,test_reasoning_loop_fallback_transitions_and_propagation}` (seed: deterministic/no RNG) to exercise logging handler wiring and reasoning-loop safeguards.
 - Address flake8 lint failures, as they may contribute to test instability.
 - 2025-09-11: `poetry run pytest -q --cov-fail-under=90 -k "nonexistent_to_force_no_tests"` fails during test collection due to missing modules `faiss` and `chromadb`; coverage remains unverified.
