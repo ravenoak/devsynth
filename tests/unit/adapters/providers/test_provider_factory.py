@@ -1,15 +1,4 @@
-import os
-
 import pytest
-
-pytest.importorskip("lmstudio")
-if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
-    pytest.skip("LMStudio service not available", allow_module_level=True)
-
-pytestmark = [
-    pytest.mark.requires_resource("lmstudio"),
-    pytest.mark.memory_intensive,
-]
 
 from devsynth.adapters.providers.provider_factory import (
     LMStudioProvider,
@@ -18,6 +7,8 @@ from devsynth.adapters.providers.provider_factory import (
     ProviderFactory,
     ProviderType,
 )
+
+pytestmark = [pytest.mark.memory_intensive]
 
 
 def _config_without_openai_key():
