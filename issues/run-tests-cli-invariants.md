@@ -11,4 +11,4 @@ Suspected Cause: Invariant documentation missing
 Next Actions:
   - [x] Add run-tests CLI invariants doc
 Resolution Evidence:
-  - docs/implementation/run_tests_cli_invariants.md
+  - docs/implementation/run_tests_cli_invariants.md (updated 2025-09-17 with 32 % inventory-mode coverage and instrumentation guarantees).【F:docs/implementation/run_tests_cli_invariants.md†L1-L55】【7e4fe3†L1-L9】

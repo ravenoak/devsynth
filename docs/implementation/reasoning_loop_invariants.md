@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
-date: '2025-09-12'
-status: review
+date: '2025-09-17'
+status: published
 tags:
 - implementation
 - invariants
@@ -53,6 +53,12 @@ test double-checks propagation under deterministic payloads.【F:tests/property/
 
 `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_enforces_total_time_budget` demonstrates that
 `max_total_seconds` halts additional iterations, while `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_retries_until_success` covers the retry/backoff guard for transient failures. Property tests `test_reasoning_loop_stops_on_completion` and `test_reasoning_loop_respects_max_iterations` provide additional evidence that randomized completion sequences and configurable iteration caps halt the loop without exceeding the budget.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L16-L95】【F:tests/property/test_reasoning_loop_properties.py†L25-L94】
+
+## Coverage and Test Evidence (2025-09-17)
+
+- **Deterministic regression sweep:** `poetry run coverage run -m pytest --override-ini addopts="" tests/unit/methodology/edrr/test_reasoning_loop_invariants.py` replays the convergence, retry, and budget safeguards with current implementations and persists the artifacts under `test_reports/reasoning_loop_coverage.json` and `test_reports/htmlcov_reasoning_loop/index.html`.【368e8f†L1-L18】
+- **Measured coverage:** The focused run covers 47 of 87 executable statements (54.02 % line coverage) in `src/devsynth/methodology/edrr/reasoning_loop.py`, giving a quantitative anchor for future recursion-control work.【cd0fac†L1-L9】
+- **Property regression status:** The Hypothesis suite in `tests/property/test_reasoning_loop_properties.py` currently fails because the helper now proxies through `_import_apply_dialectical_reasoning`; updating the monkeypatch target is tracked for follow-up before lifting the published status beyond unit-level guarantees.【df7365†L1-L55】
 
 ## Traceability
 
