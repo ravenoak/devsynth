@@ -197,7 +197,7 @@ Phase 2: Coverage uplift (Day 1–3)
   poetry run devsynth run-tests --speed=fast --speed=medium --segment --segment-size 100 --no-parallel --report
   - Segmented runs append to the shared coverage file; artifacts and gate evaluation occur automatically at the end.
 - Inspect coverage.json/htmlcov to identify modules <80% and <50%.
-- Diagnose why `.coverage` is not produced even when pytest-cov is requested; capture logs from smoke and fast+medium runs and add regression tests so the CLI fails early when instrumentation is suppressed by `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.【d5fad8†L1-L4】【20dbec†L1-L5】
+- Restored `.coverage`, JSON, and HTML artifact generation for smoke and fast+medium profiles by forcing `-p pytest_cov` when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`, and added Typer integration tests that assert the artifacts exist after the command returns.【F:src/devsynth/testing/run_tests.py†L121-L192】【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L214-L319】【F:tests/unit/application/cli/commands/test_run_tests_cmd_coverage_artifacts.py†L1-L88】
 - Hotspot 1: run_tests_cmd.py
   - Add/extend unit tests to cover branches: smoke mode (PYTEST_DISABLE_PLUGIN_AUTOLOAD), --no-parallel maps to -n0, inventory mode writes file and exits, --marker ANDing logic, --segment/--segment-size batching, --maxfail propagation, feature flags env mapping, provider defaults application, error paths (invalid marker expression, non-existent target).
 - Hotspot 2: adapters and stores

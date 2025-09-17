@@ -26,6 +26,7 @@ from devsynth.testing.run_tests import (
     DEFAULT_COVERAGE_THRESHOLD,
     collect_tests_with_cache,
     coverage_artifacts_status,
+    ensure_pytest_cov_plugin_env,
     enforce_coverage_threshold,
     run_tests,
 )
@@ -136,6 +137,8 @@ def _coverage_instrumentation_disabled(tokens: list[str]) -> bool:
         return True
     if _addopts_has_plugin(tokens, "no:cov"):
         return True
+    if _addopts_has_plugin(tokens, "no:pytest_cov"):
+        return True
     return False
 
 
@@ -148,6 +151,8 @@ def _coverage_instrumentation_status() -> tuple[bool, str | None]:
         return False, "PYTEST_ADDOPTS contains --no-cov"
     if _addopts_has_plugin(tokens, "no:cov"):
         return False, "PYTEST_ADDOPTS disables pytest-cov via -p no:cov"
+    if _addopts_has_plugin(tokens, "no:pytest_cov"):
+        return False, "PYTEST_ADDOPTS disables pytest-cov via -p no:pytest_cov"
     if os.environ.get(
         "PYTEST_DISABLE_PLUGIN_AUTOLOAD"
     ) == "1" and not _addopts_has_plugin(tokens, "pytest_cov"):
@@ -307,16 +312,9 @@ def run_tests_cmd(
     # Smoke mode: minimize plugin surface and disable xdist
     if smoke:
         os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
-        # Preserve user-provided PYTEST_ADDOPTS while ensuring coverage instrumentation
-        # is available unless explicitly disabled.
         addopts_value = os.environ.get("PYTEST_ADDOPTS", "")
         if not addopts_value.strip():
             addopts_value = "-p no:xdist"
-        tokens = _parse_pytest_addopts(addopts_value)
-        if not _coverage_instrumentation_disabled(tokens) and not _addopts_has_plugin(
-            tokens, "pytest_cov"
-        ):
-            addopts_value = f"{addopts_value} -p pytest_cov"
         os.environ["PYTEST_ADDOPTS"] = addopts_value.strip()
         no_parallel = True
         # In smoke mode, default to fast tests when no explicit speeds are provided.
@@ -334,6 +332,8 @@ def run_tests_cmd(
         # Prepend to ensure our flags take effect
         os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist " + existing_addopts).strip()
         no_parallel = True
+
+    ensure_pytest_cov_plugin_env(os.environ)
 
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
     # to catch stalls while avoiding flakiness on slower machines.

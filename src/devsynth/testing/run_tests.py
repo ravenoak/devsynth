@@ -11,10 +11,11 @@ import json
 import logging
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
-from collections.abc import Sequence
+from collections.abc import MutableMapping, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
@@ -200,6 +201,71 @@ def _ensure_coverage_artifacts() -> None:
                 "Unable to copy coverage JSON to legacy location",
                 extra={"error": str(exc)},
             )
+
+
+def _parse_pytest_addopts(addopts: str | None) -> list[str]:
+    """Parse a ``PYTEST_ADDOPTS`` string into discrete tokens."""
+
+    if not addopts or not addopts.strip():
+        return []
+    try:
+        return shlex.split(addopts)
+    except ValueError:
+        # Fall back to a naive split when quoting is imbalanced; pytest will
+        # still receive the original string and surface the parsing error.
+        return addopts.split()
+
+
+def _addopts_has_plugin(tokens: list[str], plugin: str) -> bool:
+    """Return ``True`` when ``-p`` selects the given plugin."""
+
+    for index, token in enumerate(tokens):
+        if token == "-p" and index + 1 < len(tokens) and tokens[index + 1] == plugin:
+            return True
+        if token.startswith("-p") and token[2:] == plugin:
+            return True
+    return False
+
+
+def _coverage_plugin_disabled(tokens: list[str]) -> bool:
+    """Determine whether coverage instrumentation is explicitly disabled."""
+
+    if "--no-cov" in tokens:
+        return True
+    if _addopts_has_plugin(tokens, "no:cov"):
+        return True
+    if _addopts_has_plugin(tokens, "no:pytest_cov"):
+        return True
+    return False
+
+
+def ensure_pytest_cov_plugin_env(env: MutableMapping[str, str]) -> bool:
+    """Ensure pytest-cov loads when plugin autoloading is disabled."""
+
+    if env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") != "1":
+        return False
+
+    addopts_value = env.get("PYTEST_ADDOPTS", "")
+    tokens = _parse_pytest_addopts(addopts_value)
+
+    if _coverage_plugin_disabled(tokens):
+        logger.debug(
+            "pytest-cov remains disabled due to explicit --no-cov or -p overrides",
+            extra={"pytest_addopts": addopts_value},
+        )
+        return False
+
+    if _addopts_has_plugin(tokens, "pytest_cov"):
+        return False
+
+    normalized = addopts_value.strip()
+    updated = f"{normalized} -p pytest_cov".strip()
+    env["PYTEST_ADDOPTS"] = updated
+    logger.debug(
+        "Enabled pytest-cov via -p pytest_cov because plugin autoloading is disabled",
+        extra={"pytest_addopts": updated},
+    )
+    return True
 
 
 def coverage_artifacts_status() -> tuple[bool, str | None]:
@@ -608,6 +674,7 @@ def run_tests(
     # When not running in parallel, force-disable auto-loading of third-party
     # pytest plugins to avoid hangs and unintended side effects in smoke/fast
     # paths. Respect any explicit user setting if already present.
+    ensure_pytest_cov_plugin_env(os.environ)
     env = os.environ.copy()
     # Do not unilaterally disable third-party pytest plugins here. Disabling
     # plugin autoload while pytest.ini includes plugin-specific options (e.g.,
