@@ -129,6 +129,56 @@ def test_progress_indicator_nested_tasks_cover_fallbacks(bridge_module):
     assert parent["current"] == parent["total"]
 
 
+def test_progress_indicator_status_defaults_and_fallbacks(
+    monkeypatch: pytest.MonkeyPatch, bridge_module
+) -> None:
+    """Status strings fall back to defaults and sanitize valid updates."""
+
+    monkeypatch.setattr(
+        bridge_module, "sanitize_output", lambda value: f"S:{value}", raising=False
+    )
+    indicator = bridge_module.WebUIProgressIndicator("Task", 100)
+
+    indicator.update(description="Start")
+    assert indicator._description == "S:Start"
+
+    indicator.update(description=RaisingStr(), status=RaisingStr())
+    assert indicator._description == "S:Start"
+    assert indicator._status == "In progress..."
+
+    for current, expected in [
+        (0, "Starting..."),
+        (25, "Processing..."),
+        (50, "Halfway there..."),
+        (75, "Almost done..."),
+        (99, "Finalizing..."),
+        (100, "Complete"),
+    ]:
+        indicator._current = current
+        indicator.update(advance=0)
+        assert indicator._status == expected
+
+    parent_id = indicator.add_subtask("Parent", total=100)
+    nested_id = indicator.add_nested_subtask(parent_id, "Nested", total=100)
+    nested = indicator._subtasks[parent_id]["nested_subtasks"][nested_id]
+
+    indicator.update_nested_subtask(parent_id, nested_id, description="Child")
+    assert nested["description"] == "S:Child"
+
+    indicator.update_nested_subtask(parent_id, nested_id, status=RaisingStr())
+    assert nested["status"] == "In progress..."
+
+    nested["current"] = 99
+    indicator.update_nested_subtask(parent_id, nested_id, advance=0)
+    assert nested["status"] == "Finalizing..."
+
+    nested["current"] = 100
+    indicator.update_nested_subtask(parent_id, nested_id, advance=0)
+    assert nested["status"] == "Complete"
+
+    indicator.update_nested_subtask("missing", nested_id, advance=0)
+
+
 def test_display_result_routes_messages_and_sanitizes(monkeypatch, bridge_module):
     """Messages route through the appropriate Streamlit APIs and are sanitized."""
 
@@ -158,3 +208,26 @@ def test_display_result_routes_messages_and_sanitizes(monkeypatch, bridge_module
 
     for expected, actual in zip(expected_messages, observed, strict=True):
         assert expected in actual
+
+
+def test_display_result_error_branch_records_message(monkeypatch, bridge_module):
+    """Error messages surface via ``st.error`` and are stored for diagnostics."""
+
+    fake_streamlit = make_streamlit_mock()
+    monkeypatch.setattr(bridge_module, "st", fake_streamlit, raising=False)
+
+    bridge = bridge_module.WebUIBridge()
+    bridge.display_result("Boom", message_type="error")
+
+    fake_streamlit.error.assert_called_once()
+    assert any("Boom" in extract_plain(message) for message in bridge.messages)
+
+
+def test_bridge_prompt_helpers_return_defaults(bridge_module):
+    """Prompt helpers simply echo defaults in the lightweight implementation."""
+
+    bridge = bridge_module.WebUIBridge()
+
+    assert bridge.ask_question("Question?", default=42) == "42"
+    assert bridge.ask_question("Empty?", default=None) == ""
+    assert bridge.confirm_choice("Confirm?", default=True) is True
