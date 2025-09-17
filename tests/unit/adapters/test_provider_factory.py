@@ -1,5 +1,4 @@
 import logging
-import os
 
 import pytest
 
@@ -10,12 +9,6 @@ from devsynth.adapters.provider_system import (
     ProviderType,
     get_provider_config,
 )
-
-pytest.importorskip("lmstudio")
-if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
-    pytest.skip("LMStudio service not available", allow_module_level=True)
-
-pytestmark = [pytest.mark.requires_resource("lmstudio")]
 
 
 @pytest.mark.medium
@@ -29,7 +22,7 @@ def test_create_provider_env_fallback_has_expected(monkeypatch, caplog):
     monkeypatch.setenv("LM_STUDIO_ENDPOINT", "http://localhost:9999")
     provider = ProviderFactory.create_provider()
     assert isinstance(provider, LMStudioProvider)
-    assert any(("OpenAI API key not found" in rec.message for rec in caplog.records))
+    assert any("OpenAI API key not found" in rec.message for rec in caplog.records)
 
 
 @pytest.mark.medium
