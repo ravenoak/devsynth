@@ -1,8 +1,8 @@
 ---
 author: DevSynth Team
 date: 2025-08-19
-last_reviewed: 2025-08-19
-status: draft
+last_reviewed: 2025-09-17
+status: review
 tags:
   - specification
 title: devsynth run-tests command
@@ -19,8 +19,10 @@ Enhances `devsynth run-tests` with flags to control parallelism, batching, and f
 ## Motivation
 
 ## What proofs confirm the solution?
-- BDD scenarios in [`tests/behavior/features/devsynth_run_tests_command.feature`](../../tests/behavior/features/devsynth_run_tests_command.feature) ensure termination and expected outcomes.
-- Finite state transitions and bounded loops guarantee termination.
+- Behavior-driven regression packs exercise CLI happy paths, optional-provider skips, reporting, and segmentation through [`tests/behavior/features/devsynth_run_tests_command.feature`](../../tests/behavior/features/devsynth_run_tests_command.feature) and [`tests/behavior/features/general/run_tests.feature`](../../tests/behavior/features/general/run_tests.feature), with step bindings loaded by [`tests/behavior/test_run_tests_cli_report_and_segmentation.py`](../../tests/behavior/test_run_tests_cli_report_and_segmentation.py) and [`tests/behavior/test_run_tests.py`](../../tests/behavior/test_run_tests.py).
+- Unit suites cover flag translation and subprocess orchestration, including feature toggles ([`tests/unit/application/cli/commands/test_run_tests_features.py`](../../tests/unit/application/cli/commands/test_run_tests_features.py)), provider defaults ([`tests/unit/application/cli/commands/test_run_tests_provider_defaults.py`](../../tests/unit/application/cli/commands/test_run_tests_provider_defaults.py)), segmentation mechanics ([`tests/unit/testing/test_run_tests_segmented.py`](../../tests/unit/testing/test_run_tests_segmented.py)), and parallel execution fallbacks ([`tests/unit/testing/test_run_tests_parallel_flags.py`](../../tests/unit/testing/test_run_tests_parallel_flags.py)).
+- Property-based checks guard node-id sanitization so segmented execution cannot overrun pytest selectors ([`tests/property/test_run_tests_sanitize_properties.py`](../../tests/property/test_run_tests_sanitize_properties.py)).
+- Finite state transitions and bounded loops guarantee termination; the invariant summary in [`docs/implementation/run_tests_cli_invariants.md`](../implementation/run_tests_cli_invariants.md) documents the supporting coverage evidence and failure-mode proofs.
 
 Reliable test runs require bypassing unavailable providers, splitting large suites, and enabling optional features via environment flags.
 

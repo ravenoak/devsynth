@@ -18,6 +18,7 @@ WebUI Integration is not yet implemented, limiting DevSynth's capabilities.
 - 2025-02-19: extracted from dialectical audit backlog.
 - 2025-09-17: Promoted the WebUI invariants note to review with traceable coverage from the integration specification, wizard behavior scenarios, and property tests that enforce navigation bounds and convergence for `WizardState`.【F:docs/implementation/webui_invariants.md†L1-L66】【F:docs/specifications/webui-integration.md†L1-L40】【F:tests/behavior/features/webui/requirements_wizard_with_state.feature†L1-L66】【F:tests/property/test_webui_properties.py†L22-L44】
 - 2025-09-17: Published WebUI invariants with property-driven coverage artifacts (52 % baseline) while documenting the Streamlit dependency gap for the broader unit suite.【F:docs/implementation/webui_invariants.md†L1-L49】【a9203c†L1-L9】
+- 2025-09-17: Promoted `docs/specifications/webui-integration.md` to review with explicit BDD, unit, and property coverage references to keep UAT traceability intact despite the current Streamlit skip.【F:docs/specifications/webui-integration.md†L1-L57】【F:tests/behavior/features/general/webui_integration.feature†L1-L52】【F:tests/behavior/test_webui_integration.py†L1-L44】【F:tests/unit/interface/test_webui_handle_command_errors.py†L1-L109】【F:tests/property/test_webui_properties.py†L1-L44】
 
 ## References
 - Specification: docs/specifications/webui-integration.md
