@@ -1,40 +1,117 @@
-import os
+"""Basic CRUD lifecycle tests for optional memory backends."""
+
+from __future__ import annotations
+
+import importlib
 from datetime import datetime
+from typing import NamedTuple
 
 import pytest
 
-pytest.skip("requires memory backends", allow_module_level=True)
-
-from devsynth.application.memory.chromadb_store import ChromaDBStore
-from devsynth.application.memory.kuzu_store import KuzuStore
-from devsynth.application.memory.lmdb_store import LMDBStore
-from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from tests.fixtures.resources import resource_flag_enabled
 
 
-def _make_store(store_cls, tmp_path, monkeypatch):
-    if store_cls is TinyDBStore:
-        return TinyDBStore(str(tmp_path))
-    if store_cls is LMDBStore:
-        return LMDBStore(str(tmp_path))
-    if store_cls is KuzuStore:
-        monkeypatch.setattr(KuzuStore, "__abstractmethods__", frozenset())
-        return KuzuStore(str(tmp_path))
-    if store_cls is ChromaDBStore:
+class StoreCase(NamedTuple):
+    """Describe how to construct a memory store for parametrized tests."""
+
+    module: str
+    class_name: str
+    resource: str
+    require_flag: bool
+
+
+STORE_CASES = [
+    pytest.param(
+        StoreCase(
+            "devsynth.application.memory.tinydb_store",
+            "TinyDBStore",
+            "tinydb",
+            False,
+        ),
+        marks=pytest.mark.requires_resource("tinydb"),
+        id="tinydb",
+    ),
+    pytest.param(
+        StoreCase(
+            "devsynth.application.memory.lmdb_store",
+            "LMDBStore",
+            "lmdb",
+            False,
+        ),
+        marks=pytest.mark.requires_resource("lmdb"),
+        id="lmdb",
+    ),
+    pytest.param(
+        StoreCase(
+            "devsynth.application.memory.kuzu_store",
+            "KuzuStore",
+            "kuzu",
+            True,
+        ),
+        marks=pytest.mark.requires_resource("kuzu"),
+        id="kuzu",
+    ),
+    pytest.param(
+        StoreCase(
+            "devsynth.application.memory.chromadb_store",
+            "ChromaDBStore",
+            "chromadb",
+            True,
+        ),
+        marks=pytest.mark.requires_resource("chromadb"),
+        id="chromadb",
+    ),
+]
+
+
+def _load_store_class(case: StoreCase):
+    """Import the requested store class, skipping if it is unavailable."""
+
+    try:
+        module = importlib.import_module(case.module)
+    except Exception as exc:  # pragma: no cover - dependency guard
+        pytest.skip(f"{case.class_name} backend not available: {exc}")
+    try:
+        return getattr(module, case.class_name)
+    except AttributeError as exc:  # pragma: no cover - defensive guard
+        pytest.skip(f"Store class {case.class_name} missing: {exc}")
+
+
+def _make_store(case: StoreCase, tmp_path, monkeypatch):
+    """Instantiate a store with resource gating and in-test safeguards."""
+
+    if case.require_flag and not resource_flag_enabled(case.resource):
+        pytest.skip(
+            "Resource '%s' disabled via DEVSYNTH_RESOURCE_%s_AVAILABLE"
+            % (case.resource, case.resource.upper())
+        )
+
+    store_cls = _load_store_class(case)
+
+    if case.class_name == "TinyDBStore":
+        return store_cls(str(tmp_path))
+    if case.class_name == "LMDBStore":
+        return store_cls(str(tmp_path))
+    if case.class_name == "KuzuStore":
+        monkeypatch.setattr(store_cls, "__abstractmethods__", frozenset())
+        return store_cls(str(tmp_path))
+    if case.class_name == "ChromaDBStore":
         monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
         monkeypatch.setenv("ENABLE_CHROMADB", "1")
-        return ChromaDBStore(str(tmp_path))
-    raise ValueError(store_cls)
+        return store_cls(str(tmp_path))
+
+    raise ValueError(f"Unsupported store configuration: {case}")
 
 
-@pytest.mark.parametrize(
-    "store_cls", [TinyDBStore, LMDBStore, KuzuStore, ChromaDBStore]
-)
+@pytest.mark.parametrize("case", STORE_CASES)
 @pytest.mark.medium
-def test_basic_crud_lifecycle(store_cls, tmp_path, monkeypatch):
-    store = _make_store(store_cls, tmp_path, monkeypatch)
+def test_basic_crud_lifecycle(case: StoreCase, tmp_path, monkeypatch):
+    """All supported stores should satisfy the CRUD lifecycle contract."""
+
+    store = _make_store(case, tmp_path, monkeypatch)
     try:
-        item_id = "test-item" if store_cls in {KuzuStore, ChromaDBStore} else ""
+        item_id = "test-item" if case.class_name in {"KuzuStore", "ChromaDBStore"} else ""
         item = MemoryItem(
             id=item_id,
             content="hello",
@@ -42,16 +119,20 @@ def test_basic_crud_lifecycle(store_cls, tmp_path, monkeypatch):
             metadata={},
             created_at=datetime.now(),
         )
-        item_id = store.store(item)
-        assert item_id
-        retrieved = store.retrieve(item_id)
+
+        created_id = store.store(item)
+        assert created_id
+
+        retrieved = store.retrieve(created_id)
         assert retrieved and retrieved.content == "hello"
+
         item.content = "updated"
         store.store(item)
-        updated = store.retrieve(item_id)
+        updated = store.retrieve(created_id)
         assert updated and updated.content == "updated"
-        assert store.delete(item_id) is True
-        assert store.retrieve(item_id) is None
+
+        assert store.delete(created_id) is True
+        assert store.retrieve(created_id) is None
     finally:
         if hasattr(store, "close"):
             store.close()

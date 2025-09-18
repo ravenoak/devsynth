@@ -37,3 +37,11 @@ def is_property_testing_enabled() -> bool:
         return bool(data.get("formalVerification", {}).get("propertyTesting", False))
     except Exception:
         return False
+
+
+def resource_flag_enabled(resource: str) -> bool:
+    """Return ``True`` when a resource flag explicitly enables the resource."""
+
+    env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
+    value = os.environ.get(env_name, "").strip().lower()
+    return value in {"1", "true", "yes"}

@@ -1,11 +1,20 @@
-import asyncio
-import os
-
 import pytest
 
+from tests.fixtures.resources import resource_flag_enabled
+
+if not resource_flag_enabled("chromadb"):
+    pytest.skip(
+        "ChromaDB resource not enabled via DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE",
+        allow_module_level=True,
+    )
+
+if not resource_flag_enabled("kuzu"):
+    pytest.skip(
+        "Kuzu resource not enabled via DEVSYNTH_RESOURCE_KUZU_AVAILABLE",
+        allow_module_level=True,
+    )
+
 pytest.importorskip("chromadb")
-os.environ.setdefault("ENABLE_CHROMADB", "1")
-os.environ.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.application.memory.kuzu_store import KuzuStore
@@ -13,6 +22,12 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+
+pytestmark = [
+    pytest.mark.requires_resource("chromadb"),
+    pytest.mark.requires_resource("kuzu"),
+]
 
 
 @pytest.fixture
