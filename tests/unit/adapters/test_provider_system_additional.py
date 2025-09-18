@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -10,7 +11,12 @@ from devsynth.adapters import provider_system
 from devsynth.adapters.provider_system import (
     BaseProvider,
     FallbackProvider,
+    LMStudioProvider,
+    NullProvider,
+    OpenAIProvider,
     ProviderError,
+    ProviderFactory,
+    StubProvider,
 )
 from devsynth.security.tls import TLSConfig
 
@@ -25,6 +31,82 @@ def _make_retry_config() -> dict[str, object]:
         "track_metrics": False,
         "conditions": [],
     }
+
+
+def _make_provider_config(
+    *,
+    default_provider: str = "openai",
+    openai_key: str | None = "token",
+    lmstudio_endpoint: str = "http://127.0.0.1:1234",
+    lmstudio_model: str = "default",
+) -> dict[str, object]:
+    """Create a reusable provider configuration for factory tests."""
+
+    return {
+        "default_provider": default_provider,
+        "openai": {
+            "api_key": openai_key,
+            "model": "gpt-4",
+            "base_url": "https://api.openai.com/v1",
+        },
+        "lmstudio": {
+            "endpoint": lmstudio_endpoint,
+            "model": lmstudio_model,
+        },
+        "retry": _make_retry_config(),
+        "fallback": {"enabled": False, "order": ["openai", "lmstudio"]},
+        "circuit_breaker": {
+            "enabled": False,
+            "failure_threshold": 1,
+            "recovery_timeout": 0.0,
+        },
+    }
+
+
+def _install_factory_config(
+    monkeypatch: pytest.MonkeyPatch, config: dict[str, object]
+) -> None:
+    """Patch ``get_provider_config``/``get_settings`` for deterministic tests."""
+
+    snapshot = copy.deepcopy(config)
+
+    def fake_get_provider_config() -> dict[str, object]:
+        return copy.deepcopy(snapshot)
+
+    fake_get_provider_config.cache_clear = (  # type: ignore[attr-defined]
+        lambda: None
+    )
+    monkeypatch.setattr(
+        provider_system, "get_provider_config", fake_get_provider_config
+    )
+
+    retry_cfg = snapshot["retry"]
+    fallback_cfg = snapshot.get("fallback", {})
+    circuit_cfg = snapshot.get("circuit_breaker", {})
+
+    settings = SimpleNamespace(
+        tls_verify=True,
+        tls_cert_file=None,
+        tls_key_file=None,
+        tls_ca_file=None,
+        provider_max_retries=retry_cfg["max_retries"],
+        provider_initial_delay=retry_cfg["initial_delay"],
+        provider_exponential_base=retry_cfg["exponential_base"],
+        provider_max_delay=retry_cfg["max_delay"],
+        provider_jitter=retry_cfg["jitter"],
+        provider_retry_metrics=retry_cfg.get("track_metrics", True),
+        provider_retry_conditions=",".join(retry_cfg.get("conditions", [])),
+        provider_fallback_enabled=fallback_cfg.get("enabled", False),
+        provider_fallback_order=",".join(fallback_cfg.get("order", [])),
+        provider_circuit_breaker_enabled=circuit_cfg.get("enabled", False),
+        provider_failure_threshold=circuit_cfg.get("failure_threshold", 5),
+        provider_recovery_timeout=circuit_cfg.get("recovery_timeout", 60.0),
+    )
+
+    def fake_get_settings(*_args, **_kwargs) -> SimpleNamespace:
+        return settings
+
+    monkeypatch.setattr(provider_system, "get_settings", fake_get_settings)
 
 
 class _FakeCircuitBreaker:
@@ -150,6 +232,170 @@ def test_provider_factory_respects_disable_flag(
 
 
 @pytest.mark.fast
+def test_provider_factory_offline_uses_stub_safe_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Return the stub provider when offline guard is enabled.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config(openai_key="token")
+    _install_factory_config(monkeypatch, config)
+
+    monkeypatch.setenv("DEVSYNTH_OFFLINE", "true")
+    monkeypatch.setenv("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "stub")
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+
+    provider = ProviderFactory.create_provider("openai")
+    assert isinstance(provider, StubProvider)
+
+
+@pytest.mark.fast
+def test_provider_factory_missing_openai_key_defaults_to_safe_provider_when_lmstudio_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Use the safe default provider when LM Studio fallback is not permitted.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config(openai_key=None)
+    _install_factory_config(monkeypatch, config)
+
+    monkeypatch.setenv("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "null")
+    monkeypatch.setenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+
+    provider = ProviderFactory.create_provider()
+    assert isinstance(provider, NullProvider)
+    assert "No OPENAI_API_KEY; LM Studio not marked available" in provider.reason
+
+
+@pytest.mark.fast
+def test_provider_factory_missing_openai_key_falls_back_to_lmstudio_when_marked_available(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Fallback to LM Studio when resource flag explicitly allows it.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config(openai_key=None)
+    _install_factory_config(monkeypatch, config)
+
+    fallback_instance = object()
+    fake_lmstudio = MagicMock(return_value=fallback_instance)
+    monkeypatch.setattr(provider_system, "LMStudioProvider", fake_lmstudio)
+
+    monkeypatch.setenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "true")
+    monkeypatch.delenv("DEVSYNTH_SAFE_DEFAULT_PROVIDER", raising=False)
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+
+    provider = ProviderFactory.create_provider()
+    assert provider is fallback_instance
+    assert fake_lmstudio.call_count == 1
+    called_kwargs = fake_lmstudio.call_args.kwargs
+    assert called_kwargs["endpoint"] == config["lmstudio"]["endpoint"]
+    assert called_kwargs["model"] == config["lmstudio"]["model"]
+
+
+@pytest.mark.fast
+def test_provider_factory_openai_explicit_missing_key_surfaces_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Surface explicit OpenAI credential errors via null provider.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config(openai_key=None)
+    _install_factory_config(monkeypatch, config)
+
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+    monkeypatch.delenv("DEVSYNTH_SAFE_DEFAULT_PROVIDER", raising=False)
+
+    provider = ProviderFactory.create_provider("openai")
+    assert isinstance(provider, NullProvider)
+    assert "Missing OPENAI_API_KEY" in provider.reason
+
+
+@pytest.mark.fast
+def test_provider_factory_anthropic_missing_key_surfaces_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Surface explicit Anthropic credential errors via null provider.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config()
+    _install_factory_config(monkeypatch, config)
+
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+
+    provider = ProviderFactory.create_provider("anthropic")
+    assert isinstance(provider, NullProvider)
+    assert "Anthropic API key is required" in provider.reason
+
+
+@pytest.mark.fast
+def test_openai_provider_requires_requests_dependency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Raise a clear error when ``requests`` is unavailable."""
+
+    monkeypatch.setattr(provider_system, "requests", None)
+
+    with pytest.raises(ProviderError) as excinfo:
+        OpenAIProvider(api_key="token")
+
+    assert "requests" in str(excinfo.value)
+
+
+@pytest.mark.fast
+def test_lmstudio_provider_requires_requests_dependency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Raise a clear error when ``requests`` is unavailable for LM Studio."""
+
+    monkeypatch.setattr(provider_system, "requests", None)
+
+    with pytest.raises(ProviderError) as excinfo:
+        LMStudioProvider(endpoint="http://localhost")
+
+    assert "requests" in str(excinfo.value)
+
+
+@pytest.mark.fast
+def test_openai_provider_async_requires_httpx_dependency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Raise ProviderError when async OpenAI operations lack httpx."""
+
+    fake_requests = SimpleNamespace(
+        exceptions=SimpleNamespace(RequestException=Exception)
+    )
+    monkeypatch.setattr(provider_system, "requests", fake_requests)
+    monkeypatch.setattr(provider_system, "httpx", None, raising=False)
+
+    provider = OpenAIProvider(api_key="token")
+
+    async def run() -> None:
+        with pytest.raises(ProviderError) as excinfo:
+            await provider.acomplete("prompt")
+        assert "httpx" in str(excinfo.value)
+
+    asyncio.run(run())
+
+
+@pytest.mark.fast
 def test_tls_config_defaults_when_settings_missing() -> None:
     """Use TLS defaults when settings object lacks overrides.
 
@@ -192,7 +438,15 @@ def test_retry_decorator_wiring(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def fake_retry_with_exponential_backoff(**kwargs):
         captured.update(kwargs)
-        return "decorated"
+
+        def _decorator(func):
+            def _wrapped(*args, **inner_kwargs):
+                kwargs["on_retry"](RuntimeError("retry"), 2, 0.5)
+                return func(*args, **inner_kwargs)
+
+            return _wrapped
+
+        return _decorator
 
     monkeypatch.setattr(
         provider_system,
@@ -215,11 +469,22 @@ def test_retry_decorator_wiring(monkeypatch: pytest.MonkeyPatch) -> None:
         }
     )
 
+    telemetry_spy = MagicMock(name="telemetry")
+    provider._emit_retry_telemetry = telemetry_spy
+
     def always_retry(_exc: Exception) -> bool:
         return True
 
     decorator = provider.get_retry_decorator((RuntimeError,), should_retry=always_retry)
-    assert decorator == "decorated"
+    assert callable(decorator)
+
+    wrapped = decorator(lambda: "ok")
+    assert wrapped() == "ok"
+    telemetry_spy.assert_called_once()
+    retry_args = telemetry_spy.call_args[0]
+    assert isinstance(retry_args[0], RuntimeError)
+    assert retry_args[1] == 2
+    assert retry_args[2] == 0.5
 
     assert captured["max_retries"] == 5
     assert captured["initial_delay"] == 0.5
@@ -230,7 +495,7 @@ def test_retry_decorator_wiring(monkeypatch: pytest.MonkeyPatch) -> None:
     assert captured["track_metrics"] is False
     assert captured["retryable_exceptions"] == (RuntimeError,)
     assert captured["should_retry"] is always_retry
-    assert captured["on_retry"] == provider._emit_retry_telemetry
+    assert captured["on_retry"] is telemetry_spy
 
 
 @pytest.mark.fast
