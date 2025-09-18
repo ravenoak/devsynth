@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import pytest
 import yaml
@@ -25,23 +26,44 @@ def _patch_sanitize(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(OutputFormatter, "sanitize_output", identity)
 
 
-def test_table_format_falls_back_to_text_for_nontabular_inputs() -> None:
+def test_table_format_falls_back_to_text_for_nontabular_inputs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """format_structured(table) should fall back to text when rows cannot be built.
 
     ReqID: N/A
     """
 
     formatter = OutputFormatter()
+    calls: list[tuple[Any, OutputFormat | None, str | None]] = []
+    original = OutputFormatter.format_structured
+
+    def spy(
+        self: OutputFormatter,
+        data: Any,
+        output_format: OutputFormat | None = None,
+        title: str | None = None,
+    ) -> Any:
+        calls.append((data, output_format, title))
+        return original(self, data, output_format, title)
+
+    monkeypatch.setattr(OutputFormatter, "format_structured", spy)
 
     scalar_result = formatter.format_structured("diagnostic", OutputFormat.TABLE, title="Scalar")
     assert isinstance(scalar_result, str)
     assert scalar_result == "# Scalar\n\ndiagnostic"
+    assert [call[1] for call in calls] == [OutputFormat.TABLE, OutputFormat.TEXT]
+    assert calls[1][0] == "diagnostic"
+
+    calls.clear()
 
     heterogeneous = formatter.format_structured(
         ["alpha", 123], OutputFormat.TABLE, title="Mixed"
     )
     assert isinstance(heterogeneous, str)
     assert heterogeneous == "# Mixed\n\n• alpha\n• 123"
+    assert [call[1] for call in calls] == [OutputFormat.TABLE, OutputFormat.TEXT]
+    assert calls[1][0] == ["alpha", 123]
 
 
 def test_rich_format_selects_renderables_for_data_shapes() -> None:
