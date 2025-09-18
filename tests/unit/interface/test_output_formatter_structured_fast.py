@@ -41,11 +41,29 @@ class FalsyList(list):
         return False
 
 
+class ExplodingStr:
+    """Sentinel whose ``__str__`` raises to confirm sanitization routes."""
+
+    def __init__(self, label: str) -> None:
+        self.label = label
+
+    def __str__(self) -> str:
+        raise RuntimeError(f"__str__ invoked for {self.label}")
+
+
 def _verify_json(expected: dict[str, Any]) -> CaseVerifier:
     def _inner(result: Any, formatter: OutputFormatter) -> None:
         assert isinstance(result, Syntax)
         expected_text = json.dumps(expected, indent=formatter.indent, sort_keys=True)
         assert result.code == expected_text
+
+    return _inner
+
+
+def _verify_json_plain(expected: dict[str, Any]) -> CaseVerifier:
+    def _inner(result: Any, formatter: OutputFormatter) -> None:
+        assert isinstance(result, str)
+        assert result == json.dumps(expected, indent=formatter.indent, sort_keys=True)
 
     return _inner
 
@@ -61,6 +79,21 @@ def _verify_yaml(expected: dict[str, Any]) -> CaseVerifier:
         )
         assert result.code == expected_text
         assert yaml.safe_load(result.code) == expected
+
+    return _inner
+
+
+def _verify_yaml_plain(expected: dict[str, Any]) -> CaseVerifier:
+    def _inner(result: Any, formatter: OutputFormatter) -> None:
+        assert isinstance(result, str)
+        rendered = yaml.dump(
+            expected,
+            indent=formatter.indent,
+            sort_keys=True,
+            default_flow_style=False,
+        )
+        assert result == rendered
+        assert yaml.safe_load(result) == expected
 
     return _inner
 
@@ -145,12 +178,28 @@ STRUCTURED_SCENARIOS = (
         verifier=_verify_json({"b": 2, "a": 1}),
     ),
     StructuredScenario(
+        id="json-plain",
+        output_format=OutputFormat.JSON,
+        data={"key": "value"},
+        title=None,
+        with_console=False,
+        verifier=_verify_json_plain({"key": "value"}),
+    ),
+    StructuredScenario(
         id="yaml-syntax",
         output_format=OutputFormat.YAML,
         data={"nest": {"key": "value"}},
         title=None,
         with_console=True,
         verifier=_verify_yaml({"nest": {"key": "value"}}),
+    ),
+    StructuredScenario(
+        id="yaml-plain",
+        output_format=OutputFormat.YAML,
+        data={"items": [1, 2]},
+        title=None,
+        with_console=False,
+        verifier=_verify_yaml_plain({"items": [1, 2]}),
     ),
     StructuredScenario(
         id="markdown-dict",
@@ -286,6 +335,243 @@ def test_format_structured_exercises_all_branches(
     )
 
     scenario.verifier(result, formatter)
+
+
+@pytest.mark.fast
+def test_dict_to_markdown_handles_nested_values(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_dict_to_markdown should sanitize every nested key/value and honor titles."""
+
+    formatter = OutputFormatter()
+    sanitized: list[str] = []
+
+    def spy(self: OutputFormatter, text: str) -> str:
+        sanitized.append(text)
+        return text
+
+    monkeypatch.setattr(OutputFormatter, "sanitize_output", spy)
+
+    markdown = formatter._dict_to_markdown(
+        {
+            "metadata": {"status": "ready", "owner": "qa"},
+            "notes": ["first", "second"],
+            "summary": "done",
+        },
+        title="Report",
+    )
+
+    assert markdown.splitlines() == [
+        "# Report",
+        "",
+        "## metadata",
+        "",
+        "- **status**: ready",
+        "- **owner**: qa",
+        "",
+        "## notes",
+        "",
+        "- first",
+        "- second",
+        "",
+        "## summary",
+        "",
+        "done",
+    ]
+
+    assert sanitized == [
+        "metadata",
+        "status",
+        "ready",
+        "owner",
+        "qa",
+        "notes",
+        "first",
+        "second",
+        "summary",
+        "done",
+    ]
+
+
+@pytest.mark.fast
+def test_list_to_markdown_handles_mixed_items(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_list_to_markdown should sanitize dict and scalar list entries."""
+
+    formatter = OutputFormatter()
+    sanitized: list[str] = []
+
+    def spy(self: OutputFormatter, text: str) -> str:
+        sanitized.append(text)
+        return text
+
+    monkeypatch.setattr(OutputFormatter, "sanitize_output", spy)
+
+    markdown = formatter._list_to_markdown(
+        [
+            {"name": "alpha", "count": 1},
+            {"notes": ["nested", "values"]},
+            "tail",
+        ],
+        title="Items",
+    )
+
+    assert markdown.splitlines() == [
+        "# Items",
+        "",
+        "- **name**: alpha",
+        "- **count**: 1",
+        "- **notes**: ['nested', 'values']",
+        "- tail",
+    ]
+
+    assert sanitized == [
+        "name",
+        "alpha",
+        "count",
+        "1",
+        "notes",
+        "['nested', 'values']",
+        "tail",
+    ]
+
+
+@pytest.mark.fast
+def test_dict_to_table_serializes_complex_values(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_dict_to_table should convert dict/list values to JSON and keep sanitized keys."""
+
+    formatter = OutputFormatter()
+    sanitized: list[str] = []
+
+    def spy(self: OutputFormatter, text: str) -> str:
+        sanitized.append(text)
+        return text
+
+    monkeypatch.setattr(OutputFormatter, "sanitize_output", spy)
+
+    table = formatter._dict_to_table(
+        {"alpha": "one", "nested": {"v": 2}, "list": [1, 2]},
+        title="Meta",
+    )
+
+    assert isinstance(table, Table)
+    assert table.title == "Meta"
+    assert [column.header for column in table.columns] == ["Key", "Value"]
+    assert list(table.columns[0]._cells) == ["alpha", "nested", "list"]
+    assert list(table.columns[1]._cells) == [
+        "one",
+        '{\n  "v": 2\n}',
+        "[\n  1,\n  2\n]",
+    ]
+    assert sanitized == ["alpha", "one", "nested", "list"]
+
+
+@pytest.mark.fast
+def test_list_of_dicts_to_table_handles_missing_keys(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """_list_of_dicts_to_table should fill blanks and JSON encode complex rows."""
+
+    formatter = OutputFormatter()
+    sanitized: list[str] = []
+
+    def spy(self: OutputFormatter, text: str) -> str:
+        sanitized.append(text)
+        return text
+
+    monkeypatch.setattr(OutputFormatter, "sanitize_output", spy)
+
+    table = formatter._list_of_dicts_to_table(
+        [
+            {"name": "alpha", "value": 1},
+            {"name": "beta", "meta": {"tags": ["x"]}},
+        ],
+        title="Records",
+    )
+
+    assert isinstance(table, Table)
+    assert table.title == "Records"
+    assert [column.header for column in table.columns] == ["meta", "name", "value"]
+    assert list(table.columns[0]._cells) == ["", '{\n  "tags": [\n    "x"\n  ]\n}']
+    assert list(table.columns[1]._cells) == ["alpha", "beta"]
+    assert list(table.columns[2]._cells) == ["1", ""]
+    assert sanitized == ["", "alpha", "1", "beta", ""]
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize(
+    ("method_name", "args", "kwargs", "error_fragment"),
+    [
+        (
+            "_dict_to_markdown",
+            ({"section": ExplodingStr("markdown-value")},),
+            {"title": "Probe"},
+            "markdown-value",
+        ),
+        (
+            "_dict_to_markdown",
+            ({"section": {"inner": ExplodingStr("markdown-nested")}},),
+            {},
+            "markdown-nested",
+        ),
+        (
+            "_dict_to_markdown",
+            ({"items": [ExplodingStr("markdown-list-item")]},),
+            {},
+            "markdown-list-item",
+        ),
+        (
+            "_list_to_markdown",
+            ([ExplodingStr("list-value")],),
+            {"title": "Items"},
+            "list-value",
+        ),
+        (
+            "_list_to_markdown",
+            ([{"key": ExplodingStr("list-dict-value")}],),
+            {},
+            "list-dict-value",
+        ),
+        (
+            "_dict_to_table",
+            ({ExplodingStr("table-key"): "value"},),
+            {},
+            "table-key",
+        ),
+        (
+            "_dict_to_table",
+            ({"key": ExplodingStr("table-value")},),
+            {"title": "Pairs"},
+            "table-value",
+        ),
+        (
+            "_list_of_dicts_to_table",
+            ([{"field": ExplodingStr("list-table-value")}],),
+            {},
+            "list-table-value",
+        ),
+    ],
+    ids=[
+        "markdown-value",
+        "markdown-nested",
+        "markdown-list-item",
+        "list-value",
+        "list-dict-value",
+        "table-key",
+        "table-value",
+        "list-table-value",
+    ],
+)
+def test_structured_helpers_raise_on_exploding_strings(
+    method_name: str,
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
+    error_fragment: str,
+) -> None:
+    """Sentinels with failing ``__str__`` should surface to prove sanitization happens."""
+
+    formatter = OutputFormatter()
+    method = getattr(formatter, method_name)
+
+    with pytest.raises(RuntimeError, match=error_fragment):
+        method(*args, **kwargs)
 
 
 def test_format_table_and_list_preserve_sanitized_complex_values(
