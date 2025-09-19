@@ -153,3 +153,11 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` and `poetry run python scripts/verify_requirements_traceability.py` – both succeed, confirming marker discipline and traceability remain green.【e7b446†L1-L1】【70ba40†L1-L2】
 - Observations: The regression persists after migrating to `.venv`; both smoke and fast+medium profiles warn "Coverage artifact generation skipped: data file missing" leaving `.coverage` absent. Instrumentation must be revalidated (tasks §6.3.2–§6.3.4) before the ≥90 % gate can pass. Evidence recorded in issues/coverage-below-threshold.md and docs/plan.md.
 - Next: Trace `ensure_pytest_cov_plugin_env`, compare direct `pytest --cov` invocations, and capture CLI env snapshots for issue updates before attempting UAT reruns.
+
+## Iteration 2025-09-19C – On-demand bootstrap verification
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4 after reinstall, confirming the repo-local virtualenv and go-task persist together.【F:diagnostics/install_dev_20250919T233750Z.log†L1-L9】【F:diagnostics/env_checks_20250919T233750Z.log†L320-L321】
+- Commands:
+  - `bash scripts/install_dev.sh` – reinstall go-task, update shell profiles, and recreate the in-project `.venv` after removing Poetry’s cached environment.【F:diagnostics/install_dev_20250919T233750Z.log†L1-L9】
+  - `poetry env info --path`, `poetry install --with dev --all-extras`, `poetry run devsynth --help`, `task --version` – verified that Poetry resolves to `/workspace/devsynth/.venv`, reinstalls extras, exposes the DevSynth CLI, and leaves go-task available (`3.45.4`), all captured in diagnostics/env_checks_20250919T233750Z.log.【F:diagnostics/env_checks_20250919T233750Z.log†L1-L7】【F:diagnostics/env_checks_20250919T233750Z.log†L259-L321】
+- Observations: The install script’s profile snippets and cache cleanup reliably converge on the repo-local `.venv`; the aggregated diagnostics confirm bootstrap parity for `task`, `poetry`, and the DevSynth CLI in fresh shells.
+- Next: Reference the new diagnostics logs from plan/tasks entries so maintainers can audit bootstrap health while continuing the coverage instrumentation fixes.
