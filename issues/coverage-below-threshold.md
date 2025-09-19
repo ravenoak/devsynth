@@ -90,6 +90,32 @@ Recent exploratory run with `pytest --cov=src/devsynth --cov-report=term-missing
 | `testing/run_tests.py` | 277 | 7 % | ≈230 | `29‑31`, `39‑71`, `92‑102`, `123‑327`, `364‑619`【95c072†L1-L2】 |
 | `ports/requirement_port.py` | 114 | 70 % | ≈23 | `33`, `43`, `56`, `69`, `82`, `95`, `112`, `127`, `140`, `153`, `170`, `185`, `198`, `215`, `230`, `243`, `260`, `273`, `286`, `299`, `312`, `332`, `349`, `365`, `381`, `395`, `405`, `415`, `425`, `444`, `460`, `473`, `486`, `499`【1746f7†L1-L3】 |
 
+### WebUI coverage focus
+
+The uncovered WebUI modules now have explicit behavior checklists so new tests can target the highest-value gaps.
+
+#### `src/devsynth/interface/webui.py`
+
+| Region | Observable behavior to test | Related specs/docs |
+| --- | --- | --- |
+| `_require_streamlit` & `_LazyStreamlit.__getattr__` (L32-L52)【F:src/devsynth/interface/webui.py†L32-L52】 | Simulate missing Streamlit to assert the lazy loader surfaces the installation guidance and forwards attributes once the dependency loads. | [Resource matrix](../docs/resources_matrix.md)【F:docs/resources_matrix.md†L61-L65】 |
+| `ask_question` / `confirm_choice` (L108-L126)【F:src/devsynth/interface/webui.py†L108-L126】 | Stub Streamlit widgets to verify choice indices, default fallbacks, and checkbox parity with CLI flows. | [UXBridge testing guide](../docs/developer_guides/uxbridge_testing.md)【F:docs/developer_guides/uxbridge_testing.md†L24-L64】 |
+| `display_result`, `_get_error_*`, `_render_traceback` (L128-L214, L223-L383, L215-L218)【F:src/devsynth/interface/webui.py†L128-L214】【F:src/devsynth/interface/webui.py†L215-L218】【F:src/devsynth/interface/webui.py†L223-L383】 | Cover sanitized markup translation, message-type routing, suggestion/doc-link rendering, and the traceback expander for actionable error guidance. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L41-L55】; [Output formatter invariants](../docs/implementation/output_formatter_invariants.md)【F:docs/implementation/output_formatter_invariants.md†L16-L56】 |
+| `_UIProgress` lifecycle & `create_progress` (L385-L545)【F:src/devsynth/interface/webui.py†L385-L545】 | Exercise ETA formatting, status fallbacks, sanitized descriptions, and subtask containers—including completion of nested subtasks—to mirror CLI telemetry. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L41-L52】; [Progress indicators guide](../docs/developer_guides/progress_indicators.md)【F:docs/developer_guides/progress_indicators.md†L162-L205】 |
+| `get_layout_config`, `_ensure_router`, and `run` (L74-L106, L547-L637)【F:src/devsynth/interface/webui.py†L74-L106】【F:src/devsynth/interface/webui.py†L547-L637】 | Validate responsive breakpoints, default session dimensions, JS-driven screen-width updates, and router wiring so resized browsers retain accessible controls. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L47-L56】; [Basic usage guide](../docs/getting_started/basic_usage.md)【F:docs/getting_started/basic_usage.md†L34-L70】 |
+
+#### `src/devsynth/interface/webui_bridge.py`
+
+| Region | Observable behavior to test | Related specs/docs |
+| --- | --- | --- |
+| `_require_streamlit` (L22-L38)【F:src/devsynth/interface/webui_bridge.py†L22-L38】 | Patch `importlib` failures to ensure the bridge raises `DevSynthError` with install instructions when Streamlit is absent. | [Resource matrix](../docs/resources_matrix.md)【F:docs/resources_matrix.md†L61-L65】 |
+| `WebUIProgressIndicator.update` / `complete` (L52-L104)【F:src/devsynth/interface/webui_bridge.py†L52-L104】 | Confirm sanitized descriptions, status defaults, and ETA bookkeeping under varied progress rates. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L41-L52】; [Progress indicators guide](../docs/developer_guides/progress_indicators.md)【F:docs/developer_guides/progress_indicators.md†L162-L205】 |
+| Subtask and nested-subtask helpers (L105-L314)【F:src/devsynth/interface/webui_bridge.py†L105-L314】 | Drive subtask creation, fallback labels, nested completion cascades, and status updates to guarantee hierarchical progress views stay coherent. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L41-L52】; [Progress indicators guide](../docs/developer_guides/progress_indicators.md)【F:docs/developer_guides/progress_indicators.md†L162-L205】 |
+| `adjust_wizard_step` / `normalize_wizard_step` (L332-L423)【F:src/devsynth/interface/webui_bridge.py†L332-L423】 | Parameterize out-of-range, string, and invalid directions to prove wizard navigation clamps and converges as captured in state invariants. | [WebUI state invariants](../docs/implementation/webui_invariants.md)【F:docs/implementation/webui_invariants.md†L15-L44】; [WizardState integration guide](../docs/implementation/requirements_wizard_wizardstate_integration.md)【F:docs/implementation/requirements_wizard_wizardstate_integration.md†L27-L33】 |
+| `ask_question` / `confirm_choice` (L425-L468)【F:src/devsynth/interface/webui_bridge.py†L425-L468】 | Mock UXBridge prompts to ensure defaults and choices mirror CLI semantics before wiring to UI widgets. | [UXBridge testing guide](../docs/developer_guides/uxbridge_testing.md)【F:docs/developer_guides/uxbridge_testing.md†L24-L64】 |
+| `display_result` & `create_progress` (L470-L514)【F:src/devsynth/interface/webui_bridge.py†L470-L514】 | Assert message-type routing to Streamlit APIs and the `OutputFormatter` pipeline, then confirm progress handles highlight toggles. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L42-L55】; [Output formatter invariants](../docs/implementation/output_formatter_invariants.md)【F:docs/implementation/output_formatter_invariants.md†L16-L56】 |
+| Session accessors (L519-L551)【F:src/devsynth/interface/webui_bridge.py†L519-L551】 | Verify state wrappers persist defaults and propagate writes for the requirements wizard scaffolding. | [WizardState integration guide](../docs/implementation/requirements_wizard_wizardstate_integration.md)【F:docs/implementation/requirements_wizard_wizardstate_integration.md†L27-L33】 |
+
 ## Dialectical Examination
 
 - **Thesis:** Raising coverage above 90 % yields higher confidence in system behavior and eases regression detection.
