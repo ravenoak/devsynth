@@ -10,6 +10,7 @@ from types import ModuleType
 from typing import Any
 from unittest.mock import MagicMock
 
+from devsynth.exceptions import DevSynthError
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
 
@@ -35,7 +36,7 @@ def _require_streamlit() -> ModuleType:
         try:  # pragma: no cover - optional dependency handling
             _STREAMLIT = importlib.import_module("streamlit")
         except Exception as exc:  # pragma: no cover - provide guidance
-            raise RuntimeError(
+            raise DevSynthError(
                 "Streamlit is required to use the DevSynth WebUI. "
                 "Install the optional extra:\n"
                 "  poetry install --with dev --extras webui"

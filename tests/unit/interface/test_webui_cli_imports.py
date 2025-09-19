@@ -29,6 +29,9 @@ def test_with_clean_state(clean_state, monkeypatch):
     cli_module = ModuleType("devsynth.application.cli")
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_module)
 
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)

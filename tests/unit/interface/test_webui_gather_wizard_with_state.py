@@ -13,8 +13,14 @@ from tests.fixtures.webui_wizard_state_fixture import (
 @pytest.fixture
 def mock_gather_requirements():
     """Mock the gather_requirements function."""
-    with patch("devsynth.interface.webui.gather_requirements") as gather_mock:
-        yield gather_mock
+    with patch(
+        "devsynth.interface.webui.gather_requirements", create=True
+    ) as gather_mock:
+        with patch(
+            "devsynth.interface.webui.rendering.gather_requirements",
+            new=gather_mock,
+        ):
+            yield gather_mock
 
 
 @pytest.fixture

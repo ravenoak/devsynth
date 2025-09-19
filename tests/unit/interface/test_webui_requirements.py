@@ -31,21 +31,32 @@ def mock_spec_cmd(monkeypatch):
     """Stub out CLI commands used by the requirements page."""
     spec_cmd = MagicMock()
     inspect_cmd = MagicMock()
+    init_cmd = MagicMock()
     cli_module = ModuleType("devsynth.application.cli")
     cli_module.spec_cmd = spec_cmd
     cli_module.inspect_cmd = inspect_cmd
+    cli_module.init_cmd = init_cmd
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_module)
     return spec_cmd
 
 
 @pytest.mark.medium
-def test_requirements_page_succeeds(mock_streamlit, mock_spec_cmd):
+def test_requirements_page_succeeds(mock_streamlit, mock_spec_cmd, monkeypatch):
     """requirements_page renders and invokes spec_cmd on submission."""
 
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     from devsynth.interface.webui import WebUI
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr("devsynth.application.cli.spec_cmd", mock_spec_cmd, raising=False)
+    monkeypatch.setattr(commands, "spec_cmd", mock_spec_cmd, raising=False)
+    monkeypatch.setattr(webui, "spec_cmd", mock_spec_cmd, raising=False)
+    monkeypatch.setattr(rendering, "spec_cmd", mock_spec_cmd, raising=False)
 
     ui = WebUI()
     with (
