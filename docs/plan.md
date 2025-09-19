@@ -34,6 +34,11 @@ Commands executed (audit trail)
 - 2025-09-16: poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1 → reproduces the coverage warning even though pytest exits successfully.
 - poetry install --with dev --all-extras → reinstalls the entry point so `poetry run devsynth …` works after a fresh session.
 - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 → auto-injects `-p pytest_cov` to keep instrumentation active; expect the coverage gate to fail (<90 %) when running smoke alone. Set `PYTEST_ADDOPTS="--no-cov"` to intentionally bypass coverage during smoke rehearsals.
+- 2025-09-19: poetry install --with dev --all-extras (fresh container) reinstalls optional extras before coverage triage.【551ad2†L1-L1】【c4aa1f†L1-L3】
+- 2025-09-19: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 reproduces "Coverage artifact generation skipped" with exit code 0 despite successful pytest execution.【060b36†L1-L5】
+- 2025-09-19: poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1 exits 1 because `test_reports/coverage.json` is missing even though pytest succeeds.【eb7b9a†L1-L5】【f1a97b†L1-L3】
+- 2025-09-19: poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json confirms marker discipline remains intact (0 violations).【e7b446†L1-L1】
+- 2025-09-19: poetry run python scripts/verify_requirements_traceability.py verifies references remain synchronized (0 gaps).【70ba40†L1-L2】
 - Environment: Python 3.12.x (pyproject constraint), Poetry 2.2.0; coverage artifacts stored under `test_reports/20250915_212138/`, `test_reports/coverage.json`, and `htmlcov/index.html` with synthesized content, yet the JSON report confirms only 13.68 % coverage.
 
 Environment snapshot and reproducibility (authoritative)
@@ -55,6 +60,7 @@ Environment snapshot and reproducibility (authoritative)
     - 2025-09-16: New shells still need `scripts/install_dev.sh` to place go-task on PATH; confirm `task --version` prints 3.45.3 post-install.【fbd80f†L1-L3】
     - 2025-09-17: Re-ran `scripts/install_dev.sh` in a fresh session; `task --version` now reports 3.45.3, confirming the helper recovers the CLI toolchain after environment resets.【1c714f†L1-L3】
     - 2025-09-19 (§15 Environment Setup Reliability): `scripts/install_dev.sh` now persists go-task on PATH across common Bash/Zsh profiles, configures Poetry for an in-repo `.venv`, and exports `.venv/bin` for CI. `scripts/doctor/bootstrap_check.py` provides a reusable doctor check so both contributors and the dispatch-only smoke workflow fail fast if `task --version`, `poetry env info --path`, or `poetry run devsynth --help` regress, satisfying docs/tasks.md §15 follow-up items.
+    - 2025-09-19: Running `bash scripts/install_dev.sh` in this container removed the cached Poetry environment, created `/workspace/devsynth/.venv`, and restored `task --version` 3.45.4 before the script reran marker and traceability verification (see `docs/tasks.md` §15).【b60531†L1-L1】【21111e†L1-L2】【7cd862†L1-L3】【a4161f†L1-L2】
 
 Coverage instrumentation and gating (authoritative)
 - `src/devsynth/testing/run_tests.py` now resets coverage artifacts at the start of every CLI invocation and injects
@@ -88,6 +94,7 @@ Coverage instrumentation and gating (authoritative)
 - 2025-09-16: Re-running with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` now terminates with remediation instead of writing empty
   artifacts, e.g. `poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report`
   advises unsetting the environment variable before retrying.【7cb697†L1-L3】
+- 2025-09-19: After converting to the in-repo `.venv`, both smoke and fast+medium profiles still emit "Coverage artifact generation skipped: data file missing", leaving `.coverage` absent and blocking the ≥90 % gate (Issue: coverage-below-threshold).【060b36†L1-L5】【eb7b9a†L1-L5】
 
 Concrete remediation tasks (actionable specifics)
 - Property tests (tests/property/test_requirements_consensus_properties.py):

@@ -62,6 +62,7 @@ Coverage command exits with a failure after tests pass because `.coverage` is mi
 - Address flake8 lint failures, as they may contribute to test instability.
 - 2025-09-11: `poetry run pytest -q --cov-fail-under=90 -k "nonexistent_to_force_no_tests"` fails during test collection due to missing modules `faiss` and `chromadb`; coverage remains unverified.
 - 2025-09-19: `devsynth` installed; smoke and property tests pass. Full coverage run not executed this iteration; threshold remains unverified.
+- 2025-09-19: After `scripts/install_dev.sh` recreated the in-repo `.venv`, both `devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` and `--speed=fast --speed=medium --no-parallel --report --maxfail=1` continued to emit "Coverage artifact generation skipped: data file missing", leaving `.coverage` absent and returning exit code 1 for the fast+medium profile.【b60531†L1-L1】【21111e†L1-L2】【060b36†L1-L5】【eb7b9a†L1-L5】【f1a97b†L1-L3】
 - 2025-09-27: Segmented coverage run executed for fast and medium tests, combined via `coverage combine`; HTML and JSON reports archived outside version control (`coverage-artifacts.tar.gz`). Threshold still unverified.
 - 2025-09-28: Combined report `coverage report --fail-under=90` returned 5% total coverage, confirming the ≥90% requirement is unmet.
 - 2025-09-30: `poetry run coverage report --fail-under=90` after smoke run reported "No data to report"; coverage instrumentation missing.
