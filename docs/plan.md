@@ -48,12 +48,13 @@ Environment snapshot and reproducibility (authoritative)
   - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1 2>&1 | tee test_reports/unit_fast.log
   - poetry run devsynth run-tests --target behavior-tests --speed=fast --smoke --no-parallel --maxfail=1 2>&1 | tee test_reports/behavior_fast_smoke.log
   - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 2>&1 | tee test_reports/integration_fast_smoke.log
-- Maintainer guardrails (mandatory extras):
-  - Ensure all extras are installed (we are providers, nothing is optional): scripts/install_dev.sh runs `poetry install --with dev --all-extras`
-  - When a new shell starts without the CLI entry point, rerun `poetry install --with dev --all-extras` to restore `devsynth` before invoking CLI commands.
-  - If doctor surfaces missing optional backends, treat as non-blocking unless explicitly enabled via DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true.
-  - 2025-09-16: New shells still need `scripts/install_dev.sh` to place go-task on PATH; confirm `task --version` prints 3.45.3 post-install.【fbd80f†L1-L3】
-  - 2025-09-17: Re-ran `scripts/install_dev.sh` in a fresh session; `task --version` now reports 3.45.3, confirming the helper recovers the CLI toolchain after environment resets.【1c714f†L1-L3】
+  - Maintainer guardrails (mandatory extras):
+    - Ensure all extras are installed (we are providers, nothing is optional): scripts/install_dev.sh runs `poetry install --with dev --all-extras`
+    - When a new shell starts without the CLI entry point, rerun `poetry install --with dev --all-extras` to restore `devsynth` before invoking CLI commands.
+    - If doctor surfaces missing optional backends, treat as non-blocking unless explicitly enabled via DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true.
+    - 2025-09-16: New shells still need `scripts/install_dev.sh` to place go-task on PATH; confirm `task --version` prints 3.45.3 post-install.【fbd80f†L1-L3】
+    - 2025-09-17: Re-ran `scripts/install_dev.sh` in a fresh session; `task --version` now reports 3.45.3, confirming the helper recovers the CLI toolchain after environment resets.【1c714f†L1-L3】
+    - 2025-09-19 (§15 Environment Setup Reliability): `scripts/install_dev.sh` now persists go-task on PATH across common Bash/Zsh profiles, configures Poetry for an in-repo `.venv`, and exports `.venv/bin` for CI. `scripts/doctor/bootstrap_check.py` provides a reusable doctor check so both contributors and the dispatch-only smoke workflow fail fast if `task --version`, `poetry env info --path`, or `poetry run devsynth --help` regress, satisfying docs/tasks.md §15 follow-up items.
 
 Coverage instrumentation and gating (authoritative)
 - `src/devsynth/testing/run_tests.py` now resets coverage artifacts at the start of every CLI invocation and injects
