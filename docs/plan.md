@@ -180,6 +180,12 @@ Phase 0: Environment and tooling (Day 0)
   poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
 - Outcome: Ensure stable local environment; capture doctor.txt warnings as known non-blockers for tests (due to stubbing), but document default env in README/docs.
 
+## 15. Persistent bootstrap (Updated 2025-10-19)
+- `scripts/install_dev.sh` now writes the go-task install path to common bash/zsh profiles (`.profile`, `.bash_profile`, `.bashrc`, `.zprofile`, `.zshrc`) so `$HOME/.local/bin/task` remains on `PATH` across new shells. The helper only appends the export once per file and surfaces warnings when a profile cannot be modified.
+- The install script captures the Poetry virtual environment location, ensures `.venv` points to the active interpreter (creating or refreshing a symlink when Poetry stores the environment elsewhere), and exports `.venv/bin` for the current CI session. `poetry.toml` explicitly enables `virtualenvs.in-project = true` so future installs land directly in `.venv/`.
+- Task automation inherits the bootstrap context: Taskfile now prepends `.venv/bin` and `$HOME/.local/bin` to `PATH`, and new task `task env:verify` executes `scripts/verify_bootstrap.py` to gate workflows on `task --version`, `.venv` alignment, and `poetry run devsynth --help`.
+- The verification script prints actionable remediation (rerun `bash scripts/install_dev.sh`) if any prerequisite fails, giving maintainers a deterministic checkpoint before running the heavier test suites.
+
 Phase 1: Property tests remediation (Day 0–1)
 - Fix Hypothesis misuse:
   - Refactor tests/property/test_requirements_consensus_properties.py to remove example() invocation inside strategies; use @given with proper strategies; where concrete examples desired, parametrize separately or use @example decorators correctly.

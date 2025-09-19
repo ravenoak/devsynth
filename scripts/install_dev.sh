@@ -40,6 +40,35 @@ fi
 TASK_BIN_DIR="${HOME}/.local/bin"
 mkdir -p "$TASK_BIN_DIR"
 
+# Append helper to persist PATH updates across login shells
+ensure_profile_path() {
+  local file="$1"
+  local line="$2"
+
+  if [[ -z "$file" || -z "$line" ]]; then
+    return
+  fi
+
+  local dir
+  dir="$(dirname "$file")"
+  if [ ! -d "$dir" ]; then
+    mkdir -p "$dir" || return
+  fi
+
+  if [ ! -e "$file" ]; then
+    touch "$file" 2>/dev/null || return
+  fi
+
+  if [ ! -w "$file" ]; then
+    echo "[warning] unable to update PATH in $file (not writable)" >&2
+    return
+  fi
+
+  if ! grep -F "$line" "$file" >/dev/null 2>&1; then
+    printf '\n%s\n' "$line" >> "$file"
+  fi
+}
+
 # Ensure Task's installation directory is on PATH so an existing binary is detected
 if [[ ":$PATH:" != *":$TASK_BIN_DIR:"* ]]; then
   export PATH="$TASK_BIN_DIR:$PATH"
@@ -91,10 +120,16 @@ if ! task --version >/dev/null 2>&1; then
   fi
 fi
 
-# Ensure the Task binary directory is on PATH for future sessions
-if [ -w "$HOME/.profile" ] && ! grep -F "$TASK_BIN_DIR" "$HOME/.profile" >/dev/null 2>&1; then
-  echo "export PATH=\"$TASK_BIN_DIR:\$PATH\"" >> "$HOME/.profile"
-fi
+# Ensure the Task binary directory is on PATH for future sessions (bash/zsh)
+task_path_export="export PATH=\"$TASK_BIN_DIR:\$PATH\""
+for profile in \
+  "$HOME/.profile" \
+  "$HOME/.bash_profile" \
+  "$HOME/.bashrc" \
+  "$HOME/.zprofile" \
+  "$HOME/.zshrc"; do
+  ensure_profile_path "$profile" "$task_path_export"
+done
 echo "$TASK_BIN_DIR" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
 
 # Display Task version for debugging and ensure it resolves
@@ -200,6 +235,22 @@ if [[ -z "$venv_path" ]]; then
   exit 1
 fi
 echo "[info] poetry virtualenv: $venv_path"
+
+# Ensure contributors can rely on a stable .venv reference
+project_venv="$PWD/.venv"
+if [[ "$venv_path" != "$project_venv" ]]; then
+  if [ -e "$project_venv" ] && [ ! -L "$project_venv" ]; then
+    echo "[warning] existing .venv directory is not a symlink; leaving in place" >&2
+  else
+    ln -sfn "$venv_path" "$project_venv"
+    echo "[info] linked .venv -> $venv_path"
+  fi
+fi
+
+if [ -d "$project_venv/bin" ]; then
+  export PATH="$project_venv/bin:$PATH"
+  echo "$project_venv/bin" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
+fi
 
 # Confirm the DevSynth CLI entry point is available
 if ! poetry run devsynth --help >/dev/null 2>&1; then

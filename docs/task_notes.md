@@ -126,3 +126,11 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run bandit -r src/devsynth -x tests | tee diagnostics/bandit_2025-09-17.txt`.
 - Observations: Trimmed long lines, removed unused imports, and replaced `except ... pass` in adapters, `__init__`, and Kuzu store; flake8 run still fails due to historic violations in tests, while bandit reports 146 low-confidence subprocess warnings pending broader risk review.
 - Next: Schedule follow-up to refactor legacy test fixtures and review remaining subprocess usage across CLI and MVU utilities.
+
+## Iteration 2025-10-19 – Bootstrap persistence verification
+- Environment: Python 3.12.10; `.venv -> /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`; `task --version` 3.45.4 after install_dev refresh.
+- Commands:
+  - `bash scripts/install_dev.sh` – creates/refreshes `.venv`, appends `$HOME/.local/bin` to `.profile/.bashrc/.z*` when writable, reinstalls dependencies, and prints the updated task version plus `devsynth --help` output.
+  - `task env:verify` – runs `python scripts/verify_bootstrap.py` to assert `task --version`, `.venv` alignment, and `poetry run devsynth --help` all succeed; prints remediation hints otherwise.
+- Observations: `poetry env info --path` now returns `/workspace/devsynth/.venv`, shell startup files persist `$HOME/.local/bin`, and the verification task fails fast if the CLI entry point or go-task drop out of PATH.
+- Next: Integrate the verification task into CI smoke runs and ensure future onboarding docs reference `task env:verify` before heavier suites.

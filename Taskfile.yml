@@ -7,6 +7,9 @@ vars:
   MKDOCS_PORT: 8000
   MKDOCS_ADDR: 127.0.0.1
 
+env:
+  PATH: "{{.PWD}}/.venv/bin:{{.HOME}}/.local/bin:{{.PATH}}"
+
 tasks:
   default:
     desc: Verify task availability
@@ -517,9 +520,9 @@ tasks:
       - bash -lc 'mkdir -p diagnostics; poetry run python scripts/capture_flake_rate.py --target integration-tests --speed fast --markers "requires_resource(\'lmstudio\') and not slow" --runs 3 | tee diagnostics/flake_rate_stdout.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "capture_flake_rate lmstudio" --exit-code $EXIT --artifacts "diagnostics/flake_rate.json,diagnostics/flake_rate.txt,diagnostics/flake_rate_stdout.txt" --notes "lmstudio flake-rate"; exit $EXIT'
 
   env:verify:
-    desc: Fail if required tooling is missing
+    desc: Fail if go-task or the Poetry environment are missing
     cmds:
-      - bash -lc 'missing=0; if ! task --version >/dev/null 2>&1; then echo "[error] task command unavailable; run bash scripts/install_dev.sh" >&2; missing=1; fi; if ! poetry run devsynth --version >/dev/null 2>&1; then echo "[error] devsynth CLI unavailable; run '\''poetry install --with dev --all-extras'\''" >&2; missing=1; fi; exit $missing'
+      - "{{.PYTHON}} scripts/verify_bootstrap.py"
 
   env:baseline:
     desc: Capture maintainer environment baseline snapshot and record artifacts
@@ -529,26 +532,26 @@ tasks:
   maintainer:must-run:
     desc: Execute the Maintainer Must-Run Sequence end-to-end with evidence capture (docs/tasks.md §23)
     cmds:
-      - echo "[Maintainer] Step 1: Install with full extras"
+      - cmd: "echo '[Maintainer] Step 1: Install with full extras'"
       - bash -lc 'poetry install --with dev --extras "tests retrieval chromadb api llm memory lmstudio"; EXIT=$?; poetry run python scripts/append_exec_log.py --command "poetry install --with dev --extras \"tests retrieval chromadb api llm memory lmstudio\"" --exit-code $EXIT --artifacts "" --notes "maintainer step 1"; exit $EXIT'
-      - echo "[Maintainer] Step 2: Collect and verify markers"
+      - cmd: "echo '[Maintainer] Step 2: Collect and verify markers'"
       - bash -lc 'task tests:collect; EXIT=$?; poetry run python scripts/append_exec_log.py --command "task tests:collect" --exit-code $EXIT --artifacts "diagnostics/pytest_collect.txt" --notes "maintainer step 2a"; exit 0'
       - bash -lc 'task verify:markers; EXIT=$?; exit $EXIT'
-      - echo "[Maintainer] Step 3: Unit fast"
+      - cmd: "echo '[Maintainer] Step 3: Unit fast'"
       - bash -lc 'task tests:unit-fast'
-      - echo "[Maintainer] Step 4: Integration fast"
+      - cmd: "echo '[Maintainer] Step 4: Integration fast'"
       - bash -lc 'task tests:integration-fast'
-      - echo "[Maintainer] Step 5: Behavior fast (no-parallel)"
+      - cmd: "echo '[Maintainer] Step 5: Behavior fast (no-parallel)'"
       - bash -lc 'poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel --maxfail=1 | tee diagnostics/behavior_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests behavior-fast" --exit-code $EXIT --artifacts "diagnostics/behavior_fast.txt" --notes "maintainer step 5"; exit $EXIT'
-      - echo "[Maintainer] Step 6: Offline fast subset excludes OpenAI/LM Studio"
+      - cmd: "echo '[Maintainer] Step 6: Offline fast subset excludes OpenAI/LM Studio'"
       - bash -lc 'task tests:offline-fast-subset'
-      - echo "[Maintainer] Step 7: Live OpenAI (opt-in) — skipped unless DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true"
+      - cmd: "echo '[Maintainer] Step 7: Live OpenAI (opt-in) — skipped unless DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true'"
       - bash -lc 'if [ "${DEVSYNTH_RESOURCE_OPENAI_AVAILABLE:-false}" = "true" ]; then poetry run devsynth run-tests --target integration-tests --speed=fast --no-parallel --maxfail=1 -m "requires_resource('"'"'openai'"'"') and not slow" | tee diagnostics/openai_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests openai-fast" --exit-code $EXIT --artifacts "diagnostics/openai_fast.txt" --notes "maintainer step 7"; exit $EXIT; else echo "[Maintainer] OpenAI fast subset skipped (env flag not set)"; fi'
-      - echo "[Maintainer] Step 8: Live LM Studio (opt-in)"
+      - cmd: "echo '[Maintainer] Step 8: Live LM Studio (opt-in)'"
       - bash -lc 'if [ "${DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE:-false}" = "true" ]; then task doctor:lmstudio; task tests:lmstudio-fast; else echo "[Maintainer] LM Studio subset skipped (env flag not set)"; fi'
-      - echo "[Maintainer] Step 9: HTML report for fast suite"
+      - cmd: "echo '[Maintainer] Step 9: HTML report for fast suite'"
       - bash -lc 'poetry run devsynth run-tests --report --speed=fast --no-parallel | tee diagnostics/test_report_fast.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests --report fast" --exit-code $EXIT --artifacts "diagnostics/test_report_fast.txt,test_reports/" --notes "maintainer step 9"; exit $EXIT'
-      - echo "[Maintainer] Step 10: Guardrails suite"
+      - cmd: "echo '[Maintainer] Step 10: Guardrails suite'"
       - bash -lc 'task guardrails:all'
 
   exit:verify:

@@ -45,6 +45,9 @@ jobs:
       - name: Second run (idempotency check)
         run: bash scripts/install_dev.sh
 
+      - name: Bootstrap verification
+        run: task env:verify
+
       - name: Sanity checks
         run: |
           poetry env info --path
