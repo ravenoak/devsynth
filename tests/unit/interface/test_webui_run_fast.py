@@ -12,7 +12,7 @@ from devsynth.interface.webui import WebUI
 
 
 @pytest.fixture
-def streamlit_router_stub():
+def streamlit_router_stub(monkeypatch: pytest.MonkeyPatch):
     """Provide a stubbed Streamlit module and Router replacement."""
 
     from devsynth.interface import webui as webui_module
@@ -48,7 +48,7 @@ def streamlit_router_stub():
         markdown=MagicMock(),
     )
 
-    sys.modules["streamlit"] = st
+    monkeypatch.setitem(sys.modules, "streamlit", st)
 
     class RouterStub:
         instances: list["RouterStub"] = []
@@ -64,7 +64,7 @@ def streamlit_router_stub():
 
     RouterStub.instances = []
 
-    webui_module.Router = RouterStub
+    monkeypatch.setattr(webui_module, "Router", RouterStub)
     webui_module._STREAMLIT = None
 
     try:
