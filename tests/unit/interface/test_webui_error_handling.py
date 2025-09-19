@@ -22,6 +22,38 @@ def stub_streamlit(monkeypatch):
     return st
 
 
+def _patch_webui_command(monkeypatch, webui_module, commands_module, name: str, value):
+    """Apply patches to both ``commands`` and ``webui`` modules for a CLI hook."""
+
+    import devsynth.interface.webui.rendering as rendering
+
+    def _wrapped(*args, **kwargs):
+        bridge = kwargs.get("bridge")
+        if bridge is None and args:
+            candidate = args[0]
+            if hasattr(candidate, "_handle_command_errors"):
+                bridge = candidate
+
+        if bridge is not None and hasattr(bridge, "_handle_command_errors"):
+            result = bridge._handle_command_errors(value, *args, **kwargs)
+            if hasattr(result, "run") and callable(result.run):
+                original_run = result.run
+
+                def run_side_effect(*r_args, **r_kwargs):
+                    return bridge._handle_command_errors(
+                        original_run, *r_args, **r_kwargs
+                    )
+
+                wrapped_run = MagicMock(side_effect=run_side_effect)
+                result.run = wrapped_run
+            return result
+        return value(*args, **kwargs)
+
+    monkeypatch.setattr(commands_module, name, _wrapped, raising=False)
+    monkeypatch.setattr(webui_module, name, _wrapped, raising=False)
+    monkeypatch.setattr(rendering, name, _wrapped, raising=False)
+
+
 @pytest.mark.medium
 def test_init_cmd_error_handling(stub_streamlit, monkeypatch, clean_state):
     """Test error handling when init_cmd raises an exception.
@@ -33,12 +65,16 @@ def test_init_cmd_error_handling(stub_streamlit, monkeypatch, clean_state):
 
     # Reload the module to ensure clean state
     importlib.reload(webui)
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
 
     from devsynth.interface.webui import WebUI
 
     # Mock init_cmd to accept any arguments and raise an error
     init_cmd_mock = MagicMock(side_effect=RuntimeError("Test init error"))
     monkeypatch.setattr("devsynth.application.cli.init_cmd", init_cmd_mock)
+    _patch_webui_command(monkeypatch, webui, commands, "init_cmd", init_cmd_mock)
 
     # Set button to True to trigger the form submission
     stub_streamlit.form_submit_button.return_value = True
@@ -67,17 +103,24 @@ def test_onboarding_page_setup_wizard_error_raises_error(stub_streamlit, monkeyp
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     from devsynth.interface.webui import WebUI
 
     # Mock init_cmd to avoid errors
     init_cmd_mock = MagicMock()
     monkeypatch.setattr("devsynth.application.cli.init_cmd", init_cmd_mock)
+    _patch_webui_command(monkeypatch, webui, commands, "init_cmd", init_cmd_mock)
 
     # Mock SetupWizard to raise an error when run is called
     setup_wizard_mock = MagicMock()
     setup_wizard_mock.return_value.run.side_effect = RuntimeError("Test setup error")
     monkeypatch.setattr(
         "devsynth.application.cli.setup_wizard.SetupWizard", setup_wizard_mock
+    )
+    _patch_webui_command(
+        monkeypatch, webui, commands, "SetupWizard", setup_wizard_mock
     )
 
     # Set button to True to trigger the guided setup
@@ -108,6 +151,9 @@ def test_requirements_page_spec_cmd_error_raises_error(stub_streamlit, monkeypat
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     from devsynth.interface.webui import WebUI
 
     # Mock Path.exists to return True so the file validation passes
@@ -116,6 +162,7 @@ def test_requirements_page_spec_cmd_error_raises_error(stub_streamlit, monkeypat
     # Mock spec_cmd to raise an error
     spec_cmd_mock = MagicMock(side_effect=RuntimeError("Test spec error"))
     monkeypatch.setattr("devsynth.application.cli.spec_cmd", spec_cmd_mock)
+    _patch_webui_command(monkeypatch, webui, commands, "spec_cmd", spec_cmd_mock)
 
     # Set form_submit_button to True to trigger the form submission
     stub_streamlit.form_submit_button.return_value = True
@@ -144,6 +191,9 @@ def test_requirements_page_inspect_cmd_error_raises_error(stub_streamlit, monkey
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     from devsynth.interface.webui import WebUI
 
     # Mock Path.exists to return True so the file validation passes
@@ -152,10 +202,12 @@ def test_requirements_page_inspect_cmd_error_raises_error(stub_streamlit, monkey
     # Mock spec_cmd to avoid errors
     spec_cmd_mock = MagicMock()
     monkeypatch.setattr("devsynth.application.cli.spec_cmd", spec_cmd_mock)
+    _patch_webui_command(monkeypatch, webui, commands, "spec_cmd", spec_cmd_mock)
 
     # Mock inspect_cmd to raise an error
     inspect_cmd_mock = MagicMock(side_effect=RuntimeError("Test inspect error"))
     monkeypatch.setattr("devsynth.application.cli.inspect_cmd", inspect_cmd_mock)
+    _patch_webui_command(monkeypatch, webui, commands, "inspect_cmd", inspect_cmd_mock)
 
     # Set form_submit_button to True to trigger the form submission
     # First call is for spec_cmd, second call is for inspect_cmd
@@ -185,6 +237,9 @@ def test_requirements_page_file_not_found_raises_error(stub_streamlit, monkeypat
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     from devsynth.interface.webui import WebUI
 
     # Mock Path.exists to return False for the first check and True for the second
@@ -195,8 +250,10 @@ def test_requirements_page_file_not_found_raises_error(stub_streamlit, monkeypat
     # Mock spec_cmd and inspect_cmd to avoid errors
     spec_cmd_mock = MagicMock()
     monkeypatch.setattr("devsynth.application.cli.spec_cmd", spec_cmd_mock)
+    _patch_webui_command(monkeypatch, webui, commands, "spec_cmd", spec_cmd_mock)
     inspect_cmd_mock = MagicMock()
     monkeypatch.setattr("devsynth.application.cli.inspect_cmd", inspect_cmd_mock)
+    _patch_webui_command(monkeypatch, webui, commands, "inspect_cmd", inspect_cmd_mock)
 
     # Set form_submit_button to True to trigger the form submission
     stub_streamlit.form_submit_button.return_value = True
@@ -225,19 +282,22 @@ def test_analysis_page_inspect_code_cmd_error_raises_error(stub_streamlit, monke
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     from devsynth.interface.webui import WebUI
 
     # Mock inspect_code_cmd to raise an error
     inspect_code_cmd_mock = MagicMock(
         side_effect=RuntimeError("Test inspect code error")
     )
-    monkeypatch.setattr(
-        "devsynth.application.cli.commands.inspect_code_cmd.inspect_code_cmd",
-        inspect_code_cmd_mock,
+    _patch_webui_command(
+        monkeypatch, webui, commands, "inspect_code_cmd", inspect_code_cmd_mock
     )
 
     # Set form_submit_button to True to trigger the form submission
     stub_streamlit.form_submit_button.return_value = True
+    monkeypatch.setattr("pathlib.Path.exists", lambda _self: True)
 
     webui_instance = WebUI()
     webui_instance.display_result = MagicMock()
@@ -265,14 +325,19 @@ def test_synthesis_page_test_cmd_error_raises_error(stub_streamlit, monkeypatch)
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     from devsynth.interface.webui import WebUI
 
     # Mock test_cmd to raise an error
     test_cmd_mock = MagicMock(side_effect=RuntimeError("Test test_cmd error"))
     monkeypatch.setattr("devsynth.application.cli.test_cmd", test_cmd_mock)
+    _patch_webui_command(monkeypatch, webui, commands, "test_cmd", test_cmd_mock)
 
     # Set form_submit_button to True to trigger the form submission
     stub_streamlit.form_submit_button.return_value = True
+    monkeypatch.setattr("pathlib.Path.exists", lambda _self: True)
 
     webui_instance = WebUI()
     webui_instance.display_result = MagicMock()
@@ -305,22 +370,17 @@ def test_config_page_load_config_error_raises_error(stub_streamlit, monkeypatch)
     # Mock load_project_config to raise an error
     load_config_mock = MagicMock(side_effect=RuntimeError("Test load config error"))
     monkeypatch.setattr(
-        "devsynth.interface.webui.load_project_config", load_config_mock
+        "devsynth.interface.webui.rendering.load_project_config", load_config_mock
     )
 
     webui_instance = WebUI()
-    webui_instance.display_result = MagicMock()
 
-    # Call the config_page method
     webui_instance.config_page()
 
-    # Verify that display_result was called with the error message
     assert any(
-        "ERROR" in call[0][0] and "Test load config error" in call[0][0]
-        for call in webui_instance.display_result.call_args_list
+        "Test load config error" in call[0][0]
+        for call in stub_streamlit.error.call_args_list
     )
-
-    # Verify that load_project_config was called
     load_config_mock.assert_called_once()
 
 
@@ -346,29 +406,26 @@ def test_config_page_save_config_error_raises_error(stub_streamlit, monkeypatch)
 
     # Mock load_project_config to return the mock config
     monkeypatch.setattr(
-        "devsynth.interface.webui.load_project_config",
+        "devsynth.interface.webui.rendering.load_project_config",
         MagicMock(return_value=mock_config),
     )
 
     # Mock save_config to raise an error
     save_config_mock = MagicMock(side_effect=RuntimeError("Test save config error"))
-    monkeypatch.setattr("devsynth.interface.webui.save_config", save_config_mock)
+    monkeypatch.setattr(
+        "devsynth.interface.webui.rendering.save_config", save_config_mock
+    )
 
     # Set toggle and button to True to trigger the save action
     stub_streamlit.toggle.return_value = True
     stub_streamlit.button.return_value = True
 
     webui_instance = WebUI()
-    webui_instance.display_result = MagicMock()
 
-    # Call the config_page method
     webui_instance.config_page()
 
-    # Verify that display_result was called with the error message
     assert any(
-        "ERROR" in call[0][0] and "Test save config error" in call[0][0]
-        for call in webui_instance.display_result.call_args_list
+        "Test save config error" in call[0][0]
+        for call in stub_streamlit.error.call_args_list
     )
-
-    # Verify that save_config was called
     save_config_mock.assert_called_once()

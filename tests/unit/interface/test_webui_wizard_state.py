@@ -331,7 +331,7 @@ def test_wizard_state_in_streamlit_context(gather_wizard_state):
     assert state.get_current_step() == 2
 
     # Step 2: Set resource location
-    mock_st.text_input.return_value = "/path/to/docs"
+    mock_st.text_input.side_effect = lambda *args, **kwargs: "/path/to/docs"
     # Clear clicked buttons to ensure no automatic advancement
     clicked_buttons.clear()
     run_wizard_step()

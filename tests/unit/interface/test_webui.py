@@ -2,6 +2,8 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock
 
+import importlib
+
 import pytest
 
 from tests.fixtures.streamlit_mocks import make_streamlit_mock
@@ -11,14 +13,6 @@ from tests.fixtures.streamlit_mocks import make_streamlit_mock
 def stub_streamlit(monkeypatch):
     st = make_streamlit_mock()
     monkeypatch.setitem(sys.modules, "streamlit", st)
-
-
-def mock_function(*args, **kwargs):
-    # Implement robust behavior here
-    monkeypatch.setattr("target", mock_function)
-    return "expected_result"
-    monkeypatch.setattr("target", mock_function)
-
     cli_stub = ModuleType("devsynth.application.cli")
     for name in [
         "init_cmd",
@@ -32,6 +26,11 @@ def mock_function(*args, **kwargs):
     ]:
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
+    utils_stub = ModuleType("devsynth.application.cli.utils")
+    utils_stub.bridge = MagicMock()
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.cli.utils", utils_stub
+    )
     ingest_stub = ModuleType("devsynth.application.cli.ingest_cmd")
     ingest_stub.ingest_cmd = MagicMock()
     ingest_stub.bridge = MagicMock()
@@ -68,6 +67,10 @@ def mock_function(*args, **kwargs):
     monkeypatch.setitem(
         sys.modules, "devsynth.application.cli.setup_wizard", setup_wizard_stub
     )
+    # Ensure command mixins see the stubbed CLI module
+    import devsynth.interface.webui.commands as commands
+
+    importlib.reload(commands)
     yield st
 
 
@@ -92,10 +95,13 @@ def test_onboarding_calls_init_succeeds(monkeypatch, stub_streamlit):
 
     ReqID: N/A"""
     init = _patch_cmd(monkeypatch, "devsynth.application.cli.init_cmd")
+    stub_streamlit.form_submit_button.return_value = True
     import importlib
 
+    import devsynth.interface.webui.commands as commands
     import devsynth.interface.webui as webui
 
+    importlib.reload(commands)
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 
@@ -110,11 +116,23 @@ def test_requirements_calls_spec_succeeds(monkeypatch, stub_streamlit):
     ReqID: N/A"""
     spec = _patch_cmd(monkeypatch, "devsynth.application.cli.spec_cmd")
     inspect = _patch_cmd(monkeypatch, "devsynth.application.cli.inspect_cmd")
+    stub_streamlit.form_submit_button.return_value = True
+    from pathlib import Path
+
+    monkeypatch.setattr(Path, "exists", lambda _self: True)
     import importlib
 
+    import devsynth.interface.webui.commands as commands
     import devsynth.interface.webui as webui
 
+    importlib.reload(commands)
+    monkeypatch.setattr(commands, "spec_cmd", spec)
+    monkeypatch.setattr(commands, "inspect_cmd", inspect, raising=False)
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(rendering, "spec_cmd", spec, raising=False)
+    monkeypatch.setattr(rendering, "inspect_cmd", inspect, raising=False)
     from devsynth.interface.webui import WebUI
 
     WebUI().requirements_page()
@@ -131,11 +149,21 @@ def test_analysis_calls_analyze_succeeds(monkeypatch, stub_streamlit):
         monkeypatch,
         "devsynth.application.cli.commands.inspect_code_cmd.inspect_code_cmd",
     )
+    stub_streamlit.form_submit_button.return_value = True
+    from pathlib import Path
+
+    monkeypatch.setattr(Path, "exists", lambda _self: True)
     import importlib
 
+    import devsynth.interface.webui.commands as commands
     import devsynth.interface.webui as webui
 
+    importlib.reload(commands)
+    monkeypatch.setattr(commands, "inspect_code_cmd", analyze)
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(rendering, "inspect_code_cmd", analyze, raising=False)
     from devsynth.interface.webui import WebUI
 
     WebUI().analysis_page()
@@ -151,11 +179,25 @@ def test_synthesis_buttons_succeeds(monkeypatch, stub_streamlit):
     code_cmd = _patch_cmd(monkeypatch, "devsynth.application.cli.code_cmd")
     run_cmd = _patch_cmd(monkeypatch, "devsynth.application.cli.run_pipeline_cmd")
     stub_streamlit.button = MagicMock(side_effect=[False, False])
+    stub_streamlit.form_submit_button.return_value = True
+    from pathlib import Path
+
+    monkeypatch.setattr(Path, "exists", lambda _self: True)
     import importlib
 
+    import devsynth.interface.webui.commands as commands
     import devsynth.interface.webui as webui
 
+    importlib.reload(commands)
+    monkeypatch.setattr(commands, "test_cmd", test_cmd, raising=False)
+    monkeypatch.setattr(commands, "code_cmd", code_cmd, raising=False)
+    monkeypatch.setattr(commands, "run_pipeline_cmd", run_cmd, raising=False)
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(rendering, "test_cmd", test_cmd, raising=False)
+    monkeypatch.setattr(rendering, "code_cmd", code_cmd, raising=False)
+    monkeypatch.setattr(rendering, "run_pipeline_cmd", run_cmd, raising=False)
     from devsynth.interface.webui import WebUI
 
     WebUI().synthesis_page()
@@ -185,10 +227,12 @@ def test_config_update_succeeds(monkeypatch, stub_streamlit):
 
     monkeypatch.setattr(ProjectUnifiedConfig, "load", classmethod(mock_load))
     monkeypatch.setattr(
-        "devsynth.interface.webui.load_project_config",
+        "devsynth.interface.webui.rendering.load_project_config",
         MagicMock(return_value=mock_config),
     )
-    monkeypatch.setattr("devsynth.interface.webui.save_config", MagicMock())
+    monkeypatch.setattr(
+        "devsynth.interface.webui.rendering.save_config", MagicMock()
+    )
     import importlib
 
     import devsynth.interface.webui as webui
@@ -233,6 +277,9 @@ def test_edrr_cycle_page_succeeds(monkeypatch, stub_streamlit):
     monkeypatch.setitem(
         sys.modules, "devsynth.application.cli.commands.edrr_cycle_cmd", module
     )
+    from pathlib import Path
+
+    monkeypatch.setattr(Path, "exists", lambda _self: True)
     import importlib
 
     import devsynth.interface.webui as webui
@@ -388,6 +435,7 @@ def test_test_metrics_page_succeeds(monkeypatch, stub_streamlit):
     monkeypatch.setitem(
         sys.modules, "devsynth.application.cli.commands.test_metrics_cmd", module
     )
+    stub_streamlit.text_input.side_effect = ["repo", "30", ""]
     import importlib
 
     import devsynth.interface.webui as webui
@@ -482,8 +530,14 @@ def test_refactor_page_succeeds(monkeypatch, stub_streamlit):
     import importlib
 
     import devsynth.interface.webui as webui
+    import devsynth.interface.webui.commands as commands
 
+    importlib.reload(commands)
+    monkeypatch.setattr(commands, "refactor_cmd", refactor, raising=False)
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(rendering, "refactor_cmd", refactor, raising=False)
     from devsynth.interface.webui import WebUI
 
     WebUI().refactor_page()
@@ -499,11 +553,18 @@ def test_webapp_page_succeeds(monkeypatch, stub_streamlit):
     module.webapp_cmd = webapp
     module.bridge = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.cli_commands", module)
+    stub_streamlit.text_input.side_effect = ["flask", "webapp", "."]
     import importlib
 
     import devsynth.interface.webui as webui
+    import devsynth.interface.webui.commands as commands
 
+    importlib.reload(commands)
+    monkeypatch.setattr(commands, "webapp_cmd", webapp, raising=False)
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(rendering, "webapp_cmd", webapp, raising=False)
     from devsynth.interface.webui import WebUI
 
     WebUI().webapp_page()
@@ -523,8 +584,14 @@ def test_serve_page_succeeds(monkeypatch, stub_streamlit):
     import importlib
 
     import devsynth.interface.webui as webui
+    import devsynth.interface.webui.commands as commands
 
+    importlib.reload(commands)
+    monkeypatch.setattr(commands, "serve_cmd", serve, raising=False)
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(rendering, "serve_cmd", serve, raising=False)
     from devsynth.interface.webui import WebUI
 
     WebUI().serve_page()
@@ -546,8 +613,14 @@ def test_dbschema_page_succeeds(monkeypatch, stub_streamlit):
     import importlib
 
     import devsynth.interface.webui as webui
+    import devsynth.interface.webui.commands as commands
 
+    importlib.reload(commands)
+    monkeypatch.setattr(commands, "dbschema_cmd", schema, raising=False)
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(rendering, "dbschema_cmd", schema, raising=False)
     from devsynth.interface.webui import WebUI
 
     WebUI().dbschema_page()

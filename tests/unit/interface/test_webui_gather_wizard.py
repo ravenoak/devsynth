@@ -9,7 +9,17 @@ import pytest
 def stub_streamlit(monkeypatch):
     """Create a stub streamlit module for testing."""
     st = ModuleType("streamlit")
-    st.session_state = {}
+    class State(dict):
+        def __getattr__(self, name):
+            try:
+                return self[name]
+            except KeyError as exc:
+                raise AttributeError(name) from exc
+
+        def __setattr__(self, name, value):
+            self[name] = value
+
+    st.session_state = State()
     st.text_input = MagicMock(return_value="Test Input")
     st.text_area = MagicMock(return_value="Test Area")
     st.selectbox = MagicMock(return_value="documentation")
@@ -31,6 +41,12 @@ def stub_streamlit(monkeypatch):
 def mock_gather_requirements(monkeypatch):
     gather_mock = MagicMock()
     monkeypatch.setattr("devsynth.core.workflows.gather_requirements", gather_mock)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(rendering, "gather_requirements", gather_mock, raising=False)
+    monkeypatch.setattr(
+        "devsynth.interface.webui.gather_requirements", gather_mock, raising=False
+    )
     return gather_mock
 
 
@@ -63,7 +79,7 @@ def test_gather_wizard_finish_calls_gather_requirements(
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 
-    stub_streamlit.session_state = {
+    stub_streamlit.session_state = type(stub_streamlit.session_state)({
         "gather_wizard_current_step": 3,
         "gather_wizard_total_steps": 3,
         "gather_wizard_completed": False,
@@ -71,7 +87,7 @@ def test_gather_wizard_finish_calls_gather_requirements(
         "gather_wizard_resource_type": "documentation",
         "gather_wizard_resource_location": "/docs",
         "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
-    }
+    })
 
     def button_side_effect(label, key=None, **kwargs):
         return key == "finish_button"
@@ -80,7 +96,7 @@ def test_gather_wizard_finish_calls_gather_requirements(
     ui = WebUI()
     ui._gather_wizard()
     mock_gather_requirements.assert_called_once_with(ui)
-    assert stub_streamlit.spinner.called
+    assert stub_streamlit.experimental_rerun.called
 
 
 @pytest.mark.medium
@@ -92,7 +108,7 @@ def test_gather_wizard_import_error(stub_streamlit, monkeypatch):
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 
-    stub_streamlit.session_state = {
+    stub_streamlit.session_state = type(stub_streamlit.session_state)({
         "gather_wizard_current_step": 3,
         "gather_wizard_total_steps": 3,
         "gather_wizard_completed": False,
@@ -100,11 +116,14 @@ def test_gather_wizard_import_error(stub_streamlit, monkeypatch):
         "gather_wizard_resource_type": "documentation",
         "gather_wizard_resource_location": "/docs",
         "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
-    }
+    })
     stub_streamlit.button.side_effect = (
         lambda label, key=None, **kwargs: key == "finish_button"
     )
-    monkeypatch.setattr(webui, "gather_requirements", None)
+    import devsynth.interface.webui.rendering as rendering
+
+    monkeypatch.setattr(webui, "gather_requirements", None, raising=False)
+    monkeypatch.setattr(rendering, "gather_requirements", None, raising=False)
     ui = WebUI()
     ui.display_result = MagicMock()
     ui._gather_wizard()
@@ -121,7 +140,7 @@ def test_gather_wizard_exception(stub_streamlit, mock_gather_requirements):
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 
-    stub_streamlit.session_state = {
+    stub_streamlit.session_state = type(stub_streamlit.session_state)({
         "gather_wizard_current_step": 3,
         "gather_wizard_total_steps": 3,
         "gather_wizard_completed": False,
@@ -129,7 +148,7 @@ def test_gather_wizard_exception(stub_streamlit, mock_gather_requirements):
         "gather_wizard_resource_type": "documentation",
         "gather_wizard_resource_location": "/docs",
         "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
-    }
+    })
     stub_streamlit.button.side_effect = (
         lambda label, key=None, **kwargs: key == "finish_button"
     )

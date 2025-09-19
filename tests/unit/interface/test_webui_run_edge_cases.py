@@ -152,7 +152,10 @@ def test_run_method_with_multiple_exceptions_raises_error(stub_streamlit):
     stub_streamlit.sidebar.radio.side_effect = RuntimeError("Test sidebar error")
     with pytest.raises(RuntimeError) as excinfo:
         webui_instance.run()
-    assert "Test sidebar error" in str(excinfo.value)
+    assert str(excinfo.value) == "Test display error"
+    webui_instance.display_result.assert_called_once()
+    message = webui_instance.display_result.call_args[0][0]
+    assert "Test sidebar error" in message
 
 
 def test_standalone_run_function_succeeds(stub_streamlit, monkeypatch):

@@ -96,7 +96,7 @@ def test_requirements_wizard_save_requirements_succeeds(stub_streamlit, clean_st
     assert stub_streamlit.session_state["requirements_wizard_current_step"] == 1
 
 
-def test_validate_requirements_step():
+def test_validate_requirements_step(stub_streamlit):
     from devsynth.interface.webui import WebUI
     from devsynth.interface.webui_state import WizardState
 

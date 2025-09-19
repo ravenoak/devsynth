@@ -1,4 +1,5 @@
 import sys
+import sys
 from types import ModuleType
 from unittest.mock import MagicMock, call, patch
 
@@ -22,7 +23,19 @@ def mock_init_cmd(monkeypatch):
     cli_module = ModuleType("devsynth.application.cli")
     cli_module.init_cmd = init_cmd
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_module)
+    monkeypatch.setattr(
+        "devsynth.interface.webui.commands.init_cmd", init_cmd, raising=False
+    )
+    monkeypatch.setattr(
+        "devsynth.interface.webui.init_cmd", init_cmd, raising=False
+    )
     return init_cmd
+
+
+@pytest.fixture
+def clean_state():
+    """Provide a clean state placeholder for compatibility."""
+    yield
 
 
 @pytest.mark.medium

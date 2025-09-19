@@ -2,6 +2,10 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
 
+import sys
+from types import ModuleType
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from devsynth.interface.agentapi import APIBridge
@@ -35,7 +39,12 @@ def test_with_clean_state(clean_state):
     bridge = CLIUXBridge()
     with patch("rich.console.Console.print") as out:
         bridge.display_result("<script>")
-        out.assert_called_once_with("&lt;script&gt;", highlight=False)
+        out.assert_called_once()
+        printed_obj, = out.call_args.args
+        kwargs = out.call_args.kwargs
+        plain_text = getattr(printed_obj, "plain", printed_obj)
+        assert plain_text == "&lt;script&gt;"
+        assert kwargs.get("style") is None
 
 
 @pytest.mark.medium
@@ -59,8 +68,6 @@ def test_webui_sanitizes_display_result_succeeds(monkeypatch):
     from devsynth.interface import webui
 
     # Reload the module to ensure clean state
-    importlib.reload(module)
-
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 

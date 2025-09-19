@@ -1,6 +1,7 @@
 import importlib
 import sys
 import time
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -20,6 +21,54 @@ def mock_streamlit(monkeypatch):
 def clean_state():
     """Provide a clean state for each test."""
     yield
+
+
+def _init_progress_with_time(
+    mock_streamlit: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    times: list[float],
+    description: str,
+    total: int = 100,
+):
+    """Instantiate ``_UIProgress`` with deterministic time progression."""
+
+    import devsynth.interface.webui as webui
+
+    importlib.reload(webui)
+    from devsynth.interface.webui import WebUI
+
+    if not times:
+        msg = "The deterministic time sequence must contain at least one value"
+        raise ValueError(msg)
+
+    time_iter = iter(times)
+    last_timestamp = times[0]
+
+    def fake_time() -> float:
+        nonlocal last_timestamp
+        try:
+            last_timestamp = next(time_iter)
+        except StopIteration:
+            pass
+        return last_timestamp
+
+    monkeypatch.setattr(time, "time", fake_time)
+    monkeypatch.setattr(webui.time, "time", fake_time)
+
+    status_container = MagicMock()
+    time_container = MagicMock()
+    mock_streamlit.empty.side_effect = [status_container, time_container]
+
+    bridge = WebUI()
+    progress = bridge.create_progress(description, total=total)
+
+    mock_streamlit.empty.side_effect = None
+    status_container.markdown.reset_mock()
+    time_container.empty.reset_mock()
+    time_container.info.reset_mock()
+
+    return progress, status_container, time_container
 
 
 @pytest.mark.medium
@@ -174,33 +223,17 @@ def test_ui_progress_eta_displays_seconds_when_under_minute(
 ):
     """Render ETA in seconds when less than a minute remains."""
 
-    import devsynth.interface.webui as webui
-
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    times = iter([0.0, 5.0, 10.0])
-
-    def fake_time() -> float:
-        return next(times)
-
-    monkeypatch.setattr(time, "time", fake_time)
-
-    status_container = MagicMock()
-    time_container = MagicMock()
-    mock_streamlit.empty.side_effect = [status_container, time_container]
-
-    bridge = WebUI()
-    progress = bridge.create_progress("ETA Seconds", total=100)
-    mock_streamlit.empty.side_effect = None
-
-    status_container.markdown.reset_mock()
-    time_container.empty.reset_mock()
-    time_container.info.reset_mock()
+    progress, _, time_container = _init_progress_with_time(
+        mock_streamlit,
+        monkeypatch,
+        times=[0.0, 5.0, 10.0],
+        description="ETA Seconds",
+    )
 
     progress.update(advance=20)
 
     time_container.info.assert_called_once_with("ETA: 20 seconds")
+    time_container.empty.assert_not_called()
 
 
 @pytest.mark.fast
@@ -209,33 +242,17 @@ def test_ui_progress_eta_displays_minutes_when_under_hour(
 ):
     """Render ETA rounded to whole minutes when under an hour remains."""
 
-    import devsynth.interface.webui as webui
-
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    times = iter([0.0, 100.0, 200.0])
-
-    def fake_time() -> float:
-        return next(times)
-
-    monkeypatch.setattr(time, "time", fake_time)
-
-    status_container = MagicMock()
-    time_container = MagicMock()
-    mock_streamlit.empty.side_effect = [status_container, time_container]
-
-    bridge = WebUI()
-    progress = bridge.create_progress("ETA Minutes", total=100)
-    mock_streamlit.empty.side_effect = None
-
-    status_container.markdown.reset_mock()
-    time_container.empty.reset_mock()
-    time_container.info.reset_mock()
+    progress, _, time_container = _init_progress_with_time(
+        mock_streamlit,
+        monkeypatch,
+        times=[0.0, 100.0, 200.0],
+        description="ETA Minutes",
+    )
 
     progress.update(advance=10)
 
     time_container.info.assert_called_once_with("ETA: 15 minutes")
+    time_container.empty.assert_not_called()
 
 
 @pytest.mark.fast
@@ -244,33 +261,17 @@ def test_ui_progress_eta_displays_hours_and_minutes(
 ):
     """Render ETA with hours and minutes when exceeding an hour."""
 
-    import devsynth.interface.webui as webui
-
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    times = iter([0.0, 100.0, 200.0])
-
-    def fake_time() -> float:
-        return next(times)
-
-    monkeypatch.setattr(time, "time", fake_time)
-
-    status_container = MagicMock()
-    time_container = MagicMock()
-    mock_streamlit.empty.side_effect = [status_container, time_container]
-
-    bridge = WebUI()
-    progress = bridge.create_progress("ETA Hours", total=100)
-    mock_streamlit.empty.side_effect = None
-
-    status_container.markdown.reset_mock()
-    time_container.empty.reset_mock()
-    time_container.info.reset_mock()
+    progress, _, time_container = _init_progress_with_time(
+        mock_streamlit,
+        monkeypatch,
+        times=[0.0, 100.0, 200.0],
+        description="ETA Hours",
+    )
 
     progress.update(advance=1)
 
     time_container.info.assert_called_once_with("ETA: 2 hours, 45 minutes")
+    time_container.empty.assert_not_called()
 
 
 @pytest.mark.fast
@@ -279,28 +280,12 @@ def test_ui_progress_status_transitions_without_explicit_status(
 ):
     """Ensure automatic status text transitions at documented thresholds."""
 
-    import devsynth.interface.webui as webui
-
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    times = iter([0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0])
-
-    def fake_time() -> float:
-        return next(times)
-
-    monkeypatch.setattr(time, "time", fake_time)
-
-    status_container = MagicMock()
-    time_container = MagicMock()
-    mock_streamlit.empty.side_effect = [status_container, time_container]
-
-    bridge = WebUI()
-    progress = bridge.create_progress("Status Thresholds", total=100)
-    mock_streamlit.empty.side_effect = None
-
-    time_container.empty.reset_mock()
-    time_container.info.reset_mock()
+    progress, _, time_container = _init_progress_with_time(
+        mock_streamlit,
+        monkeypatch,
+        times=[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        description="Status Thresholds",
+    )
 
     increments = [10, 15, 25, 25, 24, 1]
     expected_statuses = [
@@ -319,7 +304,8 @@ def test_ui_progress_status_transitions_without_explicit_status(
         assert progress._status == expected
 
     assert observed_statuses == expected_statuses
-    time_container.empty.assert_called()
+    assert time_container.info.call_count == len(expected_statuses) - 1
+    time_container.empty.assert_called_once()
 
 
 @pytest.mark.fast
@@ -328,20 +314,18 @@ def test_ui_progress_subtasks_update_with_frozen_time(
 ):
     """Subtask updates still render when the clock is frozen."""
 
-    import devsynth.interface.webui as webui
+    progress, _, time_container = _init_progress_with_time(
+        mock_streamlit,
+        monkeypatch,
+        times=[100.0],
+        description="Frozen Subtasks",
+    )
 
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    monkeypatch.setattr(time, "time", lambda: 100.0)
-
-    status_container = MagicMock()
-    time_container = MagicMock()
-    mock_streamlit.empty.side_effect = [status_container, time_container]
-
-    bridge = WebUI()
-    progress = bridge.create_progress("Frozen Subtasks", total=100)
-    mock_streamlit.empty.side_effect = None
+    progress.update(advance=10)
+    time_container.info.assert_not_called()
+    time_container.empty.assert_called_once()
+    time_container.empty.reset_mock()
+    time_container.info.reset_mock()
 
     subtask_container = mock_streamlit.container.return_value.__enter__.return_value
     subtask_bar = subtask_container.progress.return_value
@@ -365,3 +349,5 @@ def test_ui_progress_subtasks_update_with_frozen_time(
         "&nbsp;&nbsp;&nbsp;&nbsp;**Updated Subtask** - 50%"
     )
     subtask_bar.progress.assert_called_with(0.5)
+    time_container.empty.assert_not_called()
+    time_container.info.assert_not_called()

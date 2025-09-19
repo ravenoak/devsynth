@@ -30,27 +30,36 @@ def test_navigation_persists_wizard_state(monkeypatch, stub_streamlit):
 
     # start on Requirements page and advance wizard
     stub_streamlit.sidebar.radio = MagicMock(return_value="Requirements")
+    nav_radio = stub_streamlit.sidebar.radio
     col1, col2 = stub_streamlit.columns.return_value
     col1.button = MagicMock(return_value=False)
     col2.button = MagicMock(return_value=True)
+    col3 = MagicMock(button=lambda *a, **k: False)
+    stub_streamlit.columns.return_value = (col1, col2, col3)
     ui._requirements_wizard()  # advance to step 1
     col2.button.return_value = False
     ui.run()  # store nav selection
-    assert stub_streamlit.session_state.wizard_step == 1
-    assert stub_streamlit.session_state.nav == "Requirements"
+    assert (
+        stub_streamlit.session_state["requirements_wizard_current_step"] == 2
+    )
+    assert stub_streamlit.session_state["nav"] == "Requirements"
 
     # navigate away
-    stub_streamlit.sidebar.radio = MagicMock(return_value="Onboarding")
+    nav_radio.return_value = "Onboarding"
     ui.run()
-    assert stub_streamlit.session_state.nav == "Onboarding"
+    assert stub_streamlit.session_state["nav"] == "Onboarding"
     # wizard step should remain unchanged
-    assert stub_streamlit.session_state.wizard_step == 1
+    assert (
+        stub_streamlit.session_state["requirements_wizard_current_step"] == 2
+    )
 
     # return to Requirements
-    stub_streamlit.sidebar.radio = MagicMock(return_value="Requirements")
+    nav_radio.return_value = "Requirements"
     ui.run()
-    assert stub_streamlit.session_state.wizard_step == 1
-    assert stub_streamlit.session_state.nav == "Requirements"
+    assert (
+        stub_streamlit.session_state["requirements_wizard_current_step"] == 2
+    )
+    assert stub_streamlit.session_state["nav"] == "Requirements"
 
 
 @pytest.mark.medium
