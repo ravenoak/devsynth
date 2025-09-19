@@ -1,30 +1,14 @@
 Feature: WebUI Onboarding Flow
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a maintainer using the onboarding dashboard
+  I want the WebUI to surface the wizard and trigger initialization
+  So that onboarding actions match the CLI experience
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+  Scenario: Open the onboarding workspace
+    Given the WebUI is initialized
+    When I navigate to "Onboarding"
+    Then the "Project Onboarding" header is shown
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Submit onboarding form through the WebUI
+    Given the WebUI is initialized
+    When I submit the onboarding form
+    Then the init command should be executed

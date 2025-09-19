@@ -1,30 +1,9 @@
 Feature: Interactive Requirements Flow WebUI
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a maintainer driving onboarding from the browser
+  I want the WebUI form to store gathered details
+  So that the CLI and WebUI stay in sync
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
-
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Gather requirements through the WebUI form
+    Given the WebUI is initialized
+    When I run the interactive requirements flow in the WebUI
+    Then an interactive requirements file "interactive_requirements.json" should exist
