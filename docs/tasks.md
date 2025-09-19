@@ -163,6 +163,7 @@ Notes:
 - Maintain exactly one speed marker per test function.
 - Prefer adding tests for pure logic first, then expand to gated integrations.
 - 2025-09-15: Environment needed go-task reinstallation; smoke tests and verification scripts pass; UAT and tagging remain.
+- 2025-09-19: diagnostics/install_dev_20250919T233750Z.log and diagnostics/env_checks_20250919T233750Z.log confirm go-task 3.45.4 persists, Poetry now resolves to `/workspace/devsynth/.venv`, and the DevSynth CLI remains available after reinstalling extras—use these logs as evidence for tasks 1.1–1.1.2 and §15 environment reliability guidance.【F:diagnostics/install_dev_20250919T233750Z.log†L1-L9】【F:diagnostics/env_checks_20250919T233750Z.log†L1-L7】【F:diagnostics/env_checks_20250919T233750Z.log†L259-L321】
 
 17. Documentation Maintenance
 17.1 [x] Deduplicate historical entries in docs/task_notes.md to keep the iteration log concise.
