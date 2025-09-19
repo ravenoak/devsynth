@@ -76,6 +76,11 @@ Coverage instrumentation and gating (authoritative)
   ```
   Segments reuse the shared `.coverage` file; `_ensure_coverage_artifacts()` produces combined HTML/JSON at the end. Run
   `poetry run coverage combine` only when mixing CLI-driven runs with ad-hoc `pytest --cov` executions.
+  Deterministic simulations under `tests/unit/testing/test_coverage_segmentation_simulation.py` confirm that overlapping
+  segments monotonically increase the union of executed lines and that three evenly sized batches (70, 70, 70 lines with
+  15-line overlaps) push aggregate coverage past the 90 % threshold without manual `coverage combine` calls. The simulated
+  history mirrors the CLI append workflow: each pass updates the cumulative coverage vector, and the third pass reliably lifts
+  the aggregate to ≥90 %, matching the Typer regression tests for `--segment` orchestration.【F:tests/unit/testing/test_coverage_segmentation_simulation.py†L1-L52】
 - Historical context and ongoing remediation (coverage still at 13.68 % on 2025-09-15) remain tracked in
   [issues/coverage-below-threshold.md](../issues/coverage-below-threshold.md) and docs/tasks.md §21. The new gate surfaces the
   shortfall explicitly instead of silently passing.

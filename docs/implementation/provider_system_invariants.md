@@ -50,6 +50,40 @@ assert providers[0].calls == 1 and providers[1].calls == 1 and providers[2].call
 This behavior is exercised by
 `tests/property/test_provider_system_properties.py::test_fallback_provider_stops_at_first_success`.
 
+## Measured Retry Cost and Expected Provider Calls
+
+The sequential fallback contract yields a closed-form expectation for how many
+providers are invoked before either a success or an aggregate failure:
+
+\[
+\mathbb{E}[\text{calls}] = \sum_{i=1}^{n} \prod_{j=1}^{i-1} (1 - p_j),
+\]
+
+where `p_j` is the probability that provider `j` succeeds when it is asked to
+complete the request. The property-based regression
+`tests/property/test_provider_system_properties.py::test_fallback_expected_call_cost_matches_probability`
+enumerates every success/failure outcome for up to five providers, weights each
+outcome by its probability mass, and confirms that the measured average number
+of provider invocations matches the cumulative failure-prefix formula above.
+This supplements
+`test_fallback_provider_stops_at_first_success`, which proves that only the
+prefix up to the first success is ever charged.【F:tests/property/test_provider_system_properties.py†L1-L98】
+
+Two representative scenarios, derived from the automated enumeration, illustrate
+the retry budget:
+
+| Provider success probabilities | Expected provider calls |
+| --- | --- |
+| (0.7, 0.5, 0.2) | 1 + 0.3 + 0.3 × 0.5 = **1.45** |
+| (0.3, 0.4, 0.8) | 1 + 0.7 + 0.7 × 0.6 = **2.12** |
+
+In practice, this means fallback orchestration usually resolves within two
+providers when upstream reliability exceeds 50 %, while the worst case remains
+bounded by the total number of configured providers (all failures still result
+in exactly `n` calls). The measured expectation guides quota planning for paid
+providers and justifies leaving retry counters at the default of one attempt per
+provider when failure probabilities remain below 30 %.【F:tests/property/test_provider_system_properties.py†L56-L98】
+
 ## References
 
 - Issue: [issues/edrr-integration-with-real-llm-providers.md](../issues/edrr-integration-with-real-llm-providers.md)

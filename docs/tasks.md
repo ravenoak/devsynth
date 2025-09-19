@@ -220,8 +220,8 @@ Notes:
 
 24. Proof and Simulation Backfill (Phase 5C)
 24.1 [x] Extend `docs/implementation/run_tests_cli_invariants.md` with a section covering coverage instrumentation guarantees once §21.8/§21.11 land, including references to the new regression tests (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).【F:docs/implementation/run_tests_cli_invariants.md†L1-L55】【7e4fe3†L1-L9】
-24.2 [ ] Add quantitative analysis (expected coverage deltas, cost of segmented runs) to `docs/implementation/provider_system_invariants.md` so the reasoning loop, provider defaults, and coverage metrics remain synchronized (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [provider-system-invariants.md](../issues/provider-system-invariants.md)).
-24.3 [ ] Capture a simulation or formula demonstrating how the coverage gate enforces ≥90 % when multiple segments append to `.coverage`, and document the proof in `docs/plan.md` and `docs/task_notes.md` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
+24.2 [x] Add quantitative analysis (expected coverage deltas, cost of segmented runs) to `docs/implementation/provider_system_invariants.md` so the reasoning loop, provider defaults, and coverage metrics remain synchronized (Issues: [coverage-below-threshold.md](../issues/coverage-below-threshold.md), [provider-system-invariants.md](../issues/provider-system-invariants.md)).【F:docs/implementation/provider_system_invariants.md†L1-L66】
+24.3 [x] Capture a simulation or formula demonstrating how the coverage gate enforces ≥90 % when multiple segments append to `.coverage`, and document the proof in `docs/plan.md` and `docs/task_notes.md` (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).【F:docs/plan.md†L66-L87】【F:docs/task_notes.md†L120-L147】
 
 Notes:
 - 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.

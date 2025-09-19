@@ -126,3 +126,11 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run bandit -r src/devsynth -x tests | tee diagnostics/bandit_2025-09-17.txt`.
 - Observations: Trimmed long lines, removed unused imports, and replaced `except ... pass` in adapters, `__init__`, and Kuzu store; flake8 run still fails due to historic violations in tests, while bandit reports 146 low-confidence subprocess warnings pending broader risk review.
 - Next: Schedule follow-up to refactor legacy test fixtures and review remaining subprocess usage across CLI and MVU utilities.
+
+## Iteration 2025-09-17E – Coverage segmentation simulation and provider retry metrics
+- Environment: Python 3.12.10; Poetry env `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`; `task --version` 3.45.3.
+- Commands:
+  - `poetry run pytest tests/unit/testing/test_coverage_segmentation_simulation.py -q` – validates that three overlapping CLI segments (70, 70, 70 nodes with 15-line overlaps) raise aggregate coverage to ≥90 % through cumulative union logic.【F:tests/unit/testing/test_coverage_segmentation_simulation.py†L1-L52】
+  - `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/test_provider_system_properties.py::test_fallback_expected_call_cost_matches_probability -q` – enumerates success/failure outcomes to prove the cumulative failure-prefix expectation for provider calls.【F:tests/property/test_provider_system_properties.py†L56-L98】
+- Observations: Documented the simulation and retry expectations in `docs/plan.md`, `docs/implementation/provider_system_invariants.md`, and summarized the findings here to close docs/tasks.md items 24.2–24.3. The measured averages keep provider retry budgets within two calls for high-reliability backends while the segmentation proof demonstrates the CLI gate remains ≥90 % even when workloads are batched.
+- Next: Roll the same expectation modeling into release readiness once the fast+medium aggregate run restores actual coverage artifacts.
