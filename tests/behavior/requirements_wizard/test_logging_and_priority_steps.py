@@ -29,6 +29,9 @@ class DummyBridge(UXBridge):
 
 
 scenarios(str(Path(__file__).with_name("logging_and_priority.feature")))
+scenarios(
+    str(Path(__file__).parents[1] / "features" / "requirements_wizard_logging.feature")
+)
 
 
 @given("logging is configured for the requirements wizard")

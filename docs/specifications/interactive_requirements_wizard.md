@@ -2,14 +2,14 @@
 
 title: "Interactive Requirements Wizard"
 date: "2025-06-16"
-last_reviewed: "2025-07-20"
+last_reviewed: "2025-09-19"
 version: "0.1.0-alpha.1"
 tags:
   - "specification"
   - "requirements"
   - "ux"
 
-status: "draft"
+status: "review"
 author: "DevSynth Team"
 ---
 <div class="breadcrumbs">
@@ -55,17 +55,24 @@ named `requirements_wizard.json`.
 - Inputs must be validated according to requirement type and priority options.
 - The wizard state is stored in memory until the user confirms completion.
 
+## What proofs confirm the solution?
 
-## Expected Behaviour
+- BDD scenarios in [`tests/behavior/features/interactive_requirements_wizard.feature`](../../tests/behavior/features/interactive_requirements_wizard.feature) and [`tests/behavior/features/general/requirements_wizard_navigation.feature`](../../tests/behavior/features/general/requirements_wizard_navigation.feature) exercise the CLI bridge and WebUI navigation paths end to end.
+- Unit coverage in [`tests/unit/application/requirements/test_interactions.py`](../../tests/unit/application/requirements/test_interactions.py) and [`tests/unit/application/requirements/test_wizard.py`](../../tests/unit/application/requirements/test_wizard.py) verifies persistence, logging, and error handling.
+- WebUI invariants remain synchronized with the wizard contract per [`docs/implementation/webui_rendering_invariants.md`](../implementation/webui_rendering_invariants.md).
 
-- Users may navigate backward to edit previous answers.
-- On completion the responses are written to `requirements_wizard.json` and
+## Intended Behaviors
 
-  merged into the current project configuration.
+- **Bridge-driven question flow** – `UXBridge.ask_question` and `confirm_choice` collect title, description, type, priority, and constraints with explicit "back" handling so earlier answers persist. See [`tests/behavior/features/interactive_requirements_wizard.feature`](../../tests/behavior/features/interactive_requirements_wizard.feature) and [`tests/behavior/steps/test_interactive_requirements_steps.py`](../../tests/behavior/steps/test_interactive_requirements_steps.py).
+- **Synchronized persistence** – Completion writes `requirements_wizard.json`, updates `.devsynth/project.yaml`, and emits `wizard_step` audit logs for each prompt. Verified by [`tests/unit/application/requirements/test_interactions.py`](../../tests/unit/application/requirements/test_interactions.py) and [`tests/unit/application/requirements/test_wizard.py`](../../tests/unit/application/requirements/test_wizard.py).
+- **WebUI parity** – Streamlit-backed flows reuse the shared wizard state helpers to move forward/backward without losing data. Exercised by [`tests/behavior/features/general/requirements_wizard_navigation.feature`](../../tests/behavior/features/general/requirements_wizard_navigation.feature) with bindings in [`tests/behavior/steps/test_requirements_wizard_navigation_steps.py`](../../tests/behavior/steps/test_requirements_wizard_navigation_steps.py).
+
+## Acceptance Criteria
+
+- Navigating backward returns to the previous step without discarding earlier answers, and the final priority survives in both `requirements_wizard.json` and `.devsynth/project.yaml`.
+- Completing the wizard produces a success message, persists structured JSON output, and emits a `wizard_step` log entry per prompt.
+- Persisting configuration failures surface a `requirements_save_failed` log with `exc_info` populated before bubbling the exception.
+
 ## Implementation Status
 
-This feature is **implemented** with persistent storage and navigation controls.
-
-## What proofs confirm the solution?
-- BDD scenarios in [`tests/behavior/features/interactive_requirements_wizard.feature`](../../tests/behavior/features/interactive_requirements_wizard.feature) ensure termination and expected outcomes.
-- Finite state transitions and bounded loops guarantee termination.
+This feature is **implemented** with persistent storage and navigation controls across CLI and WebUI surfaces.

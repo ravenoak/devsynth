@@ -1,30 +1,9 @@
 Feature: Interactive Requirements Flow CLI
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a maintainer collecting baseline project data
+  I want the CLI flow to write a structured plan
+  So that gathered inputs seed downstream automation
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
-
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Gather requirements through the CLI collector
+    Given the DevSynth CLI is installed
+    When I run the interactive requirements flow
+    Then an interactive requirements file "interactive_requirements.json" should exist

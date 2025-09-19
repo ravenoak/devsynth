@@ -9,6 +9,7 @@ from devsynth.application.cli.config import CLIConfig
 from devsynth.application.cli.requirements_wizard import requirements_wizard
 
 scenarios("../features/general/interactive_requirements.feature")
+scenarios("../features/interactive_requirements_wizard.feature")
 
 
 @given("the DevSynth CLI is installed")

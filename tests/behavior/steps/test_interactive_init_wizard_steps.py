@@ -13,6 +13,7 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.config.unified_loader import UnifiedConfigLoader
 
 scenarios("../features/general/interactive_init_wizard.feature")
+scenarios("../features/interactive_init_wizard.feature")
 
 
 @given("the DevSynth CLI is installed")
