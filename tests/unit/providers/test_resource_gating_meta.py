@@ -11,6 +11,18 @@ def test_openai_marked_tests_skip_by_default(pytester, monkeypatch):
     """
     # Ensure default gating env is false
     monkeypatch.setenv("DEVSYNTH_RESOURCE_OPENAI_AVAILABLE", "false")
+    pythonpath = os.pathsep.join(
+        filter(
+            None,
+            [
+                os.getcwd(),
+                os.path.join(os.getcwd(), "src"),
+                os.environ.get("PYTHONPATH"),
+            ],
+        )
+    )
+    monkeypatch.setenv("PYTHONPATH", pythonpath)
+    pytester.makeini("[pytest]\naddopts = -p tests.conftest\n")
 
     # Create a tiny test file that would "require" OpenAI.
     test_code = (
@@ -33,6 +45,18 @@ def test_openai_marked_tests_run_when_enabled(pytester, monkeypatch):
     """
     monkeypatch.setenv("DEVSYNTH_RESOURCE_OPENAI_AVAILABLE", "true")
     monkeypatch.setenv("OPENAI_API_KEY", "dummy")
+    pythonpath = os.pathsep.join(
+        filter(
+            None,
+            [
+                os.getcwd(),
+                os.path.join(os.getcwd(), "src"),
+                os.environ.get("PYTHONPATH"),
+            ],
+        )
+    )
+    monkeypatch.setenv("PYTHONPATH", pythonpath)
+    pytester.makeini("[pytest]\naddopts = -p tests.conftest\n")
 
     test_code = (
         "import pytest\n"

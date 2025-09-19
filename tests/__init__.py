@@ -87,4 +87,5 @@ pytest_plugins = [
     "tests.fixtures.optional_deps",
     "tests.fixtures.lmstudio_mock",
     "tests.fixtures.lmstudio_service",
+    "pytester",
 ]
