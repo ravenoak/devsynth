@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import json
 import logging
 import sys
@@ -179,3 +180,74 @@ def test_ensure_coverage_artifacts_generates_reports_and_syncs_legacy(
     legacy_json = Path("coverage.json")
     assert legacy_json.exists()
     assert json.loads(legacy_json.read_text()) == coverage_payload
+
+
+@pytest.mark.fast
+def test_ensure_coverage_artifacts_skips_when_module_unavailable(
+    coverage_test_environment: SimpleNamespace,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """ReqID: COV-ART-02A — Missing coverage module logs debug message and exits."""
+
+    monkeypatch.delitem(sys.modules, "coverage", raising=False)
+
+    original_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):  # noqa: ANN001
+        if name == "coverage":
+            raise ImportError("coverage module unavailable")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    with caplog.at_level(logging.DEBUG, logger="devsynth.testing.run_tests"):
+        rt._ensure_coverage_artifacts()
+
+    assert any(
+        "coverage library unavailable" in message
+        for message in caplog.messages
+    )
+    assert not coverage_test_environment.coverage_json.exists()
+    assert not coverage_test_environment.html_dir.exists()
+
+
+@pytest.mark.fast
+def test_ensure_coverage_artifacts_html_failure_still_writes_json(
+    coverage_test_environment: SimpleNamespace,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """ReqID: COV-ART-05 — HTML generation errors do not block JSON reports."""
+
+    module = ModuleType("coverage")
+    data_file = Path(".coverage")
+    data_file.write_text("valid")
+    payload = {"totals": {"percent_covered": 88.8}}
+
+    class HTMLFailsCoverage:
+        def __init__(self, data_file: str) -> None:
+            self.data_file = data_file
+
+        def load(self) -> None:
+            return None
+
+        def get_data(self) -> SimpleNamespace:
+            return SimpleNamespace(measured_files=lambda: ["src/module.py"])
+
+        def html_report(self, *_args: object, **_kwargs: object) -> None:
+            raise RuntimeError("disk full")
+
+        def json_report(self, outfile: str) -> None:
+            Path(outfile).write_text(json.dumps(payload))
+
+    module.Coverage = HTMLFailsCoverage  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "coverage", module)
+
+    caplog.set_level(logging.WARNING)
+
+    rt._ensure_coverage_artifacts()
+
+    assert "Failed to write coverage HTML report" in caplog.text
+    assert coverage_test_environment.coverage_json.exists()
+    assert json.loads(coverage_test_environment.coverage_json.read_text()) == payload

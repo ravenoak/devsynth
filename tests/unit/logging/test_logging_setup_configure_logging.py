@@ -158,6 +158,32 @@ def test_configure_logging_idempotent_with_identical_settings(
 
 
 @pytest.mark.fast
+def test_configure_logging_invokes_directory_creation_once(
+    logging_setup_module: ModuleType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: LOG-CONF-05A — ensure_log_dir_exists executes only on first configuration."""
+
+    logging_setup = logging_setup_module
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+    monkeypatch.delenv("DEVSYNTH_NO_FILE_LOGGING", raising=False)
+
+    calls: list[str] = []
+
+    def fake_ensure(path: str) -> str:
+        calls.append(path)
+        return path
+
+    monkeypatch.setattr(logging_setup, "ensure_log_dir_exists", fake_ensure)
+
+    logging_setup.configure_logging(log_dir="logs")
+    logging_setup.configure_logging(log_dir="logs")
+
+    assert calls == [str(tmp_path / "logs")]
+
+
+@pytest.mark.fast
 def test_configure_logging_preserves_filters_on_reconfigure(
     logging_setup_module: ModuleType,
     tmp_path: Path,
