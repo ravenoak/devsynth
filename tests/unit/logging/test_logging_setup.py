@@ -247,6 +247,41 @@ def test_ensure_log_dir_redirects_under_test_project_dir(monkeypatch, tmp_path):
 
 
 @pytest.mark.fast
+def test_ensure_log_dir_redirects_absolute_outside_home(monkeypatch, tmp_path):
+    """ReqID: LOG-06C — non-home absolute paths mirror under project directory."""
+
+    monkeypatch.delenv("DEVSYNTH_NO_FILE_LOGGING", raising=False)
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+
+    # Use an absolute path that does not live under the user's home directory
+    abs_path = os.path.join(os.sep, "var", "devsynth", "logs")
+
+    redirected = ensure_log_dir_exists(abs_path)
+
+    expected = tmp_path / "var" / "devsynth" / "logs"
+    assert redirected == str(expected)
+    assert expected.exists() and expected.is_dir()
+
+
+@pytest.mark.fast
+def test_ensure_log_dir_respects_project_dir_when_file_logging_disabled(
+    monkeypatch, tmp_path
+):
+    """ReqID: LOG-06D — project redirection still applies when skipping filesystem writes."""
+
+    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "YES")
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+
+    home_relative = os.path.join(str(Path.home()), "service", "logs")
+
+    redirected = ensure_log_dir_exists(home_relative)
+
+    assert redirected == home_relative
+    redirected_path = Path(redirected)
+    assert not redirected_path.exists()
+
+
+@pytest.mark.fast
 def test_configure_logging_redirects_home_and_disables_file_handler(
     monkeypatch, tmp_path
 ):
@@ -388,3 +423,37 @@ def test_devsynth_logger_log_merges_and_filters_kwargs():
     assert "name" not in extra
     assert "lineno" not in extra
     assert "process" not in extra
+
+
+@pytest.mark.fast
+def test_devsynth_logger_log_does_not_mutate_extra_inputs():
+    """ReqID: LOG-06C — Reserved-key filtering leaves caller extras intact."""
+
+    wrapper = DevSynthLogger("devsynth.test.immutability")
+    inner_logger = wrapper.logger
+    original_log = inner_logger.log
+
+    mock_log = MagicMock()
+    inner_logger.log = mock_log
+
+    try:
+        original_extra = {"detail": "value", "name": "drop-me"}
+        wrapper._log(
+            logging.INFO,
+            "msg",
+            extra=original_extra,
+            lineno=123,
+            custom="kept",
+            process=42,
+        )
+    finally:
+        inner_logger.log = original_log
+        inner_logger.handlers = []
+        inner_logger.filters = []
+        inner_logger.propagate = True
+
+    mock_log.assert_called_once()
+    kwargs = mock_log.call_args.kwargs
+    assert set(kwargs.keys()) == {"extra"}
+    assert kwargs["extra"] == {"detail": "value", "custom": "kept"}
+    assert original_extra == {"detail": "value", "name": "drop-me"}

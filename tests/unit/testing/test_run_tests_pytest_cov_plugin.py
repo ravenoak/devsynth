@@ -12,10 +12,11 @@ def test_ensure_pytest_cov_plugin_env_adds_plugin(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
     monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
 
-    changed = run_tests_module.ensure_pytest_cov_plugin_env(os.environ)
+    env = os.environ
+    changed = run_tests_module.ensure_pytest_cov_plugin_env(env)
 
     assert changed is True
-    assert os.environ.get("PYTEST_ADDOPTS") == "-p pytest_cov"
+    assert env.get("PYTEST_ADDOPTS") == "-p pytest_cov"
 
 
 @pytest.mark.fast
@@ -27,7 +28,24 @@ def test_ensure_pytest_cov_plugin_env_respects_explicit_disables(
     monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
     monkeypatch.setenv("PYTEST_ADDOPTS", "--no-cov -p no:pytest_cov")
 
-    changed = run_tests_module.ensure_pytest_cov_plugin_env(os.environ)
+    env = os.environ
+    changed = run_tests_module.ensure_pytest_cov_plugin_env(env)
 
     assert changed is False
-    assert os.environ.get("PYTEST_ADDOPTS") == "--no-cov -p no:pytest_cov"
+    assert env.get("PYTEST_ADDOPTS") == "--no-cov -p no:pytest_cov"
+
+
+@pytest.mark.fast
+def test_ensure_pytest_cov_plugin_env_detects_inline_plugin_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: PYTEST-COV-02 — '-ppytest_cov' tokens keep configuration stable."""
+
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    monkeypatch.setenv("PYTEST_ADDOPTS", " -ppytest_cov   -k fast ")
+
+    env = os.environ
+    changed = run_tests_module.ensure_pytest_cov_plugin_env(env)
+
+    assert changed is False
+    assert env.get("PYTEST_ADDOPTS") == " -ppytest_cov   -k fast "

@@ -67,3 +67,74 @@ def test_run_tests_segmented_batches_execute(monkeypatch):
         "tests/unit/module_b_test.py::test_b1",
     ]
     assert "ok" in output or output == ""
+
+
+@pytest.mark.fast
+def test_run_tests_segmented_honors_keyword_filter(monkeypatch, tmp_path):
+    """ReqID: RUN-TESTS-SEGMENTED-2 — Keyword filter applies during segmented runs."""
+
+    tests_dir = tmp_path / "keyword"
+    tests_dir.mkdir()
+    (tests_dir / "test_one.py").write_text("def test_one():\n    assert True\n")
+    (tests_dir / "test_two.py").write_text("def test_two():\n    assert True\n")
+
+    import devsynth.testing.run_tests as rt
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tests_dir))
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
+
+    collect_calls: list[list[str]] = []
+
+    class FakeCollectProc:
+        def __init__(self, stdout: str) -> None:
+            self.stdout = stdout
+            self.stderr = ""
+            self.returncode = 0
+
+    def fake_run(cmd, check=False, capture_output=True, text=True):
+        collect_calls.append(cmd[:])
+        assert "-k" in cmd, "keyword filter should be applied during collection"
+        return FakeCollectProc(
+            "\n".join(["test_one.py::test_one", "test_two.py::test_two"])
+        )
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_run)
+
+    batch_cmds: list[list[str]] = []
+
+    class FakeBatchProcess:
+        def __init__(
+            self, cmd, stdout=None, stderr=None, text=False, env=None
+        ):  # noqa: ANN001
+            batch_cmds.append(cmd[:])
+            self.returncode = 0
+            self._stdout = "ok\n"
+            self._stderr = ""
+
+        def communicate(self):
+            return self._stdout, self._stderr
+
+    monkeypatch.setattr(rt.subprocess, "Popen", FakeBatchProcess)
+
+    success, output = run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=True,
+        segment_size=1,
+        maxfail=None,
+        extra_marker="requires_resource('lmstudio')",
+    )
+
+    assert success is True
+    assert any("-k" in cmd for cmd in collect_calls)
+    assert len(batch_cmds) == 2
+    assert all(
+        len([part for part in cmd if part.endswith("::test_one") or part.endswith("::test_two")])
+        == 1
+        for cmd in batch_cmds
+    )
+    assert "ok" in output
