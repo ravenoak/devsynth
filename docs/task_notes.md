@@ -143,3 +143,13 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry env info --path` – confirms Poetry now resolves to the in-project `.venv` rather than cache paths.
 - Observations: go-task now persists by exporting `$HOME/.local/bin` to `.profile`, `.bashrc`, `.bash_profile`, `.zprofile`, and `.zshrc`; Poetry is configured for an in-repo `.venv`, and GitHub Actions receives `.venv/bin` via `GITHUB_PATH`. The new doctor script fails fast when `task` or the DevSynth CLI regress and is wired into the dispatch-only install smoke workflow.
 - Next: Document bootstrap behaviour in docs/plan.md §15 and keep CI pinned to the new verification step.
+
+## Iteration 2025-09-19B – Coverage gate regression after `.venv` bootstrap
+- Environment: Python 3.12.10; `poetry env info --path` → `/workspace/devsynth/.venv`; `task --version` 3.45.4.【65b132†L1-L2】【21111e†L1-L2】【7cd862†L1-L3】
+- Commands:
+  - `poetry install --with dev --all-extras` to refresh extras after the cached virtualenv was removed.【551ad2†L1-L1】【c4aa1f†L1-L3】
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` → pytest passes but coverage artifacts remain missing.【060b36†L1-L5】
+  - `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` → exits 1 because `test_reports/coverage.json` is absent even though tests complete.【eb7b9a†L1-L5】【f1a97b†L1-L3】
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json` and `poetry run python scripts/verify_requirements_traceability.py` – both succeed, confirming marker discipline and traceability remain green.【e7b446†L1-L1】【70ba40†L1-L2】
+- Observations: The regression persists after migrating to `.venv`; both smoke and fast+medium profiles warn "Coverage artifact generation skipped: data file missing" leaving `.coverage` absent. Instrumentation must be revalidated (tasks §6.3.2–§6.3.4) before the ≥90 % gate can pass. Evidence recorded in issues/coverage-below-threshold.md and docs/plan.md.
+- Next: Trace `ensure_pytest_cov_plugin_env`, compare direct `pytest --cov` invocations, and capture CLI env snapshots for issue updates before attempting UAT reruns.

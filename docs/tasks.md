@@ -68,6 +68,9 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 6.2.2 [x] Optional manual combine when mixing CLI runs with ad-hoc pytest invocations: `poetry run coverage combine && poetry run coverage html -d htmlcov && poetry run coverage json -o coverage.json`.
 6.3 [ ] Verify global threshold: the coverage gate now exits with code 1 because coverage artifacts are missing entirely; restore `.coverage` generation and re-run until ≥90 % is observed (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).
 6.3.1 [ ] Document smoke profile expectations and the current regression: smoke mode still skips coverage artifacts unless pytest-cov is force-loaded; update guidance once instrumentation is fixed so maintainers know when to set `PYTEST_ADDOPTS="--no-cov"` intentionally.
+6.3.2 [ ] Reproduce the coverage artifact loss after `scripts/install_dev.sh` migrates Poetry into `.venv` and capture CLI/pytest environment diagnostics for issues/coverage-below-threshold.md (see plan §6 logs).【060b36†L1-L5】【eb7b9a†L1-L5】【21111e†L1-L2】
+6.3.3 [ ] Trace `ensure_pytest_cov_plugin_env` during smoke and fast+medium runs to confirm `-p pytest_cov` is injected or explain why the helper returns False in the current `.venv` context (add debug logging or pytest monkeypatch-based unit tests).
+6.3.4 [ ] Compare `devsynth run-tests` with a direct `pytest --cov=src/devsynth` execution inside the new `.venv` to determine why `.coverage` remains absent despite installed extras; document findings in issues/coverage-below-threshold.md.
 6.4 [x] Save logs to test_reports/ and artifacts to htmlcov/ and coverage.json.
 
 7. Behavior and Integration Completeness (Phase 3)
@@ -182,6 +185,7 @@ Notes:
 19.1 [x] Draft v0.1.0a1 release notes and update CHANGELOG.md.
 19.2 [ ] Conduct User Acceptance Testing and confirm approval.
 19.3 [ ] Perform final full fast+medium coverage run and archive artifacts with ≥90 % coverage. Latest attempt (2025-09-17) exited early because `.coverage` was never written, so no HTML/JSON artifacts exist to archive.
+19.3.1 [ ] Retry the final fast+medium profile after coverage instrumentation is repaired; as of 2025-09-19 the command still exits with "Coverage artifact generation skipped: data file missing" and returns code 1 (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).【eb7b9a†L1-L5】【f1a97b†L1-L3】
 19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).
 19.5 [ ] Close issues/release-finalization-uat.md after tagging is complete.
 
