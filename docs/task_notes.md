@@ -134,3 +134,12 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/test_provider_system_properties.py::test_fallback_expected_call_cost_matches_probability -q` – enumerates success/failure outcomes to prove the cumulative failure-prefix expectation for provider calls.【F:tests/property/test_provider_system_properties.py†L56-L98】
 - Observations: Documented the simulation and retry expectations in `docs/plan.md`, `docs/implementation/provider_system_invariants.md`, and summarized the findings here to close docs/tasks.md items 24.2–24.3. The measured averages keep provider retry budgets within two calls for high-reliability backends while the segmentation proof demonstrates the CLI gate remains ≥90 % even when workloads are batched.
 - Next: Roll the same expectation modeling into release readiness once the fast+medium aggregate run restores actual coverage artifacts.
+
+## Iteration 2025-09-19 – Bootstrap persistence audit
+- Environment: Python 3.12.10; Poetry virtualenv `/workspace/devsynth/.venv`; `task --version` 3.45.4 after reinstall.
+- Commands:
+  - `bash scripts/install_dev.sh` – reinstalled go-task, created `.venv`, and re-ran verification suite with fresh pre-commit hooks.
+  - `python scripts/doctor/bootstrap_check.py` – verifies `task --version`, `poetry env info --path`, and `poetry run devsynth --help` succeed via the new doctor script.
+  - `poetry env info --path` – confirms Poetry now resolves to the in-project `.venv` rather than cache paths.
+- Observations: go-task now persists by exporting `$HOME/.local/bin` to `.profile`, `.bashrc`, `.bash_profile`, `.zprofile`, and `.zshrc`; Poetry is configured for an in-repo `.venv`, and GitHub Actions receives `.venv/bin` via `GITHUB_PATH`. The new doctor script fails fast when `task` or the DevSynth CLI regress and is wired into the dispatch-only install smoke workflow.
+- Next: Document bootstrap behaviour in docs/plan.md §15 and keep CI pinned to the new verification step.

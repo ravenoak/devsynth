@@ -1,6 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+INSTALL_DEV_TIMESTAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+append_profile_snippet() {
+  local profile_path="$1"
+  local label="$2"
+  local snippet="$3"
+
+  if [[ -z "$profile_path" || -z "$label" || -z "$snippet" ]]; then
+    return 0
+  fi
+
+  local profile_dir
+  profile_dir="$(dirname "$profile_path")"
+  if [[ ! -d "$profile_dir" ]]; then
+    return 0
+  fi
+
+  if [[ ! -e "$profile_path" ]]; then
+    if ! touch "$profile_path" >/dev/null 2>&1; then
+      echo "[warning] unable to update $profile_path for $label" >&2
+      return 0
+    fi
+  fi
+
+  if grep -F "$label" "$profile_path" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  {
+    printf '\n# Added by DevSynth install_dev.sh (%s) on %s\n' "$label" "$INSTALL_DEV_TIMESTAMP"
+    printf '%s\n' "$snippet"
+  } >>"$profile_path"
+
+  echo "[info] appended $label snippet to $profile_path" >&2
+}
+
+PROFILE_FILES=(
+  "$HOME/.profile"
+  "$HOME/.bash_profile"
+  "$HOME/.bashrc"
+  "$HOME/.zprofile"
+  "$HOME/.zshrc"
+)
+
 # Platform guard: this script targets Linux/macOS. On Windows, use WSL2 (Ubuntu) and run inside the WSL shell.
 os_name="$(uname -s 2>/dev/null || echo unknown)"
 case "$os_name" in
@@ -92,9 +138,10 @@ if ! task --version >/dev/null 2>&1; then
 fi
 
 # Ensure the Task binary directory is on PATH for future sessions
-if [ -w "$HOME/.profile" ] && ! grep -F "$TASK_BIN_DIR" "$HOME/.profile" >/dev/null 2>&1; then
-  echo "export PATH=\"$TASK_BIN_DIR:\$PATH\"" >> "$HOME/.profile"
-fi
+task_path_snippet="export PATH=\"$TASK_BIN_DIR:\$PATH\""
+for profile in "${PROFILE_FILES[@]}"; do
+  append_profile_snippet "$profile" "devsynth-task-path" "$task_path_snippet"
+done
 echo "$TASK_BIN_DIR" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
 
 # Display Task version for debugging and ensure it resolves
@@ -131,8 +178,19 @@ if ! poetry --version >/dev/null 2>&1; then
   exit 1
 fi
 
-poetry config virtualenvs.create true
-poetry env remove --all >/dev/null 2>&1 || true
+poetry config virtualenvs.create true --local
+poetry config virtualenvs.in-project true --local
+export POETRY_VIRTUALENVS_IN_PROJECT=1
+
+existing_env_path=""
+if existing_env_path="$(poetry env info --path 2>/dev/null)"; then
+  if [[ -n "$existing_env_path" && "$existing_env_path" != "$PROJECT_ROOT/.venv" ]]; then
+    echo "[info] removing legacy Poetry virtualenv at $existing_env_path" >&2
+    poetry env remove --all >/dev/null 2>&1 || true
+  fi
+else
+  existing_env_path=""
+fi
 # Prefer an explicit Python 3.12 interpreter. Fall back to the active python
 # if pyenv does not expose a dedicated shim.
 py_exec=""
@@ -142,8 +200,16 @@ fi
 if [[ -z "$py_exec" ]]; then
   py_exec="$(command -v python3.12 2>/dev/null || command -v python)"
 fi
-if ! poetry env use "$py_exec" >/dev/null 2>&1; then
-  echo "[error] Python 3.12 executable not available for Poetry: $py_exec" >&2
+if [[ ! -d "$PROJECT_ROOT/.venv" ]]; then
+  if ! "$py_exec" -m venv "$PROJECT_ROOT/.venv" >/dev/null 2>&1; then
+    echo "[error] failed to create in-project virtualenv at $PROJECT_ROOT/.venv" >&2
+    exit 1
+  fi
+  echo "[info] created in-project virtualenv at $PROJECT_ROOT/.venv" >&2
+fi
+
+if ! poetry env use "$PROJECT_ROOT/.venv/bin/python" >/dev/null 2>&1; then
+  echo "[error] unable to activate Poetry virtualenv at $PROJECT_ROOT/.venv" >&2
   exit 1
 fi
 
@@ -200,6 +266,14 @@ if [[ -z "$venv_path" ]]; then
   exit 1
 fi
 echo "[info] poetry virtualenv: $venv_path"
+
+if [[ "$venv_path" != "$PROJECT_ROOT/.venv" ]]; then
+  echo "[info] poetry virtualenv is located at $venv_path (expected $PROJECT_ROOT/.venv)" >&2
+fi
+
+if [[ -d "$venv_path/bin" ]]; then
+  echo "$venv_path/bin" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
+fi
 
 # Confirm the DevSynth CLI entry point is available
 if ! poetry run devsynth --help >/dev/null 2>&1; then
