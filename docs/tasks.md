@@ -55,6 +55,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 4.2.1 [x] Add resource-gated tests using @pytest.mark.requires_resource("<NAME>").
 4.2.2 [x] Implement minimal smoke coverage (import + basic op) when DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true.
 4.2.3 [x] Document in tests how to enable each backend locally.
+4.3 [ ] Replace placeholder BDD steps in `tests/behavior/features/memory_adapter_read_and_write_operations.feature` so the memory adapter read/write specification can exit draft status; align documentation once executable evidence exists.【F:tests/behavior/features/memory_adapter_read_and_write_operations.feature†L1-L25】
 
 5. Coverage Uplift — UX Bridge and Logging (Phase 2)
 5.1 [x] Add unit tests for non-interactive flows in CLI UX bridge components.
@@ -157,6 +158,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 16.1.5 [x] executive_summary.md → tests/behavior/features/executive_summary.feature
 16.2 [x] Re-run `poetry run python scripts/verify_requirements_traceability.py` until no missing feature references.
 16.3 [x] Update issues/missing-bdd-tests.md and docs/plan.md with progress.
+16.4 [ ] Populate `tests/behavior/features/memory_and_context_system.feature` with executable scenarios before promoting docs/specifications/memory-and-context-system.md beyond draft.【F:docs/specifications/memory-and-context-system.md†L1-L36】【F:tests/behavior/features/memory_and_context_system.feature†L1-L25】
 
 Notes:
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
@@ -178,6 +180,7 @@ Notes:
 18.3.1 [x] Reasoning loop invariants documented in docs/implementation/reasoning_loop_invariants.md.
 18.3.2 [x] Provider system invariants documented in docs/implementation/provider_system_invariants.md.
 18.3.3 [x] Consensus building invariants documented in docs/implementation/consensus_building_invariants.md.
+18.3.4 [ ] Restore `devsynth.application.edrr.coordinator` template imports so `tests/unit/application/edrr/test_threshold_helpers.py` can execute, then promote docs/implementation/edrr_invariants.md beyond draft once the helper coverage is in place.【19f5e6†L1-L63】
 18.4 [x] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
 18.5 [x] Investigate full fast+medium coverage run failure (`ERROR tests/unit/general/test_test_first_metrics.py`) and restore coverage artifact generation.
 18.6 [x] Automate provisioning of `devsynth` CLI and `task` in fresh environments (issues/devsynth-cli-missing.md, issues/task-cli-persistence.md).
@@ -187,6 +190,7 @@ Notes:
 19.2 [ ] Conduct User Acceptance Testing and confirm approval.
 19.3 [ ] Perform final full fast+medium coverage run and archive artifacts with ≥90 % coverage. Latest attempt (2025-09-17) exited early because `.coverage` was never written, so no HTML/JSON artifacts exist to archive.
 19.3.1 [ ] Retry the final fast+medium profile after coverage instrumentation is repaired; as of 2025-09-19 the command still exits with "Coverage artifact generation skipped: data file missing" and returns code 1 (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).【eb7b9a†L1-L5】【f1a97b†L1-L3】
+19.3.2 [ ] Fix missing imports in `tests/behavior/steps/release_state_steps.py` so the release-state BDD scenarios execute before promoting docs/implementation/release_state_check_invariants.md.【4a11c5†L1-L32】
 19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).
 19.5 [ ] Close issues/release-finalization-uat.md after tagging is complete.
 

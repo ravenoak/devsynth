@@ -16,6 +16,7 @@ EDRR Integration with Real LLM Providers is not yet implemented, limiting DevSyn
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-20: Provider-system invariants promoted to review with property-based regression evidence and a focused coverage sweep (16.86 % line coverage) captured in `issues/tmp_cov_provider_system.json`; remaining work tracks end-to-end provider wiring once real backends are available.【F:docs/implementation/provider_system_invariants.md†L1-L110】【F:issues/tmp_cov_provider_system.json†L1-L1】
 
 ## References
 - Specification: docs/specifications/edrr-integration-with-real-llm-providers.md

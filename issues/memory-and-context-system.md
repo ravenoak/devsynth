@@ -16,6 +16,7 @@ Memory and Context System is not yet implemented, limiting DevSynth's capabiliti
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-20: Specification remains draft because the paired BDD feature still contains placeholder `[role]` scaffolding; see docs/tasks.md §16.4 for follow-up to author executable scenarios before promotion.【F:docs/specifications/memory-and-context-system.md†L1-L36】【F:tests/behavior/features/memory_and_context_system.feature†L1-L25】
 
 ## References
 - Specification: docs/specifications/memory-and-context-system.md

@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-09-20'
-status: draft
+status: review
 tags:
 - implementation
 - invariants
@@ -48,7 +48,7 @@ assert providers[0].calls == 1 and providers[1].calls == 1 and providers[2].call
 ```
 
 This behavior is exercised by
-`tests/property/test_provider_system_properties.py::test_fallback_provider_stops_at_first_success`.
+`tests/property/test_provider_system_properties.py::test_fallback_provider_stops_at_first_success`.【F:tests/property/test_provider_system_properties.py†L1-L53】
 
 ## Measured Retry Cost and Expected Provider Calls
 
@@ -67,7 +67,7 @@ outcome by its probability mass, and confirms that the measured average number
 of provider invocations matches the cumulative failure-prefix formula above.
 This supplements
 `test_fallback_provider_stops_at_first_success`, which proves that only the
-prefix up to the first success is ever charged.【F:tests/property/test_provider_system_properties.py†L1-L98】
+prefix up to the first success is ever charged.【F:tests/property/test_provider_system_properties.py†L32-L98】
 
 Two representative scenarios, derived from the automated enumeration, illustrate
 the retry budget:
@@ -87,8 +87,8 @@ provider when failure probabilities remain below 30 %.【F:tests/property/test
 ## References
 
 - Issue: [issues/edrr-integration-with-real-llm-providers.md](../issues/edrr-integration-with-real-llm-providers.md)
-- Test: [tests/property/test_provider_system_properties.py](../tests/property/test_provider_system_properties.py)
+- Tests: [tests/property/test_provider_system_properties.py](../tests/property/test_provider_system_properties.py) (Hypothesis coverage) and [tests/unit/providers/test_provider_system_additional.py](../../tests/unit/providers/test_provider_system_additional.py) (offline defaults and retry plumbing).【F:tests/property/test_provider_system_properties.py†L1-L98】【F:tests/unit/providers/test_provider_system_additional.py†L1-L118】
 
 ## Coverage Signal (2025-09-20)
 
-- Fast regression tests [`tests/unit/providers/test_provider_system_additional.py`](../../tests/unit/providers/test_provider_system_additional.py) simulate offline safeguards, safe-provider selection, and retry configuration plumbing without requiring optional HTTP extras. A focused `pytest --cov=devsynth.adapters.provider_system` run records 17 % line coverage, improving on the prior 12 % baseline and proving the fallback invariants remain enforced when toggling environment flags.【F:issues/tmp_cov_provider_system.json†L1-L1】
+- Fast regression tests [`tests/unit/providers/test_provider_system_additional.py`](../../tests/unit/providers/test_provider_system_additional.py) simulate offline safeguards, safe-provider selection, and retry configuration plumbing without requiring optional HTTP extras. A focused `pytest --cov=devsynth.adapters.provider_system` run records 16.86 % line coverage, improving on the prior 12 % baseline and proving the fallback invariants remain enforced when toggling environment flags.【F:tests/unit/providers/test_provider_system_additional.py†L1-L118】【F:issues/tmp_cov_provider_system.json†L1-L1】

@@ -57,3 +57,8 @@ Verification stops when the audit log has unanswered questions ([feature](../../
 - BDD Features: [tests/behavior/features/release_state_check.feature](../../tests/behavior/features/release_state_check.feature), [tests/behavior/features/dialectical_audit_gating.feature](../../tests/behavior/features/dialectical_audit_gating.feature)
 - Unit Tests: [tests/unit/scripts/test_verify_release_state.py](../../tests/unit/scripts/test_verify_release_state.py)
 - Issue: [issues/release-state-check.md](../../issues/release-state-check.md)
+
+## Coverage Signal and Outstanding Gaps (2025-09-20)
+
+- Unit coverage via [`tests/unit/scripts/test_verify_release_state.py`](../../tests/unit/scripts/test_verify_release_state.py) exercises the success, failure, and remediation paths of `scripts/verify_release_state.py`. A focused sweep limited to the `scripts/` namespace records 69.23 % line coverage for the verification script, providing concrete execution evidence for the invariants while highlighting unvisited diagnostic branches.【d43747†L1-L17】【F:issues/tmp_cov_release_state.json†L1-L1】
+- The published BDD features still lack working step imports—`tests/behavior/test_release_state_check.py` fails with `StepDefinitionNotFoundError` because `tests/behavior/steps/release_state_steps.py` omits the required `Path` and `subprocess` imports. The feature remains a draft asset until those steps are restored; [issues/release-state-check.md](../../issues/release-state-check.md) has been reopened to track the missing automation.
