@@ -1,6 +1,6 @@
 ---
 author: DevSynth Team
-date: '2025-09-12'
+date: '2025-09-20'
 status: draft
 tags:
 - implementation
@@ -88,3 +88,7 @@ provider when failure probabilities remain below 30 %.【F:tests/property/test
 
 - Issue: [issues/edrr-integration-with-real-llm-providers.md](../issues/edrr-integration-with-real-llm-providers.md)
 - Test: [tests/property/test_provider_system_properties.py](../tests/property/test_provider_system_properties.py)
+
+## Coverage Signal (2025-09-20)
+
+- Fast regression tests [`tests/unit/providers/test_provider_system_additional.py`](../../tests/unit/providers/test_provider_system_additional.py) simulate offline safeguards, safe-provider selection, and retry configuration plumbing without requiring optional HTTP extras. A focused `pytest --cov=devsynth.adapters.provider_system` run records 17 % line coverage, improving on the prior 12 % baseline and proving the fallback invariants remain enforced when toggling environment flags.【F:issues/tmp_cov_provider_system.json†L1-L1】

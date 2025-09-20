@@ -1,6 +1,6 @@
 ---
 author: DevSynth Team
-date: '2025-09-14'
+date: '2025-09-20'
 status: draft
 tags:
 - implementation
@@ -57,3 +57,7 @@ Simulation: [tests/integration/general/test_config_loader.py](../../tests/integr
 ## Issue Reference
 
 - [logging-setup-utilities](../../issues/logging-setup-utilities.md)
+
+## Coverage Signal (2025-09-20)
+
+- Focused fast tests [`tests/unit/logging/test_logging_setup_additional_paths.py`](../../tests/unit/logging/test_logging_setup_additional_paths.py) validate secret redaction, JSON formatter context, log-dir rewrites, and `DevSynthLogger._log` keyword filtering. A dedicated coverage run records 41 % line coverage for `src/devsynth/logging_setup.py`, surfacing remaining gaps in legacy handler wiring while proving the new invariants execute deterministically without touching the real filesystem.【F:issues/tmp_cov_logging_setup.json†L1-L1】
