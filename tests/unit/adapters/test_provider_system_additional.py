@@ -499,6 +499,77 @@ def test_retry_decorator_wiring(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.fast
+def test_retry_decorator_emits_metrics_on_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Emit retry telemetry when decorated call raises before succeeding.
+
+    ReqID: N/A
+    """
+
+    inc_calls: list[str] = []
+
+    def fake_inc_provider(metric: str) -> None:
+        inc_calls.append(metric)
+
+    monkeypatch.setattr(provider_system, "inc_provider", fake_inc_provider)
+
+    def fake_retry_with_exponential_backoff(**kwargs):
+        on_retry = kwargs["on_retry"]
+        max_retries = kwargs["max_retries"]
+        initial_delay = kwargs["initial_delay"]
+
+        def decorator(func):
+            def wrapped(*args, **inner_kwargs):
+                attempt = 0
+                while True:
+                    try:
+                        return func(*args, **inner_kwargs)
+                    except Exception as exc:
+                        attempt += 1
+                        if attempt > max_retries:
+                            raise
+                        on_retry(exc, attempt, initial_delay)
+
+            return wrapped
+
+        return decorator
+
+    monkeypatch.setattr(
+        provider_system,
+        "retry_with_exponential_backoff",
+        fake_retry_with_exponential_backoff,
+    )
+
+    class SampleProvider(BaseProvider):
+        def __init__(self) -> None:
+            super().__init__(
+                retry_config={
+                    "max_retries": 2,
+                    "initial_delay": 0.0,
+                    "exponential_base": 1.0,
+                    "max_delay": 0.0,
+                    "jitter": False,
+                    "track_metrics": True,
+                    "conditions": [],
+                }
+            )
+
+    provider = SampleProvider()
+    state = {"calls": 0}
+
+    def sometimes_fails() -> str:
+        state["calls"] += 1
+        if state["calls"] == 1:
+            raise RuntimeError("transient")
+        return "ok"
+
+    decorator = provider.get_retry_decorator((RuntimeError,))
+    wrapped = decorator(sometimes_fails)
+    assert wrapped() == "ok"
+    assert state["calls"] == 2
+    assert inc_calls == ["retry"]
+
+
+@pytest.mark.fast
 def test_fallback_provider_sync_uses_circuit_breaker(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -625,6 +696,190 @@ def test_fallback_provider_async_records_success(
     assert breaker.success_records == 1
     assert breaker.state == "closed"
     assert provider.async_calls == 1
+
+
+@pytest.mark.fast
+def test_fallback_provider_short_circuits_after_first_success(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Stop the fallback chain after the first provider succeeds.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config()
+    config["fallback"] = {"enabled": True, "order": ["first", "second"]}
+    config["circuit_breaker"] = {
+        "enabled": False,
+        "failure_threshold": 1,
+        "recovery_timeout": 0.0,
+    }
+    _install_factory_config(monkeypatch, config)
+
+    class FirstProvider(FakeProvider):
+        def complete(self, *args, **kwargs):  # type: ignore[override]
+            return f"first::{super().complete(*args, **kwargs)}"
+
+    class SecondProvider(FakeProvider):
+        def complete(self, *args, **kwargs):  # type: ignore[override]
+            return f"second::{super().complete(*args, **kwargs)}"
+
+    first_provider = FirstProvider()
+    second_provider = SecondProvider()
+    factory = FakeFactory({"first": first_provider, "second": second_provider})
+    monkeypatch.setattr(provider_system, "ProviderFactory", factory)
+
+    caplog.set_level("INFO")
+    fallback = FallbackProvider(
+        config=config,
+        provider_factory=provider_system.ProviderFactory,
+    )
+
+    assert factory.calls == ["first", "second"]
+    assert fallback.providers == [first_provider, second_provider]
+    assert any(
+        "Initialized fallback provider order: FirstProvider, SecondProvider"
+        in record.getMessage()
+        for record in caplog.records
+    )
+
+    result = fallback.complete("prompt")
+    assert result.startswith("first::sync:")
+    assert first_provider.sync_calls == 1
+    assert second_provider.sync_calls == 0
+
+
+@pytest.mark.fast
+def test_fallback_provider_skips_providers_with_open_breakers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Skip providers whose circuit breaker opened after repeated failures.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config()
+    config["fallback"] = {"enabled": True, "order": ["first", "second"]}
+    config["circuit_breaker"] = {
+        "enabled": True,
+        "failure_threshold": 2,
+        "recovery_timeout": 0.0,
+    }
+    _install_factory_config(monkeypatch, config)
+
+    class CircuitBreakerStub:
+        def __init__(
+            self,
+            *_args,
+            failure_threshold: int,
+            recovery_timeout: float,
+            **_kwargs,
+        ) -> None:
+            self.failure_threshold = failure_threshold
+            self.recovery_timeout = recovery_timeout
+            self.state = "closed"
+            self.failure_count = 0
+            self.calls = 0
+
+        def call(self, func, *args, **kwargs):
+            self.calls += 1
+            if self.state != "closed":
+                raise ProviderError("Circuit breaker open")
+            try:
+                result = func(*args, **kwargs)
+            except Exception:
+                self._record_failure()
+                raise
+            else:
+                self._record_success()
+                return result
+
+        def _record_failure(self) -> None:
+            self.failure_count += 1
+            if self.failure_count >= self.failure_threshold:
+                self.state = "open"
+
+        def _record_success(self) -> None:
+            self.state = "closed"
+            self.failure_count = 0
+
+    class FirstProvider(BaseProvider):
+        def __init__(self) -> None:
+            super().__init__(retry_config=_make_retry_config())
+            self.complete_calls = 0
+            self.embed_calls = 0
+
+        def complete(
+            self,
+            prompt: str,
+            system_prompt: str | None = None,
+            temperature: float = 0.7,
+            max_tokens: int = 2000,
+            *,
+            parameters: dict | None = None,
+        ) -> str:
+            self.complete_calls += 1
+            raise RuntimeError("first provider failure")
+
+        def embed(self, text: str | list[str]) -> list[list[float]]:
+            self.embed_calls += 1
+            raise RuntimeError("first provider failure")
+
+    class SecondProvider(BaseProvider):
+        def __init__(self) -> None:
+            super().__init__(retry_config=_make_retry_config())
+            self.complete_calls = 0
+            self.embed_calls = 0
+
+        def complete(
+            self,
+            prompt: str,
+            system_prompt: str | None = None,
+            temperature: float = 0.7,
+            max_tokens: int = 2000,
+            *,
+            parameters: dict | None = None,
+        ) -> str:
+            self.complete_calls += 1
+            return f"second:{prompt}"
+
+        def embed(self, text: str | list[str]) -> list[list[float]]:
+            self.embed_calls += 1
+            return [[float(self.embed_calls)]]
+
+    first_provider = FirstProvider()
+    second_provider = SecondProvider()
+    factory = FakeFactory({"first": first_provider, "second": second_provider})
+
+    monkeypatch.setattr(provider_system, "CircuitBreaker", CircuitBreakerStub)
+    monkeypatch.setattr(provider_system, "ProviderFactory", factory)
+
+    fallback = FallbackProvider(
+        config=config,
+        provider_factory=provider_system.ProviderFactory,
+    )
+
+    assert fallback.circuit_breakers["first"].state == "closed"
+
+    assert fallback.complete("prompt-1").startswith("second:")
+    assert first_provider.complete_calls == 1
+    assert second_provider.complete_calls == 1
+
+    assert fallback.complete("prompt-2").startswith("second:")
+    breaker = fallback.circuit_breakers["first"]
+    assert first_provider.complete_calls == 2
+    assert breaker.failure_count == 2
+    assert breaker.state == "open"
+
+    assert fallback.complete("prompt-3").startswith("second:")
+    assert first_provider.complete_calls == 2
+    assert second_provider.complete_calls == 3
+
+    embed_result = fallback.embed("payload")
+    assert embed_result == [[1.0]]
+    assert first_provider.embed_calls == 0
+    assert second_provider.embed_calls == 1
 
 
 @pytest.mark.fast
