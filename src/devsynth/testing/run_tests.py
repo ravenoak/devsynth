@@ -111,6 +111,12 @@ def _reset_coverage_artifacts() -> None:
         except OSError:
             # Never fail test execution due to cleanup issues
             logger.debug("Unable to remove coverage artifact: %s", path)
+    for fragment in Path.cwd().glob(".coverage.*"):
+        try:
+            if fragment.is_file():
+                fragment.unlink()
+        except OSError:
+            logger.debug("Unable to remove coverage fragment: %s", fragment)
     for directory in {COVERAGE_HTML_DIR, *LEGACY_HTML_DIRS}:
         try:
             if directory.exists():
@@ -129,12 +135,60 @@ def _ensure_coverage_artifacts() -> None:
         return
 
     data_path = Path(".coverage")
+    fragments = sorted(Path.cwd().glob(".coverage.*"))
+    if not data_path.exists() and fragments:
+        try:
+            coverage_for_combine = Coverage(data_file=str(data_path))
+            coverage_for_combine.combine([str(path) for path in fragments])
+            coverage_for_combine.save()
+        except Exception as exc:  # pragma: no cover - defensive guard
+            logger.warning(
+                "Unable to consolidate coverage fragments",
+                extra={
+                    "error": str(exc),
+                    "fragments": [str(path) for path in fragments],
+                    "coverage_data_file": str(data_path),
+                },
+            )
+        else:
+            logger.info(
+                "Consolidated %d coverage fragments into %s",
+                len(fragments),
+                data_path,
+                extra={
+                    "coverage_data_file": str(data_path),
+                    "fragment_count": len(fragments),
+                },
+            )
+            for fragment in fragments:
+                try:
+                    fragment.unlink()
+                except OSError as cleanup_error:  # pragma: no cover - defensive guard
+                    logger.debug(
+                        "Unable to remove coverage fragment",
+                        extra={
+                            "error": str(cleanup_error),
+                            "fragment": str(fragment),
+                        },
+                    )
+
     if not data_path.exists():
         logger.warning(
             "Coverage artifact generation skipped: data file missing",
             extra={"coverage_data_file": str(data_path)},
         )
         return
+
+    try:
+        file_size = data_path.stat().st_size
+    except OSError:  # pragma: no cover - defensive guard
+        file_size = 0
+    logger.info(
+        "Coverage data file detected at %s (%d bytes)",
+        data_path,
+        file_size,
+        extra={"coverage_data_file": str(data_path), "coverage_file_size": file_size},
+    )
 
     try:
         cov = Coverage(data_file=str(data_path))
@@ -175,6 +229,14 @@ def _ensure_coverage_artifacts() -> None:
             extra={"error": str(exc), "output_dir": str(COVERAGE_HTML_DIR)},
         )
     else:
+        html_index = COVERAGE_HTML_DIR / "index.html"
+        logger.info(
+            "Coverage HTML report generated",
+            extra={
+                "coverage_html_index": str(html_index),
+                "coverage_html_exists": html_index.exists(),
+            },
+        )
         for legacy_dir in LEGACY_HTML_DIRS:
             try:
                 if legacy_dir.exists():
@@ -194,6 +256,10 @@ def _ensure_coverage_artifacts() -> None:
             extra={"error": str(exc), "output_file": str(COVERAGE_JSON_PATH)},
         )
     else:
+        logger.info(
+            "Coverage JSON report generated",
+            extra={"coverage_json_path": str(COVERAGE_JSON_PATH)},
+        )
         try:
             shutil.copyfile(COVERAGE_JSON_PATH, Path("coverage.json"))
         except Exception as exc:  # pragma: no cover - defensive guard
@@ -261,8 +327,8 @@ def ensure_pytest_cov_plugin_env(env: MutableMapping[str, str]) -> bool:
     normalized = addopts_value.strip()
     updated = f"{normalized} -p pytest_cov".strip()
     env["PYTEST_ADDOPTS"] = updated
-    logger.debug(
-        "Enabled pytest-cov via -p pytest_cov because plugin autoloading is disabled",
+    logger.info(
+        "Injected -p pytest_cov into PYTEST_ADDOPTS to preserve coverage instrumentation",
         extra={"pytest_addopts": updated},
     )
     return True
@@ -651,6 +717,13 @@ def run_tests(
 
     _reset_coverage_artifacts()
 
+    plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
+    if plugin_injected:
+        logger.info(
+            "PYTEST_ADDOPTS updated to include -p pytest_cov for test subprocesses",
+            extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
+        )
+
     pytest_base = [sys.executable, "-m", "pytest"]
     if maxfail is not None:
         pytest_base.append(f"--maxfail={maxfail}")
@@ -674,8 +747,12 @@ def run_tests(
     # When not running in parallel, force-disable auto-loading of third-party
     # pytest plugins to avoid hangs and unintended side effects in smoke/fast
     # paths. Respect any explicit user setting if already present.
-    ensure_pytest_cov_plugin_env(os.environ)
     env = os.environ.copy()
+    if ensure_pytest_cov_plugin_env(env):
+        logger.info(
+            "Ensured subprocess environment retains -p pytest_cov despite plugin autoload restrictions",
+            extra={"pytest_addopts": env.get("PYTEST_ADDOPTS", "")},
+        )
     # Do not unilaterally disable third-party pytest plugins here. Disabling
     # plugin autoload while pytest.ini includes plugin-specific options (e.g.,
     # --cov flags from pytest-cov) causes 'unrecognized arguments' errors.
@@ -837,11 +914,48 @@ def run_tests(
             if pattern.match(line.strip())
         ]
         node_ids = _sanitize_node_ids(raw_ids)
-        if not node_ids:
-            logger.info("No %s tests found for %s, skipping...", speed, target)
-            continue
+        base_norm = Path(test_path).as_posix().rstrip("/")
+        base_name = Path(base_norm).name
+        normalized_ids: list[str] = []
+        for nid in node_ids:
+            path_part, sep, remainder = nid.partition("::")
+            rel_path = path_part.lstrip("./")
+            final_path = rel_path
+            if Path(path_part).is_absolute():
+                final_path = Path(path_part).as_posix()
+            else:
+                if rel_path.startswith(f"{base_norm}/") or rel_path == base_norm:
+                    final_path = rel_path
+                elif base_name and (
+                    rel_path == base_name
+                    or rel_path.startswith(f"{base_name}/")
+                ):
+                    suffix = rel_path[len(base_name) :].lstrip("/")
+                    final_path = (
+                        f"{base_norm}/{suffix}" if suffix else base_norm
+                    )
+                elif rel_path:
+                    final_path = f"{base_norm}/{rel_path}"
+                else:
+                    final_path = base_norm
+            normalized = final_path
+            if sep:
+                normalized = f"{normalized}{sep}{remainder}"
+            normalized_ids.append(normalized)
+        node_ids = normalized_ids
+        node_count = len(node_ids)
+        if node_count == 0:
+            logger.warning(
+                "No node ids were collected for %s/%s; running pytest with marker fallback",
+                speed,
+                target,
+                extra={
+                    "pytest_marker_expr": marker_expr,
+                    "pytest_collect_returncode": check_result.returncode,
+                },
+            )
 
-        if segment:
+        if segment and node_ids:
             test_list = node_ids
             logger.info(
                 "Found %d %s tests, running in batches of %d...",
@@ -888,7 +1002,21 @@ def run_tests(
                 all_output += agg_tips
             all_success = all_success and batch_success
         else:
-            run_cmd = run_base_cmd + node_ids + report_options
+            if segment and not node_ids:
+                logger.warning(
+                    "Segmented execution requested for %s/%s but no node ids were collected; executing a single pytest command instead",
+                    speed,
+                    target,
+                    extra={"pytest_marker_expr": marker_expr},
+                )
+            run_cmd = run_base_cmd + ["-m", marker_expr] + report_options
+            logger.info(
+                "Executing pytest command",
+                extra={
+                    "pytest_command": run_cmd,
+                    "pytest_node_count": node_count,
+                },
+            )
             process = subprocess.Popen(
                 run_cmd,
                 stdout=subprocess.PIPE,
