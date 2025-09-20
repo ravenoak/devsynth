@@ -148,6 +148,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 15.2 [x] Evaluate caching or automatic installation to ensure `task` persists across sessions.
 15.3 [x] Document go-task installation and persistence strategy in plan and task notes.
 15.4 [x] Investigate `scripts/install_dev.sh` reporting "Python 3.12 not available for Poetry" and ensure the script reliably provisions the environment.
+15.5 [ ] Investigate repeated loss of the `devsynth` CLI entry point after environment provisioning; ensure bootstrap automation reinstalls it automatically (evidence: diagnostics/devsynth_cli_missing_20250920.log, diagnostics/poetry_install_20250920.log).
 
 16. Requirements Traceability Alignment
 16.1 [x] Add BDD feature files for specifications referenced in verify_requirements_traceability failures:
@@ -166,6 +167,7 @@ Notes:
 - Prefer adding tests for pure logic first, then expand to gated integrations.
 - 2025-09-15: Environment needed go-task reinstallation; smoke tests and verification scripts pass; UAT and tagging remain.
 - 2025-09-19: diagnostics/install_dev_20250919T233750Z.log and diagnostics/env_checks_20250919T233750Z.log confirm go-task 3.45.4 persists, Poetry now resolves to `/workspace/devsynth/.venv`, and the DevSynth CLI remains available after reinstalling extras—use these logs as evidence for tasks 1.1–1.1.2 and §15 environment reliability guidance.【F:diagnostics/install_dev_20250919T233750Z.log†L1-L9】【F:diagnostics/env_checks_20250919T233750Z.log†L1-L7】【F:diagnostics/env_checks_20250919T233750Z.log†L259-L321】
+- 2025-09-20: diagnostics/devsynth_cli_missing_20250920.log and diagnostics/poetry_install_20250920.log show the CLI still missing after codex bootstrap until `poetry install --with dev --all-extras` reruns; task 15.5 tracks automating this reinstall.
 
 17. Documentation Maintenance
 17.1 [x] Deduplicate historical entries in docs/task_notes.md to keep the iteration log concise.
@@ -217,7 +219,7 @@ Notes:
 21.12 [ ] Repair smoke profile pytest-bdd loading when plugin autoloading is disabled; ensure the CLI injects the plugin alongside pytest-cov so scenario discovery succeeds (Issue: [run-tests-smoke-pytest-bdd-config.md](../issues/run-tests-smoke-pytest-bdd-config.md)).
 21.12.1 [ ] Add an in-process regression test that invokes `devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` and asserts pytest-bdd scenarios execute without IndexError when plugin autoload is disabled (Issue: [run-tests-smoke-pytest-bdd-config.md](../issues/run-tests-smoke-pytest-bdd-config.md)).
 21.12.2 [ ] Update docs/plan.md and docs/tasks.md once the smoke pytest-bdd regression is addressed, including links to the new regression test and smoke log artifact (Issue: [run-tests-smoke-pytest-bdd-config.md](../issues/run-tests-smoke-pytest-bdd-config.md)).
-21.12.3 [x] Capture and archive the failing smoke run output to support diagnostics (logs/run-tests-smoke-fast-20250920.log) and reference it from the issue tracker (Issue: [run-tests-smoke-pytest-bdd-config.md](../issues/run-tests-smoke-pytest-bdd-config.md)).
+21.12.3 [x] Capture and archive the failing smoke run output to support diagnostics (logs/run-tests-smoke-fast-20250920.log, logs/run-tests-smoke-fast-20250920T000000Z.log) and reference it from the issue tracker (Issue: [run-tests-smoke-pytest-bdd-config.md](../issues/run-tests-smoke-pytest-bdd-config.md)).
 
 22. Coverage Instrumentation Recovery (Phase 2C)
 22.1 [x] Diagnose why `.coverage` is absent after `devsynth run-tests` when coverage warnings appear; ensure `_ensure_coverage_artifacts()` only runs once real data is available (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).

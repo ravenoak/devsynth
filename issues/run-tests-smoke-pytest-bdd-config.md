@@ -7,6 +7,7 @@ Reproduction:
 Exit Code: 1
 Artifacts:
   - logs/run-tests-smoke-fast-20250920.log
+  - logs/run-tests-smoke-fast-20250920T000000Z.log (2025-09-20 reproduction after reinstalling extras)
 Suspected Cause: Smoke profile disables pytest plugin autoloading and now injects -p pytest_cov automatically, but pytest-bdd hooks are still skipped. When a test module calls pytest_bdd.scenarios the CONFIG_STACK is empty, leading to an IndexError.
 Next Actions:
   - [ ] Ensure pytest-bdd is explicitly loaded when smoke mode sets PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 (either by injecting -p pytest_bdd or by loading scenarios via import hooks).

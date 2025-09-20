@@ -186,3 +186,9 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
 - Commands: `poetry run devsynth doctor` (records missing provider env defaults); `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (fails with pytest-bdd IndexError, log saved to `logs/run-tests-smoke-fast-20250920.log`).【3c45ee†L1-L40】【65926f†L1-L52】
 - Observations: Smoke run failure blocks coverage gate; captured log for Issue run-tests-smoke-pytest-bdd-config; added docs/tasks.md §§25–27 to target low-coverage modules and promote draft invariants/specifications; docs/plan.md updated with spec-first adoption gaps and acceptance checklist reflects failing smoke suite.
 - Next: Restore pytest-bdd loading in smoke mode, execute coverage uplift backlog (provider_system, webui, logging_setup, run_tests), publish outstanding implementation notes, and draft dependency matrix aligning draft specs with failing tests before retrying the fast+medium gate.
+
+## Iteration 2025-09-20D – Smoke repro + CLI bootstrap gap
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4; `poetry run devsynth --help` failed until `poetry install --with dev --all-extras` reran (logs under diagnostics/devsynth_cli_missing_20250920.log, diagnostics/poetry_install_20250920.log).
+- Commands: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (reproduced pytest-bdd IndexError, new log `logs/run-tests-smoke-fast-20250920T000000Z.log`); `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`.
+- Observations: Codex bootstrap still omits CLI install; smoke profile remains blocked on pytest-bdd config and continues skipping coverage artifact generation.
+- Next: Automate CLI reinstalls in scripts/install_dev.sh (docs/tasks.md 15.5) and add pytest-bdd plugin injection/regression coverage before attempting fast+medium reruns.
