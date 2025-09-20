@@ -46,3 +46,7 @@ These helpers guarantee that `_get_micro_cycle_config` returns finite iteration 
 - Specification: [docs/specifications/edrr_cycle_specification.md](../specifications/edrr_cycle_specification.md)
 - BDD Feature: [tests/behavior/features/edrr_cycle_specification.feature](../tests/behavior/features/edrr_cycle_specification.feature)
 - Issue: [issues/edrr-invariants.md](../issues/edrr-invariants.md)
+
+## Outstanding Evidence Gap (2025-09-20)
+
+- Unit coverage for `_sanitize_positive_int` and `_sanitize_threshold` is still blocked: `tests/unit/application/edrr/test_threshold_helpers.py` fails during coordinator construction because `devsynth.application.edrr.coordinator.templates` is missing. The invariant note remains in draft status until the coordinator import path is repaired and the helper tests execute successfully.【19f5e6†L1-L63】
