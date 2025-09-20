@@ -333,7 +333,16 @@ def run_tests_cmd(
         os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist " + existing_addopts).strip()
         no_parallel = True
 
-    ensure_pytest_cov_plugin_env(os.environ)
+    plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
+    if plugin_injected:
+        message = (
+            "[cyan]-p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
+        )
+        logger.info(
+            "CLI appended -p pytest_cov to PYTEST_ADDOPTS to enforce coverage instrumentation",
+            extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
+        )
+        ux_bridge.print(message)
 
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
     # to catch stalls while avoiding flakiness on slower machines.
