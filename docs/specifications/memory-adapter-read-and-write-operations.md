@@ -1,8 +1,8 @@
 ---
 author: DevSynth Team
 date: 2025-08-19
-last_reviewed: 2025-08-19
-status: draft
+last_reviewed: 2025-09-20
+status: review
 tags:
 
 - specification
@@ -24,7 +24,8 @@ Required metadata fields:
 
 # Summary
 # Dict-based cache layers and the multi-layered memory expose symmetric
-read and write operations for key-value items.
+read and write operations for key-value items, and the behavior suite now exercises
+write-through propagation alongside missing-key error handling.
 
 ## Socratic Checklist
 - What is the problem? The memory system lacks a standard read/write API,
@@ -34,9 +35,13 @@ read and write operations for key-value items.
   ``KeyError``.
 
 ## Motivation
+Legacy adapters invoked private `set`/`get` methods directly, leaving test
+code to mirror implementation details. A conventional `write`/`read` API
+reduces duplication, makes layered cache expectations explicit, and keeps
+behavior specifications stable as storage strategies evolve.
 
 ## What proofs confirm the solution?
-- BDD scenarios in [`tests/behavior/features/memory_adapter_read_and_write_operations.feature`](../../tests/behavior/features/memory_adapter_read_and_write_operations.feature) ensure termination and expected outcomes.
+- BDD scenarios in [`tests/behavior/features/memory_adapter_read_and_write_operations.feature`](../../tests/behavior/features/memory_adapter_read_and_write_operations.feature) assert write-through semantics and confirm `KeyError` is surfaced for unknown keys.
 - Finite state transitions and bounded loops guarantee termination.
 
 Providing a conventional read/write interface clarifies how memory components

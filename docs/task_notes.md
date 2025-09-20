@@ -161,3 +161,14 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry env info --path`, `poetry install --with dev --all-extras`, `poetry run devsynth --help`, `task --version` – verified that Poetry resolves to `/workspace/devsynth/.venv`, reinstalls extras, exposes the DevSynth CLI, and leaves go-task available (`3.45.4`), all captured in diagnostics/env_checks_20250919T233750Z.log.【F:diagnostics/env_checks_20250919T233750Z.log†L1-L7】【F:diagnostics/env_checks_20250919T233750Z.log†L259-L321】
 - Observations: The install script’s profile snippets and cache cleanup reliably converge on the repo-local `.venv`; the aggregated diagnostics confirm bootstrap parity for `task`, `poetry`, and the DevSynth CLI in fresh shells.
 - Next: Reference the new diagnostics logs from plan/tasks entries so maintainers can audit bootstrap health while continuing the coverage instrumentation fixes.
+
+## Iteration 2025-09-20 – Memory BDD coverage uplift
+- Environment: Python 3.12.10; `poetry env info --path` → /workspace/devsynth/.venv; `task --version` 3.45.4.
+- Commands:
+  - `bash scripts/install_dev.sh`
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (fails: pytest-bdd config missing when plugin autoload disabled).
+  - `poetry run pytest tests/behavior/steps/test_memory_adapter_read_and_write_operations_steps.py -q --override-ini addopts=`
+  - `poetry run pytest tests/behavior/steps/test_memory_and_context_system_steps.py -q --override-ini addopts=`
+  - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`
+- Observations: Memory adapter and memory/context specifications now have executable BDD coverage; smoke profile still surfaces the pytest-bdd configuration gap that blocks CI until plugin autoload remediation lands. Specs promoted to review with behavior-backed evidence.
+- Next: Repair smoke profile plugin configuration so coverage instrumentation can run without manual overrides, then pursue full fast+medium coverage gate.
