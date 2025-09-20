@@ -55,7 +55,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 4.2.1 [x] Add resource-gated tests using @pytest.mark.requires_resource("<NAME>").
 4.2.2 [x] Implement minimal smoke coverage (import + basic op) when DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true.
 4.2.3 [x] Document in tests how to enable each backend locally.
-4.3 [ ] Replace placeholder BDD steps in `tests/behavior/features/memory_adapter_read_and_write_operations.feature` so the memory adapter read/write specification can exit draft status; align documentation once executable evidence exists.【F:tests/behavior/features/memory_adapter_read_and_write_operations.feature†L1-L25】
+4.3 [x] Replace placeholder BDD steps in `tests/behavior/features/memory_adapter_read_and_write_operations.feature` so the memory adapter read/write specification can exit draft status; align documentation once executable evidence exists.【F:tests/behavior/features/memory_adapter_read_and_write_operations.feature†L1-L16】【F:tests/behavior/steps/test_memory_adapter_read_and_write_operations_steps.py†L1-L79】
 
 5. Coverage Uplift — UX Bridge and Logging (Phase 2)
 5.1 [x] Add unit tests for non-interactive flows in CLI UX bridge components.
@@ -158,7 +158,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 16.1.5 [x] executive_summary.md → tests/behavior/features/executive_summary.feature
 16.2 [x] Re-run `poetry run python scripts/verify_requirements_traceability.py` until no missing feature references.
 16.3 [x] Update issues/missing-bdd-tests.md and docs/plan.md with progress.
-16.4 [ ] Populate `tests/behavior/features/memory_and_context_system.feature` with executable scenarios before promoting docs/specifications/memory-and-context-system.md beyond draft.【F:docs/specifications/memory-and-context-system.md†L1-L36】【F:tests/behavior/features/memory_and_context_system.feature†L1-L25】
+16.4 [x] Populate `tests/behavior/features/memory_and_context_system.feature` with executable scenarios before promoting docs/specifications/memory-and-context-system.md beyond draft.【F:docs/specifications/memory-and-context-system.md†L1-L88】【F:tests/behavior/features/memory_and_context_system.feature†L1-L28】【F:tests/behavior/steps/test_memory_and_context_system_steps.py†L1-L137】
 
 Notes:
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
