@@ -42,6 +42,10 @@ assert state.get_current_step() == state.get_total_steps()
 
 This behavior is exercised by `tests/property/test_webui_properties.py::test_next_step_converges_to_completion`.
 
+## Coverage Signal (2025-09-20)
+
+- **Targeted Streamlit harnesses:** Focused fast suites [`tests/unit/interface/test_webui_targeted_branches.py`](../../tests/unit/interface/test_webui_targeted_branches.py) and [`tests/unit/interface/test_webui_bridge_targeted.py`](../../tests/unit/interface/test_webui_bridge_targeted.py) drive question prompts, error tracebacks, highlight routing, and progress threshold transitions without a real Streamlit installation. Running `poetry run pytest … --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge` captures 22 % line coverage for each module, as recorded in [`issues/tmp_cov_webui.json`](../../issues/tmp_cov_webui.json) and [`issues/tmp_cov_webui_bridge.json`](../../issues/tmp_cov_webui_bridge.json), establishing a measurable floor while documenting remaining rendering gaps for follow-up.【F:issues/tmp_cov_webui.json†L1-L1】【F:issues/tmp_cov_webui_bridge.json†L1-L1】
+
 ## Coverage Signal (2025-09-17)
 
 - **Property-driven sweep:** `DEVSYNTH_PROPERTY_TESTING=true poetry run coverage run -m pytest --override-ini addopts="" tests/property/test_webui_properties.py` executes the navigation properties without requiring the optional Streamlit dependency and persists artifacts at `test_reports/webui_state_coverage.json` and `test_reports/htmlcov_webui_state/index.html` for audit trails.【52a70d†L1-L17】

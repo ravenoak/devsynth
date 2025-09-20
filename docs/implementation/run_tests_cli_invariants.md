@@ -1,6 +1,6 @@
 ---
 author: DevSynth Team
-date: '2025-09-17'
+date: '2025-09-20'
 status: published
 tags:
 - implementation
@@ -44,11 +44,12 @@ data = json.loads(Path("test_reports/test_inventory.json").read_text())
 assert "tests/unit" in data["tests"][0]["nodeid"]
 ```
 
-## Coverage Instrumentation Guarantees (2025-09-17)
+## Coverage Instrumentation Guarantees (2025-09-20)
 
 - **Focused regression sweep:** `poetry run coverage run -m pytest --override-ini addopts="" tests/unit/application/cli/commands/test_run_tests_cmd_inventory.py` exercises the Typer command through the inventory pathway, persisting artifacts at `test_reports/run_tests_cmd_coverage.json` and `test_reports/htmlcov_run_tests_cmd/index.html` to capture the coverage gate wiring.【4a0778†L1-L19】
 - **Measured coverage:** The sweep covers 58 of 177 statements (32.77 % line coverage) in `src/devsynth/application/cli/commands/run_tests_cmd.py`, highlighting that inventory/export logic is validated while other option paths still require additional tests.【7e4fe3†L1-L9】
 - **Instrumentation contract:** The command aborts with actionable remediation when coverage plugins are disabled or artifacts are missing, ensuring maintainers cannot silently bypass the ≥90 % gate without acknowledging the condition.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L300-L433】
+- **Core helper validation:** Supplemental fast tests [`tests/unit/testing/test_run_tests_additional_coverage.py`](../../tests/unit/testing/test_run_tests_additional_coverage.py) probe `_failure_tips`, coverage artifact guards, and node-id sanitization directly within `src/devsynth/testing/run_tests.py`. The focused run yields 8 % line coverage—up from the prior 7 % baseline—and documents which subprocess-driven branches remain outstanding for deeper integration sweeps.【F:issues/tmp_cov_run_tests.json†L1-L1】
 
 ## Regression Evidence
 
