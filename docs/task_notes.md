@@ -172,3 +172,11 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`
 - Observations: Memory adapter and memory/context specifications now have executable BDD coverage; smoke profile still surfaces the pytest-bdd configuration gap that blocks CI until plugin autoload remediation lands. Specs promoted to review with behavior-backed evidence.
 - Next: Repair smoke profile plugin configuration so coverage instrumentation can run without manual overrides, then pursue full fast+medium coverage gate.
+
+## Iteration 2025-09-20B – Smoke regression capture
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4 after reinstall.【9426cb†L1-L6】【794411†L1-L3】
+- Commands:
+  - `bash scripts/install_dev.sh` (recreates `.venv`, reinstalls extras, reapplies verification hooks).【4ae944†L1-L1】【7c71c2†L1-L3】【135407†L1-L2】【49a975†L1-L1】
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (fails with pytest-bdd IndexError under plugin autoload disable).【27b890†L1-L48】
+- Observations: Smoke profile now injects `-p pytest_cov` but leaves pytest-bdd unloaded, so requirements wizard scenarios crash; opened issues/run-tests-smoke-pytest-bdd-config.md and added docs/tasks.md §21.12 to track explicit plugin loading and a regression test.
+- Next: Implement plugin injection fix, add Typer-level regression coverage, rerun smoke+fast-medium coverage once pytest-bdd loads correctly.

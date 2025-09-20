@@ -30,6 +30,7 @@ FAIL Required test coverage of 90% not reached. Total coverage: 20.94%
 - [x] Add Typer-level regression tests that invoke `devsynth run-tests --smoke …` and `--speed=fast --speed=medium …` in-process and assert `.coverage`, `test_reports/coverage.json`, and HTML outputs exist after the command succeeds (docs/tasks.md §21.8.1, §21.11).
 - [x] Capture CLI logs from the failing fast+medium run and attach them here to aid diagnosis (docs/tasks.md §21.11.1).【F:logs/run-tests-fast-medium-after-fix.log†L2429-L2447】
 - [ ] Add targeted unit/integration tests for modules highlighted in docs/tasks.md §21 (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests).
+- [ ] Coordinate with issues/run-tests-smoke-pytest-bdd-config.md so smoke profile loads pytest-bdd when plugin autoload is disabled; the coverage gate cannot run while smoke exits early with IndexError.【27b890†L1-L48】【F:issues/run-tests-smoke-pytest-bdd-config.md†L1-L19】
 - [ ] Regenerate coverage artifacts once instrumentation is fixed and confirm the fail-under gate passes at ≥90 %.
 
 ## Notes
