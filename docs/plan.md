@@ -40,6 +40,9 @@ Commands executed (audit trail)
 - 2025-09-19: poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json confirms marker discipline remains intact (0 violations).【e7b446†L1-L1】
 - 2025-09-19: poetry run python scripts/verify_requirements_traceability.py verifies references remain synchronized (0 gaps).【70ba40†L1-L2】
 - Environment: Python 3.12.x (pyproject constraint), Poetry 2.2.0; coverage artifacts stored under `test_reports/20250915_212138/`, `test_reports/coverage.json`, and `htmlcov/index.html` with synthesized content, yet the JSON report confirms only 13.68 % coverage.
+- 2025-09-20: `bash scripts/install_dev.sh` re-ran because `task` was absent at session start; the helper reinstated go-task 3.45.4, recreated `/workspace/devsynth/.venv`, and re-initialized pre-commit plus verification hooks before returning control to the shell.【a6f268†L1-L24】【2c42d5†L1-L5】【e405e9†L1-L24】
+- 2025-09-20: `poetry run devsynth doctor` continues to flag missing provider environment variables and incomplete staged/stable configuration blocks—expected for test fixtures but must be resolved or documented before release hardening.【3c45ee†L1-L40】
+- 2025-09-20: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` fails with a pytest-bdd `IndexError` because plugin autoloading remains disabled; log captured under `logs/run-tests-smoke-fast-20250920.log` to support Issue `run-tests-smoke-pytest-bdd-config`.【65926f†L1-L52】【F:logs/run-tests-smoke-fast-20250920.log†L1-L34】
 
 Environment snapshot and reproducibility (authoritative)
 - Persist environment and toolchain details under diagnostics/ for reproducibility:
@@ -185,8 +188,14 @@ Spec-first, domain-driven, and behavior-driven alignment check (2025-09-17)
 - 2025-09-19: Synchronized the legacy hyphenated requirements wizard specifications with the review metadata, intended behaviors, and traceability links used by the canonical documents.【F:docs/specifications/requirements-wizard.md†L1-L63】【F:docs/specifications/requirements-wizard-logging.md†L1-L68】
 - Remaining supporting specifications (e.g., advanced onboarding wizards and memory adapters) still sit in `status: draft`, so follow-up work should continue the spec→BDD→implementation cadence.【65dc7a†L1-L10】
 
+Spec-first adoption gaps (2025-09-20 evaluation)
+- Implementation notes for the configuration loader, consensus building, retry mechanism, dialectical reasoning workflow, requirements wizard ↔ WizardState integration, agent API pseudocode, release state check, and EDRR coordinator remain in `status: draft`; each requires executable proofs or simulations plus coverage before UAT can rely on the documented guarantees.【F:docs/implementation/config_loader_workflow.md†L1-L10】【F:docs/implementation/consensus_building_invariants.md†L1-L10】【F:docs/implementation/retry_mechanism_invariants.md†L1-L10】【F:docs/implementation/dialectical_reasoning.md†L1-L10】【F:docs/implementation/requirements_wizard_wizardstate_integration.md†L1-L10】【F:docs/implementation/agent_api_pseudocode.md†L1-L10】【F:docs/implementation/release_state_check_invariants.md†L1-L10】【F:docs/implementation/edrr_invariants.md†L1-L10】
+- Several release-facing specifications still list `status: draft`, including the release-state check, run-pipeline orchestration, multi-agent collaboration, and documentation utility functions. Each draft should be triaged into (a) must-complete before 0.1.0a1 (tie to failing tests or gating functionality) versus (b) deferable backlog, then paired with BDD features or simulations as appropriate.【F:docs/specifications/release-state-check.md†L1-L9】【F:docs/specifications/run-pipeline-command.md†L1-L9】【F:docs/specifications/multi-agent-collaboration.md†L1-L9】【F:docs/specifications/documentation-utility-functions.md†L1-L9】
+- Publish a dependency matrix linking draft specs/invariants to failing tests (`issues/run-tests-smoke-pytest-bdd-config.md`, `issues/coverage-below-threshold.md`) so contributors understand which scientific artifacts unblock the coverage gate, smoke profile stability, and final release QA.
+
 Academic rigor and coverage gaps (2025-09-16)
 - Latest captured coverage aggregation before the artifacts were purged reported only 20.78 % across `src/devsynth`; subsequent executions fail to regenerate `.coverage`, so the ≥90 % gate remains unmet and currently cannot evaluate at all.【cbc560†L1-L3】【20dbec†L1-L5】
+- Smoke profile execution currently terminates with a pytest-bdd `IndexError` when plugin autoloading is disabled, preventing even the reduced fast suite from producing coverage artifacts; remediation is tracked under docs/tasks.md §21.12 and logs are archived at `logs/run-tests-smoke-fast-20250920.log`.【65926f†L1-L52】【F:logs/run-tests-smoke-fast-20250920.log†L1-L34】
 - Modules flagged in docs/tasks.md §21 (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests) lack sufficient fast unit/property coverage to demonstrate their stated invariants; future PRs must pair the new tests with updates to the corresponding invariant notes.
 
 Remediation plan to >90% coverage and full readiness
@@ -309,7 +318,7 @@ Issue tracker linkage protocol (how to cross-reference during planning)
 - missing-bdd-tests.md: track backlog of behavior specifications lacking BDD coverage.
 
 Acceptance checklist
-- [x] All unit+integration+behavior tests pass locally with documented commands.
+- [ ] All unit+integration+behavior tests pass locally with documented commands (smoke profile currently fails with pytest-bdd IndexError; see docs/tasks.md §21.12).
 - [x] Property tests pass under DEVSYNTH_PROPERTY_TESTING=true.
 - [ ] Combined coverage >= 90% (pytest.ini enforced) with HTML report available (current run: 13.68 % with artifacts present but below threshold).
 - [x] Lint, type, and security gates pass.

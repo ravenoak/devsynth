@@ -180,3 +180,9 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (fails with pytest-bdd IndexError under plugin autoload disable).【27b890†L1-L48】
 - Observations: Smoke profile now injects `-p pytest_cov` but leaves pytest-bdd unloaded, so requirements wizard scenarios crash; opened issues/run-tests-smoke-pytest-bdd-config.md and added docs/tasks.md §21.12 to track explicit plugin loading and a regression test.
 - Next: Implement plugin injection fix, add Typer-level regression coverage, rerun smoke+fast-medium coverage once pytest-bdd loads correctly.
+
+## Iteration 2025-09-20C – Smoke regression triage & spec backlog mapping
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4 after rerunning `bash scripts/install_dev.sh` to restore go-task and reinstall extras.【a6f268†L1-L24】【a25025†L1-L2】
+- Commands: `poetry run devsynth doctor` (records missing provider env defaults); `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (fails with pytest-bdd IndexError, log saved to `logs/run-tests-smoke-fast-20250920.log`).【3c45ee†L1-L40】【65926f†L1-L52】
+- Observations: Smoke run failure blocks coverage gate; captured log for Issue run-tests-smoke-pytest-bdd-config; added docs/tasks.md §§25–27 to target low-coverage modules and promote draft invariants/specifications; docs/plan.md updated with spec-first adoption gaps and acceptance checklist reflects failing smoke suite.
+- Next: Restore pytest-bdd loading in smoke mode, execute coverage uplift backlog (provider_system, webui, logging_setup, run_tests), publish outstanding implementation notes, and draft dependency matrix aligning draft specs with failing tests before retrying the fast+medium gate.
