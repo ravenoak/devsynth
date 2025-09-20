@@ -27,6 +27,7 @@ from devsynth.testing.run_tests import (
     collect_tests_with_cache,
     coverage_artifacts_status,
     ensure_pytest_cov_plugin_env,
+    ensure_pytest_bdd_plugin_env,
     enforce_coverage_threshold,
     run_tests,
 )
@@ -333,13 +334,23 @@ def run_tests_cmd(
         os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist " + existing_addopts).strip()
         no_parallel = True
 
-    plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
-    if plugin_injected:
+    coverage_plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
+    bdd_plugin_injected = ensure_pytest_bdd_plugin_env(os.environ)
+    if coverage_plugin_injected:
         message = (
             "[cyan]-p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
         )
         logger.info(
             "CLI appended -p pytest_cov to PYTEST_ADDOPTS to enforce coverage instrumentation",
+            extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
+        )
+        ux_bridge.print(message)
+    if bdd_plugin_injected:
+        message = (
+            "[cyan]-p pytest_bdd.plugin appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
+        )
+        logger.info(
+            "CLI appended -p pytest_bdd.plugin to PYTEST_ADDOPTS to preserve pytest-bdd hooks",
             extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
         )
         ux_bridge.print(message)
