@@ -44,7 +44,7 @@ Commands executed (audit trail)
 - 2025-09-20: `bash scripts/install_dev.sh` re-ran because `task` was absent at session start; the helper reinstated go-task 3.45.4, recreated `/workspace/devsynth/.venv`, and re-initialized pre-commit plus verification hooks before returning control to the shell.【a6f268†L1-L24】【2c42d5†L1-L5】【e405e9†L1-L24】
 - 2025-09-20: Running `poetry run devsynth --help` before reinstalling extras reproduced `ModuleNotFoundError: No module named 'devsynth'`; diagnostics/devsynth_cli_missing_20250920.log and diagnostics/poetry_install_20250920.log capture the failure and the subsequent reinstall, so bootstrap automation must continue verifying the CLI exists after environment resets.【F:diagnostics/devsynth_cli_missing_20250920.log†L1-L22】【F:diagnostics/poetry_install_20250920.log†L1-L20】
 - 2025-09-20: `poetry run devsynth doctor` continues to flag missing provider environment variables and incomplete staged/stable configuration blocks—expected for test fixtures but must be resolved or documented before release hardening.【3c45ee†L1-L40】
-- 2025-09-20: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` fails with a pytest-bdd `IndexError` because plugin autoloading remains disabled; logs captured under `logs/run-tests-smoke-fast-20250920.log` and `logs/run-tests-smoke-fast-20250920T000000Z.log` support Issue `run-tests-smoke-pytest-bdd-config`.【65926f†L1-L52】【F:logs/run-tests-smoke-fast-20250920.log†L1-L34】【F:logs/run-tests-smoke-fast-20250920T000000Z.log†L1-L34】
+- 2025-09-20: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` now appends `-p pytest_bdd.plugin` whenever plugin autoloading is disabled; the smoke run proceeds past pytest-bdd discovery and instead stops on a FastAPI TestClient MRO regression, confirming the plugin hook loads successfully. Regression logs are archived under `logs/run-tests-smoke-fast-20250920T1721Z.log` alongside the pre-fix captures (`logs/run-tests-smoke-fast-20250920.log`, `logs/run-tests-smoke-fast-20250920T000000Z.log`).【c9d719†L1-L52】【F:logs/run-tests-smoke-fast-20250920.log†L1-L34】【F:logs/run-tests-smoke-fast-20250920T000000Z.log†L1-L34】
 
 Environment snapshot and reproducibility (authoritative)
 - Persist environment and toolchain details under diagnostics/ for reproducibility:
@@ -197,7 +197,7 @@ Spec-first adoption gaps (2025-09-20 evaluation)
 
 Academic rigor and coverage gaps (2025-09-16)
 - Latest captured coverage aggregation before the artifacts were purged reported only 20.78 % across `src/devsynth`; subsequent executions fail to regenerate `.coverage`, so the ≥90 % gate remains unmet and currently cannot evaluate at all.【cbc560†L1-L3】【20dbec†L1-L5】
-- Smoke profile execution currently terminates with a pytest-bdd `IndexError` when plugin autoloading is disabled, preventing even the reduced fast suite from producing coverage artifacts; remediation is tracked under docs/tasks.md §21.12 and logs are archived at `logs/run-tests-smoke-fast-20250920.log` and `logs/run-tests-smoke-fast-20250920T000000Z.log`.【65926f†L1-L52】【F:logs/run-tests-smoke-fast-20250920.log†L1-L34】【F:logs/run-tests-smoke-fast-20250920T000000Z.log†L1-L34】
+- Smoke profile execution now injects both pytest-cov and pytest-bdd explicitly when plugin autoloading is disabled; the run clears the previous pytest-bdd `IndexError` and instead surfaces an unrelated FastAPI TestClient MRO failure (tracked separately). Latest smoke output lives at `logs/run-tests-smoke-fast-20250920T1721Z.log`, with the historical pre-fix captures retained for context. Remediation details appear under docs/tasks.md §21.12.【c9d719†L1-L52】
 - Modules flagged in docs/tasks.md §21 (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests) lack sufficient fast unit/property coverage to demonstrate their stated invariants; future PRs must pair the new tests with updates to the corresponding invariant notes.
 
 Remediation plan to >90% coverage and full readiness
@@ -320,7 +320,7 @@ Issue tracker linkage protocol (how to cross-reference during planning)
 - missing-bdd-tests.md: track backlog of behavior specifications lacking BDD coverage.
 
 Acceptance checklist
-- [ ] All unit+integration+behavior tests pass locally with documented commands (smoke profile currently fails with pytest-bdd IndexError; see docs/tasks.md §21.12).
+- [ ] All unit+integration+behavior tests pass locally with documented commands (smoke profile now reaches a FastAPI TestClient MRO failure after fixing the pytest-bdd autoload regression; see docs/tasks.md §21.12).
 - [x] Property tests pass under DEVSYNTH_PROPERTY_TESTING=true.
 - [ ] Combined coverage >= 90% (pytest.ini enforced) with HTML report available (current run: 13.68 % with artifacts present but below threshold).
 - [x] Lint, type, and security gates pass.
@@ -374,7 +374,7 @@ Notes and next actions
 - verify_test_markers reports missing @pytest.mark.property in tests/property/test_reasoning_loop_properties.py; track under issues/property-marker-advisories-in-reasoning-loop-tests.md and resolve before release.
 - 2025-09-12: Deduplicated docs/task_notes.md to remove redundant entries and keep the iteration log concise.
 - 2025-09-17: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` now exits with code 1 because coverage artifacts are missing; smoke mode shows the same regression, so coverage remediation items remain blocking tasks 6.3 and 13.3.【d5fad8†L1-L4】【20dbec†L1-L5】【45de43†L1-L2】
-- 2025-09-20: Smoke profile currently aborts with a pytest-bdd `IndexError` because plugin autoloading stays disabled; opened issues/run-tests-smoke-pytest-bdd-config.md to track explicitly loading the plugin alongside pytest-cov before rerunning coverage gating.【27b890†L1-L48】【F:issues/run-tests-smoke-pytest-bdd-config.md†L1-L19】
+- 2025-09-20: Smoke profile previously aborted with a pytest-bdd `IndexError` when plugin autoloading stayed disabled; issues/run-tests-smoke-pytest-bdd-config.md now documents the fix that injects `-p pytest_bdd.plugin` alongside pytest-cov, with the latest smoke log showing the run progressing to a FastAPI dependency conflict instead.【c9d719†L1-L52】【F:issues/run-tests-smoke-pytest-bdd-config.md†L1-L19】
 - 2025-09-19: `devsynth` package initially missing; reran `poetry install --with dev --all-extras` to restore CLI. Smoke and property tests pass; flake8 and bandit still failing; coverage aggregation (tasks 6.3, 13.3) pending.
 - 2025-09-30: `task --version` not found; smoke run produced no coverage data (`coverage report --fail-under=90` → "No data to report"); flake8 and bandit scans still failing.
 - 2025-10-01: `poetry install --with dev --all-extras` restored the `devsynth` CLI; smoke run reported "Tests completed successfully" but `task --version` remains missing and coverage thresholds are still unverified.

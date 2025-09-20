@@ -305,6 +305,12 @@ def _coverage_plugin_disabled(tokens: list[str]) -> bool:
     return False
 
 
+def _plugin_explicitly_disabled(tokens: list[str], plugin: str) -> bool:
+    """Return ``True`` when ``-p no:<plugin>`` disables the given plugin."""
+
+    return _addopts_has_plugin(tokens, f"no:{plugin}")
+
+
 def ensure_pytest_cov_plugin_env(env: MutableMapping[str, str]) -> bool:
     """Ensure pytest-cov loads when plugin autoloading is disabled."""
 
@@ -329,6 +335,36 @@ def ensure_pytest_cov_plugin_env(env: MutableMapping[str, str]) -> bool:
     env["PYTEST_ADDOPTS"] = updated
     logger.info(
         "Injected -p pytest_cov into PYTEST_ADDOPTS to preserve coverage instrumentation",
+        extra={"pytest_addopts": updated},
+    )
+    return True
+
+
+def ensure_pytest_bdd_plugin_env(env: MutableMapping[str, str]) -> bool:
+    """Ensure pytest-bdd loads when plugin autoloading is disabled."""
+
+    if env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") != "1":
+        return False
+
+    addopts_value = env.get("PYTEST_ADDOPTS", "")
+    tokens = _parse_pytest_addopts(addopts_value)
+
+    plugin_aliases = ("pytest_bdd", "pytest_bdd.plugin")
+    if any(_plugin_explicitly_disabled(tokens, alias) for alias in plugin_aliases):
+        logger.debug(
+            "pytest-bdd remains disabled due to explicit -p no:pytest_bdd override",
+            extra={"pytest_addopts": addopts_value},
+        )
+        return False
+
+    if _addopts_has_plugin(tokens, "pytest_bdd.plugin"):
+        return False
+
+    normalized = addopts_value.strip()
+    updated = f"{normalized} -p pytest_bdd.plugin".strip()
+    env["PYTEST_ADDOPTS"] = updated
+    logger.info(
+        "Injected -p pytest_bdd.plugin into PYTEST_ADDOPTS to preserve pytest-bdd hooks",
         extra={"pytest_addopts": updated},
     )
     return True
@@ -717,10 +753,16 @@ def run_tests(
 
     _reset_coverage_artifacts()
 
-    plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
-    if plugin_injected:
+    coverage_plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
+    bdd_plugin_injected = ensure_pytest_bdd_plugin_env(os.environ)
+    if coverage_plugin_injected:
         logger.info(
             "PYTEST_ADDOPTS updated to include -p pytest_cov for test subprocesses",
+            extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
+        )
+    if bdd_plugin_injected:
+        logger.info(
+            "PYTEST_ADDOPTS updated to include -p pytest_bdd.plugin for test subprocesses",
             extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
         )
 
@@ -751,6 +793,11 @@ def run_tests(
     if ensure_pytest_cov_plugin_env(env):
         logger.info(
             "Ensured subprocess environment retains -p pytest_cov despite plugin autoload restrictions",
+            extra={"pytest_addopts": env.get("PYTEST_ADDOPTS", "")},
+        )
+    if ensure_pytest_bdd_plugin_env(env):
+        logger.info(
+            "Ensured subprocess environment retains -p pytest_bdd.plugin despite plugin autoload restrictions",
             extra={"pytest_addopts": env.get("PYTEST_ADDOPTS", "")},
         )
     # Do not unilaterally disable third-party pytest plugins here. Disabling

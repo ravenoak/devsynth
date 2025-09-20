@@ -124,6 +124,43 @@ def test_smoke_command_generates_coverage_artifacts(
 
 
 @pytest.mark.fast
+def test_smoke_command_injects_pytest_bdd_plugin(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Smoke profile explicitly loads pytest-bdd when plugin autoload is disabled."""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+
+    popen_envs, combine_calls = _install_pytest_stubs(monkeypatch)
+
+    runner = CliRunner()
+    app = build_app()
+    with caplog.at_level(logging.INFO, logger="devsynth.testing.run_tests"):
+        result = runner.invoke(
+            app,
+            [
+                "run-tests",
+                "--smoke",
+                "--speed=fast",
+                "--no-parallel",
+                "--maxfail=1",
+            ],
+        )
+
+    assert result.exit_code == 0, result.stdout
+    assert (tmp_path / ".coverage").exists()
+    assert (tmp_path / "test_reports" / "coverage.json").exists()
+    assert (tmp_path / "htmlcov" / "index.html").exists()
+    assert any("-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
+    assert any("-p pytest_cov" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
+    assert combine_calls, "coverage fragments should be consolidated"
+    assert "IndexError" not in result.stdout
+    assert "-p pytest_bdd.plugin appended" in result.stdout
+
+
+@pytest.mark.fast
 def test_fast_medium_command_generates_coverage_artifacts_with_autoload_disabled(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -157,6 +194,7 @@ def test_fast_medium_command_generates_coverage_artifacts_with_autoload_disabled
     for env in popen_envs:
         assert env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
         assert "-p pytest_cov" in env.get("PYTEST_ADDOPTS", "")
+        assert "-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "")
     assert combine_calls and all(calls for calls in combine_calls)
     assert not list(tmp_path.glob(".coverage.fragment-*"))
     assert "-p pytest_cov appended" in result.stdout
@@ -198,5 +236,6 @@ def test_fast_medium_command_handles_empty_collection(
     for env in popen_envs:
         assert env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
         assert "-p pytest_cov" in env.get("PYTEST_ADDOPTS", "")
+        assert "-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "")
     assert combine_calls and all(calls for calls in combine_calls)
     assert "marker fallback" in caplog.text
