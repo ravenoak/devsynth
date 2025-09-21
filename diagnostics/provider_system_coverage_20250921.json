@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "timestamp": "2025-09-21T00:15:08.027059",
+    "version": "7.10.6"
+  },
+  "totals": {
+    "percent_covered": 14.645954692556634,
+    "percent_covered_display": "15"
+  },
+  "provider_system": {
+    "summary": {
+      "covered_lines": 86,
+      "num_statements": 682,
+      "percent_covered": 12.609970674486803,
+      "percent_covered_display": "13",
+      "missing_lines": 596,
+      "excluded_lines": 50
+    }
+  }
+}

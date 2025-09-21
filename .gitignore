@@ -60,6 +60,7 @@ test_reports/
 diagnostics/*
 !diagnostics/.gitkeep
 !diagnostics/README.md
+!diagnostics/provider_system_coverage_20250921.json
 .test_categorization_progress.json
 .test_categorization_schedule.json
 flaky_test_report.json
