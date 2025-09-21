@@ -3,29 +3,6 @@
 Historical log archived at docs/archived/task_notes_pre2025-09-16.md to keep this file under 200 lines.
 Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries while retaining key decisions and evidence.
 
-## Iteration 2025-09-12A – Environment verification
-- Environment: Python 3.12.10; `poetry env info --path` → /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12.
-- Commands:
-  - `bash scripts/install_dev.sh` – restored `task --version` 3.44.1.
-  - `poetry install --with dev --all-extras` – installed DevSynth entry point.
-  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` – pass.
-  - `poetry run python tests/verify_test_organization.py` – 920 files.
-  - `poetry run python scripts/verify_test_markers.py` – 0 issues.
-  - `poetry run python scripts/verify_requirements_traceability.py` – all references present.
-  - `poetry run python scripts/verify_version_sync.py` – OK.
-- Observations: `task` and `devsynth` CLI missing on boot; manual reinstall required. Coverage aggregation and release-state check pending.
-- Next: automate CLI/tool provisioning; implement release state check; add BDD coverage for agent_api_stub, chromadb_store, dialectical_reasoning; resolve coverage failure in tests/unit/general/test_test_first_metrics.py.
-
-## Iteration 2025-09-12B – Release state and BDD features
-- Environment: Python 3.12.10; virtualenv `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`.
-- Commands:
-  - `poetry run pre-commit run --files tests/behavior/features/agent_api_stub.feature tests/behavior/steps/test_api_stub_steps.py tests/behavior/features/release_state_check.feature tests/behavior/steps/release_state_steps.py tests/behavior/features/dialectical_reasoning.feature tests/behavior/steps/test_dialectical_reasoning_hooks_steps.py docs/tasks.md docs/task_notes.md docs/plan.md issues/release-state-check.md issues/agent-api-stub-usage.md` – pass.
-  - `poetry run devsynth run-tests --speed=fast --no-parallel --maxfail=1` – pass.
-  - `poetry run python scripts/verify_test_markers.py` – 0 issues.
-  - `poetry run python scripts/verify_requirements_traceability.py` – success.
-- Observations: Added release-state verification and new BDD features for agent API stub and dialectical reasoning; GitHub Actions confirmed dispatch-only; coverage aggregation still needs artifact generation.
-- Next: Review proofs for gaps, automate CLI/tool provisioning, restore coverage artifact generation.
-
 ## Iteration 2025-09-13 – Consolidated actions
 - Environment: Python 3.12.10; `/root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12`; go-task restored to 3.44.1 via `bash scripts/install_dev.sh` when missing.
 - Commands (representative across sub-iterations):
@@ -192,3 +169,13 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
 - Commands: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (reproduced pytest-bdd IndexError, new log `logs/run-tests-smoke-fast-20250920T000000Z.log`); `poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json`.
 - Observations: Codex bootstrap still omits CLI install; smoke profile remains blocked on pytest-bdd config and continues skipping coverage artifact generation.
 - Next: Automate CLI reinstalls in scripts/install_dev.sh (docs/tasks.md 15.5) and add pytest-bdd plugin injection/regression coverage before attempting fast+medium reruns.
+
+## Iteration 2025-09-21 – FastAPI/Starlette TestClient regression
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4 after rerunning `bash scripts/install_dev.sh`; FastAPI 0.116.1 with Starlette 0.47.3.
+- Commands:
+  - `python --version`, `poetry env info --path`, `task --version` (verified bootstrap state).
+  - `bash scripts/install_dev.sh` (recovered go-task, reinstalled extras, validated CLI via doctor helpers).
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (fails: Starlette TestClient MRO TypeError; log saved to `logs/run-tests-smoke-fast-20250921T052856Z.log`).
+  - `poetry run python -c "import importlib.metadata; print(importlib.metadata.version('starlette'))"` (confirms 0.47.3).
+- Observations: Smoke profile blocked before collection because FastAPI's TestClient imports Starlette's `WebSocketDenialResponse`, which now mixes `typing.Protocol` and classic `object` bases; Python 3.12 raises an MRO conflict. Coverage artifacts remain absent because pytest aborts early. Added issue [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md) to track dependency pinning and downstream retest requirements.
+- Next: Pin Starlette to a compatible release or apply upstream patch, rerun smoke+fast-medium suites, update docs/plan.md acceptance criteria, and audit other API-facing tests for similar compatibility breakage.

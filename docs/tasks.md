@@ -130,7 +130,8 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 12.3 [x] Provide a "coverage-only" profile or documented command to standardize local coverage runs.
 
 13. Acceptance Criteria Validation
-13.1 [ ] All unit, integration, and behavior tests pass locally using documented commands (blocked by smoke profile pytest-bdd failure; see §21.12).
+13.1 [ ] All unit, integration, and behavior tests pass locally using documented commands (blocked by FastAPI/Starlette TestClient MRO regression; see §28).
+13.1.1 [ ] Resolve FastAPI/Starlette TestClient MRO failure by pinning Starlette to a compatible release or applying upstream patches, then rerun `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` and attach the passing log (Issue: [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md)).
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
 13.3 [ ] Combined coverage >= 90% with HTML report generated and saved (latest gate attempt fails because coverage artifacts are missing; remediation tracked under §6.3 and §21.8).
 13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
@@ -162,6 +163,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 16.4 [x] Populate `tests/behavior/features/memory_and_context_system.feature` with executable scenarios before promoting docs/specifications/memory-and-context-system.md beyond draft.【F:docs/specifications/memory-and-context-system.md†L1-L88】【F:tests/behavior/features/memory_and_context_system.feature†L1-L28】【F:tests/behavior/steps/test_memory_and_context_system_steps.py†L1-L137】
 
 Notes:
+- 2025-09-21: Smoke suite blocked by FastAPI/Starlette TestClient MRO regression; see §13.1.1 and §28 plus logs/run-tests-smoke-fast-20250921T052856Z.log.【F:logs/run-tests-smoke-fast-20250921T052856Z.log†L1-L42】
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
 - Maintain exactly one speed marker per test function.
 - Prefer adding tests for pure logic first, then expand to gated integrations.
@@ -264,3 +266,11 @@ Notes:
 Notes:
 - 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.
 - 2025-09-15: Reinstalled dependencies and reran smoke/verification; tasks 19.2, 19.4, 19.5 remain.
+
+28. FastAPI/Starlette Compatibility Regression (Phase 2E)
+28.1 [ ] Review FastAPI 0.116.x and Starlette 0.47.x release notes to determine a compatible pair for Python 3.12 and DevSynth's agent API fixtures; document findings in docs/plan.md and docs/task_notes.md (Issue: [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md)).
+28.2 [ ] Update pyproject.toml/poetry.lock to pin the selected FastAPI/Starlette versions (or apply the upstream patch), regenerate hashes, and note the rationale in CHANGELOG.md and docs/release/0.1.0-alpha.1.md.
+28.3 [ ] Reinstall dependencies via `bash scripts/install_dev.sh` and `poetry install --with dev --all-extras`, verify `task --version` 3.45.4, and rerun `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`, archiving the green log under logs/ with timestamp.【F:logs/run-tests-smoke-fast-20250921T052856Z.log†L1-L42】
+28.4 [ ] Add a regression test that imports `fastapi.testclient.TestClient` under `pytest.importorskip("fastapi")` to fail fast when the MRO conflict returns, and guard the agent API behavior suite with the same check.
+28.5 [ ] Update docs/plan.md §Gaps and §Commands executed plus docs/tasks §13 once the smoke profile passes again, closing [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md).
+28.6 [ ] Evaluate other API-focused behavior suites (agent_api_interactions, agent_api_stub_usage, serve command) for dependency drift risks and record mitigation steps in issues or docs.
