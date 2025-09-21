@@ -2,35 +2,33 @@
 Status: monitoring
 
 ## Summary
-Aggregated coverage runs previously exited with code 1 because `.coverage` was never written; `test_reports/coverage.json` and `htmlcov/index.html` were missing entirely. Instrumentation now combines `.coverage.*` fragments, so smoke and fast+medium profiles regenerate JSON/HTML artifacts and load the pytest-cov plugin even when plugin autoloading is disabled. The ≥90 % gate still fails because the current aggregate tops out at 20.94 %, so broader test uplift remains necessary.【F:logs/run-tests-fast-medium-after-fix.log†L2429-L2447】
+Aggregated coverage runs previously exited with code 1 because `.coverage` was never written; `test_reports/coverage.json` and `htmlcov/index.html` were missing entirely. Instrumentation now combines `.coverage.*` fragments, so smoke and fast+medium profiles regenerate JSON/HTML artifacts and load the pytest-cov plugin even when plugin autoloading is disabled. The ≥90 % gate still fails because the current aggregate tops out at 20.92 %, so broader test uplift remains necessary.【5d08c6†L1-L1】
 The [spec dependency matrix](../docs/release/spec_dependency_matrix.md) captures every draft spec/invariant tied to coverage uplift so new tests can be mapped directly to unresolved documents.
 
 ## Steps to Reproduce
 1. Ensure dependencies installed via `poetry install --with dev --all-extras`.
 2. Execute the coverage command above.
-3. Alternatively run `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` and inspect `test_reports/coverage.json`.
+3. Alternatively run `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` and inspect `test_reports/coverage.json`.
 
 ## Expected Behavior
 Coverage report completes with ≥90% coverage.
 
 ## Actual Behavior
-Coverage command exits with a failure after tests pass because the aggregated coverage is 20.94 %, below the enforced 90 % threshold. Artifacts (`.coverage`, `test_reports/coverage.json`, `htmlcov/index.html`) are generated successfully.【F:logs/run-tests-fast-medium-after-fix.log†L2429-L2447】
+Coverage command exits with a failure after tests pass because the aggregated coverage is 20.92 %, below the enforced 90 % threshold. Artifacts (`.coverage`, `test_reports/coverage.json`, `htmlcov/index.html`) are generated successfully.【5d08c6†L1-L1】【4e0459†L1-L4】
 
 ```text
-$ poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1
-No node ids were collected for fast/all-tests; running pytest with marker fallback
-Pytest exited with code 1. Command: /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12/bin/python -m pytest --maxfail=1 --cov=src/devsynth --cov-report=term-missing --cov-report=json:test_reports/coverage.json --cov-report=html:htmlcov --cov-append tests/ -m fast and not memory_intensive --html=test_reports/20250920_013434/all-tests/report.html --self-contained-html
+$ poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel
 ...
 Coverage HTML written to dir htmlcov
 Coverage JSON written to file test_reports/coverage.json
-FAIL Required test coverage of 90% not reached. Total coverage: 20.94%
+FAIL Required test coverage of 90% not reached. Total coverage: 20.92%
 ```
 
 ## Next Actions
 - [x] Restore `.coverage` generation for both smoke and fast+medium CLI profiles; ensure pytest-cov loads even when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` is set implicitly (docs/tasks.md §6.3, §21.8, §21.11).
 - [x] Add Typer-level regression tests that invoke `devsynth run-tests --smoke …` and `--speed=fast --speed=medium …` in-process and assert `.coverage`, `test_reports/coverage.json`, and HTML outputs exist after the command succeeds (docs/tasks.md §21.8.1, §21.11).
 - [x] Capture CLI logs from the failing fast+medium run and attach them here to aid diagnosis (docs/tasks.md §21.11.1).【F:logs/run-tests-fast-medium-after-fix.log†L2429-L2447】
-- [ ] Add targeted unit/integration tests for modules highlighted in docs/tasks.md §21 (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests).
+- [ ] Add targeted unit/integration tests for modules highlighted in docs/tasks.md §21 (output_formatter, webui, webui_bridge, logging_setup, reasoning_loop, testing/run_tests). Recent fast suites already exercise additional provider-system branches (factory fallbacks, TLS configuration, retry instrumentation) and CLI orchestration paths (`run_tests` segmentation, artifact enforcement) but coverage still falls far short of the ≥90 % threshold.【45558d†L447-L520】【bab373†L35-L190】【08fefd†L1-L2】
 - [x] Coordinate with issues/run-tests-smoke-pytest-bdd-config.md so smoke profile loads pytest-bdd when plugin autoload is disabled; smoke now loads the plugin but fails on the FastAPI/Starlette MRO regression instead.【27b890†L1-L48】【F:issues/run-tests-smoke-pytest-bdd-config.md†L1-L19】【F:logs/run-tests-smoke-fast-20250921T052856Z.log†L1-L42】
 - [ ] Regenerate coverage artifacts once instrumentation is fixed and confirm the fail-under gate passes at ≥90 %.
 - [ ] Resolve FastAPI/Starlette TestClient MRO regression blocking smoke runs before attempting new coverage aggregates (Issue: [run-tests-smoke-fast-fastapi-starlette-mro.md](run-tests-smoke-fast-fastapi-starlette-mro.md); log: logs/run-tests-smoke-fast-20250921T052856Z.log).
@@ -40,6 +38,7 @@ FAIL Required test coverage of 90% not reached. Total coverage: 20.94%
 - 2025-09-21: Re-ran `poetry run pytest tests/unit/adapters -k provider_system --cov=src/devsynth/adapters/provider_system.py --cov-report=json`; the run still tripped the 90 % gate at 14.65 % total coverage, and the resulting JSON shows `adapters/provider_system.py` at just 12.61 %, down from the 16.86 % recorded during the 2025-09-20 targeted sweep, so the module remains well short of the interim 60 % objective.【4ea98e†L1-L111】【F:diagnostics/provider_system_coverage_20250921.json†L1-L17】【F:issues/tmp_cov_provider_system.json†L1-L1】
 - Tasks `docs/tasks.md` items 13.3 and 13.4 remain unchecked pending resolution.
 - 2025-09-20: After reinstalling dependencies, `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` logs marker fallbacks, regenerates `.coverage`, HTML, and JSON artifacts, and records the failing 20.94 % aggregate; smoke mode still forces `-p pytest_cov` but currently aborts with a `pytest-bdd` configuration error when plugin autoloading is disabled, so coverage artifacts remain missing on that path.【F:logs/run-tests-fast-medium-after-fix.log†L2429-L2447】【F:logs/run-tests-smoke-fast-after-fix.log†L1-L57】
+- 2025-09-21: Latest fast+medium aggregate reproduces the 90 % gate failure with 20.92 % total coverage while confirming `.coverage`, JSON, and HTML artifacts regenerate successfully; provider-system regression tests (`tests/unit/adapters/test_provider_system_additional.py`) and CLI-focused harnesses (`tests/unit/testing/test_run_tests_cli_invocation.py`) now cover TLS fallbacks, retry wiring, segmentation batching, and troubleshooting tips, keeping coverage data current for `adapters/provider_system.py` (12.02 %) and `testing/run_tests.py` (7.51 %).【5d08c6†L1-L1】【4e0459†L1-L4】【45558d†L447-L520】【bab373†L35-L190】【08fefd†L1-L2】
 - 2025-09-17: Added fast deterministic coverage via `tests/unit/logging/test_logging_setup_contexts.py::{test_cli_context_wires_console_and_json_file_handlers,test_test_context_redirects_and_supports_console_only_toggle,test_create_dir_toggle_disables_json_file_handler}` and `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::{test_reasoning_loop_enforces_total_time_budget,test_reasoning_loop_retries_until_success,test_reasoning_loop_fallback_transitions_and_propagation}` (seed: deterministic/no RNG) to exercise logging handler wiring and reasoning-loop safeguards.
 - 2025-09-19: Added regression-focused fast tests under `tests/unit/logging/test_logging_setup.py`, `tests/unit/logging/test_logging_setup_configure_logging.py`, `tests/unit/methodology/edrr/test_reasoning_loop_regressions.py`, and `tests/unit/testing/` to cover ensure-log-dir redirection, `configure_logging` idempotency, reasoning loop retries, and run-tests helper branches. Coverage collected with `coverage run --source=devsynth.logging_setup,devsynth.methodology.edrr,devsynth.testing.run_tests -m pytest ...` followed by `coverage html/json` reports `51.68%` total coverage across the targeted modules—an improvement yet still below the ≥90 % objective. CLI invocation `poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report` continues to exit early because integration selectors (e.g., `integration/collaboration/test_role_reassignment_shared_memory.py`) resolve to missing paths when segmented node IDs omit the `tests/` prefix.
 - 2025-09-21: Targeted logging uplift for docs/tasks §25.4 and §25.6 executed via `poetry run pytest tests/unit/logging --cov=src/devsynth/logging_setup.py --cov-report=term-missing --cov-report=json:test_reports/logging_setup_coverage.json --cov-fail-under=0`, validating retention toggles, console/JSON parity, directory guards, and failure branches; the resulting JSON artifact reports 41.56 % coverage for `logging_setup.py` (test_reports/logging_setup_coverage.json) pending further uplift.【5b0fc3†L1-L8】【fd327e†L1-L4】
@@ -101,13 +100,13 @@ Recent exploratory run with `pytest --cov=src/devsynth --cov-report=term-missing
 
 | Module | Stmts | Cover | Additional lines to reach 90 % | Key missing regions |
 | --- | --- | --- | --- | --- |
-| `adapters/provider_system.py` | 675 | 12 % | ≈526 | `55`, `60‑85`, `90`, `106‑151`, `178‑321`, `335‑350`, `354‑361`, `378`, `466‑467`, `496‑497`, `503‑509`, `520‑521`, `532`, `541‑545`, `548`, `570‑591`, `595‑600`, `604`, `640‑710`, `720‑827`, `837‑843`, `864‑910`, `914‑995`, `1015‑1044`, `1051‑1056`, `1060`, `1096‑1171`, `1183‑1295`, `1305‑1311`, `1332‑1378`, `1384‑1460`, `1474‑1493`, `1500‑1523`, `1527`, `1530‑1538`, `1543‑1571`, `1583‑1606`, `1620‑1643`, `1649‑1666`, `1672‑1689`, `1708‑1711`, `1738‑1751`, `1770‑1779`, `1796‑1798`, `1812‑1821`【168681†L1-L3】 |
+| `adapters/provider_system.py` | 675 | 12.02 %【08fefd†L1-L1】 | ≈526 | `55`, `60‑85`, `90`, `106‑151`, `178‑321`, `335‑350`, `354‑361`, `378`, `466‑467`, `496‑497`, `503‑509`, `520‑521`, `532`, `541‑545`, `548`, `570‑591`, `595‑600`, `604`, `640‑710`, `720‑827`, `837‑843`, `864‑910`, `914‑995`, `1015‑1044`, `1051‑1056`, `1060`, `1096‑1171`, `1183‑1295`, `1305‑1311`, `1332‑1378`, `1384‑1460`, `1474‑1493`, `1500‑1523`, `1527`, `1530‑1538`, `1543‑1571`, `1583‑1606`, `1620‑1643`, `1649‑1666`, `1672‑1689`, `1708‑1711`, `1738‑1751`, `1770‑1779`, `1796‑1798`, `1812‑1821`【168681†L1-L3】 |
 | `interface/webui.py` | 1053 | 10 % | ≈839 | `51‑59`, `64‑65`, `119‑123`, `202‑227`, `254‑318`, `331‑336`, `339`, `351‑446`, `458`, `469‑494`, `566`, `577‑627`, `631‑644`, `648‑701`, `711‑731`, `735‑744`, `757‑777`, `781‑794`, `806‑815`, `823‑834`, `840`, `847‑869`, `873‑985`, `989‑999`, `1005‑1029`, `1052‑1090`, `1107‑1248`, `1253‑1384`, `1391‑1392`, `1397‑1414`, `1419‑1429`, `1434‑1505`, `1518‑1556`, `1560‑1594`, `1603‑1659`, `1667‑1749`, `1757‑1813`, `1817‑1835`, `1839‑1866`, `1870‑1895`, `1899‑1922`, `1926‑1951`, `1955‑1977`, `1981‑2004`, `2008‑2033`, `2037‑2062`, `2066‑2079`, `2083‑2103`, `2107‑2121`, `2125‑2145`, `2149‑2162`, `2166‑2191`, `2198‑2373`, `2378`【66a050†L1-L3】 |
 | `interface/output_formatter.py` | 258 | 22 % | ≈176 | `110‑120`, `131‑148`, `164‑198`, `207‑221`, `229`, `241‑254`, `269‑279`, `294‑354`, `368‑399`, `411‑427`, `441‑456`, `470‑496`, `509‑512`, `527‑541`, `553‑558`, `577‑584`【7d791d†L1-L2】 |
 | `interface/webui_bridge.py` | 205 | 19 % | ≈147 | `29`, `45‑50`, `67‑99`, `103`, `116‑130`, `142‑154`, `162‑171`, `191‑216`, `235‑294`, `303‑314`, `325‑326`, `350‑371`, `390‑423`, `447‑450`, `465‑468`, `474‑500`, `514`, `534`, `551`【aaa475†L1-L2】 |
 | `logging_setup.py` | 243 | 38 % | ≈126 | `68`, `72‑76`, `80`, `83‑84`, `88‑94`, `108‑113`, `123‑180`, `198‑201`, `206‑207`, `217‑219`, `229‑232`, `255‑304`, `328‑457`, `498‑503`, `531`, `534‑538`, `542`, `544`, `546`, `548`, `566`, `570`, `574‑575`【d6b265†L1-L4】 |
 | `methodology/edrr/reasoning_loop.py` | 79 | 14 % | ≈61 | `24`, `54‑178`【fc6bba†L1-L2】 |
-| `testing/run_tests.py` | 277 | 7 % | ≈230 | `29‑31`, `39‑71`, `92‑102`, `123‑327`, `364‑619`【95c072†L1-L2】 |
+| `testing/run_tests.py` | 277 | 7.51 %【08fefd†L2-L2】 | ≈230 | `29‑31`, `39‑71`, `92‑102`, `123‑327`, `364‑619`【95c072†L1-L2】 |
 | `ports/requirement_port.py` | 114 | 70 % | ≈23 | `33`, `43`, `56`, `69`, `82`, `95`, `112`, `127`, `140`, `153`, `170`, `185`, `198`, `215`, `230`, `243`, `260`, `273`, `286`, `299`, `312`, `332`, `349`, `365`, `381`, `395`, `405`, `415`, `425`, `444`, `460`, `473`, `486`, `499`【1746f7†L1-L3】 |
 
 ### WebUI coverage focus
