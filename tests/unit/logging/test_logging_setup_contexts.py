@@ -212,3 +212,70 @@ def test_create_dir_toggle_disables_json_file_handler(
     last_record = capture_handler.records[-1]
     assert last_record.name == "devsynth.tests.manual"
     assert last_record.getMessage() == "manual toggle"
+
+
+@pytest.mark.fast
+def test_console_and_json_handlers_report_consistent_payloads(
+    logging_setup_module: ModuleType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """ReqID: LOG-CTX-04 — JSON payload mirrors console output metadata.
+
+    Issue: issues/coverage-below-threshold.md
+    """
+
+    logging_setup = logging_setup_module
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+    monkeypatch.delenv("DEVSYNTH_NO_FILE_LOGGING", raising=False)
+
+    log_dir = tmp_path / "parity"
+    logging_setup.configure_logging(log_dir=str(log_dir))
+
+    caplog.clear()
+    parity_logger = logging_setup.DevSynthLogger("devsynth.tests.parity")
+    parity_logger.logger.addHandler(caplog.handler)
+    try:
+        caplog.set_level(logging.INFO, logger="devsynth.tests.parity")
+        parity_logger.info("parity message", extra={"workflow": "sync"})
+    finally:
+        parity_logger.logger.removeHandler(caplog.handler)
+
+    root_logger = logging.getLogger()
+    file_handler = next(
+        handler for handler in root_logger.handlers if isinstance(handler, logging.FileHandler)
+    )
+    console_handler = next(
+        handler
+        for handler in root_logger.handlers
+        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
+    )
+
+    file_handler.flush()
+    payloads = [
+        json.loads(line)
+        for line in Path(logging_setup.get_log_file()).read_text().splitlines()
+        if line.strip()
+    ]
+    assert payloads, "Expected JSON payload from file handler."
+    last_payload = payloads[-1]
+
+    parity_record = next(
+        (
+            record
+            for record in caplog.records
+            if record.name == "devsynth.tests.parity"
+        ),
+        None,
+    )
+    assert parity_record is not None, "Expected console log record for parity logger."
+    rendered_console = console_handler.format(parity_record)
+
+    assert last_payload["message"] == "parity message"
+    assert last_payload["logger"] == "devsynth.tests.parity"
+    assert last_payload["level"] == parity_record.levelname
+    assert parity_record.getMessage() == "parity message"
+    assert "parity message" in rendered_console
+    assert "devsynth.tests.parity" in rendered_console
+    assert getattr(parity_record, "workflow", None) == "sync"

@@ -144,6 +144,38 @@ def test_ensure_log_dir_exists_skips_creation_when_disabled(
     assert Path(resolved).exists() is False
 
 
+def test_ensure_log_dir_exists_warns_when_creation_fails(
+    logging_setup_module: object,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """ReqID: coverage-logging-setup-guard — warning emitted when makedirs fails.
+
+    Issue: issues/coverage-below-threshold.md
+    """
+
+    logging_setup = logging_setup_module
+    monkeypatch.delenv("DEVSYNTH_NO_FILE_LOGGING", raising=False)
+    monkeypatch.delenv("DEVSYNTH_PROJECT_DIR", raising=False)
+
+    target = tmp_path / "guarded"
+
+    caplog.set_level(logging.WARNING)
+
+    def raise_permission(path: str, exist_ok: bool = True) -> None:  # noqa: FBT002
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(logging_setup.os, "makedirs", raise_permission)
+
+    resolved = logging_setup.ensure_log_dir_exists(str(target))
+
+    assert resolved == str(target)
+    assert any(
+        "Failed to create log directory" in record.getMessage() for record in caplog.records
+    )
+
+
 def test_devsynth_logger_filters_reserved_extra_keys(
     logging_setup_module: object, monkeypatch: pytest.MonkeyPatch
 ) -> None:
