@@ -45,6 +45,9 @@ jobs:
       - name: Second run (idempotency check)
         run: bash scripts/install_dev.sh
 
+      - name: Post-install verification
+        run: python scripts/verify_post_install.py
+
       - name: Bootstrap verification
         run: python scripts/doctor/bootstrap_check.py
 

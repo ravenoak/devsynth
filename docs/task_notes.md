@@ -188,3 +188,11 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `bash scripts/install_dev.sh` with output logged to `diagnostics/install_dev_20250921T054430Z.log` to reconfirm go-task and CLI health.
 - Observations: Smoke suite still fails during collection, so coverage artifacts remain absent; bootstrap script now records successful CLI checks without rerunning Poetry installs when the entry point already exists.
 - Next: Complete docs/tasks §28 research on FastAPI/Starlette compatibility, then update dependencies and rerun smoke plus coverage aggregates once patched.
+
+## Iteration 2025-09-21C – Bootstrap guarantee hardening
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4 after the refreshed bootstrap run.【F:diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log†L1-L40】
+- Commands:
+  - `bash scripts/install_dev.sh` (now always executes `poetry install --with dev --all-extras` and triggers the new post-install check).【F:scripts/install_dev.sh†L97-L142】
+  - `python scripts/verify_post_install.py | tee diagnostics/post_install_check_20250921T150333Z.log` (captures the fast-fail guarantee for `poetry env info --path` and `poetry run devsynth --help`).【F:scripts/verify_post_install.py†L1-L56】【F:diagnostics/post_install_check_20250921T150333Z.log†L1-L2】
+- Observations: Bootstrap now records `poetry install --with dev --all-extras` on every invocation (`diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log`) and reuses `scripts/verify_post_install.py` so both Poetry env discovery and the DevSynth CLI are validated before returning; CI smoke flows invoke the same script immediately after provisioning to fail fast during automation.【F:diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log†L1-L40】【F:.github/workflows/install_dev_smoke.yml†L47-L52】【F:.github/workflows/cli_smoke.yml†L40-L47】【F:.github/workflows/smoke_matrix.yml†L40-L47】
+- Next: Monitor smoke workflows for regressions once FastAPI/Starlette fixes land and update docs/plan.md with any additional diagnostics needed for release sign-off.

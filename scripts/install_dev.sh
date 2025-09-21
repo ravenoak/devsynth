@@ -5,6 +5,10 @@ INSTALL_DEV_TIMESTAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+if [[ "$PWD" != "$PROJECT_ROOT" ]]; then
+  cd "$PROJECT_ROOT"
+fi
+
 DIAGNOSTICS_DIR="$PROJECT_ROOT/diagnostics"
 mkdir -p "$DIAGNOSTICS_DIR"
 
@@ -101,22 +105,22 @@ ensure_devsynth_cli() {
     timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
     local phase_slug
     phase_slug="$(sanitize_slug "$phase")"
-    local cli_log="$DIAGNOSTICS_DIR/devsynth_cli_${phase_slug}_attempt${attempt}_${timestamp}.log"
+    local cli_log="$DIAGNOSTICS_DIR/post_install_${phase_slug}_attempt${attempt}_${timestamp}.log"
 
-    if poetry run devsynth --help >"$cli_log" 2>&1; then
+    if python "$PROJECT_ROOT/scripts/verify_post_install.py" >"$cli_log" 2>&1; then
       rm -f "$cli_log"
       if (( attempt == 1 )); then
-        echo "[info] devsynth CLI available during $phase; no reinstall required" >&2
+        echo "[info] post-install verification succeeded during $phase; no reinstall required" >&2
       else
-        echo "[info] devsynth CLI recovered during $phase (attempt $attempt)" >&2
+        echo "[info] post-install verification recovered during $phase (attempt $attempt)" >&2
       fi
       return 0
     fi
 
-    echo "[warning] 'poetry run devsynth --help' failed during $phase (attempt $attempt); see $cli_log" >&2
+    echo "[warning] post-install verification failed during $phase (attempt $attempt); see $cli_log" >&2
 
     if (( attempt == max_attempts )); then
-      echo "[error] devsynth CLI remains unavailable after $phase (attempt $attempt). See $cli_log" >&2
+      echo "[error] post-install verification remains unsuccessful after $phase (attempt $attempt). See $cli_log" >&2
       return 1
     fi
 
@@ -340,8 +344,14 @@ fi
 
 export PIP_FIND_LINKS="$WHEEL_DIR"
 
+initial_install_timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+if ! run_poetry_install "1" "mandatory-bootstrap" "$initial_install_timestamp"; then
+  echo "[error] unable to complete required poetry install. Review diagnostics/poetry_install_mandatory-bootstrap_* logs." >&2
+  exit 1
+fi
+
 if ! ensure_devsynth_cli "bootstrap"; then
-  echo "[error] unable to provision the devsynth CLI during bootstrap. Review diagnostics/devsynth_cli_bootstrap_* and poetry_install_bootstrap_* logs." >&2
+  echo "[error] unable to verify the environment during bootstrap. Review diagnostics/post_install_bootstrap_* and poetry_install_bootstrap_* logs." >&2
   exit 1
 fi
 
@@ -364,9 +374,9 @@ if [[ -d "$venv_path/bin" ]]; then
   echo "$venv_path/bin" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
 fi
 
-# Confirm the DevSynth CLI entry point is available (auto-repair if missing)
+# Confirm Poetry environment and DevSynth CLI remain healthy (auto-repair if checks fail)
 if ! ensure_devsynth_cli "post-verification"; then
-  echo "[error] devsynth CLI missing after verification commands. Review diagnostics/devsynth_cli_post-verification_* and poetry_install_post-verification_* logs." >&2
+  echo "[error] post-install verification failed after running repository checks. Review diagnostics/post_install_post-verification_* and poetry_install_post-verification_* logs." >&2
   exit 1
 fi
 

@@ -5,6 +5,12 @@ START_TIME=$(date +%s)
 MAX_SECONDS=$((15 * 60))
 WARN_SECONDS=$((10 * 60))
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+if [[ "$PWD" != "$PROJECT_ROOT" ]]; then
+  cd "$PROJECT_ROOT"
+fi
+
 # NOTE: This script provisions the Codex testing environment only. It is not
 # intended for regular development setup. To keep the ephemeral workspace
 # responsive, it targets completion in under 10 minutes and fails if it
@@ -163,14 +169,13 @@ if [[ "${PIP_NO_INDEX:-0}" != "1" && -n "$optional_pkgs" ]]; then
 fi
 
 export PIP_FIND_LINKS="$WHEEL_DIR"
-if ! poetry run devsynth --help >/dev/null 2>&1; then
-  poetry install \
-    --with dev \
-    --all-extras \
-    --no-interaction
-else
-  echo "[info] devsynth CLI already present; skipping poetry install" >&2
-fi
+
+poetry install \
+  --with dev \
+  --all-extras \
+  --no-interaction
+
+python "$PROJECT_ROOT/scripts/verify_post_install.py"
 
 # Ensure prometheus-client is available after installation
 poetry run python -c "import prometheus_client"
