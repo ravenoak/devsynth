@@ -179,3 +179,12 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `poetry run python -c "import importlib.metadata; print(importlib.metadata.version('starlette'))"` (confirms 0.47.3).
 - Observations: Smoke profile blocked before collection because FastAPI's TestClient imports Starlette's `WebSocketDenialResponse`, which now mixes `typing.Protocol` and classic `object` bases; Python 3.12 raises an MRO conflict. Coverage artifacts remain absent because pytest aborts early. Added issue [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md) to track dependency pinning and downstream retest requirements.
 - Next: Pin Starlette to a compatible release or apply upstream patch, rerun smoke+fast-medium suites, update docs/plan.md acceptance criteria, and audit other API-facing tests for similar compatibility breakage.
+
+## Iteration 2025-09-21B – Environment resync and smoke rerun
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4 after `bash scripts/install_dev.sh`; CLI initially missing until `poetry install --with dev --all-extras` reran.【badfc1†L1-L27】【22c312†L1-L2】【8c8eea†L1-L3】
+- Commands:
+  - `poetry install --with dev --all-extras` (restored devsynth entry point and optional extras).
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` twice, capturing the failing Starlette MRO output in `logs/run-tests-smoke-fast-20250921T054207Z.log`.
+  - `bash scripts/install_dev.sh` with output logged to `diagnostics/install_dev_20250921T054430Z.log` to reconfirm go-task and CLI health.
+- Observations: Smoke suite still fails during collection, so coverage artifacts remain absent; bootstrap script now records successful CLI checks without rerunning Poetry installs when the entry point already exists.
+- Next: Complete docs/tasks §28 research on FastAPI/Starlette compatibility, then update dependencies and rerun smoke plus coverage aggregates once patched.

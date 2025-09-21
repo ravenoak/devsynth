@@ -266,6 +266,7 @@ Notes:
 Notes:
 - 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.
 - 2025-09-15: Reinstalled dependencies and reran smoke/verification; tasks 19.2, 19.4, 19.5 remain.
+- 2025-09-21: After reinstalling dev extras, reran the smoke suite; FastAPI/Starlette MRO regression persists and log archived at `logs/run-tests-smoke-fast-20250921T054207Z.log`. install_dev snapshot stored at `diagnostics/install_dev_20250921T054430Z.log` confirming go-task 3.45.4 and CLI availability.
 
 28. FastAPI/Starlette Compatibility Regression (Phase 2E)
 28.1 [ ] Review FastAPI 0.116.x and Starlette 0.47.x release notes to determine a compatible pair for Python 3.12 and DevSynth's agent API fixtures; document findings in docs/plan.md and docs/task_notes.md (Issue: [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md)).
