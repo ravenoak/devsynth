@@ -29,6 +29,19 @@ def test_build_consensus_no_consensus() -> None:
     assert set(result.dissenting or []) == {"a", "b"}
 
 
+def test_build_consensus_records_unique_dissenting_options() -> None:
+    """ReqID: CONSENSUS-01; Issue: issues/consensus-building.md"""
+    votes = ["alpha", "beta", "beta", "gamma", "gamma"]
+    result = build_consensus(votes, threshold=0.8)
+
+    assert result.consensus is False
+    assert result.decision is None
+    assert result.dissenting is not None
+    assert set(result.dissenting) == {"alpha", "beta", "gamma"}
+    assert len(result.dissenting) == 3
+    assert result.counts == {"alpha": 1, "beta": 2, "gamma": 2}
+
+
 def test_build_consensus_invalid_threshold() -> None:
     """ReqID: CONSENSUS-01; Issue: issues/consensus-building.md"""
     with pytest.raises(ValueError):

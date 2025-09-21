@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-09-14'
-status: draft
+status: review/published
 tags:
 - implementation
 - invariants
@@ -53,6 +53,22 @@ assert metrics.get_retry_metrics() == {}
 
 Proof: [tests/unit/devsynth/test_metrics.py](../../tests/unit/devsynth/test_metrics.py) exercises retry counters and reset behavior.
 
+## Exponential Backoff Metrics
+
+`tests/unit/devsynth/test_fallback_reliability.py::test_retry_with_exponential_backoff_records_metrics`
+decorates a flaky function that fails twice before succeeding. The regression
+confirms exponential backoff increments attempt, per-function, and per-error
+metrics on each failure and records the final success event, validating the
+monitoring hooks that accompany the retry loop.【F:tests/unit/devsynth/test_fallback_reliability.py†L1-L67】
+
 ## Issue Reference
 
 - [Enhance retry mechanism](../../issues/Enhance-retry-mechanism.md)
+
+## Quantitative Proof Obligations
+
+The readiness plan requires published implementation notes to pair executable
+proofs with coverage data before exit from review. A targeted coverage sweep of
+`devsynth.fallback.retry_with_exponential_backoff` remains queued alongside the
+instrumented CLI repairs so the retry invariants gain quantitative backing per
+the plan's directive.【F:docs/plan.md†L191-L197】

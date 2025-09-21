@@ -1,5 +1,3 @@
-import time
-
 import pytest
 
 from devsynth import metrics
@@ -29,6 +27,37 @@ def test_named_condition_callbacks_record_metrics():
     assert calls == [0]
     metrics_dict = metrics.get_retry_condition_metrics()
     assert metrics_dict.get("stop:suppress") == 1
+
+
+@pytest.mark.fast
+def test_retry_with_exponential_backoff_records_metrics() -> None:
+    """ReqID: RETRY-01; Issue: issues/Enhance-retry-mechanism.md"""
+
+    reset_prometheus_metrics()
+    attempts = {"count": 0}
+
+    @retry_with_exponential_backoff(
+        max_retries=3,
+        initial_delay=0,
+        max_delay=0,
+        jitter=False,
+    )
+    def flaky() -> str:
+        attempts["count"] += 1
+        if attempts["count"] < 3:
+            raise RuntimeError("transient error")
+        return "ok"
+
+    assert flaky() == "ok"
+    assert attempts["count"] == 3
+
+    assert metrics.get_retry_metrics() == {"attempt": 2, "success": 1}
+    assert metrics.get_retry_count_metrics() == {"flaky": 2}
+    assert metrics.get_retry_error_metrics() == {"RuntimeError": 2}
+    assert metrics.get_retry_stat_metrics() == {
+        "flaky:attempt": 2,
+        "flaky:success": 1,
+    }
 
 
 @pytest.mark.fast

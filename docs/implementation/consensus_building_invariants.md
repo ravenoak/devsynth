@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-09-14'
-status: draft
+status: review/published
 tags:
 - implementation
 - invariants
@@ -42,8 +42,25 @@ result = build_consensus(["a", "b"], threshold=0.6)
 assert not result.consensus and set(result.dissenting) == {"a", "b"}
 ```
 
+Regression coverage keeps this invariant stable. The fast unit test
+`tests/unit/devsynth/test_consensus.py::test_build_consensus_no_consensus`
+protects the two-vote example above, while
+`tests/unit/devsynth/test_consensus.py::test_build_consensus_records_unique_dissenting_options`
+confirms the dissenting roster enumerates each option once even when votes
+arrive with duplicates, preserving deterministic audit trails for
+downstream consumers.【F:tests/unit/devsynth/test_consensus.py†L10-L48】
+
 These invariants guarantee termination and predictable outcomes for
 finite inputs.
+
+## Quantitative Proof Obligations
+
+The test readiness plan still requires executable proofs accompanied by
+coverage evidence before UAT can rely on these guarantees. A focused
+coverage sweep of `devsynth.consensus` remains scheduled once the
+instrumented `devsynth run-tests` workflow is restored so that the
+consensus invariants contribute quantifiable line coverage, closing the
+plan's outstanding measurement requirement.【F:docs/plan.md†L191-L197】
 
 ## References
 
