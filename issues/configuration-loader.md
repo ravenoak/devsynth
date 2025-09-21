@@ -1,6 +1,6 @@
 # Configuration Loader
 Milestone: 0.1.0-alpha.2
-Status: in progress
+Status: complete
 Priority: high
 Dependencies: docs/specifications/configuration-loader.md, tests/behavior/features/configuration_loader.feature
 
@@ -16,6 +16,7 @@ Configuration Loader is not yet implemented, limiting DevSynth's capabilities.
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-21: Behavior and unit tests cover fallback and failure flows; see [docs/implementation/config_loader_workflow.md](../docs/implementation/config_loader_workflow.md) and [`tests/behavior/features/configuration_loader.feature`](../tests/behavior/features/configuration_loader.feature).
 
 ## References
 - Specification: docs/specifications/configuration-loader.md

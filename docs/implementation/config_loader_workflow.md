@@ -2,8 +2,8 @@
 
 author: DevSynth Team
 date: '2025-06-16'
-last_reviewed: "2025-07-10"
-status: draft
+last_reviewed: "2025-09-21"
+status: review
 tags:
 
 - implementation
@@ -54,10 +54,16 @@ cfg.save()
 
 The loader merges values from the chosen file into a common configuration object so both new and existing projects share the same structure.
 
+## Evidence
+
+- **Behavior:** [`tests/behavior/features/configuration_loader.feature`](../../tests/behavior/features/configuration_loader.feature) exercises the YAML fallback path and surfaces configuration errors for malformed `pyproject.toml` inputs.
+- **Unit:** [`tests/unit/core/test_unified_config_loader.py`](../../tests/unit/core/test_unified_config_loader.py) verifies fallback selection along with malformed YAML and TOML failure modes in `UnifiedConfigLoader`.
+
 ## Current Limitations
 
 This workflow is fully implemented. The unified parser handles both YAML and
-TOML configurations, and integration tests cover multiple project layouts.
+TOML configurations, and the tests above cover fallback selection plus
+configuration error handling for malformed files.
 ## Implementation Status
 
 This feature is **implemented** and verified by automated tests.

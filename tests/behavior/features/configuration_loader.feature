@@ -1,30 +1,19 @@
-Feature: Configuration Loader
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+Feature: Unified configuration loader behavior
+  As a DevSynth maintainer
+  I want the unified loader to choose the correct configuration source
+  So that CLI workflows share consistent project settings
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given a temporary project root
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: Loader falls back to YAML when pyproject lacks DevSynth section
+    Given a pyproject file without a DevSynth section
+    And a YAML configuration with language "python"
+    When I load the unified configuration
+    Then the loader should report it uses YAML
+    And the loaded language should be "python"
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Malformed pyproject configuration surfaces a configuration error
+    Given a malformed pyproject configuration
+    When I attempt to load the unified configuration
+    Then a configuration error should be reported for "pyproject.toml"
