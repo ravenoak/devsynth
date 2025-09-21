@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-09-15'
-status: draft
+status: review
 tags:
 - implementation
 - invariants
@@ -51,6 +51,12 @@ When the tag exists, verification succeeds ([unit test](../../tests/unit/scripts
 
 Verification stops when the audit log has unanswered questions ([feature](../../tests/behavior/features/dialectical_audit_gating.feature#L6-L9)).
 
+### Behavior suite evidence
+
+The BDD harness now exercises both failure and success paths end-to-end;
+`test_reports/release_state_check_bdd.log` captures the passing scenarios with
+coverage reporting from the dedicated run.【F:test_reports/release_state_check_bdd.log†L1-L20】
+
 ## References
 
 - Specification: [docs/specifications/release-state-check.md](../specifications/release-state-check.md)
@@ -58,7 +64,7 @@ Verification stops when the audit log has unanswered questions ([feature](../../
 - Unit Tests: [tests/unit/scripts/test_verify_release_state.py](../../tests/unit/scripts/test_verify_release_state.py)
 - Issue: [issues/release-state-check.md](../../issues/release-state-check.md)
 
-## Coverage Signal and Outstanding Gaps (2025-09-20)
+## Coverage Signal and Outstanding Gaps (2025-09-21)
 
 - Unit coverage via [`tests/unit/scripts/test_verify_release_state.py`](../../tests/unit/scripts/test_verify_release_state.py) exercises the success, failure, and remediation paths of `scripts/verify_release_state.py`. A focused sweep limited to the `scripts/` namespace records 69.23 % line coverage for the verification script, providing concrete execution evidence for the invariants while highlighting unvisited diagnostic branches.【d43747†L1-L17】【F:issues/tmp_cov_release_state.json†L1-L1】
-- The published BDD features still lack working step imports—`tests/behavior/test_release_state_check.py` fails with `StepDefinitionNotFoundError` because `tests/behavior/steps/release_state_steps.py` omits the required `Path` and `subprocess` imports. The feature remains a draft asset until those steps are restored; [issues/release-state-check.md](../../issues/release-state-check.md) has been reopened to track the missing automation.
+- Behavior coverage is tracked through the dedicated BDD log, which documents the passing scenarios and their coverage context after restoring the release-state step module imports.【F:test_reports/release_state_check_bdd.log†L1-L20】
