@@ -1,7 +1,8 @@
 ---
 author: DevSynth Team
 date: '2025-09-14'
-status: draft
+last_reviewed: "2025-09-21"
+status: review/published
 tags:
 - implementation
 - invariants
@@ -42,12 +43,25 @@ result = build_consensus(["a", "b"], threshold=0.6)
 assert not result.consensus and set(result.dissenting) == {"a", "b"}
 ```
 
+Regression coverage in
+[`tests/unit/devsynth/test_consensus.py::test_build_consensus_tracks_unique_dissenting_options`](../tests/unit/devsynth/test_consensus.py)
+ensures each dissenting option appears once when consensus fails, matching the
+tracked counts and preventing stale entries from earlier runs.
+
 These invariants guarantee termination and predictable outcomes for
 finite inputs.
+
+## Quantitative Proof Requirements
+
+`docs/plan.md` requires executable proofs paired with coverage evidence before
+consensus invariants may claim release readiness. The next coverage sweep must
+record line coverage for `src/devsynth/consensus.py` alongside the updated test
+artifacts so the measurement can be archived in
+`issues/coverage-below-threshold.md` for traceability.【F:docs/plan.md†L194-L199】【F:issues/coverage-below-threshold.md†L86-L106】
 
 ## References
 
 - Specification: [docs/specifications/consensus-building.md](../specifications/consensus-building.md)
 - BDD Feature: [tests/behavior/features/consensus_building.feature](../tests/behavior/features/consensus_building.feature)
 - Issue: [issues/consensus-building.md](../issues/consensus-building.md)
-- Unit Test: [tests/unit/devsynth/test_consensus.py](../tests/unit/devsynth/test_consensus.py)
+- Unit Tests: [tests/unit/devsynth/test_consensus.py](../tests/unit/devsynth/test_consensus.py)
