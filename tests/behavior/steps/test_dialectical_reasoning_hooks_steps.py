@@ -4,6 +4,7 @@ import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.requirements.dialectical_reasoner import (
+    ConsensusError,
     DialecticalReasonerService,
 )
 from devsynth.domain.interfaces.requirement import (
@@ -33,8 +34,11 @@ class _DummyNotification:
 
 
 class _DummyLLM:
+    def __init__(self, response: str = "yes") -> None:
+        self.response = response
+
     def query(self, prompt: str) -> str:
-        return "yes"
+        return self.response
 
 
 @pytest.fixture
@@ -44,13 +48,14 @@ def context():
 
 @given("a dialectical reasoner with a registered hook")
 def build_reasoner(context):
+    llm = _DummyLLM()
     service = DialecticalReasonerService(
         requirement_repository=RequirementRepositoryInterface(),
         reasoning_repository=DialecticalReasoningRepositoryInterface(),
         impact_repository=ImpactAssessmentRepositoryInterface(),
         chat_repository=ChatRepositoryInterface(),
         notification_service=_DummyNotification(),
-        llm_service=_DummyLLM(),
+        llm_service=llm,
     )
     service._generate_thesis = lambda change: "t"
     service._generate_antithesis = lambda change: "a"
@@ -66,15 +71,44 @@ def build_reasoner(context):
     service.register_evaluation_hook(hook)
     context["service"] = service
     context["called"] = called
+    context["llm"] = llm
+    context["expected_consensus"] = True
+    context["reasoning"] = None
+    context["error"] = None
 
 
-@when("I evaluate a change that reaches consensus")
+@given("the evaluation outcome will reach consensus")
+def configure_consensus(context):
+    context["llm"].response = "yes"
+    context["expected_consensus"] = True
+
+
+@given("the evaluation outcome will fail to reach consensus")
+def configure_failure(context):
+    context["llm"].response = "no"
+    context["expected_consensus"] = False
+
+
+@when("I evaluate the change")
 def evaluate_change(context):
     change = RequirementChange(requirement_id=uuid4(), created_by="tester")
-    context["reasoning"] = context["service"].evaluate_change(change)
+    context["change"] = change
+    try:
+        context["reasoning"] = context["service"].evaluate_change(change)
+        context["error"] = None
+    except ConsensusError as exc:
+        context["reasoning"] = None
+        context["error"] = exc
 
 
-@then("the hook should receive the reasoning and consensus flag")
+@then("the hook should record the evaluation outcome")
 def hook_called(context):
-    assert context["called"]["consensus"] is True
-    assert context["called"]["id"] == context["reasoning"].change_id
+    expected = context["expected_consensus"]
+    assert context["called"]["consensus"] is expected
+    if expected:
+        assert context["error"] is None
+        assert context["reasoning"] is not None
+        assert context["called"]["id"] == context["reasoning"].change_id
+    else:
+        assert context["error"] is not None
+        assert context["called"]["id"] == context["change"].id

@@ -15,6 +15,7 @@ try:
 except ImportError:  # pragma: no cover
     pytest.skip("hypothesis not available", allow_module_level=True)
 
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 reasoning_loop_module = importlib.import_module(
@@ -206,3 +207,58 @@ def test_reasoning_loop_propagates_synthesis(monkeypatch, syntheses):
 
     for i in range(1, len(tasks)):
         assert tasks[i]["solution"] == syntheses[i - 1]
+
+
+@pytest.mark.property
+@pytest.mark.medium
+@given(
+    initial_solution=st.text(min_size=1, max_size=10),
+    syntheses=st.lists(st.text(min_size=1, max_size=10), min_size=1, max_size=4),
+)
+@example(initial_solution="init", syntheses=["done"])
+@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+def test_reasoning_loop_invokes_dialectical_hooks(
+    monkeypatch, initial_solution, syntheses
+):
+    """Registered hooks observe each dialectical iteration.
+
+    Issue: issues/dialectical_reasoning.md ReqID: DRL-001
+    """
+
+    statuses = ["in_progress"] * (len(syntheses) - 1) + ["completed"]
+    team = WSDETeam("dialectical")
+    recorded: list[tuple[str, str]] = []
+
+    def hook(task, solutions):
+        recorded.append((task["solution"], solutions[0]["synthesis"]))
+
+    team.register_dialectical_hook(hook)
+
+    call = {"i": 0}
+
+    def fake_apply(wsde_team, task, critic, memory):
+        idx = call["i"]
+        result = {"status": statuses[idx], "synthesis": syntheses[idx]}
+        call["i"] += 1
+        for hook_fn in getattr(wsde_team, "dialectical_hooks", []):
+            hook_fn(task, [result])
+        return result
+
+    monkeypatch.setattr(
+        reasoning_loop_module,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
+    )
+
+    task = {"solution": initial_solution}
+    critic = object()
+    results = reasoning_loop_module.reasoning_loop(
+        team, task, critic, max_iterations=len(syntheses)
+    )
+
+    assert len(results) == len(syntheses)
+    assert len(recorded) == len(results)
+    expected_solutions = [initial_solution, *syntheses[:-1]]
+    for idx, (task_solution, recorded_synthesis) in enumerate(recorded):
+        assert task_solution == expected_solutions[idx]
+        assert recorded_synthesis == syntheses[idx]

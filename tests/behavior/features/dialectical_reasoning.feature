@@ -4,7 +4,14 @@ Feature: Dialectical reasoner evaluation hooks
   I want hooks to observe reasoning outcomes
   So that consensus decisions are auditable
 
-  Scenario: Hook receives consensus result
+  Scenario: Hook records consensus success
     Given a dialectical reasoner with a registered hook
-    When I evaluate a change that reaches consensus
-    Then the hook should receive the reasoning and consensus flag
+    And the evaluation outcome will reach consensus
+    When I evaluate the change
+    Then the hook should record the evaluation outcome
+
+  Scenario: Hook records consensus failure
+    Given a dialectical reasoner with a registered hook
+    And the evaluation outcome will fail to reach consensus
+    When I evaluate the change
+    Then the hook should record the evaluation outcome
