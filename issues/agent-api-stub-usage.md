@@ -17,6 +17,8 @@ Agent API Stub Usage is not yet implemented, limiting DevSynth's capabilities.
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 - 2025-09-12: Added initial BDD scenario exercising the init endpoint.
+- 2025-09-21: Documented the FastAPI stub flows, promoted the pseudocode to review, and enabled integration contract tests that
+  stub coordinator-equivalent CLI commands (`tests/integration/general/test_agent_api.py`).
 
 ## References
 - Specification: docs/specifications/agent-api-stub-usage.md

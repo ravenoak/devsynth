@@ -1,8 +1,7 @@
 import pytest
 
-pytest.skip("requires FastAPI test client", allow_module_level=True)
-
 pytest.importorskip("fastapi")
+pytest.importorskip("fastapi.testclient")
 
 import importlib
 import sys
