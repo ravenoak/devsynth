@@ -61,6 +61,8 @@ diagnostics/*
 !diagnostics/.gitkeep
 !diagnostics/README.md
 !diagnostics/provider_system_coverage_20250921.json
+!diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log
+!diagnostics/post_install_check_20250921T150333Z.log
 .test_categorization_progress.json
 .test_categorization_schedule.json
 flaky_test_report.json

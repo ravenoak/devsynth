@@ -41,6 +41,9 @@ jobs:
       - name: Provision environment
         run: bash scripts/install_dev.sh
 
+      - name: Post-install verification
+        run: python scripts/verify_post_install.py
+
       - name: Smoke check
         run: |
           task --version

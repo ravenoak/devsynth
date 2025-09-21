@@ -41,6 +41,9 @@ jobs:
           poetry --version
           poetry install --with dev --extras "${{ matrix.extras }}"
 
+      - name: Post-install verification
+        run: python scripts/verify_post_install.py
+
       - name: Environment defaults
         run: |
           echo "DEVSYNTH_PROVIDER=stub" >> $GITHUB_ENV
