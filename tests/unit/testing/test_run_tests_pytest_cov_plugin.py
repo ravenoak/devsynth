@@ -20,6 +20,22 @@ def test_ensure_pytest_cov_plugin_env_adds_plugin(monkeypatch: pytest.MonkeyPatc
 
 
 @pytest.mark.fast
+def test_ensure_pytest_cov_plugin_env_requires_autoload_disable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: PYTEST-COV-03 — No injection when plugin autoload remains enabled."""
+
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.setenv("PYTEST_ADDOPTS", "-k fast")
+
+    env = os.environ
+    changed = run_tests_module.ensure_pytest_cov_plugin_env(env)
+
+    assert changed is False
+    assert env.get("PYTEST_ADDOPTS") == "-k fast"
+
+
+@pytest.mark.fast
 def test_ensure_pytest_cov_plugin_env_respects_explicit_disables(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
