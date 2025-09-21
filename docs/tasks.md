@@ -126,6 +126,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 12.1.3 [x] ChromaDB — `DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true`; start an ephemeral client, add a document with an embedding, and query by vector.
 12.1.4 [x] FAISS — `DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true`; build an `IndexFlatL2`, add a vector, and perform a nearest-neighbor search.
 12.1.5 [x] Kuzu — `DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true`; open a temporary database, create a node table, insert a record, and retrieve it.
+12.1.6 [x] Ensure collaboration, ingestion, and adapter memory tests lazily import optional stores after `pytest.importorskip` and respect `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` so they skip when extras are disabled (2025-09-21).【F:tests/integration/collaboration/test_role_reassignment_shared_memory.py†L1-L86】【F:tests/integration/general/test_ingestion_pipeline.py†L1-L622】【F:tests/unit/adapters/test_chromadb_memory_store.py†L1-L71】
 12.2 [x] Default smoke mode guidance in docs to reduce plugin-related flakiness; ensure CLI reflects PYTEST_DISABLE_PLUGIN_AUTOLOAD behavior.
 12.3 [x] Provide a "coverage-only" profile or documented command to standardize local coverage runs.
 

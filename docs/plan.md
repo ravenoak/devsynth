@@ -159,6 +159,7 @@ Critical evaluation of current tests (dialectical + Socratic)
 - Cons: The plan must guarantee a reproducible coverage workflow that meets 90% in maintainers’ environments; maintainers need clear instructions for intentionally bypassing the gate (e.g., `PYTEST_ADDOPTS="--no-cov"`) when iterating on narrow subsets so partial runs do not appear as failures.
 - Cons (2025-09-16 update): Coverage instrumentation previously degraded to placeholder artifacts when `.coverage` was absent;
   the updated helpers now skip artifact generation and force the CLI to surface remediation when that state occurs.【F:src/devsynth/testing/run_tests.py†L121-L192】【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L214-L276】
+- 2025-09-21: Collaboration, ingestion, and adapter memory tests now import optional stores only after `pytest.importorskip` and check `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE` before instantiating them so resource toggles reliably skip the suites instead of raising import errors when extras are unavailable.【F:tests/integration/collaboration/test_role_reassignment_shared_memory.py†L1-L86】【F:tests/integration/general/test_ingestion_pipeline.py†L1-L622】【F:tests/unit/adapters/test_chromadb_memory_store.py†L1-L71】
 
 4) Gaps and blockers identified
 - Property tests previously failed due to example() misuse and a missing `_improve_clarity` on the dummy team; both issues are now resolved.

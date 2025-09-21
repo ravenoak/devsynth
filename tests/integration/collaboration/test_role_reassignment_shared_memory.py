@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime
 
 import pytest
@@ -6,15 +7,15 @@ import pytest
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
-from devsynth.application.memory.faiss_store import FAISSStore
-from devsynth.application.memory.kuzu_store import KuzuStore
-from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.memory_manager import MemoryManager
 
-lmdb_mod = pytest.importorskip("lmdb")
-pytest.importorskip("faiss")
-if not hasattr(lmdb_mod, "open"):
-    pytest.skip("lmdb unavailable", allow_module_level=True)
+
+def _require_resource(resource: str) -> None:
+    """Skip the test when a resource is explicitly disabled."""
+
+    env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
+    if os.environ.get(env_name, "true").lower() == "false":
+        pytest.skip(f"Resource '{resource}' disabled via {env_name}")
 
 
 class DummyAgent:
@@ -62,7 +63,25 @@ class RoleTeam(CollaborativeWSDETeam):
 
 @pytest.mark.requires_resource("lmdb")
 @pytest.mark.requires_resource("faiss")
+@pytest.mark.requires_resource("kuzu")
 def test_role_reassignment_shared_memory(tmp_path):
+    lmdb_mod = pytest.importorskip("lmdb")
+    pytest.importorskip("faiss")
+    pytest.importorskip("kuzu")
+
+    if not hasattr(lmdb_mod, "open"):
+        pytest.skip("lmdb unavailable")
+
+    for resource in ("lmdb", "faiss", "kuzu"):
+        _require_resource(resource)
+
+    try:
+        from devsynth.application.memory.faiss_store import FAISSStore
+        from devsynth.application.memory.kuzu_store import KuzuStore
+        from devsynth.application.memory.lmdb_store import LMDBStore
+    except ImportError as exc:  # pragma: no cover - optional dependency missing
+        pytest.skip(f"Optional memory store dependency missing: {exc}")
+
     class LMDBTestStore(LMDBStore):
         def is_transaction_active(self, transaction_id: str) -> bool:
             return False

@@ -3,18 +3,28 @@ import uuid
 
 import pytest
 
-from devsynth.adapters import chromadb_memory_store
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-chromadb = pytest.importorskip("chromadb")
+
+def _require_resource(resource: str) -> None:
+    """Skip when an optional backend resource is explicitly disabled."""
+
+    env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
+    if os.environ.get(env_name, "true").lower() == "false":
+        pytest.skip(f"Resource '{resource}' disabled via {env_name}")
 
 
 @pytest.mark.requires_resource("chromadb")
 @pytest.mark.fast
 def test_store_and_retrieve_roundtrip(monkeypatch, tmp_path):
     """Store and retrieve using ChromaDBMemoryStore. ReqID: N/A"""
-    if os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE") != "1":
-        pytest.skip("ChromaDB resource not available")
+    chromadb = pytest.importorskip("chromadb")
+    _require_resource("chromadb")
+
+    try:
+        from devsynth.adapters import chromadb_memory_store
+    except ImportError as exc:  # pragma: no cover - optional dependency missing
+        pytest.skip(f"Optional memory store dependency missing: {exc}")
 
     class DummyEF:
         def __call__(self, texts):

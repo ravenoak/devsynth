@@ -5,6 +5,7 @@ This module tests the functionality of the ingestion module, which implements
 the "Expand, Differentiate, Refine, Retrospect" methodology for project ingestion.
 """
 
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -13,7 +14,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.cli.commands.ingest_cmd import ingest_cmd as cli_ingest_cmd
 from devsynth.application.cli.ingest_cmd import ingest_cmd
@@ -25,13 +25,19 @@ from devsynth.application.ingestion import (
     IngestionPhase,
     ProjectStructureType,
 )
-from devsynth.application.memory.faiss_store import FAISSStore
-from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import IngestionError, ManifestError
+
+
+def _require_resource(resource: str) -> None:
+    """Skip when an optional backend resource is explicitly disabled."""
+
+    env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
+    if os.environ.get(env_name, "true").lower() == "false":
+        pytest.skip(f"Resource '{resource}' disabled via {env_name}")
 
 
 @pytest.fixture(autouse=True)
@@ -574,9 +580,27 @@ class TestIngestion:
 @pytest.mark.requires_resource("chromadb")
 def test_sync_manager_persistence_across_backends(tmp_path, monkeypatch):
     """Sync manager persists across backends. ReqID: N/A"""
+    for resource in ("lmdb", "faiss", "kuzu", "chromadb"):
+        _require_resource(resource)
+
+    lmdb_mod = pytest.importorskip("lmdb")
+    pytest.importorskip("faiss")
+    pytest.importorskip("kuzu")
+    pytest.importorskip("chromadb")
+
+    if not hasattr(lmdb_mod, "open"):
+        pytest.skip("lmdb unavailable")
+
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     monkeypatch.setenv("ENABLE_CHROMADB", "1")
     ef = pytest.importorskip("chromadb.utils.embedding_functions")
+
+    try:
+        from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
+        from devsynth.application.memory.faiss_store import FAISSStore
+        from devsynth.application.memory.lmdb_store import LMDBStore
+    except ImportError as exc:  # pragma: no cover - optional dependency missing
+        pytest.skip(f"Optional memory store dependency missing: {exc}")
 
     monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
 
