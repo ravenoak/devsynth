@@ -268,8 +268,6 @@ class ProjectSetupPages(CommandHandlingMixin):
     def _requirements_wizard(self) -> None:
         st = self.streamlit
         try:
-            from devsynth.interface.wizard_state_manager import WizardStateManager
-
             wizard_name = "requirements_wizard"
             steps = 5
             initial_state = {
@@ -293,8 +291,11 @@ class ProjectSetupPages(CommandHandlingMixin):
                 "requirements_constraints_input",
             ]
 
-            wizard_manager = WizardStateManager(
-                st.session_state, wizard_name, steps, initial_state
+            wizard_manager = WebUIBridge.create_wizard_manager(
+                st.session_state,
+                wizard_name,
+                steps=steps,
+                initial_state=initial_state,
             )
 
             wizard_state = wizard_manager.get_wizard_state()
@@ -401,8 +402,6 @@ class ProjectSetupPages(CommandHandlingMixin):
     def _gather_wizard(self) -> None:
         st = self.streamlit
         try:
-            from devsynth.interface.wizard_state_manager import WizardStateManager
-
             wizard_name = "gather_wizard"
             steps = 3
             initial_state = {
@@ -423,8 +422,11 @@ class ProjectSetupPages(CommandHandlingMixin):
                 "metadata_custom_field_value_input",
             ]
 
-            wizard_manager = WizardStateManager(
-                st.session_state, wizard_name, steps, initial_state
+            wizard_manager = WebUIBridge.create_wizard_manager(
+                st.session_state,
+                wizard_name,
+                steps=steps,
+                initial_state=initial_state,
             )
             wizard_state = wizard_manager.get_wizard_state()
 

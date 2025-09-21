@@ -147,3 +147,54 @@ def test_session_helpers_delegate_to_state_access(
 
     assert bridge.WebUIBridge.set_session_value(data, "key", 2) is True
     assert captured["set"] == [(data, "key", 2)]
+
+
+def test_get_wizard_manager_persists_state(
+    bridge_under_test: SimpleNamespace,
+) -> None:
+    """Wizard managers reuse the same Streamlit-backed session state.
+
+    ReqID: coverage-webui-bridge
+    """
+
+    bridge = bridge_under_test.module
+    bridge_under_test.streamlit.session_state = {}
+    ui = bridge.WebUIBridge()
+
+    manager = ui.get_wizard_manager(
+        "requirements", steps=3, initial_state={"title": "Draft"}
+    )
+    state = manager.get_wizard_state()
+    assert state.get("title") == "Draft"
+
+    state.set("title", "Final")
+
+    refreshed = ui.get_wizard_state(
+        "requirements", steps=3, initial_state={"title": "Placeholder"}
+    )
+    assert refreshed.get("title") == "Final"
+
+
+def test_get_wizard_manager_requires_session_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Accessing wizard helpers without session_state raises ``DevSynthError``.
+
+    ReqID: coverage-webui-bridge
+    """
+
+    from types import ModuleType
+
+    stub = ModuleType("streamlit")
+    stub.session_state = None  # type: ignore[assignment]
+    monkeypatch.setitem(sys.modules, "streamlit", stub)
+
+    import importlib
+
+    import devsynth.interface.webui_bridge as bridge
+
+    module = importlib.reload(bridge)
+    ui = module.WebUIBridge()
+
+    with pytest.raises(bridge.DevSynthError):
+        ui.get_wizard_manager("req", steps=1)

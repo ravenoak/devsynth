@@ -1,19 +1,23 @@
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, List, Optional, Sequence
-
-# Streamlit is an optional dependency; do not import at module scope.
-st = None  # type: ignore[assignment]
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 from devsynth.exceptions import DevSynthError
 from devsynth.interface.state_access import get_session_value as _get_session_value
 from devsynth.interface.state_access import set_session_value as _set_session_value
 from devsynth.logging_setup import DevSynthLogger
 
-from .output_formatter import OutputFormatter
 from .shared_bridge import SharedBridgeMixin
 from .ux_bridge import ProgressIndicator, UXBridge, sanitize_output
+
+# Streamlit is an optional dependency; do not import at module scope.
+st = None  # type: ignore[assignment]
+
+if TYPE_CHECKING:
+    from devsynth.interface.webui_state import WizardState
+    from devsynth.interface.wizard_state_manager import WizardStateManager
 
 # Module level logger
 logger = DevSynthLogger(__name__)
@@ -33,7 +37,8 @@ def _require_streamlit() -> None:
             st = importlib.import_module("streamlit")  # type: ignore[assignment]
         except Exception as exc:  # pragma: no cover - error path
             raise DevSynthError(
-                "Streamlit is required for WebUI features. Install the optional extra:\n"
+                "Streamlit is required for WebUI features. Install the optional "
+                "extra:\n"
                 "  poetry install --with dev --extras webui"
             ) from exc
 
@@ -46,15 +51,15 @@ class WebUIProgressIndicator(ProgressIndicator):
         self._total = total
         self._current = 0
         self._status = "Starting..."
-        self._subtasks: Dict[str, Dict[str, Any]] = {}
+        self._subtasks: dict[str, dict[str, Any]] = {}
         self._update_times = []
 
     def update(
         self,
         *,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update the progress indicator.
 
@@ -130,7 +135,7 @@ class WebUIProgressIndicator(ProgressIndicator):
         return task_id
 
     def update_subtask(
-        self, task_id: str, advance: float = 1, description: Optional[str] = None
+        self, task_id: str, advance: float = 1, description: str | None = None
     ) -> None:
         """Update a subtask's progress.
 
@@ -220,8 +225,8 @@ class WebUIProgressIndicator(ProgressIndicator):
         parent_id: str,
         task_id: str,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update a nested subtask's progress.
 
@@ -322,7 +327,7 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
     """
 
     def __init__(self) -> None:
-        self.messages: List[str] = []
+        self.messages: list[str] = []
         super().__init__()
 
     # ------------------------------------------------------------------
@@ -410,7 +415,7 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
                     logger.debug("Empty string value, defaulting to step 0")
                     return 0
 
-                # Try to convert to float first (handles both integers and floats in string form)
+                # Convert to float first to accept integer or float strings
                 step = int(float(value_str))
 
             logger.debug(f"Normalized value {value} to step {step}")
@@ -426,8 +431,8 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         """Ask a question and return the response.
@@ -512,6 +517,61 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
             A progress indicator
         """
         return WebUIProgressIndicator(description, total)
+
+    def get_wizard_manager(
+        self,
+        wizard_name: str,
+        *,
+        steps: int,
+        initial_state: dict[str, Any] | None = None,
+    ) -> WizardStateManager:
+        """Return a :class:`WizardStateManager` bound to the current session."""
+
+        _require_streamlit()
+        session_state = getattr(st, "session_state", None)
+        if session_state is None:
+            raise DevSynthError(
+                "Streamlit session_state is unavailable; cannot manage wizard state"
+            )
+        return self.create_wizard_manager(
+            session_state,
+            wizard_name,
+            steps=steps,
+            initial_state=initial_state,
+        )
+
+    @staticmethod
+    def create_wizard_manager(
+        session_state,
+        wizard_name: str,
+        *,
+        steps: int,
+        initial_state: dict[str, Any] | None = None,
+    ) -> WizardStateManager:
+        """Instantiate a :class:`WizardStateManager` with defensive checks."""
+
+        if session_state is None:
+            raise DevSynthError(
+                "Streamlit session_state is unavailable; cannot manage wizard state"
+            )
+
+        from devsynth.interface.wizard_state_manager import WizardStateManager
+
+        return WizardStateManager(session_state, wizard_name, steps, initial_state)
+
+    def get_wizard_state(
+        self,
+        wizard_name: str,
+        *,
+        steps: int,
+        initial_state: dict[str, Any] | None = None,
+    ) -> WizardState:
+        """Return the :class:`WizardState` for the named wizard."""
+
+        manager = self.get_wizard_manager(
+            wizard_name, steps=steps, initial_state=initial_state
+        )
+        return manager.get_wizard_state()
 
     # ------------------------------------------------------------------
     # Session state management utilities
