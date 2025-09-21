@@ -31,6 +31,8 @@ coverage-artifacts.tar.gz
 coverage_html/
 htmlcov/
 coverage.json
+!issues/tmp_artifacts/webui-output_formatter/before/coverage.json
+!issues/tmp_artifacts/webui-output_formatter/after/coverage.json
 # Type checker and linter caches (Task 2: Baseline repo hygiene)
 .mypy_cache/
 .ruff_cache/

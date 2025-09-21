@@ -158,6 +158,14 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
 - Observations: Smoke profile now injects `-p pytest_cov` but leaves pytest-bdd unloaded, so requirements wizard scenarios crash; opened issues/run-tests-smoke-pytest-bdd-config.md and added docs/tasks.md §21.12 to track explicit plugin loading and a regression test.
 - Next: Implement plugin injection fix, add Typer-level regression coverage, rerun smoke+fast-medium coverage once pytest-bdd loads correctly.
 
+## Iteration 2025-09-21F – Interface coverage probes
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4 (persisting from earlier reinstall).
+- Commands:
+  - `poetry run pytest tests/unit/interface/test_webui_lazy_loader_fast.py tests/unit/interface/test_webui_bridge_cli_parity.py tests/unit/interface/test_output_formatter_error_rendering_fast.py` – validates the new fast suites for the Streamlit stub, router memoization, CLI/WebUI parity, and output formatter sanitization.
+  - `poetry run pytest tests/unit/interface -k "webui or output_formatter" -m fast --cov=src/devsynth/interface/webui.py --cov=src/devsynth/interface/webui_bridge.py --cov=src/devsynth/interface/output_formatter.py --cov-report=term --cov-report=json:issues/tmp_artifacts/webui-output_formatter/<stamp>/coverage.json` (before/after captures reported 13.46 % total coverage with the same fail-under exit).【eec5fe†L1-L39】【8de01d†L1-L164】
+- Observations: Added focused tests that exercise `_require_streamlit` caching, `_UIProgress` ETA/subtask lifecycle, router memoization, CLI prompt defaults, and hyperlink sanitization. Despite the new coverage paths, the aggregate fast interface sweep still reports 13.46 % due to the large untested regions in `webui.py`/`webui_bridge.py`; artifacts recorded under `issues/tmp_artifacts/webui-output_formatter/before|after/` document the unchanged totals and executed-line deltas.
+- Next: Extend coverage into the remaining WebUI routing/rendering branches and raise the aggregated fast+medium profile above the 90 % gate once the FastAPI/Starlette regression is cleared.
+
 ## Iteration 2025-09-20C – Smoke regression triage & spec backlog mapping
 - Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4 after rerunning `bash scripts/install_dev.sh` to restore go-task and reinstall extras.【a6f268†L1-L24】【a25025†L1-L2】
 - Commands: `poetry run devsynth doctor` (records missing provider env defaults); `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (fails with pytest-bdd IndexError, log saved to `logs/run-tests-smoke-fast-20250920.log`).【3c45ee†L1-L40】【65926f†L1-L52】
