@@ -316,6 +316,9 @@ def run_tests_cmd(
         addopts_value = os.environ.get("PYTEST_ADDOPTS", "")
         if not addopts_value.strip():
             addopts_value = "-p no:xdist"
+        tokens = _parse_pytest_addopts(addopts_value)
+        if not any(token.startswith("--cov-fail-under") for token in tokens):
+            addopts_value = f"{addopts_value.strip()} --cov-fail-under=0".strip()
         os.environ["PYTEST_ADDOPTS"] = addopts_value.strip()
         no_parallel = True
         # In smoke mode, default to fast tests when no explicit speeds are provided.
@@ -414,7 +417,22 @@ def run_tests_cmd(
                 pass
 
         coverage_enabled, skip_reason = _coverage_instrumentation_status()
-        if not coverage_enabled:
+        if smoke:
+            details: list[str] = []
+            if coverage_enabled:
+                details.append("coverage data collected for diagnostics")
+            elif skip_reason:
+                details.append(skip_reason)
+            notice = "; ".join(details)
+            suffix = f" ({notice})" if notice else ""
+            ux_bridge.print(
+                "[yellow]Coverage enforcement skipped in smoke mode"
+                f"{suffix}. Run fast+medium profiles before enforcing thresholds.[/yellow]"
+            )
+
+            if coverage_enabled:
+                _emit_coverage_artifact_messages(ux_bridge)
+        elif not coverage_enabled:
             detail = f" ({skip_reason})" if skip_reason else ""
             message = (
                 "[yellow]Coverage enforcement skipped: pytest-cov instrumentation "

@@ -130,8 +130,8 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 12.3 [x] Provide a "coverage-only" profile or documented command to standardize local coverage runs.
 
 13. Acceptance Criteria Validation
-13.1 [ ] All unit, integration, and behavior tests pass locally using documented commands (blocked by FastAPI/Starlette TestClient MRO regression; see §28).
-13.1.1 [ ] Resolve FastAPI/Starlette TestClient MRO failure by pinning Starlette to a compatible release or applying upstream patches, then rerun `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` and attach the passing log (Issue: [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md)).
+13.1 [ ] All unit, integration, and behavior tests pass locally using documented commands (smoke is green; remaining gap is the fast+medium coverage gate; see §19.3).
+13.1.1 [x] Resolve FastAPI/Starlette TestClient MRO failure by pinning Starlette to a compatible release or applying upstream patches, then rerun `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` and attach the passing log (Issue: [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md)). Evidence: `logs/run-tests-smoke-fast-20250921T160631Z.log` and regenerated coverage artifacts.【F:logs/run-tests-smoke-fast-20250921T160631Z.log†L33-L40】
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
 13.3 [ ] Combined coverage >= 90% with HTML report generated and saved (latest gate attempt fails because coverage artifacts are missing; remediation tracked under §6.3 and §21.8).
 13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
@@ -163,7 +163,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 16.4 [x] Populate `tests/behavior/features/memory_and_context_system.feature` with executable scenarios before promoting docs/specifications/memory-and-context-system.md beyond draft.【F:docs/specifications/memory-and-context-system.md†L1-L88】【F:tests/behavior/features/memory_and_context_system.feature†L1-L28】【F:tests/behavior/steps/test_memory_and_context_system_steps.py†L1-L137】
 
 Notes:
-- 2025-09-21: Smoke suite blocked by FastAPI/Starlette TestClient MRO regression; see §13.1.1 and §28 plus logs/run-tests-smoke-fast-20250921T052856Z.log.【F:logs/run-tests-smoke-fast-20250921T052856Z.log†L1-L42】
+- 2025-09-21: Smoke suite now passes with Starlette pinned `<0.47` and the sitecustomize shim; see §13.1.1 plus logs/run-tests-smoke-fast-20250921T160631Z.log for the green evidence.【F:logs/run-tests-smoke-fast-20250921T160631Z.log†L33-L40】
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
 - Maintain exactly one speed marker per test function.
 - Prefer adding tests for pure logic first, then expand to gated integrations.

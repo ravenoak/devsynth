@@ -46,7 +46,7 @@ openai = "*"
 toml = "*"
 requests = "*"
 fastapi = {version = "*", optional = true}
-starlette = "*"
+starlette = ">=0.40,<0.47"
 tinydb = {version = "*", optional = true}
 duckdb = {version = "*", optional = true}
 lmdb = {version = "*", optional = true}
