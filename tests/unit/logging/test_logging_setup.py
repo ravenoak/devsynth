@@ -457,3 +457,38 @@ def test_devsynth_logger_log_does_not_mutate_extra_inputs():
     assert set(kwargs.keys()) == {"extra"}
     assert kwargs["extra"] == {"detail": "value", "custom": "kept"}
     assert original_extra == {"detail": "value", "name": "drop-me"}
+
+
+@pytest.mark.fast
+def test_devsynth_logger_log_normalizes_truthy_exc_info(monkeypatch: pytest.MonkeyPatch):
+    """ReqID: LOG-06D — ``exc_info`` coercion falls back to ``sys.exc_info`` when needed.
+
+    Issue: issues/coverage-below-threshold.md
+    """
+
+    wrapper = DevSynthLogger("devsynth.test.excinfo")
+    inner_logger = wrapper.logger
+    original_log = inner_logger.log
+
+    mock_log = MagicMock()
+    inner_logger.log = mock_log
+
+    import src.devsynth.logging_setup as logging_setup_module
+
+    sentinel = (RuntimeError, RuntimeError("boom"), None)
+    monkeypatch.setattr(logging_setup_module.sys, "exc_info", lambda: sentinel)
+
+    try:
+        wrapper._log(logging.ERROR, "truthy", exc_info=True)
+        wrapper._log(logging.ERROR, "string", exc_info="boom")
+    finally:
+        inner_logger.log = original_log
+        inner_logger.handlers = []
+        inner_logger.filters = []
+        inner_logger.propagate = True
+
+    assert mock_log.call_count == 2
+    truthy_kwargs = mock_log.call_args_list[0].kwargs
+    string_kwargs = mock_log.call_args_list[1].kwargs
+    assert truthy_kwargs["exc_info"] == sentinel
+    assert string_kwargs["exc_info"] == sentinel

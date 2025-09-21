@@ -258,3 +258,97 @@ def test_configure_logging_falls_back_to_console_on_file_handler_failure(
     assert not any(
         isinstance(handler, original_file_handler) for handler in root_logger.handlers
     )
+
+
+@pytest.mark.fast
+def test_configure_logging_create_dir_guard_preserves_console_only_mode(
+    logging_setup_module: ModuleType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """ReqID: LOG-CONF-08 — create_dir toggle skips directory creation and logs notice.
+
+    Issue: issues/coverage-below-threshold.md
+    """
+
+    logging_setup = logging_setup_module
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+    monkeypatch.delenv("DEVSYNTH_NO_FILE_LOGGING", raising=False)
+
+    calls: list[str] = []
+
+    def fail_if_called(path: str) -> str:
+        calls.append(path)
+        raise AssertionError("ensure_log_dir_exists should not be invoked when create_dir=False")
+
+    monkeypatch.setattr(logging_setup, "ensure_log_dir_exists", fail_if_called)
+
+    logging_setup.configure_logging(log_dir="guarded", create_dir=False)
+
+    assert not calls, "Directory creation helper should remain unused."
+
+    root_logger = logging.getLogger()
+    assert all(
+        not isinstance(handler, logging.FileHandler) for handler in root_logger.handlers
+    ), "File handlers must be absent in console-only mode."
+    assert any(
+        isinstance(handler, logging.StreamHandler) for handler in root_logger.handlers
+    ), "Console handler should stay attached."
+
+    caplog.clear()
+    guard_logger = logging_setup.DevSynthLogger("devsynth.tests.guard")
+    guard_logger.logger.addHandler(caplog.handler)
+    try:
+        caplog.set_level(logging.INFO, logger="devsynth.tests.guard")
+        guard_logger.info("console only active", extra={"mode": "console"})
+    finally:
+        guard_logger.logger.removeHandler(caplog.handler)
+
+    assert any(
+        record.name == "devsynth.tests.guard" and record.getMessage() == "console only active"
+        for record in caplog.records
+    ), "Console log should be captured when only stream handler is active."
+
+    effective_config = logging_setup._last_effective_config
+    assert effective_config is not None and effective_config[3] is False
+
+
+@pytest.mark.fast
+def test_configure_logging_reenables_file_handler_after_console_toggle(
+    logging_setup_module: ModuleType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: LOG-CONF-09 — toggling create_dir back on reinstates JSON handler.
+
+    Issue: issues/coverage-below-threshold.md
+    """
+
+    logging_setup = logging_setup_module
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+    monkeypatch.delenv("DEVSYNTH_NO_FILE_LOGGING", raising=False)
+
+    logging_setup.configure_logging(log_dir="retention", create_dir=False)
+
+    assert all(
+        not isinstance(handler, logging.FileHandler)
+        for handler in logging.getLogger().handlers
+    ), "Initial console-only run should not attach a file handler."
+
+    calls: list[str] = []
+
+    def track_directory(path: str) -> str:
+        calls.append(path)
+        Path(path).mkdir(parents=True, exist_ok=True)
+        return path
+
+    monkeypatch.setattr(logging_setup, "ensure_log_dir_exists", track_directory)
+
+    logging_setup.configure_logging(log_dir="retention", create_dir=True)
+
+    assert calls == [str(tmp_path / "retention")]
+    assert any(
+        isinstance(handler, logging.FileHandler)
+        for handler in logging.getLogger().handlers
+    ), "File handler should be restored when create_dir toggled back on."
