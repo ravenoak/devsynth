@@ -268,8 +268,16 @@ def test_base_provider_methods_succeeds():
 @pytest.mark.parametrize(
     "provider_class,config",
     [
-        (OpenAIProvider, {"api_key": "test_key", "model": "gpt-4"}),
-        (LMStudioProvider, {"endpoint": "http://test-endpoint"}),
+        pytest.param(
+            OpenAIProvider,
+            {"api_key": "test_key", "model": "gpt-4"},
+            marks=pytest.mark.requires_resource("openai"),
+        ),
+        pytest.param(
+            LMStudioProvider,
+            {"endpoint": "http://test-endpoint"},
+            marks=pytest.mark.requires_resource("lmstudio"),
+        ),
     ],
 )
 @pytest.mark.medium
@@ -389,6 +397,7 @@ def test_get_provider_config_has_expected():
 
 @patch("requests.post")
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_openai_provider_complete_has_expected(mock_post):
     """Test the complete method of OpenAIProvider.
 
@@ -413,6 +422,7 @@ def test_openai_provider_complete_has_expected(mock_post):
 
 @patch("requests.post")
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_openai_provider_complete_error_raises_error(mock_post):
     """Test error handling in the complete method of OpenAIProvider.
 
@@ -429,6 +439,7 @@ def test_openai_provider_complete_error_raises_error(mock_post):
 
 @patch("requests.post")
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_openai_provider_complete_retry_has_expected(mock_post):
     """Test retry mechanism in the complete method of OpenAIProvider.
 
@@ -475,6 +486,7 @@ def test_openai_provider_complete_retry_has_expected(mock_post):
 
 @patch("httpx.AsyncClient.post")
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_openai_provider_acomplete_has_expected(mock_post):
     """Test the acomplete method of OpenAIProvider.
 
@@ -503,6 +515,7 @@ def test_openai_provider_acomplete_has_expected(mock_post):
 
 @patch("requests.post")
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_openai_provider_embed_has_expected(mock_post):
     """Test the embed method of OpenAIProvider.
 
@@ -532,6 +545,7 @@ def test_openai_provider_embed_has_expected(mock_post):
 @patch("requests.get")
 @patch("requests.post")
 @pytest.mark.medium
+@pytest.mark.requires_resource("lmstudio")
 def test_lmstudio_provider_complete_has_expected(mock_post, mock_get, mock_tls):
     """Test the complete method of LMStudioProvider.
 
@@ -583,6 +597,8 @@ def test_fallback_provider_async_methods_has_expected():
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
+@pytest.mark.requires_resource("lmstudio")
 def test_provider_with_empty_inputs_has_expected():
     """Test providers with empty inputs.
 
@@ -620,6 +636,8 @@ def test_provider_with_empty_inputs_has_expected():
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
+@pytest.mark.requires_resource("lmstudio")
 def test_provider_factory_injected_config_selects_provider():
     """ProviderFactory should respect injected configuration.
 
@@ -685,6 +703,7 @@ def test_fallback_provider_respects_order(monkeypatch):
 @patch("devsynth.adapters.provider_system.requests.post")
 @patch("time.sleep", return_value=None)
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_openai_provider_retries_after_transient_failure(mock_sleep, mock_post):
     """OpenAIProvider retries once on transient failure.
 

@@ -36,6 +36,7 @@ def _config_with_openai_key():
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_explicit_openai_missing_key_raises(monkeypatch):
     """Explicit OpenAI selection without API key raises an error.
 
@@ -49,6 +50,7 @@ def test_explicit_openai_missing_key_raises(monkeypatch):
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("lmstudio")
 def test_create_provider_default_with_missing_key_succeeds(monkeypatch):
     """Test that create provider default with missing key succeeds.
 
@@ -62,6 +64,7 @@ def test_create_provider_default_with_missing_key_succeeds(monkeypatch):
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_create_provider_openai_succeeds(monkeypatch):
     """Test that create provider openai succeeds.
 

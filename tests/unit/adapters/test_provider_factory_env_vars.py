@@ -9,6 +9,7 @@ from devsynth.adapters.provider_system import (
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_env_provider_openai_succeeds(monkeypatch):
     """Test that env provider openai succeeds.
 
@@ -21,6 +22,7 @@ def test_env_provider_openai_succeeds(monkeypatch):
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("lmstudio")
 def test_env_provider_lmstudio_succeeds(monkeypatch):
     """Test that env provider lmstudio succeeds.
 

@@ -12,6 +12,7 @@ from devsynth.adapters.provider_system import (
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("lmstudio")
 def test_create_provider_env_fallback_has_expected(monkeypatch, caplog):
     """ProviderFactory should fall back to LMStudio when OPENAI_API_KEY is missing.
 
@@ -26,6 +27,7 @@ def test_create_provider_env_fallback_has_expected(monkeypatch, caplog):
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_explicit_openai_missing_key_raises_error(monkeypatch):
     """Explicitly requesting OpenAI without an API key should raise an error.
 

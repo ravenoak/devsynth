@@ -191,6 +191,18 @@ To run optional backends locally, install extras and set resource flags explicit
   poetry run devsynth run-tests --speed=fast -m "requires_resource('openai') and not slow"
   ```
 
+- Provider-system adapters (unit coverage for HTTP clients):
+
+  ```bash
+  export DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true   # enable OpenAI adapter paths
+  export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true # enable LM Studio adapter paths
+  poetry run pytest -m "requires_resource('openai') or requires_resource('lmstudio')"
+  ```
+
+  Tests that exercise the real `requests`/`httpx` branches in
+  `devsynth.adapters.provider_system` carry these markers and remain skipped until
+  the corresponding flag(s) are set.
+
 Notes:
 - Resource markers: @pytest.mark.requires_resource("<name>") map to DEVSYNTH_RESOURCE_<NAME>_AVAILABLE flags.
 - Extras ↔ flags mapping: see docs/developer_guides/testing.md (Quick Reference: Extras ↔ Resource flags). For example, 'retrieval' → FAISS/KUZU flags; 'chromadb' → CHROMADB flag; 'memory' → TINYDB/DUCKDB/LMDB/KUZU/FAISS/CHROMADB flags; 'lmstudio' → LMSTUDIO flag; 'webui' → WEBUI flag.

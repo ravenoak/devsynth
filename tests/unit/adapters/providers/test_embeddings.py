@@ -14,6 +14,7 @@ from devsynth.adapters.provider_system import (
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 def test_openai_provider_embed_calls_api_succeeds():
     """Test that openai provider embed calls api succeeds.
 
@@ -32,6 +33,7 @@ def test_openai_provider_embed_calls_api_succeeds():
 
 @pytest.mark.anyio
 @pytest.mark.medium
+@pytest.mark.requires_resource("openai")
 async def test_openai_provider_aembed_calls_api():
     mock_response = MagicMock()
     mock_response.json.return_value = {"data": [{"embedding": [0.3, 0.4]}]}
@@ -50,6 +52,7 @@ async def test_openai_provider_aembed_calls_api():
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("lmstudio")
 def test_lmstudio_provider_embed_calls_api_succeeds():
     """Test that lmstudio provider embed calls api succeeds.
 
@@ -67,6 +70,7 @@ def test_lmstudio_provider_embed_calls_api_succeeds():
 
 
 @pytest.mark.medium
+@pytest.mark.requires_resource("lmstudio")
 def test_embed_function_success_with_lmstudio_succeeds():
     """Test that embed function success with lmstudio succeeds.
 
@@ -87,6 +91,7 @@ def test_embed_function_success_with_lmstudio_succeeds():
 
 @pytest.mark.anyio
 @pytest.mark.medium
+@pytest.mark.requires_resource("lmstudio")
 async def test_aembed_function_success_with_lmstudio():
     provider = LMStudioProvider(endpoint="http://localhost:1234")
     async_client = AsyncMock()
@@ -109,6 +114,7 @@ async def test_aembed_function_success_with_lmstudio():
 
 
 @pytest.mark.slow
+@pytest.mark.requires_resource("lmstudio")
 def test_lmstudio_provider_embed_error_succeeds():
     """Test that lmstudio provider embed error succeeds.
 
@@ -124,6 +130,7 @@ def test_lmstudio_provider_embed_error_succeeds():
 
 @pytest.mark.anyio
 @pytest.mark.medium
+@pytest.mark.requires_resource("lmstudio")
 async def test_aembed_function_error_propagation():
     provider = LMStudioProvider(endpoint="http://localhost:1234")
     async_client = AsyncMock()
