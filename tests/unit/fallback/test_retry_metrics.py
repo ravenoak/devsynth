@@ -10,8 +10,10 @@ from devsynth.fallback import (
 )
 from devsynth.metrics import (
     get_retry_condition_metrics,
+    get_retry_count_metrics,
     get_retry_error_metrics,
     get_retry_metrics,
+    get_retry_stat_metrics,
     reset_metrics,
 )
 
@@ -29,6 +31,39 @@ def test_retry_metrics_success():
     metrics = get_retry_metrics()
     assert metrics.get("attempt") == 1
     assert metrics.get("success") == 1
+
+
+@pytest.mark.medium
+def test_retry_metrics_record_stat_counters_for_exponential_backoff() -> None:
+    """ReqID: RETRY-01; Issue: issues/Enhance-retry-mechanism.md"""
+
+    reset_metrics()
+    reset_prometheus_metrics()
+
+    func = Mock(side_effect=[RuntimeError("transient"), "ok"])
+    func.__name__ = "transient_worker"
+
+    decorated = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        jitter=False,
+        track_metrics=True,
+    )(func)
+
+    result = decorated()
+
+    assert result == "ok"
+    assert func.call_count == 2
+
+    retry_metrics = get_retry_metrics()
+    count_metrics = get_retry_count_metrics()
+    stat_metrics = get_retry_stat_metrics()
+
+    assert retry_metrics.get("attempt") == 1
+    assert retry_metrics.get("success") == 1
+    assert count_metrics.get("transient_worker") == 1
+    assert stat_metrics["transient_worker:attempt"] == 1
+    assert stat_metrics["transient_worker:success"] == 1
 
 
 @pytest.mark.medium

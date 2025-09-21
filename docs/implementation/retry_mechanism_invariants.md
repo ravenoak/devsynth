@@ -1,7 +1,8 @@
 ---
 author: DevSynth Team
 date: '2025-09-14'
-status: draft
+last_reviewed: "2025-09-21"
+status: review/published
 tags:
 - implementation
 - invariants
@@ -52,6 +53,19 @@ assert metrics.get_retry_metrics() == {}
 ```
 
 Proof: [tests/unit/devsynth/test_metrics.py](../../tests/unit/devsynth/test_metrics.py) exercises retry counters and reset behavior.
+
+Regression coverage in
+[`tests/unit/fallback/test_retry_metrics.py::test_retry_metrics_record_stat_counters_for_exponential_backoff`](../../tests/unit/fallback/test_retry_metrics.py)
+confirms exponential backoff increments attempt, success, and per-function
+statistic counters in lockstep with retry counts.
+
+## Quantitative Proof Requirements
+
+Release readiness for the retry mechanism also depends on capturing coverage and
+metric baselines per `docs/plan.md`. Upcoming runs must log coverage for
+`src/devsynth/fallback.py` and archive the retry metric artifacts referenced
+above into `issues/coverage-below-threshold.md` to satisfy the plan's
+quantitative proof requirement.【F:docs/plan.md†L194-L199】【F:issues/coverage-below-threshold.md†L86-L106】
 
 ## Issue Reference
 
