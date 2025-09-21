@@ -5,6 +5,131 @@ INSTALL_DEV_TIMESTAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+DIAGNOSTICS_DIR="$PROJECT_ROOT/diagnostics"
+mkdir -p "$DIAGNOSTICS_DIR"
+
+PREFETCH_OPTIONAL_WHEELS=0
+
+sanitize_slug() {
+  local input="$1"
+  local lower slug
+  lower="$(printf '%s' "$input" | tr '[:upper:]' '[:lower:]')"
+  slug="$(printf '%s' "$lower" | sed -e 's/[^a-z0-9_-]/-/g' -e 's/-\{2,\}/-/g' -e 's/^-//' -e 's/-$//')"
+  if [[ -z "$slug" ]]; then
+    slug="phase"
+  fi
+  printf '%s\n' "$slug"
+}
+
+prefetch_optional_wheels() {
+  if [[ "$PREFETCH_OPTIONAL_WHEELS" == "1" ]]; then
+    return 0
+  fi
+
+  local optional_pkgs
+  optional_pkgs=$(python - <<'PY'
+import re
+import tomllib
+
+heavy = {"torch", "transformers"}
+heavy_prefixes = ("nvidia-",)
+
+with open("pyproject.toml", "rb") as f:
+    data = tomllib.load(f)
+
+pkgs = set()
+for deps in data.get("tool", {}).get("poetry", {}).get("extras", {}).values():
+    for dep in deps:
+        pkg = re.split(r"[\s\[<>=]", dep, 1)[0]
+        if pkg in heavy or any(pkg.startswith(p) for p in heavy_prefixes):
+            continue
+        pkgs.add(pkg)
+
+print(" ".join(sorted(pkgs)))
+PY
+)
+
+  if [[ -z "$optional_pkgs" ]]; then
+    PREFETCH_OPTIONAL_WHEELS=1
+    return 0
+  fi
+
+  local missing_pkgs=()
+  local pkg
+  for pkg in $optional_pkgs; do
+    if ! ls "$WHEEL_DIR"/"$pkg"-*.whl >/dev/null 2>&1; then
+      missing_pkgs+=("$pkg")
+    fi
+  done
+
+  if [[ "${PIP_NO_INDEX:-0}" != "1" && ${#missing_pkgs[@]} -gt 0 ]]; then
+    if ! pip wheel "${missing_pkgs[@]}" -w "$WHEEL_DIR" >/dev/null; then
+      echo "[warning] failed to cache optional extras" >&2
+    fi
+  fi
+
+  PREFETCH_OPTIONAL_WHEELS=1
+}
+
+run_poetry_install() {
+  local attempt="$1"
+  local phase="$2"
+  local timestamp="$3"
+  local phase_slug
+  phase_slug="$(sanitize_slug "$phase")"
+  local log_path="$DIAGNOSTICS_DIR/poetry_install_${phase_slug}_attempt${attempt}_${timestamp}.log"
+
+  echo "[info] running 'poetry install --with dev --all-extras' during $phase (attempt $attempt); output logged to $log_path" >&2
+
+  prefetch_optional_wheels
+
+  if ! poetry install --with dev --all-extras 2>&1 | tee "$log_path"; then
+    echo "[error] 'poetry install --with dev --all-extras' failed during $phase (attempt $attempt). See $log_path" >&2
+    return 1
+  fi
+
+  return 0
+}
+
+ensure_devsynth_cli() {
+  local phase="$1"
+  local attempt=1
+  local max_attempts=2
+
+  while (( attempt <= max_attempts )); do
+    local timestamp
+    timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+    local phase_slug
+    phase_slug="$(sanitize_slug "$phase")"
+    local cli_log="$DIAGNOSTICS_DIR/devsynth_cli_${phase_slug}_attempt${attempt}_${timestamp}.log"
+
+    if poetry run devsynth --help >"$cli_log" 2>&1; then
+      rm -f "$cli_log"
+      if (( attempt == 1 )); then
+        echo "[info] devsynth CLI available during $phase; no reinstall required" >&2
+      else
+        echo "[info] devsynth CLI recovered during $phase (attempt $attempt)" >&2
+      fi
+      return 0
+    fi
+
+    echo "[warning] 'poetry run devsynth --help' failed during $phase (attempt $attempt); see $cli_log" >&2
+
+    if (( attempt == max_attempts )); then
+      echo "[error] devsynth CLI remains unavailable after $phase (attempt $attempt). See $cli_log" >&2
+      return 1
+    fi
+
+    if ! run_poetry_install "$attempt" "$phase" "$timestamp"; then
+      return 1
+    fi
+
+    ((attempt++))
+  done
+
+  return 1
+}
+
 append_profile_snippet() {
   local profile_path="$1"
   local label="$2"
@@ -215,45 +340,9 @@ fi
 
 export PIP_FIND_LINKS="$WHEEL_DIR"
 
-# Install DevSynth with development dependencies and all optional extras if the CLI is missing
-if ! poetry run devsynth --help >/dev/null 2>&1; then
-  optional_pkgs=$(python - <<'PY'
-import re, tomllib
-
-heavy = {"torch", "transformers"}
-heavy_prefixes = ("nvidia-",)
-
-with open("pyproject.toml", "rb") as f:
-    data = tomllib.load(f)
-
-pkgs = set()
-for deps in data.get("tool", {}).get("poetry", {}).get("extras", {}).values():
-    for dep in deps:
-        pkg = re.split(r"[\s\[<>=]", dep, 1)[0]
-        if pkg in heavy or any(pkg.startswith(p) for p in heavy_prefixes):
-            continue
-        pkgs.add(pkg)
-
-print(" ".join(sorted(pkgs)))
-PY
-)
-
-  missing_pkgs=()
-  for pkg in $optional_pkgs; do
-    if ! ls "$WHEEL_DIR"/"$pkg"-*.whl >/dev/null 2>&1; then
-      missing_pkgs+=("$pkg")
-    fi
-  done
-
-  if [[ "${PIP_NO_INDEX:-0}" != "1" && ${#missing_pkgs[@]} -gt 0 ]]; then
-    if ! pip wheel "${missing_pkgs[@]}" -w "$WHEEL_DIR" >/dev/null; then
-      echo "[warning] failed to cache optional extras" >&2
-    fi
-  fi
-
-  poetry install --with dev --all-extras
-else
-  echo "[info] devsynth CLI already present; skipping poetry install" >&2
+if ! ensure_devsynth_cli "bootstrap"; then
+  echo "[error] unable to provision the devsynth CLI during bootstrap. Review diagnostics/devsynth_cli_bootstrap_* and poetry_install_bootstrap_* logs." >&2
+  exit 1
 fi
 
 # Fail fast if Poetry did not create a virtual environment
@@ -275,10 +364,9 @@ if [[ -d "$venv_path/bin" ]]; then
   echo "$venv_path/bin" >> "${GITHUB_PATH:-/dev/null}" 2>/dev/null || true
 fi
 
-# Confirm the DevSynth CLI entry point is available
-if ! poetry run devsynth --help >/dev/null 2>&1; then
-  echo "[error] devsynth console script not found" >&2
-  echo "[hint] try rerunning 'poetry install --with dev --all-extras'" >&2
+# Confirm the DevSynth CLI entry point is available (auto-repair if missing)
+if ! ensure_devsynth_cli "post-verification"; then
+  echo "[error] devsynth CLI missing after verification commands. Review diagnostics/devsynth_cli_post-verification_* and poetry_install_post-verification_* logs." >&2
   exit 1
 fi
 
