@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
-date: '2025-09-13'
-status: draft
+date: '2025-09-21'
+status: review
 tags:
 - implementation
 - invariants
@@ -47,6 +47,7 @@ These helpers guarantee that `_get_micro_cycle_config` returns finite iteration 
 - BDD Feature: [tests/behavior/features/edrr_cycle_specification.feature](../tests/behavior/features/edrr_cycle_specification.feature)
 - Issue: [issues/edrr-invariants.md](../issues/edrr-invariants.md)
 
-## Outstanding Evidence Gap (2025-09-20)
+## Evidence (2025-09-21)
 
-- Unit coverage for `_sanitize_positive_int` and `_sanitize_threshold` is still blocked: `tests/unit/application/edrr/test_threshold_helpers.py` fails during coordinator construction because `devsynth.application.edrr.coordinator.templates` is missing. The invariant note remains in draft status until the coordinator import path is repaired and the helper tests execute successfully.【19f5e6†L1-L63】
+- Unit tests: `tests/unit/application/edrr/test_threshold_helpers.py::{test_sanitize_positive_int_handles_out_of_range,test_sanitize_threshold_clamps_invalid_values,test_get_phase_quality_threshold_respects_config,test_get_phase_quality_threshold_returns_none_when_missing,test_get_micro_cycle_config_sanitizes_values}` confirm the helper invariants and sanitized recursive micro-cycle configuration.
+- Regression coverage confirms the coordinator now imports templates from `devsynth.application.edrr.templates` during construction, allowing helper tests to execute without ModuleNotFoundError.

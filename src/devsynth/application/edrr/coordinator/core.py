@@ -203,7 +203,7 @@ class EDRRCoordinator(PersistenceMixin, PhaseManagementMixin):
         self.documentation_manager = documentation_manager
 
         # Register EDRR templates with the prompt manager
-        from .templates import register_edrr_templates
+        from ..templates import register_edrr_templates
 
         register_edrr_templates(prompt_manager)
         self.config = config or _DEFAULT_CONFIG
