@@ -120,6 +120,11 @@ The uncovered WebUI modules now have explicit behavior checklists so new tests c
 | `_UIProgress` lifecycle & `create_progress` (L385-L545)【F:src/devsynth/interface/webui.py†L385-L545】 | Exercise ETA formatting, status fallbacks, sanitized descriptions, and subtask containers—including completion of nested subtasks—to mirror CLI telemetry. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L41-L52】; [Progress indicators guide](../docs/developer_guides/progress_indicators.md)【F:docs/developer_guides/progress_indicators.md†L162-L205】 |
 | `get_layout_config`, `_ensure_router`, and `run` (L74-L106, L547-L637)【F:src/devsynth/interface/webui.py†L74-L106】【F:src/devsynth/interface/webui.py†L547-L637】 | Validate responsive breakpoints, default session dimensions, JS-driven screen-width updates, and router wiring so resized browsers retain accessible controls. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L47-L56】; [Basic usage guide](../docs/getting_started/basic_usage.md)【F:docs/getting_started/basic_usage.md†L34-L70】 |
 
+##### 2025-09-21 Streamlit stub regression sweep
+
+- **Before:** 73/307 lines covered (23.78 %) while running `poetry run pytest tests/unit/interface -k webui --cov=src/devsynth/interface/webui.py --cov-report=json`.【6d4013†L1-L19】【a2246f†L1-L7】
+- **After:** 73/307 lines covered (23.78 %) after adding `tests/unit/interface/test_webui_streamlit_stub.py` to exercise the lazy Streamlit loader, `display_result`, `_UIProgress`, and router defaults against sanitized expectations.【581493†L1-L19】【8f2108†L1-L7】【F:tests/unit/interface/test_webui_streamlit_stub.py†L1-L408】
+
 #### `src/devsynth/interface/webui_bridge.py`
 
 | Region | Observable behavior to test | Related specs/docs |
