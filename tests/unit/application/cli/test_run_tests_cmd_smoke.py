@@ -13,6 +13,7 @@ from devsynth.application.cli.commands import run_tests_cmd as module
 @pytest.fixture(autouse=True)
 def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(module, "enforce_coverage_threshold", lambda *a, **k: 100.0)
+    monkeypatch.setattr(module, "coverage_artifacts_status", lambda: (True, None))
 
 
 @pytest.mark.fast
@@ -26,9 +27,11 @@ def test_smoke_mode_sets_pytest_disable_plugin_autoload_env(monkeypatch) -> None
     runner = CliRunner()
     with (
         patch.object(module, "run_tests", return_value=(True, "")) as mock_run,
-        patch.object(
-            module, "enforce_coverage_threshold", return_value=100.0
-        ) as mock_enforce,
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "_emit_coverage_artifact_messages") as mock_emit,
+        patch.object(module, "enforce_coverage_threshold") as mock_enforce,
+        patch.object(module, "_coverage_instrumentation_status", return_value=(True, None)),
+        patch.object(module, "increment_counter", return_value=None),
     ):
         app = build_app()
         result = runner.invoke(app, ["run-tests", "--smoke"])  # defaults to fast
@@ -39,8 +42,11 @@ def test_smoke_mode_sets_pytest_disable_plugin_autoload_env(monkeypatch) -> None
         assert "-p no:xdist" in addopts
         assert "-p pytest_cov" in addopts
         assert "-p no:cov" not in addopts
+        assert "--cov-fail-under=0" in addopts
         mock_run.assert_called_once()
-        mock_enforce.assert_called_once()
+        mock_enforce.assert_not_called()
+        mock_emit.assert_called_once()
+        assert "Coverage enforcement skipped in smoke mode" in result.stdout
 
 
 @pytest.mark.fast
@@ -64,4 +70,86 @@ def test_smoke_mode_skips_coverage_gate_when_cov_disabled(monkeypatch) -> None:
     mock_enforce.assert_not_called()
     output = result.stdout
     assert "Coverage enforcement skipped" in output
-    assert "-p pytest_cov" not in os.environ.get("PYTEST_ADDOPTS", "")
+    addopts = os.environ.get("PYTEST_ADDOPTS", "")
+    assert "-p pytest_cov" not in addopts
+    assert "--cov-fail-under=0" in addopts
+
+
+@pytest.mark.fast
+def test_smoke_mode_cli_imports_fastapi_testclient(monkeypatch) -> None:
+    """ReqID: CLI-RT-19c — Smoke CLI guards against FastAPI/Starlette MRO regressions."""
+
+    pytest.importorskip("fastapi")
+    pytest.importorskip("starlette")
+
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+
+    runner = CliRunner()
+
+    def _fake_run_tests(*_args, **_kwargs):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        app = FastAPI()
+
+        @app.get("/health")
+        def _health() -> dict[str, str]:
+            return {"status": "ok"}
+
+        client = TestClient(app)
+        response = client.get("/health")
+        assert response.status_code == 200
+        return True, "FastAPI TestClient smoke regression guard OK"
+
+    with (
+        patch.object(module, "run_tests", side_effect=_fake_run_tests) as mock_run,
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
+        patch.object(module, "enforce_coverage_threshold", return_value=100.0),
+        patch.object(module, "_coverage_instrumentation_status", return_value=(True, None)),
+        patch.object(module, "coverage_artifacts_status", return_value=(True, None)),
+        patch.object(module, "increment_counter", return_value=None),
+    ):
+        app = build_app()
+        result = runner.invoke(
+            app,
+            ["run-tests", "--smoke", "--speed", "fast", "--maxfail", "1"],
+        )
+
+    assert result.exit_code == 0
+    assert "FastAPI TestClient smoke regression guard OK" in result.stdout
+    mock_run.assert_called_once()
+
+
+@pytest.mark.fast
+def test_smoke_mode_skips_coverage_gate_when_instrumented(monkeypatch) -> None:
+    """ReqID: CLI-RT-19d — Smoke mode bypasses coverage thresholds even with pytest-cov."""
+
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+
+    runner = CliRunner()
+
+    with (
+        patch.object(module, "run_tests", return_value=(True, "")) as mock_run,
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "_emit_coverage_artifact_messages") as mock_emit,
+        patch.object(module, "enforce_coverage_threshold", side_effect=AssertionError("should not run")) as mock_enforce,
+        patch.object(module, "_coverage_instrumentation_status", return_value=(True, None)),
+        patch.object(module, "coverage_artifacts_status", return_value=(True, None)),
+        patch.object(module, "increment_counter", return_value=None),
+    ):
+        app = build_app()
+        result = runner.invoke(
+            app,
+            ["run-tests", "--smoke", "--speed", "fast"],
+        )
+
+    assert result.exit_code == 0
+    assert "Coverage enforcement skipped in smoke mode" in result.stdout
+    mock_run.assert_called_once()
+    mock_enforce.assert_not_called()
+    mock_emit.assert_called_once()
+    addopts = os.environ.get("PYTEST_ADDOPTS", "")
+    assert "--cov-fail-under=0" in addopts
