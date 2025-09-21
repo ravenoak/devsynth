@@ -137,6 +137,8 @@ The uncovered WebUI modules now have explicit behavior checklists so new tests c
 | `display_result` & `create_progress` (L470-L514)【F:src/devsynth/interface/webui_bridge.py†L470-L514】 | Assert message-type routing to Streamlit APIs and the `OutputFormatter` pipeline, then confirm progress handles highlight toggles. | [WebUI Integration spec](../docs/specifications/webui-integration.md)【F:docs/specifications/webui-integration.md†L42-L55】; [Output formatter invariants](../docs/implementation/output_formatter_invariants.md)【F:docs/implementation/output_formatter_invariants.md†L16-L56】 |
 | Session accessors (L519-L551)【F:src/devsynth/interface/webui_bridge.py†L519-L551】 | Verify state wrappers persist defaults and propagate writes for the requirements wizard scaffolding. | [WizardState integration guide](../docs/implementation/requirements_wizard_wizardstate_integration.md)【F:docs/implementation/requirements_wizard_wizardstate_integration.md†L27-L33】 |
 
+- 2025-09-21: `poetry run pytest tests/unit/interface/test_webui_bridge_progress.py -o addopts="--cov=devsynth.interface.webui_bridge --cov-report=term --cov-fail-under=0 -m 'not slow and not gui'"` reports 32 % coverage for `webui_bridge.py`, improving on the 19 % baseline noted above after adding tests for wizard clamps, nested progress status cycles, session accessors, and UXBridge prompts.【77f0f6†L1-L20】
+
 ## Dialectical Examination
 
 - **Thesis:** Raising coverage above 90 % yields higher confidence in system behavior and eases regression detection.

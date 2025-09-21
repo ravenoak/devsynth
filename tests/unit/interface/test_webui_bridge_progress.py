@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import importlib
-from typing import List, Set
 
 import pytest
 
 from devsynth.exceptions import DevSynthError
 from devsynth.interface import webui_bridge
-
 
 pytestmark = pytest.mark.fast
 
@@ -18,8 +16,8 @@ class _SanitizeSpy:
     """Callable spy that tracks sanitize invocations and supports failures."""
 
     def __init__(self) -> None:
-        self.calls: List[str] = []
-        self.fail_on: Set[str] = set()
+        self.calls: list[str] = []
+        self.fail_on: set[str] = set()
 
     def __call__(self, value: str) -> str:
         self.calls.append(value)
@@ -35,7 +33,9 @@ def sanitize_spy(monkeypatch: pytest.MonkeyPatch) -> _SanitizeSpy:
     return spy
 
 
-def _assert_default_status_cycle(indicator: webui_bridge.WebUIProgressIndicator) -> None:
+def _assert_default_status_cycle(
+    indicator: webui_bridge.WebUIProgressIndicator,
+) -> None:
     """Advance ``indicator`` through threshold updates asserting status text."""
 
     indicator.update(advance=15)
@@ -62,7 +62,10 @@ def _assert_default_status_cycle(indicator: webui_bridge.WebUIProgressIndicator)
 
 
 def test_progress_indicator_update_paths(sanitize_spy: _SanitizeSpy) -> None:
-    """``update`` sanitizes supplied text and cycles default status thresholds."""
+    """``update`` sanitizes supplied text and cycles default status thresholds.
+
+    ReqID: N/A
+    """
 
     indicator = webui_bridge.WebUIProgressIndicator("initial", 100)
 
@@ -99,7 +102,10 @@ def test_progress_indicator_update_paths(sanitize_spy: _SanitizeSpy) -> None:
 def test_progress_indicator_subtasks_and_nested_operations(
     sanitize_spy: _SanitizeSpy,
 ) -> None:
-    """Subtask lifecycle sanitizes text, handles fallbacks, and ignores invalid IDs."""
+    """Subtask lifecycle sanitizes text, handles fallbacks, and ignores invalid IDs.
+
+    ReqID: N/A
+    """
 
     indicator = webui_bridge.WebUIProgressIndicator("main", 100)
 
@@ -195,7 +201,10 @@ def test_progress_indicator_subtasks_and_nested_operations(
 
 
 def test_require_streamlit_failure(monkeypatch: pytest.MonkeyPatch) -> None:
-    """``_require_streamlit`` raises ``DevSynthError`` when import fails."""
+    """``_require_streamlit`` raises ``DevSynthError`` when import fails.
+
+    ReqID: N/A
+    """
 
     monkeypatch.setattr(webui_bridge, "st", None)
     seen = []
@@ -211,7 +220,10 @@ def test_require_streamlit_failure(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_adjust_wizard_step_edges() -> None:
-    """Edge cases clamp wizard step navigation within valid bounds."""
+    """Edge cases clamp wizard step navigation within valid bounds.
+
+    ReqID: N/A
+    """
 
     adjust = webui_bridge.WebUIBridge.adjust_wizard_step
 
@@ -224,3 +236,187 @@ def test_adjust_wizard_step_edges() -> None:
     assert adjust(0, direction="back", total=3) == 0
     assert adjust(1, direction="next", total=2.5) == 0
     assert adjust(1, direction="stay", total=2) == 1
+
+
+def test_nested_subtask_default_status_cycle(sanitize_spy: _SanitizeSpy) -> None:
+    """Nested subtasks update status text according to default progress thresholds.
+
+    ReqID: N/A
+    """
+
+    indicator = webui_bridge.WebUIProgressIndicator("root", 100)
+
+    subtask_id = indicator.add_subtask("outer", total=100)
+    nested_id = indicator.add_nested_subtask(subtask_id, "inner", total=100)
+
+    # Descriptions are sanitized through the shared spy helper.
+    assert sanitize_spy.calls[-2:] == ["outer", "inner"]
+
+    nested = indicator._subtasks[subtask_id]["nested_subtasks"][nested_id]
+    statuses = [nested["status"]]
+
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=25)
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=0)
+    statuses.append(nested["status"])
+
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=25)
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=0)
+    statuses.append(nested["status"])
+
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=25)
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=0)
+    statuses.append(nested["status"])
+
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=24)
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=0)
+    statuses.append(nested["status"])
+
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=1)
+    indicator.update_nested_subtask(subtask_id, nested_id, advance=0)
+    statuses.append(nested["status"])
+
+    assert statuses == [
+        "Starting...",
+        "Processing...",
+        "Halfway there...",
+        "Almost done...",
+        "Finalizing...",
+        "Complete",
+    ]
+
+
+def test_webui_bridge_display_result_routes_and_sanitizes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``display_result`` routes by message type and records sanitized payloads.
+
+    ReqID: N/A
+    """
+
+    class StreamlitRecorder:
+        def __init__(self) -> None:
+            self.calls = []
+
+        def error(self, value):
+            self.calls.append(("error", value))
+
+        def warning(self, value):
+            self.calls.append(("warning", value))
+
+        def success(self, value):
+            self.calls.append(("success", value))
+
+        def info(self, value):
+            self.calls.append(("info", value))
+
+        def write(self, value):
+            self.calls.append(("write", value))
+
+    monkeypatch.setattr(webui_bridge, "_require_streamlit", lambda: None)
+    recorder = StreamlitRecorder()
+    monkeypatch.setattr(webui_bridge, "st", recorder)
+
+    bridge = webui_bridge.WebUIBridge()
+
+    bridge.display_result("<script>", message_type="error")
+    bridge.display_result("warn", message_type="warning")
+    bridge.display_result("done", message_type="success")
+    bridge.display_result("spotlight", highlight=True)
+    bridge.display_result("plain")
+
+    assert [name for name, _ in recorder.calls] == [
+        "error",
+        "warning",
+        "success",
+        "info",
+        "write",
+    ]
+    assert len(bridge.messages) == 5
+
+    first_message = recorder.calls[0][1]
+    sanitized_text = getattr(first_message, "plain", str(first_message))
+    assert "<" not in sanitized_text
+    assert "script" in sanitized_text
+    assert recorder.calls[0][1] is bridge.messages[0]
+
+
+def test_webui_bridge_session_access_wrappers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Session wrapper helpers delegate to the shared state access module.
+
+    ReqID: N/A
+    """
+
+    sentinel_session = object()
+    seen = {}
+
+    def fake_get(session_state, key, default=None):
+        seen["get"] = (session_state, key, default)
+        return "value"
+
+    def fake_set(session_state, key, value):
+        seen.setdefault("set", []).append((session_state, key, value))
+        return True
+
+    monkeypatch.setattr(webui_bridge, "_get_session_value", fake_get)
+    monkeypatch.setattr(webui_bridge, "_set_session_value", fake_set)
+
+    assert (
+        webui_bridge.WebUIBridge.get_session_value(
+            sentinel_session, "answer", default="fallback"
+        )
+        == "value"
+    )
+    assert seen["get"] == (sentinel_session, "answer", "fallback")
+
+    assert webui_bridge.WebUIBridge.set_session_value(sentinel_session, "answer", 42)
+    assert seen["set"] == [(sentinel_session, "answer", 42)]
+
+
+def test_webui_bridge_prompt_aliases_and_progress(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Prompt aliases reuse core UX methods and progress factory returns indicators.
+
+    ReqID: N/A
+    """
+
+    bridge = webui_bridge.WebUIBridge()
+
+    recorded = []
+
+    def record_display(message, **kwargs):
+        recorded.append((message, kwargs))
+
+    monkeypatch.setattr(bridge, "display_result", record_display)
+
+    assert bridge.ask_question("Question?", default="answer") == "answer"
+    assert bridge.ask_question("No default") == ""
+    assert bridge.prompt("Prompt?", default=2) == "2"
+    assert bridge.confirm_choice("Confirm?", default=True) is True
+    assert bridge.confirm("Confirm alias?", default=False) is False
+
+    bridge.print("payload", highlight=True, message_type="info")
+    assert recorded == [("payload", {"highlight": True, "message_type": "info"})]
+
+    progress = bridge.create_progress("task", total=5)
+    assert isinstance(progress, webui_bridge.WebUIProgressIndicator)
+
+
+def test_normalize_wizard_step_varied_inputs() -> None:
+    """``normalize_wizard_step`` coerces diverse inputs into clamped indices.
+
+    ReqID: N/A
+    """
+
+    normalize = webui_bridge.WebUIBridge.normalize_wizard_step
+
+    assert normalize(2, total=5) == 2
+    assert normalize(7, total=3) == 2
+    assert normalize(1.9, total=4) == 1
+    assert normalize(" 3 ", total=4) == 3
+    assert normalize("", total=4) == 0
+    assert normalize("bad", total=4) == 0
+    assert normalize(None, total=4) == 0
+    assert normalize(1, total=0) == 0
