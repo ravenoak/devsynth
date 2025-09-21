@@ -16,6 +16,7 @@ from devsynth.adapters.provider_system import (
     OpenAIProvider,
     ProviderError,
     ProviderFactory,
+    ProviderType,
     StubProvider,
 )
 from devsynth.security.tls import TLSConfig
@@ -253,6 +254,28 @@ def test_provider_factory_offline_uses_stub_safe_default(
 
 
 @pytest.mark.fast
+def test_provider_factory_offline_uses_null_safe_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Return the null provider when offline guard favors null safe defaults.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config(openai_key="token")
+    _install_factory_config(monkeypatch, config)
+
+    monkeypatch.setenv("DEVSYNTH_OFFLINE", "1")
+    monkeypatch.setenv("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "null")
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+
+    provider = ProviderFactory.create_provider("openai")
+    assert isinstance(provider, NullProvider)
+    assert provider.reason == "DEVSYNTH_OFFLINE active; using safe provider"
+
+
+@pytest.mark.fast
 def test_provider_factory_missing_openai_key_defaults_to_safe_provider_when_lmstudio_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -304,6 +327,34 @@ def test_provider_factory_missing_openai_key_falls_back_to_lmstudio_when_marked_
 
 
 @pytest.mark.fast
+def test_provider_factory_lmstudio_instantiation_failure_uses_null_safe_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Return a null provider when LM Studio instantiation raises an exception.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config()
+    _install_factory_config(monkeypatch, config)
+
+    monkeypatch.setenv("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "null")
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+
+    monkeypatch.setattr(
+        provider_system,
+        "LMStudioProvider",
+        MagicMock(side_effect=RuntimeError("kaboom")),
+    )
+
+    provider = ProviderFactory.create_provider(ProviderType.LMSTUDIO)
+    assert isinstance(provider, NullProvider)
+    assert provider.reason == "LM Studio unreachable"
+
+
+@pytest.mark.fast
 def test_provider_factory_openai_explicit_missing_key_surfaces_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -343,6 +394,26 @@ def test_provider_factory_anthropic_missing_key_surfaces_error(
     provider = ProviderFactory.create_provider("anthropic")
     assert isinstance(provider, NullProvider)
     assert "Anthropic API key is required" in provider.reason
+
+
+@pytest.mark.fast
+def test_provider_factory_accepts_provider_type_enum(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Interpret ``ProviderType`` enum values when selecting providers.
+
+    ReqID: N/A
+    """
+
+    config = _make_provider_config(default_provider="stub")
+    _install_factory_config(monkeypatch, config)
+
+    monkeypatch.delenv("DEVSYNTH_OFFLINE", raising=False)
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+    monkeypatch.delenv("DEVSYNTH_SAFE_DEFAULT_PROVIDER", raising=False)
+
+    provider = ProviderFactory.create_provider(ProviderType.STUB)
+    assert isinstance(provider, StubProvider)
 
 
 @pytest.mark.fast
@@ -570,6 +641,42 @@ def test_retry_decorator_emits_metrics_on_retry(monkeypatch: pytest.MonkeyPatch)
 
 
 @pytest.mark.fast
+def test_fallback_provider_no_valid_providers() -> None:
+    """Raise ProviderError when the factory cannot produce any providers.
+
+    ReqID: N/A
+    """
+
+    config = {
+        "fallback": {"enabled": True, "order": ["broken"]},
+        "retry": _make_retry_config(),
+        "circuit_breaker": {"enabled": False},
+    }
+
+    class RaisingFactory:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def create_provider(
+            self,
+            provider_type: str,
+            *,
+            config: dict[str, object],
+            retry_config: dict[str, object],
+        ) -> BaseProvider:
+            self.calls += 1
+            raise ProviderError(f"{provider_type} unavailable")
+
+    factory = RaisingFactory()
+
+    with pytest.raises(ProviderError) as excinfo:
+        FallbackProvider(config=config, provider_factory=factory)
+
+    assert "No valid providers available for fallback" in str(excinfo.value)
+    assert factory.calls == 1
+
+
+@pytest.mark.fast
 def test_fallback_provider_sync_uses_circuit_breaker(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -696,6 +803,106 @@ def test_fallback_provider_async_records_success(
     assert breaker.success_records == 1
     assert breaker.state == "closed"
     assert provider.async_calls == 1
+
+
+@pytest.mark.fast
+def test_fallback_provider_all_failures_surface_last_error() -> None:
+    """Report the final provider error after exhausting every fallback option.
+
+    ReqID: N/A
+    """
+
+    config = {
+        "fallback": {"enabled": True},
+        "retry": _make_retry_config(),
+        "circuit_breaker": {"enabled": False},
+    }
+
+    class AlwaysFailProvider(BaseProvider):
+        def __init__(
+            self,
+            *,
+            complete_msg: str,
+            embed_msg: str,
+            aembed_msg: str,
+        ) -> None:
+            super().__init__(retry_config=_make_retry_config())
+            self.complete_message = complete_msg
+            self.embed_message = embed_msg
+            self.aembed_message = aembed_msg
+            self.complete_calls = 0
+            self.embed_calls = 0
+            self.aembed_calls = 0
+
+        def complete(
+            self,
+            prompt: str,
+            system_prompt: str | None = None,
+            temperature: float = 0.7,
+            max_tokens: int = 2000,
+            *,
+            parameters: dict | None = None,
+        ) -> str:
+            self.complete_calls += 1
+            raise ProviderError(self.complete_message)
+
+        def embed(self, text: str | list[str]) -> list[list[float]]:
+            self.embed_calls += 1
+            raise ProviderError(self.embed_message)
+
+        async def aembed(self, text: str | list[str]) -> list[list[float]]:
+            self.aembed_calls += 1
+            raise ProviderError(self.aembed_message)
+
+    first_provider = AlwaysFailProvider(
+        complete_msg="first complete failure",
+        embed_msg="first embed failure",
+        aembed_msg="first async embed failure",
+    )
+    second_provider = AlwaysFailProvider(
+        complete_msg="second complete failure",
+        embed_msg="second embed failure",
+        aembed_msg="second async embed failure",
+    )
+    fallback = FallbackProvider(
+        providers=[first_provider, second_provider],
+        config=config,
+    )
+
+    with pytest.raises(ProviderError) as excinfo:
+        fallback.complete("prompt")
+
+    assert (
+        str(excinfo.value)
+        == "All providers failed for completion. Last error: second complete failure"
+    )
+    assert first_provider.complete_calls == 1
+    assert second_provider.complete_calls == 1
+
+    with pytest.raises(ProviderError) as embed_excinfo:
+        fallback.embed("payload")
+
+    assert (
+        str(embed_excinfo.value)
+        == "All providers failed for embeddings. Last error: second embed failure"
+    )
+    assert first_provider.embed_calls == 1
+    assert second_provider.embed_calls == 1
+
+    async def run_async() -> None:
+        with pytest.raises(ProviderError) as async_excinfo:
+            await fallback.aembed("payload")
+        assert (
+            str(async_excinfo.value)
+            == (
+                "All providers failed for embeddings. Last error: "
+                "Provider AlwaysFailProvider failed: second async embed failure"
+            )
+        )
+
+    asyncio.run(run_async())
+    assert first_provider.aembed_calls == 1
+    assert second_provider.aembed_calls == 1
 
 
 @pytest.mark.fast
