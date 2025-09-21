@@ -3,6 +3,7 @@ Status: monitoring
 
 ## Summary
 Aggregated coverage runs previously exited with code 1 because `.coverage` was never written; `test_reports/coverage.json` and `htmlcov/index.html` were missing entirely. Instrumentation now combines `.coverage.*` fragments, so smoke and fast+medium profiles regenerate JSON/HTML artifacts and load the pytest-cov plugin even when plugin autoloading is disabled. The ≥90 % gate still fails because the current aggregate tops out at 20.94 %, so broader test uplift remains necessary.【F:logs/run-tests-fast-medium-after-fix.log†L2429-L2447】
+The [spec dependency matrix](../docs/release/spec_dependency_matrix.md) captures every draft spec/invariant tied to coverage uplift so new tests can be mapped directly to unresolved documents.
 
 ## Steps to Reproduce
 1. Ensure dependencies installed via `poetry install --with dev --all-extras`.

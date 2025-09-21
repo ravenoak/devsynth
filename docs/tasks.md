@@ -258,8 +258,8 @@ Notes:
 26.8 [x] Promote `docs/implementation/edrr_invariants.md` after restoring template imports and landing unit coverage for the threshold helpers (`tests/unit/application/edrr/test_threshold_helpers.py`). (Issue: [recursive-edrr-coordinator.md](../issues/recursive-edrr-coordinator.md)).【F:docs/implementation/edrr_invariants.md†L1-L61】【F:issues/recursive-edrr-coordinator.md†L1-L21】【F:tests/unit/application/edrr/test_threshold_helpers.py†L1-L104】
 
 27. Release-critical Specification Mapping (Phase 5C.2)
-27.1 [ ] Build and publish a dependency matrix linking draft specifications/invariants to failing tests and open issues, then embed the summary in docs/plan.md §Spec-first adoption gaps (Issue: [release-finalization-uat.md](../issues/release-finalization-uat.md)).【F:docs/plan.md†L202-L209】
-27.2 [ ] Categorize draft specifications into “release blockers” vs “post-0.1.0 backlog” and update docs/plan.md plus issues to reflect the prioritization (Issue: [release-finalization-uat.md](../issues/release-finalization-uat.md); [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).【F:docs/plan.md†L202-L209】【F:issues/coverage-below-threshold.md†L95-L106】
+27.1 [x] Build and publish a dependency matrix linking draft specifications/invariants to failing tests and open issues, then embed the summary in docs/plan.md §Spec-first adoption gaps (Issue: [release-finalization-uat.md](../issues/release-finalization-uat.md)).【F:docs/release/spec_dependency_matrix.md†L1-L120】【F:docs/plan.md†L202-L207】
+27.2 [x] Categorize draft specifications into “release blockers” vs “post-0.1.0 backlog” and update docs/plan.md plus issues to reflect the prioritization (Issue: [release-finalization-uat.md](../issues/release-finalization-uat.md); [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).【F:docs/plan.md†L202-L207】【F:issues/release-finalization-uat.md†L12-L16】【F:issues/coverage-below-threshold.md†L6-L14】
 
 Notes:
 - 2025-09-15: Verified environment after running `poetry install --with dev --all-extras`; smoke tests and verification scripts pass. Remaining open tasks: 19.2, 19.4, 19.5.

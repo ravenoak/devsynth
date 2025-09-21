@@ -15,6 +15,7 @@ Next Actions:
   - [x] Perform final full fast+medium coverage run and archive artifacts. Coverage artifacts not committed due to Codex diff size limits.
   - [ ] Complete User Acceptance Testing with stakeholder sign-off.
   - [ ] Maintainers tag v0.1.0a1 on GitHub once all tasks complete.
+  - [ ] Review the [spec dependency matrix](../docs/release/spec_dependency_matrix.md) to track remaining draft specs/invariants and their dependent tests before UAT sign-off.
 Progress:
 - 2025-09-13: Plan and tasks updated to clarify manual GitHub tagging after UAT.
 - 2025-09-13: Environment bootstrapped; smoke tests and verification scripts pass after reinstalling dependencies.
