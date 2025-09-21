@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
-from pytest_bdd import given, then, when
+from pytest_bdd import given, parsers, then, when
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 pytestmark = pytest.mark.fast
 
@@ -13,14 +18,14 @@ def context():
 
 
 @pytest.fixture
-def release_file(tmp_path):
-    path = Path("docs/release/0.1.0-alpha.1.md")
+def release_file():
+    path = REPO_ROOT / "docs" / "release" / "0.1.0-alpha.1.md"
     original = path.read_text()
     yield path
     path.write_text(original)
 
 
-@given('the release status is "{status}"')
+@given(parsers.parse('the release status is "{status}"'))
 def set_release_status(release_file, status):
     text = release_file.read_text().splitlines()
     for i, line in enumerate(text):
@@ -34,9 +39,10 @@ def set_release_status(release_file, status):
 def verify_release_state(context):
     result = subprocess.run(
         [
-            "python",
+            sys.executable,
             "scripts/verify_release_state.py",
         ],
+        cwd=REPO_ROOT,
         capture_output=True,
         text=True,
     )
