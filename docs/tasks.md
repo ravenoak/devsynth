@@ -148,7 +148,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 15.2 [x] Evaluate caching or automatic installation to ensure `task` persists across sessions.
 15.3 [x] Document go-task installation and persistence strategy in plan and task notes.
 15.4 [x] Investigate `scripts/install_dev.sh` reporting "Python 3.12 not available for Poetry" and ensure the script reliably provisions the environment.
-15.5 [ ] Investigate repeated loss of the `devsynth` CLI entry point after environment provisioning; ensure bootstrap automation reinstalls it automatically (evidence: diagnostics/devsynth_cli_missing_20250920.log, diagnostics/poetry_install_20250920.log).
+15.5 [x] Investigate repeated loss of the `devsynth` CLI entry point after environment provisioning; ensure bootstrap automation reinstalls it automatically (automation evidence: diagnostics/devsynth_cli_bootstrap_attempt1_20250921T021025Z.log, diagnostics/poetry_install_bootstrap_attempt1_20250921T021025Z.log).【F:diagnostics/devsynth_cli_bootstrap_attempt1_20250921T021025Z.log†L1-L27】【F:diagnostics/poetry_install_bootstrap_attempt1_20250921T021025Z.log†L1-L63】
 
 16. Requirements Traceability Alignment
 16.1 [x] Add BDD feature files for specifications referenced in verify_requirements_traceability failures:
@@ -168,6 +168,7 @@ Notes:
 - 2025-09-15: Environment needed go-task reinstallation; smoke tests and verification scripts pass; UAT and tagging remain.
 - 2025-09-19: diagnostics/install_dev_20250919T233750Z.log and diagnostics/env_checks_20250919T233750Z.log confirm go-task 3.45.4 persists, Poetry now resolves to `/workspace/devsynth/.venv`, and the DevSynth CLI remains available after reinstalling extras—use these logs as evidence for tasks 1.1–1.1.2 and §15 environment reliability guidance.【F:diagnostics/install_dev_20250919T233750Z.log†L1-L9】【F:diagnostics/env_checks_20250919T233750Z.log†L1-L7】【F:diagnostics/env_checks_20250919T233750Z.log†L259-L321】
 - 2025-09-20: diagnostics/devsynth_cli_missing_20250920.log and diagnostics/poetry_install_20250920.log show the CLI still missing after codex bootstrap until `poetry install --with dev --all-extras` reruns; task 15.5 tracks automating this reinstall.
+- 2025-09-21: diagnostics/devsynth_cli_bootstrap_attempt1_20250921T021025Z.log and diagnostics/poetry_install_bootstrap_attempt1_20250921T021025Z.log confirm `scripts/install_dev.sh` now retries automatically when the CLI entry point is absent, closing task 15.5.【F:diagnostics/devsynth_cli_bootstrap_attempt1_20250921T021025Z.log†L1-L27】【F:diagnostics/poetry_install_bootstrap_attempt1_20250921T021025Z.log†L1-L63】
 
 17. Documentation Maintenance
 17.1 [x] Deduplicate historical entries in docs/task_notes.md to keep the iteration log concise.

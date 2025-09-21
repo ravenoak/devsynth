@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -82,15 +83,43 @@ def check_poetry_env() -> tuple[bool, Path | None]:
     return True, venv_path
 
 
-def check_devsynth_cli(poetry_exe: str) -> bool:
-    code, _, err = run_command([poetry_exe, "run", "devsynth", "--help"])
+def check_devsynth_cli(poetry_exe: str, venv_path: Path | None) -> bool:
+    if not venv_path:
+        print(
+            "[env:verify] unable to determine Poetry virtualenv; "
+            "cannot verify devsynth CLI.",
+            file=sys.stderr,
+        )
+        return False
+
+    entrypoint = venv_path / "bin" / "devsynth"
+    if not entrypoint.exists():
+        print(
+            f"[env:verify] devsynth entry point missing: {entrypoint}",
+            file=sys.stderr,
+        )
+        return False
+    if not os.access(entrypoint, os.X_OK):
+        print(
+            "[env:verify] devsynth entry point exists but is not executable: "
+            f"{entrypoint}",
+            file=sys.stderr,
+        )
+        return False
+
+    code, out, err = run_command([poetry_exe, "run", "devsynth", "--help"])
     if code != 0:
         print("[env:verify] 'poetry run devsynth --help' failed.", file=sys.stderr)
+        if out:
+            print(out, file=sys.stderr)
         if err:
             print(err, file=sys.stderr)
         return False
 
-    print("[env:verify] devsynth CLI available via 'poetry run devsynth --help'")
+    print(
+        "[env:verify] devsynth CLI available via 'poetry run devsynth --help' "
+        f"(entry point: {entrypoint})"
+    )
     return True
 
 
@@ -105,15 +134,7 @@ def main() -> int:
     ok = ok and env_ok
 
     if poetry_exe and env_ok:
-        if venv_path:
-            devsynth_bin = venv_path / "bin" / "devsynth"
-            if not devsynth_bin.exists():
-                missing_msg = (
-                    "[env:verify] warning: expected CLI entry point "
-                    f"{devsynth_bin} is missing"
-                )
-                print(missing_msg, file=sys.stderr)
-        if not check_devsynth_cli(poetry_exe):
+        if not check_devsynth_cli(poetry_exe, venv_path):
             ok = False
     else:
         ok = False
