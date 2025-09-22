@@ -198,7 +198,7 @@ Notes:
 19.2 [ ] Conduct User Acceptance Testing and confirm approval.
 19.3 [ ] Perform final full fast+medium coverage run and archive artifacts with ≥90 % coverage. Latest attempt (2025-09-17) exited early because `.coverage` was never written, so no HTML/JSON artifacts exist to archive.
 19.3.1 [ ] Retry the final fast+medium profile after coverage instrumentation is repaired; as of 2025-09-19 the command still exits with "Coverage artifact generation skipped: data file missing" and returns code 1 (Issue: [coverage-below-threshold.md](../issues/coverage-below-threshold.md)).【eb7b9a†L1-L5】【f1a97b†L1-L3】
-19.3.2 [ ] Fix missing imports in `tests/behavior/steps/release_state_steps.py` so the release-state BDD scenarios execute before promoting docs/implementation/release_state_check_invariants.md.【4a11c5†L1-L32】
+19.3.2 [x] Fix missing imports in `tests/behavior/steps/release_state_steps.py` so the release-state BDD scenarios execute before promoting docs/implementation/release_state_check_invariants.md.【F:tests/behavior/steps/release_state_steps.py†L1-L123】【F:docs/implementation/release_state_check_invariants.md†L1-L74】
 19.4 [ ] Hand off to maintainers to tag v0.1.0a1 on GitHub and prepare post-release tasks (re-enable GitHub Actions triggers).
 19.5 [ ] Close issues/release-finalization-uat.md after tagging is complete.
 
