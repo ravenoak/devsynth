@@ -10,6 +10,28 @@ import pytest
 pytestmark = pytest.mark.fast
 
 
+@pytest.fixture(autouse=True)
+def resume_coverage():
+    """Ensure coverage collection restarts after global isolation teardown."""
+
+    try:  # pragma: no cover - coverage always available during CI
+        import coverage
+    except Exception:  # pragma: no cover - safeguard for local runs
+        yield
+        return
+
+    cov = coverage.Coverage.current()
+    if cov is None:
+        yield
+        return
+
+    try:  # pragma: no branch - idempotent start
+        cov.start()
+    except Exception:  # pragma: no cover - ignore double starts
+        pass
+    yield
+
+
 @pytest.fixture()
 def provider_module(monkeypatch: pytest.MonkeyPatch):
     """Reload provider system with deterministic settings and clean cache."""
