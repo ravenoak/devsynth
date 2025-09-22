@@ -8,6 +8,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
 scenarios("../features/general/wsde_voting_mechanisms.feature")
+scenarios("../features/wsde_voting_mechanisms_for_critical_decisions.feature")
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent

@@ -1,8 +1,8 @@
 ---
 author: DevSynth Team
 date: 2025-08-19
-last_reviewed: 2025-08-19
-status: draft
+last_reviewed: 2025-09-22
+status: review
 tags:
 
 - specification
@@ -44,8 +44,10 @@ terminal `completed` state is reached.
 ## Motivation
 
 ## What proofs confirm the solution?
-- BDD scenarios in [`tests/behavior/features/edrr_coordinator.feature`](../../tests/behavior/features/edrr_coordinator.feature) ensure termination and expected outcomes.
-- Finite state transitions and bounded loops guarantee termination.
+- Behavior-driven scenarios in [`tests/behavior/features/edrr_coordinator.feature`](../../tests/behavior/features/edrr_coordinator.feature) and [`tests/behavior/features/general/edrr_coordinator.feature`](../../tests/behavior/features/general/edrr_coordinator.feature) exercise initialization, phase progression, manifest-driven execution, and report generation using the shared step implementations in [`tests/behavior/steps/test_edrr_coordinator_steps.py`](../../tests/behavior/steps/test_edrr_coordinator_steps.py) and [`tests/behavior/steps/test_simple_coordinator_steps.py`](../../tests/behavior/steps/test_simple_coordinator_steps.py).
+- Recursive micro-cycle governance and template orchestration are verified by unit suites such as [`tests/unit/application/edrr/test_coordinator.py`](../../tests/unit/application/edrr/test_coordinator.py), [`tests/unit/application/edrr/test_micro_cycle_execution.py`](../../tests/unit/application/edrr/test_micro_cycle_execution.py), [`tests/unit/application/edrr/test_phase_management_module.py`](../../tests/unit/application/edrr/test_phase_management_module.py), and [`tests/unit/application/edrr/test_threshold_helpers.py`](../../tests/unit/application/edrr/test_threshold_helpers.py).
+- Integration coverage in [`tests/integration/general/test_end_to_end_workflow.py`](../../tests/integration/general/test_end_to_end_workflow.py) and [`tests/integration/general/test_refactor_workflow.py`](../../tests/integration/general/test_refactor_workflow.py) confirms the coordinator's interactions with WSDE teams, memory adapters, and manifest parsing under realistic workflows.
+- Termination guarantees and helper bounds are documented in [`docs/implementation/edrr_invariants.md`](../implementation/edrr_invariants.md) and exercised through [`tests/property/test_reasoning_loop_properties.py`](../../tests/property/test_reasoning_loop_properties.py).
 
 
 The EDRR methodology relies on strict sequencing of phases to ensure that exploration results are
@@ -101,3 +103,9 @@ Thus the coordinator terminates in finite steps, guaranteeing convergence of eac
 - Context updates are deterministic and idempotent across phases.
 - Recursive micro‑cycles never exceed the configured depth \(d_{\max}\).
 - The coordinator terminates with status `completed` and a consolidated context.
+
+## Implementation Notes
+
+- Runtime logic resides in [`src/devsynth/application/edrr/coordinator/core.py`](../../src/devsynth/application/edrr/coordinator/core.py) with persistence and phase-management mixins in [`persistence.py`](../../src/devsynth/application/edrr/coordinator/persistence.py) and [`phase_management.py`](../../src/devsynth/application/edrr/coordinator/phase_management.py).
+- Manifest-driven execution and template hydration leverage [`src/devsynth/application/edrr/manifest_parser.py`](../../src/devsynth/application/edrr/manifest_parser.py), exercised end-to-end by the behavior suites referenced above.
+- Threshold sanitation and recursion bounds are derived from [`docs/implementation/edrr_invariants.md`](../implementation/edrr_invariants.md) and validated through [`tests/unit/application/edrr/test_threshold_helpers.py`](../../tests/unit/application/edrr/test_threshold_helpers.py).

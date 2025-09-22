@@ -553,6 +553,10 @@ class PromiseAgent:
                     p.add_child_id(promise.id)
                     break
 
+        # Track the promise locally so fulfillment and rejection handlers can
+        # resolve it without requiring an explicit broker registration.
+        self.mixin._pending_requests[promise.id] = promise
+
         return promise
 
     def fulfill_promise(self, promise_id: str, result: Any) -> None:

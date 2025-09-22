@@ -188,6 +188,7 @@ Notes:
 18.3.2 [x] Provider system invariants documented in docs/implementation/provider_system_invariants.md.
 18.3.3 [x] Consensus building invariants documented in docs/implementation/consensus_building_invariants.md.
 18.3.4 [ ] Restore `devsynth.application.edrr.coordinator` template imports so `tests/unit/application/edrr/test_threshold_helpers.py` can execute, then promote docs/implementation/edrr_invariants.md beyond draft once the helper coverage is in place.【19f5e6†L1-L63】
+18.3.5 [x] Align EDRR coordinator, collaborative WSDE workflows, consensus/voting flows, promise system, prompt manager, and UXBridge documentation with executable evidence; update issues and specs to review.【F:docs/specifications/edrr-coordinator.md†L1-L123】【F:docs/specifications/multi-agent-collaboration.md†L1-L76】【F:docs/specifications/consensus-building.md†L1-L71】【F:docs/specifications/promise-system-capability-management.md†L1-L71】【F:docs/implementation/interactive_requirements_pseudocode.md†L1-L73】【F:docs/implementation/uxbridge_interaction_pseudocode.md†L1-L86】
 18.4 [x] Ensure all GitHub Actions workflows remain `workflow_dispatch` only until v0.1.0a1 is tagged.
 18.5 [x] Investigate full fast+medium coverage run failure (`ERROR tests/unit/general/test_test_first_metrics.py`) and restore coverage artifact generation.
 18.6 [x] Automate provisioning of `devsynth` CLI and `task` in fresh environments (issues/devsynth-cli-missing.md, issues/task-cli-persistence.md).

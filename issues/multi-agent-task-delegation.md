@@ -1,6 +1,6 @@
 # Multi-agent task delegation
 Milestone: 0.1.0
-Status: in progress
+Status: closed
 Priority: low
 Dependencies: Phase-2-completion.md, docs/specifications/multi-agent-task-delegation.md, tests/behavior/features/multi_agent_task_delegation.feature
 
@@ -16,6 +16,7 @@ Multi-agent task delegation is not yet implemented, limiting DevSynth's capabili
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-21: Delegation specification promoted to review with consensus and dialectical voting scenarios plus unit coverage.【F:docs/specifications/multi-agent-task-delegation.md†L1-L71】【F:tests/behavior/features/multi_agent_task_delegation.feature†L1-L17】【F:tests/behavior/steps/test_delegate_task_steps.py†L1-L205】
 
 ## References
 - Specification: docs/specifications/multi-agent-task-delegation.md

@@ -1,7 +1,8 @@
 ---
 author: DevSynth Team
 date: '2025-09-15'
-status: draft
+last_reviewed: '2025-09-22'
+status: review
 tags:
 - implementation
 - invariants
@@ -22,21 +23,11 @@ Correctness criteria:
 - **Semantic preservation** – transformed code must behave identically to the original.
 - **Determinism** – repeated transformation of the same input yields identical output.
 
-### Proof
+### Executable Evidence
 
-```python
-from devsynth.application.code_analysis.ast_transformer import IdentifierRenamer
-import ast
-
-code = "def foo(x): return x"
-tree = ast.parse(code)
-new_tree = IdentifierRenamer("x", "y").visit(tree)
-ast.fix_missing_locations(new_tree)
-
-namespace = {}
-exec(compile(new_tree, "<ast>", "exec"), namespace)
-assert namespace["foo"](3) == 3
-```
+- Behavior scenarios in [`tests/behavior/features/general/ast_code_analysis.feature`](../../tests/behavior/features/general/ast_code_analysis.feature) and [`tests/behavior/features/ast_based_code_analysis_and_transformation.feature`](../../tests/behavior/features/ast_based_code_analysis_and_transformation.feature) exercise identifier renaming, transformation idempotence, and error handling via the shared step bindings in [`tests/behavior/steps/test_code_transformer_steps.py`](../../tests/behavior/steps/test_code_transformer_steps.py).
+- Unit suites [`tests/unit/domain/test_code_analysis_interfaces.py`](../../tests/unit/domain/test_code_analysis_interfaces.py), [`tests/unit/general/test_code_analysis_models.py`](../../tests/unit/general/test_code_analysis_models.py), and [`tests/unit/application/code_analysis/test_ast_transformer.py`](../../tests/unit/application/code_analysis/test_ast_transformer.py) validate structural integrity and semantic preservation by compiling transformed trees and comparing execution results.
+- Integration coverage in [`tests/integration/general/test_refactor_workflow.py`](../../tests/integration/general/test_refactor_workflow.py) ensures the CLI refactor pipeline invokes the transformer deterministically when rewriting modules.
 
 ## Project-State Analysis
 
@@ -45,37 +36,15 @@ Correctness criteria:
 - **Health score bounds** – overall project health score remains within 0–10 inclusive.
 - **Deterministic reports** – analyzing an unchanged project yields the same summary.
 
-### Proof
+### Executable Evidence
 
-```python
-from devsynth.application.code_analysis.project_state_analysis import analyze_project_state
-from pathlib import Path
-import tempfile
-
-with tempfile.TemporaryDirectory() as tmp:
-    p = Path(tmp)
-    (p/"docs").mkdir(); (p/"tests").mkdir(); (p/"src").mkdir()
-    (p/"docs/req.md").write_text("requirement")
-    (p/"docs/spec.md").write_text("specification")
-    (p/"tests/test_sample.py").write_text("def test(): pass")
-    (p/"src/sample.py").write_text("def foo(): pass")
-
-    report = analyze_project_state(tmp)
-    assert report["requirements_count"] == 1
-    assert report["specifications_count"] == 1
-    assert report["test_count"] == 1
-    assert report["code_count"] == 1
-    assert 0 <= report["health_score"] <= 10
-```
+- Behavior suites [`tests/behavior/features/project_state_analysis.feature`](../../tests/behavior/features/project_state_analysis.feature) and [`tests/behavior/features/general/project_state_analyzer.feature`](../../tests/behavior/features/general/project_state_analyzer.feature) validate artifact accounting, determinism, and report formatting through [`tests/behavior/steps/test_project_state_analysis_steps.py`](../../tests/behavior/steps/test_project_state_analysis_steps.py).
+- Unit coverage in [`tests/unit/general/test_code_analysis_models.py`](../../tests/unit/general/test_code_analysis_models.py) and [`tests/unit/general/test_project_state_analysis.py`](../../tests/unit/general/test_project_state_analysis.py) asserts bounds on health scores, verifies deterministic ordering, and exercises edge cases (empty projects, missing directories, ignored patterns).
+- Integration flows in [`tests/integration/general/test_end_to_end_workflow.py`](../../tests/integration/general/test_end_to_end_workflow.py) and [`tests/integration/general/test_run_pipeline_command.py`](../../tests/integration/general/test_run_pipeline_command.py) execute project-state summaries as part of the CLI pipeline, demonstrating reproducibility within broader automation.
 
 ## References
 
-- BDD Feature: [tests/behavior/features/ast_based_code_analysis_and_transformation.feature](../tests/behavior/features/ast_based_code_analysis_and_transformation.feature)
-- BDD Feature: [tests/behavior/features/project_state_analysis.feature](../tests/behavior/features/project_state_analysis.feature)
-- BDD Feature: [tests/behavior/features/general/project_state_analyzer.feature](../tests/behavior/features/general/project_state_analyzer.feature)
-- Unit Test: [tests/unit/domain/test_code_analysis_interfaces.py](../tests/unit/domain/test_code_analysis_interfaces.py)
-- Unit Test: [tests/unit/general/test_code_analysis_models.py](../tests/unit/general/test_code_analysis_models.py)
-- Integration Test: [tests/integration/general/test_refactor_workflow.py](../tests/integration/general/test_refactor_workflow.py)
-- Integration Test: [tests/integration/general/test_end_to_end_workflow.py](../tests/integration/general/test_end_to_end_workflow.py)
-- Issue: [issues/ast-based-code-analysis-and-transformation.md](../issues/ast-based-code-analysis-and-transformation.md)
-- Issue: [issues/project-state-analysis.md](../issues/project-state-analysis.md)
+- BDD Features: [tests/behavior/features/ast_based_code_analysis_and_transformation.feature](../../tests/behavior/features/ast_based_code_analysis_and_transformation.feature), [tests/behavior/features/general/ast_code_analysis.feature](../../tests/behavior/features/general/ast_code_analysis.feature), [tests/behavior/features/project_state_analysis.feature](../../tests/behavior/features/project_state_analysis.feature), [tests/behavior/features/general/project_state_analyzer.feature](../../tests/behavior/features/general/project_state_analyzer.feature)
+- Unit Tests: [tests/unit/application/code_analysis/test_ast_transformer.py](../../tests/unit/application/code_analysis/test_ast_transformer.py), [tests/unit/domain/test_code_analysis_interfaces.py](../../tests/unit/domain/test_code_analysis_interfaces.py), [tests/unit/general/test_code_analysis_models.py](../../tests/unit/general/test_code_analysis_models.py), [tests/unit/general/test_project_state_analysis.py](../../tests/unit/general/test_project_state_analysis.py)
+- Integration Tests: [tests/integration/general/test_refactor_workflow.py](../../tests/integration/general/test_refactor_workflow.py), [tests/integration/general/test_run_pipeline_command.py](../../tests/integration/general/test_run_pipeline_command.py), [tests/integration/general/test_end_to_end_workflow.py](../../tests/integration/general/test_end_to_end_workflow.py)
+- Issue Traceability: [issues/ast-based-code-analysis-and-transformation.md](../../issues/ast-based-code-analysis-and-transformation.md), [issues/project-state-analysis.md](../../issues/project-state-analysis.md)
