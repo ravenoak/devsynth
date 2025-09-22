@@ -1,0 +1,11 @@
+[run]
+source =
+    src/devsynth/interface
+omit =
+    src/devsynth/interface/webui/*
+
+[report]
+include =
+    src/devsynth/interface/webui.py
+omit =
+    src/devsynth/interface/webui/*

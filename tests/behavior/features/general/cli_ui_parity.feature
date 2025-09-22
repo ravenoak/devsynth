@@ -18,3 +18,8 @@ Feature: CLI UI Parity
     Given the CLI shell completion is initialized
     When I request completions for a partial command
     Then I should receive the same suggestions as the web UI
+
+  Scenario: CLI prompt defaults mirror web UI selection
+    Given a CLI question with a default answer
+    When both interfaces prompt for the same question
+    Then the default responses should match
