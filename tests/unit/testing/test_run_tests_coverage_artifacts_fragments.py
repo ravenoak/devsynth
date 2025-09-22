@@ -86,7 +86,7 @@ def test_ensure_coverage_artifacts_combines_fragment_files(
     module.Coverage = FragmentCoverage  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "coverage", module)
 
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.INFO, logger="devsynth.testing.run_tests")
 
     rt._ensure_coverage_artifacts()
 
