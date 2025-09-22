@@ -1,6 +1,6 @@
 # WSDE Voting Mechanisms for Critical Decisions
 Milestone: 0.1.0
-Status: in progress
+Status: closed
 Priority: low
 Dependencies: Phase-2-completion.md, docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md, tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature
 
@@ -16,6 +16,7 @@ WSDE Voting Mechanisms for Critical Decisions is not yet implemented, limiting D
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-21: Voting mechanisms documented and validated with weighted voting, tie fallback, and consensus integration scenarios; specification promoted to review.【F:docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md†L1-L71】【F:tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature†L1-L26】【F:tests/behavior/steps/test_wsde_voting_mechanisms_steps.py†L1-L410】
 
 ## References
 - Specification: docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md

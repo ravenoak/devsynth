@@ -145,9 +145,17 @@ def conduct_peer_review(
 
 def add_solution(team: Any, task: Dict[str, Any], solution: Dict[str, Any]):
     """Add a solution to the team and trigger dialectical hooks."""
-    task_id = task.get("id", str(uuid4()))
+    task_id = task.get("id")
+    if not task_id:
+        task_id = str(uuid4())
+        task["id"] = task_id
+    else:
+        # Normalise the identifier on the task payload so future calls reuse it.
+        task["id"] = task_id
+
     team.solutions.setdefault(task_id, [])
     team.solutions[task_id].append(solution)
+    task.setdefault("solutions", []).append(solution)
     for hook in getattr(team, "dialectical_hooks", []):
         hook(task, team.solutions[task_id])
     logger.info("Added solution for task %s", task_id)

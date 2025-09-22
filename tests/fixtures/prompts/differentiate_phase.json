@@ -1,0 +1,14 @@
+{
+  "name": "differentiate_phase",
+  "description": "Template for the Differentiate phase of the EDRR cycle",
+  "metadata": {},
+  "edrr_phase": "DIFFERENTIATE",
+  "versions": [
+    {
+      "version_id": "4ac81a2a-a4b1-41ae-819d-b612ee64bae4",
+      "template_text": "\n# Differentiate Phase for Task: {task_description}\n\n## Objective\nAnalyze and compare the ideas generated in the Expand phase, evaluate options, and identify trade-offs.\n\n## Instructions\n1. Compare and contrast different approaches\n2. Evaluate each option against relevant criteria\n3. Identify strengths and weaknesses of each approach\n4. Analyze trade-offs between different solutions\n5. Develop decision criteria for selecting the best approach\n\n## Task Context\n{task_description}\n\n## Questions to Consider\n- What are the key differences between the approaches?\n- What criteria are most important for evaluating solutions?\n- What are the trade-offs between different approaches?\n- Which approaches best align with the requirements?\n- What are the risks and benefits of each approach?\n",
+      "created_at": "2025-09-22T00:18:49.594397",
+      "metadata": {}
+    }
+  ]
+}

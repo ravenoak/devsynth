@@ -11,6 +11,7 @@ from devsynth.application.promises.broker import PromiseBroker, UnauthorizedAcce
 
 # Import the feature file
 scenarios("../features/general/promise_system.feature")
+scenarios("../features/promise_system_capability_management.feature")
 
 
 # Define a fixture for the context

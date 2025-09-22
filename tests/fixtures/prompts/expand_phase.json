@@ -1,0 +1,14 @@
+{
+  "name": "expand_phase",
+  "description": "Template for the Expand phase of the EDRR cycle",
+  "metadata": {},
+  "edrr_phase": "EXPAND",
+  "versions": [
+    {
+      "version_id": "9fedc8e9-56da-431a-b2bc-4b15e0ff49b2",
+      "template_text": "\n# Expand Phase for Task: {task_description}\n\n## Objective\nGenerate diverse ideas, explore broadly, and gather relevant knowledge for the task.\n\n## Instructions\n1. Consider multiple approaches to the problem\n2. Explore different perspectives and angles\n3. Generate a wide range of potential solutions\n4. Identify relevant knowledge and resources\n5. Don't evaluate or filter ideas yet - focus on quantity and diversity\n\n## Task Context\n{task_description}\n\n## Questions to Consider\n- What are all the possible ways to approach this task?\n- What similar problems have been solved before?\n- What knowledge domains are relevant to this task?\n- What creative or unconventional approaches might work?\n- What are the key components or sub-problems within this task?\n",
+      "created_at": "2025-09-22T00:18:49.594086",
+      "metadata": {}
+    }
+  ]
+}

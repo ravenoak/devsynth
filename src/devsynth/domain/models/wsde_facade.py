@@ -12,8 +12,10 @@ from typing import Any
 
 from devsynth.domain.models import (
     wsde_dialectical,
+    wsde_enhanced_dialectical,
     wsde_multidisciplinary,
     wsde_roles,
+    wsde_solution_analysis,
     wsde_voting,
 )
 from devsynth.domain.models.wsde_core import WSDE, WSDETeam
@@ -164,11 +166,33 @@ WSDETeam.optimize_implementation = _basic_optimize_implementation
 WSDETeam.perform_quality_assurance = _basic_perform_quality_assurance
 WSDETeam.extract_learnings = _basic_extract_learnings
 WSDETeam.can_propose_solution = lambda self, agent, task: True
+WSDETeam.can_provide_critique = lambda self, agent, solution: True
 WSDETeam.recognize_patterns = _default_list_method
 WSDETeam.integrate_knowledge = _default_list_method
 WSDETeam.generate_improvement_suggestions = _default_list_method
 WSDETeam.apply_enhanced_dialectical_reasoning = (
-    lambda self, *a, **kw: self.apply_dialectical_reasoning(*a, **kw)
+    wsde_enhanced_dialectical.apply_enhanced_dialectical_reasoning
+)
+WSDETeam.apply_enhanced_dialectical_reasoning_multi = (
+    wsde_enhanced_dialectical.apply_enhanced_dialectical_reasoning_multi
+)
+WSDETeam._identify_thesis = wsde_enhanced_dialectical._identify_thesis
+WSDETeam._generate_enhanced_antithesis = (
+    wsde_enhanced_dialectical._generate_enhanced_antithesis
+)
+WSDETeam._generate_enhanced_synthesis = (
+    wsde_enhanced_dialectical._generate_enhanced_synthesis
+)
+WSDETeam._generate_evaluation = wsde_enhanced_dialectical._generate_evaluation
+WSDETeam._analyze_solution = wsde_solution_analysis._analyze_solution
+WSDETeam._generate_comparative_analysis = (
+    wsde_solution_analysis._generate_comparative_analysis
+)
+WSDETeam._generate_multi_solution_synthesis = staticmethod(
+    wsde_enhanced_dialectical._generate_multi_solution_synthesis
+)
+WSDETeam._generate_comparative_evaluation = staticmethod(
+    wsde_enhanced_dialectical._generate_comparative_evaluation
 )
 
 

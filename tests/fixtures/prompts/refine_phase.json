@@ -1,0 +1,14 @@
+{
+  "name": "refine_phase",
+  "description": "Template for the Refine phase of the EDRR cycle",
+  "metadata": {},
+  "edrr_phase": "REFINE",
+  "versions": [
+    {
+      "version_id": "b5d6c84f-cf5d-4a36-aa7b-075f0b6716aa",
+      "template_text": "\n# Refine Phase for Task: {task_description}\n\n## Objective\nElaborate on the selected approach, develop a detailed implementation plan, and optimize the solution.\n\n## Instructions\n1. Develop a detailed plan for the selected approach\n2. Elaborate on implementation details\n3. Optimize the solution for performance, maintainability, and other relevant factors\n4. Identify potential issues and develop mitigation strategies\n5. Create quality assurance checks for the implementation\n\n## Task Context\n{task_description}\n\n## Questions to Consider\n- What are the specific steps needed to implement this solution?\n- How can the solution be optimized?\n- What edge cases need to be handled?\n- What quality checks should be performed?\n- How can the implementation be made more robust?\n",
+      "created_at": "2025-09-22T00:18:49.594684",
+      "metadata": {}
+    }
+  ]
+}

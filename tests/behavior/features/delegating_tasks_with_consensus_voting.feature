@@ -1,30 +1,21 @@
 Feature: Delegating tasks with consensus voting
   As a [role]
-  I want to [capability]
-  So that [benefit]
+  I want teams to vote on task solutions
+  So that the final result reflects majority consensus
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+  Scenario: Reach consensus via voting
+    Given a coordinator with agents capable of voting
+    When I delegate a voting-based task
+    Then each agent should cast a vote
+    And the outcome should be approved by consensus vote
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: No agents able to propose a solution
+    Given a coordinator with agents unable to propose solutions
+    When I delegate a voting-based task
+    Then the system should return an error message indicating no solutions were proposed
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Dialectical reasoning module raises an exception
+    Given a coordinator with agents capable of voting
+    And the dialectical reasoning module raises an exception
+    When I delegate a voting-based task
+    Then the system should return a graceful dialectical reasoning error message

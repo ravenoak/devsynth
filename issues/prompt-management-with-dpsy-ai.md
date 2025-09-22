@@ -1,6 +1,6 @@
 # Prompt Management with DPSy-AI
 Milestone: 0.1.0
-Status: in progress
+Status: closed
 Priority: low
 Dependencies: Phase-2-completion.md, docs/specifications/prompt-management-with-dpsy-ai.md, tests/behavior/features/prompt_management_with_dpsy_ai.feature
 
@@ -16,6 +16,7 @@ Prompt Management with DPSy-AI is not yet implemented, limiting DevSynth's capab
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-21: Prompt management specification now in review with scenarios covering registration, rendering, and versioning plus supporting unit tests.【F:docs/specifications/prompt-management-with-dpsy-ai.md†L1-L71】【F:tests/behavior/features/prompt_management_with_dpsy_ai.feature†L1-L23】【F:tests/behavior/steps/test_prompt_management_steps.py†L1-L410】
 
 ## References
 - Specification: docs/specifications/prompt-management-with-dpsy-ai.md

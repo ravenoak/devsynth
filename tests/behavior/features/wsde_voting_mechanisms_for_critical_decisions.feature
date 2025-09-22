@@ -1,30 +1,31 @@
 Feature: WSDE Voting Mechanisms for Critical Decisions
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a developer using DevSynth
+  I want to use voting mechanisms for critical decisions in the WSDE model
+  So that outcomes remain fair, weighted, and auditable
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given the DevSynth system is initialized
+    And a team of agents is configured
+    And the WSDE model is enabled
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: Voting on critical decisions
+    Given a team with multiple agents with different expertise
+    When a critical decision needs to be made
+    Then the system should initiate a voting process
+    And each agent should cast a vote based on their expertise
+    And the decision should be made based on majority vote
+    And the voting results should be recorded
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
+  Scenario: Consensus fallback for tied votes
+    Given a team with an even number of agents
+    When a critical decision results in a tied vote
+    Then the system should fall back to consensus-building
+    And the final decision should reflect input from all agents
+    And the decision-making process should be documented
 
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Weighted voting based on expertise
+    Given a team with agents having different levels of expertise
+    When a critical decision in a specific domain needs to be made
+    Then agents with relevant expertise should have weighted votes
+    And the final decision should favor domain experts
+    And the weighting mechanism should be transparent

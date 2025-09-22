@@ -1,6 +1,6 @@
 # Promise System Capability Management
 Milestone: 0.1.0
-Status: in progress
+Status: closed
 Priority: low
 Dependencies: Phase-2-completion.md, docs/specifications/promise-system-capability-management.md, tests/behavior/features/promise_system_capability_management.feature
 
@@ -16,6 +16,7 @@ Promise System Capability Management is not yet implemented, limiting DevSynth's
 
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
+- 2025-09-21: Promise system specification promoted to review with capability registration, fulfillment, rejection, and chaining scenarios linked to active tests.【F:docs/specifications/promise-system-capability-management.md†L1-L71】【F:tests/behavior/features/promise_system_capability_management.feature†L1-L31】【F:tests/behavior/steps/test_promise_system_steps.py†L1-L399】
 
 ## References
 - Specification: docs/specifications/promise-system-capability-management.md

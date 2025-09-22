@@ -9,6 +9,7 @@ from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.domain.interfaces.agent import Agent
 
 scenarios("../features/general/delegate_task_consensus.feature")
+scenarios("../features/delegating_tasks_with_consensus_voting.feature")
 
 
 @pytest.fixture
@@ -63,25 +64,41 @@ def delegate_voting_task(context):
     if context.no_solutions:
         team.build_consensus = MagicMock(
             return_value={
-                "consensus": "",
-                "contributors": [],
-                "method": "consensus",
-                "reasoning": "No solutions available",
+                "result": None,
+                "status": "failed",
+                "consensus": None,
+                "initial_preferences": {},
+                "final_preferences": {},
+                "rounds": [],
+                "explanation": "No solutions available",
             }
         )
     else:
         team.build_consensus = MagicMock(
             return_value={
+                "result": "approved",
+                "status": "approved",
                 "consensus": "approved",
                 "votes": {a.name: "yes" for a in context.agents},
-                "contributors": [a.name for a in context.agents],
-                "method": "consensus_vote",
+                "initial_preferences": {a.name: "yes" for a in context.agents},
+                "final_preferences": {a.name: "yes" for a in context.agents},
+                "rounds": [
+                    {
+                        "round": 1,
+                        "preferences": {a.name: "yes" for a in context.agents},
+                    }
+                ],
+                "explanation": "Consensus reached via vote",
             }
         )
 
     if context.dialectical_error:
         team.apply_enhanced_dialectical_reasoning_multi = MagicMock(
             side_effect=Exception("Dialectical reasoning failed")
+        )
+    else:
+        team.apply_enhanced_dialectical_reasoning_multi = MagicMock(
+            return_value={"status": "ok"}
         )
 
     try:
@@ -93,12 +110,16 @@ def delegate_voting_task(context):
 @then("each agent should cast a vote")
 def each_agent_votes(context):
     team = context.coordinator.teams[context.coordinator.current_team_id]
-    team.build_consensus.assert_called_once_with(context.task)
+    team.build_consensus.assert_called_once()
+    payload = team.build_consensus.call_args.args[0]
+    assert payload.get("vote") is True
+    assert payload.get("description") == context.task["description"]
+    assert set(payload.get("options", [])) == {a.name for a in context.agents}
 
 
 @then("the outcome should be approved by consensus vote")
 def result_consensus_vote(context):
-    assert context.result.get("method") == "consensus_vote"
+    assert context.result.get("method") == "consensus_deliberation"
     assert context.result.get("result") == "approved"
 
 

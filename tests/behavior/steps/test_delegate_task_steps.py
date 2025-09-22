@@ -12,13 +12,14 @@ from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 scenarios("../features/general/delegate_task.feature")
+scenarios("../features/multi_agent_task_delegation.feature")
 
 
 class SimpleTeam(WSDETeam):
     """WSDE team with deterministic consensus and dialectical hooks."""
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(name="TestSimpleTeam")
         self.dialectical_called = False
 
     def build_consensus(self, task):  # type: ignore[override]

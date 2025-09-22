@@ -81,6 +81,15 @@ def apply_enhanced_dialectical_reasoning(
         except Exception as e:
             logger.error(f"Error in dialectical hook: {str(e)}")
 
+    return {
+        "status": "completed",
+        "method": "enhanced_dialectical_reasoning",
+        "thesis": thesis,
+        "antithesis": antithesis,
+        "synthesis": synthesis,
+        "evaluation": evaluation,
+    }
+
 
 # Internal helper functions for enhanced dialectical reasoning
 # These are module-level to satisfy strict typing (mypy) and avoid relying on

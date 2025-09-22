@@ -1,30 +1,21 @@
 Feature: Multi-agent task delegation
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a coordinator
+  I want to delegate collaborative work to multiple agents
+  So that consensus-driven results include contributions from the whole team
 
-  Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+  Scenario: Delegate a team task to multiple agents
+    Given a team coordinator with multiple agents
+    When I delegate a collaborative team task
+    Then each agent should process the task
+    And the consensus result should be final
+    And the delegation result should include all contributors
+    And the delegation method should be consensus based
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Delegate a task with dialectical reasoning and consensus
+    Given a team coordinator with multiple agents
+    And a critic agent with dialectical reasoning expertise
+    When I delegate a dialectical reasoning task
+    Then each agent should process the task
+    And the team should apply dialectical reasoning before consensus
+    And the consensus result should be final
+    And the delegation method should be consensus based

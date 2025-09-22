@@ -16,6 +16,7 @@ Consensus Building is not yet implemented, limiting DevSynth's capabilities.
 ## Progress
 - 2025-02-19: extracted from dialectical audit backlog.
 - 2025-09-14: consensus utility, invariants, and tests implemented.
+- 2025-09-21: Documentation promoted to review with refreshed BDD and unit evidence for consensus workflows.【F:docs/specifications/consensus-building.md†L1-L71】【F:tests/behavior/features/consensus_building.feature†L1-L12】【F:tests/behavior/steps/test_consensus_building_steps.py†L1-L339】
 
 ## References
 - Specification: docs/specifications/consensus-building.md

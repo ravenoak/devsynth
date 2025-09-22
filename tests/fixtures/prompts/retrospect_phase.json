@@ -1,0 +1,14 @@
+{
+  "name": "retrospect_phase",
+  "description": "Template for the Retrospect phase of the EDRR cycle",
+  "metadata": {},
+  "edrr_phase": "RETROSPECT",
+  "versions": [
+    {
+      "version_id": "f605a26c-ca3a-44b3-a604-9caea32b5445",
+      "template_text": "\n# Retrospect Phase for Task: {task_description}\n\n## Objective\nExtract learnings, identify patterns, integrate knowledge, and generate improvement suggestions.\n\n## Instructions\n1. Reflect on the entire process from Expand through Refine\n2. Extract key learnings and insights\n3. Identify patterns that could be applied to future tasks\n4. Integrate new knowledge into the existing knowledge base\n5. Generate suggestions for improving the process and solution\n\n## Task Context\n{task_description}\n\n## Questions to Consider\n- What worked well in this process?\n- What challenges were encountered and how were they addressed?\n- What patterns or principles emerged that could be reused?\n- How could the process be improved for similar tasks in the future?\n- What new knowledge was gained that should be preserved?\n",
+      "created_at": "2025-09-22T00:18:49.594871",
+      "metadata": {}
+    }
+  ]
+}

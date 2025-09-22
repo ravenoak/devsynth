@@ -237,7 +237,22 @@ class WSDETeamCoordinator(AgentCoordinator):
         # which analyzes and compares all solutions
 
         # 4. Build consensus through deliberation
-        consensus = team.build_consensus(task)
+        options = []
+        for idx, solution in enumerate(task.get("solutions", []), start=1):
+            descriptor = solution.get("content") or solution.get("agent")
+            if not descriptor:
+                descriptor = f"option_{idx}"
+            options.append(descriptor)
+
+        if not options:
+            options = [
+                getattr(agent, "name", f"agent_{idx}")
+                for idx, agent in enumerate(team.agents, start=1)
+            ]
+
+        consensus_payload = dict(task)
+        consensus_payload["options"] = options
+        consensus = team.build_consensus(consensus_payload)
 
         # 5. Apply dialectical reasoning on the combined solutions
         critic_agent = primus if primus else team.agents[0]
@@ -246,11 +261,18 @@ class WSDETeamCoordinator(AgentCoordinator):
         )
 
         # 6. Format the result to match the expected output
+        contributors = list(consensus.get("initial_preferences", {}).keys())
+        explanation = consensus.get("explanation", "")
         return {
-            "result": consensus.get("consensus", ""),
-            "contributors": consensus.get("contributors", []),
-            "method": consensus.get("method", "consensus"),
-            "reasoning": consensus.get("reasoning", ""),
+            "status": consensus.get("status", "failed"),
+            "result": consensus.get("result"),
+            "consensus": consensus.get("result"),
+            "contributors": contributors,
+            "method": "consensus_deliberation",
+            "reasoning": explanation,
+            "explanation": explanation,
+            "rounds": consensus.get("rounds", []),
+            "final_preferences": consensus.get("final_preferences", {}),
             "dialectical_analysis": dialectical,
         }
 

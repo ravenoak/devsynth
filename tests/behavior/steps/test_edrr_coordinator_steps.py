@@ -9,6 +9,7 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 scenarios("../features/general/edrr_coordinator.feature")
+scenarios("../features/edrr_coordinator.feature")
 import json
 import os
 import tempfile
@@ -52,6 +53,12 @@ def context():
     return Context()
 
 
+def _unwrap_wsde_team(team):
+    """Return the underlying WSDE team if a proxy is used."""
+
+    return getattr(team, "_team", team)
+
+
 @given("the EDRR coordinator is initialized")
 def edrr_coordinator_initialized(context):
     """Initialize the EDRR coordinator with actual implementations."""
@@ -90,7 +97,8 @@ def memory_system_available(context):
 def wsde_team_available(context):
     """Make the WSDE team available."""
     assert context.wsde_team is not None
-    assert context.edrr_coordinator.wsde_team is context.wsde_team
+    coordinator_team = _unwrap_wsde_team(context.edrr_coordinator.wsde_team)
+    assert coordinator_team is context.wsde_team
 
 
 @given("the AST analyzer is available")
@@ -116,6 +124,154 @@ def documentation_manager_available(context):
     assert (
         context.edrr_coordinator.documentation_manager is context.documentation_manager
     )
+
+
+@given("a coordinator managing Expand, Differentiate, Refine, and Retrospect phases")
+def coordinator_ready_for_all_phases(context):
+    """Ensure a coordinator is available for full-cycle execution."""
+
+    if context.edrr_coordinator is None:
+        edrr_coordinator_initialized(context)
+
+
+@given("an initial context")
+def initial_cycle_context(context):
+    """Provide a default task used for end-to-end cycle execution."""
+
+    context.task = {
+        "id": "edrr-cycle-task",
+        "description": "Coordinate EDRR phases end-to-end",
+        "complexity_score": 3,
+    }
+
+
+@when("the coordinator executes an EDRR cycle")
+def coordinator_executes_full_cycle(context):
+    """Run the coordinator through each EDRR phase."""
+
+    task = getattr(context, "task", None) or {
+        "id": "edrr-cycle-task",
+        "description": "Coordinate EDRR phases",
+        "complexity_score": 3,
+    }
+    context.edrr_coordinator.start_cycle(task)
+    context.executed_phases = []
+
+    for _ in range(10):
+        phase = context.edrr_coordinator.current_phase
+        if phase is None:
+            break
+        context.executed_phases.append(phase)
+        context.edrr_coordinator.execute_current_phase()
+        if phase == Phase.RETROSPECT:
+            break
+
+
+@then("the coordinator reports completion")
+def coordinator_reports_completion(context):
+    """Verify the coordinator marked the retrospection phase as complete."""
+
+    retrospect_results = context.edrr_coordinator.results.get(
+        Phase.RETROSPECT.name, {}
+    )
+    assert retrospect_results.get("completed") is True
+    assert retrospect_results.get("phase_complete") is True
+
+
+@then("the final context contains results from all phases")
+def final_context_contains_all_phases(context):
+    """Ensure aggregated outputs reference each EDRR phase."""
+
+    aggregated = context.edrr_coordinator.results.get("AGGREGATED", {})
+    expected_phases = {"expand", "differentiate", "refine", "retrospect"}
+    assert expected_phases.issubset(aggregated.keys()), aggregated.keys()
+    for phase in expected_phases:
+        assert aggregated.get(phase), f"Aggregated context missing data for {phase}"
+
+
+@given("agents produce conflicting outcomes during the Refine phase")
+def refine_phase_conflicts(context):
+    """Seed conflicting results to exercise micro-cycle reconciliation."""
+
+    if context.edrr_coordinator is None:
+        edrr_coordinator_initialized(context)
+
+    conflict_task = {
+        "id": "refine-conflict",
+        "description": "Resolve conflicting implementations",
+        "complexity_score": 4,
+    }
+    context.edrr_coordinator.start_cycle(conflict_task)
+    context.edrr_coordinator.execute_current_phase()
+    context.edrr_coordinator.execute_current_phase()
+
+    assert context.edrr_coordinator.current_phase == Phase.REFINE
+
+    conflict_results = {
+        "implementation": {"variants": ["solution_a", "solution_b"]},
+        "micro_cycle_results": {},
+        "phase_complete": False,
+        "quality_score": 0.35,
+    }
+    context.edrr_coordinator.results[Phase.REFINE.name] = conflict_results
+    context.conflicting_refine_results = conflict_results
+
+
+@when("the coordinator launches a micro cycle to reconcile differences")
+def coordinator_launches_micro_cycle(context):
+    """Invoke a micro cycle and aggregate the reconciled solution."""
+
+    micro_cycle_output = {
+        "resolved_solution": {
+            "id": "consensus-plan",
+            "contributors": ["solution_a", "solution_b"],
+        },
+        "quality_score": 0.92,
+        "context": {"notes": "Unified implementation produced by micro cycle"},
+    }
+    aggregated = context.edrr_coordinator._aggregate_micro_cycle_results(
+        Phase.REFINE, 1, micro_cycle_output
+    )
+    aggregated["phase_complete"] = True
+    aggregated["quality_score"] = micro_cycle_output["quality_score"]
+
+    refine_results = context.edrr_coordinator.results[Phase.REFINE.name]
+    refine_results["aggregated_results"] = aggregated["aggregated_results"]
+    refine_results["phase_complete"] = True
+    refine_results["quality_score"] = micro_cycle_output["quality_score"]
+    refine_results.setdefault("micro_cycle_results", {})["iteration_1"] = (
+        micro_cycle_output
+    )
+
+    context.micro_cycle_results = aggregated
+    context.edrr_coordinator._aggregate_results()
+
+
+@then("the cycle terminates with a single coherent context")
+def cycle_terminates_with_coherent_context(context):
+    """Verify micro-cycle aggregation resolved the conflicts."""
+
+    refine_results = context.edrr_coordinator.results.get(Phase.REFINE.name, {})
+    aggregated = refine_results.get("aggregated_results", {})
+    resolved = aggregated.get("resolved_solution")
+    assert resolved is not None
+    assert resolved.get("id") == "consensus-plan"
+
+    overall = context.edrr_coordinator.results.get("AGGREGATED", {})
+    if "refine" in overall:
+        consensus = overall["refine"].get("resolved_solution")
+        if consensus is not None:
+            assert consensus.get("id") == "consensus-plan"
+
+
+@then("no further phase transitions occur")
+def no_additional_phase_transitions(context):
+    """Ensure the coordinator remains in the Refine phase after reconciliation."""
+
+    assert context.edrr_coordinator.current_phase == Phase.REFINE
+    refine_results = context.edrr_coordinator.results.get(Phase.REFINE.name, {})
+    assert refine_results.get("phase_complete") is True
+    assert context.edrr_coordinator.manual_next_phase is None
 
 
 @when(parsers.parse('I start the EDRR cycle with a task to "{task_description}"'))
@@ -145,7 +301,7 @@ def phase_completed(context, phase_name):
         )
         return original_store_method(data, data_type, edrr_phase, metadata)
 
-    context.memory_manager.store_with_edrr_phase = test_store_method_succeeds
+    context.memory_manager.store_with_edrr_phase = store_method_succeeds
     try:
         if (
             phase == Phase.EXPAND
@@ -241,7 +397,7 @@ def verify_task_stored(context, phase_name):
         )
         return original_store_method(data, data_type, edrr_phase, metadata)
 
-    context.memory_manager.store_with_edrr_phase = test_store_method_succeeds
+    context.memory_manager.store_with_edrr_phase = store_method_succeeds
     try:
         context.edrr_coordinator.start_cycle(context.task)
         phase_key = phase_name.strip('"').upper()
@@ -274,7 +430,7 @@ def verify_phase_transition_stored(context):
         )
         return original_store_method(data, data_type, edrr_phase, metadata)
 
-    context.memory_manager.store_with_edrr_phase = test_store_method_succeeds
+    context.memory_manager.store_with_edrr_phase = store_method_succeeds
     try:
         context.edrr_coordinator.progress_to_phase(Phase.EXPAND)
         all_items = [i for items in test_storage.values() for i in items]
@@ -431,10 +587,8 @@ def verify_ast_verify(context):
     }
     context.edrr_coordinator._execute_retrospect_phase()
     assert Phase.RETROSPECT in context.edrr_coordinator.results
-    assert (
-        "code_quality"
-        in context.edrr_coordinator.results[Phase.RETROSPECT]["evaluation"]
-    )
+    evaluation = context.edrr_coordinator.results[Phase.RETROSPECT]["evaluation"]
+    assert "quality" in evaluation
     assert "is_valid" in context.edrr_coordinator.results[Phase.RETROSPECT]
 
 
@@ -616,7 +770,7 @@ def verify_results_stored(context, phase_name):
         }
         return original_store_method(data, data_type, edrr_phase, metadata)
 
-    context.memory_manager.store_with_edrr_phase = test_store_method_succeeds
+    context.memory_manager.store_with_edrr_phase = store_method_succeeds
     try:
         if phase == Phase.EXPAND:
             context.edrr_coordinator.task = {
@@ -740,6 +894,8 @@ def valid_manifest_file_exists(context):
 def start_edrr_cycle_from_manifest(context):
     """Start the EDRR cycle from the manifest file."""
     context.edrr_coordinator.start_cycle_from_manifest(context.manifest_path)
+    if context.edrr_coordinator.current_phase == Phase.EXPAND:
+        context.edrr_coordinator.execute_current_phase()
 
 
 @then("the coordinator should parse the manifest successfully")
@@ -827,47 +983,15 @@ def complete_full_edrr_cycle(context, task_description):
     """Complete a full EDRR cycle with the given task."""
     context.task = {"id": "task-123", "description": task_description}
     context.edrr_coordinator.start_cycle(context.task)
-    context.edrr_coordinator.results[Phase.EXPAND] = {
-        "completed": True,
-        "approaches": [
-            {
-                "id": "approach-1",
-                "description": "First approach",
-                "code": "def approach1(): pass",
-            },
-            {
-                "id": "approach-2",
-                "description": "Second approach",
-                "code": "def approach2(): pass",
-            },
-        ],
-    }
-    context.edrr_coordinator.progress_to_phase(Phase.EXPAND)
-    context.edrr_coordinator.results[Phase.DIFFERENTIATE] = {
-        "completed": True,
-        "evaluation": {
-            "selected_approach": {
-                "id": "approach-1",
-                "description": "Selected approach",
-                "code": "def example(): pass",
-            }
-        },
-    }
-    context.edrr_coordinator.progress_to_phase(Phase.DIFFERENTIATE)
-    context.edrr_coordinator.results[Phase.REFINE] = {
-        "completed": True,
-        "implementation": {
-            "code": "def example(): return 'Hello, World!'",
-            "description": "Implemented solution",
-        },
-    }
-    context.edrr_coordinator.progress_to_phase(Phase.REFINE)
-    context.edrr_coordinator.results[Phase.RETROSPECT] = {
-        "completed": True,
-        "evaluation": {"quality": "good", "issues": [], "suggestions": []},
-        "is_valid": True,
-    }
-    context.edrr_coordinator.progress_to_phase(Phase.RETROSPECT)
+
+    for _ in range(10):
+        phase = context.edrr_coordinator.current_phase
+        if phase is None:
+            break
+        context.edrr_coordinator.execute_current_phase()
+        if phase == Phase.RETROSPECT:
+            break
+
     context.final_report = context.edrr_coordinator.generate_report()
     context.execution_traces = context.edrr_coordinator.get_execution_traces()
 

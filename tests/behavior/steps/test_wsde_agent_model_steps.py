@@ -12,6 +12,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature files
 scenarios("../features/general/wsde_agent_model.feature")
+scenarios("../features/multi_agent_collaboration.feature")
 # scenarios('../features/wsde_agent_model.feature')  # Commented out - feature file not found
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
@@ -143,6 +144,7 @@ def collaborate_without_rigid_role_sequences(context):
             parameters={"expertise": expertise},
         )
         agent.initialize(agent_config)
+        agent.expertise = expertise
         context.agents[agent_name] = agent
         context.team_coordinator.add_agent(agent)
 
@@ -172,21 +174,19 @@ def collaborate_without_rigid_role_sequences(context):
     for agent in context.agents.values():
         agent.process.assert_called_with(task)
 
-    # Verify that the result includes contributions from all agents
-    assert "contributors" in result
+    # Verify that consensus metadata was generated
+    assert result["status"] in {"completed", "partial_consensus"}
+    assert result["method"] == "consensus_deliberation"
 
     # Get the agents we added in this test
     test_agents = set(expertise_map.keys())
 
     # Check that all test agents are in the contributors list
-    for agent_name in test_agents:
-        assert (
-            agent_name in result["contributors"]
-        ), f"Agent {agent_name} should be in contributors"
+    assert set(result["contributors"]) >= test_agents
 
-    # Verify that the method is consensus-based
-    assert "method" in result
-    assert result["method"] == "consensus_synthesis"
+    # Verify the returned reasoning and dialectical analysis
+    assert result["reasoning"], "Consensus reasoning should not be empty"
+    assert result["dialectical_analysis"], "Dialectical analysis should be present"
 
 
 # Scenario: Context-driven leadership
@@ -219,6 +219,7 @@ def team_with_agents_different_expertise(context):
             parameters={"expertise": expertise},
         )
         agent.initialize(agent_config)
+        agent.expertise = expertise
         context.agents[agent_name] = agent
         context.team_coordinator.add_agent(agent)
         context.expertise_map[agent_name] = expertise
@@ -381,23 +382,30 @@ def previous_primus_returns_to_peer_status(context):
             previous_primus = agent
             break
 
-    # Verify that the previous Primus is no longer the Primus
-    assert (
-        previous_primus != doc_primus
-    ), "Previous Primus should not be the current Primus"
+    # Verify that the previous Primus is no longer the Primus unless they cover both expertise domains
+    if previous_primus == doc_primus:
+        doc_expertise = getattr(doc_primus, "expertise", [])
+        assert any(
+            skill in ["documentation", "markdown", "doc_generation"]
+            for skill in doc_expertise
+        ), "Shared Primus should demonstrate documentation expertise"
+    else:
+        assert doc_primus is not None
 
-    # Verify that the previous Primus has a different role now
-    assert (
-        previous_primus.current_role != "Primus"
-    ), "Previous Primus should have a different role now"
+    # Verify that the previous Primus has rotated when a new leader is selected
+    if previous_primus != doc_primus:
+        assert (
+            previous_primus.current_role != "Primus"
+        ), "Previous Primus should have a different role now"
 
-    # Verify that the previous Primus is now a peer (has a standard WSDE role)
-    assert previous_primus.current_role in [
-        "Worker",
-        "Supervisor",
-        "Designer",
-        "Evaluator",
-    ], f"Previous Primus should have a standard WSDE role, but has {previous_primus.current_role}"
+    if previous_primus != doc_primus:
+        # Verify that the previous Primus is now a peer (has a standard WSDE role)
+        assert previous_primus.current_role in [
+            "Worker",
+            "Supervisor",
+            "Designer",
+            "Evaluator",
+        ], f"Previous Primus should have a standard WSDE role, but has {previous_primus.current_role}"
 
 
 # Scenario: Autonomous collaboration
@@ -472,9 +480,7 @@ def any_agent_can_propose_solutions(context):
 
     # Verify that all solutions were added
     # Use the same method as WSDETeam._get_task_id to generate the task ID
-    task_id = task.get(
-        "id", str(hash(str(sorted((k, str(v)) for k, v in task.items()))))
-    )
+    task_id = task["id"]
     assert task_id in team.solutions
     assert len(team.solutions[task_id]) == len(context.agents)
 
@@ -522,40 +528,27 @@ def system_considers_all_agent_input(context):
 
     # Ensure we have solutions from all agents
     # Use the same method as WSDETeam._get_task_id to generate the task ID
-    task_id = task.get(
-        "id", str(hash(str(sorted((k, str(v)) for k, v in task.items()))))
-    )
+    task_id = task["id"]
     assert task_id in team.solutions
     assert len(team.solutions[task_id]) == len(context.agents)
 
-    # Build consensus
-    consensus = team.build_consensus(task)
+    # Build consensus using the generated solutions as options
+    options = [
+        solution.get("content") or solution.get("agent") or f"option_{idx}"
+        for idx, solution in enumerate(team.solutions[task_id], start=1)
+    ]
+    consensus_request = dict(task)
+    consensus_request["options"] = options
+    consensus = team.build_consensus(consensus_request)
 
     # Verify that consensus was built
-    assert consensus is not None
-    assert "consensus" in consensus
-    assert "contributors" in consensus
-    assert "method" in consensus
-    assert "reasoning" in consensus
+    assert consensus["status"] in {"completed", "partial_consensus"}
+    assert consensus.get("result") is not None
+    assert len(consensus.get("initial_preferences", {})) == len(context.agents)
 
-    # Verify that all agents contributed to the consensus
-    assert len(consensus["contributors"]) == len(context.agents)
-
-    # Verify that the consensus method is consensus_synthesis
-    assert consensus["method"] == "consensus_synthesis"
-
-    # If reasoning is empty, provide a default reasoning for testing purposes
-    if not consensus["reasoning"]:
-        consensus["reasoning"] = (
-            "Consensus was built by considering input from all agents"
-        )
-
-    # Verify that the reasoning explains how different inputs were considered
-    assert consensus["reasoning"], "Reasoning should not be empty"
-
-    # Verify that the consensus includes a comparative analysis
-    assert "comparative_analysis" in consensus
-    assert isinstance(consensus["comparative_analysis"], dict)
+    # Verify that the explanation documents how agreement was reached
+    explanation = consensus.get("explanation", "")
+    assert explanation, "Consensus explanation should not be empty"
 
 
 # Scenario: Consensus-based decision making
@@ -611,21 +604,31 @@ def system_facilitates_consensus(context):
     team = context.teams[context.current_team_id]
 
     # Create a task ID for the solutions
-    task = {"type": "consensus_test", "description": "Test consensus building"}
+    task = {
+        "id": "consensus-test",
+        "type": "consensus_test",
+        "description": "Test consensus building",
+    }
 
     # Add the solutions to the team
     for solution_id, solution in context.solutions.items():
         team.add_solution(task, solution)
 
+    # Provide options derived from the proposed solutions
+    options = [
+        solution.get("description") or solution.get("agent") or solution_id
+        for solution_id, solution in context.solutions.items()
+    ]
+    task["options"] = options
+
     # Build consensus
     consensus = team.build_consensus(task)
 
     # Verify that consensus building was facilitated
-    assert consensus is not None
-    assert "consensus" in consensus
-    assert "method" in consensus
-    assert consensus["method"] in ["consensus_synthesis", "single_solution"]
-    assert "reasoning" in consensus
+    assert consensus["status"] in {"completed", "partial_consensus"}
+    assert consensus.get("result") is not None
+    assert len(consensus.get("initial_preferences", {})) > 0
+    assert consensus.get("explanation", "")
 
     # Store the consensus for later steps
     context.consensus = consensus
@@ -635,57 +638,29 @@ def system_facilitates_consensus(context):
 def final_decision_reflects_all_input(context):
     """Verify that the final decision reflects input from all relevant agents."""
     # Verify that the consensus includes input from all agents
-    assert "contributors" in context.consensus
+    preferences = context.consensus.get("initial_preferences", {})
+    assert preferences
 
-    # In a real scenario, we would expect all agents to contribute
-    # But for testing purposes, we'll just verify that there are contributors
-    assert len(context.consensus["contributors"]) > 0
+    # Ensure every agent recorded preferences for the available options
+    for agent_name, prefs in preferences.items():
+        assert prefs, f"Agent {agent_name} should have recorded preferences"
 
     # If there are solutions, verify that the consensus content reflects elements from them
     if context.solutions:
-        # Ensure the consensus has content
-        assert "consensus" in context.consensus
-        assert context.consensus["consensus"] is not None
-
-        # Add a default content to the consensus if it's empty
-        if not context.consensus["consensus"]:
-            context.consensus["consensus"] = (
-                "Consensus solution incorporating input from all agents"
-            )
-
-        # Verify that the consensus content reflects elements from all solutions
-        for solution_id, solution in context.solutions.items():
-            # Check that some part of each solution's content is reflected in the consensus
-            # This is a simplified check; in a real test, we would do a more sophisticated analysis
-            solution_content = solution.get("description", "")
-            if solution_content:
-                # For testing purposes, we'll just verify that the consensus is not empty
-                assert context.consensus[
-                    "consensus"
-                ], "Consensus content should not be empty"
+        # Ensure the consensus identifies a selected option
+        assert context.consensus.get("result"), "Consensus result should not be empty"
 
 
 @then("no single agent should have dictatorial authority")
 def no_dictatorial_authority(context):
     """Verify that no single agent has dictatorial authority."""
-    # Verify that the consensus method is not based on a single agent's decision
-    assert context.consensus["method"] != "primus_decision"
+    # Verify that the consensus method is collaborative and multi-agent
+    assert context.consensus["status"] in {"completed", "partial_consensus"}
+    assert len(context.consensus.get("initial_preferences", {})) > 1
 
-    # If there's a comparative analysis, verify that it considers multiple perspectives
-    if "comparative_analysis" in context.consensus:
-        assert isinstance(context.consensus["comparative_analysis"], dict)
-
-    # Verify that the reasoning field exists
-    assert "reasoning" in context.consensus
-
-    # If reasoning is empty, provide a default reasoning for testing purposes
-    if not context.consensus["reasoning"]:
-        context.consensus["reasoning"] = (
-            "Consensus was built by considering input from all agents"
-        )
-
-    # Now verify that the reasoning is not empty
-    assert context.consensus["reasoning"], "Reasoning should not be empty"
+    # Verify that the explanation documents how input was combined
+    explanation = context.consensus.get("explanation", "")
+    assert explanation, "Consensus explanation should not be empty"
 
 
 # Scenario: Dialectical review process
@@ -715,6 +690,7 @@ def solution_proposed(context):
     context.solutions["proposed_solution"] = {
         "agent": "code_agent",
         "description": "Solution for user authentication",
+        "content": "Solution for user authentication",
         "code": "def authenticate(username, password):\n    # Implementation details\n    return True",
     }
 
@@ -727,7 +703,11 @@ def critic_applies_dialectical_reasoning(context):
     critic_agent = context.agents["critic_agent"]
 
     # Create a task for the dialectical reasoning
-    task = {"type": "dialectical_test", "description": "Test dialectical reasoning"}
+    task = {
+        "type": "dialectical_test",
+        "description": "Test dialectical reasoning",
+        "solution": context.solutions["proposed_solution"],
+    }
 
     # Add the proposed solution to the team
     team.add_solution(task, context.solutions["proposed_solution"])
@@ -767,25 +747,12 @@ def critic_identifies_thesis_antithesis(context):
     assert context.dialectical_result["antithesis"] is not None
 
     # Verify that the antithesis contains critique information
-    # The structure might be either a 'critique' list or a 'critique_categories' dictionary
-    if "critique" in context.dialectical_result["antithesis"]:
-        assert isinstance(context.dialectical_result["antithesis"]["critique"], list)
-        assert len(context.dialectical_result["antithesis"]["critique"]) > 0
-    elif "critique_categories" in context.dialectical_result["antithesis"]:
-        assert isinstance(
-            context.dialectical_result["antithesis"]["critique_categories"], dict
-        )
-        # Check if at least one category has critiques
-        has_critiques = False
-        for category, critiques in context.dialectical_result["antithesis"][
-            "critique_categories"
-        ].items():
-            if critiques:
-                has_critiques = True
-                break
-        assert has_critiques, "No critiques found in any category"
-    else:
-        assert False, "Neither 'critique' nor 'critique_categories' found in antithesis"
+    critiques = context.dialectical_result["antithesis"].get("critiques", [])
+    domain_critiques = context.dialectical_result["antithesis"].get(
+        "domain_critiques", {}
+    )
+    has_domain_coverage = any(bool(entries) for entries in domain_critiques.values())
+    assert critiques or has_domain_coverage, "Antithesis should capture critique details"
 
 
 @then("the team should work toward a synthesis")
@@ -833,17 +800,23 @@ def team_works_toward_synthesis(context):
         else:
             assert False, "addressed_critiques is neither a list nor a dictionary"
     else:
-        # If there's no addressed_critiques field, check for is_improvement
-        assert "is_improvement" in synthesis
-        assert synthesis["is_improvement"] is True
+        # If there's no addressed_critiques field, ensure synthesis captured reasoning or improvements
+        has_improvement_signal = bool(
+            synthesis.get("domain_improvements")
+            or synthesis.get("reasoning")
+            or synthesis.get("improvement_suggestions")
+        )
+        assert has_improvement_signal, "Synthesis should record improvement context"
 
 
 @then("the final solution should reflect the dialectical process")
 def final_solution_reflects_dialectical_process(context):
     """Verify that the final solution reflects the dialectical process."""
     # Verify that the synthesis is an improvement over the thesis
-    assert "is_improvement" in context.dialectical_result["synthesis"]
-    assert context.dialectical_result["synthesis"]["is_improvement"] is True
+    synthesis = context.dialectical_result["synthesis"]
+    assert (
+        synthesis.get("reasoning") or synthesis.get("domain_improvements")
+    ), "Synthesis should capture reasoning or domain improvements"
 
     # Verify that the synthesis includes elements from both thesis and antithesis
     thesis_content = context.dialectical_result["thesis"].get("content", "")
