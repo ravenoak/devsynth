@@ -5,14 +5,34 @@ This module defines the templates used by the EDRR framework for each phase.
 It provides functions to register these templates with the PromptManager.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Protocol, runtime_checkable
 
-from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.methodology.base import Phase
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+
+
+@runtime_checkable
+class SupportsTemplateRegistration(Protocol):
+    """Minimal interface required from prompt managers.
+
+    Using a protocol keeps EDRR helper tests deterministic by avoiding a hard
+    dependency on the concrete PromptManager implementation. Previously the
+    direct import raised ``ModuleNotFoundError`` during isolated executions of
+    ``tests/unit/application/edrr/test_threshold_helpers.py``.
+    """
+
+    def register_template(
+        self,
+        name: str,
+        description: str,
+        template_text: str,
+        metadata: dict[str, Any] | None = ...,
+        edrr_phase: str | None = ...,
+    ) -> Any:
+        """Register a prompt template."""
+
 
 # Define templates for each EDRR phase
 EXPAND_PHASE_TEMPLATE = """
@@ -43,7 +63,8 @@ DIFFERENTIATE_PHASE_TEMPLATE = """
 # Differentiate Phase for Task: {task_description}
 
 ## Objective
-Analyze and compare the ideas generated in the Expand phase, evaluate options, and identify trade-offs.
+Analyze and compare the ideas generated in the Expand phase,
+evaluate options, and identify trade-offs.
 
 ## Instructions
 1. Compare and contrast different approaches
@@ -67,7 +88,8 @@ REFINE_PHASE_TEMPLATE = """
 # Refine Phase for Task: {task_description}
 
 ## Objective
-Elaborate on the selected approach, develop a detailed implementation plan, and optimize the solution.
+Elaborate on the selected approach, develop a detailed implementation plan,
+and optimize the solution.
 
 ## Instructions
 1. Develop a detailed plan for the selected approach
@@ -91,7 +113,8 @@ RETROSPECT_PHASE_TEMPLATE = """
 # Retrospect Phase for Task: {task_description}
 
 ## Objective
-Extract learnings, identify patterns, integrate knowledge, and generate improvement suggestions.
+Extract learnings, identify patterns, integrate knowledge,
+and generate improvement suggestions.
 
 ## Instructions
 1. Reflect on the entire process from Expand through Refine
@@ -112,9 +135,13 @@ Extract learnings, identify patterns, integrate knowledge, and generate improvem
 """
 
 
-def register_edrr_templates(prompt_manager: PromptManager) -> None:
+def register_edrr_templates(prompt_manager: SupportsTemplateRegistration) -> None:
     """
     Register all EDRR phase templates with the prompt manager.
+
+    The phase prompts mirror the structure documented in
+    ``docs/specifications/edrr-coordinator.md`` so the coordinator can
+    hydrate deterministic instructions for each stage of the cycle.
 
     Args:
         prompt_manager: The prompt manager to register templates with

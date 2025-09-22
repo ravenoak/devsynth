@@ -1,7 +1,8 @@
 ---
 author: DevSynth Team
 date: '2025-09-21'
-status: review
+last_reviewed: '2025-09-22'
+status: published
 tags:
 - implementation
 - invariants
@@ -44,10 +45,11 @@ These helpers guarantee that `_get_micro_cycle_config` returns finite iteration 
 ## References
 
 - Specification: [docs/specifications/edrr_cycle_specification.md](../specifications/edrr_cycle_specification.md)
+- Specification: [docs/specifications/edrr-coordinator.md](../specifications/edrr-coordinator.md)
 - BDD Feature: [tests/behavior/features/edrr_cycle_specification.feature](../tests/behavior/features/edrr_cycle_specification.feature)
 - Issue: [issues/edrr-invariants.md](../issues/edrr-invariants.md)
 
-## Evidence (2025-09-21)
+## Evidence (2025-09-22)
 
-- Unit tests: `tests/unit/application/edrr/test_threshold_helpers.py::{test_sanitize_positive_int_handles_out_of_range,test_sanitize_threshold_clamps_invalid_values,test_get_phase_quality_threshold_respects_config,test_get_phase_quality_threshold_returns_none_when_missing,test_get_micro_cycle_config_sanitizes_values}` confirm the helper invariants and sanitized recursive micro-cycle configuration.
-- Regression coverage confirms the coordinator now imports templates from `devsynth.application.edrr.templates` during construction, allowing helper tests to execute without ModuleNotFoundError.
+- Unit tests: `tests/unit/application/edrr/test_threshold_helpers.py::{test_coordinator_registers_templates,test_assess_phase_quality_uses_config_threshold,test_micro_cycle_config_sanitization,test_sanitize_positive_int_handles_out_of_range,test_sanitize_threshold_clamps_invalid_values,test_get_phase_quality_threshold_respects_config,test_get_phase_quality_threshold_returns_none_when_missing,test_get_micro_cycle_config_sanitizes_values}` confirm template hydration and helper invariants, matching the sanitization rules documented above.
+- The EDRR coordinator now depends on the lightweight `SupportsTemplateRegistration` protocol from `devsynth.application.edrr.templates`, preventing ModuleNotFoundError during helper tests while keeping template wiring aligned with the coordinator specification.
