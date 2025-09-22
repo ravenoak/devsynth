@@ -1,7 +1,8 @@
 ---
 author: DevSynth Team
 date: '2025-09-15'
-status: review
+last_reviewed: '2025-09-22'
+status: published
 tags:
 - implementation
 - invariants
@@ -51,11 +52,18 @@ When the tag exists, verification succeeds ([unit test](../../tests/unit/scripts
 
 Verification stops when the audit log has unanswered questions ([feature](../../tests/behavior/features/dialectical_audit_gating.feature#L6-L9)).
 
+### Helper utilities remain deterministic
+
+Regression tests now exercise the YAML parsing, tag lookup, and audit
+sanitization helpers used by `verify_release_state`. Dedicated unit tests cover
+front-matter parsing edge cases, direct tag existence checks, and audit log
+validation (including malformed JSON and unresolved-question scenarios).【F:tests/unit/scripts/test_verify_release_state.py†L92-L145】
+
 ### Behavior suite evidence
 
-The BDD harness now exercises both failure and success paths end-to-end;
-`test_reports/release_state_check_bdd.log` captures the passing scenarios with
-coverage reporting from the dedicated run.【F:test_reports/release_state_check_bdd.log†L1-L20】
+The BDD harness now exercises both failure and success paths end-to-end.
+`test_reports/release_state_check_bdd.log` captures the rerun executed with the
+coverage threshold override used for targeted feature checks.【F:test_reports/release_state_check_bdd.log†L1-L20】
 
 ## References
 
@@ -64,7 +72,7 @@ coverage reporting from the dedicated run.【F:test_reports/release_state_check_
 - Unit Tests: [tests/unit/scripts/test_verify_release_state.py](../../tests/unit/scripts/test_verify_release_state.py)
 - Issue: [issues/release-state-check.md](../../issues/release-state-check.md)
 
-## Coverage Signal and Outstanding Gaps (2025-09-21)
+## Coverage Signal and Outstanding Gaps (2025-09-22)
 
-- Unit coverage via [`tests/unit/scripts/test_verify_release_state.py`](../../tests/unit/scripts/test_verify_release_state.py) exercises the success, failure, and remediation paths of `scripts/verify_release_state.py`. A focused sweep limited to the `scripts/` namespace records 69.23 % line coverage for the verification script, providing concrete execution evidence for the invariants while highlighting unvisited diagnostic branches.【d43747†L1-L17】【F:issues/tmp_cov_release_state.json†L1-L1】
-- Behavior coverage is tracked through the dedicated BDD log, which documents the passing scenarios and their coverage context after restoring the release-state step module imports.【F:test_reports/release_state_check_bdd.log†L1-L20】
+- Unit coverage via [`tests/unit/scripts/test_verify_release_state.py`](../../tests/unit/scripts/test_verify_release_state.py) exercises the success, failure, remediation, and helper branches of `scripts/verify_release_state.py`. A focused sweep limited to the `scripts/` namespace records 69.23 % line coverage for the verification script, confirming execution evidence for the invariants while highlighting unvisited fallback branches.【4ac8b5†L1-L8】
+- Behavior coverage remains tracked through the dedicated BDD log, which documents the passing scenarios and their coverage context after restoring the release-state step module imports.【F:test_reports/release_state_check_bdd.log†L1-L20】
