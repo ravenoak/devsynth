@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 import devsynth.testing.run_tests as rt
@@ -27,16 +29,27 @@ class DummyPopen:
 
 
 @pytest.mark.fast
-def test_speed_loop_uses_keyword_filter_and_executes_node_ids(monkeypatch) -> None:
+def test_speed_loop_uses_keyword_filter_and_executes_node_ids(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """ReqID: TR-RT-08 — Speed-loop applies keyword filter and executes IDs.
 
     Simulate collection inside the speed loop with '-m <expr>' and
     '-k lmstudio'.
     """
+    test_root = tmp_path
+    file_path = test_root / "test_kwfast.py"
+    file_path.write_text("def test_1():\n    assert True\n\ndef test_2():\n    assert True\n")
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(test_root))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(test_root))
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
+
     collect_stdout = "\n".join(
         [
-            "tests/unit/test_kwfast.py::test_1",
-            "tests/unit/test_kwfast.py::test_2",
+            f"{file_path}::test_1",
+            f"{file_path}::test_2",
         ]
     )
 
@@ -61,7 +74,7 @@ def test_speed_loop_uses_keyword_filter_and_executes_node_ids(monkeypatch) -> No
         verbose=False,
         report=False,
         parallel=False,
-        segment=False,
+        segment=True,
         segment_size=50,
         maxfail=None,
         extra_marker="requires_resource('lmstudio')",

@@ -1,9 +1,11 @@
 import json
 import os
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+import devsynth.testing.run_tests as rt
 from devsynth.testing.run_tests import COLLECTION_CACHE_DIR, collect_tests_with_cache
 
 
@@ -39,6 +41,19 @@ def test_prunes_nonexistent_paths_and_uses_cache(tmp_path, monkeypatch):
 
     # Monkeypatch TTL to be huge so cache would be used if fingerprint matches
     monkeypatch.setenv("DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS", "999999")
+
+    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+        """Return the cached node ids without invoking pytest."""
+
+        assert "--collect-only" in cmd, cmd
+        return SimpleNamespace(
+            returncode=0,
+            stdout="\n".join([existent, nonexistent]),
+            stderr="",
+        )
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_run)
+
     # Force fingerprint mismatch by changing latest_mtime via
     # monkeypatching os.path.getmtime
     original_getmtime = os.path.getmtime
