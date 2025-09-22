@@ -154,8 +154,20 @@ def test_configure_logging_console_only_mode(
 
 
 @pytest.mark.fast
-def test_configure_logging_falls_back_when_file_handler_fails(
-    logging_setup_module: ModuleType, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(
+    ("exception_cls", "message"),
+    [
+        (PermissionError, "no-permission"),
+        (FileNotFoundError, "missing-log"),
+    ],
+    ids=["permission-error", "file-not-found"],
+)
+def test_configure_logging_handler_parity_when_file_handler_fails(
+    logging_setup_module: ModuleType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    exception_cls: type[Exception],
+    message: str,
 ) -> None:
     """ReqID: LOG-09 — gracefully degrade when file handler initialization fails."""
 
@@ -166,7 +178,7 @@ def test_configure_logging_falls_back_when_file_handler_fails(
     real_file_handler_type = logging_setup.logging.FileHandler
 
     def boom(*_args, **_kwargs):
-        raise PermissionError("no-permission")
+        raise exception_cls(message)
 
     monkeypatch.setattr(logging_setup.logging, "FileHandler", boom)
 
@@ -199,8 +211,8 @@ def test_configure_logging_falls_back_when_file_handler_fails(
     )
 
     assert any(
-        "Failed to set up file logging: no-permission" in message
-        for message in emitted_warnings
+        f"Failed to set up file logging: {message}" in rendered
+        for rendered in emitted_warnings
     ), "Expected warning about the file handler failure."
 
     capture_handler = LogCaptureHandler()
@@ -215,6 +227,36 @@ def test_configure_logging_falls_back_when_file_handler_fails(
     finally:
         root_logger.removeHandler(capture_handler)
         capture_handler.close()
-    assert rendered.startswith("WARNING: File logging failed -")
-    assert "still logging after failure" in rendered
-    assert "devsynth.branch.error" in rendered
+
+    segments = rendered.split(" - ")
+    assert segments[0] == "WARNING: File logging failed"
+    assert len(segments) >= 5
+    assert segments[2] == "devsynth.branch.error"
+    assert segments[3] == "INFO"
+    assert segments[4] == "still logging after failure"
+
+
+@pytest.mark.fast
+def test_configure_logging_idempotent_with_identical_configuration(
+    logging_setup_module: ModuleType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: LOG-09A — repeated configuration with same inputs is a no-op."""
+
+    logging_setup = logging_setup_module
+    monkeypatch.delenv("DEVSYNTH_NO_FILE_LOGGING", raising=False)
+
+    target_dir = tmp_path / "idempotent"
+    logging_setup.configure_logging(log_dir=str(target_dir))
+
+    root_logger = logging.getLogger()
+    handlers_before = list(root_logger.handlers)
+    filters_before = list(root_logger.filters)
+
+    assert handlers_before, "Initial configuration should attach handlers."
+
+    logging_setup.configure_logging(log_dir=str(target_dir))
+
+    assert list(root_logger.handlers) == handlers_before
+    assert list(root_logger.filters) == filters_before

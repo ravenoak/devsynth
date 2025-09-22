@@ -1,3 +1,4 @@
+import copy
 import io
 import json
 import logging
@@ -74,6 +75,71 @@ def test_redact_filter_masks_message_args_and_mappings(monkeypatch):
     assert record.extra["token"].endswith(secret[-4:])
     assert record.extra["count"] == 2
     assert record.details["api_key"].startswith("***REDACTED***")
+
+
+@pytest.mark.fast
+def test_redact_filter_property_loop_preserves_inputs(monkeypatch: pytest.MonkeyPatch):
+    """ReqID: LOG-01A — secrets are redacted while benign values remain intact."""
+
+    openai_secret = "sk-property-123456789"
+    anthropic_secret = "anthropic-secret-abcdef"
+    monkeypatch.setenv("OPENAI_API_KEY", openai_secret)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", anthropic_secret)
+
+    filt = RedactSecretsFilter()
+
+    secret_cases = [
+        ("openai", openai_secret, True),
+        ("anthropic", anthropic_secret, True),
+        ("benign", "no secrets here", False),
+        ("blank", "", False),
+    ]
+
+    for label, candidate, should_mask in secret_cases:
+        if should_mask and candidate:
+            masked = filt._mask(candidate)
+            assert masked.startswith("***REDACTED***"), label
+            assert masked.endswith(candidate[-4:]), label
+            assert candidate not in masked, label
+            expected_fragment = masked
+        elif not candidate:
+            masked = filt._mask(candidate)
+            assert masked == candidate, label
+            expected_fragment = candidate
+        else:
+            expected_fragment = candidate
+
+        if candidate:
+            text = f"token::{candidate}::payload"
+        else:
+            text = candidate
+        redacted_text = filt._redact_in_text(text)
+        if should_mask and candidate:
+            assert candidate not in redacted_text, label
+            assert expected_fragment in redacted_text, label
+        else:
+            assert redacted_text == text, label
+
+    sample_mapping = {
+        "primary": openai_secret,
+        "secondary": anthropic_secret,
+        "note": "retain me",
+        "empty": "",
+        "count": 5,
+        "nested": {"unchanged": True},
+    }
+    original_snapshot = copy.deepcopy(sample_mapping)
+
+    redacted_mapping = filt._redact_in_mapping(sample_mapping)
+
+    assert redacted_mapping is not sample_mapping
+    assert sample_mapping == original_snapshot
+    assert redacted_mapping["primary"].endswith(openai_secret[-4:])
+    assert redacted_mapping["secondary"].endswith(anthropic_secret[-4:])
+    assert redacted_mapping["note"] == "retain me"
+    assert redacted_mapping["empty"] == ""
+    assert redacted_mapping["count"] == 5
+    assert redacted_mapping["nested"] == {"unchanged": True}
 
 
 @pytest.mark.fast
@@ -423,6 +489,100 @@ def test_devsynth_logger_log_merges_and_filters_kwargs():
     assert "name" not in extra
     assert "lineno" not in extra
     assert "process" not in extra
+
+
+@pytest.mark.fast
+def test_devsynth_logger_log_table_normalization(monkeypatch: pytest.MonkeyPatch):
+    """ReqID: LOG-06E — table-driven inputs normalize extras and exceptions."""
+
+    import src.devsynth.logging_setup as logging_setup_module
+
+    wrapper = logging_setup_module.DevSynthLogger("devsynth.test.table")
+    inner_logger = wrapper.logger
+    original_log = inner_logger.log
+
+    mock_log = MagicMock()
+    inner_logger.log = mock_log
+
+    sentinel = (RuntimeError, RuntimeError("sentinel"), None)
+    monkeypatch.setattr(logging_setup_module.sys, "exc_info", lambda: sentinel)
+
+    instance_exc = ValueError("instance-case")
+    tuple_exc = (KeyError, KeyError("tuple-case"), None)
+
+    scenarios = [
+        {
+            "label": "exception-instance",
+            "exc_input": instance_exc,
+            "extra_input": {"detail": "value", "name": "intruder", "lineno": 9},
+            "stray_kwargs": {"context": "analysis", "lineno": 11},
+            "expected_extra": {"detail": "value", "context": "analysis"},
+        },
+        {
+            "label": "truthy-exc-info",
+            "exc_input": True,
+            "extra_input": None,
+            "stray_kwargs": {"user": "alice", "process": 999, "correlation": "abc"},
+            "expected_extra": {"user": "alice", "correlation": "abc"},
+        },
+        {
+            "label": "tuple-exc-info",
+            "exc_input": tuple_exc,
+            "extra_input": {"custom": "value", "message": "intruder", "threadName": "drop"},
+            "stray_kwargs": {"nested": {"feature": "present"}, "thread": 5},
+            "expected_extra": {"custom": "value", "nested": {"feature": "present"}},
+        },
+    ]
+
+    originals = []
+
+    try:
+        for scenario in scenarios:
+            extra_input = scenario["extra_input"]
+            if extra_input is not None:
+                originals.append((scenario["label"], copy.deepcopy(extra_input)))
+
+            wrapper._log(
+                logging.WARNING,
+                f"table-{scenario['label']}",
+                extra=extra_input,
+                exc_info=scenario["exc_input"],
+                **scenario["stray_kwargs"],
+            )
+    finally:
+        inner_logger.log = original_log
+        inner_logger.handlers = []
+        inner_logger.filters = []
+        inner_logger.propagate = True
+
+    assert mock_log.call_count == len(scenarios)
+
+    for scenario, call in zip(scenarios, mock_log.call_args_list):
+        (level, message, *_) = call.args
+        assert level == logging.WARNING
+        assert message == f"table-{scenario['label']}"
+
+        log_kwargs = call.kwargs
+        assert set(log_kwargs.keys()) == {"extra", "exc_info"}
+
+        extra = log_kwargs["extra"]
+        assert extra == scenario["expected_extra"]
+        for reserved in ("name", "lineno", "process", "thread", "message", "threadName"):
+            assert reserved not in extra
+
+        exc_info = log_kwargs["exc_info"]
+        assert isinstance(exc_info, tuple)
+        if scenario["label"] == "exception-instance":
+            assert exc_info[0] is ValueError
+            assert exc_info[1] is instance_exc
+        elif scenario["label"] == "truthy-exc-info":
+            assert exc_info is sentinel
+        else:
+            assert exc_info is tuple_exc
+
+    for label, original in originals:
+        scenario = next(item for item in scenarios if item["label"] == label)
+        assert scenario["extra_input"] == original
 
 
 @pytest.mark.fast
