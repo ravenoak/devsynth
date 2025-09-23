@@ -20,11 +20,13 @@ from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
+from devsynth.interface.cli import CLIUXBridge
 
 
 @pytest.fixture(autouse=True)
 def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(module, "enforce_coverage_threshold", lambda *a, **k: 100.0)
+    monkeypatch.setattr(module, "coverage_artifacts_status", lambda: (True, None))
 
 
 @pytest.mark.fast
@@ -68,6 +70,38 @@ def test_inventory_mode_exports_json_and_skips_run(monkeypatch, tmp_path):
 
 
 @pytest.mark.fast
+def test_inventory_mode_handles_collection_failures(monkeypatch, tmp_path):
+    """Collection failures fall back to empty lists in the inventory export."""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+
+    def fake_collect(target: str, speed: str | None = None) -> list[str]:
+        if target == "integration-tests" and speed == "medium":
+            raise RuntimeError("collection failed")
+        entry = [f"{target}/{speed or 'all'}::test_example"]
+        return entry
+
+    runner = CliRunner()
+    app = build_app()
+    with (
+        patch.object(module, "collect_tests_with_cache", side_effect=fake_collect),
+        patch.object(module, "run_tests") as mock_run,
+    ):
+        result = runner.invoke(app, ["run-tests", "--inventory"])
+
+    assert result.exit_code == 0
+
+    mock_run.assert_not_called()
+
+    payload = json.loads(Path("test_reports/test_inventory.json").read_text())
+    integration_medium = payload["targets"]["integration-tests"]["medium"]
+    assert integration_medium == []
+    # Ensure healthy targets still record their collected ids
+    assert payload["targets"]["integration-tests"]["fast"]
+
+
+@pytest.mark.fast
 def test_invalid_target_exits_with_help_text():
     """Invalid --target should exit with code 2 and provide guidance."""
     runner = CliRunner()
@@ -86,6 +120,7 @@ def test_invalid_target_exits_with_help_text():
         "Allowed: all-tests|unit-tests|integration-tests|behavior-tests"
         in result.output
     )
+    assert "docs/user_guides/cli_command_reference.md" in result.output
 
 
 @pytest.mark.fast

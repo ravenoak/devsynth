@@ -33,6 +33,10 @@ def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
         "devsynth.application.cli.commands.run_tests_cmd.enforce_coverage_threshold",
         lambda *args, **kwargs: 100.0,
     )
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.coverage_artifacts_status",
+        lambda: (True, None),
+    )
 
 
 @pytest.mark.fast
@@ -394,3 +398,46 @@ def test_report_mode_prints_report_path_message(monkeypatch, tmp_path) -> None:
     # Should include success message and the HTML report path pointer
     assert any("Tests completed successfully" in m for m in bridge.messages)
     assert any("HTML report available under" in m for m in bridge.messages)
+
+
+@pytest.mark.fast
+def test_failed_run_surfaces_maxfail_guidance(monkeypatch) -> None:
+    """ReqID: CLI-RT-17 — Failed runs surface maxfail troubleshooting tips."""
+
+    failure_output = (
+        "Pytest exited with code 1. Command: python -m pytest --maxfail=2 tests/unit\n"
+        "Troubleshooting tips:\n"
+        "- Segment large suites to localize failures.\n"
+    )
+
+    def fake_run_tests(*args, **kwargs) -> tuple[bool, str]:  # noqa: ANN001
+        return False, failure_output
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        fake_run_tests,
+    )
+
+    bridge = DummyBridge()
+
+    with pytest.raises(typer.Exit) as excinfo:
+        run_tests_cmd(
+            target="unit-tests",
+            speeds=["fast"],
+            report=False,
+            verbose=False,
+            no_parallel=True,
+            smoke=False,
+            segment=True,
+            segment_size=5,
+            maxfail=2,
+            features=[],
+            inventory=False,
+            marker=None,
+            bridge=bridge,
+        )
+
+    assert excinfo.value.exit_code == 1
+    assert any("Tests failed" in msg for msg in bridge.messages)
+    assert any("--maxfail=2" in msg for msg in bridge.messages)
+    assert any("Pytest exited with code 1" in msg for msg in bridge.messages)
