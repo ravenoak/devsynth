@@ -219,3 +219,25 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
 
 [^fastapi-01162]: FastAPI 0.116.2 release notes — "⬆️ Upgrade Starlette supported version range to >=0.40.0,<0.49.0." https://github.com/fastapi/fastapi/releases/tag/0.116.2
 [^starlette-0473]: Starlette 0.47.3 release notes — "Use `asyncio.iscoroutinefunction` for Python 3.12 and older." https://github.com/encode/starlette/releases/tag/0.47.3
+
+## Iteration 2025-09-23C – Smoke rerun after lockfile refresh
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; lockfile refreshed via Poetry reinstall before the rerun.【090a89†L1-L3】【dce75e†L1-L2】
+- Commands:
+  - `poetry install --with dev --extras tests --extras retrieval --extras chromadb --extras api` (updates `.venv` from the regenerated lockfile).【acde16†L1-L1】【5c6984†L1-L22】【8eb524†L1-L2】
+  - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (smoke profile succeeds with plugin injection and coverage diagnostics).【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1-L6】【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1464-L1469】
+- Transcript (key excerpts for reproducibility):
+  ```text
+  $ poetry install --with dev --extras tests --extras retrieval --extras chromadb --extras api
+  Installing dependencies from lock file
+  ...
+  Installing the current project: devsynth (0.1.0a1)
+
+  $ poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+  -p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled
+  -p pytest_bdd.plugin appended to PYTEST_ADDOPTS because plugin autoloading is disabled
+  ...
+  Tests completed successfully
+  Coverage enforcement skipped in smoke mode (coverage data collected for diagnostics).
+  ```【acde16†L1-L1】【5c6984†L1-L22】【8eb524†L1-L2】【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1-L6】【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1464-L1468】
+- Observations: Smoke remains green with 2 819 skips, regenerated coverage JSON/HTML, and enforcement intentionally disabled; the Starlette `<0.47` pin plus shim is still required until upstream resolves the Python 3.12 MRO regression.【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1-L6】【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1464-L1469】【F:issues/run-tests-smoke-fast-fastapi-starlette-mro.md†L12-L24】
+- Next: Run the fast+medium aggregate once coverage uplift lands and track Starlette release notes so the shim/pin can be retired safely.【F:docs/plan.md†L171-L195】【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1466-L1468】
