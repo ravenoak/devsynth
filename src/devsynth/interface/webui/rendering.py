@@ -3,12 +3,15 @@ from __future__ import annotations
 import importlib
 import json
 import os
-from collections.abc import Callable, Sequence
+import time
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
+from typing import Any
 
 from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.progress_utils import run_with_progress
+from devsynth.interface.ux_bridge import sanitize_output
 from devsynth.interface.webui.commands import (
     CommandHandlingMixin,
     SetupWizard,
@@ -399,6 +402,236 @@ class ProjectSetupPages(CommandHandlingMixin):
 
         return
 
+    def _render_progress_summary(
+        self,
+        summary: Mapping[str, Any] | None,
+        *,
+        container: Any | None = None,
+    ) -> None:
+        if not isinstance(summary, Mapping):
+            return
+
+        st = self.streamlit
+        summary_container = container or st.container()
+
+        def _as_float(value: Any | None) -> float | None:
+            try:
+                return float(value)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                return None
+
+        def _progress_fraction(value: Any | None, total: Any | None = None) -> float | None:
+            numeric = _as_float(value)
+            if numeric is None:
+                return None
+            if total is not None:
+                total_numeric = _as_float(total)
+                if total_numeric in (None, 0):
+                    return None
+                numeric /= total_numeric
+            if numeric > 1.0:
+                numeric /= 100.0
+            return max(0.0, min(1.0, numeric))
+
+        def _percent_label(fraction: float | None) -> str | None:
+            if fraction is None:
+                return None
+            return f"{int(round(fraction * 100))}%"
+
+        def _timestamp_label(raw: Any | None) -> str | None:
+            numeric = _as_float(raw)
+            if numeric is None:
+                return None
+            return time.strftime("%H:%M:%S", time.localtime(numeric))
+
+        def _sequence(value: Any | None) -> Sequence[Any]:
+            if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+                return value
+            return []
+
+        description = sanitize_output(str(summary.get("description", "Task progress")))
+        main_fraction = _progress_fraction(summary.get("progress"))
+        if main_fraction is None:
+            main_fraction = _progress_fraction(summary.get("completed"), summary.get("total"))
+        if main_fraction is None:
+            main_fraction = 0.0
+
+        percent_text = _percent_label(main_fraction) or "0%"
+        summary_container.markdown(f"**{description}** — {percent_text} complete")
+        summary_container.progress(main_fraction)
+
+        eta_parts: list[str] = []
+        eta_value = summary.get("eta")
+        eta_numeric = _as_float(eta_value)
+        eta_str = summary.get("eta_str")
+        eta_message: str | None = None
+        if eta_str:
+            eta_message = f"ETA {sanitize_output(str(eta_str))}"
+        elif eta_numeric is not None:
+            eta_label = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(eta_numeric))
+            eta_message = f"ETA {eta_label}"
+        if eta_message and eta_numeric is not None:
+            delta_seconds = max(0.0, eta_numeric - time.time())
+            eta_message = f"{eta_message} (in {int(round(delta_seconds))}s)"
+        if eta_message:
+            eta_parts.append(eta_message)
+
+        remaining_str = summary.get("remaining_str")
+        if remaining_str:
+            eta_parts.append(f"Remaining {sanitize_output(str(remaining_str))}")
+        else:
+            remaining_numeric = _as_float(summary.get("remaining"))
+            if remaining_numeric is not None:
+                remaining_seconds = max(0.0, remaining_numeric)
+                eta_parts.append(f"Remaining {int(round(remaining_seconds))}s")
+
+        elapsed_str = summary.get("elapsed_str")
+        if elapsed_str:
+            eta_parts.append(f"Elapsed {sanitize_output(str(elapsed_str))}")
+        else:
+            elapsed_numeric = _as_float(summary.get("elapsed"))
+            if elapsed_numeric is not None:
+                elapsed_seconds = max(0.0, elapsed_numeric)
+                eta_parts.append(f"Elapsed {int(round(elapsed_seconds))}s")
+
+        if eta_parts:
+            summary_container.info(" • ".join(eta_parts))
+
+        total_hint = summary.get("total")
+        history = _sequence(summary.get("history"))
+        if history:
+            history_container = st.container()
+            history_container.markdown("**History**")
+            for entry in history:
+                if not isinstance(entry, Mapping):
+                    continue
+                status = sanitize_output(str(entry.get("status", "")))
+                fraction = _progress_fraction(entry.get("progress"))
+                if fraction is None:
+                    fraction = _progress_fraction(entry.get("completed"), total_hint)
+                percent_label = _percent_label(fraction)
+                timestamp_label = _timestamp_label(entry.get("time"))
+                parts: list[str] = []
+                if percent_label:
+                    parts.append(percent_label)
+                if status:
+                    parts.append(status)
+                if timestamp_label:
+                    parts.append(timestamp_label)
+                if parts:
+                    history_container.markdown("- " + " • ".join(parts))
+
+        checkpoints = _sequence(summary.get("checkpoints"))
+        if checkpoints:
+            checkpoint_container = st.container()
+            checkpoint_container.markdown("**Checkpoints**")
+            now = time.time()
+            for checkpoint in checkpoints:
+                if not isinstance(checkpoint, Mapping):
+                    continue
+                fraction = _progress_fraction(checkpoint.get("progress"))
+                if fraction is None:
+                    fraction = _progress_fraction(
+                        checkpoint.get("completed"), checkpoint.get("total") or total_hint
+                    )
+                percent_label = _percent_label(fraction)
+                if percent_label is None:
+                    continue
+                parts = [percent_label]
+                checkpoint_time = _timestamp_label(checkpoint.get("time"))
+                if checkpoint_time:
+                    parts.append(checkpoint_time)
+                cp_eta = checkpoint.get("eta")
+                cp_eta_str = checkpoint.get("eta_str")
+                if cp_eta_str:
+                    parts.append(f"ETA {sanitize_output(str(cp_eta_str))}")
+                else:
+                    cp_eta_numeric = _as_float(cp_eta)
+                    if cp_eta_numeric is not None:
+                        cp_eta_label = time.strftime("%H:%M:%S", time.localtime(cp_eta_numeric))
+                        delta = max(0.0, cp_eta_numeric - now)
+                        parts.append(f"ETA {cp_eta_label} (in {int(round(delta))}s)")
+                checkpoint_container.info(" • ".join(parts))
+
+        subtask_candidates: Sequence[Any] = []
+        for key in ("subtasks_detail", "subtask_details", "subtask_summaries", "subtasks"):
+            value = summary.get(key)
+            if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+                subtask_candidates = value
+                break
+
+        for subtask in subtask_candidates:
+            if not isinstance(subtask, Mapping):
+                continue
+            sub_container = st.container()
+            sub_description = sanitize_output(str(subtask.get("description", "Subtask")))
+            sub_fraction = _progress_fraction(subtask.get("progress"))
+            if sub_fraction is None:
+                sub_fraction = _progress_fraction(
+                    subtask.get("completed"), subtask.get("total") or total_hint
+                )
+            if sub_fraction is None:
+                sub_fraction = 0.0
+            sub_percent = _percent_label(sub_fraction) or "0%"
+            sub_container.markdown(f"**{sub_description}** — {sub_percent} complete")
+            sub_container.progress(sub_fraction)
+
+            status_text = subtask.get("status")
+            if status_text:
+                sub_container.markdown(f"- Status: {sanitize_output(str(status_text))}")
+
+            sub_history = _sequence(subtask.get("history"))
+            if sub_history:
+                for event in sub_history:
+                    if not isinstance(event, Mapping):
+                        continue
+                    event_status = sanitize_output(str(event.get("status", "")))
+                    event_fraction = _progress_fraction(event.get("progress"))
+                    if event_fraction is None:
+                        event_fraction = _progress_fraction(
+                            event.get("completed"), subtask.get("total") or total_hint
+                        )
+                    event_percent = _percent_label(event_fraction)
+                    event_time = _timestamp_label(event.get("time"))
+                    pieces: list[str] = []
+                    if event_percent:
+                        pieces.append(event_percent)
+                    if event_status:
+                        pieces.append(event_status)
+                    if event_time:
+                        pieces.append(event_time)
+                    if pieces:
+                        sub_container.markdown("- " + " • ".join(pieces))
+
+            sub_checkpoints = _sequence(subtask.get("checkpoints"))
+            if sub_checkpoints:
+                for cp in sub_checkpoints:
+                    if not isinstance(cp, Mapping):
+                        continue
+                    cp_fraction = _progress_fraction(cp.get("progress"))
+                    if cp_fraction is None:
+                        cp_fraction = _progress_fraction(
+                            cp.get("completed"), subtask.get("total") or total_hint
+                        )
+                    cp_percent = _percent_label(cp_fraction)
+                    if cp_percent is None:
+                        continue
+                    cp_parts = [cp_percent]
+                    cp_time = _timestamp_label(cp.get("time"))
+                    if cp_time:
+                        cp_parts.append(cp_time)
+                    cp_eta = cp.get("eta")
+                    cp_eta_str = cp.get("eta_str")
+                    if cp_eta_str:
+                        cp_parts.append(f"ETA {sanitize_output(str(cp_eta_str))}")
+                    else:
+                        cp_eta_numeric = _as_float(cp_eta)
+                        if cp_eta_numeric is not None:
+                            cp_eta_label = time.strftime("%H:%M:%S", time.localtime(cp_eta_numeric))
+                            delta = max(0.0, cp_eta_numeric - time.time())
+                            cp_parts.append(f"ETA {cp_eta_label} (in {int(round(delta))}s)")
+                    sub_container.info(" • ".join(cp_parts))
+
     def _gather_wizard(self) -> None:
         st = self.streamlit
         try:
@@ -501,11 +734,22 @@ class ProjectSetupPages(CommandHandlingMixin):
                                     raise ImportError(
                                         "gather_requirements function not available"
                                     )
-                                run_with_progress(
+                                subtasks_meta = [
+                                    {
+                                        "name": self._get_gather_step_title(step_index),
+                                        "total": 100,
+                                    }
+                                    for step_index in range(1, steps + 1)
+                                ]
+
+                                summary = run_with_progress(
                                     "Processing resources...",
                                     lambda: gather_requirements(self),
                                     self,
+                                    subtasks=subtasks_meta,
                                 )
+                                if isinstance(summary, Mapping):
+                                    self._render_progress_summary(summary)
                                 self.display_result(
                                     "[green]Resources gathered successfully![/green]",
                                     highlight=False,
