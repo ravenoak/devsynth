@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import importlib
 import sys
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import Any, Callable, Dict, Tuple
 
 import pytest
@@ -209,3 +209,151 @@ def test_display_result_appends_documentation_links(
         "Boom\nDocumentation:\n- User Guide: https://example.invalid/docs",
     ]
     assert "https://example.invalid/docs" in ui.messages[-1]
+
+
+def test_require_streamlit_caches_and_guides(
+    webui_bridge_module: tuple[ModuleType, StreamlitRecorder],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``_require_streamlit`` caches successes and surfaces install help."""
+
+    bridge, _ = webui_bridge_module
+
+    monkeypatch.setattr(bridge, "st", None, raising=False)
+    sentinel = object()
+    imports: list[str] = []
+
+    def fake_import(name: str) -> object:
+        imports.append(name)
+        return sentinel
+
+    monkeypatch.setattr(importlib, "import_module", fake_import)
+
+    bridge._require_streamlit()
+    assert bridge.st is sentinel
+    bridge._require_streamlit()
+    assert imports == ["streamlit"]
+
+    monkeypatch.setattr(bridge, "st", None, raising=False)
+
+    def boom(_name: str) -> None:
+        raise ImportError("missing streamlit")
+
+    monkeypatch.setattr(importlib, "import_module", boom)
+
+    with pytest.raises(bridge.DevSynthError) as excinfo:
+        bridge._require_streamlit()
+
+    assert "poetry install --with dev --extras webui" in str(excinfo.value)
+
+
+def test_wizard_clamps_handle_invalid_inputs(
+    webui_bridge_module: tuple[ModuleType, StreamlitRecorder],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Wizard helpers normalize mixed types and clamp to valid ranges."""
+
+    bridge, _ = webui_bridge_module
+    assert bridge.WebUIBridge.adjust_wizard_step(2, direction="next", total=2) == 1
+    with caplog.at_level("WARNING"):
+        assert bridge.WebUIBridge.adjust_wizard_step("bad", direction="back", total=3) == 0
+    with caplog.at_level("WARNING"):
+        assert bridge.WebUIBridge.adjust_wizard_step(1, direction="sideways", total=-4) == 0
+
+    assert bridge.WebUIBridge.normalize_wizard_step(9, total=3) == 2
+    with caplog.at_level("WARNING"):
+        assert bridge.WebUIBridge.normalize_wizard_step("oops", total=3) == 0
+
+    messages = [record.message for record in caplog.records]
+    assert any("Invalid current step" in message for message in messages)
+    assert any("Invalid total steps" in message for message in messages)
+    assert any("Invalid direction" in message for message in messages)
+    assert any("Failed to normalize step value" in message for message in messages)
+
+
+def test_display_result_and_progress_use_formatter(
+    webui_bridge_module: tuple[ModuleType, StreamlitRecorder],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Messages and progress reuse the shared ``OutputFormatter`` pipeline."""
+
+    bridge, streamlit_stub = webui_bridge_module
+    ui = bridge.WebUIBridge()
+
+    formatter_calls: list[tuple[str, str | None, bool]] = []
+
+    def fake_format(
+        message: str, *, message_type: str | None = None, highlight: bool = False
+    ) -> str:
+        formatter_calls.append((message, message_type, highlight))
+        return f"{message_type or 'normal'}::{highlight}::{message}"
+
+    monkeypatch.setattr(
+        ui,
+        "formatter",
+        SimpleNamespace(
+            format_message=lambda message, message_type=None, highlight=False: fake_format(
+                message,
+                message_type=message_type,
+                highlight=highlight,
+            )
+        ),
+        raising=False,
+    )
+
+    ui.display_result("serious", message_type="error", highlight=True)
+    ui.display_result("heads-up", message_type="warning")
+    ui.display_result("success", message_type="success")
+    ui.display_result("note", message_type="info")
+    ui.display_result("plain")
+
+    assert formatter_calls == [
+        ("serious", "error", True),
+        ("heads-up", "warning", False),
+        ("success", "success", False),
+        ("note", "info", False),
+        ("plain", None, False),
+    ]
+    assert streamlit_stub.error_messages == ["error::True::serious"]
+    assert streamlit_stub.warning_messages == ["warning::False::heads-up"]
+    assert streamlit_stub.success_messages == ["success::False::success"]
+    assert streamlit_stub.info_messages == ["info::False::note"]
+    assert streamlit_stub.write_messages == ["normal::False::plain"]
+
+    monkeypatch.setattr(
+        bridge,
+        "WebUIProgressIndicator",
+        lambda description, total: ("indicator", description, total),
+    )
+    assert ui.create_progress("Deploy", total=3) == ("indicator", "Deploy", 3)
+
+
+def test_display_result_highlight_falls_back_to_write(
+    webui_bridge_module: tuple[ModuleType, StreamlitRecorder],
+) -> None:
+    """Highlight routing uses ``write`` when ``info`` is unavailable."""
+
+    bridge, _ = webui_bridge_module
+    ui = bridge.WebUIBridge()
+
+    class MinimalStreamlit:
+        def __init__(self) -> None:
+            self.write_messages: list[str] = []
+
+        def write(self, message: str, *args: object, **kwargs: object) -> None:
+            self.write_messages.append(message)
+
+    fallback_stub = MinimalStreamlit()
+    original_st = bridge.st
+    bridge.st = fallback_stub
+    try:
+        ui.display_result("Heads-up", highlight=True)
+    finally:
+        bridge.st = original_st
+
+    assert len(fallback_stub.write_messages) == 1
+    recorded = fallback_stub.write_messages[0]
+    if hasattr(recorded, "renderable"):
+        assert "Heads-up" in str(recorded.renderable)
+    else:
+        assert recorded == "Heads-up"
