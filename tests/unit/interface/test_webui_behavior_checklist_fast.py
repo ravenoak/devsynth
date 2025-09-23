@@ -571,6 +571,82 @@ def test_display_result_handles_multiple_message_types(
     )
 
 
+def test_display_result_info_and_error_fallbacks_sanitize(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Missing Streamlit channels fall back to ``write`` with sanitized payloads."""
+
+    monkeypatch.delattr(BehaviorStreamlitStub, "info")
+    stub = install_streamlit_stub(monkeypatch)
+
+    sanitized_inputs: list[str] = []
+
+    def fake_sanitize(text: str) -> str:
+        sanitized_inputs.append(text)
+        return text.replace("<", "&lt;").replace(">", "&gt;")
+
+    monkeypatch.setattr(webui, "sanitize_output", fake_sanitize)
+
+    ui = webui.WebUI()
+    write_before = len(stub.write_calls)
+    ui.display_result("FYI <tag>", message_type="info")
+    ui.display_result("ERROR: <danger>", message_type="error")
+    ui.display_result("Highlight <tag>", highlight=True)
+
+    socratic_assert(
+        condition=sanitized_inputs
+        == ["FYI <tag>", "ERROR: <danger>", "Highlight <tag>"],
+        question="Were all fallback branches sanitized before rendering",
+        expected="sanitize_output captures each message",
+    )
+
+    socratic_assert(
+        condition=stub.write_calls[write_before] == "FYI &lt;tag&gt;",
+        question="Does message_type='info' fall back to write() when info() is missing",
+        expected="sanitized info message recorded via write()",
+    )
+    socratic_assert(
+        condition=stub.error_calls[-1] == "ERROR: &lt;danger&gt;",
+        question="Are error messages sanitized even when the error channel exists",
+        expected="sanitized error captured via Streamlit.error",
+    )
+    socratic_assert(
+        condition=stub.write_calls[write_before + 1] == "Highlight &lt;tag&gt;",
+        question="Does highlight mode share the same fallback when info() is absent",
+        expected="highlight text sanitized and routed to write()",
+    )
+
+
+def test_display_result_markup_fallback_uses_write(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Markdown rendering falls back to ``write`` when ``markdown`` is absent."""
+
+    monkeypatch.delattr(BehaviorStreamlitStub, "markdown")
+    stub = install_streamlit_stub(monkeypatch)
+
+    sanitized_inputs: list[str] = []
+
+    def fake_sanitize(text: str) -> str:
+        sanitized_inputs.append(text)
+        return text.replace("<", "&lt;")
+
+    monkeypatch.setattr(webui, "sanitize_output", fake_sanitize)
+
+    ui = webui.WebUI()
+    write_before = len(stub.write_calls)
+    ui.display_result("[bold]Alert[/bold] <danger>")
+
+    socratic_assert(
+        condition=sanitized_inputs == ["[bold]Alert[/bold] <danger>"],
+        question="Was the markup-bearing message sanitized prior to fallback",
+        expected="sanitize_output invoked once",
+    )
+    socratic_assert(
+        condition=stub.write_calls[write_before] == "**Alert** &lt;danger>",
+        question="Does the markdown branch convert tags even without st.markdown",
+        expected="write() receives the Markdown-converted output",
+    )
+
+
 def test_display_result_error_prefix_triggers_guidance(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -940,6 +1016,43 @@ def test_ui_progress_estimates_and_subtasks(monkeypatch: pytest.MonkeyPatch) -> 
         condition=stub.success_calls[-1] == "Completed: &lt;b&gt;Deploy&lt;/b&gt;",
         question="Is the final success message sanitized",
         expected="escaped deployment label",
+    )
+
+
+def test_ui_progress_complete_cascades_and_falls_back_to_write(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Completing the root task finalizes subtasks and falls back when ``success`` is absent."""
+
+    monkeypatch.delattr(BehaviorStreamlitStub, "success")
+    stub = install_streamlit_stub(monkeypatch)
+    times = iter(range(0, 20))
+    monkeypatch.setattr(webui.time, "time", lambda: next(times))
+
+    ui = webui.WebUI()
+    indicator = ui.create_progress("Compile <artifact>", total=2)
+    subtask_id = indicator.add_subtask("Subtask <one>", total=1)
+
+    socratic_assert(
+        condition=subtask_id in indicator._subtasks,
+        question="Did the subtask register before completion",
+        expected="subtask identifier stored in the progress tracker",
+    )
+
+    indicator.complete()
+
+    socratic_assert(
+        condition=stub.write_calls[-1] == "Completed: Compile &lt;artifact&gt;",
+        question="Does the absence of Streamlit.success fall back to write()",
+        expected="sanitized completion message routed through write()",
+    )
+
+    sub_container = stub.containers[0]
+    socratic_assert(
+        condition=sub_container.success_calls[-1]
+        == "Completed: Subtask &lt;one&gt;",
+        question="Were subtasks completed automatically when the root finishes",
+        expected="cascaded completion recorded on the subtask container",
     )
 
 

@@ -44,6 +44,14 @@ clears the wizard's temporary state to avoid accidental resubmission.【F:src/de
 [`test_save_requirements_clears_temporary_keys`](../../tests/unit/interface/test_webui_rendering_module.py)
 confirms the persisted structure and cleanup side effects.
 
+## Progress Completion Cascades Remain Sanitized
+
+Fast WebUI suites verify that completing the top-level progress indicator drives every subtask to completion even when `streamlit.success` is unavailable. The fallback writes sanitized labels to `st.write`, and nested subtasks emit the same escaped completion message, keeping UI telemetry consistent with CLI progress semantics.【F:tests/unit/interface/test_webui_behavior_checklist_fast.py†L1022-L1056】
+
+## Streamlit Fallbacks Stay Sanitized
+
+When Streamlit omits the `info` or `markdown` helpers, the WebUI implementation drops back to `st.write` without losing sanitization: info/highlight messages flow through `write` with HTML entities escaped, errors still render via `st.error`, and legacy markup converts to Markdown before the fallback executes.【F:tests/unit/interface/test_webui_behavior_checklist_fast.py†L574-L647】 These fast paths guarantee the rendering layer remains safe when optional components are absent.
+
 ## References
 
 - Tests: `tests/unit/interface/test_webui_rendering_module.py`

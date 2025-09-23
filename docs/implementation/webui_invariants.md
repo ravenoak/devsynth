@@ -42,6 +42,10 @@ assert state.get_current_step() == state.get_total_steps()
 
 This behavior is exercised by `tests/property/test_webui_properties.py::test_next_step_converges_to_completion`.
 
+## Bridge Wizard Clamps and Lazy Loader
+
+Fast suites now exercise the WebUI bridge directly so wizard navigation mirrors the CLI clamps without requiring the optional Streamlit extra. `_require_streamlit` caches the injected stub on first import and surfaces the install command when the dependency is missing,【F:tests/unit/interface/test_webui_bridge_fast_suite.py†L214-L247】 while `adjust_wizard_step` and `normalize_wizard_step` warn on invalid totals, directions, or values before clamping into range.【F:tests/unit/interface/test_webui_bridge_fast_suite.py†L250-L271】 The same fast harness proves that `display_result` continues to route through `OutputFormatter` and that highlight messages fall back to `st.write` when `st.info` is unavailable, maintaining parity with CLI formatting expectations.【F:tests/unit/interface/test_webui_bridge_fast_suite.py†L274-L359】
+
 ## Coverage Signal (2025-09-20)
 
 - **Targeted Streamlit harnesses:** Focused fast suites [`tests/unit/interface/test_webui_targeted_branches.py`](../../tests/unit/interface/test_webui_targeted_branches.py) and [`tests/unit/interface/test_webui_bridge_targeted.py`](../../tests/unit/interface/test_webui_bridge_targeted.py) drive question prompts, error tracebacks, highlight routing, and progress threshold transitions without a real Streamlit installation. Running `poetry run pytest … --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge` captures 22 % line coverage for each module, as recorded in [`issues/tmp_cov_webui.json`](../../issues/tmp_cov_webui.json) and [`issues/tmp_cov_webui_bridge.json`](../../issues/tmp_cov_webui_bridge.json), establishing a measurable floor while documenting remaining rendering gaps for follow-up.【F:issues/tmp_cov_webui.json†L1-L1】【F:issues/tmp_cov_webui_bridge.json†L1-L1】
