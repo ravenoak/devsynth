@@ -464,6 +464,266 @@ async def test_async_fallback_skips_open_circuit_breaker():
     assert fallback.circuit_breakers["asyncsecondary"].successes == 1
 
 
+@pytest.mark.asyncio
+async def test_openai_async_retry_emits_telemetry(monkeypatch):
+    _enable_real_providers(monkeypatch)
+    metrics = _metrics_spy(monkeypatch)
+
+    class _HTTPError(Exception):
+        def __init__(self, message: str, response: Any | None = None) -> None:
+            super().__init__(message)
+            self.response = response
+
+    class _AsyncResponse:
+        def __init__(self, data: dict[str, Any]):
+            self._data = data
+
+        def raise_for_status(self):  # noqa: ANN001 - stub
+            return None
+
+        def json(self):  # noqa: ANN001 - stub
+            return self._data
+
+    attempts: list[dict[str, Any]] = []
+
+    class _AsyncClient:
+        def __init__(self, **kwargs: Any):
+            self.kwargs = kwargs
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def post(self, url, headers=None, json=None):  # noqa: ANN001 - stub
+            attempts.append({"url": url, "json": json})
+            if len(attempts) == 1:
+                response = SimpleNamespace(status_code=429)
+                raise _HTTPError("too many requests", response=response)
+            return _AsyncResponse({"choices": [{"message": {"content": "async-ok"}}]})
+
+    class _HttpxStub:
+        HTTPError = _HTTPError
+
+        def __init__(self):
+            self.AsyncClient = _AsyncClient
+
+    monkeypatch.setattr(provider_system, "httpx", _HttpxStub())
+
+    recorded_delays: list[float] = []
+
+    async def _fake_sleep(delay: float) -> None:
+        recorded_delays.append(delay)
+
+    monkeypatch.setattr(provider_system.asyncio, "sleep", _fake_sleep)
+
+    import random
+
+    monkeypatch.setattr(random, "random", lambda: 0.25)
+
+    provider = provider_system.OpenAIProvider(
+        api_key="key",
+        model="gpt-test",
+        base_url="https://api.mock",
+        retry_config=_retry_config(
+            max_retries=1,
+            initial_delay=0.1,
+            jitter=True,
+            track_metrics=True,
+        ),
+        tls_config=provider_system.TLSConfig(timeout=0.0),
+    )
+
+    assert provider.__class__.__name__ == "OpenAIProvider"
+
+    result = await provider.acomplete("prompt")
+
+    assert result == "async-ok"
+    assert metrics == ["retry"]
+    assert recorded_delays == pytest.approx([0.075])
+    assert len(attempts) == 2
+
+
+@pytest.mark.asyncio
+async def test_async_fallback_circuit_breaker_recovery(monkeypatch):
+    metrics = _metrics_spy(monkeypatch)
+
+    class _RecordingBreaker:
+        def __init__(self, failure_threshold: int, recovery_timeout: float, *_, **__):
+            self.failure_threshold = failure_threshold
+            self.recovery_timeout = recovery_timeout
+            self.state = "closed"
+            self.failures = 0
+            self.successes = 0
+
+        def call(self, func, **kwargs):  # noqa: ANN001 - stub
+            if self.state != "closed":
+                raise provider_system.ProviderError("Circuit open")
+            return func(**kwargs)
+
+        def _record_failure(self):
+            self.failures += 1
+            self.state = "open"
+
+        def _record_success(self):
+            self.successes += 1
+            self.state = "closed"
+
+    monkeypatch.setattr(provider_system, "CircuitBreaker", _RecordingBreaker)
+
+    class _PrimaryAsync:
+        def __init__(self):
+            self.calls = 0
+            self.fail_next = True
+
+        async def acomplete(self, **kwargs):
+            self.calls += 1
+            if self.fail_next:
+                self.fail_next = False
+                raise provider_system.ProviderError("429 Too Many Requests")
+            return "primary-ok"
+
+    class _SecondaryAsync:
+        def __init__(self):
+            self.calls = 0
+
+        async def acomplete(self, **kwargs):
+            self.calls += 1
+            return "secondary-ok"
+
+    _PrimaryAsync.__name__ = "PrimaryProvider"
+    _SecondaryAsync.__name__ = "SecondaryProvider"
+
+    primary = _PrimaryAsync()
+    secondary = _SecondaryAsync()
+    fallback = provider_system.FallbackProvider(
+        providers=[primary, secondary],
+        config=_fallback_config(
+            circuit_breaker={"enabled": True, "failure_threshold": 1, "recovery_timeout": 0.0}
+        ),
+    )
+
+    fallback.circuit_breakers = {
+        "primary": _RecordingBreaker(1, 0.0),
+        "secondary": _RecordingBreaker(1, 0.0),
+    }
+
+    monkeypatch.setattr(provider_system, "get_provider", lambda *_, **__: fallback)
+
+    first_result = await provider_system.acomplete("prompt")
+
+    assert first_result == "secondary-ok"
+    assert metrics == ["acomplete"]
+    assert primary.calls == 1
+    assert secondary.calls == 1
+    primary_breaker = fallback.circuit_breakers["primary"]
+    assert primary_breaker.failures == 1
+    assert primary_breaker.state == "open"
+
+    primary_breaker.state = "closed"
+
+    second_result = await provider_system.acomplete("prompt")
+
+    assert second_result == "primary-ok"
+    assert metrics == ["acomplete", "acomplete"]
+    assert primary.calls == 2
+    assert secondary.calls == 1
+    assert primary_breaker.successes == 1
+    assert primary_breaker.state == "closed"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("primary_success", "secondary_success", "expected"),
+    [
+        (True, False, "primary-ok"),
+        (False, True, "secondary-ok"),
+        (False, False, None),
+    ],
+    ids=["primary-success", "secondary-success", "all-fail"],
+)
+async def test_async_fallback_metrics_permutations(
+    monkeypatch, primary_success: bool, secondary_success: bool, expected: str | None
+):
+    metrics = _metrics_spy(monkeypatch)
+
+    class _RecordingBreaker:
+        def __init__(self, failure_threshold: int, recovery_timeout: float, *_, **__):
+            self.state = "closed"
+            self.failures = 0
+            self.successes = 0
+
+        def call(self, func, **kwargs):  # noqa: ANN001 - stub
+            return func(**kwargs)
+
+        def _record_failure(self):
+            self.failures += 1
+            self.state = "open"
+
+        def _record_success(self):
+            self.successes += 1
+            self.state = "closed"
+
+    monkeypatch.setattr(provider_system, "CircuitBreaker", _RecordingBreaker)
+
+    def _make_async_provider(name: str, succeed: bool):
+        class _Provider:
+            def __init__(self):
+                self.calls = 0
+
+            async def acomplete(self, **kwargs):
+                self.calls += 1
+                if not succeed:
+                    message = "429 Too Many Requests" if name == "primary" else f"{name} failure"
+                    raise provider_system.ProviderError(message)
+                return f"{name}-ok"
+
+        _Provider.__name__ = f"{name.title()}Provider"
+        return _Provider()
+
+    primary = _make_async_provider("primary", primary_success)
+    secondary = _make_async_provider("secondary", secondary_success)
+    fallback = provider_system.FallbackProvider(
+        providers=[primary, secondary],
+        config=_fallback_config(
+            circuit_breaker={"enabled": True, "failure_threshold": 1, "recovery_timeout": 0.0}
+        ),
+    )
+
+    fallback.circuit_breakers = {
+        "primary": _RecordingBreaker(1, 0.0),
+        "secondary": _RecordingBreaker(1, 0.0),
+    }
+
+    monkeypatch.setattr(provider_system, "get_provider", lambda *_, **__: fallback)
+
+    if expected is None:
+        with pytest.raises(provider_system.ProviderError) as excinfo:
+            await provider_system.acomplete("prompt")
+        assert "All providers failed" in str(excinfo.value)
+    else:
+        result = await provider_system.acomplete("prompt")
+        assert result == expected
+
+    assert metrics == ["acomplete"]
+    assert primary.calls == 1
+    assert secondary.calls == (0 if primary_success else 1)
+
+    primary_breaker = fallback.circuit_breakers["primary"]
+    if primary_success:
+        assert primary_breaker.successes == 1
+        assert primary_breaker.failures == 0
+    else:
+        assert primary_breaker.failures == 1
+
+    secondary_breaker = fallback.circuit_breakers["secondary"]
+    if not primary_success and secondary_success:
+        assert secondary_breaker.successes == 1
+    elif not primary_success and not secondary_success:
+        assert secondary_breaker.failures == 1
+
+
 def _metrics_spy(monkeypatch):
     calls: list[str] = []
 
