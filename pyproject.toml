@@ -45,8 +45,15 @@ langchain-community = "*"
 openai = "*"
 toml = "*"
 requests = "*"
-fastapi = {version = "*", optional = true}
-starlette = ">=0.40,<0.47"
+# FastAPI 0.116.x remains the tested range while Starlette stays below 0.47 to
+# avoid the Python 3.12 TestClient MRO regression (see
+# issues/run-tests-smoke-fast-fastapi-starlette-mro.md and docs/plan.md §
+# Compatibility mitigation).
+fastapi = {version = ">=0.116.2,<0.117", optional = true}
+# Starlette >=0.47 reintroduces the Python 3.12 TestClient MRO TypeError; keep
+# the service on 0.46.x until upstream ships a fix we can verify. Tracked in
+# issues/run-tests-smoke-fast-fastapi-starlette-mro.md.
+starlette = ">=0.46.2,<0.47"
 tinydb = {version = "*", optional = true}
 duckdb = {version = "*", optional = true}
 lmdb = {version = "*", optional = true}
