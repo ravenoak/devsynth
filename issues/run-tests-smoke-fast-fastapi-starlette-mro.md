@@ -19,3 +19,7 @@ Next Actions:
 Resolution Evidence:
   - Starlette pinned `<0.47` with Poetry lock regenerated; FastAPI's TestClient now imports cleanly via the sitecustomize shim that rewrites `WebSocketDenialResponse`.【F:pyproject.toml†L49-L51】【F:poetry.lock†L6722-L6737】【F:src/sitecustomize.py†L12-L65】
   - Smoke CLI regression tests cover the new behavior, and the green run captures coverage artifacts for diagnostics under `test_reports/coverage.json`.【F:tests/unit/application/cli/test_run_tests_cmd_smoke.py†L1-L142】【F:logs/run-tests-smoke-fast-20250921T160631Z.log†L33-L40】
+
+Documentation traceability (2025-09-23):
+  - Regression narrative, upstream release note snapshot, and compatibility mitigation recorded in docs/plan.md.【F:docs/plan.md†L168-L236】
+  - Research log summarizing FastAPI/Starlette Python 3.12 findings captured in docs/task_notes.md.【F:docs/task_notes.md†L208-L221】
