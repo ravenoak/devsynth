@@ -1020,14 +1020,25 @@ def run_tests(
                     total_batches,
                 )
                 batch_cmd = run_base_cmd + batch + report_options
-                batch_process = subprocess.Popen(
-                    batch_cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    env=env,
-                )
-                batch_stdout, batch_stderr = batch_process.communicate()
+                try:
+                    batch_process = subprocess.Popen(
+                        batch_cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        env=env,
+                    )
+                    batch_stdout, batch_stderr = batch_process.communicate()
+                except Exception as exc:  # pragma: no cover - defensive
+                    logger.error(
+                        "Error executing segmented batch", exc_info=exc
+                    )
+                    tips = _failure_tips(-1, batch_cmd)
+                    logger.error(tips)
+                    all_output += f"{exc}\n{tips}"
+                    batch_success = False
+                    all_success = False
+                    continue
                 logger.info(batch_stdout)
                 if batch_stderr:
                     logger.error("ERRORS:")

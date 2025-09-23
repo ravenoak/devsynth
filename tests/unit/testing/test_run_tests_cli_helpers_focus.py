@@ -20,6 +20,25 @@ def _isolate_artifact_helpers(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
 
 
+def _assert_plugins_in_addopts(addopts: str) -> None:
+    """Assert pytest-cov and pytest-bdd plugins are present in addopts."""
+
+    normalized = addopts.strip()
+    assert normalized, "PYTEST_ADDOPTS should not be empty when plugins are injected"
+    assert (
+        "-p pytest_cov" in normalized or "-ppytest_cov" in normalized
+    ), f"pytest-cov plugin missing: {normalized}"
+    assert (
+        "-p pytest_bdd.plugin" in normalized or "-ppytest_bdd.plugin" in normalized
+    ), f"pytest-bdd plugin missing: {normalized}"
+
+
+def _assert_plugins_in_env(env: dict[str, str]) -> None:
+    """Assert plugin reinjection occurred for the provided environment mapping."""
+
+    _assert_plugins_in_addopts(env.get("PYTEST_ADDOPTS", ""))
+
+
 @pytest.mark.fast
 def test_segmented_batches_inject_plugins_and_emit_tips(
     monkeypatch: pytest.MonkeyPatch,
@@ -97,10 +116,64 @@ def test_segmented_batches_inject_plugins_and_emit_tips(
     assert output.count("Troubleshooting tips:") == 2
     assert "FAIL Required test coverage" in output
 
-    assert any("-p pytest_cov" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
-    assert any("-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
-    assert "-p pytest_cov" in os.environ.get("PYTEST_ADDOPTS", "")
+    assert popen_envs, "Expected at least one segmented batch invocation"
+    for captured_env in popen_envs:
+        _assert_plugins_in_env(captured_env)
+    _assert_plugins_in_env(dict(os.environ))
     assert "FAIL Required test coverage" in caplog.text
+
+
+@pytest.mark.fast
+def test_segmented_batch_exception_emits_tips_and_plugins(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """ReqID: RUN-TESTS-SEGMENT-CLI-2 — Exceptions surface tips and preserve plugins."""
+
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    monkeypatch.setenv("PYTEST_ADDOPTS", "-q")
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tmp_path))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(tmp_path))
+
+    test_file = tmp_path / "test_segment.py"
+    test_file.write_text("def test_fail():\n    assert True\n")
+
+    def fake_collect(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+        return SimpleNamespace(returncode=0, stdout=f"{test_file}::test_fail\n", stderr="")
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_collect)
+
+    captured_envs: list[dict[str, str]] = []
+
+    def exploding_batch(
+        cmd, stdout=None, stderr=None, text=True, env=None
+    ):  # noqa: ANN001
+        captured_envs.append(dict(env or {}))
+        raise RuntimeError("segmented batch crashed")
+
+    monkeypatch.setattr(rt.subprocess, "Popen", exploding_batch)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=True,
+        segment_size=1,
+        maxfail=3,
+        extra_marker=None,
+    )
+
+    assert success is False
+    assert "segmented batch crashed" in output
+    assert output.count("Troubleshooting tips:") == 2
+    assert "--maxfail=3" in output
+
+    assert captured_envs, "Expected segmented batch environments to be captured"
+    for env in captured_envs:
+        _assert_plugins_in_env(env)
+    _assert_plugins_in_env(dict(os.environ))
 
 
 @pytest.mark.fast
@@ -156,14 +229,12 @@ def test_run_tests_env_var_propagation_retains_existing_addopts(
 
     process_addopts = os.environ.get("PYTEST_ADDOPTS", "")
     assert "-q" in process_addopts
-    assert "-p pytest_cov" in process_addopts
-    assert "-p pytest_bdd.plugin" in process_addopts
+    _assert_plugins_in_addopts(process_addopts)
 
     cmd, env = recorded[0]
     assert "--maxfail=1" in cmd
     assert env["PYTEST_ADDOPTS"].strip().startswith("-q")
-    assert "-p pytest_cov" in env["PYTEST_ADDOPTS"]
-    assert "-p pytest_bdd.plugin" in env["PYTEST_ADDOPTS"]
+    _assert_plugins_in_addopts(env["PYTEST_ADDOPTS"])
 
 
 @pytest.mark.fast
