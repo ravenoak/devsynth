@@ -204,3 +204,18 @@ Current file condensed on 2025-09-15 to remove redundant 2025-09-13 entries whil
   - `python scripts/verify_post_install.py | tee diagnostics/post_install_check_20250921T150333Z.log` (captures the fast-fail guarantee for `poetry env info --path` and `poetry run devsynth --help`).【F:scripts/verify_post_install.py†L1-L56】【F:diagnostics/post_install_check_20250921T150333Z.log†L1-L2】
 - Observations: Bootstrap now records `poetry install --with dev --all-extras` on every invocation (`diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log`) and reuses `scripts/verify_post_install.py` so both Poetry env discovery and the DevSynth CLI are validated before returning; CI smoke flows invoke the same script immediately after provisioning to fail fast during automation.【F:diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log†L1-L40】【F:.github/workflows/install_dev_smoke.yml†L47-L52】【F:.github/workflows/cli_smoke.yml†L40-L47】【F:.github/workflows/smoke_matrix.yml†L40-L47】
 - Next: Monitor smoke workflows for regressions once FastAPI/Starlette fixes land and update docs/plan.md with any additional diagnostics needed for release sign-off.
+
+## Iteration 2025-09-23 – FastAPI/Starlette Python 3.12 compatibility research
+- Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; `task --version` 3.45.4; research timestamp 2025-09-23 00:39 UTC (`date -u '+%Y-%m-%d %H:%M UTC'`).【9c5102†L1-L2】
+- Commands:
+  - `curl -s https://api.github.com/repos/fastapi/fastapi/releases/tags/0.116.2 | jq -r '.body'` — review FastAPI 0.116.2 release notes for Starlette range and Python references.
+  - `curl -s https://api.github.com/repos/fastapi/fastapi/releases/tags/0.116.1 | jq -r '.body'` — confirm earlier 0.116.x messaging.
+  - `curl -s https://api.github.com/repositories/138597372/releases/tags/0.47.3 | jq -r '.body'` — inspect Starlette 0.47.3 Python 3.12 fix summary.
+- Observations:
+  - FastAPI 0.116.2 highlights "⬆️ Upgrade Starlette supported version range to >=0.40.0,<0.49.0.", so our `<0.47` pin falls outside the upstream-supported span even though no explicit Python 3.12 statement accompanies the bullet.[^fastapi-01162]
+  - Starlette 0.47.3 notes "Use `asyncio.iscoroutinefunction` for Python 3.12 and older", underscoring that Python 3.12 adjustments are landing in the very line we currently exclude.[^starlette-0473]
+  - Documented the trade-offs and open questions in docs/plan.md (regression narrative and remediation sections) and cross-linked to `issues/run-tests-smoke-fast-fastapi-starlette-mro.md` so the pinned-version rationale remains traceable.【F:docs/plan.md†L107-L145】【F:docs/plan.md†L218-L226】【F:issues/run-tests-smoke-fast-fastapi-starlette-mro.md†L1-L24】
+- Next: Monitor upcoming Starlette release notes/discussions for an explicit WebSocketDenialResponse/TestClient MRO fix, coordinate with maintainers on filing or referencing the upstream ticket, and schedule smoke plus fast/medium reruns once an aligned release becomes available.
+
+[^fastapi-01162]: FastAPI 0.116.2 release notes — "⬆️ Upgrade Starlette supported version range to >=0.40.0,<0.49.0." https://github.com/fastapi/fastapi/releases/tag/0.116.2
+[^starlette-0473]: Starlette 0.47.3 release notes — "Use `asyncio.iscoroutinefunction` for Python 3.12 and older." https://github.com/encode/starlette/releases/tag/0.47.3

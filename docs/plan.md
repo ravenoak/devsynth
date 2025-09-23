@@ -166,9 +166,18 @@ Critical evaluation of current tests (dialectical + Socratic)
 - Coverage hotspots: Historical diagnostics and htmlcov show low coverage in src/devsynth/application/cli/commands/run_tests_cmd.py (~14–15%), and other adapter-heavy modules show very low coverage in artifacts. Need targeted tests or broaden integration coverage.
 - Coverage regression (2025-09-17): The fast+medium aggregate now fails because `.coverage` is never written; coverage JSON/HTML are deleted during startup and never regenerated, so the gate cannot compute a percentage and exits with code 1 even when pytest reports success.【20dbec†L1-L5】【45de43†L1-L2】
 - FastAPI/Starlette compatibility regression (2025-09-21): After extras reinstall resolved to FastAPI 0.116.1 and Starlette 0.47.3, the smoke profile aborts during collection with a `TypeError: Cannot create a consistent method resolution order`, preventing coverage artifacts and acceptance criteria 13.1/19.3; tracked in `issues/run-tests-smoke-fast-fastapi-starlette-mro.md` with logs captured under `logs/run-tests-smoke-fast-20250921T052856Z.log`.【F:logs/run-tests-smoke-fast-20250921T052856Z.log†L1-L42】【F:issues/run-tests-smoke-fast-fastapi-starlette-mro.md†L1-L20】【bc1640†L1-L1】【e67811†L1-L1】
+  - Upstream release notes snapshot:
+    - "⬆️ Upgrade Starlette supported version range to >=0.40.0,<0.49.0." — FastAPI 0.116.2 release notes (our `<0.47` pin sits outside the range FastAPI now advertises as compatible).[^fastapi-01162]
+    - "Use `asyncio.iscoroutinefunction` for Python 3.12 and older" — Starlette 0.47.3 release notes (illustrates Python 3.12 adjustments we defer while pinned below 0.47).[^starlette-0473]
+  - Pros of staying `<0.47`: avoids the WebSocketDenialResponse/TestClient MRO regression while `sitecustomize.py` rewrites the helper, so smoke runs stay green pending upstream remediation.【F:issues/run-tests-smoke-fast-fastapi-starlette-mro.md†L12-L24】【F:src/sitecustomize.py†L12-L65】
+  - Cons of staying pinned: diverges from FastAPI's declared support matrix, skips Starlette's Python 3.12 fixes (and the RFC 9110 status-name updates landing in ≥0.48), and increases the delta we must close when we eventually align with upstream ranges.
+  - Open questions for maintainers: Has Starlette acknowledged or scheduled a fix for the Python 3.12 MRO regression, and should we file/track an upstream issue to replace the local shim once the fix lands? (No 0.47.x release note currently references a resolution.)
 - Environment/config: diagnostics/doctor.txt lists many missing env vars across environments; while tests pass due to default stubbing, release QA should include doctor sanity checks and documented defaults.
 - Installation: earlier hang on `poetry install --with dev --all-extras` (nvidia/__init__.py) resolved per issues/poetry-install-nvidia-loop.md (closed).
 - Potential mismatch between pytest.ini fail-under=90 and how contributors run focused subsets; dev tooling must aggregate coverage or provide guidance on running complete profiles locally.
+
+[^fastapi-01162]: FastAPI 0.116.2 release notes — "⬆️ Upgrade Starlette supported version range to >=0.40.0,<0.49.0." https://github.com/fastapi/fastapi/releases/tag/0.116.2
+[^starlette-0473]: Starlette 0.47.3 release notes — "Use `asyncio.iscoroutinefunction` for Python 3.12 and older." https://github.com/encode/starlette/releases/tag/0.47.3
 
 Standards and constraints reaffirmed
 - Tests must have exactly one speed marker per function (verified by script; continue to enforce).
@@ -220,6 +229,11 @@ Phase 0: Environment and tooling (Day 0)
   poetry run pytest --collect-only -q
   poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
 - Outcome: Ensure stable local environment; capture doctor.txt warnings as known non-blockers for tests (due to stubbing), but document default env in README/docs.
+
+Compatibility mitigation (FastAPI/Starlette)
+- Continue shipping with Starlette `<0.47` plus the `sitecustomize` shim to avoid the WebSocketDenialResponse/TestClient MRO failure tracked in `issues/run-tests-smoke-fast-fastapi-starlette-mro.md` until an upstream fix lands.【F:issues/run-tests-smoke-fast-fastapi-starlette-mro.md†L12-L24】【F:src/sitecustomize.py†L12-L65】
+- Monitor FastAPI and Starlette release notes for Python 3.12-specific changes (FastAPI 0.116.2 advertises compatibility up to `<0.49`, and Starlette 0.47.3 already documents a Python 3.12 coroutine detection fix) so we can retest smoke + fast/medium once an MRO resolution is published.[^fastapi-01162][^starlette-0473]
+- Open question for maintainers: confirm whether to file or reference an upstream Starlette issue covering the MRO regression so we know when it is safe to remove the shim and align with FastAPI's supported range.
 
 Phase 1: Property tests remediation (Day 0–1)
 - Fix Hypothesis misuse:
