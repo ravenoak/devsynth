@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 pytest.importorskip("fastapi")
+pytest.importorskip("fastapi.testclient")
 from fastapi.testclient import TestClient
 from pytest_bdd import given, parsers, scenarios, then, when
 
