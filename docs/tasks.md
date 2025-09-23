@@ -278,3 +278,36 @@ Notes:
 28.4 [ ] Add a regression test that imports `fastapi.testclient.TestClient` under `pytest.importorskip("fastapi")` to fail fast when the MRO conflict returns, and guard the agent API behavior suite with the same check.
 28.5 [x] Update docs/plan.md §§Commands executed and Gaps plus docs/tasks follow-ups now that the smoke profile is green again; reference the 2025-09-23 rerun log and close [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md) with residual-risk notes about the Starlette pin.【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1-L6】【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1464-L1469】【F:docs/plan.md†L120-L198】【F:issues/run-tests-smoke-fast-fastapi-starlette-mro.md†L1-L32】
 28.6 [ ] Evaluate other API-focused behavior suites (agent_api_interactions, agent_api_stub_usage, serve command) for dependency drift risks and record mitigation steps in issues or docs.
+
+29. Coverage closure initiative (Phase 2F)
+29.1 [ ] Raise `src/devsynth/application/cli/commands/run_tests_cmd.py` and `src/devsynth/testing/run_tests.py` coverage to ≥60 % by expanding regression tests for segmentation failures, plugin reinjection, and Typer exit codes, then update `docs/implementation/run_tests_cli_invariants.md` with the new evidence.【44de13†L1-L2】【88aca2†L1-L2】
+      - [ ] Cover segmentation error paths by forcing `_segment_batches` to raise and asserting remediation tips surface twice (per batch and aggregate).【3e9fbb†L1-L1】【15fc9f†L1-L1】
+      - [ ] Add Typer exit code tests for invalid targets, inventory file generation, and maxfail propagation using `CliRunner` fixtures.
+      - [ ] Assert plugin reinjection when `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`, ensuring `PYTEST_ADDOPTS` keeps both pytest-cov and pytest-bdd hooks across segmented runs.
+      - [ ] Refresh `docs/implementation/run_tests_cli_invariants.md` with the new coverage numbers and attach artefacts in issues/coverage-below-threshold.md.
+29.2 [ ] Add deterministic simulations for `src/devsynth/application/cli/long_running_progress.py` and `src/devsynth/interface/webui/rendering.py` that exercise nested task lifecycles, producing ≥60 % coverage and documenting the expected event ordering in implementation notes.【28ecb6†L1-L2】【93d0b2†L1-L2】
+      - [ ] Model adaptive refresh and ETA checkpoint logic under controlled clocks to lift coverage from the current 0 %/7.37 % baselines.【582357†L1-L1】【d25e16†L1-L1】
+      - [ ] Add nested subtask simulations that mirror CLI→WebUI telemetry ordering, validating history, checkpoint, and completion cascades.
+      - [ ] Publish a new `docs/implementation/long_running_progress_invariants.md` (or equivalent addendum) that records the simulated behaviours.
+      - [ ] Log coverage deltas and artefact paths in issues/coverage-below-threshold.md for traceability.
+29.3 [ ] Extend WebUI bridge/render fast tests to cover sanitized error flows, Streamlit fallbacks, and wizard navigation so `src/devsynth/interface/webui.py` and `src/devsynth/interface/webui_bridge.py` each clear ≥60 % coverage, with updated `docs/implementation/webui_invariants.md`.【59668b†L1-L2】【4c6ecc†L1-L2】【93d0b2†L1-L2】
+      - [ ] Exercise `_require_streamlit`, error sanitisation, and wizard navigation clamps without importing the real Streamlit package.
+      - [ ] Assert `_UIProgress` nested completion cascades and `WebUIProgressIndicator` ETA formatting survive edge cases highlighted by coverage hotspots.【591698†L1-L1】【a8634b†L1-L1】
+      - [ ] Update `docs/implementation/webui_invariants.md` and `docs/implementation/webui_rendering_invariants.md` with the new regression evidence.
+      - [ ] Capture focused coverage runs under `issues/tmp_artifacts/webui*/<timestamp>/` and reference them from issues/coverage-below-threshold.md.
+29.4 [ ] Build asynchronous provider-system and retry/back-pressure fixtures to lift `src/devsynth/adapters/provider_system.py` to ≥60 % coverage while augmenting `docs/implementation/provider_system_invariants.md` with the new metrics evidence.【d361cd†L1-L2】
+      - [ ] Simulate async retries/back-pressure loops that reproduce the low-coverage regions (12.02 %) using deterministic fake providers.【3dd29f†L1-L1】
+      - [ ] Extend metrics assertions to cover jitter, circuit-breaker recovery, and failure propagation.
+      - [ ] Append the new metrics and coverage artefacts to `docs/implementation/provider_system_invariants.md` and issues/coverage-below-threshold.md.
+29.5 [ ] Design EDRR coordinator simulations that drive transition guards and recursion paths so `src/devsynth/application/edrr/coordinator/core.py` reaches ≥40 % coverage, paired with refreshed `docs/implementation/edrr_invariants.md`.【a5bbaa†L1-L2】
+      - [ ] Create deterministic simulations that iterate across the recursion guard, failure retry, and finalisation phases highlighted in the 8.4 % coverage snapshot.【6ac9d1†L1-L1】
+      - [ ] Validate invariants against behaviour/BDD specs (edrr_coordinator.feature) and document the new proofs in `docs/implementation/edrr_invariants.md`.
+      - [ ] Attach focussed coverage artefacts to issues/coverage-below-threshold.md and update the release dependency matrix once transitions are proven.
+29.6 [x] Document the FastAPI/Starlette compatibility analysis, including regression tests guarding FastAPI TestClient imports across CLI and agent API suites, and capture remediation guidance for future dependency bumps.【178f26†L1-L4】【ebecee†L55-L96】
+      - Added docs/plan.md §2025-09-23B and docs/task_notes.md §2025-09-23B with the compatibility summary, regression test references, and maintenance guidance (this iteration).
+
+30. Fast+Medium gate restoration (Phase 3A)
+30.1 [ ] After completing §29.1–§29.5, rerun `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel --maxfail=1`, archive the CLI log plus refreshed `test_reports/coverage.json`/`htmlcov/`, and record the ≥90 % evidence in docs/plan.md and issues/coverage-below-threshold.md.【624998†L1-L8】
+30.2 [ ] Update docs/release/0.1.0-alpha.1.md and docs/plan.md with the final coverage snapshot (before/after table, artefact paths) once the gate is green, then close docs/tasks §13.3 and §19.3.
+30.3 [ ] Capture UAT evidence (smoke logs, `poetry run devsynth doctor`, manual QA notes) and update issues/release-finalization-uat.md so the maintainers can sign off on v0.1.0a1.
+30.4 [ ] Prepare the follow-up PR that re-enables GitHub Actions triggers post-tag by updating issues/re-enable-github-actions-triggers-post-v0-1-0a1.md and confirming workflows stay `workflow_dispatch`-only until maintainers flip the switch.【F:.github/workflows/ci.yml†L1-L11】
