@@ -45,7 +45,14 @@ def ensure_poetry_env() -> Path:
     return Path(path_str)
 
 
-def ensure_devsynth_cli() -> None:
+def ensure_devsynth_cli(venv_path: Path) -> None:
+    devsynth_executable = venv_path / "bin" / "devsynth"
+    if not devsynth_executable.is_file():
+        sys.stderr.write(
+            f"[post-install] devsynth executable not found at {devsynth_executable}.\n"
+        )
+        raise SystemExit(1)
+
     proc = run_command(["poetry", "run", "devsynth", "--help"])
     if proc.returncode != 0:
         sys.stderr.write(
@@ -66,7 +73,7 @@ def ensure_devsynth_cli() -> None:
 def main() -> int:
     venv_path = ensure_poetry_env()
     print(f"[post-install] poetry virtualenv: {venv_path}")
-    ensure_devsynth_cli()
+    ensure_devsynth_cli(venv_path)
     print("[post-install] devsynth CLI is available via 'poetry run devsynth --help'")
     return 0
 

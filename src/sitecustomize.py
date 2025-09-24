@@ -32,7 +32,7 @@ def _patch_starlette_testclient() -> None:
         "class WebSocketDenialResponse(  # type: ignore[misc]\n"
         "    httpx.Response,\n"
         "    WebSocketDisconnect,\n"
-        "):"
+        '):\n    """'
     )
     if original_header not in source:
         return
@@ -45,8 +45,8 @@ def _patch_starlette_testclient() -> None:
 
     replacement = (
         "class WebSocketDenialResponse(WebSocketDisconnect):\n"
-        "    \"\"\"Patched fallback to avoid Python 3.12 MRO conflicts between\n"
-        "    httpx.Response and WebSocketDisconnect.\"\"\"\n\n"
+        '    """Patched fallback to avoid Python 3.12 MRO conflicts between\n'
+        '    httpx.Response and WebSocketDisconnect."""\n\n'
         "    def __init__(self, *args, **kwargs):\n"
         "        self._response = httpx.Response(*args, **kwargs)\n"
         "        code = kwargs.get('status_code', self._response.status_code)\n"

@@ -29,11 +29,11 @@ class WorkflowStep:
     name: str
     description: str
     agent_type: str
-    inputs: Dict[str, Any] = None
-    outputs: Dict[str, Any] = None
+    inputs: Dict[str, Any] | None = None
+    outputs: Dict[str, Any] | None = None
     status: WorkflowStatus = WorkflowStatus.PENDING
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.inputs is None:
             self.inputs = {}
         if self.outputs is None:
@@ -44,15 +44,15 @@ class WorkflowStep:
 class Workflow:
     """A workflow in the DevSynth system."""
 
-    id: str = None
+    id: Optional[str] = None
     name: str = ""
     description: str = ""
-    steps: List[WorkflowStep] = None
+    steps: Optional[List[WorkflowStep]] = None
     status: WorkflowStatus = WorkflowStatus.PENDING
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.id is None:
             self.id = str(uuid4())
         if self.steps is None:

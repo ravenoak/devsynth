@@ -113,10 +113,9 @@ class WSDETeam:
     # ------------------------------------------------------------------
     def set_agent_opinion(self, agent: Any, option_id: str, opinion: str) -> None:
         """Record an agent's opinion on a decision option."""
-        agent_name: str = (
-            getattr(getattr(agent, "config", None), "name", None)
-            or getattr(agent, "name", "Agent")
-        )
+        agent_name: str = str(getattr(
+            getattr(agent, "config", None), "name", None
+        ) or getattr(agent, "name", "Agent"))
         self.agent_opinions.setdefault(agent_name, {})[option_id] = opinion
 
     def register_dialectical_hook(

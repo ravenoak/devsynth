@@ -216,7 +216,7 @@ class EDRRCoordinator(PersistenceMixin, PhaseManagementMixin):
         )
         self.phase_transition_timeout = pt_cfg.get("timeout", 600)
         self._enable_enhanced_logging = enable_enhanced_logging
-        self._execution_traces = {} if enable_enhanced_logging else None
+        self._execution_traces = {"phases": {}} if enable_enhanced_logging else None
         self._execution_history = [] if enable_enhanced_logging else None
         self.performance_metrics: dict[str, Any] = {}
         # Wrap WSDE team to capture consensus failures unless it's a mock

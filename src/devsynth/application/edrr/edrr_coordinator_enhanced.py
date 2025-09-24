@@ -385,9 +385,7 @@ class EnhancedEDRRCoordinator(EDRRCoordinator):
         # Return the micro cycle
         return micro_cycle
 
-    def _get_llm_response(
-        self, prompt: str, system_prompt: str | None = None
-    ) -> str:
+    def _get_llm_response(self, prompt: str, system_prompt: str | None = None) -> str:
         """Return an LLM completion for ``prompt`` using the provider system."""
         from devsynth.adapters.provider_system import complete
 

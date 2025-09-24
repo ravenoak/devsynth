@@ -352,7 +352,10 @@ _tool_registry.register(
 _tool_registry.register(
     "security_audit",
     security_audit_tool,
-    description="Run security audit checks including static analysis and dependency scanning.",
+    description=(
+        "Run security audit checks including static analysis and "
+        "dependency scanning."
+    ),
     parameters={
         "type": "object",
         "properties": {
@@ -381,7 +384,7 @@ _tool_registry.register(
 _tool_registry.register(
     "doctor",
     doctor_tool,
-    description="Validate configuration files and environment setup.",
+    description=("Validate configuration files and environment setup."),
     parameters={
         "type": "object",
         "properties": {
