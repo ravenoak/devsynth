@@ -95,7 +95,9 @@ def pytest_configure(config: pytest.Config) -> None:
             sources = [cov_source]
 
         if "src/devsynth" in sources:
-            specific_sources = [source for source in sources if source != "src/devsynth"]
+            specific_sources = [
+                source for source in sources if source != "src/devsynth"
+            ]
             if specific_sources:
                 config.option.cov_source = specific_sources
                 sources = specific_sources
@@ -104,11 +106,15 @@ def pytest_configure(config: pytest.Config) -> None:
             repo_root = Path(__file__).resolve().parent
             target_file = repo_root / "src" / "devsynth" / "interface" / "webui.py"
             config.option.cov_source = None
-            config.option.cov_config = str(repo_root / "tests" / "coverage_webui_only.rc")
+            config.option.cov_config = str(
+                repo_root / "tests" / "coverage_webui_only.rc"
+            )
 
             try:
                 import coverage as coverage_mod  # type: ignore[import-not-found]
-            except Exception:  # pragma: no cover - coverage module should be present when --cov is used
+            except (
+                Exception
+            ):  # pragma: no cover - coverage module should be present when --cov is used
                 coverage_mod = None
             else:
                 if not hasattr(coverage_mod, "_devsynth_webui_patch"):
@@ -139,9 +145,7 @@ def pytest_configure(config: pytest.Config) -> None:
                         params["omit"] = omit_list
 
                         instance = original_coverage(*args, **params)
-                        tracked = getattr(
-                            coverage_mod, "_devsynth_webui_instances", []
-                        )
+                        tracked = getattr(coverage_mod, "_devsynth_webui_instances", [])
                         tracked.append(instance)
                         coverage_mod._devsynth_webui_instances = tracked  # type: ignore[attr-defined]
                         return instance
@@ -243,7 +247,9 @@ def _restore_env_and_cwd_between_tests() -> Iterator[None]:
             os.chdir(repo_root)
 
 
-def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:  # noqa: ARG001
+def pytest_sessionfinish(
+    session: pytest.Session, exitstatus: int
+) -> None:  # noqa: ARG001
     """Prune coverage data to the WebUI module when targeting focused runs."""
 
     if not getattr(session.config, "_devsynth_webui_cov_target", False):
@@ -268,7 +274,9 @@ def _prune_webui_coverage_data() -> None:
 
     try:
         import coverage  # type: ignore[import-not-found]
-    except Exception:  # pragma: no cover - coverage module should be available with --cov
+    except (
+        Exception
+    ):  # pragma: no cover - coverage module should be available with --cov
         return
 
     cov = coverage.Coverage()
@@ -277,7 +285,9 @@ def _prune_webui_coverage_data() -> None:
     except Exception:  # pragma: no cover - if no data yet, skip pruning
         return
 
-    target_file = Path(__file__).resolve().parent / "src" / "devsynth" / "interface" / "webui.py"
+    target_file = (
+        Path(__file__).resolve().parent / "src" / "devsynth" / "interface" / "webui.py"
+    )
     data = cov.get_data()
     for filename in list(data.measured_files()):
         if Path(filename) != target_file:
@@ -291,7 +301,9 @@ def _prune_cov_object(cov_obj) -> None:
     if cov_obj is None:
         return
 
-    target_file = Path(__file__).resolve().parent / "src" / "devsynth" / "interface" / "webui.py"
+    target_file = (
+        Path(__file__).resolve().parent / "src" / "devsynth" / "interface" / "webui.py"
+    )
     try:
         data = cov_obj.get_data()
     except Exception:  # pragma: no cover - guard for coverage internals
@@ -299,7 +311,8 @@ def _prune_cov_object(cov_obj) -> None:
     for filename in list(data.measured_files()):
         if Path(filename) != target_file:
             data.erase(filename)
+
+
 if any("--cov=devsynth.interface.webui" in arg for arg in sys.argv):
     repo_root = Path(__file__).resolve().parent
     os.environ["COVERAGE_RCFILE"] = str(repo_root / "tests" / "coverage_webui_only.rc")
-
