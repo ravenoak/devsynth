@@ -9,7 +9,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 chromadb = pytest.importorskip("chromadb")
 
 
-class TestableChromaDBStore(ChromaDBStore):
+class _TestableChromaDBStore(ChromaDBStore):
     def begin_transaction(self):
         return "tx"
 
@@ -40,7 +40,7 @@ def test_store_and_retrieve_with_fallback(monkeypatch, tmp_path):
     monkeypatch.setattr(chromadb, "EphemeralClient", lambda: FailingClient())
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
 
-    store = TestableChromaDBStore(str(tmp_path))
+    store = _TestableChromaDBStore(str(tmp_path))
     item = MemoryItem(
         id=str(uuid.uuid4()),
         content="hello",

@@ -122,7 +122,9 @@ def test_dev_logger_attaches_filters_and_handlers(
     )
 
     file_handlers = [
-        handler for handler in root_logger.handlers if isinstance(handler, logging.FileHandler)
+        handler
+        for handler in root_logger.handlers
+        if isinstance(handler, logging.FileHandler)
     ]
     assert file_handlers, "Expected JSON file handler to be configured"
     assert isinstance(file_handlers[0].formatter, logging_setup.JSONFormatter)
@@ -130,7 +132,8 @@ def test_dev_logger_attaches_filters_and_handlers(
     dev_logger = logging_setup.DevSynthLogger("devsynth.tests.wiring")
     attached_filters = dev_logger.logger.filters
     assert any(
-        isinstance(filt, logging_setup.RequestContextFilter) for filt in attached_filters
+        isinstance(filt, logging_setup.RequestContextFilter)
+        for filt in attached_filters
     )
     assert any(
         isinstance(filt, logging_setup.RedactSecretsFilter) for filt in attached_filters

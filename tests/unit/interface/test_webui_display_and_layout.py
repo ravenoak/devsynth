@@ -75,7 +75,9 @@ def webui_module(monkeypatch):
         ),
     ],
 )
-def test_get_layout_config_breakpoints(webui_module: tuple[Any, FakeStreamlit], width: int | None, expected: dict[str, Any]) -> None:
+def test_get_layout_config_breakpoints(
+    webui_module: tuple[Any, FakeStreamlit], width: int | None, expected: dict[str, Any]
+) -> None:
     """``get_layout_config`` adapts layout metadata to screen width."""
 
     webui, fake_streamlit = webui_module
@@ -104,7 +106,9 @@ def test_display_result_renders_markup_and_sanitizes(monkeypatch, webui_module):
     ui.display_result("[bold]Alert[/bold] with [red]danger[/red] <danger>")
 
     assert sanitized_inputs == ["[bold]Alert[/bold] with [red]danger[/red] <danger>"]
-    assert fake_streamlit.markdown_calls, "Expected markdown rendering for markup content"
+    assert (
+        fake_streamlit.markdown_calls
+    ), "Expected markdown rendering for markup content"
 
     content, kwargs = fake_streamlit.markdown_calls[0]
     assert "**Alert**" in content

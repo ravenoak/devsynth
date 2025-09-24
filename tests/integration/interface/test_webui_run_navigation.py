@@ -79,12 +79,17 @@ def test_run_injects_assets_and_resets_navigation(monkeypatch, webui_module):
     assert "updateScreenWidth" in script
     assert kwargs.get("height") == 0
 
-    css_calls = [entry for entry in fake_streamlit.markdown_calls if "<style>" in entry[0]]
+    css_calls = [
+        entry for entry in fake_streamlit.markdown_calls if "<style>" in entry[0]
+    ]
     assert css_calls
     assert css_calls[0][1].get("unsafe_allow_html") is True
 
     assert fake_streamlit.sidebar_title_calls == ["DevSynth"]
-    assert any("devsynth-secondary" in text for text, _ in fake_streamlit.sidebar_markdown_calls)
+    assert any(
+        "devsynth-secondary" in text
+        for text, _ in fake_streamlit.sidebar_markdown_calls
+    )
 
 
 def test_run_handles_page_config_errors(monkeypatch, webui_module):

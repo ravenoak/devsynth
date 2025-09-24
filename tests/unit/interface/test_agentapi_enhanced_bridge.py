@@ -62,7 +62,9 @@ def test_enhanced_progress_tracks_subtasks(enhanced_module):
     progress.complete()
 
     assert bridge.messages[0] == "Starting: Build (0/4)"
-    assert any("Progress: Build (1/4) - Processing..." in msg for msg in bridge.messages)
+    assert any(
+        "Progress: Build (1/4) - Processing..." in msg for msg in bridge.messages
+    )
     assert any("Subtask started: Sub" in msg for msg in bridge.messages)
     assert any("Subtask progress: Sub" in msg for msg in bridge.messages)
     assert any("Subtask completed: Sub" in msg for msg in bridge.messages)

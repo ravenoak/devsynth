@@ -30,7 +30,9 @@ class _RecorderCoordinator:
         self.recorded.append(Phase.REFINE)
         return result
 
-    def record_consensus_failure(self, _exc: Exception) -> None:  # pragma: no cover - defensive
+    def record_consensus_failure(
+        self, _exc: Exception
+    ) -> None:  # pragma: no cover - defensive
         return None
 
 
@@ -39,8 +41,12 @@ def patch_reasoning_loop(monkeypatch: pytest.MonkeyPatch):
     """Patch reasoning loop internals to use deterministic callables."""
 
     def _apply(fake_callable):
-        monkeypatch.setattr(rl, "_apply_dialectical_reasoning", fake_callable, raising=False)
-        monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: fake_callable)
+        monkeypatch.setattr(
+            rl, "_apply_dialectical_reasoning", fake_callable, raising=False
+        )
+        monkeypatch.setattr(
+            rl, "_import_apply_dialectical_reasoning", lambda: fake_callable
+        )
 
     return _apply
 

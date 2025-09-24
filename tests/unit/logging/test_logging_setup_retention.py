@@ -94,7 +94,8 @@ def test_configure_logging_retention_matrix(
 
     expected_dir = os.path.join(str(project_dir), log_dir_argument)
     expected_file = os.path.join(
-        expected_dir, os.environ.get("DEVSYNTH_LOG_FILENAME", logging_setup.DEFAULT_LOG_FILENAME)
+        expected_dir,
+        os.environ.get("DEVSYNTH_LOG_FILENAME", logging_setup.DEFAULT_LOG_FILENAME),
     )
 
     assert logging_setup._configured_log_dir == expected_dir
@@ -110,12 +111,16 @@ def test_configure_logging_retention_matrix(
 
     root_logger = logging.getLogger()
     console_handlers = [
-        handler for handler in root_logger.handlers if isinstance(handler, logging.StreamHandler)
+        handler
+        for handler in root_logger.handlers
+        if isinstance(handler, logging.StreamHandler)
     ]
     assert console_handlers, "Console handler must always be configured."
 
     file_handlers = [
-        handler for handler in root_logger.handlers if isinstance(handler, logging.FileHandler)
+        handler
+        for handler in root_logger.handlers
+        if isinstance(handler, logging.FileHandler)
     ]
     if expected_effective:
         assert len(file_handlers) == 1
@@ -130,8 +135,12 @@ def test_configure_logging_retention_matrix(
 @pytest.mark.parametrize(
     ("log_dir_input", "log_file_name"),
     [
-        pytest.param(Path.home() / "devsynth" / "logs", "home.json", id="home-absolute"),
-        pytest.param(Path("/var/tmp/devsynth/logs"), "system.json", id="non-home-absolute"),
+        pytest.param(
+            Path.home() / "devsynth" / "logs", "home.json", id="home-absolute"
+        ),
+        pytest.param(
+            Path("/var/tmp/devsynth/logs"), "system.json", id="non-home-absolute"
+        ),
     ],
 )
 def test_configure_logging_relocates_absolute_paths(
@@ -186,7 +195,9 @@ def test_configure_logging_relocates_absolute_paths(
 
     root_logger = logging.getLogger()
     file_handlers = [
-        handler for handler in root_logger.handlers if isinstance(handler, logging.FileHandler)
+        handler
+        for handler in root_logger.handlers
+        if isinstance(handler, logging.FileHandler)
     ]
     assert len(file_handlers) == 1
     file_handler = file_handlers[0]
@@ -194,6 +205,10 @@ def test_configure_logging_relocates_absolute_paths(
     assert isinstance(file_handler.formatter, logging_setup.JSONFormatter)
 
     console_handlers = [
-        handler for handler in root_logger.handlers if isinstance(handler, logging.StreamHandler)
+        handler
+        for handler in root_logger.handlers
+        if isinstance(handler, logging.StreamHandler)
     ]
-    assert console_handlers, "Console handler should remain active alongside file handler."
+    assert (
+        console_handlers
+    ), "Console handler should remain active alongside file handler."

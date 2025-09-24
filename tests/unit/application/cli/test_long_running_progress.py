@@ -1,7 +1,7 @@
 import importlib
 import time
-from datetime import datetime, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
 import pytest
@@ -10,6 +10,7 @@ progress_module = importlib.import_module("devsynth.application.cli.progress")
 
 
 if not hasattr(progress_module, "EnhancedProgressIndicator"):
+
     class EnhancedProgressIndicator:  # pragma: no cover - test shim
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             pass
@@ -20,7 +21,9 @@ if not hasattr(progress_module, "EnhancedProgressIndicator"):
         progress_module.__all__ = list(all_names) + ["EnhancedProgressIndicator"]
 
 
-long_running_progress = importlib.import_module("devsynth.application.cli.long_running_progress")
+long_running_progress = importlib.import_module(
+    "devsynth.application.cli.long_running_progress"
+)
 
 
 class FakeClock:
@@ -75,7 +78,9 @@ class FakeProgress:
         self._next_task_id += 1
         task_fields = dict(fields)
         completed = float(task_fields.pop("completed", 0.0))
-        task = FakeTask(task_id, description, total, completed=completed, fields=task_fields)
+        task = FakeTask(
+            task_id, description, total, completed=completed, fields=task_fields
+        )
         self.tasks[task_id] = task
         return task_id
 
@@ -149,7 +154,9 @@ class ExplosiveRepr:
 @pytest.mark.fast
 def test_update_adapts_interval_and_checkpoints(fake_clock: FakeClock) -> None:
     console = DummyConsole()
-    indicator = long_running_progress.LongRunningProgressIndicator(console, "task", total=100)
+    indicator = long_running_progress.LongRunningProgressIndicator(
+        console, "task", total=100
+    )
 
     indicator.update(advance=5)
     assert indicator._update_interval == pytest.approx(0.5)
@@ -185,7 +192,9 @@ def test_update_adapts_interval_and_checkpoints(fake_clock: FakeClock) -> None:
 @pytest.mark.fast
 def test_status_history_tracks_unique_status_changes(fake_clock: FakeClock) -> None:
     console = DummyConsole()
-    indicator = long_running_progress.LongRunningProgressIndicator(console, "task", total=20)
+    indicator = long_running_progress.LongRunningProgressIndicator(
+        console, "task", total=20
+    )
 
     indicator.update(advance=5, status="Loading")
     indicator.update(advance=5, status="Loading")
@@ -194,7 +203,11 @@ def test_status_history_tracks_unique_status_changes(fake_clock: FakeClock) -> N
 
     task = indicator._progress.tasks[indicator._task]
     history = task.fields["history"]
-    assert [entry["status"] for entry in history] == ["Loading", "Processing", "Complete"]
+    assert [entry["status"] for entry in history] == [
+        "Loading",
+        "Processing",
+        "Complete",
+    ]
     assert [entry["completed"] for entry in history] == [0, 10, 15]
     assert [entry["time"] for entry in history] == pytest.approx([4.0, 6.0, 7.0])
     assert task.fields["status"] == "Complete"
@@ -226,7 +239,9 @@ def test_summary_reflects_fake_timeline_and_sanitizes_descriptions(
     assert "remaining" in summary
     expected_remaining = summary["elapsed"] / summary["progress"] - summary["elapsed"]
     assert summary["remaining"] == pytest.approx(expected_remaining)
-    assert summary["eta"] == pytest.approx(indicator._start_time + summary["elapsed"] / summary["progress"])
+    assert summary["eta"] == pytest.approx(
+        indicator._start_time + summary["elapsed"] / summary["progress"]
+    )
     assert task.fields["checkpoints"] == summary["checkpoints"]
 
 
@@ -264,7 +279,9 @@ def test_subtask_updates_remap_and_short_circuit(fake_clock: FakeClock) -> None:
     assert renamed_task.description.endswith("phase 1b")
     assert renamed_task.completed == pytest.approx(20)
 
-    assert indicator._progress.tasks[main_task_id].completed == pytest.approx(expected_main)
+    assert indicator._progress.tasks[main_task_id].completed == pytest.approx(
+        expected_main
+    )
 
     fake_clock.advance(1.0)
     snapshot_before = indicator._progress.snapshot(main_task_id)
@@ -303,13 +320,19 @@ def test_subtask_completion_rolls_up_and_freezes_summary(fake_clock: FakeClock) 
     indicator.complete_subtask(stage_one)
 
     main_task_after = indicator._progress.tasks[main_task_id]
-    expected_rollup = remaining * main_task.total / (len(indicator._subtasks) * stage_one_task.total)
-    assert main_task_after.completed == pytest.approx(before_completion + expected_rollup)
+    expected_rollup = (
+        remaining * main_task.total / (len(indicator._subtasks) * stage_one_task.total)
+    )
+    assert main_task_after.completed == pytest.approx(
+        before_completion + expected_rollup
+    )
     assert indicator._progress.tasks[stage_one_task_id].completed == pytest.approx(
         stage_one_task.total
     )
 
-    history_before_complete = [dict(entry) for entry in main_task_after.fields["history"]]
+    history_before_complete = [
+        dict(entry) for entry in main_task_after.fields["history"]
+    ]
     checkpoints_before_complete = [
         dict(entry) for entry in main_task_after.fields["checkpoints"]
     ]
@@ -320,12 +343,19 @@ def test_subtask_completion_rolls_up_and_freezes_summary(fake_clock: FakeClock) 
     completion_time = fake_clock.history[-1]
     elapsed_seconds = int(completion_time - indicator._start_time)
     expected_elapsed_str = str(timedelta(seconds=elapsed_seconds))
-    assert console.messages[-1][0][0] == f"[bold green]Task completed in {expected_elapsed_str}[/bold green]"
+    assert (
+        console.messages[-1][0][0]
+        == f"[bold green]Task completed in {expected_elapsed_str}[/bold green]"
+    )
     assert indicator._progress.stopped
 
     main_task_final = indicator._progress.tasks[main_task_id]
-    assert [dict(entry) for entry in main_task_final.fields["history"]] == history_before_complete
-    assert [dict(entry) for entry in main_task_final.fields["checkpoints"]] == checkpoints_before_complete
+    assert [
+        dict(entry) for entry in main_task_final.fields["history"]
+    ] == history_before_complete
+    assert [
+        dict(entry) for entry in main_task_final.fields["checkpoints"]
+    ] == checkpoints_before_complete
 
     stage_two_task_id = indicator._subtasks[stage_two]
     stage_two_task = indicator._progress.tasks[stage_two_task_id]

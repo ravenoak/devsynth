@@ -128,9 +128,7 @@ def test_tag_exists_when_present(monkeypatch: pytest.MonkeyPatch) -> None:
 
     root = Path.cwd()
     setup_git_repo(root)
-    subprocess.run(
-        ["git", "tag", "v9.9.9"], cwd=root, check=True, capture_output=True
-    )
+    subprocess.run(["git", "tag", "v9.9.9"], cwd=root, check=True, capture_output=True)
     monkeypatch.setattr(verify_release_state, "ROOT", root)
     assert verify_release_state.tag_exists("v9.9.9")
 

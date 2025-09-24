@@ -83,9 +83,7 @@ class _PromptStub:
         self.selectbox_calls.append((label, options_tuple, index, key))
         return options_tuple[index]
 
-    def checkbox(
-        self, label: str, value: bool = False, key: str | None = None
-    ) -> bool:
+    def checkbox(self, label: str, value: bool = False, key: str | None = None) -> bool:
         self.checkbox_calls.append((label, value, key))
         return value
 

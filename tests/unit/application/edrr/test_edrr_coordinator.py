@@ -182,9 +182,9 @@ class TestEDRRCoordinator:
         coordinator.cycle_id = "test-cycle-id"
         coordinator.current_phase = Phase.EXPAND
         results = coordinator._execute_expand_phase({})
-        assert "ideas" in results
-        assert "knowledge" in results
-        assert "code_elements" in results
+        assert "wsde_brainstorm" in results
+        assert "documentation" in results
+        assert "completed" in results
         assert wsde_team.generate_diverse_ideas.call_count == 1
         assert memory_manager.retrieve_relevant_knowledge.call_count == 1
         assert code_analyzer.analyze_project_structure.call_count == 1

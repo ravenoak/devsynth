@@ -29,7 +29,11 @@ if "duckdb" not in sys.modules:
 class RecordingCursor:
     """Minimal cursor stub supporting the chained fetch API used by DuckDBStore."""
 
-    def __init__(self, fetchone_result: Any | None = None, fetchall_result: List[Any] | None = None) -> None:
+    def __init__(
+        self,
+        fetchone_result: Any | None = None,
+        fetchall_result: List[Any] | None = None,
+    ) -> None:
         self._fetchone_result = fetchone_result
         self._fetchall_result = fetchall_result or []
 
@@ -47,7 +51,9 @@ class RecordingConnection:
         self.fail_vector_extension = fail_vector_extension
         self.commands: List[Tuple[str, Any]] = []
 
-    def execute(self, sql: str, params: Tuple[Any, ...] | None = None) -> RecordingCursor:
+    def execute(
+        self, sql: str, params: Tuple[Any, ...] | None = None
+    ) -> RecordingCursor:
         normalized = " ".join(str(sql).split())
         self.commands.append((normalized, params))
         if self.fail_vector_extension and "INSTALL vector" in normalized:
@@ -55,7 +61,9 @@ class RecordingConnection:
         return RecordingCursor()
 
 
-def _build_store(tmp_path, connection: RecordingConnection, enable_hnsw: bool) -> types.SimpleNamespace:
+def _build_store(
+    tmp_path, connection: RecordingConnection, enable_hnsw: bool
+) -> types.SimpleNamespace:
     return types.SimpleNamespace(
         base_path=str(tmp_path),
         db_file=os.path.join(str(tmp_path), "memory.duckdb"),
@@ -87,18 +95,23 @@ def test_initialize_schema_configures_hnsw_when_enabled(monkeypatch, tmp_path):
     connection = RecordingConnection()
     store = _build_store(tmp_path, connection, enable_hnsw=True)
 
-    monkeypatch.setattr(duckdb_store.feature_flags, "experimental_enabled", lambda: True)
+    monkeypatch.setattr(
+        duckdb_store.feature_flags, "experimental_enabled", lambda: True
+    )
 
     duckdb_store.DuckDBStore._initialize_schema(store)
 
     assert store.vector_extension_available is True
     commands = [cmd for cmd, _ in connection.commands]
-    assert any("SET hnsw_enable_experimental_persistence = true;" in cmd for cmd in commands)
+    assert any(
+        "SET hnsw_enable_experimental_persistence = true;" in cmd for cmd in commands
+    )
     assert any(f"SET hnsw_M = {store.hnsw_config['M']};" in cmd for cmd in commands)
     assert any(
         f"SET hnsw_efConstruction = {store.hnsw_config['efConstruction']};" in cmd
         for cmd in commands
     )
     assert any(
-        f"SET hnsw_efSearch = {store.hnsw_config['efSearch']};" in cmd for cmd in commands
+        f"SET hnsw_efSearch = {store.hnsw_config['efSearch']};" in cmd
+        for cmd in commands
     )

@@ -45,13 +45,17 @@ def test_format_command_output_json_yaml_with_and_without_console() -> None:
 
     console_formatter = OutputFormatter(console=Console(width=120, record=True))
 
-    json_renderable = console_formatter.format_command_output(payload, format_name="json")
+    json_renderable = console_formatter.format_command_output(
+        payload, format_name="json"
+    )
     assert isinstance(json_renderable, Syntax)
     assert json_renderable.code == json.dumps(
         payload, indent=console_formatter.indent, sort_keys=True
     )
 
-    yaml_renderable = console_formatter.format_command_output(payload, format_name="yaml")
+    yaml_renderable = console_formatter.format_command_output(
+        payload, format_name="yaml"
+    )
     assert isinstance(yaml_renderable, Syntax)
     assert yaml.safe_load(yaml_renderable.code) == payload
 
@@ -87,7 +91,9 @@ def test_format_command_output_table_fallback_and_empty_list(
     assert sanitized == ["plain", "{'nested': [1, 2]}"]
 
     sanitized.clear()
-    empty_table = formatter.format_command_output([], format_name="table", title="No Rows")
+    empty_table = formatter.format_command_output(
+        [], format_name="table", title="No Rows"
+    )
     assert isinstance(empty_table, Table)
     assert empty_table.title == "No Rows"
     assert len(empty_table.columns) == 0
@@ -95,7 +101,9 @@ def test_format_command_output_table_fallback_and_empty_list(
     assert sanitized == []
 
 
-def test_format_command_output_rich_renderables(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_format_command_output_rich_renderables(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Rich overrides should wrap dictionaries, list rows, and bullets with sanitization."""
 
     formatter = OutputFormatter()
@@ -129,7 +137,9 @@ def test_format_command_output_rich_renderables(monkeypatch: pytest.MonkeyPatch)
     )
     assert isinstance(records_table, Table)
     assert [column.header for column in records_table.columns] == ["col", "extra"]
-    col_column = next(column for column in records_table.columns if column.header == "col")
+    col_column = next(
+        column for column in records_table.columns if column.header == "col"
+    )
     extra_column = next(
         column for column in records_table.columns if column.header == "extra"
     )
@@ -148,7 +158,9 @@ def test_format_command_output_rich_renderables(monkeypatch: pytest.MonkeyPatch)
     assert sanitized == ["first", "second"]
 
     sanitized.clear()
-    empty_renderable = formatter.format_command_output([], format_name="rich", title="Empty")
+    empty_renderable = formatter.format_command_output(
+        [], format_name="rich", title="Empty"
+    )
     assert isinstance(empty_renderable, Table)
     assert empty_renderable.title == "Empty"
     assert len(empty_renderable.columns) == 0

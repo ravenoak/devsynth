@@ -280,7 +280,9 @@ def test_configure_logging_create_dir_guard_preserves_console_only_mode(
 
     def fail_if_called(path: str) -> str:
         calls.append(path)
-        raise AssertionError("ensure_log_dir_exists should not be invoked when create_dir=False")
+        raise AssertionError(
+            "ensure_log_dir_exists should not be invoked when create_dir=False"
+        )
 
     monkeypatch.setattr(logging_setup, "ensure_log_dir_exists", fail_if_called)
 
@@ -306,7 +308,8 @@ def test_configure_logging_create_dir_guard_preserves_console_only_mode(
         guard_logger.logger.removeHandler(caplog.handler)
 
     assert any(
-        record.name == "devsynth.tests.guard" and record.getMessage() == "console only active"
+        record.name == "devsynth.tests.guard"
+        and record.getMessage() == "console only active"
         for record in caplog.records
     ), "Console log should be captured when only stream handler is active."
 

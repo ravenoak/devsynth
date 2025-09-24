@@ -69,7 +69,9 @@ def test_handle_command_errors_passthrough(webui_module, monkeypatch):
         ),
     ],
 )
-def test_handle_command_errors_known_exceptions(webui_module, factory, expected, hint, monkeypatch):
+def test_handle_command_errors_known_exceptions(
+    webui_module, factory, expected, hint, monkeypatch
+):
     """Each specific exception surfaces user guidance via ``display_result``."""
 
     ui = webui_module.WebUI()

@@ -384,8 +384,13 @@ def test_configure_logging_redirects_home_and_disables_file_handler(
         configured_dir = Path(get_log_dir())
         assert configured_dir.is_relative_to(tmp_path)
         relative_to_project = configured_dir.relative_to(tmp_path)
-        assert relative_to_project.parts[-len(expected_suffix.parts) :] == expected_suffix.parts
-        assert not configured_dir.exists(), "Directory should not be created when file logging is off"
+        assert (
+            relative_to_project.parts[-len(expected_suffix.parts) :]
+            == expected_suffix.parts
+        )
+        assert (
+            not configured_dir.exists()
+        ), "Directory should not be created when file logging is off"
 
         configured_file = Path(get_log_file())
         assert configured_file.parent == configured_dir
@@ -528,7 +533,11 @@ def test_devsynth_logger_log_table_normalization(monkeypatch: pytest.MonkeyPatch
         {
             "label": "tuple-exc-info",
             "exc_input": tuple_exc,
-            "extra_input": {"custom": "value", "message": "intruder", "threadName": "drop"},
+            "extra_input": {
+                "custom": "value",
+                "message": "intruder",
+                "threadName": "drop",
+            },
             "stray_kwargs": {"nested": {"feature": "present"}, "thread": 5},
             "expected_extra": {"custom": "value", "nested": {"feature": "present"}},
         },
@@ -567,7 +576,14 @@ def test_devsynth_logger_log_table_normalization(monkeypatch: pytest.MonkeyPatch
 
         extra = log_kwargs["extra"]
         assert extra == scenario["expected_extra"]
-        for reserved in ("name", "lineno", "process", "thread", "message", "threadName"):
+        for reserved in (
+            "name",
+            "lineno",
+            "process",
+            "thread",
+            "message",
+            "threadName",
+        ):
             assert reserved not in extra
 
         exc_info = log_kwargs["exc_info"]
@@ -620,7 +636,9 @@ def test_devsynth_logger_log_does_not_mutate_extra_inputs():
 
 
 @pytest.mark.fast
-def test_devsynth_logger_log_normalizes_truthy_exc_info(monkeypatch: pytest.MonkeyPatch):
+def test_devsynth_logger_log_normalizes_truthy_exc_info(
+    monkeypatch: pytest.MonkeyPatch,
+):
     """ReqID: LOG-06D — ``exc_info`` coercion falls back to ``sys.exc_info`` when needed.
 
     Issue: issues/coverage-below-threshold.md

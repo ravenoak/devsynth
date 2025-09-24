@@ -178,13 +178,19 @@ def test_z_bridge_accessors_and_wizard_paths_cover_invariants(
     ui = bridge.WebUIBridge()
 
     with caplog.at_level("WARNING"):
-        assert bridge.WebUIBridge.adjust_wizard_step("1", direction="next", total=2) == 1
+        assert (
+            bridge.WebUIBridge.adjust_wizard_step("1", direction="next", total=2) == 1
+        )
     caplog.clear()
     with caplog.at_level("WARNING"):
-        assert bridge.WebUIBridge.adjust_wizard_step(0, direction="back", total="bad") == 0
+        assert (
+            bridge.WebUIBridge.adjust_wizard_step(0, direction="back", total="bad") == 0
+        )
     caplog.clear()
     with caplog.at_level("WARNING"):
-        assert bridge.WebUIBridge.adjust_wizard_step(0, direction="sideways", total=1) == 0
+        assert (
+            bridge.WebUIBridge.adjust_wizard_step(0, direction="sideways", total=1) == 0
+        )
 
     assert bridge.WebUIBridge.normalize_wizard_step(1.2, total=3) == 1
     assert bridge.WebUIBridge.normalize_wizard_step(" 2 ", total=3) == 2
@@ -197,7 +203,9 @@ def test_z_bridge_accessors_and_wizard_paths_cover_invariants(
 
     formatter_calls: list[tuple[str, str | None, bool]] = []
 
-    def fake_format(message: str, message_type: str | None = None, highlight: bool = False) -> str:
+    def fake_format(
+        message: str, message_type: str | None = None, highlight: bool = False
+    ) -> str:
         formatter_calls.append((message, message_type, highlight))
         return f"{message_type or 'normal'}::{highlight}"
 

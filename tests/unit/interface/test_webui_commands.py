@@ -4,9 +4,9 @@ from types import ModuleType
 import pytest
 
 import devsynth.interface.webui.commands as commands
+from devsynth.exceptions import DevSynthError
 from devsynth.interface import webui
 from devsynth.interface.webui.commands import CommandHandlingMixin
-from devsynth.exceptions import DevSynthError
 from tests.fixtures.streamlit_mocks import make_streamlit_mock
 
 pytestmark = [

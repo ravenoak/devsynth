@@ -3,7 +3,6 @@ from unittest.mock import MagicMock
 
 import pytest
 import yaml
-
 from rich.table import Table
 
 from devsynth.application.cli import requirements_commands as rc
@@ -169,9 +168,7 @@ def test_list_requirements_renders_rich_table(monkeypatch):
     (table,) = bridge.print.call_args.args
     assert isinstance(table, Table)
     assert len(table.rows) == 1
-    column_values = {
-        column.header: list(column._cells) for column in table.columns
-    }
+    column_values = {column.header: list(column._cells) for column in table.columns}
     assert column_values["ID"][0] == str(requirement.id)
     assert column_values["Title"][0] == requirement.title
     assert column_values["Status"][0] == requirement.status.value

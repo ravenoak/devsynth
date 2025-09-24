@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import importlib
@@ -87,7 +86,9 @@ def test_nested_subtask_handles_fallbacks_and_missing_parents(
     assert nested["description"] == "<nested subtask>"
 
     nested_before = dict(nested)
-    indicator.update_nested_subtask(parent_id, nested_id, description=BadString(), advance=0)
+    indicator.update_nested_subtask(
+        parent_id, nested_id, description=BadString(), advance=0
+    )
     assert nested["description"] == nested_before["description"]
     assert nested["current"] == nested_before["current"]
 
@@ -256,9 +257,14 @@ def test_wizard_clamps_handle_invalid_inputs(
     bridge, _ = webui_bridge_module
     assert bridge.WebUIBridge.adjust_wizard_step(2, direction="next", total=2) == 1
     with caplog.at_level("WARNING"):
-        assert bridge.WebUIBridge.adjust_wizard_step("bad", direction="back", total=3) == 0
+        assert (
+            bridge.WebUIBridge.adjust_wizard_step("bad", direction="back", total=3) == 0
+        )
     with caplog.at_level("WARNING"):
-        assert bridge.WebUIBridge.adjust_wizard_step(1, direction="sideways", total=-4) == 0
+        assert (
+            bridge.WebUIBridge.adjust_wizard_step(1, direction="sideways", total=-4)
+            == 0
+        )
 
     assert bridge.WebUIBridge.normalize_wizard_step(9, total=3) == 2
     with caplog.at_level("WARNING"):

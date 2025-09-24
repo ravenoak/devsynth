@@ -9,6 +9,7 @@ import pytest
 def stub_streamlit(monkeypatch):
     """Create a stub streamlit module for testing."""
     st = ModuleType("streamlit")
+
     class State(dict):
         def __getattr__(self, name):
             try:
@@ -79,15 +80,17 @@ def test_gather_wizard_finish_calls_gather_requirements(
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 
-    stub_streamlit.session_state = type(stub_streamlit.session_state)({
-        "gather_wizard_current_step": 3,
-        "gather_wizard_total_steps": 3,
-        "gather_wizard_completed": False,
-        "gather_wizard_wizard_started": True,
-        "gather_wizard_resource_type": "documentation",
-        "gather_wizard_resource_location": "/docs",
-        "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
-    })
+    stub_streamlit.session_state = type(stub_streamlit.session_state)(
+        {
+            "gather_wizard_current_step": 3,
+            "gather_wizard_total_steps": 3,
+            "gather_wizard_completed": False,
+            "gather_wizard_wizard_started": True,
+            "gather_wizard_resource_type": "documentation",
+            "gather_wizard_resource_location": "/docs",
+            "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
+        }
+    )
 
     def button_side_effect(label, key=None, **kwargs):
         return key == "finish_button"
@@ -108,15 +111,17 @@ def test_gather_wizard_import_error(stub_streamlit, monkeypatch):
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 
-    stub_streamlit.session_state = type(stub_streamlit.session_state)({
-        "gather_wizard_current_step": 3,
-        "gather_wizard_total_steps": 3,
-        "gather_wizard_completed": False,
-        "gather_wizard_wizard_started": True,
-        "gather_wizard_resource_type": "documentation",
-        "gather_wizard_resource_location": "/docs",
-        "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
-    })
+    stub_streamlit.session_state = type(stub_streamlit.session_state)(
+        {
+            "gather_wizard_current_step": 3,
+            "gather_wizard_total_steps": 3,
+            "gather_wizard_completed": False,
+            "gather_wizard_wizard_started": True,
+            "gather_wizard_resource_type": "documentation",
+            "gather_wizard_resource_location": "/docs",
+            "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
+        }
+    )
     stub_streamlit.button.side_effect = (
         lambda label, key=None, **kwargs: key == "finish_button"
     )
@@ -140,15 +145,17 @@ def test_gather_wizard_exception(stub_streamlit, mock_gather_requirements):
     importlib.reload(webui)
     from devsynth.interface.webui import WebUI
 
-    stub_streamlit.session_state = type(stub_streamlit.session_state)({
-        "gather_wizard_current_step": 3,
-        "gather_wizard_total_steps": 3,
-        "gather_wizard_completed": False,
-        "gather_wizard_wizard_started": True,
-        "gather_wizard_resource_type": "documentation",
-        "gather_wizard_resource_location": "/docs",
-        "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
-    })
+    stub_streamlit.session_state = type(stub_streamlit.session_state)(
+        {
+            "gather_wizard_current_step": 3,
+            "gather_wizard_total_steps": 3,
+            "gather_wizard_completed": False,
+            "gather_wizard_wizard_started": True,
+            "gather_wizard_resource_type": "documentation",
+            "gather_wizard_resource_location": "/docs",
+            "gather_wizard_resource_metadata": {"author": "A", "version": "1.0"},
+        }
+    )
     stub_streamlit.button.side_effect = (
         lambda label, key=None, **kwargs: key == "finish_button"
     )

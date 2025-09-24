@@ -226,9 +226,7 @@ class TestIngestCmd:
     ):
         """Priority flag should persist to the unified configuration."""
 
-        config = types.SimpleNamespace(
-            config=types.SimpleNamespace(priority=None)
-        )
+        config = types.SimpleNamespace(config=types.SimpleNamespace(priority=None))
         loader = types.SimpleNamespace(
             load=MagicMock(return_value=config),
             save=MagicMock(),

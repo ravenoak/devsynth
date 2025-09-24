@@ -16,7 +16,6 @@ from devsynth.application.requirements.interactions import (
 )
 from devsynth.interface.ux_bridge import UXBridge
 
-
 pytestmark = pytest.mark.fast
 
 
@@ -96,7 +95,9 @@ class GatherBridge(UXBridge):
         self.messages.append(message)
 
 
-def test_gather_requirements_supports_backtracking(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_gather_requirements_supports_backtracking(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """The gatherer handles "back" navigation and persists to YAML plus config."""
 
     answers = ["back", "goal1,goal2", "latency<100ms", "high"]

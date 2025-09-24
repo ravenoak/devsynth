@@ -153,7 +153,9 @@ def test_smoke_command_injects_pytest_bdd_plugin(
     assert (tmp_path / ".coverage").exists()
     assert (tmp_path / "test_reports" / "coverage.json").exists()
     assert (tmp_path / "htmlcov" / "index.html").exists()
-    assert any("-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
+    assert any(
+        "-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs
+    )
     assert any("-p pytest_cov" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
     assert combine_calls, "coverage fragments should be consolidated"
     assert "IndexError" not in result.stdout

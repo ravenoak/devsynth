@@ -276,7 +276,9 @@ def test_fallback_provider_uses_next_provider_on_failure():
 
 def test_fallback_provider_propagates_failure_when_all_fail():
     primary = PrimaryTestProvider(error=provider_system.ProviderError("fail primary"))
-    secondary = SecondaryTestProvider(error=provider_system.ProviderError("fail secondary"))
+    secondary = SecondaryTestProvider(
+        error=provider_system.ProviderError("fail secondary")
+    )
     fallback = provider_system.FallbackProvider(
         providers=[primary, secondary],
         config=_fallback_config(),
@@ -316,7 +318,9 @@ def test_fallback_initialization_orders_providers_and_records_circuit_results(
             "recovery_timeout": 9.0,
         },
     )
-    config["retry"].update({"max_retries": 2, "initial_delay": 0.3, "track_metrics": True})
+    config["retry"].update(
+        {"max_retries": 2, "initial_delay": 0.3, "track_metrics": True}
+    )
 
     class RecordingCircuitBreaker:
         def __init__(self, *, failure_threshold: int, recovery_timeout: float):
@@ -446,7 +450,10 @@ class AsyncSecondaryProvider:
 
 @pytest.mark.asyncio
 async def test_async_fallback_skips_open_circuit_breaker():
-    providers = [AsyncPrimaryProvider(result="unused"), AsyncSecondaryProvider(result="good")]
+    providers = [
+        AsyncPrimaryProvider(result="unused"),
+        AsyncSecondaryProvider(result="good"),
+    ]
     fallback = provider_system.FallbackProvider(
         providers=providers,
         config=_fallback_config(circuit_breaker={"enabled": True}),
@@ -600,7 +607,11 @@ async def test_async_fallback_circuit_breaker_recovery(monkeypatch):
     fallback = provider_system.FallbackProvider(
         providers=[primary, secondary],
         config=_fallback_config(
-            circuit_breaker={"enabled": True, "failure_threshold": 1, "recovery_timeout": 0.0}
+            circuit_breaker={
+                "enabled": True,
+                "failure_threshold": 1,
+                "recovery_timeout": 0.0,
+            }
         ),
     )
 
@@ -675,7 +686,11 @@ async def test_async_fallback_metrics_permutations(
             async def acomplete(self, **kwargs):
                 self.calls += 1
                 if not succeed:
-                    message = "429 Too Many Requests" if name == "primary" else f"{name} failure"
+                    message = (
+                        "429 Too Many Requests"
+                        if name == "primary"
+                        else f"{name} failure"
+                    )
                     raise provider_system.ProviderError(message)
                 return f"{name}-ok"
 
@@ -687,7 +702,11 @@ async def test_async_fallback_metrics_permutations(
     fallback = provider_system.FallbackProvider(
         providers=[primary, secondary],
         config=_fallback_config(
-            circuit_breaker={"enabled": True, "failure_threshold": 1, "recovery_timeout": 0.0}
+            circuit_breaker={
+                "enabled": True,
+                "failure_threshold": 1,
+                "recovery_timeout": 0.0,
+            }
         ),
     )
 
@@ -966,6 +985,7 @@ def test_lmstudio_provider_complete_uses_custom_messages(monkeypatch):
 
     requests_stub = _RequestsStub()
     monkeypatch.setattr(provider_system, "requests", requests_stub)
+
     class _TLSKwargs(dict):
         def __init__(self, verify: bool, timeout_val: float):
             super().__init__({"verify": verify})
@@ -999,7 +1019,9 @@ def test_lmstudio_provider_complete_uses_custom_messages(monkeypatch):
     result = provider.complete("prompt", system_prompt="system", parameters=params)
 
     assert result == "lm answer"
-    post_call = next(call for call in requests_stub.calls if call.get("method") == "post")
+    post_call = next(
+        call for call in requests_stub.calls if call.get("method") == "post"
+    )
     assert post_call["json"]["messages"][0]["content"] == "prefill"
     assert post_call["json"]["stop"] == ["###"]
     get_call = next(call for call in requests_stub.calls if call.get("method") == "get")
@@ -1252,7 +1274,9 @@ def test_openai_provider_async_paths(monkeypatch):
             self.calls.append({"url": url, "json": json})
             if url.endswith("/embeddings"):
                 return _AsyncResponse({"data": [{"embedding": [0.9, 0.1]}]})
-            return _AsyncResponse({"choices": [{"message": {"content": "openai-async"}}]})
+            return _AsyncResponse(
+                {"choices": [{"message": {"content": "openai-async"}}]}
+            )
 
     class _HttpxStub:
         HTTPError = Exception
@@ -1314,7 +1338,9 @@ def test_provider_factory_real_module_branches(monkeypatch):
                 raise self.exceptions.RequestException("lmstudio health")
             return _Response({"data": [{"id": "model"}]})
 
-        def post(self, url, headers=None, json=None, timeout=None, **kwargs):  # noqa: ANN001 - stub
+        def post(
+            self, url, headers=None, json=None, timeout=None, **kwargs
+        ):  # noqa: ANN001 - stub
             self.calls.append(("post", url))
             if "openai" not in url and self.fail_lmstudio_post:
                 raise self.exceptions.RequestException("lmstudio post")
@@ -1378,7 +1404,9 @@ def test_provider_factory_real_module_branches(monkeypatch):
     monkeypatch.setattr(
         module.TLSConfig,
         "as_requests_kwargs",
-        lambda self: _TLSMapping(getattr(self, "verify", True), getattr(self, "timeout", 1.0) or 1.0),
+        lambda self: _TLSMapping(
+            getattr(self, "verify", True), getattr(self, "timeout", 1.0) or 1.0
+        ),
     )
     monkeypatch.setattr(module, "retry_with_exponential_backoff", _simple_retry)
     monkeypatch.setattr(
@@ -1394,22 +1422,28 @@ def test_provider_factory_real_module_branches(monkeypatch):
     module.get_provider_config.cache_clear()
     openai_provider = module.ProviderFactory.create_provider("openai")
     assert isinstance(openai_provider, module.OpenAIProvider)
-    assert openai_provider.complete(
-        "prompt",
-        system_prompt="system",
-        parameters={
-            "messages": [{"role": "assistant", "content": "prefill"}],
-            "temperature": 0.3,
-            "max_tokens": 8,
-        },
-    ) == "openai chat"
+    assert (
+        openai_provider.complete(
+            "prompt",
+            system_prompt="system",
+            parameters={
+                "messages": [{"role": "assistant", "content": "prefill"}],
+                "temperature": 0.3,
+                "max_tokens": 8,
+            },
+        )
+        == "openai chat"
+    )
     assert openai_provider.embed(["embed"]) == [[0.1, 0.9]]
     assert asyncio.run(openai_provider.acomplete("async")) == "async chat"
     assert asyncio.run(openai_provider.aembed(["async"])) == [[0.6, 0.4]]
-    assert openai_provider.complete_with_context(
-        "ctx",
-        [{"role": "system", "content": "sys"}],
-    ) == "openai chat"
+    assert (
+        openai_provider.complete_with_context(
+            "ctx",
+            [{"role": "system", "content": "sys"}],
+        )
+        == "openai chat"
+    )
 
     # OpenAI fallback when LM Studio fails health check
     requests_stub.fail_lmstudio_health = True
@@ -1426,7 +1460,10 @@ def test_provider_factory_real_module_branches(monkeypatch):
     module.get_provider_config.cache_clear()
     lmstudio_provider = module.ProviderFactory.create_provider("lmstudio")
     assert isinstance(lmstudio_provider, module.LMStudioProvider)
-    assert lmstudio_provider.complete("prompt", parameters={"temperature": 0.2}) == "lmstudio chat"
+    assert (
+        lmstudio_provider.complete("prompt", parameters={"temperature": 0.2})
+        == "lmstudio chat"
+    )
     assert lmstudio_provider.embed(["vector"]) == [[0.1, 0.9]]
     assert asyncio.run(lmstudio_provider.acomplete("async")) == "async chat"
     assert asyncio.run(lmstudio_provider.aembed(["async"])) == [[0.6, 0.4]]
@@ -1476,6 +1513,7 @@ def test_provider_factory_real_module_branches(monkeypatch):
     monkeypatch.setattr(module, "get_provider_config", lambda: cached_config)
     recovered_provider = module.ProviderFactory.create_provider("openai")
     assert isinstance(recovered_provider, module.OpenAIProvider)
+
 
 def test_lmstudio_provider_async_paths(monkeypatch):
     _enable_real_providers(monkeypatch)
@@ -1570,6 +1608,8 @@ def test_lmstudio_provider_async_paths(monkeypatch):
     assert provider.embed("text") == [[0.2, 0.8]]
     assert asyncio.run(provider.acomplete("prompt")) == "lm-async"
     assert asyncio.run(provider.aembed(["text"])) == [[0.7, 0.3]]
+
+
 def test_complete_helper_increments_metrics_and_propagates_error(monkeypatch):
     calls = _metrics_spy(monkeypatch)
 

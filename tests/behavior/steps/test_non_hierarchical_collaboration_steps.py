@@ -5,10 +5,9 @@ This file implements the step definitions for the non-hierarchical collaboration
 feature file, testing the non-hierarchical collaboration capabilities of the WSDE model.
 """
 
-import pytest
-
 from unittest.mock import MagicMock
 
+import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.agents.base import BaseAgent
@@ -129,9 +128,7 @@ def wsde_team_with_multiple_agents(context):
                 data["contribution_score"] = 1.0
         for data in contributions.values():
             data["contribution_percentage"] = (
-                data["contribution_score"] / total_score * 100.0
-                if total_score
-                else 0.0
+                data["contribution_score"] / total_score * 100.0 if total_score else 0.0
             )
 
         contributor_count = sum(
@@ -201,11 +198,15 @@ def wsde_team_with_multiple_agents(context):
                 ]
                 current = new_assignments.get(subtask["id"])
                 if candidates:
-                    non_current = [candidate for candidate in candidates if candidate != current]
+                    non_current = [
+                        candidate for candidate in candidates if candidate != current
+                    ]
                     if non_current:
                         new_assignments[subtask["id"]] = non_current[0]
                     else:
-                        idx = agent_names.index(current) if current in agent_names else -1
+                        idx = (
+                            agent_names.index(current) if current in agent_names else -1
+                        )
                         replacement = agent_names[(idx + 1) % len(agent_names)]
                         new_assignments[subtask["id"]] = replacement
                 else:
@@ -287,9 +288,7 @@ def wsde_team_with_multiple_agents(context):
     team.update_subtask_progress = update_subtask_progress_stub
     team.reassign_subtasks_based_on_progress = reassign_subtasks_stub
     team.update_task_requirements = update_task_requirements_stub
-    team.get_leadership_reassessment_result = (
-        get_leadership_reassessment_result_stub
-    )
+    team.get_leadership_reassessment_result = get_leadership_reassessment_result_stub
     team.get_transition_metrics = get_transition_metrics_stub
     team.solve_collaboratively = solve_collaboratively_stub
     team.get_collaboration_metrics = get_collaboration_metrics_stub
@@ -631,9 +630,7 @@ def assignments_dynamically_adjusted(context):
     new_assignments = context.team.reassign_subtasks_based_on_progress(context.subtasks)
 
     # Verify that at least one assignment has changed
-    previous_assignments = getattr(
-        context, "previous_assignments", context.assignments
-    )
+    previous_assignments = getattr(context, "previous_assignments", context.assignments)
     assert any(
         previous_assignments.get(subtask_id) != new_assignments[subtask_id]
         for subtask_id in new_assignments

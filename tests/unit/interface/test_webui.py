@@ -1,8 +1,7 @@
+import importlib
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
-
-import importlib
 
 import pytest
 
@@ -28,9 +27,7 @@ def stub_streamlit(monkeypatch):
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
     utils_stub = ModuleType("devsynth.application.cli.utils")
     utils_stub.bridge = MagicMock()
-    monkeypatch.setitem(
-        sys.modules, "devsynth.application.cli.utils", utils_stub
-    )
+    monkeypatch.setitem(sys.modules, "devsynth.application.cli.utils", utils_stub)
     ingest_stub = ModuleType("devsynth.application.cli.ingest_cmd")
     ingest_stub.ingest_cmd = MagicMock()
     ingest_stub.bridge = MagicMock()
@@ -98,8 +95,8 @@ def test_onboarding_calls_init_succeeds(monkeypatch, stub_streamlit):
     stub_streamlit.form_submit_button.return_value = True
     import importlib
 
-    import devsynth.interface.webui.commands as commands
     import devsynth.interface.webui as webui
+    import devsynth.interface.webui.commands as commands
 
     importlib.reload(commands)
     importlib.reload(webui)
@@ -122,8 +119,8 @@ def test_requirements_calls_spec_succeeds(monkeypatch, stub_streamlit):
     monkeypatch.setattr(Path, "exists", lambda _self: True)
     import importlib
 
-    import devsynth.interface.webui.commands as commands
     import devsynth.interface.webui as webui
+    import devsynth.interface.webui.commands as commands
 
     importlib.reload(commands)
     monkeypatch.setattr(commands, "spec_cmd", spec)
@@ -155,8 +152,8 @@ def test_analysis_calls_analyze_succeeds(monkeypatch, stub_streamlit):
     monkeypatch.setattr(Path, "exists", lambda _self: True)
     import importlib
 
-    import devsynth.interface.webui.commands as commands
     import devsynth.interface.webui as webui
+    import devsynth.interface.webui.commands as commands
 
     importlib.reload(commands)
     monkeypatch.setattr(commands, "inspect_code_cmd", analyze)
@@ -185,8 +182,8 @@ def test_synthesis_buttons_succeeds(monkeypatch, stub_streamlit):
     monkeypatch.setattr(Path, "exists", lambda _self: True)
     import importlib
 
-    import devsynth.interface.webui.commands as commands
     import devsynth.interface.webui as webui
+    import devsynth.interface.webui.commands as commands
 
     importlib.reload(commands)
     monkeypatch.setattr(commands, "test_cmd", test_cmd, raising=False)
@@ -230,9 +227,7 @@ def test_config_update_succeeds(monkeypatch, stub_streamlit):
         "devsynth.interface.webui.rendering.load_project_config",
         MagicMock(return_value=mock_config),
     )
-    monkeypatch.setattr(
-        "devsynth.interface.webui.rendering.save_config", MagicMock()
-    )
+    monkeypatch.setattr("devsynth.interface.webui.rendering.save_config", MagicMock())
     import importlib
 
     import devsynth.interface.webui as webui

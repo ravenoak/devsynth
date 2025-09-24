@@ -42,7 +42,9 @@ class DummyContainer:
     def empty(self) -> None:
         self.empty_calls += 1
 
-    def success(self, text: str) -> None:  # pragma: no cover - exercised by ``complete``
+    def success(
+        self, text: str
+    ) -> None:  # pragma: no cover - exercised by ``complete``
         self.success_calls.append(text)
 
     def progress(self, value: float) -> DummyProgressBar:

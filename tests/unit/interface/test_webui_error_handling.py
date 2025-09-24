@@ -119,9 +119,7 @@ def test_onboarding_page_setup_wizard_error_raises_error(stub_streamlit, monkeyp
     monkeypatch.setattr(
         "devsynth.application.cli.setup_wizard.SetupWizard", setup_wizard_mock
     )
-    _patch_webui_command(
-        monkeypatch, webui, commands, "SetupWizard", setup_wizard_mock
-    )
+    _patch_webui_command(monkeypatch, webui, commands, "SetupWizard", setup_wizard_mock)
 
     # Set button to True to trigger the guided setup
     stub_streamlit.button.return_value = True

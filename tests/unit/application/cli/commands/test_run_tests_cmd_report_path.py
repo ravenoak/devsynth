@@ -136,7 +136,7 @@ def test_emit_coverage_messages_reports_artifacts(tmp_path, monkeypatch) -> None
 
     json_path = tmp_path / "test_reports" / "coverage.json"
     json_path.parent.mkdir(parents=True, exist_ok=True)
-    json_path.write_text("{\n  \"totals\": {\"percent_covered\": 100.0}\n}")
+    json_path.write_text('{\n  "totals": {"percent_covered": 100.0}\n}')
 
     monkeypatch.setattr(module, "COVERAGE_HTML_DIR", html_dir)
     monkeypatch.setattr(module, "COVERAGE_JSON_PATH", json_path)

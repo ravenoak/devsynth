@@ -15,7 +15,9 @@ def test_priority_and_constraints_persist_after_navigation(tmp_path, monkeypatch
     """User selections persist when navigating backwards."""
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(
-        wizard_mod, "ensure_path_exists", lambda path, create=True: str(Path(path).resolve())
+        wizard_mod,
+        "ensure_path_exists",
+        lambda path, create=True: str(Path(path).resolve()),
     )
     responses = iter(
         [
@@ -70,13 +72,15 @@ def test_requirements_wizard_logs_each_step(monkeypatch, tmp_path):
 
     class Bridge(UXBridge):
         def __init__(self) -> None:
-            self._answers = iter([
-                "Title",
-                "Description",
-                "functional",
-                "high",
-                "a,b",
-            ])
+            self._answers = iter(
+                [
+                    "Title",
+                    "Description",
+                    "functional",
+                    "high",
+                    "a,b",
+                ]
+            )
 
         def ask_question(self, *_a, **_k) -> str:
             return next(self._answers)
@@ -89,7 +93,11 @@ def test_requirements_wizard_logs_each_step(monkeypatch, tmp_path):
 
     requirements_wizard(Bridge(), config=CLIConfig())
 
-    steps = {entry[1]["step"]: entry[1]["value"] for entry in logged if entry[0] == "wizard_step"}
+    steps = {
+        entry[1]["step"]: entry[1]["value"]
+        for entry in logged
+        if entry[0] == "wizard_step"
+    }
     assert steps == {
         "title": "Title",
         "description": "Description",
