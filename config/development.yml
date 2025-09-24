@@ -1,6 +1,21 @@
 # DevSynth Development Configuration
 # Overrides for development environment
 
+# Application settings
+application:
+  name: DevSynth
+  version: 0.1.0a1
+  description: AI-driven development platform
+
+# Agent configuration  
+agents:
+  max_agents: 3
+  default_timeout: 180
+
+# EDRR framework configuration
+edrr:
+  enabled: true
+
 # Logging configuration
 logging:
   level: DEBUG
@@ -20,13 +35,16 @@ memory:
 
 # LLM provider configuration
 llm:
+  default_provider: stub  # Use stub provider by default in development
   providers:
     openai:
+      enabled: false  # Disabled by default, set OPENAI_API_KEY to enable
       temperature: 0.8  # More creative in development
       max_tokens: 2048  # Smaller context to save tokens during development
 
 # Security settings
 security:
+  input_validation: true
   rate_limiting:
     enabled: false  # Disable rate limiting in development
   encryption:
@@ -55,3 +73,4 @@ features:
   experimental_features: true  # Only in development
   automatic_phase_transitions: true
   collaboration_notifications: true
+  prompt_auto_tuning: false
