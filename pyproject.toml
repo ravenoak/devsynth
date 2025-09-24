@@ -56,7 +56,7 @@ fastapi = {version = ">=0.116.2,<0.117", optional = true}
 # fix while staying below 0.48.0 until RFC 9110 renames and broader changes are
 # validated against DevSynth's API surface. Tracked in
 # issues/run-tests-smoke-fast-fastapi-starlette-mro.md.
-starlette = ">=0.47.3,<0.48"
+starlette = "<0.47"
 tinydb = {version = "*", optional = true}
 duckdb = {version = "*", optional = true}
 lmdb = {version = "*", optional = true}
@@ -110,6 +110,9 @@ pytest-html = "*"
 bandit = "*"
 safety = "*"
 prometheus-client = "*"
+freezegun = "*"
+types-pyyaml = "^6.0.12.20250915"
+types-jsonschema = "^4.25.1.20250822"
 
 [tool.poetry.group.docs]
 optional = true
