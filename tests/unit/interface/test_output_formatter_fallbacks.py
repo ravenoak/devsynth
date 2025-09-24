@@ -49,7 +49,9 @@ def test_table_format_falls_back_to_text_for_nontabular_inputs(
 
     monkeypatch.setattr(OutputFormatter, "format_structured", spy)
 
-    scalar_result = formatter.format_structured("diagnostic", OutputFormat.TABLE, title="Scalar")
+    scalar_result = formatter.format_structured(
+        "diagnostic", OutputFormat.TABLE, title="Scalar"
+    )
     assert isinstance(scalar_result, str)
     assert scalar_result == "# Scalar\n\ndiagnostic"
     assert [call[1] for call in calls] == [OutputFormat.TABLE, OutputFormat.TEXT]
@@ -89,7 +91,11 @@ def test_rich_format_selects_renderables_for_data_shapes() -> None:
         OutputFormat.RICH,
     )
     assert isinstance(list_table, Table)
-    assert [column.header for column in list_table.columns] == ["column", "details", "value"]
+    assert [column.header for column in list_table.columns] == [
+        "column",
+        "details",
+        "value",
+    ]
 
     bullet_panel = formatter.format_structured(
         ["first", "second"], OutputFormat.RICH, title="Items"
@@ -133,11 +139,15 @@ def test_list_of_dicts_table_renders_missing_and_complex_values() -> None:
     assert isinstance(table, Table)
     assert [column.header for column in table.columns] == ["metadata", "name", "value"]
 
-    metadata_column = next(column for column in table.columns if column.header == "metadata")
+    metadata_column = next(
+        column for column in table.columns if column.header == "metadata"
+    )
     value_column = next(column for column in table.columns if column.header == "value")
 
     assert metadata_column._cells[0] == ""
-    assert metadata_column._cells[1] == json.dumps(records[1]["metadata"], indent=formatter.indent)
+    assert metadata_column._cells[1] == json.dumps(
+        records[1]["metadata"], indent=formatter.indent
+    )
     assert value_column._cells[0] == "1"
     assert value_column._cells[1] == ""
 

@@ -111,7 +111,9 @@ def test_basic_crud_lifecycle(case: StoreCase, tmp_path, monkeypatch):
 
     store = _make_store(case, tmp_path, monkeypatch)
     try:
-        item_id = "test-item" if case.class_name in {"KuzuStore", "ChromaDBStore"} else ""
+        item_id = (
+            "test-item" if case.class_name in {"KuzuStore", "ChromaDBStore"} else ""
+        )
         item = MemoryItem(
             id=item_id,
             content="hello",

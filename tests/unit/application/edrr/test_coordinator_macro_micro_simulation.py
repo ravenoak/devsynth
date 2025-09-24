@@ -83,7 +83,9 @@ def wsde_team() -> MagicMock:
     team.optimize_implementation.return_value = {}
     team.perform_quality_assurance.return_value = {}
     team.extract_learnings.return_value = []
-    team.apply_enhanced_dialectical_reasoning.side_effect = lambda task, results: results
+    team.apply_enhanced_dialectical_reasoning.side_effect = (
+        lambda task, results: results
+    )
     return team
 
 
@@ -181,7 +183,9 @@ def test_phase_transitions_follow_recursive_feature(
         expand_results = coordinator.results[Phase.EXPAND.name]
         assert micro_cycle.cycle_id in expand_results["micro_cycle_results"]
         assert (
-            expand_results["micro_cycle_results"][micro_cycle.cycle_id]["task"]["description"]
+            expand_results["micro_cycle_results"][micro_cycle.cycle_id]["task"][
+                "description"
+            ]
             == recursive_feature_tasks["micro_tasks"][0]
         )
 

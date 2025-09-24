@@ -10,7 +10,9 @@ from devsynth.interface.webui_bridge import WebUIBridge
 pytestmark = [pytest.mark.fast, pytest.mark.usefixtures("force_webui_available")]
 
 
-def test_webui_bridge_matches_cli_prompt_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_bridge_matches_cli_prompt_defaults(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Non-interactive prompts should align between CLI and WebUI bridges."""
 
     monkeypatch.setattr("devsynth.interface.cli._non_interactive", lambda: True)

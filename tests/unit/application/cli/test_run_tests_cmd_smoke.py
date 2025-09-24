@@ -30,7 +30,9 @@ def test_smoke_mode_sets_pytest_disable_plugin_autoload_env(monkeypatch) -> None
         patch.object(module, "_configure_optional_providers", return_value=None),
         patch.object(module, "_emit_coverage_artifact_messages") as mock_emit,
         patch.object(module, "enforce_coverage_threshold") as mock_enforce,
-        patch.object(module, "_coverage_instrumentation_status", return_value=(True, None)),
+        patch.object(
+            module, "_coverage_instrumentation_status", return_value=(True, None)
+        ),
         patch.object(module, "increment_counter", return_value=None),
     ):
         app = build_app()
@@ -108,7 +110,9 @@ def test_smoke_mode_cli_imports_fastapi_testclient(monkeypatch) -> None:
         patch.object(module, "_configure_optional_providers", return_value=None),
         patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
         patch.object(module, "enforce_coverage_threshold", return_value=100.0),
-        patch.object(module, "_coverage_instrumentation_status", return_value=(True, None)),
+        patch.object(
+            module, "_coverage_instrumentation_status", return_value=(True, None)
+        ),
         patch.object(module, "coverage_artifacts_status", return_value=(True, None)),
         patch.object(module, "increment_counter", return_value=None),
     ):
@@ -136,8 +140,14 @@ def test_smoke_mode_skips_coverage_gate_when_instrumented(monkeypatch) -> None:
         patch.object(module, "run_tests", return_value=(True, "")) as mock_run,
         patch.object(module, "_configure_optional_providers", return_value=None),
         patch.object(module, "_emit_coverage_artifact_messages") as mock_emit,
-        patch.object(module, "enforce_coverage_threshold", side_effect=AssertionError("should not run")) as mock_enforce,
-        patch.object(module, "_coverage_instrumentation_status", return_value=(True, None)),
+        patch.object(
+            module,
+            "enforce_coverage_threshold",
+            side_effect=AssertionError("should not run"),
+        ) as mock_enforce,
+        patch.object(
+            module, "_coverage_instrumentation_status", return_value=(True, None)
+        ),
         patch.object(module, "coverage_artifacts_status", return_value=(True, None)),
         patch.object(module, "increment_counter", return_value=None),
     ):

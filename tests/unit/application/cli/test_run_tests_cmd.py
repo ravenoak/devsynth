@@ -38,16 +38,18 @@ def test_cli_reports_coverage_percent() -> None:
     runner = CliRunner()
     app = build_app()
 
-    with patch.object(module, "run_tests", return_value=(True, "")), patch.object(
-        module, "_configure_optional_providers", return_value=None
-    ), patch.object(module, "_emit_coverage_artifact_messages", return_value=None), patch.object(
-        module, "enforce_coverage_threshold", return_value=92.5
-    ) as mock_enforce, patch.object(
-        module, "_coverage_instrumentation_status", return_value=(True, None)
-    ), patch.object(
-        module, "coverage_artifacts_status", return_value=(True, None)
-    ), patch.object(
-        module, "increment_counter", return_value=None
+    with (
+        patch.object(module, "run_tests", return_value=(True, "")),
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
+        patch.object(
+            module, "enforce_coverage_threshold", return_value=92.5
+        ) as mock_enforce,
+        patch.object(
+            module, "_coverage_instrumentation_status", return_value=(True, None)
+        ),
+        patch.object(module, "coverage_artifacts_status", return_value=(True, None)),
+        patch.object(module, "increment_counter", return_value=None),
     ):
         result = runner.invoke(app, ["run-tests", "--report"])
 
@@ -63,19 +65,26 @@ def test_cli_errors_when_plugins_disabled() -> None:
     runner = CliRunner()
     app = build_app()
 
-    with patch.object(module, "run_tests", return_value=(True, "")), patch.object(
-        module, "_configure_optional_providers", return_value=None
-    ), patch.object(module, "_emit_coverage_artifact_messages", return_value=None), patch.object(
-        module, "enforce_coverage_threshold", return_value=95.0
-    ), patch.object(
-        module,
-        "_coverage_instrumentation_status",
-        return_value=(False, "pytest plugin autoload disabled without -p pytest_cov"),
-    ), patch.object(
-        module,
-        "coverage_artifacts_status",
-        return_value=(False, "Coverage JSON missing at test_reports/coverage.json"),
-    ), patch.object(module, "increment_counter", return_value=None):
+    with (
+        patch.object(module, "run_tests", return_value=(True, "")),
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
+        patch.object(module, "enforce_coverage_threshold", return_value=95.0),
+        patch.object(
+            module,
+            "_coverage_instrumentation_status",
+            return_value=(
+                False,
+                "pytest plugin autoload disabled without -p pytest_cov",
+            ),
+        ),
+        patch.object(
+            module,
+            "coverage_artifacts_status",
+            return_value=(False, "Coverage JSON missing at test_reports/coverage.json"),
+        ),
+        patch.object(module, "increment_counter", return_value=None),
+    ):
         result = runner.invoke(app, ["run-tests"])
 
     assert result.exit_code == 1
@@ -89,17 +98,23 @@ def test_cli_errors_when_artifacts_missing() -> None:
     runner = CliRunner()
     app = build_app()
 
-    with patch.object(module, "run_tests", return_value=(True, "")), patch.object(
-        module, "_configure_optional_providers", return_value=None
-    ), patch.object(module, "_emit_coverage_artifact_messages", return_value=None), patch.object(
-        module, "enforce_coverage_threshold", return_value=95.0
-    ) as mock_enforce, patch.object(
-        module, "_coverage_instrumentation_status", return_value=(True, None)
-    ), patch.object(
-        module,
-        "coverage_artifacts_status",
-        return_value=(False, "Coverage JSON missing at test_reports/coverage.json"),
-    ), patch.object(module, "increment_counter", return_value=None):
+    with (
+        patch.object(module, "run_tests", return_value=(True, "")),
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
+        patch.object(
+            module, "enforce_coverage_threshold", return_value=95.0
+        ) as mock_enforce,
+        patch.object(
+            module, "_coverage_instrumentation_status", return_value=(True, None)
+        ),
+        patch.object(
+            module,
+            "coverage_artifacts_status",
+            return_value=(False, "Coverage JSON missing at test_reports/coverage.json"),
+        ),
+        patch.object(module, "increment_counter", return_value=None),
+    ):
         result = runner.invoke(app, ["run-tests"])
 
     assert result.exit_code == 1

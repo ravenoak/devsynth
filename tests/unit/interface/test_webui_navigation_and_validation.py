@@ -39,9 +39,7 @@ def test_navigation_persists_wizard_state(monkeypatch, stub_streamlit):
     ui._requirements_wizard()  # advance to step 1
     col2.button.return_value = False
     ui.run()  # store nav selection
-    assert (
-        stub_streamlit.session_state["requirements_wizard_current_step"] == 2
-    )
+    assert stub_streamlit.session_state["requirements_wizard_current_step"] == 2
     assert stub_streamlit.session_state["nav"] == "Requirements"
 
     # navigate away
@@ -49,16 +47,12 @@ def test_navigation_persists_wizard_state(monkeypatch, stub_streamlit):
     ui.run()
     assert stub_streamlit.session_state["nav"] == "Onboarding"
     # wizard step should remain unchanged
-    assert (
-        stub_streamlit.session_state["requirements_wizard_current_step"] == 2
-    )
+    assert stub_streamlit.session_state["requirements_wizard_current_step"] == 2
 
     # return to Requirements
     nav_radio.return_value = "Requirements"
     ui.run()
-    assert (
-        stub_streamlit.session_state["requirements_wizard_current_step"] == 2
-    )
+    assert stub_streamlit.session_state["requirements_wizard_current_step"] == 2
     assert stub_streamlit.session_state["nav"] == "Requirements"
 
 

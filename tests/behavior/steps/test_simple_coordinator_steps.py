@@ -177,9 +177,7 @@ def coordinator_executes_full_cycle(context):
 def coordinator_reports_completion(context):
     """Verify the coordinator marked the retrospection phase as complete."""
 
-    retrospect_results = context.edrr_coordinator.results.get(
-        Phase.RETROSPECT.name, {}
-    )
+    retrospect_results = context.edrr_coordinator.results.get(Phase.RETROSPECT.name, {})
     assert retrospect_results.get("completed") is True
     assert retrospect_results.get("phase_complete") is True
 
@@ -245,9 +243,9 @@ def coordinator_launches_micro_cycle(context):
     refine_results["aggregated_results"] = aggregated["aggregated_results"]
     refine_results["phase_complete"] = True
     refine_results["quality_score"] = micro_cycle_output["quality_score"]
-    refine_results.setdefault("micro_cycle_results", {})["iteration_1"] = (
-        micro_cycle_output
-    )
+    refine_results.setdefault("micro_cycle_results", {})[
+        "iteration_1"
+    ] = micro_cycle_output
 
     context.micro_cycle_results = aggregated
     context.edrr_coordinator._aggregate_results()

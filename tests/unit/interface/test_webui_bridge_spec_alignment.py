@@ -87,7 +87,9 @@ def test_nested_progress_status_defaults_follow_spec(
     ]
 
     for progress, status in expectations:
-        indicator._subtasks[parent_id]["nested_subtasks"][nested_id]["current"] = progress
+        indicator._subtasks[parent_id]["nested_subtasks"][nested_id][
+            "current"
+        ] = progress
         indicator.update_nested_subtask(parent_id, nested_id, advance=0, status=None)
         nested = indicator._subtasks[parent_id]["nested_subtasks"][nested_id]
         assert nested["status"] == status
@@ -178,9 +180,12 @@ def test_prompt_defaults_align_with_uxbridge_contract(
     bridge = bridge_env.module
     ui = bridge.WebUIBridge()
 
-    assert ui.ask_question(
-        "Select step", choices=("one", "two"), default="two", show_default=True
-    ) == "two"
+    assert (
+        ui.ask_question(
+            "Select step", choices=("one", "two"), default="two", show_default=True
+        )
+        == "two"
+    )
     assert ui.confirm_choice("Continue?", default=True) is True
     assert ui.prompt("Legacy prompt", default="fallback") == "fallback"
     assert ui.confirm("Legacy confirm", default=False) is False
@@ -200,7 +205,9 @@ def test_display_result_channels_respect_output_formatter_contract(
     ui = bridge.WebUIBridge()
     recorded: list[tuple[str, str | None, bool]] = []
 
-    def fake_format(message: str, message_type: str | None = None, highlight: bool = False) -> Text:
+    def fake_format(
+        message: str, message_type: str | None = None, highlight: bool = False
+    ) -> Text:
         recorded.append((message, message_type, highlight))
         return Text(f"{message_type or 'normal'}::{highlight}")
 
@@ -237,5 +244,3 @@ def test_display_result_channels_respect_output_formatter_contract(
     ui.display_result("Plain text")
     assert recorded[4] == ("Plain text", None, False)
     st.write.assert_called_once()
-
-

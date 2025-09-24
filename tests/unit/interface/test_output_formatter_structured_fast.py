@@ -136,7 +136,9 @@ def _verify_panel_with_table(
         assert isinstance(result.renderable, Table)
         table = result.renderable
         assert [column.header for column in table.columns] == expected_columns
-        for column, column_values in zip(table.columns, zip(*expected_rows), strict=True):
+        for column, column_values in zip(
+            table.columns, zip(*expected_rows), strict=True
+        ):
             assert list(column._cells) == list(column_values)
 
     return _inner
@@ -262,7 +264,7 @@ STRUCTURED_SCENARIOS = (
         verifier=_verify_table_rows(
             {
                 "count": ["", "[\n  1,\n  2\n]"],
-                "details": ["{\n  \"level\": 1\n}", ""],
+                "details": ['{\n  "level": 1\n}', ""],
                 "name": ["alpha", "beta"],
             }
         ),
@@ -322,7 +324,9 @@ def test_format_structured_exercises_all_branches(
 ) -> None:
     """Exercise every branch of format_structured with deterministic sanitization."""
 
-    monkeypatch.setattr(OutputFormatter, "sanitize_output", lambda self, text: str(text))
+    monkeypatch.setattr(
+        OutputFormatter, "sanitize_output", lambda self, text: str(text)
+    )
     formatter = OutputFormatter()
 
     if scenario.with_console:
@@ -338,7 +342,9 @@ def test_format_structured_exercises_all_branches(
 
 
 @pytest.mark.fast
-def test_dict_to_markdown_handles_nested_values(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_dict_to_markdown_handles_nested_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """_dict_to_markdown should sanitize every nested key/value and honor titles."""
 
     formatter = OutputFormatter()
@@ -434,7 +440,9 @@ def test_list_to_markdown_handles_mixed_items(monkeypatch: pytest.MonkeyPatch) -
 
 
 @pytest.mark.fast
-def test_dict_to_table_serializes_complex_values(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_dict_to_table_serializes_complex_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """_dict_to_table should convert dict/list values to JSON and keep sanitized keys."""
 
     formatter = OutputFormatter()

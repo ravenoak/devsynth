@@ -119,7 +119,9 @@ def test_reasoning_loop_retry_sequence_updates_phase_and_coordinator(
             self.calls.append(("refine", result))
             return result
 
-        def record_consensus_failure(self, exc: ConsensusError) -> None:  # pragma: no cover - defensive
+        def record_consensus_failure(
+            self, exc: ConsensusError
+        ) -> None:  # pragma: no cover - defensive
             self.failures.append(exc)
 
     recorder = Recorder()
@@ -190,7 +192,9 @@ def test_reasoning_loop_records_results_before_consensus_failure(
             self.calls.append(("differentiate", result))
             return result
 
-        def record_refine_results(self, result: dict[str, object]) -> dict[str, object]:  # pragma: no cover - unused guard
+        def record_refine_results(
+            self, result: dict[str, object]
+        ) -> dict[str, object]:  # pragma: no cover - unused guard
             self.calls.append(("refine", result))
             return result
 

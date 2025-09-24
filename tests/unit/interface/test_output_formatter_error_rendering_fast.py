@@ -15,7 +15,9 @@ def test_format_message_error_styles_and_escapes_markup() -> None:
     """Errors render with bold red styling and escaped HTML content."""
 
     formatter = OutputFormatter()
-    result = formatter.format_message("ERROR: Something <b>bad</b>", message_type="error")
+    result = formatter.format_message(
+        "ERROR: Something <b>bad</b>", message_type="error"
+    )
 
     assert isinstance(result, Text)
     assert result.style == "bold red"
@@ -28,7 +30,7 @@ def test_markdown_branch_sanitizes_hyperlinks() -> None:
     formatter = OutputFormatter()
     data = {
         "References": [
-            "<a href=\"javascript:alert(1)\">Alert</a>",
+            '<a href="javascript:alert(1)">Alert</a>',
             "https://example.com/docs",
         ]
     }
@@ -60,4 +62,6 @@ def test_table_branch_sanitizes_script_links() -> None:
     link_column = table.columns[headers.index("link")]
     assert link_column._cells[0] == "https://example.com"
     assert link_column._cells[1] == ""
-    assert all("<script>" not in cell for column in table.columns for cell in column._cells)
+    assert all(
+        "<script>" not in cell for column in table.columns for cell in column._cells
+    )

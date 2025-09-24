@@ -99,9 +99,7 @@ class FakeStreamlit:
     # ------------------------------------------------------------------
     # Sidebar helpers
     # ------------------------------------------------------------------
-    def _sidebar_radio(
-        self, label: str, options: list[str], index: int = 0
-    ) -> str:
+    def _sidebar_radio(self, label: str, options: list[str], index: int = 0) -> str:
         self.calls.append(("sidebar_radio", label, tuple(options), index))
         if self._radio_value is not None:
             return self._radio_value
@@ -127,15 +125,15 @@ class FakeStreamlit:
             return self._selectbox_value
         return options[index]
 
-    def text_input(
-        self, message: str, value: str = "", key: str | None = None
-    ) -> str:
+    def text_input(self, message: str, value: str = "", key: str | None = None) -> str:
         self.calls.append(("text_input", message, value, key))
         if self._text_input_values:
             return self._text_input_values.pop(0)
         return value
 
-    def checkbox(self, message: str, value: bool = False, key: str | None = None) -> bool:
+    def checkbox(
+        self, message: str, value: bool = False, key: str | None = None
+    ) -> bool:
         self.calls.append(("checkbox", message, value, key))
         return self._checkbox_value
 
@@ -199,7 +197,9 @@ def fake_streamlit(monkeypatch: pytest.MonkeyPatch) -> FakeStreamlit:
     return fake
 
 
-def test_webui_navigation_prompt_and_command(fake_streamlit: FakeStreamlit, monkeypatch):
+def test_webui_navigation_prompt_and_command(
+    fake_streamlit: FakeStreamlit, monkeypatch
+):
     """WebUI run should drive navigation, prompts, and commands via the stub."""
 
     ui = webui.WebUI()
@@ -247,7 +247,9 @@ def test_webui_navigation_prompt_and_command(fake_streamlit: FakeStreamlit, monk
     assert all(call[0] != "error" for call in fake_streamlit.calls)
 
 
-def test_webui_run_resets_invalid_navigation(fake_streamlit: FakeStreamlit, monkeypatch):
+def test_webui_run_resets_invalid_navigation(
+    fake_streamlit: FakeStreamlit, monkeypatch
+):
     """Invalid stored navigation falls back to the default page on run."""
 
     ui = webui.WebUI()

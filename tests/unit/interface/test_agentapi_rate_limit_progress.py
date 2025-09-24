@@ -73,5 +73,7 @@ def test_api_bridge_progress_records_subtasks(agentapi_module):
     assert any(message.endswith("- Half done") for message in bridge.messages)
     assert any(message.strip().startswith("↳ Subtask") for message in bridge.messages)
     assert any("(1/2)" in message for message in bridge.messages)
-    assert any(message.strip().endswith("Subtask complete") for message in bridge.messages)
+    assert any(
+        message.strip().endswith("Subtask complete") for message in bridge.messages
+    )
     assert bridge.messages[-1] == "Task complete"

@@ -244,12 +244,15 @@ def test_console_and_json_handlers_report_consistent_payloads(
 
     root_logger = logging.getLogger()
     file_handler = next(
-        handler for handler in root_logger.handlers if isinstance(handler, logging.FileHandler)
+        handler
+        for handler in root_logger.handlers
+        if isinstance(handler, logging.FileHandler)
     )
     console_handler = next(
         handler
         for handler in root_logger.handlers
-        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
+        if isinstance(handler, logging.StreamHandler)
+        and not isinstance(handler, logging.FileHandler)
     )
 
     file_handler.flush()
@@ -262,11 +265,7 @@ def test_console_and_json_handlers_report_consistent_payloads(
     last_payload = payloads[-1]
 
     parity_record = next(
-        (
-            record
-            for record in caplog.records
-            if record.name == "devsynth.tests.parity"
-        ),
+        (record for record in caplog.records if record.name == "devsynth.tests.parity"),
         None,
     )
     assert parity_record is not None, "Expected console log record for parity logger."

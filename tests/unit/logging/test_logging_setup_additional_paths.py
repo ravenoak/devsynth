@@ -172,7 +172,8 @@ def test_ensure_log_dir_exists_warns_when_creation_fails(
 
     assert resolved == str(target)
     assert any(
-        "Failed to create log directory" in record.getMessage() for record in caplog.records
+        "Failed to create log directory" in record.getMessage()
+        for record in caplog.records
     )
 
 

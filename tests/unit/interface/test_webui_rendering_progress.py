@@ -80,7 +80,9 @@ class _FakeWizardManager:
         return True
 
 
-def _noop(self: ProjectSetupPages, wizard_state: Any) -> None:  # noqa: ANN001 - test helper
+def _noop(
+    self: ProjectSetupPages, wizard_state: Any
+) -> None:  # noqa: ANN001 - test helper
     return None
 
 
@@ -108,7 +110,9 @@ def test_gather_wizard_renders_cli_summary(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setattr(rendering.ProjectSetupPages, "_handle_gather_step_1", _noop)
     monkeypatch.setattr(rendering.ProjectSetupPages, "_handle_gather_step_2", _noop)
     monkeypatch.setattr(rendering.ProjectSetupPages, "_handle_gather_step_3", _noop)
-    monkeypatch.setattr(rendering.ProjectSetupPages, "_validate_gather_step", _always_valid)
+    monkeypatch.setattr(
+        rendering.ProjectSetupPages, "_validate_gather_step", _always_valid
+    )
 
     fake_manager = _FakeWizardManager()
 
@@ -196,7 +200,12 @@ def test_gather_wizard_renders_cli_summary(monkeypatch: pytest.MonkeyPatch) -> N
         subtasks: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         captured_run.update(
-            {"task_name": task_name, "bridge": bridge, "total": total, "subtasks": subtasks}
+            {
+                "task_name": task_name,
+                "bridge": bridge,
+                "total": total,
+                "subtasks": subtasks,
+            }
         )
         return task_fn()
 
@@ -238,13 +247,20 @@ def test_gather_wizard_renders_cli_summary(monkeypatch: pytest.MonkeyPatch) -> N
     assert interviews_bar.values == [0.5]
 
     assert len(stub.containers) == 5
-    main_container, history_container, checkpoints_container, docs_container, interviews_container = (
-        stub.containers
-    )
+    (
+        main_container,
+        history_container,
+        checkpoints_container,
+        docs_container,
+        interviews_container,
+    ) = stub.containers
 
     expected_eta = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(eta_ts))
     expected_eta_time = time.strftime("%H:%M:%S", time.localtime(eta_ts))
-    assert main_container.markdown_calls[0] == "**&lt;Gather &amp; Save&gt;** — 100% complete"
+    assert (
+        main_container.markdown_calls[0]
+        == "**&lt;Gather &amp; Save&gt;** — 100% complete"
+    )
     assert (
         main_container.info_calls[0]
         == f"ETA {expected_eta} (in 90s) • Remaining 0:00:00 • Elapsed 42s"
@@ -272,7 +288,8 @@ def test_gather_wizard_renders_cli_summary(monkeypatch: pytest.MonkeyPatch) -> N
     ]
 
     doc_history_times = [
-        time.strftime("%H:%M:%S", time.localtime(ts)) for ts in (frozen_now - 8, frozen_now - 6)
+        time.strftime("%H:%M:%S", time.localtime(ts))
+        for ts in (frozen_now - 8, frozen_now - 6)
     ]
     assert docs_container.markdown_calls == [
         "**Docs &lt;survey&gt;** — 100% complete",

@@ -72,7 +72,9 @@ def test_configure_logging_provisions_json_file_handler(
 
     root_logger = logging.getLogger()
     file_handlers = [
-        handler for handler in root_logger.handlers if isinstance(handler, logging.FileHandler)
+        handler
+        for handler in root_logger.handlers
+        if isinstance(handler, logging.FileHandler)
     ]
     assert file_handlers, "Expected file logging handler to be configured."
     file_handler = file_handlers[0]
@@ -200,9 +202,7 @@ def test_configure_logging_handler_parity_when_file_handler_fails(
         for handler in root_logger.handlers
     ), "No file handler should be attached after a failure."
 
-    warning_format = (
-        "WARNING: File logging failed - %(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    warning_format = "WARNING: File logging failed - %(asctime)s - %(name)s - %(levelname)s - %(message)s"
     console_handler = next(
         handler
         for handler in root_logger.handlers

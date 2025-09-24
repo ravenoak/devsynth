@@ -74,9 +74,7 @@ def _install_factory_config(
     def fake_get_provider_config() -> dict[str, object]:
         return copy.deepcopy(snapshot)
 
-    fake_get_provider_config.cache_clear = (  # type: ignore[attr-defined]
-        lambda: None
-    )
+    fake_get_provider_config.cache_clear = lambda: None  # type: ignore[attr-defined]
     monkeypatch.setattr(
         provider_system, "get_provider_config", fake_get_provider_config
     )
@@ -570,7 +568,9 @@ def test_retry_decorator_wiring(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.fast
-def test_retry_decorator_emits_metrics_on_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_retry_decorator_emits_metrics_on_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Emit retry telemetry when decorated call raises before succeeding.
 
     ReqID: N/A
@@ -892,12 +892,9 @@ def test_fallback_provider_all_failures_surface_last_error() -> None:
     async def run_async() -> None:
         with pytest.raises(ProviderError) as async_excinfo:
             await fallback.aembed("payload")
-        assert (
-            str(async_excinfo.value)
-            == (
-                "All providers failed for embeddings. Last error: "
-                "Provider AlwaysFailProvider failed: second async embed failure"
-            )
+        assert str(async_excinfo.value) == (
+            "All providers failed for embeddings. Last error: "
+            "Provider AlwaysFailProvider failed: second async embed failure"
         )
 
     asyncio.run(run_async())

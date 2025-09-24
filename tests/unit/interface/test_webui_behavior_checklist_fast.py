@@ -124,9 +124,7 @@ class SidebarRecorder:
         self.markdown_calls.append(text)
         self.owner.calls.append(("sidebar.markdown", (text,), kwargs))
 
-    def radio(
-        self, label: str, options: Sequence[str], index: int = 0
-    ) -> str:
+    def radio(self, label: str, options: Sequence[str], index: int = 0) -> str:
         options_tuple = tuple(options)
         self.radio_calls.append((label, options_tuple, index))
         self.owner.calls.append(("sidebar.radio", (label, options_tuple, index), {}))
@@ -239,16 +237,19 @@ class BehaviorStreamlitStub:
         self.calls.append(("subheader", (text,), kwargs))
 
     def selectbox(
-        self, label: str, options: Sequence[str], *, index: int = 0, key: str | None = None
+        self,
+        label: str,
+        options: Sequence[str],
+        *,
+        index: int = 0,
+        key: str | None = None,
     ) -> str:
         options_tuple = tuple(options)
         self.selectbox_calls.append((label, options_tuple, index, key))
         self.calls.append(("selectbox", (label, options_tuple, index), {"key": key}))
         return options_tuple[index]
 
-    def text_input(
-        self, label: str, *, value: str = "", key: str | None = None
-    ) -> str:
+    def text_input(self, label: str, *, value: str = "", key: str | None = None) -> str:
         self.text_input_calls.append((label, value, key))
         self.calls.append(("text_input", (label,), {"value": value, "key": key}))
         return self.text_input_responses.get(key or label, value)
@@ -457,7 +458,9 @@ def test_display_result_routes_error_and_highlight_paths(
     stub = install_streamlit_stub(monkeypatch)
     ui = webui.WebUI()
 
-    monkeypatch.setattr(webui.WebUI, "_get_error_type", lambda self, message: "api_error")
+    monkeypatch.setattr(
+        webui.WebUI, "_get_error_type", lambda self, message: "api_error"
+    )
     monkeypatch.setattr(
         webui.WebUI,
         "_get_error_suggestions",
@@ -487,8 +490,7 @@ def test_display_result_routes_error_and_highlight_paths(
         expected="a bold Documentation label",
     )
     socratic_assert(
-        condition=stub.markdown_calls[4]
-        == "- [API Guide](https://docs.invalid/api)",
+        condition=stub.markdown_calls[4] == "- [API Guide](https://docs.invalid/api)",
         question="Are documentation links rendered as markdown bullets",
         expected="the API guide hyperlink",
     )
@@ -617,7 +619,9 @@ def test_display_result_info_and_error_fallbacks_sanitize(
     )
 
 
-def test_display_result_markup_fallback_uses_write(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_display_result_markup_fallback_uses_write(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Markdown rendering falls back to ``write`` when ``markdown`` is absent."""
 
     monkeypatch.delattr(BehaviorStreamlitStub, "markdown")
@@ -657,8 +661,7 @@ def test_display_result_error_prefix_triggers_guidance(
 
     ui.display_result("ERROR: File not found when loading config")
     socratic_assert(
-        condition=stub.error_calls[-1]
-        == "ERROR: File not found when loading config",
+        condition=stub.error_calls[-1] == "ERROR: File not found when loading config",
         question="Do error-prefixed messages route through st.error",
         expected="error channel invoked",
     )
@@ -705,8 +708,8 @@ def test_display_result_covers_all_message_channels(
 
     ui.display_result("[red]Alert[/red] [green]Ready[/green]")
     socratic_assert(
-        condition="<span style=\"color:red\">Alert</span>" in stub.markdown_calls[-1]
-        and "<span style=\"color:green\">Ready</span>" in stub.markdown_calls[-1],
+        condition='<span style="color:red">Alert</span>' in stub.markdown_calls[-1]
+        and '<span style="color:green">Ready</span>' in stub.markdown_calls[-1],
         question="Are color tags translated into HTML span markup",
         expected="red and green spans rendered in the markdown output",
     )
@@ -789,26 +792,28 @@ def test_display_result_covers_all_message_channels(
         question="Are follow-up suggestions preserved",
         expected="second suggestion references the file location",
     )
-    file_doc_entries = [entry for entry in file_error_markdown if entry.startswith("- [")]
+    file_doc_entries = [
+        entry for entry in file_error_markdown if entry.startswith("- [")
+    ]
     socratic_assert(
         condition="**Documentation:**" in file_error_markdown
-        and any(entry.startswith("- [File Handling Guide]") for entry in file_doc_entries),
+        and any(
+            entry.startswith("- [File Handling Guide]") for entry in file_doc_entries
+        ),
         question="Is documentation highlighted after file suggestions",
         expected="bold Documentation header present",
     )
 
     ui.display_result("WARNING: Keep an eye on resources")
     socratic_assert(
-        condition=stub.warning_calls[-1]
-        == "WARNING: Keep an eye on resources",
+        condition=stub.warning_calls[-1] == "WARNING: Keep an eye on resources",
         question="Do WARNING-prefixed messages trigger Streamlit.warning",
         expected="warning() captures the prefixed alert",
     )
 
     ui.display_result("SUCCESS: Workflow stabilized")
     socratic_assert(
-        condition=stub.success_calls[-1]
-        == "SUCCESS: Workflow stabilized",
+        condition=stub.success_calls[-1] == "SUCCESS: Workflow stabilized",
         question="Are SUCCESS-prefixed messages routed to success()",
         expected="success channel records the prefixed outcome",
     )
@@ -930,14 +935,16 @@ def test_ui_progress_estimates_and_subtasks(monkeypatch: pytest.MonkeyPatch) -> 
 
     status_container, time_container = stub.empty_containers[:2]
     socratic_assert(
-        condition=status_container.markdown_calls[0] == "**&lt;b&gt;Deploy&lt;/b&gt;** - 0%",
+        condition=status_container.markdown_calls[0]
+        == "**&lt;b&gt;Deploy&lt;/b&gt;** - 0%",
         question="Is the initial progress description sanitized and formatted",
         expected="bold sanitized label with 0%",
     )
 
     indicator.update()
     socratic_assert(
-        condition=status_container.markdown_calls[-1] == "**&lt;b&gt;Deploy&lt;/b&gt;** - 25%",
+        condition=status_container.markdown_calls[-1]
+        == "**&lt;b&gt;Deploy&lt;/b&gt;** - 25%",
         question="Does the first update reach 25% with sanitized text",
         expected="25% status entry",
     )
@@ -1049,8 +1056,7 @@ def test_ui_progress_complete_cascades_and_falls_back_to_write(
 
     sub_container = stub.containers[0]
     socratic_assert(
-        condition=sub_container.success_calls[-1]
-        == "Completed: Subtask &lt;one&gt;",
+        condition=sub_container.success_calls[-1] == "Completed: Subtask &lt;one&gt;",
         question="Were subtasks completed automatically when the root finishes",
         expected="cascaded completion recorded on the subtask container",
     )
@@ -1215,7 +1221,9 @@ def test_run_responsive_layout_and_router_invocation(
     router_calls: list[str] = []
 
     class RouterSpy:
-        def __init__(self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]) -> None:
+        def __init__(
+            self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]
+        ) -> None:
             router_calls.append("init")
 
         def run(self) -> None:
@@ -1238,7 +1246,9 @@ def test_run_responsive_layout_and_router_invocation(
         expected="screen_height=800 during initialization",
     )
     socratic_assert(
-        condition=any(call.lstrip().startswith("<style>") for call in stub.markdown_calls),
+        condition=any(
+            call.lstrip().startswith("<style>") for call in stub.markdown_calls
+        ),
         question="Is the responsive CSS injected before rendering",
         expected="inline <style> block",
     )
@@ -1287,7 +1297,9 @@ def test_run_handles_html_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     router_ran = False
 
     class RouterSpy:
-        def __init__(self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]) -> None:
+        def __init__(
+            self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]
+        ) -> None:
             pass
 
         def run(self) -> None:  # pragma: no cover - guarded by Socratic assertion
@@ -1322,7 +1334,9 @@ def test_run_handles_page_config_error(monkeypatch: pytest.MonkeyPatch) -> None:
     router_ran = False
 
     class RouterSpy:
-        def __init__(self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]) -> None:
+        def __init__(
+            self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]
+        ) -> None:
             pass
 
         def run(self) -> None:  # pragma: no cover - guarded by Socratic assertion
@@ -1370,7 +1384,9 @@ def test_run_without_components_invokes_router(monkeypatch: pytest.MonkeyPatch) 
     router_calls: list[str] = []
 
     class RouterSpy:
-        def __init__(self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]) -> None:
+        def __init__(
+            self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]
+        ) -> None:
             router_calls.append("init")
 
         def run(self) -> None:
@@ -1397,7 +1413,9 @@ def test_ensure_router_caches_router_instance(
     init_calls: list[str] = []
 
     class RouterSpy:
-        def __init__(self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]) -> None:
+        def __init__(
+            self, owner: webui.WebUI, pages: dict[str, Callable[[], None]]
+        ) -> None:
             init_calls.append("init")
 
         def run(self) -> None:  # pragma: no cover - not exercised in this test

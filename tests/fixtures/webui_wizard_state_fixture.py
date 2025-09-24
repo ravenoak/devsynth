@@ -30,8 +30,13 @@ def create_mock_streamlit():
 
     # Mock common streamlit functions
     st.button = MagicMock(return_value=False)
-    st.text_input = MagicMock(side_effect=lambda *args, **kwargs: kwargs.get("value", ""))
-    st.text_area = MagicMock(side_effect=lambda *args, **kwargs: kwargs.get("value", ""))
+    st.text_input = MagicMock(
+        side_effect=lambda *args, **kwargs: kwargs.get("value", "")
+    )
+    st.text_area = MagicMock(
+        side_effect=lambda *args, **kwargs: kwargs.get("value", "")
+    )
+
     def _selectbox_side_effect(*args, **kwargs):
         options = []
         if len(args) > 1:

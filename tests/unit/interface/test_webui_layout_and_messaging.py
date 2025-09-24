@@ -25,7 +25,9 @@ def webui_module(monkeypatch: pytest.MonkeyPatch) -> Tuple[object, object]:
 
 
 @pytest.mark.fast
-def test_get_layout_config_respects_breakpoints(webui_module: Tuple[object, object]) -> None:
+def test_get_layout_config_respects_breakpoints(
+    webui_module: Tuple[object, object],
+) -> None:
     webui, st = webui_module
     ui = webui.WebUI()
 
@@ -50,7 +52,7 @@ def test_get_layout_config_respects_breakpoints(webui_module: Tuple[object, obje
 
 @pytest.mark.fast
 def test_ask_question_and_confirm_choice_use_streamlit_controls(
-    webui_module: Tuple[object, object]
+    webui_module: Tuple[object, object],
 ) -> None:
     webui, st = webui_module
     ui = webui.WebUI()
@@ -73,13 +75,15 @@ def test_ask_question_and_confirm_choice_use_streamlit_controls(
 
 @pytest.mark.fast
 def test_display_result_message_types_provide_guidance(
-    webui_module: Tuple[object, object]
+    webui_module: Tuple[object, object],
 ) -> None:
     webui, st = webui_module
     ui = webui.WebUI()
 
     ui.display_result("File not found: config.yaml", message_type="error")
-    st.error.assert_called_once_with(webui.sanitize_output("File not found: config.yaml"))
+    st.error.assert_called_once_with(
+        webui.sanitize_output("File not found: config.yaml")
+    )
     markdown_texts = [call.args[0] for call in st.markdown.call_args_list]
     assert any("Suggestions" in text for text in markdown_texts)
     assert any("Documentation" in text for text in markdown_texts)
@@ -99,7 +103,7 @@ def test_display_result_message_types_provide_guidance(
 
 @pytest.mark.fast
 def test_display_result_markup_and_keyword_routing(
-    webui_module: Tuple[object, object]
+    webui_module: Tuple[object, object],
 ) -> None:
     webui, st = webui_module
     ui = webui.WebUI()
@@ -169,7 +173,7 @@ def test_get_error_type_matches_keywords(
 
 @pytest.mark.fast
 def test_error_suggestions_and_docs_cover_known_and_unknown(
-    webui_module: Tuple[object, object]
+    webui_module: Tuple[object, object],
 ) -> None:
     webui, _ = webui_module
     ui = webui.WebUI()

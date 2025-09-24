@@ -40,7 +40,9 @@ class FakeStreamlit:
         self.set_page_config_exception: Exception | None = None
         self.sidebar_radio_selection: str | None = None
 
-        self.components = SimpleNamespace(v1=SimpleNamespace(html=self._components_html))
+        self.components = SimpleNamespace(
+            v1=SimpleNamespace(html=self._components_html)
+        )
         self.sidebar = SimpleNamespace(
             title=self._sidebar_title,
             markdown=self._sidebar_markdown,

@@ -240,7 +240,9 @@ def test_lazy_loader_imports_streamlit_stub_once(streamlit_stub: StreamlitStub) 
     assert ("success", ("done",), {}) in streamlit_stub.calls
 
 
-def test_missing_streamlit_surfaces_install_guidance(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_streamlit_surfaces_install_guidance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Import failures raise DevSynthError with installation instructions."""
 
     monkeypatch.setattr(webui, "_STREAMLIT", None)
@@ -259,12 +261,16 @@ def test_missing_streamlit_surfaces_install_guidance(monkeypatch: pytest.MonkeyP
     assert "poetry install --with dev --extras webui" in str(excinfo.value)
 
 
-def test_display_result_sanitizes_error_output(streamlit_stub: StreamlitStub, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_display_result_sanitizes_error_output(
+    streamlit_stub: StreamlitStub, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Error rendering escapes HTML and surfaces docs and suggestions."""
 
     ui = webui.WebUI()
 
-    monkeypatch.setattr(webui.WebUI, "_get_error_type", lambda self, message: "api_error")
+    monkeypatch.setattr(
+        webui.WebUI, "_get_error_type", lambda self, message: "api_error"
+    )
     monkeypatch.setattr(
         webui.WebUI,
         "_get_error_suggestions",
@@ -310,26 +316,49 @@ def test_ui_progress_tracks_status_and_subtasks(streamlit_stub: StreamlitStub) -
     subtask_id = progress.add_subtask("<tag>Subtask</tag>", total=2)
     sub_container = streamlit_stub.containers[0]
     assert any(
-        record == ("markdown", "&nbsp;&nbsp;&nbsp;&nbsp;**&lt;tag&gt;Subtask&lt;/tag&gt;** - 0%", {})
+        record
+        == (
+            "markdown",
+            "&nbsp;&nbsp;&nbsp;&nbsp;**&lt;tag&gt;Subtask&lt;/tag&gt;** - 0%",
+            {},
+        )
         for record in sub_container.records
     )
 
     progress.update_subtask(subtask_id, advance=1, description="<u>Halfway</u>")
     assert any(
-        record == ("markdown", "&nbsp;&nbsp;&nbsp;&nbsp;**&lt;u&gt;Halfway&lt;/u&gt;** - 50%", {})
+        record
+        == (
+            "markdown",
+            "&nbsp;&nbsp;&nbsp;&nbsp;**&lt;u&gt;Halfway&lt;/u&gt;** - 50%",
+            {},
+        )
         for record in sub_container.records
     )
 
     progress.complete_subtask(subtask_id)
     assert any(
-        record == ("markdown", "&nbsp;&nbsp;&nbsp;&nbsp;**&lt;u&gt;Halfway&lt;/u&gt;** - 100%", {})
+        record
+        == (
+            "markdown",
+            "&nbsp;&nbsp;&nbsp;&nbsp;**&lt;u&gt;Halfway&lt;/u&gt;** - 100%",
+            {},
+        )
         for record in sub_container.records
     )
-    assert ("container[0].success", ("Completed: &lt;u&gt;Halfway&lt;/u&gt;",), {}) in streamlit_stub.calls
+    assert (
+        "container[0].success",
+        ("Completed: &lt;u&gt;Halfway&lt;/u&gt;",),
+        {},
+    ) in streamlit_stub.calls
 
     progress.complete()
     assert main_bar.values[-1] == 1.0
-    assert ("success", ("Completed: &lt;i&gt;Phase&lt;/i&gt;",), {}) in streamlit_stub.calls
+    assert (
+        "success",
+        ("Completed: &lt;i&gt;Phase&lt;/i&gt;",),
+        {},
+    ) in streamlit_stub.calls
 
 
 def test_router_run_uses_default_and_persists_selection(
@@ -385,8 +414,16 @@ def test_webui_run_configures_router_and_layout(
     router_calls: list[dict[str, Any]] = []
 
     class RouterSpy:
-        def __init__(self, ui: webui.WebUI, pages_arg: dict[str, Callable[[], None]], *, default=None) -> None:
-            router_calls.append({"ui": ui, "pages": pages_arg, "default": default, "run": False})
+        def __init__(
+            self,
+            ui: webui.WebUI,
+            pages_arg: dict[str, Callable[[], None]],
+            *,
+            default=None,
+        ) -> None:
+            router_calls.append(
+                {"ui": ui, "pages": pages_arg, "default": default, "run": False}
+            )
 
         def run(self) -> None:
             router_calls[-1]["run"] = True
@@ -400,7 +437,9 @@ def test_webui_run_configures_router_and_layout(
     assert streamlit_stub.session_state.screen_height == 800
 
     css_call = next(
-        call for call in streamlit_stub.calls if call[0] == "markdown" and "padding: 1rem" in call[1][0]
+        call
+        for call in streamlit_stub.calls
+        if call[0] == "markdown" and "padding: 1rem" in call[1][0]
     )
     assert css_call[2]["unsafe_allow_html"] is True
 

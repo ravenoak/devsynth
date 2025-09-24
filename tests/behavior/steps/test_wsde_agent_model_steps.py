@@ -752,7 +752,9 @@ def critic_identifies_thesis_antithesis(context):
         "domain_critiques", {}
     )
     has_domain_coverage = any(bool(entries) for entries in domain_critiques.values())
-    assert critiques or has_domain_coverage, "Antithesis should capture critique details"
+    assert (
+        critiques or has_domain_coverage
+    ), "Antithesis should capture critique details"
 
 
 @then("the team should work toward a synthesis")
@@ -814,8 +816,8 @@ def final_solution_reflects_dialectical_process(context):
     """Verify that the final solution reflects the dialectical process."""
     # Verify that the synthesis is an improvement over the thesis
     synthesis = context.dialectical_result["synthesis"]
-    assert (
-        synthesis.get("reasoning") or synthesis.get("domain_improvements")
+    assert synthesis.get("reasoning") or synthesis.get(
+        "domain_improvements"
     ), "Synthesis should capture reasoning or domain improvements"
 
     # Verify that the synthesis includes elements from both thesis and antithesis

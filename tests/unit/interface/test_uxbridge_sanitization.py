@@ -2,10 +2,6 @@ import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
 
-import sys
-from types import ModuleType
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 from devsynth.interface.agentapi import APIBridge
@@ -40,7 +36,7 @@ def test_with_clean_state(clean_state):
     with patch("rich.console.Console.print") as out:
         bridge.display_result("<script>")
         out.assert_called_once()
-        printed_obj, = out.call_args.args
+        (printed_obj,) = out.call_args.args
         kwargs = out.call_args.kwargs
         plain_text = getattr(printed_obj, "plain", printed_obj)
         assert plain_text == "&lt;script&gt;"

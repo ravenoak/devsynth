@@ -50,10 +50,12 @@ def test_requirements_page_succeeds(mock_streamlit, mock_spec_cmd, monkeypatch):
     import devsynth.interface.webui.commands as commands
 
     importlib.reload(commands)
-    from devsynth.interface.webui import WebUI
     import devsynth.interface.webui.rendering as rendering
+    from devsynth.interface.webui import WebUI
 
-    monkeypatch.setattr("devsynth.application.cli.spec_cmd", mock_spec_cmd, raising=False)
+    monkeypatch.setattr(
+        "devsynth.application.cli.spec_cmd", mock_spec_cmd, raising=False
+    )
     monkeypatch.setattr(commands, "spec_cmd", mock_spec_cmd, raising=False)
     monkeypatch.setattr(webui, "spec_cmd", mock_spec_cmd, raising=False)
     monkeypatch.setattr(rendering, "spec_cmd", mock_spec_cmd, raising=False)
