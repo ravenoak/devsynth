@@ -1,6 +1,12 @@
 # DevSynth Testing Configuration
 # Overrides for testing environment
 
+# Application settings
+application:
+  name: DevSynth
+  version: 0.1.0a1
+  description: AI-driven development platform (Testing)
+
 # Logging configuration
 logging:
   level: DEBUG
@@ -37,12 +43,14 @@ agents:
 
 # EDRR framework configuration
 edrr:
+  enabled: true
   phase_transition:
     auto: false  # Manual transitions in tests
     timeout: 30  # Short timeouts for faster tests
 
 # Security settings
 security:
+  input_validation: true
   rate_limiting:
     enabled: false  # Disable rate limiting in tests
   encryption:
@@ -71,3 +79,4 @@ features:
   experimental_features: false
   automatic_phase_transitions: false
   collaboration_notifications: false
+  prompt_auto_tuning: false
