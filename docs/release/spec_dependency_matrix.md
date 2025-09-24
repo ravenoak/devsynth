@@ -21,6 +21,7 @@ This matrix maps every remaining `status: draft` specification or implementation
   - [EDRR Coordinator](../../issues/edrr-coordinator.md) — in progress; milestone: 0.1.0
 - Dependent tests:
   - `tests/behavior/features/edrr_coordinator.feature`
+  - `tests/unit/application/edrr/test_coordinator_macro_micro_simulation.py`
 
 ### Finalize WSDE/EDRR workflow logic (`docs/specifications/finalize-wsde-edrr-workflow-logic.md`)
 

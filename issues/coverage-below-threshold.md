@@ -41,6 +41,7 @@ FAIL Required test coverage of 90% not reached. Total coverage: 20.92%
 - [ ] Raise coverage across the CLI orchestration, WebUI rendering/bridge, provider system, progress telemetry, and EDRR coordinator modules so each clears at least 60 % (40 % for the EDRR coordinator) before rerunning the fast+medium aggregate.
 
 ## Notes
+- 2025-09-23: Recursive coordinator simulations synced to the BDD feature raised `src/devsynth/application/edrr/coordinator/core.py` coverage to 31.0 % by running `tests/unit/application/edrr/test_coordinator_macro_micro_simulation.py`. Artifacts live under `issues/tmp_artifacts/edrr_coordinator/20250923T235328Z/`, and the run documents macro→micro progression, the depth guard, and retry diagnostics against deterministic thresholds.【c7c4d8†L1-L5】【81d9c3†L1-L26】【F:tests/unit/application/edrr/test_coordinator_macro_micro_simulation.py†L1-L267】
 - 2025-09-23: Fast WebUI sweeps now drive `src/devsynth/interface/webui.py` to 99 % line coverage and `webui_bridge.py` to 63 %
   without installing the optional extra. Artifacts live under
   `issues/tmp_artifacts/webui_focus_20250923T165800Z/` and
