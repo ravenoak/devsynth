@@ -9,6 +9,9 @@ ENV/
 # Logs
 *.log
 logs/
+!logs/
+logs/**
+!logs/**/*.log
 devsynth.log
 
 # DevSynth specific
@@ -30,6 +33,7 @@ coverage-artifacts.tar.gz
 **/*,cover
 coverage_html/
 htmlcov/
+!htmlcov-*.zip
 coverage.json
 !issues/tmp_artifacts/webui-output_formatter/before/coverage.json
 !issues/tmp_artifacts/webui-output_formatter/after/coverage.json
@@ -60,6 +64,9 @@ traceability.json
 test_reports/
 # Allow committing specific small artifacts inside diagnostics/; default ignore remains.
 diagnostics/*
+!diagnostics/
+diagnostics/**
+!diagnostics/**/*.log
 !diagnostics/.gitkeep
 !diagnostics/README.md
 !diagnostics/provider_system_coverage_20250921.json
