@@ -102,10 +102,14 @@ def test_ensure_coverage_artifacts_warns_when_no_measured_files(
         def get_data(self) -> SimpleNamespace:
             return SimpleNamespace(measured_files=lambda: [])
 
-        def html_report(self, *_args: object, **_kwargs: object) -> None:  # pragma: no cover
+        def html_report(
+            self, *_args: object, **_kwargs: object
+        ) -> None:  # pragma: no cover
             raise AssertionError("html_report should not be invoked")
 
-        def json_report(self, *_args: object, **_kwargs: object) -> None:  # pragma: no cover
+        def json_report(
+            self, *_args: object, **_kwargs: object
+        ) -> None:  # pragma: no cover
             raise AssertionError("json_report should not be invoked")
 
     module.Coverage = NoMeasuredCoverage  # type: ignore[attr-defined]
@@ -158,7 +162,9 @@ def test_ensure_coverage_artifacts_generates_reports_and_syncs_legacy(
     copytree_calls: list[tuple[Path, Path, dict[str, Any]]] = []
     copyfile_calls: list[tuple[Path, Path, dict[str, Any]]] = []
 
-    def fake_copytree(src: str | Path, dst: str | Path, *args: object, **kwargs: Any) -> Path:
+    def fake_copytree(
+        src: str | Path, dst: str | Path, *args: object, **kwargs: Any
+    ) -> Path:
         src_path = Path(src)
         dst_path = Path(dst)
         dst_path.mkdir(parents=True, exist_ok=True)
@@ -168,7 +174,9 @@ def test_ensure_coverage_artifacts_generates_reports_and_syncs_legacy(
         copytree_calls.append((src_path, dst_path, dict(kwargs)))
         return dst_path
 
-    def fake_copyfile(src: str | Path, dst: str | Path, *args: object, **kwargs: Any) -> str:
+    def fake_copyfile(
+        src: str | Path, dst: str | Path, *args: object, **kwargs: Any
+    ) -> str:
         src_path = Path(src)
         dst_path = Path(dst)
         dst_path.write_text(src_path.read_text())
@@ -227,7 +235,10 @@ def test_ensure_coverage_artifacts_generates_reports_and_syncs_legacy(
         (
             {"PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTEST_ADDOPTS": "-vv"},
             True,
-            {"PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTEST_ADDOPTS": "-vv -p pytest_cov"},
+            {
+                "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+                "PYTEST_ADDOPTS": "-vv -p pytest_cov",
+            },
         ),
         (
             {"PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"},
@@ -254,7 +265,10 @@ def test_coverage_artifacts_status_missing_json(
     ok, reason = rt.coverage_artifacts_status()
 
     assert not ok
-    assert reason == f"Coverage JSON missing at {coverage_artifact_environment.coverage_json}"
+    assert (
+        reason
+        == f"Coverage JSON missing at {coverage_artifact_environment.coverage_json}"
+    )
 
 
 @pytest.mark.fast

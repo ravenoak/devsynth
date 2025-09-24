@@ -57,10 +57,12 @@ def test_segmented_batches_inject_plugins_and_emit_tips(
     test_a.write_text("def test_one():\n    assert True\n")
     test_b.write_text("def test_two():\n    assert True\n")
 
-    collect_payload = "\n".join([
-        f"{test_a}::test_one",
-        f"{test_b}::test_two",
-    ])
+    collect_payload = "\n".join(
+        [
+            f"{test_a}::test_one",
+            f"{test_b}::test_two",
+        ]
+    )
 
     def fake_collect(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
         assert "--collect-only" in cmd
@@ -82,7 +84,9 @@ def test_segmented_batches_inject_plugins_and_emit_tips(
     popen_envs: list[dict[str, str]] = []
 
     class FakePopen:
-        def __init__(self, cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001
+        def __init__(
+            self, cmd, stdout=None, stderr=None, text=True, env=None
+        ):  # noqa: ANN001
             popen_envs.append(dict(env or {}))
             try:
                 step = next(batch_plan)
@@ -139,7 +143,9 @@ def test_segmented_batch_exception_emits_tips_and_plugins(
     test_file.write_text("def test_fail():\n    assert True\n")
 
     def fake_collect(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
-        return SimpleNamespace(returncode=0, stdout=f"{test_file}::test_fail\n", stderr="")
+        return SimpleNamespace(
+            returncode=0, stdout=f"{test_file}::test_fail\n", stderr=""
+        )
 
     monkeypatch.setattr(rt.subprocess, "run", fake_collect)
 
@@ -198,7 +204,9 @@ def test_run_tests_env_var_propagation_retains_existing_addopts(
     recorded: list[tuple[list[str], dict[str, str]]] = []
 
     class FakePopen:
-        def __init__(self, cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001
+        def __init__(
+            self, cmd, stdout=None, stderr=None, text=True, env=None
+        ):  # noqa: ANN001
             recorded.append((list(cmd), dict(env or {})))
             self.returncode = 0
             self._stdout = "pass"
@@ -259,12 +267,16 @@ def test_run_tests_option_wiring_includes_expected_flags(
 
     def fake_collect(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
         assert "--collect-only" in cmd
-        return SimpleNamespace(returncode=0, stdout=f"{test_file}::test_opts", stderr="")
+        return SimpleNamespace(
+            returncode=0, stdout=f"{test_file}::test_opts", stderr=""
+        )
 
     recorded: list[list[str]] = []
 
     class FakePopen:
-        def __init__(self, cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001
+        def __init__(
+            self, cmd, stdout=None, stderr=None, text=True, env=None
+        ):  # noqa: ANN001
             recorded.append(list(cmd))
             self.returncode = 0
             self._stdout = "opts"

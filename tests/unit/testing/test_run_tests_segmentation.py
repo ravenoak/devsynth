@@ -101,7 +101,9 @@ def test_segmented_batches_surface_plugin_fallbacks_and_failure_tips(
     popen_calls: list[dict[str, object]] = []
 
     class FakePopen:
-        def __init__(self, cmd, stdout=None, stderr=None, text=False, env=None):  # noqa: ANN001
+        def __init__(
+            self, cmd, stdout=None, stderr=None, text=False, env=None
+        ):  # noqa: ANN001
             popen_calls.append({"cmd": list(cmd), "env": dict(env or {})})
             try:
                 result = next(batch_plan)
@@ -142,7 +144,9 @@ def test_segmented_batches_surface_plugin_fallbacks_and_failure_tips(
     # Plugin fallbacks were attempted both for the process env and the subprocess copy.
     assert ("cov", True, "") in ensure_calls
     assert ("bdd", True, "") in ensure_calls
-    assert any(name == "cov" and is_os_env is False for name, is_os_env, _ in ensure_calls)
+    assert any(
+        name == "cov" and is_os_env is False for name, is_os_env, _ in ensure_calls
+    )
     assert any(
         name == "bdd" and is_os_env is False and "pytest_cov" in addopts
         for name, is_os_env, addopts in ensure_calls

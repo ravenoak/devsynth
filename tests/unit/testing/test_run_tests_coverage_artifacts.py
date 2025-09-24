@@ -72,7 +72,9 @@ def test_ensure_coverage_artifacts_warns_when_data_missing(
 
     class UnexpectedCoverage:  # pragma: no cover - defensive
         def __init__(self, *_args: object, **_kwargs: object) -> None:
-            raise AssertionError("Coverage should not be instantiated without data file")
+            raise AssertionError(
+                "Coverage should not be instantiated without data file"
+            )
 
     module.Coverage = UnexpectedCoverage  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "coverage", module)
@@ -108,10 +110,14 @@ def test_ensure_coverage_artifacts_warns_when_no_measured_files(
         def get_data(self) -> SimpleNamespace:
             return SimpleNamespace(measured_files=lambda: [])
 
-        def html_report(self, *_args: object, **_kwargs: object) -> None:  # pragma: no cover
+        def html_report(
+            self, *_args: object, **_kwargs: object
+        ) -> None:  # pragma: no cover
             raise AssertionError("html_report should not run when no measured files")
 
-        def json_report(self, *_args: object, **_kwargs: object) -> None:  # pragma: no cover
+        def json_report(
+            self, *_args: object, **_kwargs: object
+        ) -> None:  # pragma: no cover
             raise AssertionError("json_report should not run when no measured files")
 
     module.Coverage = NoMeasuredCoverage  # type: ignore[attr-defined]
@@ -175,7 +181,10 @@ def test_ensure_coverage_artifacts_generates_reports_and_syncs_legacy(
     assert legacy_index.read_text() == html_index.read_text()
 
     assert coverage_test_environment.coverage_json.exists()
-    assert json.loads(coverage_test_environment.coverage_json.read_text()) == coverage_payload
+    assert (
+        json.loads(coverage_test_environment.coverage_json.read_text())
+        == coverage_payload
+    )
 
     legacy_json = Path("coverage.json")
     assert legacy_json.exists()
@@ -204,10 +213,7 @@ def test_ensure_coverage_artifacts_skips_when_module_unavailable(
     with caplog.at_level(logging.DEBUG, logger="devsynth.testing.run_tests"):
         rt._ensure_coverage_artifacts()
 
-    assert any(
-        "coverage library unavailable" in message
-        for message in caplog.messages
-    )
+    assert any("coverage library unavailable" in message for message in caplog.messages)
     assert not coverage_test_environment.coverage_json.exists()
     assert not coverage_test_environment.html_dir.exists()
 

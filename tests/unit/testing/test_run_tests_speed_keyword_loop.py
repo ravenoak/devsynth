@@ -39,7 +39,9 @@ def test_speed_loop_uses_keyword_filter_and_executes_node_ids(
     """
     test_root = tmp_path
     file_path = test_root / "test_kwfast.py"
-    file_path.write_text("def test_1():\n    assert True\n\ndef test_2():\n    assert True\n")
+    file_path.write_text(
+        "def test_1():\n    assert True\n\ndef test_2():\n    assert True\n"
+    )
 
     monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(test_root))
     monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(test_root))

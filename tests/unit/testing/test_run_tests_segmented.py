@@ -133,7 +133,13 @@ def test_run_tests_segmented_honors_keyword_filter(monkeypatch, tmp_path):
     assert any("-k" in cmd for cmd in collect_calls)
     assert len(batch_cmds) == 2
     assert all(
-        len([part for part in cmd if part.endswith("::test_one") or part.endswith("::test_two")])
+        len(
+            [
+                part
+                for part in cmd
+                if part.endswith("::test_one") or part.endswith("::test_two")
+            ]
+        )
         == 1
         for cmd in batch_cmds
     )

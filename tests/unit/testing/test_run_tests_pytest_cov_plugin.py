@@ -6,7 +6,9 @@ from devsynth.testing import run_tests as run_tests_module
 
 
 @pytest.mark.fast
-def test_ensure_pytest_cov_plugin_env_adds_plugin(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_ensure_pytest_cov_plugin_env_adds_plugin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Auto-loading disabled requires explicit pytest-cov plugin injection."""
 
     monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
