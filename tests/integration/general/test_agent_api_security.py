@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytest.skip("requires FastAPI test client", allow_module_level=True)
-
 pytest.importorskip("fastapi")
+pytest.importorskip("fastapi.testclient")
+pytest.skip("requires FastAPI test client", allow_module_level=True)
 from fastapi.testclient import TestClient
 
 

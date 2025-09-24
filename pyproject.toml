@@ -45,15 +45,18 @@ langchain-community = "*"
 openai = "*"
 toml = "*"
 requests = "*"
-# FastAPI 0.116.x remains the tested range while Starlette stays below 0.47 to
-# avoid the Python 3.12 TestClient MRO regression (see
+# FastAPI 0.116.x remains the tested range while Starlette advances to the
+# 0.47.x compatibility band documented in the upstream 0.116.2 release notes.
+# The sitecustomize shim continues to patch WebSocketDenialResponse to avoid
+# the Python 3.12 TestClient MRO regression (see
 # issues/run-tests-smoke-fast-fastapi-starlette-mro.md and docs/plan.md §
 # Compatibility mitigation).
 fastapi = {version = ">=0.116.2,<0.117", optional = true}
-# Starlette >=0.47 reintroduces the Python 3.12 TestClient MRO TypeError; keep
-# the service on 0.46.x until upstream ships a fix we can verify. Tracked in
+# Align with Starlette 0.47.3+, capturing the Python 3.12 coroutine detection
+# fix while staying below 0.48.0 until RFC 9110 renames and broader changes are
+# validated against DevSynth's API surface. Tracked in
 # issues/run-tests-smoke-fast-fastapi-starlette-mro.md.
-starlette = ">=0.46.2,<0.47"
+starlette = ">=0.47.3,<0.48"
 tinydb = {version = "*", optional = true}
 duckdb = {version = "*", optional = true}
 lmdb = {version = "*", optional = true}

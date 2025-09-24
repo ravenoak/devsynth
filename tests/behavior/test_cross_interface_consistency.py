@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 pytest.importorskip("fastapi")
+pytest.importorskip("fastapi.testclient")
 from pytest_bdd import given, scenarios, then, when
 
 # Import step definitions implemented for FR-67

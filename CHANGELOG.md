@@ -25,10 +25,11 @@ milestone.
 ## [Unreleased]
 
 ### Changed
-- Pinned FastAPI to the 0.116.x line together with Starlette 0.46.x to avoid the
-  Python 3.12 TestClient MRO regression; revisit the constraint and remove the
-  `sitecustomize` shim once Starlette publishes a Python 3.12-compatible
-  release (tracked in `issues/run-tests-smoke-fast-fastapi-starlette-mro.md`).
+- Realigned the FastAPI 0.116.x pin with Starlette 0.47.3 after reviewing the
+  upstream release notes; the `sitecustomize` shim continues to patch
+  `WebSocketDenialResponse` until the Python 3.12 TestClient MRO fix lands
+  natively (tracked in
+  `issues/run-tests-smoke-fast-fastapi-starlette-mro.md`).
 
 > This changelog entry for 0.1.0a1 is now frozen for the tag.
 
