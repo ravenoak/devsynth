@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-09-21'
-last_reviewed: '2025-09-22'
+last_reviewed: '2025-09-23'
 status: published
 tags:
 - implementation
@@ -42,6 +42,18 @@ assert EDRRCoordinator._sanitize_threshold(0.8, 0.7) == 0.8
 
 These helpers guarantee that `_get_micro_cycle_config` returns finite iteration counts and valid quality thresholds, ensuring that recursive EDRR cycles terminate.
 
+## Recursive Phase Progression
+
+`progress_to_phase` couples macro and micro runs by persisting child context before invoking `_maybe_auto_progress`. When the Expand phase records `{"phase_complete": True, "quality_score": 0.96}`, automatic transitions advance to Differentiate and then Refine while copying the micro-cycle ledger keyed by cycle ID. The run halts in Refine once its quality score (0.42 in the simulation) falls below the 0.9 threshold, populating `quality_issues` and `additional_processing` so manual intervention can resume the loop. The task labels are read directly from `tests/behavior/features/recursive_edrr_coordinator.feature`, keeping the expectations synchronized with the BDD narrative.
+
+## Recursion Depth Guard
+
+`create_micro_cycle` raises `EDRRCoordinatorError` with `"Maximum recursion depth"` when a level-3 cycle (depth 3 with the default configuration) attempts to spawn a level-4 descendant. The guard executes before appending to `child_cycles`, so the failed attempt leaves the recursion tree unchanged while surfacing the reason string for audit trails.
+
+## Recovery Diagnostics
+
+`_attempt_recovery` now reports retry failures by returning `{"recovered": False, "reason": ...}` whenever the delegated phase executor raises again. This ensures error hooks can record the terminal exception, reinforcing the dialectical auditing pipeline when retries cannot salvage a phase.
+
 ## References
 
 - Specification: [docs/specifications/edrr_cycle_specification.md](../specifications/edrr_cycle_specification.md)
@@ -49,7 +61,8 @@ These helpers guarantee that `_get_micro_cycle_config` returns finite iteration 
 - BDD Feature: [tests/behavior/features/edrr_cycle_specification.feature](../tests/behavior/features/edrr_cycle_specification.feature)
 - Issue: [issues/edrr-invariants.md](../issues/edrr-invariants.md)
 
-## Evidence (2025-09-22)
+## Evidence (2025-09-23)
 
 - Unit tests: `tests/unit/application/edrr/test_threshold_helpers.py::{test_coordinator_registers_templates,test_assess_phase_quality_uses_config_threshold,test_micro_cycle_config_sanitization,test_sanitize_positive_int_handles_out_of_range,test_sanitize_threshold_clamps_invalid_values,test_get_phase_quality_threshold_respects_config,test_get_phase_quality_threshold_returns_none_when_missing,test_get_micro_cycle_config_sanitizes_values}` confirm template hydration and helper invariants, matching the sanitization rules documented above.
+- New simulations: `tests/unit/application/edrr/test_coordinator_macro_micro_simulation.py::{test_phase_transitions_follow_recursive_feature,test_recursion_depth_limit_matches_feature,test_failed_retry_reports_reason}` exercise automatic phase progress, recursion guards, and recovery diagnostics against the BDD-driven task set, establishing the additional invariants described in this note.
 - The EDRR coordinator now depends on the lightweight `SupportsTemplateRegistration` protocol from `devsynth.application.edrr.templates`, preventing ModuleNotFoundError during helper tests while keeping template wiring aligned with the coordinator specification.
