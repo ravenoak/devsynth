@@ -2,6 +2,8 @@ import types
 
 import pytest
 
+pytest.importorskip("fastapi")
+pytest.importorskip("fastapi.testclient")
 pytest.skip("requires FastAPI test client", allow_module_level=True)
 from fastapi import HTTPException
 from fastapi.testclient import TestClient

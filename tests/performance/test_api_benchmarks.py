@@ -10,6 +10,7 @@ pytest.importorskip("pytest_benchmark.plugin")
 def test_health_endpoint_benchmark(benchmark):
     """Benchmark the /health endpoint. ReqID: PERF-03"""
     pytest.importorskip("fastapi")
+    pytest.importorskip("fastapi.testclient")
     from fastapi.testclient import TestClient
 
     from devsynth.api import app

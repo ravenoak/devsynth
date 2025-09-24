@@ -7,6 +7,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, List
 
 import pytest
+
+pytest.importorskip("fastapi")
+pytest.importorskip("fastapi.testclient")
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.testclient import TestClient

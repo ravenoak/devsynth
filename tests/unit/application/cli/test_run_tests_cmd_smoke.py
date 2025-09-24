@@ -80,6 +80,7 @@ def test_smoke_mode_cli_imports_fastapi_testclient(monkeypatch) -> None:
     """ReqID: CLI-RT-19c — Smoke CLI guards against FastAPI/Starlette MRO regressions."""
 
     pytest.importorskip("fastapi")
+    pytest.importorskip("fastapi.testclient")
     pytest.importorskip("starlette")
 
     monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
