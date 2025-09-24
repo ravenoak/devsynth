@@ -200,7 +200,9 @@ class KuzuStore(MemoryStore):
             try:
                 self.conn.execute("COMMIT")
             except Exception as exc:  # pragma: no cover - defensive
-                logger.warning("Commit failed for Kuzu transaction %s: %s", transaction_id, exc)
+                logger.warning(
+                    "Commit failed for Kuzu transaction %s: %s", transaction_id, exc
+                )
         return True
 
     def rollback_transaction(self, transaction_id: str) -> bool:

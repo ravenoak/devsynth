@@ -95,9 +95,7 @@ class ChromaDBAdapter(VectorStore):
         except Exception:
             # Collection doesn't exist, create it
             try:
-                self.collection = self.client.create_collection(
-                    name=collection_name
-                )
+                self.collection = self.client.create_collection(name=collection_name)
                 logger.info(
                     "Created new ChromaDB collection: %s",
                     collection_name,

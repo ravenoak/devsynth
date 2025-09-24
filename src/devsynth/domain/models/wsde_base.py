@@ -30,10 +30,10 @@ class WSDE:
     name: str
     description: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize timestamps if not provided."""
         if self.created_at is None:
             self.created_at = datetime.now()

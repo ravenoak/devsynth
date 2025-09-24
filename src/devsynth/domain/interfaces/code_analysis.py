@@ -160,7 +160,7 @@ class CodeTransformationProvider(ABC):
 
     @abstractmethod
     def transform_code(
-        self, code: str, transformations: list[str] = None
+        self, code: str, transformations: list[str] | None = None
     ) -> TransformationResult:
         """Transform the given code using the specified transformations.
 
@@ -176,7 +176,7 @@ class CodeTransformationProvider(ABC):
 
     @abstractmethod
     def transform_file(
-        self, file_path: str, transformations: list[str] = None
+        self, file_path: str, transformations: list[str] | None = None
     ) -> TransformationResult:
         """Transform the code in the given file using the specified transformations.
 
@@ -195,7 +195,7 @@ class CodeTransformationProvider(ABC):
         self,
         dir_path: str,
         recursive: bool = True,
-        transformations: list[str] = None,
+        transformations: list[str] | None = None,
     ) -> dict[str, TransformationResult]:
         """Transform all Python files in the given directory using the
         specified transformations.

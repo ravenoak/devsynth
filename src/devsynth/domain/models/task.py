@@ -52,7 +52,7 @@ class Task:
                     break
 
         return cls(
-            id=data.get("id"),
+            id=data.get("id") or "",
             task_type=data.get("task_type"),
             data=data.get("data", {}),
             assigned_to=data.get("assigned_to"),

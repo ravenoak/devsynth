@@ -420,7 +420,9 @@ class ProjectSetupPages(CommandHandlingMixin):
             except (TypeError, ValueError):
                 return None
 
-        def _progress_fraction(value: Any | None, total: Any | None = None) -> float | None:
+        def _progress_fraction(
+            value: Any | None, total: Any | None = None
+        ) -> float | None:
             numeric = _as_float(value)
             if numeric is None:
                 return None
@@ -452,7 +454,9 @@ class ProjectSetupPages(CommandHandlingMixin):
         description = sanitize_output(str(summary.get("description", "Task progress")))
         main_fraction = _progress_fraction(summary.get("progress"))
         if main_fraction is None:
-            main_fraction = _progress_fraction(summary.get("completed"), summary.get("total"))
+            main_fraction = _progress_fraction(
+                summary.get("completed"), summary.get("total")
+            )
         if main_fraction is None:
             main_fraction = 0.0
 
@@ -532,7 +536,8 @@ class ProjectSetupPages(CommandHandlingMixin):
                 fraction = _progress_fraction(checkpoint.get("progress"))
                 if fraction is None:
                     fraction = _progress_fraction(
-                        checkpoint.get("completed"), checkpoint.get("total") or total_hint
+                        checkpoint.get("completed"),
+                        checkpoint.get("total") or total_hint,
                     )
                 percent_label = _percent_label(fraction)
                 if percent_label is None:
@@ -548,13 +553,20 @@ class ProjectSetupPages(CommandHandlingMixin):
                 else:
                     cp_eta_numeric = _as_float(cp_eta)
                     if cp_eta_numeric is not None:
-                        cp_eta_label = time.strftime("%H:%M:%S", time.localtime(cp_eta_numeric))
+                        cp_eta_label = time.strftime(
+                            "%H:%M:%S", time.localtime(cp_eta_numeric)
+                        )
                         delta = max(0.0, cp_eta_numeric - now)
                         parts.append(f"ETA {cp_eta_label} (in {int(round(delta))}s)")
                 checkpoint_container.info(" • ".join(parts))
 
         subtask_candidates: Sequence[Any] = []
-        for key in ("subtasks_detail", "subtask_details", "subtask_summaries", "subtasks"):
+        for key in (
+            "subtasks_detail",
+            "subtask_details",
+            "subtask_summaries",
+            "subtasks",
+        ):
             value = summary.get(key)
             if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
                 subtask_candidates = value
@@ -564,7 +576,9 @@ class ProjectSetupPages(CommandHandlingMixin):
             if not isinstance(subtask, Mapping):
                 continue
             sub_container = st.container()
-            sub_description = sanitize_output(str(subtask.get("description", "Subtask")))
+            sub_description = sanitize_output(
+                str(subtask.get("description", "Subtask"))
+            )
             sub_fraction = _progress_fraction(subtask.get("progress"))
             if sub_fraction is None:
                 sub_fraction = _progress_fraction(
@@ -627,9 +641,13 @@ class ProjectSetupPages(CommandHandlingMixin):
                     else:
                         cp_eta_numeric = _as_float(cp_eta)
                         if cp_eta_numeric is not None:
-                            cp_eta_label = time.strftime("%H:%M:%S", time.localtime(cp_eta_numeric))
+                            cp_eta_label = time.strftime(
+                                "%H:%M:%S", time.localtime(cp_eta_numeric)
+                            )
                             delta = max(0.0, cp_eta_numeric - time.time())
-                            cp_parts.append(f"ETA {cp_eta_label} (in {int(round(delta))}s)")
+                            cp_parts.append(
+                                f"ETA {cp_eta_label} (in {int(round(delta))}s)"
+                            )
                     sub_container.info(" • ".join(cp_parts))
 
     def _gather_wizard(self) -> None:

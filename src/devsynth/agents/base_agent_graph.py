@@ -9,7 +9,7 @@ try:  # pragma: no cover - import guard
 except ImportError:  # pragma: no cover - stubbed in tests
     StateGraph = None  # type: ignore
     END = None  # type: ignore
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from devsynth.adapters.provider_system import (
     ProviderError,
@@ -133,7 +133,9 @@ else:  # pragma: no cover - simple fallback used in stubbed test envs
 # Example usage (for testing or demonstration)
 if __name__ == "__main__":
     initial_state = {
-        "input_request": "Explain the benefits of using LangGraph for agent development.",
+        "input_request": (
+            "Explain the benefits of using LangGraph for agent development."
+        ),
         # Other fields will be populated by the graph
         "processed_input": None,
         "llm_response": None,
@@ -157,5 +159,6 @@ if __name__ == "__main__":
     except ProviderError as e:
         logger.exception("Error invoking graph: %s", e)
         logger.error(
-            "Please ensure your LLM provider (OpenAI or LM Studio) is configured correctly."
+            "Please ensure your LLM provider (OpenAI or LM Studio) "
+            "is configured correctly."
         )
