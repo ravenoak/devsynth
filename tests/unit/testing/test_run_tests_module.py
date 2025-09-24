@@ -1,7 +1,6 @@
-from typing import Any
-from types import SimpleNamespace
-
 import json
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -185,9 +184,7 @@ def test_run_tests_translates_args_and_handles_return_codes(
     # parallel=False ensures '-n auto' is not present
     assert "-n" not in cmd
     assert f"--cov={rt.COVERAGE_TARGET}" in cmd
-    assert (
-        f"--cov-report=json:{rt.COVERAGE_JSON_PATH}" in cmd
-    )
+    assert f"--cov-report=json:{rt.COVERAGE_JSON_PATH}" in cmd
     assert f"--cov-report=html:{rt.COVERAGE_HTML_DIR}" in cmd
     assert "--cov-append" in cmd
 
@@ -358,9 +355,7 @@ def test_enforce_coverage_threshold_exit_and_return(tmp_path):
 
     cov_file.write_text(json.dumps({"totals": {"percent_covered": 81.7}}))
     with pytest.raises(RuntimeError):
-        rt.enforce_coverage_threshold(
-            coverage_file=cov_file, exit_on_failure=False
-        )
+        rt.enforce_coverage_threshold(coverage_file=cov_file, exit_on_failure=False)
 
     with pytest.raises(SystemExit) as excinfo:
         rt.enforce_coverage_threshold(coverage_file=cov_file)

@@ -11,7 +11,9 @@ import devsynth.testing.run_tests as rt
 
 
 @pytest.mark.fast
-def test_coverage_status_reports_missing_json(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_coverage_status_reports_missing_json(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """Missing JSON should return ``False`` with a helpful reason."""
 
     monkeypatch.setattr(rt, "COVERAGE_JSON_PATH", tmp_path / "cov.json")
@@ -23,7 +25,9 @@ def test_coverage_status_reports_missing_json(monkeypatch: pytest.MonkeyPatch, t
 
 
 @pytest.mark.fast
-def test_coverage_status_flags_invalid_json(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_coverage_status_flags_invalid_json(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """Malformed JSON surfaces a descriptive message."""
 
     json_path = tmp_path / "coverage.json"
@@ -41,7 +45,9 @@ def test_coverage_status_flags_invalid_json(monkeypatch: pytest.MonkeyPatch, tmp
 
 
 @pytest.mark.fast
-def test_coverage_status_requires_totals(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_coverage_status_requires_totals(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """JSON without ``totals.percent_covered`` is rejected."""
 
     json_path = tmp_path / "coverage.json"
@@ -59,7 +65,9 @@ def test_coverage_status_requires_totals(monkeypatch: pytest.MonkeyPatch, tmp_pa
 
 
 @pytest.mark.fast
-def test_coverage_status_requires_html_index(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_coverage_status_requires_html_index(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """Missing HTML index is surfaced."""
 
     json_path = tmp_path / "coverage.json"
@@ -74,7 +82,9 @@ def test_coverage_status_requires_html_index(monkeypatch: pytest.MonkeyPatch, tm
 
 
 @pytest.mark.fast
-def test_coverage_status_rejects_empty_html(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_coverage_status_rejects_empty_html(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """HTML indicating no coverage data should fail the status check."""
 
     json_path = tmp_path / "coverage.json"
@@ -92,7 +102,9 @@ def test_coverage_status_rejects_empty_html(monkeypatch: pytest.MonkeyPatch, tmp
 
 
 @pytest.mark.fast
-def test_coverage_status_success_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_coverage_status_success_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """Valid JSON and HTML return ``True`` and ``None``."""
 
     json_path = tmp_path / "coverage.json"

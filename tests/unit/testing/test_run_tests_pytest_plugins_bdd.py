@@ -6,7 +6,9 @@ from devsynth.testing import run_tests as run_tests_module
 
 
 @pytest.mark.fast
-def test_ensure_pytest_bdd_plugin_env_adds_plugin(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_ensure_pytest_bdd_plugin_env_adds_plugin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """ReqID: PYTEST-BDD-01 — Inject plugin when autoloading is disabled."""
 
     monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")

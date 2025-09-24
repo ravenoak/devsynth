@@ -7,12 +7,12 @@ command relies on without importing :mod:`run_tests_cmd`, ensuring coverage for
 
 from __future__ import annotations
 
-from pathlib import Path
-from types import SimpleNamespace
-import types
-import sys
 import json
 import logging
+import sys
+import types
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -314,7 +314,9 @@ def test_cli_keyword_filter_handles_resource_marker(
         text: bool = True,
     ) -> SimpleNamespace:
         collect_commands.append(cmd)
-        return SimpleNamespace(stdout=f"{test_file.name}::test_stub\n", stderr="", returncode=0)
+        return SimpleNamespace(
+            stdout=f"{test_file.name}::test_stub\n", stderr="", returncode=0
+        )
 
     run_commands: list[list[str]] = []
 
@@ -418,8 +420,14 @@ def test_cli_marker_filters_merge_extra_marker(
     assert output.count("ok") == len(run_commands)
 
     collect_strings = [" ".join(cmd) for cmd in collect_invocations]
-    assert any("(fast and not memory_intensive) and (custom_marker)" in cmd for cmd in collect_strings)
-    assert any("(slow and not memory_intensive) and (custom_marker)" in cmd for cmd in collect_strings)
+    assert any(
+        "(fast and not memory_intensive) and (custom_marker)" in cmd
+        for cmd in collect_strings
+    )
+    assert any(
+        "(slow and not memory_intensive) and (custom_marker)" in cmd
+        for cmd in collect_strings
+    )
 
 
 @pytest.mark.fast
@@ -441,7 +449,9 @@ def test_cli_report_mode_adds_html_argument(
         capture_output: bool = True,
         text: bool = True,
     ) -> SimpleNamespace:
-        return SimpleNamespace(stdout=f"{test_file.name}::test_report\n", stderr="", returncode=0)
+        return SimpleNamespace(
+            stdout=f"{test_file.name}::test_report\n", stderr="", returncode=0
+        )
 
     run_commands: list[list[str]] = []
 
@@ -515,9 +525,7 @@ def test_run_tests_generates_coverage_totals(
 
         def json_report(self, outfile: str) -> None:
             StubCoverage.json_outputs.append(outfile)
-            Path(outfile).write_text(
-                json.dumps({"totals": {"percent_covered": 99.0}})
-            )
+            Path(outfile).write_text(json.dumps({"totals": {"percent_covered": 99.0}}))
 
     stub_module.Coverage = StubCoverage  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "coverage", stub_module)
@@ -557,7 +565,9 @@ def test_run_tests_skips_placeholder_artifacts(
     assert not html_dir.exists()
 
     warning_messages = [record.getMessage() for record in caplog.records]
-    assert any("Coverage artifact generation skipped" in msg for msg in warning_messages)
+    assert any(
+        "Coverage artifact generation skipped" in msg for msg in warning_messages
+    )
 
 
 @pytest.mark.fast
@@ -591,7 +601,9 @@ def test_cli_env_passthrough_and_coverage_lifecycle(
         capture_output: bool = True,
         text: bool = True,
     ) -> SimpleNamespace:
-        return SimpleNamespace(stdout=f"{test_file}::test_env_marker\n", stderr="", returncode=0)
+        return SimpleNamespace(
+            stdout=f"{test_file}::test_env_marker\n", stderr="", returncode=0
+        )
 
     popen_calls: list[dict[str, object]] = []
 

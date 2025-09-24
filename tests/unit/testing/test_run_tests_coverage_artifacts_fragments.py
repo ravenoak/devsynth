@@ -79,9 +79,7 @@ def test_ensure_coverage_artifacts_combines_fragment_files(
             self.json_report_called = True
             output_path = Path(outfile)
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(
-                json.dumps({"totals": {"percent_covered": 99.9}})
-            )
+            output_path.write_text(json.dumps({"totals": {"percent_covered": 99.9}}))
 
     module.Coverage = FragmentCoverage  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "coverage", module)

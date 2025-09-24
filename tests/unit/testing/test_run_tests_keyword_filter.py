@@ -47,6 +47,7 @@ def test_keyword_filter_honors_report_flag_and_creates_report_dir(
 
     Use keyword path with report=True and patch datetime to assert directory path.
     """
+
     class FakeDT:
         @staticmethod
         def now():
@@ -77,7 +78,9 @@ def test_keyword_filter_honors_report_flag_and_creates_report_dir(
         )
 
     class FakePopen:
-        def __init__(self, cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001
+        def __init__(
+            self, cmd, stdout=None, stderr=None, text=True, env=None
+        ):  # noqa: ANN001
             self.cmd = list(cmd)
             self.returncode = 0
             self._stdout = "ok"

@@ -10,7 +10,9 @@ from typing import Iterable, Sequence
 import pytest
 
 
-def _simulate_segments(total_lines: int, segments: Sequence[Iterable[int]]) -> list[float]:
+def _simulate_segments(
+    total_lines: int, segments: Sequence[Iterable[int]]
+) -> list[float]:
     """Return cumulative coverage percentages after each segment."""
 
     covered: set[int] = set()

@@ -39,7 +39,9 @@ def test_will_fail():
         )
 
     class FakePopen:
-        def __init__(self, cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001
+        def __init__(
+            self, cmd, stdout=None, stderr=None, text=True, env=None
+        ):  # noqa: ANN001
             self.cmd = list(cmd)
             self.returncode = 1
             self._stdout = ""

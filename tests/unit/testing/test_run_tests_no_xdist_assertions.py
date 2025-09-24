@@ -27,7 +27,9 @@ def test_run_tests_completes_without_xdist_assertions(tmp_path, monkeypatch):
         )
 
     class FakePopen:
-        def __init__(self, cmd, stdout=None, stderr=None, text=True, env=None):  # noqa: ANN001
+        def __init__(
+            self, cmd, stdout=None, stderr=None, text=True, env=None
+        ):  # noqa: ANN001
             assert "-n" in cmd and "auto" in cmd
             self.returncode = 0
             self._stdout = "passed"
