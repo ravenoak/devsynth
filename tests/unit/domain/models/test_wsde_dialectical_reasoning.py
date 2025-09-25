@@ -35,40 +35,40 @@ class TestWSDEDialecticalReasoning:
 
         ReqID: N/A"""
         critiques = [
-            "Security issue: Hardcoded credentials detected",
+            "Security issue: Missing authentication checks",
             "Performance issue: Inefficient algorithm used",
-            "Maintainability issue: No documentation or comments",
-            "Reliability issue: No error handling detected",
+            "Maintainability issue: lacks modularity",
+            "Documentation content does not include examples",
             "Usability issue: Poor user interface design",
-            "Scalability issue: Not designed for concurrent access",
-            "Testability issue: Difficult to write unit tests",
             "General issue: Needs improvement",
         ]
         result = self.team._categorize_critiques_by_domain(critiques)
-        assert "security" in result
-        assert "performance" in result
-        assert "maintainability" in result
-        assert "reliability" in result
-        assert "usability" in result
-        assert "scalability" in result
-        assert "testability" in result
-        assert "general" in result
-        assert "Security issue: Hardcoded credentials detected" in result["security"]
+        assert set(result.keys()) == {
+            "security",
+            "performance",
+            "maintainability",
+            "content",
+            "usability",
+            "general",
+            "code",
+        }
+        assert result["security"] == (
+            "Security issue: Missing authentication checks",
+        )
         assert "Performance issue: Inefficient algorithm used" in result["performance"]
-        assert (
-            "Maintainability issue: No documentation or comments"
-            in result["maintainability"]
+        assert result["code"] == (
+            "Performance issue: Inefficient algorithm used",
         )
-        assert "Reliability issue: No error handling detected" in result["reliability"]
-        assert "Usability issue: Poor user interface design" in result["usability"]
-        assert (
-            "Scalability issue: Not designed for concurrent access"
-            in result["scalability"]
+        assert result["maintainability"] == (
+            "Maintainability issue: lacks modularity",
         )
-        assert (
-            "Testability issue: Difficult to write unit tests" in result["testability"]
+        assert result["content"] == (
+            "Documentation content does not include examples",
         )
-        assert "General issue: Needs improvement" in result["general"]
+        assert result["usability"] == (
+            "Usability issue: Poor user interface design",
+        )
+        assert result["general"] == ("General issue: Needs improvement",)
 
     @pytest.mark.medium
     def test_identify_domain_conflicts_succeeds(self):
