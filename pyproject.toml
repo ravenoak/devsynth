@@ -254,83 +254,178 @@ module = "tests.*"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 
-# Relax strictness for recently changed modules to allow incremental typing.
-# Rationale: these modules are actively evolving; we keep global strictness high
-# while avoiding blocking changes. Add TODOs in modules to restore strictness.
-# Target to restore strictness: 2025-11-15 (see docs/typing/strictness.md §Phase 1 – Foundational modules)
-
-# Temporary relaxations to achieve green typing while we incrementally add annotations.
-# TODO: Restore strictness by 2025-11-15 (see docs/typing/strictness.md §Phase 1 – Foundational modules).
-[[tool.mypy.overrides]]
-module = "devsynth.security.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.adapters.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.memory.*"
-ignore_errors = true
-[[tool.mypy.overrides]]
-module = "devsynth.core.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.agents.*"
-ignore_errors = true
-
 [[tool.mypy.overrides]]
 module = "devsynth.core.mvu.*"
 ignore_errors = false
 
-[[tool.mypy.overrides]]
-module = "devsynth.api"
-ignore_errors = true
-
-# Temporary relaxations for remaining hotspots (Iteration 2025-08-31)
-# TODO: Restore strictness by 2025-12-20 (see docs/typing/strictness.md §Phase 2 – Platform services).
-[[tool.mypy.overrides]]
-module = "devsynth.interface.agentapi"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.interface.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.utils.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.fallback"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.ports.*"
-ignore_errors = true
-
-# Broad temporary relaxation for application layer to unblock typing gate while we add annotations iteratively.
-# TODO: Narrow and remove by 2026-02-15 (see docs/typing/strictness.md §Phase 3 – Application workflows).
+# Phase 1 – Foundational modules (due 2025-11-15; owner: Security Guild – Priya Ramanathan; see docs/typing/strictness.md §Phase 1 commitments)
 [[tool.mypy.overrides]]
 module = [
-  "devsynth.application.agents.*",
-  "devsynth.application.code_analysis.*",
-  "devsynth.application.collaboration.*",
-  "devsynth.application.ingestion.*",
-  "devsynth.application.issues.*",
-  "devsynth.application.llm.*",
-  "devsynth.application.edrr.*",
-  "devsynth.application.orchestration.*",
-  "devsynth.application.promises.*",
-  "devsynth.application.prompts.*",
-  "devsynth.application.sprint.*",
-  "devsynth.application.utils.*",
+  "devsynth.security.authentication",
+  "devsynth.security.encryption",
+  "devsynth.security.tls",
 ]
 ignore_errors = true
 
+# Phase 1 – Core runtime tightening (due 2025-11-15; owner: Core Platform – Miguel Sato; see docs/typing/strictness.md §Phase 1 commitments)
 [[tool.mypy.overrides]]
 module = [
+  "devsynth.core.config_loader",
+  "devsynth.core.workflows",
+  "devsynth.agents.base_agent_graph",
+  "devsynth.agents.sandbox",
+  "devsynth.agents.wsde_team_coordinator",
+  "devsynth.agents.tools",
+  "devsynth.memory.sync_manager",
+  "devsynth.api",
+]
+ignore_errors = true
+
+# Phase 1 – Adapter backlog (due 2025-11-15; owner: Integrations Team – Alex Chen; see docs/typing/strictness.md §Phase 1 commitments)
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.adapters.agents.agent_adapter",
+  "devsynth.adapters.chromadb_memory_store",
+  "devsynth.adapters.cli.typer_adapter",
+  "devsynth.adapters.github_project",
+  "devsynth.adapters.jira_adapter",
+  "devsynth.adapters.kuzu_memory_store",
+  "devsynth.adapters.llm.llm_adapter",
+  "devsynth.adapters.llm.mock_llm_adapter",
+  "devsynth.adapters.memory.chroma_db_adapter",
+  "devsynth.adapters.memory.kuzu_adapter",
+  "devsynth.adapters.memory.memory_adapter",
+  "devsynth.adapters.memory.sync_manager",
+  "devsynth.adapters.onnx_runtime_adapter",
+  "devsynth.adapters.orchestration.langgraph_adapter",
+  "devsynth.adapters.provider_system",
+]
+ignore_errors = true
+
+# Phase 2 – Experience surfaces (due 2025-12-20; owner: Experience Platform – Dana Laurent; see docs/typing/strictness.md §Phase 2 commitments)
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.interface.cli",
+  "devsynth.interface.command_output",
+  "devsynth.interface.dpg_bridge",
+  "devsynth.interface.dpg_ui",
+  "devsynth.interface.enhanced_error_handler",
+  "devsynth.interface.mvuu_dashboard",
+  "devsynth.interface.nicegui_webui",
+  "devsynth.interface.output_formatter",
+  "devsynth.interface.progress_utils",
+  "devsynth.interface.shared_bridge",
+  "devsynth.interface.simple_run",
+  "devsynth.interface.state_access",
+  "devsynth.interface.ux_bridge",
+  "devsynth.interface.webui.commands",
+  "devsynth.interface.webui.rendering",
+  "devsynth.interface.webui_bridge",
+  "devsynth.interface.webui_setup",
+  "devsynth.interface.webui_state",
+  "devsynth.interface.wizard_state_manager",
+]
+ignore_errors = true
+
+# Phase 2 – Reliability utilities (due 2025-12-20; owner: Reliability Guild – Dana Laurent; see docs/typing/strictness.md §Phase 2 commitments)
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.utils.logging",
+  "devsynth.fallback",
+  "devsynth.ports.agent_port",
+  "devsynth.ports.cli_port",
+  "devsynth.ports.llm_port",
+  "devsynth.ports.memory_port",
+  "devsynth.ports.onnx_port",
+  "devsynth.ports.orchestration_port",
+  "devsynth.ports.vector_store_port",
+]
+ignore_errors = true
+
+# Phase 3 – Application workflows (due 2026-02-15; owner: Applications Group – Lara Singh; see docs/typing/strictness.md §Phase 3 commitments)
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.application.agents.agent_memory_integration",
+  "devsynth.application.agents.base",
+  "devsynth.application.agents.test",
+  "devsynth.application.agents.wsde_memory_integration",
+  "devsynth.application.cli.autocomplete",
+  "devsynth.application.cli.cli_commands",
+  "devsynth.application.cli.command_output_formatter",
+  "devsynth.application.cli.commands.align_cmd",
+  "devsynth.application.cli.commands.alignment_metrics_cmd",
+  "devsynth.application.cli.commands.completion_cmd",
+  "devsynth.application.cli.commands.config_cmd",
+  "devsynth.application.cli.commands.dbschema_cmd",
+  "devsynth.application.cli.commands.doctor_cmd",
+  "devsynth.application.cli.commands.dpg_cmd",
+  "devsynth.application.cli.commands.generate_docs_cmd",
+  "devsynth.application.cli.commands.ingest_cmd",
+  "devsynth.application.cli.commands.init_cmd",
+  "devsynth.application.cli.commands.inspect_config_cmd",
+  "devsynth.application.cli.commands.test_metrics_cmd",
+  "devsynth.application.cli.commands.validate_manifest_cmd",
+  "devsynth.application.cli.commands.validate_metadata_cmd",
+  "devsynth.application.cli.commands.webui_cmd",
+  "devsynth.application.cli.ingest_cmd",
+  "devsynth.application.cli.long_running_progress",
+  "devsynth.application.cli.mvu_commands",
+  "devsynth.application.cli.requirements_commands",
+  "devsynth.application.cli.sprint_cmd",
+  "devsynth.application.cli.utils",
+  "devsynth.application.cli.vcs_commands",
+  "devsynth.application.code_analysis.analyzer",
+  "devsynth.application.code_analysis.ast_transformer",
+  "devsynth.application.code_analysis.ast_workflow_integration",
+  "devsynth.application.code_analysis.project_state_analyzer",
+  "devsynth.application.code_analysis.repo_analyzer",
+  "devsynth.application.code_analysis.self_analyzer",
+  "devsynth.application.code_analysis.transformer",
+  "devsynth.application.collaboration",
+  "devsynth.application.collaboration.WSDE",
+  "devsynth.application.collaboration.agent_collaboration",
+  "devsynth.application.collaboration.collaboration_memory_utils",
+  "devsynth.application.collaboration.collaborative_wsde_team",
+  "devsynth.application.collaboration.coordinator",
+  "devsynth.application.collaboration.exceptions",
+  "devsynth.application.collaboration.peer_review",
+  "devsynth.application.collaboration.wsde_team_collaborative",
+  "devsynth.application.collaboration.wsde_team_consensus",
+  "devsynth.application.collaboration.wsde_team_extended",
+  "devsynth.application.collaboration.wsde_team_task_management",
+  "devsynth.application.edrr.coordinator.core",
+  "devsynth.application.edrr.coordinator.persistence",
+  "devsynth.application.edrr.coordinator.phase_management",
+  "devsynth.application.edrr.coordinator_core",
+  "devsynth.application.edrr.edrr_coordinator_enhanced",
+  "devsynth.application.edrr.edrr_phase_transitions",
+  "devsynth.application.edrr.manifest_parser",
+  "devsynth.application.ingestion",
+  "devsynth.application.llm",
+  "devsynth.application.llm.lmstudio_provider",
+  "devsynth.application.llm.offline_provider",
+  "devsynth.application.llm.openai_provider",
+  "devsynth.application.llm.provider_factory",
+  "devsynth.application.llm.providers",
+  "devsynth.application.orchestration.refactor_workflow",
+  "devsynth.application.orchestration.workflow",
+  "devsynth.application.promises.agent",
+  "devsynth.application.promises.broker",
+  "devsynth.application.promises.examples",
+  "devsynth.application.promises.implementation",
+  "devsynth.application.promises.interface",
+  "devsynth.application.prompts.auto_tuning",
+  "devsynth.application.prompts.prompt_efficacy",
+  "devsynth.application.prompts.prompt_manager",
+  "devsynth.application.prompts.prompt_reflection",
+  "devsynth.application.utils.token_tracker",
+]
+ignore_errors = true
+
+# Phase 4 – Memory stack (due 2026-03-15; owner: Memory Systems – Chen Wu; see docs/typing/strictness.md §Phase 4 commitments)
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.application.memory",
   "devsynth.application.memory.chromadb_store",
   "devsynth.application.memory.circuit_breaker",
   "devsynth.application.memory.context_manager",
@@ -339,7 +434,6 @@ module = [
   "devsynth.application.memory.faiss_store",
   "devsynth.application.memory.fallback",
   "devsynth.application.memory.json_file_store",
-  "devsynth.application.memory.knowledge_graph_utils",
   "devsynth.application.memory.kuzu_store",
   "devsynth.application.memory.lmdb_store",
   "devsynth.application.memory.memory_integration",
@@ -350,28 +444,30 @@ module = [
   "devsynth.application.memory.rdflib_store",
   "devsynth.application.memory.recovery",
   "devsynth.application.memory.retry",
-  "devsynth.application.memory.search_patterns",
   "devsynth.application.memory.sync_manager",
-  "devsynth.application.memory.tiered_cache",
   "devsynth.application.memory.tinydb_store",
   "devsynth.application.memory.transaction_context",
+  "devsynth.application.memory.search_patterns",
   "devsynth.application.memory.vector_providers",
+  "devsynth.application.memory.adapters.enhanced_graph_memory_adapter",
+  "devsynth.application.memory.adapters.graph_memory_adapter",
+  "devsynth.application.memory.adapters.vector_memory_adapter",
+]
+ignore_errors = true
+
+# Phase 5 – Enhanced API surface (due 2026-03-31; owner: API Guild – Morgan Patel; see docs/typing/strictness.md §Phase 5 commitments)
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.interface.agentapi",
+  "devsynth.interface.agentapi_enhanced",
+  "devsynth.application.requirements.dialectical_reasoner",
+  "devsynth.application.requirements.requirement_service",
 ]
 ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = ["chromadb", "chromadb.*"]
 ignore_missing_imports = true
-
-# Added by Task 54 (2025-09-03): targeted temporary relaxations based on strict mypy run
-# TODO: Restore strictness by 2026-03-31 (see docs/typing/strictness.md §§Phase 3–5 for sequencing)
-[[tool.mypy.overrides]]
-module = "devsynth.application.requirements.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.interface.agentapi_enhanced"
-ignore_errors = true
 
 [build-system]
 requires = ["poetry-core"]
