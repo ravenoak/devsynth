@@ -1,17 +1,11 @@
-"""
-Enhanced Graph Memory Adapter for EDRR framework.
+"""Enhanced Graph Memory Adapter for EDRR framework."""
 
-This module provides an enhanced version of the GraphMemoryAdapter that supports:
-1. Context-aware memory retrieval
-2. Memory persistence across cycles
-3. Enhanced knowledge graph integration with transitive inference
-4. Multi-modal memory with heterogeneous data types
-5. Memory with temporal awareness and versioning
-"""
+from __future__ import annotations
 
 import datetime
 import importlib
 from collections.abc import Iterator, Mapping
+from types import ModuleType
 from typing import Any, cast
 
 from devsynth.exceptions import MemoryItemNotFoundError, MemoryStoreError
@@ -20,20 +14,31 @@ from ....domain.models.memory import MemoryItem, MemoryType
 from ....logging_setup import DevSynthLogger
 from .graph_memory_adapter import GraphMemoryAdapter
 
+rdflib: ModuleType | None
+namespace_module: ModuleType | None
+
 try:
     rdflib = importlib.import_module("rdflib")
     namespace_module = importlib.import_module("rdflib.namespace")
+except Exception:  # pragma: no cover - fallback when rdflib is missing
+    rdflib = None
+    namespace_module = None
+
+if rdflib is not None:
     OWL = rdflib.OWL
     RDF = rdflib.RDF
     Graph = rdflib.Graph
     Literal = rdflib.Literal
     Namespace = rdflib.Namespace
     URIRef = rdflib.URIRef
+else:  # pragma: no cover - executed when rdflib is unavailable
+    OWL = RDF = Graph = Literal = Namespace = URIRef = cast(Any, None)
+
+if namespace_module is not None:
     DC = namespace_module.DC
     FOAF = namespace_module.FOAF
-except Exception:  # pragma: no cover - fallback when rdflib is missing
-    rdflib = None
-    URIRef = Graph = Literal = Namespace = OWL = RDF = DC = FOAF = cast(Any, None)
+else:  # pragma: no cover - executed when rdflib namespace is unavailable
+    DC = FOAF = cast(Any, None)
 
 
 # Setup logger
@@ -140,7 +145,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
         )
 
         # Store the memory item
-        item_id = super().store(memory_item)
+        item_id = cast(str, super().store(memory_item))
 
         # Add enhanced graph relationships if rdflib is available
         if rdflib is not None:
@@ -711,7 +716,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             )
 
             # Store the new version
-            new_id = self.store(memory_item)
+            new_id = cast(str, self.store(memory_item))
 
             # Add version relationship in the graph
             if rdflib is not None:
