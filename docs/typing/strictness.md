@@ -11,7 +11,7 @@ The current `pyproject.toml` keeps `ignore_errors = true` across most production
 | --- | --- |
 | `tests.*` | Allows untyped defs while the rest of the suite stays strict. |
 | `devsynth.security.*`, `devsynth.adapters.*`, `devsynth.memory.*`, `devsynth.core.*`, `devsynth.agents.*`, `devsynth.api` | Legacy relaxations to unblock refactors; mostly `Any` returns and missing annotations. |
-| `devsynth.logging_setup`, `devsynth.interface.*`, `devsynth.utils.*`, `devsynth.metrics`, `devsynth.observability.metrics`, `devsynth.fallback`, `devsynth.ports.*`, `devsynth.config.*` | High fan-out services with pervasive dynamic patterns. |
+| `devsynth.interface.*`, `devsynth.utils.*`, `devsynth.metrics`, `devsynth.observability.metrics`, `devsynth.fallback`, `devsynth.ports.*` | High fan-out services with pervasive dynamic patterns. |
 | `devsynth.application.*` bundles | Broad ignore blocks spanning orchestration, prompts, LLMs, memory stores, etc. |
 | `devsynth.application.requirements.*`, `devsynth.interface.agentapi_enhanced` | Added after the last strict sweep to keep delivery velocity.【F:pyproject.toml†L384-L392】 |
 
@@ -28,14 +28,15 @@ Focus: security, adapters, memory, core, agents, and API endpoints. These files 
 - `api.py` shows untyped FastAPI decorators and missing annotations on endpoint functions.【17599c†L1-L4】
 
 ### Phase 2 – Platform services (target 2025-12-20)
-Focus: logging, interface utilities, metrics, fallback logic, ports, config loaders, and shared utils.
+Focus: interface utilities, metrics, fallback logic, ports, and shared utils.
 
-- `logging_setup.py` produces 18 errors, highlighting missing generics, Optional handling, and extensive logger patching without types.【d88613†L1-L22】
+- ✅ `logging_setup.py` now passes strict mode with explicit Optional handling for configuration state and structured redaction helpers; override removed 2025-09-25.
+- ✅ `config` package loaders/settings pass strict mode after tightening validator signatures and schema parsing. Remaining debt: `Settings` still mixes runtime environment coercion with persistence defaults—plan a follow-up to extract typed DTOs for `resources` and LLM overrides.
 - `interface/progress_utils.py` lacks type parameters and annotations on progress message helpers.【353ac0†L1-L5】
 - `utils/logging.py` relies on `type: ignore` to mask subclassing issues and untyped functions.【9319c3†L1-L5】
 - `metrics.py` and `observability/metrics.py` rely on blanket ignores hiding real redefinition and dynamic attribute issues.【02935e†L1-L4】【dfacd6†L1-L10】
 - `fallback.py` contains 28 errors dominated by implicit Optional defaults, lambda inference gaps, and incorrect exception typing.【a80d39†L1-L29】
-- `ports/agent_port.py` and `config/settings.py` show pervasive Optional misuse and missing model annotations, suggesting a broader need for typed config schemas.【018dc7†L1-L6】【c7f96d†L1-L36】
+- `ports/agent_port.py` still suffers from dynamic attribute wiring; tightening port DTOs remains on the backlog.【018dc7†L1-L6】
 
 ### Phase 3 – Application workflows (target 2026-02-15)
 Focus: orchestration, prompts, agents, ingestion, and supporting utilities.

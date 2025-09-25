@@ -1,16 +1,33 @@
-"""
-Configuration settings for the DevSynth system.
-"""
+from __future__ import annotations
+
+"""Configuration settings for the DevSynth system."""
 
 import os
 import re
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, TypeVar, Union, cast
 
-import toml
+import toml  # type: ignore[import-untyped]  # TODO(2025-12-20): Adopt typed tomllib or bundle stubs.
 import yaml
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, FieldValidationInfo
+from pydantic_settings import SettingsConfigDict
+
+if TYPE_CHECKING:
+    from pydantic import BaseModel as _BaseModel
+
+    F = TypeVar("F", bound=Callable[..., Any])
+
+    class BaseSettings(_BaseModel):  # type: ignore[misc]
+        model_config: SettingsConfigDict
+
+    def field_validator(*args: Any, **kwargs: Any) -> Callable[[F], F]: ...
+else:
+    from pydantic_settings import BaseSettings as _BaseSettings
+    from pydantic import field_validator as _field_validator
+
+    BaseSettings = _BaseSettings  # type: ignore[assignment]  # TODO(2025-12-20): Drop once upstream ships typed BaseSettings.
+    field_validator = _field_validator
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -51,7 +68,7 @@ def _parse_bool_env(value: Any, field: str) -> bool:
     )
 
 
-def is_devsynth_managed_project(project_dir: str = None) -> bool:
+def is_devsynth_managed_project(project_dir: Optional[str] = None) -> bool:
     """
     Check if the project is managed by DevSynth.
 
@@ -119,13 +136,16 @@ def load_dotenv(dotenv_path: Optional[str] = None) -> None:
             else:
                 logger.warning(f"Ignoring invalid line in .env: {line}")
 
+# TODO(2025-12-20): Extract typed config DTOs for resource and LLM overrides
+# so BaseSettings no longer needs runtime casting in validators.
+
 
 class Settings(BaseSettings):
     """
     Configuration settings for the DevSynth system.
     """
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """
         Enable dictionary-like access to settings.
 
@@ -139,7 +159,7 @@ class Settings(BaseSettings):
             KeyError: If the setting does not exist
         """
         # Map test-expected keys to actual attribute names
-        key_mapping = {
+        key_mapping: dict[str, Callable[["Settings"], Any]] = {
             "llm_provider": lambda s: os.environ.get(
                 "DEVSYNTH_LLM_PROVIDER", "lmstudio"
             ),
@@ -178,15 +198,7 @@ class Settings(BaseSettings):
         # Check if we have a mapping for this key
         if key in key_mapping:
             mapped_key = key_mapping[key]
-            # If the mapping is a function, call it
-            if callable(mapped_key):
-                return mapped_key(self)
-            # Otherwise, get the attribute
-            try:
-                return getattr(self, mapped_key)
-            except AttributeError:
-                # If the mapped attribute doesn't exist, fall through to the original key
-                pass
+            return mapped_key(self)
 
         # Try to get the attribute directly
         try:
@@ -198,7 +210,7 @@ class Settings(BaseSettings):
     memory_store_type: str = Field(
         default="memory", json_schema_extra={"env": "DEVSYNTH_MEMORY_STORE"}
     )
-    memory_file_path: str = Field(
+    memory_file_path: Optional[str] = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_MEMORY_PATH"}
     )
     s3_bucket_name: Optional[str] = Field(
@@ -253,8 +265,10 @@ class Settings(BaseSettings):
     )
 
     # Path settings
-    log_dir: str = Field(default=None, json_schema_extra={"env": "DEVSYNTH_LOG_DIR"})
-    project_dir: str = Field(
+    log_dir: Optional[str] = Field(
+        default=None, json_schema_extra={"env": "DEVSYNTH_LOG_DIR"}
+    )
+    project_dir: Optional[str] = Field(
         default=None, json_schema_extra={"env": "DEVSYNTH_PROJECT_DIR"}
     )
 
@@ -297,7 +311,7 @@ class Settings(BaseSettings):
     )
 
     @field_validator("provider_retry_conditions", mode="after")
-    def _normalize_conditions(cls, v: Union[str, None]):
+    def _normalize_conditions(cls, v: Union[str, None]) -> Optional[str]:
         if v is None:
             return None
         return ",".join(part.strip() for part in str(v).split(",") if part.strip())
@@ -324,7 +338,7 @@ class Settings(BaseSettings):
     )
 
     @field_validator("openai_api_key", mode="before")
-    def validate_api_key(cls, v):
+    def validate_api_key(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and not v.strip():
             raise ConfigurationError(
                 "OPENAI_API_KEY cannot be empty",
@@ -399,7 +413,9 @@ class Settings(BaseSettings):
         "tls_verify",
         mode="before",
     )
-    def validate_security_bool(cls, v, info):
+    def validate_security_bool(
+        cls, v: object, info: FieldValidationInfo
+    ) -> bool:
         return _parse_bool_env(v, info.field_name)
 
     @field_validator(
@@ -410,16 +426,19 @@ class Settings(BaseSettings):
         "provider_circuit_breaker_enabled",
         mode="before",
     )
-    def validate_bool_settings(cls, v, info):
+    def validate_bool_settings(
+        cls, v: object, info: FieldValidationInfo
+    ) -> bool:
         return _parse_bool_env(v, info.field_name)
 
     @field_validator("provider_max_retries", "provider_failure_threshold", mode="after")
-    def validate_positive_int(cls, v, info):
-        if v is not None and v < 0:
+    def validate_positive_int(cls, v: int, info: FieldValidationInfo) -> int:
+        if v < 0:
             logger.warning(
                 f"{info.field_name} must be a non-negative integer, got {v}. Using default value."
             )
-            return getattr(cls, info.field_name).default
+            default_value = cls.model_fields[info.field_name].default
+            return cast(int, default_value)
         return v
 
     @field_validator(
@@ -428,48 +447,52 @@ class Settings(BaseSettings):
         "provider_recovery_timeout",
         mode="after",
     )
-    def validate_positive_float(cls, v, info):
-        if v is not None and v <= 0:
+    def validate_positive_float(cls, v: float, info: FieldValidationInfo) -> float:
+        if v <= 0:
             logger.warning(
                 f"{info.field_name} must be a positive number, got {v}. Using default value."
             )
-            return getattr(cls, info.field_name).default
+            default_value = cls.model_fields[info.field_name].default
+            return cast(float, default_value)
         return v
 
     @field_validator("provider_exponential_base", mode="after")
-    def validate_exponential_base(cls, v, info):
-        if v is not None and v <= 1.0:
+    def validate_exponential_base(cls, v: float, info: FieldValidationInfo) -> float:
+        if v <= 1.0:
             logger.warning(
                 f"{info.field_name} must be greater than 1.0, got {v}. Using default value."
             )
-            return getattr(cls, info.field_name).default
+            default_value = cls.model_fields[info.field_name].default
+            return cast(float, default_value)
         return v
 
     @field_validator("provider_fallback_order", mode="after")
-    def validate_fallback_order(cls, v, info):
-        if v is not None:
-            providers = v.split(",")
-            valid_providers = ["openai", "lmstudio"]
-            for provider in providers:
-                if provider.strip().lower() not in valid_providers:
-                    logger.warning(
-                        f"Invalid provider in fallback order: {provider}. Valid providers are: {valid_providers}"
-                    )
-            if not providers:
+    def validate_fallback_order(cls, v: str, info: FieldValidationInfo) -> str:
+        providers = [provider for provider in v.split(",") if provider.strip()]
+        valid_providers = ["openai", "lmstudio"]
+        for provider in providers:
+            if provider.strip().lower() not in valid_providers:
                 logger.warning(
-                    f"{info.field_name} must not be empty. Using default value."
+                    f"Invalid provider in fallback order: {provider}. Valid providers are: {valid_providers}"
                 )
-                return getattr(cls, info.field_name).default
+        if not providers:
+            logger.warning(
+                f"{info.field_name} must not be empty. Using default value."
+            )
+            default_value = cls.model_fields[info.field_name].default
+            return cast(str, default_value)
         return v
 
     @field_validator("memory_file_path", mode="before")
-    def set_default_memory_path(cls, v, info):
+    def set_default_memory_path(
+        cls, v: Optional[str], info: FieldValidationInfo
+    ) -> Optional[str]:
         """
         Set default memory path if not specified.
         First check for project-level config, then fall back to global config.
         Defer path creation to maintain testability.
         """
-        values = info.data
+        values = cast(Dict[str, Any], info.data)
         if v is not None:
             return v
 
@@ -481,21 +504,23 @@ class Settings(BaseSettings):
         )
 
         # Get project directory from values or environment
-        project_dir = (
+        project_dir = cast(
+            str,
             values.get("project_dir")
             or os.environ.get("DEVSYNTH_PROJECT_DIR")
-            or os.getcwd()
+            or os.getcwd(),
         )
 
         # Check if this is a DevSynth-managed project
         if is_devsynth_managed_project(project_dir):
             try:
                 cfg = load_config(project_dir)
-                mem_dir = (
-                    cfg.resources.get("project", {}).get("memoryDir")
-                    if cfg.resources
-                    else None
-                )
+                mem_dir = None
+                if cfg.resources:
+                    project_resources = cfg.resources.get("project", {})
+                    mem_candidate = project_resources.get("memoryDir")
+                    if isinstance(mem_candidate, str):
+                        mem_dir = mem_candidate
                 if mem_dir:
                     return os.path.join(project_dir, mem_dir)
             except ConfigurationError as e:  # pragma: no cover - defensive
@@ -506,10 +531,9 @@ class Settings(BaseSettings):
 
         # For non-DevSynth-managed projects, use global config
         # Use project_dir for global config if DEVSYNTH_PROJECT_DIR is set (for test isolation)
-        if os.environ.get("DEVSYNTH_PROJECT_DIR"):
-            global_config_dir = os.path.join(
-                os.environ.get("DEVSYNTH_PROJECT_DIR"), ".devsynth", "config"
-            )
+        project_dir_env = os.environ.get("DEVSYNTH_PROJECT_DIR")
+        if project_dir_env:
+            global_config_dir = os.path.join(project_dir_env, ".devsynth", "config")
             logger.debug(
                 f"Using test environment global config dir: {global_config_dir}"
             )
@@ -528,18 +552,18 @@ class Settings(BaseSettings):
                 with open(global_config_path, "r") as f:
                     config = yaml.safe_load(f)
                     if (
-                        config
-                        and "resources" in config
-                        and "global" in config["resources"]
-                        and "memoryDir" in config["resources"]["global"]
+                        isinstance(config, dict)
+                        and isinstance(config.get("resources"), dict)
+                        and isinstance(config["resources"].get("global"), dict)
                     ):
-                        memory_path = os.path.expanduser(
-                            config["resources"]["global"]["memoryDir"]
-                        )
-                        logger.debug(
-                            f"Using memory path from global config: {memory_path}"
-                        )
-                        return memory_path
+                        raw_memory_dir = config["resources"]["global"].get("memoryDir")
+                        if isinstance(raw_memory_dir, str):
+                            memory_path = os.path.expanduser(raw_memory_dir)
+                            logger.debug(
+                                "Using memory path from global config: %s",
+                                memory_path,
+                            )
+                            return memory_path
             except (OSError, yaml.YAMLError, ImportError) as e:
                 # Log error but continue with default path
                 logger.debug(f"Error reading global config: {e}")
@@ -553,13 +577,15 @@ class Settings(BaseSettings):
         return os.path.expanduser("~/.devsynth/memory")
 
     @field_validator("log_dir", mode="before")
-    def set_default_log_dir(cls, v, info):
+    def set_default_log_dir(
+        cls, v: Optional[str], info: FieldValidationInfo
+    ) -> Optional[str]:
         """
         Set default log directory if not specified.
         First check for project-level config, then fall back to global config.
         Defer directory creation to maintain testability.
         """
-        values = info.data
+        values = cast(Dict[str, Any], info.data)
         if v is not None:
             return v
 
@@ -571,21 +597,23 @@ class Settings(BaseSettings):
         )
 
         # Get project directory from values or environment
-        project_dir = (
+        project_dir = cast(
+            str,
             values.get("project_dir")
             or os.environ.get("DEVSYNTH_PROJECT_DIR")
-            or os.getcwd()
+            or os.getcwd(),
         )
 
         # Check if this is a DevSynth-managed project
         if is_devsynth_managed_project(project_dir):
             try:
                 cfg = load_config(project_dir)
-                logs_dir = (
-                    cfg.resources.get("project", {}).get("logsDir")
-                    if cfg.resources
-                    else None
-                )
+                logs_dir = None
+                if cfg.resources:
+                    project_resources = cfg.resources.get("project", {})
+                    logs_candidate = project_resources.get("logsDir")
+                    if isinstance(logs_candidate, str):
+                        logs_dir = logs_candidate
                 if logs_dir:
                     return os.path.join(project_dir, logs_dir)
             except ConfigurationError as e:  # pragma: no cover - defensive
@@ -596,10 +624,9 @@ class Settings(BaseSettings):
 
         # For non-DevSynth-managed projects, use global config
         # Use project_dir for global config if DEVSYNTH_PROJECT_DIR is set (for test isolation)
-        if os.environ.get("DEVSYNTH_PROJECT_DIR"):
-            global_config_dir = os.path.join(
-                os.environ.get("DEVSYNTH_PROJECT_DIR"), ".devsynth", "config"
-            )
+        project_dir_env = os.environ.get("DEVSYNTH_PROJECT_DIR")
+        if project_dir_env:
+            global_config_dir = os.path.join(project_dir_env, ".devsynth", "config")
             logger.debug(
                 f"Using test environment global config dir for logs: {global_config_dir}"
             )
@@ -620,16 +647,17 @@ class Settings(BaseSettings):
                 with open(global_config_path, "r") as f:
                     config = yaml.safe_load(f)
                     if (
-                        config
-                        and "resources" in config
-                        and "global" in config["resources"]
-                        and "logsDir" in config["resources"]["global"]
+                        isinstance(config, dict)
+                        and isinstance(config.get("resources"), dict)
+                        and isinstance(config["resources"].get("global"), dict)
                     ):
-                        logs_path = os.path.expanduser(
-                            config["resources"]["global"]["logsDir"]
-                        )
-                        logger.debug(f"Using logs path from global config: {logs_path}")
-                        return logs_path
+                        raw_logs_dir = config["resources"]["global"].get("logsDir")
+                        if isinstance(raw_logs_dir, str):
+                            logs_path = os.path.expanduser(raw_logs_dir)
+                            logger.debug(
+                                "Using logs path from global config: %s", logs_path
+                            )
+                            return logs_path
             except (OSError, yaml.YAMLError, ImportError) as e:
                 # Log error but continue with default path
                 logger.debug(f"Error reading global config: {e}")
@@ -643,12 +671,14 @@ class Settings(BaseSettings):
         return os.path.expanduser("~/.devsynth/logs")
 
     @field_validator("project_dir", mode="before")
-    def set_default_project_dir(cls, v, info):
+    def set_default_project_dir(
+        cls, v: Optional[str], info: FieldValidationInfo
+    ) -> str:
         """
         Set default project directory if not specified.
         First check environment variables, then fall back to current working directory.
         """
-        values = info.data
+        values = cast(Dict[str, Any], info.data)
         if v is not None:
             return v
 
@@ -666,10 +696,10 @@ class Settings(BaseSettings):
 
 
 # Global settings instance for singleton pattern
-_settings_instance = None
+_settings_instance: Optional[Settings] = None
 
 # Initialize settings for module-level access
-_settings = Settings()
+_settings: Settings = Settings()
 
 # Expose commonly used settings at module level
 kuzu_db_path = _settings.kuzu_db_path
@@ -678,7 +708,7 @@ kuzu_embedded = _settings.kuzu_embedded
 KUZU_EMBEDDED = kuzu_embedded
 
 
-def get_settings(reload: bool = False, **kwargs) -> Settings:
+def get_settings(reload: bool = False, **kwargs: Any) -> Settings:
     """
     Get settings instance with lazy initialization.
 
@@ -731,7 +761,8 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
         str: The verified path
     """
     # Check if we're in a test environment
-    in_test_env = os.environ.get("DEVSYNTH_PROJECT_DIR") is not None
+    project_dir_env = os.environ.get("DEVSYNTH_PROJECT_DIR")
+    in_test_env = project_dir_env is not None
     no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
         "1",
         "true",
@@ -748,7 +779,8 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
 
     # If we're in a test environment with DEVSYNTH_PROJECT_DIR set, ensure paths are within the test directory
     if in_test_env:
-        test_project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
+        assert project_dir_env is not None
+        test_project_dir = project_dir_env
         path_obj = Path(path)
 
         logger.debug("test_project_dir=%s, path_obj=%s", test_project_dir, path_obj)
@@ -791,7 +823,7 @@ def ensure_path_exists(path: str, create: bool = True) -> str:
     return path
 
 
-def get_llm_settings(reload: bool = False, **kwargs) -> Dict[str, Any]:
+def get_llm_settings(reload: bool = False, **kwargs: Any) -> Dict[str, Any]:
     """
     Get LLM-specific settings.
 
