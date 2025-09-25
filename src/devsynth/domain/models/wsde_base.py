@@ -1,21 +1,74 @@
-"""
-Base WSDE classes and core team functionality.
+"""Base WSDE classes and core team functionality.
 
-This module contains the base WSDE class and core WSDETeam functionality
-including initialization, agent management, and messaging.
+This module contains the base WSDE class and core :class:`WSDETeam`
+functionality including initialization, agent management, and messaging.
+Historically the implementation leaned heavily on ``Any`` which made both the
+runtime behaviour and the coupling with the optional collaboration helpers hard
+to reason about.  The goal of this module is therefore twofold:
+
+* expose a predictable, typed surface that higher level orchestration logic can
+  rely on; and
+* provide lifecycle hooks that gracefully initialise optional attributes even
+  when the wider collaboration stack is not available.
 """
 
-import re
+from __future__ import annotations
+
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Any, Protocol, TypedDict, cast, runtime_checkable
 from uuid import uuid4
 
-from devsynth.exceptions import DevSynthError
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.methodology.base import Phase
 
 logger = DevSynthLogger(__name__)
+
+
+class TeamMessage(TypedDict):
+    """Serialised representation of a team message.
+
+    The schema is intentionally small so that tests can reason about the
+    structure without requiring the full message protocol implementation.
+    """
+
+    id: str
+    timestamp: datetime
+    sender: str
+    recipients: list[str]
+    type: str
+    subject: str
+    content: Any
+    metadata: dict[str, Any]
+
+
+class RequirementReasoningRecord(TypedDict):
+    """Captured output from requirement evaluation hooks."""
+
+    reasoning: Any
+    consensus: bool
+
+
+class PeerReviewRequest(TypedDict):
+    """Shape of the structure returned by peer review helpers."""
+
+    id: str
+    timestamp: datetime
+    work_product: dict[str, Any]
+    author: str
+    reviewers: list[str]
+    status: str
+    reviews: list[Any]
+
+
+@runtime_checkable
+class TeamAgentLike(Protocol):
+    """Protocol describing the small surface consumed by :class:`WSDETeam`."""
+
+    name: str
+
+    def __getattr__(self, item: str) -> Any:  # pragma: no cover - runtime typing
+        ...
 
 
 @dataclass
@@ -28,10 +81,10 @@ class WSDE:
     """
 
     name: str
-    description: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    description: str | None = None
+    metadata: dict[str, Any] | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     def __post_init__(self) -> None:
         """Initialize timestamps if not provided."""
@@ -63,9 +116,9 @@ class WSDETeam:
     def __init__(
         self,
         name: str,
-        description: Optional[str] = None,
-        agents: Optional[Iterable[Any]] = None,
-    ):
+        description: str | None = None,
+        agents: Iterable[TeamAgentLike] | None = None,
+    ) -> None:
         """Initialize a new WSDE Team.
 
         Args:
@@ -73,31 +126,35 @@ class WSDETeam:
             description: Optional description of the team's purpose
             agents: Optional iterable of agents to populate the team
         """
-        self.name = name
-        self.description = description
-        self.agents = []
-        self.roles = {
+        self.name: str = name
+        self.description: str | None = description
+        self.agents: list[TeamAgentLike] = []
+        self.roles: dict[str, TeamAgentLike | None] = {
             "primus": None,
             "worker": None,
             "supervisor": None,
             "designer": None,
             "evaluator": None,
         }
-        self.messages = []
+        self.messages: list[TeamMessage] = []
         # Message protocol is initialised lazily to avoid heavy imports when not
         # required. The attribute is declared here so that callers may inspect
         # or replace it even before the first message is sent.
-        self.message_protocol = None
-        self.solutions = []
-        self.dialectical_hooks = []
-        self.voting_history = []
+        self.message_protocol: Any | None = None
+        self.memory_manager: Any | None = None
+        self.solutions: list[dict[str, Any]] = []
+        self.dialectical_hooks: list[
+            Callable[[dict[str, Any], Sequence[dict[str, Any]]], Any]
+        ] = []
+        self.voting_history: list[dict[str, Any]] = []
         # Stores results from requirement dialectical evaluations
-        self.requirement_reasoning_results = []
-        self.knowledge_graph = None
-        self.standards = None
+        self.requirement_reasoning_results: list[RequirementReasoningRecord] = []
+        self.knowledge_graph: Any | None = None
+        self.standards: Any | None = None
         self.created_at = datetime.now()
         self.updated_at = self.created_at
         self.team_id = str(uuid4())
+        self.primus_index: int = 0
 
         # Initialize logger
         self.logger = logger
@@ -106,7 +163,7 @@ class WSDETeam:
         if agents:
             self.add_agents(list(agents))
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """
         Post-initialization setup.
 
@@ -152,8 +209,10 @@ class WSDETeam:
 
         if not hasattr(self, "message_protocol"):
             self.message_protocol = None
+        if not hasattr(self, "memory_manager"):
+            self.memory_manager = None
 
-    def add_agent(self, agent: Any):
+    def add_agent(self, agent: TeamAgentLike) -> None:
         """
         Add an agent to the team.
 
@@ -164,7 +223,7 @@ class WSDETeam:
         agent_name = getattr(agent, "name", getattr(agent, "id", "unknown"))
         self.logger.info(f"Added agent {agent_name} to team {self.name}")
 
-    def add_agents(self, agents: List[Any]):
+    def add_agents(self, agents: Iterable[TeamAgentLike]) -> None:
         """
         Add multiple agents to the team.
 
@@ -175,8 +234,9 @@ class WSDETeam:
             self.add_agent(agent)
 
     def register_dialectical_hook(
-        self, hook: Callable[[Dict[str, Any], List[Dict[str, Any]]], None]
-    ):
+        self,
+        hook: Callable[[dict[str, Any], Sequence[dict[str, Any]]], Any],
+    ) -> None:
         """
         Register a hook to be called when dialectical reasoning is applied.
 
@@ -186,7 +246,9 @@ class WSDETeam:
         self.dialectical_hooks.append(hook)
         self.logger.info(f"Registered dialectical hook in team {self.name}")
 
-    def requirement_evaluation_hook(self, reasoning: Any, consensus: bool) -> None:
+    def requirement_evaluation_hook(
+        self, reasoning: Any, consensus: bool
+    ) -> None:
         """Record requirement dialectical reasoning results.
 
         Args:
@@ -201,12 +263,12 @@ class WSDETeam:
     def send_message(
         self,
         sender: str,
-        recipients: List[str],
+        recipients: Sequence[str],
         message_type: str,
         subject: str = "",
         content: Any = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ):
+        metadata: dict[str, Any] | None = None,
+    ) -> TeamMessage:
         """
         Send a message from one agent to specific recipients.
 
@@ -225,6 +287,27 @@ class WSDETeam:
         try:
             from . import wsde_utils as _utils
 
+            if getattr(self, "message_protocol", None) is None:
+                try:
+                    from devsynth.application.collaboration.message_protocol import (
+                        MessageProtocol,
+                    )
+
+                    self.message_protocol = MessageProtocol(
+                        memory_manager=getattr(self, "memory_manager", None)
+                    )
+                except Exception:  # pragma: no cover - message protocol optional
+                    self.message_protocol = None
+            elif (
+                self.message_protocol is not None
+                and getattr(self, "memory_manager", None) is not None
+                and getattr(self.message_protocol, "memory_manager", None) is None
+            ):
+                try:  # pragma: no cover - defensive
+                    self.message_protocol.memory_manager = self.memory_manager
+                except Exception:
+                    pass
+
             proto_msg = _utils.send_message(
                 self,
                 sender,
@@ -238,28 +321,31 @@ class WSDETeam:
             proto_msg = None
 
         if proto_msg is not None:
-            message = {
+            message: TeamMessage = {
                 "id": proto_msg.message_id,
                 "timestamp": proto_msg.timestamp,
                 "sender": proto_msg.sender,
-                "recipients": proto_msg.recipients,
+                "recipients": list(proto_msg.recipients),
                 "type": proto_msg.message_type.value,
                 "subject": proto_msg.subject,
                 "content": proto_msg.content,
-                "metadata": proto_msg.metadata,
+                "metadata": dict(proto_msg.metadata or {}),
             }
         else:
             # Fallback to in-memory message if the protocol is unavailable.
-            message = {
-                "id": str(uuid4()),
-                "timestamp": datetime.now(),
-                "sender": sender,
-                "recipients": recipients,
-                "type": message_type,
-                "subject": subject,
-                "content": content,
-                "metadata": metadata or {},
-            }
+            message = cast(
+                TeamMessage,
+                {
+                    "id": str(uuid4()),
+                    "timestamp": datetime.now(),
+                    "sender": sender,
+                    "recipients": list(recipients),
+                    "type": message_type,
+                    "subject": subject,
+                    "content": content,
+                    "metadata": dict(metadata or {}),
+                },
+            )
 
         self.messages.append(message)
         self.logger.debug(f"Message sent from {sender} to {recipients}: {subject}")
@@ -271,8 +357,8 @@ class WSDETeam:
         message_type: str,
         subject: str = "",
         content: Any = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ):
+        metadata: dict[str, Any] | None = None,
+    ) -> TeamMessage:
         """
         Broadcast a message from one agent to all team members.
 
@@ -300,8 +386,10 @@ class WSDETeam:
         return message
 
     def get_messages(
-        self, agent: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
-    ):
+        self,
+        agent: str | None = None,
+        filters: dict[str, Any] | None = None,
+    ) -> list[TeamMessage]:
         """
         Get messages for a specific agent or with specific filters.
 
@@ -312,7 +400,7 @@ class WSDETeam:
         Returns:
             List of messages matching the criteria
         """
-        filtered_messages = self.messages
+        filtered_messages: list[TeamMessage] = list(self.messages)
 
         if agent:
             filtered_messages = [
@@ -323,15 +411,16 @@ class WSDETeam:
 
         if filters:
             for key, value in filters.items():
-                filtered_messages = [
-                    m for m in filtered_messages if m.get(key) == value
-                ]
+                filtered_messages = [m for m in filtered_messages if m.get(key) == value]
 
         return filtered_messages
 
     def request_peer_review(
-        self, work_product: Any, author: Any, reviewer_agents: List[Any]
-    ):
+        self,
+        work_product: dict[str, Any],
+        author: TeamAgentLike,
+        reviewer_agents: Sequence[TeamAgentLike],
+    ) -> PeerReviewRequest:
         """
         Request peer review for a work product.
 
@@ -349,7 +438,7 @@ class WSDETeam:
             for agent in reviewer_agents
         ]
 
-        review_request = {
+        review_request: PeerReviewRequest = {
             "id": str(uuid4()),
             "timestamp": datetime.now(),
             "work_product": work_product,
@@ -379,8 +468,11 @@ class WSDETeam:
         return review_request
 
     def conduct_peer_review(
-        self, work_product: Any, author: Any, reviewer_agents: List[Any]
-    ):
+        self,
+        work_product: dict[str, Any],
+        author: TeamAgentLike,
+        reviewer_agents: Sequence[TeamAgentLike],
+    ) -> PeerReviewRequest:
         """
         Conduct a peer review process for a work product.
 
@@ -401,7 +493,7 @@ class WSDETeam:
         )
         return review_request
 
-    def rotate_primus(self):
+    def rotate_primus(self) -> TeamAgentLike | None:
         """
         Rotate the primus role to the next agent in the team.
 
@@ -440,7 +532,7 @@ class WSDETeam:
         self.logger.info(f"Rotated primus role to {primus_name}")
         return next_agent
 
-    def get_primus(self):
+    def get_primus(self) -> TeamAgentLike | None:
         """
         Get the current primus agent.
 
@@ -449,7 +541,7 @@ class WSDETeam:
         """
         return self.roles.get("primus")
 
-    def get_worker(self):
+    def get_worker(self) -> TeamAgentLike | None:
         """
         Get the current worker agent.
 
@@ -458,7 +550,7 @@ class WSDETeam:
         """
         return self.roles.get("worker")
 
-    def get_supervisor(self):
+    def get_supervisor(self) -> TeamAgentLike | None:
         """
         Get the current supervisor agent.
 
@@ -467,7 +559,7 @@ class WSDETeam:
         """
         return self.roles.get("supervisor")
 
-    def get_designer(self):
+    def get_designer(self) -> TeamAgentLike | None:
         """
         Get the current designer agent.
 
@@ -476,7 +568,7 @@ class WSDETeam:
         """
         return self.roles.get("designer")
 
-    def get_evaluator(self):
+    def get_evaluator(self) -> TeamAgentLike | None:
         """
         Get the current evaluator agent.
 
