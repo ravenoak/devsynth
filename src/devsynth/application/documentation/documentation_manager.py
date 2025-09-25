@@ -458,32 +458,29 @@ class DocumentationManager:
         if results:
             # Get related functions from the documentation
             related = results[0].get("related", [])
+            version = results[0].get("version") if isinstance(results[0], dict) else None
 
             # Get documentation for each related function
             for rel_func in related:
                 try:
-                    doc_results = self.query_documentation(
-                        f"function:{rel_func}", libraries=[library]
+                    doc_metadata = self.repository.get_documentation(
+                        library,
+                        version if isinstance(version, str) else "",
+                        function=rel_func,
                     )
-                    if doc_results:
-                        doc = doc_results[0]
-                        related_functions.append(
-                            {
-                                "name": rel_func,
-                                "description": doc.get("description", ""),
-                                "relationship": doc.get(
-                                    "relationship", "Related function"
-                                ),
-                            }
-                        )
-                    else:
-                        related_functions.append(
-                            {
-                                "name": rel_func,
-                                "description": "No description available",
-                                "relationship": "Related function",
-                            }
-                        )
+                    description = "No description available"
+                    relationship = "Related function"
+                    if isinstance(doc_metadata, dict):
+                        description = doc_metadata.get("description", description)
+                        relationship = doc_metadata.get("relationship", relationship)
+
+                    related_functions.append(
+                        {
+                            "name": rel_func,
+                            "description": description,
+                            "relationship": relationship,
+                        }
+                    )
                 except Exception as e:
                     logger.warning(
                         f"Error getting documentation for related function {rel_func}:"

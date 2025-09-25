@@ -11,6 +11,7 @@ import pytest
 from devsynth.application.documentation.documentation_ingestion_manager import (
     DocumentationIngestionManager,
 )
+from devsynth.application.documentation.models import DocumentationManifest
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import DocumentationError
 
@@ -112,6 +113,7 @@ class TestDocumentationIngestionManager:
             metadata={"format": "markdown"},
         )
         print(f"Ingest result: {result}")
+        assert all(isinstance(item, DocumentationManifest) for item in result)
         mock_memory_manager.store.assert_called()
         stored_item = mock_memory_manager.store.call_args_list[0][0][0]
         assert isinstance(stored_item, MemoryItem)
