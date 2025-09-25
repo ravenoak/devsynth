@@ -1,5 +1,4 @@
-"""
-Documentation Ingestion Module
+"""Documentation Ingestion Module
 
 This module provides components for ingesting and processing
 documentation from various sources.
@@ -9,9 +8,10 @@ import hashlib
 import json
 import os
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Sequence
 from datetime import datetime
 from pathlib import Path
+from typing import cast
 
 import requests
 
@@ -135,21 +135,21 @@ class DocumentationIngestionManager:
         self,
         dir_path: str | Path,
         recursive: bool = True,
-        file_types: list[str] | None = None,
+        file_types: Iterable[str] | None = None,
         metadata: Metadata | None = None,
-    ) -> list[DocumentationManifest]:
+    ) -> Sequence[DocumentationManifest]:
         """
         Ingest documentation from all supported files in a directory.
 
         Args:
             dir_path: The path to the directory to ingest
             recursive: Whether to recursively ingest files in subdirectories
-            file_types: Optional list of file extensions to ingest
+            file_types: Optional iterable of file extensions to ingest
                 (e.g., [".md", ".txt"])
             metadata: Optional metadata to associate with all documentation
 
         Returns:
-            A list of dictionaries containing the ingested documentation
+            A sequence of dictionaries containing the ingested documentation
 
         Raises:
             DocumentationIngestionError: If the directory cannot be read
@@ -164,7 +164,7 @@ class DocumentationIngestionManager:
 
             # Filter file types if specified
             supported_types = set(self.supported_file_types.keys())
-            if file_types:
+            if file_types is not None:
                 supported_types = supported_types.intersection(set(file_types))
 
             # Find all supported files in the directory
@@ -201,7 +201,7 @@ class DocumentationIngestionManager:
                 f"Ingested {len(results)} documentation files from directory:"
                 f" {dir_path}"
             )
-            return results
+            return tuple(results)
         except Exception as e:
             logger.error(f"Failed to ingest documentation from directory: {e}")
             raise DocumentationIngestionError(
@@ -454,7 +454,7 @@ class DocumentationIngestionManager:
         )
 
         # Store the memory item
-        stored_id = self.memory_manager.store(memory_item)
+        stored_id = cast(str, self.memory_manager.store(memory_item))
 
         logger.info(f"Stored documentation in memory with ID: {stored_id}")
         return stored_id
@@ -464,7 +464,7 @@ class DocumentationIngestionManager:
         query: str,
         limit: int = 10,
         metadata_filter: dict[str, MetadataScalar] | None = None,
-    ) -> list[MemoryVector | MemoryItem]:
+    ) -> Sequence[MemoryVector | MemoryItem]:
         """Search ingested documentation using the memory manager."""
 
         if not self.memory_manager:
@@ -473,27 +473,31 @@ class DocumentationIngestionManager:
             )
         assert self.memory_manager is not None
 
-        results: list[MemoryVector | MemoryItem] = self.memory_manager.search_memory(
+        vector_results: Sequence[MemoryVector] = self.memory_manager.search_memory(
             query=query,
             memory_type=MemoryType.DOCUMENTATION,
             metadata_filter=metadata_filter or {},
             limit=limit,
         )
 
-        if not results:
-            # Fallback to simple metadata search if no vector adapter
-            query_filter: dict[str, MetadataScalar] = {
-                "type": MemoryType.DOCUMENTATION.value
-            }
-            if metadata_filter:
-                query_filter.update(metadata_filter)
-            results = self.memory_manager.query_by_metadata(query_filter)
+        if vector_results:
+            return tuple(vector_results)
 
-        return results
+        # Fallback to simple metadata search if no vector adapter results
+        query_filter: dict[str, MetadataScalar] = {
+            "type": MemoryType.DOCUMENTATION.value
+        }
+        if metadata_filter:
+            query_filter.update(metadata_filter)
+        item_results: Sequence[MemoryItem] = self.memory_manager.query_by_metadata(
+            query_filter
+        )
+
+        return tuple(item_results)
 
     def semantic_search(
         self, query: str, limit: int = 10
-    ) -> list[MemoryVector | MemoryItem]:
+    ) -> Sequence[MemoryVector | MemoryItem]:
         """Alias for :meth:`search_documentation` for compatibility."""
 
         return self.search_documentation(query, limit=limit)
@@ -502,9 +506,9 @@ class DocumentationIngestionManager:
         self,
         project_root: str | Path | None = None,
         manifest_path: str | Path | None = None,
-        docs_dirs: list[str] | None = None,
+        docs_dirs: Iterable[str] | None = None,
         non_interactive: bool = False,
-    ) -> list[DocumentationManifest]:
+    ) -> Sequence[DocumentationManifest]:
         """Ingest documentation based on ``.devsynth/project.yaml``.
 
         Args:
@@ -512,7 +516,7 @@ class DocumentationIngestionManager:
                 working directory.
             manifest_path: Optional path to a manifest file. When provided the
                 project configuration is loaded relative to this file.
-            docs_dirs: Optional list of documentation directories to ingest.
+            docs_dirs: Optional iterable of documentation directories to ingest.
                 If not supplied, uses the ``docs`` directories defined in the
                 project configuration or ``["docs"]`` as a fallback.
             non_interactive: When ``True`` disables interactive prompts for
@@ -532,7 +536,7 @@ class DocumentationIngestionManager:
         else:
             config = load_project_config(root)
 
-        docs_dirs = docs_dirs or config.config.directories.get("docs", ["docs"])
+        docs_dirs = tuple(docs_dirs or config.config.directories.get("docs", ["docs"]))
         results: list[DocumentationManifest] = []
 
         for rel in docs_dirs:
@@ -540,4 +544,4 @@ class DocumentationIngestionManager:
             if doc_dir.exists():
                 results.extend(self.ingest_directory(doc_dir))
 
-        return results
+        return tuple(results)
