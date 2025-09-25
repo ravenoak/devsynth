@@ -1,5 +1,4 @@
-"""
-TinyDB Memory Adapter Module
+"""TinyDB Memory Adapter Module.
 
 This module provides a memory adapter that handles structured data queries
 using TinyDB. It also normalizes common Python types (e.g., ``set`` or
@@ -7,21 +6,86 @@ using TinyDB. It also normalizes common Python types (e.g., ``set`` or
 errors.
 """
 
+from __future__ import annotations
+
 import importlib
 import uuid
 from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
-tinydb = importlib.import_module("tinydb")
-Query = tinydb.Query
-TinyDB = tinydb.TinyDB
-MemoryStorage = getattr(importlib.import_module("tinydb.storages"), "MemoryStorage")
-
-from ....domain.models.memory import MemoryItem, MemoryType
+from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
-from .storage_adapter import StorageAdapter
+from .storage_adapter import MemorySnapshot, StorageAdapter
+
+
+class TinyDBQueryLike(Protocol):
+    """Protocol describing the subset of TinyDB ``Query`` used by the adapter."""
+
+    def __getattr__(self, name: str) -> "TinyDBQueryLike":
+        """Return a nested attribute query builder."""
+
+    def __getitem__(self, item: str) -> "TinyDBQueryLike":
+        """Support key access for nested metadata fields."""
+
+    def __and__(self, other: "TinyDBQueryLike") -> "TinyDBQueryLike":
+        """Combine two queries with logical AND."""
+
+
+class TinyDBQueryFactory(Protocol):
+    """Callable that returns a :class:`TinyDBQueryLike` instance."""
+
+    def __call__(self) -> TinyDBQueryLike:
+        ...
+
+
+class TinyDBTableLike(Protocol):
+    """Protocol describing the TinyDB table operations required by the adapter."""
+
+    def get(self, cond: TinyDBQueryLike) -> Mapping[str, Any] | None:
+        ...
+
+    def insert(self, item: Mapping[str, Any]) -> int:
+        ...
+
+    def update(self, fields: Mapping[str, Any], cond: TinyDBQueryLike) -> list[int]:
+        ...
+
+    def remove(self, cond: TinyDBQueryLike) -> list[int]:
+        ...
+
+    def all(self) -> list[Mapping[str, Any]]:
+        ...
+
+    def search(self, cond: TinyDBQueryLike) -> list[Mapping[str, Any]]:
+        ...
+
+    def truncate(self) -> None:
+        ...
+
+
+class TinyDBFactory(Protocol):
+    """Callable returning a TinyDB-like database instance."""
+
+    def __call__(self, *args: Any, **kwargs: Any) -> "TinyDBLike":
+        ...
+
+
+class TinyDBLike(Protocol):
+    """Protocol describing the TinyDB database operations used by the adapter."""
+
+    def table(self, name: str) -> TinyDBTableLike:
+        ...
+
+    def close(self) -> None:
+        ...
+
+
+tinydb_module = importlib.import_module("tinydb")
+QueryFactory = cast(TinyDBQueryFactory, getattr(tinydb_module, "Query"))
+TinyDBConstructor = cast(TinyDBFactory, getattr(tinydb_module, "TinyDB"))
+MemoryStorage = getattr(importlib.import_module("tinydb.storages"), "MemoryStorage")
 
 logger = DevSynthLogger(__name__)
 
@@ -46,12 +110,14 @@ class TinyDBMemoryAdapter(StorageAdapter):
         """
         # Use in-memory storage if no path is provided
         if db_path is None:
-            self.db: TinyDB = TinyDB(storage=MemoryStorage)
+            self.db: TinyDBLike = TinyDBConstructor(storage=MemoryStorage)
         else:
-            self.db = TinyDB(db_path)
+            self.db = TinyDBConstructor(db_path)
 
         # Create a table for memory items
-        self.items_table = self.db.table("memory_items")
+        self.items_table: TinyDBTableLike = self.db.table("memory_items")
+
+        self._query_factory: TinyDBQueryFactory = QueryFactory
 
         logger.info("TinyDB Memory Adapter initialized")
 
@@ -174,10 +240,12 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
             # Store the item in memory but don't commit to disk yet
             # Check if the item already exists
-            existing = self.items_table.get(Query().id == item.id)
+            query = self._query_factory()
+            condition = cast(TinyDBQueryLike, query.id == item.id)
+            existing = self.items_table.get(condition)
             if existing:
                 # Update the existing item
-                self.items_table.update(item_dict, Query().id == item.id)
+                self.items_table.update(item_dict, condition)
             else:
                 # Insert a new item
                 self.items_table.insert(item_dict)
@@ -191,10 +259,12 @@ class TinyDBMemoryAdapter(StorageAdapter):
         else:
             # Not part of a transaction, store normally
             # Check if the item already exists
-            existing = self.items_table.get(Query().id == item.id)
+            query = self._query_factory()
+            condition = cast(TinyDBQueryLike, query.id == item.id)
+            existing = self.items_table.get(condition)
             if existing:
                 # Update the existing item
-                self.items_table.update(item_dict, Query().id == item.id)
+                self.items_table.update(item_dict, condition)
             else:
                 # Insert a new item
                 self.items_table.insert(item_dict)
@@ -216,7 +286,9 @@ class TinyDBMemoryAdapter(StorageAdapter):
         Returns:
             The retrieved memory item, or None if not found
         """
-        item_dict = self.items_table.get(Query().id == item_id)
+        query = self._query_factory()
+        condition = cast(TinyDBQueryLike, query.id == item_id)
+        item_dict = self.items_table.get(condition)
         if item_dict:
             return self._dict_to_memory_item(item_dict)
         return None
@@ -232,23 +304,29 @@ class TinyDBMemoryAdapter(StorageAdapter):
             A list of matching memory items
         """
         # Build TinyDB query
-        tinydb_query = Query()
+        tinydb_query = self._query_factory()
         query_conditions = None
 
         for key, value in query.items():
             if key == "type":
                 # Handle memory_type specially
-                condition = tinydb_query.memory_type == value.value
+                condition = cast(
+                    TinyDBQueryLike, tinydb_query.memory_type == value.value
+                )
             elif key.startswith("metadata."):
                 # Handle nested metadata fields
                 metadata_key = key.split(".", 1)[1]
-                condition = tinydb_query.metadata[metadata_key] == value
+                condition = cast(
+                    TinyDBQueryLike, tinydb_query.metadata[metadata_key] == value
+                )
             elif key in ["id", "content", "created_at"]:
                 # Handle direct fields
-                condition = getattr(tinydb_query, key) == value
+                condition = cast(TinyDBQueryLike, getattr(tinydb_query, key) == value)
             else:
                 # Assume it's a metadata field
-                condition = tinydb_query.metadata[key] == value
+                condition = cast(
+                    TinyDBQueryLike, tinydb_query.metadata[key] == value
+                )
 
             # Combine conditions with AND
             if query_conditions is None:
@@ -294,7 +372,9 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 )
 
             # Delete the item in memory but don't commit to disk yet
-            removed = self.items_table.remove(Query().id == item_id)
+            query = self._query_factory()
+            condition = cast(TinyDBQueryLike, query.id == item_id)
+            removed = self.items_table.remove(condition)
             if removed:
                 logger.info(
                     "Deleted memory item with ID %s from TinyDB Memory Adapter "
@@ -306,7 +386,9 @@ class TinyDBMemoryAdapter(StorageAdapter):
             return False
         else:
             # Not part of a transaction, delete normally
-            removed = self.items_table.remove(Query().id == item_id)
+            query = self._query_factory()
+            condition = cast(TinyDBQueryLike, query.id == item_id)
+            removed = self.items_table.remove(condition)
             if removed:
                 logger.info(
                     "Deleted memory item with ID %s from TinyDB Memory Adapter",
@@ -354,11 +436,13 @@ class TinyDBMemoryAdapter(StorageAdapter):
         search_meta["edrr_phase"] = edrr_phase
 
         # Build TinyDB query
-        tinydb_query = Query()
-        query_conditions = tinydb_query.memory_type == item_type
+        tinydb_query = self._query_factory()
+        query_conditions = cast(
+            TinyDBQueryLike, tinydb_query.memory_type == item_type
+        )
 
         for key, value in search_meta.items():
-            condition = tinydb_query.metadata[key] == value
+            condition = cast(TinyDBQueryLike, tinydb_query.metadata[key] == value)
             query_conditions &= condition
 
         results = self.items_table.search(query_conditions)
@@ -414,7 +498,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
         # Store the transaction ID and create a snapshot of the current state
         self._transaction_id = transaction_id
-        self._transaction_snapshot: dict[str, MemoryItem] = {
+        self._transaction_snapshot: MemorySnapshot = {
             item.id: deepcopy(item) for item in self.get_all()
         }
 
@@ -534,7 +618,8 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
             # Restore items from snapshot
             for item in self._transaction_snapshot.values():
-                self.store(item)
+                if isinstance(item, MemoryItem):
+                    self.store(deepcopy(item))
 
             # Clear the snapshot
             delattr(self, "_transaction_snapshot")
@@ -560,7 +645,9 @@ class TinyDBMemoryAdapter(StorageAdapter):
         """
         return {item.id: deepcopy(item) for item in self.get_all()}
 
-    def restore(self, snapshot: Mapping[str, MemoryItem] | None) -> bool:
+    def restore(
+        self, snapshot: Mapping[str, MemoryItem] | Mapping[str, MemoryVector]
+    ) -> bool:
         """
         Restore from a snapshot.
 
@@ -570,14 +657,14 @@ class TinyDBMemoryAdapter(StorageAdapter):
         Returns:
             True if the restore was successful
         """
-        if snapshot is None:
-            return False
-
         # Clear the table
         self.items_table.truncate()
 
         # Restore items from snapshot
+        restored = False
         for item in snapshot.values():
-            self.store(item)
+            if isinstance(item, MemoryItem):
+                self.store(deepcopy(item))
+                restored = True
 
-        return True
+        return restored
