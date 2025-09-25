@@ -20,6 +20,17 @@ from devsynth.ports.requirement_port import (
 )
 
 
+def determine_edrr_phase(change: RequirementChange) -> str:
+    """Return the appropriate EDRR phase for a requirement change."""
+
+    change_type = getattr(change, "change_type", None)
+    if change_type == ChangeType.ADD:
+        return "EXPAND"
+    if change_type == ChangeType.REMOVE:
+        return "RETROSPECT"
+    return "REFINE"
+
+
 class RequirementService:
     """
     Service for managing requirements.
@@ -150,10 +161,14 @@ class RequirementService:
         self.notification_service.notify_change_proposed(change)
 
         # Evaluate the change using dialectical reasoning
-        reasoning = self.dialectical_reasoner.evaluate_change(change)
+        reasoning = self.dialectical_reasoner.evaluate_change(
+            change, edrr_phase=determine_edrr_phase(change)
+        )
 
         # Assess the impact of the change
-        impact = self.dialectical_reasoner.assess_impact(change)
+        impact = self.dialectical_reasoner.assess_impact(
+            change, edrr_phase=determine_edrr_phase(change)
+        )
 
         # Save the updated requirement
         return self.requirement_repository.save_requirement(requirement)
@@ -191,10 +206,14 @@ class RequirementService:
         self.notification_service.notify_change_proposed(change)
 
         # Evaluate the change using dialectical reasoning
-        reasoning = self.dialectical_reasoner.evaluate_change(change)
+        reasoning = self.dialectical_reasoner.evaluate_change(
+            change, edrr_phase=determine_edrr_phase(change)
+        )
 
         # Assess the impact of the change
-        impact = self.dialectical_reasoner.assess_impact(change)
+        impact = self.dialectical_reasoner.assess_impact(
+            change, edrr_phase=determine_edrr_phase(change)
+        )
 
         # Delete the requirement
         return self.requirement_repository.delete_requirement(requirement_id)

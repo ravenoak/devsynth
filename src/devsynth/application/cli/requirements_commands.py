@@ -28,7 +28,10 @@ from devsynth.adapters.requirements.memory_repository import (
 from devsynth.application.requirements.dialectical_reasoner import (
     DialecticalReasonerService,
 )
-from devsynth.application.requirements.requirement_service import RequirementService
+from devsynth.application.requirements.requirement_service import (
+    RequirementService,
+    determine_edrr_phase,
+)
 from devsynth.config import get_project_config, save_config
 from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.models.requirement import (
@@ -684,7 +687,9 @@ def evaluate_change(
     bridge.print(f"[bold]Evaluating change with ID: {change_id}[/bold]")
 
     # Evaluate the change
-    reasoning = dialectical_reasoner.evaluate_change(change)
+    reasoning = dialectical_reasoner.evaluate_change(
+        change, edrr_phase=determine_edrr_phase(change)
+    )
 
     bridge.print(
         Panel(
@@ -746,7 +751,9 @@ def assess_impact(
     bridge.print(f"[bold]Assessing impact of change with ID: {change_id}[/bold]")
 
     # Assess the impact
-    impact = dialectical_reasoner.assess_impact(change)
+    impact = dialectical_reasoner.assess_impact(
+        change, edrr_phase=determine_edrr_phase(change)
+    )
 
     # Get the affected requirements
     affected_requirements = []
