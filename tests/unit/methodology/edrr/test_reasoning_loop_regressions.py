@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 import devsynth.methodology.edrr.reasoning_loop as reasoning_loop_module
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.exceptions import ConsensusError
 from devsynth.methodology.base import Phase
 
@@ -17,7 +18,7 @@ def test_reasoning_loop_exits_when_budget_elapsed_before_iteration(
 
     def fake_apply(*_args, **_kwargs):  # pragma: no cover - should not be hit
         calls["count"] += 1
-        return {"status": "completed"}
+        return DialecticalSequence.from_dict({"status": "completed"})
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -79,7 +80,7 @@ def test_reasoning_loop_retry_sequence_updates_phase_and_coordinator(
         if isinstance(outcome, Exception):
             raise outcome
         observed_tasks.append(task.copy())
-        return outcome
+        return DialecticalSequence.from_dict(outcome)
 
     monkeypatch.setattr(
         reasoning_loop_module,

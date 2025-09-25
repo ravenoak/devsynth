@@ -6,6 +6,7 @@ import types
 import pytest
 
 import devsynth.methodology.edrr.reasoning_loop as rl
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 
 
 @pytest.mark.fast
@@ -77,9 +78,9 @@ def test_reasoning_loop_coordinator_records_phase_transitions(monkeypatch):
     calls_seen: list[dict[str, object]] = []
 
     def scripted_responses(_wsde, task, _critic, _memory):
-        calls_seen.append(task)
+        calls_seen.append(task.to_dict())
         try:
-            return payloads[len(calls_seen) - 1]
+            return DialecticalSequence.from_dict(payloads[len(calls_seen) - 1])
         except IndexError:  # pragma: no cover - protective guard
             raise AssertionError("unexpected call")
 
@@ -113,7 +114,7 @@ def test_reasoning_loop_coordinator_records_phase_transitions(monkeypatch):
         max_iterations=5,
     )
 
-    assert results == payloads
+    assert [dict(r) for r in results] == payloads
     assert recorded == [
         ("expand", payloads[0]),
         ("differentiate", payloads[1]),
@@ -190,7 +191,7 @@ def test_reasoning_loop_seeds_random_sources(monkeypatch):
     payload = {"status": "completed", "phase": "refine"}
 
     def return_payload(*_args, **_kwargs):
-        return payload
+        return DialecticalSequence.from_dict(payload)
 
     monkeypatch.setattr(
         rl,
@@ -205,6 +206,6 @@ def test_reasoning_loop_seeds_random_sources(monkeypatch):
         deterministic_seed=123,
     )
 
-    assert results == [payload]
+    assert [dict(r) for r in results] == [payload]
     assert ("random", 123) in seeded
     assert ("numpy", 123) in seeded

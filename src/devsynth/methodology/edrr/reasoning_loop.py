@@ -10,11 +10,20 @@ Issue: issues/Finalize-dialectical-reasoning.md
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Mapping, Protocol
+from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING, Any, Protocol
 
-from devsynth.exceptions import ConsensusError
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
+from devsynth.domain.models.wsde_dialectical_types import (
+    DialecticalTask,
+)
+from devsynth.domain.models.wsde_dialectical_types import (
+    apply_dialectical_reasoning as typed_apply,
+)
+from devsynth.domain.models.wsde_dialectical_types import (
+    ensure_dialectical_task,
+)
+from devsynth.exceptions import ConsensusError
 from devsynth.logging_setup import DevSynthLogger
 
 from ..base import Phase
@@ -27,33 +36,24 @@ if TYPE_CHECKING:  # avoid runtime circular imports
 logger = DevSynthLogger(__name__)
 
 
-ResultPayload = DialecticalSequence | dict[str, Any]
-
-
 class MemoryIntegration(Protocol):
     """Protocol for memory integrations used in dialectical reasoning."""
 
     def store_dialectical_result(
-        self, task: dict[str, Any], result: dict[str, Any]
+        self, task: DialecticalTask, result: DialecticalSequence
     ) -> None:
         """Persist a dialectical reasoning result."""
 
 
 ApplyDialecticalReasoning = Callable[
-    ["WSDETeam", dict[str, Any], Any, "MemoryIntegration | None"],
-    ResultPayload,
+    ["WSDETeam", DialecticalTask, Any, "MemoryIntegration | None"],
+    DialecticalSequence,
 ]
-
-
-def _import_apply_dialectical_reasoning() -> ApplyDialecticalReasoning:
-    from devsynth.domain.models import wsde_dialectical
-
-    return wsde_dialectical.apply_dialectical_reasoning
 
 
 def reasoning_loop(
     wsde_team: WSDETeam,
-    task: dict[str, Any],
+    task: DialecticalTask | Mapping[str, Any],
     critic_agent: Any,
     memory_integration: MemoryIntegration | None = None,
     *,
@@ -64,7 +64,7 @@ def reasoning_loop(
     retry_backoff: float = 0.05,
     deterministic_seed: int | None = None,
     max_total_seconds: float | None = None,
-) -> list[ResultPayload]:
+) -> list[DialecticalSequence]:
     """Iteratively apply dialectical reasoning until completion or failure.
 
     Improvements:
@@ -84,16 +84,17 @@ def reasoning_loop(
         except Exception:
             pass
         try:  # numpy is optional; seed if available
-            from numpy.random import seed as numpy_seed
+            import importlib
 
-            numpy_seed(deterministic_seed)
+            numpy_random = importlib.import_module("numpy.random")
+            numpy_random.seed(deterministic_seed)
         except Exception:
             pass
 
     start_time = time.monotonic()
 
-    results: list[ResultPayload] = []
-    current_task: dict[str, Any] = task
+    results: list[DialecticalSequence] = []
+    current_task: DialecticalTask = ensure_dialectical_task(task)
     current_phase: Phase = phase
 
     # Deterministic fallback transition map (keeps refine idempotent by default)
@@ -115,12 +116,10 @@ def reasoning_loop(
         logger.info("Dialectical reasoning iteration %s", iteration + 1)
 
         # Inner retry loop for transient exceptions
-        result: ResultPayload | None = None
+        result: DialecticalSequence | Mapping[str, Any] | None = None
         stop = False
         attempts = 0
-        apply_dialectical_reasoning: ApplyDialecticalReasoning = (
-            _import_apply_dialectical_reasoning()
-        )
+        apply_dialectical_reasoning: ApplyDialecticalReasoning = typed_apply
         while True:
             try:
                 result = apply_dialectical_reasoning(
@@ -164,11 +163,15 @@ def reasoning_loop(
         if stop or result is None:
             break
 
-        result_mapping: dict[str, Any] | Mapping[str, Any]
-        if isinstance(result, DialecticalSequence):
-            result_mapping = result.to_dict()
-        else:
-            result_mapping = result
+        if not isinstance(result, DialecticalSequence):
+            if isinstance(result, Mapping):
+                result = DialecticalSequence.from_dict(result)
+            else:
+                raise TypeError(
+                    "apply_dialectical_reasoning must return a mapping payload"
+                )
+
+        result_mapping: Mapping[str, Any] = result
 
         # Determine the effective phase for recording from result payload
         effective_phase = current_phase
@@ -199,7 +202,7 @@ def reasoning_loop(
         # Prepare next iteration inputs
         synthesis = result_mapping.get("synthesis")
         if synthesis is not None:
-            current_task = {**current_task, "solution": synthesis}
+            current_task = current_task.with_solution(synthesis)
 
         # Advance phase for the next iteration, honoring result.next_phase when provided
         next_phase_value = result_mapping.get("next_phase")
