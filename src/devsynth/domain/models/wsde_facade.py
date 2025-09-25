@@ -19,6 +19,7 @@ from devsynth.domain.models import (
     wsde_voting,
 )
 from devsynth.domain.models.wsde_core import WSDE, WSDETeam
+from devsynth.domain.models.wsde_typing import RoleName
 from devsynth.domain.models.wsde_summarization import (
     summarize_consensus_result,
     summarize_voting_result,
@@ -196,41 +197,28 @@ WSDETeam._generate_comparative_evaluation = staticmethod(
 )
 
 
-def _simple_assign_roles_for_phase(self: WSDETeam, phase, task):
-    """Assign primus deterministically based on phase order."""
-
-    phase_idx = {"EXPAND": 0, "DIFFERENTIATE": 1, "REFINE": 2, "RETROSPECT": 3}
-    if self.agents:
-        primus = self.agents[phase_idx.get(phase.name, 0) % len(self.agents)]
-        self.roles["primus"] = primus
-    return self.roles
-
-
-WSDETeam.assign_roles_for_phase = _simple_assign_roles_for_phase
-
-
 def _get_worker(self: WSDETeam):
     """Return the current worker if assigned."""
 
-    return self.roles.get("worker")
+    return self.roles.get(RoleName.WORKER)
 
 
 def _get_supervisor(self: WSDETeam):
     """Return the current supervisor if assigned."""
 
-    return self.roles.get("supervisor")
+    return self.roles.get(RoleName.SUPERVISOR)
 
 
 def _get_designer(self: WSDETeam):
     """Return the current designer if assigned."""
 
-    return self.roles.get("designer")
+    return self.roles.get(RoleName.DESIGNER)
 
 
 def _get_evaluator(self: WSDETeam):
     """Return the current evaluator if assigned."""
 
-    return self.roles.get("evaluator")
+    return self.roles.get(RoleName.EVALUATOR)
 
 
 def _get_agent(self: WSDETeam, name: str):
