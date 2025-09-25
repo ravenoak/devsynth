@@ -238,7 +238,9 @@ class SimpleDialecticalReasoner(DialecticalReasonerInterface):
     def __init__(self, chat_repo: ChatRepositoryInterface) -> None:
         self.chat_repo = chat_repo
 
-    def evaluate_change(self, change: RequirementChange) -> DialecticalReasoning:
+    def evaluate_change(
+        self, change: RequirementChange, edrr_phase: str = "REFINE"
+    ) -> DialecticalReasoning:
         reasoning = DialecticalReasoning(change_id=change.id)
         reasoning.thesis = f"Proposed change {change.id}"
         reasoning.antithesis = "Opposing view"
@@ -266,7 +268,9 @@ class SimpleDialecticalReasoner(DialecticalReasonerInterface):
         self.chat_repo.save_session(session)
         return session
 
-    def assess_impact(self, change: RequirementChange) -> ImpactAssessment:
+    def assess_impact(
+        self, change: RequirementChange, edrr_phase: str = "REFINE"
+    ) -> ImpactAssessment:
         assessment = ImpactAssessment(change_id=change.id, analysis="None")
         return assessment
 

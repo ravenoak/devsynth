@@ -80,6 +80,26 @@ class TestRequirementInterfaces(unittest.TestCase):
         self.assertEqual(response.content, "hello")
         self.assertEqual(len(chat_repo.get_messages_for_session(session.id)), 2)
 
+    @pytest.mark.medium
+    def test_simple_reasoner_accepts_explicit_edrr_phase(self) -> None:
+        chat_repo = InMemoryChatRepository()
+        reasoner = SimpleDialecticalReasoner(chat_repo)
+        change = RequirementChange(requirement_id=uuid4())
+
+        reasoning = reasoner.evaluate_change(change, edrr_phase="EXPAND")
+
+        self.assertEqual(reasoning.change_id, change.id)
+
+    @pytest.mark.medium
+    def test_simple_reasoner_assess_impact_with_phase(self) -> None:
+        chat_repo = InMemoryChatRepository()
+        reasoner = SimpleDialecticalReasoner(chat_repo)
+        change = RequirementChange(requirement_id=uuid4())
+
+        assessment = reasoner.assess_impact(change, edrr_phase="RETROSPECT")
+
+        self.assertEqual(assessment.change_id, change.id)
+
 
 if __name__ == "__main__":
     unittest.main()
