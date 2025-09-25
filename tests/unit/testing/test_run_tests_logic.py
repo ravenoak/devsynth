@@ -11,6 +11,8 @@ from unittest.mock import patch
 import pytest
 from freezegun import freeze_time
 
+from tests._typing_utils import typed_freeze_time
+
 import devsynth.testing.run_tests as rt
 
 
@@ -45,7 +47,7 @@ def test_failure_tips_contains_key_guidance_lines():
     assert "--report" in tips
 
 
-@freeze_time("2025-01-01")
+@typed_freeze_time("2025-01-01")
 @pytest.mark.fast
 def test_collect_tests_with_cache_uses_cache(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -79,7 +81,7 @@ def test_collect_tests_with_cache_uses_cache(
     mock_run.assert_not_called()
 
 
-@freeze_time("2025-01-02")
+@typed_freeze_time("2025-01-02")
 @pytest.mark.fast
 def test_collect_tests_with_cache_regenerates_when_expired(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -118,7 +120,7 @@ def test_collect_tests_with_cache_regenerates_when_expired(
     mock_run.assert_called()
 
 
-@freeze_time("2025-01-01")
+@typed_freeze_time("2025-01-01")
 @pytest.mark.fast
 def test_collect_tests_with_cache_miss(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -143,7 +145,7 @@ def test_collect_tests_with_cache_miss(
     mock_run.assert_called()
 
 
-@freeze_time("2025-01-01")
+@typed_freeze_time("2025-01-01")
 @pytest.mark.fast
 def test_collect_tests_with_cache_invalidated_by_mtime(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -183,7 +185,7 @@ def test_collect_tests_with_cache_invalidated_by_mtime(
     mock_run.assert_called()
 
 
-@freeze_time("2025-01-01")
+@typed_freeze_time("2025-01-01")
 @pytest.mark.fast
 def test_collect_tests_with_cache_invalidated_by_marker(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path

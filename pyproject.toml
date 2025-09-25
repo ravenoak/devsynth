@@ -116,6 +116,10 @@ types-jsonschema = "^4.25.1.20250822"
 types-requests = "*"
 types-networkx = "*"
 types-tqdm = "*"
+types-pytest = {path = "stubs/types-pytest", develop = true}
+types-pytest-bdd = {path = "stubs/types-pytest-bdd", develop = true}
+types-responses = {path = "stubs/types-responses", develop = true}
+types-freezegun = "*"
 
 [tool.poetry.group.docs]
 optional = true
@@ -200,6 +204,12 @@ devsynth = "devsynth.adapters.cli.typer_adapter:run_cli"
 mvuu-dashboard = "devsynth.application.cli.commands.mvuu_dashboard_cmd:mvuu_dashboard_cmd"
 
 [tool.mypy]
+mypy_path = [
+    "src",
+    "stubs/types-pytest",
+    "stubs/types-pytest-bdd",
+    "stubs/types-responses",
+]
 python_version = "3.12"
 warn_return_any = true
 # Keep third-party imports at `skip` even after stub packages land to limit
@@ -219,6 +229,10 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = "tests._typing_utils"
+follow_imports = "normal"
 
 [tool.black]
 line-length = 88

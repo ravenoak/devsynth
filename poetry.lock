@@ -7135,6 +7135,18 @@ shellingham = ">=1.3.0"
 typing-extensions = ">=3.7.4.3"
 
 [[package]]
+name = "types-freezegun"
+version = "1.1.10"
+description = "Typing stubs for freezegun"
+optional = false
+python-versions = "*"
+groups = ["dev"]
+files = [
+    {file = "types-freezegun-1.1.10.tar.gz", hash = "sha256:cb3a2d2eee950eacbaac0673ab50499823365ceb8c655babb1544a41446409ec"},
+    {file = "types_freezegun-1.1.10-py3-none-any.whl", hash = "sha256:fadebe72213e0674036153366205038e1f95c8ca96deb4ef9b71ddc15413543e"},
+]
+
+[[package]]
 name = "types-jsonschema"
 version = "4.25.1.20250822"
 description = "Typing stubs for jsonschema"
@@ -7165,6 +7177,34 @@ files = [
 numpy = ">=1.20"
 
 [[package]]
+name = "types-pytest"
+version = "0.0.0"
+description = "Typing stubs for pytest"
+optional = false
+python-versions = ">=3.12"
+groups = ["dev"]
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "stubs/types-pytest"
+
+[[package]]
+name = "types-pytest-bdd"
+version = "0.0.0"
+description = "Typing stubs for pytest-bdd"
+optional = false
+python-versions = ">=3.12"
+groups = ["dev"]
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "stubs/types-pytest-bdd"
+
+[[package]]
 name = "types-pyyaml"
 version = "6.0.12.20250915"
 description = "Typing stubs for PyYAML"
@@ -7190,6 +7230,20 @@ files = [
 
 [package.dependencies]
 urllib3 = ">=2"
+
+[[package]]
+name = "types-responses"
+version = "0.0.0"
+description = "Typing stubs for the responses library"
+optional = false
+python-versions = ">=3.12"
+groups = ["dev"]
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "stubs/types-responses"
 
 [[package]]
 name = "types-tqdm"
@@ -8118,4 +8172,4 @@ webui-nicegui = ["nicegui"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.13,>=3.12"
-content-hash = "4bb3703d5f1b69ad2f2cb2106dbeae338de718bbfda662fdf4cdd11a0ec9934d"
+content-hash = "068b328fb1cc519bc0b31ebf27ccc82e9a7020032f18a26f7e40e72eb06f6b3a"

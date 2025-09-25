@@ -12,6 +12,7 @@ import random
 import threading
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, cast
+from typing import ParamSpec
 
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
@@ -39,7 +40,7 @@ from .metrics import (
 
 # Type variables for generic functions
 T = TypeVar("T")
-R = TypeVar("R")
+P = ParamSpec("P")
 
 # Create a logger for this module
 logger = DevSynthLogger("fallback")
@@ -92,7 +93,12 @@ def retry_with_exponential_backoff(
             Dict[str, Union[Callable[[Exception], bool], str]],
         ]
     ] = None,
-    condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+    condition_callbacks: Optional[
+        Union[
+            List[Callable[[Exception, int], bool]],
+            Dict[str, Callable[[Exception, int], bool]],
+        ]
+    ] = None,
     retry_predicates: Optional[
         Union[
             List[Union[Callable[[T], bool], int]],
@@ -105,7 +111,7 @@ def retry_with_exponential_backoff(
         Dict[type, Union[bool, Dict[str, Union[int, bool]]]]
     ] = None,
     circuit_breaker: Optional["CircuitBreaker"] = None,
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """
     Decorator for retrying a function with exponential backoff.
 
@@ -182,11 +188,11 @@ def retry_with_exponential_backoff(
         A decorator function
     """
 
-    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
         wrapped_func = circuit_breaker(func) if circuit_breaker else func
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             # Initialize variables
             num_retries = 0
             delay = initial_delay
@@ -869,7 +875,7 @@ class CircuitBreaker:
         # Create a logger
         self.logger = DevSynthLogger("circuit_breaker")
 
-    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
+    def __call__(self, func: Callable[P, T]) -> Callable[P, T]:
         """
         Decorator for applying the circuit breaker pattern to a function.
 
@@ -885,12 +891,12 @@ class CircuitBreaker:
         """
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             return self.call(func, *args, **kwargs)
 
         return wrapper
 
-    def call(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    def call(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
         """
         Call a function with circuit breaker protection.
 
