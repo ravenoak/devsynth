@@ -44,7 +44,8 @@ Focus: orchestration, prompts, agents, ingestion, and supporting utilities.
 - `application/agents/agent_memory_integration.py` leaks `Any` through almost every integration pathway, driving downstream uncertainty.【46b4b0†L1-L9】
 - `application/orchestration/workflow.py` returns `Any` from key orchestrators, indicating missing typed DTOs.【c8f82e†L1-L3】
 - `application/prompts/prompt_manager.py` mixes `Any` returns with missing imports like `datetime`, breaking strict mode.【236778†L1-L5】
-- `application/server/bridge.py` and `application/ingestion/phases.py` already pass, providing quick wins for scoping ignores more tightly.【2b599a†L1-L2】【55db3f†L1-L2】
+- ✅ `application/config/unified_config_loader.py` and `application/server/bridge.py` now run under `poetry run mypy --strict` via the `task mypy:strict` guard; the override has been narrowed accordingly to prevent regressions.【F:src/devsynth/application/config/unified_config_loader.py†L1-L37】【F:Taskfile.yml†L143-L146】
+- `application/ingestion/phases.py` already passes, providing a quick win for scoping ignores more tightly.【55db3f†L1-L2】
 - `application/utils/token_tracker.py` needs dict annotations and concrete return types for telemetry counters.【107bfe†L1-L4】
 - `application/requirements/requirement_service.py` still returns `Any` and lacks dict generics, so the requirements override remains necessary until typed data contracts land.【e64816†L1-L5】
 

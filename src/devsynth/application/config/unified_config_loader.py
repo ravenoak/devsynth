@@ -8,12 +8,12 @@ with awareness of the ``DEVSYNTH_PROJECT_DIR`` environment variable.
 
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
 from devsynth.config.unified_loader import (
     UnifiedConfig,
+    UnifiedConfigLoader as CoreUnifiedConfigLoader,
 )
-from devsynth.config.unified_loader import UnifiedConfigLoader as _CoreLoader
 
 
 class UnifiedConfigLoader:
@@ -23,11 +23,15 @@ class UnifiedConfigLoader:
     def load(path: Optional[str | Path] = None) -> UnifiedConfig:
         project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
         base = Path(path or project_dir or Path.cwd())
-        return _CoreLoader.load(base)
+        return CoreUnifiedConfigLoader.load(base)
 
     @staticmethod
     def save(config: UnifiedConfig) -> Path:
-        return _CoreLoader.save(config)
+        core_loader = CoreUnifiedConfigLoader()
+        # NOTE(2026-02-15): mypy loses the staticmethod return type when the
+        # application layer re-exports the loader; cast until the upstream
+        # loader is exposed via a typed facade for reuse.
+        return cast(Path, core_loader.save(config))
 
 
 __all__ = ["UnifiedConfigLoader"]

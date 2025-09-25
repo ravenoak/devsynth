@@ -140,6 +140,11 @@ tasks:
       - poetry run bandit -r src/devsynth -x tests -q -f txt -o test_reports/bandit_report.txt
       - bash -lc 'mkdir -p test_reports; poetry run safety check --full-report | tee test_reports/safety_report.txt; exit ${PIPESTATUS[0]}'
 
+  mypy:strict:
+    desc: Run strict mypy on typed application slices
+    cmds:
+      - poetry run mypy --strict src/devsynth/application/config src/devsynth/application/server
+
   tests:property:
     desc: Run opt-in property tests (requires DEVSYNTH_PROPERTY_TESTING=true)
     cmds:
