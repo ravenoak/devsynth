@@ -7,6 +7,7 @@ import importlib.util
 import sys
 import types
 from pathlib import Path
+from typing import Any, Dict
 
 
 def _patch_starlette_testclient() -> None:
@@ -38,7 +39,7 @@ def _patch_starlette_testclient() -> None:
         return
 
     try:
-        import httpx  # type: ignore
+        import httpx
         from starlette.websockets import WebSocketDisconnect
     except Exception:
         return
@@ -66,7 +67,7 @@ def _patch_starlette_testclient() -> None:
         "starlette.testclient", spec.loader
     )
 
-    exec_globals = module.__dict__
+    exec_globals: Dict[str, Any] = module.__dict__
     exec_globals["httpx"] = httpx
     exec_globals["WebSocketDisconnect"] = WebSocketDisconnect
 
