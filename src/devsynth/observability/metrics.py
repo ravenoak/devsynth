@@ -15,15 +15,34 @@ allocation overhead minimal.
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Protocol, Self, Tuple, cast
+
+
+class CounterProtocol(Protocol):
+    """Minimal protocol for Prometheus counters used by DevSynth."""
+
+    def labels(self, *args: object, **kwargs: object) -> Self:
+        ...
+
+    def inc(self, *args: object, **kwargs: object) -> None:
+        ...
+
 
 try:  # pragma: no cover - import guard
-    from prometheus_client import Counter  # type: ignore
+    from prometheus_client import Counter as _PrometheusCounter
 except Exception:  # pragma: no cover - absent or broken client
-    Counter = None  # type: ignore[assignment]
+    _PrometheusCounter = None
+
+
+CounterFactory = Optional[Callable[..., CounterProtocol]]
+Counter: CounterFactory
+if _PrometheusCounter is not None:
+    Counter = cast(Callable[..., CounterProtocol], _PrometheusCounter)
+else:
+    Counter = None
 
 # Registry of created counters to avoid re-definitions with conflicting types
-_COUNTERS: Dict[Tuple[str, Tuple[str, ...]], object] = {}
+_COUNTERS: Dict[Tuple[str, Tuple[str, ...]], CounterProtocol] = {}
 
 
 def _labels_tuple(labels: Optional[Dict[str, str]]) -> Tuple[str, ...]:
@@ -43,7 +62,8 @@ def increment_counter(
         labels: Optional labels mapping; values are coerced to str by Prometheus client.
         description: Optional human-friendly help text.
     """
-    if Counter is None:  # No prometheus installed; no-op
+    counter_factory = Counter
+    if counter_factory is None:  # No prometheus installed; no-op
         return
 
     label_names = _labels_tuple(labels)
@@ -53,12 +73,13 @@ def increment_counter(
     if metric is None:
         # Create counter lazily; if description is empty, provide a minimal default
         help_text = description or name.replace("_", " ")
-        metric = Counter(name, help_text, list(label_names))  # type: ignore[call-arg]
+        metric = counter_factory(name, help_text, list(label_names))
         _COUNTERS[key] = metric
 
     if label_names:
         # Order values to match the sorted label names
-        label_values = [str(labels[k]) for k in label_names]  # type: ignore[index]
-        metric.labels(*label_values).inc()  # type: ignore[call-arg, union-attr]
+        assert labels is not None
+        label_values = [str(labels[k]) for k in label_names]
+        metric.labels(*label_values).inc()
     else:
-        metric.inc()  # type: ignore[union-attr]
+        metric.inc()
