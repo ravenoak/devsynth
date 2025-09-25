@@ -7,7 +7,7 @@ from collections import deque
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Sequence as TypingSequence
 from uuid import uuid4
 
 # Import the base WSDETeam class for type hints
@@ -85,6 +85,71 @@ class Critique:
             "severity": self.severity,
             "metadata": dict(self.metadata),
         }
+
+
+@dataclass(slots=True, frozen=True)
+class AntithesisComponents:
+    """Atomic critique components assembled into an antithesis."""
+
+    critiques: tuple[str, ...] = ()
+    improvement_suggestions: tuple[str, ...] = ()
+    alternative_approaches: tuple[str, ...] = ()
+
+    def merge(self, *others: "AntithesisComponents") -> "AntithesisComponents":
+        """Combine multiple component sets preserving ordering."""
+
+        critiques: list[str] = list(self.critiques)
+        improvements: list[str] = list(self.improvement_suggestions)
+        alternatives: list[str] = list(self.alternative_approaches)
+
+        for other in others:
+            critiques.extend(other.critiques)
+            improvements.extend(other.improvement_suggestions)
+            alternatives.extend(other.alternative_approaches)
+
+        return AntithesisComponents(
+            critiques=tuple(critiques),
+            improvement_suggestions=tuple(improvements),
+            alternative_approaches=tuple(alternatives),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class AntithesisDraft:
+    """Typed representation of the simulated antithesis payload."""
+
+    identifier: str
+    timestamp: datetime
+    critic_id: str
+    components: AntithesisComponents
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+    @property
+    def critiques(self) -> tuple[str, ...]:
+        return self.components.critiques
+
+    @property
+    def improvement_suggestions(self) -> tuple[str, ...]:
+        return self.components.improvement_suggestions
+
+    @property
+    def alternative_approaches(self) -> tuple[str, ...]:
+        return self.components.alternative_approaches
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the draft for legacy consumers."""
+
+        payload = {
+            "id": self.identifier,
+            "timestamp": self.timestamp,
+            "agent": self.critic_id,
+            "critiques": list(self.critiques),
+            "alternative_approaches": list(self.alternative_approaches),
+            "improvement_suggestions": list(self.improvement_suggestions),
+        }
+        if self.metadata:
+            payload["metadata"] = dict(self.metadata)
+        return payload
 
 
 @dataclass(slots=True)
@@ -356,6 +421,146 @@ class DialecticalSequence(Mapping[str, Any]):
 logger: DevSynthLogger = DevSynthLogger(__name__)
 
 
+def _resolve_critic_identifier(critic_agent: Any) -> str:
+    """Extract a stable identifier for the critic agent."""
+
+    return str(
+        getattr(critic_agent, "identifier", None)
+        or getattr(critic_agent, "name", None)
+        or "critic"
+    )
+
+
+def _content_antithesis_components(content: str) -> AntithesisComponents:
+    """Derive critique components from textual thesis content."""
+
+    critiques: list[str] = []
+    improvements: list[str] = []
+    alternatives: list[str] = []
+
+    if len(content) < 100:
+        critiques.append("Content is too brief and lacks detail")
+    if "example" not in content.lower():
+        critiques.append("No examples provided to illustrate concepts")
+
+    improvements.extend(
+        ["Add more detailed explanations", "Include concrete examples"]
+    )
+    alternatives.extend(
+        [
+            "Consider a more structured format with sections",
+            "Add visual diagrams to complement text",
+        ]
+    )
+
+    return AntithesisComponents(
+        critiques=tuple(critiques),
+        improvement_suggestions=tuple(improvements),
+        alternative_approaches=tuple(alternatives),
+    )
+
+
+def _code_antithesis_components(code: str) -> AntithesisComponents:
+    """Derive critique components from code-based thesis content."""
+
+    critiques: list[str] = []
+    improvements: list[str] = []
+    alternatives: list[str] = []
+
+    if "try" in code and "except" not in code:
+        critiques.append("Try block without proper exception handling")
+    if "print(" in code:
+        critiques.append("Using print statements instead of proper logging")
+
+    improvements.extend(
+        [
+            "Add proper error handling with try/except blocks",
+            "Replace print statements with logger calls",
+        ]
+    )
+    alternatives.extend(
+        [
+            "Consider using a context manager for resource handling",
+            "Implement a more modular design with smaller functions",
+        ]
+    )
+
+    return AntithesisComponents(
+        critiques=tuple(critiques),
+        improvement_suggestions=tuple(improvements),
+        alternative_approaches=tuple(alternatives),
+    )
+
+
+def _default_antithesis_components() -> AntithesisComponents:
+    """Fallback critique set when no specific issues are detected."""
+
+    return AntithesisComponents(
+        critiques=(
+            "The solution lacks comprehensive error handling",
+            "The approach could be more efficient",
+            "The solution doesn't consider all edge cases",
+        ),
+        improvement_suggestions=(
+            "Add more robust error handling",
+            "Optimize the approach for better efficiency",
+            "Consider additional edge cases",
+        ),
+        alternative_approaches=(
+            "Consider a different algorithm that handles edge cases better",
+            "Implement a more modular design for better maintainability",
+        ),
+    )
+
+
+def _invert_domain_mapping(
+    domain_mapping: Mapping[str, TypingSequence[str]]
+) -> dict[str, tuple[str, ...]]:
+    """Create a message-to-domain lookup preserving insertion order."""
+
+    message_domains: dict[str, list[str]] = {}
+    for domain, critiques in domain_mapping.items():
+        for critique in critiques:
+            message_domains.setdefault(critique, []).append(domain)
+
+    return {message: tuple(domains) for message, domains in message_domains.items()}
+
+
+DOMAIN_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "code": (
+        "code",
+        "function",
+        "class",
+        "method",
+        "variable",
+        "algorithm",
+        "implementation",
+    ),
+    "content": ("content", "text", "description", "documentation", "explanation"),
+    "security": (
+        "security",
+        "vulnerability",
+        "authentication",
+        "authorization",
+        "encryption",
+    ),
+    "performance": (
+        "performance",
+        "efficiency",
+        "speed",
+        "optimization",
+        "resource",
+    ),
+    "usability": ("usability", "user", "interface", "experience", "accessibility"),
+    "maintainability": (
+        "maintainability",
+        "readability",
+        "modularity",
+        "extensibility",
+    ),
+}
+
+
 def apply_dialectical_reasoning(
     self: WSDETeam,
     task: dict[str, Any],
@@ -373,76 +578,28 @@ def apply_dialectical_reasoning(
     thesis_solution = task["solution"]
     antithesis = self._generate_antithesis(thesis_solution, critic_agent)
 
-    # Determine reviewer identity for critiques
-    critic_id = getattr(critic_agent, "identifier", None) or getattr(
-        critic_agent, "name", "critic"
-    )
+    critic_id = antithesis.critic_id
+    critique_messages: list[str] = list(antithesis.critiques)
+    domain_mapping = self._categorize_critiques_by_domain(critique_messages)
+    message_domains = _invert_domain_mapping(domain_mapping)
 
-    critique_strings: list[str] = list(antithesis.get("critiques", []))
-    domain_mapping = self._categorize_critiques_by_domain(critique_strings)
-    critique_domains: dict[str, list[str]] = {}
-    for domain, critiques in domain_mapping.items():
-        for critique in critiques:
-            critique_domains.setdefault(critique, []).append(domain)
-
-    message_occurrences: dict[str, deque[Critique]] = {}
     critiques: list[Critique] = []
-    for ordinal, message in enumerate(critique_strings):
-        critique = Critique.from_message(
-            reviewer_id=str(critic_id),
-            ordinal=ordinal,
-            message=message,
-            domains=critique_domains.get(message, ()),
-            metadata={"antithesis_id": antithesis.get("id")},
+    for ordinal, message in enumerate(critique_messages):
+        critiques.append(
+            Critique.from_message(
+                reviewer_id=critic_id,
+                ordinal=ordinal,
+                message=message,
+                domains=message_domains.get(message, ()),
+                metadata={"antithesis_id": antithesis.identifier},
+            )
         )
-        critiques.append(critique)
-        message_occurrences.setdefault(message, deque()).append(critique)
 
-    synthesis = self._generate_synthesis(thesis_solution, antithesis)
-
-    integrated: list[Critique] = []
-    for message in synthesis.get("integrated_critiques", []):
-        queue = message_occurrences.get(message)
-        if queue:
-            integrated.append(queue.popleft())
-        else:
-            integrated.append(
-                Critique.from_message(
-                    reviewer_id=str(critic_id),
-                    ordinal=len(integrated),
-                    message=message,
-                    domains=critique_domains.get(message, ()),
-                )
-            )
-
-    rejected: list[Critique] = []
-    for message in synthesis.get("rejected_critiques", []):
-        queue = message_occurrences.get(message)
-        if queue:
-            rejected.append(queue.popleft())
-        else:
-            rejected.append(
-                Critique.from_message(
-                    reviewer_id=str(critic_id),
-                    ordinal=len(integrated) + len(rejected),
-                    message=message,
-                    domains=critique_domains.get(message, ()),
-                )
-            )
-
-    resolution = ResolutionPlan(
-        plan_id=str(synthesis.get("id", uuid4())),
-        timestamp=synthesis.get("timestamp", datetime.now()),
-        integrated_critiques=tuple(integrated),
-        rejected_critiques=tuple(rejected),
-        improvements=tuple(synthesis.get("improvements", ())),
-        reasoning=str(synthesis.get("reasoning", "")),
-        content=synthesis.get("content"),
-        code=synthesis.get("code"),
-        standards_compliance=synthesis.get("standards_compliance", {}),
-        resolved_conflicts=tuple(synthesis.get("resolved_conflicts", ())),
-        domain_improvements=synthesis.get("domain_improvements", {}),
-        domain_conflicts=tuple(synthesis.get("domain_conflicts", ())),
+    resolution = self._generate_synthesis(
+        thesis_solution,
+        antithesis,
+        tuple(critiques),
+        domain_mapping,
     )
 
     step = DialecticalStep(
@@ -452,11 +609,11 @@ def apply_dialectical_reasoning(
         thesis=thesis_solution,
         critiques=tuple(critiques),
         resolution=resolution,
-        critic_id=str(critic_id),
-        antithesis_id=antithesis.get("id"),
-        antithesis_generated_at=antithesis.get("timestamp"),
-        improvement_suggestions=tuple(antithesis.get("improvement_suggestions", ())),
-        alternative_approaches=tuple(antithesis.get("alternative_approaches", ())),
+        critic_id=critic_id,
+        antithesis_id=antithesis.identifier,
+        antithesis_generated_at=antithesis.timestamp,
+        improvement_suggestions=antithesis.improvement_suggestions,
+        alternative_approaches=antithesis.alternative_approaches,
     )
 
     sequence = DialecticalSequence(sequence_id=sequence_id, steps=(step,))
@@ -470,272 +627,187 @@ def apply_dialectical_reasoning(
     return sequence
 
 
-def _generate_antithesis(self: WSDETeam, thesis: dict[str, Any], critic_agent: Any):
-    """
-    Generate an antithesis to a thesis.
+def _generate_antithesis(
+    self: WSDETeam, thesis: dict[str, Any], critic_agent: Any
+) -> AntithesisDraft:
+    """Generate a typed antithesis from the provided thesis."""
 
-    Args:
-        thesis: The thesis solution
-        critic_agent: The agent that will generate the antithesis
+    components = AntithesisComponents()
 
-    Returns:
-        Dictionary containing the antithesis
-    """
-    # In a real implementation, this would call critic_agent.critique() or similar
-    # For now, we'll generate a simulated antithesis
+    content = thesis.get("content")
+    if isinstance(content, str):
+        components = components.merge(_content_antithesis_components(content))
 
-    antithesis = {
-        "id": str(uuid4()),
-        "timestamp": datetime.now(),
-        "agent": critic_agent.name if hasattr(critic_agent, "name") else "critic",
-        "critiques": [],
-        "alternative_approaches": [],
-        "improvement_suggestions": [],
-    }
+    code = thesis.get("code")
+    if isinstance(code, str):
+        components = components.merge(_code_antithesis_components(code))
 
-    # Generate critiques based on thesis content
-    if "content" in thesis:
-        content = thesis["content"]
+    if not components.critiques:
+        components = components.merge(_default_antithesis_components())
 
-        # Simulate finding issues in the content
-        if isinstance(content, str):
-            # Check for common issues in text content
-            if len(content) < 100:
-                antithesis["critiques"].append("Content is too brief and lacks detail")
+    critic_id = _resolve_critic_identifier(critic_agent)
+    metadata: dict[str, Any] = {"thesis_keys": tuple(sorted(thesis.keys()))}
 
-            if "example" not in content.lower():
-                antithesis["critiques"].append(
-                    "No examples provided to illustrate concepts"
-                )
-
-            # Suggest improvements
-            antithesis["improvement_suggestions"].append(
-                "Add more detailed explanations"
-            )
-            antithesis["improvement_suggestions"].append("Include concrete examples")
-
-            # Suggest alternative approaches
-            antithesis["alternative_approaches"].append(
-                "Consider a more structured format with sections"
-            )
-            antithesis["alternative_approaches"].append(
-                "Add visual diagrams to complement text"
-            )
-
-    # Generate critiques based on thesis code
-    if "code" in thesis:
-        code = thesis["code"]
-
-        # Simulate finding issues in the code
-        if isinstance(code, str):
-            # Check for common issues in code
-            if "try" in code and "except" not in code:
-                antithesis["critiques"].append(
-                    "Try block without proper exception handling"
-                )
-
-            if "print(" in code:
-                antithesis["critiques"].append(
-                    "Using print statements instead of proper logging"
-                )
-
-            # Suggest improvements
-            antithesis["improvement_suggestions"].append(
-                "Add proper error handling with try/except blocks"
-            )
-            antithesis["improvement_suggestions"].append(
-                "Replace print statements with logger calls"
-            )
-
-            # Suggest alternative approaches
-            antithesis["alternative_approaches"].append(
-                "Consider using a context manager for resource handling"
-            )
-            antithesis["alternative_approaches"].append(
-                "Implement a more modular design with smaller functions"
-            )
-
-    # If no specific critiques were generated, add some generic ones
-    if not antithesis["critiques"]:
-        antithesis["critiques"] = [
-            "The solution lacks comprehensive error handling",
-            "The approach could be more efficient",
-            "The solution doesn't consider all edge cases",
-        ]
-
-        antithesis["improvement_suggestions"] = [
-            "Add more robust error handling",
-            "Optimize the approach for better efficiency",
-            "Consider additional edge cases",
-        ]
-
-        antithesis["alternative_approaches"] = [
-            "Consider a different algorithm that handles edge cases better",
-            "Implement a more modular design for better maintainability",
-        ]
-
-    return antithesis
+    return AntithesisDraft(
+        identifier=str(uuid4()),
+        timestamp=datetime.now(),
+        critic_id=critic_id,
+        components=components,
+        metadata=metadata,
+    )
 
 
 def _generate_synthesis(
-    self: WSDETeam, thesis: dict[str, Any], antithesis: dict[str, Any]
-):
-    """
-    Generate a synthesis from a thesis and antithesis.
+    self: WSDETeam,
+    thesis: Mapping[str, Any],
+    antithesis: AntithesisDraft,
+    critiques: TypingSequence[Critique],
+    domain_critiques: Mapping[str, TypingSequence[str]],
+) -> ResolutionPlan:
+    """Generate a synthesis from the typed antithesis artefacts."""
 
-    Args:
-        thesis: The thesis solution
-        antithesis: The antithesis with critiques and suggestions
-
-    Returns:
-        Dictionary containing the synthesis
-    """
-    synthesis = {
-        "id": str(uuid4()),
-        "timestamp": datetime.now(),
-        "integrated_critiques": [],
-        "rejected_critiques": [],
-        "improvements": [],
-        "reasoning": "",
-        "content": None,
-        "code": None,
-    }
-
-    # Process critiques
-    critiques = antithesis.get("critiques", [])
-
-    # Categorize critiques by domain
-    domain_critiques = self._categorize_critiques_by_domain(critiques)
-
-    # Identify conflicts between critiques from different domains
+    prioritized_messages = self._prioritize_critiques(list(antithesis.critiques))
     domain_conflicts = self._identify_domain_conflicts(domain_critiques)
 
-    # Prioritize critiques
-    prioritized_critiques = self._prioritize_critiques(critiques)
-
-    # Initialize domain-specific improvements
-    domain_improvements = {domain: [] for domain in domain_critiques.keys()}
-    # Ensure commonly used domains exist even if no critiques matched keywords
+    domain_improvements: dict[str, list[str]] = {
+        domain: [] for domain in domain_critiques
+    }
     domain_improvements.setdefault("code", [])
     domain_improvements.setdefault("content", [])
+    global_improvements: list[str] = []
 
-    # Process content improvements
-    if "content" in thesis and thesis["content"]:
-        content = thesis["content"]
+    occurrences: dict[str, deque[Critique]] = {}
+    for critique in critiques:
+        occurrences.setdefault(critique.message, deque()).append(critique)
+    message_domains = _invert_domain_mapping(domain_critiques)
 
-        # Apply improvements based on critiques
-        improved_content = content
-
-        for critique in prioritized_critiques:
-            if "brief" in critique.lower() or "detail" in critique.lower():
-                # Simulate adding more detail
-                improved_content = self._improve_clarity(improved_content)
-                synthesis["integrated_critiques"].append(critique)
-                domain_improvements["content"].append(
-                    "Added more detailed explanations"
-                )
-
-            elif "example" in critique.lower():
-                # Simulate adding examples
-                improved_content = self._improve_with_examples(improved_content)
-                synthesis["integrated_critiques"].append(critique)
-                domain_improvements["content"].append("Added illustrative examples")
-
-            elif "structure" in critique.lower() or "format" in critique.lower():
-                # Simulate improving structure
-                improved_content = self._improve_structure(improved_content)
-                synthesis["integrated_critiques"].append(critique)
-                domain_improvements["content"].append(
-                    "Improved content structure with clear sections"
-                )
-
-        synthesis["content"] = improved_content
-
-    # Process code improvements
-    if "code" in thesis and thesis["code"]:
-        code = thesis["code"]
-
-        # Apply improvements based on critiques
-        improved_code = code
-
-        for critique in prioritized_critiques:
-            if "exception" in critique.lower() or "error handling" in critique.lower():
-                # Simulate improving error handling
-                improved_code = self._improve_error_handling(improved_code)
-                synthesis["integrated_critiques"].append(critique)
-                domain_improvements["code"].append("Added robust error handling")
-
-            elif "print" in critique.lower() or "logging" in critique.lower():
-                # Simulate improving logging
-                improved_code = improved_code.replace("print(", "logger.info(")
-                synthesis["integrated_critiques"].append(critique)
-                domain_improvements["code"].append(
-                    "Replaced print statements with proper logging"
-                )
-
-            elif "security" in critique.lower():
-                # Simulate improving security
-                improved_code = self._improve_security(improved_code)
-                synthesis["integrated_critiques"].append(critique)
-                domain_improvements["code"].append("Enhanced security measures")
-
-            elif "performance" in critique.lower() or "efficient" in critique.lower():
-                # Simulate improving performance
-                improved_code = self._improve_performance(improved_code)
-                synthesis["integrated_critiques"].append(critique)
-                domain_improvements["code"].append("Optimized for better performance")
-
-            elif "readability" in critique.lower():
-                # Simulate improving readability
-                improved_code = self._improve_readability(improved_code)
-                synthesis["integrated_critiques"].append(critique)
-                domain_improvements["code"].append("Improved code readability")
-
-        synthesis["code"] = improved_code
-
-    # Identify critiques that weren't integrated
-    all_integrated = set(synthesis["integrated_critiques"])
-    synthesis["rejected_critiques"] = [c for c in critiques if c not in all_integrated]
-
-    # Flatten domain improvements into a single list
-    for domain, improvements in domain_improvements.items():
-        synthesis["improvements"].extend(improvements)
-
-    # Check standards compliance
-    code_standards = None
-    content_standards = None
-
-    if "code" in synthesis and synthesis["code"]:
-        code_standards = self._check_code_standards_compliance(synthesis["code"])
-
-    if "content" in synthesis and synthesis["content"]:
-        content_standards = self._check_content_standards_compliance(
-            synthesis["content"]
+    def pop_or_create(message: str, ordinal_hint: int) -> Critique:
+        queue = occurrences.get(message)
+        if queue:
+            return queue.popleft()
+        return Critique.from_message(
+            reviewer_id=antithesis.critic_id,
+            ordinal=ordinal_hint,
+            message=message,
+            domains=message_domains.get(message, ()),
+            metadata={"antithesis_id": antithesis.identifier},
         )
 
-    # Combine standards compliance results
-    standards_compliance = {}
-    if code_standards:
-        standards_compliance["code"] = code_standards
-    if content_standards:
-        standards_compliance["content"] = content_standards
+    integrated_lookup: set[str] = set()
+    integrated_critiques: list[Critique] = []
 
-    # Resolve conflicts between domains
-    resolved_conflicts = []
+    content_result: str | None = None
+    original_content = thesis.get("content")
+    if isinstance(original_content, str) and original_content:
+        improved_content = original_content
+        for message in prioritized_messages:
+            lowered = message.lower()
+            if message in integrated_lookup:
+                continue
+            if "brief" in lowered or "detail" in lowered:
+                critique_obj = pop_or_create(message, len(integrated_critiques))
+                integrated_lookup.add(message)
+                integrated_critiques.append(critique_obj)
+                improved_content = self._improve_clarity(improved_content)
+                improvement = "Added more detailed explanations"
+                domain_improvements["content"].append(improvement)
+                global_improvements.append(improvement)
+            elif "example" in lowered:
+                critique_obj = pop_or_create(message, len(integrated_critiques))
+                integrated_lookup.add(message)
+                integrated_critiques.append(critique_obj)
+                improved_content = self._improve_with_examples(improved_content)
+                improvement = "Added illustrative examples"
+                domain_improvements["content"].append(improvement)
+                global_improvements.append(improvement)
+            elif "structure" in lowered or "format" in lowered:
+                critique_obj = pop_or_create(message, len(integrated_critiques))
+                integrated_lookup.add(message)
+                integrated_critiques.append(critique_obj)
+                improved_content = self._improve_structure(improved_content)
+                improvement = "Improved content structure with clear sections"
+                domain_improvements["content"].append(improvement)
+                global_improvements.append(improvement)
+        content_result = improved_content
+
+    code_result: str | None = None
+    original_code = thesis.get("code")
+    if isinstance(original_code, str) and original_code:
+        improved_code = original_code
+        for message in prioritized_messages:
+            lowered = message.lower()
+            if message in integrated_lookup:
+                continue
+            if "exception" in lowered or "error handling" in lowered:
+                critique_obj = pop_or_create(message, len(integrated_critiques))
+                integrated_lookup.add(message)
+                integrated_critiques.append(critique_obj)
+                improved_code = self._improve_error_handling(improved_code)
+                improvement = "Added robust error handling"
+                domain_improvements["code"].append(improvement)
+                global_improvements.append(improvement)
+            elif "print" in lowered or "logging" in lowered:
+                critique_obj = pop_or_create(message, len(integrated_critiques))
+                integrated_lookup.add(message)
+                integrated_critiques.append(critique_obj)
+                improved_code = improved_code.replace("print(", "logger.info(")
+                improvement = "Replaced print statements with proper logging"
+                domain_improvements["code"].append(improvement)
+                global_improvements.append(improvement)
+            elif "security" in lowered:
+                critique_obj = pop_or_create(message, len(integrated_critiques))
+                integrated_lookup.add(message)
+                integrated_critiques.append(critique_obj)
+                improved_code = self._improve_security(improved_code)
+                improvement = "Enhanced security measures"
+                domain_improvements["code"].append(improvement)
+                global_improvements.append(improvement)
+            elif "performance" in lowered or "efficient" in lowered:
+                critique_obj = pop_or_create(message, len(integrated_critiques))
+                integrated_lookup.add(message)
+                integrated_critiques.append(critique_obj)
+                improved_code = self._improve_performance(improved_code)
+                improvement = "Optimized for better performance"
+                domain_improvements["code"].append(improvement)
+                global_improvements.append(improvement)
+            elif "readability" in lowered:
+                critique_obj = pop_or_create(message, len(integrated_critiques))
+                integrated_lookup.add(message)
+                integrated_critiques.append(critique_obj)
+                improved_code = self._improve_readability(improved_code)
+                improvement = "Improved code readability"
+                domain_improvements["code"].append(improvement)
+                global_improvements.append(improvement)
+        code_result = improved_code
+
+    rejected_messages = [
+        message
+        for message in antithesis.critiques
+        if message not in integrated_lookup
+    ]
+    rejected_critiques = [
+        pop_or_create(message, len(critiques) + index)
+        for index, message in enumerate(rejected_messages)
+    ]
+
+    standards_compliance: dict[str, Any] = {}
+    if code_result:
+        standards_compliance["code"] = self._check_code_standards_compliance(code_result)
+    if content_result:
+        standards_compliance["content"] = self._check_content_standards_compliance(
+            content_result
+        )
+
+    resolved_conflicts: list[dict[str, Any]] = []
     for conflict in domain_conflicts:
         domain1 = conflict["domain1"]
         domain2 = conflict["domain2"]
 
         if (
-            domain1 == "code"
-            and domain2 == "performance"
-            or domain1 == "performance"
-            and domain2 == "code"
+            (domain1 == "code" and domain2 == "performance")
+            or (domain1 == "performance" and domain2 == "code")
         ):
-            # Resolve code vs performance conflict
-            resolution = self._balance_performance_and_maintainability(
-                synthesis.get("code", "")
-            )
+            resolution = self._balance_performance_and_maintainability(code_result or "")
             resolved_conflicts.append(
                 {
                     "domains": [domain1, domain2],
@@ -745,15 +817,10 @@ def _generate_synthesis(
             )
 
         elif (
-            domain1 == "security"
-            and domain2 == "performance"
-            or domain1 == "performance"
-            and domain2 == "security"
+            (domain1 == "security" and domain2 == "performance")
+            or (domain1 == "performance" and domain2 == "security")
         ):
-            # Resolve security vs performance conflict
-            resolution = self._balance_security_and_performance(
-                synthesis.get("code", "")
-            )
+            resolution = self._balance_security_and_performance(code_result or "")
             resolved_conflicts.append(
                 {
                     "domains": [domain1, domain2],
@@ -763,13 +830,10 @@ def _generate_synthesis(
             )
 
         elif (
-            domain1 == "security"
-            and domain2 == "usability"
-            or domain1 == "usability"
-            and domain2 == "security"
+            (domain1 == "security" and domain2 == "usability")
+            or (domain1 == "usability" and domain2 == "security")
         ):
-            # Resolve security vs usability conflict
-            resolution = self._balance_security_and_usability(synthesis.get("code", ""))
+            resolution = self._balance_security_and_usability(code_result or "")
             resolved_conflicts.append(
                 {
                     "domains": [domain1, domain2],
@@ -778,10 +842,9 @@ def _generate_synthesis(
                 }
             )
 
-        elif "code" in [domain1, domain2] and "content" in [domain1, domain2]:
-            # Resolve code vs content improvement conflict
-            improvements1 = domain_improvements[domain1]
-            improvements2 = domain_improvements[domain2]
+        elif "code" in (domain1, domain2) and "content" in (domain1, domain2):
+            improvements1 = domain_improvements.get(domain1, [])
+            improvements2 = domain_improvements.get(domain2, [])
             resolution = self._resolve_content_improvement_conflict(
                 conflict, improvements1, improvements2
             )
@@ -794,7 +857,6 @@ def _generate_synthesis(
             )
 
         else:
-            # Generic conflict resolution
             resolved_conflicts.append(
                 {
                     "domains": [domain1, domain2],
@@ -803,110 +865,77 @@ def _generate_synthesis(
                 }
             )
 
-    # Generate detailed reasoning for the synthesis
-    synthesis["reasoning"] = self._generate_detailed_synthesis_reasoning(
-        domain_critiques,
+    reasoning = self._generate_detailed_synthesis_reasoning(
+        {domain: list(messages) for domain, messages in domain_critiques.items()},
         domain_improvements,
         domain_conflicts,
         resolved_conflicts,
         standards_compliance,
     )
 
-    synthesis["domain_improvements"] = domain_improvements
-    synthesis["domain_conflicts"] = domain_conflicts
-    synthesis["resolved_conflicts"] = resolved_conflicts
-    synthesis["standards_compliance"] = standards_compliance
+    return ResolutionPlan(
+        plan_id=str(uuid4()),
+        timestamp=datetime.now(),
+        integrated_critiques=tuple(integrated_critiques),
+        rejected_critiques=tuple(rejected_critiques),
+        improvements=tuple(global_improvements),
+        reasoning=reasoning,
+        content=content_result,
+        code=code_result,
+        standards_compliance=standards_compliance,
+        resolved_conflicts=tuple(resolved_conflicts),
+        domain_improvements={
+            domain: tuple(values) for domain, values in domain_improvements.items()
+        },
+        domain_conflicts=tuple(domain_conflicts),
+    )
 
-    return synthesis
 
+def _categorize_critiques_by_domain(
+    self: WSDETeam, critiques: TypingSequence[str]
+) -> dict[str, tuple[str, ...]]:
+    """Categorize critique messages into semantic domains."""
 
-def _categorize_critiques_by_domain(self: WSDETeam, critiques: list[str]):
-    """
-    Categorize critiques by domain.
+    domain_critiques: dict[str, list[str]] = {domain: [] for domain in DOMAIN_KEYWORDS}
+    general: list[str] = []
 
-    Args:
-        critiques: List of critique strings
-
-    Returns:
-        Dictionary mapping domains to lists of critiques
-    """
-    # Define domain keywords
-    domain_keywords = {
-        "code": [
-            "code",
-            "function",
-            "class",
-            "method",
-            "variable",
-            "algorithm",
-            "implementation",
-        ],
-        "content": ["content", "text", "description", "documentation", "explanation"],
-        "security": [
-            "security",
-            "vulnerability",
-            "authentication",
-            "authorization",
-            "encryption",
-        ],
-        "performance": [
-            "performance",
-            "efficiency",
-            "speed",
-            "optimization",
-            "resource",
-        ],
-        "usability": ["usability", "user", "interface", "experience", "accessibility"],
-        "maintainability": [
-            "maintainability",
-            "readability",
-            "modularity",
-            "extensibility",
-        ],
-    }
-
-    # Initialize result
-    domain_critiques = {domain: [] for domain in domain_keywords}
-
-    # Categorize each critique
     for critique in critiques:
         critique_lower = critique.lower()
+        matched_domains = [
+            domain
+            for domain, keywords in DOMAIN_KEYWORDS.items()
+            if any(keyword in critique_lower for keyword in keywords)
+        ]
 
-        # Find matching domains
-        matched_domains = []
-        for domain, keywords in domain_keywords.items():
-            if any(keyword in critique_lower for keyword in keywords):
-                matched_domains.append(domain)
-
-        # If no domains matched, categorize as general
-        if not matched_domains:
-            if "domain_critiques" not in domain_critiques:
-                domain_critiques["general"] = []
-            domain_critiques["general"].append(critique)
-        else:
-            # Add to all matching domains
+        if matched_domains:
             for domain in matched_domains:
-                domain_critiques[domain].append(critique)
+                domain_critiques.setdefault(domain, []).append(critique)
+        else:
+            general.append(critique)
 
-    # Remove empty domains
-    domain_critiques = {
-        domain: critiques for domain, critiques in domain_critiques.items() if critiques
+    if general:
+        domain_critiques["general"] = general
+
+    return {
+        domain: tuple(messages)
+        for domain, messages in domain_critiques.items()
+        if messages
     }
 
-    return domain_critiques
 
-
-def _identify_domain_conflicts(self: WSDETeam, domain_critiques: dict[str, list[str]]):
+def _identify_domain_conflicts(
+    self: WSDETeam, domain_critiques: Mapping[str, TypingSequence[str]]
+) -> list[dict[str, Any]]:
     """
     Identify conflicts between critiques from different domains.
 
     Args:
-        domain_critiques: Dictionary mapping domains to lists of critiques
+        domain_critiques: Mapping of domains to ordered critique messages
 
     Returns:
         List of dictionaries describing domain conflicts
     """
-    conflicts = []
+    conflicts: list[dict[str, Any]] = []
 
     # Define known conflicting domain pairs
     conflicting_domains = [
@@ -1013,12 +1042,14 @@ def _identify_domain_conflicts(self: WSDETeam, domain_critiques: dict[str, list[
     return conflicts
 
 
-def _prioritize_critiques(self: WSDETeam, critiques: list[str]):
+def _prioritize_critiques(
+    self: WSDETeam, critiques: TypingSequence[str]
+) -> list[str]:
     """
     Prioritize critiques based on severity and relevance.
 
     Args:
-        critiques: List of critique strings
+        critiques: Iterable of critique strings
 
     Returns:
         List of critiques sorted by priority (highest first)
@@ -1079,7 +1110,7 @@ def _prioritize_critiques(self: WSDETeam, critiques: list[str]):
     return sorted_critiques
 
 
-def _calculate_priority_score(self: WSDETeam, severity: str, relevance: float):
+def _calculate_priority_score(self: WSDETeam, severity: str, relevance: float) -> float:
     """
     Calculate a priority score based on severity and relevance.
 

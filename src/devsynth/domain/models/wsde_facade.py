@@ -316,6 +316,13 @@ WSDETeam._categorize_critiques_by_domain = (
 WSDETeam._identify_domain_conflicts = wsde_dialectical._identify_domain_conflicts
 WSDETeam._prioritize_critiques = wsde_dialectical._prioritize_critiques
 WSDETeam._calculate_priority_score = wsde_dialectical._calculate_priority_score
+WSDETeam._improve_clarity = wsde_dialectical._improve_clarity
+WSDETeam._improve_with_examples = wsde_dialectical._improve_with_examples
+WSDETeam._improve_structure = wsde_dialectical._improve_structure
+WSDETeam._improve_error_handling = wsde_dialectical._improve_error_handling
+WSDETeam._improve_security = wsde_dialectical._improve_security
+WSDETeam._improve_performance = wsde_dialectical._improve_performance
+WSDETeam._improve_readability = wsde_dialectical._improve_readability
 WSDETeam._resolve_code_improvement_conflict = (
     wsde_dialectical._resolve_code_improvement_conflict
 )
@@ -327,6 +334,19 @@ WSDETeam._check_code_standards_compliance = (
 )
 WSDETeam._check_content_standards_compliance = (
     wsde_dialectical._check_content_standards_compliance
+)
+WSDETeam._check_pep8_compliance = wsde_dialectical._check_pep8_compliance
+WSDETeam._check_security_best_practices = (
+    wsde_dialectical._check_security_best_practices
+)
+WSDETeam._balance_performance_and_maintainability = (
+    wsde_dialectical._balance_performance_and_maintainability
+)
+WSDETeam._balance_security_and_performance = (
+    wsde_dialectical._balance_security_and_performance
+)
+WSDETeam._balance_security_and_usability = (
+    wsde_dialectical._balance_security_and_usability
 )
 WSDETeam._generate_detailed_synthesis_reasoning = (
     wsde_dialectical._generate_detailed_synthesis_reasoning
