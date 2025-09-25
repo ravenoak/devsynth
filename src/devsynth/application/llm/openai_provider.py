@@ -257,7 +257,13 @@ class OpenAIProvider(StreamingLLMProvider):
                 messages=messages,
                 **params,
             )
-            return response.choices[0].message.content
+            message = getattr(response.choices[0], "message", None)
+            content = getattr(message, "content", None)
+            if content is None:
+                raise OpenAIModelError("Invalid response from OpenAI")
+            return content
+        except OpenAIModelError:
+            raise
         except Exception as e:
             error_msg = f"OpenAI API error: {str(e)}"
             logger.error(error_msg)
@@ -308,7 +314,13 @@ class OpenAIProvider(StreamingLLMProvider):
                 messages=messages,
                 **params,
             )
-            return response.choices[0].message.content
+            message = getattr(response.choices[0], "message", None)
+            content = getattr(message, "content", None)
+            if content is None:
+                raise OpenAIModelError("Invalid response from OpenAI")
+            return content
+        except OpenAIModelError:
+            raise
         except Exception as e:
             error_msg = f"OpenAI API error: {str(e)}"
             logger.error(error_msg)
@@ -361,18 +373,20 @@ class OpenAIProvider(StreamingLLMProvider):
 
             return await _wrapped()
 
-        # Make the API call with resilience
-        try:
-            stream = await create_stream_with_resilience()
+        async def stream_generator() -> AsyncGenerator[str, None]:
+            try:
+                stream = await create_stream_with_resilience()
 
-            # Yield chunks of generated text
-            async for chunk in stream:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-        except Exception as e:
-            error_msg = f"OpenAI API error: {str(e)}"
-            logger.error(error_msg)
-            raise OpenAIConnectionError(error_msg)
+                # Yield chunks of generated text
+                async for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        yield chunk.choices[0].delta.content
+            except Exception as e:
+                error_msg = f"OpenAI API error: {str(e)}"
+                logger.error(error_msg)
+                raise OpenAIConnectionError(error_msg)
+
+        return stream_generator()
 
     async def generate_with_context_stream(
         self,
@@ -428,18 +442,20 @@ class OpenAIProvider(StreamingLLMProvider):
 
             return await _wrapped()
 
-        # Make the API call with resilience
-        try:
-            stream = await create_stream_with_resilience()
+        async def stream_generator() -> AsyncGenerator[str, None]:
+            try:
+                stream = await create_stream_with_resilience()
 
-            # Yield chunks of generated text
-            async for chunk in stream:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-        except Exception as e:
-            error_msg = f"OpenAI API error: {str(e)}"
-            logger.error(error_msg)
-            raise OpenAIConnectionError(error_msg)
+                # Yield chunks of generated text
+                async for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        yield chunk.choices[0].delta.content
+            except Exception as e:
+                error_msg = f"OpenAI API error: {str(e)}"
+                logger.error(error_msg)
+                raise OpenAIConnectionError(error_msg)
+
+        return stream_generator()
 
     def get_embedding(self, text: str) -> List[float]:
         """Get an embedding vector for the given text using OpenAI.

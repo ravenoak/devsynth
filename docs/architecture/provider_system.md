@@ -999,11 +999,13 @@ provider = ProviderFactory.create()
 
 # Stream generation results
 
-async for chunk in provider.generate_stream(
+stream = await provider.generate_stream(
     prompt="Write a step-by-step guide for implementing dependency injection in Python.",
     temperature=0.6,
-    max_tokens=2000
-):
+    max_tokens=2000,
+)
+
+async for chunk in stream:
     print(chunk, end="", flush=True)
 ```
 

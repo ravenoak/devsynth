@@ -65,9 +65,9 @@ def test_generate_timeout_retries_and_raises_connection_error(monkeypatch):
 @pytest.mark.asyncio
 async def test_generate_stream_yields_tokens_offline(monkeypatch):
     class DummyStream:
-        def __iter__(self):
-            return iter(
-                [
+        def __aiter__(self):
+            async def _generator():
+                for chunk in [
                     SimpleNamespace(
                         choices=[SimpleNamespace(delta=SimpleNamespace(content="A"))]
                     ),
@@ -77,8 +77,10 @@ async def test_generate_stream_yields_tokens_offline(monkeypatch):
                     SimpleNamespace(
                         choices=[SimpleNamespace(delta=SimpleNamespace(content=None))]
                     ),
-                ]
-            )
+                ]:
+                    yield chunk
+
+            return _generator()
 
     with (
         patch("devsynth.application.llm.openai_provider.OpenAI") as MockOpenAI,
@@ -88,13 +90,17 @@ async def test_generate_stream_yields_tokens_offline(monkeypatch):
     ):
         mock_client = MagicMock()
         # Provider calls client.chat.completions.create with stream=True and expects iterable chunks
-        mock_client.chat.completions.create.return_value = DummyStream()
+        mock_async_client = MagicMock()
+        mock_async_client.chat.completions.create = AsyncMock(
+            return_value=DummyStream()
+        )
         MockOpenAI.return_value = mock_client
-        MockAsyncOpenAI.return_value = MagicMock()
+        MockAsyncOpenAI.return_value = mock_async_client
 
         provider = OpenAIProvider({"model": "gpt-4o-mini"})
         out = []
-        async for chunk in provider.generate_stream("hi"):
+        stream = await provider.generate_stream("hi")
+        async for chunk in stream:
             out.append(chunk)
         assert out == ["A", "B"]
 

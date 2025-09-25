@@ -83,14 +83,15 @@ class MockLLMAdapter(BaseLLMProvider, StreamingLLMProvider):
             prompt[:50],
         )
 
-        # Get the full response
         response = self.generate(prompt, parameters)
 
-        # Split the response into chunks and yield them
-        words = response.split()
-        for i in range(0, len(words), 3):
-            chunk = " ".join(words[i : i + 3])
-            yield chunk + " "
+        async def _stream() -> AsyncGenerator[str, None]:
+            words = response.split()
+            for i in range(0, len(words), 3):
+                chunk = " ".join(words[i : i + 3])
+                yield chunk + " "
+
+        return _stream()
 
     async def generate_with_context_stream(
         self,
@@ -104,11 +105,12 @@ class MockLLMAdapter(BaseLLMProvider, StreamingLLMProvider):
             prompt[:50],
         )
 
-        # For simplicity, we'll just use the same logic as generate_stream
         response = self.generate_with_context(prompt, context, parameters)
 
-        # Split the response into chunks and yield them
-        words = response.split()
-        for i in range(0, len(words), 3):
-            chunk = " ".join(words[i : i + 3])
-            yield chunk + " "
+        async def _stream() -> AsyncGenerator[str, None]:
+            words = response.split()
+            for i in range(0, len(words), 3):
+                chunk = " ".join(words[i : i + 3])
+                yield chunk + " "
+
+        return _stream()

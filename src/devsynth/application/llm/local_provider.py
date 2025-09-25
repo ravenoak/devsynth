@@ -62,7 +62,11 @@ class LocalProvider(StreamingLLMProvider):
         self, prompt: str, parameters: Dict[str, Any] | None = None
     ) -> AsyncGenerator[str, None]:
         """Stream a generated response."""
-        yield self.generate(prompt, parameters)
+
+        async def _stream() -> AsyncGenerator[str, None]:
+            yield self.generate(prompt, parameters)
+
+        return _stream()
 
     async def generate_with_context_stream(
         self,
@@ -71,4 +75,8 @@ class LocalProvider(StreamingLLMProvider):
         parameters: Dict[str, Any] | None = None,
     ) -> AsyncGenerator[str, None]:
         """Stream a generated response using conversation context."""
-        yield self.generate_with_context(prompt, context, parameters)
+
+        async def _stream() -> AsyncGenerator[str, None]:
+            yield self.generate_with_context(prompt, context, parameters)
+
+        return _stream()
