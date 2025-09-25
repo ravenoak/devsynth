@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from devsynth.domain.models.wsde_knowledge import (
+    KnowledgeGraphInsights,
     _get_task_id,
     _identify_relevant_knowledge,
 )
@@ -31,3 +32,44 @@ def test_identify_relevant_knowledge_matches_keywords():
     assert external["best_practices"][0] in result["best_practices"]
     assert external["patterns"][0] in result["patterns"]
     assert "web" in result["domain_specific"]
+
+
+@pytest.mark.fast
+def test_knowledge_graph_insights_parses_payload():
+    """ReqID: WSDE-KNOW-03 — structures knowledge graph payloads via DTOs."""
+
+    payload = {
+        "similar_solutions": [
+            {
+                "approach": "Test Driven",
+                "strengths": ["coverage"],
+                "key_insights": ["write tests"],
+            },
+            "invalid-entry",
+        ],
+        "best_practices": [
+            {
+                "name": "Logging",
+                "description": "Use structured logs",
+                "keywords": ["logging", "structured"],
+            },
+            42,
+        ],
+    }
+
+    insights = KnowledgeGraphInsights.from_payload(payload)
+
+    assert len(insights.similar_solutions) == 1
+    assert insights.similar_solutions[0].approach == "Test Driven"
+    assert insights.similar_solutions[0].strengths == ("coverage",)
+    assert insights.similar_solutions[0].key_insights == ("write tests",)
+
+    assert len(insights.best_practices) == 1
+    assert insights.best_practices[0].name == "Logging"
+    assert insights.best_practices[0].description == "Use structured logs"
+    assert insights.best_practices[0].keywords == ("logging", "structured")
+
+    # round-trip serialization retains structured data
+    serialized = insights.to_dict()
+    assert serialized["similar_solutions"][0]["approach"] == "Test Driven"
+    assert serialized["best_practices"][0]["keywords"] == ["logging", "structured"]
