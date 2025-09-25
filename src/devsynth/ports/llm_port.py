@@ -67,7 +67,8 @@ class LLMPort:
                 f"Provider {provider_type or 'default'} does not support streaming"
             )
 
-        async for chunk in provider.generate_stream(prompt, parameters):
+        stream = await provider.generate_stream(prompt, parameters)
+        async for chunk in stream:
             yield chunk
 
     async def generate_with_context_stream(
@@ -84,9 +85,10 @@ class LLMPort:
                 f"Provider {provider_type or 'default'} does not support streaming"
             )
 
-        async for chunk in provider.generate_with_context_stream(
+        stream = await provider.generate_with_context_stream(
             prompt, context, parameters
-        ):
+        )
+        async for chunk in stream:
             yield chunk
 
     def _get_provider(self, provider_type: str = None) -> LLMProvider:
