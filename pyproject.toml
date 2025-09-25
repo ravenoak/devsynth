@@ -257,10 +257,10 @@ disallow_incomplete_defs = false
 # Relax strictness for recently changed modules to allow incremental typing.
 # Rationale: these modules are actively evolving; we keep global strictness high
 # while avoiding blocking changes. Add TODOs in modules to restore strictness.
-# Target to restore strictness: 2025-10-01
+# Target to restore strictness: 2025-11-15 (see docs/typing/strictness.md §Phase 1 – Foundational modules)
 
 # Temporary relaxations to achieve green typing while we incrementally add annotations.
-# TODO: Restore strictness by 2025-10-15; prioritize modules cited in docs/plan.md Phase 4.
+# TODO: Restore strictness by 2025-11-15 (see docs/typing/strictness.md §Phase 1 – Foundational modules).
 [[tool.mypy.overrides]]
 module = "devsynth.security.*"
 ignore_errors = true
@@ -289,7 +289,7 @@ module = "devsynth.api"
 ignore_errors = true
 
 # Temporary relaxations for remaining hotspots (Iteration 2025-08-31)
-# TODO: Restore strictness by 2025-10-01.
+# TODO: Restore strictness by 2025-12-20 (see docs/typing/strictness.md §Phase 2 – Platform services).
 [[tool.mypy.overrides]]
 module = "devsynth.logging_setup"
 ignore_errors = true
@@ -327,7 +327,7 @@ module = "devsynth.config.*"
 ignore_errors = true
 
 # Broad temporary relaxation for application layer to unblock typing gate while we add annotations iteratively.
-# TODO: Narrow and remove by 2025-10-15; track in docs/plan.md Phase 4.
+# TODO: Narrow and remove by 2026-02-15 (see docs/typing/strictness.md §Phase 3 – Application workflows).
 [[tool.mypy.overrides]]
 module = [
   "devsynth.application.agents.*",
@@ -382,7 +382,7 @@ module = ["chromadb", "chromadb.*"]
 ignore_missing_imports = true
 
 # Added by Task 54 (2025-09-03): targeted temporary relaxations based on strict mypy run
-# TODO: Restore strictness by 2025-10-15 after incremental typing
+# TODO: Restore strictness by 2026-03-31 (see docs/typing/strictness.md §§Phase 3–5 for sequencing)
 [[tool.mypy.overrides]]
 module = "devsynth.application.requirements.*"
 ignore_errors = true
