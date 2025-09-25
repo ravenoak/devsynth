@@ -48,7 +48,7 @@ class TLSConfig:
             if path and not os.path.exists(path):
                 raise FileNotFoundError(f"{name} not found: {path}")
 
-    def as_requests_kwargs(self) -> dict:
+    def as_requests_kwargs(self) -> dict[str, bool | str | tuple[str, str] | float]:
         """Return kwargs for requests/httpx methods.
 
         Includes:
@@ -56,7 +56,11 @@ class TLSConfig:
         - timeout (float seconds) sourced from `self.timeout` or
           `DEVSYNTH_HTTP_TIMEOUT` env var (default: 10.0 seconds)
         """
-        kwargs = {"verify": self.ca_file or self.verify}
+        kwargs: dict[str, bool | str | tuple[str, str] | float] = {
+            "verify": self.verify
+        }
+        if self.ca_file:
+            kwargs["verify"] = self.ca_file
         if self.cert_file and self.key_file:
             kwargs["cert"] = (self.cert_file, self.key_file)
         elif self.cert_file:
