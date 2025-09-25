@@ -100,7 +100,11 @@ class UXBridge(ABC):
 
     @abstractmethod
     def display_result(
-        self, message: str, *, highlight: bool = False, message_type: str = None
+        self,
+        message: str,
+        *,
+        highlight: bool = False,
+        message_type: str | None = None,
     ) -> None:
         """Display a message to the user.
 
@@ -120,7 +124,33 @@ class UXBridge(ABC):
             error: The error to handle
         """
         # Default implementation just displays the error message
-        self.display_result(str(error), highlight=True)
+        self.display_result(str(error), highlight=True, message_type="error")
+
+    def display_error(
+        self,
+        error: Union[Exception, Dict[str, Any], str],
+        *,
+        include_suggestions: bool = True,
+    ) -> None:
+        """Display an error message using the bridge's error handling pipeline.
+
+        Implementations can override this method to surface richer diagnostics
+        (for example, actionable suggestions). The default implementation
+        delegates to :meth:`handle_error` so existing subclasses automatically
+        benefit from the enhanced error display logic.
+
+        Args:
+            error: The error object or message to display.
+            include_suggestions: Whether to include actionable suggestions when
+                available. The base implementation ignores this flag but accepts
+                it for API compatibility with CLI helpers.
+        """
+
+        # ``include_suggestions`` is accepted for compatibility with CLI
+        # helpers. Implementations that support suggestion toggles can honour
+        # the flag. The default behaviour simply routes through ``handle_error``.
+        _ = include_suggestions
+        self.handle_error(error)
 
     def create_progress(
         self, description: str, *, total: int = 100
