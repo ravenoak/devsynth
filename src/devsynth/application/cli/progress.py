@@ -8,29 +8,45 @@ implementation focused on clarity rather than rich visuals.
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+from dataclasses import dataclass
+from typing import Dict, Optional, Protocol
 
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
+
+
+class SupportsProgress(Protocol):
+    """Bridge protocol documenting the progress methods required."""
+
+    def create_progress(self, description: str, *, total: int = 100) -> ProgressIndicator:
+        """Create and return a :class:`~devsynth.interface.ux_bridge.ProgressIndicator`."""
+
+
+@dataclass(slots=True)
+class ManagedProgress:
+    """Record keeping structure for progress tasks managed by :class:`ProgressManager`."""
+
+    indicator: ProgressIndicator
 
 
 class ProgressManager:
     """Create and manage progress indicators for CLI tasks."""
 
-    def __init__(self, bridge: UXBridge) -> None:
-        self.bridge = bridge
-        self.indicators: Dict[str, ProgressIndicator] = {}
+    def __init__(self, bridge: SupportsProgress | UXBridge) -> None:
+        self.bridge: SupportsProgress = bridge
+        self.indicators: Dict[str, ManagedProgress] = {}
 
     def create_progress(
         self, task_id: str, description: str, total: int = 100
     ) -> ProgressIndicator:
         """Create and store a progress indicator for ``task_id``."""
         indicator = self.bridge.create_progress(description, total=total)
-        self.indicators[task_id] = indicator
+        self.indicators[task_id] = ManagedProgress(indicator=indicator)
         return indicator
 
     def get_progress(self, task_id: str) -> Optional[ProgressIndicator]:
         """Return the indicator for ``task_id`` if it exists."""
-        return self.indicators.get(task_id)
+        managed = self.indicators.get(task_id)
+        return managed.indicator if managed else None
 
     def update_progress(
         self,
@@ -47,20 +63,17 @@ class ProgressManager:
             description: Optional new description for the task.
             status: Optional short status message.
         """
-        indicator = self.indicators.get(task_id)
-        if indicator is not None:
-            kwargs = {"advance": advance}
-            if description is not None:
-                kwargs["description"] = description
-            if status is not None:
-                kwargs["status"] = status
-            indicator.update(**kwargs)
+        managed = self.indicators.get(task_id)
+        if managed is not None:
+            managed.indicator.update(
+                advance=advance, description=description, status=status
+            )
 
     def complete_progress(self, task_id: str) -> None:
         """Complete and remove the indicator for ``task_id``."""
-        indicator = self.indicators.pop(task_id, None)
-        if indicator is not None:
-            indicator.complete()
+        managed = self.indicators.pop(task_id, None)
+        if managed is not None:
+            managed.indicator.complete()
 
 
 __all__ = ["ProgressManager"]

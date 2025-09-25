@@ -2,8 +2,9 @@ import importlib.util
 import os
 import shutil
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Protocol
 
 from rich.console import Console
 
@@ -18,8 +19,26 @@ bridge: UXBridge = CLIUXBridge()
 console = Console()
 
 
+class DoctorBridge(Protocol):
+    """Minimal bridge contract required by :func:`doctor_cmd`."""
+
+    def print(
+        self, message: str, *, highlight: bool = False, message_type: str | None = None
+    ) -> None:
+        ...
+
+
+@dataclass(slots=True)
+class DoctorOptions:
+    """Typed container for command options."""
+
+    config_dir: Path
+    quick: bool
+    bridge: DoctorBridge
+
+
 def doctor_cmd(
-    config_dir: str = "config",
+    config_dir: Path | str = Path("config"),
     quick: bool = False,
     *,
     bridge: Optional[UXBridge] = None,
@@ -38,12 +57,16 @@ def doctor_cmd(
     -------
     ``devsynth doctor --config-dir ./config``
     """
-    ux_bridge = bridge if bridge is not None else globals()["bridge"]
+    options = DoctorOptions(
+        config_dir=Path(config_dir),
+        quick=quick,
+        bridge=bridge if bridge is not None else globals()["bridge"],
+    )
     try:
         config = load_config()
-        _check_services(ux_bridge)
+        _check_services(options.bridge)
         if _find_project_config(Path.cwd()) is None:
-            ux_bridge.print(
+            options.bridge.print(
                 "[yellow]No project configuration found. Run 'devsynth init' to create it.[/yellow]"
             )
 
@@ -54,20 +77,20 @@ def doctor_cmd(
         required_dirs = ["src", "tests", "docs"]
         missing_dirs = [d for d in required_dirs if not (Path.cwd() / d).exists()]
         if missing_dirs:
-            ux_bridge.print(
+            options.bridge.print(
                 f"[yellow]Missing expected directories: {', '.join(missing_dirs)}[/yellow]"
             )
             warnings = True
 
         if sys.version_info < (3, 12):
-            ux_bridge.print(
+            options.bridge.print(
                 f"[yellow]Warning: Python 3.12 or higher is required. Current version: {sys.version.split()[0]}[/yellow]"
             )
             warnings = True
 
         # Check Poetry availability (recommended workflow)
         if shutil.which("poetry") is None:
-            ux_bridge.print(
+            options.bridge.print(
                 "[yellow]Poetry is not installed or not on PATH. Install Poetry for consistent dev workflows.[/yellow]"
             )
             warnings = True
@@ -76,7 +99,7 @@ def doctor_cmd(
             key for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY") if not os.getenv(key)
         ]
         if missing_keys:
-            ux_bridge.print(
+            options.bridge.print(
                 f"[yellow]Missing environment variables: {', '.join(missing_keys)}[/yellow]"
             )
             warnings = True
@@ -87,7 +110,7 @@ def doctor_cmd(
             pkg for pkg in core_deps if importlib.util.find_spec(pkg) is None
         ]
         if missing_deps:
-            ux_bridge.print(
+            options.bridge.print(
                 f"[yellow]Missing dependencies: {', '.join(missing_deps)}[/yellow]"
             )
             warnings = True
@@ -96,7 +119,7 @@ def doctor_cmd(
         # This must not import streamlit; only check availability via find_spec.
         webui_spec = importlib.util.find_spec("streamlit")
         if webui_spec is None:
-            ux_bridge.print(
+            options.bridge.print(
                 "[yellow]WebUI alignment: Streamlit is not installed. If you intend to use the WebUI, install the 'webui' extra: `poetry install --with dev,docs --extras \"webui\"` or add it to your current env. See docs/developer_guides/testing.md.[/yellow]"
             )
             warnings = True
@@ -112,7 +135,7 @@ def doctor_cmd(
                 getattr(config, "features", {}).get(feat)
                 and importlib.util.find_spec(pkg) is None
             ):
-                ux_bridge.print(
+                options.bridge.print(
                     f"[yellow]Feature '{feat}' requires the '{pkg}' package which is not installed.[/yellow]"
                 )
                 warnings = True
@@ -123,24 +146,24 @@ def doctor_cmd(
             "faiss": "faiss",
             "tinydb": "tinydb",
         }
-        store_type = getattr(config, "memory_store_type", "memory")
-        pkg = store_pkgs.get(store_type)
-        if pkg:
-            if pkg == "faiss":
+        store_type = str(getattr(config, "memory_store_type", "memory") or "memory")
+        store_pkg: Optional[str] = store_pkgs.get(store_type)
+        if store_pkg:
+            if store_pkg == "faiss":
                 spec = importlib.util.find_spec("faiss") or importlib.util.find_spec(
                     "faiss-cpu"
                 )
             else:
-                spec = importlib.util.find_spec(pkg)
+                spec = importlib.util.find_spec(store_pkg)
             if spec is None:
-                ux_bridge.print(
-                    f"[yellow]{store_type.capitalize()} support is enabled but the '{pkg}' package is missing.[/yellow]"
+                options.bridge.print(
+                    f"[yellow]{store_type.capitalize()} support is enabled but the '{store_pkg}' package is missing.[/yellow]"
                 )
                 warnings = True
                 critical_missing = True
 
         if importlib.util.find_spec("uvicorn") is None:
-            ux_bridge.print(
+            options.bridge.print(
                 "[yellow]The 'uvicorn' package is required for the API server but is not installed.[/yellow]"
             )
             warnings = True
@@ -151,17 +174,17 @@ def doctor_cmd(
         repo_root = Path(__file__).resolve().parents[5]
         script_path = repo_root / "scripts" / "validate_config.py"
         spec = importlib.util.spec_from_file_location("validate_config", script_path)
-        module = importlib.util.module_from_spec(spec)  # type: ignore
         assert spec and spec.loader
-        spec.loader.exec_module(module)  # type: ignore
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
 
         envs = ["default", "development", "testing", "staging", "production"]
         configs = {}
 
         for env in envs:
-            cfg_path = Path(config_dir) / f"{env}.yml"
+            cfg_path = options.config_dir / f"{env}.yml"
             if not cfg_path.exists():
-                ux_bridge.print(
+                options.bridge.print(
                     f"[yellow]Warning: configuration file not found: {cfg_path}[/yellow]"
                 )
                 warnings = True
@@ -173,51 +196,53 @@ def doctor_cmd(
             schema_errors = module.validate_config(data, module.CONFIG_SCHEMA)
             env_errors = module.validate_environment_variables(data)
             for err in schema_errors + env_errors:
-                ux_bridge.print(f"[yellow]{env}: {err}[/yellow]")
+                options.bridge.print(f"[yellow]{env}: {err}[/yellow]")
                 warnings = True
 
         consistency_errors = module.check_config_consistency(configs)
         for err in consistency_errors:
-            ux_bridge.print(f"[yellow]{err}[/yellow]")
+            options.bridge.print(f"[yellow]{err}[/yellow]")
             warnings = True
 
-        if quick:
-            ux_bridge.print("[blue]Running alignment check...[/blue]")
+        if options.quick:
+            options.bridge.print("[blue]Running alignment check...[/blue]")
             try:
                 from . import align_cmd
 
-                issues = align_cmd.check_alignment(bridge=ux_bridge)
-                align_cmd.display_issues(issues, bridge=ux_bridge)
+                issues = align_cmd.check_alignment(bridge=options.bridge)
+                align_cmd.display_issues(issues, bridge=options.bridge)
                 if issues:
                     warnings = True
             except Exception as exc:  # pragma: no cover - defensive
-                ux_bridge.print(
+                options.bridge.print(
                     f"[yellow]Alignment check could not be run: {exc}[/yellow]"
                 )
                 warnings = True
 
-            ux_bridge.print("[blue]Running unit tests...[/blue]")
+            options.bridge.print("[blue]Running unit tests...[/blue]")
             try:
                 from devsynth.testing.run_tests import run_tests
 
                 success, _ = run_tests("unit-tests")
                 if not success:
-                    ux_bridge.print("[yellow]Unit tests failed[/yellow]")
+                    options.bridge.print("[yellow]Unit tests failed[/yellow]")
                     warnings = True
                 else:
-                    ux_bridge.print("[green]Unit tests passed[/green]")
+                    options.bridge.print("[green]Unit tests passed[/green]")
             except Exception as exc:  # pragma: no cover - defensive
-                ux_bridge.print(f"[yellow]Unit tests could not be run: {exc}[/yellow]")
+                options.bridge.print(
+                    f"[yellow]Unit tests could not be run: {exc}[/yellow]"
+                )
                 warnings = True
 
         if warnings:
-            ux_bridge.print(
+            options.bridge.print(
                 "[yellow]Configuration issues detected. Run 'devsynth init' to generate defaults.[/yellow]"
             )
         else:
-            ux_bridge.print("[green]All configuration files are valid.[/green]")
+            options.bridge.print("[green]All configuration files are valid.[/green]")
 
         if critical_missing:
             raise SystemExit(1)
     except Exception as err:  # pragma: no cover - defensive
-        ux_bridge.print(f"[red]Error:[/red] {err}", highlight=False)
+        options.bridge.print(f"[red]Error:[/red] {err}", highlight=False)

@@ -38,7 +38,7 @@ console = Console()
 
 
 def ingest_cmd(
-    manifest_path: Optional[str] = None,
+    manifest_path: Optional[Path | str] = None,
     dry_run: bool = False,
     verbose: bool = False,
     validate_only: bool = False,
@@ -76,13 +76,18 @@ def ingest_cmd(
     try:
         # Allow environment variables to provide default values when arguments
         # are not supplied. CLI flags still override these settings.
+        path_argument: Optional[Path]
         if manifest_path is None:
-            manifest_path = os.environ.get("DEVSYNTH_MANIFEST_PATH")
-        if manifest_path is None:
-            # Use manifest.yaml as the default path for tests
-            manifest_path = Path(os.path.join(os.getcwd(), "manifest.yaml"))
+            env_path = os.environ.get("DEVSYNTH_MANIFEST_PATH")
+            if env_path is None:
+                # Use manifest.yaml as the default path for tests
+                path_argument = Path(os.path.join(os.getcwd(), "manifest.yaml"))
+            else:
+                path_argument = Path(env_path)
         else:
-            manifest_path = Path(manifest_path)
+            path_argument = Path(manifest_path)
+
+        manifest_path = path_argument
 
         project_root = (
             manifest_path.parent.parent

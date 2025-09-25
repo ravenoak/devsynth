@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from devsynth.application.cli.setup_wizard import SetupWizard
@@ -131,3 +133,63 @@ def test_setup_wizard_abort_succeeds(tmp_path, monkeypatch) -> None:
     cfg_file = tmp_path / ".devsynth" / "project.yaml"
     assert not cfg_file.exists()
     assert any(("Initialization aborted" in msg for msg in bridge.messages))
+
+
+class TypedBridge(UXBridge):
+    """Bridge that records progress interactions for typed workflow tests."""
+
+    def __init__(self) -> None:
+        self.messages: list[str] = []
+        self.progress_updates: list[str] = []
+
+    def ask_question(self, *args, **kwargs) -> str:  # pragma: no cover - not used
+        raise AssertionError("ask_question should not be called in typed bridge test")
+
+    def confirm_choice(self, *args, **kwargs) -> bool:  # pragma: no cover
+        raise AssertionError("confirm_choice should not be called in typed bridge test")
+
+    def display_result(
+        self, message: str, *, highlight: bool = False, message_type: str | None = None
+    ) -> None:
+        self.messages.append(message)
+
+    def create_progress(self, description: str, *, total: int = 100):
+        class _Indicator:
+            def __init__(self, tracker: list[str]) -> None:
+                self.tracker = tracker
+
+            def update(self, **kwargs) -> None:
+                self.tracker.append(kwargs.get("description", ""))
+
+            def complete(self) -> None:  # pragma: no cover - no-op for tests
+                pass
+
+        return _Indicator(self.progress_updates)
+
+
+@pytest.mark.fast
+def test_setup_wizard_accepts_typed_inputs(tmp_path, monkeypatch) -> None:
+    """The wizard accepts typed inputs without prompting."""
+
+    monkeypatch.chdir(tmp_path)
+    bridge = TypedBridge()
+    constraints_path = tmp_path / "constraints.txt"
+    selections = {
+        "root": tmp_path,
+        "structure": "single_package",
+        "language": "python",
+        "constraints": constraints_path,
+        "goals": "typed goal",
+        "memory_backend": "memory",
+        "offline_mode": True,
+        "features": {"code_generation": True, "test_generation": True},
+        "auto_confirm": True,
+    }
+
+    wizard = SetupWizard(bridge)
+    cfg = wizard.run(**selections)
+
+    assert Path(cfg.config.project_root) == tmp_path
+    assert cfg.config.constraints == str(constraints_path)
+    assert cfg.config.features["code_generation"] is True
+    assert any("Configuration Summary" in msg for msg in bridge.messages)
