@@ -317,7 +317,6 @@ module = [
   "devsynth.application.agents.*",
   "devsynth.application.code_analysis.*",
   "devsynth.application.collaboration.*",
-  "devsynth.application.config.*",
   "devsynth.application.ingestion.*",
   "devsynth.application.issues.*",
   "devsynth.application.llm.*",
@@ -325,7 +324,6 @@ module = [
   "devsynth.application.orchestration.*",
   "devsynth.application.promises.*",
   "devsynth.application.prompts.*",
-  "devsynth.application.server.*",
   "devsynth.application.sprint.*",
   "devsynth.application.utils.*",
 ]

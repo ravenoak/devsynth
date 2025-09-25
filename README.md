@@ -38,6 +38,7 @@ Setup (choose one)
 
 Sanity checks
 - task env:verify  # ensure go-task and the devsynth CLI are available
+- task mypy:strict  # run strict mypy for the typed application slices
 - poetry run devsynth --help
 - poetry run devsynth doctor
 - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1

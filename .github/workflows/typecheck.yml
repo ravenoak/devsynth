@@ -39,3 +39,8 @@ jobs:
         env:
           MYPY_CACHE_DIR: .mypy_cache
         run: poetry run mypy src/devsynth
+
+      - name: Run strict mypy on application slices
+        env:
+          MYPY_CACHE_DIR: .mypy_cache
+        run: poetry run mypy --strict src/devsynth/application/config src/devsynth/application/server
