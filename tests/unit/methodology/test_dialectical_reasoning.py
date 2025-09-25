@@ -6,6 +6,7 @@ from devsynth.domain.models.memory import MemoryType
 from devsynth.exceptions import ConsensusError
 from devsynth.methodology.base import Phase
 from devsynth.methodology.edrr import EDRRCoordinator, reasoning_loop
+from tests.helpers import build_dialectical_sequence
 
 
 @pytest.mark.fast
@@ -16,7 +17,7 @@ def test_reasoning_loop_records_results(mocker) -> None:
     """
 
     coordinator = mocker.create_autospec(EDRRCoordinator, instance=True)
-    result = {"status": "completed"}
+    result = build_dialectical_sequence(status="completed")
     mocker.patch(
         "devsynth.methodology.edrr.reasoning_loop._apply_dialectical_reasoning",
         return_value=result,
@@ -25,7 +26,7 @@ def test_reasoning_loop_records_results(mocker) -> None:
     output = reasoning_loop(None, {}, None, coordinator=coordinator)
 
     assert output == [result]
-    coordinator.record_refine_results.assert_called_once_with(result)
+    coordinator.record_refine_results.assert_called_once_with(dict(result))
     coordinator.record_consensus_failure.assert_not_called()
 
 
@@ -62,7 +63,7 @@ def test_reasoning_loop_persists_phase_results(mocker) -> None:
 
     memory_manager = mocker.Mock()
     coordinator = EDRRCoordinator(memory_manager)
-    result = {"status": "completed"}
+    result = build_dialectical_sequence(status="completed")
     mocker.patch(
         "devsynth.methodology.edrr.reasoning_loop._apply_dialectical_reasoning",
         return_value=result,
@@ -71,5 +72,5 @@ def test_reasoning_loop_persists_phase_results(mocker) -> None:
     reasoning_loop(None, {}, None, coordinator=coordinator, phase=Phase.DIFFERENTIATE)
 
     memory_manager.store_with_edrr_phase.assert_called_once_with(
-        result, MemoryType.KNOWLEDGE, "DIFFERENTIATE"
+        dict(result), MemoryType.KNOWLEDGE, "DIFFERENTIATE"
     )

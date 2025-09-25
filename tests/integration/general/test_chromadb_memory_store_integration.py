@@ -4,7 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
-pytest.importorskip("chromadb")
+pytest.importorskip(
+    "chromadb.api",
+    reason="ChromaDB integration tests require the chromadb API client",
+)
 
 from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType

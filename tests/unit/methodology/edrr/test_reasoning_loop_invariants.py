@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.methodology.base import Phase
 
 reasoning_loop_module = importlib.import_module(
@@ -23,7 +24,9 @@ def test_reasoning_loop_enforces_total_time_budget(
 
     def fake_apply(_team, task, _critic, _memory):
         call_count["value"] += 1
-        return {"status": "in_progress", "task_snapshot": task.copy()}
+        return DialecticalSequence.from_dict(
+            {"status": "in_progress", "task_snapshot": task.copy()}
+        )
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -67,7 +70,9 @@ def test_reasoning_loop_retries_until_success(monkeypatch: pytest.MonkeyPatch) -
         outcome = next(outcomes)
         if isinstance(outcome, Exception):
             raise outcome
-        return {"status": "completed", "synthesis": task.get("solution")}
+        return DialecticalSequence.from_dict(
+            {"status": "completed", "synthesis": task.get("solution")}
+        )
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -112,7 +117,7 @@ def test_reasoning_loop_fallback_transitions_and_propagation(
         observed_tasks.append(task.copy())
         payload = payloads[call_index["value"]]
         call_index["value"] += 1
-        return payload
+        return DialecticalSequence.from_dict(payload)
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -182,7 +187,7 @@ def test_reasoning_loop_respects_max_iterations_limit(
     def fake_apply(_team, task, _critic, _memory):
         payload = payloads[call_count["value"]]
         call_count["value"] += 1
-        return payload
+        return DialecticalSequence.from_dict(payload)
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -217,7 +222,9 @@ def test_reasoning_loop_retry_backoff_respects_remaining_budget(
         if attempts["value"] == 0:
             attempts["value"] += 1
             raise RuntimeError("transient")
-        return {"status": "completed", "synthesis": task.get("solution", {})}
+        return DialecticalSequence.from_dict(
+            {"status": "completed", "synthesis": task.get("solution", {})}
+        )
 
     monkeypatch.setattr(
         reasoning_loop_module,

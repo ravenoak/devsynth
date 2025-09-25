@@ -15,6 +15,7 @@ try:
 except ImportError:  # pragma: no cover
     pytest.skip("hypothesis not available", allow_module_level=True)
 
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
@@ -193,7 +194,9 @@ def test_reasoning_loop_propagates_synthesis(monkeypatch, syntheses):
         idx = call["i"]
         status = "completed" if idx == len(syntheses) - 1 else "in_progress"
         call["i"] += 1
-        return {"status": status, "synthesis": syntheses[idx]}
+        return DialecticalSequence.from_dict(
+            {"status": status, "synthesis": syntheses[idx]}
+        )
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -238,7 +241,9 @@ def test_reasoning_loop_invokes_dialectical_hooks(
 
     def fake_apply(wsde_team, task, critic, memory):
         idx = call["i"]
-        result = {"status": statuses[idx], "synthesis": syntheses[idx]}
+        result = DialecticalSequence.from_dict(
+            {"status": statuses[idx], "synthesis": syntheses[idx]}
+        )
         call["i"] += 1
         for hook_fn in getattr(wsde_team, "dialectical_hooks", []):
             hook_fn(task, [result])
