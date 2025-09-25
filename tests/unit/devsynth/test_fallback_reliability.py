@@ -1,5 +1,7 @@
 import time
 
+from typing import Any, Callable, cast
+
 import pytest
 
 from devsynth import metrics
@@ -8,6 +10,15 @@ from devsynth.fallback import (
     reset_prometheus_metrics,
     retry_with_exponential_backoff,
 )
+
+from tests._typing_utils import ensure_typed_decorator
+
+
+def typed_retry_with_exponential_backoff(
+    *args: Any, **kwargs: Any
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    decorator = retry_with_exponential_backoff(*args, **kwargs)
+    return ensure_typed_decorator(cast(Callable[[Callable[..., Any]], Any], decorator))
 
 
 @pytest.mark.fast
@@ -19,7 +30,11 @@ def test_named_condition_callbacks_record_metrics():
         calls.append(attempt)
         return False
 
-    @retry_with_exponential_backoff(max_retries=1, condition_callbacks={"stop": stop})
+    retry = typed_retry_with_exponential_backoff(
+        max_retries=1, condition_callbacks={"stop": stop}
+    )
+
+    @retry
     def boom() -> None:
         raise ValueError("boom")
 
@@ -41,7 +56,9 @@ def test_circuit_breaker_open_hook_and_metrics():
         on_open=lambda name: events.append(f"open:{name}"),
     )
 
-    @cb
+    typed_cb = ensure_typed_decorator(cast(Callable[[Callable[..., Any]], Any], cb))
+
+    @typed_cb
     def flaky() -> None:
         raise ValueError("boom")
 

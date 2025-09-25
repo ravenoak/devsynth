@@ -1,6 +1,10 @@
 """Regression tests verifying FastAPI TestClient guards."""
 
+from typing import Any, Callable, cast
+
 import pytest
+
+from tests._typing_utils import ensure_typed_decorator
 
 pytest.importorskip("fastapi")
 pytest.importorskip("fastapi.testclient")
@@ -16,7 +20,9 @@ def test_fastapi_testclient_guard_allows_minimal_request():
 
     app = FastAPI()
 
-    @app.get("/ping")
+    route = ensure_typed_decorator(cast(Callable[[Callable[..., Any]], Any], app.get("/ping")))
+
+    @route
     def ping() -> dict[str, str]:
         return {"status": "ok"}
 

@@ -3,11 +3,15 @@
 import os
 from unittest.mock import patch
 
+from typing import Any, Callable, cast
+
 import pytest
 from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
+
+from tests._typing_utils import ensure_typed_decorator
 
 
 @pytest.fixture(autouse=True)
@@ -96,7 +100,11 @@ def test_smoke_mode_cli_imports_fastapi_testclient(monkeypatch) -> None:
 
         app = FastAPI()
 
-        @app.get("/health")
+        route = ensure_typed_decorator(
+            cast(Callable[[Callable[..., Any]], Any], app.get("/health"))
+        )
+
+        @route
         def _health() -> dict[str, str]:
             return {"status": "ok"}
 

@@ -1,5 +1,6 @@
 """Property-based tests for recursion termination in the EDRRCoordinator."""
 
+from typing import Any, Callable, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -16,6 +17,18 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
+
+from tests._typing_utils import ensure_typed_decorator
+
+
+def typed_given(*args: Any, **kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    return ensure_typed_decorator(cast(Callable[[Callable[..., Any]], Any], given(*args, **kwargs)))
+
+
+def typed_settings(*args: Any, **kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    return ensure_typed_decorator(
+        cast(Callable[[Callable[..., Any]], Any], settings(*args, **kwargs))
+    )
 
 
 @pytest.fixture
@@ -45,8 +58,10 @@ def coordinator_factory():
 
 
 @pytest.mark.property
-@given(max_depth=st.integers(min_value=1, max_value=3))
-@settings(max_examples=5, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@typed_given(max_depth=st.integers(min_value=1, max_value=3))
+@typed_settings(
+    max_examples=5, suppress_health_check=[HealthCheck.function_scoped_fixture]
+)
 @pytest.mark.fast
 def test_micro_cycle_respects_depth_bounds(max_depth: int, coordinator_factory):
     """Ensure micro cycles stop at the configured recursion depth.
@@ -73,8 +88,10 @@ def test_micro_cycle_respects_depth_bounds(max_depth: int, coordinator_factory):
 
 
 @pytest.mark.property
-@given(complexity_score=st.floats(min_value=0.71, max_value=1.0))
-@settings(max_examples=5, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@typed_given(complexity_score=st.floats(min_value=0.71, max_value=1.0))
+@typed_settings(
+    max_examples=5, suppress_health_check=[HealthCheck.function_scoped_fixture]
+)
 @pytest.mark.fast
 def test_complexity_threshold_triggers_termination(
     complexity_score: float, coordinator_factory
