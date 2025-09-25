@@ -11,10 +11,16 @@ are provided in :mod:`wsde_utils` and monkey patched in via
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Iterable, Optional
 from uuid import uuid4
 
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.domain.models.wsde_typing import (
+    HookType,
+    RoleAssignments,
+    RoleName,
+    SupportsTeamAgent,
+)
 
 logger = DevSynthLogger(__name__)
 
@@ -57,40 +63,32 @@ class WSDETeam:
         self,
         name: str,
         description: Optional[str] = None,
-        agents: Optional[Iterable[Any]] = None,
+        agents: Optional[Iterable[SupportsTeamAgent]] = None,
     ) -> None:
         self.name = name
         self.description = description
-        self.agents: List[Any] = []
-        self.roles: Dict[str, Any] = {
-            "primus": None,
-            "worker": None,
-            "supervisor": None,
-            "designer": None,
-            "evaluator": None,
-        }
-        self.solutions: Dict[str, List[Dict[str, Any]]] = {}
-        self.dialectical_hooks: List[
-            Callable[[Dict[str, Any], List[Dict[str, Any]]], None]
-        ] = []
-        self.voting_history: List[Dict[str, Any]] = []
-        self.agent_opinions: Dict[str, Dict[str, str]] = {}
+        self.agents: list[SupportsTeamAgent] = []
+        self.roles = RoleAssignments()
+        self.solutions: dict[str, list[dict[str, object]]] = {}
+        self.dialectical_hooks: list[HookType] = []
+        self.voting_history: list[dict[str, object]] = []
+        self.agent_opinions: dict[str, dict[str, str]] = {}
         self.logger = logger
         self.primus_index = 0
         self.message_protocol = None
-        self.peer_reviews: List[Any] = []
-        self.external_knowledge: Dict[str, Any] = {}
+        self.peer_reviews: list[object] = []
+        self.external_knowledge: dict[str, object] = {}
         self._force_tie_for_task_id: Optional[str] = None
-        self._force_tie_options: Optional[List[str]] = None
-        self.tracked_decisions: Dict[str, Any] = {}
-        self._knowledge_memory: Dict[str, Any] = {}
+        self._force_tie_options: Optional[list[str]] = None
+        self.tracked_decisions: dict[str, object] = {}
+        self._knowledge_memory: dict[str, object] = {}
         if agents:
             self.add_agents(list(agents))
 
     # ------------------------------------------------------------------
     # Agent management
     # ------------------------------------------------------------------
-    def add_agent(self, agent: Any) -> None:
+    def add_agent(self, agent: SupportsTeamAgent) -> None:
         """Add an agent to the team."""
         if not hasattr(agent, "has_been_primus"):
             agent.has_been_primus = False
@@ -103,7 +101,7 @@ class WSDETeam:
             self.name,
         )
 
-    def add_agents(self, agents: Iterable[Any]) -> None:
+    def add_agents(self, agents: Iterable[SupportsTeamAgent]) -> None:
         """Add multiple agents to the team."""
         for agent in agents:
             self.add_agent(agent)
@@ -111,16 +109,16 @@ class WSDETeam:
     # ------------------------------------------------------------------
     # Opinion and hook management
     # ------------------------------------------------------------------
-    def set_agent_opinion(self, agent: Any, option_id: str, opinion: str) -> None:
+    def set_agent_opinion(
+        self, agent: SupportsTeamAgent, option_id: str, opinion: str
+    ) -> None:
         """Record an agent's opinion on a decision option."""
         agent_name: str = str(getattr(
             getattr(agent, "config", None), "name", None
         ) or getattr(agent, "name", "Agent"))
         self.agent_opinions.setdefault(agent_name, {})[option_id] = opinion
 
-    def register_dialectical_hook(
-        self, hook: Callable[[Dict[str, Any], List[Dict[str, Any]]], None]
-    ) -> None:
+    def register_dialectical_hook(self, hook: HookType) -> None:
         """Register a callback to run when a new solution is added."""
         self.dialectical_hooks.append(hook)
 
@@ -137,18 +135,18 @@ class WSDETeam:
                 a.has_been_primus = False
         primus = self.agents[self.primus_index]
         primus.has_been_primus = True
-        self.roles["primus"] = primus
+        self.roles[RoleName.PRIMUS] = primus
 
     def get_primus(self) -> Optional[Any]:
         """Return the current primus agent, assigning a default if needed."""
 
-        primus = self.roles.get("primus")
+        primus = self.roles.get(RoleName.PRIMUS)
         if primus is None and self.agents:
             primus = self.agents[0]
-            self.roles["primus"] = primus
+            self.roles[RoleName.PRIMUS] = primus
         return primus
 
-    def get_agent_by_role(self, role: str) -> Any | None:
+    def get_agent_by_role(self, role: str) -> SupportsTeamAgent | None:
         """Get an agent with the specified role."""
         if role.lower() == "primus":
             return self.get_primus()
