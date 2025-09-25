@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
     F = TypeVar("F", bound=Callable[..., Any])
 
-    class BaseSettings(_BaseModel):  # type: ignore[misc]
+    class BaseSettings(_BaseModel):
         model_config: SettingsConfigDict
 
     def field_validator(*args: Any, **kwargs: Any) -> Callable[[F], F]: ...
@@ -26,7 +26,7 @@ else:
     from pydantic_settings import BaseSettings as _BaseSettings
     from pydantic import field_validator as _field_validator
 
-    BaseSettings = _BaseSettings  # type: ignore[assignment]  # TODO(2025-12-20): Drop once upstream ships typed BaseSettings.
+    BaseSettings = _BaseSettings  # TODO(2025-12-20): Drop once upstream ships typed BaseSettings.
     field_validator = _field_validator
 
 # Create a logger for this module
