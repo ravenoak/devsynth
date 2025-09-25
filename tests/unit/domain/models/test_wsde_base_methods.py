@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from devsynth.domain.models.wsde_base import WSDETeam
+from devsynth.domain.models.wsde_base import WSDE, WSDETeam
 
 
 class TestWSDEBaseMethods:
@@ -27,6 +27,37 @@ class TestWSDEBaseMethods:
         self.agent3.current_role = None
         self.agent3.parameters = {"expertise": ["documentation", "markdown"]}
 
+    @pytest.mark.fast
+    def test_wsde_dataclass_initialises_timestamps(self):
+        """The WSDE dataclass should populate missing timestamps automatically."""
+
+        record = WSDE(name="example")
+
+        assert isinstance(record.created_at, datetime)
+        assert isinstance(record.updated_at, datetime)
+        assert record.created_at == record.updated_at
+
+    @pytest.mark.fast
+    def test_team_post_init_restores_missing_attributes(self):
+        """Calling ``__post_init__`` should recreate optional lifecycle members."""
+
+        team = WSDETeam(name="post_init_team")
+        del team.messages
+        del team.roles
+        del team.message_protocol
+
+        team.__post_init__()
+
+        assert isinstance(team.messages, list)
+        assert set(team.roles) == {
+            "primus",
+            "worker",
+            "supervisor",
+            "designer",
+            "evaluator",
+        }
+        assert team.message_protocol is None
+
     @pytest.mark.medium
     def test_add_agents_succeeds(self):
         """Test adding multiple agents at once.
@@ -46,7 +77,7 @@ class TestWSDEBaseMethods:
         ReqID: N/A"""
         hook_called = False
 
-        def hook_succeeds(self, thesis, antitheses):
+        def hook_succeeds(thesis, antitheses):
             """Test that hook succeeds.
 
             ReqID: N/A"""
