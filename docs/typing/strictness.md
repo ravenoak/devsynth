@@ -2,6 +2,7 @@
 
 ## Methodology
 - Ran exploratory `poetry run mypy --strict` commands with a minimal `/tmp/mypy_strict.ini` configuration that mirrors the repo defaults minus the per-module overrides, allowing us to observe true violations in suppressed modules.
+- Use `task mypy:strict` (wrapper around `poetry run mypy --strict src/devsynth`) to exercise the enforced strict slice; append CLI arguments when auditing additional packages or modules.【F:Taskfile.yml†L143-L146】
 - Chose one representative module per override group so future audits can compare outputs with identical commands.
 
 ## Override Inventory
@@ -25,7 +26,7 @@ Focus: security, adapters, memory, core, agents, and API endpoints. These files 
 
 | Module group | Owner | Deadline | Current gaps |
 | --- | --- | --- | --- |
-| Security authentication stack (`devsynth.security.authentication`, `devsynth.security.encryption`, `devsynth.security.tls`) | Security Guild – Priya Ramanathan | 2025-11-15 | ✅ Strict mode enforced via `task mypy:strict`; overrides removed after tightening Argon2 helpers and TLS config typing.【F:Taskfile.yml†L143-L152】【F:src/devsynth/security/authentication.py†L9-L73】【F:src/devsynth/security/encryption.py†L1-L58】【F:src/devsynth/security/tls.py†L1-L58】 |
+| Security authentication stack (`devsynth.security.authentication`, `devsynth.security.encryption`, `devsynth.security.tls`) | Security Guild – Priya Ramanathan | 2025-11-15 | ✅ Strict mode enforced via `task mypy:strict`; overrides removed after tightening Argon2 helpers and TLS config typing.【F:Taskfile.yml†L143-L146】【F:src/devsynth/security/authentication.py†L9-L73】【F:src/devsynth/security/encryption.py†L1-L58】【F:src/devsynth/security/tls.py†L1-L58】 |
 | Core runtime (`devsynth.core.config_loader`, `devsynth.core.workflows`, `devsynth.agents.base_agent_graph`, `devsynth.agents.sandbox`, `devsynth.agents.wsde_team_coordinator`, `devsynth.agents.tools`, `devsynth.memory.sync_manager`, `devsynth.api`) | Core Platform – Miguel Sato | 2025-11-15 | Config loader and workflow orchestration still rely on dynamic dicts; API endpoints lack typed decorators.【F:pyproject.toml†L264-L271】 |
 | Adapter backlog (`devsynth.adapters.agents.agent_adapter`, …, `devsynth.adapters.provider_system`) | Integrations Team – Alex Chen | 2025-11-15 | Provider scaffolding defaults to implicit Optionals and unchecked `Any` payloads.【F:pyproject.toml†L283-L302】 |
 
@@ -87,6 +88,6 @@ The application memory manager and stores are the noisiest area, with dozens of 
 3. **Carve down application overrides** by first enforcing strictness on already-compliant modules (e.g., ingestion phases, server bridge) before deeper refactors, preparing for the February 2026 milestone.
 4. **Plan a dedicated memory typing effort**—introduce typed dataclasses or Pydantic models for metadata and query results to eliminate `Any` in the memory manager before March 2026.
 5. **Align FastAPI interfaces** with shared schema definitions before attempting to lift the enhanced API overrides; this needs coordinated workstreams in Q1 2026.
-6. **Run `task mypy:strict` frequently** now that it covers the newly narrowed packages (security, core, agents, memory, API, and typed app slices) to surface regressions before CI.【F:Taskfile.yml†L143-L154】
+6. **Run `task mypy:strict` frequently** now that it covers the consolidated strict slice under `src/devsynth`; pass extra targets via CLI args to audit adjacent modules as they tighten.【F:Taskfile.yml†L143-L146】
 
 The phased deadlines above replace the earlier blanket dates and are referenced directly from `pyproject.toml` comments for visibility.

@@ -71,6 +71,25 @@ jobs:
           poetry run flake8 src/ tests/
           poetry run mypy src/ tests/
 
+      - name: Run strict mypy slice
+        id: strict_mypy
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mkdir -p diagnostics
+          poetry run mypy --strict src/devsynth | tee diagnostics/mypy_strict.txt
+
+      - name: Upload strict mypy artifact
+        if: steps.strict_mypy.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-strict-artifacts
+          path: diagnostics/mypy_strict.txt
+
+      - name: Fail on strict mypy errors
+        if: steps.strict_mypy.outcome == 'failure'
+        run: exit 1
+
   smoke:
     name: Smoke Tests
     runs-on: ubuntu-latest
