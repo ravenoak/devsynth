@@ -9,6 +9,7 @@ from devsynth.application.documentation.documentation_manager import (
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.requirements.prompt_manager import PromptManager
 
@@ -42,7 +43,9 @@ def test_apply_dialectical_reasoning_success(coordinator):
         )
     rl.assert_called_once()
     coordinator.memory_manager.flush_updates.assert_called_once()
-    assert result == final
+    assert isinstance(result, DialecticalSequence)
+    assert result["status"] == "completed"
+    assert result["synthesis"]["content"] == "done"
 
 
 def test_apply_dialectical_reasoning_consensus_failure(coordinator, caplog):
@@ -56,6 +59,7 @@ def test_apply_dialectical_reasoning_consensus_failure(coordinator, caplog):
             result = coordinator.apply_dialectical_reasoning(
                 {"solution": "initial"}, MagicMock()
             )
-    assert result == {}
+    assert isinstance(result, DialecticalSequence)
+    assert result["status"] == "failed"
     assert coordinator.performance_metrics["consensus_failures"]
     assert "Consensus failure" in caplog.text

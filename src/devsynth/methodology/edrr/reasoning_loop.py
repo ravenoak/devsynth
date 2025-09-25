@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Mapping, Protocol
 
 from devsynth.exceptions import ConsensusError
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.logging_setup import DevSynthLogger
 
 from ..base import Phase
@@ -26,7 +27,7 @@ if TYPE_CHECKING:  # avoid runtime circular imports
 logger = DevSynthLogger(__name__)
 
 
-ResultDict = dict[str, Any]
+ResultPayload = DialecticalSequence | dict[str, Any]
 
 
 class MemoryIntegration(Protocol):
@@ -40,7 +41,7 @@ class MemoryIntegration(Protocol):
 
 ApplyDialecticalReasoning = Callable[
     ["WSDETeam", dict[str, Any], Any, "MemoryIntegration | None"],
-    ResultDict,
+    ResultPayload,
 ]
 
 
@@ -63,7 +64,7 @@ def reasoning_loop(
     retry_backoff: float = 0.05,
     deterministic_seed: int | None = None,
     max_total_seconds: float | None = None,
-) -> list[ResultDict]:
+) -> list[ResultPayload]:
     """Iteratively apply dialectical reasoning until completion or failure.
 
     Improvements:
@@ -91,7 +92,7 @@ def reasoning_loop(
 
     start_time = time.monotonic()
 
-    results: list[ResultDict] = []
+    results: list[ResultPayload] = []
     current_task: dict[str, Any] = task
     current_phase: Phase = phase
 
@@ -114,7 +115,7 @@ def reasoning_loop(
         logger.info("Dialectical reasoning iteration %s", iteration + 1)
 
         # Inner retry loop for transient exceptions
-        result: ResultDict | None = None
+        result: ResultPayload | None = None
         stop = False
         attempts = 0
         apply_dialectical_reasoning: ApplyDialecticalReasoning = (
@@ -163,9 +164,15 @@ def reasoning_loop(
         if stop or result is None:
             break
 
+        result_mapping: dict[str, Any] | Mapping[str, Any]
+        if isinstance(result, DialecticalSequence):
+            result_mapping = result.to_dict()
+        else:
+            result_mapping = result
+
         # Determine the effective phase for recording from result payload
         effective_phase = current_phase
-        result_phase_value = result.get("phase")
+        result_phase_value = result_mapping.get("phase")
         if isinstance(result_phase_value, str):
             try:
                 effective_phase = Phase(result_phase_value.lower())
@@ -174,26 +181,28 @@ def reasoning_loop(
                 pass
 
         if coordinator is not None:
-            record_map: dict[Phase, Callable[[ResultDict], ResultDict]] = {
+            record_map: dict[Phase, Callable[[dict[str, Any]], dict[str, Any]]] = {
                 Phase.EXPAND: coordinator.record_expand_results,
                 Phase.DIFFERENTIATE: coordinator.record_differentiate_results,
                 Phase.REFINE: coordinator.record_refine_results,
             }
-            record_map.get(effective_phase, coordinator.record_refine_results)(result)
+            record_map.get(effective_phase, coordinator.record_refine_results)(
+                dict(result_mapping)
+            )
 
         results.append(result)
 
         # Stop condition if the reasoning reports completion
-        if result.get("status") == "completed":
+        if result_mapping.get("status") == "completed":
             break
 
         # Prepare next iteration inputs
-        synthesis = result.get("synthesis")
+        synthesis = result_mapping.get("synthesis")
         if synthesis is not None:
             current_task = {**current_task, "solution": synthesis}
 
         # Advance phase for the next iteration, honoring result.next_phase when provided
-        next_phase_value = result.get("next_phase")
+        next_phase_value = result_mapping.get("next_phase")
         if isinstance(next_phase_value, str):
             try:
                 current_phase = Phase(next_phase_value.lower())

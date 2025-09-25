@@ -1,12 +1,11 @@
-"""
-WSDE dialectical reasoning functionality.
+"""WSDE dialectical reasoning functionality with typed domain models."""
 
-This module contains functionality for dialectical reasoning in a WSDE team,
-including methods for applying dialectical reasoning, generating antithesis
-and synthesis, and categorizing critiques by domain.
-"""
+from __future__ import annotations
 
 import re
+from collections import deque
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -15,7 +14,346 @@ from uuid import uuid4
 from devsynth.domain.models.wsde_base import WSDETeam
 from devsynth.logging_setup import DevSynthLogger
 
-logger = DevSynthLogger(__name__)
+
+@dataclass(slots=True, frozen=True)
+class Critique:
+    """Structured critique captured during dialectical reasoning.
+
+    Invariants:
+        - ``ordinal`` preserves the order in which critiques were generated.
+        - ``identifier`` combines ``reviewer_id`` and ``ordinal`` ensuring
+          reviewer-local uniqueness for static analyzers.
+        - ``domains`` maintains the order supplied by the domain classifier
+          so downstream ranking heuristics remain deterministic.
+    """
+
+    identifier: str
+    reviewer_id: str
+    ordinal: int
+    message: str
+    domains: tuple[str, ...] = ()
+    severity: str | None = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_message(
+        cls,
+        *,
+        reviewer_id: str,
+        ordinal: int,
+        message: str,
+        domains: Iterable[str] | None = None,
+        severity: str | None = None,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> "Critique":
+        """Create a :class:`Critique` from free-form text."""
+
+        resolved_domains = tuple(domains or ())
+        return cls(
+            identifier=f"{reviewer_id}:{ordinal}",
+            reviewer_id=reviewer_id,
+            ordinal=ordinal,
+            message=message,
+            domains=resolved_domains,
+            severity=severity,
+            metadata=dict(metadata or {}),
+        )
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "Critique":
+        """Reconstruct a :class:`Critique` from serialized data."""
+
+        return cls(
+            identifier=str(payload.get("id") or payload.get("identifier")),
+            reviewer_id=str(payload.get("reviewer_id", "critic")),
+            ordinal=int(payload.get("ordinal", 0)),
+            message=str(payload.get("message", "")),
+            domains=tuple(payload.get("domains", ())),
+            severity=payload.get("severity"),
+            metadata=dict(payload.get("metadata", {})),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the critique for storage or logging."""
+
+        return {
+            "id": self.identifier,
+            "reviewer_id": self.reviewer_id,
+            "ordinal": self.ordinal,
+            "message": self.message,
+            "domains": list(self.domains),
+            "severity": self.severity,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(slots=True)
+class ResolutionPlan:
+    """Dialectical synthesis outcome describing reconciled critiques."""
+
+    plan_id: str
+    timestamp: datetime
+    integrated_critiques: tuple[Critique, ...]
+    rejected_critiques: tuple[Critique, ...]
+    improvements: tuple[str, ...]
+    reasoning: str
+    content: str | None = None
+    code: str | None = None
+    standards_compliance: Mapping[str, Any] = field(default_factory=dict)
+    resolved_conflicts: tuple[Mapping[str, Any], ...] = ()
+    domain_improvements: Mapping[str, Sequence[str]] = field(default_factory=dict)
+    domain_conflicts: tuple[Mapping[str, Any], ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the resolution plan preserving compatibility."""
+
+        return {
+            "id": self.plan_id,
+            "timestamp": self.timestamp,
+            "integrated_critiques": [c.message for c in self.integrated_critiques],
+            "integrated_critique_details": [c.to_dict() for c in self.integrated_critiques],
+            "rejected_critiques": [c.message for c in self.rejected_critiques],
+            "rejected_critique_details": [c.to_dict() for c in self.rejected_critiques],
+            "improvements": list(self.improvements),
+            "reasoning": self.reasoning,
+            "content": self.content,
+            "code": self.code,
+            "standards_compliance": dict(self.standards_compliance),
+            "resolved_conflicts": [dict(conflict) for conflict in self.resolved_conflicts],
+            "domain_improvements": {
+                domain: list(improvements)
+                for domain, improvements in self.domain_improvements.items()
+            },
+            "domain_conflicts": [dict(conflict) for conflict in self.domain_conflicts],
+        }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "ResolutionPlan":
+        """Instantiate a plan from serialized content."""
+
+        integrated_details = payload.get("integrated_critique_details")
+        rejected_details = payload.get("rejected_critique_details")
+        integrated: tuple[Critique, ...]
+        rejected: tuple[Critique, ...]
+        if integrated_details:
+            integrated = tuple(Critique.from_dict(item) for item in integrated_details)
+        else:
+            integrated = tuple(
+                Critique.from_message(
+                    reviewer_id="critic",
+                    ordinal=index,
+                    message=message,
+                )
+                for index, message in enumerate(payload.get("integrated_critiques", ()))
+            )
+        if rejected_details:
+            rejected = tuple(Critique.from_dict(item) for item in rejected_details)
+        else:
+            rejected = tuple(
+                Critique.from_message(
+                    reviewer_id="critic",
+                    ordinal=index,
+                    message=message,
+                )
+                for index, message in enumerate(payload.get("rejected_critiques", ()))
+            )
+
+        return cls(
+            plan_id=str(payload.get("id", uuid4())),
+            timestamp=payload.get("timestamp", datetime.now()),
+            integrated_critiques=integrated,
+            rejected_critiques=rejected,
+            improvements=tuple(payload.get("improvements", ())),
+            reasoning=str(payload.get("reasoning", "")),
+            content=payload.get("content"),
+            code=payload.get("code"),
+            standards_compliance=payload.get("standards_compliance", {}),
+            resolved_conflicts=tuple(payload.get("resolved_conflicts", ())),
+            domain_improvements=payload.get("domain_improvements", {}),
+            domain_conflicts=tuple(payload.get("domain_conflicts", ())),
+        )
+
+    def solution_payload(self) -> Any:
+        """Return the value used to update the task solution."""
+
+        if self.content is not None:
+            return self.content
+        if self.code is not None:
+            return self.code
+        return {
+            "improvements": list(self.improvements),
+            "reasoning": self.reasoning,
+        }
+
+
+@dataclass(slots=True)
+class DialecticalStep:
+    """Single dialectical reasoning iteration."""
+
+    step_id: str
+    timestamp: datetime
+    task_id: str
+    thesis: Mapping[str, Any]
+    critiques: tuple[Critique, ...]
+    resolution: ResolutionPlan
+    method: str = "dialectical_reasoning"
+    critic_id: str = "critic"
+    antithesis_id: str | None = None
+    antithesis_generated_at: datetime | None = None
+    improvement_suggestions: tuple[str, ...] = ()
+    alternative_approaches: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the step in the legacy dictionary form."""
+
+        return {
+            "id": self.step_id,
+            "timestamp": self.timestamp,
+            "task_id": self.task_id,
+            "thesis": dict(self.thesis),
+            "antithesis": {
+                "id": self.antithesis_id,
+                "timestamp": self.antithesis_generated_at,
+                "agent": self.critic_id,
+                "critiques": [critique.message for critique in self.critiques],
+                "critique_details": [critique.to_dict() for critique in self.critiques],
+                "alternative_approaches": list(self.alternative_approaches),
+                "improvement_suggestions": list(self.improvement_suggestions),
+            },
+            "synthesis": self.resolution.to_dict(),
+            "method": self.method,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "DialecticalStep":
+        antithesis_payload = payload.get("antithesis", {})
+        resolution_payload = payload.get("synthesis", {})
+        if isinstance(resolution_payload, Mapping):
+            resolution = ResolutionPlan.from_dict(resolution_payload)
+        else:
+            resolution = ResolutionPlan(
+                plan_id=str(uuid4()),
+                timestamp=datetime.now(),
+                integrated_critiques=(),
+                rejected_critiques=(),
+                improvements=(),
+                reasoning="",
+                content=resolution_payload if isinstance(resolution_payload, str) else None,
+            )
+
+        details = antithesis_payload.get("critique_details")
+        if details:
+            critiques = tuple(Critique.from_dict(item) for item in details)
+        else:
+            critiques = tuple(
+                Critique.from_message(
+                    reviewer_id=str(antithesis_payload.get("agent", "critic")),
+                    ordinal=index,
+                    message=str(message),
+                    metadata={"antithesis_id": antithesis_payload.get("id")},
+                )
+                for index, message in enumerate(antithesis_payload.get("critiques", ()))
+            )
+
+        return cls(
+            step_id=str(payload.get("id", uuid4())),
+            timestamp=payload.get("timestamp", datetime.now()),
+            task_id=str(payload.get("task_id", uuid4())),
+            thesis=payload.get("thesis", {}),
+            critiques=critiques,
+            resolution=resolution,
+            method=str(payload.get("method", "dialectical_reasoning")),
+            critic_id=str(antithesis_payload.get("agent", "critic")),
+            antithesis_id=antithesis_payload.get("id"),
+            antithesis_generated_at=antithesis_payload.get("timestamp"),
+            improvement_suggestions=tuple(
+                antithesis_payload.get("improvement_suggestions", ())
+            ),
+            alternative_approaches=tuple(
+                antithesis_payload.get("alternative_approaches", ())
+            ),
+        )
+
+
+@dataclass(slots=True)
+class DialecticalSequence(Mapping[str, Any]):
+    """Ordered sequence of dialectical steps with mapping semantics."""
+
+    sequence_id: str
+    steps: tuple[DialecticalStep, ...]
+    status: str = "completed"
+    reason: str | None = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+    _payload: dict[str, Any] = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        latest = self.steps[-1] if self.steps else None
+        synthesis_payload: Any | None = None
+        if latest is not None:
+            synthesis_payload = latest.resolution.to_dict()
+        self._payload = {
+            "id": latest.step_id if latest else self.sequence_id,
+            "timestamp": latest.timestamp if latest else None,
+            "task_id": latest.task_id if latest else None,
+            "thesis": dict(latest.thesis) if latest else None,
+            "antithesis": latest.to_dict()["antithesis"] if latest else None,
+            "synthesis": synthesis_payload,
+            "method": latest.method if latest else "dialectical_reasoning",
+            "status": self.status,
+            "sequence_id": self.sequence_id,
+            "reason": self.reason,
+            "metadata": dict(self.metadata),
+        }
+
+    def __getitem__(self, key: str) -> Any:
+        return self._payload[key]
+
+    def __iter__(self):
+        return iter(self._payload)
+
+    def __len__(self) -> int:
+        return len(self._payload)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Expand the sequence to a serializable mapping."""
+
+        payload = dict(self._payload)
+        payload["steps"] = [step.to_dict() for step in self.steps]
+        return payload
+
+    def latest(self) -> DialecticalStep | None:
+        """Return the most recent dialectical step if available."""
+
+        return self.steps[-1] if self.steps else None
+
+    @classmethod
+    def failed(cls, *, reason: str) -> "DialecticalSequence":
+        """Create a failure sequence to mirror legacy status payloads."""
+
+        return cls(sequence_id=str(uuid4()), steps=(), status="failed", reason=reason)
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "DialecticalSequence":
+        steps_payload = payload.get("steps")
+        if isinstance(steps_payload, Sequence) and steps_payload:
+            steps = tuple(
+                DialecticalStep.from_dict(step_payload)
+                for step_payload in steps_payload
+                if isinstance(step_payload, Mapping)
+            )
+        else:
+            steps = (DialecticalStep.from_dict(payload),)
+
+        return cls(
+            sequence_id=str(payload.get("sequence_id", payload.get("id", uuid4()))),
+            steps=steps,
+            status=str(payload.get("status", "completed")),
+            reason=payload.get("reason"),
+            metadata=payload.get("metadata", {}),
+        )
+
+
+logger: DevSynthLogger = DevSynthLogger(__name__)
 
 
 def apply_dialectical_reasoning(
@@ -23,54 +361,113 @@ def apply_dialectical_reasoning(
     task: dict[str, Any],
     critic_agent: Any,
     memory_integration: Any = None,
-):
-    """
-    Apply dialectical reasoning to a task.
+) -> DialecticalSequence:
+    """Apply dialectical reasoning and return a typed sequence."""
 
-    This method implements a basic dialectical reasoning process where a thesis
-    is presented, an antithesis is generated, and a synthesis is created.
+    sequence_id = str(uuid4())
 
-    Args:
-        task: The task containing the thesis to be analyzed
-        critic_agent: The agent that will generate the antithesis
-        memory_integration: Optional memory integration component
-
-    Returns:
-        Dictionary containing the dialectical reasoning results
-    """
     if not task or "solution" not in task:
         self.logger.warning("Cannot apply dialectical reasoning: no solution provided")
-        return {"status": "failed", "reason": "no_solution"}
+        return DialecticalSequence.failed(reason="no_solution")
 
-    # Extract the thesis solution
     thesis_solution = task["solution"]
-
-    # Generate antithesis
     antithesis = self._generate_antithesis(thesis_solution, critic_agent)
 
-    # Generate synthesis
+    # Determine reviewer identity for critiques
+    critic_id = getattr(critic_agent, "identifier", None) or getattr(
+        critic_agent, "name", "critic"
+    )
+
+    critique_strings: list[str] = list(antithesis.get("critiques", []))
+    domain_mapping = self._categorize_critiques_by_domain(critique_strings)
+    critique_domains: dict[str, list[str]] = {}
+    for domain, critiques in domain_mapping.items():
+        for critique in critiques:
+            critique_domains.setdefault(critique, []).append(domain)
+
+    message_occurrences: dict[str, deque[Critique]] = {}
+    critiques: list[Critique] = []
+    for ordinal, message in enumerate(critique_strings):
+        critique = Critique.from_message(
+            reviewer_id=str(critic_id),
+            ordinal=ordinal,
+            message=message,
+            domains=critique_domains.get(message, ()),
+            metadata={"antithesis_id": antithesis.get("id")},
+        )
+        critiques.append(critique)
+        message_occurrences.setdefault(message, deque()).append(critique)
+
     synthesis = self._generate_synthesis(thesis_solution, antithesis)
 
-    # Create result
-    result = {
-        "id": str(uuid4()),
-        "timestamp": datetime.now(),
-        "task_id": task.get("id", str(uuid4())),
-        "thesis": thesis_solution,
-        "antithesis": antithesis,
-        "synthesis": synthesis,
-        "method": "dialectical_reasoning",
-    }
+    integrated: list[Critique] = []
+    for message in synthesis.get("integrated_critiques", []):
+        queue = message_occurrences.get(message)
+        if queue:
+            integrated.append(queue.popleft())
+        else:
+            integrated.append(
+                Critique.from_message(
+                    reviewer_id=str(critic_id),
+                    ordinal=len(integrated),
+                    message=message,
+                    domains=critique_domains.get(message, ()),
+                )
+            )
 
-    # Invoke dialectical hooks if any
+    rejected: list[Critique] = []
+    for message in synthesis.get("rejected_critiques", []):
+        queue = message_occurrences.get(message)
+        if queue:
+            rejected.append(queue.popleft())
+        else:
+            rejected.append(
+                Critique.from_message(
+                    reviewer_id=str(critic_id),
+                    ordinal=len(integrated) + len(rejected),
+                    message=message,
+                    domains=critique_domains.get(message, ()),
+                )
+            )
+
+    resolution = ResolutionPlan(
+        plan_id=str(synthesis.get("id", uuid4())),
+        timestamp=synthesis.get("timestamp", datetime.now()),
+        integrated_critiques=tuple(integrated),
+        rejected_critiques=tuple(rejected),
+        improvements=tuple(synthesis.get("improvements", ())),
+        reasoning=str(synthesis.get("reasoning", "")),
+        content=synthesis.get("content"),
+        code=synthesis.get("code"),
+        standards_compliance=synthesis.get("standards_compliance", {}),
+        resolved_conflicts=tuple(synthesis.get("resolved_conflicts", ())),
+        domain_improvements=synthesis.get("domain_improvements", {}),
+        domain_conflicts=tuple(synthesis.get("domain_conflicts", ())),
+    )
+
+    step = DialecticalStep(
+        step_id=str(uuid4()),
+        timestamp=datetime.now(),
+        task_id=str(task.get("id", uuid4())),
+        thesis=thesis_solution,
+        critiques=tuple(critiques),
+        resolution=resolution,
+        critic_id=str(critic_id),
+        antithesis_id=antithesis.get("id"),
+        antithesis_generated_at=antithesis.get("timestamp"),
+        improvement_suggestions=tuple(antithesis.get("improvement_suggestions", ())),
+        alternative_approaches=tuple(antithesis.get("alternative_approaches", ())),
+    )
+
+    sequence = DialecticalSequence(sequence_id=sequence_id, steps=(step,))
+
     for hook in self.dialectical_hooks:
-        hook(task, [result])
+        hook(task, [sequence.to_dict()])
 
-    # Store in memory if memory integration is provided
     if memory_integration:
-        memory_integration.store_dialectical_result(task, result)
+        memory_integration.store_dialectical_result(task, sequence.to_dict())
 
-    return result
+    return sequence
 
 
 def _generate_antithesis(self: WSDETeam, thesis: dict[str, Any], critic_agent: Any):
@@ -414,6 +811,11 @@ def _generate_synthesis(
         resolved_conflicts,
         standards_compliance,
     )
+
+    synthesis["domain_improvements"] = domain_improvements
+    synthesis["domain_conflicts"] = domain_conflicts
+    synthesis["resolved_conflicts"] = resolved_conflicts
+    synthesis["standards_compliance"] = standards_compliance
 
     return synthesis
 
