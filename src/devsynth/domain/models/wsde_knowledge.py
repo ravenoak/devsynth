@@ -11,8 +11,10 @@ requirements that drive these reasoning utilities.
 """
 
 import re
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Tuple
+from collections.abc import Iterable, Mapping
 from uuid import uuid4
 
 # Import the base WSDETeam class for type hints
@@ -22,9 +24,162 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
+@dataclass(frozen=True)
+class KnowledgeGraphBestPractice:
+    """Structured representation of a best practice from the knowledge graph."""
+
+    name: str
+    description: str = ""
+    keywords: tuple[str, ...] = ()
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> "KnowledgeGraphBestPractice":
+        """Create a best practice entry from a raw payload."""
+
+        if not isinstance(payload, Mapping):
+            raise TypeError("Best practice payload must be a mapping")
+
+        name = str(payload.get("name", "")).strip()
+        description_raw = payload.get("description", "")
+        description = (
+            str(description_raw).strip() if description_raw is not None else ""
+        )
+
+        keywords_raw = payload.get("keywords", [])
+        keywords: tuple[str, ...]
+        if isinstance(keywords_raw, Iterable) and not isinstance(
+            keywords_raw, (str, bytes)
+        ):
+            keywords = tuple(
+                str(keyword).strip() for keyword in keywords_raw if keyword
+            )
+        else:
+            keywords = ()
+
+        return cls(name=name, description=description, keywords=keywords)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the best practice into a JSON-compatible dictionary."""
+
+        return {
+            "name": self.name,
+            "description": self.description,
+            "keywords": list(self.keywords),
+        }
+
+
+@dataclass(frozen=True)
+class KnowledgeGraphSimilarSolution:
+    """Structured representation of a similar solution from the knowledge graph."""
+
+    approach: str | None = None
+    strengths: tuple[str, ...] = ()
+    key_insights: tuple[str, ...] = ()
+
+    @classmethod
+    def from_payload(
+        cls, payload: Mapping[str, Any]
+    ) -> "KnowledgeGraphSimilarSolution":
+        """Create a similar solution entry from a raw payload."""
+
+        if not isinstance(payload, Mapping):
+            raise TypeError("Similar solution payload must be a mapping")
+
+        approach_raw = payload.get("approach")
+        approach = str(approach_raw).strip() if approach_raw is not None else None
+
+        strengths_raw = payload.get("strengths", [])
+        if isinstance(strengths_raw, Iterable) and not isinstance(
+            strengths_raw, (str, bytes)
+        ):
+            strengths = tuple(
+                str(strength).strip() for strength in strengths_raw if strength
+            )
+        else:
+            strengths = ()
+
+        insights_raw = payload.get("key_insights", [])
+        if isinstance(insights_raw, Iterable) and not isinstance(
+            insights_raw, (str, bytes)
+        ):
+            key_insights = tuple(
+                str(insight).strip() for insight in insights_raw if insight
+            )
+        else:
+            key_insights = ()
+
+        return cls(approach=approach, strengths=strengths, key_insights=key_insights)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the similar solution into a JSON-compatible dictionary."""
+
+        return {
+            "approach": self.approach,
+            "strengths": list(self.strengths),
+            "key_insights": list(self.key_insights),
+        }
+
+
+@dataclass(frozen=True)
+class KnowledgeGraphInsights:
+    """Collection of structured knowledge graph artifacts used for reasoning."""
+
+    similar_solutions: tuple[KnowledgeGraphSimilarSolution, ...] = ()
+    best_practices: tuple[KnowledgeGraphBestPractice, ...] = ()
+
+    @classmethod
+    def from_payload(
+        cls, payload: Mapping[str, Any] | None
+    ) -> "KnowledgeGraphInsights":
+        """Create an insights bundle from the raw knowledge graph response."""
+
+        if payload is None:
+            return cls()
+
+        if not isinstance(payload, Mapping):
+            raise TypeError("Knowledge graph insights payload must be a mapping")
+
+        similar_raw = payload.get("similar_solutions", [])
+        similar: tuple[KnowledgeGraphSimilarSolution, ...]
+        if isinstance(similar_raw, Iterable) and not isinstance(
+            similar_raw, (str, bytes)
+        ):
+            similar = tuple(
+                KnowledgeGraphSimilarSolution.from_payload(item)
+                for item in similar_raw
+                if isinstance(item, Mapping)
+            )
+        else:
+            similar = ()
+
+        practices_raw = payload.get("best_practices", [])
+        if isinstance(practices_raw, Iterable) and not isinstance(
+            practices_raw, (str, bytes)
+        ):
+            practices = tuple(
+                KnowledgeGraphBestPractice.from_payload(item)
+                for item in practices_raw
+                if isinstance(item, Mapping)
+            )
+        else:
+            practices = ()
+
+        return cls(similar_solutions=similar, best_practices=practices)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the insights into a JSON-compatible dictionary."""
+
+        return {
+            "similar_solutions": [
+                solution.to_dict() for solution in self.similar_solutions
+            ],
+            "best_practices": [practice.to_dict() for practice in self.best_practices],
+        }
+
+
 def apply_dialectical_reasoning_with_knowledge_graph(
     self: WSDETeam,
-    task: Dict[str, Any],
+    task: dict[str, Any],
     critic_agent: Any,
     wsde_memory_integration: Any,
 ):
@@ -59,12 +214,13 @@ def apply_dialectical_reasoning_with_knowledge_graph(
     task_id = self._get_task_id(task)
 
     # Retrieve relevant knowledge from the knowledge graph
-    knowledge_graph_insights = wsde_memory_integration.retrieve_relevant_knowledge(
+    raw_insights = wsde_memory_integration.retrieve_relevant_knowledge(
         task_id=task_id,
         query=task.get("description", ""),
         solution=thesis_solution,
         max_results=10,
     )
+    knowledge_graph_insights = KnowledgeGraphInsights.from_payload(raw_insights)
 
     # Generate antithesis with knowledge graph insights
     antithesis = self._generate_antithesis_with_knowledge_graph(
@@ -90,7 +246,7 @@ def apply_dialectical_reasoning_with_knowledge_graph(
         "antithesis": antithesis,
         "synthesis": synthesis,
         "evaluation": evaluation,
-        "knowledge_graph_insights": knowledge_graph_insights,
+        "knowledge_graph_insights": knowledge_graph_insights.to_dict(),
         "method": "dialectical_reasoning_with_knowledge_graph",
     }
 
@@ -104,7 +260,7 @@ def apply_dialectical_reasoning_with_knowledge_graph(
     return result
 
 
-def _get_task_id(self: WSDETeam, task: Dict[str, Any]):
+def _get_task_id(self: WSDETeam, task: dict[str, Any]):
     """
     Get a unique identifier for a task.
 
@@ -127,9 +283,9 @@ def _get_task_id(self: WSDETeam, task: Dict[str, Any]):
 
 def _generate_antithesis_with_knowledge_graph(
     self: WSDETeam,
-    thesis_solution: Dict[str, Any],
+    thesis_solution: dict[str, Any],
     critic_agent: Any,
-    knowledge_graph_insights: Dict[str, Any],
+    knowledge_graph_insights: KnowledgeGraphInsights,
 ):
     """
     Generate an antithesis using knowledge graph insights.
@@ -218,49 +374,38 @@ def _generate_antithesis_with_knowledge_graph(
             )
 
     # Generate knowledge-based critiques
-    if "similar_solutions" in knowledge_graph_insights:
-        similar_solutions = knowledge_graph_insights["similar_solutions"]
-
-        for solution in similar_solutions:
-            # Compare with similar solutions to identify potential improvements
-            if "strengths" in solution:
-                for strength in solution.get("strengths", []):
-                    if not any(
-                        strength.lower() in critique.lower()
-                        for critique in antithesis["critiques"]
-                    ):
-                        antithesis["knowledge_based_critiques"].append(
-                            f"Solution lacks {strength} which was effective in similar cases"
-                        )
-
-            if "approach" in solution:
-                approach = solution["approach"]
-                antithesis["alternative_approaches"].append(
-                    f"Consider alternative approach: {approach}"
+    for solution in knowledge_graph_insights.similar_solutions:
+        for strength in solution.strengths:
+            if not any(
+                strength.lower() in critique.lower()
+                for critique in antithesis["critiques"]
+            ):
+                antithesis["knowledge_based_critiques"].append(
+                    f"Solution lacks {strength} which was effective in similar cases"
                 )
 
+        if solution.approach:
+            antithesis["alternative_approaches"].append(
+                f"Consider alternative approach: {solution.approach}"
+            )
+
     # Generate critiques based on best practices from knowledge graph
-    if "best_practices" in knowledge_graph_insights:
-        best_practices = knowledge_graph_insights["best_practices"]
+    for practice in knowledge_graph_insights.best_practices:
+        practice_name = practice.name
+        practice_description = practice.description
 
-        for practice in best_practices:
-            practice_name = practice.get("name", "")
-            practice_description = practice.get("description", "")
+        # Check if the solution follows this best practice
+        if "content" in thesis_solution and isinstance(thesis_solution["content"], str):
+            if practice_name.lower() not in thesis_solution["content"].lower():
+                antithesis["knowledge_based_critiques"].append(
+                    f"Solution does not follow best practice: {practice_name} - {practice_description}"
+                )
 
-            # Check if the solution follows this best practice
-            if "content" in thesis_solution and isinstance(
-                thesis_solution["content"], str
-            ):
-                if practice_name.lower() not in thesis_solution["content"].lower():
-                    antithesis["knowledge_based_critiques"].append(
-                        f"Solution does not follow best practice: {practice_name} - {practice_description}"
-                    )
-
-            if "code" in thesis_solution and isinstance(thesis_solution["code"], str):
-                if practice_name.lower() not in thesis_solution["code"].lower():
-                    antithesis["knowledge_based_critiques"].append(
-                        f"Code does not implement best practice: {practice_name} - {practice_description}"
-                    )
+        if "code" in thesis_solution and isinstance(thesis_solution["code"], str):
+            if practice_name.lower() not in thesis_solution["code"].lower():
+                antithesis["knowledge_based_critiques"].append(
+                    f"Code does not implement best practice: {practice_name} - {practice_description}"
+                )
 
     # If no specific critiques were generated, add some generic ones
     if not antithesis["critiques"] and not antithesis["knowledge_based_critiques"]:
@@ -286,9 +431,9 @@ def _generate_antithesis_with_knowledge_graph(
 
 def _generate_synthesis_with_knowledge_graph(
     self: WSDETeam,
-    thesis_solution: Dict[str, Any],
-    antithesis: Dict[str, Any],
-    knowledge_graph_insights: Dict[str, Any],
+    thesis_solution: dict[str, Any],
+    antithesis: dict[str, Any],
+    knowledge_graph_insights: KnowledgeGraphInsights,
 ):
     """
     Generate a synthesis using knowledge graph insights.
@@ -401,25 +546,17 @@ def _generate_synthesis_with_knowledge_graph(
             )
 
     # Integrate knowledge from similar solutions
-    if "similar_solutions" in knowledge_graph_insights:
-        similar_solutions = knowledge_graph_insights["similar_solutions"]
-
-        for solution in similar_solutions:
-            if "key_insights" in solution:
-                for insight in solution.get("key_insights", []):
-                    synthesis["knowledge_integrations"].append(
-                        f"Integrated insight: {insight}"
-                    )
+    for solution in knowledge_graph_insights.similar_solutions:
+        for insight in solution.key_insights:
+            synthesis["knowledge_integrations"].append(f"Integrated insight: {insight}")
 
     # Integrate best practices from knowledge graph
-    if "best_practices" in knowledge_graph_insights:
-        best_practices = knowledge_graph_insights["best_practices"]
-
-        for practice in best_practices[:3]:  # Limit to top 3 practices
-            practice_name = practice.get("name", "")
-            synthesis["knowledge_integrations"].append(
-                f"Applied best practice: {practice_name}"
-            )
+    for practice in knowledge_graph_insights.best_practices[
+        :3
+    ]:  # Limit to top 3 practices
+        synthesis["knowledge_integrations"].append(
+            f"Applied best practice: {practice.name}"
+        )
 
     # Set improved content and code
     if improved_content != original_content:
@@ -464,10 +601,10 @@ def _generate_synthesis_with_knowledge_graph(
 
 def _generate_evaluation_with_knowledge_graph(
     self: WSDETeam,
-    synthesis: Dict[str, Any],
-    antithesis: Dict[str, Any],
-    task: Dict[str, Any],
-    knowledge_graph_insights: Dict[str, Any],
+    synthesis: dict[str, Any],
+    antithesis: dict[str, Any],
+    task: dict[str, Any],
+    knowledge_graph_insights: KnowledgeGraphInsights,
 ):
     """
     Generate an evaluation using knowledge graph insights.
@@ -524,9 +661,10 @@ def _generate_evaluation_with_knowledge_graph(
                 evaluation["weaknesses"].append(f"Unaddressed critique: {critique}")
 
     # 2. Missing best practices from knowledge graph
-    if "best_practices" in knowledge_graph_insights:
-        best_practices = knowledge_graph_insights["best_practices"]
-        best_practice_names = [practice.get("name", "") for practice in best_practices]
+    if knowledge_graph_insights.best_practices:
+        best_practice_names = [
+            practice.name for practice in knowledge_graph_insights.best_practices
+        ]
 
         # Check which best practices were integrated
         integrated_practices = []
@@ -552,31 +690,26 @@ def _generate_evaluation_with_knowledge_graph(
                     )
 
     # Evaluate alignment with knowledge graph
-    if "similar_solutions" in knowledge_graph_insights:
-        similar_solutions = knowledge_graph_insights["similar_solutions"]
+    for solution in knowledge_graph_insights.similar_solutions:
+        if not solution.approach:
+            continue
 
-        # Compare with similar solutions
-        for solution in similar_solutions:
-            if "approach" in solution:
-                approach = solution["approach"]
-                if (
-                    synthesis.get("content")
-                    and approach.lower() in synthesis["content"].lower()
-                ):
-                    evaluation["alignment_with_knowledge"].append(
-                        f"Solution aligns with successful approach: {approach}"
-                    )
-                elif (
-                    synthesis.get("code")
-                    and approach.lower() in synthesis["code"].lower()
-                ):
-                    evaluation["alignment_with_knowledge"].append(
-                        f"Solution aligns with successful approach: {approach}"
-                    )
-                else:
-                    evaluation["alignment_with_knowledge"].append(
-                        f"Solution differs from successful approach: {approach}"
-                    )
+        approach = solution.approach
+        if (
+            synthesis.get("content")
+            and approach.lower() in synthesis["content"].lower()
+        ):
+            evaluation["alignment_with_knowledge"].append(
+                f"Solution aligns with successful approach: {approach}"
+            )
+        elif synthesis.get("code") and approach.lower() in synthesis["code"].lower():
+            evaluation["alignment_with_knowledge"].append(
+                f"Solution aligns with successful approach: {approach}"
+            )
+        else:
+            evaluation["alignment_with_knowledge"].append(
+                f"Solution differs from successful approach: {approach}"
+            )
 
     # Calculate confidence score (0.0 to 1.0)
     # Based on strengths, weaknesses, and knowledge alignment
@@ -611,9 +744,9 @@ def _generate_evaluation_with_knowledge_graph(
 
 def apply_enhanced_dialectical_reasoning_with_knowledge(
     self: WSDETeam,
-    task: Dict[str, Any],
+    task: dict[str, Any],
     critic_agent: Any,
-    external_knowledge: Dict[str, Any],
+    external_knowledge: dict[str, Any],
 ):
     """
     Apply enhanced dialectical reasoning with external knowledge.
@@ -680,9 +813,9 @@ def apply_enhanced_dialectical_reasoning_with_knowledge(
 
 def _identify_relevant_knowledge(
     self: WSDETeam,
-    task: Dict[str, Any],
-    solution: Dict[str, Any],
-    external_knowledge: Dict[str, Any],
+    task: dict[str, Any],
+    solution: dict[str, Any],
+    external_knowledge: dict[str, Any],
 ):
     """
     Identify knowledge relevant to a specific task and solution.
@@ -880,9 +1013,9 @@ def _identify_relevant_knowledge(
 
 def _generate_enhanced_antithesis_with_knowledge(
     self: WSDETeam,
-    thesis: Dict[str, Any],
+    thesis: dict[str, Any],
     critic_agent: Any,
-    relevant_knowledge: Dict[str, Any],
+    relevant_knowledge: dict[str, Any],
 ):
     """
     Generate an enhanced antithesis using relevant knowledge.
@@ -1082,9 +1215,9 @@ def _generate_enhanced_antithesis_with_knowledge(
 
 def _generate_enhanced_synthesis_with_standards(
     self: WSDETeam,
-    thesis: Dict[str, Any],
-    antithesis: Dict[str, Any],
-    relevant_knowledge: Dict[str, Any],
+    thesis: dict[str, Any],
+    antithesis: dict[str, Any],
+    relevant_knowledge: dict[str, Any],
 ):
     """
     Generate an enhanced synthesis with standards compliance.
@@ -1369,10 +1502,10 @@ def _generate_enhanced_synthesis_with_standards(
 
 def _generate_evaluation_with_compliance(
     self: WSDETeam,
-    synthesis: Dict[str, Any],
-    antithesis: Dict[str, Any],
-    task: Dict[str, Any],
-    relevant_knowledge: Dict[str, Any],
+    synthesis: dict[str, Any],
+    antithesis: dict[str, Any],
+    task: dict[str, Any],
+    relevant_knowledge: dict[str, Any],
 ):
     """
     Generate an evaluation with compliance assessment.
