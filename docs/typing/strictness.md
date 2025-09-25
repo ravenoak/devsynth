@@ -34,7 +34,7 @@ Focus: interface utilities, metrics, fallback logic, ports, and shared utils.
 - ✅ `config` package loaders/settings pass strict mode after tightening validator signatures and schema parsing. Remaining debt: `Settings` still mixes runtime environment coercion with persistence defaults—plan a follow-up to extract typed DTOs for `resources` and LLM overrides.
 - `interface/progress_utils.py` lacks type parameters and annotations on progress message helpers.【353ac0†L1-L5】
 - `utils/logging.py` relies on `type: ignore` to mask subclassing issues and untyped functions.【9319c3†L1-L5】
-- `metrics.py` and `observability/metrics.py` rely on blanket ignores hiding real redefinition and dynamic attribute issues.【02935e†L1-L4】【dfacd6†L1-L10】
+- ✅ `metrics.py` and `observability/metrics.py` now pass strict mode after introducing typed Prometheus counter protocols and localized fallbacks (2025-09-26). Future refinement: replace ad-hoc casts with dedicated shim stubs if upstream signatures drift.【F:src/devsynth/metrics.py†L15-L77】【F:src/devsynth/observability/metrics.py†L15-L74】
 - `fallback.py` contains 28 errors dominated by implicit Optional defaults, lambda inference gaps, and incorrect exception typing.【a80d39†L1-L29】
 - `ports/agent_port.py` still suffers from dynamic attribute wiring; tightening port DTOs remains on the backlog.【018dc7†L1-L6】
 

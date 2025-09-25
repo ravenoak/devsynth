@@ -303,14 +303,6 @@ module = "devsynth.utils.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "devsynth.metrics"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "devsynth.observability.metrics"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 module = "devsynth.fallback"
 ignore_errors = true
 
