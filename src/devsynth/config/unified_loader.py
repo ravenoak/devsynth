@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-import toml
+import toml  # type: ignore[import-untyped]  # TODO(2025-12-20): Adopt typed tomllib or bundle stubs.
 
 from .loader import ConfigModel, _find_config_path, load_config, save_config
 

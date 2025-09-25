@@ -15,7 +15,6 @@ Guidelines:
 import os
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Dict
 
 _TRUE_SET = {"1", "true", "yes", "on"}
 _FALSE_SET = {"0", "false", "no", "off"}

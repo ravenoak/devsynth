@@ -1,5 +1,6 @@
-"""
-Structured logging setup for the DevSynth system.
+from __future__ import annotations
+
+"""Structured logging setup for the DevSynth system.
 
 This module provides a centralized logging configuration with structured logging
 capabilities, ensuring consistent error reporting across the application.
@@ -10,11 +11,13 @@ import logging
 import os
 import sys
 import traceback
+from collections.abc import Iterable, Mapping
 from contextvars import ContextVar
 from datetime import datetime
 from pathlib import Path
 from threading import RLock
-from typing import Any, Dict, List, Optional, Union
+from types import TracebackType
+from typing import Any, Optional, cast
 
 # We'll import DevSynthError later to avoid circular imports
 
@@ -27,25 +30,26 @@ DEFAULT_LOG_DIR = "logs"
 DEFAULT_LOG_FILENAME = "devsynth.log"
 
 # Configured log path - will be set by configure_logging
-_configured_log_dir = None
-_configured_log_file = None
+_configured_log_dir: str | None = None
+_configured_log_file: str | None = None
 _logging_configured = False
 
 # Track last effective configuration for idempotency
-_last_effective_config: Optional[tuple] = None
+_EffectiveConfig = tuple[str, str, int, bool]
+_last_effective_config: Optional[_EffectiveConfig] = None
 
 # Reentrant lock to make configuration thread-safe
 _config_lock: RLock = RLock()
 
 # Module-level logger for internal debug messages
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 # Context variables for request context
 request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
 phase_var: ContextVar[Optional[str]] = ContextVar("phase", default=None)
 
 # Secret keys to redact from logs
-_SECRET_ENV_VARS = [
+_SECRET_ENV_VARS: list[str] = [
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
     "AZURE_OPENAI_API_KEY",
@@ -61,7 +65,7 @@ class RedactSecretsFilter(logging.Filter):
     def __init__(self) -> None:
         super().__init__()
         # Snapshot secret values from environment at construction time
-        self._secrets = {}
+        self._secrets: dict[str, str] = {}
         for key in _SECRET_ENV_VARS:
             val = os.environ.get(key)
             if val and isinstance(val, str) and len(val) >= 8:
@@ -84,13 +88,13 @@ class RedactSecretsFilter(logging.Filter):
                 out = out.replace(secret, self._mask(secret))
         return out
 
-    def _redact_in_mapping(self, mapping: Dict[str, Any]) -> Dict[str, Any]:
-        redacted: Dict[str, Any] = {}
-        for k, v in mapping.items():
-            if isinstance(v, str):
-                redacted[k] = self._redact_in_text(v)
+    def _redact_in_mapping(self, mapping: Mapping[str, Any]) -> dict[str, Any]:
+        redacted: dict[str, Any] = {}
+        for key, value in mapping.items():
+            if isinstance(value, str):
+                redacted[key] = self._redact_in_text(value)
             else:
-                redacted[k] = v
+                redacted[key] = value
         return redacted
 
     def filter(self, record: logging.LogRecord) -> bool:
@@ -106,7 +110,7 @@ class RedactSecretsFilter(logging.Filter):
             for attr in ("extra", "details", "payload"):
                 if hasattr(record, attr):
                     val = getattr(record, attr)
-                    if isinstance(val, dict):
+                    if isinstance(val, Mapping):
                         setattr(record, attr, self._redact_in_mapping(val))
         except Exception:
             # Safety: never break logging due to redaction errors
@@ -120,7 +124,7 @@ class JSONFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """Format the log record as a JSON string."""
-        log_data = {
+        log_data: dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
             "level": record.levelname,
             "logger": record.name,
@@ -135,10 +139,13 @@ class JSONFormatter(logging.Formatter):
 
         # Add exception info if available
         if record.exc_info:
+            exc_type, exc_value, exc_traceback = record.exc_info
             log_data["exception"] = {
-                "type": record.exc_info[0].__name__,
-                "message": str(record.exc_info[1]),
-                "traceback": traceback.format_exception(*record.exc_info),
+                "type": exc_type.__name__ if exc_type else None,
+                "message": str(exc_value) if exc_value else "",
+                "traceback": traceback.format_exception(
+                    exc_type, exc_value, exc_traceback
+                ),
             }
 
         # Add custom attributes
@@ -172,10 +179,12 @@ class JSONFormatter(logging.Formatter):
             ]:
                 log_data[key] = value
 
-        if getattr(record, "request_id", None):
-            log_data["request_id"] = record.request_id
-        if getattr(record, "phase", None):
-            log_data["phase"] = record.phase
+        request_id = getattr(record, "request_id", None)
+        if request_id is not None:
+            log_data["request_id"] = request_id
+        phase = getattr(record, "phase", None)
+        if phase is not None:
+            log_data["phase"] = phase
 
         return json.dumps(log_data)
 
@@ -185,9 +194,9 @@ class RequestContextFilter(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:
         if not hasattr(record, "request_id"):
-            record.request_id = request_id_var.get()
+            setattr(record, "request_id", request_id_var.get())
         if not hasattr(record, "phase"):
-            record.phase = phase_var.get()
+            setattr(record, "phase", phase_var.get())
         return True
 
 
@@ -269,6 +278,7 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
     # If we're in a test environment with DEVSYNTH_PROJECT_DIR set, ensure paths are within the test directory
     if in_test_env:
         test_project_dir = os.environ.get("DEVSYNTH_PROJECT_DIR")
+        assert test_project_dir is not None  # Guarded by ``in_test_env`` check
         path_obj = Path(dir_path)
 
         if not path_obj.is_absolute():
@@ -307,7 +317,7 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
 def configure_logging(
     log_dir: Optional[str] = None,
     log_file: Optional[str] = None,
-    log_level: int = None,
+    log_level: Optional[int] = None,
     create_dir: bool = True,
 ) -> None:
     """
@@ -387,7 +397,7 @@ def configure_logging(
         )
         effective_create_dir = bool(create_dir and not no_file_logging)
 
-        new_config = (
+        new_config: _EffectiveConfig = (
             configured_log_dir,
             configured_log_file,
             effective_log_level,
@@ -472,14 +482,14 @@ class DevSynthLogger:
         Args:
             name: The name of the component (typically __name__)
         """
-        self.logger = logging.getLogger(name)
+        self.logger: logging.Logger = logging.getLogger(name)
         self.logger.addFilter(RequestContextFilter())
         self.logger.addFilter(RedactSecretsFilter())
 
         # Don't create log directory here - defer until explicitly configured
         # This is important for test isolation
 
-    def _log(self, level: int, msg: str, *args, **kwargs) -> None:
+    def _log(self, level: int, msg: str, *args: object, **kwargs: Any) -> None:
         """Internal helper to dispatch log messages with standard kwargs.
 
         This method ensures standard logging parameters like ``exc_info``,
@@ -489,20 +499,35 @@ class DevSynthLogger:
         kwargs from higher-level APIs such as the requirements wizard.
         """
 
-        exc = kwargs.pop("exc_info", None)
+        exc_param = kwargs.pop("exc_info", None)
         stack_info = kwargs.pop("stack_info", None)
         stacklevel = kwargs.pop("stacklevel", None)
-        extra = kwargs.pop("extra", None)
+        extra_param = kwargs.pop("extra", None)
 
-        if exc:
-            if isinstance(exc, BaseException):
-                exc = (exc.__class__, exc, exc.__traceback__)
-            elif exc is True:
-                exc = sys.exc_info()
-            elif not isinstance(exc, tuple):
-                exc = sys.exc_info()
+        exc_info_value: (
+            tuple[type[BaseException] | None, BaseException | None, TracebackType | None]
+            | BaseException
+            | bool
+            | None
+        )
+        exc_info_value = None
+        if isinstance(exc_param, BaseException):
+            exc_info_value = (type(exc_param), exc_param, exc_param.__traceback__)
+        elif exc_param is True:
+            exc_info_value = sys.exc_info()
+        elif isinstance(exc_param, tuple):
+            exc_info_value = cast(
+                tuple[
+                    type[BaseException] | None,
+                    BaseException | None,
+                    TracebackType | None,
+                ],
+                exc_param,
+            )
+        elif exc_param:
+            exc_info_value = sys.exc_info()
 
-        RESERVED = {
+        reserved: set[str] = {
             "name",
             "msg",
             "args",
@@ -527,21 +552,39 @@ class DevSynthLogger:
             "asctime",
         }
 
-        if extra is not None:
-            extra = {k: v for k, v in dict(extra).items() if k not in RESERVED}
+        extra_mapping: Mapping[str, Any] | None = None
+        if extra_param is not None:
+            extra_mapping = (
+                extra_param
+                if isinstance(extra_param, Mapping)
+                else dict(
+                    cast(
+                        Iterable[tuple[str, Any]],
+                        extra_param,
+                    )
+                )
+            )
+
+        extra_dict: dict[str, Any] | None = None
+        if extra_mapping is not None:
+            extra_dict = {
+                key: value for key, value in extra_mapping.items() if key not in reserved
+            }
 
         if kwargs:
-            safe_kwargs = {k: v for k, v in kwargs.items() if k not in RESERVED}
-            if extra is None:
-                extra = safe_kwargs
+            safe_kwargs = {
+                key: value for key, value in kwargs.items() if key not in reserved
+            }
+            if extra_dict is None:
+                extra_dict = safe_kwargs
             else:
-                extra.update(safe_kwargs)
+                extra_dict.update(safe_kwargs)
 
         log_kwargs: dict[str, Any] = {}
-        if exc is not None:
-            log_kwargs["exc_info"] = exc
-        if extra is not None:
-            log_kwargs["extra"] = extra
+        if exc_info_value is not None:
+            log_kwargs["exc_info"] = exc_info_value
+        if extra_dict is not None:
+            log_kwargs["extra"] = extra_dict
         if stack_info is not None:
             log_kwargs["stack_info"] = stack_info
         if stacklevel is not None:
@@ -549,27 +592,27 @@ class DevSynthLogger:
 
         self.logger.log(level, msg, *args, **log_kwargs)
 
-    def debug(self, msg: str, *args, **kwargs) -> None:
+    def debug(self, msg: str, *args: object, **kwargs: Any) -> None:
         """Log a debug message."""
         self._log(logging.DEBUG, msg, *args, **kwargs)
 
-    def info(self, msg: str, *args, **kwargs) -> None:
+    def info(self, msg: str, *args: object, **kwargs: Any) -> None:
         """Log an info message."""
         self._log(logging.INFO, msg, *args, **kwargs)
 
-    def warning(self, msg: str, *args, **kwargs) -> None:
+    def warning(self, msg: str, *args: object, **kwargs: Any) -> None:
         """Log a warning message."""
         self._log(logging.WARNING, msg, *args, **kwargs)
 
-    def error(self, msg: str, *args, **kwargs) -> None:
+    def error(self, msg: str, *args: object, **kwargs: Any) -> None:
         """Log an error message."""
         self._log(logging.ERROR, msg, *args, **kwargs)
 
-    def critical(self, msg: str, *args, **kwargs) -> None:
+    def critical(self, msg: str, *args: object, **kwargs: Any) -> None:
         """Log a critical message."""
         self._log(logging.CRITICAL, msg, *args, **kwargs)
 
-    def exception(self, msg: str, *args, **kwargs) -> None:
+    def exception(self, msg: str, *args: object, **kwargs: Any) -> None:
         """Log an exception message with traceback."""
         kwargs.setdefault("exc_info", True)
         self._log(logging.ERROR, msg, *args, **kwargs)

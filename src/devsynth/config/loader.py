@@ -5,9 +5,9 @@ from __future__ import annotations
 import os
 from dataclasses import field
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-import toml
+import toml  # type: ignore[import-untyped]  # TODO(2025-12-20): Adopt typed tomllib or bundle stubs.
 import yaml
 from pydantic import ValidationError
 from pydantic.dataclasses import dataclass
@@ -15,6 +15,9 @@ from pydantic.dataclasses import dataclass
 from devsynth import __version__ as project_version
 from devsynth.exceptions import ConfigurationError
 from devsynth.logging_setup import DevSynthLogger
+
+if TYPE_CHECKING:
+    import typer
 
 # Mirror the default defined in ``devsynth.config.settings`` to avoid import
 # cycles while keeping a single source of truth for ephemeral defaults.
@@ -209,14 +212,21 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
     root = Path(path) if path is not None else Path(os.getcwd())
     cfg_path = _find_config_path(root)
 
-    defaults = ConfigModel(project_root=str(root))
+    defaults = ConfigModel()
+    defaults.project_root = str(root)
     data: Dict[str, Any] = defaults.as_dict()
 
     if cfg_path is not None:
+        parsed: dict[str, Any] = {}
         if cfg_path.name.endswith(".yml") or cfg_path.name.endswith(".yaml"):
             try:
                 with open(cfg_path, "r") as f:
                     parsed = yaml.safe_load(f) or {}
+                    if not isinstance(parsed, dict):
+                        raise ConfigurationError(
+                            "YAML configuration must contain key/value pairs.",
+                            config_key=str(cfg_path),
+                        )
             except yaml.YAMLError as exc:  # pragma: no cover - protective branch
                 logger.error("Malformed YAML configuration: %s", exc)
                 raise ConfigurationError(
@@ -227,6 +237,11 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
             try:
                 tdata = toml.load(cfg_path)
                 parsed = tdata.get("tool", {}).get("devsynth", {})
+                if not isinstance(parsed, dict):
+                    raise ConfigurationError(
+                        "[tool.devsynth] must be a TOML table.",
+                        config_key=str(cfg_path),
+                    )
             except (
                 OSError,
                 toml.TomlDecodeError,
@@ -249,7 +264,7 @@ def load_config(path: Optional[str | Path] = None) -> ConfigModel:
         return str(val).strip().lower() in {"1", "true", "yes", "on"}
 
     # Top-level simple overrides
-    env_overrides = {
+    env_overrides: dict[str, Optional[str]] = {
         "project_root": os.environ.get("DEVSYNTH_PROJECT_ROOT"),
         "version": os.environ.get("DEVSYNTH_CONFIG_VERSION"),
         "structure": os.environ.get("DEVSYNTH_STRUCTURE"),
@@ -386,7 +401,9 @@ except ImportError:  # pragma: no cover - optional dependency
     typer = None
 
 
-def config_key_autocomplete(ctx: "typer.Context", incomplete: str):
+def config_key_autocomplete(ctx: "typer.Context", incomplete: str) -> list[str]:
     """Autocomplete configuration keys for Typer CLI."""
-    keys = ConfigModel().__dataclass_fields__.keys()
-    return [k for k in keys if k.startswith(incomplete)]
+    _ = ctx  # Typer passes context for future expansion
+    return [
+        key for key in ConfigModel.__annotations__ if key.startswith(incomplete)
+    ]
