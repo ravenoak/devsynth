@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional, Protocol
 
 from devsynth.exceptions import ConsensusError
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
@@ -16,7 +17,7 @@ class _Coordinator(Protocol):
 
     def apply_dialectical_reasoning(
         self, task: Dict[str, Any], critic_agent: Any, memory_integration: Optional[Any]
-    ) -> Optional[Dict[str, Any]]: ...
+    ) -> Optional[DialecticalSequence]: ...
 
 
 class DialecticalReasoner:
@@ -30,7 +31,7 @@ class DialecticalReasoner:
         task: Dict[str, Any],
         critic_agent: Any,
         memory_integration: Optional[Any] = None,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[DialecticalSequence]:
         """Execute dialectical reasoning and log consensus failures."""
         try:
             return self.coordinator.apply_dialectical_reasoning(

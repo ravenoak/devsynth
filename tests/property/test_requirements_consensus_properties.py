@@ -11,7 +11,10 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from devsynth.domain.models.requirement import Requirement
-from devsynth.domain.models.wsde_dialectical import apply_dialectical_reasoning
+from devsynth.domain.models.wsde_dialectical import (
+    DialecticalSequence,
+    apply_dialectical_reasoning,
+)
 from tests.helpers.dummies import _DummyTeam
 
 from .strategies import consensus_outcome_strategy, requirement_strategy
@@ -61,7 +64,8 @@ def test_dialectical_reasoning_returns_expected_shape_quickly(thesis_content: st
     elapsed = time.perf_counter() - start
 
     # Shape assertions
-    assert isinstance(result, dict)
+    assert isinstance(result, DialecticalSequence)
+    payload = result.to_dict()
     for key in (
         "id",
         "timestamp",
@@ -71,8 +75,8 @@ def test_dialectical_reasoning_returns_expected_shape_quickly(thesis_content: st
         "synthesis",
         "method",
     ):
-        assert key in result, f"missing key: {key}"
-    assert result["method"] == "dialectical_reasoning"
+        assert key in payload, f"missing key: {key}"
+    assert payload["method"] == "dialectical_reasoning"
 
     # Time bound: keep very generous to remain stable across CI runners
     assert (

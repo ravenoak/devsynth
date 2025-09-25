@@ -2,6 +2,7 @@
 
 from typing import Any, Callable, Dict, List, Optional
 
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
 from devsynth.methodology.edrr import EDRRCoordinator as MethodologyEDRRCoordinator
@@ -61,7 +62,7 @@ class EDRRCoordinator:
         task: Dict[str, Any],
         critic_agent: Any,
         memory_integration: Optional[Any] = None,
-    ) -> Dict[str, Any]:
+    ) -> DialecticalSequence:
         """Delegate dialectical reasoning to WSDE helpers.
 
         Args:
@@ -83,4 +84,12 @@ class EDRRCoordinator:
             coordinator=coordinator,
         )
         self._sync_memory()
-        return results[-1] if results else {}
+        if not results:
+            return DialecticalSequence.failed(reason="no_results")
+
+        final_result = results[-1]
+        if isinstance(final_result, DialecticalSequence):
+            return final_result
+        if isinstance(final_result, dict):
+            return DialecticalSequence.from_dict(final_result)
+        return DialecticalSequence.failed(reason="unknown_result_type")

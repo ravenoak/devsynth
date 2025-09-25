@@ -293,10 +293,9 @@ class TestWSDETeam:
         assert "antithesis" in dialectical_result
         assert "synthesis" in dialectical_result
         assert dialectical_result["thesis"]["agent"] == "CodeAgent"
-        assert "critique" in dialectical_result["antithesis"]
-        assert len(dialectical_result["antithesis"]["critique"]) > 0
-        assert dialectical_result["synthesis"]["is_improvement"]
-        assert "improved_solution" in dialectical_result["synthesis"]
+        assert "critiques" in dialectical_result["antithesis"]
+        assert len(dialectical_result["antithesis"]["critiques"]) > 0
+        assert "reasoning" in dialectical_result["synthesis"]
 
     def test_peer_review_with_acceptance_criteria_succeeds(
         self, mock_agent_with_expertise
