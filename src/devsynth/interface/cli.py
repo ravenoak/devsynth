@@ -637,7 +637,7 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         message: str,
         *,
         highlight: bool = False,
-        message_type: Union[str, None] = None,
+        message_type: str | None = None,
     ) -> None:
         """Format and display a message to the user.
 
@@ -680,6 +680,24 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
 
         # Print the styled message
         self.console.print(styled, style=style)
+
+    def display_error(
+        self,
+        error: Union[Exception, Dict[str, Any], str],
+        *,
+        include_suggestions: bool = True,
+    ) -> None:
+        """Render errors with Rich panels and actionable suggestions."""
+
+        logger.error("Displaying CLI error", extra={"error": str(error)})
+
+        if include_suggestions:
+            self.handle_error(error)
+        else:
+            # Fall back to plain formatting when suggestions are explicitly
+            # disabled. ``sanitize_output`` is intentionally skipped so stack
+            # traces retain their formatting.
+            self.console.print(str(error), style="error")
 
     def create_progress(
         self, description: str, *, total: int = 100
