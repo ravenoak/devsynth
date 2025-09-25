@@ -143,15 +143,7 @@ tasks:
   mypy:strict:
     desc: Run strict mypy on typed application slices and newly strict packages
     cmds:
-      - >-
-        poetry run mypy --strict
-        src/devsynth/application/config
-        src/devsynth/application/server
-        src/devsynth/security
-        src/devsynth/core
-        src/devsynth/agents
-        src/devsynth/memory
-        src/devsynth/api.py
+      - poetry run mypy --strict src/devsynth {{.CLI_ARGS}}
 
   tests:property:
     desc: Run opt-in property tests (requires DEVSYNTH_PROPERTY_TESTING=true)
