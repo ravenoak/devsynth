@@ -12,10 +12,14 @@ import re
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, cast
 
 import requests
 
+from devsynth.application.documentation.models import (
+    DocumentationManifest,
+    Metadata,
+    MetadataScalar,
+)
 from devsynth.exceptions import DevSynthError
 
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
@@ -60,8 +64,8 @@ class DocumentationIngestionManager:
     def ingest_file(
         self,
         file_path: str | Path,
-        metadata: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        metadata: Metadata | None = None,
+    ) -> DocumentationManifest:
         """
         Ingest documentation from a file.
 
@@ -96,8 +100,7 @@ class DocumentationIngestionManager:
             processed_content = processor(content)
 
             # Create metadata if not provided
-            if metadata is None:
-                metadata = {}
+            metadata = dict(metadata) if metadata else {}
 
             # Add file metadata
             metadata.update(
@@ -111,15 +114,17 @@ class DocumentationIngestionManager:
             )
 
             # Create the documentation item
-            doc_item = {"content": processed_content, "metadata": metadata}
+            manifest = DocumentationManifest(
+                content=processed_content,
+                metadata=metadata,
+            )
 
-            # Store in memory if a memory manager is provided
             if self.memory_manager:
-                doc_id = self._store_in_memory(processed_content, metadata)
-                doc_item["id"] = doc_id
+                doc_id = self._store_in_memory(manifest)
+                manifest = manifest.with_identifier(doc_id)
 
             logger.info(f"Ingested documentation from file: {file_path}")
-            return doc_item
+            return manifest
         except Exception as e:
             logger.error(f"Failed to ingest documentation from file: {e}")
             raise DocumentationIngestionError(
@@ -131,8 +136,8 @@ class DocumentationIngestionManager:
         dir_path: str | Path,
         recursive: bool = True,
         file_types: list[str] | None = None,
-        metadata: dict[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
+        metadata: Metadata | None = None,
+    ) -> list[DocumentationManifest]:
         """
         Ingest documentation from all supported files in a directory.
 
@@ -179,11 +184,11 @@ class DocumentationIngestionManager:
                         files.append(file_path)
 
             # Ingest each file
-            results = []
+            results: list[DocumentationManifest] = []
             for file_path in files:
                 try:
                     # Create file-specific metadata
-                    file_metadata = metadata.copy() if metadata else {}
+                    file_metadata = dict(metadata) if metadata else {}
                     file_metadata["directory"] = str(dir_path)
 
                     # Ingest the file
@@ -204,8 +209,8 @@ class DocumentationIngestionManager:
             )
 
     def ingest_url(
-        self, url: str, metadata: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+        self, url: str, metadata: Metadata | None = None
+    ) -> DocumentationManifest:
         """
         Ingest documentation from a URL.
 
@@ -244,8 +249,7 @@ class DocumentationIngestionManager:
                 processed_content = self._process_text(content)
 
             # Create metadata if not provided
-            if metadata is None:
-                metadata = {}
+            metadata = dict(metadata) if metadata else {}
 
             # Add URL metadata
             metadata.update(
@@ -258,15 +262,17 @@ class DocumentationIngestionManager:
             )
 
             # Create the documentation item
-            doc_item = {"content": processed_content, "metadata": metadata}
+            manifest = DocumentationManifest(
+                content=processed_content,
+                metadata=metadata,
+            )
 
-            # Store in memory if a memory manager is provided
             if self.memory_manager:
-                doc_id = self._store_in_memory(processed_content, metadata)
-                doc_item["id"] = doc_id
+                doc_id = self._store_in_memory(manifest)
+                manifest = manifest.with_identifier(doc_id)
 
             logger.info(f"Ingested documentation from URL: {url}")
-            return doc_item
+            return manifest
         except Exception as e:
             logger.error(f"Failed to ingest documentation from URL: {e}")
             raise DocumentationIngestionError(
@@ -411,7 +417,7 @@ class DocumentationIngestionManager:
 
         return content.strip()
 
-    def _store_in_memory(self, content: str, metadata: dict[str, Any]) -> str:
+    def _store_in_memory(self, manifest: DocumentationManifest) -> str:
         """
         Store documentation in memory.
 
@@ -429,24 +435,26 @@ class DocumentationIngestionManager:
         assert self.memory_manager is not None
 
         # Create a unique ID based on content and source
+        metadata = dict(manifest.metadata)
         source = metadata.get("source", "unknown")
+        content = manifest.content
         # Use SHA-256 for a more secure and collision-resistant hash
         content_hash = hashlib.sha256(content.encode()).hexdigest()
         doc_id = f"doc_{source}_{content_hash}"
 
         # Record the documentation type in metadata for easier querying.
-        metadata.setdefault("type", MemoryType.DOCUMENTATION)
+        metadata.setdefault("type", MemoryType.DOCUMENTATION.value)
 
         # Create a memory item using the DOCUMENTATION memory type.
         memory_item = MemoryItem(
             id=doc_id,
-            content=content,
+            content=manifest.content,
             memory_type=MemoryType.DOCUMENTATION,
             metadata=metadata,
         )
 
         # Store the memory item
-        stored_id = cast(str, self.memory_manager.store(memory_item))
+        stored_id = self.memory_manager.store(memory_item)
 
         logger.info(f"Stored documentation in memory with ID: {stored_id}")
         return stored_id
@@ -455,7 +463,7 @@ class DocumentationIngestionManager:
         self,
         query: str,
         limit: int = 10,
-        metadata_filter: dict[str, Any] | None = None,
+        metadata_filter: dict[str, MetadataScalar] | None = None,
     ) -> list[MemoryVector | MemoryItem]:
         """Search ingested documentation using the memory manager."""
 
@@ -474,7 +482,9 @@ class DocumentationIngestionManager:
 
         if not results:
             # Fallback to simple metadata search if no vector adapter
-            query_filter = {"type": MemoryType.DOCUMENTATION}
+            query_filter: dict[str, MetadataScalar] = {
+                "type": MemoryType.DOCUMENTATION.value
+            }
             if metadata_filter:
                 query_filter.update(metadata_filter)
             results = self.memory_manager.query_by_metadata(query_filter)
@@ -494,7 +504,7 @@ class DocumentationIngestionManager:
         manifest_path: str | Path | None = None,
         docs_dirs: list[str] | None = None,
         non_interactive: bool = False,
-    ) -> list[dict[str, Any]]:
+    ) -> list[DocumentationManifest]:
         """Ingest documentation based on ``.devsynth/project.yaml``.
 
         Args:
@@ -523,7 +533,7 @@ class DocumentationIngestionManager:
             config = load_project_config(root)
 
         docs_dirs = docs_dirs or config.config.directories.get("docs", ["docs"])
-        results: list[dict[str, Any]] = []
+        results: list[DocumentationManifest] = []
 
         for rel in docs_dirs:
             doc_dir = root / rel

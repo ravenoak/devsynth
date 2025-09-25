@@ -11,6 +11,7 @@ import re
 from datetime import datetime
 from typing import Any
 
+from devsynth.application.documentation.models import DocumentationChunk
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.logging_setup import DevSynthLogger
@@ -55,7 +56,7 @@ class DocumentationRepository:
         )
 
     def store_documentation(
-        self, library: str, version: str, chunks: list[dict[str, Any]]
+        self, library: str, version: str, chunks: list[DocumentationChunk]
     ) -> str:
         """
         Store documentation for a library version.
@@ -82,16 +83,17 @@ class DocumentationRepository:
         # Store each chunk in memory
         chunk_ids = []
         for i, chunk in enumerate(chunks):
+            chunk_metadata = dict(chunk.metadata)
             # Create a memory item for the chunk
             memory_item = MemoryItem(
                 id=f"{doc_id}-chunk-{i}",
-                content=chunk["content"],
+                content=chunk.content,
                 metadata={
                     "library": library,
                     "version": version,
-                    "title": chunk.get("title", ""),
-                    "source_url": chunk.get("metadata", {}).get("source_url", ""),
-                    "section": chunk.get("metadata", {}).get("section", ""),
+                    "title": chunk.title,
+                    "source_url": chunk_metadata.get("source_url", ""),
+                    "section": chunk_metadata.get("section", ""),
                     "type": "documentation",
                     "chunk_index": i,
                 },
@@ -117,13 +119,16 @@ class DocumentationRepository:
         )
         return doc_id
 
-    def get_documentation(self, library: str, version: str) -> dict[str, Any] | None:
+    def get_documentation(
+        self, library: str, version: str, *, function: str | None = None
+    ) -> dict[str, Any] | None:
         """
         Get documentation metadata for a library version.
 
         Args:
             library: The name of the library
             version: The version of the library
+            function: Optional function identifier for compatibility.
 
         Returns:
             Documentation metadata, or None if not found
@@ -291,12 +296,12 @@ class DocumentationRepository:
         return True
 
     def _store_relationships(
-        self, library: str, version: str, chunk: dict[str, Any]
+        self, library: str, version: str, chunk: DocumentationChunk
     ) -> None:
         """Store relationships in the knowledge graph."""
         # Extract entities and relationships from the chunk
-        content = chunk["content"]
-        metadata = chunk.get("metadata", {})
+        content = chunk.content
+        metadata = dict(chunk.metadata)
 
         # Add library-version relationship
         self.memory_manager.add_graph_triple(

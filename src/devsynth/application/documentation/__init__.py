@@ -8,6 +8,7 @@ documentation for libraries, frameworks, and languages.
 from .documentation_fetcher import DocumentationFetcher
 from .documentation_manager import DocumentationManager
 from .documentation_repository import DocumentationRepository
+from .models import DocumentationChunk, DocumentationManifest, DownloadManifest
 from .version_monitor import VersionMonitor
 
 __all__ = [
@@ -15,4 +16,7 @@ __all__ = [
     "DocumentationFetcher",
     "DocumentationRepository",
     "VersionMonitor",
+    "DocumentationChunk",
+    "DocumentationManifest",
+    "DownloadManifest",
 ]
