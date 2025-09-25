@@ -9,7 +9,7 @@ Security defaults:
 
 import base64
 import os
-from typing import Optional
+from typing import Optional, cast
 
 from cryptography.fernet import Fernet
 
@@ -18,7 +18,7 @@ _DEFAULT_ENV_KEY = "DEVSYNTH_ENCRYPTION_KEY"
 
 def generate_key() -> str:
     """Generate a base64 encoded Fernet key."""
-    return Fernet.generate_key().decode()
+    return cast(bytes, Fernet.generate_key()).decode()
 
 
 def _validate_key_format(key_bytes: bytes) -> None:
@@ -35,20 +35,21 @@ def _validate_key_format(key_bytes: bytes) -> None:
 
 
 def _get_fernet(key: Optional[str] = None) -> Fernet:
-    key_bytes = key or os.environ.get(_DEFAULT_ENV_KEY)
-    if not key_bytes:
+    key_source: Optional[str | bytes] = key
+    if key_source is None:
+        key_source = os.environ.get(_DEFAULT_ENV_KEY)
+    if key_source is None:
         raise ValueError("Encryption key not provided")
-    if isinstance(key_bytes, str):
-        key_bytes = key_bytes.encode()
+    key_bytes = key_source.encode() if isinstance(key_source, str) else key_source
     _validate_key_format(key_bytes)
     return Fernet(key_bytes)
 
 
 def encrypt_bytes(data: bytes, key: Optional[str] = None) -> bytes:
     """Encrypt bytes using Fernet."""
-    return _get_fernet(key).encrypt(data)
+    return cast(bytes, _get_fernet(key).encrypt(data))
 
 
 def decrypt_bytes(token: bytes, key: Optional[str] = None) -> bytes:
     """Decrypt bytes using Fernet."""
-    return _get_fernet(key).decrypt(token)
+    return cast(bytes, _get_fernet(key).decrypt(token))

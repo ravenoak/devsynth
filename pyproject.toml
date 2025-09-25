@@ -258,15 +258,6 @@ disallow_incomplete_defs = false
 module = "devsynth.core.mvu.*"
 ignore_errors = false
 
-# Phase 1 – Foundational modules (due 2025-11-15; owner: Security Guild – Priya Ramanathan; see docs/typing/strictness.md §Phase 1 commitments)
-[[tool.mypy.overrides]]
-module = [
-  "devsynth.security.authentication",
-  "devsynth.security.encryption",
-  "devsynth.security.tls",
-]
-ignore_errors = true
-
 # Phase 1 – Core runtime tightening (due 2025-11-15; owner: Core Platform – Miguel Sato; see docs/typing/strictness.md §Phase 1 commitments)
 [[tool.mypy.overrides]]
 module = [

@@ -6,7 +6,7 @@ Security defaults:
 These values follow widely recommended baselines and can be revised centrally.
 """
 
-from typing import Dict
+from typing import Dict, cast
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -35,13 +35,13 @@ _password_hasher = PasswordHasher(
 
 def hash_password(password: str) -> str:
     """Hash a plain text password using Argon2."""
-    return _password_hasher.hash(password)
+    return cast(str, _password_hasher.hash(password))
 
 
 def verify_password(stored_hash: str, password: str) -> bool:
     """Verify a password against an existing Argon2 hash."""
     try:
-        return _password_hasher.verify(stored_hash, password)
+        return bool(_password_hasher.verify(stored_hash, password))
     except VerifyMismatchError:
         return False
 
