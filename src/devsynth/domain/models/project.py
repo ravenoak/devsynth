@@ -5,9 +5,11 @@ This module defines the domain model for representing a project's structure,
 based on the manifest.yaml file and file system analysis.
 """
 
+from __future__ import annotations
+
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Protocol, Set, Union
 
 import networkx as nx
 
@@ -36,7 +38,17 @@ class ProjectStructureType(Enum):
     CUSTOM = auto()  # Custom structure defined by user rules
 
 
-class Artifact:
+class ArtifactProtocol(Protocol):
+    """Protocol describing the minimum contract for project artifacts."""
+
+    path: Path
+    artifact_type: ArtifactType
+    metadata: Dict[str, Any]
+    name: str
+    is_directory: bool
+
+
+class Artifact(ArtifactProtocol):
     """Represents a single artifact in the project (file, directory, etc.)."""
 
     def __init__(
@@ -87,7 +99,14 @@ class ProjectModel:
         self.manifest_data = manifest_data
         self.artifacts: Dict[str, Artifact] = {}
         self.structure_type = self._determine_structure_type()
-        self.graph = nx.DiGraph()  # Directed graph representing project structure
+        # Directed graph representing project structure where each node key is the
+        # resolved artifact path and node data contains the ``artifact`` object.
+        # The following contracts must always hold:
+        # * ``self.graph`` and ``self.artifacts`` share identical node keys.
+        # * Every edge's endpoints are valid artifact node keys.
+        # * Edge attributes describe semantic relationships (currently
+        #   ``relationship="contains"``) between artifacts.
+        self.graph: nx.DiGraph[str] = nx.DiGraph()
 
     def _determine_structure_type(self) -> ProjectStructureType:
         """Determine the project structure type from the manifest data."""
@@ -685,7 +704,7 @@ class ProjectModel:
         if path_str not in self.artifacts:
             raise ProjectModelError(f"Artifact not found: {path_str}")
 
-        related_paths = []
+        related_paths: List[str] = []
 
         # Get successors (outgoing edges)
         if path_str in self.graph:
