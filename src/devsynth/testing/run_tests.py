@@ -692,10 +692,17 @@ def run_tests(
     except RuntimeError as e:
         return False, str(e)
 
+    marker_fallback = False
     if not collected_node_ids:
-        return True, "No tests collected."
+        logger.info(
+            "marker fallback triggered for target=%s (speeds=%s)",
+            target,
+            ",".join(speed_categories or ["all"]),
+        )
+        marker_fallback = True
+        collected_node_ids = [TARGET_PATHS[target]]
 
-    if segment and speed_categories:
+    if segment and speed_categories and not marker_fallback:
         # Segmented execution
         return _run_segmented_tests(
             target=target,
@@ -710,18 +717,22 @@ def run_tests(
             keyword_filter=keyword_filter,
             env=env,
         )
-    else:
-        # Single execution
-        return _run_single_test_batch(
-            node_ids=collected_node_ids,  # Pass collected node_ids
-            marker_expr=marker_expr,
-            verbose=verbose,
-            report=report,
-            parallel=parallel,
-            maxfail=maxfail,
-            keyword_filter=keyword_filter,
-            env=env,
-        )
+
+    # Single execution
+    success, output = _run_single_test_batch(
+        node_ids=collected_node_ids,  # Pass collected node_ids
+        marker_expr=marker_expr,
+        verbose=verbose,
+        report=report,
+        parallel=parallel,
+        maxfail=maxfail,
+        keyword_filter=keyword_filter,
+        env=env,
+    )
+    _ensure_coverage_artifacts()
+    if marker_fallback:
+        output = "Marker fallback executed.\n" + output
+    return success, output
 
 
 def _run_segmented_tests(

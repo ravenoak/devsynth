@@ -8,10 +8,82 @@ from typing import Any, List
 
 import coverage
 import pytest
+from typer import Typer
 from typer.testing import CliRunner
 
-from devsynth.adapters.cli.typer_adapter import build_app
+import importlib
+import sys
+from types import ModuleType
+
 from devsynth.testing import run_tests as run_tests_module
+
+
+def _load_cli_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
+    """Load run_tests_cmd with registry stubs to avoid optional deps."""
+
+    alignment_module = ModuleType("alignment_metrics_cmd")
+
+    def _noop_alignment(*args: Any, **kwargs: Any) -> bool:
+        return True
+
+    alignment_module.alignment_metrics_cmd = _noop_alignment  # type: ignore[attr-defined]
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.alignment_metrics_cmd",
+        alignment_module,
+    )
+
+    test_metrics_module = ModuleType("test_metrics_cmd")
+    test_metrics_module.test_metrics_cmd = _noop_alignment  # type: ignore[attr-defined]
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.commands.test_metrics_cmd",
+        test_metrics_module,
+    )
+
+    registry_module = ModuleType("registry")
+
+    class _Registry(dict):
+        def __getitem__(self, key: str) -> Any:  # type: ignore[override]
+            if key not in self:
+                super().__setitem__(key, _noop_alignment)
+            return super().__getitem__(key)
+
+    registry_module.COMMAND_REGISTRY = _Registry(
+        {
+            "alignment-metrics": alignment_module.alignment_metrics_cmd,
+            "test-metrics": test_metrics_module.test_metrics_cmd,
+        }
+    )
+
+    def _register(name: str, fn: Any) -> None:
+        registry_module.COMMAND_REGISTRY[name] = fn
+
+    registry_module.register = _register  # type: ignore[attr-defined]
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.application.cli.registry",
+        registry_module,
+    )
+
+    for module_name in [
+        "devsynth.application.cli",
+        "devsynth.application.cli.cli_commands",
+        "devsynth.application.cli.commands.metrics_cmds",
+        "devsynth.application.cli.commands.run_tests_cmd",
+    ]:
+        sys.modules.pop(module_name, None)
+
+    return importlib.import_module("devsynth.application.cli.commands.run_tests_cmd")
+
+
+def _build_minimal_app(monkeypatch: pytest.MonkeyPatch) -> Typer:
+    """Construct a Typer app exposing only the run-tests command."""
+
+    cli_module = _load_cli_module(monkeypatch)
+    app = Typer()
+    app.command(name="run-tests")(cli_module.run_tests_cmd)
+    return app
 
 
 def _install_pytest_stubs(
@@ -100,17 +172,17 @@ def test_smoke_command_generates_coverage_artifacts(
     popen_envs, combine_calls = _install_pytest_stubs(monkeypatch)
 
     runner = CliRunner()
-    app = build_app()
+    app = _build_minimal_app(monkeypatch)
     with caplog.at_level(logging.INFO, logger="devsynth.testing.run_tests"):
         result = runner.invoke(
             app,
             [
-                "run-tests",
                 "--smoke",
                 "--speed=fast",
                 "--no-parallel",
                 "--maxfail=1",
             ],
+            prog_name="run-tests",
         )
 
     assert result.exit_code == 0, result.stdout
@@ -136,17 +208,17 @@ def test_smoke_command_injects_pytest_bdd_plugin(
     popen_envs, combine_calls = _install_pytest_stubs(monkeypatch)
 
     runner = CliRunner()
-    app = build_app()
+    app = _build_minimal_app(monkeypatch)
     with caplog.at_level(logging.INFO, logger="devsynth.testing.run_tests"):
         result = runner.invoke(
             app,
             [
-                "run-tests",
                 "--smoke",
                 "--speed=fast",
                 "--no-parallel",
                 "--maxfail=1",
             ],
+            prog_name="run-tests",
         )
 
     assert result.exit_code == 0, result.stdout
@@ -175,28 +247,28 @@ def test_fast_medium_command_generates_coverage_artifacts_with_autoload_disabled
     popen_envs, combine_calls = _install_pytest_stubs(monkeypatch)
 
     runner = CliRunner()
-    app = build_app()
+    app = _build_minimal_app(monkeypatch)
     with caplog.at_level(logging.INFO, logger="devsynth.testing.run_tests"):
         result = runner.invoke(
             app,
             [
-                "run-tests",
                 "--speed=fast",
                 "--speed=medium",
                 "--no-parallel",
                 "--maxfail=1",
             ],
+            prog_name="run-tests",
         )
 
     assert result.exit_code == 0, result.stdout
     assert (tmp_path / ".coverage").exists()
     assert (tmp_path / "test_reports" / "coverage.json").exists()
     assert (tmp_path / "htmlcov" / "index.html").exists()
-    assert len(popen_envs) == 2
-    for env in popen_envs:
-        assert env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
-        assert "-p pytest_cov" in env.get("PYTEST_ADDOPTS", "")
-        assert "-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "")
+    assert len(popen_envs) == 1
+    env = popen_envs[0]
+    assert env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
+    assert "-p pytest_cov" in env.get("PYTEST_ADDOPTS", "")
+    assert "-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "")
     assert combine_calls and all(calls for calls in combine_calls)
     assert not list(tmp_path.glob(".coverage.fragment-*"))
     assert "-p pytest_cov appended" in result.stdout
@@ -217,27 +289,97 @@ def test_fast_medium_command_handles_empty_collection(
     )
 
     runner = CliRunner()
-    app = build_app()
+    app = _build_minimal_app(monkeypatch)
     with caplog.at_level(logging.INFO, logger="devsynth.testing.run_tests"):
         result = runner.invoke(
             app,
             [
-                "run-tests",
                 "--speed=fast",
                 "--speed=medium",
                 "--no-parallel",
                 "--maxfail=1",
             ],
+            prog_name="run-tests",
         )
 
     assert result.exit_code == 0, result.stdout
     assert (tmp_path / ".coverage").exists()
     assert (tmp_path / "test_reports" / "coverage.json").exists()
     assert (tmp_path / "htmlcov" / "index.html").exists()
-    assert len(popen_envs) == 2
-    for env in popen_envs:
-        assert env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
-        assert "-p pytest_cov" in env.get("PYTEST_ADDOPTS", "")
-        assert "-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "")
+    assert len(popen_envs) == 1
+    env = popen_envs[0]
+    assert env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
+    assert "-p pytest_cov" in env.get("PYTEST_ADDOPTS", "")
+    assert "-p pytest_bdd.plugin" in env.get("PYTEST_ADDOPTS", "")
     assert combine_calls and all(calls for calls in combine_calls)
     assert "marker fallback" in caplog.text
+
+
+@pytest.mark.fast
+def test_fast_profile_generates_coverage_and_exits_successfully(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Default fast profile produces coverage artifacts and a zero exit code."""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+
+    popen_envs, combine_calls = _install_pytest_stubs(monkeypatch)
+
+    runner = CliRunner()
+    app = _build_minimal_app(monkeypatch)
+    result = runner.invoke(
+        app,
+        [
+            "--target",
+            "unit-tests",
+            "--speed",
+            "fast",
+            "--no-parallel",
+            "--maxfail=1",
+        ],
+        prog_name="run-tests",
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert "Coverage 100.00% meets the 70% threshold" in result.stdout
+    assert (tmp_path / ".coverage").exists()
+    assert (tmp_path / "test_reports" / "coverage.json").exists()
+    assert (tmp_path / "htmlcov" / "index.html").exists()
+    assert popen_envs and all("-p pytest_cov" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
+    assert popen_envs and all("pytest_bdd" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
+    assert combine_calls, "coverage fragments should be consolidated"
+
+
+@pytest.mark.fast
+def test_fast_profile_missing_coverage_artifacts_returns_exit_code_one(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Missing coverage artifacts in fast profile should exit with code 1."""
+
+    monkeypatch.chdir(tmp_path)
+
+    runner = CliRunner()
+    app = _build_minimal_app(monkeypatch)
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        lambda *a, **k: (True, "simulated run"),
+    )
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.coverage_artifacts_status",
+        lambda: (False, "Coverage JSON missing at test_reports/coverage.json"),
+    )
+    result = runner.invoke(
+        app,
+        [
+            "--target",
+            "unit-tests",
+            "--speed",
+            "fast",
+        ],
+        prog_name="run-tests",
+    )
+
+    assert result.exit_code == 1
+    assert "Coverage artifacts missing or empty" in result.stdout
