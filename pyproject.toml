@@ -206,6 +206,7 @@ mvuu-dashboard = "devsynth.application.cli.commands.mvuu_dashboard_cmd:mvuu_dash
 [tool.mypy]
 mypy_path = [
     "src",
+    "stubs/streamlit",
     "stubs/types-pytest",
     "stubs/types-pytest-bdd",
     "stubs/types-responses",

@@ -18,7 +18,22 @@ from __future__ import annotations
 import os
 import sys
 from types import ModuleType
+from typing import Protocol
 from unittest.mock import MagicMock
+
+
+class NiceGUIModule(Protocol):
+    """Protocol capturing the NiceGUI attributes used within tests."""
+
+    ui: MagicMock
+
+
+class NiceGUIStub(ModuleType):
+    """Typed NiceGUI replacement that satisfies :class:`NiceGUIModule`."""
+
+    def __init__(self) -> None:
+        super().__init__("nicegui")
+        self.ui: MagicMock = MagicMock(name="nicegui.ui")
 
 
 def _install_module_stub(module_name: str, attrs: dict | None = None) -> ModuleType:
@@ -41,7 +56,7 @@ def stub_gui_modules() -> None:
     """
     # NiceGUI stubs
     if "nicegui" not in sys.modules:
-        _install_module_stub("nicegui", attrs={"ui": MagicMock(name="nicegui.ui")})
+        sys.modules["nicegui"] = NiceGUIStub()
     # Common nested imports used by apps
     if "nicegui.app" not in sys.modules:
         _install_module_stub("nicegui.app", attrs={})

@@ -22,11 +22,12 @@ Usage:
 import json
 import os
 import sys
-from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+from tests.fixtures.streamlit_mocks import StreamlitModule, StreamlitStub
 
 
 class DummyForm:
@@ -48,7 +49,7 @@ class DummyForm:
         return self.submitted
 
 
-def create_mock_streamlit():
+def create_mock_streamlit() -> StreamlitModule:
     """
     Create a standardized mock Streamlit implementation.
 
@@ -59,36 +60,24 @@ def create_mock_streamlit():
     Returns:
         A mock Streamlit module
     """
-    st = ModuleType("streamlit")
-
-    # Create a session state that behaves like a dictionary
-    class SessionState(dict):
-        def __getattr__(self, name):
-            if name in self:
-                return self[name]
-            return None
-
-        def __setattr__(self, name, value):
-            self[name] = value
-
-    st.session_state = SessionState()
+    st = StreamlitStub()
 
     # Mock input functions
-    st.button = MagicMock(return_value=False)
-    st.text_input = MagicMock(return_value="")
-    st.text_area = MagicMock(return_value="")
-    st.selectbox = MagicMock(return_value="")
-    st.multiselect = MagicMock(return_value=[])
-    st.checkbox = MagicMock(return_value=False)
-    st.radio = MagicMock(return_value="")
-    st.number_input = MagicMock(return_value=0)
-    st.slider = MagicMock(return_value=0)
-    st.select_slider = MagicMock(return_value="")
-    st.date_input = MagicMock(return_value=None)
-    st.time_input = MagicMock(return_value=None)
-    st.file_uploader = MagicMock(return_value=None)
-    st.color_picker = MagicMock(return_value="")
-    st.toggle = MagicMock(return_value=True)
+    st.button.return_value = False
+    st.text_input.return_value = ""
+    st.text_area.return_value = ""
+    st.selectbox.return_value = ""
+    st.multiselect.return_value = []
+    st.checkbox.return_value = False
+    st.radio.return_value = ""
+    st.number_input.return_value = 0
+    st.slider.return_value = 0
+    st.select_slider.return_value = ""
+    st.date_input.return_value = None
+    st.time_input.return_value = None
+    st.file_uploader.return_value = None
+    st.color_picker.return_value = ""
+    st.toggle.return_value = True
 
     # Mock display functions
     st.write = MagicMock()
@@ -140,7 +129,7 @@ def create_mock_streamlit():
     form_mock.__enter__ = MagicMock(return_value=form_mock)
     form_mock.__exit__ = MagicMock(return_value=None)
     st.form = MagicMock(return_value=form_mock)
-    st.form_submit_button = MagicMock(return_value=False)
+    st.form_submit_button.return_value = False
 
     # Mock spinner functions
     spinner_mock = MagicMock()
@@ -165,19 +154,10 @@ def create_mock_streamlit():
     st.experimental_rerun = MagicMock()
 
     # Mock components
-    class ComponentsV1:
-        def html(self, html_string, **kwargs):
-            return None
+    st.components.v1.html = MagicMock(return_value=None)
 
-    class Components:
-        v1 = ComponentsV1()
-
-    st.components = Components()
-
-    # Mock set_page_config
+    # Mock set_page_config and divider
     st.set_page_config = MagicMock()
-
-    # Add divider if it exists in the real Streamlit
     st.divider = MagicMock()
 
     return st
