@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -7,7 +9,6 @@ from ..domain.interfaces.orchestration import WorkflowEngine, WorkflowRepository
 from ..domain.models.workflow import Workflow, WorkflowStep
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class OrchestrationPort:
@@ -32,8 +33,8 @@ class OrchestrationPort:
         return updated_workflow
 
     def execute_workflow(
-        self, workflow_id: str, context: Dict[str, Any] = None
-    ) -> Workflow:
+        self, workflow_id: str, context: dict[str, Any] | None = None
+    ) -> Workflow | None:
         """Execute a workflow with the given context."""
         workflow = self.workflow_repository.get(workflow_id)
         if workflow:
@@ -42,6 +43,6 @@ class OrchestrationPort:
             return executed_workflow
         return None
 
-    def get_workflow_status(self, workflow_id: str) -> Dict[str, Any]:
+    def get_workflow_status(self, workflow_id: str) -> dict[str, Any]:
         """Get the status of a workflow."""
         return self.workflow_engine.get_workflow_status(workflow_id)

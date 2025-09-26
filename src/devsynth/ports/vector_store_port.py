@@ -1,17 +1,16 @@
-"""
-Port for vector storage operations.
-"""
+"""Port for vector storage operations."""
 
-from typing import Any, Dict, List, Optional, Union
+from __future__ import annotations
+
+from typing import Any
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 from ..domain.interfaces.memory import VectorStore
-from ..domain.models.memory import MemoryItem, MemoryVector
+from ..domain.models.memory import MemoryVector
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class VectorStorePort:
@@ -21,7 +20,10 @@ class VectorStorePort:
         self.vector_store = vector_store
 
     def store_vector(
-        self, content: Any, embedding: List[float], metadata: Dict[str, Any] = None
+        self,
+        content: Any,
+        embedding: list[float],
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Store a vector in the vector store and return its ID."""
         vector = MemoryVector(
@@ -29,13 +31,13 @@ class VectorStorePort:
         )
         return self.vector_store.store_vector(vector)
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """Retrieve a vector from the vector store by ID."""
         return self.vector_store.retrieve_vector(vector_id)
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: list[float], top_k: int = 5
+    ) -> list[MemoryVector]:
         """Search for vectors similar to the query embedding."""
         return self.vector_store.similarity_search(query_embedding, top_k)
 
@@ -43,6 +45,6 @@ class VectorStorePort:
         """Delete a vector from the vector store."""
         return self.vector_store.delete_vector(vector_id)
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, Any]:
         """Get statistics about the vector store collection."""
         return self.vector_store.get_collection_stats()

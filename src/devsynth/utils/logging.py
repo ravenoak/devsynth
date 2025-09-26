@@ -1,25 +1,53 @@
 from __future__ import annotations
 
 import sys
+from types import TracebackType
+from typing import Any
 
 from devsynth.logger import configure_logging, log_consensus_failure  # re-export
 from devsynth.logging_setup import DevSynthLogger as _BaseLogger
+
+ExcInfoTuple = tuple[
+    type[BaseException] | None,
+    BaseException | None,
+    TracebackType | None,
+]
+ExcInfoArg = BaseException | ExcInfoTuple | bool | None
 
 
 class DevSynthLogger(_BaseLogger):
     """Project-level logger that normalizes ``exc_info`` values."""
 
-    def _log(self, level: int, msg: str, *args, **kwargs) -> None:  # type: ignore[override]
-        exc = kwargs.pop("exc_info", None)
-        if isinstance(exc, BaseException):
-            exc = (exc.__class__, exc, exc.__traceback__)
-        elif exc is True:
-            exc = sys.exc_info()
-        elif exc not in (None, False) and not (
-            isinstance(exc, tuple) and len(exc) == 3
-        ):
-            exc = None
-        super()._log(level, msg, *args, exc_info=exc, **kwargs)
+    def _log(
+        self,
+        level: int,
+        msg: str,
+        *args: object,
+        exc_info: ExcInfoArg = None,
+        **kwargs: Any,
+    ) -> None:
+        normalized_exc: ExcInfoTuple | None
+        if isinstance(exc_info, BaseException):
+            normalized_exc = (
+                exc_info.__class__,
+                exc_info,
+                exc_info.__traceback__,
+            )
+        elif exc_info is True:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            normalized_exc = (exc_type, exc_value, exc_traceback)
+        elif exc_info in (None, False):
+            normalized_exc = None
+        elif isinstance(exc_info, tuple) and len(exc_info) == 3:
+            normalized_exc = (
+                exc_info[0],
+                exc_info[1],
+                exc_info[2],
+            )
+        else:
+            normalized_exc = None
+
+        super()._log(level, msg, *args, exc_info=normalized_exc, **kwargs)
 
 
 def get_logger(name: str) -> DevSynthLogger:

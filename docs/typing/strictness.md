@@ -14,7 +14,7 @@
 | `devsynth.core.config_loader`, `devsynth.core.workflows`, `devsynth.agents.base_agent_graph`, `devsynth.agents.sandbox`, `devsynth.agents.wsde_team_coordinator`, `devsynth.agents.tools`, `devsynth.memory.sync_manager`, `devsynth.api` | Core Platform – Miguel Sato | 2025-11-15 | Document third-party stub gaps and finish the config loader DTO refactor.【F:pyproject.toml†L264-L271】 |
 | Adapter backlog (`devsynth.adapters.agents.agent_adapter`, …, `devsynth.adapters.provider_system`) | Integrations Team – Alex Chen | 2025-11-15 | Remove implicit Optional defaults and align provider protocols with typed ports.【F:pyproject.toml†L276-L293】 |
 | Interface surfaces (`devsynth.interface.cli`, …, `devsynth.interface.wizard_state_manager`) | Experience Platform – Dana Laurent | 2025-12-20 | Introduce typed UX bridge contracts and retire legacy `type: ignore` scaffolding.【F:pyproject.toml†L298-L318】 |
-| Reliability utilities (`devsynth.utils.logging`, `devsynth.fallback`, port shims) | Reliability Guild – Dana Laurent | 2025-12-20 | Model retry policies and port DTOs to unblock follow-up linting and guard-rail work.【F:pyproject.toml†L322-L334】 |
+| Reliability utilities (`devsynth.utils.logging`, `devsynth.fallback`, port shims) | Reliability Guild – Dana Laurent | 2025-12-20 | ✅ Strict mode enforced after normalizing logging `exc_info`, typed retry policies, and port adapters; override removed.【F:src/devsynth/utils/logging.py†L1-L50】【F:src/devsynth/fallback.py†L1-L142】【F:src/devsynth/ports/llm_port.py†L1-L104】【F:pyproject.toml†L320-L352】 |
 | Application workflows (`devsynth.application.agents.*`, CLI suites, orchestration, prompts, etc.) | Applications Group – Lara Singh | 2026-02-15 | Track Any-heavy orchestration layers while DTO designs stabilize.【F:pyproject.toml†L337-L413】 |
 | Application memory stack (`devsynth.application.memory*`) | Memory Systems – Chen Wu | 2026-03-15 | Requires typed storage adapters and query responses before enabling strict mode.【F:pyproject.toml†L418-L445】 |
 | Enhanced API surface (`devsynth.interface.agentapi*`, `devsynth.application.requirements.*`) | API Guild – Morgan Patel | 2026-03-31 | Coordinate with schema convergence workstreams before lifting ignores.【F:pyproject.toml†L450-L454】 |
@@ -43,14 +43,12 @@ Focus: interface utilities, metrics, fallback logic, ports, and shared utils.
 | Module group | Owner | Deadline | Current gaps |
 | --- | --- | --- | --- |
 | Interface surfaces (`devsynth.interface.cli`, …, `devsynth.interface.wizard_state_manager`) | Experience Platform – Dana Laurent | 2025-12-20 | Progress helpers and web UI bridges depend on untyped decorators and dynamic module attributes.【F:pyproject.toml†L298-L318】 |
-| Reliability utilities (`devsynth.utils.logging`, `devsynth.fallback`, ports) | Reliability Guild – Dana Laurent | 2025-12-20 | Retry policies and port DTOs expose implicit Optionals and unchecked exception wiring.【F:pyproject.toml†L322-L334】 |
+| Reliability utilities (`devsynth.utils.logging`, `devsynth.fallback`, ports) | Reliability Guild – Dana Laurent | 2025-12-20 | ✅ Now part of the strict slice; logging, fallback, and port shims compile cleanly under `poetry run mypy --strict`.【F:src/devsynth/utils/logging.py†L1-L50】【F:src/devsynth/fallback.py†L1-L142】【F:src/devsynth/ports/orchestration_port.py†L1-L56】【a1b582†L1-L2】 |
 
 - ✅ `logging_setup.py` now passes strict mode with explicit Optional handling for configuration state and structured redaction helpers; override removed 2025-09-25.
 - ✅ `config` package loaders/settings pass strict mode after tightening validator signatures and schema parsing. Remaining debt: `Settings` still mixes runtime environment coercion with persistence defaults—plan a follow-up to extract typed DTOs for `resources` and LLM overrides.
 - `interface/progress_utils.py` lacks type parameters and annotations on progress message helpers.【353ac0†L1-L5】
-- `utils/logging.py` still fails strict mode due to Any-based subclassing and missing annotations.【663d4c†L67-L74】
-- `fallback.py` continues to emit strict errors from implicit Optionals and untyped lambda callbacks.【663d4c†L75-L122】
-- Port shims still return `Any` values and rely on implicit Optional defaults, so strict mode reports multiple failures across the adapters.【663d4c†L12-L66】
+- ✅ Reliability utilities (`utils/logging`, `fallback`, ports) now run cleanly under `poetry run mypy --strict`; typed callbacks and normalized retry policies enabled removal of the reliability override.【F:src/devsynth/utils/logging.py†L1-L50】【F:src/devsynth/fallback.py†L1-L142】【F:src/devsynth/ports/llm_port.py†L1-L104】【a1b582†L1-L2】
 - ✅ `metrics.py` and `observability/metrics.py` now pass strict mode after introducing typed Prometheus counter protocols and localized fallbacks (2025-09-26). Future refinement: replace ad-hoc casts with dedicated shim stubs if upstream signatures drift.【F:src/devsynth/metrics.py†L15-L77】【F:src/devsynth/observability/metrics.py†L15-L74】
 
 ### Phase 3 – Application workflows (target 2026-02-15)
@@ -84,7 +82,7 @@ The application memory manager and stores are the noisiest area, with dozens of 
 
 ## Recommendations & Next Steps
 1. **Create type-safe response models** for the security, adapter, and API layers; these modules show low error counts and can meet the 2025-11-15 deadline once DTOs and helper signatures are fixed.
-2. **Refactor logging and fallback utilities** to eliminate implicit Optionals and document dynamic attributes before lifting the reliability override.【663d4c†L12-L122】
+2. **Embed typed reliability utilities in CI** by keeping `poetry run mypy --strict src/devsynth/utils/logging.py src/devsynth/fallback.py src/devsynth/ports` in the guard-rail suite so the newly strict modules stay verified as retry policies evolve.【a1b582†L1-L2】
 3. **Carve down application overrides** by first enforcing strictness on already-compliant modules (e.g., ingestion phases, server bridge) before deeper refactors, preparing for the February 2026 milestone.
 4. **Plan a dedicated memory typing effort**—introduce typed dataclasses or Pydantic models for metadata and query results to eliminate `Any` in the memory manager before March 2026.
 5. **Align FastAPI interfaces** with shared schema definitions before attempting to lift the enhanced API overrides; this needs coordinated workstreams in Q1 2026.

@@ -334,21 +334,6 @@ module = [
 ]
 ignore_errors = true
 
-# Phase 2 – Reliability utilities (due 2025-12-20; owner: Reliability Guild – Dana Laurent; see docs/typing/strictness.md §Phase 2 commitments)
-[[tool.mypy.overrides]]
-module = [
-  "devsynth.utils.logging",
-  "devsynth.fallback",
-  "devsynth.ports.agent_port",
-  "devsynth.ports.cli_port",
-  "devsynth.ports.llm_port",
-  "devsynth.ports.memory_port",
-  "devsynth.ports.onnx_port",
-  "devsynth.ports.orchestration_port",
-  "devsynth.ports.vector_store_port",
-]
-ignore_errors = true
-
 # Phase 3 – Application workflows (due 2026-02-15; owner: Applications Group – Lara Singh; see docs/typing/strictness.md §Phase 3 commitments)
 [[tool.mypy.overrides]]
 module = [
