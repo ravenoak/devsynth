@@ -4,14 +4,43 @@ This module provides standardized functions for accessing session state
 across different components of the system.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Optional
+from typing import Any, Protocol, runtime_checkable
 
 # Module level logger
 logger = logging.getLogger(__name__)
 
 
-def is_session_state_available(session_state) -> bool:
+@runtime_checkable
+class SessionStateMapping(Protocol):
+    """Minimum mapping protocol needed for Streamlit ``session_state`` objects."""
+
+    def get(self, key: str, default: Any = ...) -> Any:  # pragma: no cover - protocol
+        ...
+
+    def __contains__(self, key: object) -> bool:  # pragma: no cover - protocol
+        ...
+
+    def __getitem__(self, key: str) -> Any:  # pragma: no cover - protocol
+        ...
+
+    def __setitem__(self, key: str, value: Any) -> None:  # pragma: no cover - protocol
+        ...
+
+
+def _as_session_mapping(session_state: object | None) -> SessionStateMapping | None:
+    """Return a typed mapping view when available."""
+
+    if session_state is None:
+        return None
+    if isinstance(session_state, SessionStateMapping):
+        return session_state
+    return None
+
+
+def is_session_state_available(session_state: object | None) -> bool:
     """Check if session state is available and usable.
 
     Args:
@@ -34,7 +63,9 @@ def handle_state_error(operation: str, key: str, error: Exception) -> None:
     logger.warning(f"Error {operation} session state key '{key}': {str(error)}")
 
 
-def get_session_value(session_state, key: str, default: Any = None) -> Any:
+def get_session_value(
+    session_state: object | None, key: str, default: Any = None
+) -> Any:
     """Get a value from session state consistently.
 
     This function handles different implementations of session state
@@ -52,19 +83,21 @@ def get_session_value(session_state, key: str, default: Any = None) -> Any:
         logger.warning(f"Session state not available, returning default for {key}")
         return default
 
+    mapping = _as_session_mapping(session_state)
+
     try:
         # First try attribute access (common in production)
         value = getattr(session_state, key, None)
 
         # If not found and session_state is dict-like, try dict access (common in tests)
-        if value is None and hasattr(session_state, "get"):
-            value = session_state.get(key, default)
+        if value is None and mapping is not None:
+            value = mapping.get(key, default)
 
         # If still None but not explicitly set to None, return default
         if (
             value is None
             and key not in dir(session_state)
-            and (not hasattr(session_state, "get") or key not in session_state)
+            and (mapping is None or key not in mapping)
         ):
             return default
 
@@ -75,7 +108,7 @@ def get_session_value(session_state, key: str, default: Any = None) -> Any:
         return default
 
 
-def set_session_value(session_state, key: str, value: Any) -> bool:
+def set_session_value(session_state: object | None, key: str, value: Any) -> bool:
     """Set a value in session state consistently.
 
     This function handles different implementations of session state
@@ -94,6 +127,7 @@ def set_session_value(session_state, key: str, value: Any) -> bool:
         return False
 
     success = False
+    mapping = _as_session_mapping(session_state)
     try:
         # Try attribute access first (common in production)
         setattr(session_state, key, value)
@@ -103,10 +137,19 @@ def set_session_value(session_state, key: str, value: Any) -> bool:
 
     try:
         # Also try dict-like access (common in tests)
-        if hasattr(session_state, "__setitem__"):
-            session_state[key] = value
+        if mapping is not None:
+            mapping[key] = value
             success = True
     except (TypeError, KeyError) as e:
         handle_state_error("setting via item", key, e)
 
     return success
+
+
+__all__ = [
+    "SessionStateMapping",
+    "is_session_state_available",
+    "handle_state_error",
+    "get_session_value",
+    "set_session_value",
+]
