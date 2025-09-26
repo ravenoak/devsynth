@@ -6,7 +6,7 @@ import ast
 import inspect
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, TypedDict, NotRequired
 
 from devsynth.domain.interfaces.code_analysis import (
     CodeAnalysisProvider,
@@ -21,49 +21,99 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
+class ImportInfo(TypedDict, total=False):
+    """Typed representation of an import statement discovered in a module."""
+
+    name: str
+    path: str
+    line: int
+    col: int
+    from_module: NotRequired[str]
+
+
+class ClassInfo(TypedDict):
+    """Typed representation of a class discovered in a module."""
+
+    name: str
+    line: int
+    col: int
+    docstring: str
+    methods: List[str]
+    attributes: List[str]
+    bases: List[str]
+
+
+class FunctionInfo(TypedDict):
+    """Typed representation of a function discovered in a module."""
+
+    name: str
+    line: int
+    col: int
+    docstring: str
+    params: List[str]
+    return_type: str
+
+
+class VariableInfo(TypedDict):
+    """Typed representation of a module-level variable discovered in a module."""
+
+    name: str
+    line: int
+    col: int
+    type: str
+
+
+class SymbolReference(TypedDict):
+    """Typed representation of a symbol reference within the codebase."""
+
+    file: str
+    line: int
+    column: int
+    type: str
+
+
 class AstVisitor(ast.NodeVisitor):
     """AST visitor for analyzing Python code."""
 
     def __init__(self):
         """Initialize the visitor."""
-        self.imports = []
-        self.classes = []
-        self.functions = []
-        self.variables = []
-        self.docstring = ""
-        self.current_class = None
-        self.line_count = 0
+        self.imports: List[ImportInfo] = []
+        self.classes: List[ClassInfo] = []
+        self.functions: List[FunctionInfo] = []
+        self.variables: List[VariableInfo] = []
+        self.docstring: str = ""
+        self.current_class: Optional[ClassInfo] = None
+        self.line_count: int = 0
 
-    def visit_Import(self, node):
+    def visit_Import(self, node: ast.Import) -> None:
         """Visit an Import node."""
         for name in node.names:
-            self.imports.append(
-                {
-                    "name": name.name,
-                    "path": name.name,
-                    "line": node.lineno,
-                    "col": node.col_offset,
-                }
-            )
+            import_info: ImportInfo = {
+                "name": name.name,
+                "path": name.name,
+                "line": node.lineno,
+                "col": node.col_offset,
+            }
+            self.imports.append(import_info)
         self.generic_visit(node)
 
-    def visit_ImportFrom(self, node):
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         """Visit an ImportFrom node."""
         module = node.module or ""
         for name in node.names:
             import_name = f"{module}.{name.name}" if module else name.name
-            self.imports.append(
-                {
-                    "name": name.name,
-                    "path": import_name,
-                    "line": node.lineno,
-                    "col": node.col_offset,
-                    "from_module": module,
-                }
-            )
+            import_info: ImportInfo = {
+                "name": name.name,
+                "path": import_name,
+                "line": node.lineno,
+                "col": node.col_offset,
+            }
+            if module:
+                import_info["from_module"] = module
+            self.imports.append(import_info)
         self.generic_visit(node)
 
-    def visit_ClassDef(self, node):
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Visit a ClassDef node."""
         # Save the current class to handle nested classes
         previous_class = self.current_class
@@ -72,7 +122,7 @@ class AstVisitor(ast.NodeVisitor):
         docstring = ast.get_docstring(node) or ""
 
         # Create class info
-        class_info = {
+        class_info: ClassInfo = {
             "name": node.name,
             "line": node.lineno,
             "col": node.col_offset,
@@ -94,13 +144,13 @@ class AstVisitor(ast.NodeVisitor):
         # Restore previous class context
         self.current_class = previous_class
 
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """Visit a FunctionDef node."""
         # Extract docstring if present
         docstring = ast.get_docstring(node) or ""
 
         # Extract parameters
-        params = []
+        params: List[str] = []
         for arg in node.args.args:
             params.append(arg.arg)
 
@@ -110,7 +160,7 @@ class AstVisitor(ast.NodeVisitor):
             return_annotation = self._get_name(node.returns)
 
         # Create function info
-        function_info = {
+        function_info: FunctionInfo = {
             "name": node.name,
             "line": node.lineno,
             "col": node.col_offset,
@@ -128,7 +178,7 @@ class AstVisitor(ast.NodeVisitor):
         # Visit child nodes
         self.generic_visit(node)
 
-    def visit_Assign(self, node):
+    def visit_Assign(self, node: ast.Assign) -> None:
         """Visit an Assign node."""
         # Only process module-level variables
         if not self.current_class:
@@ -137,36 +187,34 @@ class AstVisitor(ast.NodeVisitor):
                     # Try to determine the type from the value
                     value_type = self._get_value_type(node.value)
 
-                    self.variables.append(
-                        {
-                            "name": target.id,
-                            "line": target.lineno,
-                            "col": target.col_offset,
-                            "type": value_type,
-                        }
-                    )
+                    variable_info: VariableInfo = {
+                        "name": target.id,
+                        "line": target.lineno,
+                        "col": target.col_offset,
+                        "type": value_type,
+                    }
+                    self.variables.append(variable_info)
 
         self.generic_visit(node)
 
-    def visit_AnnAssign(self, node):
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
         """Visit an AnnAssign node (variable with type annotation)."""
         # Only process module-level variables
         if not self.current_class and isinstance(node.target, ast.Name):
             # Get the type annotation
             type_annotation = self._get_name(node.annotation)
 
-            self.variables.append(
-                {
-                    "name": node.target.id,
-                    "line": node.target.lineno,
-                    "col": node.target.col_offset,
-                    "type": type_annotation,
-                }
-            )
+            variable_info: VariableInfo = {
+                "name": node.target.id,
+                "line": node.target.lineno,
+                "col": node.target.col_offset,
+                "type": type_annotation,
+            }
+            self.variables.append(variable_info)
 
         self.generic_visit(node)
 
-    def visit_Module(self, node):
+    def visit_Module(self, node: ast.Module) -> None:
         """Visit a Module node."""
         # Extract module docstring if present
         self.docstring = ast.get_docstring(node) or ""
@@ -176,7 +224,7 @@ class AstVisitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
-    def _get_name(self, node) -> str:
+    def _get_name(self, node: ast.AST) -> str:
         """Get the name of a node."""
         if isinstance(node, ast.Name):
             return node.id
@@ -202,7 +250,7 @@ class AstVisitor(ast.NodeVisitor):
         else:
             return str(type(node).__name__)
 
-    def _get_value_type(self, node) -> str:
+    def _get_value_type(self, node: ast.AST) -> str:
         """Get the type of a value node."""
         if isinstance(node, ast.Constant):
             # Handle Constant node (Python 3.8+)
@@ -284,9 +332,9 @@ class CodeAnalyzer(CodeAnalysisProvider):
         self, dir_path: str, recursive: bool = True
     ) -> CodeAnalysisResult:
         """Analyze a directory of files."""
-        files = {}
-        symbols = {}
-        dependencies = {}
+        files: Dict[str, FileAnalysisResult] = {}
+        symbols: Dict[str, List[SymbolReference]] = {}
+        dependencies: Dict[str, List[str]] = {}
 
         # Find all Python files in the directory
         python_files = self._find_python_files(dir_path, recursive)
@@ -304,7 +352,7 @@ class CodeAnalyzer(CodeAnalysisProvider):
                 module_name = self._get_module_name(file_path, dir_path)
 
                 # Extract dependencies
-                file_dependencies = []
+                file_dependencies: List[str] = []
                 for import_info in file_analysis.get_imports():
                     if "from_module" in import_info:
                         file_dependencies.append(import_info["from_module"])
@@ -390,7 +438,7 @@ class CodeAnalyzer(CodeAnalysisProvider):
 
     def _find_python_files(self, dir_path: str, recursive: bool) -> List[str]:
         """Find all Python files in a directory."""
-        python_files = []
+        python_files: List[str] = []
 
         if recursive:
             for root, _, files in os.walk(dir_path):
@@ -417,8 +465,8 @@ class CodeAnalyzer(CodeAnalysisProvider):
         self,
         file_path: str,
         file_analysis: FileAnalysisResult,
-        symbols: Dict[str, List[Dict[str, Any]]],
-    ):
+        symbols: Dict[str, List[SymbolReference]],
+    ) -> None:
         """Extract symbols from a file analysis."""
         # Extract classes
         for class_info in file_analysis.get_classes():

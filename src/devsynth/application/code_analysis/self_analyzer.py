@@ -9,13 +9,111 @@ import ast
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, TypedDict, cast
 
-from devsynth.application.code_analysis.analyzer import CodeAnalyzer
+from devsynth.application.code_analysis.analyzer import (
+    CodeAnalyzer,
+    ClassInfo,
+    FunctionInfo,
+    ImportInfo,
+    SymbolReference,
+    VariableInfo,
+)
 from devsynth.domain.models.code_analysis import CodeAnalysis, FileAnalysis
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
+
+class ArchitectureViolation(TypedDict):
+    """Violation detected between two architectural layers."""
+
+    source_layer: str
+    target_layer: str
+    description: str
+
+
+class ArchitectureInsights(TypedDict):
+    """Structured representation of architecture analysis."""
+
+    type: str
+    confidence: float
+    layers: Dict[str, List[str]]
+    layer_dependencies: Dict[str, Set[str]]
+    architecture_violations: List[ArchitectureViolation]
+
+
+class DocstringCoverage(TypedDict):
+    """Coverage ratios for docstrings across artefacts."""
+
+    files: float
+    classes: float
+    functions: float
+
+
+class CodeQualityInsights(TypedDict):
+    """Summary of code quality metrics extracted from the analysis."""
+
+    docstring_coverage: DocstringCoverage
+    total_files: int
+    total_classes: int
+    total_functions: int
+
+
+class TestCoverageInsights(TypedDict):
+    """Summary of inferred test coverage."""
+
+    total_symbols: int
+    tested_symbols: int
+    coverage_percentage: float
+
+
+class ImprovementOpportunity(TypedDict):
+    """Actionable opportunity derived from the analysis."""
+
+    type: str
+    description: str
+    priority: str
+
+
+MetricsSummary = Dict[str, Any]
+
+
+class SelfAnalysisInsights(TypedDict):
+    """Aggregated insights returned to callers."""
+
+    metrics_summary: MetricsSummary
+    architecture: ArchitectureInsights
+    code_quality: CodeQualityInsights
+    test_coverage: TestCoverageInsights
+    improvement_opportunities: List[ImprovementOpportunity]
+
+
+class SerializableFileAnalysis(TypedDict):
+    """Serializable representation of a :class:`FileAnalysis`."""
+
+    imports: List[ImportInfo]
+    classes: List[ClassInfo]
+    functions: List[FunctionInfo]
+    variables: List[VariableInfo]
+    docstring: str
+    metrics: Dict[str, Any]
+
+
+class CodeAnalysisSnapshot(TypedDict):
+    """Serializable representation of :class:`CodeAnalysis`."""
+
+    files: Dict[str, SerializableFileAnalysis]
+    symbols: Dict[str, List[SymbolReference]]
+    dependencies: Dict[str, List[str]]
+    metrics: Dict[str, Any]
+
+
+class SelfAnalysisResult(TypedDict):
+    """Typed return signature for :meth:`SelfAnalyzer.analyze`."""
+
+    code_analysis: CodeAnalysisSnapshot
+    insights: SelfAnalysisInsights
 
 
 class SelfAnalyzer:
@@ -56,7 +154,7 @@ class SelfAnalyzer:
         self.project_root = project_root
         logger.info(f"SelfAnalyzer initialized with project root: {self.project_root}")
 
-    def analyze(self, target_dir: Optional[str] = None) -> Dict[str, Any]:
+    def analyze(self, target_dir: Optional[str] = None) -> SelfAnalysisResult:
         """
         Analyze a codebase and generate insights.
 
@@ -81,14 +179,18 @@ class SelfAnalyzer:
             insights = self._generate_insights(code_analysis)
 
             # Combine analysis and insights
-            result = {"code_analysis": code_analysis.to_dict(), "insights": insights}
+            analysis_snapshot = cast(CodeAnalysisSnapshot, code_analysis.to_dict())
+            result: SelfAnalysisResult = {
+                "code_analysis": analysis_snapshot,
+                "insights": insights,
+            }
 
             logger.info("Self-analysis completed")
             return result
         except Exception as e:
             # Graceful fallback for error paths – do not raise, return safe shape
             logger.error(f"SelfAnalyzer.analyze failed: {e}")
-            safe_insights: Dict[str, Any] = {
+            safe_insights: SelfAnalysisInsights = {
                 "metrics_summary": {},
                 "architecture": {
                     "type": "unknown",
@@ -114,14 +216,15 @@ class SelfAnalyzer:
                 },
                 "improvement_opportunities": [],
             }
-            safe_code_analysis: Dict[str, Any] = {
+            safe_code_analysis: CodeAnalysisSnapshot = {
                 "files": {},
+                "symbols": {},
                 "dependencies": {},
                 "metrics": {},
             }
             return {"code_analysis": safe_code_analysis, "insights": safe_insights}
 
-    def _generate_insights(self, code_analysis: CodeAnalysis) -> Dict[str, Any]:
+    def _generate_insights(self, code_analysis: CodeAnalysis) -> SelfAnalysisInsights:
         """
         Generate insights from the code analysis.
 
@@ -134,7 +237,7 @@ class SelfAnalyzer:
         logger.info("Generating insights from code analysis")
 
         # Extract metrics
-        metrics = code_analysis.get_metrics()
+        metrics: MetricsSummary = code_analysis.get_metrics()
 
         # Analyze architecture
         architecture_insights = self._analyze_architecture(code_analysis)
@@ -161,7 +264,7 @@ class SelfAnalyzer:
             "improvement_opportunities": improvement_opportunities,
         }
 
-    def _analyze_architecture(self, code_analysis: CodeAnalysis) -> Dict[str, Any]:
+    def _analyze_architecture(self, code_analysis: CodeAnalysis) -> ArchitectureInsights:
         """
         Analyze the architecture of the codebase.
 
@@ -172,10 +275,6 @@ class SelfAnalyzer:
             A dictionary containing insights about the architecture.
         """
         logger.info("Analyzing architecture")
-
-        # We'll work with the raw dependencies dictionary if it exists
-        # or skip dependency analysis otherwise
-        dependencies = getattr(code_analysis, "dependencies", {})
 
         # Detect architecture type
         architecture_type, confidence = self._detect_architecture_type(code_analysis)
@@ -556,7 +655,7 @@ class SelfAnalyzer:
 
     def _check_architecture_violations(
         self, layer_dependencies: Dict[str, Set[str]], architecture_type: str
-    ) -> List[Dict[str, str]]:
+    ) -> List[ArchitectureViolation]:
         """
         Check for violations of the detected architecture.
 
@@ -569,7 +668,7 @@ class SelfAnalyzer:
         """
         logger.info(f"Checking for {architecture_type} architecture violations")
 
-        violations = []
+        violations: List[ArchitectureViolation] = []
 
         # Define allowed dependencies based on architecture type
         if architecture_type == "Hexagonal":
@@ -578,7 +677,7 @@ class SelfAnalyzer:
             # - Application can depend on domain
             # - Adapters can depend on application and domain
             # - Ports can depend on domain
-            allowed_dependencies = {
+            allowed_dependencies: Dict[str, Set[str]] = {
                 "domain": set(),
                 "application": {"domain"},
                 "adapters": {"domain", "application", "ports"},
@@ -636,7 +735,7 @@ class SelfAnalyzer:
 
         return violations
 
-    def _analyze_code_quality(self, code_analysis: CodeAnalysis) -> Dict[str, Any]:
+    def _analyze_code_quality(self, code_analysis: CodeAnalysis) -> CodeQualityInsights:
         """
         Analyze the code quality of the codebase.
 
@@ -673,7 +772,7 @@ class SelfAnalyzer:
                     functions_with_docstrings += 1
 
         # Calculate percentages
-        docstring_coverage = {
+        docstring_coverage: DocstringCoverage = {
             "files": files_with_docstrings / total_files if total_files > 0 else 0,
             "classes": (
                 classes_with_docstrings / total_classes if total_classes > 0 else 0
@@ -692,7 +791,7 @@ class SelfAnalyzer:
             "total_functions": total_functions,
         }
 
-    def _analyze_test_coverage(self, code_analysis: CodeAnalysis) -> Dict[str, Any]:
+    def _analyze_test_coverage(self, code_analysis: CodeAnalysis) -> TestCoverageInsights:
         """
         Analyze the test coverage of the codebase.
 
@@ -705,11 +804,11 @@ class SelfAnalyzer:
         logger.info("Analyzing test coverage")
 
         # Get all symbols from the codebase
-        all_symbols = code_analysis.get_symbols()
+        all_symbols = cast(Dict[str, List[SymbolReference]], code_analysis.get_symbols())
 
         # Find test directories and files
-        tested_symbols = set()
-        test_dirs = []
+        tested_symbols: Set[str] = set()
+        test_dirs: List[str] = []
 
         # Common test directory names
         test_dir_names = ["tests", "test", "testing", "unittest", "pytest"]
@@ -736,13 +835,14 @@ class SelfAnalyzer:
             # Extract tested symbols from test files
             for file_path, file_analysis in test_analysis.get_files().items():
                 for import_info in file_analysis.get_imports():
-                    import_name = import_info.get("name", "")
-                    from_module = import_info.get("from_module", "")
+                    import_details = cast(ImportInfo, import_info)
+                    import_name = import_details.get("name", "")
+                    from_module = import_details.get("from_module", "")
 
                     # Check if the import is from devsynth
                     if from_module and from_module.startswith("devsynth."):
                         # Add the imported symbols to the set of tested symbols
-                        imported_names = import_info.get("imported_names", [])
+                        imported_names = import_details.get("imported_names", [])
                         for name in imported_names:
                             tested_symbols.add(f"{from_module}.{name}")
                     elif import_name and import_name.startswith("devsynth."):
@@ -766,10 +866,10 @@ class SelfAnalyzer:
     def _identify_improvement_opportunities(
         self,
         code_analysis: CodeAnalysis,
-        architecture_insights: Dict[str, Any],
-        code_quality_insights: Dict[str, Any],
-        test_coverage_insights: Dict[str, Any],
-    ) -> List[Dict[str, str]]:
+        architecture_insights: ArchitectureInsights,
+        code_quality_insights: CodeQualityInsights,
+        test_coverage_insights: TestCoverageInsights,
+    ) -> List[ImprovementOpportunity]:
         """
         Identify opportunities for improving the codebase.
 
@@ -784,10 +884,10 @@ class SelfAnalyzer:
         """
         logger.info("Identifying improvement opportunities")
 
-        opportunities = []
+        opportunities: List[ImprovementOpportunity] = []
 
         # Check for architecture violations
-        for violation in architecture_insights.get("architecture_violations", []):
+        for violation in architecture_insights["architecture_violations"]:
             opportunities.append(
                 {
                     "type": "architecture_violation",
@@ -797,36 +897,36 @@ class SelfAnalyzer:
             )
 
         # Check for low docstring coverage
-        docstring_coverage = code_quality_insights.get("docstring_coverage", {})
-        if docstring_coverage.get("files", 1) < 0.8:
+        docstring_coverage = code_quality_insights["docstring_coverage"]
+        if docstring_coverage["files"] < 0.8:
             opportunities.append(
                 {
                     "type": "low_docstring_coverage",
-                    "description": f"Only {docstring_coverage.get('files', 0) * 100:.1f}% of files have docstrings",
+                    "description": f"Only {docstring_coverage['files'] * 100:.1f}% of files have docstrings",
                     "priority": "medium",
                 }
             )
 
-        if docstring_coverage.get("classes", 1) < 0.8:
+        if docstring_coverage["classes"] < 0.8:
             opportunities.append(
                 {
                     "type": "low_docstring_coverage",
-                    "description": f"Only {docstring_coverage.get('classes', 0) * 100:.1f}% of classes have docstrings",
+                    "description": f"Only {docstring_coverage['classes'] * 100:.1f}% of classes have docstrings",
                     "priority": "medium",
                 }
             )
 
-        if docstring_coverage.get("functions", 1) < 0.8:
+        if docstring_coverage["functions"] < 0.8:
             opportunities.append(
                 {
                     "type": "low_docstring_coverage",
-                    "description": f"Only {docstring_coverage.get('functions', 0) * 100:.1f}% of functions have docstrings",
+                    "description": f"Only {docstring_coverage['functions'] * 100:.1f}% of functions have docstrings",
                     "priority": "medium",
                 }
             )
 
         # Check for low test coverage
-        coverage_percentage = test_coverage_insights.get("coverage_percentage", 1)
+        coverage_percentage = test_coverage_insights["coverage_percentage"]
         if coverage_percentage < 0.7:
             opportunities.append(
                 {
