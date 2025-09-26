@@ -1058,7 +1058,7 @@ class GraphMemoryAdapter(MemoryStore):
     def store_with_edrr_phase(
         self,
         content: object,
-        memory_type: str | MemoryType,
+        memory_type: MemoryType,
         edrr_phase: str,
         metadata: Mapping[str, object] | None = None,
     ) -> str:
@@ -1067,7 +1067,7 @@ class GraphMemoryAdapter(MemoryStore):
 
         Args:
             content: The content of the memory item
-            memory_type: The type of memory (e.g., CODE, REQUIREMENT) as string or MemoryType enum
+            memory_type: The type of memory (e.g., CODE, REQUIREMENT)
             edrr_phase: The EDRR phase (EXPAND, DIFFERENTIATE, REFINE, RETROSPECT)
             metadata: Additional metadata for the memory item
 
@@ -1078,22 +1078,9 @@ class GraphMemoryAdapter(MemoryStore):
         metadata_dict = dict(metadata) if metadata else {}
         metadata_dict["edrr_phase"] = edrr_phase
 
-        # Convert memory_type to MemoryType enum if it's a string
-        if isinstance(memory_type, str):
-            try:
-                memory_type_enum = MemoryType(memory_type)
-            except ValueError:
-                # If the string doesn't match any enum value, use a default
-                logger.warning(
-                    f"Unknown memory type: {memory_type}, using CODE as default"
-                )
-                memory_type_enum = MemoryType.CODE
-        else:
-            memory_type_enum = memory_type
-
         # Create the memory item
         memory_item = MemoryItem(
-            id="", content=content, memory_type=memory_type_enum, metadata=metadata_dict
+            id="", content=content, memory_type=memory_type, metadata=metadata_dict
         )
 
         # Store the memory item

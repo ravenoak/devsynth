@@ -52,3 +52,11 @@ def test_tinydb_adapter_serializes_bytes_and_tuple(tmp_path):
 
     # datetime should round-trip as ISO string (already covered elsewhere but asserted here for completeness)
     assert isinstance(retrieved.metadata["timestamp"], str)
+
+    # Serialization should persist the enum value and tolerate legacy uppercase forms
+    serialized = adapter._memory_item_to_dict(item)
+    assert serialized["memory_type"] == MemoryType.KNOWLEDGE.value
+    legacy_serialized = dict(serialized)
+    legacy_serialized["memory_type"] = MemoryType.KNOWLEDGE.name
+    restored = adapter._dict_to_memory_item(legacy_serialized)
+    assert restored.memory_type is MemoryType.KNOWLEDGE

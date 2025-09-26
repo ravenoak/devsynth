@@ -97,6 +97,15 @@ DevSynth supports multiple memory adapters, each with its own strengths and limi
 - **Limitations**: No native transaction support, limited query capabilities
 - **Best for**: Simple storage of structured data, configuration, and metadata
 
+#### Serialization format
+
+TinyDB and other document adapters serialize `MemoryItem` instances through the
+`SerializedMemoryItem` typed dictionary.  Each record stores the enum value from
+`MemoryType` (`memory_type.value`) alongside JSON-compatible metadata.  The
+helpers coerce legacy records where the `memory_type` field contains the enum
+name (for example, `"EXPAND_RESULTS"`) via `MemoryType.from_raw`, so old data
+continues to load safely while new writes remain type checked.
+
 ### Graph Memory Adapter
 
 - **Storage**: Graph database (NetworkX)

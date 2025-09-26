@@ -70,15 +70,20 @@ def test_edrr_cycle_with_real_llm_has_expected(tmp_path, provider_resource):
     )
     coordinator.start_cycle(task)
     expand_results = memory_manager.retrieve_with_edrr_phase(
-        "EXPAND_RESULTS", "EXPAND", {"cycle_id": coordinator.cycle_id}
+        MemoryType.EXPAND_RESULTS, "EXPAND", {"cycle_id": coordinator.cycle_id}
     )
     assert expand_results, "EXPAND phase results not found in memory"
     assert "ideas" in expand_results, "EXPAND phase results missing 'ideas' key"
     assert "knowledge" in expand_results, "EXPAND phase results missing 'knowledge' key"
+    phase_memory_map = {
+        Phase.DIFFERENTIATE: MemoryType.DIFFERENTIATE_RESULTS,
+        Phase.REFINE: MemoryType.REFINE_RESULTS,
+        Phase.RETROSPECT: MemoryType.RETROSPECT_RESULTS,
+    }
     for phase in [Phase.DIFFERENTIATE, Phase.REFINE, Phase.RETROSPECT]:
         coordinator.progress_to_phase(phase)
         phase_results = memory_manager.retrieve_with_edrr_phase(
-            f"{phase.value}_RESULTS", phase.value, {"cycle_id": coordinator.cycle_id}
+            phase_memory_map[phase], phase.value, {"cycle_id": coordinator.cycle_id}
         )
         assert phase_results, f"{phase.value} phase results not found in memory"
     report = coordinator.generate_report()

@@ -1341,7 +1341,7 @@ class EDRRCoordinator(PersistenceMixin, PhaseManagementMixin):
         expand_results = self.results.get(
             Phase.EXPAND.name
         ) or self._safe_retrieve_with_edrr_phase(
-            MemoryType.SOLUTION.value, "EXPAND", {"cycle_id": self.cycle_id}
+            MemoryType.SOLUTION, "EXPAND", {"cycle_id": self.cycle_id}
         )
         ideas = expand_results.get("ideas") or expand_results.get("wsde_brainstorm", [])
 
@@ -1479,7 +1479,7 @@ class EDRRCoordinator(PersistenceMixin, PhaseManagementMixin):
         differentiate_results = self.results.get(
             Phase.DIFFERENTIATE.name
         ) or self._safe_retrieve_with_edrr_phase(
-            MemoryType.SOLUTION.value, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
+            MemoryType.SOLUTION, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
         )
         evaluated_options = differentiate_results.get("evaluated_options", [])
         decision_criteria = differentiate_results.get("decision_criteria", {})
@@ -1644,17 +1644,17 @@ class EDRRCoordinator(PersistenceMixin, PhaseManagementMixin):
         expand_results = self.results.get(
             Phase.EXPAND.name
         ) or self._safe_retrieve_with_edrr_phase(
-            MemoryType.SOLUTION.value, "EXPAND", {"cycle_id": self.cycle_id}
+            MemoryType.SOLUTION, "EXPAND", {"cycle_id": self.cycle_id}
         )
         differentiate_results = self.results.get(
             Phase.DIFFERENTIATE.name
         ) or self._safe_retrieve_with_edrr_phase(
-            MemoryType.SOLUTION.value, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
+            MemoryType.SOLUTION, "DIFFERENTIATE", {"cycle_id": self.cycle_id}
         )
         refine_results = self.results.get(
             Phase.REFINE.name
         ) or self._safe_retrieve_with_edrr_phase(
-            MemoryType.SOLUTION.value, "REFINE", {"cycle_id": self.cycle_id}
+            MemoryType.SOLUTION, "REFINE", {"cycle_id": self.cycle_id}
         )
 
         # Learning extraction methods
@@ -1746,7 +1746,7 @@ class EDRRCoordinator(PersistenceMixin, PhaseManagementMixin):
         # Store results in memory with phase tag
         self._safe_store_with_edrr_phase(
             results,
-            "RETROSPECT_RESULTS",
+            MemoryType.RETROSPECT_RESULTS,
             "RETROSPECT",
             {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth},
         )
@@ -1757,7 +1757,7 @@ class EDRRCoordinator(PersistenceMixin, PhaseManagementMixin):
         # Store the final report
         self._safe_store_with_edrr_phase(
             final_report,
-            "FINAL_REPORT",
+            MemoryType.FINAL_REPORT,
             "RETROSPECT",
             {"cycle_id": self.cycle_id, "recursion_depth": self.recursion_depth},
         )

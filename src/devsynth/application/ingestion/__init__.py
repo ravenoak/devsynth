@@ -27,6 +27,7 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.exceptions import IngestionError, ManifestError
 from devsynth.logging_setup import get_logger
@@ -321,7 +322,7 @@ class Ingestion:
             if cycle_started:
                 self.edrr_coordinator.memory_manager.store_with_edrr_phase(
                     {"summary": self.metrics.get_summary()},
-                    "INGEST_EXPAND_RESULTS",
+                    MemoryType.INGEST_EXPAND_RESULTS,
                     Phase.EXPAND.value,
                     {"cycle_id": self.edrr_coordinator.cycle_id},
                 )
@@ -332,7 +333,7 @@ class Ingestion:
             if cycle_started:
                 self.edrr_coordinator.memory_manager.store_with_edrr_phase(
                     {"summary": self.metrics.get_summary()},
-                    "INGEST_DIFFERENTIATE_RESULTS",
+                    MemoryType.INGEST_DIFFERENTIATE_RESULTS,
                     Phase.DIFFERENTIATE.value,
                     {"cycle_id": self.edrr_coordinator.cycle_id},
                 )
@@ -343,7 +344,7 @@ class Ingestion:
             if cycle_started:
                 self.edrr_coordinator.memory_manager.store_with_edrr_phase(
                     {"summary": self.metrics.get_summary()},
-                    "INGEST_REFINE_RESULTS",
+                    MemoryType.INGEST_REFINE_RESULTS,
                     Phase.REFINE.value,
                     {"cycle_id": self.edrr_coordinator.cycle_id},
                 )
@@ -354,7 +355,7 @@ class Ingestion:
             if cycle_started:
                 self.edrr_coordinator.memory_manager.store_with_edrr_phase(
                     {"summary": self.metrics.get_summary()},
-                    "INGEST_RETROSPECT_RESULTS",
+                    MemoryType.INGEST_RETROSPECT_RESULTS,
                     Phase.RETROSPECT.value,
                     {"cycle_id": self.edrr_coordinator.cycle_id},
                 )
@@ -398,7 +399,7 @@ class Ingestion:
         result = {"artifacts": self.artifacts, "metrics": self.metrics.get_summary()}
         self.edrr_coordinator.memory_manager.store_with_edrr_phase(
             result,
-            "INGEST_EXPAND_RESULTS",
+            MemoryType.INGEST_EXPAND_RESULTS,
             Phase.EXPAND.value,
             {"cycle_id": self.edrr_coordinator.cycle_id},
         )
@@ -417,7 +418,7 @@ class Ingestion:
         }
         self.edrr_coordinator.memory_manager.store_with_edrr_phase(
             result,
-            "INGEST_DIFFERENTIATE_RESULTS",
+            MemoryType.INGEST_DIFFERENTIATE_RESULTS,
             Phase.DIFFERENTIATE.value,
             {"cycle_id": self.edrr_coordinator.cycle_id},
         )
@@ -438,7 +439,7 @@ class Ingestion:
         }
         self.edrr_coordinator.memory_manager.store_with_edrr_phase(
             result,
-            "INGEST_REFINE_RESULTS",
+            MemoryType.INGEST_REFINE_RESULTS,
             Phase.REFINE.value,
             {"cycle_id": self.edrr_coordinator.cycle_id},
         )
@@ -470,7 +471,7 @@ class Ingestion:
         self.metrics.end_phase()
         self.edrr_coordinator.memory_manager.store_with_edrr_phase(
             retrospective,
-            "INGEST_RETROSPECT_RESULTS",
+            MemoryType.INGEST_RETROSPECT_RESULTS,
             Phase.RETROSPECT.value,
             {"cycle_id": self.edrr_coordinator.cycle_id},
         )

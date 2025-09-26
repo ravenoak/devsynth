@@ -25,6 +25,7 @@ core_stub.CoreValues = CoreValues
 core_stub.check_report_for_value_conflicts = check_report_for_value_conflicts
 sys.modules["devsynth.core"] = core_stub
 from devsynth.application.edrr.coordinator import EDRRCoordinator
+from devsynth.domain.models.memory import MemoryType
 from devsynth.methodology.base import Phase
 
 
@@ -103,7 +104,7 @@ def test_execute_refine_phase_succeeds(coordinator):
     coordinator.cycle_id = "cid"
 
     def ret(item_type, phase, meta):
-        if item_type == "DIFFERENTIATE_RESULTS":
+        if item_type == MemoryType.DIFFERENTIATE_RESULTS:
             return {"evaluated_options": [1], "decision_criteria": {}}
         return {}
 
@@ -131,11 +132,11 @@ def test_execute_retrospect_phase_succeeds(coordinator):
     coordinator.cycle_id = "cid"
 
     def ret(item_type, phase, meta):
-        if item_type == "EXPAND_RESULTS":
+        if item_type == MemoryType.EXPAND_RESULTS:
             return {"ideas": []}
-        if item_type == "DIFFERENTIATE_RESULTS":
+        if item_type == MemoryType.DIFFERENTIATE_RESULTS:
             return {"evaluated_options": []}
-        if item_type == "REFINE_RESULTS":
+        if item_type == MemoryType.REFINE_RESULTS:
             return {"implementation_plan": [], "quality_checks": {}}
         return {}
 
