@@ -15,6 +15,8 @@ from devsynth.application.memory.context_manager import SimpleContextManager
 from devsynth.application.memory.multi_layered_memory import MultiLayeredMemorySystem
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/memory_and_context_system.feature")
 
 

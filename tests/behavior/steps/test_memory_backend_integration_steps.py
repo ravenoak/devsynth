@@ -21,6 +21,9 @@ if not chromadb_enabled:
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
+
+pytestmark = [
+
 scenarios("../features/general/memory_backend_integration.feature")
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
@@ -33,7 +36,7 @@ from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 
-pytestmark = [
+    pytest.mark.fast,
     pytest.mark.requires_resource("chromadb"),
     pytest.mark.requires_resource("lmdb"),
     pytest.mark.requires_resource("faiss"),

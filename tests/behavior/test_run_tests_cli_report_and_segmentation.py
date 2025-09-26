@@ -18,6 +18,9 @@ FEATURE_FILE = os.path.join(
     "run_tests_cli_report_and_segmentation.feature",
 )
 
-pytestmark = pytest.mark.requires_resource("cli")
+pytestmark = [
+    pytest.mark.fast,
+    pytest.mark.requires_resource("cli"),
+]
 
 scenarios(FEATURE_FILE)

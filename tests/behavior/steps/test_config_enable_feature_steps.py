@@ -10,6 +10,8 @@ from devsynth.config.loader import ConfigModel, load_config, save_config
 
 from .cli_commands_steps import *
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/config_enable_feature.feature")
 
 

@@ -7,6 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 # Register scenarios from the feature file
 scenarios("../features/general/test_generation.feature")
 

@@ -14,6 +14,9 @@ from pytest_bdd import given, parsers, scenarios, then, when
 logger = logging.getLogger(__name__)
 
 # Import the feature file
+
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/prompt_management.feature")
 scenarios("../features/prompt_management_with_dpsy_ai.feature")
 

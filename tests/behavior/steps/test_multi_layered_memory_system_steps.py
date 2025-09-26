@@ -13,6 +13,9 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
+
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/multi_layered_memory_system.feature")
 
 from devsynth.application.memory.multi_layered_memory import MultiLayeredMemorySystem

@@ -27,7 +27,10 @@ DOCTOR_FEATURE = os.path.join(
 )
 
 # Mark all tests as requiring CLI resource
-pytestmark = pytest.mark.requires_resource("cli")
+pytestmark = [
+    pytest.mark.fast,
+    pytest.mark.requires_resource("cli"),
+]
 
 # Load all scenarios from the feature files
 scenarios(FEATURE_FILE)

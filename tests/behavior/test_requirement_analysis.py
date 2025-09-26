@@ -12,6 +12,8 @@ from .steps.cli_commands_steps import *
 # Import the step definitions
 from .steps.test_requirement_analysis_steps import *
 
+pytestmark = [pytest.mark.fast]
+
 # Get the absolute path to the feature file
 base_dir = os.path.join(os.path.dirname(__file__), "features")
 feature_file = os.path.join(base_dir, "general", "requirement_analysis.feature")

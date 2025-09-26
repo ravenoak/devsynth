@@ -4,6 +4,9 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the scenarios from the feature file
+
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/micro_edrr_cycle.feature")
 
 import json

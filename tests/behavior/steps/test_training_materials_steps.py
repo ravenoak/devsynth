@@ -8,6 +8,8 @@ from typing import Any, Dict, List
 
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 # Import the feature file
 scenarios("../features/general/training_materials.feature")
 

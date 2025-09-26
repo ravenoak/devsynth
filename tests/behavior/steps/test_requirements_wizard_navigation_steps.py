@@ -9,6 +9,8 @@ from pytest_bdd import given, scenarios, then, when
 pytest.importorskip("streamlit")
 from devsynth.interface.webui import WebUI
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/requirements_wizard_navigation.feature")
 
 

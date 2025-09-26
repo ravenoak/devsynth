@@ -20,13 +20,12 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.ports.memory_port import MemoryPort
 
 pytestmark = [
+    pytest.mark.fast,
     pytest.mark.requires_resource("lmdb"),
     pytest.mark.requires_resource("faiss"),
-    # Skip all FAISS-related tests to avoid fatal Python errors
     pytest.mark.skip(
         reason="Skipping FAISS tests due to known issues with FAISS library"
     ),
-    # Speed markers must be on functions; module-level speed markers are disallowed
 ]
 
 # Register the scenarios from the feature file

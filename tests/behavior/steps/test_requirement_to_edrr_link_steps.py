@@ -14,6 +14,8 @@ from devsynth.domain.models.requirement import (
     RequirementChange,
 )
 
+pytestmark = [pytest.mark.fast]
+
 # Load the feature file
 scenarios("../features/dialectical_reasoning/requirement_to_edrr_link.feature")
 

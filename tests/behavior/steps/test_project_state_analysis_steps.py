@@ -7,6 +7,8 @@ from devsynth.application.code_analysis.project_state_analysis import (
     analyze_project_state,
 )
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/project_state_analysis.feature")
 
 

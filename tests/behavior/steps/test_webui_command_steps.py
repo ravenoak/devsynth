@@ -16,6 +16,9 @@ from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.cli_commands import webui_cmd
 
 # Register the feature scenarios
+
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/webui/command.feature")
 
 # Reuse existing step definitions

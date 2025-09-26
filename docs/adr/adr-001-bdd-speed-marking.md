@@ -12,6 +12,10 @@ Decision
 - Stick with collection-time auto-injection for 0.1.0a1. Do not implement definition-time decorators or plugins pre-release.
 - Keep a targeted filterwarnings in pytest.ini to ignore only the specific pytest-bdd speed-marker PytestWarning. Do not globally disable warnings.
 
+Update (2025-09-24)
+- Behavior scenario modules now define explicit `pytestmark = [pytest.mark.fast, ...]` declarations, removing the pytest-bdd warning source.
+- The targeted filter in pytest.ini has been removed; the collection-time fallback remains as a guardrail but is no longer relied upon for routine runs.
+
 Rationale
 - Minimal surface-area change: no need to modify many generated scenario functions.
 - Easily reversible and observable in one place (tests/conftest.py), aligning with our smoke and gating behavior.

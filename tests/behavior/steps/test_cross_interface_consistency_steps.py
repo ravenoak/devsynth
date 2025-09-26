@@ -11,6 +11,8 @@ from pathlib import Path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 # Load scenarios from the feature file
 scenarios("../features/general/cross_interface_consistency.feature")
 

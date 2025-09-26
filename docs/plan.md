@@ -154,6 +154,7 @@ Critical evaluation of current tests (dialectical + Socratic)
 
 2) Accuracy and usefulness of tests
 - Pros: Behavior tests exercise CLI options (smoke mode, parallelism, feature flags). Unit tests validate environment variables and internal CLI invocation behavior. Marker verification ensures fast/medium/slow categorization discipline.
+- 2025-09-24 update: Behavior scenario wrappers now define explicit speed markers, removing the temporary pytest.ini warning filter and confirming marker verification passes cleanly.
  - Cons: Some modules likely under-tested (coverage hotspots); mocks may over-isolate critical logic, resulting in low coverage for real branches (e.g., Typer CLI option pathways). Earlier property tests surfaced API inconsistencies and Hypothesis misuse; these have since been addressed.
 
 3) Efficacy and reliability

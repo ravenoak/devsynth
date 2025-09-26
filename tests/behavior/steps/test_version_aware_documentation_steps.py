@@ -16,6 +16,8 @@ from devsynth.application.documentation.ingestion import DocumentationIngestionM
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+pytestmark = [pytest.mark.fast]
+
 # Import the feature file
 scenarios("../features/general/version_aware_documentation.feature")
 

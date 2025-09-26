@@ -18,6 +18,8 @@ from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoor
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
+pytestmark = [pytest.mark.fast]
+
 # Import the feature file
 scenarios = pytest.importorskip("pytest_bdd").scenarios(
     "../features/general/project_state_analyzer.feature"

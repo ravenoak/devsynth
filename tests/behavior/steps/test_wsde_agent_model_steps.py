@@ -11,6 +11,9 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature files
+
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/wsde_agent_model.feature")
 scenarios("../features/multi_agent_collaboration.feature")
 # scenarios('../features/wsde_agent_model.feature')  # Commented out - feature file not found
