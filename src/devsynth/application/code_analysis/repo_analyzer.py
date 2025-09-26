@@ -11,12 +11,21 @@ from __future__ import annotations
 
 import ast
 import os
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Dict, List, Set
 
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
+
+@dataclass(slots=True)
+class RepositoryAnalysis:
+    """Structured result produced by :class:`RepoAnalyzer`."""
+
+    dependencies: dict[str, list[str]]
+    structure: dict[str, list[str]]
 
 
 class RepoAnalyzer:
@@ -43,14 +52,14 @@ class RepoAnalyzer:
         self.root_path = Path(root_path).resolve()
 
     # ------------------------------------------------------------------
-    def analyze(self) -> Dict[str, Any]:
+    def analyze(self) -> RepositoryAnalysis:
         """Run the analysis and return structure and dependency maps."""
 
         logger.debug("Starting repository analysis at %s", self.root_path)
-        result = {
-            "dependencies": self._map_dependencies(),
-            "structure": self._build_structure(),
-        }
+        result = RepositoryAnalysis(
+            dependencies=self._map_dependencies(),
+            structure=self._build_structure(),
+        )
         logger.debug("Finished repository analysis")
         return result
 
@@ -118,4 +127,4 @@ class RepoAnalyzer:
         return imports
 
 
-__all__ = ["RepoAnalyzer"]
+__all__ = ["RepoAnalyzer", "RepositoryAnalysis"]

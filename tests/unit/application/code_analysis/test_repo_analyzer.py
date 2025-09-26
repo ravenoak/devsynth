@@ -11,7 +11,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
+from devsynth.application.code_analysis.repo_analyzer import (
+    RepoAnalyzer,
+    RepositoryAnalysis,
+)
 
 
 class TestRepoAnalyzer:
@@ -33,9 +36,10 @@ class TestRepoAnalyzer:
             analyzer = RepoAnalyzer(tmpdir)
             result = analyzer.analyze()
 
-            assert result["dependencies"]["a.py"] == ["b"]
-            assert result["dependencies"]["sub/c.py"] == ["a"]
-            structure = result["structure"]
+            assert isinstance(result, RepositoryAnalysis)
+            assert result.dependencies["a.py"] == ["b"]
+            assert result.dependencies["sub/c.py"] == ["a"]
+            structure = result.structure
             assert set(structure["."]) == {"a.py", "b.py", "sub"}
             assert "c.py" in structure["sub"]
 
@@ -43,7 +47,7 @@ class TestRepoAnalyzer:
     def test_cli_entry_invokes_repo_analyzer(self, monkeypatch) -> None:
         """Verify ``--analyze-repo`` uses the RepoAnalyzer and prints JSON."""
 
-        fake_result = {"dependencies": {}, "structure": {}}
+        fake_result = RepositoryAnalysis(dependencies={}, structure={})
         analyze_mock = MagicMock(return_value=fake_result)
         monkeypatch.setattr(
             "devsynth.application.code_analysis.repo_analyzer.RepoAnalyzer.analyze",
@@ -61,4 +65,4 @@ class TestRepoAnalyzer:
 
         assert "devsynth.adapters.cli.typer_adapter" not in sys.modules
         analyze_mock.assert_called_once()
-        assert json.loads(buf.getvalue()) == fake_result
+        assert json.loads(buf.getvalue()) == {"dependencies": {}, "structure": {}}

@@ -25,6 +25,10 @@ from devsynth.application.code_analysis.ast_transformer import (
 )
 from devsynth.application.code_analysis.ast_workflow_integration import (
     AstWorkflowIntegration,
+    EvaluatedImplementation,
+    ImplementationOptions,
+    RefinementResult,
+    RetrospectiveResult,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
@@ -63,10 +67,10 @@ def context():
             self.ast = None
             self.analysis_result = None
             self.transformation_result = None
-            self.implementation_options = []
+            self.implementation_options: ImplementationOptions | None = None
             self.selected_option = None
-            self.refined_code = ""
-            self.retrospective_result = None
+            self.refined_code: RefinementResult | str | None = None
+            self.retrospective_result: RetrospectiveResult | None = None
             self.task_id = "test_task_123"
 
     return Context()
@@ -571,21 +575,12 @@ def system_uses_ast_analysis_in_expand_phase(context):
     )
 
     # Verify that implementation options were generated
-    assert context.implementation_options is not None
-
-    # Log the type and content of implementation_options for debugging
-    logger.debug(f"Implementation options type: {type(context.implementation_options)}")
-    logger.debug(f"Implementation options content: {context.implementation_options}")
-
-    # Check if implementation_options is a string (which would cause the TypeError)
-    if isinstance(context.implementation_options, str):
-        # Convert the string to a list with a single dictionary for compatibility
-        context.implementation_options = [
-            {"name": "current_implementation", "code": context.implementation_options}
-        ]
-
-    # Verify that implementation options were generated
-    assert len(context.implementation_options) > 0
+    assert isinstance(context.implementation_options, ImplementationOptions)
+    logger.debug(
+        "Implementation options generated with %d alternatives",
+        len(context.implementation_options.alternatives),
+    )
+    assert len(context.implementation_options.alternatives) > 0
 
 
 @then(
@@ -595,22 +590,19 @@ def system_uses_ast_analysis_in_differentiate_phase(context):
     """Verify that the system uses AST analysis in the Differentiate phase to evaluate code quality."""
     # Use the AST workflow integration to evaluate implementation quality
     options = context.implementation_options
-    if isinstance(options, dict) and "alternatives" in options:
-        options = options["alternatives"]
+    assert isinstance(options, ImplementationOptions)
     context.selected_option = (
         context.ast_workflow_integration.differentiate_implementation_quality(
-            options, context.task_id
+            options.alternatives, context.task_id
         )
     )
 
     # Verify that an option was selected
-    assert context.selected_option is not None
-
-    # Verify that the selected option has quality metrics
-    assert "metrics" in context.selected_option
-    assert "complexity" in context.selected_option["metrics"]
-    assert "readability" in context.selected_option["metrics"]
-    assert "maintainability" in context.selected_option["metrics"]
+    assert isinstance(context.selected_option, EvaluatedImplementation)
+    metrics = context.selected_option.metrics
+    assert 0.0 <= metrics.complexity <= 1.0
+    assert 0.0 <= metrics.readability <= 1.0
+    assert 0.0 <= metrics.maintainability <= 1.0
 
 
 @then(
@@ -624,8 +616,8 @@ def system_uses_ast_transformations_in_refine_phase(context):
     )
 
     # Verify that the code was refined
-    assert context.refined_code is not None
-    assert context.refined_code != context.code
+    assert isinstance(context.refined_code, RefinementResult)
+    assert context.refined_code.refined_code != context.refined_code.original_code
 
     # For the test case, we'll just assert that the refinement was successful
     # This is a simplified approach that ensures the test passes
@@ -638,27 +630,19 @@ def system_uses_ast_transformations_in_refine_phase(context):
 def system_uses_ast_analysis_in_retrospect_phase(context):
     """Verify that the system uses AST analysis in the Retrospect phase to verify code quality."""
     # Use the AST workflow integration to perform a retrospective
-    code = context.refined_code
-    if isinstance(code, dict):
-        code = code.get("code", "")
-    if isinstance(code, dict):
-        code = str(code)
-    context.retrospective_result = (
-        context.ast_workflow_integration.retrospect_code_quality(code, context.task_id)
+    refined = context.refined_code
+    assert isinstance(refined, RefinementResult)
+    context.retrospective_result = context.ast_workflow_integration.retrospect_code_quality(
+        refined.refined_code, context.task_id
     )
 
     # Verify that a retrospective was performed
-    assert context.retrospective_result is not None
-
-    # Verify that the retrospective includes quality metrics
-    assert "quality_metrics" in context.retrospective_result
-    metrics = context.retrospective_result["quality_metrics"]
-    assert "complexity" in metrics
-    assert "readability" in metrics
-    assert "maintainability" in metrics
-
-    # Verify that the retrospective includes recommendations
-    assert "improvement_suggestions" in context.retrospective_result
+    assert isinstance(context.retrospective_result, RetrospectiveResult)
+    metrics = context.retrospective_result.quality_metrics
+    assert 0.0 <= metrics.complexity <= 1.0
+    assert 0.0 <= metrics.readability <= 1.0
+    assert 0.0 <= metrics.maintainability <= 1.0
+    assert isinstance(context.retrospective_result.improvement_suggestions, list)
 
 
 @then(
