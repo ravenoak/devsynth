@@ -2,18 +2,56 @@ from __future__ import annotations
 
 import json
 import os
-import types
+from collections.abc import AsyncIterator, Callable, Generator
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from types import ModuleType
+from typing import TYPE_CHECKING, TypedDict, cast
 
 import pytest
 
-pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
+from ._lmstudio_types import (
+    LMStudioChatCompletion,
+    LMStudioChatMessage,
+    LMStudioChatPayload,
+    LMStudioDownloadedModel,
+    LMStudioModule,
+    LMStudioSyncAPI,
+)
 
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse, StreamingResponse
-from fastapi.testclient import TestClient
+_IMPORTORSKIP: Callable[[str], ModuleType] = cast(
+    Callable[[str], ModuleType], getattr(pytest, "importorskip")
+)
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI
+    from fastapi.responses import JSONResponse, StreamingResponse
+    from fastapi.testclient import TestClient
+else:
+    _IMPORTORSKIP("fastapi")
+    _IMPORTORSKIP("fastapi.testclient")
+    from fastapi import FastAPI
+    from fastapi.responses import JSONResponse, StreamingResponse
+    from fastapi.testclient import TestClient
+
+
+class _ChatDelta(TypedDict, total=False):
+    content: str
+
+
+class _ChatChoice(TypedDict):
+    delta: _ChatDelta
+
+
+class _ChatCompletionStreamChunk(TypedDict):
+    choices: list[_ChatChoice]
+
+
+class _EmbeddingDatum(TypedDict):
+    embedding: list[float]
+
+
+class _EmbeddingResponse(TypedDict):
+    data: list[_EmbeddingDatum]
 
 
 @dataclass
@@ -36,7 +74,9 @@ class LMStudioMockServer:
 
 
 @pytest.fixture
-def lmstudio_service(monkeypatch) -> LMStudioMockServer:
+def lmstudio_service(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[LMStudioMockServer]:
     """Provide a mocked LM Studio HTTP API with streaming responses.
 
     Skips unless ``DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE`` is truthy and the
@@ -50,21 +90,21 @@ def lmstudio_service(monkeypatch) -> LMStudioMockServer:
     ):
         pytest.skip("LMStudio service not available")
 
-    lmstudio = pytest.importorskip("lmstudio")
+    lmstudio = cast(LMStudioModule, _IMPORTORSKIP("lmstudio"))
 
     app = FastAPI()
     server = LMStudioMockServer(base_url="")
 
-    @app.get("/v1/models")
-    async def list_models() -> Dict[str, Any]:
+    async def list_models() -> JSONResponse | dict[str, object]:
         if server.fail:
             return JSONResponse(
                 status_code=server.status_code, content={"error": "Internal error"}
             )
         return {"data": [{"id": "test-model", "object": "model"}]}
 
-    @app.post("/v1/chat/completions")
-    async def chat_completions(payload: Dict[str, Any]):
+    async def chat_completions(
+        payload: dict[str, object],
+    ) -> StreamingResponse | JSONResponse:
         if server.fail:
             return JSONResponse(
                 status_code=server.status_code, content={"error": "Internal error"}
@@ -72,7 +112,7 @@ def lmstudio_service(monkeypatch) -> LMStudioMockServer:
 
         tokens = ["This", " is", " a", " test", " response"]
 
-        async def event_stream():
+        async def event_stream() -> AsyncIterator[str]:
             for token in tokens:
                 data = {"choices": [{"delta": {"content": token}}]}
                 yield f"data: {json.dumps(data)}\n\n"
@@ -80,34 +120,49 @@ def lmstudio_service(monkeypatch) -> LMStudioMockServer:
 
         return StreamingResponse(event_stream(), media_type="text/event-stream")
 
-    @app.post("/v1/embeddings")
-    async def embeddings(payload: Dict[str, Any]):
+    async def embeddings(
+        payload: dict[str, object],
+    ) -> JSONResponse | dict[str, object]:
         if server.fail:
             return JSONResponse(
                 status_code=server.status_code, content={"error": "Internal error"}
             )
         return {"data": [{"embedding": [0.1, 0.2, 0.3, 0.4, 0.5]}]}
 
+    app.get("/v1/models")(list_models)
+    app.post("/v1/chat/completions")(chat_completions)
+    app.post("/v1/embeddings")(embeddings)
+
     client = TestClient(app)
     server.base_url = str(client.base_url)
 
     DEFAULT_TIMEOUT = float(os.environ.get("DEVSYNTH_TEST_HTTP_TIMEOUT", "0.5"))
 
-    def _post_stream(path: str, json_payload: Dict[str, Any]) -> str:
+    def _post_stream(path: str, json_payload: dict[str, object]) -> str:
         with client.stream(
             "POST", path, json=json_payload, timeout=DEFAULT_TIMEOUT
         ) as response:
             if response.status_code >= 400:
-                raise Exception(response.json().get("error", "error"))
+                error_payload = response.json()
+                error_message = "error"
+                if isinstance(error_payload, dict):
+                    maybe_error = error_payload.get("error")
+                    if isinstance(maybe_error, str):
+                        error_message = maybe_error
+                raise Exception(error_message)
             content = ""
-            for line in response.iter_lines():
-                if not line:
+            for raw_line in response.iter_lines(decode_unicode=True):
+                if not raw_line:
                     continue
-                if line.startswith("data: "):
-                    data = line[6:]
+                if raw_line.startswith("data: "):
+                    data = raw_line[6:]
                     if data == "[DONE]":
                         break
-                    token = json.loads(data)["choices"][0]["delta"].get("content", "")
+                    parsed = cast(_ChatCompletionStreamChunk, json.loads(data))
+                    token = ""
+                    if parsed["choices"]:
+                        delta = parsed["choices"][0]["delta"]
+                        token = delta.get("content", "")
                     content += token
             return content
 
@@ -115,59 +170,78 @@ def lmstudio_service(monkeypatch) -> LMStudioMockServer:
         def __init__(self, model: str):
             self.model = model
 
-        def complete(self, prompt: str, config: Dict[str, Any] | None = None):
+        def complete(
+            self, prompt: str, config: dict[str, object] | None = None
+        ) -> LMStudioChatCompletion:
+            message: LMStudioChatMessage = {"role": "user", "content": prompt}
             text = _post_stream(
                 "/v1/chat/completions",
                 {
                     "model": self.model,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": [message],
                 },
             )
-            return types.SimpleNamespace(content=text)
+            return LMStudioChatCompletion(content=text)
 
         def respond(
-            self, payload: Dict[str, Any], config: Dict[str, Any] | None = None
-        ):
+            self,
+            payload: LMStudioChatPayload,
+            config: dict[str, object] | None = None,
+        ) -> LMStudioChatCompletion:
             text = _post_stream(
                 "/v1/chat/completions",
                 {"model": self.model, "messages": payload["messages"]},
             )
-            return types.SimpleNamespace(content=text)
+            return LMStudioChatCompletion(content=text)
 
     class MockEmbeddingModel:
         def __init__(self, model: str):
             self.model = model
 
-        def embed(self, text: str) -> List[float]:
+        def embed(self, text: str) -> list[float]:
             response = client.post(
                 "/v1/embeddings",
                 json={"model": self.model, "input": text},
                 timeout=DEFAULT_TIMEOUT,
             )
             if response.status_code >= 400:
-                raise Exception(response.json().get("error", "error"))
-            return response.json()["data"][0]["embedding"]
+                error_payload = response.json()
+                error_message = "error"
+                if isinstance(error_payload, dict):
+                    maybe_error = error_payload.get("error")
+                    if isinstance(maybe_error, str):
+                        error_message = maybe_error
+                raise Exception(error_message)
+            embedding_response = cast(_EmbeddingResponse, response.json())
+            return embedding_response["data"][0]["embedding"]
 
     class MockSyncAPI:
         def configure_default_client(self, host: str) -> None:  # pragma: no cover
             return None
 
-        def list_downloaded_models(self, kind: str) -> List[Any]:
+        def list_downloaded_models(self, kind: str) -> list[LMStudioDownloadedModel]:
             return [
-                types.SimpleNamespace(model_key="test-model", display_name="Test Model")
+                LMStudioDownloadedModel(
+                    model_key="test-model", display_name="Test Model"
+                )
             ]
 
         def _reset_default_client(self) -> None:  # pragma: no cover
             return None
 
-    monkeypatch.setattr(lmstudio, "llm", lambda model: MockLLM(model), raising=False)
+    def _mock_llm(model: str) -> MockLLM:
+        return MockLLM(model)
+
+    def _mock_embedding_model(model: str) -> MockEmbeddingModel:
+        return MockEmbeddingModel(model)
+
+    sync_api_mock: LMStudioSyncAPI = MockSyncAPI()
+
+    monkeypatch.setattr(lmstudio, "llm", _mock_llm, raising=False)
     monkeypatch.setattr(
-        lmstudio,
-        "embedding_model",
-        lambda model: MockEmbeddingModel(model),
-        raising=False,
+        lmstudio, "embedding_model", _mock_embedding_model, raising=False
     )
-    monkeypatch.setattr(lmstudio, "sync_api", MockSyncAPI(), raising=False)
+    monkeypatch.setattr(lmstudio, "sync_api", sync_api_mock, raising=False)
 
     try:
         yield server
