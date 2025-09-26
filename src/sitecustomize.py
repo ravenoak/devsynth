@@ -71,7 +71,11 @@ def _patch_starlette_testclient() -> None:
     exec_globals["httpx"] = httpx
     exec_globals["WebSocketDisconnect"] = WebSocketDisconnect
 
-    exec(patched_source, exec_globals)
+    try:
+        exec(patched_source, exec_globals)
+    except SyntaxError:
+        # If Starlette's source layout changes, skip patching instead of aborting startup
+        return
     sys.modules["starlette.testclient"] = module
 
 

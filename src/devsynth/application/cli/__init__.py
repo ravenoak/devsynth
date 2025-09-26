@@ -10,10 +10,13 @@ logger = DevSynthLogger(__name__)
 from .commands import (
     config_cmds,
     diagnostics_cmds,
+    documentation_cmds,
     extra_cmds,
     generation_cmds,
     interface_cmds,
+    metrics_cmds,
     pipeline_cmds,
+    validation_cmds,
 )
 from .commands.config_cmds import config_app
 from .commands.inspect_code_cmd import inspect_code_cmd
