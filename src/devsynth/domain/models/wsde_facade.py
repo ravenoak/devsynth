@@ -28,7 +28,12 @@ from devsynth.domain.models import (
     wsde_solution_analysis,
     wsde_voting,
 )
-from devsynth.domain.models.wsde_core import WSDE, SolutionRecord, TaskPayload, WSDETeam
+from devsynth.domain.models.wsde_core import (
+    WSDE as CoreWSDE,
+    SolutionRecord,
+    TaskPayload,
+    WSDETeam as CoreWSDETeam,
+)
 from devsynth.domain.models.wsde_summarization import (
     summarize_consensus_result,
     summarize_voting_result,
@@ -48,7 +53,7 @@ from devsynth.domain.models.wsde_utils import (
 if TYPE_CHECKING:
     from devsynth.domain.models.wsde_base import WSDETeam as BaseWSDETeam
 else:  # pragma: no cover - runtime alias for typing compatibility
-    BaseWSDETeam = WSDETeam
+    BaseWSDETeam = CoreWSDETeam
 
 
 class LearningRecord(TypedDict, total=False):
@@ -88,14 +93,14 @@ class ImprovementSuggestion(TypedDict, total=False):
     related_patterns: list[str]
 
 
-def _as_base_team(team: WSDETeam) -> BaseWSDETeam:
+def _as_base_team(team: "WSDETeam") -> BaseWSDETeam:
     """Provide a typed view compatible with helper modules."""
 
     return cast(BaseWSDETeam, team)
 
 
 def _coerce_learning_record(
-    payload: Mapping[str, Any],
+    payload: Mapping[str, Any] | LearningRecord,
     *,
     default_phase: str | None = None,
     category: str | None = None,
@@ -142,19 +147,25 @@ def _coerce_learning_record(
     return record
 
 
-def _coerce_pattern_record(pattern: Mapping[str, Any]) -> PatternRecord:
+def _coerce_pattern_record(
+    pattern: Mapping[str, Any] | PatternRecord,
+) -> PatternRecord:
     """Normalise heterogeneous pattern payloads into a shared schema."""
 
-    name_raw = pattern.get("name") or pattern.get("pattern") or pattern.get("summary")
+    mapping = cast(Mapping[str, Any], pattern)
+
+    name_raw = (
+        mapping.get("name") or mapping.get("pattern") or mapping.get("summary")
+    )
     name = str(name_raw).strip() if name_raw else "Pattern"
-    occurrences_raw = pattern.get("occurrences", pattern.get("count", 1))
+    occurrences_raw = mapping.get("occurrences", mapping.get("count", 1))
     try:
         occurrences = int(occurrences_raw)
     except (TypeError, ValueError):
         occurrences = 1
 
     evidence: list[str] = []
-    evidence_raw = pattern.get("evidence", [])
+    evidence_raw = mapping.get("evidence", [])
     if isinstance(evidence_raw, Iterable) and not isinstance(
         evidence_raw, (str, bytes)
     ):
@@ -164,7 +175,7 @@ def _coerce_pattern_record(pattern: Mapping[str, Any]) -> PatternRecord:
             if isinstance(item, (str, bytes)) and str(item).strip()
         ]
 
-    source_raw = pattern.get("source_phases", pattern.get("phases", []))
+    source_raw = mapping.get("source_phases", mapping.get("phases", []))
     source_list: list[str] = []
     if isinstance(source_raw, Iterable) and not isinstance(source_raw, (str, bytes)):
         source_list = [
@@ -184,48 +195,8 @@ def _coerce_pattern_record(pattern: Mapping[str, Any]) -> PatternRecord:
 
 
 # ---------------------------------------------------------------------------
-# Attach utility helpers
+# Summarization helper functions remain module-level.
 # ---------------------------------------------------------------------------
-WSDETeam.send_message = send_message
-WSDETeam.broadcast_message = broadcast_message
-WSDETeam.get_messages = get_messages
-WSDETeam.request_peer_review = request_peer_review
-WSDETeam.conduct_peer_review = conduct_peer_review
-WSDETeam.add_solution = add_solution
-WSDETeam.run_basic_workflow = run_basic_workflow
-
-# ---------------------------------------------------------------------------
-# Role management
-# ---------------------------------------------------------------------------
-WSDETeam.assign_roles = wsde_roles.assign_roles
-WSDETeam.assign_roles_for_phase = wsde_roles.assign_roles_for_phase
-WSDETeam.dynamic_role_reassignment = wsde_roles.dynamic_role_reassignment
-WSDETeam._validate_role_mapping = wsde_roles._validate_role_mapping
-WSDETeam._auto_assign_roles = wsde_roles._auto_assign_roles
-WSDETeam.get_role_map = wsde_roles.get_role_map
-WSDETeam.get_role_assignments = wsde_roles.get_role_assignments
-WSDETeam._calculate_expertise_score = wsde_roles._calculate_expertise_score
-WSDETeam._calculate_phase_expertise_score = wsde_roles._calculate_phase_expertise_score
-WSDETeam.select_primus_by_expertise = wsde_roles.select_primus_by_expertise
-WSDETeam.rotate_roles = wsde_roles.rotate_roles
-WSDETeam._assign_roles_for_edrr_phase = wsde_roles._assign_roles_for_edrr_phase
-
-# ---------------------------------------------------------------------------
-# Voting
-# ---------------------------------------------------------------------------
-WSDETeam.vote_on_critical_decision = wsde_voting.vote_on_critical_decision
-WSDETeam._apply_majority_voting = wsde_voting._apply_majority_voting
-WSDETeam._handle_tied_vote = wsde_voting._handle_tied_vote
-WSDETeam._apply_weighted_voting = wsde_voting._apply_weighted_voting
-WSDETeam._record_voting_history = wsde_voting._record_voting_history
-WSDETeam.consensus_vote = wsde_voting.consensus_vote
-WSDETeam.build_consensus = wsde_voting.build_consensus
-
-# ---------------------------------------------------------------------------
-# Summarization
-# ---------------------------------------------------------------------------
-WSDETeam.summarize_consensus_result = summarize_consensus_result
-WSDETeam.summarize_voting_result = summarize_voting_result
 
 # ---------------------------------------------------------------------------
 # Decision making
@@ -241,12 +212,10 @@ def _generate_diverse_ideas(
     """Delegate idea generation to the dedicated decision-making module."""
 
     task_payload = dict(task)
-    return cast(
-        list[dict[str, Any]],
-        wsde_decision_making.generate_diverse_ideas(
-            _as_base_team(self), task_payload, max_ideas, diversity_threshold
-        ),
+    ideas: list[dict[str, Any]] = wsde_decision_making.generate_diverse_ideas(
+        _as_base_team(self), task_payload, max_ideas, diversity_threshold
     )
+    return ideas
 
 
 def _create_comparison_matrix(
@@ -257,12 +226,12 @@ def _create_comparison_matrix(
     """Build a comparison matrix using the canonical implementation."""
 
     idea_payload = [dict(idea) for idea in ideas]
-    return cast(
-        dict[str, dict[str, float]],
+    matrix: dict[str, dict[str, float]] = (
         wsde_decision_making.create_comparison_matrix(
             _as_base_team(self), idea_payload, list(evaluation_criteria)
-        ),
+        )
     )
+    return matrix
 
 
 def _evaluate_options(
@@ -277,15 +246,13 @@ def _evaluate_options(
     comparison_payload = {
         option: dict(criteria) for option, criteria in comparison_matrix.items()
     }
-    return cast(
-        list[dict[str, Any]],
-        wsde_decision_making.evaluate_options(
-            _as_base_team(self),
-            idea_payload,
-            comparison_payload,
-            dict(weighting_scheme),
-        ),
+    evaluations: list[dict[str, Any]] = wsde_decision_making.evaluate_options(
+        _as_base_team(self),
+        idea_payload,
+        comparison_payload,
+        dict(weighting_scheme),
     )
+    return evaluations
 
 
 def _analyze_trade_offs(
@@ -298,15 +265,15 @@ def _analyze_trade_offs(
     """Surface trade-off insights through the shared helper module."""
 
     option_payload = [dict(option) for option in evaluated_options]
-    return cast(
-        list[dict[str, Any]],
+    trade_offs_payload: list[dict[str, Any]] = (
         wsde_decision_making.analyze_trade_offs(
             _as_base_team(self),
             option_payload,
             conflict_detection_threshold=conflict_detection_threshold,
             identify_complementary_options=identify_complementary_options,
-        ),
+        )
     )
+    return trade_offs_payload
 
 
 def _formulate_decision_criteria(
@@ -322,17 +289,15 @@ def _formulate_decision_criteria(
 
     option_payload = [dict(option) for option in evaluated_options]
     trade_off_payload = [dict(trade_off) for trade_off in trade_offs]
-    return cast(
-        dict[str, float],
-        wsde_decision_making.formulate_decision_criteria(
-            _as_base_team(self),
-            dict(task),
-            option_payload,
-            trade_off_payload,
-            contextualize_with_code=contextualize_with_code,
-            code_analyzer=code_analyzer,
-        ),
+    criteria: dict[str, float] = wsde_decision_making.formulate_decision_criteria(
+        _as_base_team(self),
+        dict(task),
+        option_payload,
+        trade_off_payload,
+        contextualize_with_code=contextualize_with_code,
+        code_analyzer=code_analyzer,
     )
+    return criteria
 
 
 def _select_best_option(
@@ -343,12 +308,10 @@ def _select_best_option(
     """Select the preferred option using the canonical helper."""
 
     option_payload = [dict(option) for option in evaluated_options]
-    return cast(
-        dict[str, Any],
-        wsde_decision_making.select_best_option(
-            _as_base_team(self), option_payload, dict(decision_criteria)
-        ),
+    best_option: dict[str, Any] = wsde_decision_making.select_best_option(
+        _as_base_team(self), option_payload, dict(decision_criteria)
     )
+    return best_option
 
 
 def _elaborate_details(
@@ -358,12 +321,10 @@ def _elaborate_details(
 ) -> list[dict[str, Any]]:
     """Expand the selected option into actionable details."""
 
-    return cast(
-        list[dict[str, Any]],
-        wsde_decision_making.elaborate_details(
-            _as_base_team(self), dict(selected_option)
-        ),
+    details: list[dict[str, Any]] = wsde_decision_making.elaborate_details(
+        _as_base_team(self), dict(selected_option)
     )
+    return details
 
 
 def _create_implementation_plan(
@@ -373,12 +334,12 @@ def _create_implementation_plan(
 ) -> list[dict[str, Any]]:
     """Generate an implementation plan compatible with orchestration logic."""
 
-    return cast(
-        list[dict[str, Any]],
+    plan_payload: list[dict[str, Any]] = (
         wsde_decision_making.create_implementation_plan(
             _as_base_team(self), [dict(item) for item in details]
-        ),
+        )
     )
+    return plan_payload
 
 
 def _optimize_implementation(
@@ -392,15 +353,15 @@ def _optimize_implementation(
     """Optimise implementation plans by reusing the shared helper."""
 
     targets = list(optimization_targets or [])
-    return cast(
-        list[dict[str, Any]],
+    optimized_plan: list[dict[str, Any]] = (
         wsde_decision_making.optimize_implementation(
             _as_base_team(self),
             [dict(step) for step in plan],
             targets,
             code_analyzer=code_analyzer,
-        ),
+        )
     )
+    return optimized_plan
 
 
 def _perform_quality_assurance(
@@ -414,78 +375,42 @@ def _perform_quality_assurance(
     """Apply quality assurance heuristics using the domain helper."""
 
     categories = list(check_categories or [])
-    return cast(
-        dict[str, Any],
-        wsde_decision_making.perform_quality_assurance(
-            _as_base_team(self),
-            [dict(step) for step in plan],
-            categories,
-            code_analyzer=code_analyzer,
-        ),
+    qa_summary: dict[str, Any] = wsde_decision_making.perform_quality_assurance(
+        _as_base_team(self),
+        [dict(step) for step in plan],
+        categories,
+        code_analyzer=code_analyzer,
     )
+    return qa_summary
 
 
-WSDETeam.generate_diverse_ideas = _generate_diverse_ideas
-WSDETeam.create_comparison_matrix = _create_comparison_matrix
-WSDETeam.evaluate_options = _evaluate_options
-WSDETeam.analyze_trade_offs = _analyze_trade_offs
-WSDETeam.formulate_decision_criteria = _formulate_decision_criteria
-WSDETeam.select_best_option = _select_best_option
-WSDETeam.elaborate_details = _elaborate_details
-WSDETeam.create_implementation_plan = _create_implementation_plan
-WSDETeam.optimize_implementation = _optimize_implementation
-WSDETeam.perform_quality_assurance = _perform_quality_assurance
-WSDETeam.apply_enhanced_dialectical_reasoning = (
-    wsde_enhanced_dialectical.apply_enhanced_dialectical_reasoning
-)
-WSDETeam.apply_enhanced_dialectical_reasoning_multi = (
-    wsde_enhanced_dialectical.apply_enhanced_dialectical_reasoning_multi
-)
-WSDETeam._identify_thesis = wsde_enhanced_dialectical._identify_thesis
-WSDETeam._generate_enhanced_antithesis = (
-    wsde_enhanced_dialectical._generate_enhanced_antithesis
-)
-WSDETeam._generate_enhanced_synthesis = (
-    wsde_enhanced_dialectical._generate_enhanced_synthesis
-)
-WSDETeam._generate_evaluation = wsde_enhanced_dialectical._generate_evaluation
-WSDETeam._analyze_solution = wsde_solution_analysis._analyze_solution
-WSDETeam._generate_comparative_analysis = (
-    wsde_solution_analysis._generate_comparative_analysis
-)
-WSDETeam._generate_multi_solution_synthesis = staticmethod(
-    wsde_enhanced_dialectical._generate_multi_solution_synthesis
-)
-WSDETeam._generate_comparative_evaluation = staticmethod(
-    wsde_enhanced_dialectical._generate_comparative_evaluation
-)
 
 
-def _get_worker(self: WSDETeam) -> SupportsTeamAgent | None:
+def _get_worker(self: "WSDETeam") -> SupportsTeamAgent | None:
     """Return the current worker if assigned."""
 
-    return cast(SupportsTeamAgent | None, self.roles.get(RoleName.WORKER))
+    return self.roles.get(RoleName.WORKER)
 
 
-def _get_supervisor(self: WSDETeam) -> SupportsTeamAgent | None:
+def _get_supervisor(self: "WSDETeam") -> SupportsTeamAgent | None:
     """Return the current supervisor if assigned."""
 
-    return cast(SupportsTeamAgent | None, self.roles.get(RoleName.SUPERVISOR))
+    return self.roles.get(RoleName.SUPERVISOR)
 
 
-def _get_designer(self: WSDETeam) -> SupportsTeamAgent | None:
+def _get_designer(self: "WSDETeam") -> SupportsTeamAgent | None:
     """Return the current designer if assigned."""
 
-    return cast(SupportsTeamAgent | None, self.roles.get(RoleName.DESIGNER))
+    return self.roles.get(RoleName.DESIGNER)
 
 
-def _get_evaluator(self: WSDETeam) -> SupportsTeamAgent | None:
+def _get_evaluator(self: "WSDETeam") -> SupportsTeamAgent | None:
     """Return the current evaluator if assigned."""
 
-    return cast(SupportsTeamAgent | None, self.roles.get(RoleName.EVALUATOR))
+    return self.roles.get(RoleName.EVALUATOR)
 
 
-def _get_agent(self: WSDETeam, name: str) -> SupportsTeamAgent | None:
+def _get_agent(self: "WSDETeam", name: str) -> SupportsTeamAgent | None:
     """Retrieve an agent by name."""
 
     for agent in self.agents:
@@ -493,15 +418,10 @@ def _get_agent(self: WSDETeam, name: str) -> SupportsTeamAgent | None:
             getattr(agent, "config", None), "name", None
         )
         if agent_name == name:
-            return cast(SupportsTeamAgent, agent)
+            return agent
     return None
 
 
-WSDETeam.get_worker = _get_worker
-WSDETeam.get_supervisor = _get_supervisor
-WSDETeam.get_designer = _get_designer
-WSDETeam.get_evaluator = _get_evaluator
-WSDETeam.get_agent = _get_agent
 
 
 def _extract_learnings(
@@ -591,9 +511,7 @@ def _recognize_patterns(
 ) -> list[PatternRecord]:
     """Derive recurring patterns from learnings and context."""
 
-    normalised = [
-        _coerce_learning_record(cast(Mapping[str, Any], entry)) for entry in learnings
-    ]
+    normalised = [_coerce_learning_record(entry) for entry in learnings]
 
     pattern_map: dict[str, PatternRecord] = {}
 
@@ -730,11 +648,10 @@ def _integrate_knowledge(
     """Aggregate learnings and patterns into a cohesive knowledge snapshot."""
 
     normalised_learnings = [
-        _coerce_learning_record(cast(Mapping[str, Any], entry), metadata=metadata)
-        for entry in learnings
+        _coerce_learning_record(entry, metadata=metadata) for entry in learnings
     ]
     normalised_patterns = [
-        _coerce_pattern_record(cast(Mapping[str, Any], pattern)) for pattern in patterns
+        _coerce_pattern_record(pattern) for pattern in patterns
     ]
 
     summary_sections: list[str] = []
@@ -782,12 +699,8 @@ def _generate_improvement_suggestions(
 ) -> list[ImprovementSuggestion]:
     """Translate retrospectives into concrete improvement actions."""
 
-    normalised_learnings = [
-        _coerce_learning_record(cast(Mapping[str, Any], entry)) for entry in learnings
-    ]
-    normalised_patterns = [
-        _coerce_pattern_record(cast(Mapping[str, Any], pattern)) for pattern in patterns
-    ]
+    normalised_learnings = [_coerce_learning_record(entry) for entry in learnings]
+    normalised_patterns = [_coerce_pattern_record(pattern) for pattern in patterns]
 
     suggestions: list[ImprovementSuggestion] = []
 
@@ -925,12 +838,6 @@ def _can_provide_critique(
     return solution_domain.lower() in expertise_domains or "review" in expertise_domains
 
 
-WSDETeam.extract_learnings = _extract_learnings
-WSDETeam.recognize_patterns = _recognize_patterns
-WSDETeam.integrate_knowledge = _integrate_knowledge
-WSDETeam.generate_improvement_suggestions = _generate_improvement_suggestions
-WSDETeam.can_propose_solution = _can_propose_solution
-WSDETeam.can_provide_critique = _can_provide_critique
 
 
 def _simple_conduct_peer_review(
@@ -982,14 +889,13 @@ def _simple_conduct_peer_review(
     return result
 
 
-WSDETeam.conduct_peer_review = _simple_conduct_peer_review
 
 # ---------------------------------------------------------------------------
 # Memory coordination helpers
 # ---------------------------------------------------------------------------
 
 
-def _flush_updates(self: WSDETeam) -> None:
+def _flush_updates(self: "WSDETeam") -> None:
     """Flush pending memory updates if a manager is attached."""
 
     mem = getattr(self, "memory_manager", None)
@@ -1011,74 +917,218 @@ def _flush_updates(self: WSDETeam) -> None:
                     pass
 
 
-WSDETeam.flush_updates = _flush_updates
+class TeamCommunicationMixin:
+    """Expose messaging helpers with explicit typing."""
 
-# ---------------------------------------------------------------------------
-# Dialectical reasoning
-# ---------------------------------------------------------------------------
-WSDETeam.apply_dialectical_reasoning = wsde_dialectical.apply_dialectical_reasoning
-WSDETeam._generate_antithesis = wsde_dialectical._generate_antithesis
-WSDETeam._generate_synthesis = wsde_dialectical._generate_synthesis
-WSDETeam._categorize_critiques_by_domain = (
-    wsde_dialectical._categorize_critiques_by_domain
-)
-WSDETeam._identify_domain_conflicts = wsde_dialectical._identify_domain_conflicts
-WSDETeam._prioritize_critiques = wsde_dialectical._prioritize_critiques
-WSDETeam._calculate_priority_score = wsde_dialectical._calculate_priority_score
-WSDETeam._improve_clarity = wsde_dialectical._improve_clarity
-WSDETeam._improve_with_examples = wsde_dialectical._improve_with_examples
-WSDETeam._improve_structure = wsde_dialectical._improve_structure
-WSDETeam._improve_error_handling = wsde_dialectical._improve_error_handling
-WSDETeam._improve_security = wsde_dialectical._improve_security
-WSDETeam._improve_performance = wsde_dialectical._improve_performance
-WSDETeam._improve_readability = wsde_dialectical._improve_readability
-WSDETeam._resolve_code_improvement_conflict = (
-    wsde_dialectical._resolve_code_improvement_conflict
-)
-WSDETeam._resolve_content_improvement_conflict = (
-    wsde_dialectical._resolve_content_improvement_conflict
-)
-WSDETeam._check_code_standards_compliance = (
-    wsde_dialectical._check_code_standards_compliance
-)
-WSDETeam._check_content_standards_compliance = (
-    wsde_dialectical._check_content_standards_compliance
-)
-WSDETeam._check_pep8_compliance = wsde_dialectical._check_pep8_compliance
-WSDETeam._check_security_best_practices = (
-    wsde_dialectical._check_security_best_practices
-)
-WSDETeam._balance_performance_and_maintainability = (
-    wsde_dialectical._balance_performance_and_maintainability
-)
-WSDETeam._balance_security_and_performance = (
-    wsde_dialectical._balance_security_and_performance
-)
-WSDETeam._balance_security_and_usability = (
-    wsde_dialectical._balance_security_and_usability
-)
-WSDETeam._generate_detailed_synthesis_reasoning = (
-    wsde_dialectical._generate_detailed_synthesis_reasoning
-)
+    send_message = send_message
+    broadcast_message = broadcast_message
+    get_messages = get_messages
 
-# ---------------------------------------------------------------------------
-# Multi-disciplinary reasoning
-# ---------------------------------------------------------------------------
-WSDETeam.apply_multi_disciplinary_dialectical_reasoning = (
-    wsde_multidisciplinary.apply_multi_disciplinary_dialectical_reasoning
-)
-WSDETeam._gather_disciplinary_perspectives = (
-    wsde_multidisciplinary._gather_disciplinary_perspectives
-)
-WSDETeam._identify_perspective_conflicts = (
-    wsde_multidisciplinary._identify_perspective_conflicts
-)
-WSDETeam._generate_multi_disciplinary_synthesis = (
-    wsde_multidisciplinary._generate_multi_disciplinary_synthesis
-)
-WSDETeam._generate_multi_disciplinary_evaluation = (
-    wsde_multidisciplinary._generate_multi_disciplinary_evaluation
-)
+
+class TeamPeerReviewMixin:
+    """Provide peer review coordination helpers."""
+
+    request_peer_review = request_peer_review
+    conduct_peer_review = _simple_conduct_peer_review
+
+
+class TeamSolutionMixin:
+    """Expose solution tracking and workflow helpers."""
+
+    add_solution = add_solution
+    run_basic_workflow = run_basic_workflow
+    flush_updates = _flush_updates
+
+
+class TeamSummarizationMixin:
+    """Expose summarisation helpers as proper methods."""
+
+    summarize_consensus_result = summarize_consensus_result
+    summarize_voting_result = summarize_voting_result
+
+
+class TeamRoleManagementMixin:
+    """Wrap role management helpers with typed methods."""
+
+    assign_roles = wsde_roles.assign_roles
+    assign_roles_for_phase = wsde_roles.assign_roles_for_phase
+    dynamic_role_reassignment = wsde_roles.dynamic_role_reassignment
+    _validate_role_mapping = wsde_roles._validate_role_mapping
+    _auto_assign_roles = wsde_roles._auto_assign_roles
+    get_role_map = wsde_roles.get_role_map
+    get_role_assignments = wsde_roles.get_role_assignments
+    _calculate_expertise_score = wsde_roles._calculate_expertise_score
+    _calculate_phase_expertise_score = wsde_roles._calculate_phase_expertise_score
+    select_primus_by_expertise = wsde_roles.select_primus_by_expertise
+    rotate_roles = wsde_roles.rotate_roles
+    _assign_roles_for_edrr_phase = wsde_roles._assign_roles_for_edrr_phase
+
+
+class TeamVotingMixin:
+    """Expose voting helpers as idiomatic methods."""
+
+    vote_on_critical_decision = wsde_voting.vote_on_critical_decision
+    _apply_majority_voting = wsde_voting._apply_majority_voting
+    _handle_tied_vote = wsde_voting._handle_tied_vote
+    _apply_weighted_voting = wsde_voting._apply_weighted_voting
+    _record_voting_history = wsde_voting._record_voting_history
+    consensus_vote = wsde_voting.consensus_vote
+    build_consensus = wsde_voting.build_consensus
+
+
+class TeamDecisionMakingMixin:
+    """Provide decision-making helpers for idea generation and evaluation."""
+
+    generate_diverse_ideas = _generate_diverse_ideas
+    create_comparison_matrix = _create_comparison_matrix
+    evaluate_options = _evaluate_options
+    analyze_trade_offs = _analyze_trade_offs
+    formulate_decision_criteria = _formulate_decision_criteria
+    select_best_option = _select_best_option
+    elaborate_details = _elaborate_details
+    create_implementation_plan = _create_implementation_plan
+    optimize_implementation = _optimize_implementation
+    perform_quality_assurance = _perform_quality_assurance
+
+
+class TeamEnhancedDialecticMixin:
+    """Expose enhanced dialectical reasoning helpers."""
+
+    apply_enhanced_dialectical_reasoning = (
+        wsde_enhanced_dialectical.apply_enhanced_dialectical_reasoning
+    )
+    apply_enhanced_dialectical_reasoning_multi = (
+        wsde_enhanced_dialectical.apply_enhanced_dialectical_reasoning_multi
+    )
+    _identify_thesis = wsde_enhanced_dialectical._identify_thesis
+    _generate_enhanced_antithesis = (
+        wsde_enhanced_dialectical._generate_enhanced_antithesis
+    )
+    _generate_enhanced_synthesis = (
+        wsde_enhanced_dialectical._generate_enhanced_synthesis
+    )
+    _generate_evaluation = wsde_enhanced_dialectical._generate_evaluation
+    _analyze_solution = wsde_solution_analysis._analyze_solution
+    _generate_comparative_analysis = (
+        wsde_solution_analysis._generate_comparative_analysis
+    )
+    _generate_multi_solution_synthesis = staticmethod(
+        wsde_enhanced_dialectical._generate_multi_solution_synthesis
+    )
+    _generate_comparative_evaluation = staticmethod(
+        wsde_enhanced_dialectical._generate_comparative_evaluation
+    )
+
+
+class TeamDialecticalMixin:
+    """Provide baseline dialectical reasoning helpers."""
+
+    apply_dialectical_reasoning = wsde_dialectical.apply_dialectical_reasoning
+    _generate_antithesis = wsde_dialectical._generate_antithesis
+    _generate_synthesis = wsde_dialectical._generate_synthesis
+    _categorize_critiques_by_domain = (
+        wsde_dialectical._categorize_critiques_by_domain
+    )
+    _identify_domain_conflicts = wsde_dialectical._identify_domain_conflicts
+    _prioritize_critiques = wsde_dialectical._prioritize_critiques
+    _calculate_priority_score = wsde_dialectical._calculate_priority_score
+    _improve_clarity = wsde_dialectical._improve_clarity
+    _improve_with_examples = wsde_dialectical._improve_with_examples
+    _improve_structure = wsde_dialectical._improve_structure
+    _improve_error_handling = wsde_dialectical._improve_error_handling
+    _improve_security = wsde_dialectical._improve_security
+    _improve_performance = wsde_dialectical._improve_performance
+    _improve_readability = wsde_dialectical._improve_readability
+    _resolve_code_improvement_conflict = (
+        wsde_dialectical._resolve_code_improvement_conflict
+    )
+    _resolve_content_improvement_conflict = (
+        wsde_dialectical._resolve_content_improvement_conflict
+    )
+    _check_code_standards_compliance = (
+        wsde_dialectical._check_code_standards_compliance
+    )
+    _check_content_standards_compliance = (
+        wsde_dialectical._check_content_standards_compliance
+    )
+    _check_pep8_compliance = wsde_dialectical._check_pep8_compliance
+    _check_security_best_practices = (
+        wsde_dialectical._check_security_best_practices
+    )
+    _balance_performance_and_maintainability = (
+        wsde_dialectical._balance_performance_and_maintainability
+    )
+    _balance_security_and_performance = (
+        wsde_dialectical._balance_security_and_performance
+    )
+    _balance_security_and_usability = (
+        wsde_dialectical._balance_security_and_usability
+    )
+    _generate_detailed_synthesis_reasoning = (
+        wsde_dialectical._generate_detailed_synthesis_reasoning
+    )
+
+
+class TeamMultidisciplinaryMixin:
+    """Attach multidisciplinary reasoning helpers."""
+
+    apply_multi_disciplinary_dialectical_reasoning = (
+        wsde_multidisciplinary.apply_multi_disciplinary_dialectical_reasoning
+    )
+    _gather_disciplinary_perspectives = (
+        wsde_multidisciplinary._gather_disciplinary_perspectives
+    )
+    _identify_perspective_conflicts = (
+        wsde_multidisciplinary._identify_perspective_conflicts
+    )
+    _generate_multi_disciplinary_synthesis = (
+        wsde_multidisciplinary._generate_multi_disciplinary_synthesis
+    )
+    _generate_multi_disciplinary_evaluation = (
+        wsde_multidisciplinary._generate_multi_disciplinary_evaluation
+    )
+
+
+class TeamAgentLookupMixin:
+    """Provide convenience accessors for role-specific agents."""
+
+    get_worker = _get_worker
+    get_supervisor = _get_supervisor
+    get_designer = _get_designer
+    get_evaluator = _get_evaluator
+    get_agent = _get_agent
+
+
+class TeamKnowledgeMixin:
+    """Expose retrospective knowledge management helpers."""
+
+    extract_learnings = _extract_learnings
+    recognize_patterns = _recognize_patterns
+    integrate_knowledge = _integrate_knowledge
+    generate_improvement_suggestions = _generate_improvement_suggestions
+    can_propose_solution = _can_propose_solution
+    can_provide_critique = _can_provide_critique
+
+
+class WSDETeam(
+    TeamKnowledgeMixin,
+    TeamAgentLookupMixin,
+    TeamMultidisciplinaryMixin,
+    TeamEnhancedDialecticMixin,
+    TeamDialecticalMixin,
+    TeamDecisionMakingMixin,
+    TeamVotingMixin,
+    TeamRoleManagementMixin,
+    TeamSummarizationMixin,
+    TeamSolutionMixin,
+    TeamPeerReviewMixin,
+    TeamCommunicationMixin,
+    CoreWSDETeam,
+):
+    """Typed façade that enriches :class:`~wsde_core.WSDETeam` with helpers."""
+
+
+WSDE = CoreWSDE
 
 __all__ = [
     "WSDE",
