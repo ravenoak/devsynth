@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import pytest
 
+import pytest
+
 import devsynth.methodology.edrr.reasoning_loop as reasoning_loop_module
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.exceptions import ConsensusError
 from devsynth.methodology.base import Phase
+from devsynth.methodology.edrr.contracts import CoordinatorRecorder, NullWSDETeam
 
 
 @pytest.mark.fast
@@ -37,7 +40,7 @@ def test_reasoning_loop_exits_when_budget_elapsed_before_iteration(
     monkeypatch.setattr(reasoning_loop_module.time, "monotonic", fake_monotonic)
 
     results = reasoning_loop_module.reasoning_loop(
-        wsde_team=None,
+        wsde_team=NullWSDETeam(),
         task={"problem": "x"},
         critic_agent=None,
         max_total_seconds=0.25,
@@ -80,7 +83,7 @@ def test_reasoning_loop_retry_sequence_updates_phase_and_coordinator(
         if isinstance(outcome, Exception):
             raise outcome
         observed_tasks.append(task.copy())
-        return DialecticalSequence.from_dict(outcome)
+        return outcome
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -101,34 +104,10 @@ def test_reasoning_loop_retry_sequence_updates_phase_and_coordinator(
     monkeypatch.setattr(reasoning_loop_module.time, "monotonic", fake_monotonic)
     monkeypatch.setattr(reasoning_loop_module.time, "sleep", fake_sleep)
 
-    class Recorder:
-        def __init__(self) -> None:
-            self.calls: list[tuple[str, dict[str, object]]] = []
-            self.failures: list[ConsensusError] = []
-
-        def record_expand_results(self, result: dict[str, object]) -> dict[str, object]:
-            self.calls.append(("expand", result))
-            return result
-
-        def record_differentiate_results(
-            self, result: dict[str, object]
-        ) -> dict[str, object]:
-            self.calls.append(("differentiate", result))
-            return result
-
-        def record_refine_results(self, result: dict[str, object]) -> dict[str, object]:
-            self.calls.append(("refine", result))
-            return result
-
-        def record_consensus_failure(
-            self, exc: ConsensusError
-        ) -> None:  # pragma: no cover - defensive
-            self.failures.append(exc)
-
-    recorder = Recorder()
+    recorder = CoordinatorRecorder()
 
     results = reasoning_loop_module.reasoning_loop(
-        wsde_team=None,
+        wsde_team=NullWSDETeam(),
         task={"id": "retry"},
         critic_agent=None,
         coordinator=recorder,
@@ -146,10 +125,10 @@ def test_reasoning_loop_retry_sequence_updates_phase_and_coordinator(
     assert sleep_calls == pytest.approx([0.2, 0.4])
     assert observed_tasks[0]["id"] == "retry"
     assert observed_tasks[1]["solution"] == {"step": 1}
-    assert recorder.calls == [
-        ("expand", results[0]),
-        ("differentiate", results[1]),
-        ("refine", results[2]),
+    assert recorder.records == [
+        ("expand", dict(results[0])),
+        ("differentiate", dict(results[1])),
+        ("refine", dict(results[2])),
     ]
 
 
@@ -178,34 +157,10 @@ def test_reasoning_loop_records_results_before_consensus_failure(
         lambda: fake_apply,
     )
 
-    class Recorder:
-        def __init__(self) -> None:
-            self.calls: list[tuple[str, dict[str, object]]] = []
-            self.failures: list[ConsensusError] = []
-
-        def record_expand_results(self, result: dict[str, object]) -> dict[str, object]:
-            self.calls.append(("expand", result))
-            return result
-
-        def record_differentiate_results(
-            self, result: dict[str, object]
-        ) -> dict[str, object]:  # pragma: no cover - unused guard
-            self.calls.append(("differentiate", result))
-            return result
-
-        def record_refine_results(
-            self, result: dict[str, object]
-        ) -> dict[str, object]:  # pragma: no cover - unused guard
-            self.calls.append(("refine", result))
-            return result
-
-        def record_consensus_failure(self, exc: ConsensusError) -> None:
-            self.failures.append(exc)
-
-    recorder = Recorder()
+    recorder = CoordinatorRecorder()
 
     results = reasoning_loop_module.reasoning_loop(
-        wsde_team=None,
+        wsde_team=NullWSDETeam(),
         task={"id": "consensus"},
         critic_agent=None,
         coordinator=recorder,
@@ -214,6 +169,6 @@ def test_reasoning_loop_records_results_before_consensus_failure(
     )
 
     assert len(results) == 1
-    assert recorder.calls == [("expand", results[0])]
+    assert recorder.records == [("expand", dict(results[0]))]
     assert recorder.failures and isinstance(recorder.failures[0], ConsensusError)
     assert index["value"] == 2

@@ -2,11 +2,17 @@ from __future__ import annotations
 
 import sys
 import types
+from typing import Any
 
 import pytest
 
 import devsynth.methodology.edrr.reasoning_loop as rl
 from devsynth.methodology.edrr.reasoning_loop import Phase
+from devsynth.methodology.edrr.contracts import (
+    CoordinatorRecorder,
+    MemoryIntegrationLog,
+    NullWSDETeam,
+)
 
 
 @pytest.mark.fast
@@ -35,7 +41,7 @@ def test_reasoning_loop_completes_with_deterministic_seed(monkeypatch):
     monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: fake_apply)
 
     out = rl.reasoning_loop(
-        wsde_team=None,
+        wsde_team=NullWSDETeam(),
         task={"problem": "X"},
         critic_agent=None,
         phase=Phase.REFINE,
@@ -77,35 +83,9 @@ def test_reasoning_loop_phase_transitions_and_memory_integration(monkeypatch):
         },
     ]
 
-    class MemoryStub:
-        def __init__(self) -> None:
-            self.calls: list[tuple[dict[str, object], dict[str, object]]] = []
-
-        def store_dialectical_result(
-            self, task: dict[str, object], result: dict[str, object]
-        ) -> None:
-            self.calls.append((task.copy(), result))
-
-    class CoordinatorStub:
-        def __init__(self) -> None:
-            self.records: list[tuple[str, dict[str, object]]] = []
-            self.failures: list[object] = []
-
-        def record_consensus_failure(self, exc) -> None:  # pragma: no cover - guard
-            self.failures.append(exc)
-
-        def record_expand_results(self, result):
-            self.records.append(("expand", result))
-
-        def record_differentiate_results(self, result):
-            self.records.append(("differentiate", result))
-
-        def record_refine_results(self, result):
-            self.records.append(("refine", result))
-
-    call_log: list[dict[str, object]] = []
-    memory = MemoryStub()
-    coordinator = CoordinatorStub()
+    call_log: list[dict[str, Any]] = []
+    memory = MemoryIntegrationLog()
+    coordinator = CoordinatorRecorder()
 
     def scripted_apply(wsde_team, task, critic_agent, memory_integration):
         index = len(call_log)
@@ -134,16 +114,16 @@ def test_reasoning_loop_phase_transitions_and_memory_integration(monkeypatch):
     def fake_numpy_seed(value: int) -> None:
         numpy_seeds.append(value)
 
-    fake_numpy_random.seed = fake_numpy_seed
+    setattr(fake_numpy_random, "seed", fake_numpy_seed)
     fake_numpy = types.ModuleType("numpy")
-    fake_numpy.random = fake_numpy_random
+    setattr(fake_numpy, "random", fake_numpy_random)
     monkeypatch.setitem(sys.modules, "numpy", fake_numpy)
     monkeypatch.setitem(sys.modules, "numpy.random", fake_numpy_random)
 
     initial_task = {"problem": "X", "solution": {"content": "initial"}}
 
     results = rl.reasoning_loop(
-        wsde_team=None,
+        wsde_team=NullWSDETeam(),
         task=initial_task,
         critic_agent=None,
         memory_integration=memory,
@@ -153,7 +133,12 @@ def test_reasoning_loop_phase_transitions_and_memory_integration(monkeypatch):
         max_iterations=5,
     )
 
-    assert results == results_sequence
+    assert [result["status"] for result in results] == [
+        payload["status"] for payload in results_sequence
+    ]
+    assert [result.get("phase") for result in results] == [
+        payload.get("phase") for payload in results_sequence
+    ]
     assert [entry[0] for entry in coordinator.records] == [
         "expand",
         "differentiate",

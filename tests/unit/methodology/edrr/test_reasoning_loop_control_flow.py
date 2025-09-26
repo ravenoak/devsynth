@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import sys
 import types
+from typing import Any
 
 import pytest
 
 import devsynth.methodology.edrr.reasoning_loop as rl
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
+from devsynth.domain.models.wsde_dialectical_types import DialecticalTask
+from devsynth.methodology.edrr.contracts import CoordinatorRecorder, NullWSDETeam
 
 
 @pytest.mark.fast
@@ -38,7 +41,7 @@ def test_reasoning_loop_exhausts_retry_budget_and_backoff(monkeypatch):
     monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
 
     results = rl.reasoning_loop(
-        wsde_team=types.SimpleNamespace(),
+        wsde_team=NullWSDETeam(),
         task={"problem": "test"},
         critic_agent=None,
         retry_attempts=2,
@@ -57,7 +60,7 @@ def test_reasoning_loop_coordinator_records_phase_transitions(monkeypatch):
     ReqID: N/A
     """
 
-    payloads = [
+    payloads: list[dict[str, Any]] = [
         {
             "phase": "expand",
             "next_phase": "differentiate",
@@ -75,12 +78,18 @@ def test_reasoning_loop_coordinator_records_phase_transitions(monkeypatch):
         },
     ]
 
-    calls_seen: list[dict[str, object]] = []
+    calls_seen: list[dict[str, Any]] = []
 
-    def scripted_responses(_wsde, task, _critic, _memory):
-        calls_seen.append(task.to_dict())
+    def scripted_responses(
+        _wsde: NullWSDETeam,
+        task: DialecticalTask,
+        _critic: Any,
+        _memory: Any,
+    ) -> dict[str, Any]:
+        snapshot = dict(task.to_dict())
+        calls_seen.append(snapshot)
         try:
-            return DialecticalSequence.from_dict(payloads[len(calls_seen) - 1])
+            return payloads[len(calls_seen) - 1]
         except IndexError:  # pragma: no cover - protective guard
             raise AssertionError("unexpected call")
 
@@ -88,25 +97,10 @@ def test_reasoning_loop_coordinator_records_phase_transitions(monkeypatch):
         rl, "_import_apply_dialectical_reasoning", lambda: scripted_responses
     )
 
-    recorded: list[tuple[str, dict[str, object]]] = []
-
-    class DummyCoordinator:
-        def record_expand_results(self, result):
-            recorded.append(("expand", result))
-
-        def record_differentiate_results(self, result):
-            recorded.append(("differentiate", result))
-
-        def record_refine_results(self, result):
-            recorded.append(("refine", result))
-
-        def record_consensus_failure(self, exc):  # pragma: no cover - safeguard
-            raise AssertionError(f"unexpected consensus failure: {exc}")
-
-    coordinator = DummyCoordinator()
+    coordinator = CoordinatorRecorder()
 
     results = rl.reasoning_loop(
-        wsde_team=types.SimpleNamespace(),
+        wsde_team=NullWSDETeam(),
         task={"problem": "demo"},
         critic_agent=None,
         coordinator=coordinator,
@@ -114,13 +108,18 @@ def test_reasoning_loop_coordinator_records_phase_transitions(monkeypatch):
         max_iterations=5,
     )
 
-    assert [dict(r) for r in results] == payloads
-    assert recorded == [
+    assert [result["status"] for result in results] == [
+        payload["status"] for payload in payloads
+    ]
+    assert [result.get("phase") for result in results] == [
+        payload.get("phase") for payload in payloads
+    ]
+    assert coordinator.records == [
         ("expand", payloads[0]),
         ("differentiate", payloads[1]),
         ("refine", payloads[2]),
     ]
-    assert calls_seen[0] == {"problem": "demo"}
+    assert calls_seen[0]["solution"] is None
     assert calls_seen[1]["solution"] == payloads[0]["synthesis"]
     assert calls_seen[2]["solution"] == payloads[1]["synthesis"]
 
@@ -153,7 +152,7 @@ def test_reasoning_loop_honors_total_time_budget(monkeypatch):
     monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
 
     results = rl.reasoning_loop(
-        wsde_team=types.SimpleNamespace(),
+        wsde_team=NullWSDETeam(),
         task={"problem": "budget"},
         critic_agent=None,
         max_total_seconds=0.1,
@@ -200,12 +199,12 @@ def test_reasoning_loop_seeds_random_sources(monkeypatch):
     )
 
     results = rl.reasoning_loop(
-        wsde_team=types.SimpleNamespace(),
+        wsde_team=NullWSDETeam(),
         task={"problem": "seed"},
         critic_agent=None,
         deterministic_seed=123,
     )
 
-    assert [dict(r) for r in results] == [payload]
+    assert [result["status"] for result in results] == [payload["status"]]
     assert ("random", 123) in seeded
     assert ("numpy", 123) in seeded

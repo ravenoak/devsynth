@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import Any
 
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.domain.models.wsde_dialectical_types import (
@@ -27,39 +27,40 @@ from devsynth.exceptions import ConsensusError
 from devsynth.logging_setup import DevSynthLogger
 
 from ..base import Phase
-
-if TYPE_CHECKING:  # avoid runtime circular imports
-    from devsynth.domain.models.wsde_base import WSDETeam
-
-    from .coordinator import EDRRCoordinator
+from .contracts import (
+    EDRRCoordinatorProtocol,
+    MemoryIntegration,
+    WSDETeamProtocol,
+)
 
 logger = DevSynthLogger(__name__)
 
 
-class MemoryIntegration(Protocol):
-    """Protocol for memory integrations used in dialectical reasoning."""
-
-    def store_dialectical_result(
-        self, task: DialecticalTask, result: DialecticalSequence
-    ) -> None:
-        """Persist a dialectical reasoning result."""
-
-
 ApplyDialecticalReasoning = Callable[
-    ["WSDETeam", DialecticalTask, Any, "MemoryIntegration | None"],
+    [WSDETeamProtocol, DialecticalTask, Any, MemoryIntegration | None],
     DialecticalSequence,
 ]
 
 
+def _import_apply_dialectical_reasoning() -> ApplyDialecticalReasoning:
+    """Return the dialectical reasoning callable.
+
+    Extracted for tests so that monkeypatching this module-local accessor swaps
+    the underlying reasoning implementation without touching global state.
+    """
+
+    return typed_apply
+
+
 def reasoning_loop(
-    wsde_team: WSDETeam,
+    wsde_team: WSDETeamProtocol,
     task: DialecticalTask | Mapping[str, Any],
     critic_agent: Any,
     memory_integration: MemoryIntegration | None = None,
     *,
     phase: Phase = Phase.REFINE,
     max_iterations: int = 3,
-    coordinator: EDRRCoordinator | None = None,
+    coordinator: EDRRCoordinatorProtocol | None = None,
     retry_attempts: int = 1,
     retry_backoff: float = 0.05,
     deterministic_seed: int | None = None,
@@ -93,7 +94,7 @@ def reasoning_loop(
 
     start_time = time.monotonic()
 
-    results: list[DialecticalSequence] = []
+    results: list[Mapping[str, Any]] = []
     current_task: DialecticalTask = ensure_dialectical_task(task)
     current_phase: Phase = phase
 
@@ -119,7 +120,9 @@ def reasoning_loop(
         result: DialecticalSequence | Mapping[str, Any] | None = None
         stop = False
         attempts = 0
-        apply_dialectical_reasoning: ApplyDialecticalReasoning = typed_apply
+        apply_dialectical_reasoning: ApplyDialecticalReasoning = (
+            _import_apply_dialectical_reasoning()
+        )
         while True:
             try:
                 result = apply_dialectical_reasoning(
@@ -163,15 +166,17 @@ def reasoning_loop(
         if stop or result is None:
             break
 
-        if not isinstance(result, DialecticalSequence):
-            if isinstance(result, Mapping):
-                result = DialecticalSequence.from_dict(result)
-            else:
-                raise TypeError(
-                    "apply_dialectical_reasoning must return a mapping payload"
-                )
-
-        result_mapping: Mapping[str, Any] = result
+        append_result: Mapping[str, Any]
+        if isinstance(result, DialecticalSequence):
+            result_mapping = result
+            append_result = result
+        elif isinstance(result, Mapping):
+            result_mapping = result
+            append_result = dict(result)
+        else:
+            raise TypeError(
+                "apply_dialectical_reasoning must return a mapping payload"
+            )
 
         # Determine the effective phase for recording from result payload
         effective_phase = current_phase
@@ -193,7 +198,7 @@ def reasoning_loop(
                 dict(result_mapping)
             )
 
-        results.append(result)
+        results.append(append_result)
 
         # Stop condition if the reasoning reports completion
         if result_mapping.get("status") == "completed":
