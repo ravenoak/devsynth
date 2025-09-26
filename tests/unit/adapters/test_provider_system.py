@@ -1,7 +1,7 @@
 import asyncio
 import os
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 import requests
@@ -22,7 +22,9 @@ from devsynth.adapters.provider_system import (
 # Resource gating is applied only in truly live-provider tests.
 
 
-@pytest.mark.medium
+pytestmark = pytest.mark.fast
+
+
 def test_embed_success_succeeds():
     """Test that embed success succeeds.
 
@@ -35,7 +37,6 @@ def test_embed_success_succeeds():
         provider.embed.assert_called_once()
 
 
-@pytest.mark.medium
 def test_embed_error_succeeds():
     """Test that embed error succeeds.
 
@@ -47,7 +48,6 @@ def test_embed_error_succeeds():
             provider_system.embed("text", provider_type="lmstudio", fallback=False)
 
 
-@pytest.mark.medium
 def test_aembed_success_succeeds():
     """Test that aembed success succeeds.
 
@@ -66,7 +66,6 @@ def test_aembed_success_succeeds():
     asyncio.run(run_test())
 
 
-@pytest.mark.medium
 def test_aembed_error_succeeds():
     """Test that aembed error succeeds.
 
@@ -84,7 +83,6 @@ def test_aembed_error_succeeds():
     asyncio.run(run_test())
 
 
-@pytest.mark.medium
 def test_complete_success_succeeds():
     """Test that complete success succeeds.
 
@@ -101,7 +99,6 @@ def test_complete_success_succeeds():
         )
 
 
-@pytest.mark.medium
 def test_complete_error_succeeds():
     """Test that complete error succeeds.
 
@@ -113,7 +110,6 @@ def test_complete_error_succeeds():
             provider_system.complete("prompt", provider_type="openai", fallback=False)
 
 
-@pytest.mark.medium
 def test_acomplete_success_succeeds():
     """Test that acomplete success succeeds.
 
@@ -137,7 +133,6 @@ def test_acomplete_success_succeeds():
     asyncio.run(run_test())
 
 
-@pytest.mark.medium
 def test_acomplete_error_succeeds():
     """Test that acomplete error succeeds.
 
@@ -155,7 +150,6 @@ def test_acomplete_error_succeeds():
     asyncio.run(run_test())
 
 
-@pytest.mark.medium
 def test_provider_factory_create_provider_succeeds():
     """Test that provider factory create provider succeeds.
 
@@ -227,7 +221,6 @@ def test_provider_factory_create_provider_succeeds():
                 assert provider is mock_openai_instance
 
 
-@pytest.mark.medium
 def test_get_provider_succeeds():
     """Test that get provider succeeds.
 
@@ -249,7 +242,6 @@ def test_get_provider_succeeds():
             mock_create.assert_called_with("openai")
 
 
-@pytest.mark.medium
 def test_base_provider_methods_succeeds():
     """Test that base provider methods succeeds.
 
@@ -271,16 +263,13 @@ def test_base_provider_methods_succeeds():
         pytest.param(
             OpenAIProvider,
             {"api_key": "test_key", "model": "gpt-4"},
-            marks=pytest.mark.requires_resource("openai"),
         ),
         pytest.param(
             LMStudioProvider,
             {"endpoint": "http://test-endpoint"},
-            marks=pytest.mark.requires_resource("lmstudio"),
         ),
     ],
 )
-@pytest.mark.medium
 def test_provider_initialization_succeeds(provider_class, config):
     """Test that provider initialization succeeds.
 
@@ -302,7 +291,6 @@ def test_provider_initialization_succeeds(provider_class, config):
     assert callable(retry_decorator)
 
 
-@pytest.mark.medium
 def test_fallback_provider_succeeds():
     """Test that fallback provider succeeds.
 
@@ -318,7 +306,6 @@ def test_fallback_provider_succeeds():
     provider2.complete.assert_called_once()
 
 
-@pytest.mark.medium
 def test_load_env_file_populates_config(tmp_path, monkeypatch):
     """Ensure _load_env_file reads .env values into config.
 
@@ -337,7 +324,6 @@ def test_load_env_file_populates_config(tmp_path, monkeypatch):
     assert out["default_provider"] == "lmstudio"
 
 
-@pytest.mark.medium
 def test_create_tls_config_has_expected():
     """_create_tls_config mirrors attributes on settings.
 
@@ -356,7 +342,6 @@ def test_create_tls_config_has_expected():
     assert cfg.ca_file == "ca.pem"
 
 
-@pytest.mark.medium
 def test_get_env_or_default_succeeds():
     """Test the get_env_or_default function.
 
@@ -369,7 +354,6 @@ def test_get_env_or_default_succeeds():
         assert get_env_or_default("TEST_VAR") is None
 
 
-@pytest.mark.medium
 def test_get_provider_config_has_expected():
     """Test the get_provider_config function.
 
@@ -396,8 +380,6 @@ def test_get_provider_config_has_expected():
 
 
 @patch("requests.post")
-@pytest.mark.medium
-@pytest.mark.requires_resource("openai")
 def test_openai_provider_complete_has_expected(mock_post):
     """Test the complete method of OpenAIProvider.
 
@@ -421,8 +403,6 @@ def test_openai_provider_complete_has_expected(mock_post):
 
 
 @patch("requests.post")
-@pytest.mark.medium
-@pytest.mark.requires_resource("openai")
 def test_openai_provider_complete_error_raises_error(mock_post):
     """Test error handling in the complete method of OpenAIProvider.
 
@@ -438,8 +418,6 @@ def test_openai_provider_complete_error_raises_error(mock_post):
 
 
 @patch("requests.post")
-@pytest.mark.medium
-@pytest.mark.requires_resource("openai")
 def test_openai_provider_complete_retry_has_expected(mock_post):
     """Test retry mechanism in the complete method of OpenAIProvider.
 
@@ -484,38 +462,74 @@ def test_openai_provider_complete_retry_has_expected(mock_post):
         assert len(retry_calls_with_correct_params) >= 1
 
 
-@patch("httpx.AsyncClient.post")
-@pytest.mark.medium
-@pytest.mark.requires_resource("openai")
-def test_openai_provider_acomplete_has_expected(mock_post):
+def test_openai_provider_acomplete_has_expected(monkeypatch):
     """Test the acomplete method of OpenAIProvider.
 
     ReqID: N/A"""
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {
-        "choices": [{"message": {"content": "Async test completion"}}]
-    }
-    mock_post.return_value = mock_response
+
+    class _AsyncResponse:
+        def __init__(self, payload):
+            self._payload = payload
+            self.status_code = 200
+
+        def raise_for_status(self):  # noqa: ANN001 - stub
+            return None
+
+        def json(self):  # noqa: ANN001 - stub
+            return self._payload
+
+    calls: list[dict[str, Any]] = []
+
+    class _AsyncClient:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def post(self, url, headers=None, json=None):  # noqa: ANN001 - stub
+            calls.append({"url": url, "headers": headers, "json": json})
+            return _AsyncResponse({
+                "choices": [{"message": {"content": "Async test completion"}}]
+            })
+
+    class _HttpxStub:
+        HTTPError = Exception
+
+        def __init__(self):
+            self.AsyncClient = _AsyncClient
+
+    httpx_stub = _HttpxStub()
+    monkeypatch.setattr(provider_system, "httpx", httpx_stub)
+
     provider = OpenAIProvider(api_key="test_key", model="gpt-4")
 
     async def run_test():
         result = await provider.acomplete("Test prompt", system_prompt="System prompt")
         assert result == "Async test completion"
-        mock_post.assert_called_once()
-        args, kwargs = mock_post.call_args
-        assert args[0] == "https://api.openai.com/v1/chat/completions"
-        assert kwargs["headers"]["Authorization"] == "Bearer test_key"
-        assert kwargs["json"]["model"] == "gpt-4"
-        assert kwargs["json"]["messages"][0]["content"] == "System prompt"
-        assert kwargs["json"]["messages"][1]["content"] == "Test prompt"
+        assert calls == [
+            {
+                "url": "https://api.openai.com/v1/chat/completions",
+                "headers": {"Authorization": "Bearer test_key", "Content-Type": "application/json"},
+                "json": {
+                    "model": "gpt-4",
+                    "messages": [
+                        {"role": "system", "content": "System prompt"},
+                        {"role": "user", "content": "Test prompt"},
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 2000,
+                },
+            }
+        ]
 
     asyncio.run(run_test())
 
 
 @patch("requests.post")
-@pytest.mark.medium
-@pytest.mark.requires_resource("openai")
 def test_openai_provider_embed_has_expected(mock_post):
     """Test the embed method of OpenAIProvider.
 
@@ -544,8 +558,6 @@ def test_openai_provider_embed_has_expected(mock_post):
 )
 @patch("requests.get")
 @patch("requests.post")
-@pytest.mark.medium
-@pytest.mark.requires_resource("lmstudio")
 def test_lmstudio_provider_complete_has_expected(mock_post, mock_get, mock_tls):
     """Test the complete method of LMStudioProvider.
 
@@ -567,7 +579,6 @@ def test_lmstudio_provider_complete_has_expected(mock_post, mock_get, mock_tls):
     assert kwargs["json"]["messages"][1]["content"] == "Test prompt"
 
 
-@pytest.mark.medium
 def test_fallback_provider_async_methods_has_expected():
     """Test the async methods of FallbackProvider.
 
@@ -596,9 +607,6 @@ def test_fallback_provider_async_methods_has_expected():
     asyncio.run(run_test())
 
 
-@pytest.mark.medium
-@pytest.mark.requires_resource("openai")
-@pytest.mark.requires_resource("lmstudio")
 def test_provider_with_empty_inputs_has_expected():
     """Test providers with empty inputs.
 
@@ -635,9 +643,6 @@ def test_provider_with_empty_inputs_has_expected():
         assert result == "Empty prompt response"
 
 
-@pytest.mark.medium
-@pytest.mark.requires_resource("openai")
-@pytest.mark.requires_resource("lmstudio")
 def test_provider_factory_injected_config_selects_provider():
     """ProviderFactory should respect injected configuration.
 
@@ -670,7 +675,6 @@ def test_provider_factory_injected_config_selects_provider():
         assert isinstance(provider, OpenAIProvider)
 
 
-@pytest.mark.medium
 def test_fallback_provider_respects_order(monkeypatch):
     """FallbackProvider should instantiate providers based on order.
 
@@ -702,8 +706,6 @@ def test_fallback_provider_respects_order(monkeypatch):
 
 @patch("devsynth.adapters.provider_system.requests.post")
 @patch("time.sleep", return_value=None)
-@pytest.mark.medium
-@pytest.mark.requires_resource("openai")
 def test_openai_provider_retries_after_transient_failure(mock_sleep, mock_post):
     """OpenAIProvider retries once on transient failure.
 
@@ -733,7 +735,6 @@ def test_openai_provider_retries_after_transient_failure(mock_sleep, mock_post):
     assert mock_post.call_count == 2
 
 
-@pytest.mark.medium
 def test_fallback_provider_circuit_breaker_blocks_after_failure():
     """Circuit breaker prevents repeated failing calls.
 
@@ -772,7 +773,6 @@ def test_fallback_provider_circuit_breaker_blocks_after_failure():
     assert failing.complete.call_count == 1
 
 
-@pytest.mark.medium
 def test_complete_falls_back_to_next_provider():
     """Top-level complete falls back when first provider fails.
 

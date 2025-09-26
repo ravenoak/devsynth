@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 
 import devsynth.adapters.provider_system as provider_system
+import devsynth.fallback as fallback_module
 
 pytestmark = pytest.mark.fast
 
@@ -403,10 +404,21 @@ def test_fallback_initialization_orders_providers_and_records_circuit_results(
 
 
 class FakeCircuitBreaker:
-    def __init__(self, state: str = "closed"):
-        self.state = state
+    def __init__(self, state: str = "closed", label: str = "provider.acomplete"):
+        self._state = state
         self.failures = 0
         self.successes = 0
+        self.label = label
+
+    @property
+    def state(self) -> str:
+        if self._state != "closed":
+            fallback_module.inc_circuit_breaker_state(self.label, self._state.upper())
+        return self._state
+
+    @state.setter
+    def state(self, value: str) -> None:
+        self._state = value
 
     def call(self, func, **kwargs):  # pragma: no cover - sync path unused here
         if self.state != "closed":
@@ -416,10 +428,17 @@ class FakeCircuitBreaker:
     def _record_failure(self):
         self.failures += 1
         self.state = "open"
+        fallback_module.inc_circuit_breaker_state(self.label, "OPEN")
 
     def _record_success(self):
         self.successes += 1
         self.state = "closed"
+        fallback_module.inc_circuit_breaker_state(self.label, "CLOSED")
+
+    def reset(self) -> None:
+        if self._state != "closed":
+            fallback_module.inc_circuit_breaker_state(self.label, "CLOSED")
+        self._state = "closed"
 
 
 class AsyncPrimaryProvider:
@@ -449,7 +468,8 @@ class AsyncSecondaryProvider:
 
 
 @pytest.mark.asyncio
-async def test_async_fallback_skips_open_circuit_breaker():
+async def test_async_fallback_skips_open_circuit_breaker(monkeypatch):
+    circuit_metrics = _circuit_metrics_spy(monkeypatch)
     providers = [
         AsyncPrimaryProvider(result="unused"),
         AsyncSecondaryProvider(result="good"),
@@ -459,8 +479,12 @@ async def test_async_fallback_skips_open_circuit_breaker():
         config=_fallback_config(circuit_breaker={"enabled": True}),
     )
     fallback.circuit_breakers = {
-        "asyncprimary": FakeCircuitBreaker(state="open"),
-        "asyncsecondary": FakeCircuitBreaker(state="closed"),
+        "asyncprimary": FakeCircuitBreaker(
+            state="open", label="asyncprimary.acomplete"
+        ),
+        "asyncsecondary": FakeCircuitBreaker(
+            state="closed", label="asyncsecondary.acomplete"
+        ),
     }
 
     result = await fallback.acomplete("prompt")
@@ -469,6 +493,10 @@ async def test_async_fallback_skips_open_circuit_breaker():
     assert providers[0].calls == 0  # breaker prevented call
     assert providers[1].calls == 1
     assert fallback.circuit_breakers["asyncsecondary"].successes == 1
+    assert circuit_metrics == [
+        ("asyncprimary.acomplete", "OPEN"),
+        ("asyncsecondary.acomplete", "CLOSED"),
+    ]
 
 
 @pytest.mark.asyncio
@@ -555,27 +583,45 @@ async def test_openai_async_retry_emits_telemetry(monkeypatch):
 @pytest.mark.asyncio
 async def test_async_fallback_circuit_breaker_recovery(monkeypatch):
     metrics = _metrics_spy(monkeypatch)
+    circuit_metrics = _circuit_metrics_spy(monkeypatch)
 
     class _RecordingBreaker:
-        def __init__(self, failure_threshold: int, recovery_timeout: float, *_, **__):
+        def __init__(
+            self,
+            failure_threshold: int,
+            recovery_timeout: float,
+            *_,
+            label: str,
+            **__,
+        ):
             self.failure_threshold = failure_threshold
             self.recovery_timeout = recovery_timeout
             self.state = "closed"
             self.failures = 0
             self.successes = 0
+            self.label = label
 
         def call(self, func, **kwargs):  # noqa: ANN001 - stub
             if self.state != "closed":
+                fallback_module.inc_circuit_breaker_state(
+                    self.label, self.state.upper()
+                )
                 raise provider_system.ProviderError("Circuit open")
             return func(**kwargs)
 
         def _record_failure(self):
             self.failures += 1
             self.state = "open"
+            fallback_module.inc_circuit_breaker_state(self.label, "OPEN")
 
         def _record_success(self):
             self.successes += 1
             self.state = "closed"
+            fallback_module.inc_circuit_breaker_state(self.label, "CLOSED")
+
+        def reset(self):
+            self.state = "closed"
+            fallback_module.inc_circuit_breaker_state(self.label, "CLOSED")
 
     monkeypatch.setattr(provider_system, "CircuitBreaker", _RecordingBreaker)
 
@@ -616,8 +662,8 @@ async def test_async_fallback_circuit_breaker_recovery(monkeypatch):
     )
 
     fallback.circuit_breakers = {
-        "primary": _RecordingBreaker(1, 0.0),
-        "secondary": _RecordingBreaker(1, 0.0),
+        "primary": _RecordingBreaker(1, 0.0, label="primary.acomplete"),
+        "secondary": _RecordingBreaker(1, 0.0, label="secondary.acomplete"),
     }
 
     monkeypatch.setattr(provider_system, "get_provider", lambda *_, **__: fallback)
@@ -632,7 +678,7 @@ async def test_async_fallback_circuit_breaker_recovery(monkeypatch):
     assert primary_breaker.failures == 1
     assert primary_breaker.state == "open"
 
-    primary_breaker.state = "closed"
+    primary_breaker.reset()
 
     second_result = await provider_system.acomplete("prompt")
 
@@ -642,6 +688,12 @@ async def test_async_fallback_circuit_breaker_recovery(monkeypatch):
     assert secondary.calls == 1
     assert primary_breaker.successes == 1
     assert primary_breaker.state == "closed"
+    assert circuit_metrics == [
+        ("primary.acomplete", "OPEN"),
+        ("secondary.acomplete", "CLOSED"),
+        ("primary.acomplete", "CLOSED"),
+        ("primary.acomplete", "CLOSED"),
+    ]
 
 
 @pytest.mark.asyncio
@@ -658,23 +710,39 @@ async def test_async_fallback_metrics_permutations(
     monkeypatch, primary_success: bool, secondary_success: bool, expected: str | None
 ):
     metrics = _metrics_spy(monkeypatch)
+    circuit_metrics = _circuit_metrics_spy(monkeypatch)
 
     class _RecordingBreaker:
-        def __init__(self, failure_threshold: int, recovery_timeout: float, *_, **__):
+        def __init__(
+            self,
+            failure_threshold: int,
+            recovery_timeout: float,
+            *_,
+            label: str,
+            **__,
+        ):
             self.state = "closed"
             self.failures = 0
             self.successes = 0
+            self.label = label
 
         def call(self, func, **kwargs):  # noqa: ANN001 - stub
+            if self.state != "closed":
+                fallback_module.inc_circuit_breaker_state(
+                    self.label, self.state.upper()
+                )
+                raise provider_system.ProviderError("Circuit open")
             return func(**kwargs)
 
         def _record_failure(self):
             self.failures += 1
             self.state = "open"
+            fallback_module.inc_circuit_breaker_state(self.label, "OPEN")
 
         def _record_success(self):
             self.successes += 1
             self.state = "closed"
+            fallback_module.inc_circuit_breaker_state(self.label, "CLOSED")
 
     monkeypatch.setattr(provider_system, "CircuitBreaker", _RecordingBreaker)
 
@@ -711,8 +779,8 @@ async def test_async_fallback_metrics_permutations(
     )
 
     fallback.circuit_breakers = {
-        "primary": _RecordingBreaker(1, 0.0),
-        "secondary": _RecordingBreaker(1, 0.0),
+        "primary": _RecordingBreaker(1, 0.0, label="primary.acomplete"),
+        "secondary": _RecordingBreaker(1, 0.0, label="secondary.acomplete"),
     }
 
     monkeypatch.setattr(provider_system, "get_provider", lambda *_, **__: fallback)
@@ -742,6 +810,21 @@ async def test_async_fallback_metrics_permutations(
     elif not primary_success and not secondary_success:
         assert secondary_breaker.failures == 1
 
+    if primary_success:
+        expected_circuit_metrics = [("primary.acomplete", "CLOSED")]
+    elif secondary_success:
+        expected_circuit_metrics = [
+            ("primary.acomplete", "OPEN"),
+            ("secondary.acomplete", "CLOSED"),
+        ]
+    else:
+        expected_circuit_metrics = [
+            ("primary.acomplete", "OPEN"),
+            ("secondary.acomplete", "OPEN"),
+        ]
+
+    assert circuit_metrics == expected_circuit_metrics
+
 
 def _metrics_spy(monkeypatch):
     calls: list[str] = []
@@ -750,6 +833,16 @@ def _metrics_spy(monkeypatch):
         calls.append(name)
 
     monkeypatch.setattr(provider_system, "inc_provider", _inc)
+    return calls
+
+
+def _circuit_metrics_spy(monkeypatch):
+    calls: list[tuple[str, str]] = []
+
+    def _inc(name: str, state: str) -> None:
+        calls.append((name, state))
+
+    monkeypatch.setattr(fallback_module, "inc_circuit_breaker_state", _inc)
     return calls
 
 

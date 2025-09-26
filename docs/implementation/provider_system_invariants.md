@@ -1,6 +1,6 @@
 ---
 author: DevSynth Team
-date: '2025-09-23'
+date: '2025-09-26'
 status: review
 tags:
 - implementation
@@ -88,6 +88,12 @@ provider when failure probabilities remain below 30 %.【F:tests/property/test
 
 - Issue: [issues/edrr-integration-with-real-llm-providers.md](../issues/edrr-integration-with-real-llm-providers.md)
 - Tests: [tests/property/test_provider_system_properties.py](../tests/property/test_provider_system_properties.py) (Hypothesis coverage) and [tests/unit/providers/test_provider_system_additional.py](../../tests/unit/providers/test_provider_system_additional.py) (offline defaults and retry plumbing).【F:tests/property/test_provider_system_properties.py†L1-L98】【F:tests/unit/providers/test_provider_system_additional.py†L1-L118】
+
+## Coverage Signal (2025-09-26)
+
+- The provider-system unit suites now carry a module-level `@pytest.mark.fast`, keeping every scenario offline by replacing `httpx` clients and network calls with deterministic fakes so async/sync helpers run without optional LLM extras.【F:tests/unit/adapters/test_provider_system.py†L1-L529】
+- Asynchronous fallback tests record circuit-breaker transitions and verify `inc_circuit_breaker_state` telemetry for both open and closed states across recovery, skip, and failure permutations, ensuring the aggregate metrics reflect fallback behavior even when no live providers are installed.【F:tests/unit/providers/test_provider_system_branches.py†L470-L826】
+- `poetry run pytest tests/unit/providers/test_provider_system_branches.py -k async_fallback --no-cov` confirms the updated telemetry assertions succeed, while the aggregate `devsynth run-tests` entry point still exits early in this environment because optional Starlette dependencies are unavailable despite adding `PYTHONPATH=src`.【6eb035†L1-L23】【a1ab7d†L1-L5】
 
 ## Coverage Signal (2025-09-23)
 
