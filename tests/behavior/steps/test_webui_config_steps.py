@@ -141,7 +141,6 @@ def webui_context(monkeypatch):
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
-    # Mock the load_project_config function to return a valid ProjectUnifiedConfig object
     from pathlib import Path
 
     from devsynth.config import ProjectUnifiedConfig
@@ -150,10 +149,13 @@ def webui_context(monkeypatch):
     mock_config = ConfigModel(
         project_root="/mock/project/root",
         offline_mode=False,
-        provider_settings={"provider": "openai", "model": "gpt-3.5-turbo"},
-        memory_settings={"memory_provider": "chromadb"},
-        uxbridge_settings={"default_interface": "cli"},
         features={"feature1": False, "feature2": False},
+        uxbridge_settings={
+            "default_interface": "cli",
+            "webui_port": 8501,
+            "api_port": 8000,
+            "enable_authentication": False,
+        },
     )
     mock_project_config = ProjectUnifiedConfig(
         config=mock_config,
@@ -161,38 +163,19 @@ def webui_context(monkeypatch):
         use_pyproject=False,
     )
 
-    config_stub = ModuleType("devsynth.config")
-    config_stub.load_project_config = MagicMock(return_value=mock_project_config)
-    config_stub.save_config = MagicMock()
-    config_stub.get_llm_settings = MagicMock(
-        return_value={
-            "provider_type": "openai",
-            "model": "gpt-3.5-turbo",
-            "temperature": 0.7,
-            "max_tokens": 2000,
-        }
-    )
-    config_stub.ProjectUnifiedConfig = ProjectUnifiedConfig
-    config_stub.ConfigModel = ConfigModel
-    monkeypatch.setitem(sys.modules, "devsynth.config", config_stub)
-
-    # Mock the settings module
-    settings_stub = ModuleType("devsynth.config.settings")
-    settings_stub.get_llm_settings = config_stub.get_llm_settings
-    settings_stub._settings = MagicMock()
-
-    # Add ensure_path_exists function
-    def ensure_path_exists(path):
-        return path
-
-    settings_stub.ensure_path_exists = ensure_path_exists
-    monkeypatch.setitem(sys.modules, "devsynth.config.settings", settings_stub)
-
     import importlib
 
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    load_project_config_mock = MagicMock(return_value=mock_project_config)
+    save_config_mock = MagicMock()
+
+    monkeypatch.setattr(rendering, "load_project_config", load_project_config_mock)
+    monkeypatch.setattr(rendering, "save_config", save_config_mock)
+    webui.save_config = save_config_mock
     monkeypatch.setattr(webui.WebUI, "_requirements_wizard", lambda self: None)
     monkeypatch.setattr(webui.WebUI, "_gather_wizard", lambda self: None)
     monkeypatch.setattr(Path, "exists", lambda _self: True)
@@ -202,6 +185,8 @@ def webui_context(monkeypatch):
         "webui": webui,
         "ui": webui.WebUI(),
         "config": mock_project_config,
+        "save_config_mock": save_config_mock,
+        "load_project_config_mock": load_project_config_mock,
     }
     return ctx
 
@@ -331,9 +316,12 @@ def enter_invalid_config(webui_context):
     # Simulate entering an invalid value that will cause an error
     webui_context["st"].text_input.return_value = "invalid://value"
     # Make save_config raise an exception
-    webui_context["webui"].save_config = MagicMock(
-        side_effect=ValueError("Invalid configuration value")
-    )
+    import devsynth.interface.webui.rendering as rendering
+
+    failing_save = MagicMock(side_effect=ValueError("Invalid configuration value"))
+    rendering.save_config = failing_save
+    webui_context["webui"].save_config = failing_save
+    webui_context["save_config_mock"] = failing_save
     webui_context["ui"].config_page()
 
 
@@ -392,7 +380,7 @@ def see_config_categories(webui_context, table):
 
 @then("the configuration should be updated")
 def config_updated(webui_context):
-    assert webui_context["webui"].save_config.called
+    assert webui_context["save_config_mock"].called
 
 
 @then("I should see a success message")
@@ -404,7 +392,7 @@ def see_success_message(webui_context):
 def feature_flag_enabled(webui_context):
     assert (
         webui_context["cli"].enable_feature_cmd.called
-        or webui_context["webui"].save_config.called
+        or webui_context["save_config_mock"].called
     )
 
 
@@ -422,7 +410,7 @@ def invalid_config_not_saved(webui_context):
 @then("the configuration should be reset to default values")
 def config_reset_to_defaults(webui_context):
     # Check that the config was reset
-    assert webui_context["webui"].save_config.called
+    assert webui_context["save_config_mock"].called
 
 
 @then("I should see the configuration page with preserved state")

@@ -133,7 +133,6 @@ def webui_context(monkeypatch):
         setattr(cli_stub, name, MagicMock())
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
-    # Mock the load_project_config function to return a valid ProjectUnifiedConfig object
     from pathlib import Path
 
     from devsynth.config import ProjectUnifiedConfig
@@ -146,38 +145,19 @@ def webui_context(monkeypatch):
         use_pyproject=False,
     )
 
-    config_stub = ModuleType("devsynth.config")
-    config_stub.load_project_config = MagicMock(return_value=mock_project_config)
-    config_stub.save_config = MagicMock()
-    config_stub.get_llm_settings = MagicMock(
-        return_value={
-            "provider_type": "openai",
-            "model": "gpt-3.5-turbo",
-            "temperature": 0.7,
-            "max_tokens": 2000,
-        }
-    )
-    config_stub.ProjectUnifiedConfig = ProjectUnifiedConfig
-    config_stub.ConfigModel = ConfigModel
-    monkeypatch.setitem(sys.modules, "devsynth.config", config_stub)
-
-    # Mock the settings module
-    settings_stub = ModuleType("devsynth.config.settings")
-    settings_stub.get_llm_settings = config_stub.get_llm_settings
-    settings_stub._settings = MagicMock()
-
-    # Add ensure_path_exists function
-    def ensure_path_exists(path):
-        return path
-
-    settings_stub.ensure_path_exists = ensure_path_exists
-    monkeypatch.setitem(sys.modules, "devsynth.config.settings", settings_stub)
-
     import importlib
 
     import devsynth.interface.webui as webui
 
     importlib.reload(webui)
+    import devsynth.interface.webui.rendering as rendering
+
+    load_project_config_mock = MagicMock(return_value=mock_project_config)
+    save_config_mock = MagicMock()
+
+    monkeypatch.setattr(rendering, "load_project_config", load_project_config_mock)
+    monkeypatch.setattr(rendering, "save_config", save_config_mock)
+    webui.save_config = save_config_mock
     monkeypatch.setattr(webui.WebUI, "_requirements_wizard", lambda self: None)
     monkeypatch.setattr(webui.WebUI, "_gather_wizard", lambda self: None)
     monkeypatch.setattr(Path, "exists", lambda _self: True)
@@ -186,6 +166,8 @@ def webui_context(monkeypatch):
         "cli": cli_stub,
         "webui": webui,
         "ui": webui.WebUI(),
+        "save_config_mock": save_config_mock,
+        "load_project_config_mock": load_project_config_mock,
     }
     return ctx
 
