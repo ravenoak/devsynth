@@ -1,12 +1,18 @@
 """EDRR coordinator with dialectical reasoning integration."""
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Mapping
 
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
 from devsynth.methodology.edrr import EDRRCoordinator as MethodologyEDRRCoordinator
 from devsynth.methodology.edrr import reasoning_loop
+from devsynth.methodology.edrr.contracts import (
+    MemoryIntegration,
+    MemoryManager,
+    SyncHook,
+    WSDETeamProtocol,
+)
 
 logger = DevSynthLogger(__name__)
 
@@ -14,22 +20,26 @@ logger = DevSynthLogger(__name__)
 class EDRRCoordinator:
     """Coordinate EDRR cycles with dialectical reasoning helpers."""
 
-    def __init__(self, wsde_team: Any, memory_manager: Optional[Any] = None) -> None:
+    def __init__(
+        self,
+        wsde_team: WSDETeamProtocol,
+        memory_manager: MemoryManager | None = None,
+    ) -> None:
         self.wsde_team = wsde_team
         self.memory_manager = memory_manager
-        self._sync_hooks: List[Callable[[Optional[Any]], None]] = []
+        self._sync_hooks: list[SyncHook] = []
         if self.memory_manager is not None:
             try:
                 self.memory_manager.register_sync_hook(self._invoke_sync_hooks)
             except Exception:
                 logger.debug("Could not register memory sync hook", exc_info=True)
 
-    def register_sync_hook(self, hook: Callable[[Optional[Any]], None]) -> None:
+    def register_sync_hook(self, hook: SyncHook) -> None:
         """Register a callback invoked after memory synchronization."""
 
         self._sync_hooks.append(hook)
 
-    def _invoke_sync_hooks(self, item: Optional[Any]) -> None:
+    def _invoke_sync_hooks(self, item: Any | None) -> None:
         """Invoke registered synchronization hooks with ``item``."""
 
         for hook in list(self._sync_hooks):
@@ -59,9 +69,9 @@ class EDRRCoordinator:
 
     def apply_dialectical_reasoning(
         self,
-        task: Dict[str, Any],
-        critic_agent: Any,
-        memory_integration: Optional[Any] = None,
+        task: Mapping[str, Any],
+        critic_agent: object,
+        memory_integration: MemoryIntegration | None = None,
     ) -> DialecticalSequence:
         """Delegate dialectical reasoning to WSDE helpers.
 

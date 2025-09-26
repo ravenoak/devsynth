@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import importlib
+from collections.abc import Callable
 from typing import Any
 
 import pytest
 
 from devsynth.methodology.edrr.reasoning_loop import Phase
+from devsynth.methodology.edrr.contracts import NullWSDETeam
 
 rl = importlib.import_module("devsynth.methodology.edrr.reasoning_loop")
 
@@ -36,24 +38,21 @@ class _RecorderCoordinator:
         return None
 
 
-@pytest.fixture()
-def patch_reasoning_loop(monkeypatch: pytest.MonkeyPatch):
+def patch_reasoning_loop(
+    monkeypatch: pytest.MonkeyPatch,
+    fake_callable: Callable[[Any, dict[str, Any], Any, Any], dict[str, Any]],
+) -> None:
     """Patch reasoning loop internals to use deterministic callables."""
 
-    def _apply(fake_callable):
-        monkeypatch.setattr(
-            rl, "_apply_dialectical_reasoning", fake_callable, raising=False
-        )
-        monkeypatch.setattr(
-            rl, "_import_apply_dialectical_reasoning", lambda: fake_callable
-        )
-
-    return _apply
+    monkeypatch.setattr(rl, "_apply_dialectical_reasoning", fake_callable, raising=False)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: fake_callable
+    )
 
 
 @pytest.mark.fast
 def test_invalid_next_phase_falls_back_to_transition_map(
-    patch_reasoning_loop, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Unknown ``next_phase`` values fall back to deterministic transitions."""
 
@@ -66,11 +65,11 @@ def test_invalid_next_phase_falls_back_to_transition_map(
             return {"status": "in_progress", "next_phase": "mystery"}
         return {"status": "completed", "phase": "refine"}
 
-    patch_reasoning_loop(fake_apply)
+    patch_reasoning_loop(monkeypatch, fake_apply)
     monkeypatch.setattr(rl.time, "sleep", lambda _seconds: None)
 
     results = rl.reasoning_loop(
-        wsde_team=None,
+        wsde_team=NullWSDETeam(),
         task={"solution": "seed"},
         critic_agent=None,
         coordinator=coordinator,
@@ -87,7 +86,9 @@ def test_invalid_next_phase_falls_back_to_transition_map(
 
 
 @pytest.mark.fast
-def test_missing_status_relies_on_max_iterations(patch_reasoning_loop) -> None:
+def test_missing_status_relies_on_max_iterations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Results without a ``status`` key terminate via the iteration safeguard."""
 
     calls = {"count": 0}
@@ -96,10 +97,10 @@ def test_missing_status_relies_on_max_iterations(patch_reasoning_loop) -> None:
         calls["count"] += 1
         return {"phase": task.get("phase", "refine")}
 
-    patch_reasoning_loop(fake_apply)
+    patch_reasoning_loop(monkeypatch, fake_apply)
 
     results = rl.reasoning_loop(
-        wsde_team=None,
+        wsde_team=NullWSDETeam(),
         task={"solution": "seed"},
         critic_agent=None,
         max_iterations=2,

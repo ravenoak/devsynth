@@ -4,6 +4,7 @@ import pytest
 
 import devsynth.methodology.edrr.reasoning_loop as rl
 from devsynth.exceptions import ConsensusError
+from devsynth.methodology.edrr.contracts import CoordinatorRecorder, NullWSDETeam
 
 
 @pytest.mark.fast
@@ -23,7 +24,7 @@ def test_reasoning_loop_retries_on_transient(monkeypatch):
     monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: flaky)
     monkeypatch.setattr(rl.time, "sleep", lambda s: None)
 
-    out = rl.reasoning_loop(None, {}, None, retry_attempts=1)
+    out = rl.reasoning_loop(NullWSDETeam(), {}, None, retry_attempts=1)
 
     assert len(out) == 1
     assert calls["count"] == 2
@@ -61,7 +62,7 @@ def test_reasoning_loop_retry_clamps_backoff_and_respects_budget(monkeypatch):
     monkeypatch.setattr(rl.time, "sleep", fake_sleep)
 
     results = rl.reasoning_loop(
-        wsde_team=None,
+        wsde_team=NullWSDETeam(),
         task={"problem": "x"},
         critic_agent=None,
         max_iterations=5,
@@ -88,26 +89,9 @@ def test_reasoning_loop_records_consensus_failure_via_coordinator(monkeypatch):
 
     monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_fail)
 
-    class StubCoordinator:
-        def __init__(self) -> None:
-            self.failures: list[ConsensusError] = []
-            self.records: list[tuple[str, dict[str, str]]] = []
+    coordinator = CoordinatorRecorder()
 
-        def record_consensus_failure(self, exc: ConsensusError) -> None:
-            self.failures.append(exc)
-
-        def record_expand_results(self, result):  # pragma: no cover - should not run
-            self.records.append(("expand", result))
-
-        def record_differentiate_results(self, result):  # pragma: no cover
-            self.records.append(("differentiate", result))
-
-        def record_refine_results(self, result):  # pragma: no cover
-            self.records.append(("refine", result))
-
-    coordinator = StubCoordinator()
-
-    results = rl.reasoning_loop(None, {}, None, coordinator=coordinator)
+    results = rl.reasoning_loop(NullWSDETeam(), {}, None, coordinator=coordinator)
 
     assert results == []
     assert coordinator.failures == [error]
@@ -127,7 +111,7 @@ def test_reasoning_loop_logs_consensus_failure_without_coordinator(monkeypatch, 
 
     caplog.set_level("ERROR", rl.logger.logger.name)
 
-    results = rl.reasoning_loop(None, {}, None)
+    results = rl.reasoning_loop(NullWSDETeam(), {}, None)
 
     assert results == []
     assert any("Consensus failure" in record.message for record in caplog.records)

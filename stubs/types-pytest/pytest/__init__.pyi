@@ -10,7 +10,7 @@ T = TypeVar("T")
 ScopeName = Literal["function", "class", "module", "package", "session"]
 
 
-MarkDecorator: TypeAlias = Callable[[Callable[P, R]], Callable[P, R]]
+MarkDecorator: TypeAlias = Callable[[Callable[..., Any]], Callable[..., Any]]
 
 
 class _MarkProxy:

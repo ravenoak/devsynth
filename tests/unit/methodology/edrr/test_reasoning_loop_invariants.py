@@ -8,6 +8,7 @@ import pytest
 
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.methodology.base import Phase
+from devsynth.methodology.edrr.contracts import NullWSDETeam
 
 reasoning_loop_module = importlib.import_module(
     "devsynth.methodology.edrr.reasoning_loop",
@@ -48,7 +49,7 @@ def test_reasoning_loop_enforces_total_time_budget(
     monkeypatch.setattr(reasoning_loop_module.time, "sleep", sleep_calls.append)
 
     results = reasoning_loop_module.reasoning_loop(
-        MagicMock(),
+        NullWSDETeam(),
         {"id": "task-1"},
         MagicMock(),
         max_iterations=5,
@@ -88,7 +89,7 @@ def test_reasoning_loop_retries_until_success(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr(reasoning_loop_module.time, "sleep", fake_sleep)
 
     results = reasoning_loop_module.reasoning_loop(
-        MagicMock(),
+        NullWSDETeam(),
         {"solution": {"step": 0}},
         MagicMock(),
         retry_attempts=2,
@@ -117,7 +118,7 @@ def test_reasoning_loop_fallback_transitions_and_propagation(
         observed_tasks.append(task.copy())
         payload = payloads[call_index["value"]]
         call_index["value"] += 1
-        return DialecticalSequence.from_dict(payload)
+        return payload
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -146,7 +147,7 @@ def test_reasoning_loop_fallback_transitions_and_propagation(
     recorder = Recorder()
 
     results = reasoning_loop_module.reasoning_loop(
-        MagicMock(),
+        NullWSDETeam(),
         {"id": "task-2"},
         MagicMock(),
         coordinator=recorder,
@@ -187,7 +188,7 @@ def test_reasoning_loop_respects_max_iterations_limit(
     def fake_apply(_team, task, _critic, _memory):
         payload = payloads[call_count["value"]]
         call_count["value"] += 1
-        return DialecticalSequence.from_dict(payload)
+        return payload
 
     monkeypatch.setattr(
         reasoning_loop_module,
@@ -196,7 +197,7 @@ def test_reasoning_loop_respects_max_iterations_limit(
     )
 
     results = reasoning_loop_module.reasoning_loop(
-        MagicMock(),
+        NullWSDETeam(),
         {"id": "task-iterations"},
         MagicMock(),
         max_iterations=2,
