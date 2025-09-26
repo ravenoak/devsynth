@@ -5,11 +5,9 @@ This module provides fixtures for testing the state_access module and
 the WizardStateManager class with proper session state mocking.
 """
 
-from types import ModuleType
-from unittest.mock import MagicMock, patch
-
 import pytest
 
+from tests.fixtures.streamlit_mocks import StreamlitModule, StreamlitStub
 
 class MockSessionState(dict):
     """A mock session state that behaves like both a dictionary and an object with attributes."""
@@ -35,14 +33,14 @@ def mock_session_state():
 
 
 @pytest.fixture
-def mock_streamlit_for_state():
+def mock_streamlit_for_state() -> StreamlitModule:
     """
     Create a mock streamlit module with session state for testing.
 
     This is similar to the mock_streamlit fixture in webui_wizard_state_fixture.py,
     but focused specifically on session state for testing state_access functions.
     """
-    st = ModuleType("streamlit")
+    st = StreamlitStub()
     st.session_state = create_mock_session_state()
     return st
 
