@@ -19,7 +19,8 @@ import importlib
 import json
 import sys
 from collections.abc import Callable
-from typing import Any, cast
+from dataclasses import asdict
+from typing import cast
 
 from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
 from devsynth.logger import setup_logging
@@ -60,8 +61,8 @@ def main(argv: list[str] | None = None) -> None:
         sys.modules.pop("devsynth.adapters.cli.typer_adapter", None)
         analyze_repo = cast(str, args.analyze_repo)
         analyzer: RepoAnalyzer = RepoAnalyzer(analyze_repo)
-        result: dict[str, Any] = analyzer.analyze()
-        print(json.dumps(result, indent=2))
+        result = analyzer.analyze()
+        print(json.dumps(asdict(result), indent=2))
     else:
         from devsynth.application.cli.errors import handle_error
         from devsynth.interface.cli import CLIUXBridge

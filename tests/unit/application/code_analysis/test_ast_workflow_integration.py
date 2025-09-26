@@ -7,6 +7,12 @@ import pytest
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_workflow_integration import (
     AstWorkflowIntegration,
+    EvaluatedImplementation,
+    EvaluationMetrics,
+    ImplementationAlternative,
+    ImplementationOptions,
+    RefinementResult,
+    RetrospectiveResult,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
@@ -64,8 +70,18 @@ class TestAstWorkflowIntegration(unittest.TestCase):
         code_no_docs = "\ndef add(a, b):\n    return a + b\n\nclass Calculator:\n    def multiply(self, a, b):\n        return a * b\n"
         code_with_docs = self.sample_code
         options = [
-            {"name": "no_docs", "description": "", "code": code_no_docs},
-            {"name": "with_docs", "description": "", "code": code_with_docs},
+            ImplementationAlternative(
+                name="no_docs",
+                description="",
+                code=code_no_docs,
+                analysis_id="analysis-no-docs",
+            ),
+            ImplementationAlternative(
+                name="with_docs",
+                description="",
+                code=code_with_docs,
+                analysis_id="analysis-with-docs",
+            ),
         ]
         with patch.object(self.memory_manager, "store_with_edrr_phase") as store:
             store.return_value = "id1"
@@ -76,11 +92,13 @@ class TestAstWorkflowIntegration(unittest.TestCase):
             kwargs = store.call_args.kwargs
             assert kwargs["memory_type"] == MemoryType.CODE_ANALYSIS
             assert kwargs["edrr_phase"] == Phase.DIFFERENTIATE.value
-        self.assertEqual(selected["name"], "with_docs")
-        metrics = selected["metrics"]
-        for key in ["complexity", "readability", "maintainability"]:
-            self.assertGreaterEqual(metrics[key], 0.0)
-            self.assertLessEqual(metrics[key], 1.0)
+        assert isinstance(selected, EvaluatedImplementation)
+        self.assertEqual(selected.name, "with_docs")
+        metrics = selected.metrics
+        assert isinstance(metrics, EvaluationMetrics)
+        for value in [metrics.complexity, metrics.readability, metrics.maintainability]:
+            self.assertGreaterEqual(value, 0.0)
+            self.assertLessEqual(value, 1.0)
 
     def test_expand_implementation_options_succeeds(self):
         """Test expanding implementation options for a given code.
@@ -91,10 +109,9 @@ class TestAstWorkflowIntegration(unittest.TestCase):
             result = self.integration.expand_implementation_options(
                 self.sample_code, "test_task"
             )
-            self.assertIsInstance(result, dict)
-            self.assertIn("original", result)
-            self.assertIn("alternatives", result)
-            self.assertEqual(result["original"], self.sample_code)
+            assert isinstance(result, ImplementationOptions)
+            self.assertEqual(result.original, self.sample_code)
+            self.assertGreaterEqual(len(result.alternatives), 1)
             mock_store.assert_called()
 
     def test_refine_implementation_succeeds(self):
@@ -107,11 +124,9 @@ class TestAstWorkflowIntegration(unittest.TestCase):
             result = self.integration.refine_implementation(
                 code_with_issues, "test_task"
             )
-            self.assertIsInstance(result, dict)
-            self.assertIn("original_code", result)
-            self.assertIn("refined_code", result)
-            self.assertIn("improvements", result)
-            self.assertEqual(result["original_code"], code_with_issues)
+            assert isinstance(result, RefinementResult)
+            self.assertEqual(result.original_code, code_with_issues)
+            self.assertIsInstance(result.improvements, list)
             mock_store.assert_called()
 
     def test_retrospect_code_quality_succeeds(self):
@@ -126,15 +141,10 @@ class TestAstWorkflowIntegration(unittest.TestCase):
                 result = self.integration.retrospect_code_quality(
                     low_quality_code, "test_task"
                 )
-                self.assertIsInstance(result, dict)
-                self.assertIn("code", result)
-                self.assertIn("quality_metrics", result)
-                self.assertIn("improvement_suggestions", result)
-                self.assertEqual(result["code"], low_quality_code)
-                metrics = result["quality_metrics"]
-                self.assertIn("complexity", metrics)
-                self.assertIn("readability", metrics)
-                self.assertIn("maintainability", metrics)
+                assert isinstance(result, RetrospectiveResult)
+                self.assertEqual(result.code, low_quality_code)
+                self.assertIsInstance(result.quality_metrics, EvaluationMetrics)
+                self.assertIsInstance(result.improvement_suggestions, list)
                 mock_store.assert_called()
 
 

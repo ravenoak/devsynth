@@ -16,6 +16,7 @@ from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.code_analysis.ast_workflow_integration import (
     AstWorkflowIntegration,
+    RefinementResult,
 )
 from devsynth.application.code_analysis.project_state_analyzer import (
     ProjectStateAnalyzer,
@@ -235,6 +236,7 @@ def calculate(a, b):
         )
         assert "refined" in result
         refined = result["refined"]
-        assert "original_code" in refined
-        assert "refined_code" in refined
-        assert "improvements" in refined
+        assert isinstance(refined, RefinementResult)
+        assert refined.original_code.strip().startswith("def calculate")
+        assert refined.refined_code.strip()
+        assert isinstance(refined.improvements, list)
