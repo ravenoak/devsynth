@@ -67,7 +67,7 @@ class RepoAnalyzer:
     def _map_dependencies(self) -> Dict[str, List[str]]:
         """Map Python file dependencies based on import statements."""
 
-        dependencies: Dict[str, Set[str]] = {}
+        dependencies: Dict[str, List[str]] = {}
         for file_path in self._find_python_files():
             imports = self._parse_imports(file_path)
             rel_path = os.path.relpath(os.fspath(file_path), os.fspath(self.root_path))
