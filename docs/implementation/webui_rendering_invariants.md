@@ -14,7 +14,8 @@ title: WebUI Rendering Invariants
 # WebUI Rendering Invariants
 
 This note records behavioural guarantees for the Streamlit pages assembled by
-`ProjectSetupPages` within the DevSynth WebUI.
+`ProjectSetupPages` within the DevSynth WebUI, pairing each invariant with
+targeted fast tests and focused coverage evidence.
 
 ## Requirements Wizard Validates Incrementally
 
@@ -30,7 +31,7 @@ the requisite field is populated.
 
 `_handle_requirements_navigation` clears temporary form inputs and resets the
 wizard when a user cancels, keeping subsequent sessions free of stale values and
-surfacing a clear confirmation message.【F:src/devsynth/interface/webui/rendering.py†L221-L266】
+surfacing a clear confirmation message.【F:src/devsynth/interface/webui/rendering.py†L224-L269】
 
 [`test_handle_requirements_navigation_cancel_clears_state`](../../tests/unit/interface/test_webui_rendering_module.py)
 verifies the reset logic and the emitted status message.
@@ -39,14 +40,14 @@ verifies the reset logic and the emitted status message.
 
 `_save_requirements` writes the collected requirement details to
 `requirements_wizard.json`, splits comma-delimited constraints into a list, and
-clears the wizard's temporary state to avoid accidental resubmission.【F:src/devsynth/interface/webui/rendering.py†L185-L218】
+clears the wizard's temporary state to avoid accidental resubmission.【F:src/devsynth/interface/webui/rendering.py†L188-L222】
 
 [`test_save_requirements_clears_temporary_keys`](../../tests/unit/interface/test_webui_rendering_module.py)
 confirms the persisted structure and cleanup side effects.
 
 ## Progress Completion Cascades Remain Sanitized
 
-Fast WebUI suites verify that completing the top-level progress indicator drives every subtask to completion even when `streamlit.success` is unavailable. The fallback writes sanitized labels to `st.write`, and nested subtasks emit the same escaped completion message, keeping UI telemetry consistent with CLI progress semantics.【F:tests/unit/interface/test_webui_behavior_checklist_fast.py†L1022-L1056】
+Fast WebUI suites verify that completing the top-level progress indicator drives every subtask to completion even when `streamlit.success` is unavailable. The fallback writes sanitized labels to `st.write`, and nested subtasks emit the same escaped completion message, keeping UI telemetry consistent with CLI progress semantics.【F:tests/unit/interface/test_webui_behavior_checklist_fast.py†L1022-L1056】【F:tests/unit/interface/test_webui_rendering_progress.py†L95-L314】
 
 ## Streamlit Fallbacks Stay Sanitized
 
@@ -54,16 +55,21 @@ When Streamlit omits the `info` or `markdown` helpers, the WebUI implementation 
 
 ## Coverage Evidence
 
-Fast-profile suites instrumented with `pytest-cov` confirm both the WebUI façade and bridge modules exceed the 60 % coverage target while sidestepping the repository-wide 70 % gate via `-o addopts=""` and `--cov-fail-under=0`.
+A focused fast sweep combines the rendering module regression harness, progress
+summaries, and wizard navigation suites so coverage data reflects the rendering
+surface without pulling the entire Streamlit stack into scope.
 
 | Module | Coverage | Evidence |
 | --- | --- | --- |
-| `devsynth.interface.webui` | 93 % | `poetry run pytest -o addopts="" tests/unit/interface/test_webui_progress_cascade_fast.py tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge --cov-report=term --cov-fail-under=0`【5968ad†L14-L26】 |
-| `devsynth.interface.webui_bridge` | 85 % | `poetry run pytest -o addopts="" tests/unit/interface/test_webui_progress_cascade_fast.py tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge --cov-report=term --cov-fail-under=0`【5968ad†L14-L26】 |
+| `devsynth.interface.webui.rendering` | 29 % | `poetry run pytest -o addopts="" tests/unit/interface/test_webui_rendering_module.py tests/unit/interface/test_webui_rendering_progress.py tests/unit/interface/test_webui_progress_cascade_fast.py tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py --cov=devsynth.interface.webui.rendering --cov=devsynth.interface.webui_bridge --cov-report=term --cov-report=json:test_reports/webui_rendering_bridge_coverage.json --cov-report=html:test_reports/htmlcov_webui_rendering_bridge --cov-fail-under=0`【779285†L1-L33】【8fff97†L3-L10】 |
+| `devsynth.interface.webui_bridge` | 25 % | `poetry run pytest -o addopts="" tests/unit/interface/test_webui_rendering_module.py tests/unit/interface/test_webui_rendering_progress.py tests/unit/interface/test_webui_progress_cascade_fast.py tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py --cov=devsynth.interface.webui.rendering --cov=devsynth.interface.webui_bridge --cov-report=term --cov-report=json:test_reports/webui_rendering_bridge_coverage.json --cov-report=html:test_reports/htmlcov_webui_rendering_bridge --cov-fail-under=0`【779285†L1-L33】【79e500†L1-L9】 |
 
-The targeted command keeps unrelated Streamlit modules (`rendering`, `routing`, and `commands`) from influencing the fast-suite coverage signal while still documenting measurable evidence for the published invariants.
+The run persists refreshed artifacts at
+`test_reports/webui_rendering_bridge_coverage.json` and
+`test_reports/htmlcov_webui_rendering_bridge/index.html` for future audits and
+plan traceability.【b90c51†L1-L3】
 
 ## References
 
-- Tests: `tests/unit/interface/test_webui_rendering_module.py`
+- Tests: `tests/unit/interface/test_webui_rendering_module.py`, `tests/unit/interface/test_webui_rendering_progress.py`
 - Specification: [docs/specifications/webui-requirements-wizard-with-wizardstate.md](../specifications/webui-requirements-wizard-with-wizardstate.md)
