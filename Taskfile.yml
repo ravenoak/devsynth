@@ -141,7 +141,7 @@ tasks:
       - bash -lc 'mkdir -p test_reports; poetry run safety check --full-report | tee test_reports/safety_report.txt; exit ${PIPESTATUS[0]}'
 
   mypy:strict:
-    desc: Run strict mypy on typed application slices and newly strict packages
+    desc: Run strict mypy on typed application slices (code_analysis now in the enforced set)
     cmds:
       - poetry run mypy --strict src/devsynth {{.CLI_ARGS}}
 

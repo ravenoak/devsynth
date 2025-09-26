@@ -71,7 +71,7 @@ jobs:
           poetry run flake8 src/ tests/
           poetry run mypy src/ tests/
 
-      - name: Run strict mypy slice
+      - name: Run strict mypy slice (includes code_analysis)
         id: strict_mypy
         continue-on-error: true
         run: |

@@ -83,6 +83,7 @@ def main() -> int:
         "all_passed": all(code == 0 for code in results.values()),
         "hints": [
             "You can relax strict typing temporarily via [tool.mypy.overrides] in pyproject.toml (document TODOs).",
+            "Code-analysis modules are now part of the strict mypy slice—address regressions before running guardrails.",
             "Use poetry install --with dev to ensure all tools are available.",
         ],
     }
