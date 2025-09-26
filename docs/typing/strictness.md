@@ -56,15 +56,18 @@ Focus: orchestration, prompts, agents, ingestion, and supporting utilities.
 
 | Module group | Owner | Deadline | Current gaps |
 | --- | --- | --- | --- |
-| Workflow suites (`devsynth.application.agents.*`, CLI commands, collaboration, orchestration, prompts, utilities) | Applications Group – Lara Singh | 2026-02-15 | Annotate orchestration DTOs, CLI progress handlers, and prompt builders to eliminate pervasive `Any` flows.【F:pyproject.toml†L337-L413】 |
+| Workflow suites (`devsynth.application.agents.*`, CLI commands, collaboration, orchestration, prompts, utilities) | Applications Group – Lara Singh | 2026-02-15 | ✅ Code-analysis package now strict; concentrate on collaboration, orchestration, and prompt modules that remain listed in the Phase‑3 override block.【F:pyproject.toml†L337-L382】 |
 
 - `application/agents/agent_memory_integration.py` leaks `Any` through almost every integration pathway, driving downstream uncertainty.【46b4b0†L1-L9】
 - `application/orchestration/workflow.py` returns `Any` from key orchestrators, indicating missing typed DTOs.【c8f82e†L1-L3】
 - `application/prompts/prompt_manager.py` mixes `Any` returns with missing imports like `datetime`, breaking strict mode.【236778†L1-L5】
-- ✅ `application/config/unified_config_loader.py` and `application/server/bridge.py` now run under `poetry run mypy --strict` via the `task mypy:strict` guard; the override has been narrowed accordingly to prevent regressions.【F:src/devsynth/application/config/unified_config_loader.py†L1-L37】【F:Taskfile.yml†L143-L146】
+- ✅ `application/code_analysis` now lives inside the enforced strict slice; validated with `poetry run mypy --strict devsynth.application.code_analysis` (invoke `poetry run mypy --strict -m devsynth.application.code_analysis` locally so mypy treats it as a module target).【F:Taskfile.yml†L143-L146】【253afa†L1-L2】
+- ✅ `application/config/unified_config_loader.py` and `application/server/bridge.py` now run under `poetry run mypy --strict` via the `task mypy:strict` guard and stay in the enforced slice to prevent regressions.【F:src/devsynth/application/config/unified_config_loader.py†L1-L37】【F:Taskfile.yml†L143-L146】
 - `application/ingestion/phases.py` already passes, providing a quick win for scoping ignores more tightly.【55db3f†L1-L2】
 - `application/utils/token_tracker.py` needs dict annotations and concrete return types for telemetry counters.【107bfe†L1-L4】
 - `application/requirements/requirement_service.py` still returns `Any` and lacks dict generics, so the requirements override remains necessary until typed data contracts land.【e64816†L1-L5】
+
+> **Next focus:** Collaboration, orchestration, and prompt packages listed in the Phase‑3 override block (`devsynth.application.collaboration.*`, `devsynth.application.orchestration.*`, `devsynth.application.prompts.*`, plus adjacent CLI utilities) still await strict typing and remain explicitly enumerated in `pyproject.toml`.【F:pyproject.toml†L337-L382】
 
 ### Phase 4 – Memory stack (target 2026-03-15)
 The application memory manager and stores are the noisiest area, with dozens of `Any`-returning methods and Optional defaults that violate strictness.【322ce9†L1-L24】 Addressing these will likely require stabilized domain models and possibly dedicated stubs for storage adapters.
