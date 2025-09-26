@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from devsynth.application.cli._command_exports import COMMAND_ATTRIBUTE_NAMES
 from devsynth.interface.agentapi import APIBridge
 
 # Resource gating: exercises both CLI and WebUI layers
@@ -50,16 +51,11 @@ def parity_env(monkeypatch):
     cli_commands_stub.init_cmd = MagicMock(side_effect=init_cmd)
     cli_commands_stub.spec_cmd = MagicMock(side_effect=spec_cmd)
     cli_commands_stub.code_cmd = MagicMock(side_effect=code_cmd)
-    for name in ["test_cmd", "run_pipeline_cmd", "config_cmd", "inspect_cmd"]:
-        setattr(cli_commands_stub, name, MagicMock())
     cli_stub.cli_commands = cli_commands_stub
-    cli_stub.init_cmd = cli_commands_stub.init_cmd
-    cli_stub.spec_cmd = cli_commands_stub.spec_cmd
-    cli_stub.code_cmd = cli_commands_stub.code_cmd
-    cli_stub.test_cmd = cli_commands_stub.test_cmd
-    cli_stub.run_pipeline_cmd = cli_commands_stub.run_pipeline_cmd
-    cli_stub.config_cmd = cli_commands_stub.config_cmd
-    cli_stub.inspect_cmd = cli_commands_stub.inspect_cmd
+    for name in COMMAND_ATTRIBUTE_NAMES:
+        if not hasattr(cli_commands_stub, name):
+            setattr(cli_commands_stub, name, MagicMock())
+        setattr(cli_stub, name, getattr(cli_commands_stub, name))
     ingest_mod = ModuleType("devsynth.application.cli.ingest_cmd")
     ingest_mod.ingest_cmd = MagicMock()
     monkeypatch.setitem(sys.modules, "devsynth.application.cli.ingest_cmd", ingest_mod)
