@@ -1,4 +1,6 @@
-from typing import Any, Dict, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from devsynth.domain.interfaces.cli import CLIInterface
 
@@ -6,7 +8,6 @@ from devsynth.domain.interfaces.cli import CLIInterface
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class CLIPort:
@@ -31,12 +32,12 @@ class CLIPort:
         """Generate code from tests."""
         return self.cli_service.generate_code()
 
-    def run(self, target: Optional[str] = None) -> None:
+    def run(self, target: str | None = None) -> None:
         """Execute the generated code or a specific target."""
         return self.cli_service.run(target)
 
     def configure(
-        self, key: Optional[str] = None, value: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, key: str | None = None, value: str | None = None
+    ) -> dict[str, Any]:
         """View or set configuration options."""
         return self.cli_service.configure(key, value)

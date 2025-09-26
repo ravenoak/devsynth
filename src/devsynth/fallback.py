@@ -1,17 +1,13 @@
-"""
-Fallback mechanisms for graceful degradation in the DevSynth system.
+"""Fallback mechanisms for graceful degradation in the DevSynth system."""
 
-This module provides utilities for implementing graceful degradation with fallback
-mechanisms for critical components, ensuring that the system can continue to function
-even when errors occur.
-"""
+from __future__ import annotations
 
 import functools
-import queue
 import random
 import threading
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union, cast
+from collections.abc import Callable, Mapping, Sequence
+from typing import TypedDict, TypeVar
 from typing import ParamSpec
 
 from .exceptions import DevSynthError
@@ -40,13 +36,58 @@ from .metrics import (
 
 # Type variables for generic functions
 T = TypeVar("T")
+R = TypeVar("R")
+ResultT = TypeVar("ResultT")
 P = ParamSpec("P")
+Q = ParamSpec("Q")
+
+
+RetryConditionFunc = Callable[[Exception], bool]
+RetryConditionSpec = RetryConditionFunc | str | type[BaseException]
+RetryConditions = Sequence[RetryConditionSpec] | Mapping[str, RetryConditionSpec]
+
+ConditionCallbackFunc = Callable[[Exception, int], bool]
+ConditionCallbacks = Sequence[ConditionCallbackFunc] | Mapping[str, ConditionCallbackFunc]
+
+FallbackConditionFunc = Callable[[Exception], bool]
+FallbackConditionSpec = FallbackConditionFunc | str
+FallbackConditions = Sequence[FallbackConditionSpec] | Mapping[str, FallbackConditionSpec]
+
+
+class RetryPolicy(TypedDict, total=False):
+    retry: bool
+    max_retries: int
+
+
+ErrorRetryMap = Mapping[type[BaseException], bool | RetryPolicy]
 
 # Create a logger for this module
 logger = DevSynthLogger("fallback")
 
 # Placeholder name used for metrics when anonymous retry conditions fail
 ANONYMOUS_CONDITION = "<anonymous>"
+
+
+def _condition_from_spec(spec: RetryConditionSpec) -> RetryConditionFunc:
+    if isinstance(spec, str):
+        return lambda exc, substr=spec: substr in str(exc)
+    if isinstance(spec, type) and issubclass(spec, BaseException):
+        return lambda exc, cls=spec: isinstance(exc, cls)
+    return spec
+
+
+def _predicate_from_spec(value: Callable[[ResultT], bool] | int) -> Callable[[ResultT], bool]:
+    if isinstance(value, int):
+        return lambda res, code=value: getattr(res, "status_code", None) == code
+    return value
+
+
+def _fallback_condition_from_spec(
+    spec: FallbackConditionSpec,
+) -> FallbackConditionFunc:
+    if isinstance(spec, str):
+        return lambda exc, substr=spec: substr in str(exc)
+    return spec
 
 
 def reset_prometheus_metrics() -> None:
@@ -84,33 +125,20 @@ def retry_with_exponential_backoff(
     exponential_base: float = 2.0,
     jitter: bool = True,
     max_delay: float = 60.0,
-    retryable_exceptions: Tuple[Exception, ...] = (Exception,),
-    on_retry: Optional[Callable[[Exception, int, float], None]] = None,
-    should_retry: Optional[Callable[[Exception], bool]] = None,
-    retry_conditions: Optional[
-        Union[
-            List[Union[Callable[[Exception], bool], str]],
-            Dict[str, Union[Callable[[Exception], bool], str]],
-        ]
-    ] = None,
-    condition_callbacks: Optional[
-        Union[
-            List[Callable[[Exception, int], bool]],
-            Dict[str, Callable[[Exception, int], bool]],
-        ]
-    ] = None,
-    retry_predicates: Optional[
-        Union[
-            List[Union[Callable[[T], bool], int]],
-            Dict[str, Union[Callable[[T], bool], int]],
-        ]
-    ] = None,
-    retry_on_result: Optional[Callable[[T], bool]] = None,
+    retryable_exceptions: tuple[type[BaseException], ...] = (Exception,),
+    on_retry: Callable[[Exception, int, float], None] | None = None,
+    should_retry: Callable[[Exception], bool] | None = None,
+    retry_conditions: RetryConditions | None = None,
+    condition_callbacks: ConditionCallbacks | None = None,
+    retry_predicates: (
+        Sequence[Callable[[T], bool] | int]
+        | Mapping[str, Callable[[T], bool] | int]
+        | None
+    ) = None,
+    retry_on_result: Callable[[T], bool] | None = None,
     track_metrics: bool = True,
-    error_retry_map: Optional[
-        Dict[type, Union[bool, Dict[str, Union[int, bool]]]]
-    ] = None,
-    circuit_breaker: Optional["CircuitBreaker"] = None,
+    error_retry_map: ErrorRetryMap | None = None,
+    circuit_breaker: "CircuitBreaker" | None = None,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """
     Decorator for retrying a function with exponential backoff.
@@ -196,89 +224,46 @@ def retry_with_exponential_backoff(
             # Initialize variables
             num_retries = 0
             delay = initial_delay
-            anonymous_conditions: List[Callable[[Exception], bool]] = []
-            named_conditions: List[Tuple[str, Callable[[Exception], bool]]] = []
-            if retry_conditions:
-                if isinstance(retry_conditions, dict):
+            anonymous_conditions: list[RetryConditionFunc] = []
+            named_conditions: list[tuple[str, RetryConditionFunc]] = []
+            if retry_conditions is not None:
+                if isinstance(retry_conditions, Mapping):
                     for name, cond in retry_conditions.items():
-                        if isinstance(cond, type) and issubclass(cond, BaseException):
-                            named_conditions.append(
-                                (name, lambda exc, cls=cond: isinstance(exc, cls))
-                            )
-                        elif isinstance(cond, str):
-                            named_conditions.append(
-                                (name, lambda exc, substr=cond: substr in str(exc))
-                            )
-                        elif callable(cond):
-                            named_conditions.append((name, cond))
-                        else:  # pragma: no cover - defensive
-                            raise TypeError(
-                                "retry_conditions values must be callables, strings, or exception types"
-                            )
+                        named_conditions.append((name, _condition_from_spec(cond)))
                 else:
+                    if isinstance(retry_conditions, (str, bytes)):
+                        raise TypeError(
+                            "retry_conditions must be a sequence of callables, strings, or exception types"
+                        )
                     for cond in retry_conditions:
-                        if isinstance(cond, type) and issubclass(cond, BaseException):
-                            anonymous_conditions.append(
-                                lambda exc, cls=cond: isinstance(exc, cls)
-                            )
-                        elif isinstance(cond, str):
-                            anonymous_conditions.append(
-                                lambda exc, substr=cond: substr in str(exc)
-                            )
-                        elif callable(cond):
-                            anonymous_conditions.append(cond)
-                        else:  # pragma: no cover - defensive
-                            raise TypeError(
-                                "retry_conditions must be callables, strings, or exception types"
-                            )
-            cb_named: List[Tuple[str, Callable[[Exception, int], bool]]] = []
-            cb_anon: List[Callable[[Exception, int], bool]] = []
-            if condition_callbacks:
-                if isinstance(condition_callbacks, dict):
+                        anonymous_conditions.append(_condition_from_spec(cond))
+            cb_named: list[tuple[str, ConditionCallbackFunc]] = []
+            cb_anon: list[ConditionCallbackFunc] = []
+            if condition_callbacks is not None:
+                if isinstance(condition_callbacks, Mapping):
                     for name, cb in condition_callbacks.items():
-                        if callable(cb):
-                            cb_named.append((name, cb))
-                        else:  # pragma: no cover - defensive
-                            raise TypeError(
-                                "condition_callbacks values must be callables"
-                            )
+                        cb_named.append((name, cb))
                 else:
+                    if isinstance(condition_callbacks, (str, bytes)):
+                        raise TypeError(
+                            "condition_callbacks must be a sequence of callables"
+                        )
                     cb_anon = list(condition_callbacks)
 
-            anonymous_predicates: List[Callable[[T], bool]] = []
-            named_predicates: List[Tuple[str, Callable[[T], bool]]] = []
-            if retry_predicates:
-                if isinstance(retry_predicates, dict):
+            anonymous_predicates: list[Callable[[T], bool]] = []
+            named_predicates: list[tuple[str, Callable[[T], bool]]] = []
+            if retry_predicates is not None:
+                if isinstance(retry_predicates, Mapping):
                     for name, pred in retry_predicates.items():
-                        if callable(pred):
-                            named_predicates.append((name, pred))
-                        elif isinstance(pred, int):
-                            named_predicates.append(
-                                (
-                                    name,
-                                    lambda res, code=pred: getattr(
-                                        res, "status_code", None
-                                    )
-                                    == code,
-                                )
-                            )
-                        else:  # pragma: no cover - defensive
-                            raise TypeError(
-                                "retry_predicates values must be callables or ints"
-                            )
+                        named_predicates.append((name, _predicate_from_spec(pred)))
                 else:
-                    for pred in retry_predicates:
-                        if callable(pred):
-                            anonymous_predicates.append(pred)
-                        elif isinstance(pred, int):
-                            anonymous_predicates.append(
-                                lambda res, code=pred: getattr(res, "status_code", None)
-                                == code
-                            )
-                        else:  # pragma: no cover - defensive
-                            raise TypeError(
-                                "retry_predicates must be callables or ints"
-                            )
+                    if isinstance(retry_predicates, (str, bytes)):
+                        raise TypeError(
+                            "retry_predicates must be a sequence of callables or ints"
+                        )
+                    anonymous_predicates = [
+                        _predicate_from_spec(pred) for pred in retry_predicates
+                    ]
 
             # Loop until max retries reached
             while True:
@@ -287,7 +272,7 @@ def retry_with_exponential_backoff(
                     if retry_on_result and retry_on_result(result):
                         raise ValueError("retry_on_result triggered")
                     if named_predicates or anonymous_predicates:
-                        pred_results: List[bool] = []
+                        pred_results: list[bool] = []
                         for name, pred in named_predicates:
                             res = pred(result)
                             pred_results.append(res)
@@ -313,19 +298,19 @@ def retry_with_exponential_backoff(
                     return result
                 except Exception as e:
                     policy_max_retries = max_retries
-                    policy_retry: Optional[bool] = None
-                    policy_name: Optional[str] = None
-                    if error_retry_map:
+                    policy_retry: bool | None = None
+                    policy_name: str | None = None
+                    if error_retry_map is not None:
                         for exc_type, policy in error_retry_map.items():
                             if isinstance(e, exc_type):
                                 policy_name = exc_type.__name__
-                                if isinstance(policy, dict):
-                                    policy_retry = cast(bool, policy.get("retry", True))
-                                    policy_max_retries = cast(
-                                        int, policy.get("max_retries", max_retries)
-                                    )
+                                if isinstance(policy, bool):
+                                    policy_retry = policy
                                 else:
-                                    policy_retry = bool(policy)
+                                    policy_retry = policy.get("retry", True)
+                                    policy_max_retries = policy.get(
+                                        "max_retries", max_retries
+                                    )
                                 break
 
                     retry_allowed = (
@@ -466,7 +451,7 @@ def retry_with_exponential_backoff(
                             raise
 
                     if cb_named or cb_anon:
-                        cb_results: List[bool] = []
+                        cb_results: list[bool] = []
                         for name, cb in cb_named:
                             try:
                                 result = cb(e, num_retries)
@@ -566,18 +551,13 @@ def retry_with_exponential_backoff(
 
 
 def with_fallback(
-    fallback_function: Callable[..., R],
-    exceptions_to_catch: Tuple[Exception, ...] = (Exception,),
-    should_fallback: Optional[Callable[[Exception], bool]] = None,
+    fallback_function: Callable[P, R],
+    exceptions_to_catch: tuple[type[BaseException], ...] = (Exception,),
+    should_fallback: Callable[[Exception], bool] | None = None,
     log_original_error: bool = True,
-    fallback_conditions: Optional[
-        Union[
-            List[Union[Callable[[Exception], bool], str]],
-            Dict[str, Union[Callable[[Exception], bool], str]],
-        ]
-    ] = None,
-    circuit_breaker: Optional["CircuitBreaker"] = None,
-) -> Callable[[Callable[..., R]], Callable[..., R]]:
+    fallback_conditions: FallbackConditions | None = None,
+    circuit_breaker: "CircuitBreaker" | None = None,
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Decorator for providing a fallback function when the primary function fails.
 
@@ -604,44 +584,34 @@ def with_fallback(
         A decorator function
     """
 
-    def decorator(func: Callable[..., R]) -> Callable[..., R]:
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
         wrapped_func = circuit_breaker(func) if circuit_breaker else func
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> R:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             try:
                 return wrapped_func(*args, **kwargs)
             except exceptions_to_catch as e:
                 if should_fallback and not should_fallback(e):
                     raise
 
-                anonymous_conditions: List[Callable[[Exception], bool]] = []
-                named_conditions: List[Tuple[str, Callable[[Exception], bool]]] = []
-                if fallback_conditions:
-                    if isinstance(fallback_conditions, dict):
+                anonymous_conditions: list[FallbackConditionFunc] = []
+                named_conditions: list[tuple[str, FallbackConditionFunc]] = []
+                if fallback_conditions is not None:
+                    if isinstance(fallback_conditions, Mapping):
                         for name, cond in fallback_conditions.items():
-                            if callable(cond):
-                                named_conditions.append((name, cond))
-                            elif isinstance(cond, str):
-                                named_conditions.append(
-                                    (name, lambda exc, substr=cond: substr in str(exc))
-                                )
-                            else:  # pragma: no cover - defensive
-                                raise TypeError(
-                                    "fallback_conditions values must be callables or strings"
-                                )
+                            named_conditions.append(
+                                (name, _fallback_condition_from_spec(cond))
+                            )
                     else:
-                        for cond in fallback_conditions:
-                            if callable(cond):
-                                anonymous_conditions.append(cond)
-                            elif isinstance(cond, str):
-                                anonymous_conditions.append(
-                                    lambda exc, substr=cond: substr in str(exc)
-                                )
-                            else:  # pragma: no cover - defensive
-                                raise TypeError(
-                                    "fallback_conditions must be callables or strings"
-                                )
+                        if isinstance(fallback_conditions, (str, bytes)):
+                            raise TypeError(
+                                "fallback_conditions must be a sequence of callables or strings"
+                            )
+                        anonymous_conditions = [
+                            _fallback_condition_from_spec(cond)
+                            for cond in fallback_conditions
+                        ]
 
                 for name, cond in named_conditions:
                     if not cond(e):
@@ -681,15 +651,14 @@ def with_fallback(
 
 
 def FallbackHandler(
-    fallback_function: Callable[..., R],
-    retry_predicates: Optional[
-        Union[
-            List[Union[Callable[[R], bool], int]],
-            Dict[str, Union[Callable[[R], bool], int]],
-        ]
-    ] = None,
+    fallback_function: Callable[P, R],
+    retry_predicates: (
+        Sequence[Callable[[R], bool] | int]
+        | Mapping[str, Callable[[R], bool] | int]
+        | None
+    ) = None,
     track_metrics: bool = True,
-) -> Callable[[Callable[..., R]], Callable[..., R]]:
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Decorator that falls back based on predicates and tracks metrics.
 
     Parameters
@@ -705,45 +674,29 @@ def FallbackHandler(
         When ``True`` retry events are recorded using Prometheus counters.
     """
 
-    def decorator(func: Callable[..., R]) -> Callable[..., R]:
-        named_predicates: List[Tuple[str, Callable[[R], bool]]] = []
-        anonymous_predicates: List[Callable[[R], bool]] = []
-        if retry_predicates:
-            if isinstance(retry_predicates, dict):
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        named_predicates: list[tuple[str, Callable[[R], bool]]] = []
+        anonymous_predicates: list[Callable[[R], bool]] = []
+        if retry_predicates is not None:
+            if isinstance(retry_predicates, Mapping):
                 for name, pred in retry_predicates.items():
-                    if callable(pred):
-                        named_predicates.append((name, pred))
-                    elif isinstance(pred, int):
-                        named_predicates.append(
-                            (
-                                name,
-                                lambda res, code=pred: getattr(res, "status_code", None)
-                                == code,
-                            )
-                        )
-                    else:  # pragma: no cover - defensive
-                        raise TypeError(
-                            "retry_predicates values must be callables or ints"
-                        )
+                    named_predicates.append((name, _predicate_from_spec(pred)))
             else:
-                for pred in retry_predicates:
-                    if callable(pred):
-                        anonymous_predicates.append(pred)
-                    elif isinstance(pred, int):
-                        anonymous_predicates.append(
-                            lambda res, code=pred: getattr(res, "status_code", None)
-                            == code
-                        )
-                    else:  # pragma: no cover - defensive
-                        raise TypeError("retry_predicates must be callables or ints")
+                if isinstance(retry_predicates, (str, bytes)):
+                    raise TypeError(
+                        "retry_predicates must be a sequence of callables or ints"
+                    )
+                anonymous_predicates = [
+                    _predicate_from_spec(pred) for pred in retry_predicates
+                ]
 
         def _record_predicates(
             res: R,
-            named: List[Tuple[str, Callable[[R], bool]]],
-            anon: List[Callable[[R], bool]],
+            named: list[tuple[str, Callable[[R], bool]]],
+            anon: list[Callable[[R], bool]],
             metrics: bool,
         ) -> bool:
-            pred_results: List[bool] = []
+            pred_results: list[bool] = []
             for name, pred in named:
                 r = pred(res)
                 pred_results.append(r)
@@ -762,7 +715,7 @@ def FallbackHandler(
             return any(pred_results)
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> R:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
@@ -830,10 +783,10 @@ class CircuitBreaker:
         failure_threshold: int = 5,
         recovery_timeout: float = 60.0,
         test_calls: int = 1,
-        exception_types: Tuple[Exception, ...] = (Exception,),
-        on_open: Optional[Callable[[str], None]] = None,
-        on_close: Optional[Callable[[str], None]] = None,
-        on_half_open: Optional[Callable[[str], None]] = None,
+        exception_types: tuple[type[BaseException], ...] = (Exception,),
+        on_open: Callable[[str], None] | None = None,
+        on_close: Callable[[str], None] | None = None,
+        on_half_open: Callable[[str], None] | None = None,
     ):
         """
         Initialize a circuit breaker.
@@ -1003,7 +956,9 @@ class CircuitBreaker:
         self.test_calls_remaining = 0
         self.logger.info("Circuit breaker reset to initial state")
 
-    def _safe_hook(self, hook: Optional[Callable[[str], None]], func_name: str) -> None:
+    def _safe_hook(
+        self, hook: Callable[[str], None] | None, func_name: str
+    ) -> None:
         """Execute a hook safely without propagating errors."""
         if hook is None:
             return
@@ -1048,7 +1003,7 @@ class Bulkhead:
         # Create a logger
         self.logger = DevSynthLogger("bulkhead")
 
-    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
+    def __call__(self, func: Callable[Q, T]) -> Callable[Q, T]:
         """
         Decorator for applying the bulkhead pattern to a function.
 
@@ -1064,12 +1019,12 @@ class Bulkhead:
         """
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
+        def wrapper(*args: Q.args, **kwargs: Q.kwargs) -> T:
             return self.call(func, *args, **kwargs)
 
         return wrapper
 
-    def call(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    def call(self, func: Callable[Q, T], *args: Q.args, **kwargs: Q.kwargs) -> T:
         """
         Call a function with bulkhead protection.
 

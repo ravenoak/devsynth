@@ -1,6 +1,9 @@
 """Port for ONNX runtime operations."""
 
-from typing import Any, Dict, Iterable
+from __future__ import annotations
+
+from collections.abc import Iterable
+from typing import Any
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -20,7 +23,7 @@ class OnnxPort:
         logger.debug(f"Loading ONNX model from {model_path}")
         self.runtime.load_model(model_path)
 
-    def run(self, inputs: Dict[str, Any]) -> Iterable[Any]:
+    def run(self, inputs: dict[str, Any]) -> Iterable[Any]:
         """Run inference on the loaded model."""
         logger.debug("Running ONNX model")
         return self.runtime.run(inputs)

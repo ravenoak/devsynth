@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
@@ -8,7 +10,6 @@ from ..domain.interfaces.memory import ContextManager, MemoryStore
 from ..domain.models.memory import MemoryItem, MemoryType
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class MemoryPort:
@@ -17,7 +18,7 @@ class MemoryPort:
     def __init__(
         self,
         context_manager: ContextManager,
-        memory_store: Optional[MemoryStore] = None,
+        memory_store: MemoryStore | None = None,
     ):
         # Use KuzuMemoryStore by default, but allow override for testing/extensibility
         if memory_store is None:
@@ -29,7 +30,10 @@ class MemoryPort:
         self.context_manager = context_manager
 
     def store_memory(
-        self, content: Any, memory_type: MemoryType, metadata: Dict[str, Any] = None
+        self,
+        content: Any,
+        memory_type: MemoryType,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Store an item in memory and return its ID."""
         item = MemoryItem(
@@ -38,12 +42,12 @@ class MemoryPort:
         inc_memory("store")
         return self.memory_store.store(item)
 
-    def retrieve_memory(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve_memory(self, item_id: str) -> MemoryItem | None:
         """Retrieve an item from memory by ID."""
         inc_memory("retrieve")
         return self.memory_store.retrieve(item_id)
 
-    def search_memory(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search_memory(self, query: dict[str, Any]) -> list[MemoryItem]:
         """Search for items in memory matching the query."""
         inc_memory("search")
         return self.memory_store.search(query)
@@ -53,12 +57,12 @@ class MemoryPort:
         inc_memory("add_context")
         self.context_manager.add_to_context(key, value)
 
-    def get_from_context(self, key: str) -> Optional[Any]:
+    def get_from_context(self, key: str) -> Any | None:
         """Get a value from the current context."""
         inc_memory("get_context")
         return self.context_manager.get_from_context(key)
 
-    def get_full_context(self) -> Dict[str, Any]:
+    def get_full_context(self) -> dict[str, Any]:
         """Get the full current context."""
         inc_memory("get_full_context")
         return self.context_manager.get_full_context()

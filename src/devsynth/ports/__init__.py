@@ -16,7 +16,6 @@ from .orchestration_port import OrchestrationPort
 from .vector_store_port import VectorStorePort
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 __all__ = [
     "AgentPort",
