@@ -9,6 +9,9 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
+
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/wsde_memory_integration.feature")
 
 from rdflib import RDF, Graph, Namespace

@@ -6,6 +6,8 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 
 class DummyForm:
     def __init__(self, submitted: bool = True):

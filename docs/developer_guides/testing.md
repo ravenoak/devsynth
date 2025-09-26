@@ -621,11 +621,11 @@ Note: Minimal backend gating smoke tests live under tests/unit/retrieval/test_ba
 
 For more details and troubleshooting, refer to tests/README.md and project guidelines.
 
-### Warnings policy (targeted filtering)
+### Warnings policy
 
 - We do not use the global pytest option to suppress all warnings (no `-p no:warnings`).
-- Instead, we apply a targeted filter in pytest.ini to ignore only the collection-time PytestWarning emitted by pytest-bdd regarding speed markers: `ignore:.*speed marker.*:pytest.PytestWarning`.
-- Rationale: keep other warnings visible and actionable, while avoiding noise from an expected, non-actionable wrapper warning; this policy is enforced by docs/tasks.md §1.3–1.4.
+- Behavior scenario wrappers now carry explicit speed markers, so pytest-bdd no longer emits the collection-time PytestWarning we previously filtered out (policy update 2025-09-24).
+- Keep all other warnings visible and actionable; treat new warnings as defects to investigate instead of suppressing them wholesale.
 
 ### Speed Marker Discipline (mandatory)
 

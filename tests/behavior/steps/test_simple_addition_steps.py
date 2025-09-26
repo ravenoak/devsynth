@@ -5,6 +5,8 @@ Step definitions for the simple addition feature.
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 # Load the scenarios from the feature file
 scenarios("../features/examples/simple_addition.feature")
 

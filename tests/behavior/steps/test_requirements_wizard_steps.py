@@ -11,6 +11,8 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.application.cli.setup_wizard import SetupWizard
 from devsynth.interface.ux_bridge import UXBridge
 
+pytestmark = [pytest.mark.fast]
+
 
 class DummyBridge(UXBridge):
     def __init__(self, answers: Sequence[str], confirms: Sequence[bool]):

@@ -7,6 +7,8 @@ from pytest_bdd import scenarios
 
 from .steps.test_retry_steps import *  # noqa: F401,F403
 
+pytestmark = [pytest.mark.fast]
+
 feature_file = os.path.join(
     os.path.dirname(__file__), "features", "general", "retry_mechanism.feature"
 )

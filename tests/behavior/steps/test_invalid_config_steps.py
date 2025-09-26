@@ -6,6 +6,8 @@ from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import build_app
 
+pytestmark = [pytest.mark.fast]
+
 
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():

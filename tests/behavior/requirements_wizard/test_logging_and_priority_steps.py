@@ -11,6 +11,8 @@ from devsynth.application.requirements.wizard import requirements_wizard
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.utils.logging import configure_logging
 
+pytestmark = [pytest.mark.fast]
+
 
 class DummyBridge(UXBridge):
     def __init__(self, answers):

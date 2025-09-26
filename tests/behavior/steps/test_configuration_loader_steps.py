@@ -9,6 +9,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from devsynth.config.unified_loader import UnifiedConfig, UnifiedConfigLoader
 from devsynth.exceptions import ConfigurationError
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/configuration_loader.feature")
 
 

@@ -11,7 +11,10 @@ feature_file = os.path.join(
 )
 
 # Resource gating if applicable (CLI/UI)
-pytestmark = [pytest.mark.requires_resource("cli")]
+pytestmark = [
+    pytest.mark.fast,
+    pytest.mark.requires_resource("cli"),
+]
 
-# Load BDD scenarios; per-function speed markers are applied centrally in tests/behavior/conftest.py
+# Load BDD scenarios; module-level pytestmark keeps them in the fast profile.
 scenarios(feature_file)

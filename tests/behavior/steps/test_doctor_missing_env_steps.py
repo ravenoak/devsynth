@@ -4,6 +4,8 @@ import pytest
 
 from pytest_bdd import given, scenarios, then
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/doctor_missing_env.feature")
 
 

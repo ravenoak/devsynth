@@ -1,8 +1,11 @@
+import pytest
 import os
 
 from pytest_bdd import scenarios
 
 from .steps.test_setup_wizard_steps import *  # noqa: F401,F403
+
+pytestmark = [pytest.mark.fast]
 
 # Get the absolute path to the feature file
 feature_file = os.path.join(

@@ -1,9 +1,12 @@
+import pytest
 import os
 
 from pytest_bdd import scenarios
 
 # Import step definitions
 from .steps.test_config_loader_steps import *
+
+pytestmark = [pytest.mark.fast]
 
 # Get the absolute path to the feature file
 feature_file = os.path.join(

@@ -16,7 +16,10 @@ FEATURE_FILE = os.path.join(
     os.path.dirname(__file__), "features", "general", "run_tests.feature"
 )
 
-pytestmark = pytest.mark.requires_resource("cli")
+pytestmark = [
+    pytest.mark.fast,
+    pytest.mark.requires_resource("cli"),
+]
 
 # Apply speed marker at function level by wrapping scenarios in a generated test
 scenarios(FEATURE_FILE)

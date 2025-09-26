@@ -7,6 +7,8 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.cli import cli_commands
 
+pytestmark = [pytest.mark.fast]
+
 
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():

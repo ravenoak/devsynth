@@ -12,6 +12,8 @@ from devsynth.interface.ux_bridge import UXBridge
 
 from .webui_steps import webui_context
 
+pytestmark = [pytest.mark.fast]
+
 
 class DummyBridge(UXBridge):
     def __init__(self, answers: Sequence[str]):

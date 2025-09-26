@@ -5,6 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 pytest.importorskip("streamlit")
 
 # Register the feature scenarios to ensure step discovery

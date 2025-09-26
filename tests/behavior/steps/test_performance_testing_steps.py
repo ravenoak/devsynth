@@ -8,6 +8,8 @@ import psutil
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/performance_testing.feature")
 
 

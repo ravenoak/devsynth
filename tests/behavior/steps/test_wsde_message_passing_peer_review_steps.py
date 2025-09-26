@@ -8,6 +8,8 @@ from unittest.mock import MagicMock
 
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/wsde_message_passing_peer_review.feature")
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator

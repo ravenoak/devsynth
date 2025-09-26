@@ -8,6 +8,8 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.domain.interfaces.agent import Agent
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/delegate_task_consensus.feature")
 scenarios("../features/delegating_tasks_with_consensus_voting.feature")
 

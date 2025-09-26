@@ -1,6 +1,8 @@
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/cli_ui_parity.feature")
 
 

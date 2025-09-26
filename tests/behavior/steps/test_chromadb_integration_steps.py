@@ -8,6 +8,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 # Register CLI installation step used in feature backgrounds
 from .cli_commands_steps import check_workflow_success  # noqa: F401
 
+pytestmark = [pytest.mark.fast]
+
 
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():

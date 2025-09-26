@@ -7,6 +7,8 @@ pytest_plugins = ["tests.fixtures.webui_test_utils"]
 
 from tests.fixtures.webui_test_utils import simulate_form_submission, webui_context
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/webui.feature")
 
 

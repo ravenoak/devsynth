@@ -7,6 +7,8 @@ from devsynth.methodology.adhoc import AdHocAdapter
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
 from devsynth.methodology.sprint import SprintAdapter
 
+pytestmark = [pytest.mark.fast]
+
 # Import the feature file
 scenarios("../features/general/methodology_adapters.feature")
 

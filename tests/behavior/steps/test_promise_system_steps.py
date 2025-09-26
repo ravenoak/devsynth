@@ -9,6 +9,8 @@ from devsynth.application.promises import PromiseType
 from devsynth.application.promises.agent import PromiseAgent
 from devsynth.application.promises.broker import PromiseBroker, UnauthorizedAccessError
 
+pytestmark = [pytest.mark.fast]
+
 # Import the feature file
 scenarios("../features/general/promise_system.feature")
 scenarios("../features/promise_system_capability_management.feature")

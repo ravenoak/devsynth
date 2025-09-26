@@ -10,6 +10,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 # Import CLI steps to satisfy feature background requirements
 from .cli_commands_steps import *  # noqa: F401,F403 - re-export CLI steps
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/validate_manifest.feature")
 
 

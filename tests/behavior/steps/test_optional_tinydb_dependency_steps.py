@@ -5,6 +5,8 @@ import sys
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/memory/optional_tinydb_dependency.feature")
 
 

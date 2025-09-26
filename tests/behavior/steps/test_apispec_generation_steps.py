@@ -7,6 +7,8 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+pytestmark = [pytest.mark.fast]
+
 
 @pytest.fixture
 def apispec_context(monkeypatch):

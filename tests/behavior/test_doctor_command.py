@@ -7,7 +7,10 @@ from .steps.cli_commands_steps import *  # noqa: F401,F403
 from .steps.test_devsynth_doctor_steps import *  # noqa: F401,F403
 from .steps.test_doctor_command_steps import *  # noqa: F401,F403
 
-pytestmark = pytest.mark.requires_resource("cli")
+pytestmark = [
+    pytest.mark.fast,
+    pytest.mark.requires_resource("cli"),
+]
 
 # Get the absolute path to the feature file
 feature_file = os.path.join(

@@ -5,6 +5,9 @@ from __future__ import annotations
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file for this test
+
+pytestmark = [pytest.mark.fast]
+
 scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
 
 # Content from test_edrr_coordinator_steps.py inlined here
