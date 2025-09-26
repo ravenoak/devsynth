@@ -188,7 +188,7 @@ class MemoryManager:
 
     def retrieve_with_edrr_phase(
         self,
-        item_type: str,
+        item_type: MemoryType,
         edrr_phase: str,
         metadata: Dict[str, Any] | None = None,
     ) -> Any:
@@ -198,7 +198,7 @@ class MemoryManager:
         found. It is intentionally simple so unit tests remain hermetic.
 
         Args:
-            item_type: Identifier of the stored item.
+            item_type: Identifier of the stored item as a :class:`MemoryType`.
             edrr_phase: The phase tag used during storage.
             metadata: Optional additional metadata for adapter queries.
 
@@ -216,7 +216,7 @@ class MemoryManager:
                 if item is not None:
                     return item
             if hasattr(adapter, "retrieve"):
-                item = adapter.retrieve(item_type)
+                item = adapter.retrieve(item_type.value)
                 if (
                     item is not None
                     and getattr(item, "metadata", {}).get("edrr_phase") == edrr_phase

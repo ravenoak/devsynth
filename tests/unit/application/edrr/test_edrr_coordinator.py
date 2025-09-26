@@ -206,7 +206,7 @@ class TestEDRRCoordinator:
         coordinator.cycle_id = "test-cycle-id"
         coordinator.current_phase = Phase.DIFFERENTIATE
         memory_manager.stored_items = {
-            "EXPAND_RESULTS": {
+            MemoryType.EXPAND_RESULTS: {
                 "item": {"ideas": [{"id": 1}, {"id": 2}]},
                 "phase": "EXPAND",
                 "metadata": {"cycle_id": "test-cycle-id"},
@@ -239,7 +239,7 @@ class TestEDRRCoordinator:
         coordinator.cycle_id = "test-cycle-id"
         coordinator.current_phase = Phase.REFINE
         memory_manager.stored_items = {
-            "DIFFERENTIATE_RESULTS": {
+            MemoryType.DIFFERENTIATE_RESULTS: {
                 "item": {
                     "evaluated_options": [{"id": 1}, {"id": 2}],
                     "decision_criteria": {"criteria_1": 0.5, "criteria_2": 0.5},
@@ -277,12 +277,12 @@ class TestEDRRCoordinator:
         coordinator.cycle_id = "test-cycle-id"
         coordinator.current_phase = Phase.RETROSPECT
         memory_manager.stored_items = {
-            "EXPAND_RESULTS": {
+            MemoryType.EXPAND_RESULTS: {
                 "item": {"ideas": [{"id": 1}, {"id": 2}]},
                 "phase": "EXPAND",
                 "metadata": {"cycle_id": "test-cycle-id"},
             },
-            "DIFFERENTIATE_RESULTS": {
+            MemoryType.DIFFERENTIATE_RESULTS: {
                 "item": {
                     "evaluated_options": [{"id": 1}, {"id": 2}],
                     "decision_criteria": {"criteria_1": 0.5, "criteria_2": 0.5},
@@ -290,7 +290,7 @@ class TestEDRRCoordinator:
                 "phase": "DIFFERENTIATE",
                 "metadata": {"cycle_id": "test-cycle-id"},
             },
-            "REFINE_RESULTS": {
+            MemoryType.REFINE_RESULTS: {
                 "item": {
                     "implementation_plan": [{"task": 1}, {"task": 2}],
                     "quality_checks": {"issues": [], "recommendations": []},
@@ -311,7 +311,7 @@ class TestEDRRCoordinator:
         assert wsde_team.generate_improvement_suggestions.call_count == 1
         assert memory_manager.store_with_edrr_phase.call_count >= 2
         assert f"RETROSPECT_{coordinator.cycle_id}" in coordinator._execution_traces
-        stored = memory_manager.stored_items["RETROSPECT_RESULTS"]
+        stored = memory_manager.stored_items[MemoryType.RETROSPECT_RESULTS]
         assert stored["phase"] == "RETROSPECT"
         assert stored["metadata"]["cycle_id"] == "test-cycle-id"
         assert stored["item"] == results

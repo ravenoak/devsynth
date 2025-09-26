@@ -10,6 +10,7 @@ from devsynth.application.documentation.documentation_manager import (
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
+from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
@@ -52,11 +53,11 @@ def coordinator(wsde_team):
     mm = MagicMock()
 
     def retrieve_with_phase(item_type, phase, metadata):
-        if item_type == "EXPAND_RESULTS":
+        if item_type == MemoryType.EXPAND_RESULTS:
             return {"ideas": []}
-        if item_type == "DIFFERENTIATE_RESULTS":
+        if item_type == MemoryType.DIFFERENTIATE_RESULTS:
             return {"evaluated_options": [], "decision_criteria": {}}
-        if item_type == "REFINE_RESULTS":
+        if item_type == MemoryType.REFINE_RESULTS:
             return {"implementation_plan": [], "quality_checks": {}}
         return {}
 

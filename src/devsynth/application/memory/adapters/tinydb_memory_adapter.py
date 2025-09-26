@@ -14,7 +14,12 @@ from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any, Protocol, cast
 
-from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from ....domain.models.memory import (
+    MemoryItem,
+    MemoryType,
+    MemoryVector,
+    SerializedMemoryItem,
+)
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from .storage_adapter import MemorySnapshot, StorageAdapter
@@ -159,7 +164,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
             return value.value
         return value
 
-    def _memory_item_to_dict(self, item: MemoryItem) -> dict[str, Any]:
+    def _memory_item_to_dict(self, item: MemoryItem) -> SerializedMemoryItem:
         """
         Convert a MemoryItem to a dictionary for storage in TinyDB.
 
@@ -170,14 +175,10 @@ class TinyDBMemoryAdapter(StorageAdapter):
             A dictionary representation of the memory item
         """
         # Handle both enum and string types for memory_type
-        memory_type_value = item.memory_type
-        if hasattr(item.memory_type, "value"):
-            memory_type_value = item.memory_type.value
-
         return {
             "id": item.id,
             "content": self._serialize_value(item.content),
-            "memory_type": memory_type_value,
+            "memory_type": item.memory_type.value,
             "metadata": self._serialize_value(item.metadata),
             "created_at": self._serialize_value(item.created_at),
         }
@@ -194,16 +195,24 @@ class TinyDBMemoryAdapter(StorageAdapter):
         """
         from datetime import datetime
 
+        memory_type = MemoryType.from_raw(item_dict["memory_type"])
+
+        metadata_value = item_dict.get("metadata")
+        metadata = metadata_value if isinstance(metadata_value, dict) else {}
+
+        created_at_raw = item_dict.get("created_at")
+        created_at = (
+            datetime.fromisoformat(created_at_raw)
+            if isinstance(created_at_raw, str) and created_at_raw
+            else None
+        )
+
         return MemoryItem(
             id=item_dict["id"],
             content=item_dict["content"],
-            memory_type=MemoryType(item_dict["memory_type"]),
-            metadata=item_dict["metadata"],
-            created_at=(
-                datetime.fromisoformat(item_dict["created_at"])
-                if item_dict["created_at"]
-                else None
-            ),
+            memory_type=memory_type,
+            metadata=metadata,
+            created_at=created_at,
         )
 
     def store(self, item: MemoryItem, transaction_id: str | None = None) -> str:
@@ -310,8 +319,9 @@ class TinyDBMemoryAdapter(StorageAdapter):
         for key, value in query.items():
             if key == "type":
                 # Handle memory_type specially
+                memory_type = MemoryType.from_raw(value)
                 condition = cast(
-                    TinyDBQueryLike, tinydb_query.memory_type == value.value
+                    TinyDBQueryLike, tinydb_query.memory_type == memory_type.value
                 )
             elif key.startswith("metadata."):
                 # Handle nested metadata fields
@@ -417,7 +427,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
     def retrieve_with_edrr_phase(
         self,
-        item_type: str,
+        item_type: MemoryType,
         edrr_phase: str,
         metadata: Mapping[str, Any] | None = None,
     ) -> Any:
@@ -425,7 +435,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         Retrieve an item stored with a specific EDRR phase.
 
         Args:
-            item_type: Identifier of the stored item.
+            item_type: Identifier of the stored item as a :class:`MemoryType`.
             edrr_phase: The phase tag used during storage.
             metadata: Optional additional metadata for adapter queries.
 
@@ -438,7 +448,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         # Build TinyDB query
         tinydb_query = self._query_factory()
         query_conditions = cast(
-            TinyDBQueryLike, tinydb_query.memory_type == item_type
+            TinyDBQueryLike, tinydb_query.memory_type == item_type.value
         )
 
         for key, value in search_meta.items():

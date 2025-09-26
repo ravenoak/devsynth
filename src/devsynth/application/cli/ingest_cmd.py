@@ -23,6 +23,7 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.config.unified_loader import UnifiedConfigLoader
+from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.project import ProjectModel
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.exceptions import DevSynthError, IngestionError, ManifestError
@@ -400,7 +401,9 @@ def expand_phase(
         "duration_seconds": duration,
     }
 
-    memory_manager.store_with_edrr_phase(results, "EXPAND_RESULTS", Phase.EXPAND.value)
+    memory_manager.store_with_edrr_phase(
+        results, MemoryType.EXPAND_RESULTS, Phase.EXPAND.value
+    )
 
     return results
 
@@ -482,7 +485,7 @@ def differentiate_phase(
     }
 
     memory_manager.store_with_edrr_phase(
-        results, "DIFFERENTIATE_RESULTS", Phase.DIFFERENTIATE.value
+        results, MemoryType.DIFFERENTIATE_RESULTS, Phase.DIFFERENTIATE.value
     )
 
     return results
@@ -552,7 +555,9 @@ def refine_phase(
         "duration_seconds": duration,
     }
 
-    memory_manager.store_with_edrr_phase(results, "REFINE_RESULTS", Phase.REFINE.value)
+    memory_manager.store_with_edrr_phase(
+        results, MemoryType.REFINE_RESULTS, Phase.REFINE.value
+    )
 
     return results
 
@@ -610,7 +615,7 @@ def retrospect_phase(
     }
 
     memory_manager.store_with_edrr_phase(
-        results, "RETROSPECT_RESULTS", Phase.RETROSPECT.value
+        results, MemoryType.RETROSPECT_RESULTS, Phase.RETROSPECT.value
     )
 
     return results

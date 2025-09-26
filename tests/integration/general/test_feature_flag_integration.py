@@ -13,6 +13,7 @@ from devsynth.application.edrr.coordinator import EDRRCoordinator, EDRRCoordinat
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.interfaces.agent import Agent
+from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
@@ -65,11 +66,11 @@ def create_edrr_coordinator(auto_enabled: bool) -> EDRRCoordinator:
     mm = MagicMock(spec=MemoryManager)
 
     def retrieve_with_phase(item_type, phase, metadata):
-        if item_type == "EXPAND_RESULTS":
+        if item_type == MemoryType.EXPAND_RESULTS:
             return {"ideas": []}
-        if item_type == "DIFFERENTIATE_RESULTS":
+        if item_type == MemoryType.DIFFERENTIATE_RESULTS:
             return {"evaluated_options": [], "decision_criteria": {}}
-        if item_type == "REFINE_RESULTS":
+        if item_type == MemoryType.REFINE_RESULTS:
             return {"implementation_plan": [], "quality_checks": {}}
         return {}
 

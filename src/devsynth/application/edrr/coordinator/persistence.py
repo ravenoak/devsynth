@@ -18,7 +18,7 @@ class PersistenceMixin:
     def _safe_store_with_edrr_phase(
         self,
         content: Any,
-        memory_type: str | MemoryType,
+        memory_type: MemoryType,
         edrr_phase: str,
         metadata: dict[str, Any] | None = None,
     ) -> str | None:
@@ -45,7 +45,7 @@ class PersistenceMixin:
 
     def _safe_retrieve_with_edrr_phase(
         self,
-        item_type: str,
+        item_type: MemoryType,
         edrr_phase: str,
         metadata: dict[str, Any] | None = None,
     ) -> Any:

@@ -10,7 +10,7 @@ from typing import Any  # S3 client treated as dynamic ``Any``
 from typing import Any as S3Client
 from typing import cast
 
-from ....domain.models.memory import MemoryItem, MemoryType
+from ....domain.models.memory import MemoryItem, MemoryType, SerializedMemoryItem
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from .storage_adapter import StorageAdapter
@@ -59,19 +59,14 @@ class S3MemoryAdapter(StorageAdapter):
             )
         if not item.id:
             item.id = str(uuid.uuid4())
-        data = json.dumps(
-            {
-                "id": item.id,
-                "content": item.content,
-                "memory_type": (
-                    item.memory_type.value
-                    if hasattr(item.memory_type, "value")
-                    else item.memory_type
-                ),
-                "metadata": item.metadata,
-                "created_at": item.created_at.isoformat() if item.created_at else None,
-            }
-        )
+        payload: SerializedMemoryItem = {
+            "id": item.id,
+            "content": item.content,
+            "memory_type": item.memory_type.value,
+            "metadata": item.metadata,
+            "created_at": item.created_at.isoformat() if item.created_at else None,
+        }
+        data = json.dumps(payload)
         self.client.put_object(Bucket=self.bucket, Key=item.id, Body=data)
         return str(item.id)
 
@@ -80,13 +75,13 @@ class S3MemoryAdapter(StorageAdapter):
             obj = self.client.get_object(Bucket=self.bucket, Key=item_id)
         except ClientError:
             return None
-        data = json.loads(obj["Body"].read())
-        memory_type = MemoryType(data["memory_type"])
+        data = cast(SerializedMemoryItem, json.loads(obj["Body"].read()))
+        memory_type = MemoryType.from_raw(data["memory_type"])
         return MemoryItem(
             id=data["id"],
             content=data["content"],
             memory_type=memory_type,
-            metadata=data.get("metadata", {}),
+            metadata=data.get("metadata") or {},
         )
 
     def search(self, query: Mapping[str, str | MemoryType]) -> list[MemoryItem]:
@@ -97,15 +92,14 @@ class S3MemoryAdapter(StorageAdapter):
             if not item:
                 continue
             match = True
+            metadata = item.metadata or {}
             for key, value in query.items():
                 if key == "type":
-                    expected = (
-                        value if isinstance(value, MemoryType) else MemoryType(value)
-                    )
+                    expected = MemoryType.from_raw(value)
                     if item.memory_type != expected:
                         match = False
                         break
-                elif item.metadata.get(key) != value:
+                elif metadata.get(key) != value:
                     match = False
                     break
             if match:
