@@ -4,15 +4,49 @@ This module provides utilities for creating and managing progress indicators
 for long-running operations in a consistent way across all DevSynth commands.
 """
 
+from __future__ import annotations
+
 import functools
 import time
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    ParamSpec,
+    Protocol,
+    Sequence,
+    TypeVar,
+    TypedDict,
+    Union,
+    cast,
+    overload,
+)
 
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 
-# Type variable for generic functions
+# Type variables for generic functions
 T = TypeVar("T")
+ItemT = TypeVar("ItemT")
+P = ParamSpec("P")
+
+
+class ProgressCallable(Protocol[P, T]):
+    """Protocol for callables that accept a ``progress`` keyword argument."""
+
+    def __call__(
+        self, *args: P.args, progress: ProgressIndicator, **kwargs: P.kwargs
+    ) -> T:
+        """Invoke the callable with a typed ``progress`` indicator."""
+
+
+class SubtaskSpec(TypedDict, total=False):
+    """Configuration for subtasks executed inside :func:`run_with_progress`."""
+
+    name: str
+    total: int
 
 
 class ProgressManager:
@@ -102,8 +136,8 @@ class ProgressManager:
                 del self.active_indicators[key]
 
     def track(
-        self, items: List[Any], description: str, key: Optional[str] = None
-    ) -> List[Any]:
+        self, items: List[ItemT], description: str, key: Optional[str] = None
+    ) -> List[ItemT]:
         """Track progress through a list of items.
 
         Args:
@@ -121,23 +155,34 @@ class ProgressManager:
         with self.progress(description, total, key) as indicator:
             # Return the original list, but with a side effect of updating the progress
             # indicator each time an item is accessed
-            class TrackedList(list):
-                def __getitem__(self, index):
+            class TrackedList(List[ItemT]):
+                @overload
+                def __getitem__(self, index: int) -> ItemT:  # pragma: no cover - typing
+                    ...
+
+                @overload
+                def __getitem__(self, index: slice) -> List[ItemT]:  # pragma: no cover - typing
+                    ...
+
+                def __getitem__(
+                    self, index: int | slice
+                ) -> ItemT | List[ItemT]:  # pragma: no cover - typing helper
                     if isinstance(index, slice):
-                        # For slices, update progress based on slice size
                         start, stop, step = index.indices(len(self))
                         count = len(range(start, stop, step))
                         indicator.update(advance=count)
-                    else:
-                        # For single items, update progress by 1
-                        indicator.update(advance=1)
-                    return super().__getitem__(index)
+                        result = super().__getitem__(index)
+                        return cast(List[ItemT], result)
+
+                    indicator.update(advance=1)
+                    result = super().__getitem__(index)
+                    return cast(ItemT, result)
 
             return TrackedList(items)
 
     def with_progress(
         self, description: str, total: int = 100, key: Optional[str] = None
-    ) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    ) -> Callable[[ProgressCallable[P, T]], Callable[P, T]]:
         """Decorator for functions that should show progress.
 
         Args:
@@ -149,13 +194,17 @@ class ProgressManager:
             Decorator function
         """
 
-        def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        def decorator(func: ProgressCallable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
-            def wrapper(*args: Any, **kwargs: Any) -> T:
+            def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+                if "progress" in kwargs:
+                    raise TypeError(
+                        "with_progress decorator injects the 'progress' keyword; "
+                        "do not supply it explicitly"
+                    )
+
                 with self.progress(description, total, key) as indicator:
-                    # Add the progress indicator to kwargs
-                    kwargs["progress"] = indicator
-                    return func(*args, **kwargs)
+                    return func(*args, progress=indicator, **kwargs)
 
             return wrapper
 
@@ -344,7 +393,7 @@ def progress_indicator(
         indicator.complete()
 
 
-def track_progress(bridge: UXBridge, items: List[Any], description: str) -> List[Any]:
+def track_progress(bridge: UXBridge, items: List[ItemT], description: str) -> List[ItemT]:
     """Track progress through a list of items.
 
     Args:
@@ -361,7 +410,7 @@ def track_progress(bridge: UXBridge, items: List[Any], description: str) -> List
 
 def with_progress(
     bridge: UXBridge, description: str, total: int = 100
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
+) -> Callable[[ProgressCallable[P, T]], Callable[P, T]]:
     """Decorator for functions that should show progress.
 
     Args:
@@ -381,7 +430,7 @@ def run_with_progress(
     task_fn: Callable[[], T],
     bridge: UXBridge,
     total: int = 100,
-    subtasks: Optional[List[Dict[str, Any]]] = None,
+    subtasks: Optional[Sequence[SubtaskSpec]] = None,
 ) -> T:
     """Run a task while displaying a progress indicator.
 
@@ -400,10 +449,9 @@ def run_with_progress(
     try:
         if subtasks:
             for subtask in subtasks:
-                progress.add_subtask(
-                    subtask.get("name", "Subtask"),
-                    total=subtask.get("total", 100),
-                )
+                name = subtask["name"] if "name" in subtask else "Subtask"
+                subtask_total = subtask["total"] if "total" in subtask else 100
+                progress.add_subtask(name, total=subtask_total)
 
         return task_fn()
     finally:

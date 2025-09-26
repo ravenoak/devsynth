@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import time
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from devsynth.exceptions import DevSynthError
-from devsynth.interface.state_access import get_session_value as _get_session_value
-from devsynth.interface.state_access import set_session_value as _set_session_value
+from devsynth.interface.state_access import (
+    SessionStateMapping,
+    get_session_value as _get_session_value,
+    set_session_value as _set_session_value,
+)
 from devsynth.logging_setup import DevSynthLogger
 
 from .shared_bridge import SharedBridgeMixin
@@ -21,6 +25,48 @@ if TYPE_CHECKING:
 
 # Module level logger
 logger = DevSynthLogger(__name__)
+
+
+@dataclass(slots=True)
+class SubtaskState:
+    """Track the state of Streamlit subtasks displayed in the progress widget."""
+
+    description: str
+    total: int
+    current: float = 0.0
+    status: str = "Starting..."
+    completed: bool = False
+    nested_subtasks: dict[str, "SubtaskState"] = field(default_factory=dict)
+
+
+def _safe_text(value: object, *, fallback: str) -> str:
+    """Convert ``value`` to sanitized text, preserving a fallback on failure."""
+
+    try:
+        return sanitize_output(str(value))
+    except Exception:  # pragma: no cover - defensive sanitization
+        return fallback
+
+
+def _default_status(current: float, total: int) -> str:
+    """Return a human-friendly status message based on progress."""
+
+    if total <= 0:
+        total = 1
+
+    if current >= total:
+        return "Complete"
+
+    ratio = current / total
+    if ratio >= 0.99:
+        return "Finalizing..."
+    if ratio >= 0.75:
+        return "Almost done..."
+    if ratio >= 0.5:
+        return "Halfway there..."
+    if ratio >= 0.25:
+        return "Processing..."
+    return "Starting..."
 
 
 def _require_streamlit() -> None:
@@ -49,10 +95,10 @@ class WebUIProgressIndicator(ProgressIndicator):
     def __init__(self, description: str, total: int) -> None:
         self._description = description
         self._total = total
-        self._current = 0
+        self._current = 0.0
         self._status = "Starting..."
-        self._subtasks: dict[str, dict[str, Any]] = {}
-        self._update_times = []
+        self._subtasks: dict[str, SubtaskState] = {}
+        self._update_times: list[tuple[float, float]] = []
 
     def update(
         self,
@@ -68,37 +114,13 @@ class WebUIProgressIndicator(ProgressIndicator):
             description: New description for the progress indicator
             status: Status message to display (e.g., "Processing...", "Analyzing...")
         """
-        # Handle description safely, converting to string if needed
         if description is not None:
-            try:
-                desc_str = str(description)
-                self._description = sanitize_output(desc_str)
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
-                pass
+            self._description = _safe_text(description, fallback=self._description)
 
-        # Store status if provided
         if status is not None:
-            try:
-                status_str = str(status)
-                self._status = sanitize_output(status_str)
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
-                self._status = "In progress..."
+            self._status = _safe_text(status, fallback=self._status)
         else:
-            # If no status is provided, use a default based on progress
-            if self._current >= self._total:
-                self._status = "Complete"
-            elif self._current >= 0.99 * self._total:
-                self._status = "Finalizing..."
-            elif self._current >= 0.75 * self._total:
-                self._status = "Almost done..."
-            elif self._current >= 0.5 * self._total:
-                self._status = "Halfway there..."
-            elif self._current >= 0.25 * self._total:
-                self._status = "Processing..."
-            else:
-                self._status = "Starting..."
+            self._status = _default_status(self._current, self._total)
 
         self._current += advance
         self._update_times.append((time.time(), self._current))
@@ -117,21 +139,13 @@ class WebUIProgressIndicator(ProgressIndicator):
         Returns:
             task_id: ID of the created subtask
         """
-        # Handle description safely, converting to string if needed
-        try:
-            desc_str = str(description)
-            desc = sanitize_output(desc_str)
-        except Exception:
-            # Fallback for objects that can't be safely converted to string
-            desc = "<subtask>"
-
+        desc = _safe_text(description, fallback="<subtask>")
         task_id = f"subtask_{len(self._subtasks)}"
-        self._subtasks[task_id] = {
-            "description": desc,
-            "total": total,
-            "current": 0,
-            "completed": False,
-        }
+        self._subtasks[task_id] = SubtaskState(
+            description=desc,
+            total=total,
+            status=_default_status(0.0, total),
+        )
         return task_id
 
     def update_subtask(
@@ -144,19 +158,17 @@ class WebUIProgressIndicator(ProgressIndicator):
             advance: Amount to advance the progress
             description: New description for the subtask
         """
-        if task_id not in self._subtasks:
+        subtask = self._subtasks.get(task_id)
+        if subtask is None:
             return
 
-        # Handle description safely, converting to string if needed
         if description is not None:
-            try:
-                desc_str = str(description)
-                self._subtasks[task_id]["description"] = sanitize_output(desc_str)
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
-                pass
+            subtask.description = _safe_text(
+                description, fallback=subtask.description
+            )
 
-        self._subtasks[task_id]["current"] += advance
+        subtask.current += advance
+        subtask.status = _default_status(subtask.current, subtask.total)
 
     def complete_subtask(self, task_id: str) -> None:
         """Mark a subtask as complete.
@@ -164,16 +176,16 @@ class WebUIProgressIndicator(ProgressIndicator):
         Args:
             task_id: ID of the subtask to complete
         """
-        if task_id not in self._subtasks:
+        subtask = self._subtasks.get(task_id)
+        if subtask is None:
             return
 
-        # Complete all nested subtasks first if any
-        if "nested_subtasks" in self._subtasks[task_id]:
-            for nested_id in list(self._subtasks[task_id]["nested_subtasks"].keys()):
-                self.complete_nested_subtask(task_id, nested_id)
+        for nested_id in list(subtask.nested_subtasks.keys()):
+            self.complete_nested_subtask(task_id, nested_id)
 
-        self._subtasks[task_id]["current"] = self._subtasks[task_id]["total"]
-        self._subtasks[task_id]["completed"] = True
+        subtask.current = float(subtask.total)
+        subtask.completed = True
+        subtask.status = "Complete"
 
     def add_nested_subtask(
         self,
@@ -193,31 +205,23 @@ class WebUIProgressIndicator(ProgressIndicator):
         Returns:
             task_id: ID of the created nested subtask
         """
-        if parent_id not in self._subtasks:
+        parent = self._subtasks.get(parent_id)
+        if parent is None:
             return ""
 
-        # Handle description safely, converting to string if needed
-        try:
-            desc_str = str(description)
-            desc = sanitize_output(desc_str)
-        except Exception:
-            # Fallback for objects that can't be safely converted to string
-            desc = "<nested subtask>"
-
-        # Initialize nested subtasks dictionary for parent if it doesn't exist
-        if "nested_subtasks" not in self._subtasks[parent_id]:
-            self._subtasks[parent_id]["nested_subtasks"] = {}
-
-        task_id = (
-            f"nested_{parent_id}_{len(self._subtasks[parent_id]['nested_subtasks'])}"
+        desc = _safe_text(description, fallback="<nested subtask>")
+        initial_status = (
+            _safe_text(status, fallback=desc)
+            if status is not None
+            else _default_status(0.0, total)
         )
-        self._subtasks[parent_id]["nested_subtasks"][task_id] = {
-            "description": desc,
-            "total": total,
-            "current": 0,
-            "status": status,
-            "completed": False,
-        }
+
+        task_id = f"nested_{parent_id}_{len(parent.nested_subtasks)}"
+        parent.nested_subtasks[task_id] = SubtaskState(
+            description=desc,
+            total=total,
+            status=initial_status,
+        )
         return task_id
 
     def update_nested_subtask(
@@ -237,66 +241,23 @@ class WebUIProgressIndicator(ProgressIndicator):
             description: New description for the nested subtask
             status: Status message to display
         """
-        if (
-            parent_id not in self._subtasks
-            or "nested_subtasks" not in self._subtasks[parent_id]
-            or task_id not in self._subtasks[parent_id]["nested_subtasks"]
-        ):
+        parent = self._subtasks.get(parent_id)
+        if parent is None:
             return
 
-        # Handle description safely, converting to string if needed
+        nested = parent.nested_subtasks.get(task_id)
+        if nested is None:
+            return
+
         if description is not None:
-            try:
-                desc_str = str(description)
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["description"] = (
-                    sanitize_output(desc_str)
-                )
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
-                pass
+            nested.description = _safe_text(description, fallback=nested.description)
 
-        # Handle status safely
         if status is not None:
-            try:
-                status_str = str(status)
-                self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = (
-                    sanitize_output(status_str)
-                )
-            except Exception:
-                # Fallback for objects that can't be safely converted to string
-                self._subtasks[parent_id]["nested_subtasks"][task_id][
-                    "status"
-                ] = "In progress..."
+            nested.status = _safe_text(status, fallback=nested.status)
         else:
-            # If no status is provided, use a default based on progress
-            current = self._subtasks[parent_id]["nested_subtasks"][task_id]["current"]
-            total = self._subtasks[parent_id]["nested_subtasks"][task_id]["total"]
-            if current >= total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id][
-                    "status"
-                ] = "Complete"
-            elif current >= 0.99 * total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id][
-                    "status"
-                ] = "Finalizing..."
-            elif current >= 0.75 * total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id][
-                    "status"
-                ] = "Almost done..."
-            elif current >= 0.5 * total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id][
-                    "status"
-                ] = "Halfway there..."
-            elif current >= 0.25 * total:
-                self._subtasks[parent_id]["nested_subtasks"][task_id][
-                    "status"
-                ] = "Processing..."
-            else:
-                self._subtasks[parent_id]["nested_subtasks"][task_id][
-                    "status"
-                ] = "Starting..."
+            nested.status = _default_status(nested.current, nested.total)
 
-        self._subtasks[parent_id]["nested_subtasks"][task_id]["current"] += advance
+        nested.current += advance
 
     def complete_nested_subtask(self, parent_id: str, task_id: str) -> None:
         """Mark a nested subtask as complete.
@@ -305,18 +266,17 @@ class WebUIProgressIndicator(ProgressIndicator):
             parent_id: ID of the parent subtask
             task_id: ID of the nested subtask to complete
         """
-        if (
-            parent_id not in self._subtasks
-            or "nested_subtasks" not in self._subtasks[parent_id]
-            or task_id not in self._subtasks[parent_id]["nested_subtasks"]
-        ):
+        parent = self._subtasks.get(parent_id)
+        if parent is None:
             return
 
-        self._subtasks[parent_id]["nested_subtasks"][task_id]["current"] = (
-            self._subtasks[parent_id]["nested_subtasks"][task_id]["total"]
-        )
-        self._subtasks[parent_id]["nested_subtasks"][task_id]["completed"] = True
-        self._subtasks[parent_id]["nested_subtasks"][task_id]["status"] = "Complete"
+        nested = parent.nested_subtasks.get(task_id)
+        if nested is None:
+            return
+
+        nested.current = float(nested.total)
+        nested.completed = True
+        nested.status = "Complete"
 
 
 class WebUIBridge(SharedBridgeMixin, UXBridge):
@@ -542,7 +502,7 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
 
     @staticmethod
     def create_wizard_manager(
-        session_state,
+        session_state: SessionStateMapping | object,
         wizard_name: str,
         *,
         steps: int,
@@ -577,7 +537,11 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
     # Session state management utilities
     # ------------------------------------------------------------------
     @staticmethod
-    def get_session_value(session_state, key, default=None):
+    def get_session_value(
+        session_state: SessionStateMapping | object | None,
+        key: str,
+        default: Any = None,
+    ) -> Any:
         """Get a value from session state consistently.
 
         This function handles different implementations of session state
@@ -594,7 +558,11 @@ class WebUIBridge(SharedBridgeMixin, UXBridge):
         return _get_session_value(session_state, key, default)
 
     @staticmethod
-    def set_session_value(session_state, key, value):
+    def set_session_value(
+        session_state: SessionStateMapping | object | None,
+        key: str,
+        value: Any,
+    ) -> bool:
         """Set a value in session state consistently.
 
         This function handles different implementations of session state

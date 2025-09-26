@@ -309,31 +309,6 @@ module = [
 ]
 ignore_errors = true
 
-# Phase 2 – Experience surfaces (due 2025-12-20; owner: Experience Platform – Dana Laurent; see docs/typing/strictness.md §Phase 2 commitments)
-[[tool.mypy.overrides]]
-module = [
-  "devsynth.interface.cli",
-  "devsynth.interface.command_output",
-  "devsynth.interface.dpg_bridge",
-  "devsynth.interface.dpg_ui",
-  "devsynth.interface.enhanced_error_handler",
-  "devsynth.interface.mvuu_dashboard",
-  "devsynth.interface.nicegui_webui",
-  "devsynth.interface.output_formatter",
-  "devsynth.interface.progress_utils",
-  "devsynth.interface.shared_bridge",
-  "devsynth.interface.simple_run",
-  "devsynth.interface.state_access",
-  "devsynth.interface.ux_bridge",
-  "devsynth.interface.webui.commands",
-  "devsynth.interface.webui.rendering",
-  "devsynth.interface.webui_bridge",
-  "devsynth.interface.webui_setup",
-  "devsynth.interface.webui_state",
-  "devsynth.interface.wizard_state_manager",
-]
-ignore_errors = true
-
 # Phase 3 – Application workflows (due 2026-02-15; owner: Applications Group – Lara Singh; see docs/typing/strictness.md §Phase 3 commitments)
 [[tool.mypy.overrides]]
 module = [
