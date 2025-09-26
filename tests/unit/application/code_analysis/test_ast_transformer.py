@@ -8,7 +8,11 @@ import unittest
 
 import pytest
 
-from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.code_analysis.ast_transformer import (
+    AstTransformer,
+    DocstringSpec,
+    FunctionExtractionRequest,
+)
 
 
 class TestAstTransformer(unittest.TestCase):
@@ -95,9 +99,13 @@ class TestAstTransformer(unittest.TestCase):
         """Test extracting a block of code into a new function.
 
         ReqID: N/A"""
-        new_code = self.transformer.extract_function(
-            self.sample_code, 13, 14, "print_iterations", ["i"]
+        request = FunctionExtractionRequest(
+            start_line=13,
+            end_line=14,
+            function_name="print_iterations",
+            parameters=["i"],
         )
+        new_code = self.transformer.extract_function(self.sample_code, request)
         self.assertIn("def print_iterations(i):", new_code)
         self.assertIn('print(f"Iteration {i}")', new_code)
         self.assertIn("print_iterations(i)", new_code)
@@ -109,14 +117,13 @@ class TestAstTransformer(unittest.TestCase):
 
         ReqID: N/A"""
         docstring = "Calculate the sum of two numbers."
-        new_code = self.transformer.add_docstring(
-            self.sample_code, "calculate_sum", docstring
-        )
+        spec = DocstringSpec(target="calculate_sum", docstring=docstring)
+        new_code = self.transformer.add_docstring(self.sample_code, spec)
         self.assertIn("def calculate_sum(a, b):", new_code)
         self.assertIn('    """Calculate the sum of two numbers."""', new_code)
         module_docstring = "Sample module for testing."
         new_code = self.transformer.add_docstring(
-            self.sample_code, None, module_docstring
+            self.sample_code, DocstringSpec(target=None, docstring=module_docstring)
         )
         self.assertIn('"""Sample module for testing."""', new_code)
         self.assertTrue(self.transformer.validate_syntax(new_code))
@@ -140,7 +147,11 @@ class TestAstTransformer(unittest.TestCase):
         code = self.sample_code
         code = self.transformer.rename_identifier(code, "calculate_sum", "add_numbers")
         code = self.transformer.add_docstring(
-            code, "add_numbers", "Add two numbers and return the result."
+            code,
+            DocstringSpec(
+                target="add_numbers",
+                docstring="Add two numbers and return the result.",
+            ),
         )
         self.assertIn("def add_numbers(a, b):", code)
         self.assertIn('    """Add two numbers and return the result."""', code)

@@ -19,7 +19,10 @@ scenarios("../features/general/ast_code_analysis.feature")
 
 # Import the modules needed for the steps
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
-from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.code_analysis.ast_transformer import (
+    AstTransformer,
+    DocstringSpec,
+)
 from devsynth.application.code_analysis.ast_workflow_integration import (
     AstWorkflowIntegration,
 )
@@ -283,14 +286,19 @@ def request_ast_based_transformation(context):
     try:
         # Add docstring to the calculate_sum function
         transformed_code = context.ast_transformer.add_docstring(
-            context.code, "calculate_sum", "Calculate the sum of two numbers."
+            context.code,
+            DocstringSpec(
+                target="calculate_sum", docstring="Calculate the sum of two numbers."
+            ),
         )
 
         # Add docstring to the Calculator class
         transformed_code = context.ast_transformer.add_docstring(
             transformed_code,
-            "Calculator",
-            "A simple calculator class that keeps history of operations.",
+            DocstringSpec(
+                target="Calculator",
+                docstring="A simple calculator class that keeps history of operations.",
+            ),
         )
 
         # Store the transformed code

@@ -9,7 +9,7 @@ import ast
 from typing import Any, Dict, List, Optional
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
-from devsynth.application.code_analysis.ast_transformer import AstTransformer
+from devsynth.application.code_analysis.ast_transformer import AstTransformer, DocstringSpec
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
 from devsynth.logging_setup import DevSynthLogger
@@ -95,8 +95,10 @@ class AstWorkflowIntegration:
                 if func and not func.get("docstring"):
                     improved_code = self.ast_transformer.add_docstring(
                         improved_code,
-                        func["name"],
-                        f"Function that {func['name'].replace('_', ' ')}",
+                        DocstringSpec(
+                            target=func["name"],
+                            docstring=f"Function that {func['name'].replace('_', ' ')}",
+                        ),
                     )
 
             options.append(
@@ -213,8 +215,10 @@ class AstWorkflowIntegration:
                 try:
                     refined_code = self.ast_transformer.add_docstring(
                         refined_code,
-                        func["name"],
-                        f"Function that {func['name'].replace('_', ' ')}",
+                        DocstringSpec(
+                            target=func["name"],
+                            docstring=f"Function that {func['name'].replace('_', ' ')}",
+                        ),
                     )
                     improvements.append(f"Added docstring to function {func['name']}")
                 except Exception as e:
@@ -232,8 +236,10 @@ class AstWorkflowIntegration:
             if cls and not cls.get("docstring"):
                 refined_code = self.ast_transformer.add_docstring(
                     refined_code,
-                    cls["name"],
-                    f"Class representing a {cls['name'].replace('_', ' ')}",
+                    DocstringSpec(
+                        target=cls["name"],
+                        docstring=f"Class representing a {cls['name'].replace('_', ' ')}",
+                    ),
                 )
                 improvements.append(f"Added docstring to class {cls['name']}")
 
