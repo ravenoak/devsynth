@@ -1,7 +1,7 @@
 ---
 author: AI Assistant
-date: '2025-09-16'
-status: active
+date: '2025-09-26'
+status: published
 tags:
   - implementation
   - invariants
@@ -51,6 +51,17 @@ Fast WebUI suites verify that completing the top-level progress indicator drives
 ## Streamlit Fallbacks Stay Sanitized
 
 When Streamlit omits the `info` or `markdown` helpers, the WebUI implementation drops back to `st.write` without losing sanitization: info/highlight messages flow through `write` with HTML entities escaped, errors still render via `st.error`, and legacy markup converts to Markdown before the fallback executes.【F:tests/unit/interface/test_webui_behavior_checklist_fast.py†L574-L647】 These fast paths guarantee the rendering layer remains safe when optional components are absent.
+
+## Coverage Evidence
+
+Fast-profile suites instrumented with `pytest-cov` confirm both the WebUI façade and bridge modules exceed the 60 % coverage target while sidestepping the repository-wide 70 % gate via `-o addopts=""` and `--cov-fail-under=0`.
+
+| Module | Coverage | Evidence |
+| --- | --- | --- |
+| `devsynth.interface.webui` | 93 % | `poetry run pytest -o addopts="" tests/unit/interface/test_webui_progress_cascade_fast.py tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge --cov-report=term --cov-fail-under=0`【5968ad†L14-L26】 |
+| `devsynth.interface.webui_bridge` | 85 % | `poetry run pytest -o addopts="" tests/unit/interface/test_webui_progress_cascade_fast.py tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge --cov-report=term --cov-fail-under=0`【5968ad†L14-L26】 |
+
+The targeted command keeps unrelated Streamlit modules (`rendering`, `routing`, and `commands`) from influencing the fast-suite coverage signal while still documenting measurable evidence for the published invariants.
 
 ## References
 
