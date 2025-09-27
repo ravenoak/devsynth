@@ -206,6 +206,10 @@ mvuu-dashboard = "devsynth.application.cli.commands.mvuu_dashboard_cmd:mvuu_dash
 [tool.mypy]
 mypy_path = [
     "src",
+    "stubs/fastapi",
+    "stubs/prometheus_client",
+    "stubs/typer",
+    "stubs/yaml",
     "stubs/devsynth",
     "stubs/streamlit",
     "stubs/types-pytest",

@@ -1,12 +1,31 @@
+from __future__ import annotations
+
 import uuid
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import Response
-from typing import TypeVar, cast
+from typing import Protocol, TypedDict, TypeVar, cast
 
 from devsynth.interface.agentapi import router as agent_router
+
+
+class CounterMetric(Protocol):
+    def labels(self, *, endpoint: str) -> CounterMetric: ...
+
+    def inc(self) -> None: ...
+
+
+class HistogramMetric(Protocol):
+    def labels(self, *, endpoint: str) -> HistogramMetric: ...
+
+    def observe(self, amount: float) -> None: ...
+
+
+CounterFactory = Callable[[str, str, Sequence[str]], CounterMetric]
+HistogramFactory = Callable[[str, str, Sequence[str]], HistogramMetric]
+
 
 # Prometheus metrics are optional; fall back to lightweight stubs when the
 # dependency isn't available.  This keeps the API usable in stripped-down test
@@ -14,10 +33,13 @@ from devsynth.interface.agentapi import router as agent_router
 try:  # pragma: no cover - import guarded for optional dependency
     from prometheus_client import (
         CONTENT_TYPE_LATEST,
-        Counter,
-        Histogram,
+        Counter as _PrometheusCounter,
+        Histogram as _PrometheusHistogram,
         generate_latest,
     )
+
+    counter_factory: CounterFactory = _PrometheusCounter
+    histogram_factory: HistogramFactory = _PrometheusHistogram
 except ImportError:  # pragma: no cover - fallback for minimal environments
 
     class _NoopMetric:
@@ -36,10 +58,12 @@ except ImportError:  # pragma: no cover - fallback for minimal environments
         def clear(self) -> None:
             pass
 
-    Counter = Histogram = _NoopMetric
+    def counter_factory(*args: object, **kwargs: object) -> CounterMetric:
+        return _NoopMetric()
 
-    # Match prometheus_client.generate_latest signature to avoid overrides
-    # def generate_latest(registry: CollectorRegistry = ...) -> bytes
+    def histogram_factory(*args: object, **kwargs: object) -> HistogramMetric:
+        return _NoopMetric()
+
     def generate_latest(registry: object | None = None) -> bytes:
         return b""
 
@@ -54,6 +78,10 @@ logger = setup_logging(__name__)
 settings = get_settings()
 
 
+class HealthResponse(TypedDict):
+    status: str
+
+
 def verify_token(authorization: str | None = Header(None)) -> None:
     """Verify Bearer token from Authorization header if access control enabled."""
     token = settings.access_token
@@ -63,8 +91,10 @@ def verify_token(authorization: str | None = Header(None)) -> None:
         )
 
 
-REQUEST_COUNT = Counter("request_count", "Total HTTP requests", ["endpoint"])
-REQUEST_LATENCY = Histogram(
+REQUEST_COUNT: CounterMetric = counter_factory(
+    "request_count", "Total HTTP requests", ["endpoint"]
+)
+REQUEST_LATENCY: HistogramMetric = histogram_factory(
     "request_latency_seconds",
     "HTTP request latency",
     ["endpoint"],
@@ -108,7 +138,7 @@ health_route = cast(
 
 
 @health_route
-async def health(token: None = Depends(verify_token)) -> dict[str, str]:
+async def health(token: None = Depends(verify_token)) -> HealthResponse:
     """Simple health check endpoint."""
     logger.logger.debug("Health check accessed")
     return {"status": "ok"}
