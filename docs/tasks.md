@@ -296,6 +296,7 @@ Notes:
       - [ ] Update `docs/implementation/webui_invariants.md` and `docs/implementation/webui_rendering_invariants.md` with the new regression evidence.
       - [ ] Capture focused coverage runs under `issues/tmp_artifacts/webui*/<timestamp>/` and reference them from issues/coverage-below-threshold.md.
 29.4 [ ] Build asynchronous provider-system and retry/back-pressure fixtures to lift `src/devsynth/adapters/provider_system.py` to ≥60 % coverage while augmenting `docs/implementation/provider_system_invariants.md` with the new metrics evidence.【d361cd†L1-L2】
+      - 2025-09-27: `devsynth.adapters.agents.agent_adapter` graduated from the override backlog with 72 % unit coverage, anchored by `tests/unit/adapters/test_agent_adapter_strict.py`; provider-system remains the next adapter target.【F:tests/unit/adapters/test_agent_adapter_strict.py†L1-L200】【49bde1†L1-L33】
       - [ ] Simulate async retries/back-pressure loops that reproduce the low-coverage regions (12.02 %) using deterministic fake providers.【3dd29f†L1-L1】
       - [ ] Extend metrics assertions to cover jitter, circuit-breaker recovery, and failure propagation.
       - [ ] Append the new metrics and coverage artefacts to `docs/implementation/provider_system_invariants.md` and issues/coverage-below-threshold.md.

@@ -290,7 +290,6 @@ ignore_errors = true
 # Phase 1 – Adapter backlog (due 2025-11-15; owner: Integrations Team – Alex Chen; see docs/typing/strictness.md §Phase 1 commitments)
 [[tool.mypy.overrides]]
 module = [
-  "devsynth.adapters.agents.agent_adapter",
   "devsynth.adapters.chromadb_memory_store",
   "devsynth.adapters.cli.typer_adapter",
   "devsynth.adapters.github_project",
