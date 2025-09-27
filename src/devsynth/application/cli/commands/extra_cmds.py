@@ -8,11 +8,13 @@ from .init_cmd import init_cmd
 from .reprioritize_issues_cmd import reprioritize_issues_cmd
 from .run_tests_cmd import run_tests_cmd
 from .security_audit_cmd import security_audit_cmd
+# from .testing_cmd import testing_cmd  # Temporarily disabled - CLI foundation ready
 
 register("align", align_cmd)
 register("completion", completion_cmd)
 register("init", init_cmd)
 register("run-tests", run_tests_cmd)
+# register("testing", testing_cmd)  # Temporarily disabled - CLI foundation ready
 register("edrr-cycle", edrr_cycle_cmd)
 register("security-audit", security_audit_cmd)
 register("reprioritize-issues", reprioritize_issues_cmd)
@@ -30,6 +32,7 @@ __all__ = [
     "completion_cmd",
     "init_cmd",
     "run_tests_cmd",
+    # "testing_cmd",  # Temporarily disabled - CLI foundation ready
     "edrr_cycle_cmd",
     "security_audit_cmd",
     "reprioritize_issues_cmd",

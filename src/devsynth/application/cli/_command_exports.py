@@ -20,6 +20,7 @@ COMMAND_ATTRIBUTE_TO_SLUG: Mapping[str, str] = {
     "completion_cmd": "completion",
     "init_cmd": "init",
     "run_tests_cmd": "run-tests",
+    "testing_cmd": "testing",
     "edrr_cycle_cmd": "edrr-cycle",
     "security_audit_cmd": "security-audit",
     "reprioritize_issues_cmd": "reprioritize-issues",
