@@ -429,6 +429,98 @@ ignore_errors = true
 module = ["chromadb", "chromadb.*"]
 ignore_missing_imports = true
 
+# === Pytest Configuration ===
+# Consolidated from pytest.ini for centralized configuration management
+[tool.pytest.ini_options]
+# === Core Configuration ===
+# Run tests from the tests directory only to prevent template collection
+testpaths = ["tests"]
+norecursedirs = ["templates", ".hypothesis", ".pytest_cache", "__pycache__", ".git"]
+
+# === Default Options ===
+# Optimized for fast feedback with selective execution
+# Override with PYTEST_ADDOPTS or -m for different test sets
+addopts = [
+    "-p", "no:benchmark",
+    "--cov=src/devsynth",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=json:test_reports/coverage.json",
+    "--cov-fail-under=80",
+    "-m", "not slow and not gui and not memory_intensive",
+    "--strict-markers",
+    "--strict-config",
+    "-ra"
+]
+
+markers = [
+    # Resource availability markers
+    "requires_resource(name): mark test as requiring an external resource",
+    "resource_anthropic: derived marker for selecting Anthropic-gated tests (auto-added)",
+    "resource_chromadb: derived marker for selecting ChromaDB-gated tests (auto-added)",
+    "resource_cli: derived marker for selecting CLI-gated tests (auto-added)",
+    "resource_codebase: derived marker for selecting codebase-dependent tests (auto-added)",
+    "resource_duckdb: derived marker for selecting DuckDB-gated tests (auto-added)",
+    "resource_faiss: derived marker for selecting FAISS-gated tests (auto-added)",
+    "resource_kuzu: derived marker for selecting Kuzu-gated tests (auto-added)",
+    "resource_lmdb: derived marker for selecting LMDB-gated tests (auto-added)",
+    "resource_lmstudio: derived marker for selecting LM Studio-gated tests (auto-added)",
+    "resource_memory: derived marker for selecting memory-gated tests (auto-added)",
+    "resource_openai: derived marker for selecting OpenAI-gated tests (auto-added)",
+    "resource_rdflib: derived marker for selecting RDFLib-gated tests (auto-added)",
+    "resource_test_resource: derived marker for selecting test resource-gated tests (auto-added)",
+    "resource_tinydb: derived marker for selecting TinyDB-gated tests (auto-added)",
+    "resource_webui: derived marker for selecting WebUI-gated tests (auto-added)",
+    "requires_llm_provider: mark test as requiring an LLM provider",
+    
+    # Speed markers (exactly one required per test)
+    "fast: mark test as fast (execution time < 1s)",
+    "medium: mark test as medium speed (execution time between 1s and 5s)",
+    "slow: mark test as slow (execution time > 5s)",
+    
+    # Test type markers
+    "unit: mark test as a unit test subset",
+    "integration: mark test as an integration test",
+    "performance: mark test as a performance test",
+    "property: mark property-based test (opt-in via DEVSYNTH_PROPERTY_TESTING)",
+    "smoke: mark test as part of smoke profile (minimal plugins, no parallel)",
+    
+    # Execution context markers
+    "isolation: mark test as requiring isolation (should be run separately from other tests)",
+    "gui: mark test as requiring GUI or optional UI extras (NiceGUI/DearPyGUI)",
+    "docker: mark test as requiring Docker",
+    "memory_intensive: mark test as using significant memory",
+    "no_network: mark test as not performing network access",
+    
+    # Functional area markers
+    "apispec-generation: mark test as related to API specification generation",
+    "code-analysis: mark test as related to code analysis functionality",
+    "dbschema-generation: mark test as related to database schema generation",
+    "docs-generation: mark test as related to documentation generation",
+    "ingest: mark test as related to project ingestion functionality",
+    "manifest-analysis: mark test as related to manifest analysis functionality",
+    "manifest-validation: mark test as related to manifest validation",
+    "metadata-validation: mark test as related to metadata validation",
+    "refactor: mark test as related to refactoring functionality",
+    "requirements-management: mark test as related to requirements management",
+    "test-metrics: mark test as related to test metrics functionality",
+    "test_metrics: alias for test metrics functionality",
+    "webapp-generation: mark test as related to web application generation",
+    
+    # Special markers
+    "allow_real_coverage_artifacts: opt-in to exercising real coverage artifact helpers during tests",
+    "run_pipeline: mark test as related to pipeline execution",
+    "security-audit: mark test as related to security audit functionality"
+]
+
+# Configure asyncio mode for pytest-asyncio
+asyncio_mode = "strict"
+
+# BDD features base directory - using pytest-bdd 8.1.0 compatible format
+bdd_features_base_dir = "tests/behavior/features"
+
+# Load test categorization plugin
+python_files = ["test_*.py", "conftest.py", "conftest_extensions.py"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
