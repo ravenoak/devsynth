@@ -19,6 +19,7 @@ from collections.abc import MutableMapping, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
+from unittest.mock import patch
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -342,7 +343,6 @@ def ensure_pytest_cov_plugin_env(env: MutableMapping[str, str]) -> bool:
     )
     return True
 
-
 def ensure_pytest_bdd_plugin_env(env: MutableMapping[str, str]) -> bool:
     """Ensure pytest-bdd loads when plugin autoloading is disabled."""
 
@@ -372,7 +372,6 @@ def ensure_pytest_bdd_plugin_env(env: MutableMapping[str, str]) -> bool:
     )
     return True
 
-
 def coverage_artifacts_status() -> tuple[bool, str | None]:
     """Return whether generated coverage artifacts contain useful data."""
 
@@ -401,7 +400,6 @@ def coverage_artifacts_status() -> tuple[bool, str | None]:
         return False, "Coverage HTML indicates no recorded data"
 
     return True, None
-
 
 def enforce_coverage_threshold(
     coverage_file: Path | str = COVERAGE_JSON_PATH,
@@ -780,7 +778,8 @@ def _run_segmented_tests(
             node_ids=segment_nodes,  # Pass collected node_ids
             marker_expr=marker_expr,
             verbose=verbose,
-            report=report
+            report=
+            report
             and (i == len(segments) - 1),  # Only generate report on last segment
             parallel=parallel,
             maxfail=maxfail,
@@ -866,8 +865,84 @@ def _run_single_test_batch(
             output += _failure_tips(process.returncode, cmd)
 
         return success, output
-
     except Exception as e:
         error_msg = f"Failed to run tests: {e}"
         logger.error(error_msg)
         return False, error_msg
+
+if __name__ == "__main__":
+    # This block is for internal testing and coverage analysis.
+    # It is not meant to be run as part of the normal test suite.
+    print("Running internal tests for run_tests.py...")
+    temp_dir = Path("./temp_test_run_tests")
+    if temp_dir.exists():
+        shutil.rmtree(temp_dir)
+    temp_dir.mkdir()
+    os.chdir(temp_dir)
+
+    # Test: _reset_coverage_artifacts handles OSError
+    print("  Testing _reset_coverage_artifacts OSError handling...")
+    unwritable_dir = Path("unwritable_reset")
+    unwritable_dir.mkdir()
+    (unwritable_dir / ".coverage").touch()
+    os.chmod(unwritable_dir, 0o555)
+    # We need to mock the paths to point into our unwritable dir
+    with patch("devsynth.testing.run_tests.Path") as mock_path:
+        mock_path.return_value.exists.return_value = True
+        mock_path.return_value.is_file.return_value = True
+        mock_path.return_value.glob.return_value = [unwritable_dir / ".coverage"]
+        _reset_coverage_artifacts()
+    os.chmod(unwritable_dir, 0o755)
+    print("  ...done.")
+
+    # Cleanup for next test
+    shutil.rmtree(unwritable_dir)
+
+    # Test: enforce_coverage_threshold
+    print("  Testing enforce_coverage_threshold...")
+    coverage_file = Path("coverage.json")
+
+    # Test success
+    coverage_file.write_text(json.dumps({"totals": {"percent_covered": 95.0}}))
+    enforce_coverage_threshold(coverage_file, minimum_percent=90.0, exit_on_failure=False)
+    print("    - Success case passed.")
+
+    # Test failure
+    coverage_file.write_text(json.dumps({"totals": {"percent_covered": 75.0}}))
+    try:
+        enforce_coverage_threshold(coverage_file, minimum_percent=80.0, exit_on_failure=False)
+    except RuntimeError as e:
+        assert "below the required" in str(e)
+        print("    - Failure case passed.")
+
+    # Test missing file
+    coverage_file.unlink()
+    try:
+        enforce_coverage_threshold(coverage_file, exit_on_failure=False)
+    except RuntimeError as e:
+        assert "not found" in str(e)
+        print("    - Missing file case passed.")
+
+    # Test invalid JSON
+    coverage_file.write_text("invalid json")
+    try:
+        enforce_coverage_threshold(coverage_file, exit_on_failure=False)
+    except RuntimeError as e:
+        assert "is invalid" in str(e)
+        print("    - Invalid JSON case passed.")
+
+    # Test missing key
+    coverage_file.write_text(json.dumps({"totals": {}}))
+    try:
+        enforce_coverage_threshold(coverage_file, exit_on_failure=False)
+    except RuntimeError as e:
+        assert "missing" in str(e)
+        print("    - Missing key case passed.")
+
+    coverage_file.unlink()
+    print("  ...done.")
+
+    print("Internal tests finished.")
+    # Go back to original directory
+    os.chdir("..")
+    shutil.rmtree(temp_dir)
