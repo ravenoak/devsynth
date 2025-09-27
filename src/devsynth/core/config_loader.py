@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, NotRequired, Optional, TypedDict, cast
+from typing import TYPE_CHECKING, Any, NotRequired, Optional, TypedDict, cast
 
 import toml
 import yaml
@@ -16,7 +16,7 @@ else:  # pragma: no cover - runtime validation uses Pydantic dataclass
 
 
 JsonPrimitive = str | int | float | bool | None
-JsonValue = JsonPrimitive | list["JsonValue"] | dict[str, "JsonValue"]
+JsonValue = JsonPrimitive | list[Any] | dict[str, Any]
 JsonObject = dict[str, JsonValue]
 DirectoryMap = dict[str, list[str]]
 FeatureFlags = dict[str, bool]

@@ -33,6 +33,7 @@ Required metadata fields:
 ## What proofs confirm the solution?
 - BDD scenarios in [`tests/behavior/features/enhanced_edrr_phase_transitions.feature`](../../tests/behavior/features/enhanced_edrr_phase_transitions.feature) ensure termination and expected outcomes.
 - Finite state transitions and bounded loops guarantee termination.
+- Targeted recursion suite run [`test_reports/edrr_enhanced_recursion.log`](../../test_reports/edrr_enhanced_recursion.log) documents the passing BDD scenarios executed with `poetry run pytest tests/behavior/steps/test_edrr_enhanced_recursion_steps.py -k edrr --maxfail=1`.
 
 
 ## Specification

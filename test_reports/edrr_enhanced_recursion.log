@@ -1,0 +1,42 @@
+===================================================== test session starts ======================================================
+platform linux -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0
+rootdir: /workspace/devsynth
+configfile: pytest.ini
+plugins: bdd-8.1.0
+collected 11 items
+
+tests/behavior/steps/test_edrr_enhanced_recursion_steps.py ...........                                                   [100%]
+
+======================================================= warnings summary =======================================================
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137: DeprecationWarning: `FieldValidationInfo` is deprecated, use `ValidationInfo` instead.
+    warnings.warn(msg, DeprecationWarning, stacklevel=1)
+
+tests/conftest.py:1030
+  /workspace/devsynth/tests/conftest.py:1030: PytestUnknownMarkWarning: Unknown pytest.mark.isolation - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    item.add_marker(pytest.mark.isolation)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================= Test Categorization Summary ==================================================
+Test Type Distribution:
+  Unit Tests: 0
+  Integration Tests: 0
+  Behavior Tests: 11
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 11
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+===================================================== Top 10 Slowest Tests =====================================================
+1. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_improved_microcycle_creation_with_intelligent_task_decomposition: 0.07s
+2. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_start_edrr_cycle_from_a_manifest_file: 0.03s
+3. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_coordinate_components_through_the_retrospect_phase: 0.03s
+4. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_recursion_with_comprehensive_progress_tracking: 0.02s
+5. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_optimized_recursion_depth_decisions_with_advanced_heuristics: 0.02s
+6. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_track_comprehensive_logging_and_traceability: 0.02s
+7. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_coordinate_components_through_the_expand_phase: 0.02s
+8. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_coordinate_components_through_the_refine_phase: 0.02s
+9. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_coordinate_components_through_the_differentiate_phase: 0.02s
+10. tests/behavior/steps/test_edrr_enhanced_recursion_steps.py::test_adaptive_recursion_strategy_based_on_task_type: 0.01s
+================================================ 11 passed, 3 warnings in 0.65s ================================================
