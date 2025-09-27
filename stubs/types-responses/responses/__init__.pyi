@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, Iterable, Mapping, ParamSpec, Pattern, TypeVar
+from typing import Any, Iterable, Mapping, ParamSpec, Pattern, Protocol, TypeVar
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -21,7 +21,12 @@ class BaseResponse: ...
 class Response(BaseResponse): ...
 
 
-class Call: ...
+class Request(Protocol):
+    body: bytes | str | None
+
+
+class Call(Protocol):
+    request: Request
 
 
 class RequestsMock:

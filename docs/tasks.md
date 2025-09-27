@@ -300,6 +300,7 @@ Notes:
       - [ ] Extend metrics assertions to cover jitter, circuit-breaker recovery, and failure propagation.
       - [ ] Append the new metrics and coverage artefacts to `docs/implementation/provider_system_invariants.md` and issues/coverage-below-threshold.md.
       - [x] Removed the `devsynth.adapters.agents.agent_adapter` override by enforcing `mypy --strict` and lifting unit coverage to 60 % with targeted tests, capturing evidence in `tests/unit/adapters/test_agent_adapter.py` and coverage reports.【F:pyproject.toml†L289-L296】【F:tests/unit/adapters/test_agent_adapter.py†L1-L460】【ec87a5†L1-L2】【1cfa11†L1-L8】
+      - [x] Removed the `devsynth.adapters.github_project` override by adding typed request payload builders, a transport protocol, and focused unit coverage (61.5 %) validating the refactor.【F:pyproject.toml†L268-L303】【F:src/devsynth/adapters/github_project.py†L1-L358】【F:tests/unit/adapters/test_github_project_adapter.py†L1-L152】【1db098†L1-L4】
 29.5 [ ] Design EDRR coordinator simulations that drive transition guards and recursion paths so `src/devsynth/application/edrr/coordinator/core.py` reaches ≥40 % coverage, paired with refreshed `docs/implementation/edrr_invariants.md`.【a5bbaa†L1-L2】
       - [ ] Create deterministic simulations that iterate across the recursion guard, failure retry, and finalisation phases highlighted in the 8.4 % coverage snapshot.【6ac9d1†L1-L1】
       - [ ] Validate invariants against behaviour/BDD specs (edrr_coordinator.feature) and document the new proofs in `docs/implementation/edrr_invariants.md`.
