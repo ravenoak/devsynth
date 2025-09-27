@@ -4,15 +4,25 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, NotRequired, Optional, TypedDict, cast
+from types import ModuleType
+from typing import (
+    TYPE_CHECKING,
+    Mapping,
+    NotRequired,
+    Optional,
+    TypeGuard,
+    TypedDict,
+)
 
 import toml
 import yaml
 
 if TYPE_CHECKING:  # pragma: no cover - used for typing only
     from dataclasses import dataclass
+    from typer import Context as TyperContext
 else:  # pragma: no cover - runtime validation uses Pydantic dataclass
     from pydantic.dataclasses import dataclass
+    TyperContext = object
 
 
 JsonPrimitive = str | int | float | bool | None
@@ -98,41 +108,181 @@ class CoreConfig:
 _ENV_PREFIX = "DEVSYNTH_"
 
 
+def _is_json_value(value: object) -> TypeGuard[JsonValue]:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return True
+    if isinstance(value, list):
+        return all(_is_json_value(item) for item in value)
+    if isinstance(value, dict):
+        return _is_json_object(value)
+    return False
+
+
+def _is_json_object(value: object) -> TypeGuard[JsonObject]:
+    if not isinstance(value, dict):
+        return False
+    for key, item in value.items():
+        if not isinstance(key, str) or not _is_json_value(item):
+            return False
+    return True
+
+
+def _is_directory_map(value: object) -> TypeGuard[DirectoryMap]:
+    if not isinstance(value, dict):
+        return False
+    for key, entries in value.items():
+        if not isinstance(key, str) or not isinstance(entries, list):
+            return False
+        if not all(isinstance(entry, str) for entry in entries):
+            return False
+    return True
+
+
+def _is_feature_flags(value: object) -> TypeGuard[FeatureFlags]:
+    if not isinstance(value, dict):
+        return False
+    for key, enabled in value.items():
+        if not isinstance(key, str) or not isinstance(enabled, bool):
+            return False
+    return True
+
+
+def _coerce_issue_provider_config(
+    value: object,
+) -> IssueProviderConfig | None:
+    if not isinstance(value, Mapping):
+        return None
+    config: IssueProviderConfig = {}
+    base_url = value.get("base_url")
+    if isinstance(base_url, str):
+        config["base_url"] = base_url
+    token = value.get("token")
+    if isinstance(token, str):
+        config["token"] = token
+    return config or None
+
+
+def _coerce_mvuu_issues(value: object) -> MVUUIssuesConfig | None:
+    if not isinstance(value, Mapping):
+        return None
+    issues: MVUUIssuesConfig = {}
+    github = _coerce_issue_provider_config(value.get("github"))
+    if github is not None:
+        issues["github"] = github
+    jira = _coerce_issue_provider_config(value.get("jira"))
+    if jira is not None:
+        issues["jira"] = jira
+    return issues or None
+
+
+def _coerce_mvuu_config(value: object) -> MVUUConfig | None:
+    if not isinstance(value, Mapping):
+        return None
+    config: MVUUConfig = {}
+    issues = _coerce_mvuu_issues(value.get("issues"))
+    if issues is not None:
+        config["issues"] = issues
+    return config or None
+
+
+def _coerce_core_config_data(raw: Mapping[str, object]) -> CoreConfigData:
+    config: CoreConfigData = {}
+    project_root = raw.get("project_root")
+    if isinstance(project_root, str):
+        config["project_root"] = project_root
+    structure = raw.get("structure")
+    if isinstance(structure, str):
+        config["structure"] = structure
+    language = raw.get("language")
+    if isinstance(language, str):
+        config["language"] = language
+    goals = raw.get("goals")
+    if isinstance(goals, str):
+        config["goals"] = goals
+    elif goals is None:
+        config["goals"] = None
+    constraints = raw.get("constraints")
+    if isinstance(constraints, str):
+        config["constraints"] = constraints
+    elif constraints is None:
+        config["constraints"] = None
+    priority = raw.get("priority")
+    if isinstance(priority, str):
+        config["priority"] = priority
+    elif priority is None:
+        config["priority"] = None
+    directories = raw.get("directories")
+    if _is_directory_map(directories):
+        config["directories"] = {key: list(value) for key, value in directories.items()}
+    features = raw.get("features")
+    if _is_feature_flags(features):
+        config["features"] = dict(features)
+    resources = raw.get("resources")
+    if _is_json_object(resources):
+        config["resources"] = dict(resources)
+    mvuu = raw.get("mvuu")
+    mvuu_config = _coerce_mvuu_config(mvuu)
+    if mvuu_config is not None:
+        config["mvuu"] = mvuu_config
+    return config
+
+
 def _parse_env(cfg: CoreConfig) -> CoreConfigData:
-    updates: JsonObject = {}
-    for field in cfg.as_dict().keys():
+    overrides: CoreConfigData = {}
+    for field in ("project_root", "structure", "language", "goals", "constraints", "priority"):
         env_key = f"{_ENV_PREFIX}{field.upper()}"
         value = os.environ.get(env_key)
         if value is not None:
-            if isinstance(getattr(cfg, field), bool):
-                updates[field] = value.strip().lower() in {"1", "true", "yes"}
-            else:
-                updates[field] = value
-    return cast(CoreConfigData, updates)
+            overrides[field] = value
+    return overrides
 
 
-def _load_yaml(path: Path) -> JsonObject:
+def _read_yaml_mapping(path: Path) -> dict[str, object] | None:
     if not path.exists():
-        return {}
+        return None
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
-    if isinstance(data, dict):
-        return cast(JsonObject, data)
-    return {}
+    if not isinstance(data, dict):
+        return None
+    result: dict[str, object] = {}
+    for key, value in data.items():
+        if isinstance(key, str):
+            result[key] = value
+    return result
 
 
-def _load_toml(path: Path) -> JsonObject:
+def _load_yaml(path: Path) -> CoreConfigData:
+    data = _read_yaml_mapping(path)
+    if data is None:
+        return {}
+    return _coerce_core_config_data(data)
+
+
+def _load_mvuu_yaml(path: Path) -> MVUUConfig:
+    data = _read_yaml_mapping(path)
+    if data is None:
+        return {}
+    mvuu = _coerce_mvuu_config(data)
+    return mvuu or {}
+
+
+def _load_toml(path: Path) -> CoreConfigData:
     if not path.exists():
         return {}
-    data = toml.load(path)
+    data: Mapping[str, object] = toml.load(path)
+    sections: list[Mapping[str, object]] = []
     tool_section = data.get("tool")
-    if isinstance(tool_section, dict):
+    if isinstance(tool_section, Mapping):
         devsynth_section = tool_section.get("devsynth")
-        if isinstance(devsynth_section, dict):
-            return cast(JsonObject, devsynth_section)
+        if isinstance(devsynth_section, Mapping):
+            sections.append(devsynth_section)
     root_section = data.get("devsynth")
-    if isinstance(root_section, dict):
-        return cast(JsonObject, root_section)
+    if isinstance(root_section, Mapping):
+        sections.append(root_section)
+    for section in sections:
+        config = _coerce_core_config_data(section)
+        if config:
+            return config
     return {}
 
 
@@ -171,27 +321,31 @@ def load_config(start_path: Optional[str] = None) -> CoreConfig:
     global_yaml = global_dir / "global_config.yaml"
     global_toml = global_dir / "devsynth.toml"
     if global_yaml.exists():
-        config_data.update(cast(CoreConfigData, _load_yaml(global_yaml)))
+        config_data.update(_load_yaml(global_yaml))
     elif global_toml.exists():
-        config_data.update(cast(CoreConfigData, _load_toml(global_toml)))
+        config_data.update(_load_toml(global_toml))
 
     # Project configuration
     project_cfg = _find_project_config(root)
     if project_cfg:
         if project_cfg.suffix in {".yaml", ".yml"}:
-            config_data.update(cast(CoreConfigData, _load_yaml(project_cfg)))
+            config_data.update(_load_yaml(project_cfg))
         else:
-            config_data.update(cast(CoreConfigData, _load_toml(project_cfg)))
+            config_data.update(_load_toml(project_cfg))
 
     # MVUU configuration
     mvu_cfg = root / ".devsynth" / "mvu.yml"
     if not mvu_cfg.exists():
         mvu_cfg = root / ".devsynth" / "mvu.yaml"
     if mvu_cfg.exists():
-        config_data["mvuu"] = cast(MVUUConfig, _load_yaml(mvu_cfg))
+        mvuu = _load_mvuu_yaml(mvu_cfg)
+        if mvuu:
+            config_data["mvuu"] = mvuu
 
     # Environment overrides
-    config_data.update(_parse_env(defaults))
+    env_overrides = _parse_env(defaults)
+    if env_overrides:
+        config_data.update(env_overrides)
 
     return CoreConfig(**config_data)
 
@@ -213,13 +367,16 @@ def save_global_config(config: CoreConfig, use_toml: bool = False) -> Path:
 
 
 # ---- Typer integration ----
+typer: ModuleType | None
 try:  # pragma: no cover - optional import
-    import typer
+    import typer as _typer_module
 except Exception:  # pragma: no cover - optional import
     typer = None
+else:
+    typer = _typer_module
 
 
-def config_key_autocomplete(ctx: "typer.Context", incomplete: str) -> list[str]:
+def config_key_autocomplete(ctx: TyperContext, incomplete: str) -> list[str]:
     """Return config keys matching the partial input for Typer."""
     keys = CoreConfig().__dataclass_fields__.keys()
     return [k for k in keys if k.startswith(incomplete)]
