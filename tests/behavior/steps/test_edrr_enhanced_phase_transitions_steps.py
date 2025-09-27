@@ -2,28 +2,12 @@
 
 from __future__ import annotations
 
-from pytest_bdd import given, parsers, scenarios, then, when
-
-# Import the feature file for this test
-
-pytestmark = [pytest.mark.fast]
-
-scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
-
-# Content from test_edrr_coordinator_steps.py inlined here
-"""Step definitions for the EDRR Coordinator feature."""
-
-import pytest
-
-# Removed duplicate __future__ import
-from pytest_bdd import given, parsers, scenarios, then, when
-
-scenarios("../features/general/edrr_coordinator.feature")
 import json
 import os
 import tempfile
-from pathlib import Path
-from typing import Dict, Tuple
+
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -37,6 +21,12 @@ from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
+
+pytestmark = [pytest.mark.fast]
+
+# Register feature scenarios.
+scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
+scenarios("../features/general/edrr_coordinator.feature")
 
 
 @pytest.fixture
