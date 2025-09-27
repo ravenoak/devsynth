@@ -280,7 +280,6 @@ module = [
   "devsynth.core.config_loader",
   "devsynth.core.workflows",
   "devsynth.agents.base_agent_graph",
-  "devsynth.agents.sandbox",
   "devsynth.agents.wsde_team_coordinator",
   "devsynth.agents.tools",
   "devsynth.memory.sync_manager",
