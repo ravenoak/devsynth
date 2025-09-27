@@ -5,7 +5,7 @@ version: "0.1.0-alpha.1"
 tags:
   - "analysis"
   - "synchronization"
-status: "draft"
+status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-08-23"
 ---
@@ -25,6 +25,10 @@ Consider two stores \(A\) and \(B\) with pending update set \(P_A\).
 **Proof.** Each write updates \(A\) and adds the change to \(P_A\).
 Whenever `synchronize` runs, \(B\) receives all pending changes and \(P_A\) resets.
 Thus after the final synchronization, \(A = B\) and no updates remain. \(\square\)
+
+## Validation
+
+- Property invariants: `tests/property/test_synchronization_invariants.py::test_synchronize_clears_pending_updates` executed via `task tests:property` (`poetry run pytest tests/property/`).
 
 ## References
 
