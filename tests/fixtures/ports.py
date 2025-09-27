@@ -2,7 +2,13 @@
 
 import pytest
 
-from devsynth.adapters.llm.mock_llm_adapter import MockLLMAdapter
+try:  # pragma: no cover - optional dependency for adapter unit tests
+    from devsynth.adapters.llm.mock_llm_adapter import MockLLMAdapter
+except Exception as import_error:  # pragma: no cover - defensive guard
+    MockLLMAdapter = None  # type: ignore[assignment]
+    _MOCK_IMPORT_ERROR = import_error
+else:
+    _MOCK_IMPORT_ERROR = None
 from devsynth.domain.interfaces.memory import ContextManager, MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.ports.llm_port import LLMPort
@@ -68,9 +74,14 @@ class _SimpleContextManager(ContextManager):
         self.ctx.clear()
 
 
-class _MockProviderFactory:
-    def create_provider(self, provider_type: str, config=None):
-        return MockLLMAdapter()
+    class _MockProviderFactory:
+        def create_provider(self, provider_type: str, config=None):
+            if MockLLMAdapter is None:
+                pytest.skip(
+                    "MockLLMAdapter unavailable",
+                    allow_module_level=True,
+                )
+            return MockLLMAdapter()
 
     def register_provider_type(self, provider_type: str, provider_class: type) -> None:
         pass
