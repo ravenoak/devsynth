@@ -11,7 +11,7 @@
 | Override scope | Notes |
 | --- | --- |
 | `tests.*` | QA Guild | n/a | Keeps the test suite flexible for fixtures that intentionally exercise dynamic typing. |
-| `devsynth.core.config_loader`, `devsynth.core.workflows`, `devsynth.agents.base_agent_graph`, `devsynth.agents.sandbox`, `devsynth.agents.wsde_team_coordinator`, `devsynth.agents.tools`, `devsynth.memory.sync_manager`, `devsynth.api` | Core Platform – Miguel Sato | 2025-11-15 | Document third-party stub gaps and finish the config loader DTO refactor.【F:pyproject.toml†L264-L271】 |
+| `devsynth.core.workflows`, `devsynth.agents.base_agent_graph`, `devsynth.agents.sandbox`, `devsynth.agents.wsde_team_coordinator`, `devsynth.agents.tools`, `devsynth.memory.sync_manager` | Core Platform – Miguel Sato | 2025-11-15 | Document remaining orchestration and synchronization typing debt while we retire the last Any-based flows.【F:pyproject.toml†L279-L287】 |
 | Adapter backlog (`devsynth.adapters.agents.agent_adapter`, …, `devsynth.adapters.provider_system`) | Integrations Team – Alex Chen | 2025-11-15 | Remove implicit Optional defaults and align provider protocols with typed ports.【F:pyproject.toml†L276-L293】 |
 | Interface surfaces (`devsynth.interface.cli`, …, `devsynth.interface.wizard_state_manager`) | Experience Platform – Dana Laurent | 2025-12-20 | ✅ Strict mode enforced for progress helpers, Streamlit bridges, and state access; override removed after typed payload refactor.【F:pyproject.toml†L312-L336】【013f44†L1-L2】 |
 | Reliability utilities (`devsynth.utils.logging`, `devsynth.fallback`, port shims) | Reliability Guild – Dana Laurent | 2025-12-20 | ✅ Strict mode enforced after normalizing logging `exc_info`, typed retry policies, and port adapters; override removed.【F:src/devsynth/utils/logging.py†L1-L50】【F:src/devsynth/fallback.py†L1-L142】【F:src/devsynth/ports/llm_port.py†L1-L104】【F:pyproject.toml†L320-L352】 |
@@ -27,15 +27,16 @@ Focus: security, adapters, memory, core, agents, and API endpoints. These files 
 | Module group | Owner | Deadline | Current gaps |
 | --- | --- | --- | --- |
 | Security authentication stack (`devsynth.security.authentication`, `devsynth.security.encryption`, `devsynth.security.tls`) | Security Guild – Priya Ramanathan | 2025-11-15 | ✅ Strict mode enforced via `task mypy:strict`; overrides removed after tightening Argon2 helpers and TLS config typing.【F:Taskfile.yml†L143-L146】【F:src/devsynth/security/authentication.py†L9-L73】【F:src/devsynth/security/encryption.py†L1-L58】【F:src/devsynth/security/tls.py†L1-L58】 |
-| Core runtime (`devsynth.core.config_loader`, `devsynth.core.workflows`, `devsynth.agents.base_agent_graph`, `devsynth.agents.sandbox`, `devsynth.agents.wsde_team_coordinator`, `devsynth.agents.tools`, `devsynth.memory.sync_manager`, `devsynth.api`) | Core Platform – Miguel Sato | 2025-11-15 | Config loader and workflow orchestration still rely on dynamic dicts; API endpoints lack typed decorators.【F:pyproject.toml†L264-L271】 |
+| Core runtime (`devsynth.core.workflows`, `devsynth.agents.base_agent_graph`, `devsynth.agents.sandbox`, `devsynth.agents.wsde_team_coordinator`, `devsynth.agents.tools`, `devsynth.memory.sync_manager`) | Core Platform – Miguel Sato | 2025-11-15 | Workflow orchestration and WSDE coordination continue to ship Any-heavy payloads; sync manager still needs typed resources.【F:pyproject.toml†L279-L287】 |
 | Adapter backlog (`devsynth.adapters.agents.agent_adapter`, …, `devsynth.adapters.provider_system`) | Integrations Team – Alex Chen | 2025-11-15 | Provider scaffolding defaults to implicit Optionals and unchecked `Any` payloads.【F:pyproject.toml†L283-L302】 |
 
 - ✅ Security modules now run cleanly under `poetry run mypy --strict`; the hash/verify helpers and TLS configuration wrapper have explicit typing and no longer rely on overrides.【F:src/devsynth/security/authentication.py†L1-L73】【F:src/devsynth/security/encryption.py†L1-L58】【F:src/devsynth/security/tls.py†L1-L58】
 - `adapters/github_project.py` leaks `Any` when composing the GitHub payload response.【d0d961†L1-L3】
 - `memory/layered_cache.py` already passes strict mypy, so the package-wide ignore can begin shrinking immediately.【084ac1†L1-L2】
-- `core/config_loader.py` mixes missing `toml` stubs with dynamic config munging that needs proper model typing.【063e40†L1-L9】
+- ✅ `core/config_loader.py` now serializes via typed dataclasses and local TOML stubs, enabling strict checks without overrides.【F:src/devsynth/core/config_loader.py†L1-L198】【F:stubs/toml/toml/__init__.pyi†L1-L11】【F:pyproject.toml†L207-L213】
 - `agents/multi_agent_coordinator.py` passes, indicating orchestration logic is ready for strictness once dependencies are typed.【559585†L1-L2】
-- `api.py` shows untyped FastAPI decorators and missing annotations on endpoint functions.【17599c†L1-L4】
+- ✅ `api.py` exposes typed FastAPI middleware and endpoints, eliminating the decorator-related ignore guard.【F:src/devsynth/api.py†L1-L118】
+- Remaining Phase 1 scope (workflows, agent graph coordination, sync manager) stays tracked through [Phase-1-completion.md](.../../issues/Phase-1-completion.md), [Finalize-WSDE-EDRR-workflow-logic.md](../../issues/Finalize-WSDE-EDRR-workflow-logic.md), and [memory-adapter-integration.md](../../issues/memory-adapter-integration.md).
 
 ### Phase 2 – Platform services (target 2025-12-20)
 Focus: interface utilities, metrics, fallback logic, ports, and shared utils.
