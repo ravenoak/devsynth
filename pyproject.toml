@@ -373,7 +373,6 @@ module = [
   "devsynth.application.promises.examples",
   "devsynth.application.promises.implementation",
   "devsynth.application.promises.interface",
-  "devsynth.application.prompts.auto_tuning",
   "devsynth.application.prompts.prompt_efficacy",
   "devsynth.application.prompts.prompt_manager",
   "devsynth.application.prompts.prompt_reflection",

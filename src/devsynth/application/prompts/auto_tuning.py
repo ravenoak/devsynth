@@ -1,125 +1,42 @@
-"""
-Prompt Auto-Tuning Module
+"""Prompt Auto-Tuning Module.
 
 This module provides components for dynamically adjusting LLM prompts based on feedback.
 """
 
+from __future__ import annotations
+
 import hashlib
-import json
 import random
 import re
-from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Union
+from pathlib import Path
+from typing import Callable, Optional, TYPE_CHECKING
 
-from devsynth.exceptions import DevSynthError
+if TYPE_CHECKING:
+    class DevSynthErrorBase(Exception):
+        ...
+else:  # pragma: no cover - simple import branch
+    from devsynth.exceptions import DevSynthError as DevSynthErrorBase
 
 from ...logging_setup import DevSynthLogger
+from .models import (
+    PromptVariant,
+    PromptVariantCollection,
+    SelectionStrategyConfig,
+    SelectionStrategyName,
+)
+from .persistence import (
+    PromptVariantStorageError,
+    load_prompt_variants,
+    save_prompt_variants,
+)
 
 logger = DevSynthLogger(__name__)
 
 
-class PromptAutoTuningError(DevSynthError):
+class PromptAutoTuningError(DevSynthErrorBase):
     """Error raised when prompt auto-tuning fails."""
 
     pass
-
-
-class PromptVariant:
-    """
-    Represents a variant of a prompt template with performance metrics.
-    """
-
-    def __init__(self, template: str, variant_id: str = None):
-        """
-        Initialize a prompt variant.
-
-        Args:
-            template: The prompt template text
-            variant_id: Optional ID for the variant, generated if not provided
-        """
-        self.template = template
-        # Use a modern hash for non-security identifier generation to avoid Bandit B324
-        self.variant_id = (
-            variant_id or hashlib.sha256(template.encode()).hexdigest()[:8]
-        )
-        self.usage_count = 0
-        self.success_count = 0
-        self.failure_count = 0
-        self.feedback_scores = []
-        self.last_used = None
-
-    @property
-    def success_rate(self) -> float:
-        """Calculate the success rate of this prompt variant."""
-        if self.usage_count == 0:
-            return 0.0
-        return self.success_count / self.usage_count
-
-    @property
-    def average_feedback_score(self) -> float:
-        """Calculate the average feedback score of this prompt variant."""
-        if not self.feedback_scores:
-            return 0.0
-        return sum(self.feedback_scores) / len(self.feedback_scores)
-
-    @property
-    def performance_score(self) -> float:
-        """Calculate the overall performance score of this prompt variant."""
-        # Combine success rate and feedback score with weights
-        success_weight = 0.7
-        feedback_weight = 0.3
-
-        return (success_weight * self.success_rate) + (
-            feedback_weight * self.average_feedback_score
-        )
-
-    def record_usage(self, success: bool = None, feedback_score: float = None) -> None:
-        """
-        Record usage of this prompt variant.
-
-        Args:
-            success: Whether the prompt usage was successful
-            feedback_score: Optional feedback score (0.0 to 1.0)
-        """
-        self.usage_count += 1
-        self.last_used = datetime.now().isoformat()
-
-        if success is not None:
-            if success:
-                self.success_count += 1
-            else:
-                self.failure_count += 1
-
-        if feedback_score is not None:
-            self.feedback_scores.append(feedback_score)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert the prompt variant to a dictionary."""
-        return {
-            "variant_id": self.variant_id,
-            "template": self.template,
-            "usage_count": self.usage_count,
-            "success_count": self.success_count,
-            "failure_count": self.failure_count,
-            "feedback_scores": self.feedback_scores,
-            "last_used": self.last_used,
-            "success_rate": self.success_rate,
-            "average_feedback_score": self.average_feedback_score,
-            "performance_score": self.performance_score,
-        }
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PromptVariant":
-        """Create a prompt variant from a dictionary."""
-        variant = cls(data["template"], data["variant_id"])
-        variant.usage_count = data["usage_count"]
-        variant.success_count = data["success_count"]
-        variant.failure_count = data["failure_count"]
-        variant.feedback_scores = data["feedback_scores"]
-        variant.last_used = data["last_used"]
-        return variant
-
-
 class PromptAutoTuner:
     """
     Auto-tuner for dynamically adjusting LLM prompts based on feedback.
@@ -129,27 +46,54 @@ class PromptAutoTuner:
     It also generates new variants through mutation and recombination.
     """
 
-    def __init__(self, storage_path: str = None):
+    def __init__(
+        self,
+        storage_path: str | Path | None = None,
+        selection: Optional[SelectionStrategyConfig] = None,
+    ) -> None:
         """
         Initialize the prompt auto-tuner.
 
         Args:
             storage_path: Optional path to store prompt variants
         """
-        self.storage_path = storage_path
-        self.prompt_variants = {}  # Dict mapping template_id -> List[PromptVariant]
-        self.selection_strategy = (
-            "performance"  # "performance", "exploration", "random"
+        self.storage_path: Optional[Path] = Path(storage_path) if storage_path else None
+        self.prompt_variants = PromptVariantCollection()
+        self._selection: SelectionStrategyConfig = (
+            selection if selection is not None else SelectionStrategyConfig()
         )
-        self.exploration_rate = (
-            0.2  # Probability of selecting a non-optimal variant for exploration
-        )
+        self._selection.validate()
+        self._best_variant_ids: dict[str, str] = {}
 
         logger.info("Prompt Auto-Tuner initialized")
 
         # Load variants from storage if available
-        if storage_path:
+        if self.storage_path:
             self._load_variants()
+
+    @property
+    def selection_strategy(self) -> SelectionStrategyName:
+        """Name of the current selection strategy."""
+
+        return self._selection.name
+
+    @selection_strategy.setter
+    def selection_strategy(self, value: SelectionStrategyName) -> None:
+        if value not in ("performance", "exploration", "random"):
+            msg = f"Unsupported selection strategy: {value}"
+            raise PromptAutoTuningError(msg)
+        self._selection.name = value
+
+    @property
+    def exploration_rate(self) -> float:
+        """Exploration probability for performance-based selection."""
+
+        return float(self._selection.exploration_rate)
+
+    @exploration_rate.setter
+    def exploration_rate(self, value: float) -> None:
+        self._selection.exploration_rate = value
+        self._selection.validate()
 
     def register_template(self, template_id: str, template: str) -> None:
         """
@@ -159,12 +103,11 @@ class PromptAutoTuner:
             template_id: A unique identifier for the template
             template: The prompt template text
         """
-        if template_id not in self.prompt_variants:
-            self.prompt_variants[template_id] = []
+        self.prompt_variants.ensure_template(template_id)
 
         # Create an initial variant
         variant = PromptVariant(template)
-        self.prompt_variants[template_id].append(variant)
+        self.prompt_variants.add_variant(template_id, variant)
 
         logger.info(f"Registered prompt template '{template_id}' for auto-tuning")
 
@@ -201,11 +144,6 @@ class PromptAutoTuner:
                 # Find the best variant by performance score
                 best_variant = max(variants, key=lambda v: v.performance_score)
                 selected = best_variant
-
-                # For test stability, store the best variant ID in a class attribute
-                # This ensures the same variant is selected consistently
-                if not hasattr(self, "_best_variant_ids"):
-                    self._best_variant_ids = {}
 
                 # If we've already identified a best variant for this template, use it
                 if template_id in self._best_variant_ids:
@@ -248,8 +186,8 @@ class PromptAutoTuner:
         self,
         template_id: str,
         variant_id: str,
-        success: bool = None,
-        feedback_score: float = None,
+        success: Optional[bool] = None,
+        feedback_score: Optional[float] = None,
     ) -> None:
         """
         Record feedback for a prompt variant.
@@ -591,36 +529,47 @@ class PromptAutoTuner:
 
     def _load_variants(self) -> None:
         """Load prompt variants from storage."""
+
+        if not self.storage_path:
+            return
+
         try:
-            with open(f"{self.storage_path}/prompt_variants.json", "r") as f:
-                data = json.load(f)
+            data = load_prompt_variants(self.storage_path)
+        except PromptVariantStorageError as exc:
+            logger.warning(f"Failed to load prompt variants from storage: {exc}")
+            return
 
-            for template_id, variants_data in data.items():
-                self.prompt_variants[template_id] = [
-                    PromptVariant.from_dict(v) for v in variants_data
-                ]
+        for template_id, variants_data in data.items():
+            self.prompt_variants[template_id] = [
+                PromptVariant.from_dict(variant) for variant in variants_data
+            ]
 
-            logger.info(
-                f"Loaded {sum(len(variants) for variants in self.prompt_variants.values())} prompt variants from storage"
-            )
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.warning(f"Failed to load prompt variants from storage: {e}")
+        logger.info(
+            "Loaded %s prompt variants from storage",
+            self.prompt_variants.total_variants(),
+        )
 
     def _save_variants(self) -> None:
         """Save prompt variants to storage."""
+
+        if not self.storage_path:
+            return
+
+        data = {
+            template_id: [variant.to_dict() for variant in variants]
+            for template_id, variants in self.prompt_variants.items()
+        }
+
         try:
-            data = {}
-            for template_id, variants in self.prompt_variants.items():
-                data[template_id] = [v.to_dict() for v in variants]
+            save_prompt_variants(self.storage_path, data)
+        except PromptVariantStorageError as exc:
+            logger.error(f"Failed to save prompt variants to storage: {exc}")
+            return
 
-            with open(f"{self.storage_path}/prompt_variants.json", "w") as f:
-                json.dump(data, f, indent=2)
-
-            logger.info(
-                f"Saved {sum(len(variants) for variants in self.prompt_variants.values())} prompt variants to storage"
-            )
-        except Exception as e:
-            logger.error(f"Failed to save prompt variants to storage: {e}")
+        logger.info(
+            "Saved %s prompt variants to storage",
+            self.prompt_variants.total_variants(),
+        )
 
 
 class BasicPromptTuner:
@@ -640,8 +589,8 @@ class BasicPromptTuner:
 
     def adjust(
         self,
-        success: Union[bool, None] = None,
-        feedback_score: Union[float, None] = None,
+        success: Optional[bool] = None,
+        feedback_score: Optional[float] = None,
     ) -> None:
         """Adjust the sampling temperature based on feedback."""
         delta = 0.0
@@ -660,7 +609,7 @@ class BasicPromptTuner:
             self.min_temp, min(self.max_temp, self.temperature + delta)
         )
 
-    def parameters(self) -> Dict[str, float]:
+    def parameters(self) -> dict[str, float]:
         """Return LLM generation parameters."""
         return {"temperature": self.temperature}
 
@@ -700,7 +649,7 @@ def iterative_prompt_adjustment(
     base_template: str,
     evaluate: Callable[[str], float],
     iterations: int = 3,
-    tuner: Union[PromptAutoTuner, None] = None,
+    tuner: Optional[PromptAutoTuner] = None,
 ) -> PromptVariant:
     """Iteratively tune a prompt using ``PromptAutoTuner``.
 

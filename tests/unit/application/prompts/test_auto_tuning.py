@@ -10,6 +10,7 @@ from devsynth.application.prompts.auto_tuning import (
     iterative_prompt_adjustment,
     run_tuning_iteration,
 )
+from devsynth.application.prompts.models import PromptVariantCollection
 from devsynth.domain.models.agent import AgentConfig, AgentType
 
 
@@ -64,6 +65,17 @@ def test_unified_agent_uses_tuner_succeeds(llm_port):
 
 
 @pytest.mark.medium
+def test_prompt_auto_tuner_uses_typed_collection():
+    """PromptAutoTuner exposes a typed variant collection."""
+
+    tuner = PromptAutoTuner()
+
+    assert isinstance(tuner.prompt_variants, PromptVariantCollection)
+    assert tuner.selection_strategy == "performance"
+    assert tuner.exploration_rate == pytest.approx(0.2)
+
+
+@pytest.mark.medium
 def test_run_tuning_iteration_records_feedback_succeeds():
     """Test that run tuning iteration records feedback succeeds.
 
@@ -93,7 +105,7 @@ def test_iterative_prompt_adjustment_returns_best_variant_succeeds():
         new_v = PromptVariant("improved")
         for _ in range(2):
             new_v.record_usage(success=True, feedback_score=1.0)
-        tuner.prompt_variants[_id].append(new_v)
+        tuner.prompt_variants.add_variant(_id, new_v)
 
     with patch.object(
         PromptAutoTuner, "_generate_variants_if_needed", side_effect=generate_variant
