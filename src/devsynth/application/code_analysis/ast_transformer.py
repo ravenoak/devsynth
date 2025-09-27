@@ -6,9 +6,19 @@ import ast
 import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Iterable, List, Optional, Sequence, Set, Union, Literal, cast
+from types import ModuleType
+from typing import Iterable, List, Optional, Sequence, Set, Union, cast
 
 from devsynth.logging_setup import DevSynthLogger
+
+from .transformers import (
+    ClassExtractionRequest,
+    DocstringSpec,
+    FunctionToClassExtractor,
+    FunctionToMethodConverter,
+    MethodConversionPlan,
+    apply_docstring_spec,
+)
 
 logger = DevSynthLogger(__name__)
 
@@ -16,7 +26,7 @@ try:
     import astor as _astor
 
     HAS_ASTOR = True
-    astor: Optional[Any] = _astor
+    astor: Optional[ModuleType] = _astor
 except ImportError:  # pragma: no cover - exercised when astor is absent
     logger.warning("astor library not found. Using fallback implementation for to_source.")
     HAS_ASTOR = False
@@ -52,9 +62,6 @@ def to_source_with_suppressed_warnings(node: ast.AST) -> str:
             )
 
 
-MethodType = Literal["instance", "class", "static"]
-
-
 @dataclass(frozen=True)
 class FunctionExtractionRequest:
     """Information required to extract a function from a block of code."""
@@ -63,33 +70,6 @@ class FunctionExtractionRequest:
     end_line: int
     function_name: str
     parameters: Sequence[str] = field(default_factory=tuple)
-
-
-@dataclass(frozen=True)
-class DocstringSpec:
-    """Description of a docstring insertion."""
-
-    target: Optional[str]
-    docstring: str
-
-
-@dataclass(frozen=True)
-class MethodConversionPlan:
-    """Parameters for converting a top-level function into a class method."""
-
-    function_name: str
-    class_name: str
-    method_type: MethodType = "instance"
-
-
-@dataclass(frozen=True)
-class ClassExtractionRequest:
-    """Parameters describing how to consolidate functions into a class."""
-
-    functions: Sequence[str]
-    class_name: str
-    base_classes: Sequence[str] = field(default_factory=tuple)
-    docstring: Optional[str] = None
 
 
 class IdentifierRenamer(ast.NodeTransformer):
@@ -139,129 +119,6 @@ class IdentifierRenamer(ast.NodeTransformer):
         return self.generic_visit(node)
 
 
-class DocstringAdder(ast.NodeTransformer):
-    """Insert docstrings according to a :class:`DocstringSpec`."""
-
-    def __init__(self, spec: DocstringSpec) -> None:
-        self.spec = spec
-        self.target_found: bool = False
-
-    def _ensure_docstring(self, body: List[ast.stmt]) -> None:
-        docstring_node = ast.Expr(value=ast.Constant(value=self.spec.docstring))
-        if body and isinstance(body[0], ast.Expr) and _is_docstring_expr(body[0]):
-            body[0] = docstring_node
-        else:
-            body.insert(0, docstring_node)
-
-    def visit_Module(self, node: ast.Module) -> ast.AST:  # noqa: N802
-        if self.spec.target is None:
-            self._ensure_docstring(node.body)
-            self.target_found = True
-        return self.generic_visit(node)
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:  # noqa: N802
-        if self.spec.target == node.name:
-            self._ensure_docstring(node.body)
-            self.target_found = True
-        return self.generic_visit(node)
-
-    def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:  # noqa: N802
-        if self.spec.target == node.name:
-            self._ensure_docstring(node.body)
-            self.target_found = True
-        return self.generic_visit(node)
-
-
-class FunctionToMethodConverter(ast.NodeTransformer):
-    """Convert a top-level function into a method on a class."""
-
-    def __init__(self, plan: MethodConversionPlan) -> None:
-        self.plan = plan
-        self.function_found: bool = False
-        self.class_found: bool = False
-        self._function_node: Optional[ast.FunctionDef] = None
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:  # noqa: N802
-        if node.name == self.plan.function_name:
-            self.function_found = True
-            self._function_node = node
-            return None
-        return self.generic_visit(node)
-
-    def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:  # noqa: N802
-        node = cast(ast.ClassDef, self.generic_visit(node))
-        if node.name != self.plan.class_name:
-            return node
-        self.class_found = True
-        if self._function_node is None:
-            return node
-
-        method_node = ast.FunctionDef(
-            name=self._function_node.name,
-            args=ast.arguments(
-                posonlyargs=list(self._function_node.args.posonlyargs),
-                args=list(self._function_node.args.args),
-                vararg=self._function_node.args.vararg,
-                kwonlyargs=list(self._function_node.args.kwonlyargs),
-                kw_defaults=list(self._function_node.args.kw_defaults),
-                kwarg=self._function_node.args.kwarg,
-                defaults=list(self._function_node.args.defaults),
-            ),
-            body=[ast.fix_missing_locations(ast.copy_location(stmt, stmt)) for stmt in self._function_node.body],
-            decorator_list=[],
-            returns=self._function_node.returns,
-            type_comment=self._function_node.type_comment,
-        )
-
-        if self.plan.method_type == "instance":
-            method_node.args.args.insert(0, ast.arg(arg="self"))
-        elif self.plan.method_type == "class":
-            method_node.args.args.insert(0, ast.arg(arg="cls"))
-            method_node.decorator_list.append(ast.Name(id="classmethod", ctx=ast.Load()))
-        else:
-            method_node.decorator_list.append(ast.Name(id="staticmethod", ctx=ast.Load()))
-
-        node.body.append(method_node)
-        return node
-
-
-class FunctionToClassExtractor(ast.NodeTransformer):
-    """Collect selected functions and wrap them into a generated class."""
-
-    def __init__(self, request: ClassExtractionRequest) -> None:
-        self.request = request
-        self.extracted_functions: List[ast.FunctionDef] = []
-        self.missing_functions: List[str] = []
-
-    def visit_Module(self, node: ast.Module) -> ast.AST:  # noqa: N802
-        new_body: List[ast.stmt] = []
-        requested = {name for name in self.request.functions}
-        for statement in node.body:
-            if isinstance(statement, ast.FunctionDef) and statement.name in requested:
-                requested.remove(statement.name)
-                self.extracted_functions.append(statement)
-                continue
-            new_body.append(self.visit(statement))
-        self.missing_functions = sorted(requested)
-        if self.extracted_functions:
-            class_body: List[ast.stmt] = []
-            if self.request.docstring is not None:
-                class_body.append(ast.Expr(value=ast.Constant(value=self.request.docstring)))
-            for function in self.extracted_functions:
-                args = [ast.arg(arg="self")]
-                args.extend(function.args.args)
-                function.args.args = args
-                class_body.append(function)
-            class_def = ast.ClassDef(
-                name=self.request.class_name,
-                bases=[ast.Name(id=base, ctx=ast.Load()) for base in self.request.base_classes],
-                keywords=[],
-                body=class_body,
-                decorator_list=[],
-            )
-            new_body.append(class_def)
-        node.body = new_body
-        return node
 
 
 class UsedNameCollector(ast.NodeVisitor):
@@ -385,11 +242,6 @@ class TypeHintAdder(ast.NodeTransformer):
             node.returns = ast.Name(id="None", ctx=ast.Load())
         return node
 
-
-def _is_docstring_expr(node: ast.Expr) -> bool:
-    return isinstance(node.value, ast.Constant) and isinstance(node.value.value, str)
-
-
 def _single_name_target(node: ast.Assign) -> bool:
     return len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
 
@@ -457,12 +309,11 @@ class AstTransformer:
 
     def add_docstring(self, code: str, spec: DocstringSpec) -> str:
         tree = ast.parse(code)
-        transformer = DocstringAdder(spec)
-        new_tree = transformer.visit(tree)
-        if not transformer.target_found:
+        result = apply_docstring_spec(tree, spec)
+        if not result.target_found:
             raise ValueError(f"Target '{spec.target or 'module'}' not found")
-        ast.fix_missing_locations(new_tree)
-        return to_source_with_suppressed_warnings(new_tree)
+        ast.fix_missing_locations(result.tree)
+        return to_source_with_suppressed_warnings(result.tree)
 
     def validate_syntax(self, code: str) -> bool:
         try:
