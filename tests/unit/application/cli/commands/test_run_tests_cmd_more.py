@@ -35,7 +35,6 @@ def _clean_env(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
 def test_speed_and_marker_forwarding(monkeypatch: pytest.MonkeyPatch):
     """ReqID: CLI-RT-07 — --speed and -m forwarded to runner correctly."""
     stub = StubBridge()
@@ -92,7 +91,6 @@ def test_speed_and_marker_forwarding(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
 def test_report_true_prints_output_and_success(monkeypatch: pytest.MonkeyPatch):
     """ReqID: CLI-RT-08 — --report True forwards and prints success message."""
     stub = StubBridge()
@@ -112,7 +110,6 @@ def test_report_true_prints_output_and_success(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.mark.fast
-@pytest.mark.isolation
 def test_observability_and_error_path(monkeypatch: pytest.MonkeyPatch):
     """ReqID: CLI-RT-09 — increment_counter is called; failure prints and exits 1."""
     stub = StubBridge()
