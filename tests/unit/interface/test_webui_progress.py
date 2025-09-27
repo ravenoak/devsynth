@@ -1,4 +1,5 @@
 import importlib
+import os
 import sys
 import time
 from typing import Any
@@ -7,6 +8,22 @@ from unittest.mock import MagicMock
 import pytest
 
 from tests.unit.interface.test_webui_enhanced import _mock_streamlit
+
+
+COVERAGE_MODE = os.getenv("DEVSYNTH_WEBUI_COVERAGE") == "1"
+
+
+def _get_webui_module():
+    import devsynth.interface.webui as webui
+
+    module = webui if COVERAGE_MODE else importlib.reload(webui)
+
+    st_module = sys.modules.get("streamlit")
+    if st_module is not None:
+        setattr(module, "_STREAMLIT", st_module)
+        setattr(module, "st", st_module)
+
+    return module
 
 
 @pytest.fixture
@@ -33,10 +50,8 @@ def _init_progress_with_time(
 ):
     """Instantiate ``_UIProgress`` with deterministic time progression."""
 
-    import devsynth.interface.webui as webui
-
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
+    module = _get_webui_module()
+    WebUI = module.WebUI
 
     if not times:
         msg = "The deterministic time sequence must contain at least one value"
@@ -54,7 +69,7 @@ def _init_progress_with_time(
         return last_timestamp
 
     monkeypatch.setattr(time, "time", fake_time)
-    monkeypatch.setattr(webui.time, "time", fake_time)
+    monkeypatch.setattr(module.time, "time", fake_time)
 
     status_container = MagicMock()
     time_container = MagicMock()
@@ -76,12 +91,9 @@ def test_ui_progress_init_succeeds(mock_streamlit, clean_state):
     """Test the initialization of ``_UIProgress``.
 
     ReqID: N/A"""
-    import devsynth.interface.webui as webui
+    module = _get_webui_module()
 
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    bridge = WebUI()
+    bridge = module.WebUI()
     progress = bridge.create_progress("Test Progress", total=100)
 
     assert progress._description == "Test Progress"
@@ -99,12 +111,9 @@ def test_ui_progress_update_succeeds(mock_streamlit, clean_state):
     """Test the update method of ``_UIProgress``.
 
     ReqID: N/A"""
-    import devsynth.interface.webui as webui
+    module = _get_webui_module()
 
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    bridge = WebUI()
+    bridge = module.WebUI()
     progress = bridge.create_progress("Test Progress", total=100)
 
     status_container = mock_streamlit.empty.return_value
@@ -125,12 +134,9 @@ def test_ui_progress_complete_succeeds(mock_streamlit, clean_state):
     """Test the complete method of ``_UIProgress``.
 
     ReqID: N/A"""
-    import devsynth.interface.webui as webui
+    module = _get_webui_module()
 
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    bridge = WebUI()
+    bridge = module.WebUI()
     progress = bridge.create_progress("Test Progress", total=100)
     progress.complete()
 
@@ -139,16 +145,37 @@ def test_ui_progress_complete_succeeds(mock_streamlit, clean_state):
 
 
 @pytest.mark.medium
+def test_ui_progress_complete_cascades_subtasks(mock_streamlit, clean_state):
+    """Completing the parent task finalizes any outstanding subtasks."""
+
+    module = _get_webui_module()
+
+    bridge = module.WebUI()
+    progress = bridge.create_progress("Parent", total=10)
+    subtask_id = progress.add_subtask("Child", total=5)
+
+    subtask_container = (
+        mock_streamlit.container.return_value.__enter__.return_value
+    )
+    subtask_container.success.reset_mock()
+
+    progress.complete()
+
+    assert progress._current == 10
+    assert progress._status == "Complete"
+    assert progress._subtasks[subtask_id]["current"] == 5
+    subtask_container.success.assert_called_once_with("Completed: Child")
+    mock_streamlit.success.assert_called_with("Completed: Parent")
+
+
+@pytest.mark.medium
 def test_ui_progress_add_subtask_succeeds(mock_streamlit, clean_state):
     """Test the ``add_subtask`` method of ``_UIProgress``.
 
     ReqID: N/A"""
-    import devsynth.interface.webui as webui
+    module = _get_webui_module()
 
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    bridge = WebUI()
+    bridge = module.WebUI()
     progress = bridge.create_progress("Test Progress", total=100)
     subtask_id = progress.add_subtask("Subtask 1", total=50)
 
@@ -168,12 +195,9 @@ def test_ui_progress_update_subtask_succeeds(mock_streamlit, clean_state):
     """Test the ``update_subtask`` method of ``_UIProgress``.
 
     ReqID: N/A"""
-    import devsynth.interface.webui as webui
+    module = _get_webui_module()
 
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    bridge = WebUI()
+    bridge = module.WebUI()
     progress = bridge.create_progress("Test Progress", total=100)
     subtask_id = progress.add_subtask("Subtask 1", total=50)
 
@@ -197,12 +221,9 @@ def test_ui_progress_complete_subtask_succeeds(mock_streamlit, clean_state):
     """Test the ``complete_subtask`` method of ``_UIProgress``.
 
     ReqID: N/A"""
-    import devsynth.interface.webui as webui
+    module = _get_webui_module()
 
-    importlib.reload(webui)
-    from devsynth.interface.webui import WebUI
-
-    bridge = WebUI()
+    bridge = module.WebUI()
     progress = bridge.create_progress("Test Progress", total=100)
     subtask_id = progress.add_subtask("Subtask 1", total=50)
     progress.complete_subtask(subtask_id)

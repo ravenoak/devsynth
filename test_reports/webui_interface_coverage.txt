@@ -3,49 +3,61 @@ platform linux -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0
 benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
 rootdir: /workspace/devsynth
 configfile: pytest.ini
-plugins: asyncio-1.1.0, Faker-37.6.0, benchmark-5.1.0, mock-3.15.0, bdd-8.1.0, rerunfailures-16.0.1, html-4.1.1, anyio-4.10.0, langsmith-0.4.26, hypothesis-6.138.14, metadata-3.1.1, xdist-3.8.0, cov-6.3.0
+plugins: benchmark-5.1.0, asyncio-1.1.0, metadata-3.1.1, langsmith-0.4.26, Faker-37.6.0, mock-3.15.0, rerunfailures-16.0.1, cov-6.3.0, html-4.1.1, xdist-3.8.0, hypothesis-6.138.14, bdd-8.1.0, anyio-4.10.0
 asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collected 18 items
+collected 93 items
 
-tests/unit/interface/test_webui_handle_command_errors.py .......                                                         [ 38%]
-tests/unit/interface/test_agentapi_rate_limit_progress.py ...                                                            [ 55%]
-tests/unit/interface/test_agentapi_enhanced_bridge.py ....                                                               [ 77%]
-tests/unit/interface/test_webui_bridge_normalize.py ....                                                                 [100%]
+tests/unit/interface/test_webui_bridge_aa_coverage.py ..                                                                 [  2%]
+tests/unit/interface/test_webui_bridge_cli_parity.py .                                                                   [  3%]
+tests/unit/interface/test_webui_bridge_core_behaviors.py ....                                                            [  7%]
+tests/unit/interface/test_webui_bridge_fast_suite.py ..                                                                  [  9%]
+tests/unit/interface/test_webui_bridge_handshake.py ...                                                                  [ 12%]
+tests/unit/interface/test_webui_bridge_normalize.py ....                                                                 [ 17%]
+tests/unit/interface/test_webui_bridge_progress.py ......                                                                [ 23%]
+tests/unit/interface/test_webui_bridge_require_streamlit.py ..                                                           [ 25%]
+tests/unit/interface/test_webui_bridge_routing.py ..                                                                     [ 27%]
+tests/unit/interface/test_webui_bridge_spec_alignment.py ..                                                              [ 30%]
+tests/unit/interface/test_webui_bridge_targeted.py ........                                                              [ 38%]
+tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py .......                                                 [ 46%]
+tests/unit/interface/test_webui_display_and_layout.py ......................................                             [ 87%]
+tests/unit/interface/test_webui_progress.py ............                                                                 [100%]
 
 ======================================================= warnings summary =======================================================
-tests/unit/interface/test_agentapi_enhanced_bridge.py: 105 warnings
-  /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12/lib/python3.12/site-packages/pydantic/fields.py:826: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
-    warn(
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137: DeprecationWarning: `FieldValidationInfo` is deprecated, use `ValidationInfo` instead.
+    warnings.warn(msg, DeprecationWarning, stacklevel=1)
+
+tests/conftest.py:1030
+  /workspace/devsynth/tests/conftest.py:1030: PytestUnknownMarkWarning: Unknown pytest.mark.isolation - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    item.add_marker(pytest.mark.isolation)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================================================== tests coverage ========================================================
-_______________________________________ coverage: platform linux, python 3.12.10-final-0 _______________________________________
-
-Name                                     Stmts   Miss  Cover   Missing
-----------------------------------------------------------------------
-src/devsynth/interface/webui.py           1054    942    11%   54-62, 67-68, 122-126, 205-230, 259-321, 334-339, 342, 354-449, 461, 472-497, 569, 580-630, 634-647, 651-704, 714-734, 738-747, 760-780, 784-797, 809-818, 826-837, 843, 850-872, 876-988, 992-1002, 1008-1032, 1055-1093, 1110-1251, 1256-1387, 1394-1395, 1400-1417, 1422-1432, 1437-1508, 1521-1559, 1563-1597, 1606-1662, 1670-1752, 1760-1816, 1820-1838, 1842-1869, 1873-1898, 1902-1925, 1929-1954, 1958-1980, 1984-2007, 2011-2036, 2040-2065, 2069-2082, 2086-2106, 2110-2126, 2130-2150, 2154-2167, 2171-2196, 2203-2378, 2383
-src/devsynth/interface/webui_bridge.py     205    167    19%   29, 45-50, 67-99, 103, 116-130, 142-154, 162-171, 191-216, 235-294, 303-314, 325-326, 350-371, 390-423, 447-450, 465-468, 474-500, 514, 534, 551
-----------------------------------------------------------------------
-TOTAL                                     1259   1109    12%
 ================================================= Test Categorization Summary ==================================================
 Test Type Distribution:
-  Unit Tests: 18
+  Unit Tests: 93
   Integration Tests: 0
   Behavior Tests: 0
 
 Test Speed Distribution:
-  Fast Tests (< 1s): 17
+  Fast Tests (< 1s): 92
   Medium Tests (1-5s): 1
   Slow Tests (> 5s): 0
 ===================================================== Top 10 Slowest Tests =====================================================
-1. tests/unit/interface/test_webui_handle_command_errors.py::test_handle_command_errors_passthrough: 2.75s
-2. tests/unit/interface/test_agentapi_enhanced_bridge.py::test_api_bridge_answers_and_defaults: 0.39s
-3. tests/unit/interface/test_agentapi_rate_limit_progress.py::test_rate_limit_allows_after_window: 0.16s
-4. tests/unit/interface/test_agentapi_enhanced_bridge.py::test_enhanced_progress_tracks_subtasks: 0.15s
-5. tests/unit/interface/test_agentapi_enhanced_bridge.py::test_enhanced_rate_limit_blocks_abusive_clients: 0.14s
-6. tests/unit/interface/test_agentapi_enhanced_bridge.py::test_api_bridge_confirm_choice_coerces_booleans: 0.12s
-7. tests/unit/interface/test_agentapi_rate_limit_progress.py::test_rate_limit_raises_when_exceeded: 0.08s
-8. tests/unit/interface/test_agentapi_rate_limit_progress.py::test_api_bridge_progress_records_subtasks: 0.07s
-9. tests/unit/interface/test_webui_handle_command_errors.py::test_handle_command_errors_known_exceptions[<lambda>-ERROR: File not found: config.yaml-Make sure the file exists]: 0.02s
-10. tests/unit/interface/test_webui_handle_command_errors.py::test_handle_command_errors_known_exceptions[<lambda>-ERROR: Permission denied: secrets.env-necessary permissions]: 0.02s
-=============================================== 18 passed, 105 warnings in 4.54s ===============================================
+1. tests/unit/interface/test_webui_bridge_aa_coverage.py::test_progress_indicator_records_updates_and_fallbacks: 1.20s
+2. tests/unit/interface/test_webui_display_and_layout.py::test_require_streamlit_lazy_loader: 0.45s
+3. tests/unit/interface/test_webui_progress.py::test_ui_progress_add_subtask_succeeds: 0.13s
+4. tests/unit/interface/test_webui_bridge_targeted.py::test_display_result_highlight_routes_to_info: 0.08s
+5. tests/unit/interface/test_webui_progress.py::test_ui_progress_status_transitions_without_explicit_status: 0.02s
+6. tests/unit/interface/test_webui_progress.py::test_ui_progress_subtasks_update_with_frozen_time: 0.02s
+7. tests/unit/interface/test_webui_progress.py::test_ui_progress_complete_cascades_subtasks: 0.02s
+8. tests/unit/interface/test_webui_progress.py::test_ui_progress_eta_displays_hours_and_minutes: 0.02s
+9. tests/unit/interface/test_webui_progress.py::test_ui_progress_complete_succeeds: 0.02s
+10. tests/unit/interface/test_webui_progress.py::test_ui_progress_update_succeeds: 0.02s
+================================================ 93 passed, 3 warnings in 3.49s ================================================
+Name                                     Stmts   Miss   Cover   Missing
+-----------------------------------------------------------------------
+src/devsynth/interface/webui_bridge.py     202     49  75.74%   55, 58, 62, 64, 68, 163, 181, 210, 246, 250, 253, 256, 271, 275, 315-336, 355-388, 493, 514
+src/devsynth/interface/webui.py            306     69  77.45%   35-44, 49-50, 158-170, 172, 175-178, 214, 429-432, 466, 469, 471, 473, 475, 479, 512, 527, 535, 546, 549-551, 554-637, 641
+-----------------------------------------------------------------------
+TOTAL                                      508    118  76.77%
