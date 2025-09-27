@@ -32,7 +32,7 @@ Focus: security, adapters, memory, core, agents, and API endpoints. These files 
 
 - ✅ Security modules now run cleanly under `poetry run mypy --strict`; the hash/verify helpers and TLS configuration wrapper have explicit typing and no longer rely on overrides.【F:src/devsynth/security/authentication.py†L1-L73】【F:src/devsynth/security/encryption.py†L1-L58】【F:src/devsynth/security/tls.py†L1-L58】
 - ✅ `adapters/agents/agent_adapter.py` now compiles under `poetry run mypy --strict` and ships with targeted unit coverage (60 %) so the override was dropped from `pyproject.toml`.【F:pyproject.toml†L289-L296】【F:src/devsynth/adapters/agents/agent_adapter.py†L1-L595】【F:tests/unit/adapters/test_agent_adapter.py†L1-L460】【ec87a5†L1-L2】【1cfa11†L1-L8】
-- `adapters/github_project.py` leaks `Any` when composing the GitHub payload response.【d0d961†L1-L3】
+- ✅ `adapters/github_project.py` now exposes typed dataclasses, request payload builders, and a GraphQL HTTP protocol; strict mypy passes and focused unit checks deliver 61.5 % coverage for the module.【F:src/devsynth/adapters/github_project.py†L1-L358】【F:tests/unit/adapters/test_github_project_adapter.py†L1-L152】【1db098†L1-L4】
 - `memory/layered_cache.py` already passes strict mypy, so the package-wide ignore can begin shrinking immediately.【084ac1†L1-L2】
 - ✅ `core/config_loader.py` now serializes via typed dataclasses and local TOML stubs, enabling strict checks without overrides.【F:src/devsynth/core/config_loader.py†L1-L212】【F:stubs/toml/toml/__init__.pyi†L1-L11】【F:pyproject.toml†L207-L217】
 - `agents/multi_agent_coordinator.py` passes, indicating orchestration logic is ready for strictness once dependencies are typed.【559585†L1-L2】

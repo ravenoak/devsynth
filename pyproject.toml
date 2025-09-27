@@ -215,6 +215,7 @@ mypy_path = [
     "stubs/types-pytest",
     "stubs/types-pytest-bdd",
     "stubs/types-responses",
+    "stubs/types-requests",
     "stubs/toml",
 ]
 python_version = "3.12"
@@ -295,7 +296,6 @@ ignore_errors = true
 module = [
   "devsynth.adapters.chromadb_memory_store",
   "devsynth.adapters.cli.typer_adapter",
-  "devsynth.adapters.github_project",
   "devsynth.adapters.jira_adapter",
   "devsynth.adapters.kuzu_memory_store",
   "devsynth.adapters.llm.llm_adapter",
