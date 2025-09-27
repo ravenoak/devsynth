@@ -198,3 +198,126 @@ def test_cli_inventory_mode_exports_json_via_typer(
     assert payload["targets"]["unit-tests"]["fast"] == [
         "unit-tests::fast::test_case"
     ]
+
+
+@pytest.mark.fast
+def test_cli_enforces_coverage_threshold_via_cli_runner(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """Successful Typer invocation enforces coverage thresholds and emits tips."""
+
+    monkeypatch.chdir(tmp_path)
+
+    app, cli_module = _build_minimal_app(monkeypatch)
+
+    runner = CliRunner()
+
+    monkeypatch.setattr(cli_module, "run_tests", lambda *args, **kwargs: (True, "ok"))
+
+    status_calls: list[None] = []
+    monkeypatch.setattr(
+        cli_module,
+        "_coverage_instrumentation_status",
+        lambda: status_calls.append(None) or (True, None),
+    )
+
+    artifact_calls: list[None] = []
+
+    def _coverage_artifacts_status_stub() -> tuple[bool, str | None]:
+        artifact_calls.append(None)
+        return True, None
+
+    monkeypatch.setattr(
+        cli_module,
+        "coverage_artifacts_status",
+        _coverage_artifacts_status_stub,
+    )
+
+    threshold_calls: list[bool] = []
+    threshold_value = 87.5
+    monkeypatch.setattr(
+        cli_module,
+        "enforce_coverage_threshold",
+        lambda exit_on_failure=False: threshold_calls.append(exit_on_failure)
+        or threshold_value,
+    )
+
+    emit_calls: list[object] = []
+    monkeypatch.setattr(
+        cli_module,
+        "_emit_coverage_artifact_messages",
+        lambda bridge: emit_calls.append(bridge),
+    )
+
+    monkeypatch.setattr(
+        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
+    )
+    monkeypatch.setattr(
+        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
+    )
+
+    result = runner.invoke(
+        app,
+        ["--target", "unit-tests", "--speed", "fast", "--report"],
+        prog_name="run-tests",
+    )
+
+    assert result.exit_code == 0
+    assert "Tests completed successfully" in result.stdout
+    expected_notice = "Coverage 87.50% meets the 70% threshold"
+    assert expected_notice in result.stdout
+    assert artifact_calls, "coverage_artifacts_status should run in coverage mode"
+    assert threshold_calls == [False]
+    assert emit_calls, "_emit_coverage_artifact_messages should be invoked"
+
+
+@pytest.mark.fast
+def test_cli_exits_when_pytest_cov_disabled_via_autoload(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Typer run surfaces remediation tips when pytest-cov is disabled."""
+
+    app, cli_module = _build_minimal_app(monkeypatch)
+
+    runner = CliRunner()
+
+    monkeypatch.setattr(cli_module, "run_tests", lambda *args, **kwargs: (True, ""))
+
+    reason = "pytest plugin autoload disabled without -p pytest_cov"
+    monkeypatch.setattr(
+        cli_module,
+        "_coverage_instrumentation_status",
+        lambda: (False, reason),
+    )
+
+    monkeypatch.setattr(
+        cli_module,
+        "enforce_coverage_threshold",
+        lambda exit_on_failure=False: (_ for _ in ()).throw(
+            AssertionError("Threshold enforcement should be skipped")
+        ),
+    )
+
+    monkeypatch.setattr(
+        cli_module,
+        "coverage_artifacts_status",
+        lambda: (_ for _ in ()).throw(
+            AssertionError("Artifacts should not be inspected when coverage disabled")
+        ),
+    )
+
+    monkeypatch.setattr(
+        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
+    )
+    monkeypatch.setattr(
+        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
+    )
+
+    result = runner.invoke(
+        app,
+        ["--target", "unit-tests", "--speed", "fast"],
+        prog_name="run-tests",
+    )
+
+    assert result.exit_code == 1
+    assert "Coverage enforcement skipped" in result.stdout
+    assert "pytest-cov was disabled" in result.stdout
+    assert "Unset PYTEST_DISABLE_PLUGIN_AUTOLOAD=1" in result.stdout
