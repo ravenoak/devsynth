@@ -1,7 +1,10 @@
 import uuid
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from collections.abc import Awaitable, Callable
+
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import Response
+from typing import TypeVar, cast
 
 from devsynth.interface.agentapi import router as agent_router
 
@@ -43,7 +46,6 @@ except ImportError:  # pragma: no cover - fallback for minimal environments
     CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
 
 import time
-from typing import Union
 
 from devsynth.config.settings import get_settings
 from devsynth.logger import clear_request_context, set_request_context, setup_logging
@@ -52,7 +54,7 @@ logger = setup_logging(__name__)
 settings = get_settings()
 
 
-def verify_token(authorization: Union[str, None] = Header(None)) -> None:
+def verify_token(authorization: str | None = Header(None)) -> None:
     """Verify Bearer token from Authorization header if access control enabled."""
     token = settings.access_token
     if token and authorization != f"Bearer {token}":
@@ -68,14 +70,23 @@ REQUEST_LATENCY = Histogram(
     ["endpoint"],
 )
 
-app = FastAPI(title="DevSynth API")
+app: FastAPI = FastAPI(title="DevSynth API")
+
+AsyncEndpoint = TypeVar("AsyncEndpoint", bound=Callable[..., Awaitable[object]])
 
 # Expose workflow endpoints under the `/api` namespace.
 app.include_router(agent_router, prefix="/api")
 
 
-@app.middleware("http")
-async def request_context_and_metrics(request, call_next):
+http_middleware = cast(
+    Callable[[AsyncEndpoint], AsyncEndpoint], app.middleware("http")
+)
+
+
+@http_middleware
+async def request_context_and_metrics(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     """Attach correlation ID and record metrics in a single middleware."""
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     set_request_context(request_id=request_id)
@@ -90,14 +101,26 @@ async def request_context_and_metrics(request, call_next):
     return response
 
 
-@app.get("/health")
+health_route = cast(
+    Callable[[AsyncEndpoint], AsyncEndpoint],
+    app.get("/health"),
+)
+
+
+@health_route
 async def health(token: None = Depends(verify_token)) -> dict[str, str]:
     """Simple health check endpoint."""
     logger.logger.debug("Health check accessed")
     return {"status": "ok"}
 
 
-@app.get("/metrics")
+metrics_route = cast(
+    Callable[[AsyncEndpoint], AsyncEndpoint],
+    app.get("/metrics"),
+)
+
+
+@metrics_route
 async def metrics(token: None = Depends(verify_token)) -> Response:
     """Expose Prometheus metrics."""
     data = generate_latest()

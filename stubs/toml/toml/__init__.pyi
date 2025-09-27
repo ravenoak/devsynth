@@ -1,0 +1,13 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any, Mapping, TextIO
+
+
+class TomlDecodeError(ValueError):
+    ...
+
+
+def load(fp: str | Path | TextIO) -> dict[str, Any]: ...
+
+def dump(obj: Mapping[str, Any], fp: TextIO) -> None: ...
