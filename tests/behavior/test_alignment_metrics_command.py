@@ -7,7 +7,6 @@ from .steps.cli_commands_steps import *  # noqa: F401,F403
 from .steps.test_alignment_metrics_steps import *  # noqa: F401,F403
 
 pytestmark = [
-    pytest.mark.fast,
     pytest.mark.requires_resource("cli"),
 ]
 

@@ -9,8 +9,6 @@ from devsynth.testing.performance import (
     capture_scalability_metrics,
 )
 
-pytestmark = [pytest.mark.fast]
-
 scenarios("../features/performance_and_scalability_testing.feature")
 
 
