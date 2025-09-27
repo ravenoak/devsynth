@@ -1,0 +1,328 @@
+# DevSynth Agent Workflow Patterns
+# Specialized rules for common LLM agent development scenarios
+
+## Agent Development Patterns
+
+### Pattern 1: Adding a New CLI Command
+When adding a new CLI command to DevSynth:
+
+1. **Specification Phase**
+   ```bash
+   # Create specification
+   touch docs/specifications/cli_new_command.md
+   # Answer: What problem does this command solve? What are the expected inputs/outputs?
+   ```
+
+2. **BDD Test Phase**
+   ```bash
+   # Create failing feature
+   touch tests/behavior/features/cli_new_command.feature
+   # Create step definitions
+   touch tests/behavior/steps/cli_new_command_steps.py
+   ```
+
+3. **Implementation Phase**
+   ```bash
+   # CLI command location
+   touch src/devsynth/application/cli/commands/new_command_cmd.py
+   # Register with CLI
+   # Update src/devsynth/application/cli/commands/__init__.py
+   ```
+
+4. **Testing Phase**
+   ```bash
+   # Unit tests
+   touch tests/unit/application/cli/commands/test_new_command_cmd.py
+   # Integration tests if needed
+   touch tests/integration/cli/test_new_command_integration.py
+   ```
+
+### Pattern 2: Adding a New Memory Backend
+When implementing a new memory storage backend:
+
+1. **Specification Phase**
+   ```bash
+   touch docs/specifications/memory_new_backend.md
+   # Define interface, performance characteristics, dependencies
+   ```
+
+2. **BDD Test Phase**
+   ```bash
+   touch tests/behavior/features/memory_new_backend.feature
+   touch tests/behavior/steps/memory_backend_steps.py
+   ```
+
+3. **Implementation Phase**
+   ```bash
+   # Backend implementation
+   touch src/devsynth/application/memory/new_backend_store.py
+   # Adapter if needed
+   touch src/devsynth/adapters/new_backend_adapter.py
+   ```
+
+4. **Testing Phase**
+   ```bash
+   # Unit tests with speed markers
+   touch tests/unit/application/memory/test_new_backend_store.py
+   # Integration tests with resource flags
+   touch tests/integration/memory/test_new_backend_integration.py
+   ```
+
+5. **Configuration Phase**
+   ```bash
+   # Update pyproject.toml extras
+   # Add resource flag: DEVSYNTH_RESOURCE_NEWBACKEND_AVAILABLE
+   # Update conftest.py fixtures if needed
+   ```
+
+### Pattern 3: Adding Agent Services
+When implementing new agent functionality:
+
+1. **Specification Phase**
+   ```bash
+   touch docs/specifications/agents_new_service.md
+   # Define agent capabilities, interfaces, integration points
+   ```
+
+2. **BDD Test Phase**
+   ```bash
+   touch tests/behavior/features/agents_new_service.feature
+   touch tests/behavior/steps/agent_service_steps.py
+   ```
+
+3. **Implementation Phase**
+   ```bash
+   # Agent service
+   touch src/devsynth/application/agents/new_service.py
+   # Domain interfaces
+   touch src/devsynth/domain/interfaces/new_service.py
+   # Ports and adapters
+   touch src/devsynth/ports/new_service_port.py
+   touch src/devsynth/adapters/agents/new_service_adapter.py
+   ```
+
+## Testing Patterns by Component
+
+### CLI Component Tests
+```python
+# tests/unit/application/cli/commands/test_example.py
+import pytest
+from unittest.mock import MagicMock
+
+@pytest.mark.fast
+def test_cli_command_success():
+    """ReqID: CLI-001 - Command executes successfully with valid input."""
+    # Test implementation
+
+@pytest.mark.medium
+def test_cli_command_with_io():
+    """ReqID: CLI-002 - Command handles file I/O operations."""
+    # Test implementation with I/O
+```
+
+### Memory Backend Tests
+```python
+# tests/integration/memory/test_example_backend.py
+import pytest
+
+@pytest.mark.fast
+@pytest.mark.requires_resource("example_backend")
+def test_backend_basic_operations():
+    """ReqID: MEM-001 - Backend supports basic CRUD operations."""
+    # Test implementation
+
+@pytest.mark.slow
+@pytest.mark.requires_resource("example_backend")
+def test_backend_performance():
+    """ReqID: MEM-002 - Backend meets performance requirements."""
+    # Performance test implementation
+```
+
+### Agent Service Tests
+```python
+# tests/unit/application/agents/test_example_service.py
+import pytest
+from unittest.mock import AsyncMock
+
+@pytest.mark.fast
+async def test_agent_service_initialization():
+    """ReqID: AGT-001 - Agent service initializes correctly."""
+    # Test implementation
+
+@pytest.mark.medium
+async def test_agent_service_workflow():
+    """ReqID: AGT-002 - Agent service executes workflow correctly."""
+    # Workflow test implementation
+```
+
+## Resource Flag Patterns
+
+### Backend Resource Flags
+```bash
+# Enable specific backends for testing
+export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+export DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=true
+export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true
+export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
+export DEVSYNTH_RESOURCE_LMDB_AVAILABLE=true
+export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
+
+# Test with specific backends
+poetry run pytest -m "requires_resource('chromadb')" tests/integration/memory/
+```
+
+### Service Resource Flags
+```bash
+# Enable external services
+export DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true
+export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+export DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE=true
+export DEVSYNTH_RESOURCE_CLI_AVAILABLE=true
+
+# Test with external services
+poetry run pytest -m "requires_resource('openai')" tests/integration/
+```
+
+## Configuration Patterns
+
+### Adding Optional Dependencies
+```toml
+# pyproject.toml - Add to [tool.poetry.dependencies]
+new_backend = {version = "*", optional = true}
+
+# Add to [tool.poetry.extras]
+new_backend = ["new_backend"]
+memory = ["tinydb", "duckdb", "lmdb", "kuzu", "faiss-cpu", "chromadb", "numpy", "new_backend"]
+```
+
+### Updating Test Configuration
+```python
+# tests/conftest_extensions.py - Add resource marker
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "requires_resource(name): mark test as requiring specific resource"
+    )
+
+# tests/fixtures/backends.py - Add backend fixture
+@pytest.fixture
+def new_backend_store():
+    """Fixture for new backend store."""
+    if not os.environ.get("DEVSYNTH_RESOURCE_NEWBACKEND_AVAILABLE"):
+        pytest.skip("New backend not available")
+    # Fixture implementation
+```
+
+## Error Recovery Patterns
+
+### Test Marker Issues
+```bash
+# Diagnose marker problems
+poetry run python scripts/verify_test_markers.py --report
+
+# Fix missing markers
+# Add exactly one speed marker to each test function
+@pytest.mark.fast  # or medium, slow
+```
+
+### Import Issues
+```bash
+# Check for import problems
+poetry run pytest --collect-only
+
+# Fix import issues
+# Use pytest.importorskip for optional dependencies
+pytest.importorskip("optional_package")
+```
+
+### Resource Flag Issues
+```bash
+# Check resource availability
+poetry run python -c "import os; print({k:v for k,v in os.environ.items() if 'DEVSYNTH_RESOURCE' in k})"
+
+# Enable missing resources
+export DEVSYNTH_RESOURCE_EXAMPLE_AVAILABLE=true
+```
+
+## Quality Assurance Patterns
+
+### Pre-commit Workflow
+```bash
+# Standard pre-commit sequence
+poetry run pre-commit run --files $(git diff --cached --name-only)
+poetry run python scripts/verify_test_markers.py --changed
+poetry run python scripts/verify_requirements_traceability.py
+poetry run python scripts/dialectical_audit.py
+```
+
+### Documentation Updates
+```bash
+# Update API documentation
+poetry run python scripts/gen_ref_pages.py
+
+# Update specifications
+# Ensure new features have corresponding specs in docs/specifications/
+
+# Update traceability
+poetry run python scripts/update_traceability.py
+```
+
+## Integration Testing Patterns
+
+### CLI Integration Tests
+```python
+# Use TestClient or subprocess for CLI testing
+import subprocess
+
+@pytest.mark.medium
+def test_cli_integration():
+    """ReqID: INT-001 - CLI integrates correctly with core services."""
+    result = subprocess.run(
+        ["poetry", "run", "devsynth", "command", "--arg"],
+        capture_output=True,
+        text=True
+    )
+    assert result.returncode == 0
+```
+
+### Service Integration Tests
+```python
+# Test service interactions
+@pytest.mark.slow
+async def test_service_integration():
+    """ReqID: INT-002 - Services integrate correctly."""
+    # Integration test implementation
+```
+
+## Performance Testing Patterns
+
+### Benchmark Tests
+```python
+# Use pytest-benchmark for performance tests
+@pytest.mark.slow
+def test_performance_benchmark(benchmark):
+    """ReqID: PERF-001 - Operation meets performance requirements."""
+    result = benchmark(expensive_operation, large_input)
+    assert result is not None
+```
+
+### Memory Usage Tests
+```python
+# Monitor memory usage in tests
+import psutil
+import os
+
+@pytest.mark.slow
+def test_memory_usage():
+    """ReqID: PERF-002 - Operation stays within memory limits."""
+    process = psutil.Process(os.getpid())
+    initial_memory = process.memory_info().rss
+    
+    # Perform operation
+    expensive_operation()
+    
+    final_memory = process.memory_info().rss
+    memory_increase = final_memory - initial_memory
+    
+    # Assert reasonable memory usage
+    assert memory_increase < 100 * 1024 * 1024  # 100MB limit
+```

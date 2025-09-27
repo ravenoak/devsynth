@@ -1,0 +1,375 @@
+# DevSynth Cursor IDE Rules
+# Cursor IDE agent guidelines for effective DevSynth development
+
+## Project Context
+
+DevSynth is an agent services platform that implements sophisticated testing, security, and quality standards. The project is designed for Cursor IDE and modern LLM development workflows.
+
+**Core Values:**
+- Specification-first BDD development workflow
+- Rigorous test discipline with speed markers and resource flags
+- Security and audit compliance via dialectical reasoning
+- Quality-first development with comprehensive automation
+
+**Key Technologies:** Python 3.12, Poetry, pytest, FastAPI, LangGraph, Task runner, comprehensive CI/CD pipeline
+
+**Important:** This project uses Cursor IDE-specific workflows. Do NOT reference or use any Codex-specific instructions from AGENTS.md or scripts/codex_setup.sh - these are for different environments only.
+
+## Cursor IDE Environment Setup
+
+### Initial Setup for Cursor IDE
+1. **Python Environment**: Ensure Python 3.12 is active and Poetry created a virtual environment:
+   ```bash
+   python --version  # should show 3.12.x
+   poetry env info --path  # must print the virtualenv path
+   ```
+
+2. **Development Environment**: Provision using the standard development script:
+   ```bash
+   bash scripts/install_dev.sh      # general setup (auto-installs go-task)
+   task --version                   # verify Taskfile is available
+   ```
+
+3. **Install Dependencies**: Use Poetry for all dependency management:
+   ```bash
+   poetry install --with dev --extras "tests retrieval chromadb api"
+   ```
+
+4. **Verify Setup**: Confirm everything is working:
+   ```bash
+   poetry run devsynth --help
+   poetry run pytest --collect-only -q
+   ```
+
+**Critical:** Never run `scripts/codex_setup.sh` - this is exclusively for Codex environments and will cause conflicts with Cursor IDE workflows.
+
+## Mandatory Development Workflow
+
+### 1. BDD Specification-First Development (NON-NEGOTIABLE)
+BEFORE writing any code:
+1. Draft specification in `docs/specifications/` answering Socratic questions:
+   - What is the problem?
+   - What proofs confirm the solution?
+2. Create failing BDD feature in `tests/behavior/features/`
+3. Only then implement the solution
+
+Example workflow:
+```bash
+# 1. Create specification
+touch docs/specifications/new_feature.md
+# 2. Create failing test
+touch tests/behavior/features/new_feature.feature
+# 3. Run to confirm failure
+poetry run pytest tests/behavior/features/new_feature.feature
+# 4. Implement solution
+```
+
+### 2. Test-First Development
+- All new functionality requires tests BEFORE implementation
+- Use exactly one speed marker per test: `@pytest.mark.fast`, `@pytest.mark.medium`, or `@pytest.mark.slow`
+- Never use module-level `pytestmark` for speed categories
+- Validate markers before committing: `poetry run python scripts/verify_test_markers.py --changed`
+
+## Command Patterns (ALWAYS USE THESE)
+
+### Python Execution
+ALWAYS use `poetry run` for Python commands:
+```bash
+# Correct
+poetry run python script.py
+poetry run devsynth run-tests --speed=fast
+poetry run pytest tests/unit/
+
+# Wrong - never use bare python
+python script.py
+pytest tests/
+```
+
+### Testing Commands
+```bash
+# Fast smoke test
+poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+
+# Unit tests by speed
+poetry run devsynth run-tests --target unit-tests --speed=fast
+poetry run devsynth run-tests --target unit-tests --speed=medium
+poetry run devsynth run-tests --target unit-tests --speed=slow
+
+# Integration tests
+poetry run devsynth run-tests --target integration-tests --speed=fast
+
+# BDD behavior tests
+poetry run devsynth run-tests --target behavior-tests --speed=fast
+
+# With HTML report
+poetry run devsynth run-tests --report --speed=fast
+
+# Verify test organization
+poetry run python tests/verify_test_organization.py
+poetry run python scripts/verify_test_markers.py
+```
+
+### Task Runner Commands
+```bash
+# Use task for common operations
+task test:fast
+task lint:format
+task verify:markers
+task docs:serve
+task security:audit
+```
+
+### Quality Checks
+```bash
+# Pre-commit (run before any commit)
+poetry run pre-commit run --files <changed_files>
+
+# Full quality suite
+poetry run black .
+poetry run isort .
+poetry run flake8 src/ tests/
+poetry run mypy src/ tests/
+
+# Security and audit
+poetry run python scripts/dialectical_audit.py
+```
+
+## File Organization Rules
+
+### Source Code Structure
+- Core logic: `src/devsynth/`
+- CLI commands: `src/devsynth/application/cli/commands/`
+- Adapters: `src/devsynth/adapters/`
+- Domain logic: `src/devsynth/domain/`
+- Testing utilities: `src/devsynth/testing/`
+
+### Test Organization
+- Unit tests: `tests/unit/` (mirror src structure)
+- Integration tests: `tests/integration/`
+- BDD features: `tests/behavior/features/`
+- BDD step definitions: `tests/behavior/steps/`
+- Test fixtures: `tests/fixtures/`
+
+### Documentation
+- Specifications: `docs/specifications/`
+- Policies: `docs/policies/`
+- Architecture: `docs/architecture/`
+- User guides: `docs/user_guides/`
+- Developer guides: `docs/developer_guides/`
+
+### Scripts and Utilities
+- Development scripts: `scripts/`
+- Task definitions: `Taskfile.yml`
+- Configuration: `config/`
+
+## Testing Requirements
+
+### Speed Markers (MANDATORY)
+Every test function MUST have exactly one speed marker:
+```python
+@pytest.mark.fast
+def test_simple_operation():
+    """ReqID: FR-001 - Simple operations complete quickly."""
+    pass
+
+@pytest.mark.medium
+def test_moderate_operation():
+    """ReqID: FR-002 - Moderate operations with some I/O."""
+    pass
+
+@pytest.mark.slow
+def test_complex_operation():
+    """ReqID: FR-003 - Complex operations requiring significant resources."""
+    pass
+```
+
+### Resource Flags
+Optional resources are disabled by default. Enable explicitly:
+```bash
+# Enable specific resources
+export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+export DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true
+
+# Run resource-specific tests
+poetry run pytest -m "requires_resource('chromadb')"
+```
+
+### Test Docstrings
+Include ReqID references in test docstrings:
+```python
+def test_feature():
+    """ReqID: FR-001 - Feature should behave correctly under normal conditions."""
+```
+
+## Code Quality Standards
+
+### Typing
+- Use type hints for all new code
+- Current mypy overrides are temporary (target removal by 2025-10-15)
+- Run typing checks: `poetry run mypy src/devsynth`
+
+### Formatting and Linting
+- Black formatting: `poetry run black .`
+- Import sorting: `poetry run isort .`
+- Linting: `poetry run flake8 src/ tests/`
+- Line length: 88 characters
+
+### Commit Standards
+Use Conventional Commits format:
+```
+feat(cli): add --offline mode for providers
+fix(memory): handle TinyDB TypeError during insert
+docs(readme): clarify installation steps
+test(unit): add coverage for edge case in parser
+```
+
+## Security and Audit Compliance
+
+### Mandatory Audit Resolution
+Before any commit or PR:
+```bash
+# Run dialectical audit
+poetry run python scripts/dialectical_audit.py
+
+# Ensure dialectical_audit.log has no unresolved questions
+# Resolve all questions before proceeding
+```
+
+### Security Checks
+```bash
+# Run security audit
+task security:audit
+
+# Individual security tools
+poetry run bandit -r src/devsynth
+poetry run safety check
+```
+
+## Common Operations
+
+### Adding New Features
+1. Create specification in `docs/specifications/new_feature.md`
+2. Create failing BDD test in `tests/behavior/features/new_feature.feature`
+3. Create step definitions in `tests/behavior/steps/`
+4. Run failing test: `poetry run pytest tests/behavior/features/new_feature.feature`
+5. Create unit tests in appropriate `tests/unit/` location
+6. Implement feature in appropriate `src/devsynth/` location
+7. Verify all tests pass: `poetry run devsynth run-tests --speed=fast`
+8. Run quality checks: `poetry run pre-commit run --all-files`
+9. Resolve audit: `poetry run python scripts/dialectical_audit.py`
+
+### Adding Dependencies
+```bash
+# Add runtime dependency
+poetry add package_name
+
+# Add development dependency
+poetry add --group dev package_name
+
+# Add optional dependency
+poetry add --optional package_name
+
+# Update pyproject.toml extras as needed
+```
+
+### Running CI Locally
+```bash
+# Full CI simulation
+task ci
+
+# Individual CI jobs
+task lint
+task test:coverage
+task verify:markers
+task docs:build
+```
+
+## Error Prevention
+
+### Common Mistakes to Avoid
+1. **Never run Python without `poetry run`** - breaks dependency isolation
+2. **Never omit speed markers from tests** - breaks CI
+3. **Never skip BDD workflow** - violates project standards
+4. **Never commit without resolving dialectical_audit.log** - fails CI
+5. **Never create files in wrong directories** - breaks project organization
+6. **Never use `pip install`** - use Poetry for all dependency management
+7. **Never disable security checks** - violates security policy
+
+### Recovery Commands
+If tests fail:
+```bash
+# Clean and retry
+poetry run task clean
+poetry install --with dev --extras "tests retrieval chromadb api"
+poetry run devsynth run-tests --smoke --speed=fast
+
+# Check marker discipline
+poetry run python scripts/verify_test_markers.py --report
+
+# Verify environment
+poetry env info --path
+poetry run python --version
+```
+
+## Integration with Existing Tooling
+
+### CLI Usage
+The `devsynth` CLI is the primary interface:
+```bash
+# Get help
+poetry run devsynth --help
+
+# Test execution (preferred method)
+poetry run devsynth run-tests --target unit-tests --speed=fast
+
+# Other commands
+poetry run devsynth init --wizard
+poetry run devsynth ingest manifest.yaml
+poetry run devsynth doctor
+```
+
+### Task Runner Integration
+Use `task` for common development workflows:
+```bash
+# View available tasks
+task --list
+
+# Common development cycle
+task setup:dev
+task test:fast
+task lint:format
+task verify:markers
+```
+
+### Pre-commit Hooks
+Ensure hooks are installed and up to date:
+```bash
+poetry run pre-commit install
+poetry run pre-commit install --hook-type commit-msg
+poetry run pre-commit autoupdate
+```
+
+## References
+
+- Project structure and setup: `CONTRIBUTING.md` (primary reference)
+- Architecture documentation: `docs/architecture/`
+- Testing standards: `docs/testing/`
+- Security policies: `docs/policies/security.md`
+- Dialectical audit policy: `docs/policies/dialectical_audit.md`
+- Specifications: `docs/specifications/`
+
+**Note:** AGENTS.md and scripts/codex_setup.sh contain Codex-specific instructions and should NOT be used for Cursor IDE development.
+
+## Success Criteria
+
+Your changes are ready when:
+1. ✅ BDD specification and failing test created first
+2. ✅ All tests have exactly one speed marker
+3. ✅ All commands use `poetry run`
+4. ✅ Tests pass: `poetry run devsynth run-tests --speed=fast`
+5. ✅ Quality checks pass: `poetry run pre-commit run --all-files`
+6. ✅ Audit resolved: `poetry run python scripts/dialectical_audit.py`
+7. ✅ Conventional commit message used
+8. ✅ Files in correct directories
+9. ✅ Documentation updated as needed
