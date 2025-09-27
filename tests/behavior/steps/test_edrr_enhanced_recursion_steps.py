@@ -2,28 +2,20 @@
 
 from __future__ import annotations
 
-from pytest_bdd import given, parsers, scenarios, then, when
-
-# Import the feature file for this test
-
-pytestmark = [pytest.mark.fast]
-
-scenarios("../features/general/edrr_enhanced_recursion.feature")
-
-# Content from test_edrr_coordinator_steps.py inlined here
-"""Step definitions for the EDRR Coordinator feature."""
-
-import pytest
-
-# Removed duplicate __future__ import
-from pytest_bdd import given, parsers, scenarios, then, when
-
-scenarios("../features/general/edrr_coordinator.feature")
 import json
 import os
 import tempfile
 from pathlib import Path
 from typing import Dict, Tuple
+
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
+
+# Register feature scenarios.
+pytestmark = [pytest.mark.fast]
+
+scenarios("../features/general/edrr_enhanced_recursion.feature")
+scenarios("../features/general/edrr_coordinator.feature")
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
