@@ -5,7 +5,7 @@ version: "0.1.0-alpha.1"
 tags:
   - "analysis"
   - "coverage"
-status: "draft"
+status: "published"
 author: "DevSynth Team"
 last_reviewed: "2025-08-23"
 ---
@@ -29,6 +29,10 @@ Let \(C_i\) be the set of lines executed in test \(i\). The algorithm maintains 
 Calling `reset()` restores \(S = \varnothing\) before test \(i+1\).
 Thus, coverage from one test never leaks into another, and the union of per-test sets
 is the total coverage. \(\square\)
+
+## Validation
+
+- Property invariants: `tests/property/test_coverage_reset_invariants.py::{test_reset_clears_coverage_state,test_reset_preserves_union_of_individual_runs}` executed via `task tests:property` (`poetry run pytest tests/property/`).
 
 ## References
 

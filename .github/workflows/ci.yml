@@ -200,6 +200,11 @@ jobs:
       - name: Verify coverage threshold
         run: poetry run python scripts/verify_coverage_threshold.py
 
+      - name: Run property invariant tests
+        env:
+          DEVSYNTH_PROPERTY_TESTING: "true"
+        run: poetry run pytest tests/property/
+
       - name: Collect diagnostics
         if: failure()
         run: |
