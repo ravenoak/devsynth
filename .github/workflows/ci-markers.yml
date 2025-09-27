@@ -35,6 +35,10 @@ jobs:
         run: |
           poetry install --with dev --extras minimal
 
+      - name: Ensure feature marker enum is current
+        run: |
+          poetry run python scripts/generate_feature_marker_enum.py --check
+
       - name: Verify test speed markers and generate report
         run: |
           poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json

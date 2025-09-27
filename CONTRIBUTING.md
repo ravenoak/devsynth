@@ -128,6 +128,18 @@ poetry run pytest --cov=src --cov-report=term-missing
   ```
 - See the Testing Guide for marker rules and verification workflow: [docs/developer_guides/testing.md](docs/developer_guides/testing.md)
 
+### Feature marker enum regeneration
+- Update `src/devsynth/generated/feature_markers_enum.py` whenever you add, remove, or rename a `feature_…` marker function.
+- Regenerate the enum and write the updated file:
+  ```bash
+  poetry run python scripts/generate_feature_marker_enum.py
+  ```
+- To verify without writing files (useful in CI or pre-commit checks):
+  ```bash
+  poetry run python scripts/generate_feature_marker_enum.py --check
+  ```
+- Commits must include regenerated output; CI fails if the generated module drifts from the marker definitions.
+
 ### Property tests (opt‑in)
 - Disabled by default. Enable explicitly:
   ```bash

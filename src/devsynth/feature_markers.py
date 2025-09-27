@@ -5,9 +5,9 @@ from __future__ import annotations
 import inspect
 import sys
 from collections.abc import Callable
-from enum import Enum
 from types import ModuleType
-from typing import TYPE_CHECKING
+
+from devsynth.generated.feature_markers_enum import FeatureMarker
 
 
 # Feature: API Reference Documentation Generation
@@ -1012,14 +1012,8 @@ def feature_version_bump_script() -> None:
     pass
 
 
-# Automatically generated feature marker enumeration and lookup utilities
-
-if TYPE_CHECKING:
-
-    class FeatureMarker(str, Enum):
-        """Enumeration of feature marker names."""
-
-        pass
+# Automatically generated feature marker enumeration and lookup utilities.
+# See ``devsynth.generated.feature_markers_enum`` for the concrete ``StrEnum``.
 
 
 def _discover_markers() -> dict[str, Callable[[], None]]:
@@ -1035,11 +1029,6 @@ def _discover_markers() -> dict[str, Callable[[], None]]:
 
 
 _MARKER_FUNCTIONS: dict[str, Callable[[], None]] = _discover_markers()
-
-if not TYPE_CHECKING:
-    FeatureMarker = Enum(  # noqa: F811
-        "FeatureMarker", {name: name for name in _MARKER_FUNCTIONS}, type=str
-    )
 
 
 def get_marker(marker: FeatureMarker) -> Callable[[], None]:
