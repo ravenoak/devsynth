@@ -10,6 +10,15 @@ import os
 import time
 
 import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
+
+from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
+from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+from devsynth.application.agents.unified_agent import UnifiedAgent
+from devsynth.application.memory.memory_manager import MemoryManager
+from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.domain.models.memory import MemoryItem, MemoryType
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
     "0",
@@ -18,31 +27,17 @@ chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
 }
 if not chromadb_enabled:
     pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
-from pytest_bdd import given, parsers, scenarios, then, when
-
-# Import the feature file
 
 pytestmark = [
-
-scenarios("../features/general/memory_backend_integration.feature")
-
-from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
-
-# Import the modules needed for the steps
-from devsynth.domain.models.wsde_facade import WSDETeam
-
-logger = logging.getLogger(__name__)
-from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
-from devsynth.application.agents.unified_agent import UnifiedAgent
-from devsynth.domain.models.agent import AgentConfig, AgentType
-
     pytest.mark.fast,
     pytest.mark.requires_resource("chromadb"),
     pytest.mark.requires_resource("lmdb"),
     pytest.mark.requires_resource("faiss"),
 ]
-from devsynth.application.memory.memory_manager import MemoryManager
-from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+logger = logging.getLogger(__name__)
+
+scenarios("../features/general/memory_backend_integration.feature")
 
 
 @pytest.fixture
