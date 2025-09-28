@@ -12,7 +12,7 @@ last_reviewed: "2025-08-26"
 This document codifies the gating criteria for release preparation. It complements the Release Playbook (docs/release/release_playbook.md) and the stabilization plan (docs/plan.md).
 
 ## Test Targets
-- PRs must pass: fast + medium targets (unit + key integrations), with HTML reports uploaded.
+- PRs must pass: fast + medium targets (unit + key integrations) via `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`, with HTML/JSON coverage artifacts uploaded.【F:diagnostics/full_profile_coverage.txt†L1-L24】
 - Pre-release branches or pre-tag checks must pass: full suite including slow.
 - Smoke mode may be used for diagnosis, but final gates must run in normal mode without third-party plugin disablement.
 
@@ -22,7 +22,7 @@ This document codifies the gating criteria for release preparation. It complemen
 
 ## Quality and Security
 - Linting: black --check, isort --check-only, flake8.
-- Typing: mypy strict (with documented, temporary relaxations only where noted in pyproject and TODOs).
+- Typing: `poetry run task mypy:strict` (wrapper for `poetry run mypy --strict src/devsynth`) with documented, temporary relaxations only where noted in `pyproject.toml` and TODOs. Attach the most recent run output under `diagnostics/` (see `diagnostics/mypy_strict_2025-09-30_refresh.txt`).【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L1-L20】【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L850-L850】
 - Security: bandit and safety (full report) must pass or have documented, justified suppressions.
 
 ## Marker Discipline
@@ -35,7 +35,7 @@ This document codifies the gating criteria for release preparation. It complemen
 - Release notes updated: docs/release/0.1.0-alpha.1.md.
 
 ## Artifacts
-- HTML test report(s) under test_reports/ with stable, timestamped names.
+- HTML test report(s) and `test_reports/coverage.json` with ≥90 % totals archived under `artifacts/releases/0.1.0a1/fast-medium/` using timestamped folders (see `diagnostics/full_profile_coverage.txt` for the canonical command set).【F:diagnostics/full_profile_coverage.txt†L1-L24】
 - Marker report: test_markers_report.json.
 - Security reports (Bandit, Safety) attached in CI.
 
