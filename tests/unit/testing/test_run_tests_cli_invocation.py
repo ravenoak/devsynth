@@ -699,3 +699,112 @@ def test_cli_keyword_filter_returns_success_when_no_matches(
     assert success is True
     assert output == "No tests matched the provided filters."
     assert lifecycle == ["reset"]
+
+
+@pytest.mark.fast
+def test_run_tests_generates_artifacts_for_normal_profile(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Normal run writes `.coverage`, JSON, and HTML artifacts via the harness."""
+
+    monkeypatch.chdir(tmp_path)
+
+    coverage_json = tmp_path / "reports" / "coverage.json"
+    html_dir = tmp_path / "htmlcov"
+    monkeypatch.setattr(rt, "COVERAGE_JSON_PATH", coverage_json)
+    monkeypatch.setattr(rt, "COVERAGE_HTML_DIR", html_dir)
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", "tests/unit")
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", "tests")
+
+    monkeypatch.setattr(rt, "collect_tests_with_cache", lambda *_: ["tests/unit/test_ok.py::test_one"])
+
+    lifecycle: list[str] = []
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: lifecycle.append("reset"))
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: lifecycle.append("ensure"))
+
+    popen_envs: list[dict[str, str]] = []
+
+    def fake_single_batch(*, env: dict[str, str], **_kwargs: object) -> tuple[bool, str]:
+        popen_envs.append(dict(env))
+        tmp_path.joinpath(".coverage").write_text("data")
+        html_dir.mkdir(parents=True, exist_ok=True)
+        (html_dir / "index.html").write_text("<html>ok</html>")
+        coverage_json.parent.mkdir(parents=True, exist_ok=True)
+        coverage_json.write_text(json.dumps({"totals": {"percent_covered": 98.7}}))
+        return True, "batch ok"
+
+    monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=False,
+        report=True,
+        parallel=False,
+    )
+
+    assert success is True
+    assert output == "batch ok"
+    assert lifecycle == ["reset", "ensure"], lifecycle
+
+    assert tmp_path.joinpath(".coverage").exists()
+    assert html_dir.joinpath("index.html").exists()
+    assert coverage_json.exists()
+    assert json.loads(coverage_json.read_text())["totals"]["percent_covered"] == 98.7
+    assert popen_envs and "PYTEST_ADDOPTS" not in popen_envs[0]
+
+
+@pytest.mark.fast
+def test_run_tests_generates_artifacts_with_autoload_disabled(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Smoke-style environments still create coverage artifacts with plugin injection."""
+
+    monkeypatch.chdir(tmp_path)
+
+    coverage_json = tmp_path / "reports" / "coverage.json"
+    html_dir = tmp_path / "htmlcov"
+    monkeypatch.setattr(rt, "COVERAGE_JSON_PATH", coverage_json)
+    monkeypatch.setattr(rt, "COVERAGE_HTML_DIR", html_dir)
+
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", "tests/unit")
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", "tests")
+
+    monkeypatch.setattr(rt, "collect_tests_with_cache", lambda *_: ["tests/unit/test_ok.py::test_one"])
+
+    monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
+
+    captured_envs: list[dict[str, str]] = []
+
+    def fake_single_batch(*, env: dict[str, str], **_kwargs: object) -> tuple[bool, str]:
+        captured_envs.append(dict(env))
+        tmp_path.joinpath(".coverage").write_text("data")
+        html_dir.mkdir(parents=True, exist_ok=True)
+        (html_dir / "index.html").write_text("<html>smoke</html>")
+        coverage_json.parent.mkdir(parents=True, exist_ok=True)
+        coverage_json.write_text(json.dumps({"totals": {"percent_covered": 94.2}}))
+        return True, "smoke ok"
+
+    monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
+
+    env = {"PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"}
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=True,
+        report=True,
+        parallel=True,
+        env=env,
+    )
+
+    assert success is True
+    assert output == "smoke ok"
+    assert tmp_path.joinpath(".coverage").exists()
+    assert html_dir.joinpath("index.html").exists()
+    assert coverage_json.exists()
+
+    assert env.get("PYTEST_ADDOPTS", "").count("pytest_cov") == 1
+    assert env.get("PYTEST_ADDOPTS", "").count("pytest_bdd") == 1
+    assert captured_envs and "-p pytest_cov" in captured_envs[0]["PYTEST_ADDOPTS"]
