@@ -6,7 +6,7 @@ tags:
   - "analysis"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-05"
+last_reviewed: "2025-10-20"
 ---
 
 # MVUU Dashboard
@@ -36,3 +36,22 @@ $ devsynth mvuu-dashboard
 
 If report generation fails, the dashboard falls back to any existing
 `traceability.json`.
+
+## Autoresearch Enhancements
+
+Autoresearch workflows extend the dashboard with optional overlays:
+
+- **Research Timeline Layer** — displays knowledge graph queries, agent role
+  transitions, and MVUU TraceIDs along a shared timeline so reviewers can follow
+  how investigations evolved.
+- **Provenance Filters** — add toggles that isolate traces involving research
+  artefacts, letting teams focus on Autoresearch outcomes without losing standard
+  traceability views.
+- **Integrity Checks** — surface checksum and signature fields emitted by the
+  CLI so reviewers can verify that research artefacts rendered in the dashboard
+  match the underlying knowledge graph data.
+
+These overlays are disabled by default; teams enable them via the `--research-metrics` CLI flag or a dashboard toggle. When active, the dashboard queries the
+knowledge graph to fetch supporting artefacts and annotates TraceIDs with
+bibliographic context, ensuring Autoresearch remains auditable without
+sacrificing day-to-day usability.

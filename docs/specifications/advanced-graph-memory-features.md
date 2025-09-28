@@ -1,11 +1,12 @@
 ---
 author: DevSynth Team
 date: 2025-08-19
-last_reviewed: 2025-08-19
-status: draft
+last_reviewed: 2025-10-20
+status: review
 tags:
 
 - specification
+- autoresearch
 
 title: Advanced Graph Memory Features
 version: 0.1.0-alpha.1
@@ -27,57 +28,72 @@ Required metadata fields:
 ## Socratic Checklist
 - What is the problem?
   The graph memory system stores items as RDF triples but lacks explicit
-  traversal capabilities and documented guarantees that nodes and links
-  persist across adapter restarts.
+  traversal capabilities, documented guarantees that nodes and links persist
+  across adapter restarts, and a schema for Autoresearch artefacts.
 - What proofs confirm the solution?
-  Behavioural tests traverse stored relationships and reload the adapter to
-  verify that previously persisted nodes and links remain accessible.
+  Behaviour-driven tests traverse stored relationships, reload the adapter to
+  verify persistence, and validate that Autoresearch artefacts retain provenance
+  metadata and bounded traversal behaviour.
 
 ## Motivation
 
-## What proofs confirm the solution?
-- BDD scenarios in [`tests/behavior/features/advanced_graph_memory_features.feature`](../../tests/behavior/features/advanced_graph_memory_features.feature) ensure termination and expected outcomes.
-- Finite state transitions and bounded loops guarantee termination.
-
-
-Agents reason over relationships between memories.  Without a bounded
-traversal mechanism and durable graph storage, agents cannot reliably follow
-chains of related items or resume reasoning after a restart.  Providing a
-documented traversal API with persistence guarantees enables richer memory
-queries and long‑lived reasoning across all supported backends.
+Agents reason over relationships between memories. Without a bounded traversal
+mechanism, durable graph storage, and a structured way to store research
+artefacts, agents cannot reliably follow chains of related items or resume
+reasoning after a restart. Providing a documented traversal API with persistence
+and research provenance guarantees enables richer memory queries and long-lived
+Autoresearch workflows across all supported backends.
 
 ## Specification
 
-- Add a `traverse_graph(start_id, max_depth)` method to
-  `GraphMemoryAdapter`.  The method performs a breadth‑first search over
-  `devsynth:relatedTo` links, returning the set of reachable node IDs up to
-  the specified depth.
-- Persist nodes and relationships to `graph_memory.ttl` whenever items or
-  links are stored.  On initialization the adapter loads the file if it
-  exists, ensuring all nodes and `relatedTo` edges survive process restarts.
-- Expose traversal and persistence behaviours through behaviour‑driven tests
-  exercising graph traversal, reload cycles, and integration with other
-  memory stores.
+- Add a `traverse_graph(start_id, max_depth, *, include_research=False)` method
+  to `GraphMemoryAdapter`. The method performs a breadth-first search over
+  `devsynth:relatedTo` links, returning the set of reachable node IDs up to the
+  specified depth. When `include_research` is `False`, traversal skips
+  `research_artifact` nodes so core workflows remain lightweight.
+- Persist nodes and relationships to `graph_memory.ttl` whenever items or links
+  are stored. On initialization the adapter loads the file if it exists,
+  ensuring all nodes, `relatedTo` edges, and research provenance survive process
+  restarts.
+- Extend the schema with the following Autoresearch constructs:
+  - `devsynth:ResearchArtifact` class with properties `title`, `summary`,
+    `citationUrl`, `evidenceHash`, and `publishedAt`.
+  - `devsynth:supports` relationships that link a research artefact to
+    requirements, issues, or commits.
+  - `devsynth:derivedFrom` relationships that connect research artefacts to
+    upstream knowledge graph nodes (e.g., experiments, datasets).
+- Provide CLI helpers that summarise large artefacts before ingestion. For large
+  PDFs or datasets, store a digest node referencing the original file path while
+  keeping the full content in archival storage outside the RDF triple store.
+- Expose traversal, persistence, and Autoresearch behaviour through
+  behaviour-driven tests exercising graph traversal, reload cycles, provenance
+  verification, and integration with other memory stores.
 
 ### Termination reasoning
 
-The traversal algorithm employs breadth‑first search with an explicit depth
-limit and a visited set.  Each iteration processes only unvisited nodes and
-decrements the remaining depth, guaranteeing termination for any finite
-graph and preventing cycles from causing infinite loops.
+The traversal algorithm employs breadth-first search with an explicit depth
+limit and a visited set. Each iteration processes only unvisited nodes and
+optionally filters Autoresearch artefacts behind the `include_research` flag,
+ensuring termination for any finite graph and preventing cycles from causing
+infinite loops.
 
 ## Acceptance Criteria
 
 - `GraphMemoryAdapter.traverse_graph` returns all nodes reachable within the
-  requested depth and excludes the starting node.
-- Reloading the adapter from a previously persisted graph reproduces all
-  stored nodes and `relatedTo` links.
-- Behavioural tests cover traversal and persistence across TinyDB and
-  ChromaDB backends and pass under the `fast` marker.
+  requested depth, excludes the starting node, and honours the
+  `include_research` filter.
+- Reloading the adapter from a previously persisted graph reproduces all stored
+  nodes, `relatedTo` links, and Autoresearch provenance fields without loss.
+- Research artefacts include immutable `evidenceHash` values verified by tests
+  that compare stored hashes to recomputed digests.
+- Behavioural tests cover traversal, persistence, and Autoresearch workflows
+  across TinyDB and ChromaDB backends and pass under the `fast` marker.
 
 ## Proofs
 
-- `advanced_graph_memory_features.feature` scenarios demonstrate traversal
-  from an initial node through multiple hops and verify persistence after
-  adapter reload.
+- `advanced_graph_memory_features.feature` scenarios demonstrate traversal from
+  an initial node through multiple hops and verify persistence after adapter
+  reload.
+- Autoresearch feature scenarios add research artefacts, reload the adapter, and
+  query provenance fields to confirm durability.
 - Unit and integration tests execute without errors for all memory backends.
