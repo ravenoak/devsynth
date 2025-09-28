@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import importlib
 import logging
+import types
 from typing import Any
 
 # Version and metadata
@@ -49,8 +50,8 @@ def __getattr__(name: str) -> Any:
     # Fallback: try to resolve unknown attributes as subpackages/modules
     try:
         module = importlib.import_module(f"{__name__}.{name}")
-    except ModuleNotFoundError:
-        module = None
+    except ModuleNotFoundError as exc:
+        module = _maybe_create_config_stub(name, exc)
     except Exception as exc:  # pragma: no cover - defensive logging
         logging.getLogger(__name__).warning(
             "Error importing devsynth.%s: %s",
@@ -60,6 +61,10 @@ def __getattr__(name: str) -> Any:
         module = None
     else:
         globals()[name] = module  # Cache the loaded submodule on the package
+        return module
+
+    if module is not None:
+        globals()[name] = module
         return module
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
@@ -89,3 +94,43 @@ def initialize_subpackages() -> None:
                 module,
                 exc,
             )
+
+
+def _maybe_create_config_stub(name: str, exc: ModuleNotFoundError) -> Any:
+    """Return a lightweight ``devsynth.config`` stub when dependencies are missing."""
+
+    if name != "config":
+        return None
+
+    logger = logging.getLogger(__name__)
+    logger.debug("Creating lightweight devsynth.config stub due to: %s", exc)
+
+    settings_module = types.ModuleType("devsynth.config.settings")
+
+    def _ensure_path_exists(*_args: object, **_kwargs: object) -> None:
+        return None
+
+    settings_module.ensure_path_exists = _ensure_path_exists  # type: ignore[attr-defined]
+
+    class _Settings:
+        enable_chromadb = False
+        vector_store_enabled = False
+        memory_store_type = "chromadb"
+        provider_type = ""
+        openai_api_key = ""
+        lm_studio_endpoint = ""
+
+    def _get_settings() -> _Settings:
+        return _Settings()
+
+    config_module = types.ModuleType("devsynth.config")
+    config_module.settings = settings_module  # type: ignore[attr-defined]
+    config_module.get_settings = _get_settings  # type: ignore[attr-defined]
+    config_module.get_llm_settings = lambda: {}  # type: ignore[attr-defined]
+
+    import sys
+
+    sys.modules.setdefault("devsynth.config.settings", settings_module)
+    sys.modules.setdefault("devsynth.config", config_module)
+
+    return config_module

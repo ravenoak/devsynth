@@ -5,10 +5,13 @@ and their arguments. It uses Typer's autocompletion mechanism to provide
 suggestions as the user types.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, List, Optional
 
 import typer
+
+from devsynth.application.cli.models import TyperAutocomplete
 
 # List of all available commands
 COMMANDS = [
@@ -124,7 +127,7 @@ COMMAND_EXAMPLES = {
 }
 
 
-def get_completions(incomplete: str) -> List[str]:
+def get_completions(incomplete: str) -> list[str]:
     """Get command completion suggestions based on the incomplete input.
 
     Args:
@@ -151,7 +154,7 @@ def complete_command(incomplete: str) -> str:
     return incomplete
 
 
-def command_autocomplete(ctx: typer.Context, incomplete: str) -> List[str]:
+def command_autocomplete(ctx: typer.Context, incomplete: str) -> list[str]:
     """Provide autocompletion for DevSynth commands.
 
     This function is used by Typer to provide command autocompletion.
@@ -166,7 +169,7 @@ def command_autocomplete(ctx: typer.Context, incomplete: str) -> List[str]:
     return get_completions(incomplete)
 
 
-def file_path_autocomplete(ctx: typer.Context, incomplete: str) -> List[str]:
+def file_path_autocomplete(ctx: typer.Context, incomplete: str) -> list[str]:
     """Provide autocompletion for file paths.
 
     Args:
@@ -244,7 +247,7 @@ def get_all_commands_help() -> str:
 
 
 def generate_completion_script(
-    shell: str = "bash", install: bool = False, path: Optional[Path] = None
+    shell: str = "bash", install: bool = False, path: Path | None = None
 ) -> str:
     """Generate a shell completion script for the DevSynth CLI.
 
@@ -273,6 +276,10 @@ def generate_completion_script(
         return str(target)
 
     return script
+
+
+_COMMAND_AUTOCOMPLETE: TyperAutocomplete = command_autocomplete
+_FILE_PATH_AUTOCOMPLETE: TyperAutocomplete = file_path_autocomplete
 
 
 __all__ = [

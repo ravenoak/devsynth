@@ -4,14 +4,14 @@ This module provides enhanced progress indicators for long-running operations,
 with features like time estimation, status updates, and subtask tracking.
 """
 
+from __future__ import annotations
+
 import time
+from collections.abc import Callable, Sequence
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import TypeVar, cast
 
 from rich.console import Console
-from rich.live import Live
-from rich.markdown import Markdown
-from rich.panel import Panel
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -21,15 +21,24 @@ from rich.progress import (
     TextColumn,
     TimeRemainingColumn,
 )
-from rich.table import Table
-from rich.text import Text
 
+from devsynth.application.cli.models import (
+    ProgressCheckpoint,
+    ProgressHistoryEntry,
+    ProgressSnapshot,
+    ProgressSubtaskLike,
+    ProgressSubtaskSpec,
+    ProgressUpdate,
+    SubtaskState,
+)
 from devsynth.application.cli.progress import EnhancedProgressIndicator
 from devsynth.interface.cli import CLIProgressIndicator
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
+T = TypeVar("T")
 
 
 class LongRunningProgressIndicator(EnhancedProgressIndicator):
@@ -74,18 +83,21 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
             # Fallback for objects that can't be safely converted to string
             desc = "<main task>"
 
+        self._history: list[ProgressHistoryEntry] = []
+        self._checkpoints: list[ProgressCheckpoint] = []
+
         # Add the main task with additional fields
         self._task = self._progress.add_task(
             desc,
             total=total,
             status="Starting...",
             start_time=time.time(),
-            checkpoints=[],
-            history=[],
+            checkpoints=self._checkpoints,
+            history=self._history,
         )
 
         # Store subtasks with their IDs
-        self._subtasks: Dict[str, str] = {}  # Maps subtask_id (description) to task_id
+        self._subtasks: dict[str, SubtaskState] = {}
 
         # Store the console for direct output if needed
         self._console = console
@@ -127,24 +139,19 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
                 # Fallback for objects that can't be safely converted to string
                 update_kwargs["description"] = "<description>"
 
+        task = self._progress.tasks[self._task]
+
         if status is not None:
             update_kwargs["status"] = status
 
-            # Add to history if status changed
-            task = self._progress.tasks[self._task]
             if task.fields.get("status") != status:
-                history = list(task.fields.get("history", []))
-                history.append(
-                    {
-                        "time": current_time,
-                        "status": status,
-                        "completed": task.completed,
-                    }
+                entry = ProgressHistoryEntry(
+                    time=current_time, status=status, completed=task.completed
                 )
-                update_kwargs["history"] = history
+                self._history.append(entry)
+                update_kwargs["history"] = list(self._history)
 
         # Calculate adaptive refresh rate based on progress
-        task = self._progress.tasks[self._task]
         if task.total > 0:
             progress_fraction = task.completed / task.total
             if progress_fraction < 0.1:
@@ -168,7 +175,6 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
             # Update the progress
             self._progress.update(self._task, advance=advance, **update_kwargs)
 
-            # Calculate and display ETA if we have enough progress
             task = self._progress.tasks[self._task]
             if task.total > 0 and task.completed > 0:
                 elapsed = current_time - self._start_time
@@ -178,19 +184,18 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
                     eta = self._start_time + estimated_total_time
                     eta_datetime = datetime.fromtimestamp(eta)
 
-                    # Add checkpoint if significant progress has been made
-                    checkpoints = list(task.fields.get("checkpoints", []))
-                    if not checkpoints or (
-                        progress_fraction - checkpoints[-1]["progress"] >= 0.1
+                    if not self._checkpoints or (
+                        progress_fraction - self._checkpoints[-1].progress >= 0.1
                     ):
-                        checkpoints.append(
-                            {
-                                "time": current_time,
-                                "progress": progress_fraction,
-                                "eta": eta,
-                            }
+                        checkpoint = ProgressCheckpoint(
+                            time=current_time,
+                            progress=progress_fraction,
+                            eta=eta,
                         )
-                        self._progress.update(self._task, checkpoints=checkpoints)
+                        self._checkpoints.append(checkpoint)
+                        self._progress.update(
+                            self._task, checkpoints=list(self._checkpoints)
+                        )
 
             self._last_update_time = current_time
 
@@ -223,7 +228,7 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
             start_time=time.time(),
             parent=self._task,
         )
-        self._subtasks[desc] = task_id
+        self._subtasks[desc] = SubtaskState(task_id=task_id, total=float(total))
 
         logger.debug(f"Added subtask '{desc}' to LongRunningProgressIndicator")
         return desc
@@ -244,7 +249,8 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
             status: The new status of the subtask
         """
         if subtask_id in self._subtasks:
-            task_id = self._subtasks[subtask_id]
+            state = self._subtasks[subtask_id]
+            task_id = state.task_id
 
             # Prepare update kwargs
             update_kwargs = {}
@@ -264,7 +270,7 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
 
                 # Update the subtask ID in the dictionary if the description has changed
                 if desc != subtask_id:
-                    self._subtasks[desc] = task_id
+                    self._subtasks[desc] = state
                     del self._subtasks[subtask_id]
 
             # If a new status is provided, update the subtask's status
@@ -283,7 +289,7 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
                 proportion = advance / subtask.total
 
                 # Calculate the equivalent advance for the main task
-                main_advance = proportion * main_task.total / len(self._subtasks)
+                main_advance = proportion * main_task.total / max(len(self._subtasks), 1)
 
                 # Update the main task
                 self.update(advance=main_advance)
@@ -295,7 +301,8 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
             subtask_id: The ID of the subtask (the description)
         """
         if subtask_id in self._subtasks:
-            task_id = self._subtasks[subtask_id]
+            state = self._subtasks[subtask_id]
+            task_id = state.task_id
 
             # Get the current progress
             subtask = self._progress.tasks[task_id]
@@ -310,7 +317,9 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
 
                 # Calculate the equivalent advance for the main task
                 main_advance = (
-                    remaining * main_task.total / (len(self._subtasks) * subtask.total)
+                    remaining
+                    * main_task.total
+                    / (max(len(self._subtasks), 1) * max(subtask.total, 1))
                 )
 
                 # Update the main task
@@ -319,12 +328,17 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
     def complete(self) -> None:
         """Mark the task as complete."""
         # Complete all subtasks first
-        for subtask_id, task_id in list(self._subtasks.items()):
-            subtask = self._progress.tasks[task_id]
-            self._progress.update(task_id, completed=subtask.total, status="Complete")
+        for _, state in list(self._subtasks.items()):
+            subtask = self._progress.tasks[state.task_id]
+            self._progress.update(
+                state.task_id, completed=subtask.total, status="Complete"
+            )
 
         # Complete the main task
-        self._progress.update(self._task, completed=100, status="Complete")
+        main_task = self._progress.tasks[self._task]
+        self._progress.update(
+            self._task, completed=main_task.total, status="Complete"
+        )
 
         # Calculate and display final statistics
         task = self._progress.tasks[self._task]
@@ -337,41 +351,41 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
         # Stop the progress display
         self._progress.stop()
 
-    def get_summary(self) -> Dict[str, Any]:
-        """Get a summary of the progress.
+    def get_summary(self) -> ProgressSnapshot:
+        """Get a summary of the progress."""
 
-        Returns:
-            A dictionary with summary information
-        """
         task = self._progress.tasks[self._task]
         elapsed = time.time() - self._start_time
+        elapsed_str = str(timedelta(seconds=int(elapsed)))
+        progress = task.completed / task.total if task.total > 0 else 0.0
 
-        summary = {
-            "description": task.description,
-            "progress": task.completed / task.total if task.total > 0 else 0,
-            "elapsed": elapsed,
-            "elapsed_str": str(timedelta(seconds=int(elapsed))),
-            "subtasks": len(self._subtasks),
-            "history": task.fields.get("history", []),
-            "checkpoints": task.fields.get("checkpoints", []),
-        }
+        eta: float | None = None
+        eta_str: str | None = None
+        remaining: float | None = None
+        remaining_str: str | None = None
 
-        # Calculate ETA if we have enough progress
         if task.total > 0 and task.completed > 0:
             progress_fraction = task.completed / task.total
-            if progress_fraction > 0.05:  # Only show ETA after 5% progress
+            if progress_fraction > 0.05:
                 estimated_total_time = elapsed / progress_fraction
                 eta = self._start_time + estimated_total_time
-                eta_datetime = datetime.fromtimestamp(eta)
+                eta_str = datetime.fromtimestamp(eta).strftime("%Y-%m-%d %H:%M:%S")
+                remaining = estimated_total_time - elapsed
+                remaining_str = str(timedelta(seconds=int(remaining)))
 
-                summary["eta"] = eta
-                summary["eta_str"] = eta_datetime.strftime("%Y-%m-%d %H:%M:%S")
-                summary["remaining"] = estimated_total_time - elapsed
-                summary["remaining_str"] = str(
-                    timedelta(seconds=int(estimated_total_time - elapsed))
-                )
-
-        return summary
+        return ProgressSnapshot(
+            description=task.description,
+            progress=progress,
+            elapsed=elapsed,
+            elapsed_str=elapsed_str,
+            subtasks=len(self._subtasks),
+            history=tuple(self._history),
+            checkpoints=tuple(self._checkpoints),
+            eta=eta,
+            eta_str=eta_str,
+            remaining=remaining,
+            remaining_str=remaining_str,
+        )
 
 
 def create_long_running_progress(
@@ -392,12 +406,12 @@ def create_long_running_progress(
 
 def run_with_long_running_progress(
     task_name: str,
-    task_fn: Callable[..., Any],
+    task_fn: Callable[..., T],
     bridge: UXBridge,
     total: int = 100,
-    subtasks: Optional[List[Dict[str, Any]]] = None,
-    **task_kwargs: Any,
-) -> Any:
+    subtasks: Sequence[ProgressSubtaskLike] | None = None,
+    **task_kwargs: object,
+) -> T:
     """Run a task with a long-running progress indicator.
 
     Args:
@@ -418,18 +432,27 @@ def run_with_long_running_progress(
         # Add subtasks if provided
         if subtasks:
             for subtask in subtasks:
+                spec = (
+                    subtask
+                    if isinstance(subtask, ProgressSubtaskSpec)
+                    else ProgressSubtaskSpec(
+                        name=str(subtask.get("name", "Subtask")),
+                        total=int(subtask.get("total", 100)),
+                        status=str(subtask.get("status", "Starting...")),
+                    )
+                )
                 progress.add_subtask(
-                    subtask.get("name", "Subtask"),
-                    total=subtask.get("total", 100),
-                    status=subtask.get("status", "Starting..."),
+                    spec.name,
+                    total=spec.total,
+                    status=spec.status,
                 )
 
         # Define a callback for the task to update progress
         def update_progress(
             advance: float = 1,
-            description: Optional[str] = None,
-            status: Optional[str] = None,
-            subtask: Optional[str] = None,
+            description: str | None = None,
+            status: str | None = None,
+            subtask: str | None = None,
         ) -> None:
             if subtask:
                 progress.update_subtask(subtask, advance, description, status)
@@ -437,12 +460,10 @@ def run_with_long_running_progress(
                 progress.update(advance=advance, description=description, status=status)
 
         # Add the callback to the task kwargs
-        task_kwargs["progress_callback"] = update_progress
+        task_kwargs["progress_callback"] = cast(ProgressUpdate, update_progress)
 
         # Run the task function
-        result = task_fn(**task_kwargs)
-
-        return result
+        return task_fn(**task_kwargs)
     finally:
         # Mark the task as complete, even if an exception occurs
         progress.complete()

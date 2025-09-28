@@ -5,11 +5,13 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Optional
 
 from typer.models import OptionInfo
 
+from devsynth.application.cli.models import BridgeErrorPayload
 from devsynth.config import get_settings
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
@@ -57,30 +59,42 @@ def _env_flag(name: str) -> Optional[bool]:
     return val.lower() in {"1", "true", "yes"}
 
 
-def _parse_features(value: Optional[Union[List[str], str]]) -> Dict[str, bool]:
+def _parse_features(
+    value: str | Sequence[str] | OptionInfo | None,
+) -> dict[str, bool]:
     """Parse feature flags from list or JSON string."""
 
     if value is None or isinstance(value, OptionInfo):
         return {}
-    if isinstance(value, list):
-        if len(value) == 1:
-            item = value[0]
-            try:
-                parsed = json.loads(item)
-            except json.JSONDecodeError:
-                return {item: True}
-        else:
-            return {f: True for f in value}
-    else:
+    parsed: object | None = None
+
+    if isinstance(value, str):
         try:
             parsed = json.loads(value)
         except json.JSONDecodeError:
             return {f.strip(): True for f in value.split(";") if f.strip()}
+    elif isinstance(value, Sequence):
+        if len(value) == 1:
+            item = value[0]
+            if isinstance(item, str):
+                try:
+                    parsed = json.loads(item)
+                except json.JSONDecodeError:
+                    return {item: True}
+            else:
+                return {}
+        else:
+            return {str(feature): True for feature in value}
+    else:
+        return {}
 
-    if isinstance(parsed, dict):
-        return {k: bool(v) for k, v in parsed.items()}
+    if parsed is None:
+        return {}
+
+    if isinstance(parsed, Mapping):
+        return {str(k): bool(v) for k, v in parsed.items()}
     if isinstance(parsed, list):
-        return {f: True for f in parsed}
+        return {str(feature): True for feature in parsed}
     return {}
 
 
@@ -89,7 +103,7 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
 
     bridge = _resolve_bridge(bridge)
     settings = get_settings()
-    messages: List[str] = []
+    messages: list[str] = []
 
     # Check ChromaDB availability only when the feature flag is enabled
     chromadb_enabled = getattr(settings, "enable_chromadb", False)
@@ -129,9 +143,7 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
     return True
 
 
-def _handle_error(
-    bridge: UXBridge, error: Union[Exception, Dict[str, Any], str]
-) -> None:
+def _handle_error(bridge: UXBridge, error: BridgeErrorPayload) -> None:
     """Delegate to the bridge's enhanced error handler."""
 
     logger = get_logger("cli_commands")
