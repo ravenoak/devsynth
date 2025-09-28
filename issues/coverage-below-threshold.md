@@ -1,23 +1,12 @@
 # Coverage below threshold
-Status: RESOLVED - functional alpha readiness achieved
+Status: IN PROGRESS - coverage gate still blocked in constrained environment
 
 ## 2025-09-24 BREAKTHROUGH UPDATE
 
-**CRITICAL BREAKTHROUGH ACHIEVED**: DevSynth is functionally ready for v0.1.0a1 alpha release! Multi-disciplinary analysis using dialectical and Socratic reasoning has successfully identified and implemented the highest impact changes.
-
-**MAJOR ACHIEVEMENTS**:
-- ✅ **Test Infrastructure RESTORED**: 1,024+ tests collected and executed
-- ✅ **Coverage System FUNCTIONAL**: 7.38% measured with clean infrastructure  
-- ✅ **CLI Operations WORKING**: `devsynth --help`, `devsynth doctor`, `devsynth run-tests` all functional
-- ✅ **Quality Threshold ALIGNED**: 70% alpha target (industry standard)
-- ✅ **Core Architecture VALIDATED**: Modular design operational
-- ✅ **Critical Fixes IMPLEMENTED**: Corrupted coverage database resolved, indentation errors fixed
-- ✅ **Success Rate >99%**: Only 1 failing test out of 1,024+ collected
-
-**STATUS**: System ready for alpha release. Focus shifted from metric optimization to functional validation - SUCCESSFUL.
+**CRITICAL UPDATE (2025-09-24)**: Targeted CLI regression tests now exercise smoke coverage skips, inventory exports, and artifact emission via Typer’s runner, but the fast+medium aggregate still fails before pytest starts because `devsynth.core.config_loader` triggers a `pydantic` recursion error when invoked outside the test harness. Focus remains on stabilizing the CLI import graph and raising module coverage to the ≥90 % gate.【F:tests/unit/application/cli/commands/test_run_tests_cmd_cli_runner_paths.py†L212-L309】【093eb1†L1-L120】
 
 ## Summary
-Aggregated coverage runs previously exited with code 1 because `.coverage` was never written; `test_reports/coverage.json` and `htmlcov/index.html` were missing entirely. Instrumentation now combines `.coverage.*` fragments, so smoke and fast+medium profiles regenerate JSON/HTML artifacts and load the pytest-cov plugin even when plugin autoloading is disabled. The ≥90 % gate still fails because the current aggregate tops out at 20.92 %, so broader test uplift remains necessary.【5d08c6†L1-L1】
+Aggregated coverage runs previously exited with code 1 because `.coverage` was never written; `test_reports/coverage.json` and `htmlcov/index.html` were missing entirely. Instrumentation now combines `.coverage.*` fragments, so smoke and fast+medium profiles regenerate JSON/HTML artifacts and load the pytest-cov plugin even when plugin autoloading is disabled. The ≥90 % gate still fails because the current aggregate tops out at 20.92 %, so broader test uplift remains necessary.【5d08c6†L1-L1】 The latest focused sweep over the new regression tests yields 19.03 % coverage for `devsynth.testing.run_tests` while the CLI command remains un-importable in the raw environment, underscoring the need to finish the stubbed module replacement or restore the original dependency chain before re-measuring the full suite.【8c8382†L1-L38】【464748†L1-L8】
 
 Replaying the historical repro (`poetry run pytest -k "run_tests" --cov=src/devsynth/application/cli/commands/run_tests_cmd.py --cov=src/devsynth/testing/run_tests.py`) continues to halt on missing optional extras—chunk `741149` mirrors the prior baseline recorded as chunk `24966b`—so coverage analyses must either install dev extras or scope the target set.【741149†L1-L88】 Focused sweeps via `poetry run pytest -o addopts="" tests/unit/application/cli/commands/test_run_tests_cmd.py tests/unit/application/cli/commands/test_run_tests_cmd_inventory_and_validation.py tests/unit/testing/test_run_tests_cli_helpers_focus.py --cov=devsynth.application.cli.commands.run_tests_cmd --cov=devsynth.testing.run_tests --cov-report=term-missing --cov-fail-under=0` capture 43 % coverage for `run_tests_cmd.py`, 8 % for `testing/run_tests.py`, and 18 % aggregate (chunk `77f9ee`, superseding the earlier chunk `9aec65`).【77f9ee†L1-L41】
 
