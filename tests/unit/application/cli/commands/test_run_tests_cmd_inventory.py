@@ -2,8 +2,10 @@ import json
 from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
 
 from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
+from tests.unit.application.cli.commands.helpers import build_minimal_cli_app
 
 
 @pytest.mark.fast
@@ -54,12 +56,14 @@ def test_inventory_handles_collection_errors(monkeypatch, tmp_path):
     def flaky_collect(target: str, speed: str):  # noqa: ARG001
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.collect_tests_with_cache",
-        flaky_collect,
-    )
+    app, cli_module = build_minimal_cli_app(monkeypatch)
+    monkeypatch.setattr(cli_module, "collect_tests_with_cache", flaky_collect)
 
-    run_tests_cmd(target="all-tests", inventory=True)
+    runner = CliRunner()
+    result = runner.invoke(app, ["--inventory"], prog_name="run-tests")
+
+    assert result.exit_code == 0
+    assert "Test inventory exported to" in result.stdout
 
     p = Path("test_reports/test_inventory.json")
     data = json.loads(p.read_text())

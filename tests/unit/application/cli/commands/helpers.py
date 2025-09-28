@@ -1,4 +1,4 @@
-"""Shared utilities for CLI runner tests."""
+"""Shared utilities and canonical stubs for CLI runner tests."""
 
 from __future__ import annotations
 
@@ -9,6 +9,13 @@ from typing import Any
 
 import pytest
 from typer import Typer
+
+SEGMENTATION_FAILURE_TIPS = (
+    "Pytest exited with code 1\n"
+    "- Segment large suites to localize failures\n"
+    "- Re-run failing segments with --verbose for more detail"
+)
+"""Standard troubleshooting tips surfaced when segmented runs fail."""
 
 
 def load_run_tests_cli_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
@@ -81,4 +88,8 @@ def build_minimal_cli_app(
     return app, cli_module
 
 
-__all__ = ["build_minimal_cli_app", "load_run_tests_cli_module"]
+__all__ = [
+    "SEGMENTATION_FAILURE_TIPS",
+    "build_minimal_cli_app",
+    "load_run_tests_cli_module",
+]
