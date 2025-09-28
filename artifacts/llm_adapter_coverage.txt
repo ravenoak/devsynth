@@ -1,0 +1,54 @@
+===================================================== test session starts ======================================================
+platform linux -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0
+rootdir: /workspace/devsynth
+configfile: pytest.ini
+plugins: cov-7.0.0
+collected 9 items
+
+tests/unit/adapters/llm/test_llm_adapter.py .........                                                                    [100%]
+
+======================================================= warnings summary =======================================================
+src/devsynth/config/settings.py:13
+src/devsynth/config/settings.py:13
+  /workspace/devsynth/src/devsynth/config/settings.py:13: DeprecationWarning: Importing FieldValidationInfo from `pydantic` is deprecated. This feature is either no longer supported, or is not public.
+    from pydantic import Field, FieldValidationInfo
+
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4324
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4324
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4324: DeprecationWarning: `FieldValidationInfo` is deprecated, use `ValidationInfo` instead.
+    warnings.warn(msg, DeprecationWarning, stacklevel=1)
+
+tests/conftest.py:1030
+  /workspace/devsynth/tests/conftest.py:1030: PytestUnknownMarkWarning: Unknown pytest.mark.isolation - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    item.add_marker(pytest.mark.isolation)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================================================== tests coverage ========================================================
+_______________________________________ coverage: platform linux, python 3.12.10-final-0 _______________________________________
+
+Name    Stmts   Miss    Cover   Missing
+---------------------------------------
+TOTAL      23      0  100.00%
+
+1 file skipped due to complete coverage.
+================================================= Test Categorization Summary ==================================================
+Test Type Distribution:
+  Unit Tests: 9
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 9
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+===================================================== Top 10 Slowest Tests =====================================================
+1. tests/unit/adapters/llm/test_llm_adapter.py::test_llm_provider_config_normalizes_missing_options: 0.12s
+2. tests/unit/adapters/llm/test_llm_adapter.py::test_llm_provider_config_normalizes_to_copy: 0.01s
+3. tests/unit/adapters/llm/test_llm_adapter.py::test_register_provider_type_propagates_factory_failure: 0.01s
+4. tests/unit/adapters/llm/test_llm_adapter.py::test_register_provider_type_delegates: 0.01s
+5. tests/unit/adapters/llm/test_llm_adapter.py::test_create_provider_uses_injected_factory: 0.01s
+6. tests/unit/adapters/llm/test_llm_adapter.py::test_backend_adapter_lazy_factory: 0.01s
+7. tests/unit/adapters/llm/test_llm_adapter.py::test_create_provider_omits_empty_options: 0.01s
+8. tests/unit/adapters/llm/test_llm_adapter.py::test_create_provider_wraps_devsynthexceptions: 0.01s
+9. tests/unit/adapters/llm/test_llm_adapter.py::test_unknown_provider_type_error_records_cause: 0.01s
+================================================ 9 passed, 5 warnings in 0.33s =================================================
