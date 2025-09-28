@@ -62,12 +62,19 @@ def test_inventory_handles_collection_errors(monkeypatch, tmp_path):
     runner = CliRunner()
     result = runner.invoke(app, ["--inventory"], prog_name="run-tests")
 
+    assert result.exception is None
     assert result.exit_code == 0
     assert "Test inventory exported to" in result.stdout
 
     p = Path("test_reports/test_inventory.json")
+    assert p.exists()
     data = json.loads(p.read_text())
     # Ensure empty lists are used on exceptions
+    expected_targets = {"all-tests", "unit-tests", "integration-tests", "behavior-tests"}
+    expected_speeds = {"fast", "medium", "slow"}
+    assert set(data["targets"].keys()) == expected_targets
     for tgt, speeds in data["targets"].items():
+        assert set(speeds.keys()) == expected_speeds
         for spd, items in speeds.items():
             assert isinstance(items, list)
+            assert items == []
