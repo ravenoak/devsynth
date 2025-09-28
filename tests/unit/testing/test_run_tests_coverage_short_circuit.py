@@ -42,3 +42,5 @@ def test_ensure_coverage_artifacts_short_circuits_without_measured_files(
     assert not legacy_dir.exists()
     assert stub.html_calls == []
     assert stub.json_calls == []
+    assert len(stub.instances) == 1
+    assert Path(stub.instances[0].data_file).resolve() == data_file.resolve()
