@@ -1,4 +1,11 @@
-"""Shared utilities and canonical stubs for CLI runner tests."""
+"""Shared utilities and canonical stubs for CLI runner tests.
+
+This module centralizes lightweight replacements for the full CLI stack so
+tests can exercise Typer integration without importing heavy dependencies.
+Notably, ``SEGMENTATION_FAILURE_TIPS`` mirrors the remediation guidance that
+``run-tests`` surfaces when segmented runs fail, keeping assertions aligned
+with the production UX.
+"""
 
 from __future__ import annotations
 

@@ -59,7 +59,9 @@ def test_segmented_cli_failure_emits_tips_and_reinjection(monkeypatch, tmp_path)
         prog_name="run-tests",
     )
 
+    assert isinstance(result.exception, SystemExit)
     assert result.exit_code == 1
+    assert result.exception.code == 1
     assert "Tests failed" in result.stdout
     assert "Pytest exited with code 1" in result.stdout
     assert "Segment large suites to localize failures" in result.stdout
