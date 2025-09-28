@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import asdict, dataclass, field
+from collections import OrderedDict
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Mapping, Optional, Type, Union
 from uuid import uuid4
 
 
@@ -31,9 +32,21 @@ class Message:
     sender: str
     recipients: List[str]
     subject: str
-    content: Any
-    metadata: Dict[str, Any]
+    content: MessagePayload
+    metadata: Optional[MemorySyncPort]
     timestamp: datetime
+
+    def to_ordered_dict(self) -> Dict[str, Union[str, List[str], Dict[str, object], None]]:
+        data: "OrderedDict[str, Union[str, List[str], Dict[str, object], None]]" = OrderedDict()
+        data["message_id"] = self.message_id
+        data["message_type"] = self.message_type.value
+        data["sender"] = self.sender
+        data["recipients"] = list(self.recipients)
+        data["subject"] = self.subject
+        data["content"] = serialize_message_payload(self.content)
+        data["metadata"] = serialize_memory_sync_port(self.metadata)
+        data["timestamp"] = self.timestamp.isoformat()
+        return dict(data)
 
 
 @dataclass
@@ -89,14 +102,21 @@ class MessageStore:
         messages = {}
         for item in data.get("messages", []):
             try:
+                content = deserialize_message_payload(item.get("content"))
+                metadata_raw = item.get("metadata")
+                metadata_obj: Optional[MemorySyncPort]
+                try:
+                    metadata_obj = ensure_memory_sync_port(metadata_raw)
+                except Exception:
+                    metadata_obj = None
                 msg = Message(
                     message_id=item["message_id"],
                     message_type=MessageType(item["message_type"]),
                     sender=item["sender"],
                     recipients=item.get("recipients", []),
                     subject=item.get("subject", ""),
-                    content=item.get("content"),
-                    metadata=item.get("metadata", {}),
+                    content=content,
+                    metadata=metadata_obj,
                     timestamp=datetime.fromisoformat(item["timestamp"]),
                 )
                 messages[msg.message_id] = msg
@@ -112,21 +132,7 @@ class MessageStore:
         )
         if no_file_logging:
             return
-        data = {
-            "messages": [
-                {
-                    "message_id": m.message_id,
-                    "message_type": m.message_type.value,
-                    "sender": m.sender,
-                    "recipients": m.recipients,
-                    "subject": m.subject,
-                    "content": m.content,
-                    "metadata": m.metadata,
-                    "timestamp": m.timestamp.isoformat(),
-                }
-                for m in self.messages.values()
-            ]
-        }
+        data = {"messages": [m.to_ordered_dict() for m in self.messages.values()]}
         with open(self.storage_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
@@ -143,6 +149,30 @@ class MessageStore:
 
 from ...domain.models.memory import MemoryItem, MemoryType
 from ..memory.memory_manager import MemoryManager
+from .dto import (
+    AgentPayload,
+    CollaborationDTO,
+    ConsensusOutcome,
+    MemorySyncPort,
+    MessagePayload,
+    PeerReviewRecord,
+    TaskDescriptor,
+    deserialize_message_payload,
+    ensure_collaboration_payload,
+    ensure_memory_sync_port,
+    serialize_message_payload,
+    serialize_memory_sync_port,
+)
+
+
+MESSAGE_TYPE_DEFAULTS: Dict[MessageType, Type[CollaborationDTO]] = {
+    MessageType.TASK_ASSIGNMENT: TaskDescriptor,
+    MessageType.REVIEW_REQUEST: PeerReviewRecord,
+    MessageType.DECISION_REQUEST: ConsensusOutcome,
+    MessageType.STATUS_UPDATE: AgentPayload,
+    MessageType.INFORMATION_REQUEST: AgentPayload,
+    MessageType.NOTIFICATION: AgentPayload,
+}
 
 
 class MessageProtocol:
@@ -163,25 +193,32 @@ class MessageProtocol:
         recipients: List[str],
         message_type: Union[MessageType, str],
         subject: str,
-        content: Any,
-        metadata: Optional[Dict[str, Any]] = None,
+        content: Union[MessagePayload, Mapping[str, object], str, int, float, bool, None],
+        metadata: Optional[Union[MemorySyncPort, Mapping[str, object]]] = None,
     ) -> Message:
         """Create and store a message."""
 
         if isinstance(message_type, str):
             message_type = MessageType(message_type)
+        default_payload_type: Type[CollaborationDTO]
+        default_payload_type = MESSAGE_TYPE_DEFAULTS.get(message_type, AgentPayload)
+        payload = ensure_collaboration_payload(content, default=default_payload_type)
+        metadata_obj = ensure_memory_sync_port(metadata)
         message = Message(
             message_id=str(uuid4()),
             message_type=message_type,
             sender=sender,
             recipients=recipients,
             subject=subject,
-            content=content,
-            metadata=metadata or {},
+            content=payload,
+            metadata=metadata_obj,
             timestamp=datetime.now(),
         )
         # High priority messages are inserted at the front of the history
-        if message.metadata.get("priority") == "high":
+        priority = None
+        if message.metadata is not None:
+            priority = message.metadata.priority or message.metadata.options.get("priority")
+        if priority == "high":
             self.history.insert(0, message)
         else:
             self.history.append(message)
@@ -189,11 +226,12 @@ class MessageProtocol:
         self.store.add_message(message)
 
         if self.memory_manager is not None:
+            serialized_message = message.to_ordered_dict()
             item = MemoryItem(
                 id=message.message_id,
-                content={**asdict(message), "message_type": message.message_type.value},
+                content=serialized_message,
                 memory_type=MemoryType.CONVERSATION,
-                metadata=message.metadata,
+                metadata=serialize_memory_sync_port(message.metadata) or {},
             )
             try:
                 if "tinydb" in self.memory_manager.adapters:
