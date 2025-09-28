@@ -1,6 +1,6 @@
 # devsynth CLI missing after setup
 Milestone: 0.1.0a1
-Status: closed
+Status: open
 Priority: medium
 Dependencies: scripts/install_dev.sh, poetry install --with dev --all-extras
 
@@ -23,6 +23,7 @@ The `scripts/verify_post_install.py` script has been enhanced to explicitly chec
 - 2025-09-20: New container session still reports `ModuleNotFoundError: No module named 'devsynth'` until `poetry install --with dev --all-extras` runs; captured in diagnostics/devsynth_cli_missing_20250920.log and diagnostics/poetry_install_20250920.log for follow-up.
 - 2025-09-21: `poetry run devsynth --help` again failed with `ModuleNotFoundError` before reinstall; running `poetry install --with dev --all-extras` restored the CLI and extras, and a follow-up `bash scripts/install_dev.sh` captured a clean bootstrap in diagnostics/install_dev_20250921T054430Z.log.
 - 2025-09-24: Modified `scripts/verify_post_install.py` to explicitly check for the `devsynth` executable, improving diagnostic and retry reliability.
+- 2025-09-28: Fresh session attempting `poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --cov-report=term-missing` exited with code 1 because the `devsynth` package is not installed. Evidence captured in `artifacts/run-tests/unit-fast-20250928T145807Z/coverage-term-missing.txt`. Follow-up requires reinstalling via `poetry install --with dev --extras "tests retrieval chromadb api"` before rerunning the coverage workflow.
 
 ## Next Actions
 - [ ] Monitor for further occurrences of the `devsynth` CLI missing in fresh environments.
