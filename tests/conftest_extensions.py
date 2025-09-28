@@ -20,6 +20,9 @@ def pytest_configure(config):
         "medium: mark test as medium speed (execution time between 1s and 5s)",
     )
     config.addinivalue_line("markers", "slow: mark test as slow (execution time > 5s)")
+    config.addinivalue_line(
+        "markers", "cli: mark test as part of the CLI verification suite"
+    )
     config.pluginmanager.register(TestCategorization(), "test_categorization")
 
 

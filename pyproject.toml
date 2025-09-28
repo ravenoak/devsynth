@@ -506,7 +506,8 @@ markers = [
     # Special markers
     "allow_real_coverage_artifacts: opt-in to exercising real coverage artifact helpers during tests",
     "run_pipeline: mark test as related to pipeline execution",
-    "security-audit: mark test as related to security audit functionality"
+    "security-audit: mark test as related to security audit functionality",
+    "cli: mark test as part of the CLI verification suite",
 ]
 
 # Configure asyncio mode for pytest-asyncio

@@ -10,8 +10,8 @@ Historical log archived at docs/archived/task_notes_pre2025-09-16.md.
 
 ## Iteration 2025-09-19 – Bootstrap persistence audit
 - Environment: Python 3.12.10; Poetry env `/workspace/devsynth/.venv`; go-task restored to 3.45.4 after rerunning the installer.【F:diagnostics/install_dev_20250919T233750Z.log†L1-L9】
-- Commands: `bash scripts/install_dev.sh`, `poetry env info --path`, `poetry install --with dev --all-extras`, `poetry run devsynth --help`, `task --version` — all logged under diagnostics to prove the new bootstrap loop repairs missing CLIs.【F:diagnostics/env_checks_20250919T233750Z.log†L1-L7】【F:diagnostics/env_checks_20250919T233750Z.log†L259-L321】
-- Observations: Installer now enforces the repo-local `.venv` and reinstalls extras automatically, resolving repeated CLI loss reported earlier.
+- Commands: `bash scripts/install_dev.sh`, `poetry env info --path`, `poetry install --with dev --all-extras`, `poetry run devsynth --help`, `poetry run python -m devsynth --help`, `task --version` — all logged under diagnostics to prove the new bootstrap loop repairs missing CLIs.【F:diagnostics/env_checks_20250919T233750Z.log†L1-L7】【F:diagnostics/env_checks_20250919T233750Z.log†L259-L321】
+- Observations: Installer now enforces the repo-local `.venv`, reruns the CLI module directly when the entry point is missing, and force-reinstalls the project with `poetry run pip install --force-reinstall .` plus `poetry run pip install --force-reinstall typer==0.17.4` before retrying `poetry install`, resolving repeated CLI loss reported earlier.
 - Next: Re-run coverage aggregates once instrumentation fixes land; keep bootstrap logs attached to release readiness evidence.
 
 ## Iteration 2025-09-20 – Memory BDD coverage uplift and smoke backlog
