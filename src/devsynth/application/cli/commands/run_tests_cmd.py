@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 import shlex
-from typing import Any
+from typing import Sequence
 
 import typer
 
@@ -34,7 +34,6 @@ from devsynth.testing.run_tests import (
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
-
 
 def _parse_feature_options(values: list[str]) -> dict[str, bool]:
     """Convert ``--feature`` options into a dictionary.
@@ -167,8 +166,8 @@ def run_tests_cmd(
         "--target",
         help="Test target to run",
     ),
-    speeds: list[str] = typer.Option(
-        [],
+    speeds: Sequence[str] | None = typer.Option(
+        None,
         "--speed",
         help="Speed categories to run (can be used multiple times)",
     ),
@@ -194,8 +193,8 @@ def run_tests_cmd(
     maxfail: int | None = typer.Option(
         None, "--maxfail", help="Exit after this many failures"
     ),
-    features: list[str] = typer.Option(
-        [],
+    features: Sequence[str] | None = typer.Option(
+        None,
         "--feature",
         help="Feature flags to enable/disable (format: name or name=false)",
     ),
@@ -214,7 +213,7 @@ def run_tests_cmd(
         ),
     ),
     *,
-    bridge: str | None = typer.Option(None, hidden=True),
+    bridge: UXBridge | None = typer.Option(None, hidden=True),
 ) -> None:
     """Run DevSynth test suites.
 
@@ -224,15 +223,11 @@ def run_tests_cmd(
 
     ux_bridge = bridge if isinstance(bridge, UXBridge) else globals()["bridge"]
 
-    # When invoked programmatically (not via Typer CLI), parameters defined with
-    # typer.Option(...) can be passed as Typer Option objects rather than their
-    # concrete types. Normalize such values for predictable behavior in tests.
-    # Normalize values in case this is called programmatically (not via Typer CLI)
-    inventory = inventory if isinstance(inventory, bool) else False
-
-    speeds = speeds if isinstance(speeds, list) else []
-
-    features = features if isinstance(features, list) else []
+    # Typer guarantees booleans for "inventory", but tests may invoke this
+    # function directly. Normalize parameters defensively for that scenario.
+    inventory = bool(inventory)
+    normalized_speed_inputs = list(speeds or [])
+    normalized_feature_inputs = list(features or [])
 
     _configure_optional_providers()
 
@@ -272,7 +267,7 @@ def run_tests_cmd(
         )
         raise typer.Exit(code=2)
 
-    normalized_speeds = [s.lower() for s in (speeds or [])]
+    normalized_speeds = [s.lower() for s in normalized_speed_inputs]
     allowed_speeds = {"fast", "medium", "slow"}
     invalid_speeds = [s for s in normalized_speeds if s not in allowed_speeds]
     if invalid_speeds:
@@ -362,17 +357,17 @@ def run_tests_cmd(
             # and perform slower startup on some machines.
             os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "120")
     speed_categories = normalized_speeds or None
-    feature_map = _parse_feature_options(features)
+    feature_map = _parse_feature_options(normalized_feature_inputs)
     if feature_map:
         for name, enabled in feature_map.items():
             env_var = f"DEVSYNTH_FEATURE_{name.upper()}"
             os.environ[env_var] = "true" if enabled else "false"
         logger.info("Feature flags: %s", feature_map)
 
-    _kwargs: dict[str, Any] = {}
+    extra_kwargs: dict[str, str] = {}
     if marker is not None:
         # Map CLI --marker to the internal run_tests extra_marker parameter.
-        _kwargs["extra_marker"] = marker
+        extra_kwargs["extra_marker"] = marker
 
     success, output = run_tests(
         target,
@@ -383,7 +378,7 @@ def run_tests_cmd(
         segment,
         segment_size,
         maxfail,
-        **_kwargs,
+        **extra_kwargs,
     )
 
     if output:
