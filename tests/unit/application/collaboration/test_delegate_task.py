@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
+from devsynth.application.collaboration.dto import ConsensusOutcome, SynthesisArtifact
 from devsynth.application.collaboration.exceptions import (
     CollaborationError,
     RoleAssignmentError,
@@ -47,11 +48,13 @@ class TestDelegateTask:
         """Test that team task returns consensus succeeds.
 
         ReqID: N/A"""
-        consensus = {
-            "consensus": "final",
-            "contributors": ["designer", "worker", "tester"],
-            "method": "consensus_synthesis",
-        }
+        consensus = ConsensusOutcome(
+            consensus_id="consensus-delegate",
+            task_id="task",
+            method="consensus_synthesis",
+            participants=("designer", "worker", "tester"),
+            synthesis=SynthesisArtifact(text="final"),
+        )
         task = {"team_task": True, "type": "coding"}
         with patch.object(
             self.coordinator.team, "build_consensus", return_value=consensus
@@ -64,9 +67,9 @@ class TestDelegateTask:
                 result = self.coordinator.delegate_task(task)
                 sp.assert_called_once_with(task)
         bc.assert_called_once_with(task)
-        assert result["result"] == consensus["consensus"]
-        assert result["contributors"] == consensus["contributors"]
-        assert result["method"] == consensus["method"]
+        assert result["result"] == consensus.synthesis.text
+        assert result["contributors"] == list(consensus.participants)
+        assert result["method"] == consensus.method
 
     @pytest.mark.medium
     def test_team_task_no_agents_succeeds(self) -> None:

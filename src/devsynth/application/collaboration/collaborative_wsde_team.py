@@ -10,11 +10,12 @@ into smaller, more focused modules.
 
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional
 
 from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
 )
+from devsynth.application.collaboration.dto import ConsensusOutcome
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
@@ -85,8 +86,21 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
         """Vote on a decision then build consensus if needed."""
         result = self.vote_on_critical_decision(task)
         decision = result.get("result")
+
+        consensus_outcome: Optional[ConsensusOutcome] = None
+        existing_consensus = result.get("consensus")
+        if isinstance(existing_consensus, ConsensusOutcome):
+            consensus_outcome = existing_consensus
+        elif isinstance(existing_consensus, Mapping):
+            consensus_outcome = ConsensusOutcome.from_dict(existing_consensus)
+
         if not decision or result.get("status") != "completed":
-            result["consensus"] = self.build_consensus(task)
+            consensus_outcome = self.build_consensus(task)
+
+        if consensus_outcome is not None:
+            result["consensus_outcome"] = consensus_outcome
+            result["consensus"] = consensus_outcome.to_dict()
+
         return result
 
     def solve_collaboratively(self, problem: Dict[str, Any]) -> Dict[str, Any]:
@@ -124,22 +138,31 @@ class CollaborativeWSDETeam(TaskManagementMixin, ConsensusBuildingMixin, WSDETea
         solution = {
             "problem_id": problem["id"],
             "title": problem.get("title", "Untitled"),
-            "approach": consensus.get("method", "unknown"),
-            "consensus": consensus,
+            "approach": consensus.method or "unknown",
+            "consensus": consensus.to_dict(),
             "subtask_results": subtask_results,
             "timestamp": datetime.now().isoformat(),
         }
 
         # If consensus was reached through synthesis, use it as the solution
-        if "synthesis" in consensus:
-            solution["solution"] = consensus["synthesis"].get("text", "")
-            solution["key_points"] = consensus["synthesis"].get("key_points", [])
+        if consensus.synthesis is not None:
+            solution["solution"] = consensus.synthesis.text or ""
+            solution["key_points"] = list(consensus.synthesis.key_points)
         else:
             # Otherwise, use majority opinion
-            solution["solution"] = consensus.get("majority_opinion", "")
+            solution["solution"] = consensus.majority_opinion or ""
+
+        participants = list(consensus.participants)
+        if not participants and consensus.agent_opinions:
+            participants = [
+                record.agent_id
+                for record in consensus.agent_opinions
+                if record.agent_id is not None
+            ]
+        solution["participants"] = participants
 
         # Add stakeholder explanation
-        solution["explanation"] = consensus.get("stakeholder_explanation", "")
+        solution["explanation"] = consensus.stakeholder_explanation or ""
 
         # Update collaboration metrics
         self._update_collaboration_metrics(problem["id"], solution)
