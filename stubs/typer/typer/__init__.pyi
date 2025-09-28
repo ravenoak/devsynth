@@ -14,3 +14,10 @@ class Typer:
 
     def command(self, *args: Any, **kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]: ...
 
+
+class Exit(SystemExit):
+    def __init__(self, *, code: int | None = ...) -> None: ...
+
+
+def Option(default: Any = ..., *names: str, **kwargs: Any) -> Any: ...
+
