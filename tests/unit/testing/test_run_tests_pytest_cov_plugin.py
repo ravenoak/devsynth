@@ -67,3 +67,29 @@ def test_ensure_pytest_cov_plugin_env_detects_inline_plugin_token(
 
     assert changed is False
     assert env.get("PYTEST_ADDOPTS") == " -ppytest_cov   -k fast "
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize(
+    ("addopts", "expected_changed", "expected_addopts"),
+    (
+        ("--no-cov -s", False, "--no-cov -s"),
+        ("-k smoke", True, "-k smoke -p pytest_cov"),
+    ),
+)
+def test_ensure_pytest_cov_plugin_env_handles_explicit_optouts(
+    monkeypatch: pytest.MonkeyPatch,
+    addopts: str,
+    expected_changed: bool,
+    expected_addopts: str,
+) -> None:
+    """Parameterize explicit opt-outs and reinjection scenarios."""
+
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    monkeypatch.setenv("PYTEST_ADDOPTS", addopts)
+
+    env = os.environ
+    changed = run_tests_module.ensure_pytest_cov_plugin_env(env)
+
+    assert changed is expected_changed
+    assert env.get("PYTEST_ADDOPTS") == expected_addopts
