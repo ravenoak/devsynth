@@ -467,3 +467,7 @@ Notes and next actions
 - 2025-09-15: `devsynth` CLI initially missing; ran `poetry install --with dev --all-extras` and reran smoke/verification commands successfully; UAT and tagging remain.
 - 2025-09-15: Reinstalled dependencies, confirmed smoke tests and verification scripts; UAT and maintainer tagging remain.
 - 2025-09-15: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` completed but yielded only 13.68 % coverage; the new gate fails and artifacts persist. Reopened issues/coverage-below-threshold.md to track remediation.
+
+## Autoresearch alignment
+- Autoresearch RFC evaluation published in [docs/analysis/autoresearch_evaluation.md](analysis/autoresearch_evaluation.md) with follow-up tickets tracking knowledge graph expansion, agent specialization, and dashboard overlays ([issues/Autoresearch-knowledge-graph-expansion.md](../issues/Autoresearch-knowledge-graph-expansion.md), [issues/Autoresearch-agent-specialization.md](../issues/Autoresearch-agent-specialization.md), [issues/Autoresearch-traceability-dashboard.md](../issues/Autoresearch-traceability-dashboard.md)).
+
