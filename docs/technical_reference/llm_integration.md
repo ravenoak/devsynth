@@ -64,7 +64,7 @@ The LM Studio provider can be configured with the following parameters:
 ### Usage
 
 ```python
-from devsynth.adapters.llm.llm_adapter import LLMBackendAdapter, LLMProviderRequest
+from devsynth.adapters.llm.llm_adapter import LLMBackendAdapter, LLMProviderConfig
 
 # Create the LLM adapter
 
@@ -72,15 +72,15 @@ adapter = LLMBackendAdapter()
 
 # Create an LM Studio provider
 
-request = LLMProviderRequest(
+config = LLMProviderConfig(
     provider_type="lmstudio",
-    config={
+    parameters={
         "api_base": "http://localhost:1234/v1",
         "model": "local_model",
         "max_tokens": 1024,
     },
 )
-provider = adapter.create_provider(request)
+provider = adapter.create_provider(config)
 
 # Generate text
 
