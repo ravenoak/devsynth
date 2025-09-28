@@ -1,9 +1,9 @@
 ---
 
 author: DevSynth Team
-date: '2025-06-01'
-last_reviewed: "2025-08-22"
-status: published
+date: "2025-06-01"
+last_reviewed: "2025-09-28"
+status: active
 tags:
 
 - testing
@@ -1195,6 +1195,15 @@ The project enforces disciplined coverage measurement and artifacts to support r
   - htmlcov/ for coverage HTML; include in release branch artifacts.
   - test_reports/ for CLI HTML test report when using --report.
 - Property tests are opt-in: export DEVSYNTH_PROPERTY_TESTING=true to include tests/property/ and mark functions with @pytest.mark.property and exactly one speed marker.
+
+### Coverage Artifact Workflow and Reporting
+
+- **Timestamped evidence**: Each invocation of `poetry run devsynth run-tests` stores raw pytest output under `test_reports/<timestamp>/<target>/` alongside cumulative JSON and HTML coverage artifacts. The timestamped tree is helpful when auditing regressions or comparing fast versus medium matrices; archive directories once uploaded, but keep the live workspace lean by pruning empty folders with `find test_reports -maxdepth 1 -type d -name '20[0-9][0-9]*' -empty -mtime +14 -print -delete` after syncing evidence.
+- **Primary coverage command**: Use `poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --cov-report=term-missing` to generate an annotated terminal summary of uncovered lines while still emitting `test_reports/coverage.json` and `htmlcov/`. The CLI wrapper normalizes coverage options even when plugins are disabled, so this command is the canonical way to refresh coverage deltas during review.
+- **Optional smoke rerun**: When fast coverage reveals instability or freshly uncovered lines, trigger a confirming smoke sweep with `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`. Record both command transcripts so reviewers can compare hermetic smoke output against the targeted unit sweep.
+- **Post-run cleanup**: Preserve offline readability by keeping `htmlcov/` text-only—delete stray binary assets or screenshots with `find htmlcov -type f ! -name '*.html' -a ! -name '*.js' -a ! -name '*.css' -delete`, and normalize absolute paths in generated HTML using `rg --files -0 -g '*.html' htmlcov | xargs -0 sed -i 's#/workspace/devsynth/#./#g'` before attaching artifacts to long-lived issues.
+- **PR bookkeeping**: Capture the final coverage percentage from the terminal log and cite it in the pull request summary. This expectation pairs with the repository-wide Conventional Commit + `make_pr` workflow documented in [AGENTS.md](../../AGENTS.md) and keeps reviewer dashboards aligned.
+- **Broader context**: For multi-profile aggregation guidance (fast + medium matrices or segmented rebuilds), consult the [Testing section of the README](../../README.md#testing), which explains how to combine coverage data across runs.
 
 See also: docs/plan.md (Track C) and docs/tasks.md (section 3) for current goals and status.
 
