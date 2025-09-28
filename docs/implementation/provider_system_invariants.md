@@ -50,6 +50,10 @@ assert providers[0].calls == 1 and providers[1].calls == 1 and providers[2].call
 This behavior is exercised by
 `tests/property/test_provider_system_properties.py::test_fallback_provider_stops_at_first_success`.【F:tests/property/test_provider_system_properties.py†L1-L53】
 
+## Offline safe defaults
+
+Behavior coverage now asserts that `ProviderFactory.create_provider("openai")` respects the `DEVSYNTH_OFFLINE` guard by returning the deterministic `StubProvider` rather than attempting real network clients when credentials are absent.【F:tests/behavior/features/edrr_integration_with_real_llm_providers.feature†L1-L11】【F:tests/behavior/test_progress_failover_and_recursion.py†L96-L130】 The same scenario confirms that retry metadata is preserved on the stub so downstream callers retain consistent backoff configuration even when the safe provider is selected.【F:src/devsynth/adapters/provider_system.py†L182-L307】
+
 ## Measured Retry Cost and Expected Provider Calls
 
 The sequential fallback contract yields a closed-form expectation for how many

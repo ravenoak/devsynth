@@ -30,6 +30,10 @@ With the deterministic scaffolding in place, ``test_update_adapts_interval_and_c
 
 ``test_status_history_tracks_unique_status_changes`` confirms that only new status strings are appended to the task history alongside the current completion percentage and deterministic timestamps, preventing duplicate entries when the status repeats.【F:tests/unit/application/cli/test_long_running_progress.py†L156-L171】 ``test_summary_reflects_fake_timeline_and_sanitizes_descriptions`` then validates that both the live task and the summary snapshot sanitize hostile descriptions, compute elapsed/remaining time from the fake clock, and echo the same checkpoint list gathered during updates.【F:tests/unit/application/cli/test_long_running_progress.py†L175-L199】 The summary helper surfaces these fields verbatim, ensuring operators can reconcile CLI telemetry with the Rich task metadata.【F:src/devsynth/application/cli/long_running_progress.py†L319-L360】
 
+### Behavioral telemetry audit
+
+Regression coverage now drives the CLI indicator through the BDD narrative defined in `tests/behavior/features/long_running_progress.feature`, patching Rich's `Progress` class with a deterministic stub so checkpoints, history entries, and completion banners can be asserted end to end.【F:tests/behavior/features/long_running_progress.feature†L1-L8】【F:tests/behavior/test_progress_failover_and_recursion.py†L51-L94】 The behavior test mirrors production usage by invoking `LongRunningProgressIndicator.update`, `add_subtask`, and `complete` under a monotonic clock, then verifying that `get_summary` preserves the recorded history and checkpoint cadence alongside the Rich-facing state.【F:src/devsynth/application/cli/long_running_progress.py†L122-L359】
+
 ## WebUI timeline invariants
 
 ### Streamlit stub and deterministic time slices

@@ -50,6 +50,8 @@ These helpers guarantee that `_get_micro_cycle_config` returns finite iteration 
 
 `create_micro_cycle` raises `EDRRCoordinatorError` with `"Maximum recursion depth"` when a level-3 cycle (depth 3 with the default configuration) attempts to spawn a level-4 descendant. The guard executes before appending to `child_cycles`, so the failed attempt leaves the recursion tree unchanged while surfacing the reason string for audit trails.
 
+Behavior coverage exercises the same guard and the `should_terminate_recursion` helper directly, asserting that the BDD narrative in `tests/behavior/features/edrr_recursion_termination.feature` triggers the high-severity `max_depth` factor while still honoring explicit human overrides to continue recursion.【F:tests/behavior/features/edrr_recursion_termination.feature†L1-L15】【F:tests/behavior/test_progress_failover_and_recursion.py†L132-L166】【F:src/devsynth/application/edrr/coordinator/core.py†L640-L731】【F:src/devsynth/application/edrr/coordinator/core.py†L1038-L1085】
+
 ## Recovery Diagnostics
 
 `_attempt_recovery` now reports retry failures by returning `{"recovered": False, "reason": ...}` whenever the delegated phase executor raises again. This ensures error hooks can record the terminal exception, reinforcing the dialectical auditing pipeline when retries cannot salvage a phase.
