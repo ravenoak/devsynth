@@ -48,12 +48,14 @@ def coverage_stub_factory(monkeypatch: pytest.MonkeyPatch) -> Callable[..., Simp
     ) -> SimpleNamespace:
         html_calls: list[Path] = []
         json_calls: list[Path] = []
+        instances: list["FakeCoverage"] = []
 
         class FakeCoverage:
             """Test double mimicking the ``coverage.Coverage`` API surface."""
 
             def __init__(self, data_file: str) -> None:
                 self.data_file = data_file
+                instances.append(self)
 
             def load(self) -> None:
                 if on_load is not None:
@@ -77,9 +79,15 @@ def coverage_stub_factory(monkeypatch: pytest.MonkeyPatch) -> Callable[..., Simp
 
         module = ModuleType("coverage")
         module.Coverage = FakeCoverage  # type: ignore[attr-defined]
+        module.FakeCoverage = FakeCoverage  # type: ignore[attr-defined]
         monkeypatch.setitem(sys.modules, "coverage", module)
 
-        return SimpleNamespace(html_calls=html_calls, json_calls=json_calls)
+        return SimpleNamespace(
+            html_calls=html_calls,
+            json_calls=json_calls,
+            instances=instances,
+            module=module,
+        )
 
     return factory
 
