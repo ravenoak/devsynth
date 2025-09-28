@@ -13,6 +13,7 @@ from devsynth.exceptions import DevSynthError, ValidationError
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from .dto import ConsensusOutcome
 from ...domain.interfaces.agent import Agent, AgentCoordinator
 from ...domain.models.wsde_facade import WSDE, WSDETeam
 from .exceptions import (
@@ -255,14 +256,32 @@ class AgentCoordinatorImpl(AgentCoordinator):
 
         # Build consensus among all solutions
         consensus = self.team.build_consensus(task)
-        logger.info(f"Built consensus among {len(solutions)} solutions")
+        if isinstance(consensus, ConsensusOutcome):
+            consensus_outcome = consensus
+        else:
+            consensus_outcome = ConsensusOutcome.from_dict(consensus)
+
+        consensus_payload = consensus_outcome.to_dict()
+        contributors = list(consensus_outcome.participants)
+        if not contributors:
+            contributors = [
+                record.agent_id
+                for record in consensus_outcome.agent_opinions
+                if record.agent_id is not None
+            ]
+
+        logger.info(
+            "Built consensus among %s solutions (method=%s)",
+            len(solutions),
+            consensus_outcome.method or "unknown",
+        )
 
         if self.notify:
             self.team.broadcast_message(
                 "system",
                 "status_update",
                 subject="Team task completed",
-                content=consensus,
+                content=consensus_payload,
                 metadata={"phase": phase_name},
             )
 
@@ -281,6 +300,12 @@ class AgentCoordinatorImpl(AgentCoordinator):
         )
 
         # Return the results with the expected structure for tests
+        result_text = ""
+        if consensus_outcome.synthesis is not None:
+            result_text = consensus_outcome.synthesis.text or ""
+        elif consensus_outcome.majority_opinion:
+            result_text = consensus_outcome.majority_opinion
+
         return {
             "team_result": {
                 "design": design_agent.process.return_value if design_agent else {},
@@ -293,11 +318,12 @@ class AgentCoordinatorImpl(AgentCoordinator):
                 ),
                 "primus": primus.process.return_value if primus else {},
                 "solutions": solutions,
-                "consensus": consensus,
+                "consensus": consensus_payload,
             },
-            "result": consensus.get("consensus", ""),
-            "contributors": consensus.get("contributors", []),
-            "method": consensus.get("method", "consensus"),
+            "result": result_text,
+            "contributors": contributors,
+            "method": consensus_outcome.method or "consensus",
+            "consensus_outcome": consensus_outcome,
         }
 
     def _resolve_conflicts(self, *agent_results) -> Dict[str, Any]:
@@ -319,4 +345,6 @@ class AgentCoordinatorImpl(AgentCoordinator):
         }
 
         consensus = self.team.build_consensus(consensus_task)
+        if isinstance(consensus, ConsensusOutcome):
+            return consensus.to_dict()
         return consensus

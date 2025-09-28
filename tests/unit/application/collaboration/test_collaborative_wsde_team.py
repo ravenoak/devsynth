@@ -14,6 +14,11 @@ from devsynth.application.agents.base import BaseAgent
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
+from devsynth.application.collaboration.dto import (
+    ConflictRecord,
+    ConsensusOutcome,
+    SynthesisArtifact,
+)
 
 
 @pytest.fixture
@@ -139,14 +144,12 @@ class TestCollaborativeWSDETeam:
         with patch.object(team, "get_messages", side_effect=mock_get_messages):
             with patch.object(team, "_identify_conflicts", return_value=[]):
                 consensus_result = team.build_consensus(task)
-                assert "task_id" in consensus_result
-                assert consensus_result["task_id"] == task["id"]
-                assert "method" in consensus_result
-                assert consensus_result["method"] == "majority_opinion"
-                assert "agent_opinions" in consensus_result
-                assert len(consensus_result["agent_opinions"]) == 3
-                assert "majority_opinion" in consensus_result
-                assert "timestamp" in consensus_result
+                assert isinstance(consensus_result, ConsensusOutcome)
+                assert consensus_result.task_id == task["id"]
+                assert consensus_result.method == "majority_opinion"
+                assert len(consensus_result.agent_opinions) == 3
+                assert consensus_result.majority_opinion is not None
+                assert consensus_result.timestamp is not None
 
     @pytest.mark.medium
     def test_build_consensus_with_conflicts_succeeds(self, mock_agent_with_expertise):
@@ -214,22 +217,31 @@ class TestCollaborativeWSDETeam:
             return []
 
         conflicts = [
-            {
-                "agents": ["Agent1", "Agent2"],
-                "opinions": ["I prefer PostgreSQL", "I prefer MongoDB"],
-                "severity": 0.8,
-                "description": "Conflict between PostgreSQL and MongoDB preferences",
-            }
+            ConflictRecord(
+                conflict_id="conflict-0",
+                task_id=task["id"],
+                agent_a="Agent1",
+                agent_b="Agent2",
+                opinion_a="I prefer PostgreSQL",
+                opinion_b="I prefer MongoDB",
+                rationale_a="It's robust and reliable",
+                rationale_b="It's flexible and scalable",
+                severity_label="high",
+                severity_score=0.8,
+            )
         ]
-        synthesis = {
-            "text": "After considering all perspectives, PostgreSQL is recommended for its robustness, security, and stability.",
-            "key_points": [
+        synthesis = SynthesisArtifact(
+            text=(
+                "After considering all perspectives, PostgreSQL is recommended for "
+                "its robustness, security, and stability."
+            ),
+            key_points=(
                 "PostgreSQL is robust",
                 "PostgreSQL is secure",
                 "PostgreSQL is stable",
-            ],
-            "readability_score": {"flesch_reading_ease": 75.0},
-        }
+            ),
+            readability_score={"flesch_reading_ease": 75.0},
+        )
         with patch.object(team, "get_messages", side_effect=mock_get_messages):
             with patch.object(team, "_identify_conflicts", return_value=conflicts):
                 with patch.object(
@@ -238,16 +250,15 @@ class TestCollaborativeWSDETeam:
                     return_value=synthesis,
                 ):
                     consensus_result = team.build_consensus(task)
-                    assert "task_id" in consensus_result
-                    assert consensus_result["task_id"] == task["id"]
-                    assert "method" in consensus_result
-                    assert consensus_result["method"] == "conflict_resolution_synthesis"
-                    assert "conflicts_identified" in consensus_result
-                    assert consensus_result["conflicts_identified"] == len(conflicts)
-                    assert "synthesis" in consensus_result
-                    assert "agent_opinions" in consensus_result
-                    assert len(consensus_result["agent_opinions"]) == 3
-                    assert "timestamp" in consensus_result
+                    assert isinstance(consensus_result, ConsensusOutcome)
+                    assert consensus_result.task_id == task["id"]
+                    assert (
+                        consensus_result.method == "conflict_resolution_synthesis"
+                    )
+                    assert consensus_result.conflicts_identified == len(conflicts)
+                    assert consensus_result.synthesis is not None
+                    assert len(consensus_result.agent_opinions) == 3
+                    assert consensus_result.timestamp is not None
 
     @pytest.mark.medium
     def test_vote_on_critical_decision_with_expertise_weighting_succeeds(

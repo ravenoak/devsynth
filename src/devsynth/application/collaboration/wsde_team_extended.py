@@ -2,11 +2,15 @@
 
 import itertools
 import uuid
+from collections import OrderedDict
+from dataclasses import replace
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
+
+from .dto import AgentOpinionRecord, ConsensusOutcome, ConflictRecord
 
 
 class CollaborativeWSDETeam(WSDETeam):
@@ -765,153 +769,25 @@ class CollaborativeWSDETeam(WSDETeam):
 
         return results
 
-    def build_consensus(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Build consensus for a task with conflicting opinions.
+    def build_consensus(self, task: Dict[str, Any]) -> ConsensusOutcome:
+        """Build consensus for a task with additional enrichment."""
 
-        This extends the WSDETeam.build_consensus method to add conflict resolution.
-
-        Args:
-            task: The task
-
-        Returns:
-            A dictionary containing the consensus result
-        """
         task_id = task.get("id", str(uuid.uuid4()))
+        base_outcome = super().build_consensus(task)
 
-        # Identify conflicts based on agent opinions
-        identified_conflicts = self._identify_conflicts(task)
-
-        # If there are no conflicts, use the parent method
-        if not identified_conflicts:
-            consensus_result = super().build_consensus(task)
-
-            # Add minimal conflict resolution data
-            consensus_result["identified_conflicts"] = []
-            consensus_result["resolution_process"] = {
-                "steps": [
-                    {
-                        "description": "No conflicts identified",
-                        "outcome": "Proceeded with standard consensus building",
-                    }
-                ]
-            }
-            consensus_result["agent_reasoning"] = {
-                agent.name: "No conflicts to resolve" for agent in self.agents
-            }
-            consensus_result["key_concerns"] = []
-            consensus_result["addressed_concerns"] = []
-            consensus_result["documentation"] = {
-                "summary": "No conflicts needed resolution",
-                "detailed_process": "Standard consensus building was used",
-                "lessons_learned": [],
-            }
-
-            # Store the consensus decision
-            consensus_result["consensus_decision"] = consensus_result
-
-            # Store the documentation
-            self.decision_documentation[task_id] = consensus_result
-
-            return self._summarize_and_store_consensus(task, consensus_result)
-
-        # Process for resolving conflicts
-        resolution_process = {
-            "steps": [
-                {
-                    "description": "Identified conflicts between agents",
-                    "outcome": f"Found {len(identified_conflicts)} conflicts",
-                }
-            ]
-        }
-
-        # Collect agent reasoning
-        agent_reasoning = {}
-        for agent in self.agents:
-            agent_name = agent.name
-            if agent_name in self.agent_opinions:
-                reasoning = f"Agent {agent_name} favors "
-                for option_id, opinion in self.agent_opinions[agent_name].items():
-                    reasoning += f"{option_id} ({opinion}), "
-                agent_reasoning[agent_name] = reasoning.rstrip(", ")
-            else:
-                agent_reasoning[agent_name] = "No opinion provided"
-
-        # Identify key concerns
-        key_concerns = []
-        for conflict in identified_conflicts:
-            key_concerns.append(
-                f"Conflict between {', '.join(conflict['agents'])} regarding {', '.join(conflict['options'])}"
-            )
-
-        # Add a step for collecting reasoning
-        resolution_process["steps"].append(
-            {
-                "description": "Collected reasoning from all agents",
-                "outcome": "Documented agent positions and rationales",
-            }
+        metadata_update = self._build_consensus_metadata(
+            task_id, task, base_outcome
         )
+        merged_metadata = self._merge_metadata(base_outcome.metadata, metadata_update)
+        enriched_outcome = replace(base_outcome, metadata=merged_metadata)
 
-        # Generate a synthesis that addresses the conflicts
-        synthesis = self._generate_conflict_resolution_synthesis(
-            task, identified_conflicts
-        )
-
-        # Add a step for synthesis generation
-        resolution_process["steps"].append(
-            {
-                "description": "Generated synthesis addressing conflicts",
-                "outcome": "Created a solution that addresses key concerns",
-            }
-        )
-
-        # Determine which concerns are addressed
-        addressed_concerns = key_concerns.copy()  # Assume all concerns are addressed
-
-        # Create the final consensus result
-        consensus_result = {
-            "identified_conflicts": identified_conflicts,
-            "resolution_process": resolution_process,
-            "agent_reasoning": agent_reasoning,
-            "key_concerns": key_concerns,
-            "addressed_concerns": addressed_concerns,
-            "consensus": synthesis.get("content", ""),
-            "consensus_decision": {
-                "id": f"consensus_{task_id}",
-                "name": "Consensus Solution",
-                "description": synthesis.get("content", ""),
-                "rationale": {
-                    "expertise_references": [
-                        f"Based on {agent.name}'s expertise in {', '.join(agent.expertise)}"
-                        for agent in self.agents
-                    ],
-                    "considerations": [
-                        f"Addressed conflict: {concern}" for concern in key_concerns
-                    ],
-                },
-                "tie_breaking_rationale": synthesis.get("reasoning", ""),
-            },
-            "documentation": {
-                "summary": "Consensus was built through structured conflict resolution",
-                "detailed_process": str(resolution_process),
-                "lessons_learned": [
-                    "Identified key areas of disagreement",
-                    "Successfully integrated multiple perspectives",
-                    "Created a solution that addresses all key concerns",
-                ],
-            },
-        }
-
-        # Store the documentation
-        self.decision_documentation[task_id] = consensus_result
-
-        # Track the decision
-        self._track_decision(task, consensus_result)
-        return self._summarize_and_store_consensus(task, consensus_result)
+        self.decision_documentation[task_id] = enriched_outcome
+        self._track_decision(task, enriched_outcome.to_dict())
+        return self._summarize_and_store_consensus(task, enriched_outcome)
 
     def _summarize_and_store_consensus(
-        self, task: Dict[str, Any], consensus_result: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, task: Dict[str, Any], consensus_result: ConsensusOutcome
+    ) -> ConsensusOutcome:
         """Summarize and persist consensus results.
 
         The summary is added under the ``summary`` key. If a memory manager is
@@ -925,14 +801,18 @@ class CollaborativeWSDETeam(WSDETeam):
         Returns:
             The augmented consensus result.
         """
-        if not consensus_result:
-            return {}
+
+        if not isinstance(consensus_result, ConsensusOutcome):
+            return consensus_result
 
         try:
             summary = self.summarize_consensus_result(consensus_result)
         except Exception:
             summary = ""
-        consensus_result["summary"] = summary
+
+        metadata_updates: Dict[str, Any] = OrderedDict(
+            (("summary", summary),)
+        )
 
         memory_ref: Optional[str] = None
         manager = getattr(self, "memory_manager", None)
@@ -940,7 +820,7 @@ class CollaborativeWSDETeam(WSDETeam):
             try:
                 metadata = {"task_id": task.get("id"), "type": "CONSENSUS_RESULT"}
                 memory_ref = manager.store_with_edrr_phase(
-                    consensus_result,
+                    consensus_result.to_dict(),
                     memory_type=MemoryType.TEAM_STATE,
                     edrr_phase="REFINE",
                     metadata=metadata,
@@ -949,9 +829,166 @@ class CollaborativeWSDETeam(WSDETeam):
                 memory_ref = None
 
         if memory_ref:
-            consensus_result["memory_reference"] = memory_ref
+            metadata_updates["memory_reference"] = memory_ref
 
-        return consensus_result
+        merged_metadata = self._merge_metadata(
+            consensus_result.metadata, metadata_updates
+        )
+        return replace(consensus_result, metadata=merged_metadata)
+
+    def _build_consensus_metadata(
+        self,
+        task_id: str,
+        task: Mapping[str, Any],
+        outcome: ConsensusOutcome,
+    ) -> Dict[str, Any]:
+        """Create deterministic metadata annotations for a consensus outcome."""
+
+        opinions: Sequence[AgentOpinionRecord] = outcome.agent_opinions
+        conflicts: Sequence[ConflictRecord] = outcome.conflicts
+
+        reasoning_entries: List[tuple[str, str]] = []
+        for index, record in enumerate(opinions):
+            agent_id = record.agent_id or f"agent_{index}"
+            rationale = record.rationale or record.opinion or "No opinion provided"
+            reasoning_entries.append((agent_id, rationale))
+        agent_reasoning = OrderedDict(sorted(reasoning_entries, key=lambda item: item[0]))
+
+        key_concerns = tuple(
+            f"Conflict between {conflict.agent_a or 'Unknown'} and {conflict.agent_b or 'Unknown'}"
+            f" over {conflict.opinion_a or ''} vs {conflict.opinion_b or ''}"
+            for conflict in conflicts
+        )
+
+        if conflicts:
+            steps = [
+                OrderedDict(
+                    [
+                        ("description", "Identified conflicts between agents"),
+                        ("outcome", f"Found {len(conflicts)} conflicts"),
+                    ]
+                ),
+                OrderedDict(
+                    [
+                        ("description", "Collected reasoning from all agents"),
+                        ("outcome", "Documented agent positions and rationales"),
+                    ]
+                ),
+                OrderedDict(
+                    [
+                        (
+                            "description",
+                            "Generated synthesis addressing conflicts",
+                        ),
+                        (
+                            "outcome",
+                            "Created a solution that addresses key concerns",
+                        ),
+                    ]
+                ),
+            ]
+            documentation_summary = (
+                "Consensus was built through structured conflict resolution"
+            )
+            lessons = (
+                "Identified key areas of disagreement",
+                "Integrated multiple perspectives",
+                "Addressed each documented concern",
+            )
+        else:
+            steps = [
+                OrderedDict(
+                    [
+                        ("description", "No conflicts identified"),
+                        (
+                            "outcome",
+                            "Proceeded with standard consensus building",
+                        ),
+                    ]
+                )
+            ]
+            documentation_summary = "No conflicts needed resolution"
+            lessons = ()
+
+        resolution_process = OrderedDict(
+            (("steps", tuple(steps)),)
+        )
+
+        documentation = OrderedDict(
+            (
+                ("summary", documentation_summary),
+                ("detailed_process", tuple(steps)),
+                ("lessons_learned", lessons),
+            )
+        )
+
+        consensus_text = ""
+        if outcome.synthesis is not None:
+            consensus_text = outcome.synthesis.text or ""
+        elif outcome.majority_opinion:
+            consensus_text = outcome.majority_opinion
+
+        consensus_decision = OrderedDict(
+            (
+                ("id", f"consensus_{task_id}"),
+                ("name", "Consensus Solution"),
+                ("description", consensus_text),
+                (
+                    "rationale",
+                    OrderedDict(
+                        (
+                            (
+                                "expertise_references",
+                                tuple(
+                                    f"Based on {record.agent_id}" for record in opinions if record.agent_id
+                                ),
+                            ),
+                            ("considerations", key_concerns),
+                        )
+                    ),
+                ),
+                ("method", outcome.method or "consensus"),
+            )
+        )
+
+        if outcome.synthesis is not None and outcome.synthesis.text:
+            consensus_decision["tie_breaking_rationale"] = outcome.synthesis.text
+
+        metadata_update: Dict[str, Any] = OrderedDict(
+            (
+                ("identified_conflicts", tuple(c.to_dict() for c in conflicts)),
+                ("resolution_process", resolution_process),
+                ("agent_reasoning", agent_reasoning),
+                ("key_concerns", key_concerns),
+                ("addressed_concerns", key_concerns),
+                ("consensus_decision", consensus_decision),
+                ("documentation", documentation),
+                (
+                    "task_metadata",
+                    OrderedDict(
+                        sorted(
+                            (
+                                ("task_id", task.get("id")),
+                                ("task_type", task.get("type")),
+                            ),
+                            key=lambda item: item[0],
+                        )
+                    ),
+                ),
+            )
+        )
+
+        return metadata_update
+
+    def _merge_metadata(
+        self, base: Mapping[str, Any], updates: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        """Merge metadata mappings with deterministic ordering."""
+
+        merged = OrderedDict(sorted(base.items(), key=lambda item: str(item[0])))
+        for key, value in sorted(updates.items(), key=lambda item: str(item[0])):
+            merged[key] = value
+        return merged
 
     def _identify_conflicts(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
         """

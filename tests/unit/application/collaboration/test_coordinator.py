@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
+from devsynth.application.collaboration.dto import ConsensusOutcome, SynthesisArtifact
 from devsynth.application.collaboration.exceptions import TeamConfigurationError
 from devsynth.domain.interfaces.agent import Agent
 from devsynth.exceptions import ValidationError
@@ -43,11 +44,13 @@ class TestAgentCoordinatorPrimusSelection:
         """Test that primus selection and consensus fields succeeds.
 
         ReqID: N/A"""
-        consensus = {
-            "consensus": "final",
-            "contributors": ["python", "javascript", "docs"],
-            "method": "consensus_synthesis",
-        }
+        consensus = ConsensusOutcome(
+            consensus_id="consensus-1",
+            task_id="task",
+            method="consensus_synthesis",
+            participants=("python", "javascript", "docs"),
+            synthesis=SynthesisArtifact(text="final"),
+        )
         with patch.object(
             self.coordinator.team, "build_consensus", return_value=consensus
         ):
@@ -60,19 +63,21 @@ class TestAgentCoordinatorPrimusSelection:
                 result = self.coordinator.delegate_task(task)
                 spy.assert_called_once_with(task)
         assert self.coordinator.team.get_primus() == self.python_agent
-        assert result["contributors"] == consensus["contributors"]
-        assert result["method"] == consensus["method"]
+        assert result["contributors"] == list(consensus.participants)
+        assert result["method"] == consensus.method
 
     @pytest.mark.medium
     def test_multi_agent_consensus_reached_succeeds(self):
         """Test that multi agent consensus reached succeeds.
 
         ReqID: N/A"""
-        consensus = {
-            "consensus": "final-result",
-            "contributors": ["python", "javascript", "docs"],
-            "method": "consensus_synthesis",
-        }
+        consensus = ConsensusOutcome(
+            consensus_id="consensus-2",
+            task_id="task",
+            method="consensus_synthesis",
+            participants=("python", "javascript", "docs"),
+            synthesis=SynthesisArtifact(text="final-result"),
+        )
         with patch.object(
             self.coordinator.team, "build_consensus", return_value=consensus
         ) as bc:
@@ -82,20 +87,22 @@ class TestAgentCoordinatorPrimusSelection:
         self.python_agent.process.assert_called_once()
         self.js_agent.process.assert_called_once()
         self.doc_agent.process.assert_called_once()
-        assert result["result"] == consensus["consensus"]
-        assert result["contributors"] == consensus["contributors"]
-        assert result["method"] == consensus["method"]
+        assert result["result"] == consensus.synthesis.text
+        assert result["contributors"] == list(consensus.participants)
+        assert result["method"] == consensus.method
 
     @pytest.mark.medium
     def test_role_assignment_and_primus_selection_succeeds(self):
         """Test that role assignment and primus selection succeeds.
 
         ReqID: N/A"""
-        consensus = {
-            "consensus": "ok",
-            "contributors": ["python", "javascript", "docs"],
-            "method": "consensus_synthesis",
-        }
+        consensus = ConsensusOutcome(
+            consensus_id="consensus-3",
+            task_id="task",
+            method="consensus_synthesis",
+            participants=("python", "javascript", "docs"),
+            synthesis=SynthesisArtifact(text="ok"),
+        )
         original_assign_roles = self.coordinator.team.assign_roles
 
         def mock_assign_roles(*args, **kwargs):

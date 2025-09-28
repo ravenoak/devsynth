@@ -1,11 +1,13 @@
 """WSDE application wrapper providing collaboration helpers."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Mapping, Optional
 
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.domain.wsde.workflow import progress_roles as _progress_roles
 from devsynth.logger import log_consensus_failure
 from devsynth.methodology.base import Phase
+
+from .dto import ConsensusOutcome
 
 
 class WSDE(WSDETeam):
@@ -19,10 +21,23 @@ class WSDE(WSDETeam):
         """Perform a consensus vote and fallback to consensus building."""
         result = self.consensus_vote(task)
         decision = result.get("decision") or result.get("result")
+
+        consensus_outcome: Optional[ConsensusOutcome] = None
+        existing_consensus = result.get("consensus")
+        if isinstance(existing_consensus, ConsensusOutcome):
+            consensus_outcome = existing_consensus
+        elif isinstance(existing_consensus, Mapping):
+            consensus_outcome = ConsensusOutcome.from_dict(existing_consensus)
+
         if not decision or result.get("status") != "completed":
             error = RuntimeError("Consensus vote failed")
             log_consensus_failure(self.logger, error, extra={"task_id": task.get("id")})
-            result["consensus"] = self.build_consensus(task)
+            consensus_outcome = self.build_consensus(task)
+
+        if consensus_outcome is not None:
+            result["consensus_outcome"] = consensus_outcome
+            result["consensus"] = consensus_outcome.to_dict()
+
         return result
 
     def get_role_assignments(self) -> Dict[str, str]:
