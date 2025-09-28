@@ -1,30 +1,12 @@
-Feature: EDRR Integration with Real LLM Providers
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+Feature: Provider failover for EDRR integration
+  As an integration engineer
+  I want offline safeguards to prefer deterministic providers
+  So that EDRR runs avoid accidental network usage when credentials are missing
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given providers are configured with default fallbacks
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Offline runs fall back to the stub provider
+    Given DEVSYNTH_OFFLINE is enabled without OPENAI credentials
+    When the provider factory resolves the "openai" provider
+    Then the stub provider is returned with retry settings intact
