@@ -13,11 +13,15 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union, cast
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.logging_setup import DevSynthLogger
 
-from .agent_collaboration import AgentMessage, CollaborationTask, TaskStatus
+from .agent_collaboration import AgentMessage, CollaborationTask
+from .dto import ensure_memory_sync_port, serialize_memory_sync_port
 
 # Use TYPE_CHECKING for type hints to avoid circular imports
 if TYPE_CHECKING:
-    from .peer_review import PeerReview
+    try:
+        from .peer_review import PeerReview
+    except Exception:  # pragma: no cover - optional dependency
+        PeerReview = None  # type: ignore[assignment]
 
 logger = DevSynthLogger(__name__)
 
@@ -50,6 +54,18 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
             )
     else:
         queue = list(getattr(sync_manager, "_queue", []))
+
+    normalized_queue: List[tuple[str, MemoryItem]] = []
+    for store, item in queue:
+        if item.metadata and "sync_port" in item.metadata:
+            try:
+                item.metadata["sync_port"] = ensure_memory_sync_port(
+                    item.metadata["sync_port"]
+                )
+            except Exception:  # pragma: no cover - defensive
+                logger.debug("Failed to normalize sync_port metadata", exc_info=True)
+        normalized_queue.append((store, item))
+    queue = normalized_queue
 
     notified = False
     try:
@@ -100,6 +116,13 @@ def restore_memory_queue(
         return
     for store, item in queued_items:
         try:
+            if item.metadata and "sync_port" in item.metadata:
+                try:
+                    item.metadata["sync_port"] = serialize_memory_sync_port(
+                        ensure_memory_sync_port(item.metadata["sync_port"])
+                    )
+                except Exception:
+                    logger.debug("Failed to serialize sync_port metadata", exc_info=True)
             memory_manager.queue_update(store, item)
         except Exception:  # pragma: no cover - best effort
             logger.debug("Requeue failed", exc_info=True)
@@ -116,8 +139,11 @@ def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
     Returns:
         A MemoryItem representing the entity
     """
-    # Import here to avoid circular imports
-    from .peer_review import PeerReview
+    # Import here to avoid circular imports and optional dependencies
+    try:
+        from .peer_review import PeerReview
+    except Exception:  # pragma: no cover - optional dependency
+        PeerReview = None  # type: ignore[assignment]
 
     if not entity:
         raise ValueError("Cannot convert None to MemoryItem")
@@ -127,19 +153,10 @@ def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
     if not entity_id:
         raise ValueError(f"Entity {entity} does not have an id attribute")
 
-    # Get entity content
     if hasattr(entity, "to_dict"):
         content = entity.to_dict()
     else:
-        # Try to convert to dict using __dict__
-        try:
-            content = entity.__dict__.copy()
-            # Remove any attributes that can't be serialized
-            for key in list(content.keys()):
-                if key.startswith("_") or callable(content[key]):
-                    content.pop(key)
-        except (AttributeError, TypeError):
-            raise ValueError(f"Entity {entity} cannot be converted to a dictionary")
+        raise ValueError(f"Entity {entity} cannot be converted to a dictionary")
 
     # Create metadata
     metadata = {
@@ -155,6 +172,8 @@ def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
         )
         if entity.parent_task_id:
             metadata["parent_task_id"] = entity.parent_task_id
+        if entity.sync_port is not None:
+            metadata["sync_port"] = serialize_memory_sync_port(entity.sync_port)
     elif isinstance(entity, AgentMessage):
         metadata["message_type"] = (
             entity.message_type.name
@@ -165,7 +184,7 @@ def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
         metadata["recipient_id"] = entity.recipient_id
         if entity.related_task_id:
             metadata["related_task_id"] = entity.related_task_id
-    elif isinstance(entity, PeerReview):
+    elif PeerReview is not None and isinstance(entity, PeerReview):
         metadata["status"] = entity.status
         metadata["author_id"] = getattr(entity.author, "id", str(entity.author))
         metadata["quality_score"] = entity.quality_score
@@ -203,113 +222,40 @@ def from_memory_item(item: MemoryItem) -> Any:
 
 def _memory_item_to_task(item: MemoryItem) -> CollaborationTask:
     """Convert a memory item to a CollaborationTask."""
-    content = item.content
+    if not isinstance(item.content, dict):
+        raise TypeError("Memory item content must be a mapping for CollaborationTask")
 
-    # Convert status string to TaskStatus enum
-    status_str = content.get("status")
-    if isinstance(status_str, str):
-        try:
-            status = TaskStatus[status_str]
-        except KeyError:
-            logger.warning(f"Unknown task status: {status_str}")
-            status = TaskStatus.PENDING
-    else:
-        status = content.get("status", TaskStatus.PENDING)
+    content = dict(item.content)
+    content.setdefault("id", item.id)
 
-    # Create the task
-    task = CollaborationTask(
-        task_type=content.get("task_type", ""),
-        description=content.get("description", ""),
-        inputs=content.get("inputs", {}),
-        required_capabilities=content.get("required_capabilities", []),
-        parent_task_id=content.get("parent_task_id"),
-        priority=content.get("priority", 1),
-    )
+    metadata_sync = item.metadata.get("sync_port") if item.metadata else None
+    if metadata_sync and "sync_port" not in content:
+        content["sync_port"] = metadata_sync
 
-    # Set additional attributes
-    task.id = item.id
-    task.status = status
-    task.assigned_agent_id = content.get("assigned_agent_id")
-    task.result = content.get("result")
+    try:
+        task = CollaborationTask.from_dict(content)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.error("Failed to deserialize CollaborationTask: %s", exc)
+        raise
 
-    # Handle timestamps
-    if "created_at" in content and isinstance(content["created_at"], str):
-        try:
-            task.created_at = datetime.fromisoformat(content["created_at"])
-        except ValueError:
-            logger.warning(f"Invalid created_at timestamp: {content['created_at']}")
-
-    if "updated_at" in content and isinstance(content["updated_at"], str):
-        try:
-            task.updated_at = datetime.fromisoformat(content["updated_at"])
-        except ValueError:
-            logger.warning(f"Invalid updated_at timestamp: {content['updated_at']}")
-
-    if (
-        "started_at" in content
-        and content["started_at"]
-        and isinstance(content["started_at"], str)
-    ):
-        try:
-            task.started_at = datetime.fromisoformat(content["started_at"])
-        except ValueError:
-            logger.warning(f"Invalid started_at timestamp: {content['started_at']}")
-
-    if (
-        "completed_at" in content
-        and content["completed_at"]
-        and isinstance(content["completed_at"], str)
-    ):
-        try:
-            task.completed_at = datetime.fromisoformat(content["completed_at"])
-        except ValueError:
-            logger.warning(f"Invalid completed_at timestamp: {content['completed_at']}")
-
-    # Handle relationships
-    task.subtasks = []  # These will be loaded separately
-    task.dependencies = content.get("dependencies", [])
-    task.messages = []  # These will be loaded separately
-
+    task.subtasks = []
+    task.messages = []
     return task
 
 
 def _memory_item_to_message(item: MemoryItem) -> AgentMessage:
     """Convert a memory item to an AgentMessage."""
-    content = item.content
+    if not isinstance(item.content, dict):
+        raise TypeError("Memory item content must be a mapping for AgentMessage")
 
-    # Convert message_type string to MessageType enum
-    from .agent_collaboration import MessageType
+    content = dict(item.content)
+    content.setdefault("id", item.id)
+    if item.metadata:
+        content.setdefault("sender_id", item.metadata.get("sender_id"))
+        content.setdefault("recipient_id", item.metadata.get("recipient_id"))
+        content.setdefault("related_task_id", item.metadata.get("related_task_id"))
 
-    message_type_str = content.get("message_type")
-    if isinstance(message_type_str, str):
-        try:
-            message_type = MessageType[message_type_str]
-        except KeyError:
-            logger.warning(f"Unknown message type: {message_type_str}")
-            message_type = MessageType.STATUS_UPDATE
-    else:
-        message_type = content.get("message_type", MessageType.STATUS_UPDATE)
-
-    # Create the message
-    message = AgentMessage(
-        sender_id=content.get("sender_id", ""),
-        recipient_id=content.get("recipient_id", ""),
-        message_type=message_type,
-        content=content.get("content", {}),
-        related_task_id=content.get("related_task_id"),
-    )
-
-    # Set additional attributes
-    message.id = item.id
-
-    # Handle timestamp
-    if "timestamp" in content and isinstance(content["timestamp"], str):
-        try:
-            message.timestamp = datetime.fromisoformat(content["timestamp"])
-        except ValueError:
-            logger.warning(f"Invalid timestamp: {content['timestamp']}")
-
-    return message
+    return AgentMessage.from_dict(content)
 
 
 def _memory_item_to_review(item: MemoryItem) -> Any:

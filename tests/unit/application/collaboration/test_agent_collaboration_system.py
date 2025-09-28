@@ -1,22 +1,28 @@
 import pytest
 
+import pytest
+
 from devsynth.application.collaboration.agent_collaboration import (
     AgentCollaborationSystem,
     AgentMessage,
     MessageType,
 )
+from devsynth.application.collaboration.dto import AgentPayload
 
 
 @pytest.mark.fast
 def test_agent_message_to_dict() -> None:
     """ReqID: N/A"""
 
-    msg = AgentMessage("a", "b", MessageType.TASK_ASSIGNMENT, {"x": 1})
+    payload = AgentPayload(attributes={"x": 1})
+    msg = AgentMessage("a", "b", MessageType.TASK_ASSIGNMENT, payload)
     data = msg.to_dict()
     assert data["sender_id"] == "a"
     assert data["recipient_id"] == "b"
     assert data["message_type"] == "TASK_ASSIGNMENT"
-    assert data["content"] == {"x": 1}
+    assert data["content"]["dto_type"] == "AgentPayload"
+    assert data["content"]["attributes"] == {"x": 1}
+    assert msg.content == {"x": 1}
 
 
 class DummyMemoryManager:
