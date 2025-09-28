@@ -4,6 +4,7 @@ set -euo pipefail
 INSTALL_DEV_TIMESTAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CLI_TYPER_VERSION="0.17.4"
 
 if [[ "$PWD" != "$PROJECT_ROOT" ]]; then
   cd "$PROJECT_ROOT"
@@ -95,42 +96,78 @@ run_poetry_install() {
   return 0
 }
 
+run_targeted_reinstall() {
+  local attempt="$1"
+  local phase="$2"
+  local timestamp="$3"
+  local phase_slug
+  phase_slug="$(sanitize_slug "$phase")"
+  local log_path="$DIAGNOSTICS_DIR/pip_reinstall_${phase_slug}_attempt${attempt}_${timestamp}.log"
+
+  echo "[info] attempting targeted repair during $phase (attempt $attempt); output logged to $log_path" >&2
+
+  if ! bash -o pipefail -c "poetry run pip install --force-reinstall . 2>&1 | tee '$log_path'"; then
+    echo "[error] targeted reinstall of devsynth failed during $phase (attempt $attempt). See $log_path" >&2
+    return 1
+  fi
+
+  if ! bash -o pipefail -c "poetry run pip install --force-reinstall typer==${CLI_TYPER_VERSION} 2>&1 | tee -a '$log_path'"; then
+    echo "[error] targeted reinstall of typer failed during $phase (attempt $attempt). See $log_path" >&2
+    return 1
+  fi
+
+  return 0
+}
+
 ensure_devsynth_cli() {
   local phase="$1"
-  local attempt=1
-  local max_attempts=2
+  local phase_slug
+  phase_slug="$(sanitize_slug "$phase")"
 
-  while (( attempt <= max_attempts )); do
-    local timestamp
-    timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
-    local phase_slug
-    phase_slug="$(sanitize_slug "$phase")"
-    local cli_log="$DIAGNOSTICS_DIR/post_install_${phase_slug}_attempt${attempt}_${timestamp}.log"
+  local timestamp
+  timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+  local cli_log="$DIAGNOSTICS_DIR/post_install_${phase_slug}_verify1_${timestamp}.log"
 
-    if python "$PROJECT_ROOT/scripts/verify_post_install.py" >"$cli_log" 2>&1; then
-      rm -f "$cli_log"
-      if (( attempt == 1 )); then
-        echo "[info] post-install verification succeeded during $phase; no reinstall required" >&2
-      else
-        echo "[info] post-install verification recovered during $phase (attempt $attempt)" >&2
-      fi
-      return 0
-    fi
+  if python "$PROJECT_ROOT/scripts/verify_post_install.py" >"$cli_log" 2>&1; then
+    rm -f "$cli_log"
+    echo "[info] post-install verification succeeded during $phase; no reinstall required" >&2
+    return 0
+  fi
 
-    echo "[warning] post-install verification failed during $phase (attempt $attempt); see $cli_log" >&2
+  echo "[warning] post-install verification failed during $phase; see $cli_log" >&2
 
-    if (( attempt == max_attempts )); then
-      echo "[error] post-install verification remains unsuccessful after $phase (attempt $attempt). See $cli_log" >&2
-      return 1
-    fi
+  local repair_timestamp
+  repair_timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+  if ! run_targeted_reinstall "1" "$phase" "$repair_timestamp"; then
+    echo "[error] targeted repair did not complete successfully during $phase" >&2
+    return 1
+  fi
 
-    if ! run_poetry_install "$attempt" "$phase" "$timestamp"; then
-      return 1
-    fi
+  timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+  cli_log="$DIAGNOSTICS_DIR/post_install_${phase_slug}_verify2_${timestamp}.log"
+  if python "$PROJECT_ROOT/scripts/verify_post_install.py" >"$cli_log" 2>&1; then
+    rm -f "$cli_log"
+    echo "[info] post-install verification recovered after targeted repair during $phase" >&2
+    return 0
+  fi
 
-    ((attempt++))
-  done
+  echo "[warning] post-install verification still failing during $phase after targeted repair; see $cli_log" >&2
 
+  local reinstall_timestamp
+  reinstall_timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+  if ! run_poetry_install "2" "$phase" "$reinstall_timestamp"; then
+    return 1
+  fi
+
+  timestamp="$(date -u '+%Y%m%dT%H%M%SZ')"
+  cli_log="$DIAGNOSTICS_DIR/post_install_${phase_slug}_verify3_${timestamp}.log"
+  if python "$PROJECT_ROOT/scripts/verify_post_install.py" >"$cli_log" 2>&1; then
+    rm -f "$cli_log"
+    echo "[info] post-install verification recovered after reinstall during $phase" >&2
+    return 0
+  fi
+
+  echo "[error] post-install verification remains unsuccessful after $phase. See $cli_log" >&2
   return 1
 }
 
