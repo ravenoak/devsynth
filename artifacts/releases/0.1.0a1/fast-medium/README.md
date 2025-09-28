@@ -11,11 +11,13 @@ Inside each timestamped folder:
 
 - Archive coverage output as zipped HTML bundles named
   `htmlcov-<timestamp>-fast-medium.zip` so they can be tracked alongside the raw
-  reports.
+  reports, and store the accompanying `test_reports/coverage.json` showing ≥90 %
+  totals.
 - Capture the relevant log files (e.g. copies from `logs/` and
   `diagnostics/`) that prove which commands ran and their environment details.
-- Include any additional evidence (screenshots, JSON summaries, etc.) necessary
-  to reconstruct the release rehearsal.
+- Include any additional evidence (screenshots, JSON summaries, strict mypy
+  outputs) necessary to reconstruct the release rehearsal and prove gating
+  compliance.
 
 Leave this directory empty between drops; the adjacent `.gitkeep` ensures the
 folder remains in version control when no artifacts are present.
