@@ -1,19 +1,26 @@
-"""
-Multi-agent collaboration framework for DevSynth.
+"""Multi-agent collaboration framework for DevSynth."""
 
-This module provides classes and functions for enabling specialized agents
-to work together on complex tasks through a flexible collaboration protocol.
-"""
+from __future__ import annotations
 
 import os
 import uuid
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 from devsynth.domain.interfaces.agent import Agent
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.logging_setup import DevSynthLogger
+
+from .dto import (
+    AgentPayload,
+    MemorySyncPort,
+    TaskDescriptor,
+    ensure_collaboration_payload,
+    ensure_memory_sync_port,
+    serialize_memory_sync_port,
+)
 
 logger = DevSynthLogger(__name__)
 
@@ -42,101 +49,207 @@ class TaskStatus(Enum):
     BLOCKED = auto()
 
 
+def _ensure_agent_payload(content: Any) -> AgentPayload:
+    """Normalize arbitrary message content into an :class:`AgentPayload`."""
+
+    if isinstance(content, AgentPayload):
+        return content
+
+    try:
+        payload = ensure_collaboration_payload(content, default=AgentPayload)
+    except TypeError:
+        payload = AgentPayload(payload=content)
+
+    if isinstance(payload, AgentPayload):
+        return payload
+
+    return AgentPayload.from_dict(payload.to_dict())
+
+
+def _sorted_mapping(items: Iterable[tuple[str, Any]]) -> Dict[str, Any]:
+    return dict(sorted(items, key=lambda pair: pair[0]))
+
+
+def _coerce_datetime(value: Any) -> Optional[datetime]:
+    """Convert ISO strings into :class:`datetime` objects when possible."""
+
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            logger.debug("Failed to parse datetime %s", value)
+    return None
+
+
+@dataclass(slots=True)
 class AgentMessage:
-    """
-    A message exchanged between agents in the collaboration system.
-    """
+    """A message exchanged between agents in the collaboration system."""
 
-    def __init__(
-        self,
-        sender_id: str,
-        recipient_id: str,
-        message_type: MessageType,
-        content: Dict[str, Any],
-        related_task_id: Optional[str] = None,
-    ):
-        """
-        Initialize a new agent message.
+    sender_id: str
+    recipient_id: str
+    message_type: MessageType
+    payload: AgentPayload
+    related_task_id: Optional[str] = None
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: datetime = field(default_factory=datetime.now)
 
-        Args:
-            sender_id: ID of the sending agent
-            recipient_id: ID of the receiving agent
-            message_type: Type of message
-            content: Content of the message
-            related_task_id: ID of the task this message is related to (if any)
-        """
-        self.id = str(uuid.uuid4())
-        self.sender_id = sender_id
-        self.recipient_id = recipient_id
-        self.message_type = message_type
-        self.content = content
-        self.related_task_id = related_task_id
-        self.timestamp = datetime.now()
+    def __post_init__(self) -> None:
+        self.payload = _ensure_agent_payload(self.payload)
+        if isinstance(self.timestamp, str):
+            try:
+                self.timestamp = datetime.fromisoformat(self.timestamp)
+            except ValueError:
+                self.timestamp = datetime.now()
+
+    @property
+    def content(self) -> Any:
+        """Return a simplified view of the payload for backward compatibility."""
+
+        if self.payload.attributes:
+            return dict(self.payload.attributes)
+        if self.payload.payload is not None:
+            return self.payload.payload
+        if self.payload.summary is not None:
+            return {"summary": self.payload.summary}
+        return self.payload.to_dict()
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the message to a dictionary."""
+
         return {
             "id": self.id,
             "sender_id": self.sender_id,
             "recipient_id": self.recipient_id,
             "message_type": self.message_type.name,
-            "content": self.content,
+            "content": self.payload.to_dict(),
             "related_task_id": self.related_task_id,
             "timestamp": self.timestamp.isoformat(),
         }
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "AgentMessage":
+        message_type = data.get("message_type", MessageType.STATUS_UPDATE)
+        if isinstance(message_type, str):
+            try:
+                message_type = MessageType[message_type]
+            except KeyError:
+                message_type = MessageType.STATUS_UPDATE
 
+        payload_data = data.get("payload") or data.get("content", {})
+        payload = _ensure_agent_payload(payload_data)
+
+        timestamp_value = data.get("timestamp")
+        timestamp = (
+            datetime.fromisoformat(timestamp_value)
+            if isinstance(timestamp_value, str)
+            else timestamp_value or datetime.now()
+        )
+
+        return cls(
+            sender_id=data.get("sender_id", ""),
+            recipient_id=data.get("recipient_id", ""),
+            message_type=message_type,
+            payload=payload,
+            related_task_id=data.get("related_task_id"),
+            id=data.get("id", str(uuid.uuid4())),
+            timestamp=timestamp,
+        )
+
+
+@dataclass(slots=True)
 class CollaborationTask:
-    """
-    A task that can be assigned to agents in the collaboration system.
-    """
+    """A task that can be assigned to agents in the collaboration system."""
 
-    def __init__(
-        self,
-        task_type: str,
-        description: str,
-        inputs: Dict[str, Any],
-        required_capabilities: Optional[List[str]] = None,
-        parent_task_id: Optional[str] = None,
-        priority: int = 1,
-    ):
-        """
-        Initialize a new collaboration task.
+    task_type: str
+    description: str
+    inputs: Dict[str, Any]
+    required_capabilities: List[str] = field(default_factory=list)
+    parent_task_id: Optional[str] = None
+    priority: int = 1
+    descriptor: Optional[TaskDescriptor] = None
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    status: TaskStatus = TaskStatus.PENDING
+    assigned_agent_id: Optional[str] = None
+    result: Optional[Any] = None
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    subtasks: List["CollaborationTask"] = field(default_factory=list)
+    dependencies: List[str] = field(default_factory=list)
+    messages: List[AgentMessage] = field(default_factory=list)
+    sync_port: Optional[MemorySyncPort] = None
 
-        Args:
-            task_type: Type of task
-            description: Description of the task
-            inputs: Input data for the task
-            required_capabilities: Capabilities required to perform the task
-            parent_task_id: ID of the parent task (if this is a subtask)
-            priority: Priority of the task (higher values = higher priority)
-        """
-        self.id = str(uuid.uuid4())
-        self.task_type = task_type
-        self.description = description
-        self.inputs = inputs
-        self.required_capabilities = required_capabilities or []
-        self.parent_task_id = parent_task_id
-        self.priority = priority
-        self.status = TaskStatus.PENDING
-        self.assigned_agent_id = None
-        self.result = None
-        self.created_at = datetime.now()
-        self.updated_at = self.created_at
-        self.started_at = None
-        self.completed_at = None
-        self.subtasks = []
-        self.dependencies = []
-        self.messages = []
+    def __post_init__(self) -> None:
+        self.inputs = dict(self.inputs)
+        self.required_capabilities = list(self.required_capabilities)
+        self.dependencies = list(self.dependencies)
+        self.subtasks = list(self.subtasks)
+        self.messages = list(self.messages)
+        self.created_at = _coerce_datetime(self.created_at) or datetime.now()
+        self.updated_at = _coerce_datetime(self.updated_at) or datetime.now()
+        self.started_at = _coerce_datetime(self.started_at)
+        self.completed_at = _coerce_datetime(self.completed_at)
+        self._sync_descriptor()
+
+    def _sync_descriptor(self) -> None:
+        descriptor = self.descriptor
+        metadata: Dict[str, Any] = {}
+        if descriptor:
+            metadata.update(descriptor.metadata)
+
+        sync_port_raw = metadata.pop("sync_port", None) or metadata.pop(
+            "memory_sync_port", None
+        )
+        if self.sync_port is None and sync_port_raw is not None:
+            self.sync_port = ensure_memory_sync_port(sync_port_raw)
+        elif sync_port_raw is not None:
+            self.sync_port = ensure_memory_sync_port(sync_port_raw)
+
+        if self.sync_port is not None:
+            metadata["sync_port"] = serialize_memory_sync_port(self.sync_port)
+
+        metadata["priority"] = self.priority
+        metadata["task_type"] = self.task_type
+        metadata = _sorted_mapping(metadata.items())
+
+        summary = descriptor.summary if descriptor and descriptor.summary else self.description
+        description = (
+            descriptor.description if descriptor and descriptor.description else self.description
+        )
+        status_value = descriptor.status if descriptor and descriptor.status else self.status.name
+        assignee = (
+            descriptor.assignee if descriptor and descriptor.assignee else self.assigned_agent_id
+        )
+        tags = descriptor.tags if descriptor else ()
+
+        self.descriptor = TaskDescriptor(
+            task_id=self.id,
+            summary=summary,
+            description=description,
+            status=status_value,
+            assignee=assignee,
+            tags=tuple(tags),
+            metadata=metadata,
+        )
+        self.description = description or ""
+
+    def refresh_descriptor(self) -> None:
+        """Synchronize the descriptor with the current task state."""
+
+        self._sync_descriptor()
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the task to a dictionary."""
+
         return {
             "id": self.id,
             "task_type": self.task_type,
             "description": self.description,
-            "inputs": self.inputs,
-            "required_capabilities": self.required_capabilities,
+            "inputs": dict(self.inputs),
+            "required_capabilities": list(self.required_capabilities),
             "parent_task_id": self.parent_task_id,
             "priority": self.priority,
             "status": self.status.name,
@@ -149,26 +262,73 @@ class CollaborationTask:
                 self.completed_at.isoformat() if self.completed_at else None
             ),
             "subtasks": [subtask.id for subtask in self.subtasks],
-            "dependencies": self.dependencies,
+            "dependencies": list(self.dependencies),
             "messages": [message.id for message in self.messages],
+            "descriptor": self.descriptor.to_dict(),
+            "sync_port": serialize_memory_sync_port(self.sync_port),
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "CollaborationTask":
+        descriptor_data = data.get("descriptor")
+        descriptor = (
+            TaskDescriptor.from_dict(descriptor_data)
+            if isinstance(descriptor_data, dict)
+            else None
+        )
+
+        status_value = data.get("status", TaskStatus.PENDING)
+        if isinstance(status_value, str):
+            try:
+                status_value = TaskStatus[status_value]
+            except KeyError:
+                status_value = TaskStatus.PENDING
+
+        sync_port = ensure_memory_sync_port(data.get("sync_port"))
+
+        created_at = _coerce_datetime(data.get("created_at")) or datetime.now()
+        updated_at = _coerce_datetime(data.get("updated_at")) or datetime.now()
+
+        return cls(
+            task_type=data.get("task_type", ""),
+            description=data.get("description", ""),
+            inputs=dict(data.get("inputs", {})),
+            required_capabilities=list(data.get("required_capabilities", [])),
+            parent_task_id=data.get("parent_task_id"),
+            priority=int(data.get("priority", 1)),
+            descriptor=descriptor,
+            id=data.get("id", str(uuid.uuid4())),
+            status=status_value if isinstance(status_value, TaskStatus) else TaskStatus.PENDING,
+            assigned_agent_id=data.get("assigned_agent_id"),
+            result=data.get("result"),
+            created_at=created_at,
+            updated_at=updated_at,
+            started_at=_coerce_datetime(data.get("started_at")),
+            completed_at=_coerce_datetime(data.get("completed_at")),
+            dependencies=list(data.get("dependencies", [])),
+            sync_port=sync_port,
+        )
 
     def add_subtask(self, subtask: "CollaborationTask") -> None:
         """Add a subtask to this task."""
+
         subtask.parent_task_id = self.id
         self.subtasks.append(subtask)
 
     def add_dependency(self, task_id: str) -> None:
         """Add a dependency to this task."""
+
         if task_id not in self.dependencies:
             self.dependencies.append(task_id)
 
     def add_message(self, message: AgentMessage) -> None:
         """Add a message to this task."""
+
         self.messages.append(message)
 
     def update_status(self, status: TaskStatus) -> None:
         """Update the status of this task."""
+
         self.status = status
         self.updated_at = datetime.now()
 
@@ -176,6 +336,8 @@ class CollaborationTask:
             self.started_at = datetime.now()
         elif status in [TaskStatus.COMPLETED, TaskStatus.FAILED]:
             self.completed_at = datetime.now()
+
+        self.refresh_descriptor()
 
 
 class AgentCollaborationSystem:
@@ -355,6 +517,7 @@ class AgentCollaborationSystem:
         required_capabilities: Optional[List[str]] = None,
         parent_task_id: Optional[str] = None,
         priority: int = 1,
+        descriptor: Optional[Any] = None,
     ) -> CollaborationTask:
         """
         Create a new task in the collaboration system.
@@ -366,17 +529,30 @@ class AgentCollaborationSystem:
             required_capabilities: Capabilities required to perform the task
             parent_task_id: ID of the parent task (if this is a subtask)
             priority: Priority of the task (higher values = higher priority)
+            descriptor: Optional mapping or :class:`TaskDescriptor` to merge
+                with the generated descriptor for the task.
 
         Returns:
             The created task
         """
+        descriptor_obj: Optional[TaskDescriptor]
+        if descriptor is None:
+            descriptor_obj = None
+        elif isinstance(descriptor, TaskDescriptor):
+            descriptor_obj = descriptor
+        elif isinstance(descriptor, dict):
+            descriptor_obj = TaskDescriptor.from_dict(descriptor)
+        else:
+            raise TypeError("descriptor must be TaskDescriptor or mapping")
+
         task = CollaborationTask(
             task_type=task_type,
             description=description,
             inputs=inputs,
-            required_capabilities=required_capabilities,
+            required_capabilities=required_capabilities or [],
             parent_task_id=parent_task_id,
             priority=priority,
+            descriptor=descriptor_obj,
         )
 
         # Store task in memory if memory manager is available
@@ -460,7 +636,7 @@ class AgentCollaborationSystem:
         sender_id: str,
         recipient_id: str,
         message_type: MessageType,
-        content: Dict[str, Any],
+        content: Any,
         related_task_id: Optional[str] = None,
     ) -> AgentMessage:
         """
@@ -470,17 +646,20 @@ class AgentCollaborationSystem:
             sender_id: ID of the sending agent
             recipient_id: ID of the receiving agent
             message_type: Type of message
-            content: Content of the message
+            content: Content of the message. Supports dictionaries, strings,
+                and collaboration DTO instances; the value is normalized into
+                an :class:`AgentPayload`.
             related_task_id: ID of the task this message is related to (if any)
 
         Returns:
             The created message
         """
+        payload = _ensure_agent_payload(content)
         message = AgentMessage(
             sender_id=sender_id,
             recipient_id=recipient_id,
             message_type=message_type,
-            content=content,
+            payload=payload,
             related_task_id=related_task_id,
         )
 
@@ -604,6 +783,7 @@ class AgentCollaborationSystem:
                         task.assigned_agent_id = agent_id
                         task.status = TaskStatus.ASSIGNED
                         task.updated_at = datetime.now()
+                        task.refresh_descriptor()
 
                         # Store updated task in memory
                         from .collaboration_memory_utils import store_with_retry
@@ -628,6 +808,7 @@ class AgentCollaborationSystem:
                 task.assigned_agent_id = agent_id
                 task.status = TaskStatus.ASSIGNED
                 task.updated_at = datetime.now()
+                task.refresh_descriptor()
 
             logger.info(f"Assigned task {task_id} to agent {agent_id}")
             return True
@@ -645,6 +826,7 @@ class AgentCollaborationSystem:
                         task.assigned_agent_id = best_agent_id
                         task.status = TaskStatus.ASSIGNED
                         task.updated_at = datetime.now()
+                        task.refresh_descriptor()
 
                         # Store updated task in memory
                         from .collaboration_memory_utils import store_with_retry
@@ -669,6 +851,7 @@ class AgentCollaborationSystem:
                 task.assigned_agent_id = best_agent_id
                 task.status = TaskStatus.ASSIGNED
                 task.updated_at = datetime.now()
+                task.refresh_descriptor()
 
             logger.info(f"Assigned task {task_id} to agent {best_agent_id}")
             return True

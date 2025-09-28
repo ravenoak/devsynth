@@ -17,3 +17,6 @@ def test_task_round_trip_to_memory_item() -> None:
     restored = from_memory_item(item)
     assert isinstance(restored, CollaborationTask)
     assert restored.id == task.id
+    assert item.content["descriptor"]["dto_type"] == "TaskDescriptor"
+    assert restored.descriptor.task_id == task.id
+    assert restored.inputs == {"x": 1}
