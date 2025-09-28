@@ -67,3 +67,29 @@ def test_ensure_pytest_bdd_plugin_env_respects_explicit_disable(
 
     assert changed is False
     assert env.get("PYTEST_ADDOPTS") == "-p no:pytest_bdd -s"
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize(
+    ("addopts", "expected_changed", "expected_addopts"),
+    (
+        ("-p no:pytest_bdd -s", False, "-p no:pytest_bdd -s"),
+        ("-k feature", True, "-k feature -p pytest_bdd.plugin"),
+    ),
+)
+def test_ensure_pytest_bdd_plugin_env_handles_explicit_optouts(
+    monkeypatch: pytest.MonkeyPatch,
+    addopts: str,
+    expected_changed: bool,
+    expected_addopts: str,
+) -> None:
+    """Parameterize pytest-bdd opt-out and reinjection flows."""
+
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    monkeypatch.setenv("PYTEST_ADDOPTS", addopts)
+
+    env = os.environ
+    changed = run_tests_module.ensure_pytest_bdd_plugin_env(env)
+
+    assert changed is expected_changed
+    assert env.get("PYTEST_ADDOPTS") == expected_addopts
