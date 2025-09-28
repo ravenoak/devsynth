@@ -296,7 +296,6 @@ ignore_errors = true
 module = [
   "devsynth.adapters.chromadb_memory_store",
   "devsynth.adapters.cli.typer_adapter",
-  "devsynth.adapters.jira_adapter",
   "devsynth.adapters.kuzu_memory_store",
   "devsynth.adapters.memory.chroma_db_adapter",
   "devsynth.adapters.memory.kuzu_adapter",

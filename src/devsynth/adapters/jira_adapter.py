@@ -2,17 +2,110 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from dataclasses import asdict, dataclass
+from typing import Any, Optional, Protocol, TypedDict, cast, runtime_checkable
 
 import requests
 
 from devsynth.logging_setup import DevSynthLogger
 
 
+@dataclass(frozen=True)
+class JiraProjectReference:
+    """Reference to a Jira project."""
+
+    key: str
+
+
+@dataclass(frozen=True)
+class JiraIssueType:
+    """Jira issue type descriptor."""
+
+    name: str
+
+
+@dataclass(frozen=True)
+class JiraIssueFields:
+    """Fields required for creating a Jira issue."""
+
+    project: JiraProjectReference
+    summary: str
+    description: str
+    issuetype: JiraIssueType
+
+
+@dataclass(frozen=True)
+class JiraIssueCreatePayload:
+    """Payload wrapper for Jira issue creation."""
+
+    fields: JiraIssueFields
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the payload to a serializable mapping."""
+
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class JiraTransition:
+    """Transition descriptor for Jira issues."""
+
+    id: str
+
+
+@dataclass(frozen=True)
+class JiraTransitionPayload:
+    """Payload wrapper for transitioning a Jira issue."""
+
+    transition: JiraTransition
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the transition payload to a serializable mapping."""
+
+        return asdict(self)
+
+
+class JiraIssueCreateResponse(TypedDict, total=False):
+    """Response payload for Jira issue creation."""
+
+    key: str
+
+
+class JiraTransitionDescriptor(TypedDict, total=False):
+    """Descriptor for an available Jira transition."""
+
+    id: str
+    name: str
+
+
+class JiraTransitionsResponse(TypedDict, total=False):
+    """Response payload describing available Jira transitions."""
+
+    transitions: list[JiraTransitionDescriptor]
+
+
+@runtime_checkable
+class HTTPClientProtocol(Protocol):
+    """Protocol describing the HTTP client interface used by the adapter."""
+
+    def post(self, url: str, **kwargs: Any) -> requests.Response:
+        """Send an HTTP POST request."""
+
+    def get(self, url: str, **kwargs: Any) -> requests.Response:
+        """Send an HTTP GET request."""
+
+
 class JiraAdapter:
     """Adapter for interacting with Jira issues."""
 
-    def __init__(self, url: str, email: str, token: str, project_key: str) -> None:
+    def __init__(
+        self,
+        url: str,
+        email: str,
+        token: str,
+        project_key: str,
+        http_client: HTTPClientProtocol | None = None,
+    ) -> None:
         """Initialize the Jira adapter.
 
         Args:
@@ -26,6 +119,9 @@ class JiraAdapter:
         self.token = token
         self.project_key = project_key
         self.logger = DevSynthLogger(__name__)
+        self.http_client: HTTPClientProtocol = cast(
+            HTTPClientProtocol, http_client if http_client is not None else requests
+        )
 
     def create_issue(
         self, summary: str, description: str, issue_type: str = "Task"
@@ -41,17 +137,17 @@ class JiraAdapter:
             The Jira issue key, e.g. ``"PROJ-1"``.
         """
         url = f"{self.url}/rest/api/3/issue"
-        payload = {
-            "fields": {
-                "project": {"key": self.project_key},
-                "summary": summary,
-                "description": description,
-                "issuetype": {"name": issue_type},
-            }
-        }
+        payload = JiraIssueCreatePayload(
+            fields=JiraIssueFields(
+                project=JiraProjectReference(key=self.project_key),
+                summary=summary,
+                description=description,
+                issuetype=JiraIssueType(name=issue_type),
+            )
+        ).to_dict()
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
         try:
-            resp = requests.post(
+            resp = self.http_client.post(
                 url,
                 json=payload,
                 headers=headers,
@@ -62,7 +158,7 @@ class JiraAdapter:
         except Exception as exc:  # pragma: no cover - network failure
             self.logger.error("Jira issue creation failed: %s", exc)
             raise
-        data = resp.json()
+        data = cast(JiraIssueCreateResponse, resp.json())
         return data.get("key", "")
 
     def transition_issue(self, issue_key: str, status: str) -> None:
@@ -75,14 +171,15 @@ class JiraAdapter:
         base = f"{self.url}/rest/api/3/issue/{issue_key}/transitions"
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
         try:
-            resp = requests.get(
+            resp = self.http_client.get(
                 base,
                 headers=headers,
                 auth=(self.email, self.token),
                 timeout=10,
             )
             resp.raise_for_status()
-            transitions = resp.json().get("transitions", [])
+            transitions_data = cast(JiraTransitionsResponse, resp.json())
+            transitions = transitions_data.get("transitions", [])
             transition_id: Optional[str] = None
             for t in transitions:
                 name = t.get("name")
@@ -91,8 +188,8 @@ class JiraAdapter:
                     break
             if transition_id is None:
                 raise ValueError(f"Transition '{status}' not found")
-            payload = {"transition": {"id": transition_id}}
-            resp = requests.post(
+            payload = JiraTransitionPayload(transition=JiraTransition(id=transition_id)).to_dict()
+            resp = self.http_client.post(
                 base,
                 json=payload,
                 headers=headers,
