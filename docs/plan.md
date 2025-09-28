@@ -10,11 +10,12 @@ Executive summary
 - Current state (evidence):
   - Test collection succeeds across a large suite (unit/integration/behavior/property).
   - Fast smoke/unit/integration/behavior profiles run successfully via the CLI.
+  - Strict mypy gating remains red; latest audit captured in `diagnostics/mypy_strict_2025-09-30_refresh.txt` after running `poetry run mypy --strict src/devsynth`.【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L1-L20】【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L850-L850】
 - Speed-marker discipline validated (0 violations).
  - Property marker verification reports 0 violations after converting nested Hypothesis helpers into decorated tests.
  - Property tests (opt-in) now pass after dummy adjustments and Hypothesis fixes.
   - Diagnostics indicate environment/config gaps for non-test environments (doctor.txt) used by the app; tests succeed due to defaults and gating, but this requires documentation and guardrails.
-- Coverage aggregation across unit, integration, and behavior tests previously reached 95% on 2025-09-12. The latest full fast+medium profile (`poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`) now exits with code 1 because the aggregate remains 20.92 %—below the enforced 90 % threshold—even though coverage artifacts regenerate successfully.【5d08c6†L1-L1】【4e0459†L1-L4】 An updated attempt in this session continues to fail before the CLI boots because `pydantic` recurses while importing `devsynth.core.config_loader`, so the fast+medium sweep still cannot execute end-to-end in the constrained environment.【093eb1†L1-L120】【56d298†L1-L40】
+- Coverage aggregation across unit, integration, and behavior tests previously reached 95% on 2025-09-12. The latest full fast+medium profile (`poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`) now exits with code 1 because the aggregate remains 20.92 %—below the enforced 90 % threshold—even though coverage artifacts regenerate successfully.【5d08c6†L1-L1】【4e0459†L1-L4】【F:diagnostics/full_profile_coverage.txt†L1-L24】 An updated attempt in this session continues to fail before the CLI boots because `pydantic` recurses while importing `devsynth.core.config_loader`, so the fast+medium sweep still cannot execute end-to-end in the constrained environment.【093eb1†L1-L120】【56d298†L1-L40】
 - 2025-09-21: Running `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` after the recent provider-system and CLI harness additions continues to produce artifacts under `test_reports/coverage.json`, but coverage remains 20.92 % overall with key modules far below threshold (`logging_setup.py` 31.28 %, `methodology/edrr/reasoning_loop.py` 17.24 %, `testing/run_tests.py` 7.51 %). Additional uplift is required before the ≥90 % gate can pass.【5d08c6†L1-L1】【4e0459†L1-L4】【76358d†L1-L3】 Targeted regression tests for the run-tests CLI and harness now exercise smoke coverage skips, inventory exports, and artifact generation, but the focused coverage run over those suites reaches only 19.03 % because the broader CLI import graph still remains stubbed out in this environment.【F:tests/unit/application/cli/commands/test_run_tests_cmd_cli_runner_paths.py†L212-L309】【F:tests/unit/testing/test_run_tests_cli_invocation.py†L640-L707】【8c8382†L1-L38】【464748†L1-L8】
 - 2025-09-16: Re-running the same fast+medium profile still prints "Unable to determine total coverage" because the synthesized coverage JSON lacks `totals.percent_covered`; instrumentation must be repaired before the gate can pass.【50195f†L1-L5】
 - 2025-09-17: Targeted lint/security cleanup for adapters and memory stores completed; `poetry run flake8 src/ tests/`
@@ -29,7 +30,8 @@ Commands executed (audit trail)
 - poetry run devsynth run-tests --target integration-tests --speed=fast --smoke --no-parallel --maxfail=1 → Success.
  - poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json → verify_test_markers now reports 0 property_violations after helper logic refinement.
  - DEVSYNTH_PROPERTY_TESTING=true poetry run pytest tests/property/ -q → all tests passed.
-- poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel → exits with code 1 after tests pass because total coverage is 20.92 %, below the enforced 90 % threshold, even though `.coverage`, JSON, and HTML artifacts regenerate successfully.【5d08c6†L1-L1】【4e0459†L1-L4】
+- poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel → exits with code 1 after tests pass because total coverage is 20.92 %, below the enforced 90 % threshold, even though `.coverage`, JSON, and HTML artifacts regenerate successfully.【5d08c6†L1-L1】【4e0459†L1-L4】【F:diagnostics/full_profile_coverage.txt†L1-L24】
+- poetry run mypy --strict src/devsynth → captures 794 errors across 82 files; evidence stored at `diagnostics/mypy_strict_2025-09-30_refresh.txt` pending targeted fixes.【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L1-L20】【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L850-L850】
 - 2025-09-16: poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1 → reproduces the coverage warning even though pytest exits successfully.
 - poetry install --with dev --all-extras → reinstalls the entry point so `poetry run devsynth …` works after a fresh session.
 - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 → auto-injects `-p pytest_cov`, `-p pytest_bdd.plugin`, and now appends `--cov-fail-under=0` when plugin autoloading is disabled so coverage data is produced without triggering the ≥90 % gate during smoke triage.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L308-L320】【F:logs/run-tests-smoke-fast-20250921T160631Z.log†L1-L37】
@@ -312,7 +314,7 @@ Phase 4: Non-functional quality gates (Day 3–5)
   poetry run bandit -r src/devsynth -x tests
   poetry run safety check --full-report
 - Typing (strict):
-  poetry run mypy src/devsynth
+  poetry run task mypy:strict  # wrapper for poetry run mypy --strict src/devsynth
   - Address strict failures or document temporary relaxations with TODOs and targeted pyproject overrides only where necessary.
 
 Phase 5: Documentation and developer workflow (Day 4–5)
@@ -401,7 +403,7 @@ Maintainer quickstart (authoritative commands)
 - Marker discipline check:
   poetry run python scripts/verify_test_markers.py --report --report-file test_markers_report.json
 - Static analysis and typing:
-  poetry run black --check . && poetry run isort --check-only . && poetry run flake8 src/ tests/ && poetry run mypy src/devsynth && poetry run bandit -r src/devsynth -x tests && poetry run safety check --full-report
+  poetry run black --check . && poetry run isort --check-only . && poetry run flake8 src/ tests/ && poetry run task mypy:strict && poetry run bandit -r src/devsynth -x tests && poetry run safety check --full-report
 - Persistence strategy:
   - `scripts/install_dev.sh` installs go-task into `$HOME/.local/bin` and adds it to PATH automatically.
   - Running `task --version` verifies the installation.

@@ -25,6 +25,7 @@ milestone.
 ## [Unreleased]
 
 ### Changed
+- Updated release readiness documentation to reinforce the ≥90 % coverage gate, strict mypy verification via `poetry run task mypy:strict`, and fast+medium artifact archival workflows, referencing the latest diagnostics evidence.
 - Realigned the FastAPI 0.116.x pin with Starlette 0.47.3 after reviewing the
   upstream release notes; the `sitecustomize` shim continues to patch
   `WebSocketDenialResponse` until the Python 3.12 TestClient MRO fix lands
