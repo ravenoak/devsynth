@@ -15,7 +15,10 @@ def _patch_starlette_testclient() -> None:
 
     sys.modules.pop("starlette.testclient", None)
 
-    spec = importlib.util.find_spec("starlette.testclient")
+    try:
+        spec = importlib.util.find_spec("starlette.testclient")
+    except ModuleNotFoundError:
+        return
     if not spec or not isinstance(spec.loader, importlib.machinery.SourceFileLoader):
         return
 
