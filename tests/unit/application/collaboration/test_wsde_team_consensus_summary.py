@@ -1,5 +1,10 @@
 import pytest
 
+from devsynth.application.collaboration.dto import (
+    AgentOpinionRecord,
+    ConsensusOutcome,
+    SynthesisArtifact,
+)
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
@@ -32,9 +37,22 @@ def test_summarize_voting_result_winner():
 
 def test_summarize_consensus_result_methods():
     mixin = DummyTeam()
-    consensus = {"method": "synthesis", "synthesis": {"text": "do x"}}
-    assert "synthesis consensus" in mixin.summarize_consensus_result(consensus).lower()
-    consensus = {"majority_opinion": "opt", "method": "vote"}
+    synthesis_outcome = ConsensusOutcome(
+        consensus_id="c1",
+        method="conflict_resolution_synthesis",
+        synthesis=SynthesisArtifact(text="do x"),
+        agent_opinions=(AgentOpinionRecord(agent_id="a", opinion="do x"),),
+    )
+    assert (
+        "synthesis consensus"
+        in mixin.summarize_consensus_result(synthesis_outcome).lower()
+    )
+    consensus = ConsensusOutcome(
+        consensus_id="c2",
+        method="majority_opinion",
+        majority_opinion="opt",
+        agent_opinions=(AgentOpinionRecord(agent_id="a", opinion="opt"),),
+    )
     assert (
         "majority opinion chosen" in mixin.summarize_consensus_result(consensus).lower()
     )

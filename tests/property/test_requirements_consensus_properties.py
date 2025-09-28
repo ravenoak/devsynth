@@ -10,6 +10,12 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from devsynth.application.collaboration.dto import (
+    AgentOpinionRecord,
+    ConsensusOutcome,
+    ConflictRecord,
+    SynthesisArtifact,
+)
 from devsynth.domain.models.requirement import Requirement
 from devsynth.domain.models.wsde_dialectical import (
     DialecticalSequence,
@@ -88,25 +94,24 @@ def test_dialectical_reasoning_returns_expected_shape_quickly(thesis_content: st
 @pytest.mark.medium
 @settings(max_examples=5, deadline=300)
 @given(outcome=consensus_outcome_strategy())
-def test_generated_consensus_outcome_has_expected_keys(outcome: dict[str, Any]):
+def test_generated_consensus_outcome_has_expected_keys(outcome: ConsensusOutcome):
     """Generated consensus outcomes provide required keys.
 
     Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
     """
-    for key in (
-        "id",
-        "task_id",
-        "timestamp",
-        "thesis",
-        "antithesis",
-        "synthesis",
-        "method",
-    ):
-        assert key in outcome
-    assert isinstance(outcome["id"], str)
-    assert isinstance(outcome["task_id"], str)
-    assert hasattr(outcome["timestamp"], "isoformat")
-    assert isinstance(outcome["thesis"], dict)
-    assert isinstance(outcome["antithesis"], dict)
-    assert isinstance(outcome["synthesis"], dict)
-    assert outcome["method"] == "dialectical_reasoning"
+    assert isinstance(outcome, ConsensusOutcome)
+    assert isinstance(outcome.consensus_id, str)
+    assert isinstance(outcome.task_id, str)
+    assert isinstance(outcome.timestamp, str)
+    assert outcome.method in {"conflict_resolution_synthesis", "majority_opinion"}
+
+    for opinion in outcome.agent_opinions:
+        assert isinstance(opinion, AgentOpinionRecord)
+
+    for conflict in outcome.conflicts:
+        assert isinstance(conflict, ConflictRecord)
+
+    if outcome.method == "conflict_resolution_synthesis":
+        assert isinstance(outcome.synthesis, SynthesisArtifact)
+    else:
+        assert isinstance(outcome.majority_opinion, str)

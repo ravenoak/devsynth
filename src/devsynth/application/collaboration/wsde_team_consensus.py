@@ -8,10 +8,14 @@ This is part of an effort to break up the monolithic wsde_team_extended.py
 into smaller, more focused modules.
 """
 
+from __future__ import annotations
+
 import re
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from collections.abc import Mapping as MappingABC
+from dataclasses import replace
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Sequence, Union
 
 from devsynth.application.edrr.edrr_phase_transitions import (
     MetricType,
@@ -25,12 +29,20 @@ if TYPE_CHECKING:  # pragma: no cover - for type hints only
     from devsynth.domain.models.wsde_facade import WSDETeam
 
 
+from .dto import (
+    AgentOpinionRecord,
+    ConflictRecord,
+    ConsensusOutcome,
+    SynthesisArtifact,
+)
+
+
 class ConsensusBuildingMixin:
     """Mixin class providing consensus building functionality."""
 
     def build_consensus(
         self, task: Dict[str, Any], phase: Optional[Phase] = None
-    ) -> Dict[str, Any]:
+    ) -> ConsensusOutcome:
         """Build consensus among team members with transactional safety."""
 
         stores: List[str] = []
@@ -50,7 +62,7 @@ class ConsensusBuildingMixin:
 
     def _build_consensus_inner(
         self, task: Dict[str, Any], phase: Optional[Phase] = None
-    ) -> Dict[str, Any]:
+    ) -> ConsensusOutcome:
         """Internal implementation of consensus building."""
         if "id" not in task:
             task["id"] = str(uuid.uuid4())
@@ -59,73 +71,53 @@ class ConsensusBuildingMixin:
             f"Building consensus for task {task['id']}: {task.get('title', 'Untitled')}"
         )
 
-        agent_opinions: Dict[str, Dict[str, Any]] = {}
-        for agent in self.agents:
-            messages = self.get_messages(
-                agent=agent.name,
-                filters={"metadata.task_id": task["id"], "type": "opinion"},
-            )
+        task_text = (task.get("description", "") or "") + " " + (task.get("title", "") or "")
+        keywords = set(re.findall(r"\b\w+\b", task_text.lower()))
 
-            if messages:
-                latest_message = max(messages, key=lambda m: m["timestamp"])
-                opinion = latest_message["content"].get("opinion", "")
-                rationale = latest_message["content"].get("rationale", "")
-                agent_opinions[agent.name] = {
-                    "opinion": opinion,
-                    "rationale": rationale,
-                    "timestamp": latest_message["timestamp"],
-                }
-
+        agent_opinions = self._collect_agent_opinion_records(task, keywords=keywords)
         if not agent_opinions:
             self._generate_agent_opinions(task)
-            for agent in self.agents:
-                messages = self.get_messages(
-                    agent=agent.name,
-                    filters={"metadata.task_id": task["id"], "type": "opinion"},
-                )
-                if messages:
-                    latest_message = max(messages, key=lambda m: m["timestamp"])
-                    opinion = latest_message["content"].get("opinion", "")
-                    rationale = latest_message["content"].get("rationale", "")
-                    agent_opinions[agent.name] = {
-                        "opinion": opinion,
-                        "rationale": rationale,
-                        "timestamp": latest_message["timestamp"],
-                    }
+            agent_opinions = self._collect_agent_opinion_records(task, keywords=keywords)
 
-        conflicts = self._identify_conflicts(task)
+        consensus_id = str(uuid.uuid4())
+        conflicts = self._identify_conflicts(task, agent_opinions)
         conflict_count = len(conflicts)
+        timestamp = datetime.now().isoformat()
 
         if conflicts:
-            synthesis = self._generate_conflict_resolution_synthesis(task, conflicts)
-            consensus_result = {
-                "task_id": task["id"],
-                "method": "conflict_resolution_synthesis",
-                "conflicts": conflicts,
-                "conflicts_identified": conflict_count,
-                "synthesis": synthesis,
-                "agent_opinions": agent_opinions,
-                "timestamp": datetime.now().isoformat(),
-            }
+            synthesis = self._generate_conflict_resolution_synthesis(
+                task, conflicts, agent_opinions
+            )
+            outcome = ConsensusOutcome(
+                consensus_id=consensus_id,
+                task_id=task["id"],
+                method="conflict_resolution_synthesis",
+                achieved=True,
+                agent_opinions=tuple(agent_opinions),
+                conflicts=tuple(conflicts),
+                conflicts_identified=conflict_count,
+                synthesis=synthesis,
+                timestamp=timestamp,
+            )
         else:
-            task_text = task.get("description", "") + " " + task.get("title", "")
-            keywords = set(re.findall(r"\b\w+\b", task_text.lower()))
             majority_opinion = self._identify_weighted_majority_opinion(
                 agent_opinions, keywords
             )
-            consensus_result = {
-                "task_id": task["id"],
-                "method": "majority_opinion",
-                "majority_opinion": majority_opinion,
-                "agent_opinions": agent_opinions,
-                "conflicts": conflicts,
-                "conflicts_identified": conflict_count,
-                "timestamp": datetime.now().isoformat(),
-            }
+            outcome = ConsensusOutcome(
+                consensus_id=consensus_id,
+                task_id=task["id"],
+                method="majority_opinion",
+                achieved=bool(agent_opinions),
+                agent_opinions=tuple(agent_opinions),
+                conflicts=tuple(conflicts),
+                conflicts_identified=conflict_count,
+                majority_opinion=majority_opinion or None,
+                timestamp=timestamp,
+            )
 
-        self._track_decision(task, consensus_result)
-        explanation = self._generate_stakeholder_explanation(task, consensus_result)
-        consensus_result["stakeholder_explanation"] = explanation
+        explanation = self._generate_stakeholder_explanation(task, outcome)
+        outcome = replace(outcome, stakeholder_explanation=explanation)
+        self._track_decision(task, outcome)
 
         if (
             phase is not None
@@ -135,73 +127,143 @@ class ConsensusBuildingMixin:
             existing = self.phase_metrics.get_phase_metrics(phase) or {}
             existing[MetricType.CONFLICTS.value] = conflict_count
             existing[MetricType.QUALITY.value] = calculate_enhanced_quality_score(
-                consensus_result
+                outcome.to_dict()
             )
             self.phase_metrics.metrics[phase.name] = existing
 
-        return consensus_result
+        return outcome
 
-    def _identify_conflicts(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _collect_agent_opinion_records(
+        self,
+        task: Mapping[str, Any],
+        *,
+        keywords: Optional[set[str]] = None,
+    ) -> List[AgentOpinionRecord]:
+        """Gather the latest opinion from each agent for the given task."""
+
+        task_id = task.get("id")
+        if task_id is None:
+            return []
+
+        records: List[AgentOpinionRecord] = []
+        for agent in getattr(self, "agents", []):
+            record = self._build_agent_opinion_record(
+                agent,
+                str(task_id),
+                keywords=keywords,
+            )
+            if record is not None:
+                records.append(record)
+        return records
+
+    def _build_agent_opinion_record(
+        self,
+        agent: Any,
+        task_id: str,
+        *,
+        keywords: Optional[set[str]] = None,
+    ) -> Optional[AgentOpinionRecord]:
+        """Construct an :class:`AgentOpinionRecord` for an agent and task."""
+
+        messages = self.get_messages(
+            agent=agent.name,
+            filters={"metadata.task_id": task_id, "type": "opinion"},
+        )
+        if not messages:
+            return None
+
+        latest_message = max(messages, key=self._message_timestamp_key)
+        content = latest_message.get("content", {})
+        opinion = content.get("opinion")
+        rationale = content.get("rationale")
+        timestamp = self._normalize_timestamp(latest_message.get("timestamp"))
+        weight: Optional[float] = None
+        if keywords is not None:
+            weight = self._calculate_expertise_weight(agent, keywords)
+
+        return AgentOpinionRecord(
+            agent_id=getattr(agent, "name", None),
+            opinion=opinion,
+            rationale=rationale,
+            timestamp=timestamp,
+            weight=weight,
+        )
+
+    def _message_timestamp_key(self, message: Mapping[str, Any]) -> str:
+        """Provide a deterministic key for ordering message timestamps."""
+
+        timestamp = message.get("timestamp")
+        if timestamp is None:
+            return ""
+        if isinstance(timestamp, (int, float)):
+            return f"{float(timestamp):020.6f}"
+        if hasattr(timestamp, "isoformat"):
+            return timestamp.isoformat()  # type: ignore[no-any-return]
+        return str(timestamp)
+
+    def _normalize_timestamp(self, timestamp: Any) -> Optional[str]:
+        """Convert message timestamps into ISO-formatted strings."""
+
+        if timestamp is None:
+            return None
+        if hasattr(timestamp, "isoformat"):
+            return timestamp.isoformat()
+        return str(timestamp)
+
+    def _identify_conflicts(
+        self,
+        task: Dict[str, Any],
+        opinions: Optional[Sequence[AgentOpinionRecord]] = None,
+    ) -> List[ConflictRecord]:
         """
         Identify conflicts in agent opinions for a task.
 
         Args:
             task: The task to identify conflicts for
+            opinions: Optional pre-fetched agent opinions
 
         Returns:
             List of identified conflicts
         """
-        conflicts = []
 
-        # Get all agents' opinions
-        agent_opinions = {}
-        for agent in self.agents:
-            # Get messages from this agent related to the task
-            messages = self.get_messages(
-                agent=agent.name,
-                filters={"metadata.task_id": task["id"], "type": "opinion"},
-            )
+        if opinions is None:
+            opinions = self._collect_agent_opinion_records(task)
 
-            if messages:
-                # Use the latest opinion
-                latest_message = max(messages, key=lambda m: m["timestamp"])
-                opinion = latest_message["content"].get("opinion", "")
-                rationale = latest_message["content"].get("rationale", "")
+        conflicts: List[ConflictRecord] = []
+        opinion_map = {
+            record.agent_id: record
+            for record in opinions
+            if record.agent_id
+        }
 
-                agent_opinions[agent.name] = {
-                    "opinion": opinion,
-                    "rationale": rationale,
-                }
-
-        # Compare opinions pairwise
-        agent_names = list(agent_opinions.keys())
+        agent_names = list(opinion_map.keys())
         for i in range(len(agent_names)):
             for j in range(i + 1, len(agent_names)):
                 agent1 = agent_names[i]
                 agent2 = agent_names[j]
 
-                opinion1 = agent_opinions[agent1]["opinion"]
-                opinion2 = agent_opinions[agent2]["opinion"]
+                opinion1 = opinion_map[agent1].opinion or ""
+                opinion2 = opinion_map[agent2].opinion or ""
 
-                # Check if opinions conflict
                 if self._opinions_conflict(opinion1, opinion2):
-                    conflict = {
-                        "id": f"conflict_{len(conflicts)}_{task['id']}",
-                        "task_id": task["id"],
-                        "agent1": agent1,
-                        "agent2": agent2,
-                        "opinion1": opinion1,
-                        "opinion2": opinion2,
-                        "rationale1": agent_opinions[agent1]["rationale"],
-                        "rationale2": agent_opinions[agent2]["rationale"],
-                        "severity": (
-                            "high"
-                            if self._calculate_conflict_severity(opinion1, opinion2)
-                            > 0.7
-                            else "medium"
-                        ),
-                    }
-                    conflicts.append(conflict)
+                    severity_score = self._calculate_conflict_severity(
+                        opinion1, opinion2
+                    )
+                    severity_label = "high" if severity_score > 0.7 else "medium"
+                    conflicts.append(
+                        ConflictRecord(
+                            conflict_id=f"conflict_{len(conflicts)}_{task['id']}",
+                            task_id=task.get("id"),
+                            agent_a=agent1,
+                            agent_b=agent2,
+                            opinion_a=opinion1,
+                            opinion_b=opinion2,
+                            rationale_a=opinion_map[agent1].rationale,
+                            rationale_b=opinion_map[agent2].rationale,
+                            severity_label=severity_label,
+                            severity_score=severity_score,
+                        )
+                    )
 
         return conflicts
 
@@ -291,8 +353,11 @@ class ConsensusBuildingMixin:
         return 1.0 - overlap
 
     def _generate_conflict_resolution_synthesis(
-        self, task: Dict[str, Any], conflicts: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self,
+        task: Dict[str, Any],
+        conflicts: Sequence[ConflictRecord],
+        agent_opinions: Sequence[AgentOpinionRecord],
+    ) -> SynthesisArtifact:
         """
         Generate a synthesis that resolves conflicts in agent opinions.
 
@@ -304,53 +369,44 @@ class ConsensusBuildingMixin:
             Synthesis resolving the conflicts
         """
         # Group conflicts by agent
-        agent_conflicts = {}
+        agent_conflicts: Dict[str, List[ConflictRecord]] = {}
         for conflict in conflicts:
-            agent1 = conflict["agent1"]
-            agent2 = conflict["agent2"]
-
-            if agent1 not in agent_conflicts:
-                agent_conflicts[agent1] = []
-            if agent2 not in agent_conflicts:
-                agent_conflicts[agent2] = []
-
-            agent_conflicts[agent1].append(conflict)
-            agent_conflicts[agent2].append(conflict)
+            for agent_id in (conflict.agent_a, conflict.agent_b):
+                if not agent_id:
+                    continue
+                agent_conflicts.setdefault(agent_id, []).append(conflict)
 
         # Calculate expertise weights for each agent
-        expertise_weights = {}
+        expertise_weights: Dict[str, float] = {}
         for agent in self.agents:
-            # Extract keywords from task
-            task_text = task.get("description", "") + " " + task.get("title", "")
+            task_text = (task.get("description", "") or "") + " " + (
+                task.get("title", "") or ""
+            )
             keywords = set(re.findall(r"\b\w+\b", task_text.lower()))
-
-            # Calculate expertise weight
             expertise_weights[agent.name] = self._calculate_expertise_weight(
                 agent, keywords
             )
 
         # Identify key points from each opinion, weighted by expertise
-        key_points = []
-        for agent in self.agents:
-            # Get agent's opinion
-            messages = self.get_messages(
-                agent=agent.name,
-                filters={"metadata.task_id": task["id"], "type": "opinion"},
-            )
+        key_points: List[Dict[str, Any]] = []
+        opinion_map = {
+            record.agent_id: record for record in agent_opinions if record.agent_id
+        }
 
-            if not messages:
+        for agent in self.agents:
+            record = opinion_map.get(agent.name)
+            if record is None:
                 continue
 
-            latest_message = max(messages, key=lambda m: m["timestamp"])
-            opinion = latest_message["content"].get("opinion", "")
-            rationale = latest_message["content"].get("rationale", "")
+            opinion = record.opinion or ""
+            rationale = record.rationale or ""
 
-            # Extract key points from opinion and rationale
             opinion_points = self._extract_key_points(opinion)
             rationale_points = self._extract_key_points(rationale)
 
-            # Weight points by expertise
-            weight = expertise_weights.get(agent.name, 1.0)
+            weight = record.weight
+            if weight is None:
+                weight = expertise_weights.get(agent.name, 1.0)
 
             for point in opinion_points + rationale_points:
                 key_points.append(
@@ -385,15 +441,13 @@ class ConsensusBuildingMixin:
         synthesis_text = " ".join(synthesis_points)
 
         # Generate final synthesis
-        synthesis = {
-            "text": synthesis_text,
-            "key_points": synthesis_points,
-            "expertise_weights": expertise_weights,
-            "conflict_resolution_method": "weighted_expertise_synthesis",
-            "readability_score": self._calculate_readability_score(synthesis_text),
-        }
-
-        return synthesis
+        return SynthesisArtifact(
+            text=synthesis_text,
+            key_points=tuple(synthesis_points),
+            expertise_weights=expertise_weights,
+            conflict_resolution_method="weighted_expertise_synthesis",
+            readability_score=self._calculate_readability_score(synthesis_text),
+        )
 
     def _extract_key_points(self, text: str) -> List[str]:
         """
@@ -487,12 +541,12 @@ class ConsensusBuildingMixin:
         return majority_opinion
 
     def _identify_weighted_majority_opinion(
-        self, agent_opinions: Dict[str, Dict[str, Any]], keywords: set
+        self, agent_opinions: Sequence[AgentOpinionRecord], keywords: set[str]
     ) -> str:
         """Identify the majority opinion using expertise-based weighting.
 
         Args:
-            agent_opinions: Mapping of agent names to opinion data
+            agent_opinions: Agent opinion records to analyse
             keywords: Keywords extracted from the task context
 
         Returns:
@@ -506,9 +560,16 @@ class ConsensusBuildingMixin:
 
         # Sum weighted support for each opinion
         weighted_counts: Dict[str, float] = {}
-        for agent_name, data in agent_opinions.items():
-            opinion = data["opinion"]
-            weight = weights.get(agent_name, 1.0)
+        opinion_lookup = {
+            record.agent_id: record for record in agent_opinions if record.agent_id
+        }
+        for agent_id, record in opinion_lookup.items():
+            opinion = record.opinion
+            if not opinion:
+                continue
+            weight = record.weight
+            if weight is None:
+                weight = weights.get(agent_id, 1.0)
             weighted_counts[opinion] = weighted_counts.get(opinion, 0.0) + weight
 
         # Determine winning opinion
@@ -517,9 +578,9 @@ class ConsensusBuildingMixin:
 
         if len(top_opinions) > 1:
             primus = getattr(self, "get_primus", lambda: None)()
-            if primus and primus.name in agent_opinions:
-                primus_choice = agent_opinions[primus.name]["opinion"]
-                if primus_choice in top_opinions:
+            if primus and primus.name in opinion_lookup:
+                primus_choice = opinion_lookup[primus.name].opinion
+                if primus_choice and primus_choice in top_opinions:
                     return primus_choice
             return top_opinions[0]
 
@@ -562,7 +623,7 @@ class ConsensusBuildingMixin:
         return weight
 
     def _track_decision(
-        self, task: Dict[str, Any], consensus_result: Dict[str, Any]
+        self, task: Dict[str, Any], consensus_result: ConsensusOutcome
     ) -> None:
         """
         Track a decision made through consensus building.
@@ -571,38 +632,47 @@ class ConsensusBuildingMixin:
             task: The task the decision was made for
             consensus_result: The consensus result
         """
-        # Generate decision ID
-        decision_id = f"decision_{task['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        # Generate decision ID aligned with the consensus outcome identifier
+        decision_id = (
+            consensus_result.consensus_id
+            or f"decision_{task['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        )
 
-        # Create decision record
-        formatted_opinions = {}
-        for agent, data in consensus_result["agent_opinions"].items():
-            ts = data.get("timestamp")
-            if isinstance(ts, datetime):
-                data = {**data, "timestamp": ts.isoformat()}
-            formatted_opinions[agent] = data
+        formatted_opinions: Dict[str, Dict[str, Any]] = {}
+        for record in consensus_result.agent_opinions:
+            if not record.agent_id:
+                continue
+            formatted_opinions[record.agent_id] = {
+                "opinion": record.opinion,
+                "rationale": record.rationale,
+                "timestamp": record.timestamp,
+                "weight": record.weight,
+            }
 
-        decision = {
+        decision: Dict[str, Any] = {
             "id": decision_id,
-            "task_id": task["id"],
+            "task_id": task.get("id"),
             "task_title": task.get("title", "Untitled"),
             "task_description": task.get("description", ""),
-            "consensus_method": consensus_result["method"],
+            "consensus_method": consensus_result.method,
             "agent_opinions": formatted_opinions,
             "timestamp": datetime.now().isoformat(),
             "implemented": False,
             "implementation_details": None,
+            "consensus_snapshot": consensus_result.to_dict(),
         }
 
-        # Add synthesis if available
-        if "synthesis" in consensus_result:
-            decision["synthesis"] = consensus_result["synthesis"]
+        if consensus_result.synthesis is not None:
+            decision["synthesis"] = consensus_result.synthesis.to_dict()
 
-        # Add majority opinion if available
-        if "majority_opinion" in consensus_result:
-            decision["majority_opinion"] = consensus_result["majority_opinion"]
+        if consensus_result.majority_opinion:
+            decision["majority_opinion"] = consensus_result.majority_opinion
 
-        # Store decision
+        if consensus_result.stakeholder_explanation:
+            decision["stakeholder_explanation"] = (
+                consensus_result.stakeholder_explanation
+            )
+
         self.tracked_decisions[decision_id] = decision
 
         if hasattr(self, "memory_manager") and self.memory_manager is not None:
@@ -772,7 +842,7 @@ class ConsensusBuildingMixin:
         }
 
     def _generate_stakeholder_explanation(
-        self, task: Dict[str, Any], consensus_result: Dict[str, Any]
+        self, task: Dict[str, Any], consensus_result: ConsensusOutcome
     ) -> str:
         """
         Generate an explanation of the consensus result for stakeholders.
@@ -787,37 +857,41 @@ class ConsensusBuildingMixin:
         # Start with a summary
         explanation = f"Decision summary for '{task.get('title', 'Untitled')}': "
 
+        method = consensus_result.method or "consensus"
+
         # Add method-specific explanation
-        if consensus_result["method"] == "conflict_resolution_synthesis":
+        if method == "conflict_resolution_synthesis":
             # Synthesis-based consensus
-            synthesis = consensus_result.get("synthesis", {})
-            synthesis_text = synthesis.get("text", "")
+            synthesis = consensus_result.synthesis
+            synthesis_text = (synthesis.text if synthesis else "") or ""
 
             explanation += f"After analyzing different perspectives, we reached a synthesis-based decision. "
             explanation += f"The key points of our decision are: {synthesis_text} "
 
             # Add information about conflicts
-            num_conflicts = consensus_result.get("conflicts_identified", 0)
+            num_conflicts = consensus_result.conflicts_identified
             explanation += f"We identified and resolved {num_conflicts} conflicts in perspectives. "
 
             # Add readability information
-            readability = synthesis.get("readability_score", {})
+            readability = synthesis.readability_score if synthesis else {}
             if readability:
                 grade_level = readability.get("flesch_kincaid_grade", 0)
                 explanation += f"This explanation is written at approximately a grade {grade_level:.1f} reading level. "
         else:
             # Majority opinion
-            majority_opinion = consensus_result.get("majority_opinion", "")
+            majority_opinion = consensus_result.majority_opinion or ""
             explanation += f"The team reached a consensus through majority agreement. "
             explanation += f"The decision is: {majority_opinion} "
 
             # Count supporting agents
-            supporting_agents = 0
-            for agent, data in consensus_result.get("agent_opinions", {}).items():
-                if data.get("opinion") == majority_opinion:
-                    supporting_agents += 1
-
-            explanation += f"This decision was supported by {supporting_agents} out of {len(consensus_result.get('agent_opinions', {}))} team members. "
+            opinions = consensus_result.agent_opinions
+            supporting_agents = sum(
+                1 for record in opinions if record.opinion == majority_opinion
+            )
+            total_participants = len(opinions)
+            explanation += (
+                f"This decision was supported by {supporting_agents} out of {total_participants} team members. "
+            )
 
         # Add next steps
         explanation += "Next steps: Implement the decision and monitor outcomes. "
@@ -1008,24 +1082,59 @@ class ConsensusBuildingMixin:
         except Exception:
             pass
 
-    def summarize_consensus_result(self, consensus_result: Dict[str, Any]) -> str:
+    def summarize_consensus_result(
+        self, consensus_result: Union[ConsensusOutcome, Mapping[str, Any], None]
+    ) -> str:
         """Generate a concise summary from a consensus result."""
 
         if not consensus_result:
             return "No consensus result available."
 
-        method = consensus_result.get("method", "consensus")
+        if isinstance(consensus_result, MappingABC):
+            try:
+                consensus_result = ConsensusOutcome.from_dict(consensus_result)
+            except Exception:
+                method = str(consensus_result.get("method", "consensus"))
+                if "synthesis" in consensus_result:
+                    text = consensus_result["synthesis"].get("text", "").strip()
+                    summary = (
+                        f"Synthesis consensus reached: {text}"
+                        if text
+                        else "Synthesis consensus reached."
+                    )
+                elif "majority_opinion" in consensus_result:
+                    summary = (
+                        f"Majority opinion chosen: {consensus_result['majority_opinion']}"
+                    )
+                else:
+                    summary = (
+                        f"Consensus result: {consensus_result.get('result', '')}"
+                    )
+                if method:
+                    summary += f" (method: {method})"
+                return summary
 
-        if "synthesis" in consensus_result:
-            text = consensus_result["synthesis"].get("text", "").strip()
-            if text:
-                summary = f"Synthesis consensus reached: {text}"
-            else:
-                summary = "Synthesis consensus reached."
-        elif "majority_opinion" in consensus_result:
-            summary = f"Majority opinion chosen: {consensus_result['majority_opinion']}"
+        if not isinstance(consensus_result, ConsensusOutcome):
+            return "No consensus result available."
+
+        method = consensus_result.method or "consensus"
+
+        if (
+            consensus_result.synthesis is not None
+            and (consensus_result.synthesis.text or "").strip()
+        ):
+            summary = (
+                "Synthesis consensus reached: "
+                f"{consensus_result.synthesis.text.strip()}"
+            )
+        elif consensus_result.synthesis is not None:
+            summary = "Synthesis consensus reached."
+        elif consensus_result.majority_opinion:
+            summary = (
+                f"Majority opinion chosen: {consensus_result.majority_opinion}"
+            )
         else:
-            summary = f"Consensus result: {consensus_result.get('result', '')}"
+            summary = "Consensus result recorded."
 
         if method:
             summary += f" (method: {method})"
