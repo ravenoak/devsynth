@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any, Optional, Protocol, TypedDict, cast, runtime_checkable
+from typing import Any, Iterable, Protocol, TypedDict, cast, runtime_checkable
 
 import requests
 
@@ -65,13 +65,13 @@ class JiraTransitionPayload:
         return asdict(self)
 
 
-class JiraIssueCreateResponse(TypedDict, total=False):
+class JiraIssueCreateResponse(TypedDict):
     """Response payload for Jira issue creation."""
 
     key: str
 
 
-class JiraTransitionDescriptor(TypedDict, total=False):
+class JiraTransitionDescriptor(TypedDict):
     """Descriptor for an available Jira transition."""
 
     id: str
@@ -85,14 +85,37 @@ class JiraTransitionsResponse(TypedDict, total=False):
 
 
 @runtime_checkable
+class HTTPResponseProtocol(Protocol):
+    """Protocol describing the subset of response behaviour used by the adapter."""
+
+    def raise_for_status(self) -> None:
+        """Raise an exception if the HTTP response indicates a failure."""
+
+    def json(self) -> Any:
+        """Return the JSON body of the response."""
+
+
+@runtime_checkable
 class HTTPClientProtocol(Protocol):
     """Protocol describing the HTTP client interface used by the adapter."""
 
-    def post(self, url: str, **kwargs: Any) -> requests.Response:
+    def post(self, url: str, **kwargs: Any) -> HTTPResponseProtocol:
         """Send an HTTP POST request."""
 
-    def get(self, url: str, **kwargs: Any) -> requests.Response:
+    def get(self, url: str, **kwargs: Any) -> HTTPResponseProtocol:
         """Send an HTTP GET request."""
+
+
+class JiraAdapterError(RuntimeError):
+    """Base error for Jira adapter failures."""
+
+
+class JiraHttpError(JiraAdapterError):
+    """Error raised when an HTTP request to Jira fails."""
+
+
+class JiraTransitionNotFoundError(JiraAdapterError):
+    """Raised when the requested transition cannot be located."""
 
 
 class JiraAdapter:
@@ -119,9 +142,10 @@ class JiraAdapter:
         self.token = token
         self.project_key = project_key
         self.logger = DevSynthLogger(__name__)
-        self.http_client: HTTPClientProtocol = cast(
-            HTTPClientProtocol, http_client if http_client is not None else requests
+        default_client: HTTPClientProtocol = cast(
+            HTTPClientProtocol, requests.Session()
         )
+        self.http_client = http_client if http_client is not None else default_client
 
     def create_issue(
         self, summary: str, description: str, issue_type: str = "Task"
@@ -154,12 +178,21 @@ class JiraAdapter:
                 auth=(self.email, self.token),
                 timeout=10,
             )
-            resp.raise_for_status()
         except Exception as exc:  # pragma: no cover - network failure
             self.logger.error("Jira issue creation failed: %s", exc)
-            raise
-        data = cast(JiraIssueCreateResponse, resp.json())
-        return data.get("key", "")
+            raise JiraHttpError("Failed to submit Jira issue creation request") from exc
+        try:
+            resp.raise_for_status()
+            data = cast(JiraIssueCreateResponse, resp.json())
+        except Exception as exc:  # pragma: no cover - unexpected response
+            self.logger.error("Jira issue creation failed: %s", exc)
+            raise JiraHttpError("Jira issue creation returned an invalid response") from exc
+        key = data.get("key")
+        if not key:
+            message = "Jira issue creation response was missing the issue key"
+            self.logger.error(message)
+            raise JiraHttpError(message)
+        return key
 
     def transition_issue(self, issue_key: str, status: str) -> None:
         """Transition an issue to a new status.
@@ -177,18 +210,23 @@ class JiraAdapter:
                 auth=(self.email, self.token),
                 timeout=10,
             )
+        except Exception as exc:  # pragma: no cover - network failure
+            self.logger.error("Fetching Jira transitions failed: %s", exc)
+            raise JiraHttpError("Failed to request Jira transitions") from exc
+        try:
             resp.raise_for_status()
             transitions_data = cast(JiraTransitionsResponse, resp.json())
-            transitions = transitions_data.get("transitions", [])
-            transition_id: Optional[str] = None
-            for t in transitions:
-                name = t.get("name")
-                if name and name.lower() == status.lower():
-                    transition_id = t.get("id")
-                    break
-            if transition_id is None:
-                raise ValueError(f"Transition '{status}' not found")
-            payload = JiraTransitionPayload(transition=JiraTransition(id=transition_id)).to_dict()
+        except Exception as exc:  # pragma: no cover - unexpected response
+            self.logger.error("Fetching Jira transitions failed: %s", exc)
+            raise JiraHttpError("Failed to parse Jira transitions response") from exc
+        transitions = transitions_data.get("transitions")
+        if not transitions:
+            message = f"Transition '{status}' not found for issue {issue_key}"
+            self.logger.error(message)
+            raise JiraTransitionNotFoundError(message)
+        transition_id = self._find_transition_id(transitions, status, issue_key)
+        payload = JiraTransitionPayload(transition=JiraTransition(id=transition_id)).to_dict()
+        try:
             resp = self.http_client.post(
                 base,
                 json=payload,
@@ -196,7 +234,34 @@ class JiraAdapter:
                 auth=(self.email, self.token),
                 timeout=10,
             )
-            resp.raise_for_status()
         except Exception as exc:  # pragma: no cover - network failure
             self.logger.error("Jira issue transition failed: %s", exc)
-            raise
+            raise JiraHttpError("Failed to submit Jira transition request") from exc
+        try:
+            resp.raise_for_status()
+        except Exception as exc:  # pragma: no cover - unexpected response
+            self.logger.error("Jira issue transition failed: %s", exc)
+            raise JiraHttpError("Jira transition request returned an error") from exc
+
+    def _find_transition_id(
+        self,
+        transitions: Iterable[JiraTransitionDescriptor],
+        status: str,
+        issue_key: str,
+    ) -> str:
+        """Locate the transition identifier for the requested status."""
+
+        desired = status.lower()
+        for transition in transitions:
+            try:
+                name = transition["name"]
+                transition_id = transition["id"]
+            except KeyError as exc:
+                message = "Transition payload missing required fields"
+                self.logger.error(message)
+                raise JiraHttpError(message) from exc
+            if name.lower() == desired:
+                return transition_id
+        message = f"Transition '{status}' not found for issue {issue_key}"
+        self.logger.error(message)
+        raise JiraTransitionNotFoundError(message)
