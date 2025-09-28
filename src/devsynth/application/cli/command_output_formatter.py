@@ -4,16 +4,16 @@ This module provides standardized formatting for different types of command outp
 ensuring consistent output across all CLI commands.
 """
 
+from __future__ import annotations
+
 import json
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 from rich.box import MINIMAL, ROUNDED, SIMPLE, SQUARE, Box
-from rich.columns import Columns
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.style import Style
 from rich.syntax import Syntax
@@ -21,6 +21,12 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
+from devsynth.application.cli.models import (
+    CommandDisplay,
+    CommandResultData,
+    CommandTableData,
+    CommandTableRow,
+)
 from devsynth.interface.output_formatter import OutputFormat, OutputFormatter
 from devsynth.logging_setup import DevSynthLogger
 
@@ -114,7 +120,7 @@ class StandardizedOutputFormatter:
         title: str | None = None,
         subtitle: str | None = None,
         highlight: bool = False,
-    ) -> str | Text | Panel:
+    ) -> CommandDisplay:
         """Format a message with standardized styling.
 
         Args:
@@ -139,14 +145,12 @@ class StandardizedOutputFormatter:
 
         # Format the message based on the output style
         if output_style == CommandOutputStyle.MINIMAL:
-            # Minimal styling (plain text)
-            return Text(message, style=style)
+            renderable: str | Text | Panel = Text(message, style=style)
         elif output_style == CommandOutputStyle.SIMPLE:
-            # Simple styling (basic formatting)
             if highlight:
-                return Text(message, style=style)
+                renderable = Text(message, style=style)
             else:
-                return message
+                renderable = message
         else:
             # Standard, detailed, compact, or expanded styling
             # Check if the message contains Rich markup
@@ -165,8 +169,7 @@ class StandardizedOutputFormatter:
                     highlight=highlight,
                 )
 
-            # Create a panel with the appropriate styling
-            return Panel(
+            renderable = Panel(
                 content,
                 title=title,
                 subtitle=subtitle,
@@ -176,16 +179,24 @@ class StandardizedOutputFormatter:
                 highlight=highlight,
             )
 
+        return CommandDisplay(
+            renderable=renderable,
+            output_type=output_type,
+            output_style=output_style,
+            title=title,
+            subtitle=subtitle,
+        )
+
     def format_table(
         self,
-        data: list[dict[str, Any]] | dict[str, Any],
+        data: CommandTableData | CommandTableRow | Sequence[object] | object,
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
         title: str | None = None,
         subtitle: str | None = None,
         show_header: bool = True,
         box: Box | None = None,
         padding: tuple[int, int] | None = None,
-    ) -> Table:
+    ) -> CommandDisplay:
         """Format data as a table with standardized styling.
 
         Args:
@@ -208,7 +219,6 @@ class StandardizedOutputFormatter:
                 output_style, self.padding[CommandOutputStyle.STANDARD]
             )
 
-        # Create a table with the appropriate styling
         table = Table(
             title=title,
             caption=subtitle,
@@ -217,46 +227,49 @@ class StandardizedOutputFormatter:
             padding=padding,
         )
 
-        # Format the data as a table
-        if isinstance(data, list) and data and isinstance(data[0], dict):
-            # List of dictionaries
-            # Add columns based on the keys in the first dictionary
-            columns = list(data[0].keys())
-            for column in columns:
-                table.add_column(column)
-
-            # Add rows based on the values in each dictionary
-            for row_data in data:
-                row = [str(row_data.get(column, "")) for column in columns]
-                table.add_row(*row)
-        elif isinstance(data, dict):
-            # Dictionary
-            # Add columns for key and value
+        if isinstance(data, Mapping):
             table.add_column("Key")
             table.add_column("Value")
-
-            # Add rows based on the key-value pairs
             for key, value in data.items():
-                if isinstance(value, (dict, list)):
-                    # Format nested data as JSON
-                    value = json.dumps(value, indent=2)
-                table.add_row(str(key), str(value))
+                nested = value
+                if isinstance(nested, (Mapping, Sequence)) and not isinstance(
+                    nested, (str, bytes, bytearray)
+                ):
+                    nested = json.dumps(nested, indent=2)
+                table.add_row(str(key), str(nested))
+        elif isinstance(data, Sequence) and not isinstance(data, (str, bytes, bytearray)):
+            if data and isinstance(data[0], Mapping):
+                columns = list(data[0].keys())
+                for column in columns:
+                    table.add_column(column)
+                for row_data in data:
+                    assert isinstance(row_data, Mapping)
+                    table.add_row(*(str(row_data.get(column, "")) for column in columns))
+            else:
+                table.add_column("Items")
+                for item in data:
+                    table.add_row(str(item))
         else:
-            # Unsupported data type
             logger.warning(f"Unsupported data type for table formatting: {type(data)}")
             table.add_column("Data")
             table.add_row(str(data))
 
-        return table
+        return CommandDisplay(
+            renderable=table,
+            output_type=CommandOutputType.DATA,
+            output_style=output_style,
+            title=title,
+            subtitle=subtitle,
+        )
 
     def format_list(
         self,
-        items: list[Any],
+        items: Sequence[object],
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
         title: str | None = None,
         subtitle: str | None = None,
         bullet: str = "•",
-    ) -> str | Text | Panel:
+    ) -> CommandDisplay:
         """Format a list with standardized styling.
 
         Args:
@@ -271,14 +284,15 @@ class StandardizedOutputFormatter:
         """
         # Format the list based on the output style
         if output_style == CommandOutputStyle.MINIMAL:
-            # Minimal styling (plain text)
-            return "\n".join([f"{bullet} {item}" for item in items])
+            renderable: str | Text | Panel = "\n".join(
+                [f"{bullet} {item}" for item in items]
+            )
         elif output_style == CommandOutputStyle.SIMPLE:
             # Simple styling (basic formatting)
             text = Text()
             for item in items:
                 text.append(f"{bullet} {item}\n")
-            return text
+            renderable = text
         else:
             # Standard, detailed, compact, or expanded styling
             # Get the box and padding for the output style
@@ -293,13 +307,21 @@ class StandardizedOutputFormatter:
                 tree.add(str(item))
 
             # Create a panel with the tree
-            return Panel(
+            renderable = Panel(
                 tree,
                 title=title,
                 subtitle=subtitle,
                 box=box,
                 padding=padding,
             )
+
+        return CommandDisplay(
+            renderable=renderable,
+            output_type=CommandOutputType.DATA,
+            output_style=output_style,
+            title=title,
+            subtitle=subtitle,
+        )
 
     def format_code(
         self,
@@ -310,7 +332,7 @@ class StandardizedOutputFormatter:
         subtitle: str | None = None,
         line_numbers: bool = True,
         word_wrap: bool = True,
-    ) -> str | Syntax | Panel:
+    ) -> CommandDisplay:
         """Format code with standardized styling.
 
         Args:
@@ -327,11 +349,10 @@ class StandardizedOutputFormatter:
         """
         # Format the code based on the output style
         if output_style == CommandOutputStyle.MINIMAL:
-            # Minimal styling (plain text)
-            return code
+            renderable: str | Syntax | Panel = code
         elif output_style == CommandOutputStyle.SIMPLE:
             # Simple styling (basic formatting)
-            return Syntax(
+            renderable = Syntax(
                 code,
                 language,
                 theme="ansi_dark",
@@ -356,7 +377,7 @@ class StandardizedOutputFormatter:
             )
 
             # Create a panel with the syntax object
-            return Panel(
+            renderable = Panel(
                 syntax,
                 title=title,
                 subtitle=subtitle,
@@ -364,15 +385,23 @@ class StandardizedOutputFormatter:
                 padding=padding,
             )
 
+        return CommandDisplay(
+            renderable=renderable,
+            output_type=CommandOutputType.DATA,
+            output_style=output_style,
+            title=title,
+            subtitle=subtitle,
+        )
+
     def format_help(
         self,
         command: str,
         description: str,
         usage: str,
-        examples: list[dict[str, str]],
-        options: list[dict[str, str]],
+        examples: Sequence[Mapping[str, str]],
+        options: Sequence[Mapping[str, str]],
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
-    ) -> str | Text | Panel:
+    ) -> CommandDisplay:
         """Format help text with standardized styling.
 
         Args:
@@ -398,7 +427,7 @@ class StandardizedOutputFormatter:
             help_text += "\nExamples:\n"
             for example in examples:
                 help_text += f"  {example['description']}:\n  {example['command']}\n\n"
-            return help_text
+            renderable: str | Text | Panel = help_text
         elif output_style == CommandOutputStyle.SIMPLE:
             # Simple styling (basic formatting)
             help_text = Text()
@@ -417,7 +446,7 @@ class StandardizedOutputFormatter:
             for example in examples:
                 help_text.append(f"  {example['description']}:\n", style="italic")
                 help_text.append(f"  {example['command']}\n\n")
-            return help_text
+            renderable = help_text
         else:
             # Standard, detailed, compact, or expanded styling
             # Get the box and padding for the output style
@@ -468,7 +497,7 @@ class StandardizedOutputFormatter:
                 console.print(examples_table)
             content.append(capture.get())
 
-            return Panel(
+            renderable = Panel(
                 content,
                 title=f"[bold]Command: {command}[/bold]",
                 subtitle="[dim]Use --help for more information[/dim]",
@@ -476,14 +505,22 @@ class StandardizedOutputFormatter:
                 padding=padding,
             )
 
+        return CommandDisplay(
+            renderable=renderable,
+            output_type=CommandOutputType.HELP,
+            output_style=output_style,
+            title=command,
+            subtitle="Help",
+        )
+
     def format_command_result(
         self,
-        result: Any,
+        result: CommandResultData | object,
         output_type: CommandOutputType = CommandOutputType.RESULT,
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
         title: str | None = None,
         subtitle: str | None = None,
-    ) -> Any:
+    ) -> CommandDisplay:
         """Format a command result with standardized styling.
 
         Args:
@@ -497,6 +534,8 @@ class StandardizedOutputFormatter:
             The formatted command result
         """
         # Format the result based on its type
+        if isinstance(result, CommandDisplay):
+            return result
         if isinstance(result, str):
             # String result
             return self.format_message(
@@ -506,9 +545,7 @@ class StandardizedOutputFormatter:
                 title=title,
                 subtitle=subtitle,
             )
-        elif isinstance(result, (list, tuple)) and all(
-            isinstance(item, dict) for item in result
-        ):
+        elif isinstance(result, Sequence) and result and isinstance(result[0], Mapping):
             # List of dictionaries (table data)
             return self.format_table(
                 result,
@@ -516,7 +553,7 @@ class StandardizedOutputFormatter:
                 title=title,
                 subtitle=subtitle,
             )
-        elif isinstance(result, dict):
+        elif isinstance(result, Mapping):
             # Dictionary (table data)
             return self.format_table(
                 result,
@@ -524,7 +561,9 @@ class StandardizedOutputFormatter:
                 title=title,
                 subtitle=subtitle,
             )
-        elif isinstance(result, (list, tuple)):
+        elif isinstance(result, Sequence) and not isinstance(
+            result, (str, bytes, bytearray)
+        ):
             # List (list data)
             return self.format_list(
                 result,
@@ -544,7 +583,7 @@ class StandardizedOutputFormatter:
 
     def display(
         self,
-        content: Any,
+        content: CommandResultData | object,
         output_type: CommandOutputType = CommandOutputType.RESULT,
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
         title: str | None = None,
@@ -569,7 +608,7 @@ class StandardizedOutputFormatter:
         )
 
         # Display the formatted content
-        self.console.print(formatted_content)
+        self.console.print(formatted_content.renderable)
 
 
 # Create a singleton instance for easy access
