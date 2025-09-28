@@ -298,7 +298,6 @@ module = [
   "devsynth.adapters.cli.typer_adapter",
   "devsynth.adapters.jira_adapter",
   "devsynth.adapters.kuzu_memory_store",
-  "devsynth.adapters.llm.llm_adapter",
   "devsynth.adapters.memory.chroma_db_adapter",
   "devsynth.adapters.memory.kuzu_adapter",
   "devsynth.adapters.memory.memory_adapter",
