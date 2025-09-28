@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from devsynth.application.collaboration.dto import ConflictRecord
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
@@ -32,5 +33,6 @@ def test_identify_conflicts_detects_opposing_opinions() -> None:
     conflicts = team._identify_conflicts({"id": "t1"})
     assert len(conflicts) == 1
     conflict = conflicts[0]
-    assert conflict["agent1"] == "A"
-    assert conflict["agent2"] == "B"
+    assert isinstance(conflict, ConflictRecord)
+    assert conflict.agent_a == "A"
+    assert conflict.agent_b == "B"

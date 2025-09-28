@@ -26,6 +26,9 @@ __all__ = [
     "AgentPayload",
     "TaskDescriptor",
     "ConsensusOutcome",
+    "AgentOpinionRecord",
+    "ConflictRecord",
+    "SynthesisArtifact",
     "ReviewDecision",
     "PeerReviewRecord",
     "MemorySyncPort",
@@ -129,6 +132,28 @@ class BaseDTO:
             result_items.append((field_info.name, _serialize_value(value)))
         return dict(OrderedDict(result_items))
 
+    # Mapping-style helpers to ease migration for legacy consumers
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
+
+    def __iter__(self):  # type: ignore[override]
+        return iter(self.to_dict())
+
+    def __len__(self) -> int:  # type: ignore[override]
+        return len(self.to_dict())
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.to_dict().get(key, default)
+
+    def items(self):
+        return self.to_dict().items()
+
+    def keys(self):
+        return self.to_dict().keys()
+
+    def values(self):
+        return self.to_dict().values()
+
     @classmethod
     def from_dict(cls: Type[T], data: Mapping[str, Any]) -> T:
         if not isinstance(data, MappingABC):
@@ -221,10 +246,108 @@ class ConsensusOutcome(BaseDTO):
     extra_field_name: ClassVar[str] = "metadata"
 
     consensus_id: Optional[str] = None
+    task_id: Optional[str] = None
+    method: Optional[str] = None
     achieved: Optional[bool] = None
     confidence: Optional[float] = None
     rationale: Optional[str] = None
     participants: Tuple[str, ...] = ()
+    agent_opinions: Tuple["AgentOpinionRecord", ...] = ()
+    conflicts: Tuple["ConflictRecord", ...] = ()
+    conflicts_identified: int = 0
+    synthesis: Optional["SynthesisArtifact"] = None
+    majority_opinion: Optional[str] = None
+    stakeholder_explanation: Optional[str] = None
+    timestamp: Optional[str] = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        normalized_metadata = (
+            _normalize_mapping(self.metadata)
+            if isinstance(self.metadata, MappingABC)
+            else {}
+        )
+        object.__setattr__(self, "metadata", normalized_metadata)
+
+        opinions = tuple(
+            sorted(
+                self.agent_opinions,
+                key=lambda opinion: (opinion.agent_id or "", opinion.timestamp or ""),
+            )
+        )
+        object.__setattr__(self, "agent_opinions", opinions)
+
+        conflicts = tuple(
+            sorted(
+                self.conflicts,
+                key=lambda conflict: (conflict.conflict_id or "", conflict.agent_a or ""),
+            )
+        )
+        object.__setattr__(self, "conflicts", conflicts)
+
+        if not self.participants and opinions:
+            participants = tuple(
+                OrderedDict((record.agent_id, None) for record in opinions if record.agent_id)
+            )
+            object.__setattr__(self, "participants", participants)
+        else:
+            object.__setattr__(
+                self,
+                "participants",
+                tuple(
+                    OrderedDict((participant, None) for participant in self.participants)
+                ),
+            )
+
+        conflict_total = len(conflicts)
+        if conflict_total and conflict_total != self.conflicts_identified:
+            object.__setattr__(self, "conflicts_identified", conflict_total)
+
+        if self.timestamp and hasattr(self.timestamp, "isoformat"):
+            object.__setattr__(self, "timestamp", self.timestamp.isoformat())
+
+
+@dataclass(frozen=True, slots=True)
+class AgentOpinionRecord(BaseDTO):
+    dto_type: ClassVar[str] = "AgentOpinionRecord"
+    extra_field_name: ClassVar[str] = "metadata"
+
+    agent_id: Optional[str] = None
+    opinion: Optional[str] = None
+    rationale: Optional[str] = None
+    timestamp: Optional[str] = None
+    weight: Optional[float] = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class ConflictRecord(BaseDTO):
+    dto_type: ClassVar[str] = "ConflictRecord"
+    extra_field_name: ClassVar[str] = "metadata"
+
+    conflict_id: Optional[str] = None
+    task_id: Optional[str] = None
+    agent_a: Optional[str] = None
+    agent_b: Optional[str] = None
+    opinion_a: Optional[str] = None
+    opinion_b: Optional[str] = None
+    rationale_a: Optional[str] = None
+    rationale_b: Optional[str] = None
+    severity_label: Optional[str] = None
+    severity_score: Optional[float] = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class SynthesisArtifact(BaseDTO):
+    dto_type: ClassVar[str] = "SynthesisArtifact"
+    extra_field_name: ClassVar[str] = "metadata"
+
+    text: Optional[str] = None
+    key_points: Tuple[str, ...] = ()
+    expertise_weights: Mapping[str, float] = field(default_factory=dict)
+    conflict_resolution_method: Optional[str] = None
+    readability_score: Mapping[str, float] = field(default_factory=dict)
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
 
@@ -270,6 +393,9 @@ dto_registry: Dict[str, Type[BaseDTO]] = {}
 for cls in (
     AgentPayload,
     TaskDescriptor,
+    AgentOpinionRecord,
+    ConflictRecord,
+    SynthesisArtifact,
     ConsensusOutcome,
     ReviewDecision,
     PeerReviewRecord,
