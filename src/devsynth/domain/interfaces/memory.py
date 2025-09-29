@@ -1,9 +1,30 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
 
 from ...domain.models.memory import MemoryItem, MemoryVector
+
+if TYPE_CHECKING:  # pragma: no cover - typing helpers only
+    from ...application.memory.dto import (
+        GroupedMemoryResults,
+        MemoryMetadata,
+        MemoryQueryResults,
+        MemoryRecord,
+    )
+else:
+    MemoryRecord = MemoryItem  # type: ignore[assignment]
+    from typing import MutableMapping
+
+    MemoryMetadata = MutableMapping[str, Any]
+
+MemorySearchResponse: TypeAlias = (
+    list[MemoryItem]
+    | list["MemoryRecord"]
+    | "MemoryQueryResults"
+    | "GroupedMemoryResults"
+)
+"""Permissible result shapes returned from ``MemoryStore.search`` implementations."""
 
 
 class MemoryStore(Protocol):
@@ -15,13 +36,18 @@ class MemoryStore(Protocol):
         ...
 
     @abstractmethod
-    def retrieve(self, item_id: str) -> MemoryItem | None:
+    def retrieve(self, item_id: str) -> MemoryItem | "MemoryRecord" | None:
         """Retrieve an item from memory by ID."""
         ...
 
     @abstractmethod
-    def search(self, query: dict[str, Any]) -> list[MemoryItem]:
-        """Search for items in memory matching the query."""
+    def search(self, query: dict[str, Any] | "MemoryMetadata") -> MemorySearchResponse:
+        """Search for items in memory matching the query.
+
+        Adapters may return bare ``MemoryItem`` instances for legacy callers,
+        enriched ``MemoryRecord`` objects, or aggregated payloads using the
+        DTOs from :mod:`devsynth.application.memory.dto`.
+        """
         ...
 
     @abstractmethod
@@ -84,14 +110,14 @@ class VectorStore(Protocol):
         ...
 
     @abstractmethod
-    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | "MemoryRecord" | None:
         """Retrieve a vector from the vector store by ID."""
         ...
 
     @abstractmethod
     def similarity_search(
         self, query_embedding: list[float], top_k: int = 5
-    ) -> list[MemoryVector]:
+    ) -> list[MemoryVector] | list["MemoryRecord"]:
         """Search for vectors similar to the query embedding."""
         ...
 

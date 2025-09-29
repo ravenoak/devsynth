@@ -3,11 +3,20 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, TypedDict
+from typing import Any, TYPE_CHECKING, TypedDict, cast
+
+from typing_extensions import Self
 
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
+if TYPE_CHECKING:  # pragma: no cover - import for typing only
+    from devsynth.application.memory.dto import MemoryMetadata
+else:  # Fallback to keep runtime import graph minimal.
+    from typing import MutableMapping
+
+    MemoryMetadata = MutableMapping[str, Any]
 
 
 class MemoryType(Enum):
@@ -83,15 +92,60 @@ class MemoryItem:
     id: str
     content: Any
     memory_type: MemoryType
-    metadata: dict[str, Any] | None = None
+    metadata: MemoryMetadata | None = None
     created_at: datetime | None = None
 
     def __post_init__(self) -> None:
         self.memory_type = MemoryType.from_raw(self.memory_type)
         if self.metadata is None:
-            self.metadata = {}
+            self.metadata = cast(MemoryMetadata, {})
         if self.created_at is None:
             self.created_at = datetime.now()
+
+    def to_dict(self) -> "SerializedMemoryItem":
+        """Return a serialized representation suitable for adapters.
+
+        Metadata mappings are copied to prevent downstream mutation from
+        affecting the stored ``MemoryItem`` instance.
+        """
+
+        metadata = None
+        if self.metadata is not None:
+            metadata = cast(MemoryMetadata, dict(self.metadata))
+
+        created_at = self.created_at.isoformat() if self.created_at else None
+        return {
+            "id": self.id,
+            "content": self.content,
+            "memory_type": self.memory_type.value,
+            "metadata": metadata,
+            "created_at": created_at,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: "SerializedMemoryItem") -> Self:
+        """Reconstruct a :class:`MemoryItem` from serialized data."""
+
+        metadata = payload.get("metadata")
+        normalized_metadata = None
+        if metadata is not None:
+            normalized_metadata = cast(MemoryMetadata, dict(metadata))
+
+        created_at = payload.get("created_at")
+        parsed_created_at = None
+        if created_at:
+            try:
+                parsed_created_at = datetime.fromisoformat(created_at)
+            except ValueError:  # pragma: no cover - defensive parsing guard
+                logger.warning("Invalid created_at value %s", created_at)
+
+        return cls(
+            id=payload["id"],
+            content=payload["content"],
+            memory_type=MemoryType.from_raw(payload["memory_type"]),
+            metadata=normalized_metadata,
+            created_at=parsed_created_at,
+        )
 
 
 @dataclass
@@ -101,12 +155,12 @@ class MemoryVector:
     id: str
     content: Any
     embedding: list[float]
-    metadata: dict[str, Any] | None = None
+    metadata: MemoryMetadata | None = None
     created_at: datetime | None = None
 
     def __post_init__(self) -> None:
         if self.metadata is None:
-            self.metadata = {}
+            self.metadata = cast(MemoryMetadata, {})
         if self.created_at is None:
             self.created_at = datetime.now()
 
@@ -117,5 +171,5 @@ class SerializedMemoryItem(TypedDict):
     id: str
     content: Any
     memory_type: str
-    metadata: dict[str, Any] | None
+    metadata: MemoryMetadata | None
     created_at: str | None
