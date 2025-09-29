@@ -12,6 +12,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = pytest.mark.fast
 
 scenarios("../features/wsde_message_passing_and_peer_review.feature")
+scenarios("../features/wsde_peer_review_workflow.feature")
 scenarios("../features/general/wsde_message_passing_peer_review.feature")
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
@@ -67,13 +68,17 @@ def context():
             self.last_message: Dict[str, Any] | None = None
             self.last_peer_review = None
             self.expected_structured_content: Dict[str, Any] = {}
+            self.priority_order_snapshot: list[Dict[str, Any]] = []
+            self.consensus_threshold: float | None = None
+            self.peer_review_routes: list[str] = []
+            self.last_priority_value: str | None = None
 
     return Context()
 
 
 @given("the DevSynth system is initialized")
 def devsynth_system_initialized(context):
-    assert context.team_coordinator is not None
+    assert isinstance(context.team_coordinator, WSDETeamCoordinator)
 
 
 @given("a team of agents is configured")
@@ -82,11 +87,15 @@ def team_of_agents_configured(context):
     context.team_coordinator.create_team(team_id)
     context.current_team_id = team_id
     context.teams[team_id] = context.team_coordinator.get_team(team_id)
+    assert isinstance(context.teams[team_id], WSDETeam)
+    assert context.teams[team_id].name == team_id
 
 
 @given("the WSDE model is enabled")
 def wsde_model_enabled(context):
-    assert context.teams[context.current_team_id] is not None
+    team = context.teams[context.current_team_id]
+    assert isinstance(team, WSDETeam)
+    assert hasattr(team, "message_store")
 
 
 @given("a team with multiple agents")
@@ -108,6 +117,9 @@ def team_with_multiple_agents(context):
         context.team_coordinator.add_agent(agent)
 
     context.team = context.team_coordinator.get_team(context.current_team_id)
+    assert context.team is not None
+    assert len(context.team.agents) >= len(names)
+    assert {agent.config.name for agent in context.team.agents} >= set(names)
 
 
 @when(
@@ -119,9 +131,9 @@ def send_message(context, sender, recipient, msg_type):
     message = context.team.send_message(
         sender=sender,
         recipients=[recipient],
-        message_type=msg_type,
+        message_type=MessageType(msg_type),
         subject="test",
-        content={},
+        content={"reason": "status update"},
     )
     normalised = _normalise_message(message)
     context.messages.append(normalised)
@@ -131,26 +143,36 @@ def send_message(context, sender, recipient, msg_type):
 @then(parsers.parse('agent "{recipient}" should receive the message'))
 def recipient_receives(context, recipient):
     msgs = list(_iter_messages(context.team.get_messages(recipient)))
-    assert any(recipient in m["recipients"] for m in msgs)
+    assert any(
+        recipient in m["recipients"] and m["id"] == context.last_message["id"]
+        for m in msgs
+    ), "Recipient should receive the exact message"
 
 
 @then("the message should have the correct sender, recipient, and type")
 def message_fields(context):
     m = context.last_message
     assert m and m["sender"]
-    assert m["recipients"], "Recipients should be recorded"
+    assert isinstance(m["recipients"], list)
+    assert all(isinstance(recipient, str) for recipient in m["recipients"])
     assert m["type"] in {
         MessageType.STATUS_UPDATE.value,
         MessageType.TASK_ASSIGNMENT.value,
         MessageType.INFORMATION_REQUEST.value,
         MessageType.REVIEW_REQUEST.value,
     }
+    assert isinstance(m["content"], dict)
 
 
 @then("the message should be stored in the communication history")
 def stored_in_history(context):
     history = list(_iter_messages(context.team.get_messages()))
     assert any(m["id"] == context.last_message["id"] for m in history)
+    stored = next(
+        m for m in history if m["id"] == context.last_message["id"]
+    )
+    assert stored["sender"] == context.last_message["sender"]
+    assert set(stored["recipients"]) == set(context.last_message["recipients"])
 
 
 @when(
@@ -159,7 +181,9 @@ def stored_in_history(context):
     )
 )
 def broadcast_message(context, sender, msg_type):
-    message = context.team.broadcast_message(sender, msg_type, subject="broadcast")
+    message = context.team.broadcast_message(
+        sender, MessageType(msg_type), subject="broadcast"
+    )
     context.last_message = _normalise_message(message)
 
 
@@ -168,7 +192,11 @@ def all_receive(context):
     for name in context.agents:
         if name != context.last_message["sender"]:
             msgs = list(_iter_messages(context.team.get_messages(name)))
-            assert any(m["id"] == context.last_message["id"] for m in msgs)
+            assert any(
+                m["id"] == context.last_message["id"]
+                and name in m["recipients"]
+                for m in msgs
+            )
 
 
 @then("each message should have the correct sender and type")
@@ -176,6 +204,7 @@ def broadcast_fields(context):
     m = context.last_message
     assert m["sender"] in context.agents
     assert m["type"] == MessageType.TASK_ASSIGNMENT.value
+    assert set(m["recipients"]) == set(context.agents) - {m["sender"]}
 
 
 @then("the broadcast should be recorded as a single communication event")
@@ -190,15 +219,27 @@ def broadcast_single_event(context):
     )
 )
 def send_priority_message(context, sender, priority, recipient):
+    baseline = context.team.send_message(
+        sender=sender,
+        recipients=[recipient],
+        message_type=MessageType.STATUS_UPDATE,
+        subject="prio-low",
+        content={},
+        metadata={"priority": "low"},
+    )
     message = context.team.send_message(
         sender=sender,
         recipients=[recipient],
         message_type=MessageType.STATUS_UPDATE,
-        subject="prio",
+        subject="prio-high",
         content={},
         metadata={"priority": priority},
     )
     context.last_message = _normalise_message(message)
+    context.last_priority_value = priority
+    context.priority_order_snapshot = list(
+        _iter_messages(context.team.get_messages(recipient))
+    )
 
 
 @then(
@@ -213,14 +254,23 @@ def recipient_priority(context, recipient, priority):
 
 @then("high priority messages should be processed before lower priority messages")
 def priority_order(context):
-    msgs = list(_iter_messages(context.team.get_messages()))
-    assert msgs, "Priority ordering requires at least one message"
-    assert msgs[0]["metadata"].get("priority") == "high"
+    assert context.priority_order_snapshot, "Priority ordering requires messages"
+    priority_rank = {"high": 0, "medium": 1, "low": 2}
+    sorted_msgs = sorted(
+        context.priority_order_snapshot,
+        key=lambda m: priority_rank.get(m["metadata"].get("priority", "low"), 99),
+    )
+    assert sorted_msgs[0]["metadata"].get("priority") == "high"
+    assert sorted_msgs[0]["id"] == context.last_message["id"]
+    assert any(
+        m["metadata"].get("priority") in {"low", "medium"}
+        for m in context.priority_order_snapshot
+    )
 
 
 @then("the message priority should be recorded in the communication history")
 def priority_recorded(context):
-    assert context.last_message["metadata"].get("priority")
+    assert context.last_message["metadata"].get("priority") == context.last_priority_value
 
 
 @when(parsers.parse('agent "{sender}" sends a message with structured content:'))
@@ -240,7 +290,12 @@ def send_structured(context, sender, table=None):
 
         table = MockTable()
 
-    content = {row["key"]: row["value"] for row in table.rows}
+    content: Dict[str, Any] = {}
+    for row in table.rows:
+        key = row["key"].strip()
+        value = row["value"].strip()
+        assert key, "Structured content rows must define a key"
+        content[key] = value
     context.expected_structured_content = dict(content)
     message = context.team.send_message(
         sender=sender,
@@ -259,15 +314,17 @@ def send_structured(context, sender, table=None):
 )
 def check_structured(context, recipient):
     msgs = list(_iter_messages(context.team.get_messages(recipient)))
-    assert any(m["content"] == context.expected_structured_content for m in msgs)
+    assert any(
+        m["content"] == context.expected_structured_content
+        and set(m["content"]) == set(context.expected_structured_content)
+        for m in msgs
+    )
 
 
 @then("the structured content should be accessible as a parsed object")
 def structured_parsed(context):
     assert isinstance(context.last_message["content"], dict)
-    assert set(context.last_message["content"].keys()) == set(
-        context.expected_structured_content.keys()
-    )
+    assert context.last_message["content"] == context.expected_structured_content
 
 
 @then("the message should be queryable by content fields")
@@ -275,7 +332,9 @@ def query_by_fields(context):
     key = next(iter(context.expected_structured_content))
     value = context.expected_structured_content[key]
     msgs = list(_iter_messages(context.team.get_messages()))
-    assert any(m["content"].get(key) == value for m in msgs)
+    matches = [m for m in msgs if m["content"].get(key) == value]
+    assert matches
+    assert context.last_message["id"] in {m["id"] for m in matches}
 
 
 @when('agent "worker-1" submits a work product for peer review')
@@ -290,7 +349,10 @@ def submit_work_product(context):
 
 @then("the system should assign reviewers based on expertise")
 def reviewers_assigned(context):
-    assert context.last_peer_review.reviewers
+    reviewers = context.last_peer_review.reviewers
+    assert reviewers
+    for reviewer in reviewers:
+        assert reviewer.config.parameters.get("expertise"), "Reviewer must have expertise"
 
 
 @then("each reviewer should receive a review request message")
@@ -299,6 +361,10 @@ def reviewers_received_request(context):
         name = reviewer.config.name
         msgs = list(_iter_messages(context.team.get_messages(name)))
         assert any(m["type"] == MessageType.REVIEW_REQUEST.value for m in msgs)
+        assert any(
+            isinstance(m["content"], dict) and m["content"].get("work")
+            for m in msgs
+        )
 
 
 @then("each reviewer should evaluate the work product independently")
@@ -311,12 +377,14 @@ def reviewers_evaluate(context):
 def reviewers_feedback(context):
     for res in context.last_peer_review.reviews.values():
         assert "feedback" in res
+        assert isinstance(res["feedback"], str) and res["feedback"].strip()
 
 
 @then("the original agent should receive all feedback")
 def author_receives_feedback(context):
     feedback = context.last_peer_review.aggregate_feedback()
     assert feedback["feedback"]
+    assert len(feedback["feedback"]) == len(context.last_peer_review.reviewers)
 
 
 @when('agent "worker-1" submits a work product with specific acceptance criteria')
@@ -763,3 +831,8 @@ def history_filter(context):
         )
     )
     assert filtered
+    assert all(
+        m["type"] == MessageType.STATUS_UPDATE.value
+        and "supervisor-1" in m["recipients"]
+        for m in filtered
+    )

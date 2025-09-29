@@ -125,6 +125,13 @@ def given_votes(context, votes: str):
     context.votes = parsed
 
 
+@given(parsers.parse("a consensus threshold of {threshold} is configured"))
+def configure_consensus_threshold(context, threshold: str) -> None:
+    """Allow scenarios to override the default consensus threshold."""
+
+    context.consensus_threshold = float(threshold)
+
+
 @when("we build consensus")
 def when_we_build_consensus(context):
     """Build consensus using the collected votes."""
@@ -135,6 +142,7 @@ def when_we_build_consensus(context):
         else 0.5
     )
     context.consensus_result = build_consensus(context.votes, threshold=threshold)
+    context.decision_history.append(context.consensus_result)
 
 
 @when(parsers.parse("we build consensus with threshold {threshold}"))
@@ -145,6 +153,7 @@ def when_we_build_consensus_with_threshold(context, threshold: str):
     context.consensus_result = build_consensus(
         context.votes, threshold=context.consensus_threshold
     )
+    context.decision_history.append(context.consensus_result)
 
 
 @then(parsers.parse('consensus decision is "{expected}"'))
@@ -164,6 +173,37 @@ def then_no_consensus_decision(context):
     assert context.consensus_result is not None, "Consensus result should exist"
     assert not context.consensus_result.consensus
     assert context.consensus_result.decision is None
+
+
+@then("consensus should be confirmed")
+def consensus_should_be_confirmed(context):
+    """Verify consensus reached meets or exceeds the configured threshold."""
+
+    assert context.consensus_result is not None, "Consensus result should exist"
+    assert context.consensus_result.consensus, "Consensus must be true"
+    threshold = context.consensus_threshold or 0.5
+    assert context.consensus_result.ratio >= threshold
+    assert context.consensus_result.decision is not None
+    context.decision = context.consensus_result.decision
+
+
+@then("consensus failure should capture dissent")
+def consensus_failure_tracks_dissent(context):
+    """Ensure failed consensus attempts record dissenting options."""
+
+    assert context.consensus_result is not None, "Consensus result should exist"
+    assert not context.consensus_result.consensus
+    assert context.consensus_result.dissenting
+    assert set(context.consensus_result.dissenting) >= set(context.votes)
+
+
+@then("consensus confidence should be tracked")
+def consensus_confidence_tracked(context):
+    """Ensure ratio metadata is stored for audit trails."""
+
+    assert context.consensus_result is not None, "Consensus result should exist"
+    assert 0 <= context.consensus_result.ratio <= 1
+    assert context.consensus_result.timestamp is not None
 
 
 # Scenario: Voting mechanisms for critical decisions
