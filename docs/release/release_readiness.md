@@ -15,6 +15,8 @@ This document codifies the gating criteria for release preparation. It complemen
 - PRs must pass: fast + medium targets (unit + key integrations) via `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`, with HTML/JSON coverage artifacts uploaded.【F:diagnostics/full_profile_coverage.txt†L1-L24】
 - Pre-release branches or pre-tag checks must pass: full suite including slow.
 - Smoke mode may be used for diagnosis, but final gates must run in normal mode without third-party plugin disablement.
+- Memory regression guard: `poetry run pytest tests/unit/memory/test_issue3_regression_guard.py` validates the Issue 3 fix against
+  the strict-typed sync manager harness; capture and archive the latest run output alongside other diagnostics.【F:diagnostics/pytest_issue3_regression_guard_20251001T201500Z.txt†L1-L28】
 
 ## Determinism and Isolation
 - Network must be disabled by default; all tests use provider stubs unless explicitly gated by resource flags.
@@ -23,6 +25,8 @@ This document codifies the gating criteria for release preparation. It complemen
 ## Quality and Security
 - Linting: black --check, isort --check-only, flake8.
 - Typing: `poetry run task mypy:strict` (wrapper for `poetry run mypy --strict src/devsynth`) with documented, temporary relaxations only where noted in `pyproject.toml` and TODOs. Attach the most recent run output under `diagnostics/` (see `diagnostics/mypy_strict_2025-09-30_refresh.txt`).【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L1-L20】【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L850-L850】
+- Memory stack strict typing: `poetry run mypy --strict src/devsynth/memory` must remain clean to keep the graduated stack within
+  release tolerances; archive each run under `diagnostics/` to preserve the evidence trail.【F:diagnostics/mypy_strict_memory_stack_20251001T000000Z.txt†L1-L1】
 - Security: bandit and safety (full report) must pass or have documented, justified suppressions.
 
 ## Marker Discipline
