@@ -22,6 +22,14 @@ from ....domain.models.memory import (
 )
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
+from ..dto import (
+    MemoryMetadata,
+    MemoryQueryResults,
+    MemoryRecord,
+    build_memory_record,
+    build_query_results,
+)
+from ..metadata_serialization import from_serializable, to_serializable
 from .storage_adapter import MemorySnapshot, StorageAdapter
 
 
@@ -36,6 +44,7 @@ class TinyDBQueryLike(Protocol):
 
     def __and__(self, other: "TinyDBQueryLike") -> "TinyDBQueryLike":
         """Combine two queries with logical AND."""
+
 
 
 class TinyDBQueryFactory(Protocol):
@@ -175,11 +184,12 @@ class TinyDBMemoryAdapter(StorageAdapter):
             A dictionary representation of the memory item
         """
         # Handle both enum and string types for memory_type
+        metadata_payload = cast(MemoryMetadata | None, item.metadata)
         return {
             "id": item.id,
             "content": self._serialize_value(item.content),
             "memory_type": item.memory_type.value,
-            "metadata": self._serialize_value(item.metadata),
+            "metadata": cast(MemoryMetadata, to_serializable(metadata_payload)),
             "created_at": self._serialize_value(item.created_at),
         }
 
@@ -198,7 +208,9 @@ class TinyDBMemoryAdapter(StorageAdapter):
         memory_type = MemoryType.from_raw(item_dict["memory_type"])
 
         metadata_value = item_dict.get("metadata")
-        metadata = metadata_value if isinstance(metadata_value, dict) else {}
+        metadata: MemoryMetadata | None = None
+        if isinstance(metadata_value, Mapping):
+            metadata = from_serializable(metadata_value)
 
         created_at_raw = item_dict.get("created_at")
         created_at = (
@@ -296,13 +308,13 @@ class TinyDBMemoryAdapter(StorageAdapter):
             The retrieved memory item, or None if not found
         """
         query = self._query_factory()
-        condition = cast(TinyDBQueryLike, query.id == item_id)
+        condition = cast(TinyDBQueryLike, cast(Any, query.id) == item_id)
         item_dict = self.items_table.get(condition)
         if item_dict:
             return self._dict_to_memory_item(item_dict)
         return None
 
-    def search(self, query: Mapping[str, Any]) -> list[MemoryItem]:
+    def search(self, query: Mapping[str, Any]) -> list[MemoryRecord]:
         """
         Search for memory items in TinyDB matching the query.
 
@@ -321,21 +333,27 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 # Handle memory_type specially
                 memory_type = MemoryType.from_raw(value)
                 condition = cast(
-                    TinyDBQueryLike, tinydb_query.memory_type == memory_type.value
+                    TinyDBQueryLike,
+                    cast(Any, tinydb_query.memory_type) == memory_type.value,
                 )
             elif key.startswith("metadata."):
                 # Handle nested metadata fields
                 metadata_key = key.split(".", 1)[1]
                 condition = cast(
-                    TinyDBQueryLike, tinydb_query.metadata[metadata_key] == value
+                    TinyDBQueryLike,
+                    cast(Any, tinydb_query.metadata[metadata_key]) == value,
                 )
             elif key in ["id", "content", "created_at"]:
                 # Handle direct fields
-                condition = cast(TinyDBQueryLike, getattr(tinydb_query, key) == value)
+                condition = cast(
+                    TinyDBQueryLike,
+                    cast(Any, getattr(tinydb_query, key)) == value,
+                )
             else:
                 # Assume it's a metadata field
                 condition = cast(
-                    TinyDBQueryLike, tinydb_query.metadata[key] == value
+                    TinyDBQueryLike,
+                    cast(Any, tinydb_query.metadata[key]) == value,
                 )
 
             # Combine conditions with AND
@@ -350,8 +368,13 @@ class TinyDBMemoryAdapter(StorageAdapter):
         else:
             results = self.items_table.search(query_conditions)
 
-        # Convert to MemoryItem objects
-        return [self._dict_to_memory_item(item_dict) for item_dict in results]
+        # Convert to MemoryRecord objects
+        return [
+            build_memory_record(
+                self._dict_to_memory_item(item_dict), source=self.backend_type
+            )
+            for item_dict in results
+        ]
 
     def delete(self, item_id: str, transaction_id: str | None = None) -> bool:
         """
@@ -383,7 +406,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
             # Delete the item in memory but don't commit to disk yet
             query = self._query_factory()
-            condition = cast(TinyDBQueryLike, query.id == item_id)
+            condition = cast(TinyDBQueryLike, cast(Any, query.id) == item_id)
             removed = self.items_table.remove(condition)
             if removed:
                 logger.info(
@@ -397,7 +420,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         else:
             # Not part of a transaction, delete normally
             query = self._query_factory()
-            condition = cast(TinyDBQueryLike, query.id == item_id)
+            condition = cast(TinyDBQueryLike, cast(Any, query.id) == item_id)
             removed = self.items_table.remove(condition)
             if removed:
                 logger.info(
@@ -407,7 +430,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 return True
             return False
 
-    def query_structured_data(self, query: Mapping[str, Any]) -> list[MemoryItem]:
+    def query_structured_data(self, query: Mapping[str, Any]) -> MemoryQueryResults:
         """
         Query structured data in TinyDB.
 
@@ -419,11 +442,12 @@ class TinyDBMemoryAdapter(StorageAdapter):
             query: The query dictionary
 
         Returns:
-            A list of matching memory items
+            Normalized query results for the TinyDB backend
         """
         # For now, this is just a wrapper around search
         # In a real implementation, this could support more complex queries
-        return self.search(query)
+        records = self.search(query)
+        return build_query_results(self.backend_type, records)
 
     def retrieve_with_edrr_phase(
         self,

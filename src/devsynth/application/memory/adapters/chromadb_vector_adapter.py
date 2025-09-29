@@ -13,10 +13,10 @@ Typical usage::
 
 import importlib
 import uuid
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
-from typing import Any
+from typing import Any, Protocol, TypedDict, cast
 
 # ``chromadb`` lacks stable typing information and triggers deep imports.
 # Load it dynamically and treat its objects as ``Any`` so mypy focuses on
@@ -32,14 +32,64 @@ except Exception as e:  # pragma: no cover - if chromadb is missing the tests sk
         "'pip install chromadb' or use the dev extras."
     ) from e
 
-from ....domain.interfaces.memory import VectorStore
+
+class ChromaGetResult(TypedDict, total=False):
+    ids: list[str]
+    embeddings: list[list[float]]
+    metadatas: list[Mapping[str, object]]
+    documents: list[object]
+
+
+class ChromaQueryResult(TypedDict, total=False):
+    ids: list[list[str]]
+    embeddings: list[list[list[float]]]
+    metadatas: list[list[Mapping[str, object]]]
+    documents: list[list[object]]
+
+
+class ChromaCollectionProtocol(Protocol):
+    def get(
+        self, ids: Sequence[str] | None = ..., include: Sequence[str] | None = ...
+    ) -> ChromaGetResult:
+        ...
+
+    def add(
+        self,
+        *,
+        ids: Sequence[str],
+        embeddings: Sequence[Sequence[float]],
+        metadatas: Sequence[Mapping[str, object]],
+        documents: Sequence[object],
+    ) -> object:
+        ...
+
+    def delete(self, *, ids: Sequence[str]) -> None:
+        ...
+
+    def query(
+        self,
+        *,
+        query_embeddings: Sequence[Sequence[float]],
+        n_results: int,
+        include: Sequence[str],
+    ) -> ChromaQueryResult:
+        ...
+
+
+class ChromaClientProtocol(Protocol):
+    def get_or_create_collection(self, name: str) -> ChromaCollectionProtocol:
+        ...
+
 from ....domain.models.memory import MemoryVector
+from ..dto import MemoryMetadata, MemoryRecord, build_memory_record
+from ..metadata_serialization import from_serializable, to_serializable
+from ..vector_protocol import VectorStoreProtocol
 from ....logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
 
-class ChromaDBVectorAdapter(VectorStore):
+class ChromaDBVectorAdapter(VectorStoreProtocol):
     """
     ChromaDB Vector Adapter handles vector-based operations for similarity
     search using ChromaDB.
@@ -63,7 +113,7 @@ class ChromaDBVectorAdapter(VectorStore):
         self.persist_directory = persist_directory
         self.vectors: dict[str, MemoryVector] = {}
 
-        self.client: Any
+        self.client: ChromaClientProtocol
         if persist_directory:
             self.client = chromadb.PersistentClient(path=persist_directory)
         else:
@@ -71,7 +121,7 @@ class ChromaDBVectorAdapter(VectorStore):
             settings = Settings(anonymized_telemetry=False)
             self.client = chromadb.EphemeralClient(settings)
 
-        self.collection: Any = self.client.get_or_create_collection(collection_name)
+        self.collection = self.client.get_or_create_collection(collection_name)
         logger.info(
             "ChromaDB Vector Adapter initialized with collection '%s'",
             collection_name,
@@ -116,7 +166,7 @@ class ChromaDBVectorAdapter(VectorStore):
                 self.collection.add(
                     ids=[vec.id],
                     embeddings=[vec.embedding],
-                    metadatas=[vec.metadata or {}],
+                    metadatas=[to_serializable(cast(MemoryMetadata | None, vec.metadata))],
                     documents=[vec.content],
                 )
             self.vectors = snapshot
@@ -156,10 +206,11 @@ class ChromaDBVectorAdapter(VectorStore):
         if not vector.id:
             vector.id = f"vector_{len(self.vectors) + 1}"
 
+        metadata_payload = cast(MemoryMetadata | None, vector.metadata)
         self.collection.add(
             ids=[vector.id],
             embeddings=[vector.embedding],
-            metadatas=[vector.metadata or {}],
+            metadatas=[to_serializable(metadata_payload)],
             documents=[vector.content],
         )
 
@@ -167,7 +218,7 @@ class ChromaDBVectorAdapter(VectorStore):
         logger.info("Stored memory vector with ID %s in ChromaDB", vector.id)
         return str(vector.id)
 
-    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
+    def retrieve_vector(self, vector_id: str) -> MemoryRecord | None:
         """
         Retrieve a vector from the vector store.
 
@@ -181,19 +232,26 @@ class ChromaDBVectorAdapter(VectorStore):
             ids=[vector_id], include=["embeddings", "metadatas", "documents"]
         )
         if result and result.get("ids"):
+            metadatas = result.get("metadatas") or []
+            metadata_payload = metadatas[0] if metadatas else {}
+            metadata: MemoryMetadata | None = None
+            if isinstance(metadata_payload, Mapping):
+                metadata = from_serializable(metadata_payload)
+            documents = result.get("documents") or [None]
+            embeddings = result.get("embeddings") or [[]]
             vector = MemoryVector(
                 id=result["ids"][0],
-                content=result.get("documents", [None])[0],
-                embedding=result.get("embeddings", [[None]])[0],
-                metadata=result.get("metadatas", [{}])[0],
+                content=documents[0] if documents else None,
+                embedding=embeddings[0] if embeddings else [],
+                metadata=metadata,
             )
             self.vectors[vector_id] = vector
-            return vector
+            return build_memory_record(vector, source="chromadb")
         return None
 
     def similarity_search(
         self, query_embedding: Sequence[float], top_k: int = 5
-    ) -> list[MemoryVector]:
+    ) -> list[MemoryRecord]:
         """
         Search for vectors similar to the query embedding.
 
@@ -213,18 +271,26 @@ class ChromaDBVectorAdapter(VectorStore):
         if not results or not results.get("ids") or not results["ids"][0]:
             return []
 
-        vectors = []
-        for i, vid in enumerate(results["ids"][0]):
+        records: list[MemoryRecord] = []
+        documents = results.get("documents") or [[None]]
+        embeddings = results.get("embeddings") or [[[]]]
+        metadatas = results.get("metadatas") or [[{}]]
+        ids = results.get("ids") or [[]]
+        for i, vid in enumerate(ids[0]):
+            metadata_payload = metadatas[0][i] if metadatas and metadatas[0] else {}
+            metadata: MemoryMetadata | None = None
+            if isinstance(metadata_payload, Mapping):
+                metadata = from_serializable(metadata_payload)
             vector = MemoryVector(
                 id=vid,
-                content=results.get("documents", [[None]])[0][i],
-                embedding=results.get("embeddings", [[None]])[0][i],
-                metadata=results.get("metadatas", [[{}]])[0][i],
+                content=documents[0][i] if documents and documents[0] else None,
+                embedding=embeddings[0][i] if embeddings and embeddings[0] else [],
+                metadata=metadata,
             )
             self.vectors[vid] = vector
-            vectors.append(vector)
+            records.append(build_memory_record(vector, source="chromadb"))
 
-        return vectors
+        return records
 
     def delete_vector(self, vector_id: str) -> bool:
         """
@@ -255,11 +321,13 @@ class ChromaDBVectorAdapter(VectorStore):
         # Note: In a real implementation, we would get stats from ChromaDB
         # count = self.collection.count()
 
-        result: dict[str, Any] | None = self.collection.get(include=["embeddings"])
-        count = len(result.get("ids", [])) if result else 0
+        result = self.collection.get(include=["embeddings"])
+        ids = result.get("ids", [])
+        count = len(ids)
         dimension = 0
-        if count > 0 and result and result.get("embeddings"):
-            first = result["embeddings"][0]
+        embeddings = result.get("embeddings")
+        if count > 0 and embeddings:
+            first = embeddings[0]
             dimension = len(first) if not hasattr(first, "shape") else first.shape[0]
 
         return {
@@ -276,13 +344,21 @@ class ChromaDBVectorAdapter(VectorStore):
 
         result = self.collection.get(include=["embeddings", "metadatas", "documents"])
         vectors: list[MemoryVector] = []
-        for i, vid in enumerate(result.get("ids", [])):
+        ids = result.get("ids") or []
+        documents = result.get("documents") or [None]
+        embeddings = result.get("embeddings") or [[]]
+        metadatas = result.get("metadatas") or [{}]
+        for i, vid in enumerate(ids):
+            metadata_payload = metadatas[i] if i < len(metadatas) else {}
+            metadata: MemoryMetadata | None = None
+            if isinstance(metadata_payload, Mapping):
+                metadata = from_serializable(metadata_payload)
             vectors.append(
                 MemoryVector(
                     id=vid,
-                    content=result.get("documents", [[None]])[0][i],
-                    embedding=result.get("embeddings", [[None]])[0][i],
-                    metadata=result.get("metadatas", [[{}]])[0][i],
+                    content=documents[i] if i < len(documents) else None,
+                    embedding=embeddings[i] if i < len(embeddings) else [],
+                    metadata=metadata,
                 )
             )
         for vec in vectors:

@@ -13,8 +13,9 @@ from typing import Any, TypedDict, cast
 
 np = cast(Any, importlib.import_module("numpy"))
 
-from ....domain.interfaces.memory import VectorStore
 from ....domain.models.memory import MemoryVector
+from ..dto import MemoryRecord, build_memory_record
+from ..vector_protocol import VectorStoreProtocol
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 
@@ -26,7 +27,7 @@ class _TransactionState(TypedDict):
     prepared: bool
 
 
-class VectorMemoryAdapter(VectorStore):
+class VectorMemoryAdapter(VectorStoreProtocol):
     """
     Vector Memory Adapter handles vector-based operations for similarity search.
 
@@ -79,7 +80,7 @@ class VectorMemoryAdapter(VectorStore):
 
     def similarity_search(
         self, query_embedding: Sequence[float], top_k: int = 5
-    ) -> list[MemoryVector]:
+    ) -> list[MemoryRecord]:
         """
         Search for vectors similar to the query embedding.
 
@@ -122,7 +123,14 @@ class VectorMemoryAdapter(VectorStore):
         top_k_ids = sorted_ids[:top_k]
 
         # Return the corresponding vectors
-        return [self.vectors[vector_id] for vector_id in top_k_ids]
+        return [
+            build_memory_record(
+                self.vectors[vector_id],
+                source="vector",
+                similarity=similarities.get(vector_id),
+            )
+            for vector_id in top_k_ids
+        ]
 
     def delete_vector(self, vector_id: str) -> bool:
         """
