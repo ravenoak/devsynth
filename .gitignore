@@ -67,6 +67,7 @@ diagnostics/*
 !diagnostics/
 diagnostics/**
 !diagnostics/**/*.log
+!diagnostics/**/*.txt
 !diagnostics/.gitkeep
 !diagnostics/README.md
 !diagnostics/provider_system_coverage_20250921.json
