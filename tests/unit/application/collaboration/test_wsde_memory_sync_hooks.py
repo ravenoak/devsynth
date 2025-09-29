@@ -1,8 +1,10 @@
+import json
 import logging
 from datetime import datetime
 
 import pytest
 
+from devsynth.application.collaboration.dto import AgentOpinionRecord
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
@@ -22,13 +24,29 @@ class DummyTeam(ConsensusBuildingMixin):
         self.memory_manager = memory_manager
         self.tracked_decisions = {}
         self.logger = logging.getLogger("dummy")
-        now = datetime.now()
+        now = datetime.now().isoformat()
         self.messages = {
             "a1": [
-                {"timestamp": now, "content": {"opinion": "approve", "rationale": "r1"}}
+                {
+                    "timestamp": now,
+                    "content": AgentOpinionRecord(
+                        agent_id="a1",
+                        opinion="approve",
+                        rationale="r1",
+                        timestamp=now,
+                    ),
+                }
             ],
             "a2": [
-                {"timestamp": now, "content": {"opinion": "approve", "rationale": "r2"}}
+                {
+                    "timestamp": now,
+                    "content": AgentOpinionRecord(
+                        agent_id="a2",
+                        opinion="approve",
+                        rationale="r2",
+                        timestamp=now,
+                    ),
+                }
             ],
         }
 
@@ -95,6 +113,18 @@ def test_build_consensus_stores_decision_and_summary(memory_manager):
         types = [item.metadata.get("type") for item in store.items.values()]
         assert "CONSENSUS_DECISION" in types
         assert "CONSENSUS_SUMMARY" in types
+        for item in store.items.values():
+            if item.metadata.get("type") == "CONSENSUS_DECISION":
+                decision = json.loads(item.content)
+                snapshot = decision["consensus_snapshot"]
+                assert snapshot["dto_type"] == "ConsensusOutcome"
+                assert [op["agent_id"] for op in snapshot["agent_opinions"]] == [
+                    "a1",
+                    "a2",
+                ]
+            if item.metadata.get("type") == "CONSENSUS_SUMMARY":
+                summary = json.loads(item.content)
+                assert list(summary.keys()) == ["decision_id", "summary"]
 
 
 def test_summarize_voting_result_persists_summary(memory_manager):
@@ -107,7 +137,16 @@ def test_summarize_voting_result_persists_summary(memory_manager):
     summary = team.summarize_voting_result(voting_result)
     assert "option 'option_a' selected" in summary.lower()
     for store in memory_manager.adapters.values():
-        assert any(
-            item.metadata.get("type") == "VOTING_SUMMARY"
+        stored = [
+            item
             for item in store.items.values()
-        )
+            if item.metadata.get("type") == "VOTING_SUMMARY"
+        ]
+        assert stored
+        raw_payload = stored[0].content
+        if isinstance(raw_payload, str):
+            payload = json.loads(raw_payload)
+        else:
+            payload = raw_payload
+        assert list(payload.keys()) == ["summary", "voting_result"]
+        assert payload["voting_result"]["status"] == "completed"

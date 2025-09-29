@@ -7,9 +7,13 @@ from collections.abc import Mapping as MappingABC, Sequence as SequenceABC
 from dataclasses import MISSING, dataclass, field, fields
 from typing import (
     Any,
+    Callable,
     ClassVar,
     Dict,
     Iterable,
+    Iterator,
+    ItemsView,
+    KeysView,
     Mapping,
     Optional,
     Sequence,
@@ -17,6 +21,8 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    ValuesView,
+    cast,
     get_args,
     get_origin,
 )
@@ -99,7 +105,9 @@ def _coerce_value(annotation: Any, value: Any) -> Any:
         return value
 
     if isinstance(annotation, type) and issubclass_safe(annotation, BaseDTO):
-        return annotation.from_dict(value)
+        dto_cls = cast(Type[BaseDTO], annotation)
+        mapping_value = cast(Mapping[str, Any], value)
+        return dto_cls.from_dict(mapping_value)
 
     if origin in {list, tuple}:
         item_type = get_args(annotation)[0] if get_args(annotation) else Any
@@ -127,7 +135,8 @@ class BaseDTO:
 
     def to_dict(self) -> Dict[str, Any]:
         result_items = [("dto_type", self.dto_type)]
-        for field_info in fields(self):
+        dataclass_type = cast(Type[Any], type(self))
+        for field_info in fields(dataclass_type):
             value = getattr(self, field_info.name)
             result_items.append((field_info.name, _serialize_value(value)))
         return dict(OrderedDict(result_items))
@@ -136,22 +145,22 @@ class BaseDTO:
     def __getitem__(self, key: str) -> Any:
         return self.to_dict()[key]
 
-    def __iter__(self):  # type: ignore[override]
+    def __iter__(self) -> Iterator[str]:
         return iter(self.to_dict())
 
-    def __len__(self) -> int:  # type: ignore[override]
+    def __len__(self) -> int:
         return len(self.to_dict())
 
     def get(self, key: str, default: Any = None) -> Any:
         return self.to_dict().get(key, default)
 
-    def items(self):
+    def items(self) -> ItemsView[str, Any]:
         return self.to_dict().items()
 
-    def keys(self):
+    def keys(self) -> KeysView[str]:
         return self.to_dict().keys()
 
-    def values(self):
+    def values(self) -> ValuesView[Any]:
         return self.to_dict().values()
 
     @classmethod
@@ -165,7 +174,8 @@ class BaseDTO:
                 continue
             prepared[str(key)] = value
 
-        field_map = {f.name: f for f in fields(cls)}
+        dataclass_type = cast(Type[Any], cls)
+        field_map = {f.name: f for f in fields(dataclass_type)}
         kwargs: Dict[str, Any] = {}
         extras: Dict[str, Any] = {}
 
@@ -197,10 +207,13 @@ class BaseDTO:
             if field_info.init and field_info.name not in kwargs:
                 if field_info.default is not MISSING:
                     kwargs[field_info.name] = field_info.default
-                elif field_info.default_factory is not MISSING:  # type: ignore[attr-defined]
-                    kwargs[field_info.name] = field_info.default_factory()  # type: ignore[misc]
+                else:
+                    default_factory = getattr(field_info, "default_factory", MISSING)
+                    if default_factory is not MISSING:
+                        factory = cast(Callable[[], Any], default_factory)
+                        kwargs[field_info.name] = factory()
 
-        return cls(**kwargs)  # type: ignore[arg-type]
+        return cls(**kwargs)
 
 
 def _dto_type_name(cls: Type[BaseDTO]) -> str:
@@ -433,10 +446,10 @@ def deserialize_collaboration_dto(data: Mapping[str, Any]) -> CollaborationDTO:
         instance = dto_cls.from_dict(data)
         if isinstance(instance, MemorySyncPort):
             raise TypeError("Expected collaboration DTO, received MemorySyncPort")
-        return instance  # type: ignore[return-value]
+        return cast(CollaborationDTO, instance)
 
     # Fallback to AgentPayload to avoid data loss for legacy entries.
-    return AgentPayload.from_dict(data)  # type: ignore[return-value]
+    return cast(CollaborationDTO, AgentPayload.from_dict(data))
 
 
 def serialize_message_payload(payload: MessagePayload) -> Any:
@@ -458,11 +471,11 @@ def deserialize_message_payload(data: Any) -> MessagePayload:
                 instance = dto_cls.from_dict(data)
                 if isinstance(instance, MemorySyncPort):
                     return instance.to_dict()
-                return instance  # type: ignore[return-value]
+                return cast(MessagePayload, instance)
         return _normalize_mapping(data)
     if isinstance(data, SequenceABC) and not isinstance(data, (str, bytes, bytearray)):
         return [_deserialize_arbitrary(item) for item in data]
-    return data
+    return cast(MessagePayload, data)
 
 
 def ensure_collaboration_payload(
@@ -471,7 +484,7 @@ def ensure_collaboration_payload(
     if isinstance(content, BaseDTO):
         if isinstance(content, MemorySyncPort):
             raise TypeError("MemorySyncPort cannot be used as message content")
-        return content  # type: ignore[return-value]
+        return cast(CollaborationDTO, content)
 
     if isinstance(content, MappingABC):
         try:
@@ -480,13 +493,22 @@ def ensure_collaboration_payload(
             pass
 
     if isinstance(content, str):
-        return default.from_dict({"summary": content})
+        dto_default = cast(Type[BaseDTO], default)
+        return cast(CollaborationDTO, dto_default.from_dict({"summary": content}))
 
     if isinstance(content, (int, float, bool)):
-        return default.from_dict({"payload": content})  # type: ignore[arg-type]
+        dto_default = cast(Type[BaseDTO], default)
+        return cast(
+            CollaborationDTO,
+            dto_default.from_dict({"payload": content}),
+        )
 
     if isinstance(content, SequenceABC) and not isinstance(content, (str, bytes, bytearray)):
-        return default.from_dict({"payload": list(content)})  # type: ignore[arg-type]
+        dto_default = cast(Type[BaseDTO], default)
+        return cast(
+            CollaborationDTO,
+            dto_default.from_dict({"payload": list(content)}),
+        )
 
     raise TypeError("Unsupported message content type for collaboration payload")
 

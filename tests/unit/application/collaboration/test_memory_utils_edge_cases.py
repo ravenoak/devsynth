@@ -6,6 +6,7 @@ from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
     restore_memory_queue,
 )
+from devsynth.application.collaboration.dto import MemorySyncPort
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
@@ -35,6 +36,31 @@ def test_restore_memory_queue_requeues_items_in_order() -> None:
     """Items are requeued without raising errors."""
 
     mm = MagicMock()
-    item = MemoryItem(id="1", content={}, memory_type=MemoryType.TEAM_STATE)
-    restore_memory_queue(mm, [("default", item)])
-    mm.queue_update.assert_called_once_with("default", item)
+    sync_port = MemorySyncPort(
+        adapter="tinydb",
+        channel="primary",
+        priority="high",
+        options={"z": 1, "a": 2},
+    )
+    first = MemoryItem(
+        id="1",
+        content={},
+        memory_type=MemoryType.TEAM_STATE,
+        metadata={"sync_port": sync_port},
+    )
+    second = MemoryItem(
+        id="2",
+        content={},
+        memory_type=MemoryType.TEAM_STATE,
+        metadata={"sync_port": sync_port.to_dict()},
+    )
+    restore_memory_queue(mm, [("default", first), ("secondary", second)])
+    assert [call.args[0] for call in mm.queue_update.call_args_list] == [
+        "default",
+        "secondary",
+    ]
+    serialized_port = sync_port.to_dict()
+    first_item = mm.queue_update.call_args_list[0].args[1]
+    second_item = mm.queue_update.call_args_list[1].args[1]
+    assert first_item.metadata["sync_port"] == serialized_port
+    assert second_item.metadata["sync_port"] == serialized_port

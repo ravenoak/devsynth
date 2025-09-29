@@ -5,6 +5,7 @@ from devsynth.application.collaboration.collaboration_memory_utils import (
     from_memory_item,
     to_memory_item,
 )
+from devsynth.application.collaboration.dto import TaskDescriptor
 from devsynth.domain.models.memory import MemoryType
 
 
@@ -12,11 +13,18 @@ from devsynth.domain.models.memory import MemoryType
 def test_task_round_trip_to_memory_item() -> None:
     """ReqID: N/A"""
 
-    task = CollaborationTask("type", "desc", {"x": 1})
+    descriptor = TaskDescriptor(summary="desc", metadata={"b": 2, "a": 1})
+    task = CollaborationTask("type", "desc", {"x": 1}, descriptor=descriptor)
     item = to_memory_item(task, MemoryType.COLLABORATION_TASK)
     restored = from_memory_item(item)
     assert isinstance(restored, CollaborationTask)
     assert restored.id == task.id
-    assert item.content["descriptor"]["dto_type"] == "TaskDescriptor"
+    assert item.content["descriptor"] == restored.descriptor.to_dict()
+    assert list(item.content["descriptor"]["metadata"].keys()) == [
+        "a",
+        "b",
+        "priority",
+        "task_type",
+    ]
     assert restored.descriptor.task_id == task.id
     assert restored.inputs == {"x": 1}
