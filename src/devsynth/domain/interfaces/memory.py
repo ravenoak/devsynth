@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, Union
 
 from ...domain.models.memory import MemoryItem, MemoryVector
 
@@ -18,12 +18,12 @@ else:
 
     MemoryMetadata = MutableMapping[str, Any]
 
-MemorySearchResponse: TypeAlias = (
-    list[MemoryItem]
-    | list["MemoryRecord"]
-    | "MemoryQueryResults"
-    | "GroupedMemoryResults"
-)
+MemorySearchResponse: TypeAlias = Union[
+    list[MemoryItem],
+    list["MemoryRecord"],
+    "MemoryQueryResults",
+    "GroupedMemoryResults",
+]
 """Permissible result shapes returned from ``MemoryStore.search`` implementations."""
 
 
