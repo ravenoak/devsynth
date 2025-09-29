@@ -1,7 +1,5 @@
 import pytest
 
-import pytest
-
 from devsynth.application.collaboration.agent_collaboration import (
     AgentCollaborationSystem,
     AgentMessage,
@@ -20,8 +18,8 @@ def test_agent_message_to_dict() -> None:
     assert data["sender_id"] == "a"
     assert data["recipient_id"] == "b"
     assert data["message_type"] == "TASK_ASSIGNMENT"
-    assert data["content"]["dto_type"] == "AgentPayload"
-    assert data["content"]["attributes"] == {"x": 1}
+    assert data["content"] == payload.to_dict()
+    assert msg.payload == payload
     assert msg.content == {"x": 1}
 
 

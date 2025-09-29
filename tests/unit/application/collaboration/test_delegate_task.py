@@ -70,6 +70,12 @@ class TestDelegateTask:
         assert result["result"] == consensus.synthesis.text
         assert result["contributors"] == list(consensus.participants)
         assert result["method"] == consensus.method
+        assert result["consensus_outcome"] == consensus
+        assert result["team_result"]["consensus"] == consensus.to_dict()
+        assert (
+            result["team_result"]["consensus"]["dto_type"]
+            == consensus.to_dict()["dto_type"]
+        )
 
     @pytest.mark.medium
     def test_team_task_no_agents_succeeds(self) -> None:
