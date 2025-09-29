@@ -9,6 +9,13 @@ from uuid import uuid4
 
 import pytest
 
+from devsynth.domain.models import (
+    wsde_code_improvements,
+    wsde_decision_making,
+    wsde_enhanced_dialectical,
+    wsde_security_checks,
+    wsde_solution_analysis,
+)
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
@@ -108,6 +115,183 @@ def wsde_team_factory() -> Callable[..., WSDETeam]:
         agents: Iterable[StubWSDEAgent] | None = None,
     ) -> WSDETeam:
         team = WSDETeam(name=name, description=description, agents=list(agents or ()))
-        return team
+        return _bind_module_helpers(team)
 
     return _factory
+
+
+@pytest.fixture
+def wsde_module_team(
+    wsde_team_factory: Callable[..., WSDETeam],
+    stub_agent_factory: Callable[..., StubWSDEAgent],
+) -> tuple[WSDETeam, dict[str, StubWSDEAgent]]:
+    """Provision a WSDE team preloaded with versatile stub agents for module tests."""
+
+    innovator = stub_agent_factory(
+        "innovator",
+        expertise=["security", "performance", "generalist"],
+        idea_batches=[
+            [
+                {
+                    "id": "idea-secure-cache",
+                    "description": "Add secure caching layer",
+                    "rationale": "Protect data in-flight while reducing latency",
+                },
+                {
+                    "id": "idea-audit",
+                    "description": "Introduce continuous auditing",
+                    "rationale": "Ensure regulatory alignment",
+                },
+            ],
+            [
+                {
+                    "id": "idea-batch",
+                    "description": "Batch telemetry uploads",
+                    "rationale": "Improve throughput for monitoring",
+                }
+            ],
+        ],
+        evaluation_scores={
+            "feasibility": {
+                "idea-secure-cache": 0.8,
+                "idea-audit": 0.4,
+                "idea-batch": 0.7,
+            },
+            "impact": {
+                "idea-secure-cache": 0.9,
+                "idea-audit": 0.5,
+                "idea-batch": 0.6,
+            },
+        },
+    )
+
+    critic = stub_agent_factory(
+        "critic",
+        expertise=["security", "analysis"],
+        critique_response={
+            "critiques": [
+                "Encryption is missing from the data store",
+                "Performance profile lacks stress data",
+            ],
+            "improvement_suggestions": [
+                "Adopt envelope encryption",
+                "Document load testing assumptions",
+            ],
+            "domain_specific_feedback": {
+                "security": ["Encryption missing"],
+                "performance": ["No stress benchmarks"],
+                "code_quality": ["Functions exceed 80 lines"],
+            },
+        },
+    )
+
+    reviewer = stub_agent_factory(
+        "reviewer",
+        expertise=["review", "knowledge"],
+        idea_batches=[
+            [
+                {
+                    "id": "idea-secure-cache",
+                    "description": "Add secure caching layer",
+                    "rationale": "Protect data in-flight while reducing latency",
+                }
+            ]
+        ],
+        evaluation_scores={
+            "feasibility": {
+                "idea-secure-cache": 0.7,
+                "idea-audit": 0.6,
+                "idea-batch": 0.8,
+            },
+            "impact": {
+                "idea-secure-cache": 0.85,
+                "idea-audit": 0.55,
+                "idea-batch": 0.65,
+            },
+        },
+        critique_response={
+            "critiques": [
+                "Knowledge base lacks lessons learned",
+            ],
+            "improvement_suggestions": [
+                "Integrate retrospective summaries",
+            ],
+            "domain_specific_feedback": {
+                "knowledge_management": [
+                    "Summaries do not mention compliance incidents"
+                ]
+            },
+        },
+    )
+
+    redundant = stub_agent_factory(
+        "redundant",
+        expertise=["operations"],
+        idea_batches=[
+            [
+                {
+                    "id": "idea-secure-cache",
+                    "description": "Add secure caching layer",
+                    "rationale": "Protect data in-flight while reducing latency",
+                }
+            ]
+        ],
+    )
+
+    team = wsde_team_factory(
+        name="wsde-module-team",
+        description="Stubbed WSDE team for module integration tests",
+        agents=[innovator, critic, reviewer, redundant],
+    )
+    _bind_module_helpers(team)
+
+    return team, {
+        "innovator": innovator,
+        "critic": critic,
+        "reviewer": reviewer,
+        "redundant": redundant,
+    }
+
+
+def _bind_module_helpers(team: WSDETeam) -> WSDETeam:
+    """Attach module helper functions to the WSDETeam instance when absent."""
+
+    method_bindings: dict[str, Any] = {
+        "_improve_credentials": wsde_code_improvements._improve_credentials,
+        "_improve_error_handling": wsde_code_improvements._improve_error_handling,
+        "_improve_input_validation": wsde_code_improvements._improve_input_validation,
+        "_improve_security": wsde_code_improvements._improve_security,
+        "_calculate_idea_similarity": wsde_decision_making._calculate_idea_similarity,
+        "_analyze_solution": wsde_solution_analysis._analyze_solution,
+        "_generate_comparative_analysis": wsde_solution_analysis._generate_comparative_analysis,
+        "_check_security_best_practices": wsde_security_checks._check_security_best_practices,
+        "_balance_security_and_performance": wsde_security_checks._balance_security_and_performance,
+        "_balance_security_and_usability": wsde_security_checks._balance_security_and_usability,
+        "_balance_performance_and_maintainability": wsde_security_checks._balance_performance_and_maintainability,
+    }
+
+    for attribute, function in method_bindings.items():
+        if not hasattr(team, attribute):
+            setattr(team, attribute, function.__get__(team, WSDETeam))
+
+    def _detailed_synthesis_reasoning(
+        self: WSDETeam,
+        domain_critiques: Any,
+        domain_improvements: Any,
+        domain_conflicts: Any,
+        resolved_conflicts: Any,
+        standards_compliance: Any,
+    ) -> str:
+        return wsde_enhanced_dialectical._generate_detailed_synthesis_reasoning(
+            domain_critiques,
+            domain_improvements,
+            domain_conflicts,
+            resolved_conflicts,
+            standards_compliance,
+        )
+
+    team._generate_detailed_synthesis_reasoning = _detailed_synthesis_reasoning.__get__(
+        team, WSDETeam
+    )
+
+    return team

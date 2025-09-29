@@ -4,10 +4,10 @@ import pytest
 
 
 @pytest.mark.fast
-def test_analyze_solution_scores_requirements(wsde_team_factory):
+def test_analyze_solution_scores_requirements(wsde_module_team):
     """ReqID: WSDE-SOLUTION-01 — tallies addressed requirements and strengths."""
 
-    team = wsde_team_factory()
+    team, _ = wsde_module_team
     task = {
         "id": "solution-task",
         "requirements": ["logging", "monitoring"],
@@ -31,10 +31,10 @@ def test_analyze_solution_scores_requirements(wsde_team_factory):
 
 
 @pytest.mark.fast
-def test_analyze_solution_highlights_gaps(wsde_team_factory):
+def test_analyze_solution_highlights_gaps(wsde_module_team):
     """ReqID: WSDE-SOLUTION-02 — flags weak submissions for remediation."""
 
-    team = wsde_team_factory()
+    team, _ = wsde_module_team
     task = {
         "id": "solution-gap",
         "requirements": ["audit trail"],
@@ -55,35 +55,43 @@ def test_analyze_solution_highlights_gaps(wsde_team_factory):
 
 
 @pytest.mark.fast
-def test_generate_comparative_analysis_identifies_best_solution(wsde_team_factory):
+def test_generate_comparative_analysis_identifies_best_solution(wsde_module_team):
     """ReqID: WSDE-SOLUTION-03 — ranks solutions by requirement coverage."""
 
-    team = wsde_team_factory()
-    task = {"id": "compare", "requirements": ["encryption"]}
+    team, _ = wsde_module_team
+    task = {"id": "compare", "requirements": ["encryption"], "constraints": []}
 
-    analysis_winner = {
-        "solution_number": 1,
-        "requirement_analyses": [
-            {"requirement": "encryption", "addressed": True},
-        ],
-        "constraints_respected": 0,
-        "constraints_total": 0,
-    }
-    analysis_runner_up = {
-        "solution_number": 2,
-        "requirement_analyses": [
-            {"requirement": "encryption", "addressed": False},
-        ],
-        "constraints_respected": 0,
-        "constraints_total": 0,
-    }
+    solutions = [
+        {"id": "sol-1", "content": "Implements encryption", "code": "def enc():\n    pass\n"},
+        {"id": "sol-2", "content": "No mention", "code": ""},
+    ]
 
-    comparative = team._generate_comparative_analysis(
-        [analysis_winner, analysis_runner_up],
-        task,
-    )
+    analyses = [
+        team._analyze_solution(solution, task, index + 1)
+        for index, solution in enumerate(solutions)
+    ]
+
+    comparative = team._generate_comparative_analysis(analyses, task)
 
     requirement_summary = comparative["requirement_comparisons"]["encryption"]
     assert requirement_summary["best_solution"] == 1
     assert requirement_summary["solution_scores"][1] == 1
-    assert requirement_summary["solution_scores"][2] == 0
+    assert requirement_summary["solution_scores"].get(2, 0) == 0
+    assert comparative["best_solution"] == 1
+
+
+@pytest.mark.fast
+def test_generate_comparative_analysis_handles_empty(wsde_module_team):
+    """ReqID: WSDE-SOLUTION-04 — returns default comparison when analyses missing."""
+
+    team, _ = wsde_module_team
+
+    comparative = team._generate_comparative_analysis(
+        [], {"id": "empty", "requirements": [], "constraints": []}
+    )
+
+    assert comparative["requirement_comparisons"] == {}
+    assert comparative["constraint_comparisons"] == {}
+    assert comparative["overall_scores"] == {}
+    assert comparative["best_solution"] is None
+    assert comparative["task_id"] == "empty"
