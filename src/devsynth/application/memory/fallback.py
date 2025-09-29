@@ -1,18 +1,23 @@
-"""
-Fallback mechanisms for memory store failures.
+"""Fallback mechanisms for memory store failures using typed DTOs."""
 
-This module provides fallback mechanisms to maintain system availability
-when memory stores are unavailable or experiencing issues.
-"""
+from __future__ import annotations
 
 import logging
 import time
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast, TYPE_CHECKING
 
-from devsynth.domain.interfaces.memory import MemoryStore
+from devsynth.domain.interfaces.memory import MemorySearchResponse, MemoryStore
 from devsynth.domain.models.memory import MemoryItem
 from devsynth.logging_setup import DevSynthLogger
+
+if TYPE_CHECKING:  # pragma: no cover - imported for typing only
+    from devsynth.application.memory.dto import (
+        GroupedMemoryResults,
+        MemoryMetadata,
+        MemoryQueryResults,
+        MemoryRecord,
+    )
 
 T = TypeVar("T")
 
@@ -158,15 +163,15 @@ class FallbackStore(MemoryStore):
         self.logger.error(error_message)
         raise FallbackError(error_message, errors)
 
-    def retrieve(self, item_id: str) -> MemoryItem:
+    def retrieve(self, item_id: str) -> MemoryItem | "MemoryRecord":
         """
-        Retrieve a memory item with fallback.
+        Retrieve a memory artefact with fallback.
 
         Args:
             item_id: ID of the item to retrieve
 
         Returns:
-            Retrieved memory item
+            Retrieved memory item or DTO record
 
         Raises:
             FallbackError: If all stores fail
@@ -214,15 +219,17 @@ class FallbackStore(MemoryStore):
         self.logger.error(error_message)
         raise KeyError(error_message)
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(
+        self, query: Dict[str, Any] | "MemoryMetadata"
+    ) -> MemorySearchResponse:
         """
-        Search for memory items with fallback.
+        Search for memory artefacts with fallback.
 
         Args:
-            query: Search query
+            query: Search query or metadata filter
 
         Returns:
-            List of matching memory items
+            Typed collection of matching memory records or items
 
         Raises:
             FallbackError: If all stores fail

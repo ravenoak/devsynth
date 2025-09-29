@@ -1,21 +1,67 @@
-"""
-Memory Integration Manager Module
+"""Memory Integration Manager leveraging typed DTO abstractions."""
 
-This module provides a manager for integrating different memory stores,
-allowing for seamless data transfer and synchronization between them.
-"""
+from __future__ import annotations
 
-import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, cast
 
+from devsynth.application.memory.dto import MemoryMetadata, MemoryRecord, build_memory_record
 from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStoreError
 
-from ...domain.interfaces.memory import MemoryStore, VectorStore
+from ...domain.interfaces.memory import MemorySearchResponse, MemoryStore, VectorStore
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from ...logging_setup import DevSynthLogger
 
+if TYPE_CHECKING:  # pragma: no cover - typing imports only
+    from devsynth.application.memory.dto import GroupedMemoryResults, MemoryQueryResults
+
 logger = DevSynthLogger(__name__)
+
+
+def _records_from_response(
+    response: MemorySearchResponse, store_name: str
+) -> List[MemoryRecord]:
+    """Normalize search responses into :class:`MemoryRecord` instances."""
+
+    if isinstance(response, list):
+        return [build_memory_record(item, source=store_name) for item in response]
+
+    if isinstance(response, dict):
+        if "by_store" in response:
+            grouped_records: List[MemoryRecord] = []
+            by_store = cast("GroupedMemoryResults", response)["by_store"]
+            for nested_store, payload in by_store.items():
+                grouped_records.extend(_records_from_response(payload, nested_store))
+            combined = cast("GroupedMemoryResults", response).get("combined")
+            if combined:
+                grouped_records.extend(
+                    build_memory_record(record, source=store_name)
+                    for record in combined
+                )
+            return grouped_records
+
+        if "records" in response:
+            query_results = cast("MemoryQueryResults", response)
+            result_store = query_results.get("store", store_name)
+            return [
+                build_memory_record(record, source=result_store)
+                for record in query_results.get("records", [])
+            ]
+
+    return []
+
+
+def _clone_item(record: MemoryRecord) -> MemoryItem:
+    """Create a mutable :class:`MemoryItem` copy from a memory record."""
+
+    metadata: MemoryMetadata = cast(MemoryMetadata, dict(record.metadata or {}))
+    return MemoryItem(
+        id=record.item.id,
+        content=record.item.content,
+        memory_type=record.item.memory_type,
+        metadata=metadata,
+        created_at=record.item.created_at,
+    )
 
 
 class MemoryIntegrationManager:
@@ -79,11 +125,14 @@ class MemoryIntegrationManager:
                 raise MemoryStoreError(f"Target store '{target_store}' not registered")
 
             # Retrieve the item from the source store
-            item = self.memory_stores[source_store].retrieve(item_id)
-            if not item:
+            item_payload = self.memory_stores[source_store].retrieve(item_id)
+            if item_payload is None:
                 raise MemoryItemNotFoundError(
                     f"Item with ID {item_id} not found in source store '{source_store}'"
                 )
+
+            record = build_memory_record(item_payload, source=source_store)
+            item = _clone_item(record)
 
             # Add transfer metadata
             item.metadata["transferred_from"] = source_store
@@ -126,11 +175,12 @@ class MemoryIntegrationManager:
 
             # Get all items from store1
             store1_items = self.memory_stores[store1].search({})
+            store1_records = _records_from_response(store1_items, store1)
 
             # Transfer items from store1 to store2
             transferred_to_store2 = 0
-            for item in store1_items:
-                # Add synchronization metadata
+            for record in store1_records:
+                item = _clone_item(record)
                 item.metadata["synchronized_from"] = store1
                 item.metadata["synchronized_at"] = datetime.now().isoformat()
 
@@ -144,15 +194,18 @@ class MemoryIntegrationManager:
             if bidirectional:
                 # Get all items from store2
                 store2_items = self.memory_stores[store2].search({})
+                store2_records = _records_from_response(store2_items, store2)
 
                 # Transfer items from store2 to store1
                 transferred_to_store1 = 0
-                for item in store2_items:
+                for record in store2_records:
                     # Skip items that were just transferred from store1
-                    if item.metadata.get("synchronized_from") == store1:
+                    source_store = record.item.metadata.get("synchronized_from")
+                    if source_store == store1:
                         continue
 
                     # Add synchronization metadata
+                    item = _clone_item(record)
                     item.metadata["synchronized_from"] = store2
                     item.metadata["synchronized_at"] = datetime.now().isoformat()
 
@@ -171,17 +224,19 @@ class MemoryIntegrationManager:
             raise MemoryStoreError(f"Failed to synchronize memory stores: {e}")
 
     def query_across_stores(
-        self, query: Dict[str, Any], stores: List[str] = None
-    ) -> Dict[str, List[MemoryItem]]:
+        self,
+        query: Dict[str, Any] | MemoryMetadata,
+        stores: List[str] = None,
+    ) -> Dict[str, MemorySearchResponse]:
         """
         Query for memory items across multiple stores.
 
         Args:
-            query: The query dictionary
+            query: The query dictionary or metadata filter
             stores: A list of store names to query, or None to query all registered stores
 
         Returns:
-            A dictionary mapping store names to lists of matching memory items
+            A dictionary mapping store names to typed memory search responses
 
         Raises:
             MemoryStoreError: If any of the specified stores is not registered
@@ -197,7 +252,7 @@ class MemoryIntegrationManager:
                     raise MemoryStoreError(f"Store '{store}' not registered")
 
             # Query each store
-            results = {}
+            results: Dict[str, MemorySearchResponse] = {}
             for store in stores:
                 store_results = self.memory_stores[store].search(query)
                 results[store] = store_results
