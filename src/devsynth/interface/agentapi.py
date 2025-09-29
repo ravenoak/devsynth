@@ -10,15 +10,31 @@ the terminal or WebUI.
 
 from __future__ import annotations
 
-import datetime
-import os
 import time
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Sequence
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
-from pydantic import BaseModel, Field
 
+from devsynth.interface.agentapi_models import (
+    APIMetrics,
+    CodeRequest,
+    DoctorRequest,
+    EDRRCycleRequest,
+    GatherRequest,
+    HealthResponse,
+    InitRequest,
+    MetricsResponse,
+    PriorityLevel,
+    ProgressSnapshot,
+    ProgressStatus,
+    SpecRequest,
+    SynthesizeRequest,
+    TestSpecRequest,
+    WorkflowMetadata,
+    WorkflowResponse,
+    SynthesisTarget,
+)
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
 
@@ -26,7 +42,7 @@ logger = DevSynthLogger(__name__)
 router = APIRouter()
 
 
-def _verify_token(authorization: str = Header(None)) -> None:
+def _verify_token(authorization: str | None = Header(default=None)) -> None:
     """Lazy import to avoid circular dependency during FastAPI setup."""
     from devsynth.api import verify_token as _verify
 
@@ -34,19 +50,13 @@ def _verify_token(authorization: str = Header(None)) -> None:
 
 
 # Store the latest messages from the API
-LATEST_MESSAGES: List[str] = []
+LATEST_MESSAGES: tuple[str, ...] = tuple()
 
 # Store request timestamps for rate limiting
-REQUEST_TIMESTAMPS: Dict[str, List[float]] = {}
+REQUEST_TIMESTAMPS: dict[str, list[float]] = {}
 
 # Store metrics for the API
-API_METRICS = {
-    "start_time": time.time(),
-    "request_count": 0,
-    "endpoint_counts": {},
-    "error_count": 0,
-    "endpoint_latency": {},
-}
+API_METRICS = APIMetrics(start_time=time.time())
 
 app = FastAPI(
     title="DevSynth Agent API",
@@ -58,112 +68,129 @@ app = FastAPI(
 
 
 class APIBridge(UXBridge):
-    """Bridge that feeds canned responses and collects output messages."""
+    """Bridge that feeds scripted responses and records workflow output."""
 
-    def __init__(self, answers: Optional[Sequence[str]] = None) -> None:
-        """Create bridge with optional scripted answers."""
+    def __init__(self, answers: Sequence[str] | None = None) -> None:
         self._answers = list(answers or [])
-        self.messages: List[str] = []
+        self.messages: list[str] = []
+        self._progress_log: list[ProgressSnapshot] = []
+
+    @property
+    def progress_snapshots(self) -> tuple[ProgressSnapshot, ...]:
+        """Expose captured progress updates as an immutable tuple."""
+
+        return tuple(self._progress_log)
 
     def ask_question(
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
-        """Return a scripted answer or the provided default."""
+        del choices, show_default  # Questions are scripted for the API bridge.
         return str(self._answers.pop(0)) if self._answers else str(default or "")
 
     def confirm_choice(self, message: str, *, default: bool = False) -> bool:
-        """Return a scripted boolean answer or the default."""
+        del message
         if self._answers:
-            return bool(self._answers.pop(0))
+            answer = str(self._answers.pop(0)).strip().lower()
+            return answer in {"y", "yes", "true", "1"}
         return default
 
     def display_result(
-        self, message: str, *, highlight: bool = False, message_type: str = None
+        self,
+        message: str,
+        *,
+        highlight: bool = False,
+        message_type: str | None = None,
     ) -> None:
-        """Capture workflow output for the API response.
-
-        Args:
-            message: The message to display
-            highlight: Whether to highlight the message
-            message_type: Optional type of message (info, success, warning, error, etc.)
-        """
+        del highlight, message_type
         self.messages.append(sanitize_output(message))
 
     class _APIProgress(ProgressIndicator):
-        def __init__(self, messages: List[str], description: str, total: int) -> None:
+        def __init__(
+            self,
+            messages: list[str],
+            progress_log: list[ProgressSnapshot],
+            description: str,
+            total: int,
+        ) -> None:
             self._messages = messages
+            self._progress_log = progress_log
             self._description = sanitize_output(description)
-            self._total = total
-            self._current = 0
-            self._status = "Starting..."
-            self._subtasks = {}
-            self._nested_subtasks = {}
+            self._total = float(total)
+            self._current = 0.0
+            self._status = ProgressStatus.STARTING
+            self._subtasks: dict[str, dict[str, float | str]] = {}
+            self._nested_subtasks: dict[str, dict[str, dict[str, float | str]]] = {}
             self._messages.append(self._description)
+            self._record_snapshot()
+
+        def _record_snapshot(self) -> None:
+            self._progress_log.append(
+                ProgressSnapshot(
+                    description=self._description,
+                    current=self._current,
+                    total=self._total,
+                    status=self._status,
+                )
+            )
+
+        def _auto_status(self, current: float, total: float) -> ProgressStatus:
+            if current >= total:
+                return ProgressStatus.COMPLETE
+            if current >= 0.99 * total:
+                return ProgressStatus.FINALIZING
+            if current >= 0.75 * total:
+                return ProgressStatus.ALMOST_DONE
+            if current >= 0.5 * total:
+                return ProgressStatus.HALF_COMPLETE
+            if current >= 0.25 * total:
+                return ProgressStatus.PROCESSING
+            return ProgressStatus.STARTING
+
+        def _sanitize_status(self, status: str | None) -> ProgressStatus:
+            if status:
+                for candidate in ProgressStatus:
+                    if candidate.value == status:
+                        return candidate
+            return self._auto_status(self._current, self._total)
 
         def update(
             self,
             *,
             advance: float = 1,
-            description: Optional[str] = None,
-            status: Optional[str] = None,
+            description: str | None = None,
+            status: str | None = None,
         ) -> None:
             if description:
                 self._description = sanitize_output(description)
 
-            # Handle status
-            if status:
-                self._status = sanitize_output(status)
-            else:
-                # If no status is provided, use a default based on progress
-                if self._current >= self._total:
-                    self._status = "Complete"
-                elif self._current >= 0.99 * self._total:
-                    self._status = "Finalizing..."
-                elif self._current >= 0.75 * self._total:
-                    self._status = "Almost done..."
-                elif self._current >= 0.5 * self._total:
-                    self._status = "Halfway there..."
-                elif self._current >= 0.25 * self._total:
-                    self._status = "Processing..."
-                else:
-                    self._status = "Starting..."
-
-            self._current += advance
+            self._current = max(0.0, self._current + float(advance))
+            self._status = self._sanitize_status(status)
             self._messages.append(
-                f"{self._description} ({self._current}/{self._total}) - {self._status}"
+                f"{self._description} ({self._current}/{self._total}) - {self._status.value}"
             )
+            self._record_snapshot()
 
         def complete(self) -> None:
-            # Complete all subtasks first
             for task_id in list(self._subtasks.keys()):
                 self.complete_subtask(task_id)
 
-            self._status = "Complete"
+            self._status = ProgressStatus.COMPLETE
             self._messages.append(f"{self._description} complete")
+            self._record_snapshot()
 
         def add_subtask(
             self, description: str, total: int = 100, status: str = "Starting..."
         ) -> str:
-            """Add a subtask to the progress indicator.
-
-            Args:
-                description: Description of the subtask
-                total: Total steps for the subtask
-                status: Initial status message for the subtask
-
-            Returns:
-                task_id: ID of the created subtask
-            """
             task_id = f"subtask_{len(self._subtasks)}"
             self._subtasks[task_id] = {
                 "description": sanitize_output(description),
-                "total": total,
-                "current": 0,
+                "total": float(total),
+                "current": 0.0,
                 "status": status,
             }
             self._messages.append(
@@ -175,64 +202,44 @@ class APIBridge(UXBridge):
             self,
             task_id: str,
             advance: float = 1,
-            description: Optional[str] = None,
-            status: Optional[str] = None,
+            description: str | None = None,
+            status: str | None = None,
         ) -> None:
-            """Update a subtask's progress.
-
-            Args:
-                task_id: ID of the subtask to update
-                advance: Amount to advance the progress
-                description: New description for the subtask
-                status: Status message to display
-            """
             if task_id not in self._subtasks:
                 return
 
             if description:
                 self._subtasks[task_id]["description"] = sanitize_output(description)
 
-            # Handle status
             if status:
                 self._subtasks[task_id]["status"] = sanitize_output(status)
             else:
-                # If no status is provided, use a default based on progress
                 current = self._subtasks[task_id]["current"]
                 total = self._subtasks[task_id]["total"]
                 if current >= total:
-                    self._subtasks[task_id]["status"] = "Complete"
+                    self._subtasks[task_id]["status"] = ProgressStatus.COMPLETE.value
                 elif current >= 0.99 * total:
-                    self._subtasks[task_id]["status"] = "Finalizing..."
+                    self._subtasks[task_id]["status"] = ProgressStatus.FINALIZING.value
                 elif current >= 0.75 * total:
-                    self._subtasks[task_id]["status"] = "Almost done..."
+                    self._subtasks[task_id]["status"] = ProgressStatus.ALMOST_DONE.value
                 elif current >= 0.5 * total:
-                    self._subtasks[task_id]["status"] = "Halfway there..."
+                    self._subtasks[task_id]["status"] = ProgressStatus.HALF_COMPLETE.value
                 elif current >= 0.25 * total:
-                    self._subtasks[task_id]["status"] = "Processing..."
+                    self._subtasks[task_id]["status"] = ProgressStatus.PROCESSING.value
                 else:
-                    self._subtasks[task_id]["status"] = "Starting..."
+                    self._subtasks[task_id]["status"] = ProgressStatus.STARTING.value
 
-            self._subtasks[task_id]["current"] += advance
+            self._subtasks[task_id]["current"] += float(advance)
             self._messages.append(
                 f"  ↳ {self._subtasks[task_id]['description']} ({self._subtasks[task_id]['current']}/{self._subtasks[task_id]['total']}) - {self._subtasks[task_id]['status']}"
             )
 
         def complete_subtask(self, task_id: str) -> None:
-            """Mark a subtask as complete.
-
-            Args:
-                task_id: ID of the subtask to complete
-            """
             if task_id not in self._subtasks:
                 return
 
-            # Complete all nested subtasks first if any
-            if task_id in self._nested_subtasks:
-                for nested_id in list(self._nested_subtasks[task_id].keys()):
-                    self.complete_nested_subtask(task_id, nested_id)
-
             self._subtasks[task_id]["current"] = self._subtasks[task_id]["total"]
-            self._subtasks[task_id]["status"] = "Complete"
+            self._subtasks[task_id]["status"] = ProgressStatus.COMPLETE.value
             self._messages.append(
                 f"  ↳ {self._subtasks[task_id]['description']} complete"
             )
@@ -244,29 +251,13 @@ class APIBridge(UXBridge):
             total: int = 100,
             status: str = "Starting...",
         ) -> str:
-            """Add a nested subtask to a subtask.
-
-            Args:
-                parent_id: ID of the parent subtask
-                description: Description of the nested subtask
-                total: Total steps for the nested subtask
-                status: Initial status message for the nested subtask
-
-            Returns:
-                task_id: ID of the created nested subtask
-            """
-            if parent_id not in self._subtasks:
-                return ""
-
-            # Initialize nested subtasks dictionary for parent if it doesn't exist
             if parent_id not in self._nested_subtasks:
                 self._nested_subtasks[parent_id] = {}
-
-            task_id = f"nested_{parent_id}_{len(self._nested_subtasks[parent_id])}"
+            task_id = f"nested_{len(self._nested_subtasks[parent_id])}"
             self._nested_subtasks[parent_id][task_id] = {
                 "description": sanitize_output(description),
-                "total": total,
-                "current": 0,
+                "total": float(total),
+                "current": 0.0,
                 "status": status,
             }
             self._messages.append(
@@ -279,18 +270,9 @@ class APIBridge(UXBridge):
             parent_id: str,
             task_id: str,
             advance: float = 1,
-            description: Optional[str] = None,
-            status: Optional[str] = None,
+            description: str | None = None,
+            status: str | None = None,
         ) -> None:
-            """Update a nested subtask's progress.
-
-            Args:
-                parent_id: ID of the parent subtask
-                task_id: ID of the nested subtask to update
-                advance: Amount to advance the progress
-                description: New description for the nested subtask
-                status: Status message to display
-            """
             if (
                 parent_id not in self._nested_subtasks
                 or task_id not in self._nested_subtasks[parent_id]
@@ -302,48 +284,44 @@ class APIBridge(UXBridge):
                     sanitize_output(description)
                 )
 
-            # Handle status
             if status:
                 self._nested_subtasks[parent_id][task_id]["status"] = sanitize_output(
                     status
                 )
             else:
-                # If no status is provided, use a default based on progress
                 current = self._nested_subtasks[parent_id][task_id]["current"]
                 total = self._nested_subtasks[parent_id][task_id]["total"]
                 if current >= total:
-                    self._nested_subtasks[parent_id][task_id]["status"] = "Complete"
+                    self._nested_subtasks[parent_id][task_id][
+                        "status"
+                    ] = ProgressStatus.COMPLETE.value
                 elif current >= 0.99 * total:
                     self._nested_subtasks[parent_id][task_id][
                         "status"
-                    ] = "Finalizing..."
+                    ] = ProgressStatus.FINALIZING.value
                 elif current >= 0.75 * total:
                     self._nested_subtasks[parent_id][task_id][
                         "status"
-                    ] = "Almost done..."
+                    ] = ProgressStatus.ALMOST_DONE.value
                 elif current >= 0.5 * total:
                     self._nested_subtasks[parent_id][task_id][
                         "status"
-                    ] = "Halfway there..."
+                    ] = ProgressStatus.HALF_COMPLETE.value
                 elif current >= 0.25 * total:
                     self._nested_subtasks[parent_id][task_id][
                         "status"
-                    ] = "Processing..."
+                    ] = ProgressStatus.PROCESSING.value
                 else:
-                    self._nested_subtasks[parent_id][task_id]["status"] = "Starting..."
+                    self._nested_subtasks[parent_id][task_id][
+                        "status"
+                    ] = ProgressStatus.STARTING.value
 
-            self._nested_subtasks[parent_id][task_id]["current"] += advance
+            self._nested_subtasks[parent_id][task_id]["current"] += float(advance)
             self._messages.append(
                 f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} ({self._nested_subtasks[parent_id][task_id]['current']}/{self._nested_subtasks[parent_id][task_id]['total']}) - {self._nested_subtasks[parent_id][task_id]['status']}"
             )
 
         def complete_nested_subtask(self, parent_id: str, task_id: str) -> None:
-            """Mark a nested subtask as complete.
-
-            Args:
-                parent_id: ID of the parent subtask
-                task_id: ID of the nested subtask to complete
-            """
             if (
                 parent_id not in self._nested_subtasks
                 or task_id not in self._nested_subtasks[parent_id]
@@ -353,7 +331,9 @@ class APIBridge(UXBridge):
             self._nested_subtasks[parent_id][task_id]["current"] = (
                 self._nested_subtasks[parent_id][task_id]["total"]
             )
-            self._nested_subtasks[parent_id][task_id]["status"] = "Complete"
+            self._nested_subtasks[parent_id][task_id]["status"] = (
+                ProgressStatus.COMPLETE.value
+            )
             self._messages.append(
                 f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} complete"
             )
@@ -361,10 +341,7 @@ class APIBridge(UXBridge):
     def create_progress(
         self, description: str, *, total: int = 100
     ) -> ProgressIndicator:
-        return self._APIProgress(self.messages, description, total)
-
-
-LATEST_MESSAGES: List[str] = []
+        return self._APIProgress(self.messages, self._progress_log, description, total)
 
 
 def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
@@ -400,91 +377,37 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
 
     # Add the current timestamp
     REQUEST_TIMESTAMPS[client_ip].append(current_time)
-
-
-class InitRequest(BaseModel):
-    __test__ = False
-    path: Optional[str] = "."
-    project_root: Optional[str] = None
-    language: Optional[str] = None
-    goals: Optional[str] = None
-
-
-class GatherRequest(BaseModel):
-    __test__ = False
-    goals: Optional[str] = None
-    constraints: Optional[str] = None
-    priority: Optional[str] = "medium"
-
-
-class SynthesizeRequest(BaseModel):
-    __test__ = False
-    target: Optional[str] = None
-
-
-class SpecRequest(BaseModel):
-    __test__ = False
-    requirements_file: Optional[str] = "requirements.md"
-
-
-class TestSpecRequest(BaseModel):
-    spec_file: Optional[str] = "specs.md"
-    output_dir: Optional[str] = None
-
-    # Prevent pytest from collecting this model as a test class
-    __test__ = False
-
-
-class CodeRequest(BaseModel):
-    __test__ = False
-    output_dir: Optional[str] = None
-
-
-class DoctorRequest(BaseModel):
-    __test__ = False
-    path: str = "."
-    fix: bool = False
-
-
-class EDRRCycleRequest(BaseModel):
-    __test__ = False
-    prompt: Optional[str] = None
-    context: Optional[str] = None
-    max_iterations: int = 3
-
-
-class WorkflowResponse(BaseModel):
-    __test__ = False
-    messages: List[str]
-
-
 class AgentAPI:
     """Programmatic wrapper around the CLI workflows."""
 
     def __init__(self, bridge: UXBridge) -> None:
-        """Create the API using ``bridge`` for all interactions."""
         self.bridge = bridge
 
-    def _collect_messages(self) -> List[str]:
-        """Return messages captured by the bridge if available."""
-        msgs = list(getattr(self.bridge, "messages", []))
-        LATEST_MESSAGES[:] = msgs
-        return msgs
+    def _collect_response(self) -> WorkflowResponse:
+        messages = tuple(getattr(self.bridge, "messages", []))
+        metadata: WorkflowMetadata | None = None
+        if isinstance(self.bridge, APIBridge):
+            metadata = WorkflowMetadata(progress=self.bridge.progress_snapshots)
+
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = messages
+        return WorkflowResponse(messages=messages, metadata=metadata)
+
+    def _clear_messages(self) -> None:
+        if hasattr(self.bridge, "messages"):
+            self.bridge.messages.clear()
 
     def init(
         self,
         *,
         path: str = ".",
-        project_root: Optional[str] = None,
-        language: Optional[str] = None,
-        goals: Optional[str] = None,
-    ) -> List[str]:
-        """Initialize or onboard a project via :func:`init_cmd`."""
+        project_root: str | None = None,
+        language: str | None = None,
+        goals: str | None = None,
+    ) -> WorkflowResponse:
         from devsynth.application.cli import init_cmd
 
-        if hasattr(self.bridge, "messages"):
-            self.bridge.messages.clear()
-
+        self._clear_messages()
         init_cmd(
             path=path,
             project_root=project_root,
@@ -492,97 +415,83 @@ class AgentAPI:
             goals=goals,
             bridge=self.bridge,
         )
-        return self._collect_messages()
+        return self._collect_response()
 
     def gather(
         self,
         *,
         goals: str,
         constraints: str,
-        priority: str = "medium",
-    ) -> List[str]:
-        """Run the requirements gathering wizard via :func:`gather_cmd`."""
+        priority: PriorityLevel = PriorityLevel.MEDIUM,
+    ) -> WorkflowResponse:
         from devsynth.application.cli import gather_cmd
 
         if isinstance(self.bridge, APIBridge):
-            self.bridge._answers.extend([goals, constraints, priority])
-            self.bridge.messages.clear()
+            self.bridge._answers.extend([goals, constraints, priority.value])
+            self._clear_messages()
 
         gather_cmd(bridge=self.bridge)
-        return self._collect_messages()
+        return self._collect_response()
 
-    def synthesize(self, *, target: Optional[str] = None) -> List[str]:
-        """Execute the synthesis pipeline via :func:`run_pipeline_cmd`."""
+    def synthesize(
+        self, *, target: SynthesisTarget | None = None
+    ) -> WorkflowResponse:
         from devsynth.application.cli import run_pipeline_cmd
 
-        if hasattr(self.bridge, "messages"):
-            self.bridge.messages.clear()
+        self._clear_messages()
+        run_pipeline_cmd(target=target.value if target else None, bridge=self.bridge)
+        return self._collect_response()
 
-        run_pipeline_cmd(target=target, bridge=self.bridge)
-        return self._collect_messages()
-
-    def spec(self, *, requirements_file: str = "requirements.md") -> List[str]:
-        """Generate specifications from requirements via :func:`spec_cmd`."""
+    def spec(self, *, requirements_file: str = "requirements.md") -> WorkflowResponse:
         from devsynth.application.cli import spec_cmd
 
-        if hasattr(self.bridge, "messages"):
-            self.bridge.messages.clear()
-
+        self._clear_messages()
         spec_cmd(requirements_file=requirements_file, bridge=self.bridge)
-        return self._collect_messages()
+        return self._collect_response()
 
     def test(
-        self, *, spec_file: str = "specs.md", output_dir: Optional[str] = None
-    ) -> List[str]:
-        """Generate tests from specifications via :func:`test_cmd`."""
+        self, *, spec_file: str = "specs.md", output_dir: str | None = None
+    ) -> WorkflowResponse:
         from devsynth.application.cli import test_cmd
 
-        if hasattr(self.bridge, "messages"):
-            self.bridge.messages.clear()
-
+        self._clear_messages()
         test_cmd(spec_file=spec_file, output_dir=output_dir, bridge=self.bridge)
-        return self._collect_messages()
+        return self._collect_response()
 
-    def code(self, *, output_dir: Optional[str] = None) -> List[str]:
-        """Generate code from tests via :func:`code_cmd`."""
+    def code(self, *, output_dir: str | None = None) -> WorkflowResponse:
         from devsynth.application.cli import code_cmd
 
-        if hasattr(self.bridge, "messages"):
-            self.bridge.messages.clear()
-
+        self._clear_messages()
         code_cmd(output_dir=output_dir, bridge=self.bridge)
-        return self._collect_messages()
+        return self._collect_response()
 
-    def doctor(self, *, path: str = ".", fix: bool = False) -> List[str]:
-        """Run diagnostics via :func:`doctor_cmd`."""
+    def doctor(self, *, path: str = ".", fix: bool = False) -> WorkflowResponse:
         from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 
-        if hasattr(self.bridge, "messages"):
-            self.bridge.messages.clear()
-
+        self._clear_messages()
         doctor_cmd(path=path, fix=fix, bridge=self.bridge)
-        return self._collect_messages()
+        return self._collect_response()
 
     def edrr_cycle(
-        self, *, prompt: str, context: Optional[str] = None, max_iterations: int = 3
-    ) -> List[str]:
-        """Run EDRR cycle via :func:`edrr_cycle_cmd`."""
+        self,
+        *,
+        prompt: str,
+        context: str | None = None,
+        max_iterations: int = 3,
+    ) -> WorkflowResponse:
         from devsynth.application.cli.commands.edrr_cycle_cmd import edrr_cycle_cmd
 
-        if hasattr(self.bridge, "messages"):
-            self.bridge.messages.clear()
-
+        self._clear_messages()
         edrr_cycle_cmd(
             prompt=prompt,
             context=context,
             max_iterations=max_iterations,
             bridge=self.bridge,
         )
-        return self._collect_messages()
+        return self._collect_response()
 
-    def status(self) -> List[str]:
-        """Return messages from the most recent workflow invocation."""
-        return LATEST_MESSAGES
+    def status(self) -> WorkflowResponse:
+        return WorkflowResponse(messages=LATEST_MESSAGES)
 
 
 @router.post("/init", response_model=WorkflowResponse)
@@ -606,8 +515,9 @@ def init_endpoint(
             goals=request.goals,
             bridge=bridge,
         )
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except Exception as e:
         logger.error(f"Error in init endpoint: {str(e)}")
         raise HTTPException(
@@ -632,8 +542,9 @@ def gather_endpoint(
         from devsynth.application.cli import gather_cmd
 
         gather_cmd(bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except Exception as e:
         logger.error(f"Error in gather endpoint: {str(e)}")
         raise HTTPException(
@@ -671,8 +582,9 @@ def synthesize_endpoint(
         from devsynth.application.cli import run_pipeline_cmd
 
         run_pipeline_cmd(target=request.target, bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except Exception as e:
         logger.error(f"Error in synthesize endpoint: {str(e)}")
         raise HTTPException(
@@ -696,8 +608,9 @@ def spec_endpoint(
         from devsynth.application.cli import spec_cmd
 
         spec_cmd(requirements_file=request.requirements_file, bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except Exception as e:
         logger.error(f"Error in spec endpoint: {str(e)}")
         raise HTTPException(
@@ -723,8 +636,9 @@ def test_endpoint(
         test_cmd(
             spec_file=request.spec_file, output_dir=request.output_dir, bridge=bridge
         )
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except Exception as e:
         logger.error(f"Error in test endpoint: {str(e)}")
         raise HTTPException(
@@ -747,8 +661,9 @@ def code_endpoint(
         from devsynth.application.cli import code_cmd
 
         code_cmd(output_dir=request.output_dir, bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except Exception as e:
         logger.error(f"Error in code endpoint: {str(e)}")
         raise HTTPException(
@@ -767,8 +682,9 @@ def doctor_endpoint(
         from devsynth.application.cli.commands.doctor_cmd import doctor_cmd
 
         doctor_cmd(path=request.path, fix=request.fix, bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except Exception as e:
         logger.error(f"Error in doctor endpoint: {str(e)}")
         raise HTTPException(
@@ -799,8 +715,9 @@ def edrr_cycle_endpoint(
             max_iterations=request.max_iterations,
             bridge=bridge,
         )
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except Exception as e:
         logger.error(f"Error in edrr-cycle endpoint: {str(e)}")
         raise HTTPException(
@@ -847,12 +764,14 @@ def health_endpoint(
     rate_limit(request)
 
     # Track metrics
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["health"] = (
-        API_METRICS["endpoint_counts"].get("health", 0) + 1
+    API_METRICS.request_count += 1
+    API_METRICS.endpoint_counts["health"] = (
+        API_METRICS.endpoint_counts.get("health", 0) + 1
     )
 
-    return JSONResponse(content={"status": "ok"})
+    uptime = time.time() - API_METRICS.start_time
+    payload = HealthResponse(status="ok", uptime=uptime)
+    return JSONResponse(content=payload.model_dump())
 
 
 @router.get(
@@ -887,13 +806,13 @@ def metrics_endpoint(
     rate_limit(request)
 
     # Track metrics
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["metrics"] = (
-        API_METRICS["endpoint_counts"].get("metrics", 0) + 1
+    API_METRICS.request_count += 1
+    API_METRICS.endpoint_counts["metrics"] = (
+        API_METRICS.endpoint_counts.get("metrics", 0) + 1
     )
 
     # Calculate uptime
-    uptime = time.time() - API_METRICS["start_time"]
+    uptime = time.time() - API_METRICS.start_time
 
     # Generate metrics in Prometheus format
     metrics = []
@@ -903,30 +822,30 @@ def metrics_endpoint(
 
     metrics.append("# HELP request_count Total number of requests received")
     metrics.append("# TYPE request_count counter")
-    metrics.append(f"request_count {API_METRICS['request_count']}")
+    metrics.append(f"request_count {API_METRICS.request_count}")
 
     metrics.append("# HELP error_count Total number of errors")
     metrics.append("# TYPE error_count counter")
-    metrics.append(f"error_count {API_METRICS['error_count']}")
+    metrics.append(f"error_count {API_METRICS.error_count}")
 
     metrics.append("# HELP endpoint_requests Number of requests per endpoint")
     metrics.append("# TYPE endpoint_requests counter")
-    for endpoint, count in API_METRICS["endpoint_counts"].items():
+    for endpoint, count in API_METRICS.endpoint_counts.items():
         metrics.append(f'endpoint_requests{{endpoint="{endpoint}"}} {count}')
 
     metrics.append("# HELP endpoint_latency_seconds Latency per endpoint in seconds")
     metrics.append("# TYPE endpoint_latency_seconds histogram")
-    for endpoint, latencies in API_METRICS["endpoint_latency"].items():
+    for endpoint, latencies in API_METRICS.endpoint_latency.items():
         if latencies:
             avg_latency = sum(latencies) / len(latencies)
             metrics.append(
                 f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="avg"}} {avg_latency}'
             )
             if len(latencies) >= 2:
-                latencies.sort()
-                p50 = latencies[len(latencies) // 2]
-                p95 = latencies[int(len(latencies) * 0.95)]
-                p99 = latencies[int(len(latencies) * 0.99)]
+                sorted_latencies = sorted(latencies)
+                p50 = sorted_latencies[len(sorted_latencies) // 2]
+                p95 = sorted_latencies[int(len(sorted_latencies) * 0.95)]
+                p99 = sorted_latencies[int(len(sorted_latencies) * 0.99)]
                 metrics.append(
                     f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.5"}} {p50}'
                 )
@@ -937,7 +856,8 @@ def metrics_endpoint(
                     f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.99"}} {p99}'
                 )
 
-    return PlainTextResponse(content="\n".join(metrics))
+    metrics_payload = MetricsResponse(metrics=tuple(metrics))
+    return PlainTextResponse(content="\n".join(metrics_payload.metrics))
 
 
 # Add exception handlers for common errors
@@ -958,7 +878,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle general exceptions and return a structured error response."""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
-    API_METRICS["error_count"] += 1
+    API_METRICS.error_count += 1
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={

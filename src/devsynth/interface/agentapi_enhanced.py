@@ -10,17 +10,31 @@ This module extends the existing Agent API with:
 
 from __future__ import annotations
 
-import datetime
 import os
 import time
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Sequence
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from devsynth.api import verify_token
-from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
+from devsynth.interface.agentapi import APIBridge as BaseAPIBridge
+from devsynth.interface.agentapi_models import (
+    APIMetrics,
+    CodeRequest,
+    DoctorRequest,
+    EDRRCycleRequest,
+    GatherRequest,
+    HealthResponse,
+    InitRequest,
+    MetricsResponse,
+    SpecRequest,
+    SynthesizeRequest,
+    TestSpecRequest,
+    WorkflowResponse,
+)
+from devsynth.interface.ux_bridge import sanitize_output
 from devsynth.logging_setup import DevSynthLogger
 
 # Configure logging
@@ -30,271 +44,55 @@ logger = DevSynthLogger(__name__)
 router = APIRouter()
 
 # Store the latest messages from the API
-LATEST_MESSAGES: List[str] = []
+LATEST_MESSAGES: tuple[str, ...] = tuple()
 
 # Store request timestamps for rate limiting
-REQUEST_TIMESTAMPS: Dict[str, List[float]] = {}
+REQUEST_TIMESTAMPS: dict[str, list[float]] = {}
 
 # Store metrics for the API
-API_METRICS = {
-    "start_time": time.time(),
-    "request_count": 0,
-    "endpoint_counts": {},
-    "error_count": 0,
-    "endpoint_latency": {},
-}
+API_METRICS = APIMetrics(start_time=time.time())
 
 
-class APIBridge(UXBridge):
-    """Bridge for API interactions that captures all messages."""
+class APIBridge(BaseAPIBridge):
+    """Bridge for API interactions that records prompts and answers."""
 
-    def __init__(self, answers: Optional[Sequence[str]] = None) -> None:
-        """Initialize with optional pre-defined answers for questions."""
-        self.messages: List[str] = []
-        self._answers = list(answers or [])
+    def __init__(self, answers: Sequence[str] | None = None) -> None:
+        super().__init__(answers=answers)
 
     def ask_question(
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
-        """Return the next pre-defined answer or a default."""
         self.messages.append(sanitize_output(message))
-        if self._answers:
-            return self._answers.pop(0)
-        return default or (choices[0] if choices else "")
+        return super().ask_question(
+            message,
+            choices=choices,
+            default=default,
+            show_default=show_default,
+        )
 
     def confirm_choice(self, message: str, *, default: bool = False) -> bool:
-        """Return the next pre-defined answer as a boolean or the default."""
         self.messages.append(sanitize_output(message))
-        if self._answers:
-            answer = self._answers.pop(0)
-            return answer.lower() in ("y", "yes", "true", "1")
-        return default
-
-    def display_result(self, message: str, *, highlight: bool = False) -> None:
-        """Capture the message for later retrieval."""
-        self.messages.append(sanitize_output(message))
-
-    class _APIProgress(ProgressIndicator):
-        """Progress indicator that captures progress updates."""
-
-        def __init__(self, messages: List[str], description: str, total: int) -> None:
-            """Initialize with a message list, description, and total steps."""
-            self.messages = messages
-            self.description = description
-            self.total = total
-            self.current = 0
-            self.subtasks: Dict[str, Dict[str, Any]] = {}
-            self.messages.append(f"Starting: {description} (0/{total})")
-
-        def update(
-            self,
-            *,
-            advance: float = 1,
-            description: Optional[str] = None,
-            status: Optional[str] = None,
-        ) -> None:
-            """Update the progress and optionally change the description."""
-            self.current += advance
-            if description:
-                self.description = description
-            if status is None:
-                if self.current >= self.total:
-                    status = "Complete"
-                elif self.current >= 0.99 * self.total:
-                    status = "Finalizing..."
-                elif self.current >= 0.75 * self.total:
-                    status = "Almost done..."
-                elif self.current >= 0.5 * self.total:
-                    status = "Halfway there..."
-                elif self.current >= 0.25 * self.total:
-                    status = "Processing..."
-                else:
-                    status = "Starting..."
-            self.messages.append(
-                f"Progress: {self.description} ({self.current}/{self.total}) - {status}"
-            )
-
-        def complete(self) -> None:
-            """Mark the progress as complete."""
-            self.current = self.total
-            self.messages.append(f"Completed: {self.description}")
-
-        def add_subtask(self, description: str, total: int = 100) -> str:
-            """Add a subtask with its own progress tracking."""
-            task_id = f"subtask_{len(self.subtasks)}"
-            self.subtasks[task_id] = {
-                "description": description,
-                "total": total,
-                "current": 0,
-            }
-            self.messages.append(f"Subtask started: {description} (0/{total})")
-            return task_id
-
-        def update_subtask(
-            self, task_id: str, advance: float = 1, description: Optional[str] = None
-        ) -> None:
-            """Update a subtask's progress."""
-            if task_id not in self.subtasks:
-                raise ValueError(f"Unknown subtask ID: {task_id}")
-
-            subtask = self.subtasks[task_id]
-            subtask["current"] += advance
-            if description:
-                subtask["description"] = description
-
-            self.messages.append(
-                f"Subtask progress: {subtask['description']} ({subtask['current']}/{subtask['total']})"
-            )
-
-        def complete_subtask(self, task_id: str) -> None:
-            """Mark a subtask as complete."""
-            if task_id not in self.subtasks:
-                raise ValueError(f"Unknown subtask ID: {task_id}")
-
-            subtask = self.subtasks[task_id]
-            subtask["current"] = subtask["total"]
-            self.messages.append(f"Subtask completed: {subtask['description']}")
-
-    def create_progress(
-        self, description: str, *, total: int = 100
-    ) -> ProgressIndicator:
-        """Create a progress indicator with the given description and total steps."""
-        return self._APIProgress(self.messages, sanitize_output(description), total)
+        return super().confirm_choice(message, default=default)
 
 
-class InitRequest(BaseModel):
-    """Request model for initializing a project."""
-
-    path: str = Field(
-        default=".",
-        description="Path where the project will be initialized",
-        example="./my-project",
-    )
-    project_root: Optional[str] = Field(
-        default=None,
-        description="Root directory of the project (if different from path)",
-        example="src",
-    )
-    language: Optional[str] = Field(
-        default=None,
-        description="Primary programming language for the project",
-        example="python",
-    )
-    goals: Optional[str] = Field(
-        default=None,
-        description="High-level goals or description of the project",
-        example="A CLI tool for managing tasks",
+def _increment_endpoint(endpoint: str) -> None:
+    API_METRICS.request_count += 1
+    API_METRICS.endpoint_counts[endpoint] = (
+        API_METRICS.endpoint_counts.get(endpoint, 0) + 1
     )
 
 
-class GatherRequest(BaseModel):
-    """Request model for gathering project requirements."""
-
-    goals: str = Field(
-        description="High-level goals or objectives for the project",
-        example="Create a web application for tracking expenses",
-    )
-    constraints: str = Field(
-        description="Constraints or limitations for the project",
-        example="Must work on mobile devices and support offline mode",
-    )
-    priority: str = Field(
-        default="medium",
-        description="Priority level for the requirements (low, medium, high)",
-        example="high",
-    )
+def _record_latency(endpoint: str, start_time: float) -> None:
+    API_METRICS.record_latency(endpoint, time.time() - start_time)
 
 
-class SynthesizeRequest(BaseModel):
-    """Request model for synthesizing code from requirements."""
-
-    target: Optional[str] = Field(
-        default=None,
-        description="Target component to synthesize (e.g., 'unit', 'integration')",
-        example="unit",
-    )
-
-
-class SpecRequest(BaseModel):
-    """Request model for generating specifications from requirements."""
-
-    requirements_file: str = Field(
-        default="requirements.md",
-        description="Path to the requirements file",
-        example="docs/requirements.md",
-    )
-
-
-class TestRequest(BaseModel):
-    """Request model for generating tests from specifications."""
-
-    spec_file: str = Field(
-        default="specs.md",
-        description="Path to the specifications file",
-        example="docs/specs.md",
-    )
-    output_dir: Optional[str] = Field(
-        default=None,
-        description="Directory where the tests will be generated",
-        example="tests",
-    )
-
-    # Prevent pytest from collecting this Pydantic model as a test class
-    __test__ = False
-
-
-class CodeRequest(BaseModel):
-    """Request model for generating code from tests."""
-
-    output_dir: Optional[str] = Field(
-        default=None,
-        description="Directory where the code will be generated",
-        example="src",
-    )
-
-
-class DoctorRequest(BaseModel):
-    """Request model for running diagnostics on a project."""
-
-    path: str = Field(
-        default=".", description="Path to the project directory", example="./my-project"
-    )
-    fix: bool = Field(
-        default=False, description="Whether to automatically fix issues", example=True
-    )
-
-
-class EDRRCycleRequest(BaseModel):
-    """Request model for running an EDRR cycle."""
-
-    prompt: str = Field(
-        description="Prompt for the EDRR cycle",
-        example="Improve the error handling in the API endpoints",
-    )
-    context: Optional[str] = Field(
-        default=None,
-        description="Additional context for the EDRR cycle",
-        example="Focus on providing more informative error messages",
-    )
-    max_iterations: int = Field(
-        default=3,
-        description="Maximum number of iterations for the EDRR cycle",
-        example=5,
-    )
-
-
-class WorkflowResponse(BaseModel):
-    """Response model for all workflow endpoints."""
-
-    messages: List[str] = Field(
-        description="Messages generated during the workflow execution",
-        example=["Initializing project...", "Project initialized successfully"],
-    )
+def _record_error() -> None:
+    API_METRICS.error_count += 1
 
 
 class ErrorResponse(BaseModel):
@@ -304,18 +102,18 @@ class ErrorResponse(BaseModel):
         description="Error message",
         example="Failed to initialize project: File not found",
     )
-    details: Optional[str] = Field(
+    details: str | None = Field(
         default=None,
         description="Additional details about the error",
         example="The specified path does not exist",
     )
-    suggestions: Optional[List[str]] = Field(
+    suggestions: tuple[str, ...] | None = Field(
         default=None,
         description="Suggestions for resolving the error",
-        example=[
+        example=(
             "Create the directory before initializing",
             "Check the path and try again",
-        ],
+        ),
     )
 
 
@@ -413,8 +211,9 @@ async def init_endpoint(
             goals=init_request.goals,
             bridge=bridge,
         )
-        LATEST_MESSAGES[:] = bridge.messages
-        return WorkflowResponse(messages=bridge.messages)
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except HTTPException:
         # Re-raise HTTP exceptions
         raise
@@ -494,49 +293,30 @@ async def gather_endpoint(
 
     # Track metrics
     start_time = time.time()
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["gather"] = (
-        API_METRICS["endpoint_counts"].get("gather", 0) + 1
-    )
+    _increment_endpoint("gather")
 
     try:
         answers = [
             gather_request.goals,
-            gather_request.constraints,
-            gather_request.priority,
+            gather_request.constraints or "",
+            gather_request.priority.value,
         ]
         bridge = APIBridge(answers)
         from devsynth.application.cli import gather_cmd
 
-        # Validate priority
-        if gather_request.priority.lower() not in ["low", "medium", "high"]:
-            logger.error(f"Invalid priority: {gather_request.priority}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Invalid priority: {gather_request.priority}",
-                    "suggestions": [
-                        "Use 'low', 'medium', or 'high' for priority",
-                    ],
-                },
-            )
-
         gather_cmd(bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
 
-        # Update latency metrics
-        latency = time.time() - start_time
-        if "gather" not in API_METRICS["endpoint_latency"]:
-            API_METRICS["endpoint_latency"]["gather"] = []
-        API_METRICS["endpoint_latency"]["gather"].append(latency)
+        _record_latency("gather", start_time)
 
-        return WorkflowResponse(messages=bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except HTTPException:
         # Re-raise HTTP exceptions
-        API_METRICS["error_count"] += 1
+        _record_error()
         raise
     except Exception as e:
-        API_METRICS["error_count"] += 1
+        _record_error()
         logger.error(f"Error in gather endpoint: {str(e)}", exc_info=True)
 
         # Provide more specific error messages based on the exception type
@@ -602,49 +382,28 @@ async def synthesize_endpoint(
 
     # Track metrics
     start_time = time.time()
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["synthesize"] = (
-        API_METRICS["endpoint_counts"].get("synthesize", 0) + 1
-    )
+    _increment_endpoint("synthesize")
 
     try:
         bridge = APIBridge()
         from devsynth.application.cli import run_pipeline_cmd
 
-        # Validate target if provided
-        if synthesize_request.target and synthesize_request.target not in [
-            "unit",
-            "integration",
-            "behavior",
-        ]:
-            logger.error(f"Invalid target: {synthesize_request.target}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Invalid target: {synthesize_request.target}",
-                    "suggestions": [
-                        "Use 'unit', 'integration', or 'behavior' for target",
-                        "Omit target to run all tests",
-                    ],
-                },
-            )
+        run_pipeline_cmd(
+            target=synthesize_request.target.value if synthesize_request.target else None,
+            bridge=bridge,
+        )
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
 
-        run_pipeline_cmd(target=synthesize_request.target, bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
+        _record_latency("synthesize", start_time)
 
-        # Update latency metrics
-        latency = time.time() - start_time
-        if "synthesize" not in API_METRICS["endpoint_latency"]:
-            API_METRICS["endpoint_latency"]["synthesize"] = []
-        API_METRICS["endpoint_latency"]["synthesize"].append(latency)
-
-        return WorkflowResponse(messages=bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except HTTPException:
         # Re-raise HTTP exceptions
-        API_METRICS["error_count"] += 1
+        _record_error()
         raise
     except Exception as e:
-        API_METRICS["error_count"] += 1
+        _record_error()
         logger.error(f"Error in synthesize endpoint: {str(e)}", exc_info=True)
 
         # Provide more specific error messages based on the exception type
@@ -708,10 +467,7 @@ async def spec_endpoint(
 
     # Track metrics
     start_time = time.time()
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["spec"] = (
-        API_METRICS["endpoint_counts"].get("spec", 0) + 1
-    )
+    _increment_endpoint("spec")
 
     try:
         bridge = APIBridge()
@@ -734,21 +490,18 @@ async def spec_endpoint(
             )
 
         spec_cmd(requirements_file=spec_request.requirements_file, bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
 
-        # Update latency metrics
-        latency = time.time() - start_time
-        if "spec" not in API_METRICS["endpoint_latency"]:
-            API_METRICS["endpoint_latency"]["spec"] = []
-        API_METRICS["endpoint_latency"]["spec"].append(latency)
+        _record_latency("spec", start_time)
 
-        return WorkflowResponse(messages=bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except HTTPException:
         # Re-raise HTTP exceptions
-        API_METRICS["error_count"] += 1
+        _record_error()
         raise
     except Exception as e:
-        API_METRICS["error_count"] += 1
+        _record_error()
         logger.error(f"Error in spec endpoint: {str(e)}", exc_info=True)
 
         # Provide more specific error messages based on the exception type
@@ -801,7 +554,7 @@ async def spec_endpoint(
     description="Generate tests from specifications.",
 )
 async def test_endpoint(
-    request: Request, test_request: TestRequest, token: None = Depends(verify_token)
+    request: Request, test_request: TestSpecRequest, token: None = Depends(verify_token)
 ) -> WorkflowResponse:
     """Generate tests from specifications.
 
@@ -823,10 +576,7 @@ async def test_endpoint(
 
     # Track metrics
     start_time = time.time()
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["test"] = (
-        API_METRICS["endpoint_counts"].get("test", 0) + 1
-    )
+    _increment_endpoint("test")
 
     try:
         bridge = APIBridge()
@@ -865,21 +615,18 @@ async def test_endpoint(
             output_dir=test_request.output_dir,
             bridge=bridge,
         )
-        LATEST_MESSAGES[:] = bridge.messages
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
 
-        # Update latency metrics
-        latency = time.time() - start_time
-        if "test" not in API_METRICS["endpoint_latency"]:
-            API_METRICS["endpoint_latency"]["test"] = []
-        API_METRICS["endpoint_latency"]["test"].append(latency)
+        _record_latency("test", start_time)
 
-        return WorkflowResponse(messages=bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except HTTPException:
         # Re-raise HTTP exceptions
-        API_METRICS["error_count"] += 1
+        _record_error()
         raise
     except Exception as e:
-        API_METRICS["error_count"] += 1
+        _record_error()
         logger.error(f"Error in test endpoint: {str(e)}", exc_info=True)
 
         # Provide more specific error messages based on the exception type
@@ -954,10 +701,7 @@ async def code_endpoint(
 
     # Track metrics
     start_time = time.time()
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["code"] = (
-        API_METRICS["endpoint_counts"].get("code", 0) + 1
-    )
+    _increment_endpoint("code")
 
     try:
         bridge = APIBridge()
@@ -978,21 +722,18 @@ async def code_endpoint(
             )
 
         code_cmd(output_dir=code_request.output_dir, bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
 
-        # Update latency metrics
-        latency = time.time() - start_time
-        if "code" not in API_METRICS["endpoint_latency"]:
-            API_METRICS["endpoint_latency"]["code"] = []
-        API_METRICS["endpoint_latency"]["code"].append(latency)
+        _record_latency("code", start_time)
 
-        return WorkflowResponse(messages=bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except HTTPException:
         # Re-raise HTTP exceptions
-        API_METRICS["error_count"] += 1
+        _record_error()
         raise
     except Exception as e:
-        API_METRICS["error_count"] += 1
+        _record_error()
         logger.error(f"Error in code endpoint: {str(e)}", exc_info=True)
 
         # Provide more specific error messages based on the exception type
@@ -1067,10 +808,7 @@ async def doctor_endpoint(
 
     # Track metrics
     start_time = time.time()
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["doctor"] = (
-        API_METRICS["endpoint_counts"].get("doctor", 0) + 1
-    )
+    _increment_endpoint("doctor")
 
     try:
         bridge = APIBridge()
@@ -1091,21 +829,18 @@ async def doctor_endpoint(
             )
 
         doctor_cmd(path=doctor_request.path, fix=doctor_request.fix, bridge=bridge)
-        LATEST_MESSAGES[:] = bridge.messages
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
 
-        # Update latency metrics
-        latency = time.time() - start_time
-        if "doctor" not in API_METRICS["endpoint_latency"]:
-            API_METRICS["endpoint_latency"]["doctor"] = []
-        API_METRICS["endpoint_latency"]["doctor"].append(latency)
+        _record_latency("doctor", start_time)
 
-        return WorkflowResponse(messages=bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except HTTPException:
         # Re-raise HTTP exceptions
-        API_METRICS["error_count"] += 1
+        _record_error()
         raise
     except Exception as e:
-        API_METRICS["error_count"] += 1
+        _record_error()
         logger.error(f"Error in doctor endpoint: {str(e)}", exc_info=True)
 
         # Provide more specific error messages based on the exception type
@@ -1182,10 +917,7 @@ async def edrr_cycle_endpoint(
 
     # Track metrics
     start_time = time.time()
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["edrr-cycle"] = (
-        API_METRICS["endpoint_counts"].get("edrr-cycle", 0) + 1
-    )
+    _increment_endpoint("edrr-cycle")
 
     try:
         bridge = APIBridge()
@@ -1213,21 +945,18 @@ async def edrr_cycle_endpoint(
             max_iterations=edrr_cycle_request.max_iterations,
             bridge=bridge,
         )
-        LATEST_MESSAGES[:] = bridge.messages
+        global LATEST_MESSAGES
+        LATEST_MESSAGES = tuple(bridge.messages)
 
-        # Update latency metrics
-        latency = time.time() - start_time
-        if "edrr-cycle" not in API_METRICS["endpoint_latency"]:
-            API_METRICS["endpoint_latency"]["edrr-cycle"] = []
-        API_METRICS["endpoint_latency"]["edrr-cycle"].append(latency)
+        _record_latency("edrr-cycle", start_time)
 
-        return WorkflowResponse(messages=bridge.messages)
+        return WorkflowResponse(messages=LATEST_MESSAGES)
     except HTTPException:
         # Re-raise HTTP exceptions
-        API_METRICS["error_count"] += 1
+        _record_error()
         raise
     except Exception as e:
-        API_METRICS["error_count"] += 1
+        _record_error()
         logger.error(f"Error in edrr-cycle endpoint: {str(e)}", exc_info=True)
 
         # Provide more specific error messages based on the exception type
@@ -1288,12 +1017,11 @@ async def health_endpoint(
     rate_limit(request)
 
     # Track metrics
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["health"] = (
-        API_METRICS["endpoint_counts"].get("health", 0) + 1
-    )
+    _increment_endpoint("health")
 
-    return JSONResponse(content={"status": "ok"})
+    uptime = time.time() - API_METRICS.start_time
+    payload = HealthResponse(status="ok", uptime=uptime)
+    return JSONResponse(content=payload.model_dump())
 
 
 @router.get(
@@ -1328,13 +1056,10 @@ async def metrics_endpoint(
     rate_limit(request)
 
     # Track metrics
-    API_METRICS["request_count"] += 1
-    API_METRICS["endpoint_counts"]["metrics"] = (
-        API_METRICS["endpoint_counts"].get("metrics", 0) + 1
-    )
+    _increment_endpoint("metrics")
 
     # Calculate uptime
-    uptime = time.time() - API_METRICS["start_time"]
+    uptime = time.time() - API_METRICS.start_time
 
     # Generate metrics in Prometheus format
     metrics = []
@@ -1344,30 +1069,30 @@ async def metrics_endpoint(
 
     metrics.append("# HELP request_count Total number of requests received")
     metrics.append("# TYPE request_count counter")
-    metrics.append(f"request_count {API_METRICS['request_count']}")
+    metrics.append(f"request_count {API_METRICS.request_count}")
 
     metrics.append("# HELP error_count Total number of errors")
     metrics.append("# TYPE error_count counter")
-    metrics.append(f"error_count {API_METRICS['error_count']}")
+    metrics.append(f"error_count {API_METRICS.error_count}")
 
     metrics.append("# HELP endpoint_requests Number of requests per endpoint")
     metrics.append("# TYPE endpoint_requests counter")
-    for endpoint, count in API_METRICS["endpoint_counts"].items():
+    for endpoint, count in API_METRICS.endpoint_counts.items():
         metrics.append(f'endpoint_requests{{endpoint="{endpoint}"}} {count}')
 
     metrics.append("# HELP endpoint_latency_seconds Latency per endpoint in seconds")
     metrics.append("# TYPE endpoint_latency_seconds histogram")
-    for endpoint, latencies in API_METRICS["endpoint_latency"].items():
+    for endpoint, latencies in API_METRICS.endpoint_latency.items():
         if latencies:
             avg_latency = sum(latencies) / len(latencies)
             metrics.append(
                 f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="avg"}} {avg_latency}'
             )
             if len(latencies) >= 2:
-                latencies.sort()
-                p50 = latencies[len(latencies) // 2]
-                p95 = latencies[int(len(latencies) * 0.95)]
-                p99 = latencies[int(len(latencies) * 0.99)]
+                sorted_latencies = sorted(latencies)
+                p50 = sorted_latencies[len(sorted_latencies) // 2]
+                p95 = sorted_latencies[int(len(sorted_latencies) * 0.95)]
+                p99 = sorted_latencies[int(len(sorted_latencies) * 0.99)]
                 metrics.append(
                     f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.5"}} {p50}'
                 )
@@ -1378,7 +1103,8 @@ async def metrics_endpoint(
                     f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.99"}} {p99}'
                 )
 
-    return PlainTextResponse(content="\n".join(metrics))
+    metrics_payload = MetricsResponse(metrics=tuple(metrics))
+    return PlainTextResponse(content="\n".join(metrics_payload.metrics))
 
 
 @router.get(
