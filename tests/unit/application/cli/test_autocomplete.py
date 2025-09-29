@@ -57,6 +57,26 @@ def test_command_autocomplete_returns_expected_result():
 
 
 @pytest.mark.medium
+def test_command_autocomplete_matches_metadata() -> None:
+    """Validate CLI suggestions mirror metadata (see autocomplete.py::COMMANDS)."""
+
+    ctx = MagicMock()
+    # Empty input should expose the full command roster described in COMMANDS.
+    suggestions = command_autocomplete(ctx, "")
+    assert suggestions == get_completions("")
+    assert set(suggestions) == set(COMMANDS)
+
+    # Ambiguous prefixes should return every matching command with metadata entries.
+    ambiguous = command_autocomplete(ctx, "co")
+    expected_matches = {cmd for cmd in COMMANDS if cmd.startswith("co")}
+    assert set(ambiguous) == expected_matches
+    for cmd in ambiguous:
+        assert COMMAND_DESCRIPTIONS[cmd]
+        # Examples are optional but should exist for all current commands.
+        assert cmd in COMMAND_EXAMPLES
+
+
+@pytest.mark.medium
 def test_file_path_autocomplete_returns_expected_result():
     """Test that file_path_autocomplete returns file paths that match the incomplete string.
 
@@ -101,6 +121,39 @@ def test_file_path_autocomplete_returns_expected_result():
         parent_dir.iterdir.return_value = [mock_file1, mock_file2]
         result = file_path_autocomplete(ctx, "dir1/file")
         assert set(result) == {"dir1/file1.txt", "dir1/file2.txt"}
+
+
+@pytest.mark.medium
+def test_file_path_autocomplete_handles_nested_prefixes(monkeypatch, tmp_path):
+    """Ensure nested path autocompletion mirrors Path logic (autocomplete.py::file_path_autocomplete)."""
+
+    monkeypatch.chdir(tmp_path)
+    # Build a directory tree with overlapping prefixes to validate ambiguity handling.
+    file_alpha = tmp_path / "alpha.txt"
+    file_beta = tmp_path / "alphabet.txt"
+    nested = tmp_path / "archive"
+    nested.mkdir()
+    nested_file = nested / "alpha-report.md"
+    nested_other = nested / "beta-report.md"
+    file_alpha.write_text("alpha")
+    file_beta.write_text("beta")
+    nested_file.write_text("nested alpha")
+    nested_other.write_text("nested beta")
+
+    ctx = MagicMock()
+
+    empty = file_path_autocomplete(ctx, "")
+    assert {Path(p).name for p in empty} == {
+        file_alpha.name,
+        file_beta.name,
+        nested.name,
+    }
+
+    ambiguous_local = file_path_autocomplete(ctx, "alp")
+    assert {Path(p).name for p in ambiguous_local} == {file_alpha.name, file_beta.name}
+
+    nested_matches = file_path_autocomplete(ctx, f"{nested.name}/a")
+    assert {Path(p).name for p in nested_matches} == {nested_file.name}
 
 
 @pytest.mark.medium

@@ -1,4 +1,6 @@
-"""Additional option parsing tests for run-tests CLI. ReqID: QA-07"""
+"""Additional option parsing tests for run-tests CLI. ReqID: QA-07."""
+
+# Coverage: src/devsynth/application/cli/commands/run_tests_cmd.py:204-420
 
 import os
 from unittest.mock import patch
@@ -71,3 +73,74 @@ def test_segment_options_are_propagated() -> None:
         args, kwargs = mock_run.call_args
         assert args[5] is True  # segment
         assert args[6] == 25  # segment_size
+
+
+@pytest.mark.medium
+def test_cli_rejects_invalid_target() -> None:
+    """run_tests_cmd target validation prints guidance before exiting (lines 214-229)."""
+
+    runner = CliRunner()
+    app = build_app()
+
+    with (
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "increment_counter", return_value=None),
+        patch.object(module, "run_tests") as mock_run,
+    ):
+        result = runner.invoke(app, ["run-tests", "--target", "invalid"])
+
+    assert result.exit_code == 2
+    assert "Invalid --target value" in result.output
+    mock_run.assert_not_called()
+
+
+@pytest.mark.medium
+def test_cli_rejects_invalid_speed() -> None:
+    """Invalid --speed entries surface remediation text (run_tests_cmd.py:231-244)."""
+
+    runner = CliRunner()
+    app = build_app()
+
+    with (
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "increment_counter", return_value=None),
+        patch.object(module, "run_tests") as mock_run,
+    ):
+        result = runner.invoke(app, ["run-tests", "--speed", "warp"])
+
+    assert result.exit_code == 2
+    assert "Invalid --speed value(s):" in result.output
+    mock_run.assert_not_called()
+
+
+@pytest.mark.medium
+def test_cli_reports_disabled_coverage() -> None:
+    """Disabled coverage flows emit remediation and exit 1 (run_tests_cmd.py:312-356)."""
+
+    runner = CliRunner()
+    app = build_app()
+
+    with (
+        patch.object(module, "_configure_optional_providers", return_value=None),
+        patch.object(module, "increment_counter", return_value=None),
+        patch.object(module, "_emit_coverage_artifact_messages", return_value=None),
+        patch.object(module, "run_tests", return_value=(True, "Done")) as mock_run,
+        patch.object(
+            module,
+            "_coverage_instrumentation_status",
+            return_value=(
+                False,
+                "pytest plugin autoload disabled without -p pytest_cov",
+            ),
+        ),
+        patch.object(module, "coverage_artifacts_status") as mock_artifacts,
+        patch.object(module, "enforce_coverage_threshold") as mock_enforce,
+    ):
+        result = runner.invoke(app, ["run-tests"])
+
+    assert result.exit_code == 1
+    assert "Coverage enforcement skipped" in result.output
+    assert "Unset PYTEST_DISABLE_PLUGIN_AUTOLOAD" in result.output
+    mock_run.assert_called_once()
+    mock_artifacts.assert_not_called()
+    mock_enforce.assert_not_called()
