@@ -28,6 +28,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from tests.fixtures.streamlit_mocks import StreamlitModule, StreamlitStub
+from tests.fixtures.webui_bridge_stub import install_streamlit_stub
 
 
 class DummyForm:
@@ -164,7 +165,7 @@ def create_mock_streamlit() -> StreamlitModule:
 
 
 @pytest.fixture
-def mock_streamlit():
+def mock_streamlit(monkeypatch: pytest.MonkeyPatch):
     """
     Fixture that provides a standardized mock Streamlit implementation.
 
@@ -176,13 +177,9 @@ def mock_streamlit():
     """
     # Create the mock Streamlit module
     mock_st = create_mock_streamlit()
-
-    # Patch the Streamlit module in both webui_state and webui modules
-    with (
-        patch("devsynth.interface.webui_state.st", mock_st),
-        patch("devsynth.interface.webui.st", mock_st),
-    ):
-        yield mock_st
+    install_streamlit_stub(mock_st, monkeypatch)
+    monkeypatch.setattr("devsynth.interface.webui_state.st", mock_st, raising=False)
+    yield mock_st
 
 
 @pytest.fixture
