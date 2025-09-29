@@ -142,14 +142,30 @@ class TestCollaborativeWSDETeam:
             return []
 
         with patch.object(team, "get_messages", side_effect=mock_get_messages):
-            with patch.object(team, "_identify_conflicts", return_value=[]):
-                consensus_result = team.build_consensus(task)
-                assert isinstance(consensus_result, ConsensusOutcome)
-                assert consensus_result.task_id == task["id"]
-                assert consensus_result.method == "majority_opinion"
-                assert len(consensus_result.agent_opinions) == 3
-                assert consensus_result.majority_opinion is not None
-                assert consensus_result.timestamp is not None
+                with patch.object(team, "_identify_conflicts", return_value=[]):
+                    consensus_result = team.build_consensus(task)
+                    assert isinstance(consensus_result, ConsensusOutcome)
+                    assert consensus_result.task_id == task["id"]
+                    assert consensus_result.method == "majority_opinion"
+                    assert len(consensus_result.agent_opinions) == 3
+                    assert consensus_result.majority_opinion is not None
+                    assert consensus_result.timestamp is not None
+                    assert consensus_result.conflicts_identified == 0
+                    assert tuple(consensus_result.participants) == (
+                        "Agent1",
+                        "Agent2",
+                        "Agent3",
+                    )
+                    opinion_ids = [
+                        record.agent_id for record in consensus_result.agent_opinions
+                    ]
+                    assert opinion_ids == sorted(opinion_ids)
+                    serialized = consensus_result.to_dict()
+                    assert serialized["dto_type"] == "ConsensusOutcome"
+                    assert serialized["agent_opinions"][0]["agent_id"] == "Agent1"
+                    assert "Next steps" in (
+                        consensus_result.stakeholder_explanation or ""
+                    )
 
     @pytest.mark.medium
     def test_build_consensus_with_conflicts_succeeds(self, mock_agent_with_expertise):
@@ -259,6 +275,20 @@ class TestCollaborativeWSDETeam:
                     assert consensus_result.synthesis is not None
                     assert len(consensus_result.agent_opinions) == 3
                     assert consensus_result.timestamp is not None
+                    assert consensus_result.majority_opinion is None
+                    conflict_ids = [
+                        conflict.conflict_id for conflict in consensus_result.conflicts
+                    ]
+                    assert conflict_ids == sorted(conflict_ids)
+                    serialized = consensus_result.to_dict()
+                    assert serialized["conflicts"] == [
+                        conflict.to_dict() if hasattr(conflict, "to_dict") else conflict
+                        for conflict in consensus_result.conflicts
+                    ]
+                    assert serialized["synthesis"]["dto_type"] == "SynthesisArtifact"
+                    assert "Next steps" in (
+                        consensus_result.stakeholder_explanation or ""
+                    )
 
     @pytest.mark.medium
     def test_vote_on_critical_decision_with_expertise_weighting_succeeds(

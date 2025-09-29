@@ -6,6 +6,8 @@ from devsynth.application.agents.base import BaseAgent
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
+from devsynth.application.collaboration.dto import AgentOpinionRecord, ConsensusOutcome
+from devsynth.application.collaboration.exceptions import PeerReviewConsensusError
 
 
 @pytest.fixture
@@ -150,6 +152,67 @@ class TestCollaborativeWSDETeamTaskManagement:
             assert "completed_subtasks" in metrics[agent_name]
             assert "total_progress" in metrics[agent_name]
             assert "average_progress" in metrics[agent_name]
+
+    @pytest.mark.fast
+    def test_consensus_outcome_normalizes_participants_and_metadata(self) -> None:
+        """ConsensusOutcome deduplicates participants and orders metadata keys."""
+
+        outcome = ConsensusOutcome(
+            consensus_id="cid-1",
+            task_id="tid-1",
+            method="majority_opinion",
+            agent_opinions=(
+                AgentOpinionRecord(
+                    agent_id="beta",
+                    opinion="use option",
+                    timestamp="2025-01-02T00:00:00",
+                ),
+                AgentOpinionRecord(
+                    agent_id="alpha",
+                    opinion="use option",
+                    timestamp="2025-01-01T00:00:00",
+                ),
+            ),
+            participants=("beta", "alpha", "alpha"),
+            metadata={"z": 1, "a": 2},
+            majority_opinion="use option",
+        )
+
+        assert outcome.participants == ("beta", "alpha")
+        assert [record.agent_id for record in outcome.agent_opinions] == [
+            "alpha",
+            "beta",
+        ]
+        assert list(outcome.metadata.keys()) == ["a", "z"]
+        serialized = outcome.to_dict()
+        assert serialized["participants"] == list(outcome.participants)
+        assert serialized["metadata"] == {"a": 2, "z": 1}
+
+    @pytest.mark.fast
+    def test_peer_review_consensus_error_embeds_serialized_outcome(self) -> None:
+        """PeerReviewConsensusError exposes outcome metadata via as_dict."""
+
+        outcome = ConsensusOutcome(
+            consensus_id="cid-2",
+            task_id="tid-2",
+            method="majority_opinion",
+            agent_opinions=(
+                AgentOpinionRecord(agent_id="alpha", opinion="approve"),
+            ),
+            majority_opinion="approve",
+        )
+
+        error = PeerReviewConsensusError(
+            "Targeted consensus failure",
+            outcome=outcome,
+            review_id="review-123",
+        )
+
+        message = str(error)
+        assert "review-123" in message
+        payload = error.as_dict()
+        assert payload["message"].endswith("[review_id=review-123]")
+        assert payload["consensus"]["dto_type"] == "ConsensusOutcome"
 
     @pytest.mark.medium
     def test_get_contribution_metrics_succeeds(self, mock_agent_with_expertise):
