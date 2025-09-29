@@ -1,29 +1,23 @@
-# Requirements Traceability (TODO)
+# Requirements Traceability Matrix
 
-Status: TODO
-Last reviewed: 2025-08-24
+Status: Updated
+Last reviewed: 2025-09-29
 Owner: DevSynth Maintainers
 
-Purpose:
-- Provide bidirectional traceability between requirements (ReqIDs) and tests.
-- Aggregate ReqID references from test docstrings as described in tests/README.md.
+## Summary
+- Functional requirements FR-41 through FR-43 for WSDE collaboration, role management, and dialectical reasoning now map directly to the refreshed WSDE specifications and their executable behaviour suites, closing the backlog noted in the plan.【F:docs/system_requirements_specification.md†L171-L173】【F:docs/specifications/wsde-peer-review-workflow.md†L1-L80】【F:docs/specifications/wsde-message-passing-and-peer-review.md†L1-L75】【F:docs/specifications/consensus-building.md†L1-L81】
+- Behaviour-driven coverage exercises message passing, consensus voting, and dialectical peer review flows across the WSDE feature files, ensuring end-to-end traces for each requirement.【F:tests/behavior/features/wsde_peer_review_workflow.feature†L1-L87】【F:tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature†L1-L31】【F:tests/behavior/features/consensus_building.feature†L1-L15】
+- Unit suites persist peer-review records, serialize consensus payloads, and detect conflicting opinions so the specifications have deterministic regression coverage backing the requirements.【F:tests/unit/domain/test_wsde_peer_review_workflow.py†L1-L40】【F:tests/unit/application/collaboration/test_peer_review_store.py†L1-L199】【F:tests/unit/application/collaboration/test_wsde_team_consensus_conflict_detection.py†L1-L38】【F:tests/unit/application/collaboration/test_wsde_team_consensus_utils.py†L1-L19】
+- Verification for this update is archived in the diagnostics captured during the current session, including the fast+medium CLI attempt and the traceability check output.【F:diagnostics/devsynth_run_tests_fast_medium_20250929T191821Z.txt†L1-L27】【F:diagnostics/verify_requirements_traceability_20250929T191832Z.txt†L1-L1】
 
-Planned approach:
-- Implement a small extractor that scans tests/** for pytest tests, reading function/class docstrings and collecting patterns like `ReqID:` or `[ReqID:<ID>]`.
-- Generate a markdown table mapping ReqIDs -> test paths and optionally test names.
-- Optionally reverse map (tests -> ReqIDs) for completeness.
-- Integrate as a script `scripts/generate_traceability.py` or extend existing tooling if present.
+## WSDE collaboration requirements
 
-Interim policy (until automation is in place):
-- Contributors should include a ReqID reference in new/modified tests' docstrings.
-- PR reviewers verify presence of ReqID references.
-- This document will be updated automatically once the extractor is implemented.
+| Requirement | Specification sources | Behaviour coverage | Unit coverage |
+| --- | --- | --- | --- |
+| FR-41 — Implement the WSDE model for agent organisation【F:docs/system_requirements_specification.md†L171-L171】 | WSDE message passing and peer review; WSDE peer review workflow【F:docs/specifications/wsde-message-passing-and-peer-review.md†L15-L65】【F:docs/specifications/wsde-peer-review-workflow.md†L15-L69】 | Peer review workflow scenarios covering routing, broadcast, priority, structured content, and revision loops【F:tests/behavior/features/wsde_peer_review_workflow.feature†L1-L87】 | Peer review workflow persistence across stores and review record storage tests【F:tests/unit/domain/test_wsde_peer_review_workflow.py†L1-L40】【F:tests/unit/application/collaboration/test_peer_review_store.py†L1-L199】 |
+| FR-42 — Support role management in multi-agent collaboration【F:docs/system_requirements_specification.md†L172-L172】 | Consensus building specification outlining weighted voting and conflict resolution【F:docs/specifications/consensus-building.md†L15-L69】 | WSDE voting mechanisms and consensus features validating expertise-weighted decisions and fallback flows【F:tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature†L1-L31】【F:tests/behavior/features/consensus_building.feature†L1-L15】 | Consensus mixin utilities and conflict detection tests asserting opinion reconciliation logic【F:tests/unit/application/collaboration/test_wsde_team_consensus_utils.py†L1-L19】【F:tests/unit/application/collaboration/test_wsde_team_consensus_conflict_detection.py†L1-L38】 |
+| FR-43 — Implement dialectical reasoning in collaboration【F:docs/system_requirements_specification.md†L173-L173】 | WSDE peer review workflow specification emphasising dialectical analysis in review cycles【F:docs/specifications/wsde-peer-review-workflow.md†L37-L70】 | Peer review feature scenario covering thesis/antithesis/synthesis feedback within WSDE teams【F:tests/behavior/features/wsde_peer_review_workflow.feature†L71-L78】 | Peer review store tests capturing reviewer notes and consensus metadata for dialectical artefacts【F:tests/unit/application/collaboration/test_peer_review_store.py†L126-L199】 |
 
-Open tasks:
-- [ ] Implement extractor script per Planned approach.
-- [x] Add CI wiring (.github/workflows/traceability.yml) to run the extractor and publish the report artifact.
-- [ ] Backfill ReqID references across existing tests where missing.
-
-Notes:
-- See tests/README.md for guidance on ReqID tagging conventions.
-- Keep output path consistent: docs/requirements_traceability.md.
+## Audit artefacts
+- `diagnostics/devsynth_run_tests_fast_medium_20250929T191821Z.txt` — captured the fast+medium CLI attempt showing the missing `devsynth` entry point so bootstrap remediation can be tracked alongside requirement verification.【F:diagnostics/devsynth_run_tests_fast_medium_20250929T191821Z.txt†L1-L27】
+- `diagnostics/verify_requirements_traceability_20250929T191832Z.txt` — proof that the requirements traceability script recognised the refreshed WSDE specifications in this update.【F:diagnostics/verify_requirements_traceability_20250929T191832Z.txt†L1-L1】
