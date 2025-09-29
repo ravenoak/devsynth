@@ -30,3 +30,75 @@ def test_evaluate_options_ranks_by_weighted_score():
     assert result[0]["id"] == "i1"
     assert result[1]["id"] == "i2"
     assert result[0]["weighted_score"] > result[1]["weighted_score"]
+
+
+@pytest.mark.fast
+def test_generate_diverse_ideas_filters_similar_entries(wsde_team_factory, stub_agent_factory):
+    """ReqID: WSDE-DECISION-05 — respects diversity threshold for idea pool."""
+
+    agent_primary = stub_agent_factory(
+        "primary",
+        expertise=["security"],
+        idea_batches=[
+            [
+                {
+                    "description": "Implement encryption gateways",
+                    "rationale": "Protect credentials in transit",
+                }
+            ]
+        ],
+    )
+    agent_support = stub_agent_factory(
+        "support",
+        expertise=["generalist"],
+        idea_batches=[
+            [
+                {
+                    "description": "Implement encryption gateways",
+                    "rationale": "Match partner requirements",
+                },
+                {
+                    "description": "Adopt asynchronous audit pipeline",
+                    "rationale": "Increase throughput with decoupled reviews",
+                },
+            ]
+        ],
+    )
+
+    team = wsde_team_factory(agents=[agent_primary, agent_support])
+
+    task = {"id": "task-idea", "domain": "security"}
+
+    diverse = team.generate_diverse_ideas(
+        task,
+        max_ideas=5,
+        diversity_threshold=0.8,
+    )
+
+    assert len(diverse) == 2
+    assert {idea["description"] for idea in diverse} == {
+        "Implement encryption gateways",
+        "Adopt asynchronous audit pipeline",
+    }
+
+
+@pytest.mark.fast
+def test_generate_diverse_ideas_handles_agent_failures(wsde_team_factory, stub_agent_factory):
+    """ReqID: WSDE-DECISION-06 — returns empty list when agents fail."""
+
+    failing_agent = stub_agent_factory(
+        "critic",
+        expertise=["security"],
+        idea_batches=[[{"description": "Add rate limiting", "rationale": "Protect APIs"}]],
+        idea_error_factory=lambda: RuntimeError("agent offline"),
+    )
+
+    team = wsde_team_factory(agents=[failing_agent])
+
+    result = team.generate_diverse_ideas(
+        {"id": "task-failure", "domain": "security"},
+        max_ideas=3,
+        diversity_threshold=0.7,
+    )
+
+    assert result == []
