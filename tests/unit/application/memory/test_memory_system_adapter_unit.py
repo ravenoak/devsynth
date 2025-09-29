@@ -11,6 +11,11 @@ from typing import Any, Dict, List
 import pytest
 
 from devsynth.adapters.memory.memory_adapter import MemoryStoreError
+from .conftest import (
+    ProtocolCompliantContextManager,
+    ProtocolCompliantMemoryStore,
+    ProtocolCompliantVectorStore,
+)
 
 
 @dataclass
@@ -144,37 +149,46 @@ def test_initialize_memory_system_various_backends(memory_adapter_module, monkey
 
     module, _settings = memory_adapter_module
 
-    class DummyJSONFileStore:
-        def __init__(self, path: str, *, encryption_enabled: bool = False, encryption_key: str | None = None) -> None:
+    class DummyJSONFileStore(ProtocolCompliantMemoryStore):
+        def __init__(
+            self, path: str, *, encryption_enabled: bool = False, encryption_key: str | None = None
+        ) -> None:
+            super().__init__()
             self.path = path
             self.encryption_enabled = encryption_enabled
             self.encryption_key = encryption_key
 
-    class DummyPersistentContextManager:
+    class DummyPersistentContextManager(ProtocolCompliantContextManager):
         def __init__(self, path: str, *, max_context_size: int, expiration_days: int) -> None:
+            super().__init__()
             self.path = path
             self.max_context_size = max_context_size
             self.expiration_days = expiration_days
 
-    class DummyInMemoryStore:
-        pass
+    class DummyInMemoryStore(ProtocolCompliantMemoryStore):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__()
 
-    class DummySimpleContextManager:
-        pass
+    class DummySimpleContextManager(ProtocolCompliantContextManager):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__()
 
     class DummyTinyDBStore(DummyJSONFileStore):
         pass
 
-    class DummyDuckDBStore:
+    class DummyDuckDBStore(ProtocolCompliantMemoryStore):
         def __init__(self, path: str) -> None:
+            super().__init__()
             self.path = path
 
-    class DummyFAISSStore:
+    class DummyFAISSStore(ProtocolCompliantVectorStore):
         def __init__(self, path: str) -> None:
+            super().__init__()
             self.path = path
 
-    class DummyRDFLibStore:
+    class DummyRDFLibStore(ProtocolCompliantMemoryStore):
         def __init__(self, path: str) -> None:
+            super().__init__()
             self.path = path
 
     monkeypatch.setattr(module, "JSONFileStore", DummyJSONFileStore)
@@ -245,17 +259,20 @@ def test_kuzu_initialization_and_fallback(memory_adapter_module, monkeypatch, tm
 
     module, settings = memory_adapter_module
 
-    class DummyPersistentContextManager:
+    class DummyPersistentContextManager(ProtocolCompliantContextManager):
         def __init__(self, path: str, *, max_context_size: int, expiration_days: int) -> None:
+            super().__init__()
             self.path = path
 
     monkeypatch.setattr(module, "PersistentContextManager", DummyPersistentContextManager)
 
-    class DummyVectorStore:
-        pass
+    class DummyVectorStore(ProtocolCompliantVectorStore):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__()
 
-    class DummyKuzuStore:
+    class DummyKuzuStore(ProtocolCompliantMemoryStore):
         def __init__(self, path: str, *, provider_type: str | None = None) -> None:
+            super().__init__()
             self.path = path
             self.provider_type = provider_type
             self.vector = DummyVectorStore()
@@ -283,15 +300,31 @@ def test_kuzu_initialization_and_fallback(memory_adapter_module, monkeypatch, tm
     chroma_store_module = types.ModuleType("devsynth.application.memory.chromadb_store")
     chroma_adapter_module = types.ModuleType("devsynth.adapters.memory.chroma_db_adapter")
 
-    class StubChromaDBStore:
-        def __init__(self, path: str, *, host: str | None = None, port: int | None = None, collection_name: str | None = None) -> None:
+    class StubChromaDBStore(ProtocolCompliantMemoryStore):
+        def __init__(
+            self,
+            path: str,
+            *,
+            host: str | None = None,
+            port: int | None = None,
+            collection_name: str | None = None,
+        ) -> None:
+            super().__init__()
             self.path = path
             self.host = host
             self.port = port
             self.collection_name = collection_name
 
-    class StubChromaDBAdapter:
-        def __init__(self, *, persist_directory: str, collection_name: str, host: str | None = None, port: int | None = None) -> None:
+    class StubChromaDBAdapter(ProtocolCompliantVectorStore):
+        def __init__(
+            self,
+            *,
+            persist_directory: str,
+            collection_name: str,
+            host: str | None = None,
+            port: int | None = None,
+        ) -> None:
+            super().__init__()
             self.persist_directory = persist_directory
             self.collection_name = collection_name
             self.host = host
@@ -322,11 +355,13 @@ def test_lmdb_missing_falls_back_to_memory(memory_adapter_module, monkeypatch, t
 
     module, _settings = memory_adapter_module
 
-    class DummyInMemoryStore:
-        pass
+    class DummyInMemoryStore(ProtocolCompliantMemoryStore):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__()
 
-    class DummySimpleContextManager:
-        pass
+    class DummySimpleContextManager(ProtocolCompliantContextManager):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__()
 
     monkeypatch.setattr(module, "LMDBStore", None)
     monkeypatch.setattr(module, "_LMDB_ERROR", RuntimeError("missing"))
@@ -347,42 +382,52 @@ def test_initialize_memory_system_branches_execution(memory_adapter_module, monk
 
     module, _settings = memory_adapter_module
 
-    class DummyInMemoryStore:
+    class DummyInMemoryStore(ProtocolCompliantMemoryStore):
         def __init__(self) -> None:
+            super().__init__()
             self.vector = types.SimpleNamespace()
 
-    class DummySimpleContextManager:
-        pass
+    class DummySimpleContextManager(ProtocolCompliantContextManager):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__()
 
-    class DummyJSONFileStore:
-        def __init__(self, path: str, *, encryption_enabled: bool = False, encryption_key: str | None = None) -> None:
+    class DummyJSONFileStore(ProtocolCompliantMemoryStore):
+        def __init__(
+            self, path: str, *, encryption_enabled: bool = False, encryption_key: str | None = None
+        ) -> None:
+            super().__init__()
             self.path = path
             self.encryption_enabled = encryption_enabled
             self.encryption_key = encryption_key
 
-    class DummyPersistentContextManager:
+    class DummyPersistentContextManager(ProtocolCompliantContextManager):
         def __init__(self, path: str, *, max_context_size: int, expiration_days: int) -> None:
+            super().__init__()
             self.path = path
 
     class DummyTinyDBStore(DummyJSONFileStore):
         pass
 
-    class DummyDuckDBStore:
+    class DummyDuckDBStore(ProtocolCompliantMemoryStore):
         def __init__(self, path: str) -> None:
+            super().__init__()
             self.path = path
         def flush(self) -> None:
             pass
 
-    class DummyFAISSStore:
+    class DummyFAISSStore(ProtocolCompliantVectorStore):
         def __init__(self, path: str) -> None:
+            super().__init__()
             self.path = path
 
-    class DummyRDFLibStore:
+    class DummyRDFLibStore(ProtocolCompliantMemoryStore):
         def __init__(self, path: str) -> None:
+            super().__init__()
             self.path = path
 
-    class DummyKuzuStore:
+    class DummyKuzuStore(ProtocolCompliantMemoryStore):
         def __init__(self, path: str, *, provider_type: str | None = None) -> None:
+            super().__init__()
             self.path = path
             self.provider_type = provider_type
             self.vector = types.SimpleNamespace()

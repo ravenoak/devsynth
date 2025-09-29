@@ -1,4 +1,5 @@
 import os
+import os
 import uuid
 
 import pytest
@@ -50,6 +51,8 @@ def test_store_and_retrieve_with_fallback(monkeypatch, tmp_path):
 
     store.store(item)
     retrieved = store.retrieve(item.id)
+    assert isinstance(retrieved, MemoryItem)
+    assert isinstance(retrieved.metadata, dict)
     assert retrieved.content == "hello"
 
     assert store.delete(item.id) is True
