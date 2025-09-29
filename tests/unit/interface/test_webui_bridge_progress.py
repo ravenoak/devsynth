@@ -8,8 +8,7 @@ import pytest
 
 from devsynth.exceptions import DevSynthError
 from devsynth.interface import webui_bridge
-
-pytestmark = pytest.mark.fast
+from tests.fixtures.fake_streamlit import FakeSessionState
 
 
 class _SanitizeSpy:
@@ -61,6 +60,41 @@ def _assert_default_status_cycle(
     assert indicator._status == "Complete"
 
 
+def _install_tagging_sanitizer(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Patch sanitizer hooks with a tagging implementation for assertions."""
+
+    def _tag(value: str) -> str:
+        return f"<sanitized::{value}>"
+
+    monkeypatch.setattr(webui_bridge, "sanitize_output", _tag)
+
+    ux_bridge = importlib.import_module("devsynth.interface.ux_bridge")
+    monkeypatch.setattr(ux_bridge, "sanitize_output", _tag)
+
+    shared_bridge = importlib.import_module("devsynth.interface.shared_bridge")
+    monkeypatch.setattr(shared_bridge, "sanitize_output", _tag)
+
+    output_formatter = importlib.import_module(
+        "devsynth.interface.output_formatter"
+    )
+    monkeypatch.setattr(output_formatter, "global_sanitize_output", _tag)
+
+
+def _extract_payload_text(payload: object) -> str:
+    """Return the textual payload from Rich objects used in the WebUI bridge."""
+
+    plain = getattr(payload, "plain", None)
+    if plain is not None:
+        return plain
+
+    renderable = getattr(payload, "renderable", None)
+    if renderable is not None:
+        return _extract_payload_text(renderable)
+
+    return str(payload)
+
+
+@pytest.mark.fast
 def test_progress_indicator_update_paths(sanitize_spy: _SanitizeSpy) -> None:
     """``update`` sanitizes supplied text and cycles default status thresholds.
 
@@ -99,6 +133,7 @@ def test_progress_indicator_update_paths(sanitize_spy: _SanitizeSpy) -> None:
     ]
 
 
+@pytest.mark.fast
 def test_progress_indicator_subtasks_and_nested_operations(
     sanitize_spy: _SanitizeSpy,
 ) -> None:
@@ -198,6 +233,76 @@ def test_progress_indicator_subtasks_and_nested_operations(
         "fail-nested",
         "pending",
     ]
+
+
+@pytest.mark.medium
+def test_display_result_routes_and_message_capture(
+    streamlit_bridge_stub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Streamlit display paths sanitize output and record formatted messages."""
+
+    _install_tagging_sanitizer(monkeypatch)
+    bridge = webui_bridge.WebUIBridge()
+
+    bridge.display_result("error-text", message_type="error")
+    error_payload = streamlit_bridge_stub.error_calls[-1]
+    assert _extract_payload_text(error_payload) == "<sanitized::error-text>"
+    assert bridge.messages[-1] is error_payload
+
+    bridge.display_result("success-text", message_type="success")
+    success_payload = streamlit_bridge_stub.success_calls[-1]
+    assert _extract_payload_text(success_payload) == "<sanitized::success-text>"
+    assert bridge.messages[-1] is success_payload
+
+    bridge.display_result("info-text", highlight=True, message_type="info")
+    info_payload = streamlit_bridge_stub.info_calls[-1]
+    assert _extract_payload_text(info_payload) == "<sanitized::info-text>"
+    assert bridge.messages[-1] is info_payload
+
+
+@pytest.mark.medium
+def test_create_progress_thresholds_use_default_status(
+    streamlit_bridge_stub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Progress indicators created by the bridge honor default status updates."""
+
+    _install_tagging_sanitizer(monkeypatch)
+    bridge = webui_bridge.WebUIBridge()
+
+    indicator = bridge.create_progress("initial", total=100)
+    indicator.update(description="phase-1", status="custom", advance=10)
+    assert indicator._description == "<sanitized::phase-1>"
+    assert indicator._status == "<sanitized::custom>"
+
+    _assert_default_status_cycle(indicator)
+
+
+@pytest.mark.medium
+def test_wizard_step_bounds_and_session_state_validation(
+    streamlit_bridge_stub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Wizard helpers clamp invalid inputs and enforce session state availability."""
+
+    _install_tagging_sanitizer(monkeypatch)
+    bridge = webui_bridge.WebUIBridge()
+
+    assert bridge.adjust_wizard_step(0, direction="next", total=-5) == 0
+    assert bridge.adjust_wizard_step("2", direction="back", total=3) == 1
+    assert bridge.adjust_wizard_step(1, direction="sideways", total=2) == 1
+
+    streamlit_bridge_stub.session_state = None
+    with pytest.raises(DevSynthError):
+        bridge.get_wizard_manager("wizard", steps=3)
+
+    streamlit_bridge_stub.session_state = FakeSessionState()
+    manager = bridge.create_wizard_manager(
+        streamlit_bridge_stub.session_state, "wizard", steps=2
+    )
+
+    wizard_state_manager = importlib.import_module(
+        "devsynth.interface.wizard_state_manager"
+    )
+    assert isinstance(manager, wizard_state_manager.WizardStateManager)
 
 
 def test_require_streamlit_failure(monkeypatch: pytest.MonkeyPatch) -> None:
