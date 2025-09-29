@@ -15,7 +15,7 @@
 | Adapter backlog (`devsynth.adapters.agents.agent_adapter`, …, `devsynth.adapters.provider_system`) | Integrations Team – Alex Chen | 2025-11-15 | Remove implicit Optional defaults and align provider protocols with typed ports.【F:pyproject.toml†L276-L293】 |
 | Interface surfaces (`devsynth.interface.cli`, …, `devsynth.interface.wizard_state_manager`) | Experience Platform – Dana Laurent | 2025-12-20 | ✅ Strict mode enforced for progress helpers, Streamlit bridges, and state access; override removed after typed payload refactor.【F:pyproject.toml†L312-L336】【013f44†L1-L2】 |
 | Reliability utilities (`devsynth.utils.logging`, `devsynth.fallback`, port shims) | Reliability Guild – Dana Laurent | 2025-12-20 | ✅ Strict mode enforced after normalizing logging `exc_info`, typed retry policies, and port adapters; override removed.【F:src/devsynth/utils/logging.py†L1-L50】【F:src/devsynth/fallback.py†L1-L142】【F:src/devsynth/ports/llm_port.py†L1-L104】【F:pyproject.toml†L320-L352】 |
-| Application workflows (`devsynth.application.agents.*`, CLI suites, orchestration, prompts, etc.) | Applications Group – Lara Singh | 2026-02-15 | Track Any-heavy orchestration layers while DTO designs stabilize.【F:pyproject.toml†L337-L413】 |
+| Application workflows (`devsynth.application.agents.*`, orchestration, prompts, etc.) | Applications Group – Lara Singh | 2026-02-15 | ✅ CLI and collaboration packages graduated to the strict slice; continue retiring Any-heavy orchestration layers.【F:pyproject.toml†L337-L366】【F:diagnostics/mypy_strict_cli_collaboration_20250929T011840Z.txt†L1-L40】 |
 | Application memory stack (`devsynth.application.memory*`) | Memory Systems – Chen Wu | 2026-03-15 | Requires typed storage adapters and query responses before enabling strict mode.【F:pyproject.toml†L418-L445】 |
 | Enhanced API surface (`devsynth.interface.agentapi*`, `devsynth.application.requirements.*`) | API Guild – Morgan Patel | 2026-03-31 | Coordinate with schema convergence workstreams before lifting ignores.【F:pyproject.toml†L450-L454】 |
 
@@ -62,19 +62,21 @@ Focus: orchestration, prompts, agents, ingestion, and supporting utilities.
 
 | Module group | Owner | Deadline | Current gaps |
 | --- | --- | --- | --- |
-| Workflow suites (`devsynth.application.agents.*`, CLI commands, collaboration, orchestration, prompts, utilities) | Applications Group – Lara Singh | 2026-02-15 | ✅ Code-analysis package now strict; concentrate on collaboration, orchestration, and prompt modules that remain listed in the Phase‑3 override block.【F:pyproject.toml†L337-L382】 |
+| Workflow suites (`devsynth.application.agents.*`, orchestration, prompts, utilities) | Applications Group – Lara Singh | 2026-02-15 | ✅ Code-analysis package now strict; CLI/collaboration modules joined the enforced slice—focus now shifts to orchestration and prompt debt.【F:pyproject.toml†L337-L366】【F:diagnostics/mypy_strict_cli_collaboration_20250929T011840Z.txt†L1-L40】 |
 
 - `application/agents/agent_memory_integration.py` leaks `Any` through almost every integration pathway, driving downstream uncertainty.【46b4b0†L1-L9】
 - `application/orchestration/workflow.py` returns `Any` from key orchestrators, indicating missing typed DTOs.【c8f82e†L1-L3】
 - `application/prompts/prompt_manager.py` mixes `Any` returns with missing imports like `datetime`, breaking strict mode.【236778†L1-L5】
 - ✅ `application/cli/commands/run_tests_cmd.py` now exposes fully annotated CLI options, typed feature parsing, and deterministic coverage enforcement messaging under strict mypy. Support stubs were extended so Typer's `Option`/`Exit` helpers remain type-safe.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L163-L367】【F:stubs/typer/typer/__init__.pyi†L12-L22】
+- ✅ CLI and collaboration packages are verified with `poetry run mypy --strict src/devsynth/application/cli src/devsynth/application/collaboration`; the 2025-09-29 evidence is archived for regression watching.【F:diagnostics/mypy_strict_cli_collaboration_20250929T011840Z.txt†L1-L40】
+- ✅ Fast+medium regression coverage for the typed CLI/collaboration slice is captured via `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel`; see the 2025-09-29 transcript for release evidence.【F:diagnostics/devsynth_run_tests_fast_medium_20250929T012243Z.txt†L1-L27】
 - ✅ `application/code_analysis` now lives inside the enforced strict slice; validated with `poetry run mypy --strict devsynth.application.code_analysis` (invoke `poetry run mypy --strict -m devsynth.application.code_analysis` locally so mypy treats it as a module target).【F:Taskfile.yml†L143-L146】【253afa†L1-L2】
 - ✅ `application/config/unified_config_loader.py` and `application/server/bridge.py` now run under `poetry run mypy --strict` via the `task mypy:strict` guard and stay in the enforced slice to prevent regressions.【F:src/devsynth/application/config/unified_config_loader.py†L1-L37】【F:Taskfile.yml†L143-L146】
 - `application/ingestion/phases.py` already passes, providing a quick win for scoping ignores more tightly.【55db3f†L1-L2】
 - `application/utils/token_tracker.py` needs dict annotations and concrete return types for telemetry counters.【107bfe†L1-L4】
 - `application/requirements/requirement_service.py` still returns `Any` and lacks dict generics, so the requirements override remains necessary until typed data contracts land.【e64816†L1-L5】
 
-> **Next focus:** Collaboration, orchestration, and prompt packages listed in the Phase‑3 override block (`devsynth.application.collaboration.*`, `devsynth.application.orchestration.*`, `devsynth.application.prompts.*`, plus adjacent CLI utilities) still await strict typing and remain explicitly enumerated in `pyproject.toml`.【F:pyproject.toml†L337-L382】
+> **Next focus:** Orchestration and prompt packages listed in the Phase‑3 override block (`devsynth.application.orchestration.*`, `devsynth.application.prompts.*`) still await strict typing and remain explicitly enumerated in `pyproject.toml`.【F:pyproject.toml†L337-L366】
 
 ### Phase 4 – Memory stack (target 2026-03-15)
 The application memory manager and stores are the noisiest area, with dozens of `Any`-returning methods and Optional defaults that violate strictness.【322ce9†L1-L24】 Addressing these will likely require stabilized domain models and possibly dedicated stubs for storage adapters.

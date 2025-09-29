@@ -31,6 +31,7 @@ milestone.
   `WebSocketDenialResponse` until the Python 3.12 TestClient MRO fix lands
   natively (tracked in
   `issues/run-tests-smoke-fast-fastapi-starlette-mro.md`).
+- Promoted the CLI and collaboration stacks to the strict typing gate with `poetry run mypy --strict src/devsynth/application/cli src/devsynth/application/collaboration`, archiving the run alongside the refreshed fast+medium test diagnostics to document coverage.【F:docs/typing/strictness.md†L18-L21】【F:diagnostics/mypy_strict_cli_collaboration_20250929T011840Z.txt†L1-L40】【F:diagnostics/devsynth_run_tests_fast_medium_20250929T012243Z.txt†L1-L27】
 
 > This changelog entry for 0.1.0a1 is now frozen for the tag.
 
