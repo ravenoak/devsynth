@@ -10,14 +10,8 @@ from datetime import datetime
 import numpy as np
 import pytest
 
-faiss = pytest.importorskip("faiss")
-
 from devsynth.application.memory.faiss_store import FAISSStore  # noqa: E402
 from devsynth.domain.models.memory import MemoryVector  # noqa: E402
-from tests.conftest import is_resource_available  # noqa: E402
-
-if not is_resource_available("faiss"):
-    pytest.skip("Resource 'faiss' not available", allow_module_level=True)
 
 
 def _build_vector(

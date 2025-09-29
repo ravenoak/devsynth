@@ -1,20 +1,6 @@
 import pytest
+from chromadb.utils import embedding_functions
 
-from tests.fixtures.resources import resource_flag_enabled
-
-if not resource_flag_enabled("chromadb"):
-    pytest.skip(
-        "ChromaDB resource not enabled via DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE",
-        allow_module_level=True,
-    )
-
-if not resource_flag_enabled("kuzu"):
-    pytest.skip(
-        "Kuzu resource not enabled via DEVSYNTH_RESOURCE_KUZU_AVAILABLE",
-        allow_module_level=True,
-    )
-
-pytest.importorskip("chromadb")
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.application.memory.kuzu_store import KuzuStore
@@ -33,9 +19,15 @@ pytestmark = [
 def stores(tmp_path, monkeypatch):
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     monkeypatch.setenv("ENABLE_CHROMADB", "1")
-    ef = pytest.importorskip("chromadb.utils.embedding_functions")
-
-    monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: lambda x: [0.0] * 5)
+    monkeypatch.setattr(
+        embedding_functions,
+        "DefaultEmbeddingFunction",
+        lambda: (lambda _: [0.0] * 5),
+    )
+    monkeypatch.setattr(
+        "devsynth.adapters.kuzu_memory_store._is_kuzu_available",
+        lambda: False,
+    )
     monkeypatch.setattr(KuzuMemoryStore, "__abstractmethods__", frozenset())
     monkeypatch.setattr(KuzuStore, "__abstractmethods__", frozenset())
     tiny = TinyDBStore(str(tmp_path / "tiny"))

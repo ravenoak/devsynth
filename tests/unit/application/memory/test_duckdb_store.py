@@ -1,6 +1,5 @@
 import json
 import os
-import os
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -8,9 +7,6 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pytest
 
-pytest.importorskip("duckdb")
-if os.environ.get("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE", "true").lower() == "false":
-    pytest.skip("DuckDB resource not available", allow_module_level=True)
 from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.application.memory.dto import build_memory_record
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector

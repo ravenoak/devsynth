@@ -1,13 +1,10 @@
-import os
-import os
 import uuid
 
+import chromadb
 import pytest
 
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
-chromadb = pytest.importorskip("chromadb")
 
 
 class _TestableChromaDBStore(ChromaDBStore):
@@ -28,9 +25,6 @@ class _TestableChromaDBStore(ChromaDBStore):
 @pytest.mark.fast
 def test_store_and_retrieve_with_fallback(monkeypatch, tmp_path):
     """Store and retrieve items using fallback storage. ReqID: N/A"""
-    if os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE") != "1":
-        pytest.skip("ChromaDB resource not available")
-
     class FailingClient:
         def get_collection(self, name):  # pragma: no cover - forced failure
             raise RuntimeError("fail")
@@ -39,7 +33,6 @@ def test_store_and_retrieve_with_fallback(monkeypatch, tmp_path):
             raise RuntimeError("fail")
 
     monkeypatch.setattr(chromadb, "EphemeralClient", lambda: FailingClient())
-    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
 
     store = _TestableChromaDBStore(str(tmp_path))
     item = MemoryItem(
