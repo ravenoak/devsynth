@@ -10,8 +10,8 @@ Style: follows project guidelines (PEP 8, type hints, clear docs).
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
-from uuid import UUID, uuid4
+from typing import Any, Dict, List, Mapping, Tuple
+from uuid import uuid4
 
 from hypothesis import strategies as st
 
@@ -44,15 +44,63 @@ def _iso_timestamp_strategy() -> st.SearchStrategy[str]:
     ).map(lambda dt: dt.isoformat())
 
 
+def _timestamp_input_strategy() -> st.SearchStrategy[Any]:
+    """Return timestamp inputs accepted by DTOs (ISO string or datetime)."""
+
+    datetime_values = st.datetimes(
+        min_value=datetime(2020, 1, 1),
+        max_value=datetime(2030, 12, 31),
+        timezones=[],
+    )
+    return st.one_of(_iso_timestamp_strategy(), datetime_values)
+
+
+def _json_value_strategy(max_leaves: int = 5) -> st.SearchStrategy[Any]:
+    """Generate lightweight JSON-like structures for metadata fields."""
+
+    primitives = st.one_of(
+        st.none(),
+        st.booleans(),
+        st.integers(min_value=-5, max_value=5),
+        st.floats(
+            min_value=-1.0,
+            max_value=1.0,
+            allow_nan=False,
+            allow_infinity=False,
+        ),
+        _bounded_text(1, 40),
+    )
+
+    return st.recursive(
+        primitives,
+        lambda children: st.one_of(
+            st.lists(children, min_size=0, max_size=3),
+            st.dictionaries(
+                keys=_bounded_text(1, 12), values=children, min_size=0, max_size=3
+            ),
+        ),
+        max_leaves=max_leaves,
+    )
+
+
+def _metadata_strategy() -> st.SearchStrategy[Mapping[str, Any]]:
+    return st.dictionaries(
+        keys=_bounded_text(1, 16),
+        values=_json_value_strategy(),
+        max_size=3,
+    ).map(lambda data: dict(data))
+
+
 def _agent_opinion_record_strategy() -> st.SearchStrategy[AgentOpinionRecord]:
     return st.builds(
         AgentOpinionRecord,
         agent_id=_bounded_text(1, 12),
         opinion=_bounded_text(3, 60) | st.just(""),
         rationale=_bounded_text(3, 120) | st.just(""),
-        timestamp=st.none() | _iso_timestamp_strategy(),
+        timestamp=st.none() | _timestamp_input_strategy(),
         weight=st.none()
         | st.floats(min_value=0.5, max_value=1.0, allow_nan=False, allow_infinity=False),
+        metadata=_metadata_strategy(),
     )
 
 
@@ -69,6 +117,7 @@ def _conflict_record_strategy() -> st.SearchStrategy[ConflictRecord]:
         rationale_b=_bounded_text(3, 120) | st.just(""),
         severity_label=st.sampled_from(["high", "medium"]),
         severity_score=st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False),
+        metadata=_metadata_strategy(),
     )
 
 
@@ -104,6 +153,7 @@ def _synthesis_artifact_strategy() -> st.SearchStrategy[SynthesisArtifact]:
             ["weighted_expertise_synthesis", "consensus_blend"]
         ),
         readability_score=readability,
+        metadata=_metadata_strategy(),
     )
 
 
@@ -192,6 +242,10 @@ def consensus_outcome_strategy() -> st.SearchStrategy[ConsensusOutcome]:
     ).map(tuple)
     synthesis = _synthesis_artifact_strategy()
     majority_choice = _bounded_text(3, 80)
+    participants = st.lists(_bounded_text(1, 12), min_size=0, max_size=4).map(tuple)
+    metadata = _metadata_strategy()
+    rationale_text = st.none() | _bounded_text(5, 160)
+    explanation_text = st.none() | _bounded_text(5, 200)
 
     def _build(
         consensus_id: str,
@@ -201,7 +255,14 @@ def consensus_outcome_strategy() -> st.SearchStrategy[ConsensusOutcome]:
         conflicts: tuple[ConflictRecord, ...],
         synthesis_artifact: SynthesisArtifact,
         majority_opinion: str,
-        timestamp: str,
+        timestamp: Any,
+        participant_ids: Tuple[str, ...],
+        metadata_payload: Mapping[str, Any],
+        achieved: bool,
+        confidence: float,
+        reported_conflicts: int,
+        rationale_value: str | None,
+        explanation_value: str | None,
     ) -> ConsensusOutcome:
         kwargs: Dict[str, Any] = {
             "consensus_id": consensus_id,
@@ -210,6 +271,13 @@ def consensus_outcome_strategy() -> st.SearchStrategy[ConsensusOutcome]:
             "agent_opinions": opinions,
             "conflicts": conflicts,
             "timestamp": timestamp,
+            "participants": participant_ids,
+            "metadata": metadata_payload,
+            "achieved": achieved,
+            "confidence": confidence,
+            "conflicts_identified": reported_conflicts if conflicts else 0,
+            "rationale": rationale_value,
+            "stakeholder_explanation": explanation_value,
         }
         if method == "conflict_resolution_synthesis":
             kwargs["synthesis"] = synthesis_artifact
@@ -226,5 +294,19 @@ def consensus_outcome_strategy() -> st.SearchStrategy[ConsensusOutcome]:
         conflict_records,
         synthesis,
         majority_choice,
-        _iso_timestamp_strategy(),
+        _timestamp_input_strategy(),
+        participants,
+        metadata,
+        st.booleans(),
+        st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False),
+        st.integers(min_value=0, max_value=3),
+        rationale_text,
+        explanation_text,
     )
+
+
+def consensus_outcome_payload_strategy() -> st.SearchStrategy[Any]:
+    """Generate ConsensusOutcome instances or serialized dictionaries."""
+
+    outcome_strategy = consensus_outcome_strategy()
+    return st.one_of(outcome_strategy, outcome_strategy.map(lambda outcome: outcome.to_dict()))

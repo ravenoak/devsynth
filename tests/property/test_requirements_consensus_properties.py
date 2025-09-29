@@ -4,7 +4,7 @@ Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
 """
 
 import time
-from typing import Any
+from typing import Any, Mapping
 
 import pytest
 from hypothesis import given, settings
@@ -23,7 +23,10 @@ from devsynth.domain.models.wsde_dialectical import (
 )
 from tests.helpers.dummies import _DummyTeam
 
-from .strategies import consensus_outcome_strategy, requirement_strategy
+from .strategies import (
+    consensus_outcome_payload_strategy,
+    requirement_strategy,
+)
 
 
 @pytest.mark.property
@@ -92,26 +95,81 @@ def test_dialectical_reasoning_returns_expected_shape_quickly(thesis_content: st
 
 @pytest.mark.property
 @pytest.mark.medium
-@settings(max_examples=5, deadline=300)
-@given(outcome=consensus_outcome_strategy())
-def test_generated_consensus_outcome_has_expected_keys(outcome: ConsensusOutcome):
-    """Generated consensus outcomes provide required keys.
+@settings(max_examples=15, deadline=400)
+@given(payload=consensus_outcome_payload_strategy())
+def test_consensus_outcome_serialization_preserves_invariants(payload: Any) -> None:
+    """ConsensusOutcome payloads round-trip with normalized ordering and metadata.
 
     Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
     """
+
+    if isinstance(payload, ConsensusOutcome):
+        outcome = payload
+        serialized = payload.to_dict()
+    else:
+        assert isinstance(payload, Mapping)
+        serialized = dict(payload)
+        outcome = ConsensusOutcome.from_dict(serialized)
+
     assert isinstance(outcome, ConsensusOutcome)
-    assert isinstance(outcome.consensus_id, str)
-    assert isinstance(outcome.task_id, str)
-    assert isinstance(outcome.timestamp, str)
+    assert serialized["dto_type"] == "ConsensusOutcome"
+    assert ConsensusOutcome.from_dict(serialized) == outcome
+    assert ConsensusOutcome.from_dict(outcome.to_dict()) == outcome
+
+    # Timestamps are normalized to ISO strings when provided.
+    if outcome.timestamp is not None:
+        assert isinstance(outcome.timestamp, str)
+        assert "T" in outcome.timestamp
+
+    # Agent opinions are converted to deterministic ordering.
+    assert all(isinstance(opinion, AgentOpinionRecord) for opinion in outcome.agent_opinions)
+    expected_opinion_order = tuple(
+        sorted(
+            outcome.agent_opinions,
+            key=lambda opinion: ((opinion.agent_id or ""), opinion.timestamp or ""),
+        )
+    )
+    assert outcome.agent_opinions == expected_opinion_order
+
+    # Participants default to unique agent IDs in order of normalized opinions.
+    expected_participants = tuple(
+        dict.fromkeys(
+            record.agent_id for record in outcome.agent_opinions if record.agent_id
+        )
+    )
+    assert outcome.participants == expected_participants
+
+    # Conflicts are sorted deterministically and counted accurately.
+    assert all(isinstance(conflict, ConflictRecord) for conflict in outcome.conflicts)
+    expected_conflict_order = tuple(
+        sorted(
+            outcome.conflicts,
+            key=lambda conflict: ((conflict.conflict_id or ""), conflict.agent_a or ""),
+        )
+    )
+    assert outcome.conflicts == expected_conflict_order
+    assert outcome.conflicts_identified == len(outcome.conflicts)
+
+    # Metadata is normalized to dictionaries with ordered keys.
+    assert isinstance(outcome.metadata, dict)
+    if outcome.metadata:
+        assert list(outcome.metadata.keys()) == sorted(outcome.metadata.keys())
+        for value in outcome.metadata.values():
+            if isinstance(value, dict):
+                assert list(value.keys()) == sorted(value.keys())
+
+    # Method-specific invariants.
     assert outcome.method in {"conflict_resolution_synthesis", "majority_opinion"}
-
-    for opinion in outcome.agent_opinions:
-        assert isinstance(opinion, AgentOpinionRecord)
-
-    for conflict in outcome.conflicts:
-        assert isinstance(conflict, ConflictRecord)
-
     if outcome.method == "conflict_resolution_synthesis":
         assert isinstance(outcome.synthesis, SynthesisArtifact)
+        assert outcome.majority_opinion is None
     else:
-        assert isinstance(outcome.majority_opinion, str)
+        assert outcome.synthesis is None
+        assert outcome.majority_opinion is None or isinstance(outcome.majority_opinion, str)
+
+    # Serialized payload preserves ordering guarantees.
+    round_trip = outcome.to_dict()
+    serialized_opinion_ids = [record["agent_id"] for record in round_trip["agent_opinions"]]
+    assert serialized_opinion_ids == [record.agent_id for record in outcome.agent_opinions]
+    serialized_conflict_ids = [record["conflict_id"] for record in round_trip["conflicts"]]
+    assert serialized_conflict_ids == [record.conflict_id for record in outcome.conflicts]

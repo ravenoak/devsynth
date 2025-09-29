@@ -103,7 +103,15 @@ from devsynth.application.collaboration.peer_review import (
     ReviewDecision,
     _PeerReviewRecordStorage,
 )
-from devsynth.application.collaboration.dto import PeerReviewRecord
+from devsynth.application.collaboration.dto import (
+    AgentOpinionRecord,
+    ConsensusOutcome,
+    PeerReviewRecord,
+)
+from devsynth.application.collaboration.exceptions import (
+    ConsensusError as CollaborationConsensusError,
+    PeerReviewConsensusError,
+)
 
 
 class DummyMemoryManager:
@@ -216,3 +224,59 @@ def test_collect_reviews_failure_yields_error_decision() -> None:
     assert isinstance(decision, ReviewDecision)
     assert "Error processing review" in (decision.notes or "")
     assert decision.approved is None
+
+
+@pytest.mark.fast
+def test_collect_reviews_wraps_consensus_error_with_serialized_outcome() -> None:
+    """ReqID: N/A"""
+
+    class CooperativeReviewer:
+        name = "cooperative"
+
+        def process(self, payload):
+            return {"feedback": "ok", "approved": True}
+
+    mm = DummyMemoryManager()
+    reviewer = CooperativeReviewer()
+    review = PeerReview(
+        work_product={}, author="author", reviewers=[reviewer], memory_manager=mm
+    )
+
+    consensus = ConsensusOutcome(
+        consensus_id="cid-collect",
+        task_id="tid",
+        method="majority_opinion",
+        agent_opinions=(
+            AgentOpinionRecord(agent_id="alpha", opinion="approve"),
+        ),
+        majority_opinion="approve",
+    )
+
+    class StubTeam:
+        def add_solution(self, *_args, **_kwargs):
+            return None
+
+        def build_consensus(self, *_args, **_kwargs):
+            error = CollaborationConsensusError("targeted failure")
+            error.consensus_result = consensus.to_dict()
+            raise error
+
+    review.team = StubTeam()
+
+    with patch(
+        "devsynth.application.collaboration.collaboration_memory_utils.store_with_retry",
+        return_value="stored",
+    ), patch(
+        "devsynth.application.collaboration.peer_review.log_consensus_failure"
+    ) as mock_log:
+        review.collect_reviews()
+
+    mock_log.assert_called_once()
+    error = mock_log.call_args.args[1]
+    assert isinstance(error, PeerReviewConsensusError)
+    payload = error.as_dict()
+    assert payload["consensus"]["dto_type"] == "ConsensusOutcome"
+    assert payload["consensus"]["majority_opinion"] == "approve"
+    assert payload["message"].endswith(f"[review_id={review.review_id}]")
+    assert review.consensus_outcome is not None
+    assert review.consensus_outcome.majority_opinion == "approve"
