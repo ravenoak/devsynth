@@ -1,11 +1,8 @@
-"""
-Step Definitions for Consensus Building BDD Tests
+"""Step definitions for consensus building BDD tests."""
 
-This file implements the step definitions for the consensus building
-feature file, testing the consensus building capabilities of the WSDE model.
-"""
+from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -14,10 +11,12 @@ from devsynth.application.agents.base import BaseAgent
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.consensus import build_consensus
 
-pytestmark = [pytest.mark.fast]
+pytestmark = pytest.mark.fast
 
-# Import the feature file
+# Import the feature files
+scenarios("../features/consensus_building.feature")
 scenarios("../features/general/consensus_building.feature")
 
 
@@ -34,6 +33,9 @@ def context():
             self.decision = None
             self.conflict_resolution = None
             self.decision_history = []
+            self.votes: list[str] = []
+            self.consensus_result = None
+            self.consensus_threshold: float | None = None
 
     return Context()
 
@@ -109,6 +111,59 @@ def team_configured_for_consensus_building(context):
 
     # Verify that the team is configured for consensus building
     assert context.team.consensus_mode == "enabled"
+
+
+# Scenario: Lightweight consensus verification (top-level feature)
+
+
+@given(parsers.parse('votes "{votes}"'))
+def given_votes(context, votes: str):
+    """Register a simple vote list for consensus tests."""
+
+    parsed = [vote.strip() for vote in votes.split(",") if vote.strip()]
+    assert parsed, "Vote list should not be empty"
+    context.votes = parsed
+
+
+@when("we build consensus")
+def when_we_build_consensus(context):
+    """Build consensus using the collected votes."""
+
+    threshold = (
+        context.consensus_threshold
+        if context.consensus_threshold is not None
+        else 0.5
+    )
+    context.consensus_result = build_consensus(context.votes, threshold=threshold)
+
+
+@when(parsers.parse("we build consensus with threshold {threshold}"))
+def when_we_build_consensus_with_threshold(context, threshold: str):
+    """Build consensus with an explicit threshold."""
+
+    context.consensus_threshold = float(threshold)
+    context.consensus_result = build_consensus(
+        context.votes, threshold=context.consensus_threshold
+    )
+
+
+@then(parsers.parse('consensus decision is "{expected}"'))
+def then_consensus_decision_is(context, expected: str):
+    """Confirm that consensus was reached for the expected option."""
+
+    assert context.consensus_result is not None, "Consensus result should exist"
+    assert context.consensus_result.consensus, "Consensus should have been reached"
+    assert context.consensus_result.decision == expected
+    context.decision = expected
+
+
+@then("no consensus decision is made")
+def then_no_consensus_decision(context):
+    """Ensure that the consensus attempt failed to reach agreement."""
+
+    assert context.consensus_result is not None, "Consensus result should exist"
+    assert not context.consensus_result.consensus
+    assert context.consensus_result.decision is None
 
 
 # Scenario: Voting mechanisms for critical decisions

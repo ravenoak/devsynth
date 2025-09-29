@@ -12,11 +12,11 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature files
 
-pytestmark = [pytest.mark.fast]
+pytestmark = pytest.mark.fast
 
+scenarios("../features/wsde_agent_model_refinement.feature")
 scenarios("../features/general/wsde_agent_model.feature")
 scenarios("../features/multi_agent_collaboration.feature")
-# scenarios('../features/wsde_agent_model.feature')  # Commented out - feature file not found
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
@@ -39,6 +39,9 @@ def context():
             self.solutions = {}
             self.current_team_id = None
             self.expertise_map = {}
+            self.consensus_threshold: float | None = None
+            self.peer_review_routes: list[str] = []
+            self.leadership_history: list[str] = []
 
     return Context()
 
@@ -68,6 +71,13 @@ def wsde_model_enabled(context):
     """Enable the WSDE model."""
     # The WSDE model is enabled by default when a team is created
     assert context.teams[context.current_team_id] is not None
+
+
+@given(parsers.parse("a consensus threshold of {threshold} is configured"))
+def configure_consensus_threshold(context, threshold: str):
+    """Allow scenarios to set a custom consensus threshold."""
+
+    context.consensus_threshold = float(threshold)
 
 
 # Scenario: Peer-based collaboration
@@ -117,6 +127,10 @@ def no_permanent_hierarchical_authority(context):
     initial_primus = team.get_primus()
     team.rotate_primus()
     new_primus = team.get_primus()
+    if initial_primus is not None:
+        context.leadership_history.append(initial_primus.config.name)
+    if new_primus is not None:
+        context.leadership_history.append(new_primus.config.name)
     assert initial_primus != new_primus
 
 
@@ -268,6 +282,7 @@ def agent_with_relevant_expertise_becomes_primus(context):
     # Check if the Primus has Python expertise
     expertise = primus.config.parameters["expertise"]
     assert any(skill in ["python", "code_generation"] for skill in expertise)
+    context.leadership_history.append(primus.config.name)
 
 
 @then("the Primus role should change based on the task context")
@@ -308,6 +323,7 @@ def primus_role_changes_with_task_context(context):
     assert "expertise" in python_primus.config.parameters
     python_expertise = python_primus.config.parameters["expertise"]
     assert any(skill in ["python", "code_generation"] for skill in python_expertise)
+    context.leadership_history.append(python_primus.config.name)
 
     # Create a new task that requires documentation expertise
     doc_task = {
@@ -325,6 +341,7 @@ def primus_role_changes_with_task_context(context):
 
     # Get the current Primus for documentation task
     doc_primus = team.get_primus()
+    context.leadership_history.append(doc_primus.config.name)
 
     # Verify that the Doc Primus has documentation expertise
     assert hasattr(doc_primus, "config")
@@ -373,10 +390,12 @@ def previous_primus_returns_to_peer_status(context):
     team.select_primus_by_expertise(python_task)
     python_primus = team.get_primus()
     python_primus_name = python_primus.config.name
+    context.leadership_history.append(python_primus_name)
 
     # Select the Primus for documentation task
     team.select_primus_by_expertise(doc_task)
     doc_primus = team.get_primus()
+    context.leadership_history.append(doc_primus.config.name)
 
     # Find the previous Primus agent in the team
     previous_primus = None
@@ -542,6 +561,8 @@ def system_considers_all_agent_input(context):
     ]
     consensus_request = dict(task)
     consensus_request["options"] = options
+    if context.consensus_threshold is not None:
+        consensus_request["consensus_threshold"] = context.consensus_threshold
     consensus = team.build_consensus(consensus_request)
 
     # Verify that consensus was built
@@ -625,6 +646,8 @@ def system_facilitates_consensus(context):
     task["options"] = options
 
     # Build consensus
+    if context.consensus_threshold is not None:
+        task["consensus_threshold"] = context.consensus_threshold
     consensus = team.build_consensus(task)
 
     # Verify that consensus building was facilitated
