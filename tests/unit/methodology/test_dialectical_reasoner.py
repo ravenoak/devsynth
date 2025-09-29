@@ -16,16 +16,16 @@ from devsynth.domain.models.requirement import RequirementChange
 
 
 class DummyNotification:
-    def notify_change_proposed(self, change):
+    def notify_change_proposed(self, payload):
         pass
 
-    def notify_change_approved(self, change):
+    def notify_change_approved(self, payload):
         pass
 
-    def notify_change_rejected(self, change):
+    def notify_change_rejected(self, payload):
         pass
 
-    def notify_impact_assessment_completed(self, assessment):
+    def notify_impact_assessment_completed(self, payload):
         pass
 
 

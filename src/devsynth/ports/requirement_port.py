@@ -1,11 +1,18 @@
 """
 Ports for the requirements management system.
-"""
+"""Ports defining boundary contracts for requirement operations."""
+
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Union
 from uuid import UUID
 
+from devsynth.application.requirements.models import (
+    ChangeNotificationPayload,
+    EDRRPhase,
+    ImpactNotificationPayload,
+)
 from devsynth.domain.models.requirement import (
     ChatMessage,
     ChatSession,
@@ -317,7 +324,9 @@ class DialecticalReasonerPort(ABC):
 
     @abstractmethod
     def evaluate_change(
-        self, change: RequirementChange, edrr_phase: str = "REFINE"
+        self,
+        change: RequirementChange,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> DialecticalReasoning:
         """
         Evaluate a requirement change using dialectical reasoning.
@@ -366,7 +375,9 @@ class DialecticalReasonerPort(ABC):
 
     @abstractmethod
     def assess_impact(
-        self, change: RequirementChange, edrr_phase: str = "REFINE"
+        self,
+        change: RequirementChange,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> ImpactAssessment:
         """
         Assess the impact of a requirement change.
@@ -385,42 +396,44 @@ class NotificationPort(ABC):
     """Port for notifications."""
 
     @abstractmethod
-    def notify_change_proposed(self, change: RequirementChange) -> None:
+    def notify_change_proposed(self, payload: ChangeNotificationPayload) -> None:
         """
         Notify that a change has been proposed.
 
         Args:
-            change: The proposed change.
+            payload: Structured payload describing the proposed change.
         """
         return None
 
     @abstractmethod
-    def notify_change_approved(self, change: RequirementChange) -> None:
+    def notify_change_approved(self, payload: ChangeNotificationPayload) -> None:
         """
         Notify that a change has been approved.
 
         Args:
-            change: The approved change.
+            payload: Structured payload describing the approved change.
         """
         return None
 
     @abstractmethod
-    def notify_change_rejected(self, change: RequirementChange) -> None:
+    def notify_change_rejected(self, payload: ChangeNotificationPayload) -> None:
         """
         Notify that a change has been rejected.
 
         Args:
-            change: The rejected change.
+            payload: Structured payload describing the rejected change.
         """
         return None
 
     @abstractmethod
-    def notify_impact_assessment_completed(self, assessment: ImpactAssessment) -> None:
+    def notify_impact_assessment_completed(
+        self, payload: ImpactNotificationPayload
+    ) -> None:
         """
         Notify that an impact assessment has been completed.
 
         Args:
-            assessment: The completed impact assessment.
+            payload: Structured payload describing the completed impact assessment.
         """
         return None
 

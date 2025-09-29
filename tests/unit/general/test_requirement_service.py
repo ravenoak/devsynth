@@ -13,6 +13,7 @@ from devsynth.adapters.requirements.memory_repository import (
     InMemoryChangeRepository,
     InMemoryRequirementRepository,
 )
+from devsynth.application.requirements.models import RequirementUpdateDTO
 from devsynth.application.requirements.requirement_service import RequirementService
 from devsynth.domain.models.requirement import (
     ChangeType,
@@ -93,12 +94,12 @@ class TestRequirementService(unittest.TestCase):
             created_by="test_user",
         )
         saved_requirement = self.requirement_repository.save_requirement(requirement)
-        updates = {
-            "title": "Updated Test Requirement",
-            "description": "This is an updated test requirement",
-            "status": RequirementStatus.PROPOSED,
-            "priority": RequirementPriority.HIGH,
-        }
+        updates = RequirementUpdateDTO(
+            title="Updated Test Requirement",
+            description="This is an updated test requirement",
+            status=RequirementStatus.PROPOSED,
+            priority=RequirementPriority.HIGH,
+        )
         updated_requirement = self.service.update_requirement(
             saved_requirement.id, updates, "test_user", "Testing update"
         )
@@ -199,9 +200,11 @@ class TestRequirementService(unittest.TestCase):
         self.assertTrue(approved_change.approved)
         self.assertEqual(approved_change.approved_by, "approver_user")
         self.assertIsNotNone(approved_change.approved_at)
-        self.notification_service.notify_change_approved.assert_called_once_with(
-            approved_change
+        self.notification_service.notify_change_approved.assert_called_once()
+        approved_payload = (
+            self.notification_service.notify_change_approved.call_args[0][0]
         )
+        assert approved_payload.change is approved_change
 
     @pytest.mark.fast
     def test_reject_change_succeeds(self):
@@ -242,9 +245,11 @@ class TestRequirementService(unittest.TestCase):
         self.assertEqual(
             rejected_change.comments[0], "rejector_user: This change is not necessary"
         )
-        self.notification_service.notify_change_rejected.assert_called_once_with(
-            rejected_change
+        self.notification_service.notify_change_rejected.assert_called_once()
+        rejected_payload = (
+            self.notification_service.notify_change_rejected.call_args[0][0]
         )
+        assert rejected_payload.change is rejected_change
 
 
 if __name__ == "__main__":

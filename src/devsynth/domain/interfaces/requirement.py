@@ -1,11 +1,14 @@
-"""
-Domain interfaces for requirements management.
-"""
+"""Domain interfaces for requirements management."""
 
 from __future__ import annotations
 
 from uuid import UUID
 
+from devsynth.application.requirements.models import (
+    ChangeNotificationPayload,
+    EDRRPhase,
+    ImpactNotificationPayload,
+)
 from devsynth.domain.models.requirement import (
     ChatMessage,
     ChatSession,
@@ -155,7 +158,9 @@ class DialecticalReasonerInterface:
     """Base dialectical reasoner implementation."""
 
     def evaluate_change(
-        self, change: RequirementChange, edrr_phase: str = "REFINE"
+        self,
+        change: RequirementChange,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> DialecticalReasoning:
         reasoning = DialecticalReasoning(change_id=change.id)
         reasoning.thesis = f"Proposed change {change.id}"
@@ -176,7 +181,9 @@ class DialecticalReasonerInterface:
         return ChatSession(user_id=user_id, change_id=change_id)
 
     def assess_impact(
-        self, change: RequirementChange, edrr_phase: str = "REFINE"
+        self,
+        change: RequirementChange,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> ImpactAssessment:
         return ImpactAssessment(change_id=change.id, analysis="")
 
@@ -184,17 +191,19 @@ class DialecticalReasonerInterface:
 class NotificationInterface:
     """Base notification service."""
 
-    def notify_change_proposed(self, change: RequirementChange) -> None:
-        logger.info(f"Change proposed: {change.id}")
+    def notify_change_proposed(self, payload: ChangeNotificationPayload) -> None:
+        logger.info("Change proposed: %s", payload.change.id)
 
-    def notify_change_approved(self, change: RequirementChange) -> None:
-        logger.info(f"Change approved: {change.id}")
+    def notify_change_approved(self, payload: ChangeNotificationPayload) -> None:
+        logger.info("Change approved: %s", payload.change.id)
 
-    def notify_change_rejected(self, change: RequirementChange) -> None:
-        logger.warning(f"Change rejected: {change.id}")
+    def notify_change_rejected(self, payload: ChangeNotificationPayload) -> None:
+        logger.warning("Change rejected: %s", payload.change.id)
 
-    def notify_impact_assessment_completed(self, assessment: ImpactAssessment) -> None:
-        logger.info(f"Impact assessment completed: {assessment.id}")
+    def notify_impact_assessment_completed(
+        self, payload: ImpactNotificationPayload
+    ) -> None:
+        logger.info("Impact assessment completed: %s", payload.assessment.id)
 
 
 class InMemoryRequirementRepository(RequirementRepositoryInterface):
@@ -239,7 +248,9 @@ class SimpleDialecticalReasoner(DialecticalReasonerInterface):
         self.chat_repo = chat_repo
 
     def evaluate_change(
-        self, change: RequirementChange, edrr_phase: str = "REFINE"
+        self,
+        change: RequirementChange,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> DialecticalReasoning:
         reasoning = DialecticalReasoning(change_id=change.id)
         reasoning.thesis = f"Proposed change {change.id}"
@@ -269,7 +280,9 @@ class SimpleDialecticalReasoner(DialecticalReasonerInterface):
         return session
 
     def assess_impact(
-        self, change: RequirementChange, edrr_phase: str = "REFINE"
+        self,
+        change: RequirementChange,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> ImpactAssessment:
         assessment = ImpactAssessment(change_id=change.id, analysis="None")
         return assessment
@@ -278,14 +291,16 @@ class SimpleDialecticalReasoner(DialecticalReasonerInterface):
 class PrintNotificationService(NotificationInterface):
     """Simple notification service that prints messages to stdout."""
 
-    def notify_change_proposed(self, change: RequirementChange) -> None:
-        print(f"Change proposed: {change.id}")
+    def notify_change_proposed(self, payload: ChangeNotificationPayload) -> None:
+        print(f"Change proposed: {payload.change.id}")
 
-    def notify_change_approved(self, change: RequirementChange) -> None:
-        print(f"Change approved: {change.id}")
+    def notify_change_approved(self, payload: ChangeNotificationPayload) -> None:
+        print(f"Change approved: {payload.change.id}")
 
-    def notify_change_rejected(self, change: RequirementChange) -> None:
-        print(f"Change rejected: {change.id}")
+    def notify_change_rejected(self, payload: ChangeNotificationPayload) -> None:
+        print(f"Change rejected: {payload.change.id}")
 
-    def notify_impact_assessment_completed(self, assessment: ImpactAssessment) -> None:
-        print(f"Impact assessment completed: {assessment.id}")
+    def notify_impact_assessment_completed(
+        self, payload: ImpactNotificationPayload
+    ) -> None:
+        print(f"Impact assessment completed: {payload.assessment.id}")

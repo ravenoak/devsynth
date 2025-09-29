@@ -1,6 +1,6 @@
-"""
-Dialectical reasoner for requirements management.
-"""
+"""Dialectical reasoner for requirements management."""
+
+from __future__ import annotations
 
 import os
 from dataclasses import asdict
@@ -11,6 +11,7 @@ from uuid import UUID, uuid4
 from devsynth.application.collaboration.exceptions import (
     ConsensusError as BaseConsensusError,
 )
+from devsynth.application.requirements.models import EDRRPhase, ImpactNotificationPayload
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.requirement import (
     ChatMessage,
@@ -120,7 +121,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 )
 
     def evaluate_change(
-        self, change: RequirementChange, edrr_phase: str = "REFINE"
+        self,
+        change: RequirementChange,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> DialecticalReasoning:
         """
         Evaluate a requirement change using dialectical reasoning.
@@ -179,7 +182,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                     "event": "consensus_check_error",
                 },
             )
-            self._store_reasoning_in_memory(reasoning, edrr_phase="RETROSPECT")
+            self._store_reasoning_in_memory(reasoning, edrr_phase=EDRRPhase.RETROSPECT)
             raise
 
         self._run_evaluation_hooks(reasoning, consensus_reached)
@@ -188,7 +191,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 "Consensus not reached for change",  # pragma: no cover - log path
                 extra={"change_id": str(change.id), "event": "consensus_failed"},
             )
-            self._store_reasoning_in_memory(reasoning, edrr_phase="RETROSPECT")
+            self._store_reasoning_in_memory(
+                reasoning, edrr_phase=EDRRPhase.RETROSPECT
+            )
             raise ConsensusError("Consensus not reached")
 
         logger.info(
@@ -207,11 +212,11 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 ChangeType,
             )
 
-            if edrr_phase == "REFINE":
+            if edrr_phase is EDRRPhase.REFINE:
                 if getattr(change, "change_type", None) == ChangeType.ADD:
-                    phase_to_use = "EXPAND"
+                    phase_to_use = EDRRPhase.EXPAND
                 elif getattr(change, "change_type", None) == ChangeType.REMOVE:
-                    phase_to_use = "RETROSPECT"
+                    phase_to_use = EDRRPhase.RETROSPECT
         except Exception:
             phase_to_use = edrr_phase
         self._store_reasoning_in_memory(saved, edrr_phase=phase_to_use)
@@ -289,7 +294,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         return self.chat_repository.save_session(session)
 
     def assess_impact(
-        self, change: RequirementChange, edrr_phase: str = "REFINE"
+        self,
+        change: RequirementChange,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> ImpactAssessment:
         """
         Assess the impact of a requirement change.
@@ -340,9 +347,6 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         # Save and return the assessment
         saved_assessment = self.impact_repository.save_impact_assessment(assessment)
 
-        # Send notification
-        self.notification_service.notify_impact_assessment_completed(saved_assessment)
-
         # Persist impact assessment with EDRR phase context
         phase_to_use = edrr_phase
         try:
@@ -350,19 +354,29 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 ChangeType,
             )
 
-            if edrr_phase == "REFINE":
+            if edrr_phase is EDRRPhase.REFINE:
                 if getattr(change, "change_type", None) == ChangeType.ADD:
-                    phase_to_use = "EXPAND"
+                    phase_to_use = EDRRPhase.EXPAND
                 elif getattr(change, "change_type", None) == ChangeType.REMOVE:
-                    phase_to_use = "RETROSPECT"
+                    phase_to_use = EDRRPhase.RETROSPECT
         except Exception:
             phase_to_use = edrr_phase
+
+        # Send notification with structured payload
+        impact_payload = ImpactNotificationPayload(
+            assessment=saved_assessment,
+            edrr_phase=phase_to_use,
+        )
+        self.notification_service.notify_impact_assessment_completed(impact_payload)
+
         self._store_impact_in_memory(saved_assessment, edrr_phase=phase_to_use)
 
         return saved_assessment
 
     def _store_reasoning_in_memory(
-        self, reasoning: DialecticalReasoning, edrr_phase: str = "REFINE"
+        self,
+        reasoning: DialecticalReasoning,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> None:
         """Persist dialectical reasoning to the memory manager if available.
 
@@ -382,10 +396,11 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 "change_id": str(reasoning.change_id),
                 "reasoning_id": str(reasoning.id),
             }
+            phase_value = edrr_phase.value
             manager.store_with_edrr_phase(
                 relationship_payload,
                 memory_type=MemoryType.RELATIONSHIP,
-                edrr_phase=edrr_phase,
+                edrr_phase=phase_value,
                 metadata={
                     "change_id": str(reasoning.change_id),
                     "link": "requirement->reasoning",
@@ -395,7 +410,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             manager.store_with_edrr_phase(
                 asdict(reasoning),
                 memory_type=MemoryType.DIALECTICAL_REASONING,
-                edrr_phase=edrr_phase,
+                edrr_phase=phase_value,
                 metadata={"change_id": str(reasoning.change_id)},
             )
         except Exception as exc:  # pragma: no cover - defensive
@@ -409,7 +424,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             )
 
     def _store_impact_in_memory(
-        self, assessment: ImpactAssessment, edrr_phase: str = "REFINE"
+        self,
+        assessment: ImpactAssessment,
+        edrr_phase: EDRRPhase = EDRRPhase.REFINE,
     ) -> None:
         """Persist impact assessment to the memory manager if available."""
         manager = getattr(self, "memory_manager", None)
@@ -419,7 +436,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             manager.store_with_edrr_phase(
                 asdict(assessment),
                 memory_type=MemoryType.DOCUMENTATION,
-                edrr_phase=edrr_phase,
+                edrr_phase=edrr_phase.value,
                 metadata={"change_id": str(assessment.change_id)},
             )
         except Exception as exc:  # pragma: no cover - defensive
