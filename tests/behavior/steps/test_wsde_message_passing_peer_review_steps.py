@@ -1,15 +1,17 @@
-import pytest
+"""WSDE message passing and peer review behaviour tests."""
 
-pytest.skip(
-    "Advanced WSDE collaboration features not implemented", allow_module_level=True
-)
+from __future__ import annotations
+
+from typing import Any, Dict, Iterable
 
 from unittest.mock import MagicMock
 
+import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-pytestmark = [pytest.mark.fast]
+pytestmark = pytest.mark.fast
 
+scenarios("../features/wsde_message_passing_and_peer_review.feature")
 scenarios("../features/general/wsde_message_passing_peer_review.feature")
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
@@ -19,16 +21,52 @@ from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
+def _normalise_message(message: Any) -> Dict[str, Any]:
+    """Return a serialisable message dictionary from protocol objects."""
+
+    if isinstance(message, dict):
+        return {
+            "id": message.get("id") or message.get("message_id"),
+            "sender": message.get("sender"),
+            "recipients": list(message.get("recipients", ())),
+            "type": message.get("type")
+            or getattr(message.get("message_type"), "value", None),
+            "subject": message.get("subject"),
+            "content": message.get("content", {}),
+            "metadata": dict(message.get("metadata") or {}),
+            "timestamp": message.get("timestamp"),
+        }
+
+    data = {
+        "id": getattr(message, "message_id", getattr(message, "id", None)),
+        "sender": getattr(message, "sender", None),
+        "recipients": list(getattr(message, "recipients", []) or []),
+        "type": getattr(getattr(message, "message_type", None), "value", None),
+        "subject": getattr(message, "subject", None),
+        "content": getattr(message, "content", {}),
+        "metadata": dict(getattr(message, "metadata", {}) or {}),
+        "timestamp": getattr(message, "timestamp", None),
+    }
+    return data
+
+
+def _iter_messages(messages: Iterable[Any]) -> Iterable[Dict[str, Any]]:
+    for message in messages:
+        yield _normalise_message(message)
+
+
 @pytest.fixture
 def context():
     class Context:
         def __init__(self):
             self.team_coordinator = WSDETeamCoordinator()
-            self.agents = {}
-            self.teams = {}
-            self.current_team_id = None
-            self.messages = []
+            self.agents: Dict[str, UnifiedAgent] = {}
+            self.teams: Dict[str, WSDETeam] = {}
+            self.current_team_id: str | None = None
+            self.messages: list[Dict[str, Any]] = []
+            self.last_message: Dict[str, Any] | None = None
             self.last_peer_review = None
+            self.expected_structured_content: Dict[str, Any] = {}
 
     return Context()
 
@@ -85,25 +123,34 @@ def send_message(context, sender, recipient, msg_type):
         subject="test",
         content={},
     )
-    context.messages.append(message)
-    context.last_message = message
+    normalised = _normalise_message(message)
+    context.messages.append(normalised)
+    context.last_message = normalised
 
 
 @then(parsers.parse('agent "{recipient}" should receive the message'))
 def recipient_receives(context, recipient):
-    msgs = context.team.get_messages(recipient)
-    assert any(m for m in msgs if recipient in m.recipients)
+    msgs = list(_iter_messages(context.team.get_messages(recipient)))
+    assert any(recipient in m["recipients"] for m in msgs)
 
 
 @then("the message should have the correct sender, recipient, and type")
 def message_fields(context):
     m = context.last_message
-    assert m.sender and m.recipients and m.message_type
+    assert m and m["sender"]
+    assert m["recipients"], "Recipients should be recorded"
+    assert m["type"] in {
+        MessageType.STATUS_UPDATE.value,
+        MessageType.TASK_ASSIGNMENT.value,
+        MessageType.INFORMATION_REQUEST.value,
+        MessageType.REVIEW_REQUEST.value,
+    }
 
 
 @then("the message should be stored in the communication history")
 def stored_in_history(context):
-    assert context.last_message in context.team.get_messages()
+    history = list(_iter_messages(context.team.get_messages()))
+    assert any(m["id"] == context.last_message["id"] for m in history)
 
 
 @when(
@@ -113,27 +160,28 @@ def stored_in_history(context):
 )
 def broadcast_message(context, sender, msg_type):
     message = context.team.broadcast_message(sender, msg_type, subject="broadcast")
-    context.last_message = message
+    context.last_message = _normalise_message(message)
 
 
 @then("all agents should receive the message")
 def all_receive(context):
     for name in context.agents:
-        if name != context.last_message.sender:
-            msgs = context.team.get_messages(name)
-            assert any(m for m in msgs if m is context.last_message)
+        if name != context.last_message["sender"]:
+            msgs = list(_iter_messages(context.team.get_messages(name)))
+            assert any(m["id"] == context.last_message["id"] for m in msgs)
 
 
 @then("each message should have the correct sender and type")
 def broadcast_fields(context):
     m = context.last_message
-    assert m.sender in context.agents
-    assert m.message_type == MessageType.TASK_ASSIGNMENT
+    assert m["sender"] in context.agents
+    assert m["type"] == MessageType.TASK_ASSIGNMENT.value
 
 
 @then("the broadcast should be recorded as a single communication event")
 def broadcast_single_event(context):
-    assert context.team.get_messages()[-1] is context.last_message
+    history = list(_iter_messages(context.team.get_messages()))
+    assert history and history[-1]["id"] == context.last_message["id"]
 
 
 @when(
@@ -150,7 +198,7 @@ def send_priority_message(context, sender, priority, recipient):
         content={},
         metadata={"priority": priority},
     )
-    context.last_message = message
+    context.last_message = _normalise_message(message)
 
 
 @then(
@@ -159,19 +207,20 @@ def send_priority_message(context, sender, priority, recipient):
     )
 )
 def recipient_priority(context, recipient, priority):
-    msgs = context.team.get_messages(recipient)
-    assert any(m.metadata.get("priority") == priority for m in msgs)
+    msgs = list(_iter_messages(context.team.get_messages(recipient)))
+    assert any(m["metadata"].get("priority") == priority for m in msgs)
 
 
 @then("high priority messages should be processed before lower priority messages")
 def priority_order(context):
-    msgs = context.team.get_messages()
-    assert msgs[0].metadata.get("priority") == "high"
+    msgs = list(_iter_messages(context.team.get_messages()))
+    assert msgs, "Priority ordering requires at least one message"
+    assert msgs[0]["metadata"].get("priority") == "high"
 
 
 @then("the message priority should be recorded in the communication history")
 def priority_recorded(context):
-    assert context.last_message.metadata.get("priority")
+    assert context.last_message["metadata"].get("priority")
 
 
 @when(parsers.parse('agent "{sender}" sends a message with structured content:'))
@@ -190,7 +239,9 @@ def send_structured(context, sender, table=None):
                 self.rows = [MockRow()]
 
         table = MockTable()
+
     content = {row["key"]: row["value"] for row in table.rows}
+    context.expected_structured_content = dict(content)
     message = context.team.send_message(
         sender=sender,
         recipients=["supervisor-1"],
@@ -198,7 +249,7 @@ def send_structured(context, sender, table=None):
         subject="structured",
         content=content,
     )
-    context.last_message = message
+    context.last_message = _normalise_message(message)
 
 
 @then(
@@ -207,20 +258,24 @@ def send_structured(context, sender, table=None):
     )
 )
 def check_structured(context, recipient):
-    msgs = context.team.get_messages(recipient)
-    assert any(m.content == context.last_message.content for m in msgs)
+    msgs = list(_iter_messages(context.team.get_messages(recipient)))
+    assert any(m["content"] == context.expected_structured_content for m in msgs)
 
 
 @then("the structured content should be accessible as a parsed object")
 def structured_parsed(context):
-    assert isinstance(context.last_message.content, dict)
+    assert isinstance(context.last_message["content"], dict)
+    assert set(context.last_message["content"].keys()) == set(
+        context.expected_structured_content.keys()
+    )
 
 
 @then("the message should be queryable by content fields")
 def query_by_fields(context):
-    key = next(iter(context.last_message.content))
-    msgs = context.team.get_messages(filters={})
-    assert any(key in m.content for m in msgs)
+    key = next(iter(context.expected_structured_content))
+    value = context.expected_structured_content[key]
+    msgs = list(_iter_messages(context.team.get_messages()))
+    assert any(m["content"].get(key) == value for m in msgs)
 
 
 @when('agent "worker-1" submits a work product for peer review')
@@ -242,8 +297,8 @@ def reviewers_assigned(context):
 def reviewers_received_request(context):
     for reviewer in context.last_peer_review.reviewers:
         name = reviewer.config.name
-        msgs = context.team.get_messages(name)
-        assert any(m.message_type == MessageType.REVIEW_REQUEST for m in msgs)
+        msgs = list(_iter_messages(context.team.get_messages(name)))
+        assert any(m["type"] == MessageType.REVIEW_REQUEST.value for m in msgs)
 
 
 @then("each reviewer should evaluate the work product independently")
@@ -269,7 +324,7 @@ def submit_with_criteria(context):
     # Define acceptance criteria explicitly
     acceptance_criteria = ["code_correctness", "documentation_quality"]
 
-    work = {"text": "work"}
+    work = {"text": "work", "acceptance_criteria": acceptance_criteria}
     reviewers = [a for n, a in context.agents.items() if n != "worker-1"]
 
     # Create a peer review with explicit acceptance criteria
@@ -286,9 +341,12 @@ def submit_with_criteria(context):
 @then("the peer review request should include the acceptance criteria")
 def review_includes_criteria(context):
     for reviewer in context.last_peer_review.reviewers:
-        msgs = context.team.get_messages(reviewer.config.name)
+        msgs = list(_iter_messages(context.team.get_messages(reviewer.config.name)))
         assert any(
-            "acceptance_criteria" in m.content.get("work_product", {}) for m in msgs
+            isinstance(m["content"], dict)
+            and m["content"].get("acceptance_criteria")
+            == context.last_peer_review.acceptance_criteria
+            for m in msgs
         )
 
 
@@ -673,13 +731,13 @@ def multiple_reviews(context):
 
 @when("I request the communication history for the team")
 def request_history(context):
-    context.history = context.team.get_messages()
+    context.history = list(_iter_messages(context.team.get_messages()))
     context.review_history = context.team.peer_reviews
 
 
 @then("I should receive a chronological record of all messages")
 def chronological_messages(context):
-    times = [m.timestamp for m in context.history]
+    times = [m["timestamp"] for m in context.history]
     assert times == sorted(times)
 
 
@@ -691,12 +749,17 @@ def record_peer_reviews(context):
 @then("the history should include metadata about senders, recipients, and timestamps")
 def history_metadata(context):
     m = context.history[0]
-    assert m.sender and m.recipients and m.timestamp
+    assert m["sender"] and m["recipients"] and m["timestamp"]
 
 
 @then("the history should be filterable by message type, agent, and time period")
 def history_filter(context):
-    filtered = context.team.get_messages(
-        agent="supervisor-1", filters={"message_type": MessageType.STATUS_UPDATE}
+    filtered = list(
+        _iter_messages(
+            context.team.get_messages(
+                agent="supervisor-1",
+                filters={"message_type": MessageType.STATUS_UPDATE.value},
+            )
+        )
     )
     assert filtered
