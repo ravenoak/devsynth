@@ -15,59 +15,69 @@ version: 0.1.0-alpha.1
 # Summary
 
 Consensus building ensures WSDE teams surface expertise-weighted perspectives,
-resolve conflicts, and document final decisions with rationale. The executable
-stories in
+resolve conflicts, and document final decisions with rationale. The general
+feature at
 [`tests/behavior/features/general/consensus_building.feature`](../../tests/behavior/features/general/consensus_building.feature)
-set the baseline behaviour for voting, conflict mediation, and decision history.
-Companion scenarios in
+captures the baseline scenarios for weighted voting, conflict resolution,
+tie-breaking, and decision tracking. Delegation hand-offs and voting safeguards
+extend that behaviour in
 [`tests/behavior/features/general/delegate_task_consensus.feature`](../../tests/behavior/features/general/delegate_task_consensus.feature)
 and
-[`tests/behavior/features/general/wsde_voting_mechanisms.feature`](../../tests/behavior/features/general/wsde_voting_mechanisms.feature)
-extend those flows into delegation and voting tie-breakers.
+[`tests/behavior/features/general/wsde_voting_mechanisms.feature`](../../tests/behavior/features/general/wsde_voting_mechanisms.feature),
+which the workflow-specific suites mirror for regression coverage.
 
 ## Motivation
 
-WSDE collaboration depends on transparent decision paths. Weighted voting and
-conflict resolution must align with the domain models in
+Transparent decision paths are a WSDE requirement. Aligning this specification
+with the shared feature files keeps the documentation synchronized with domain
+implementations in
 [`src/devsynth/domain/models/wsde_voting.py`](../../src/devsynth/domain/models/wsde_voting.py)
 and
-[`src/devsynth/domain/models/wsde_decision_making.py`](../../src/devsynth/domain/models/wsde_decision_making.py).
-The team coordinator integrates these models via
-[`src/devsynth/application/collaboration/wsde_team_consensus.py`](../../src/devsynth/application/collaboration/wsde_team_consensus.py),
-so the specification keeps the documentation synchronized with the behaviour the
-unit suites assert.
+[`src/devsynth/domain/models/wsde_decision_making.py`](../../src/devsynth/domain/models/wsde_decision_making.py),
+as well as the coordination logic in
+[`src/devsynth/application/collaboration/wsde_team_consensus.py`](../../src/devsynth/application/collaboration/wsde_team_consensus.py)
+and
+[`src/devsynth/consensus.py`](../../src/devsynth/consensus.py).
+Referencing the general scenarios ensures weighted tallies, conflict mediation,
+and tie-breaking strategies stay aligned with the unit suites that guard them.
 
 ## Specification
 
-- **Weighted voting**: Each decision captures agent votes along with expertise
-  weights. Weighted tallies determine the preferred option, and rationale is
-  stored alongside the vote to justify the weighting.
-- **Conflict resolution**: When conflicts arise the team records dissenting
-  positions, triggers facilitated dialogue, and documents the steps taken to
-  address the concerns before recording the consensus result.
-- **Tie-breaking**: Predefined strategies (e.g., primus adjudication,
-  escalation, or expertise comparison) apply deterministically when weighted
-  voting ends in a tie, with the chosen method captured in the decision history.
-- **Decision tracking**: Decision records include contributors, weighted scores,
-  conflict notes, applied tie-breaking strategy, and a narrative explanation
-  suitable for stakeholder review.
+- **Voting mechanisms for critical decisions**: Teams collect votes from all
+  agents, weight them by expertise, and select the option with the highest
+  weighted score. Vote rationales accompany each ballot.
+- **Conflict resolution in decision making**: When opinions diverge, the team
+  documents dissent, facilitates structured dialogue, records reasoning, and
+  captures the agreed resolution path.
+- **Weighted voting based on expertise**: Expertise assessments remain visible
+  and justifiable so the resulting decision references the contributing experts
+  and the rationale for their influence.
+- **Tie-breaking strategies**: Predefined adjudication rules execute when
+  weighted scores tie, logging the method applied and the justification.
+- **Decision tracking and explanation**: All decisions store metadata, weighted
+  results, conflict notes, and stakeholder-ready narratives that are queryable
+  for future review.
+- **Delegated consensus hand-offs**: Consensus outputs feed task delegation by
+  capturing contributor sets, failure fallbacks, and dialectical error handling
+  as described in the delegation scenarios.
+- **Voting safeguards**: Critical-decision workflows fall back to consensus and
+  log tie-breaking steps per the voting mechanisms feature.
 
 ## Acceptance Criteria
 
-- Behaviour suites for consensus building, delegation, and voting mechanisms run
-  with consistent role statements and scenario names across the general and
-  mirrored features, demonstrating parity in how teams record votes, resolve
-  conflicts, and document history.
-- Consensus services serialize decision outcomes, participant metadata, and
-  conflict indicators as validated by unit tests including
+- Mirrored features reuse the role statements and scenario names from the
+  general features, demonstrating behaviour parity for each item above.
+- Consensus services serialize decision outcomes, participant metadata, conflict
+  indicators, and applied tie-breaking strategies as validated by
   [`tests/unit/application/collaboration/test_wsde_team_consensus_utils.py`](../../tests/unit/application/collaboration/test_wsde_team_consensus_utils.py),
   [`tests/unit/application/collaboration/test_wsde_team_consensus_conflict_detection.py`](../../tests/unit/application/collaboration/test_wsde_team_consensus_conflict_detection.py),
   and
   [`tests/unit/application/collaboration/test_wsde_memory_sync_hooks.py`](../../tests/unit/application/collaboration/test_wsde_memory_sync_hooks.py).
-- Decision histories propagate through orchestration layers without data loss,
-  satisfying the integration points in
-  [`src/devsynth/consensus.py`](../../src/devsynth/consensus.py) and the
-  collaboration coordinator tests that verify consensus payloads.
+- Delegation workflows expose consensus payloads and error handling consistent
+  with
+  [`tests/unit/application/collaboration/test_delegate_workflows.py`](../../tests/unit/application/collaboration/test_delegate_workflows.py)
+  and the integration expectations in
+  [`tests/integration/general/test_run_pipeline_command.py`](../../tests/integration/general/test_run_pipeline_command.py).
 
 ## Traceability
 
@@ -78,4 +88,5 @@ unit suites assert.
   `application/collaboration/wsde_team_consensus.py`, `consensus.py`
 - **Unit suites**: `tests/unit/application/collaboration/test_wsde_team_consensus_utils.py`,
   `tests/unit/application/collaboration/test_wsde_team_consensus_conflict_detection.py`,
-  `tests/unit/application/collaboration/test_wsde_memory_sync_hooks.py`
+  `tests/unit/application/collaboration/test_wsde_memory_sync_hooks.py`,
+  `tests/unit/application/collaboration/test_delegate_workflows.py`

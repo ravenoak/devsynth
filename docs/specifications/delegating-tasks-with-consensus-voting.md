@@ -1,51 +1,76 @@
 ---
 author: DevSynth Team
 date: 2025-08-19
-last_reviewed: 2025-09-22
+last_reviewed: 2025-09-29
 status: review
 tags:
-
-- specification
+  - specification
+  - wsde
+  - consensus
 
 title: Delegating tasks with consensus voting
 version: 0.1.0-alpha.1
 ---
 
-<!--
-Required metadata fields:
-- author: document author
-- date: creation date
-- last_reviewed: last review date
-- status: draft | review | published
-- tags: search keywords
-- title: short descriptive name
-- version: specification version
--->
-
 # Summary
 
-## Socratic Checklist
-- What is the problem?
-- What proofs confirm the solution?
+Delegating tasks with consensus voting ensures hand-offs respect the team decision
+record and carry expertise-weighted outcomes into execution. Executable stories
+in
+[`tests/behavior/features/general/delegate_task_consensus.feature`](../../tests/behavior/features/general/delegate_task_consensus.feature)
+outline how WSDE teams coordinate delegation, handle missing solutions, and
+surface dialectical failures. The workflow-specific mirror at
+[`tests/behavior/features/delegating_tasks_with_consensus_voting.feature`](../../tests/behavior/features/delegating_tasks_with_consensus_voting.feature)
+keeps regression coverage aligned with the general behaviours.
 
 ## Motivation
 
-## What proofs confirm the solution?
-- BDD scenarios in [`tests/behavior/features/delegating_tasks_with_consensus_voting.feature`](../../tests/behavior/features/delegating_tasks_with_consensus_voting.feature) and [`tests/behavior/features/general/delegate_task_consensus.feature`](../../tests/behavior/features/general/delegate_task_consensus.feature) run through [`tests/behavior/steps/test_delegate_task_consensus_steps.py`](../../tests/behavior/steps/test_delegate_task_consensus_steps.py), demonstrating voting delegation, no-solution fallbacks, and dialectical error handling.
-- Consensus utilities in [`tests/behavior/features/consensus_building.feature`](../../tests/behavior/features/consensus_building.feature) and [`tests/behavior/features/general/wsde_voting_mechanisms.feature`](../../tests/behavior/features/general/wsde_voting_mechanisms.feature) provide additional assurance that voting results integrate with consensus fallback logic.
-- Unit coverage in [`tests/unit/application/collaboration/test_delegate_workflows.py`](../../tests/unit/application/collaboration/test_delegate_workflows.py) and [`tests/unit/application/collaboration/test_wsde_team_consensus_utils.py`](../../tests/unit/application/collaboration/test_wsde_team_consensus_utils.py) validates the coordinator's voting adapters and consensus summaries.
-- Integration tests in [`tests/integration/general/test_run_pipeline_command.py`](../../tests/integration/general/test_run_pipeline_command.py) confirm the command-line workflows expose the same delegation semantics used by the BDD suite.
-
+Delegation sits downstream of consensus. Documenting the steps captured in the
+general feature ensures the coordinator implementation in
+[`src/devsynth/application/collaboration/wsde_team_consensus.py`](../../src/devsynth/application/collaboration/wsde_team_consensus.py)
+and
+[`src/devsynth/application/collaboration/coordinator.py`](../../src/devsynth/application/collaboration/coordinator.py)
+remains aligned with the domain utilities in
+[`src/devsynth/domain/models/wsde_voting.py`](../../src/devsynth/domain/models/wsde_voting.py)
+and the safeguards validated by unit tests. Explicit traceability prevents drift
+between consensus outcomes and execution hand-offs.
 
 ## Specification
 
-- Voting-capable teams delegate tasks through `WSDETeamCoordinator.delegate_task`, capturing vote tallies, contributing agents, and consensus results when a majority is reached.
-- When no agent proposes a solution, the coordinator produces a structured "no solutions" response and records the failure reason.
-- Dialectical reasoning exceptions are trapped and surfaced as graceful errors without leaving the system in an inconsistent state.
-- All delegation results include metadata describing the applied method (e.g., `consensus_vote`, `fallback`) and contributor set.
+- **Delegated consensus decision**: `WSDETeamCoordinator.delegate_task` packages
+  the consensus-approved option, contributing agents, and the applied method (for
+  example, `consensus_vote` or `fallback`).
+- **No-solution fallback**: When no agent proposes a solution, the coordinator
+  returns a structured payload with explanatory metadata and records the failure
+  reason for audit.
+- **Dialectical error handling**: Dialectical reasoning failures produce
+  user-friendly error responses while maintaining system consistency.
+- **Consensus payload propagation**: Delegation results include vote tallies,
+  expertise weights, and rationale sourced from the upstream consensus decision.
+- **History logging**: Each delegation attempt appends to the decision history so
+  downstream automation can reconcile execution outcomes with the consensus log.
 
 ## Acceptance Criteria
 
-- Voting scenarios capture every agent's participation and produce consensus-approved results when possible.
-- No-solution scenarios return deterministic explanatory payloads without crashing the coordinator.
-- Dialectical reasoning failures surface friendly error messages while preventing partially committed results.
+- Mirrored features reuse the role statements and scenario names from the general
+  feature, demonstrating parity for consensus hand-offs, no-solution fallbacks,
+  and dialectical error handling.
+- Delegation utilities serialize consensus payloads, contributor metadata, and
+  fallback reasons as validated by
+  [`tests/unit/application/collaboration/test_delegate_workflows.py`](../../tests/unit/application/collaboration/test_delegate_workflows.py)
+  and
+  [`tests/unit/application/collaboration/test_wsde_team_consensus_utils.py`](../../tests/unit/application/collaboration/test_wsde_team_consensus_utils.py).
+- Integration coverage in
+  [`tests/integration/general/test_run_pipeline_command.py`](../../tests/integration/general/test_run_pipeline_command.py)
+  demonstrates the CLI exposes the same delegation semantics exercised in the
+  behaviour suites.
+
+## Traceability
+
+- **Behaviour**: `delegate_task_consensus.feature`,
+  `delegating_tasks_with_consensus_voting.feature`
+- **Domain models**: `application/collaboration/wsde_team_consensus.py`,
+  `application/collaboration/coordinator.py`,
+  `domain/models/wsde_voting.py`
+- **Unit suites**: `tests/unit/application/collaboration/test_delegate_workflows.py`,
+  `tests/unit/application/collaboration/test_wsde_team_consensus_utils.py`
