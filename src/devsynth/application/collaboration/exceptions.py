@@ -1,16 +1,16 @@
-"""
-Exceptions for the collaboration module.
-"""
+"""Exceptions for the collaboration module."""
+
+from typing import Any, Dict, Optional
 
 from devsynth.exceptions import AgentExecutionError as BaseAgentExecutionError
 from devsynth.exceptions import CollaborationError as BaseCollaborationError
 from devsynth.exceptions import ConsensusError as BaseConsensusError
-from devsynth.exceptions import (
-    DevSynthError,
-)
+from devsynth.exceptions import DevSynthError
 from devsynth.exceptions import RoleAssignmentError as BaseRoleAssignmentError
 from devsynth.exceptions import TeamConfigurationError as BaseTeamConfigurationError
 from devsynth.logging_setup import DevSynthLogger
+
+from .dto import ConsensusOutcome, serialize_collaboration_dto
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -52,6 +52,41 @@ class ConsensusError(BaseConsensusError):
             topic=topic,
             error_code=error_code,
         )
+
+
+class PeerReviewConsensusError(ConsensusError):
+    """Exception raised when peer review consensus cannot be established."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        outcome: Optional[ConsensusOutcome] = None,
+        review_id: Optional[str] = None,
+        error_code: Optional[str] = "PEER_REVIEW_CONSENSUS",
+    ) -> None:
+        super().__init__(
+            message,
+            agent_ids=None,
+            topic="peer_review",
+            error_code=error_code,
+        )
+        self.outcome = outcome
+        self.review_id = review_id
+
+    def __str__(self) -> str:
+        base = super().__str__()
+        if self.review_id:
+            return f"{base} [review_id={self.review_id}]"
+        return base
+
+    def as_dict(self) -> Dict[str, Any]:
+        data: Dict[str, Any] = {"message": str(self)}
+        if self.review_id:
+            data["review_id"] = self.review_id
+        if self.outcome is not None:
+            data["consensus"] = serialize_collaboration_dto(self.outcome)
+        return data
 
 
 class RoleAssignmentError(BaseRoleAssignmentError):

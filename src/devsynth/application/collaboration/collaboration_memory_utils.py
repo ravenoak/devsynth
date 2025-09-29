@@ -158,36 +158,55 @@ def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
     else:
         raise ValueError(f"Entity {entity} cannot be converted to a dictionary")
 
-    # Create metadata
-    metadata = {
-        "entity_type": entity.__class__.__name__,
-        "created_at": datetime.now().isoformat(),
-    }
+    use_custom_metadata = False
+    metadata: Dict[str, Any] = {}
 
-    # Add additional metadata based on entity type
-    if isinstance(entity, CollaborationTask):
-        metadata["task_type"] = entity.task_type
-        metadata["status"] = (
-            entity.status.name if hasattr(entity.status, "name") else str(entity.status)
-        )
-        if entity.parent_task_id:
-            metadata["parent_task_id"] = entity.parent_task_id
-        if entity.sync_port is not None:
-            metadata["sync_port"] = serialize_memory_sync_port(entity.sync_port)
-    elif isinstance(entity, AgentMessage):
-        metadata["message_type"] = (
-            entity.message_type.name
-            if hasattr(entity.message_type, "name")
-            else str(entity.message_type)
-        )
-        metadata["sender_id"] = entity.sender_id
-        metadata["recipient_id"] = entity.recipient_id
-        if entity.related_task_id:
-            metadata["related_task_id"] = entity.related_task_id
-    elif PeerReview is not None and isinstance(entity, PeerReview):
-        metadata["status"] = entity.status
-        metadata["author_id"] = getattr(entity.author, "id", str(entity.author))
-        metadata["quality_score"] = entity.quality_score
+    if hasattr(entity, "memory_metadata"):
+        try:
+            memory_metadata = getattr(entity, "memory_metadata")
+            metadata = dict(memory_metadata())  # type: ignore[call-arg]
+            use_custom_metadata = True
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.debug(
+                "Failed to obtain custom memory metadata",
+                extra={"entity": repr(entity), "error": str(exc)},
+            )
+            metadata = {}
+
+    if not metadata:
+        metadata = {
+            "entity_type": entity.__class__.__name__,
+            "created_at": datetime.now().isoformat(),
+        }
+    else:
+        metadata.setdefault("entity_type", entity.__class__.__name__)
+
+    if not use_custom_metadata:
+        if isinstance(entity, CollaborationTask):
+            metadata["task_type"] = entity.task_type
+            metadata["status"] = (
+                entity.status.name
+                if hasattr(entity.status, "name")
+                else str(entity.status)
+            )
+            if entity.parent_task_id:
+                metadata["parent_task_id"] = entity.parent_task_id
+            if entity.sync_port is not None:
+                metadata["sync_port"] = serialize_memory_sync_port(entity.sync_port)
+        elif isinstance(entity, AgentMessage):
+            metadata["message_type"] = (
+                entity.message_type.name
+                if hasattr(entity.message_type, "name")
+                else str(entity.message_type)
+            )
+            metadata["sender_id"] = entity.sender_id
+            metadata["recipient_id"] = entity.recipient_id
+            if entity.related_task_id:
+                metadata["related_task_id"] = entity.related_task_id
+        elif PeerReview is not None and isinstance(entity, PeerReview):
+            metadata["status"] = entity.status
+            metadata["author_id"] = getattr(entity.author, "id", str(entity.author))
+            metadata["quality_score"] = entity.quality_score
 
     return MemoryItem(
         id=entity_id, content=content, memory_type=memory_type, metadata=metadata
