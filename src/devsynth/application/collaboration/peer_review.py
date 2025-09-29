@@ -2,9 +2,10 @@ from __future__ import annotations
 
 """Peer review utilities for WSDE teams."""
 
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Tuple, Union
 from uuid import uuid4
 
 from devsynth.application.memory.memory_manager import MemoryManager
@@ -12,10 +13,61 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
-from .exceptions import ConsensusError
+from .dto import ConsensusOutcome, PeerReviewRecord, ReviewDecision, serialize_collaboration_dto
+from .exceptions import ConsensusError, PeerReviewConsensusError
 from .message_protocol import MessageType
 
 logger = DevSynthLogger(__name__)
+
+
+@dataclass(frozen=True)
+class _PeerReviewRecordStorage:
+    """Envelope object for persisting peer review records."""
+
+    review_id: str
+    record: PeerReviewRecord
+    decisions: Tuple[ReviewDecision, ...]
+    created_at: datetime
+    updated_at: datetime
+    quality_score: float
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize the storage payload deterministically."""
+
+        record_payload = serialize_collaboration_dto(self.record)
+        decision_payloads = [
+            serialize_collaboration_dto(decision) for decision in self.decisions
+        ]
+        return OrderedDict(
+            [
+                ("dto_type", "PeerReviewRecordStorage"),
+                ("review_id", self.review_id),
+                ("record", record_payload),
+                ("decisions", decision_payloads),
+                ("quality_score", self.quality_score),
+                ("created_at", self.created_at.isoformat()),
+                ("updated_at", self.updated_at.isoformat()),
+            ]
+        )
+
+    def memory_metadata(self) -> Mapping[str, Any]:
+        """Metadata used by the memory subsystem."""
+
+        consensus_id = None
+        if self.record.consensus is not None:
+            consensus_id = getattr(self.record.consensus, "consensus_id", None)
+
+        return OrderedDict(
+            [
+                ("entity_type", "PeerReviewRecord"),
+                ("review_id", self.review_id),
+                ("consensus_id", consensus_id),
+                ("status", self.record.notes or ""),
+                ("quality_score", self.quality_score),
+                ("created_at", self.created_at.isoformat()),
+                ("updated_at", self.updated_at.isoformat()),
+            ]
+        )
 
 
 @dataclass
@@ -31,7 +83,7 @@ class PeerReview:
     team: Optional[Any] = None
     memory_manager: Optional[MemoryManager] = None
 
-    reviews: Dict[Any, Dict[str, Any]] = field(default_factory=dict)
+    reviews: Dict[str, ReviewDecision] = field(default_factory=dict)
     revision: Any = None
     revision_history: List[Any] = field(default_factory=list)
     status: str = "pending"
@@ -42,6 +94,8 @@ class PeerReview:
     quality_score: float = 0.0
     metrics_results: Dict[str, Any] = field(default_factory=dict)
     consensus_result: Dict[str, Any] = field(default_factory=dict)
+    consensus_outcome: Optional[ConsensusOutcome] = None
+    _latest_record: Optional[PeerReviewRecord] = field(default=None, init=False, repr=False)
 
     def store_in_memory(self, immediate_sync: bool = False) -> Optional[str]:
         """
@@ -61,13 +115,21 @@ class PeerReview:
             # Import here to avoid circular imports
             from .collaboration_memory_utils import store_with_retry
 
+            storage_payload = self._serialize_for_memory()
+            if storage_payload is None:
+                logger.debug(
+                    "No peer review record available for storage",
+                    extra={"review_id": self.review_id},
+                )
+                return None
+
             # Determine the primary store to use
             primary_store = self._get_primary_store()
 
             # Store with retry for better reliability
             item_id = store_with_retry(
                 self.memory_manager,
-                self,
+                storage_payload,
                 primary_store=primary_store,
                 immediate_sync=immediate_sync,
                 max_retries=3,
@@ -172,6 +234,202 @@ class PeerReview:
             logger.error(f"Failed to rollback transaction {transaction_id}: {str(e)}")
             return False
 
+    def _reviewer_identifier(self, reviewer: Any) -> str:
+        """Return a stable identifier for a reviewer."""
+
+        for attr in ("id", "agent_id"):
+            value = getattr(reviewer, attr, None)
+            if value:
+                return str(value)
+        name = getattr(reviewer, "name", None)
+        if name:
+            return str(name)
+        return str(reviewer)
+
+    def _prepare_review_payload(self, raw_result: Any) -> Dict[str, Any]:
+        """Normalize reviewer output into a mapping."""
+
+        if isinstance(raw_result, Mapping):
+            payload = {str(key): raw_result[key] for key in raw_result.keys()}
+        else:
+            payload = {"feedback": str(raw_result)}
+
+        if self.acceptance_criteria and "criteria_results" not in payload:
+            payload["criteria_results"] = {
+                criterion: True for criterion in self.acceptance_criteria
+            }
+
+        if self.quality_metrics and "metrics_results" not in payload:
+            payload["metrics_results"] = {
+                metric: 1.0 for metric in self.quality_metrics
+            }
+
+        return payload
+
+    def _build_review_decision(
+        self, reviewer: Any, raw_result: Any
+    ) -> ReviewDecision:
+        """Construct a :class:`ReviewDecision` from reviewer feedback."""
+
+        reviewer_id = self._reviewer_identifier(reviewer)
+        reviewer_name = getattr(reviewer, "name", reviewer_id)
+
+        if isinstance(raw_result, ReviewDecision):
+            metadata = (
+                OrderedDict(sorted(raw_result.metadata.items()))
+                if isinstance(raw_result.metadata, Mapping)
+                else OrderedDict()
+            )
+            decision_id = raw_result.decision_id or f"{self.review_id}:{reviewer_id}"
+            return ReviewDecision(
+                decision_id=str(decision_id),
+                reviewer=raw_result.reviewer or reviewer_name,
+                approved=raw_result.approved,
+                notes=raw_result.notes,
+                score=raw_result.score,
+                metadata=metadata,
+            )
+
+        payload = self._prepare_review_payload(raw_result)
+
+        decision_id = str(payload.get("decision_id") or f"{self.review_id}:{reviewer_id}")
+        approved_value = payload.get("approved")
+        approved: Optional[bool]
+        if isinstance(approved_value, bool) or approved_value is None:
+            approved = approved_value
+        else:
+            approved = None
+
+        notes = payload.get("feedback") or payload.get("notes")
+        if notes is not None:
+            notes = str(notes)
+
+        score_value = payload.get("score")
+        score: Optional[float] = None
+        if isinstance(score_value, (int, float)):
+            score = float(score_value)
+        else:
+            metrics = payload.get("metrics_results")
+            if isinstance(metrics, Mapping):
+                numeric_scores = [
+                    float(value)
+                    for value in metrics.values()
+                    if isinstance(value, (int, float))
+                ]
+                if numeric_scores:
+                    score = sum(numeric_scores) / len(numeric_scores)
+
+        metadata_items = [
+            (str(key), payload[key])
+            for key in payload.keys()
+            if key
+            not in {"decision_id", "approved", "feedback", "notes", "score"}
+        ]
+
+        metadata = OrderedDict(sorted(metadata_items, key=lambda item: item[0]))
+
+        return ReviewDecision(
+            decision_id=decision_id,
+            reviewer=str(reviewer_name),
+            approved=approved,
+            notes=notes,
+            score=score,
+            metadata=metadata,
+        )
+
+    def _coerce_consensus_outcome(
+        self, result: Any
+    ) -> Optional[ConsensusOutcome]:
+        """Convert arbitrary consensus payloads into a DTO."""
+
+        if not result:
+            return None
+        if isinstance(result, ConsensusOutcome):
+            return result
+        if isinstance(result, Mapping):
+            try:
+                return ConsensusOutcome.from_dict(result)
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.debug(
+                    "Failed to coerce consensus outcome", extra={"error": str(exc)}
+                )
+                return None
+        return None
+
+    def _build_peer_review_record(
+        self, decisions: Iterable[ReviewDecision]
+    ) -> PeerReviewRecord:
+        """Aggregate the collected decisions into a record DTO."""
+
+        decision_list = tuple(decisions)
+        reviewer_names = tuple(
+            decision.reviewer or "unknown" for decision in decision_list
+        )
+        consensus = self.consensus_outcome or self._coerce_consensus_outcome(
+            self.consensus_result
+        )
+        if consensus is not None:
+            self.consensus_result = consensus.to_dict()
+
+        summary_notes = "\n".join(
+            note for note in (decision.notes or "" for decision in decision_list) if note
+        )
+
+        aggregate_metadata = OrderedDict(
+            [
+                ("review_id", self.review_id),
+                ("status", self.status),
+                ("created_at", self.created_at.isoformat()),
+                ("updated_at", self.updated_at.isoformat()),
+                ("quality_score", self.quality_score),
+                ("review_count", len(decision_list)),
+            ]
+        )
+
+        if self.acceptance_criteria:
+            aggregate_metadata["acceptance_criteria"] = tuple(self.acceptance_criteria)
+        if self.quality_metrics:
+            aggregate_metadata["quality_metrics"] = OrderedDict(
+                sorted((str(k), v) for k, v in self.quality_metrics.items())
+            )
+
+        aggregate_metadata["decisions"] = [
+            serialize_collaboration_dto(decision) for decision in decision_list
+        ]
+
+        summary_decision = ReviewDecision(
+            decision_id=f"{self.review_id}:aggregate",
+            reviewer="peer_review",
+            approved=self.status == "approved",
+            notes=summary_notes or None,
+            score=self.quality_score if self.quality_score else None,
+            metadata=aggregate_metadata,
+        )
+
+        return PeerReviewRecord(
+            task=None,
+            decision=summary_decision,
+            consensus=consensus,
+            reviewers=reviewer_names,
+            notes=self.status,
+            metadata=aggregate_metadata,
+        )
+
+    def _serialize_for_memory(self) -> Optional[_PeerReviewRecordStorage]:
+        """Build the storage envelope for persistence."""
+
+        decisions = tuple(self.reviews.values())
+        record = self._latest_record or self._build_peer_review_record(decisions)
+        self._latest_record = record
+        return _PeerReviewRecordStorage(
+            review_id=self.review_id,
+            record=record,
+            decisions=decisions,
+            created_at=self.created_at,
+            updated_at=self.updated_at,
+            quality_score=self.quality_score,
+        )
+
     def assign_reviews(self) -> None:
         """Notify reviewers of the review request."""
         self.updated_at = datetime.now()
@@ -228,7 +486,7 @@ class PeerReview:
             if transaction_started:
                 self._rollback_transaction(transaction_id)
 
-    def collect_reviews(self) -> Dict[Any, Dict[str, Any]]:
+    def collect_reviews(self) -> Dict[str, ReviewDecision]:
         """Gather feedback from all reviewers."""
 
         self.updated_at = datetime.now()
@@ -378,27 +636,15 @@ class PeerReview:
                 else:
                     result = {"feedback": "ok"}
 
-                # Process criteria results if provided
-                if self.acceptance_criteria and "criteria_results" not in result:
-                    # Initialize default criteria results if not provided by reviewer
-                    result["criteria_results"] = {
-                        criterion: True for criterion in self.acceptance_criteria
-                    }
-
-                # Process quality metrics if provided
-                if self.quality_metrics and "metrics_results" not in result:
-                    # Initialize default metrics results if not provided by reviewer
-                    result["metrics_results"] = {
-                        metric: 1.0 for metric in self.quality_metrics
-                    }
-
-                self.reviews[reviewer] = result
+                decision = self._build_review_decision(reviewer, result)
+                reviewer_key = self._reviewer_identifier(reviewer)
+                self.reviews[reviewer_key] = decision
 
                 if self.team and hasattr(self.team, "add_solution"):
                     try:
                         sol = {
                             "agent": getattr(reviewer, "name", str(reviewer)),
-                            "content": result.get("feedback", ""),
+                            "content": decision.notes or "",
                         }
                         self.team.add_solution(task_context, sol)
                     except Exception as e:
@@ -409,18 +655,51 @@ class PeerReview:
 
             if self.team and hasattr(self.team, "build_consensus"):
                 try:
-                    self.consensus_result = self.team.build_consensus(task_context)
-                    if not self.consensus_result:
-                        log_consensus_failure(
-                            logger,
-                            ConsensusError("Consensus not reached"),
-                            extra={"review_id": self.review_id},
+                    consensus_raw = self.team.build_consensus(task_context)
+                    outcome = self._coerce_consensus_outcome(consensus_raw)
+                    if outcome is None:
+                        raise PeerReviewConsensusError(
+                            "Consensus not reached",
+                            outcome=None,
+                            review_id=self.review_id,
                         )
-                except ConsensusError as exc:
+                    self.consensus_outcome = outcome
+                    self.consensus_result = outcome.to_dict()
+                except PeerReviewConsensusError as exc:
                     log_consensus_failure(
-                        logger, exc, extra={"review_id": self.review_id}
+                        logger,
+                        exc,
+                        extra={
+                            "review_id": self.review_id,
+                            "consensus_id": getattr(exc.outcome, "consensus_id", None),
+                        },
                     )
-                    self.consensus_result = {}
+                    self.consensus_outcome = exc.outcome
+                    if exc.outcome is None:
+                        self.consensus_result = {}
+                    else:
+                        self.consensus_result = exc.outcome.to_dict()
+                except ConsensusError as exc:
+                    wrapped = PeerReviewConsensusError(
+                        str(exc),
+                        outcome=self._coerce_consensus_outcome(
+                            getattr(exc, "consensus_result", None)
+                        ),
+                        review_id=self.review_id,
+                    )
+                    log_consensus_failure(
+                        logger,
+                        wrapped,
+                        extra={
+                            "review_id": self.review_id,
+                            "consensus_id": getattr(wrapped.outcome, "consensus_id", None),
+                        },
+                    )
+                    self.consensus_outcome = wrapped.outcome
+                    if wrapped.outcome is None:
+                        self.consensus_result = {}
+                    else:
+                        self.consensus_result = wrapped.outcome.to_dict()
                 except Exception as e:
                     logger.warning(f"Error building consensus: {str(e)}")
                     self.consensus_result = {}
@@ -450,17 +729,18 @@ class PeerReview:
         total_score = 0.0
         total_metrics = 0
 
-        for review in self.reviews.values():
-            if "metrics_results" in review:
-                for metric, score in review["metrics_results"].items():
+        for decision in self.reviews.values():
+            metrics = decision.metadata.get("metrics_results")
+            if isinstance(metrics, Mapping):
+                for metric, score in metrics.items():
                     if isinstance(score, (int, float)):
-                        total_score += float(score)
+                        score_value = float(score)
+                        total_score += score_value
                         total_metrics += 1
 
-                        # Store individual metric results
                         if metric not in self.metrics_results:
                             self.metrics_results[metric] = []
-                        self.metrics_results[metric].append(score)
+                        self.metrics_results[metric].append(score_value)
 
         # Calculate average score
         self.quality_score = total_score / total_metrics if total_metrics > 0 else 0.0
@@ -474,57 +754,54 @@ class PeerReview:
 
         self.updated_at = datetime.now()
 
-        # Collect textual feedback
-        feedback = [r.get("feedback", "") for r in self.reviews.values()]
+        decisions = tuple(self.reviews.values())
+        record = self._build_peer_review_record(decisions)
+        self._latest_record = record
 
-        # Prepare result dictionary
-        result = {
-            "feedback": feedback,
+        feedback_notes = [decision.notes or "" for decision in decisions]
+
+        result: Dict[str, Any] = {
+            "feedback": feedback_notes,
             "quality_score": self.quality_score,
             "review_id": self.review_id,
             "status": self.status,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "peer_review_record": serialize_collaboration_dto(record),
+            "decisions": [serialize_collaboration_dto(d) for d in decisions],
         }
 
-        # Add criteria results if available
         if self.acceptance_criteria:
-            criteria_results = {}
-            for review in self.reviews.values():
-                if "criteria_results" in review:
-                    for criterion, passed in review["criteria_results"].items():
-                        if criterion not in criteria_results:
-                            criteria_results[criterion] = []
-                        criteria_results[criterion].append(passed)
+            criteria_votes: Dict[str, List[bool]] = {}
+            for decision in decisions:
+                criteria = decision.metadata.get("criteria_results")
+                if isinstance(criteria, Mapping):
+                    for criterion, passed in criteria.items():
+                        votes = criteria_votes.setdefault(str(criterion), [])
+                        votes.append(bool(passed))
 
-            # Determine final pass/fail for each criterion (majority vote)
-            final_criteria = {}
-            for criterion, results in criteria_results.items():
-                final_criteria[criterion] = (
-                    sum(1 for r in results if r) > len(results) / 2
-                )
+            final_criteria: Dict[str, bool] = {}
+            for criterion, votes in criteria_votes.items():
+                final_criteria[criterion] = sum(1 for vote in votes if vote) > len(votes) / 2
 
             result["criteria_results"] = final_criteria
-            result["all_criteria_passed"] = all(final_criteria.values())
+            result["all_criteria_passed"] = (
+                all(final_criteria.values()) if final_criteria else True
+            )
 
-        # Add metrics results if available
         if self.metrics_results:
             result["metrics_results"] = self.metrics_results
 
-        # Add dialectical analysis if available
-        dialectical_analysis = {}
-        for review in self.reviews.values():
-            # Check for direct keys
-            for key in ["thesis", "antithesis", "synthesis"]:
-                if key in review:
-                    dialectical_analysis[key] = review[key]
-
-            # Check for nested dialectical_analysis
-            if "dialectical_analysis" in review:
-                result["dialectical_analysis"] = review["dialectical_analysis"]
+        dialectical_analysis: Dict[str, Any] = {}
+        for decision in decisions:
+            metadata = decision.metadata
+            for key in ("thesis", "antithesis", "synthesis"):
+                if key in metadata:
+                    dialectical_analysis[key] = metadata[key]
+            if "dialectical_analysis" in metadata:
+                result["dialectical_analysis"] = metadata["dialectical_analysis"]
                 break
 
-        # If we found direct keys but not a nested structure
         if dialectical_analysis and "dialectical_analysis" not in result:
             result["dialectical_analysis"] = dialectical_analysis
 
