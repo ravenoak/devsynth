@@ -1,30 +1,44 @@
 Feature: WSDE Agent Model Refinement
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a developer using DevSynth
+  I want to use the refined WSDE agent model
+  So that I can benefit from non-hierarchical, context-driven agent collaboration
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given the DevSynth system is initialized
+    And a team of agents is configured
+    And the WSDE model is enabled
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: Peer-based collaboration
+    When I create a team with multiple agents
+    Then all agents should be treated as peers
+    And no agent should have permanent hierarchical authority
+    And agents should be able to collaborate without rigid role sequences
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
+  Scenario: Context-driven leadership
+    Given a team with multiple agents with different expertise
+    When a task requiring specific expertise is assigned
+    Then the agent with the most relevant expertise should become the temporary Primus
+    And the Primus role should change based on the task context
+    And the previous Primus should return to peer status
 
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
+  Scenario: Autonomous collaboration
+    Given a team with multiple agents
+    When a complex task is assigned
+    Then any agent should be able to propose solutions at any stage
+    And any agent should be able to provide critiques at any stage
+    And the system should consider input from all agents
 
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Consensus-based decision making
+    Given a team with multiple agents
+    When multiple solutions are proposed for a task
+    Then the system should facilitate consensus building
+    And the final decision should reflect input from all relevant agents
+    And no single agent should have dictatorial authority
+
+  Scenario: Dialectical review process
+    Given a team with a Critic agent
+    When a solution is proposed
+    Then the Critic agent should apply dialectical reasoning
+    And the Critic should identify thesis and antithesis
+    And the team should work toward a synthesis
+    And the final solution should reflect the dialectical process
