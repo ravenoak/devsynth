@@ -1,13 +1,8 @@
-import os
 import shutil
-import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-pytest.importorskip("kuzu")
-if os.environ.get("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "true").lower() == "false":
-    pytest.skip("Kuzu resource not available", allow_module_level=True)
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
@@ -19,10 +14,15 @@ def _patch_kuzu(monkeypatch):
     monkeypatch.setattr(KuzuStore, "__abstractmethods__", frozenset())
 
 
+@pytest.fixture
+def fallback_store(tmp_path):
+    return KuzuStore(str(tmp_path), use_embedded=False)
+
+
 @pytest.mark.medium
 def test_init_creates_directory(tmp_path):
     path = tmp_path / "store"
-    store = KuzuStore(str(path))
+    store = KuzuStore(str(path), use_embedded=False)
     try:
         assert path.exists()
         assert store.file_path == str(path)
@@ -31,8 +31,8 @@ def test_init_creates_directory(tmp_path):
 
 
 @pytest.mark.medium
-def test_store_and_retrieve_succeeds(tmp_path):
-    store = KuzuStore(str(tmp_path))
+def test_store_and_retrieve_succeeds(fallback_store):
+    store = fallback_store
     item = MemoryItem(id="a", content="hello", memory_type=MemoryType.WORKING)
     store.store(item)
     got = store.retrieve("a")
@@ -41,8 +41,8 @@ def test_store_and_retrieve_succeeds(tmp_path):
 
 
 @pytest.mark.medium
-def test_transaction_rollback_restores_snapshot(tmp_path):
-    store = KuzuStore(str(tmp_path))
+def test_transaction_rollback_restores_snapshot(fallback_store):
+    store = fallback_store
     original = MemoryItem(id="a", content="init", memory_type=MemoryType.WORKING)
     store.store(original)
 
@@ -59,8 +59,8 @@ def test_transaction_rollback_restores_snapshot(tmp_path):
 
 
 @pytest.mark.medium
-def test_concurrent_transactions(tmp_path):
-    store = KuzuStore(str(tmp_path))
+def test_concurrent_transactions(fallback_store):
+    store = fallback_store
 
     def write(idx: int) -> None:
         with store.transaction():

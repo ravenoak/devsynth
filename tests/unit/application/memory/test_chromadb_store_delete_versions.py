@@ -10,9 +10,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytest.importorskip("chromadb")
-pytest.importorskip("tiktoken")
-
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.domain.models.memory import MemoryItem
 

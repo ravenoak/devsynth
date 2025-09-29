@@ -10,6 +10,12 @@ Audience: developers running integration tests locally or in targeted CI jobs.
 - Run via the CLI wrapper to ensure consistent plugins and env defaults:
   poetry run devsynth run-tests --target integration-tests --speed=medium
 
+### Deterministic unit coverage for optional memory backends
+- The memory unit suite now provides in-repo stubs for ChromaDB, DuckDB, FAISS, and Kuzu.
+- Stubs live under `tests/unit/application/memory/conftest.py` and set resource flags automatically.
+- CRUD tests exercise the production adapters without needing the optional wheels installed.
+- Install the real extras only when validating live integrations or performance tuning.
+
 ## Extras to Resource Flags Mapping
 These extras are defined in pyproject [tool.poetry.extras] and map to test resource flags as follows:
 

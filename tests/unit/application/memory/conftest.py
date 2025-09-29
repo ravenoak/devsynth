@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import re
 import sys
 import uuid
+from collections import defaultdict
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Protocol, TYPE_CHECKING
+from types import ModuleType
+from typing import Any, Protocol, TYPE_CHECKING, Callable
+
+import numpy as np
 
 import pytest
 
@@ -38,6 +44,442 @@ else:
     MemoryQueryResults = _DTO_MODULE.MemoryQueryResults
     MemoryRecord = _DTO_MODULE.MemoryRecord
     build_memory_record = _DTO_MODULE.build_memory_record
+
+
+def _install_stub(module_name: str, factory: Callable[[], ModuleType]) -> None:
+    """Install a stub module if the optional dependency is missing."""
+
+    if module_name in sys.modules:
+        return
+    sys.modules[module_name] = factory()
+
+
+def _build_tiktoken_stub() -> ModuleType:
+    module = ModuleType("tiktoken")
+
+    class _Encoding:
+        def encode(self, text: str) -> list[int]:
+            # Keep deterministic length that roughly tracks content size.
+            length = max(1, len(text) // 4)
+            return list(range(length))
+
+    def get_encoding(name: str) -> _Encoding:  # pragma: no cover - exercised via store
+        return _Encoding()
+
+    module.get_encoding = get_encoding  # type: ignore[attr-defined]
+    return module
+
+
+def _build_chromadb_stub() -> ModuleType:
+    module = ModuleType("chromadb")
+
+    class _Collection:
+        def __init__(self, name: str) -> None:
+            self.name = name
+            self._items: dict[str, dict[str, Any]] = {}
+
+        def upsert(
+            self,
+            *,
+            ids: list[str],
+            documents: list[str],
+            metadatas: list[dict[str, Any]],
+            embeddings: list[list[float]] | None = None,
+        ) -> None:
+            for index, (doc, metadata) in enumerate(zip(documents, metadatas)):
+                item_id = ids[index]
+                payload = {
+                    "ids": item_id,
+                    "documents": doc,
+                    "metadatas": metadata,
+                }
+                if embeddings is not None:
+                    payload["embeddings"] = embeddings[index]
+                self._items[item_id] = payload
+
+        def get(
+            self,
+            ids: list[str] | None = None,
+            where: dict[str, Any] | None = None,
+        ) -> dict[str, list[Any]]:
+            records = list(self._items.values())
+            if ids is not None:
+                records = [self._items[i] for i in ids if i in self._items]
+            if where:
+                filtered: list[dict[str, Any]] = []
+                for record in records:
+                    meta = record.get("metadatas", {})
+                    if all(meta.get(key) == value for key, value in where.items()):
+                        filtered.append(record)
+                records = filtered
+            return {
+                "ids": [[record["ids"] for record in records]],
+                "documents": [[record["documents"] for record in records]],
+                "metadatas": [[record.get("metadatas", {}) for record in records]],
+            }
+
+        def delete(
+            self,
+            *,
+            ids: list[str] | None = None,
+            where: dict[str, Any] | None = None,
+        ) -> None:
+            if ids is not None:
+                for idx in ids:
+                    self._items.pop(idx, None)
+            elif where:
+                to_remove = [
+                    key
+                    for key, record in self._items.items()
+                    if all(record.get("metadatas", {}).get(k) == v for k, v in where.items())
+                ]
+                for key in to_remove:
+                    self._items.pop(key, None)
+
+        def query(
+            self,
+            *,
+            query_texts: list[str],
+            where: dict[str, Any] | None = None,
+            n_results: int = 5,
+            where_document: dict[str, Any] | None = None,
+        ) -> dict[str, list[list[Any]]]:
+            _ = where_document  # Unused but kept for signature compatibility.
+            results = self.get(where=where or {})
+            ids = results["ids"][0][:n_results]
+            documents = results["documents"][0][:n_results]
+            metadatas = results["metadatas"][0][:n_results]
+            return {
+                "ids": [ids for _ in query_texts],
+                "documents": [documents for _ in query_texts],
+                "metadatas": [metadatas for _ in query_texts],
+            }
+
+    class _Client:
+        def __init__(self) -> None:
+            self._collections: dict[str, _Collection] = {}
+
+        def get_collection(self, name: str) -> _Collection:
+            if name not in self._collections:
+                raise RuntimeError("collection not found")
+            return self._collections[name]
+
+        def create_collection(self, name: str) -> _Collection:
+            coll = _Collection(name)
+            self._collections[name] = coll
+            return coll
+
+    class PersistentClient(_Client):
+        def __init__(self, path: str | None = None) -> None:
+            super().__init__()
+            self.path = path
+
+    class EphemeralClient(_Client):
+        pass
+
+    class HttpClient(_Client):
+        def __init__(self, host: str | None = None, port: int | None = None) -> None:
+            super().__init__()
+            self.host = host
+            self.port = port
+
+    module.PersistentClient = PersistentClient  # type: ignore[attr-defined]
+    module.EphemeralClient = EphemeralClient  # type: ignore[attr-defined]
+    module.HttpClient = HttpClient  # type: ignore[attr-defined]
+    utils_module = ModuleType("chromadb.utils")
+    embedding_module = ModuleType("chromadb.utils.embedding_functions")
+
+    class _DefaultEmbeddingFunction:
+        def __call__(self, _: str) -> list[float]:
+            return [0.0] * 5
+
+    def _embedding_factory() -> _DefaultEmbeddingFunction:
+        return _DefaultEmbeddingFunction()
+
+    embedding_module.DefaultEmbeddingFunction = _embedding_factory  # type: ignore[attr-defined]
+    utils_module.embedding_functions = embedding_module  # type: ignore[attr-defined]
+    module.utils = utils_module  # type: ignore[attr-defined]
+    sys.modules.setdefault("chromadb.utils", utils_module)
+    sys.modules.setdefault("chromadb.utils.embedding_functions", embedding_module)
+    return module
+
+
+class _DuckDBCursor:
+    def __init__(self, results: list[tuple[Any, ...]]) -> None:
+        self._results = results
+
+    def fetchone(self) -> tuple[Any, ...] | None:
+        return self._results[0] if self._results else None
+
+    def fetchall(self) -> list[tuple[Any, ...]]:
+        return list(self._results)
+
+
+_DUCKDB_DATA: dict[str, dict[str, dict[str, Any]]] = defaultdict(
+    lambda: {"memory_items": {}, "memory_vectors": {}}
+)
+
+
+def _build_duckdb_stub() -> ModuleType:
+    module = ModuleType("duckdb")
+
+    class _Connection:
+        def __init__(self, path: str) -> None:
+            self._path = path
+            self._data = _DUCKDB_DATA[path]
+
+        def execute(self, sql: str, params: Sequence[Any] | None = None) -> _DuckDBCursor:
+            statement = " ".join(sql.strip().split())
+            params = list(params or [])
+            results: list[tuple[Any, ...]] = []
+
+            if statement.startswith("INSTALL vector"):
+                return _DuckDBCursor(results)
+            if statement.startswith("LOAD vector"):
+                return _DuckDBCursor(results)
+            if statement.startswith("CREATE TABLE"):
+                return _DuckDBCursor(results)
+            if statement.startswith("INSERT OR REPLACE INTO memory_items"):
+                item_id, content, memory_type, metadata_json, created_at = params
+                self._data["memory_items"][item_id] = {
+                    "id": item_id,
+                    "content": content,
+                    "memory_type": memory_type,
+                    "metadata": metadata_json,
+                    "created_at": created_at,
+                }
+                return _DuckDBCursor(results)
+            if statement.startswith("SELECT id, content, memory_type, metadata, created_at FROM memory_items WHERE id = ?"):
+                item_id = params[0]
+                item = self._data["memory_items"].get(item_id)
+                if item:
+                    results = [
+                        (
+                            item["id"],
+                            item["content"],
+                            item["memory_type"],
+                            item["metadata"],
+                            item["created_at"],
+                        )
+                    ]
+                return _DuckDBCursor(results)
+            if statement.startswith("SELECT id FROM memory_items WHERE id = ?"):
+                item_id = params[0]
+                if item_id in self._data["memory_items"]:
+                    results = [(item_id,)]
+                return _DuckDBCursor(results)
+            if statement.startswith("DELETE FROM memory_items WHERE id = ?"):
+                item_id = params[0]
+                self._data["memory_items"].pop(item_id, None)
+                return _DuckDBCursor(results)
+            if statement.startswith(
+                "SELECT id, content, memory_type, metadata, created_at FROM memory_items WHERE 1=1"
+            ):
+                records = list(self._data["memory_items"].values())
+                idx = 0
+                if "memory_type = ?" in statement:
+                    match_type = params[idx]
+                    idx += 1
+                    records = [r for r in records if r["memory_type"] == match_type]
+                if "content LIKE ?" in statement:
+                    needle = params[idx].strip("%")
+                    idx += 1
+                    records = [r for r in records if needle in (r["content"] or "")]
+                for metadata_match in re.finditer(r"json_extract\(metadata, '\$\.(?P<field>[^']+)'\) = \?", statement):
+                    field = metadata_match.group("field")
+                    raw = params[idx]
+                    idx += 1
+                    expected = json.loads(raw) if isinstance(raw, str) and raw.startswith("\"") else raw
+                    filtered: list[dict[str, Any]] = []
+                    for item in records:
+                        metadata = json.loads(item["metadata"]) if item["metadata"] else {}
+                        if metadata.get(field) == expected:
+                            filtered.append(item)
+                    records = filtered
+                results = [
+                    (
+                        item["id"],
+                        item["content"],
+                        item["memory_type"],
+                        item["metadata"],
+                        item["created_at"],
+                    )
+                    for item in records
+                ]
+                return _DuckDBCursor(results)
+            if statement.startswith("INSERT OR REPLACE INTO memory_vectors"):
+                vector_id, content, embedding, metadata_json, created_at = params
+                stored_embedding = embedding
+                if isinstance(embedding, list):
+                    stored_embedding = json.dumps(embedding)
+                self._data["memory_vectors"][vector_id] = {
+                    "id": vector_id,
+                    "content": content,
+                    "embedding": stored_embedding,
+                    "metadata": metadata_json,
+                    "created_at": created_at,
+                }
+                return _DuckDBCursor(results)
+            if statement.startswith(
+                "SELECT id, content, embedding, metadata, created_at FROM memory_vectors WHERE id = ?"
+            ):
+                vector_id = params[0]
+                vector = self._data["memory_vectors"].get(vector_id)
+                if vector:
+                    embedding = vector["embedding"]
+                    if isinstance(embedding, str):
+                        embedding = json.loads(embedding)
+                    results = [
+                        (
+                            vector["id"],
+                            vector["content"],
+                            embedding,
+                            vector["metadata"],
+                            vector["created_at"],
+                        )
+                    ]
+                return _DuckDBCursor(results)
+            if statement.startswith(
+                "SELECT id, content, embedding, metadata, created_at FROM memory_vectors"
+            ):
+                results = []
+                for vector in self._data["memory_vectors"].values():
+                    embedding = vector["embedding"]
+                    if isinstance(embedding, str):
+                        embedding = json.loads(embedding)
+                    results.append(
+                        (
+                            vector["id"],
+                            vector["content"],
+                            embedding,
+                            vector["metadata"],
+                            vector["created_at"],
+                        )
+                    )
+                return _DuckDBCursor(results)
+            if statement.startswith("DELETE FROM memory_vectors WHERE id = ?"):
+                vector_id = params[0]
+                self._data["memory_vectors"].pop(vector_id, None)
+                return _DuckDBCursor(results)
+
+            raise NotImplementedError(f"Unhandled DuckDB stub statement: {statement}")
+
+    def connect(path: str) -> _Connection:  # pragma: no cover - executed via store
+        return _Connection(path)
+
+    module.connect = connect  # type: ignore[attr-defined]
+    return module
+
+
+def _build_kuzu_stub() -> ModuleType:
+    module = ModuleType("kuzu")
+
+    class _Connection:
+        def __init__(self, db: "_Database") -> None:
+            self._db = db
+
+        def execute(self, sql: str) -> None:  # pragma: no cover - simple passthrough
+            return None
+
+    class _Database:
+        def __init__(self, path: str) -> None:
+            self.path = path
+
+    module.Connection = _Connection  # type: ignore[attr-defined]
+    module.Database = _Database  # type: ignore[attr-defined]
+    return module
+
+
+def _build_faiss_stub() -> ModuleType:
+    module = ModuleType("faiss")
+
+    class IndexFlatL2:
+        def __init__(self, dimension: int) -> None:
+            self.dimension = dimension
+            self._vectors: list[list[float]] = []
+
+        @property
+        def ntotal(self) -> int:
+            return len(self._vectors)
+
+        def add(self, vectors: np.ndarray) -> None:
+            for row in vectors:
+                self._vectors.append([float(x) for x in row])
+
+        def search(self, query: np.ndarray, top_k: int) -> tuple[np.ndarray, np.ndarray]:
+            if query.size == 0:
+                return np.zeros((1, 0), dtype=np.float32), np.zeros((1, 0), dtype=np.int64)
+            query_vec = query[0]
+            distances = [
+                float(np.linalg.norm(np.array(vec, dtype=np.float32) - query_vec))
+                for vec in self._vectors
+            ]
+            indices = list(range(len(self._vectors)))
+            ranked = sorted(zip(distances, indices), key=lambda pair: pair[0])[:top_k]
+            if not ranked:
+                return (
+                    np.zeros((1, 0), dtype=np.float32),
+                    np.zeros((1, 0), dtype=np.int64),
+                )
+            ranked_distances, ranked_indices = zip(*ranked)
+            return (
+                np.array([ranked_distances], dtype=np.float32),
+                np.array([ranked_indices], dtype=np.int64),
+            )
+
+    def write_index(index: IndexFlatL2, path: str) -> None:
+        payload = {"dimension": index.dimension, "vectors": index._vectors}
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh)
+
+    def read_index(path: str) -> IndexFlatL2:
+        with open(path, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+        idx = IndexFlatL2(payload["dimension"])
+        idx._vectors = [list(map(float, vec)) for vec in payload.get("vectors", [])]
+        return idx
+
+    def serialize_index(index: IndexFlatL2) -> bytes:
+        payload = json.dumps({"dimension": index.dimension, "vectors": index._vectors})
+        return payload.encode("utf-8")
+
+    def deserialize_index(buffer: bytes) -> IndexFlatL2:
+        payload = json.loads(buffer.decode("utf-8"))
+        idx = IndexFlatL2(payload["dimension"])
+        idx._vectors = [list(map(float, vec)) for vec in payload.get("vectors", [])]
+        return idx
+
+    module.IndexFlatL2 = IndexFlatL2  # type: ignore[attr-defined]
+    module.write_index = write_index  # type: ignore[attr-defined]
+    module.read_index = read_index  # type: ignore[attr-defined]
+    module.serialize_index = serialize_index  # type: ignore[attr-defined]
+    module.deserialize_index = deserialize_index  # type: ignore[attr-defined]
+    return module
+
+
+# Install deterministic stubs for optional dependencies so CRUD tests run in isolation.
+_install_stub("tiktoken", _build_tiktoken_stub)
+_install_stub("chromadb", _build_chromadb_stub)
+_install_stub("duckdb", _build_duckdb_stub)
+_install_stub("kuzu", _build_kuzu_stub)
+_install_stub("faiss", _build_faiss_stub)
+
+
+@pytest.fixture(autouse=True)
+def _set_memory_resource_flags(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ensure optional memory backends are treated as available in tests."""
+
+    for resource in ("CHROMADB", "KUZU", "DUCKDB", "FAISS"):
+        monkeypatch.setenv(f"DEVSYNTH_RESOURCE_{resource}_AVAILABLE", "1")
+
+
+@pytest.fixture(autouse=True)
+def _reset_duckdb_stub_state() -> None:
+    """Isolate DuckDB stub data between tests while preserving per-test flows."""
+
+    _DUCKDB_DATA.clear()
+    yield
+    _DUCKDB_DATA.clear()
 
 if TYPE_CHECKING:  # pragma: no cover - imported for typing only
     from devsynth.domain.interfaces.memory import ContextManager, MemoryStore, VectorStore
