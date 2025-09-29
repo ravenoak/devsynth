@@ -102,3 +102,32 @@ def test_generate_diverse_ideas_handles_agent_failures(wsde_team_factory, stub_a
     )
 
     assert result == []
+
+
+@pytest.mark.fast
+def test_generate_diverse_ideas_limits_count(wsde_module_team):
+    """ReqID: WSDE-DECISION-07 — truncates output to requested idea count."""
+
+    team, _ = wsde_module_team
+    task = {"id": "task-limit", "domain": "security"}
+
+    diverse = team.generate_diverse_ideas(task, max_ideas=2, diversity_threshold=0.2)
+
+    assert len(diverse) == 2
+    descriptions = {idea["description"] for idea in diverse}
+    assert "Add secure caching layer" in descriptions
+
+
+@pytest.mark.fast
+def test_generate_diverse_ideas_filters_duplicates_with_strict_threshold(wsde_module_team):
+    """ReqID: WSDE-DECISION-08 — removes near-identical ideas when threshold is strict."""
+
+    team, _ = wsde_module_team
+    task = {"id": "task-duplicates", "domain": "security"}
+
+    diverse = team.generate_diverse_ideas(task, max_ideas=5, diversity_threshold=0.9)
+
+    descriptions = {idea["description"] for idea in diverse}
+    assert "Add secure caching layer" in descriptions
+    assert "Introduce continuous auditing" in descriptions
+    assert len(descriptions) == len(diverse)

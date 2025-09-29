@@ -73,3 +73,65 @@ def test_knowledge_graph_insights_parses_payload():
     serialized = insights.to_dict()
     assert serialized["similar_solutions"][0]["approach"] == "Test Driven"
     assert serialized["best_practices"][0]["keywords"] == ["logging", "structured"]
+
+
+@pytest.mark.fast
+def test_integrate_knowledge_builds_summary(wsde_module_team):
+    """ReqID: WSDE-KNOW-04 — aggregates learnings and patterns into knowledge snapshot."""
+
+    team, _ = wsde_module_team
+    learnings = [
+        {"summary": "Encrypt data stores", "phase": "build"},
+        {"summary": "Document audit workflows", "phase": "deploy"},
+    ]
+    patterns = [
+        {
+            "name": "Encryption gap",
+            "occurrences": 2,
+            "evidence": ["Lack of envelope encryption"],
+            "source_phases": ["build"],
+        }
+    ]
+
+    knowledge = team.integrate_knowledge(learnings, patterns)
+
+    assert knowledge["summary"].startswith("Top pattern: Encryption gap")
+    assert len(knowledge["learnings"]) == 2
+    assert len(knowledge["patterns"]) == 1
+
+
+@pytest.mark.fast
+def test_generate_improvement_suggestions_deduplicates_entries(wsde_module_team):
+    """ReqID: WSDE-KNOW-05 — consolidates overlapping learnings and QA issues."""
+
+    team, _ = wsde_module_team
+    learnings = [
+        {"summary": "Encrypt data stores", "phase": "build"},
+        {"summary": "Encrypt data stores", "phase": "build"},
+    ]
+    patterns = [
+        {
+            "name": "Audit trail gap",
+            "occurrences": 1,
+            "evidence": ["No retention policy"],
+            "source_phases": ["deploy"],
+        }
+    ]
+    quality_checks = {
+        "issues": [
+            {"description": "Missing encryption test", "category": "test"},
+            "Missing encryption test",
+        ]
+    }
+
+    suggestions = team.generate_improvement_suggestions(
+        learnings,
+        patterns,
+        quality_checks,
+        categorize_by_phase=True,
+    )
+
+    suggestions_by_text = {item["suggestion"]: item for item in suggestions}
+    assert "Revisit learning: Encrypt data stores" in suggestions_by_text
+    assert suggestions_by_text["Revisit learning: Encrypt data stores"]["category"] == "build"
+    assert "Resolve QA issue: Missing encryption test" in suggestions_by_text

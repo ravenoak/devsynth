@@ -77,3 +77,53 @@ def test_apply_enhanced_dialectical_reasoning_requires_solution(wsde_team_factor
     result = team.apply_enhanced_dialectical_reasoning({}, critic_agent=None)
 
     assert result == {"error": "No solution found in task for dialectical reasoning"}
+
+
+@pytest.mark.fast
+def test_apply_enhanced_dialectical_reasoning_multi_combines_solutions(wsde_module_team):
+    """ReqID: WSDE-ENHANCED-07 — synthesizes multiple solutions into one narrative."""
+
+    team, agents = wsde_module_team
+    task = {
+        "id": "multi-1",
+        "solutions": [
+            {
+                "id": "sol-1",
+                "content": "Cache encrypted responses",
+                "code": "def cache():\n    return 'encrypted'\n",
+            },
+            {
+                "id": "sol-2",
+                "content": "Document audit workflow",
+                "code": "def audit():\n    return 'logged'\n",
+            },
+        ],
+    }
+
+    synthesis = team.apply_enhanced_dialectical_reasoning_multi(
+        task,
+        critic_agent=agents["critic"],
+    )
+
+    comparative = synthesis["comparative"]
+    assert comparative["best_solution"] == 1
+    assert comparative["overall_scores"][1]["requirements_score"] >= 0
+    assert "Cache encrypted responses" in synthesis["content"]
+    assert "Document audit workflow" in synthesis["content"]
+    assert "audit" in synthesis["code"]
+
+
+@pytest.mark.fast
+def test_apply_enhanced_dialectical_reasoning_multi_requires_solutions(wsde_module_team):
+    """ReqID: WSDE-ENHANCED-08 — reports an error when no candidate solutions exist."""
+
+    team, agents = wsde_module_team
+
+    result = team.apply_enhanced_dialectical_reasoning_multi(
+        {"id": "multi-empty", "solutions": []},
+        critic_agent=agents["critic"],
+    )
+
+    assert result == {
+        "error": "No solutions found in task for multi-solution dialectical reasoning"
+    }
