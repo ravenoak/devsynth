@@ -26,6 +26,13 @@ from .circuit_breaker import (
     circuit_breaker_registry,
     with_circuit_breaker,
 )
+from .dto import (
+    MemoryMetadata,
+    MemoryQueryResults,
+    MemoryRecord,
+    build_memory_record,
+    build_query_results,
+)
 from .error_logger import memory_error_logger
 from .query_router import QueryRouter
 from .retry import retry_memory_operation, retry_with_backoff
@@ -147,7 +154,7 @@ class MemoryManager:
         content: Any,
         memory_type: MemoryType,
         edrr_phase: str,
-        metadata: Dict[str, Any] = None,
+        metadata: MemoryMetadata | None = None,
     ) -> str:
         """
         Store a memory item with an EDRR phase.
@@ -190,7 +197,7 @@ class MemoryManager:
         self,
         item_type: MemoryType,
         edrr_phase: str,
-        metadata: Dict[str, Any] | None = None,
+        metadata: MemoryMetadata | None = None,
     ) -> Any:
         """Retrieve an item stored with a specific EDRR phase.
 
@@ -311,63 +318,44 @@ class MemoryManager:
 
     def similarity_search(
         self, query_embedding: List[float], top_k: int = 5
-    ) -> List[Union[MemoryItem, MemoryVector]]:
-        """
-        Perform a similarity search with a query embedding.
+    ) -> List[MemoryRecord]:
+        """Perform a similarity search and normalize results into DTOs."""
 
-        Args:
-            query_embedding: The query embedding
-            top_k: The number of results to return
-
-        Returns:
-            A list of similar memory items or vectors
-        """
         if "vector" in self.adapters:
-            # Use the vector adapter for similarity search
             vector_adapter = self.adapters["vector"]
-            return vector_adapter.similarity_search(query_embedding, top_k)
-        else:
-            logger.warning("Vector adapter not available for similarity search")
-            return []
+            results = vector_adapter.similarity_search(query_embedding, top_k)
+            return [
+                build_memory_record(candidate, source="vector") for candidate in results
+            ]
 
-    def query_structured_data(self, query: Dict[str, Any]) -> List[MemoryItem]:
-        """
-        Query structured data with a query dictionary.
+        logger.warning("Vector adapter not available for similarity search")
+        return []
 
-        Args:
-            query: The query dictionary
+    def query_structured_data(self, query: Dict[str, Any]) -> MemoryQueryResults:
+        """Query structured data and return a :class:`MemoryQueryResults` DTO."""
 
-        Returns:
-            A list of matching memory items
-        """
         if "tinydb" in self.adapters:
-            # Use the TinyDB adapter for structured data queries
             tinydb_adapter = self.adapters["tinydb"]
-            return tinydb_adapter.query_structured_data(query)
-        else:
-            logger.warning("TinyDB adapter not available for querying structured data")
-            return []
+            raw = tinydb_adapter.query_structured_data(query)
+            return build_query_results("tinydb", raw)
 
-    def query_by_edrr_phase(self, edrr_phase: str) -> List[MemoryItem]:
-        """
-        Query memory items by EDRR phase.
+        logger.warning("TinyDB adapter not available for querying structured data")
+        return build_query_results("tinydb", [])
 
-        Args:
-            edrr_phase: The EDRR phase to query for
+    def query_by_edrr_phase(self, edrr_phase: str) -> List[MemoryRecord]:
+        """Query memory items by EDRR phase and normalize the results."""
 
-        Returns:
-            A list of memory items with the specified EDRR phase
-        """
-        results = []
+        records: List[MemoryRecord] = []
 
-        # Query each adapter for items with the specified EDRR phase
         for adapter_name, adapter in self.adapters.items():
-            if hasattr(adapter, "search"):
-                # Use the search method if available
-                items = adapter.search({"edrr_phase": edrr_phase})
-                results.extend(items)
+            if not hasattr(adapter, "search"):
+                continue
+            items = adapter.search({"edrr_phase": edrr_phase})
+            records.extend(
+                build_memory_record(item, source=adapter_name) for item in items
+            )
 
-        return results
+        return records
 
     def query_evolution_across_edrr_phases(self, item_id: str) -> List[MemoryItem]:
         """
@@ -581,26 +569,10 @@ class MemoryManager:
         self,
         query: str,
         memory_type: Any = None,
-        metadata_filter: Dict[str, Any] = None,
+        metadata_filter: MemoryMetadata | None = None,
         limit: int = 10,
-    ) -> List[MemoryVector]:
-        """
-        Search memory items using the configured vector store.
-
-        This implementation performs a lightweight semantic search by creating a
-        simple embedding for ``query`` and delegating the search to the
-        configured :class:`VectorStore`.  Results can optionally be filtered by
-        ``memory_type`` and additional metadata.
-
-        Args:
-            query: The query string
-            memory_type: The type of memory to filter by (``MemoryType`` or str)
-            metadata_filter: Optional metadata key/value pairs to match
-            limit: Maximum number of results to return
-
-        Returns:
-            A list of matching memory vectors ordered by similarity
-        """
+    ) -> List[MemoryRecord]:
+        """Search memory items and return normalized :class:`MemoryRecord` values."""
         memory_type_str = memory_type
         if hasattr(memory_type, "value"):
             memory_type_str = memory_type.value
@@ -612,73 +584,55 @@ class MemoryManager:
         )
 
         if "vector" not in self.adapters:
-            # Fallback: perform a lightweight keyword search across available stores
             logger.info("Vector adapter not available; using keyword fallback search")
-            aggregated: List[MemoryVector] = []
+            aggregated: List[MemoryRecord] = []
 
-            # Helper to add a candidate if it matches the query string
-            def maybe_add(item: Any) -> None:
+            def maybe_add(item: Any, store_name: str) -> None:
                 try:
-                    content_text = (
-                        "" if item is None else str(getattr(item, "content", item))
-                    )
+                    content_text = str(getattr(item, "content", item) or "")
                 except Exception:
                     content_text = ""
-                if not query:
-                    match = True
-                else:
-                    match = query.lower() in content_text.lower()
-                if not match:
+                if query and query.lower() not in content_text.lower():
                     return
-                # Build a MemoryVector with an empty embedding to avoid requiring embeddings
-                meta = getattr(item, "metadata", {}) or {}
-                mv = MemoryVector(
-                    id=getattr(item, "id", ""),
-                    content=getattr(item, "content", item),
-                    embedding=[],
-                    metadata=meta,
-                )
-                aggregated.append(mv)
+                aggregated.append(build_memory_record(item, source=store_name))
 
-            # Prefer adapters that can return all items; fall back to search if available
-            for adapter in self.adapters.values():
+            for store_name, adapter in self.adapters.items():
                 if hasattr(adapter, "get_all"):
                     try:
                         for it in adapter.get_all():
-                            maybe_add(it)
+                            maybe_add(it, store_name)
                     except Exception:
                         continue
                 elif hasattr(adapter, "search"):
                     try:
-                        # Broad search with empty filter to retrieve many items, then filter
                         for it in adapter.search({}):
-                            maybe_add(it)
+                            maybe_add(it, store_name)
                     except Exception:
                         continue
 
-            # Apply post-filters (memory_type and metadata_filter) and limit
-            filtered: List[MemoryVector] = []
-            for vector in aggregated:
+            filtered: List[MemoryRecord] = []
+            for record in aggregated:
+                metadata = record.item.metadata or {}
                 if memory_type is not None:
                     expected = (
                         memory_type.value
                         if hasattr(memory_type, "value")
                         else str(memory_type)
                     )
-                    actual = vector.metadata.get("memory_type")
+                    actual = metadata.get("memory_type")
                     if hasattr(actual, "value"):
                         actual = actual.value
                     if actual != expected:
                         continue
                 if metadata_filter:
                     ok = True
-                    for k, v in (metadata_filter or {}).items():
-                        if vector.metadata.get(k) != v:
+                    for k, v in metadata_filter.items():
+                        if metadata.get(k) != v:
                             ok = False
                             break
                     if not ok:
                         continue
-                filtered.append(vector)
+                filtered.append(record)
                 if len(filtered) >= limit:
                     break
             return filtered
@@ -689,15 +643,17 @@ class MemoryManager:
 
         results = vector_adapter.similarity_search(query_embedding, top_k=limit)
 
-        filtered: List[MemoryVector] = []
-        for vector in results:
+        filtered: List[MemoryRecord] = []
+        for candidate in results:
+            record = build_memory_record(candidate, source="vector")
+            metadata = record.item.metadata or {}
             if memory_type is not None:
                 expected = (
                     memory_type.value
                     if hasattr(memory_type, "value")
                     else str(memory_type)
                 )
-                actual = vector.metadata.get("memory_type")
+                actual = metadata.get("memory_type")
                 if hasattr(actual, "value"):
                     actual = actual.value
                 if actual != expected:
@@ -706,13 +662,13 @@ class MemoryManager:
             if metadata_filter:
                 match = True
                 for key, value in metadata_filter.items():
-                    if vector.metadata.get(key) != value:
+                    if metadata.get(key) != value:
                         match = False
                         break
                 if not match:
                     continue
 
-            filtered.append(vector)
+            filtered.append(record)
             if len(filtered) >= limit:
                 break
 
@@ -731,19 +687,9 @@ class MemoryManager:
         """
         return self.store_item(memory_item)
 
-    def query(self, query_string: str, **kwargs) -> List[Dict[str, Any]]:
-        """
-        Query memory items using a query string.
+    def query(self, query_string: str, **kwargs) -> List[MemoryRecord]:
+        """Delegate to :meth:`search_memory` and return normalized records."""
 
-        This is a simplified implementation that delegates to search_memory.
-
-        Args:
-            query_string: The query string
-            **kwargs: Additional keyword arguments for filtering
-
-        Returns:
-            A list of memory items matching the query
-        """
         logger.info(f"Querying memory with: {query_string}")
         return self.search_memory(query_string, **kwargs)
 

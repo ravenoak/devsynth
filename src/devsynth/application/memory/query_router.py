@@ -5,113 +5,97 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from ...logging_setup import DevSynthLogger
+from .dto import (
+    GroupedMemoryResults,
+    MemoryQueryResults,
+    MemoryRecord,
+    build_query_results,
+    deduplicate_records,
+)
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
     from .memory_manager import MemoryManager
 
 logger = DevSynthLogger(__name__)
 
 
 class QueryRouter:
-    """Route queries to the appropriate memory stores."""
+    """Route queries to the appropriate memory stores using DTO responses."""
 
-    def __init__(self, memory_manager: MemoryManager) -> None:
+    def __init__(self, memory_manager: "MemoryManager") -> None:
         self.memory_manager = memory_manager
 
-    def direct_query(self, query: str, store: str) -> List[Any]:
-        """Query a single store directly.
+    def direct_query(self, query: str, store: str) -> MemoryQueryResults:
+        """Query a single store and return normalized results."""
 
-        The returned items include a ``source_store`` field in their metadata so
-        that callers can trace where each result originated.
-        """
         store = store.lower()
         adapter = self.memory_manager.adapters.get(store)
         if not adapter:
             logger.warning("Adapter %s not found", store)
-            return []
+            return build_query_results(store, [])
 
         if store == "vector":
-            results = self.memory_manager.search_memory(query)
-            for item in results:
-                item.metadata.setdefault("source_store", store)
-            return results
+            records = self.memory_manager.search_memory(query)
+            return build_query_results(store, records)
 
         if store == "graph" and not hasattr(adapter, "search"):
-            # Use specialized graph query if available
             results = self.memory_manager.query_related_items(query)
-            for item in results:
-                item.metadata.setdefault("source_store", store)
-            return results
+            return build_query_results(store, results)
 
         if hasattr(adapter, "search"):
-            if isinstance(query, str):
-                results = adapter.search({"content": query})
-            else:
-                results = adapter.search(query)
-            for item in results:
-                if hasattr(item, "metadata"):
-                    item.metadata.setdefault("source_store", store)
-                elif isinstance(item, dict):
-                    item["source_store"] = store
-            return results
+            payload = (
+                adapter.search({"content": query})
+                if isinstance(query, str)
+                else adapter.search(query)
+            )
+            return build_query_results(store, payload)
 
         logger.warning("Adapter %s does not support direct queries", store)
-        return []
+        return build_query_results(store, [])
 
     def cross_store_query(
         self, query: str, stores: Optional[List[str]] | None = None
-    ) -> Dict[str, List[Any]]:
-        """Query configured stores and return grouped results.
+    ) -> GroupedMemoryResults:
+        """Query configured stores and return grouped DTO results."""
 
-        Args:
-            query: The search query.
-            stores: Optional list of store names to restrict the query. If not
-                provided, all configured stores are queried.
-        """
-        grouped = self.memory_manager.sync_manager.cross_store_query(query, stores)
-        for store, items in grouped.items():
-            for item in items:
-                if hasattr(item, "metadata"):
-                    item.metadata.setdefault("source_store", store)
-                elif isinstance(item, dict):
-                    item["source_store"] = store
-        return grouped
+        raw_grouped = self.memory_manager.sync_manager.cross_store_query(query, stores)
+        by_store = {
+            name: build_query_results(name, payload)
+            for name, payload in raw_grouped.items()
+        }
+        return {"by_store": by_store, "query": query}
 
     def cascading_query(
         self, query: str, order: Optional[List[str]] = None
-    ) -> List[Any]:
-        """Query stores in sequence and aggregate results."""
+    ) -> List[MemoryRecord]:
+        """Query stores sequentially and concatenate unique records."""
+
         order = order or ["document", "tinydb", "vector", "graph"]
-        results: List[Any] = []
+        collected: List[MemoryRecord] = []
         for name in order:
-            if name in self.memory_manager.adapters:
-                results.extend(self.direct_query(query, name))
-        return results
+            if name not in self.memory_manager.adapters:
+                continue
+            results = self.direct_query(query, name)
+            collected.extend(results["records"])
+        return deduplicate_records(collected)
 
-    def federated_query(self, query: str) -> List[Any]:
-        """Perform a federated query across all stores.
+    def federated_query(self, query: str) -> List[MemoryRecord]:
+        """Aggregate results from all stores and rank by cosine similarity."""
 
-        This method aggregates results from all stores, removes duplicates by
-        ID, and ranks them by simple cosine similarity against the query
-        embedding.
-        """
         grouped = self.cross_store_query(query)
-        aggregated: List[Any] = []
-        seen: set[str] = set()
-        for items in grouped.values():
-            for item in items:
-                item_id = getattr(item, "id", id(item))
-                if item_id not in seen:
-                    seen.add(item_id)
-                    aggregated.append(item)
+        aggregated: List[MemoryRecord] = []
+        for payload in grouped["by_store"].values():
+            aggregated.extend(payload["records"])
 
+        unique_records = deduplicate_records(aggregated)
         query_emb = self.memory_manager._embed_text(query)
 
-        def _embed(obj: Any) -> List[float]:
-            if hasattr(obj, "embedding"):
-                return obj.embedding
-            content = getattr(obj, "content", "")
-            return self.memory_manager._embed_text(str(content))
+        def _embedding(record: MemoryRecord) -> List[float]:
+            metadata = record.metadata or {}
+            candidate = metadata.get("embedding")
+            if isinstance(candidate, list):
+                return [float(x) for x in candidate]
+            return self.memory_manager._embed_text(str(record.content))
 
         def _similarity(a: List[float], b: List[float]) -> float:
             import math
@@ -123,16 +107,18 @@ class QueryRouter:
                 return 0.0
             return dot / (norm_a * norm_b)
 
-        aggregated.sort(
-            key=lambda item: _similarity(query_emb, _embed(item)), reverse=True
+        unique_records.sort(
+            key=lambda record: _similarity(query_emb, _embedding(record)),
+            reverse=True,
         )
 
-        return aggregated
+        return unique_records
 
     def context_aware_query(
         self, query: str, context: Dict[str, Any], store: Optional[str] = None
-    ) -> Any:
-        """Enhance the query with context information."""
+    ) -> MemoryQueryResults | GroupedMemoryResults:
+        """Enhance the query with context information before routing."""
+
         context_str = " ".join(f"{k}:{v}" for k, v in context.items())
         enhanced_query = f"{query} {context_str}".strip()
         if store:
@@ -146,8 +132,9 @@ class QueryRouter:
         strategy: str = "direct",
         context: Optional[Dict[str, Any]] = None,
         stores: Optional[List[str]] | None = None,
-    ) -> Any:
+    ) -> MemoryQueryResults | GroupedMemoryResults | List[MemoryRecord]:
         """Route a query according to the specified strategy."""
+
         if strategy == "direct" and store:
             return self.direct_query(query, store)
         if strategy == "cross":
