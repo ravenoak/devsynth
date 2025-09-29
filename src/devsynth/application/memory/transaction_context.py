@@ -1,19 +1,76 @@
-"""
-Transaction Context Module
+"""Transaction context for cross-store memory operations.
 
-This module provides a transaction context for memory operations across multiple adapters.
-It implements a two-phase commit protocol for cross-store transactions.
+The transaction workflow captures adapter state using
+``MemoryRecord``-backed DTOs so metadata remains normalized when snapshots are
+created, committed, or restored.  This ensures recovery logs provide enough
+detail to audit synchronization decisions and to repopulate caches after
+rollbacks.
 """
+
+from __future__ import annotations
 
 import uuid
-from contextlib import contextmanager
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, Iterable, List
+from typing import Literal, Protocol, Sequence, Tuple, TypedDict, runtime_checkable
 
 from ...domain.models.memory import MemoryItem
 from ...exceptions import MemoryTransactionError
 from ...logging_setup import DevSynthLogger
+from .dto import MemoryRecord, build_memory_record
 
 logger = DevSynthLogger(__name__)
+
+
+@runtime_checkable
+class SupportsTransactionalStore(Protocol):
+    """Protocol for adapters that expose transaction primitives."""
+
+    def begin_transaction(self, transaction_id: str) -> Any:  # pragma: no cover - protocol
+        ...
+
+    def commit_transaction(self, transaction_id: str) -> None:  # pragma: no cover - protocol
+        ...
+
+    def rollback_transaction(self, transaction_id: str) -> None:  # pragma: no cover - protocol
+        ...
+
+
+@runtime_checkable
+class SupportsFlushUpdates(Protocol):
+    def flush_updates(self) -> None:  # pragma: no cover - protocol
+        ...
+
+
+@runtime_checkable
+class SupportsFlushPendingWrites(Protocol):
+    def flush_pending_writes(self) -> None:  # pragma: no cover - protocol
+        ...
+
+
+@runtime_checkable
+class SupportsFlushQueue(Protocol):
+    def flush_queue(self) -> None:  # pragma: no cover - protocol
+        ...
+
+
+@runtime_checkable
+class SupportsGenericFlush(Protocol):
+    def flush(self) -> None:  # pragma: no cover - protocol
+        ...
+
+
+class AdapterSnapshot(TypedDict):
+    store: str
+    records: Dict[str, MemoryRecord]
+
+
+OperationPhase = Literal["snapshot", "commit", "rollback"]
+
+
+class OperationLogEntry(TypedDict):
+    store: str
+    phase: OperationPhase
+    records: List[MemoryRecord]
 
 
 class TransactionContext:
@@ -21,21 +78,23 @@ class TransactionContext:
     Transaction context for memory operations across multiple adapters.
 
     This class implements a two-phase commit protocol for cross-store transactions.
-    It handles adapters with and without native transaction support.
+    It handles adapters with and without native transaction support and records
+    each phase using :class:`MemoryRecord` entries so recovery tooling can
+    inspect the normalized operation log.
     """
 
-    def __init__(self, adapters: List[Any]):
+    def __init__(self, adapters: Sequence[Any]):
         """
         Initialize the transaction context.
 
         Args:
             adapters: List of memory adapters to include in the transaction
         """
-        self.adapters = adapters
+        self.adapters = list(adapters)
         self.transaction_id = str(uuid.uuid4())
-        self.snapshots = {}
-        self.operations = []
-        self.prepared_adapters = []
+        self.snapshots: Dict[int, AdapterSnapshot] = {}
+        self.operations: List[OperationLogEntry] = []
+        self.prepared_adapters: List[Any] = []
 
     def __enter__(self):
         """
@@ -56,27 +115,27 @@ class TransactionContext:
 
         try:
             for adapter in self.adapters:
-                if hasattr(adapter, "begin_transaction"):
-                    adapter.begin_transaction(self.transaction_id)
-                else:
-                    # For adapters without native transaction support,
-                    # take a snapshot of the current state
-                    if hasattr(adapter, "get_all"):
-                        items = adapter.get_all()
-                        self.snapshots[id(adapter)] = {
-                            item.id: self._copy_item(item) for item in items
-                        }
-                    else:
-                        logger.warning(
-                            f"Adapter {adapter.__class__.__name__} does not support get_all, "
-                            f"cannot create snapshot"
-                        )
-                        self.snapshots[id(adapter)] = {}
+                label = self._adapter_label(adapter)
+                if isinstance(adapter, SupportsTransactionalStore):
+                    begin = getattr(adapter, "begin_transaction", None)
+                    try:
+                        if callable(begin):
+                            begin(self.transaction_id)
+                    except TypeError:
+                        if callable(begin):
+                            begin()
+                    self._record_operation(label, "snapshot", [])
+                    continue
 
-                    logger.debug(
-                        f"Created snapshot for {adapter.__class__.__name__} with "
-                        f"{len(self.snapshots[id(adapter)])} items"
-                    )
+                snapshot = self._snapshot_adapter_state(adapter, label)
+                self.snapshots[id(adapter)] = {"store": label, "records": snapshot}
+                self._record_operation(label, "snapshot", snapshot.values())
+
+                logger.debug(
+                    "Created snapshot for %s with %d items",
+                    label,
+                    len(snapshot),
+                )
         except Exception as e:
             # If begin_transaction fails, rollback any adapters that were already started
             self._rollback()
@@ -132,8 +191,12 @@ class TransactionContext:
         try:
             for adapter in self.adapters:
                 self._flush_adapter(adapter)
-                if hasattr(adapter, "prepare_commit"):
-                    adapter.prepare_commit(self.transaction_id)
+                prepare = getattr(adapter, "prepare_commit", None)
+                if callable(prepare):
+                    try:
+                        prepare(self.transaction_id)
+                    except TypeError:
+                        prepare()
                     self.prepared_adapters.append(adapter)
         except Exception as e:
             # If prepare fails, rollback all adapters
@@ -143,11 +206,21 @@ class TransactionContext:
 
         # Phase 2: Flush and commit
         commit_errors = []
+        committed_snapshots: List[Tuple[str, List[MemoryRecord]]] = []
         for adapter in self.adapters:
+            label = self._adapter_label(adapter)
             try:
                 self._flush_adapter(adapter)
-                if hasattr(adapter, "commit_transaction"):
-                    adapter.commit_transaction(self.transaction_id)
+                commit = getattr(adapter, "commit_transaction", None)
+                if callable(commit):
+                    try:
+                        commit(self.transaction_id)
+                    except TypeError:
+                        commit()
+                snapshot_records = list(
+                    self._snapshot_adapter_state(adapter, label).values()
+                )
+                committed_snapshots.append((label, snapshot_records))
             except Exception as e:
                 error_msg = (
                     f"Failed to commit transaction {self.transaction_id} on "
@@ -155,6 +228,9 @@ class TransactionContext:
                 )
                 logger.error(error_msg)
                 commit_errors.append(error_msg)
+
+        for label, records in committed_snapshots:
+            self._record_operation(label, "commit", records)
 
         if commit_errors:
             # If any commit fails, log the errors but don't rollback
@@ -171,6 +247,27 @@ class TransactionContext:
     def _flush_adapter(self, adapter: Any) -> None:
         """Flush pending writes for an adapter if supported."""
 
+        label = self._adapter_label(adapter)
+        if isinstance(adapter, SupportsFlushUpdates):
+            logger.debug("Flushing pending writes for %s using flush_updates", label)
+            adapter.flush_updates()
+            return
+        if isinstance(adapter, SupportsFlushPendingWrites):
+            logger.debug(
+                "Flushing pending writes for %s using flush_pending_writes", label
+            )
+            adapter.flush_pending_writes()
+            return
+        if isinstance(adapter, SupportsFlushQueue):
+            logger.debug("Flushing pending writes for %s using flush_queue", label)
+            adapter.flush_queue()
+            return
+        if isinstance(adapter, SupportsGenericFlush):
+            logger.debug("Flushing pending writes for %s using flush", label)
+            adapter.flush()
+            return
+
+        # Fallback to duck typing for adapters not covered by the protocols.
         for method_name in (
             "flush_updates",
             "flush_pending_writes",
@@ -180,7 +277,7 @@ class TransactionContext:
             method = getattr(adapter, method_name, None)
             if callable(method):
                 logger.debug(
-                    f"Flushing pending writes for {adapter.__class__.__name__} using {method_name}"
+                    "Flushing pending writes for %s using %s", label, method_name
                 )
                 method()
                 break
@@ -198,9 +295,16 @@ class TransactionContext:
 
         # Rollback adapters with native transaction support
         for adapter in self.adapters:
+            label = self._adapter_label(adapter)
             try:
-                if hasattr(adapter, "rollback_transaction"):
-                    adapter.rollback_transaction(self.transaction_id)
+                rollback = getattr(adapter, "rollback_transaction", None)
+                if callable(rollback):
+                    try:
+                        rollback(self.transaction_id)
+                    except TypeError:
+                        rollback()
+                    restored = self._snapshot_adapter_state(adapter, label)
+                    self._record_operation(label, "rollback", restored.values())
             except Exception as e:
                 error_msg = f"Failed to rollback transaction {self.transaction_id} on {adapter.__class__.__name__}: {e}"
                 logger.error(error_msg)
@@ -208,24 +312,28 @@ class TransactionContext:
 
         # Restore snapshots for adapters without native transaction support
         for adapter in self.adapters:
-            if not hasattr(adapter, "rollback_transaction"):
-                adapter_id = id(adapter)
-                if adapter_id in self.snapshots:
-                    try:
-                        # Delete all items
-                        if hasattr(adapter, "get_all") and hasattr(adapter, "delete"):
-                            current_items = adapter.get_all()
-                            for item in current_items:
-                                adapter.delete(item.id)
+            if hasattr(adapter, "rollback_transaction"):
+                continue
+            adapter_id = id(adapter)
+            snapshot = self.snapshots.get(adapter_id)
+            if not snapshot:
+                continue
+            label = snapshot["store"]
+            try:
+                # Delete all items and restore from snapshot using normalized DTOs.
+                if hasattr(adapter, "delete"):
+                    current_state = self._snapshot_adapter_state(adapter, label)
+                    for record in current_state.values():
+                        adapter.delete(record.id)
 
-                        # Restore items from snapshot
-                        if hasattr(adapter, "store"):
-                            for item in self.snapshots[adapter_id].values():
-                                adapter.store(item)
-                    except Exception as e:
-                        error_msg = f"Failed to restore snapshot for {adapter.__class__.__name__}: {e}"
-                        logger.error(error_msg)
-                        rollback_errors.append(error_msg)
+                if hasattr(adapter, "store"):
+                    for record in snapshot["records"].values():
+                        adapter.store(record.item)
+                self._record_operation(label, "rollback", snapshot["records"].values())
+            except Exception as e:
+                error_msg = f"Failed to restore snapshot for {adapter.__class__.__name__}: {e}"
+                logger.error(error_msg)
+                rollback_errors.append(error_msg)
 
         if rollback_errors:
             logger.error(
@@ -234,16 +342,53 @@ class TransactionContext:
         else:
             logger.debug(f"Transaction {self.transaction_id} rolled back successfully")
 
-    def _copy_item(self, item: MemoryItem) -> MemoryItem:
-        """
-        Create a deep copy of a memory item.
+    def _adapter_label(self, adapter: Any) -> str:
+        """Return a human readable name for ``adapter``."""
 
-        Args:
-            item: Memory item to copy
+        label = getattr(adapter, "name", None)
+        if isinstance(label, str) and label:
+            return label
+        return adapter.__class__.__name__
 
-        Returns:
-            MemoryItem: Deep copy of the memory item
-        """
-        from copy import deepcopy
+    def _ensure_record(self, payload: MemoryRecord | MemoryItem, store: str) -> MemoryRecord:
+        """Normalize ``payload`` into a :class:`MemoryRecord`."""
 
-        return deepcopy(item)
+        record = build_memory_record(payload, source=store)
+        if not record.item.id:
+            record.item.id = str(uuid.uuid4())
+        return record
+
+    def _snapshot_adapter_state(
+        self, adapter: Any, store: str
+    ) -> Dict[str, MemoryRecord]:
+        """Capture the adapter state as ``MemoryRecord`` entries."""
+
+        snapshot: Dict[str, MemoryRecord] = {}
+        get_all = getattr(adapter, "get_all", None)
+        get_all_items = getattr(adapter, "get_all_items", None)
+        items: Iterable[Any] | None = None
+        if callable(get_all):
+            items = get_all()
+        elif callable(get_all_items):
+            items = get_all_items()
+
+        if items is None:
+            logger.warning(
+                "Adapter %s does not expose a snapshot API; snapshot will be empty",
+                store,
+            )
+            return snapshot
+
+        for payload in items:
+            record = self._ensure_record(payload, store)
+            snapshot[record.id] = record
+        return snapshot
+
+    def _record_operation(
+        self, store: str, phase: OperationPhase, records: Iterable[MemoryRecord]
+    ) -> None:
+        """Append a normalized entry to the operation log."""
+
+        normalized = [self._ensure_record(record, store) for record in records]
+        entry: OperationLogEntry = {"store": store, "phase": phase, "records": normalized}
+        self.operations.append(entry)

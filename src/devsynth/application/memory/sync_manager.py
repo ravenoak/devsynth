@@ -1,4 +1,11 @@
-"""Synchronization manager for hybrid memory."""
+"""Synchronization manager for hybrid memory.
+
+This module coordinates synchronization across heterogeneous memory stores while
+normalizing payloads into the DTOs defined under ``devsynth.application.memory``.
+All cross-store exchanges rely on :class:`~devsynth.application.memory.dto.MemoryRecord`
+entries so metadata is merged predictably, cache entries remain coherent, and
+transaction rollbacks can restore consistent snapshots.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +16,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple
 
 try:  # pragma: no cover - optional dependencies
     from .lmdb_store import LMDBStore
@@ -18,6 +25,12 @@ except Exception:  # pragma: no cover - optional dependency
 
 from ...domain.models.memory import MemoryItem
 from ...logging_setup import DevSynthLogger
+from .dto import (
+    GroupedMemoryResults,
+    MemoryQueryResults,
+    MemoryRecord,
+    build_memory_record,
+)
 from .tiered_cache import TieredCache
 
 if TYPE_CHECKING:
@@ -109,9 +122,11 @@ class SyncManager:
         async_mode: bool = False,
     ) -> None:
         self.memory_manager = memory_manager
-        self._queue: List[tuple[str, MemoryItem]] = []
+        self._queue: List[tuple[str, MemoryRecord]] = []
         self._queue_lock = Lock()
-        self.cache: TieredCache[Dict[str, List[Any]]] = TieredCache(max_size=cache_size)
+        self.cache: TieredCache[GroupedMemoryResults] = TieredCache(
+            max_size=cache_size
+        )
         self.conflict_log: List[Dict[str, Any]] = []
         self.stats: Dict[str, int] = {"synchronized": 0, "conflicts": 0}
         self._async_tasks: List[asyncio.Task] = []
@@ -169,6 +184,41 @@ class SyncManager:
 
     def _copy_item(self, item: MemoryItem) -> MemoryItem:
         return deepcopy(item)
+
+    # ------------------------------------------------------------------
+    def _adapter_label(self, adapter: Any, default: str) -> str:
+        """Return a human readable label for ``adapter``.
+
+        Adapters may expose a ``name`` attribute.  When absent we fall back to
+        ``default`` which typically reflects the store key used by
+        :class:`MemoryManager`.
+        """
+
+        label = getattr(adapter, "name", None)
+        if isinstance(label, str) and label:
+            return label
+        return default
+
+    def _build_record(self, payload: Any, *, source: str) -> MemoryRecord:
+        """Coerce ``payload`` into a :class:`MemoryRecord` for ``source``.
+
+        The helper wraps the :func:`build_memory_record` adapter to ensure
+        metadata normalization happens consistently whenever records leave an
+        adapter boundary.
+        """
+
+        record = build_memory_record(payload, source=source)
+        if not record.item.id:
+            # Ensure deterministic identifiers even if an adapter omitted one.
+            record.item.id = str(uuid.uuid4())
+        return record
+
+    def _normalize_records(
+        self, payloads: Iterable[Any], *, source: str
+    ) -> List[MemoryRecord]:
+        """Return a list of normalized :class:`MemoryRecord` objects."""
+
+        return [self._build_record(payload, source=source) for payload in payloads]
 
     # ------------------------------------------------------------------
     @contextmanager
@@ -470,28 +520,52 @@ class SyncManager:
 
         return results
 
-    def update_item(self, store: str, item: MemoryItem) -> bool:
-        """Update item in one store and propagate to others."""
+    def update_item(
+        self, store: str, item: MemoryItem | MemoryRecord
+    ) -> bool:
+        """Update ``item`` in ``store`` and propagate to other adapters.
+
+        Incoming payloads are normalized into :class:`MemoryRecord` entries so
+        downstream adapters receive consistent metadata regardless of the
+        originating store.
+        """
+
         adapter = self.memory_manager.adapters.get(store)
         if not adapter:
             return False
+
+        record = self._build_record(item, source=store)
+        primary_item = record.item
+
         if hasattr(adapter, "store"):
-            adapter.store(item)
+            adapter.store(primary_item)
         for name, other in self.memory_manager.adapters.items():
             if name == store or not hasattr(other, "store"):
                 continue
-            existing = None
+            existing: Any = None
+            existing_record: MemoryRecord | None = None
             if hasattr(other, "retrieve"):
-                existing = other.retrieve(item.id)
-            to_store = item
-            if existing and self._detect_conflict(existing, item):
-                to_store = self._resolve_conflict(existing, item)
+                existing = other.retrieve(primary_item.id)
+            to_store = primary_item
+            if existing:
+                existing_record = self._build_record(existing, source=name)
+                if self._detect_conflict(existing_record.item, primary_item):
+                    to_store = self._resolve_conflict(
+                        existing_record.item, primary_item
+                    )
+                else:
+                    to_store = existing_record.item
             other.store(to_store)
-            if existing and to_store is existing and hasattr(adapter, "store"):
-                adapter.store(existing)
+            if (
+                existing
+                and existing_record is not None
+                and to_store is existing_record.item
+                and hasattr(adapter, "store")
+            ):
+                adapter.store(existing_record.item)
         self.stats["synchronized"] += 1
         try:
-            self.memory_manager._notify_sync_hooks(item)
+            self.memory_manager._notify_sync_hooks(primary_item)
         except Exception as exc:
             logger.warning("Peer review failed: %s", exc)
         # Memory contents have changed; invalidate any cached queries so
@@ -499,27 +573,39 @@ class SyncManager:
         self.clear_cache()
         return True
 
-    def queue_update(self, store: str, item: MemoryItem) -> None:
-        """Queue an update for asynchronous propagation."""
+    def queue_update(self, store: str, item: MemoryItem | MemoryRecord) -> None:
+        """Queue an update for asynchronous propagation.
+
+        The update is coerced into a :class:`MemoryRecord` immediately so the
+        queue retains DTO-normalized entries even if adapters emit raw domain
+        models.
+        """
+
+        record = self._build_record(item, source=store)
         with self._queue_lock:
-            self._queue.append((store, item))
+            self._queue.append((store, record))
         if self.async_mode:
             self.schedule_flush()
         try:
-            self.memory_manager._notify_sync_hooks(item)
+            self.memory_manager._notify_sync_hooks(record.item)
         except Exception as exc:
             logger.warning("Peer review failed: %s", exc)
         # Queueing a new update means cached query results may be stale.
         self.clear_cache()
 
     def flush_queue(self) -> None:
-        """Propagate all queued updates."""
+        """Propagate all queued updates.
+
+        Each queued entry already contains a :class:`MemoryRecord` so flushing
+        reuses normalized DTOs and clears cached query results to avoid serving
+        stale metadata.
+        """
         while True:
             with self._queue_lock:
                 if not self._queue:
                     break
-                store, item = self._queue.pop(0)
-            self.update_item(store, item)
+                store, record = self._queue.pop(0)
+            self.update_item(store, record)
         with self._queue_lock:
             self._queue = []
         try:
@@ -531,13 +617,13 @@ class SyncManager:
         self.clear_cache()
 
     async def flush_queue_async(self) -> None:
-        """Asynchronously propagate queued updates."""
+        """Asynchronously propagate queued updates with DTO normalization."""
         while True:
             with self._queue_lock:
                 if not self._queue:
                     break
-                store, item = self._queue.pop(0)
-            self.update_item(store, item)
+                store, record = self._queue.pop(0)
+            self.update_item(store, record)
             await asyncio.sleep(0)
         with self._queue_lock:
             self._queue = []
@@ -563,8 +649,14 @@ class SyncManager:
 
     def cross_store_query(
         self, query: str, stores: Optional[List[str]] | None = None
-    ) -> Dict[str, List[Any]]:
-        """Query multiple stores and cache the aggregated results."""
+    ) -> GroupedMemoryResults:
+        """Query multiple stores and cache normalized DTO results.
+
+        Each adapter's response is coerced into :class:`MemoryRecord` entries
+        and stored inside a :class:`GroupedMemoryResults` mapping.  The cache
+        therefore contains fully-normalized DTO payloads whose metadata has
+        already been merged.
+        """
 
         key_stores = ",".join(sorted(stores)) if stores else "all"
         cache_key = f"{query}:{key_stores}"
@@ -573,26 +665,39 @@ class SyncManager:
             return cached
 
         stores = stores or list(self.memory_manager.adapters.keys())
-        results: Dict[str, List[Any]] = {}
+        grouped: GroupedMemoryResults = {"by_store": {}, "query": query}
+        combined: List[MemoryRecord] = []
         for name in stores:
             adapter = self.memory_manager.adapters.get(name)
             if not adapter:
                 continue
+            label = self._adapter_label(adapter, name)
             if hasattr(adapter, "similarity_search"):
                 embedding = self.memory_manager._embed_text(
                     query, getattr(adapter, "dimension", 5)
                 )
-                results[name] = adapter.similarity_search(embedding, top_k=5)
+                raw_results = adapter.similarity_search(embedding, top_k=5)
             elif hasattr(adapter, "search"):
-                results[name] = adapter.search({"content": query})
+                raw_results = adapter.search({"content": query})
+            else:
+                raw_results = []
+            records = self._normalize_records(raw_results, source=label)
+            combined.extend(records)
+            store_results: MemoryQueryResults = {
+                "store": label,
+                "records": records,
+            }
+            grouped["by_store"][label] = store_results
 
-        self.cache.put(cache_key, results)
-        return results
+        if combined:
+            grouped["combined"] = combined
+        self.cache.put(cache_key, grouped)
+        return grouped
 
     async def cross_store_query_async(
         self, query: str, stores: Optional[List[str]] | None = None
-    ) -> Dict[str, List[Any]]:
-        """Asynchronously query multiple stores and cache the results."""
+    ) -> GroupedMemoryResults:
+        """Asynchronously query multiple stores and cache normalized results."""
 
         key_stores = ",".join(sorted(stores)) if stores else "all"
         cache_key = f"{query}:{key_stores}"
@@ -602,10 +707,11 @@ class SyncManager:
 
         stores = stores or list(self.memory_manager.adapters.keys())
 
-        async def _query(name: str) -> Tuple[str, List[Any]]:
+        async def _query(name: str) -> Tuple[str, str, List[Any]]:
             adapter = self.memory_manager.adapters.get(name)
             if not adapter:
-                return name, []
+                return name, name, []
+            label = self._adapter_label(adapter, name)
             if hasattr(adapter, "similarity_search"):
                 embedding = self.memory_manager._embed_text(
                     query, getattr(adapter, "dimension", 5)
@@ -613,16 +719,23 @@ class SyncManager:
                 result = await asyncio.to_thread(
                     adapter.similarity_search, embedding, top_k=5
                 )
-                return name, result
+                return name, label, result
             if hasattr(adapter, "search"):
                 result = await asyncio.to_thread(adapter.search, {"content": query})
-                return name, result
-            return name, []
+                return name, label, result
+            return name, label, []
 
         pairs = await asyncio.gather(*(_query(name) for name in stores))
-        results: Dict[str, List[Any]] = {name: items for name, items in pairs}
-        self.cache.put(cache_key, results)
-        return results
+        grouped: GroupedMemoryResults = {"by_store": {}, "query": query}
+        combined: List[MemoryRecord] = []
+        for _, label, raw_items in pairs:
+            records = self._normalize_records(raw_items, source=label)
+            combined.extend(records)
+            grouped["by_store"][label] = {"store": label, "records": records}
+        if combined:
+            grouped["combined"] = combined
+        self.cache.put(cache_key, grouped)
+        return grouped
 
     def clear_cache(self) -> None:
         """Clear cached query results."""
