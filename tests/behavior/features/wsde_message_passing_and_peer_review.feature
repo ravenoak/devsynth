@@ -32,11 +32,11 @@ Feature: WSDE Message Passing and Peer Review
   Scenario: Message passing with structured content
     Given a team with multiple agents
     When agent "worker-1" sends a message with structured content:
-      | key        | value        |
-      | task_id    | task-123     |
-      | status     | in_progress  |
-      | completion | 75           |
-      | blockers   | none         |
+      | key           | value                 |
+      | task_id       | task-123              |
+      | status        | in_progress           |
+      | completion    | 75                    |
+      | blockers      | none                  |
     Then agent "supervisor-1" should receive the message with the structured content
     And the structured content should be accessible as a parsed object
     And the message should be queryable by content fields
