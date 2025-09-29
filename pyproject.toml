@@ -353,16 +353,6 @@ module = [
 ]
 ignore_errors = true
 
-# Phase 5 – Enhanced API surface (due 2026-03-31; owner: API Guild – Morgan Patel; see docs/typing/strictness.md §Phase 5 commitments)
-[[tool.mypy.overrides]]
-module = [
-  "devsynth.interface.agentapi",
-  "devsynth.interface.agentapi_enhanced",
-  "devsynth.application.requirements.dialectical_reasoner",
-  "devsynth.application.requirements.requirement_service",
-]
-ignore_errors = true
-
 [[tool.mypy.overrides]]
 module = ["chromadb", "chromadb.*"]
 ignore_missing_imports = true
