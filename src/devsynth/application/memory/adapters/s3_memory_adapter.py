@@ -6,13 +6,19 @@ import importlib
 import json
 import uuid
 from collections.abc import Mapping
-from typing import Any  # S3 client treated as dynamic ``Any``
-from typing import Any as S3Client
-from typing import cast
+from typing import Any, Protocol, TypedDict, cast
 
 from ....domain.models.memory import MemoryItem, MemoryType, SerializedMemoryItem
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
+from ..dto import (
+    MemoryMetadata,
+    MemoryQueryResults,
+    MemoryRecord,
+    build_memory_record,
+    build_query_results,
+)
+from ..metadata_serialization import from_serializable, to_serializable
 from .storage_adapter import StorageAdapter
 
 _BOTO3_ERROR: ModuleNotFoundError | None = None
@@ -35,16 +41,52 @@ ClientError = _ImportedClientError
 logger = DevSynthLogger(__name__)
 
 
+class S3ObjectBody(Protocol):
+    """Minimal protocol for the streaming body returned by boto3."""
+
+    def read(self) -> bytes:
+        ...
+
+
+class S3GetObjectResponse(TypedDict, total=False):
+    Body: S3ObjectBody
+
+
+class S3ListEntry(TypedDict, total=False):
+    Key: str
+
+
+class S3ListResponse(TypedDict, total=False):
+    Contents: list[S3ListEntry]
+
+
+class S3ClientProtocol(Protocol):
+    """Subset of the boto3 S3 client used by :class:`S3MemoryAdapter`."""
+
+    def put_object(self, *, Bucket: str, Key: str, Body: str) -> object:
+        ...
+
+    def get_object(self, *, Bucket: str, Key: str) -> S3GetObjectResponse:
+        ...
+
+    def list_objects_v2(self, *, Bucket: str) -> S3ListResponse:
+        ...
+
+    def delete_object(self, *, Bucket: str, Key: str) -> object:
+        ...
+
+
 class S3MemoryAdapter(StorageAdapter):
     """Store memory items in an S3 bucket."""
 
     backend_type = "s3"
 
-    def __init__(self, bucket: str, client: S3Client | None = None):
+    def __init__(self, bucket: str, client: S3ClientProtocol | None = None):
         if boto3 is None:  # pragma: no cover - defensive
             raise ImportError("boto3 is required for S3MemoryAdapter") from _BOTO3_ERROR
         self.bucket = bucket
-        self.client: S3Client = client or boto3.client("s3")
+        raw_client = client or boto3.client("s3")
+        self.client = cast(S3ClientProtocol, raw_client)
 
     # ------------------------------------------------------------------
     # Core storage operations
@@ -59,33 +101,41 @@ class S3MemoryAdapter(StorageAdapter):
             )
         if not item.id:
             item.id = str(uuid.uuid4())
+        metadata_payload = cast(MemoryMetadata | None, item.metadata)
         payload: SerializedMemoryItem = {
             "id": item.id,
             "content": item.content,
             "memory_type": item.memory_type.value,
-            "metadata": item.metadata,
+            "metadata": cast(MemoryMetadata, to_serializable(metadata_payload)),
             "created_at": item.created_at.isoformat() if item.created_at else None,
         }
         data = json.dumps(payload)
         self.client.put_object(Bucket=self.bucket, Key=item.id, Body=data)
         return str(item.id)
 
-    def retrieve(self, item_id: str) -> MemoryItem | None:
+    def retrieve(self, item_id: str) -> MemoryRecord | None:
         try:
             obj = self.client.get_object(Bucket=self.bucket, Key=item_id)
         except ClientError:
             return None
-        data = cast(SerializedMemoryItem, json.loads(obj["Body"].read()))
-        memory_type = MemoryType.from_raw(data["memory_type"])
-        return MemoryItem(
-            id=data["id"],
-            content=data["content"],
-            memory_type=memory_type,
-            metadata=data.get("metadata") or {},
+        body = obj.get("Body")
+        if body is None:
+            return None
+        raw = cast(SerializedMemoryItem, json.loads(body.read()))
+        metadata_payload = raw.get("metadata")
+        metadata: MemoryMetadata | None = None
+        if isinstance(metadata_payload, Mapping):
+            metadata = from_serializable(metadata_payload)
+        item = MemoryItem(
+            id=raw["id"],
+            content=raw["content"],
+            memory_type=MemoryType.from_raw(raw["memory_type"]),
+            metadata=metadata,
         )
+        return build_memory_record(item, source=self.backend_type)
 
-    def search(self, query: Mapping[str, str | MemoryType]) -> list[MemoryItem]:
-        items: list[MemoryItem] = []
+    def search(self, query: Mapping[str, str | MemoryType]) -> list[MemoryRecord]:
+        items: list[MemoryRecord] = []
         resp = self.client.list_objects_v2(Bucket=self.bucket)
         for obj in resp.get("Contents", []):
             item = self.retrieve(obj["Key"])

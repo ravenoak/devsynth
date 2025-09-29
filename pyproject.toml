@@ -217,6 +217,10 @@ mypy_path = [
     "stubs/types-responses",
     "stubs/types-requests",
     "stubs/toml",
+    "stubs/chromadb",
+    "stubs/boto3",
+    "stubs/botocore",
+    "stubs/rdflib",
 ]
 python_version = "3.12"
 warn_return_any = true
@@ -241,6 +245,13 @@ warn_unreachable = true
 [[tool.mypy.overrides]]
 module = "tests._typing_utils"
 follow_imports = "normal"
+
+[[tool.mypy.overrides]]
+module = [
+  "rdflib",
+  "rdflib.*",
+]
+ignore_missing_imports = true
 
 [tool.black]
 line-length = 88

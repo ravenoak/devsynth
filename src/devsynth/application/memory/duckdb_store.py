@@ -31,6 +31,8 @@ from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from .dto import MemoryMetadata
+from .metadata_serialization import dumps as metadata_dumps, loads as metadata_loads
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -204,32 +206,18 @@ class DuckDBStore(MemoryStore, VectorStore):
             # Approximate token count (roughly 4 characters per token)
             return len(text) // 4
 
-    def _serialize_metadata(self, metadata: Dict[str, Any]) -> str:
-        """
-        Serialize metadata to a JSON string.
+    def _serialize_metadata(self, metadata: MemoryMetadata | None) -> str:
+        """Serialize metadata to a JSON string using typed helpers."""
 
-        Args:
-            metadata: The metadata dictionary
+        return metadata_dumps(metadata)
 
-        Returns:
-            A JSON string representation of the metadata
-        """
-        return json.dumps(metadata) if metadata else "{}"
+    def _deserialize_metadata(self, metadata_str: str | None) -> MemoryMetadata:
+        """Deserialize a JSON string into ``MemoryMetadata`` values."""
 
-    def _deserialize_metadata(self, metadata_str: str) -> Dict[str, Any]:
-        """
-        Deserialize a JSON string to a metadata dictionary.
-
-        Args:
-            metadata_str: The JSON string
-
-        Returns:
-            A dictionary of metadata
-        """
         try:
-            return json.loads(metadata_str) if metadata_str else {}
-        except json.JSONDecodeError:
-            logger.warning(f"Failed to deserialize metadata: {metadata_str}")
+            return metadata_loads(metadata_str)
+        except (json.JSONDecodeError, TypeError):
+            logger.warning("Failed to deserialize metadata: %s", metadata_str)
             return {}
 
     def store(self, item: MemoryItem) -> str:

@@ -18,6 +18,7 @@ from devsynth.exceptions import MemoryStoreError
 
 from ....domain.interfaces.memory import MemoryStore, VectorStore
 from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from ..dto import MemoryRecord, build_memory_record
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from ..rdflib_store import RDFLibStore
@@ -54,6 +55,8 @@ class GraphMemoryAdapter(MemoryStore):
     This adapter can optionally integrate with RDFLibStore for enhanced functionality
     such as vector storage and retrieval, SPARQL queries, and improved memory volatility controls.
     """
+
+    backend_type = "graph"
 
     def __init__(self, base_path: str | None = None, use_rdflib_store: bool = False):
         """
@@ -594,7 +597,7 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to retrieve memory item: {e}")
             raise MemoryStoreError(f"Failed to retrieve memory item: {e}")
 
-    def search(self, query: Mapping[str, object]) -> list[MemoryItem]:
+    def search(self, query: Mapping[str, object]) -> list[MemoryRecord]:
         """
         Search for memory items matching the query.
 
@@ -605,7 +608,7 @@ class GraphMemoryAdapter(MemoryStore):
             A list of matching memory items
         """
         try:
-            results = []
+            results: list[MemoryRecord] = []
             logger.debug(f"Searching with query: {query}")
 
             # Get all memory items
@@ -662,10 +665,12 @@ class GraphMemoryAdapter(MemoryStore):
 
                 if match:
                     logger.debug(f"Item {item.id} matches the query")
-                    results.append(item)
+                    results.append(
+                        build_memory_record(item, source=self.backend_type)
+                    )
 
             logger.info(
-                f"Found {len(results)} matching memory items in Graph Memory Adapter"
+                f"Found {len(results)} matching memory records in Graph Memory Adapter"
             )
             return results
         except Exception as e:

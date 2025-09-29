@@ -21,7 +21,7 @@ except ImportError as e:  # pragma: no cover - optional dependency
     ) from e
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 from devsynth.exceptions import (
     DevSynthError,
@@ -33,6 +33,8 @@ from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import VectorStore
 from ...domain.models.memory import MemoryVector
+from .dto import MemoryMetadata
+from .metadata_serialization import from_serializable, to_serializable
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -144,46 +146,16 @@ class FAISSStore(VectorStore):
             # Approximate token count (roughly 4 characters per token)
             return len(text) // 4
 
-    def _serialize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Prepare metadata for serialization.
+    def _serialize_metadata(self, metadata: MemoryMetadata | None) -> dict[str, Any]:
+        """Normalize ``MemoryMetadata`` for JSON persistence."""
 
-        Args:
-            metadata: The metadata dictionary
+        return to_serializable(metadata)
 
-        Returns:
-            A serializable version of the metadata
-        """
-        # Convert datetime objects to ISO format strings
-        result = {}
-        for key, value in metadata.items():
-            if isinstance(value, datetime):
-                result[key] = value.isoformat()
-            else:
-                result[key] = value
-        return result
+    def _deserialize_metadata(self, metadata: Mapping[str, Any] | None) -> MemoryMetadata:
+        """Restore ``MemoryMetadata`` from serialized payloads."""
 
-    def _deserialize_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Deserialize metadata from storage.
-
-        Args:
-            metadata: The serialized metadata
-
-        Returns:
-            The deserialized metadata
-        """
-        # Convert ISO format strings back to datetime objects
-        result = {}
-        for key, value in metadata.items():
-            if key == "created_at" and isinstance(value, str):
-                try:
-                    result[key] = datetime.fromisoformat(value)
-                except ValueError:
-                    result[key] = value
-            else:
-                result[key] = value
-        return result
+        json_ready = metadata if isinstance(metadata, Mapping) else {}
+        return from_serializable(json_ready)
 
     # ------------------------------------------------------------------
     # Transaction management

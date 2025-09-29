@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterable, MutableMapping, Sequence, TypedDict, TypeAlias
+from typing import Iterable, MutableMapping, Sequence, TypedDict, TypeAlias, cast
 
 from typing_extensions import NotRequired
 
@@ -56,7 +56,7 @@ class MemoryRecord:
     directly when no enrichment is required.
     """
 
-    item: "MemoryItem"
+    item: MemoryItem
     similarity: float | None = None
     source: str | None = None
     metadata: MemoryMetadata | None = None
@@ -73,7 +73,7 @@ class MemoryRecord:
     def id(self) -> str:
         """Expose the underlying item's identifier for backward compatibility."""
 
-        return self.item.id
+        return cast(str, self.item.id)
 
     @property
     def content(self) -> object:
@@ -91,7 +91,7 @@ class MemoryRecord:
     def created_at(self) -> datetime | None:
         """Mirror the wrapped item's ``created_at`` timestamp."""
 
-        return self.item.created_at
+        return cast(datetime | None, self.item.created_at)
 
     @property
     def score(self) -> float | None:
@@ -255,16 +255,18 @@ def build_query_results(
             normalized["metadata"] = combined_metadata
         return normalized
 
-    records: list[MemoryRecord]
+    normalized_records: list[MemoryRecord]
     if payload is None:
-        records = []
+        normalized_records = []
     elif isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
-        records = [build_memory_record(item, source=store) for item in payload]
+        normalized_records = [
+            build_memory_record(item, source=store) for item in payload
+        ]
     else:
-        records = [build_memory_record(payload, source=store)]
+        normalized_records = [build_memory_record(payload, source=store)]
 
     combined_metadata = _normalize_metadata(metadata)
-    result: MemoryQueryResults = {"store": store, "records": records}
+    result: MemoryQueryResults = {"store": store, "records": normalized_records}
     if combined_metadata:
         result["metadata"] = combined_metadata
     return result

@@ -97,7 +97,7 @@ class RDFLibStore(MemoryStore, VectorStore):
         # Load the graph from file if it exists
         self._load_graph()
 
-    def _load_graph(self):
+    def _load_graph(self) -> None:
         """Load the RDF graph from file if it exists."""
         try:
             if os.path.exists(self.graph_file):
@@ -114,7 +114,7 @@ class RDFLibStore(MemoryStore, VectorStore):
                 original_error=e,
             )
 
-    def _save_graph(self):
+    def _save_graph(self) -> None:
         """Save the RDF graph to file."""
         try:
             self.graph.serialize(destination=self.graph_file, format="turtle")
