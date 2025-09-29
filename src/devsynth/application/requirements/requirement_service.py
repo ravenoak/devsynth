@@ -1,16 +1,21 @@
-"""
-Service for requirements management.
-"""
+"""Service for requirements management."""
+
+from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
+from devsynth.application.requirements.models import (
+    ChangeAuditRecord,
+    ChangeNotificationEvent,
+    ChangeNotificationPayload,
+    EDRRPhase,
+    RequirementUpdateDTO,
+)
 from devsynth.domain.models.requirement import (
     ChangeType,
     Requirement,
     RequirementChange,
-    RequirementStatus,
 )
 from devsynth.ports.requirement_port import (
     ChangeRepositoryPort,
@@ -20,15 +25,15 @@ from devsynth.ports.requirement_port import (
 )
 
 
-def determine_edrr_phase(change: RequirementChange) -> str:
+def determine_edrr_phase(change: RequirementChange) -> EDRRPhase:
     """Return the appropriate EDRR phase for a requirement change."""
 
     change_type = getattr(change, "change_type", None)
     if change_type == ChangeType.ADD:
-        return "EXPAND"
+        return EDRRPhase.EXPAND
     if change_type == ChangeType.REMOVE:
-        return "RETROSPECT"
-    return "REFINE"
+        return EDRRPhase.RETROSPECT
+    return EDRRPhase.REFINE
 
 
 class RequirementService:
@@ -57,7 +62,7 @@ class RequirementService:
         self.dialectical_reasoner = dialectical_reasoner
         self.notification_service = notification_service
 
-    def get_requirement(self, requirement_id: UUID) -> Optional[Requirement]:
+    def get_requirement(self, requirement_id: UUID) -> Requirement | None:
         """
         Get a requirement by ID.
 
@@ -69,7 +74,7 @@ class RequirementService:
         """
         return self.requirement_repository.get_requirement(requirement_id)
 
-    def get_all_requirements(self) -> List[Requirement]:
+    def get_all_requirements(self) -> list[Requirement]:
         """
         Get all requirements.
 
@@ -108,8 +113,12 @@ class RequirementService:
         return saved_requirement
 
     def update_requirement(
-        self, requirement_id: UUID, updates: dict, user_id: str, reason: str
-    ) -> Optional[Requirement]:
+        self,
+        requirement_id: UUID,
+        updates: RequirementUpdateDTO,
+        user_id: str,
+        reason: str,
+    ) -> Requirement | None:
         """
         Update a requirement.
 
@@ -143,8 +152,12 @@ class RequirementService:
             metadata=requirement.metadata.copy(),
         )
 
-        # Update the requirement
-        requirement.update(**updates)
+        # Apply the update payload to the requirement
+        update_kwargs = updates.to_update_kwargs()
+        if not update_kwargs:
+            return requirement
+
+        requirement.update(**update_kwargs)
 
         # Create a change record
         change = RequirementChange(
@@ -155,20 +168,21 @@ class RequirementService:
             created_by=user_id,
             reason=reason,
         )
-        self.change_repository.save_change(change)
+        saved_change = self.change_repository.save_change(change)
+        phase = determine_edrr_phase(saved_change)
 
-        # Notify about the proposed change
-        self.notification_service.notify_change_proposed(change)
-
-        # Evaluate the change using dialectical reasoning
-        reasoning = self.dialectical_reasoner.evaluate_change(
-            change, edrr_phase=determine_edrr_phase(change)
+        # Notify about the proposed change with structured payloads
+        self._notify_change(
+            change=saved_change,
+            actor_id=user_id,
+            event=ChangeNotificationEvent.PROPOSED,
+            reason=reason,
+            edrr_phase=phase,
         )
 
-        # Assess the impact of the change
-        impact = self.dialectical_reasoner.assess_impact(
-            change, edrr_phase=determine_edrr_phase(change)
-        )
+        # Evaluate the change using dialectical reasoning and assess impact
+        self.dialectical_reasoner.evaluate_change(saved_change, edrr_phase=phase)
+        self.dialectical_reasoner.assess_impact(saved_change, edrr_phase=phase)
 
         # Save the updated requirement
         return self.requirement_repository.save_requirement(requirement)
@@ -200,27 +214,30 @@ class RequirementService:
             created_by=user_id,
             reason=reason,
         )
-        self.change_repository.save_change(change)
+        saved_change = self.change_repository.save_change(change)
+        phase = determine_edrr_phase(saved_change)
 
         # Notify about the proposed change
-        self.notification_service.notify_change_proposed(change)
+        self._notify_change(
+            change=saved_change,
+            actor_id=user_id,
+            event=ChangeNotificationEvent.PROPOSED,
+            reason=reason,
+            edrr_phase=phase,
+        )
 
         # Evaluate the change using dialectical reasoning
-        reasoning = self.dialectical_reasoner.evaluate_change(
-            change, edrr_phase=determine_edrr_phase(change)
-        )
+        self.dialectical_reasoner.evaluate_change(saved_change, edrr_phase=phase)
 
         # Assess the impact of the change
-        impact = self.dialectical_reasoner.assess_impact(
-            change, edrr_phase=determine_edrr_phase(change)
-        )
+        self.dialectical_reasoner.assess_impact(saved_change, edrr_phase=phase)
 
         # Delete the requirement
         return self.requirement_repository.delete_requirement(requirement_id)
 
     def approve_change(
         self, change_id: UUID, user_id: str
-    ) -> Optional[RequirementChange]:
+    ) -> RequirementChange | None:
         """
         Approve a requirement change.
 
@@ -243,15 +260,21 @@ class RequirementService:
 
         # Save the change
         saved_change = self.change_repository.save_change(change)
+        phase = determine_edrr_phase(saved_change)
 
         # Notify about the approved change
-        self.notification_service.notify_change_approved(saved_change)
+        self._notify_change(
+            change=saved_change,
+            actor_id=user_id,
+            event=ChangeNotificationEvent.APPROVED,
+            edrr_phase=phase,
+        )
 
         return saved_change
 
     def reject_change(
         self, change_id: UUID, user_id: str, comment: str
-    ) -> Optional[RequirementChange]:
+    ) -> RequirementChange | None:
         """
         Reject a requirement change.
 
@@ -274,15 +297,22 @@ class RequirementService:
 
         # Save the change
         saved_change = self.change_repository.save_change(change)
+        phase = determine_edrr_phase(saved_change)
 
         # Notify about the rejected change
-        self.notification_service.notify_change_rejected(saved_change)
+        self._notify_change(
+            change=saved_change,
+            actor_id=user_id,
+            event=ChangeNotificationEvent.REJECTED,
+            reason=comment,
+            edrr_phase=phase,
+        )
 
         return saved_change
 
     def get_changes_for_requirement(
         self, requirement_id: UUID
-    ) -> List[RequirementChange]:
+    ) -> list[RequirementChange]:
         """
         Get changes for a requirement.
 
@@ -293,3 +323,29 @@ class RequirementService:
             A list of changes for the requirement.
         """
         return self.change_repository.get_changes_for_requirement(requirement_id)
+
+    def _notify_change(
+        self,
+        *,
+        change: RequirementChange,
+        actor_id: str,
+        event: ChangeNotificationEvent,
+        reason: str | None = None,
+        edrr_phase: EDRRPhase | None = None,
+    ) -> None:
+        """Internal helper to dispatch structured change notifications."""
+
+        phase = edrr_phase or determine_edrr_phase(change)
+        audit = ChangeAuditRecord(
+            change=change,
+            actor_id=actor_id,
+            edrr_phase=phase,
+            reason=reason,
+        )
+        payload = ChangeNotificationPayload(audit=audit, event=event)
+        if event is ChangeNotificationEvent.PROPOSED:
+            self.notification_service.notify_change_proposed(payload)
+        elif event is ChangeNotificationEvent.APPROVED:
+            self.notification_service.notify_change_approved(payload)
+        else:
+            self.notification_service.notify_change_rejected(payload)

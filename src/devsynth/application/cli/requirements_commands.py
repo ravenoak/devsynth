@@ -28,6 +28,7 @@ from devsynth.adapters.requirements.memory_repository import (
 from devsynth.application.requirements.dialectical_reasoner import (
     DialecticalReasonerService,
 )
+from devsynth.application.requirements.models import RequirementUpdateDTO
 from devsynth.application.requirements.requirement_service import (
     RequirementService,
     determine_edrr_phase,
@@ -322,18 +323,13 @@ def update_requirement(
     reason = reason or os.environ.get("DEVSYNTH_REQ_REASON", "update")
 
     # Prepare updates
-    updates = {}
-
-    if title is not None:
-        updates["title"] = title
-
-    if description is not None:
-        updates["description"] = description
+    status_enum: Optional[RequirementStatus] = None
+    priority_enum: Optional[RequirementPriority] = None
+    type_enum: Optional[RequirementType] = None
 
     if status is not None:
         try:
             status_enum = RequirementStatus(status)
-            updates["status"] = status_enum
         except ValueError:
             valid_statuses = ", ".join(s.value for s in RequirementStatus)
             bridge.print(
@@ -344,7 +340,6 @@ def update_requirement(
     if priority is not None:
         try:
             priority_enum = RequirementPriority(priority)
-            updates["priority"] = priority_enum
         except ValueError:
             valid_priorities = ", ".join(p.value for p in RequirementPriority)
             bridge.print(
@@ -355,19 +350,32 @@ def update_requirement(
     if type_ is not None:
         try:
             type_enum = RequirementType(type_)
-            updates["type"] = type_enum
         except ValueError:
             valid_types = ", ".join(t.value for t in RequirementType)
             bridge.print(f"[red]Invalid type. Valid values are: {valid_types}[/red]")
             return
 
-    if not updates:
+    if (
+        title is None
+        and description is None
+        and status_enum is None
+        and priority_enum is None
+        and type_enum is None
+    ):
         bridge.print("[yellow]No updates provided.[/yellow]")
         return
 
+    updates_dto = RequirementUpdateDTO(
+        title=title,
+        description=description,
+        status=status_enum,
+        priority=priority_enum,
+        type=type_enum,
+    )
+
     # Update the requirement
     updated_requirement = requirement_service.update_requirement(
-        req_id, updates, user_id, reason
+        req_id, updates_dto, user_id, reason
     )
 
     if updated_requirement:

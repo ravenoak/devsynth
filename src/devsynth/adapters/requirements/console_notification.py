@@ -1,8 +1,13 @@
 """Console notification adapter for requirements management."""
 
+from __future__ import annotations
+
 import logging
 
-from devsynth.domain.models.requirement import ImpactAssessment, RequirementChange
+from devsynth.application.requirements.models import (
+    ChangeNotificationPayload,
+    ImpactNotificationPayload,
+)
 from devsynth.ports.requirement_port import NotificationPort
 
 
@@ -18,23 +23,20 @@ class ConsoleNotificationAdapter(NotificationPort):
         """
         self.logger = logger or logging.getLogger(__name__)
 
-    def notify_change_proposed(self, change: RequirementChange) -> None:
-        """
-        Notify that a change has been proposed.
-
-        Args:
-            change: The proposed change.
-        """
-        self.logger.info(f"NOTIFICATION: Change proposed - ID: {change.id}")
-        self.logger.info(f"  Type: {change.change_type.value}")
-        self.logger.info(f"  Requirement ID: {change.requirement_id}")
-        self.logger.info(f"  Proposed by: {change.created_by}")
-        self.logger.info(f"  Reason: {change.reason}")
+    def _log_change(self, payload: ChangeNotificationPayload) -> None:
+        change = payload.change
+        prefix = payload.event.value.upper()
+        self.logger.info("NOTIFICATION: Change %s - ID: %s", prefix, change.id)
+        self.logger.info("  Type: %s", change.change_type.value)
+        self.logger.info("  Requirement ID: %s", change.requirement_id)
+        self.logger.info("  Proposed by: %s", change.created_by)
+        if payload.audit.reason:
+            self.logger.info("  Reason: %s", payload.audit.reason)
 
         if change.change_type.value == "add" and change.new_state:
-            self.logger.info(f"  New requirement: {change.new_state.title}")
+            self.logger.info("  New requirement: %s", change.new_state.title)
         elif change.change_type.value == "remove" and change.previous_state:
-            self.logger.info(f"  Removing requirement: {change.previous_state.title}")
+            self.logger.info("  Removing requirement: %s", change.previous_state.title)
         elif change.change_type.value == "modify":
             if change.previous_state and change.new_state:
                 self.logger.info(
@@ -43,45 +45,55 @@ class ConsoleNotificationAdapter(NotificationPort):
                     change.new_state.title,
                 )
 
-    def notify_change_approved(self, change: RequirementChange) -> None:
+    def notify_change_proposed(self, payload: ChangeNotificationPayload) -> None:
+        """
+        Notify that a change has been proposed.
+
+        Args:
+            payload: The proposed change payload.
+        """
+        self._log_change(payload)
+
+    def notify_change_approved(self, payload: ChangeNotificationPayload) -> None:
         """
         Notify that a change has been approved.
 
         Args:
-            change: The approved change.
+            payload: The approved change payload.
         """
-        self.logger.info(f"NOTIFICATION: Change approved - ID: {change.id}")
-        self.logger.info(f"  Type: {change.change_type.value}")
-        self.logger.info(f"  Requirement ID: {change.requirement_id}")
-        self.logger.info(f"  Approved by: {change.approved_by}")
-        self.logger.info(f"  Approved at: {change.approved_at}")
+        change = payload.change
+        self._log_change(payload)
+        self.logger.info("  Approved by: %s", change.approved_by)
+        self.logger.info("  Approved at: %s", change.approved_at)
 
-    def notify_change_rejected(self, change: RequirementChange) -> None:
+    def notify_change_rejected(self, payload: ChangeNotificationPayload) -> None:
         """
         Notify that a change has been rejected.
 
         Args:
-            change: The rejected change.
+            payload: The rejected change payload.
         """
-        self.logger.info(f"NOTIFICATION: Change rejected - ID: {change.id}")
-        self.logger.info(f"  Type: {change.change_type.value}")
-        self.logger.info(f"  Requirement ID: {change.requirement_id}")
-        self.logger.info(f"  Comments: {change.comments}")
+        change = payload.change
+        self._log_change(payload)
+        self.logger.info("  Comments: %s", change.comments)
 
-    def notify_impact_assessment_completed(self, assessment: ImpactAssessment) -> None:
+    def notify_impact_assessment_completed(
+        self, payload: ImpactNotificationPayload
+    ) -> None:
         """
         Notify that an impact assessment has been completed.
 
         Args:
-            assessment: The completed impact assessment.
+            payload: The completed impact assessment payload.
         """
+        assessment = payload.assessment
         self.logger.info(
-            f"NOTIFICATION: Impact assessment completed - ID: {assessment.id}"
+            "NOTIFICATION: Impact assessment completed - ID: %s", assessment.id
         )
-        self.logger.info(f"  Change ID: {assessment.change_id}")
-        self.logger.info(f"  Risk level: {assessment.risk_level}")
-        self.logger.info(f"  Estimated effort: {assessment.estimated_effort}")
+        self.logger.info("  Change ID: %s", assessment.change_id)
+        self.logger.info("  Risk level: %s", assessment.risk_level)
+        self.logger.info("  Estimated effort: %s", assessment.estimated_effort)
         self.logger.info(
-            f"  Affected requirements: {len(assessment.affected_requirements)}"
+            "  Affected requirements: %s", len(assessment.affected_requirements)
         )
-        self.logger.info(f"  Affected components: {assessment.affected_components}")
+        self.logger.info("  Affected components: %s", assessment.affected_components)

@@ -6,6 +6,7 @@ from devsynth.application.collaboration.exceptions import ConsensusError
 from devsynth.application.requirements.dialectical_reasoner import (
     DialecticalReasonerService,
 )
+from devsynth.application.requirements.models import EDRRPhase
 from devsynth.domain.interfaces.requirement import (
     ChatRepositoryInterface,
     DialecticalReasoningRepositoryInterface,
@@ -22,16 +23,16 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 class DummyNotification:
-    def notify_change_proposed(self, change):
+    def notify_change_proposed(self, payload):
         pass
 
-    def notify_change_approved(self, change):
+    def notify_change_approved(self, payload):
         pass
 
-    def notify_change_rejected(self, change):
+    def notify_change_rejected(self, payload):
         pass
 
-    def notify_impact_assessment_completed(self, assessment):
+    def notify_impact_assessment_completed(self, payload):
         pass
 
 
@@ -115,7 +116,7 @@ def test_evaluate_change_stores_with_phase():
     service = _build_service("yes", memory_manager=memory)
     change = RequirementChange(requirement_id=uuid4(), created_by="carol")
 
-    service.evaluate_change(change, edrr_phase="EXPAND")
+    service.evaluate_change(change, edrr_phase=EDRRPhase.EXPAND)
 
     assert memory.calls
     assert memory.calls[0][1] == MemoryType.DIALECTICAL_REASONING
@@ -128,7 +129,7 @@ def test_evaluate_change_failure_stores_retrospect():
     change = RequirementChange(requirement_id=uuid4(), created_by="dave")
 
     with pytest.raises(ConsensusError):
-        service.evaluate_change(change, edrr_phase="EXPAND")
+        service.evaluate_change(change, edrr_phase=EDRRPhase.EXPAND)
 
     assert memory.calls
     assert memory.calls[0][2] == "RETROSPECT"
@@ -194,7 +195,7 @@ def test_assess_impact_stores_with_phase():
         created_by="erin",
     )
 
-    service.assess_impact(change, edrr_phase="RETROSPECT")
+    service.assess_impact(change, edrr_phase=EDRRPhase.RETROSPECT)
 
     assert memory.calls
     assert memory.calls[0][1] == MemoryType.DOCUMENTATION
