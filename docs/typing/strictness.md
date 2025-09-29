@@ -3,7 +3,8 @@
 ## Methodology
 - Ran exploratory `poetry run mypy --strict` commands with a minimal `/tmp/mypy_strict.ini` configuration that mirrors the repo defaults minus the per-module overrides, allowing us to observe true violations in suppressed modules.
 - Use `task mypy:strict` (wrapper around `poetry run mypy --strict src/devsynth`) to exercise the enforced strict slice; append CLI arguments when auditing additional packages or modules.【F:Taskfile.yml†L143-L146】
-- Chose one representative module per override group so future audits can compare outputs with identical commands.
+- Archive strict transcripts for every graduated stack (latest: `poetry run mypy --strict src/devsynth/application/memory`) inside `diagnostics/` so regressions surface quickly.【F:diagnostics/mypy_strict_memory_20250929T042446Z.txt†L1-L40】
+- After each graduation, schedule targeted follow-up audits for neighboring modules so the new strict coverage keeps upstream/downstream contracts aligned.
 
 ## Override Inventory
 `pyproject.toml` now records the remaining relaxations as module-level commitments with explicit owners and deadlines.【F:pyproject.toml†L251-L446】 The table below mirrors the scoped lists so teams can track progress at a glance.
@@ -16,7 +17,7 @@
 | Interface surfaces (`devsynth.interface.cli`, …, `devsynth.interface.wizard_state_manager`) | Experience Platform – Dana Laurent | 2025-12-20 | ✅ Strict mode enforced for progress helpers, Streamlit bridges, and state access; override removed after typed payload refactor.【F:pyproject.toml†L312-L336】【013f44†L1-L2】 |
 | Reliability utilities (`devsynth.utils.logging`, `devsynth.fallback`, port shims) | Reliability Guild – Dana Laurent | 2025-12-20 | ✅ Strict mode enforced after normalizing logging `exc_info`, typed retry policies, and port adapters; override removed.【F:src/devsynth/utils/logging.py†L1-L50】【F:src/devsynth/fallback.py†L1-L142】【F:src/devsynth/ports/llm_port.py†L1-L104】【F:pyproject.toml†L320-L352】 |
 | Application workflows (`devsynth.application.agents.*`, orchestration, prompts, etc.) | Applications Group – Lara Singh | 2026-02-15 | ✅ CLI and collaboration packages graduated to the strict slice; continue retiring Any-heavy orchestration layers.【F:pyproject.toml†L337-L366】【F:diagnostics/mypy_strict_cli_collaboration_20250929T011840Z.txt†L1-L40】 |
-| Application memory stack (`devsynth.application.memory*`) | Memory Systems – Chen Wu | 2026-03-15 | Requires typed storage adapters and query responses before enabling strict mode.【F:pyproject.toml†L418-L445】 |
+| Application memory stack (`devsynth.application.memory*`) | Memory Systems – Chen Wu | Completed 2025-09-29 | ✅ Strict guard now runs `poetry run mypy --strict src/devsynth/application/memory`; override removed and transcript archived as [mypy_strict_memory_20250929T042446Z.txt](../../diagnostics/mypy_strict_memory_20250929T042446Z.txt) for regression tracking.【F:pyproject.toml†L321-L364】【F:diagnostics/mypy_strict_memory_20250929T042446Z.txt†L1-L40】 |
 | Enhanced API surface (`devsynth.interface.agentapi*`, `devsynth.application.requirements.*`) | API Guild – Morgan Patel | 2026-03-31 | Coordinate with schema convergence workstreams before lifting ignores.【F:pyproject.toml†L450-L454】 |
 
 ## Findings by subsystem
@@ -78,12 +79,12 @@ Focus: orchestration, prompts, agents, ingestion, and supporting utilities.
 
 > **Next focus:** Orchestration and prompt packages listed in the Phase‑3 override block (`devsynth.application.orchestration.*`, `devsynth.application.prompts.*`) still await strict typing and remain explicitly enumerated in `pyproject.toml`.【F:pyproject.toml†L337-L366】
 
-### Phase 4 – Memory stack (target 2026-03-15)
-The application memory manager and stores are the noisiest area, with dozens of `Any`-returning methods and Optional defaults that violate strictness.【322ce9†L1-L24】 Addressing these will likely require stabilized domain models and possibly dedicated stubs for storage adapters.
+### Phase 4 – Memory stack (completed 2025-09-29)
+The memory stack now participates in the strict slice. We ran `poetry run mypy --strict src/devsynth/application/memory` and captured the baseline diagnostics in [mypy_strict_memory_20250929T042446Z.txt](../../diagnostics/mypy_strict_memory_20250929T042446Z.txt) so teams can chip away at the remaining violations without the repo-level ignore.【F:diagnostics/mypy_strict_memory_20250929T042446Z.txt†L1-L40】 Future work shifts to clearing the reported errors—primarily missing annotations, lingering `Any` contracts, and third-party stub gaps—before we expand to downstream orchestration.
 
 | Module group | Owner | Deadline | Current gaps |
 | --- | --- | --- | --- |
-| Memory stores and adapters (`devsynth.application.memory*`) | Memory Systems – Chen Wu | 2026-03-15 | Typed adapters and deterministic transaction contexts still pending.【F:pyproject.toml†L418-L445】 |
+| Memory stores and adapters (`devsynth.application.memory*`) | Memory Systems – Chen Wu | Rolling bugfix cadence | Address the recorded strict violations (missing return types, unchecked `Any`, and storage stub coverage) to keep the new guard rail green.【F:diagnostics/mypy_strict_memory_20250929T042446Z.txt†L1-L40】 |
 
 ### Phase 5 – Enhanced API surface (target 2026-03-31)
 `interface/agentapi.py` and `interface/agentapi_enhanced.py` each emit 40–90 errors dominated by untyped FastAPI decorators, Optional defaults, and reliance on dynamically typed Pydantic models.【695d69†L1-L43】【81cae7†L1-L86】 Tackling these should follow upstream schema consolidation work so that BaseModel subclasses and bridge interfaces can be annotated once and reused.

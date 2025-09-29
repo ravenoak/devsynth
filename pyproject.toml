@@ -353,39 +353,6 @@ module = [
 ]
 ignore_errors = true
 
-# Phase 4 – Memory stack (due 2026-03-15; owner: Memory Systems – Chen Wu; see docs/typing/strictness.md §Phase 4 commitments)
-[[tool.mypy.overrides]]
-module = [
-  "devsynth.application.memory",
-  "devsynth.application.memory.chromadb_store",
-  "devsynth.application.memory.circuit_breaker",
-  "devsynth.application.memory.context_manager",
-  "devsynth.application.memory.duckdb_store",
-  "devsynth.application.memory.error_logger",
-  "devsynth.application.memory.faiss_store",
-  "devsynth.application.memory.fallback",
-  "devsynth.application.memory.json_file_store",
-  "devsynth.application.memory.kuzu_store",
-  "devsynth.application.memory.lmdb_store",
-  "devsynth.application.memory.memory_integration",
-  "devsynth.application.memory.memory_manager",
-  "devsynth.application.memory.multi_layered_memory",
-  "devsynth.application.memory.persistent_context_manager",
-  "devsynth.application.memory.query_router",
-  "devsynth.application.memory.rdflib_store",
-  "devsynth.application.memory.recovery",
-  "devsynth.application.memory.retry",
-  "devsynth.application.memory.sync_manager",
-  "devsynth.application.memory.tinydb_store",
-  "devsynth.application.memory.transaction_context",
-  "devsynth.application.memory.search_patterns",
-  "devsynth.application.memory.vector_providers",
-  "devsynth.application.memory.adapters.enhanced_graph_memory_adapter",
-  "devsynth.application.memory.adapters.graph_memory_adapter",
-  "devsynth.application.memory.adapters.vector_memory_adapter",
-]
-ignore_errors = true
-
 # Phase 5 – Enhanced API surface (due 2026-03-31; owner: API Guild – Morgan Patel; see docs/typing/strictness.md §Phase 5 commitments)
 [[tool.mypy.overrides]]
 module = [
