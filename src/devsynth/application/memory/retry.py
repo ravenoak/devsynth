@@ -1,9 +1,13 @@
-"""
-Retry mechanism for memory operations.
+"""Retry helpers for memory operations and supporting infrastructure.
 
-This module provides a retry mechanism with exponential backoff for memory operations
-to handle transient failures and improve reliability of cross-store operations.
+The utilities in this module coordinate retries around DevSynth memory
+operations.  They integrate with circuit breakers, Prometheus counters, and
+DTOs provided by :mod:`devsynth.application.memory.dto`.  Type annotations are
+kept intentionally strict so static analyzers understand the shapes exchanged
+between retry callbacks and the decorated callables.
 """
+
+from __future__ import annotations
 
 import logging
 import random
@@ -20,6 +24,7 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    TYPE_CHECKING,
 )
 
 # ``prometheus_client`` is an optional dependency.  Import it lazily and
@@ -49,6 +54,32 @@ from devsynth.application.memory.circuit_breaker import (
     get_circuit_breaker_registry,
 )
 from devsynth.logging_setup import DevSynthLogger
+
+if TYPE_CHECKING:  # pragma: no cover - import for static analysis only
+    from devsynth.application.memory.dto import (
+        GroupedMemoryResults,
+        MemoryQueryResults,
+        MemoryRecord,
+    )
+
+
+MemoryRetryResult = Union[
+    "MemoryRecord",
+    list["MemoryRecord"],
+    "MemoryQueryResults",
+    "GroupedMemoryResults",
+    None,
+]
+"""Result types commonly emitted by retryable memory callables."""
+
+ConditionCallback = Callable[[Exception, int], bool]
+"""Callable signature used to determine whether a retry should proceed."""
+
+MemoryConditionCallback = Callable[
+    [Exception, int, Optional["MemoryRecord"]],
+    bool,
+]
+"""Condition callback that can inspect a :class:`MemoryRecord` context."""
 
 __all__ = [
     "RetryError",
@@ -127,6 +158,23 @@ def reset_memory_retry_metrics() -> None:
     retry_stat_counter.clear()
 
 
+def _adapt_memory_condition_callbacks(
+    callbacks: Optional[List[MemoryConditionCallback]],
+) -> Optional[List[ConditionCallback]]:
+    """Bridge memory-aware callbacks to the generic retry signature."""
+
+    if not callbacks:
+        return None
+
+    adapted: List[ConditionCallback] = []
+    for cb_fn in callbacks:
+        def adapter(error: Exception, attempt: int, *, _cb=cb_fn) -> bool:
+            return _cb(error, attempt, None)
+
+        adapted.append(adapter)
+    return adapted
+
+
 def retry_with_backoff(
     max_retries: int = 3,
     initial_backoff: float = 1.0,
@@ -135,7 +183,7 @@ def retry_with_backoff(
     jitter: bool = True,
     exceptions_to_retry: Optional[List[Type[Exception]]] = None,
     logger: Optional[logging.Logger] = None,
-    condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+    condition_callbacks: Optional[List[ConditionCallback]] = None,
     retry_conditions: Optional[
         Union[
             List[Union[Callable[[Exception], bool], str]],
@@ -410,7 +458,7 @@ def retry_operation(
     jitter: bool = True,
     exceptions_to_retry: Optional[List[Type[Exception]]] = None,
     logger: Optional[logging.Logger] = None,
-    condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+    condition_callbacks: Optional[List[ConditionCallback]] = None,
     retry_conditions: Optional[
         Union[
             List[Union[Callable[[Exception], bool], str]],
@@ -455,7 +503,7 @@ class RetryConfig:
         max_backoff: float = 60.0,
         jitter: bool = True,
         exceptions_to_retry: Optional[List[Type[Exception]]] = None,
-        condition_callbacks: Optional[List[Callable[[Exception, int], bool]]] = None,
+        condition_callbacks: Optional[List[ConditionCallback]] = None,
         retry_conditions: Optional[
             Union[
                 List[Union[Callable[[Exception], bool], str]],
@@ -525,18 +573,30 @@ MEMORY_RETRY_CONFIG = RetryConfig(
 
 
 def retry_memory_operation(
-    max_retries: int = 3, initial_backoff: float = 0.1, max_backoff: float = 2.0
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    max_retries: int = 3,
+    initial_backoff: float = 0.1,
+    max_backoff: float = 2.0,
+    *,
+    condition_callbacks: Optional[List[MemoryConditionCallback]] = None,
+) -> Callable[[Callable[..., MemoryRetryResult]], Callable[..., MemoryRetryResult]]:
     """
-    Decorator specifically for memory operations with appropriate defaults.
+    Decorator specifically for memory operations with DTO-aware typing.
 
-    This is a convenience wrapper around retry_with_backoff with defaults
-    suitable for memory operations.
+    This is a convenience wrapper around :func:`retry_with_backoff` with
+    defaults suitable for memory operations.  The returned decorator preserves
+    the :class:`MemoryRecord`-centric result types exposed by memory adapters
+    and allows condition callbacks that receive an optional ``MemoryRecord``
+    context.
 
     Args:
         max_retries: Maximum number of retry attempts
         initial_backoff: Initial backoff time in seconds
         max_backoff: Maximum backoff time in seconds
+        condition_callbacks: Optional callbacks invoked after each failure.
+            Each callback receives the triggering exception, the current retry
+            attempt, and the :class:`MemoryRecord` (if available) responsible
+            for the failure.  When no record context exists ``None`` is
+            supplied.
 
     Returns:
         Decorator function
@@ -547,6 +607,7 @@ def retry_memory_operation(
         backoff_multiplier=2.0,
         max_backoff=max_backoff,
         jitter=True,
+        condition_callbacks=_adapt_memory_condition_callbacks(condition_callbacks),
     )
 
 

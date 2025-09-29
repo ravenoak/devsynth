@@ -1,9 +1,6 @@
-"""
-Recovery mechanisms for memory operations.
+"""Recovery mechanisms for memory operations using typed DTO helpers."""
 
-This module provides recovery mechanisms for memory operations to handle failures
-and maintain data integrity during cross-store operations.
-"""
+from __future__ import annotations
 
 import json
 import logging
@@ -11,12 +8,87 @@ import os
 import tempfile
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast
+from typing import Any, Callable, Dict, List, Optional, TypedDict, TypeVar, Union, cast
 
-from devsynth.domain.models.memory import MemoryItem
+from devsynth.application.memory.dto import MemoryMetadata, MemoryRecord, build_memory_record
+from devsynth.domain.models.memory import MemoryItem, SerializedMemoryItem
 from devsynth.logging_setup import DevSynthLogger
 
 T = TypeVar("T")
+
+
+class SerializedMemoryRecord(TypedDict):
+    """Serialized representation of a :class:`MemoryRecord`."""
+
+    item: SerializedMemoryItem
+    similarity: float | None
+    source: str | None
+    metadata: MemoryMetadata | None
+
+
+class StoreOperationPayload(TypedDict):
+    """Payload recorded for ``store`` operations."""
+
+    record: SerializedMemoryRecord
+
+
+class DeleteOperationPayload(TypedDict):
+    """Payload recorded for ``delete`` operations."""
+
+    item_id: str
+
+
+OperationPayload = Union[StoreOperationPayload, DeleteOperationPayload]
+"""Typed payloads stored alongside operation log entries."""
+
+
+class LoggedOperation(TypedDict):
+    """Structure persisted for each operation log entry."""
+
+    type: str
+    data: OperationPayload
+    timestamp: str
+
+
+def _serialize_record(record: MemoryRecord) -> SerializedMemoryRecord:
+    """Convert a :class:`MemoryRecord` into a JSON-serializable mapping."""
+
+    metadata: MemoryMetadata | None = None
+    if record.metadata:
+        metadata = cast(MemoryMetadata, dict(record.metadata))
+
+    return {
+        "item": record.item.to_dict(),
+        "similarity": record.similarity,
+        "source": record.source,
+        "metadata": metadata,
+    }
+
+
+def _deserialize_record(payload: SerializedMemoryRecord) -> MemoryRecord:
+    """Reconstruct a :class:`MemoryRecord` from serialized data."""
+
+    item = MemoryItem.from_dict(payload["item"])
+    metadata = payload.get("metadata")
+    normalized_metadata = cast(MemoryMetadata, dict(metadata)) if metadata else None
+    return MemoryRecord(
+        item=item,
+        similarity=payload.get("similarity"),
+        source=payload.get("source"),
+        metadata=normalized_metadata,
+    )
+
+
+def build_store_operation_payload(record: MemoryRecord) -> StoreOperationPayload:
+    """Create a typed payload for logging ``store`` operations."""
+
+    return {"record": _serialize_record(record)}
+
+
+def build_delete_operation_payload(item_id: str) -> DeleteOperationPayload:
+    """Create a typed payload for logging ``delete`` operations."""
+
+    return {"item_id": item_id}
 
 
 class RecoveryError(Exception):
@@ -36,8 +108,8 @@ class MemorySnapshot:
     def __init__(
         self,
         store_id: str,
-        items: Optional[List[MemoryItem]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        items: Optional[List[Union[MemoryRecord, MemoryItem]]] = None,
+        metadata: Optional[MemoryMetadata] = None,
         logger: Optional[logging.Logger] = None,
     ):
         """
@@ -45,25 +117,34 @@ class MemorySnapshot:
 
         Args:
             store_id: Identifier for the memory store
-            items: List of memory items in the snapshot
+            items: Optional collection of memory records or items in the snapshot
             metadata: Additional metadata for the snapshot
             logger: Optional logger instance
         """
         self.store_id = store_id
-        self.items = items or []
-        self.metadata = metadata or {}
+        self.items: List[MemoryRecord] = []
+        if items:
+            self.items = [
+                build_memory_record(item, source=store_id)
+                for item in items
+            ]
+        self.metadata = (
+            cast(MemoryMetadata, dict(metadata))
+            if metadata
+            else cast(MemoryMetadata, {})
+        )
         self.created_at = datetime.now()
         self.snapshot_id = f"{store_id}_{int(time.time())}_{id(self)}"
         self.logger = logger or DevSynthLogger(__name__)
 
-    def add_item(self, item: MemoryItem) -> None:
+    def add_item(self, item: MemoryRecord) -> None:
         """
-        Add an item to the snapshot.
+        Add a record to the snapshot.
 
         Args:
-            item: Memory item to add
+            item: Memory record to add
         """
-        self.items.append(item)
+        self.items.append(build_memory_record(item, source=self.store_id))
 
     def remove_item(self, item_id: str) -> bool:
         """
@@ -81,15 +162,15 @@ class MemorySnapshot:
                 return True
         return False
 
-    def get_item(self, item_id: str) -> Optional[MemoryItem]:
+    def get_item(self, item_id: str) -> Optional[MemoryRecord]:
         """
-        Get an item from the snapshot.
+        Get a record from the snapshot.
 
         Args:
             item_id: ID of the item to get
 
         Returns:
-            The memory item if found, None otherwise
+            The memory record if found, None otherwise
         """
         for item in self.items:
             if item.id == item_id:
@@ -117,7 +198,7 @@ class MemorySnapshot:
             "store_id": self.store_id,
             "created_at": self.created_at.isoformat(),
             "metadata": self.metadata,
-            "items": [item.to_dict() for item in self.items],
+            "items": [_serialize_record(item) for item in self.items],
         }
 
         # Save to file
@@ -154,9 +235,15 @@ class MemorySnapshot:
                 snapshot_data = json.load(f)
 
             # Create a new snapshot
+            metadata_payload = snapshot_data.get("metadata")
+            normalized_metadata = (
+                cast(MemoryMetadata, dict(metadata_payload))
+                if metadata_payload
+                else None
+            )
             snapshot = cls(
                 store_id=snapshot_data["store_id"],
-                metadata=snapshot_data.get("metadata", {}),
+                metadata=normalized_metadata,
                 logger=logger,
             )
 
@@ -165,10 +252,8 @@ class MemorySnapshot:
             snapshot.created_at = datetime.fromisoformat(snapshot_data["created_at"])
 
             # Load items
-            from devsynth.domain.models.memory import MemoryItem
-
             snapshot.items = [
-                MemoryItem.from_dict(item_data)
+                _deserialize_record(cast(SerializedMemoryRecord, item_data))
                 for item_data in snapshot_data.get("items", [])
             ]
 
@@ -197,13 +282,13 @@ class OperationLog:
             logger: Optional logger instance
         """
         self.store_id = store_id
-        self.operations: List[Dict[str, Any]] = []
+        self.operations: List[LoggedOperation] = []
         self.logger = logger or DevSynthLogger(__name__)
 
     def log_operation(
         self,
         operation_type: str,
-        operation_data: Dict[str, Any],
+        operation_data: OperationPayload,
         timestamp: Optional[datetime] = None,
     ) -> None:
         """
@@ -211,13 +296,13 @@ class OperationLog:
 
         Args:
             operation_type: Type of operation (e.g., "store", "delete")
-            operation_data: Data for the operation
+            operation_data: DTO-aware payload describing the operation
             timestamp: Optional timestamp for the operation
         """
         if timestamp is None:
             timestamp = datetime.now()
 
-        operation = {
+        operation: LoggedOperation = {
             "type": operation_type,
             "data": operation_data,
             "timestamp": timestamp.isoformat(),
@@ -284,7 +369,10 @@ class OperationLog:
             log = cls(store_id=log_data["store_id"], logger=logger)
 
             # Load operations
-            log.operations = log_data.get("operations", [])
+            operations_payload = log_data.get("operations", [])
+            log.operations = [
+                cast(LoggedOperation, operation) for operation in operations_payload
+            ]
 
             logger.info(f"Loaded operation log from {filepath}")
             return log
@@ -337,14 +425,13 @@ class OperationLog:
                 operation_data = operation["data"]
 
                 if operation_type == "store":
-                    # Create MemoryItem from operation data
-                    from devsynth.domain.models.memory import MemoryItem
-
-                    item = MemoryItem.from_dict(operation_data["item"])
-                    store.store(item)
+                    serialized = cast(StoreOperationPayload, operation_data)
+                    record = _deserialize_record(serialized["record"])
+                    store.store(record.item)
 
                 elif operation_type == "delete":
-                    item_id = operation_data["item_id"]
+                    delete_payload = cast(DeleteOperationPayload, operation_data)
+                    item_id = delete_payload["item_id"]
                     store.delete(item_id)
 
                 # Add more operation types as needed
@@ -392,7 +479,10 @@ class RecoveryManager:
         self.logger = logger or DevSynthLogger(__name__)
 
     def create_snapshot(
-        self, store_id: str, store: Any, metadata: Optional[Dict[str, Any]] = None
+        self,
+        store_id: str,
+        store: Any,
+        metadata: Optional[MemoryMetadata] = None,
     ) -> MemorySnapshot:
         """
         Create a snapshot of a memory store.
@@ -406,11 +496,14 @@ class RecoveryManager:
             Created memory snapshot
         """
         # Get all items from the store
-        items = store.get_all_items()
+        raw_items = store.get_all_items()
 
         # Create snapshot
         snapshot = MemorySnapshot(
-            store_id=store_id, items=items, metadata=metadata, logger=self.logger
+            store_id=store_id,
+            items=raw_items,
+            metadata=metadata,
+            logger=self.logger,
         )
 
         # Save snapshot
@@ -438,7 +531,10 @@ class RecoveryManager:
         return self.operation_logs[store_id]
 
     def log_operation(
-        self, store_id: str, operation_type: str, operation_data: Dict[str, Any]
+        self,
+        store_id: str,
+        operation_type: str,
+        operation_data: OperationPayload,
     ) -> None:
         """
         Log an operation for a memory store.
@@ -446,7 +542,7 @@ class RecoveryManager:
         Args:
             store_id: Identifier for the memory store
             operation_type: Type of operation
-            operation_data: Data for the operation
+            operation_data: DTO-aware payload describing the operation
         """
         log = self.get_operation_log(store_id)
         log.log_operation(operation_type, operation_data)
@@ -479,8 +575,8 @@ class RecoveryManager:
                 store.clear()
 
             # Restore items from snapshot
-            for item in snapshot.items:
-                store.store(item)
+            for record in snapshot.items:
+                store.store(record.item)
 
             self.logger.info(
                 f"Restored store {store_id} from snapshot {snapshot.snapshot_id}"
