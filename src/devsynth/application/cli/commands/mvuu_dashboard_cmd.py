@@ -13,7 +13,9 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Sequence
 
+from devsynth.domain.models.wsde_roles import ResearchPersonaSpec, resolve_research_persona
 from devsynth.interface.autoresearch import (
     SignatureEnvelope,
     build_autoresearch_payload,
@@ -39,6 +41,7 @@ def _write_autoresearch_telemetry(
     telemetry_path: Path,
     *,
     signature_env: str,
+    personas: Sequence[ResearchPersonaSpec] | None = None,
 ) -> SignatureEnvelope | None:
     """Generate overlay telemetry and persist it to disk."""
 
@@ -47,6 +50,8 @@ def _write_autoresearch_telemetry(
 
     trace_data = json.loads(trace_path.read_text(encoding="utf-8"))
     payload = build_autoresearch_payload(trace_data)
+    if personas:
+        payload["research_personas"] = [spec.as_payload() for spec in personas]
 
     secret = os.getenv(signature_env, "")
     envelope: SignatureEnvelope | None = None
@@ -87,6 +92,13 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
         help="Enable Autoresearch overlays and telemetry generation.",
     )
     parser.add_argument(
+        "--research-persona",
+        action="append",
+        dest="research_personas",
+        default=None,
+        help="Activate a research persona overlay (repeatable).",
+    )
+    parser.add_argument(
         "--telemetry-path",
         type=Path,
         default=None,
@@ -114,18 +126,31 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
     overlays_enabled = args.research_overlays or env.get(
         "DEVSYNTH_AUTORESEARCH_OVERLAYS", ""
     )
+    persona_specs: list[ResearchPersonaSpec] = []
+    if args.research_personas:
+        seen: set[str] = set()
+        for persona_name in args.research_personas:
+            spec = resolve_research_persona(persona_name)
+            if spec and spec.slug not in seen:
+                persona_specs.append(spec)
+                seen.add(spec.slug)
     telemetry_path = args.telemetry_path or (repo_root / "traceability_autoresearch.json")
     if overlays_enabled:
         envelope = _write_autoresearch_telemetry(
             trace_path,
             telemetry_path,
             signature_env=args.signature_env,
+            personas=persona_specs,
         )
         env["DEVSYNTH_AUTORESEARCH_OVERLAYS"] = "1"
         env["DEVSYNTH_AUTORESEARCH_TELEMETRY"] = str(telemetry_path)
         env[DEFAULT_SIGNATURE_POINTER] = args.signature_env
         if envelope is not None:
             env.setdefault(args.signature_env, os.getenv(args.signature_env, ""))
+    if persona_specs:
+        env["DEVSYNTH_AUTORESEARCH_PERSONAS"] = ",".join(
+            spec.display_name for spec in persona_specs
+        )
 
     subprocess.run(["streamlit", "run", str(script_path)], check=False, env=env)
     return 0

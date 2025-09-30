@@ -1,16 +1,27 @@
 """Extended WSDE team utilities."""
 
 import itertools
+import os
 import uuid
 from collections import OrderedDict
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.domain.models.wsde_roles import (
+    ResearchPersonaSpec,
+    persona_event,
+    resolve_research_persona,
+    select_agent_for_persona,
+)
+from devsynth.domain.models.wsde_typing import RoleName
+from devsynth.logging_setup import DevSynthLogger
 
 from .dto import AgentOpinionRecord, ConsensusOutcome, ConflictRecord
+
+logger = DevSynthLogger(__name__)
 
 
 class CollaborativeWSDETeam(WSDETeam):
@@ -33,6 +44,94 @@ class CollaborativeWSDETeam(WSDETeam):
         self.decision_documentation = {}  # Store decision documentation
         self.implemented_decisions = {}  # Store implemented decisions
         self.decision_tracking = {}  # Store tracked decisions
+        self._active_persona_slugs: tuple[str, ...] = ()
+        self._persona_events: list[dict[str, Any]] = []
+
+        env_personas = os.getenv("DEVSYNTH_AUTORESEARCH_PERSONAS", "")
+        if env_personas:
+            self.configure_research_personas(env_personas.split(","))
+
+    # ------------------------------------------------------------------
+    # Persona helpers
+    # ------------------------------------------------------------------
+
+    def configure_research_personas(self, personas: Sequence[str]) -> None:
+        """Enable research personas for subsequent research tasks."""
+
+        resolved: list[str] = []
+        for name in personas:
+            spec = resolve_research_persona(name)
+            if spec is None:
+                continue
+            resolved.append(spec.slug)
+        self._active_persona_slugs = tuple(dict.fromkeys(resolved))
+
+    def drain_persona_events(self) -> list[dict[str, Any]]:
+        """Return and clear recorded persona telemetry events."""
+
+        events, self._persona_events = self._persona_events, []
+        return events
+
+    def _is_research_task(self, task: Mapping[str, Any]) -> bool:
+        if task.get("is_research"):
+            return True
+        for key in ("type", "category", "focus"):
+            value = task.get(key)
+            if isinstance(value, str) and "research" in value.lower():
+                return True
+        personas = task.get("research_personas")
+        return isinstance(personas, (list, tuple)) and bool(personas)
+
+    def _apply_research_personas(
+        self, task: Mapping[str, Any]
+    ) -> dict[str, tuple[ResearchPersonaSpec, Any]]:
+        if not self._active_persona_slugs or not self.agents:
+            return {}
+
+        available_agents = list(self.agents)
+        assignments: dict[str, tuple[ResearchPersonaSpec, Any]] = {}
+        for slug in self._active_persona_slugs:
+            spec = resolve_research_persona(slug)
+            if spec is None:
+                continue
+            agent = select_agent_for_persona(available_agents, spec, task)
+            if agent is None:
+                continue
+            assignments[slug] = (spec, agent)
+            available_agents.remove(agent)
+            setattr(agent, "research_persona", spec.display_name)
+        return assignments
+
+    def _record_persona_events(
+        self,
+        assignments: Mapping[str, tuple[ResearchPersonaSpec, Any]],
+        task: Mapping[str, Any],
+        *,
+        fallback: bool,
+    ) -> None:
+        if not assignments:
+            return
+        events = [
+            persona_event(spec, agent, task, fallback=fallback)
+            for spec, agent in assignments.values()
+        ]
+        self._persona_events.extend(events)
+        persona_summary = {
+            spec.display_name: getattr(agent, "name", "agent")
+            for spec, agent in assignments.values()
+        }
+        self.transition_metrics.setdefault("persona_transitions", []).append(
+            {
+                "task_id": task.get("id"),
+                "phase": task.get("phase"),
+                "assignments": persona_summary,
+                "fallback": fallback,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        logger.info(
+            "Research persona assignments for task %s: %s", task.get("id"), persona_summary
+        )
 
     def collaborative_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Run a collaborative voting process for a critical decision task."""
@@ -44,22 +143,43 @@ class CollaborativeWSDETeam(WSDETeam):
         return self.conduct_peer_review(work_product, author, reviewers)
 
     def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Process a task using the team's collaborative approach.
+        """Process a task using the team's collaborative approach."""
 
-        Args:
-            task: The task to process
-
-        Returns:
-            A dictionary containing the solution and metadata
-        """
         task_id = task.get("id", str(uuid.uuid4()))
 
-        # Select primus based on expertise if not already selected
-        if not self.get_primus():
-            self.select_primus_by_expertise(task)
+        persona_assignments: dict[str, tuple[ResearchPersonaSpec, Any]] = {}
+        fallback_to_expertise = True
+        if self._is_research_task(task):
+            persona_assignments = self._apply_research_personas(task)
+            fallback_to_expertise = not persona_assignments
+
+        if not persona_assignments:
+            if not self.get_primus():
+                self.select_primus_by_expertise(task)
+        else:
+            lead_assignment = persona_assignments.get("research_lead")
+            if lead_assignment:
+                _, primus_agent = lead_assignment
+                self.roles[RoleName.PRIMUS] = primus_agent
+                primus_agent.current_role = RoleName.PRIMUS.value.capitalize()
+                primus_agent.has_been_primus = True
 
         primus = self.get_primus()
+        if primus is None and self.agents:
+            primus = self.agents[0]
+
+        if persona_assignments:
+            self._record_persona_events(
+                persona_assignments,
+                task,
+                fallback=fallback_to_expertise,
+            )
+        elif fallback_to_expertise and self._active_persona_slugs:
+            logger.info(
+                "Research personas enabled but no assignments found for task %s; "
+                "falling back to expertise-based primus selection.",
+                task.get("id"),
+            )
 
         # Initialize contribution metrics
         self.contribution_metrics[task_id] = {
@@ -207,6 +327,19 @@ class CollaborativeWSDETeam(WSDETeam):
                 "timestamp": datetime.now().isoformat(),
             }
         )
+
+        if persona_assignments:
+            persona_summary = {
+                spec.display_name: getattr(agent, "name", "agent")
+                for spec, agent in persona_assignments.values()
+            }
+            solution.setdefault("research_persona_assignments", {}).update(
+                persona_summary
+            )
+            self.role_history[-1]["research_persona_assignments"] = persona_summary
+
+        for _, agent in persona_assignments.values():
+            setattr(agent, "research_persona", None)
 
         return solution
 

@@ -1,8 +1,7 @@
-"""
-Agent coordinator implementation for managing agent collaboration.
-"""
+"""Agent coordinator implementation for managing agent collaboration."""
 
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -46,6 +45,31 @@ class AgentCoordinatorImpl(AgentCoordinator):
         feature_cfg = self.config.get("features", {})
         self.collaboration_enabled = feature_cfg.get("wsde_collaboration", False)
         self.notify = feature_cfg.get("collaboration_notifications", False)
+
+    def _configure_personas_from_payload(self, task: Dict[str, Any]) -> None:
+        personas = task.get("research_personas")
+        if isinstance(personas, str):
+            personas = [part.strip() for part in personas.split(",") if part.strip()]
+        if not personas:
+            env_value = os.getenv("DEVSYNTH_AUTORESEARCH_PERSONAS", "")
+            if env_value:
+                personas = [
+                    part.strip() for part in env_value.split(",") if part.strip()
+                ]
+        if not personas:
+            return
+        configure = getattr(self.team, "configure_research_personas", None)
+        if callable(configure):
+            configure(personas)
+
+    def _attach_persona_events(self, payload: Dict[str, Any]) -> None:
+        drain = getattr(self.team, "drain_persona_events", None)
+        events: List[Dict[str, Any]] = []
+        if callable(drain):
+            events = drain()
+        if events:
+            telemetry = payload.setdefault("telemetry", {})
+            telemetry["research_persona_events"] = events
 
     def add_agent(self, agent: Agent) -> None:
         """Add an agent to the coordinator and team."""
@@ -145,10 +169,12 @@ class AgentCoordinatorImpl(AgentCoordinator):
                 "vote_weights": voting_result.get("vote_weights", {}),
             }
             voting_result["summary"] = self.team.summarize_voting_result(summary_input)
+            self._attach_persona_events(voting_result)
             return voting_result
 
         # Assign roles to team members
         phase_name = task.get("phase")
+        self._configure_personas_from_payload(task)
         if phase_name:
             try:
                 from devsynth.methodology.base import Phase
@@ -306,7 +332,7 @@ class AgentCoordinatorImpl(AgentCoordinator):
         elif consensus_outcome.majority_opinion:
             result_text = consensus_outcome.majority_opinion
 
-        return {
+        response = {
             "team_result": {
                 "design": design_agent.process.return_value if design_agent else {},
                 "work": work_agent.process.return_value if work_agent else {},
@@ -325,6 +351,8 @@ class AgentCoordinatorImpl(AgentCoordinator):
             "method": consensus_outcome.method or "consensus",
             "consensus_outcome": consensus_outcome,
         }
+        self._attach_persona_events(response)
+        return response
 
     def _resolve_conflicts(self, *agent_results) -> Dict[str, Any]:
         """Resolve conflicts between agent results using consensus."""

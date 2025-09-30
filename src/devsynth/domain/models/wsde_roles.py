@@ -11,6 +11,7 @@ delegating the heavy lifting to the manager.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Iterable, Mapping, MutableMapping, Optional, Sequence
 
 from devsynth.domain.models.wsde_core import WSDETeam
@@ -38,6 +39,153 @@ ROLE_KEYWORDS: dict[RoleName, tuple[str, ...]] = {
     RoleName.DESIGNER: ("design", "architecture", "planning", "creativity"),
     RoleName.EVALUATOR: ("testing", "evaluation", "assessment", "analysis"),
 }
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchPersonaSpec:
+    """Description of a research persona mapped to WSDE responsibilities."""
+
+    slug: str
+    display_name: str
+    primary_role: RoleName
+    supporting_roles: tuple[RoleName, ...]
+    capabilities: tuple[str, ...]
+
+    def as_payload(self) -> dict[str, object]:
+        """Expose a serialisable payload for telemetry helpers."""
+
+        return {
+            "name": self.display_name,
+            "slug": self.slug,
+            "primary_role": self.primary_role.value,
+            "supporting_roles": [role.value for role in self.supporting_roles],
+            "capabilities": list(self.capabilities),
+        }
+
+
+def _persona_slug(name: str) -> str:
+    return "_".join(part for part in name.strip().lower().split())
+
+
+RESEARCH_PERSONAS: dict[str, ResearchPersonaSpec] = {
+    spec.slug: spec
+    for spec in (
+        ResearchPersonaSpec(
+            slug="research_lead",
+            display_name="Research Lead",
+            primary_role=RoleName.PRIMUS,
+            supporting_roles=(RoleName.SUPERVISOR,),
+            capabilities=(
+                "Coordinate primus leadership for investigative work",
+                "Audit research deliverables via supervisor oversight",
+                "Plan exploration strategies aligned with task context",
+            ),
+        ),
+        ResearchPersonaSpec(
+            slug="bibliographer",
+            display_name="Bibliographer",
+            primary_role=RoleName.EVALUATOR,
+            supporting_roles=(RoleName.WORKER,),
+            capabilities=(
+                "Catalogue and vet sources using evaluator analysis",
+                "Ground implementation tasks with curated evidence",
+                "Flag citation gaps for supervisor review loops",
+            ),
+        ),
+        ResearchPersonaSpec(
+            slug="synthesist",
+            display_name="Synthesist",
+            primary_role=RoleName.DESIGNER,
+            supporting_roles=(RoleName.EVALUATOR,),
+            capabilities=(
+                "Translate findings into designer implementation plans",
+                "Validate analytical coherence before execution",
+                "Surface integration risks for primus coordination",
+            ),
+        ),
+    )
+}
+
+
+def resolve_research_persona(name: str) -> ResearchPersonaSpec | None:
+    """Return the persona specification for ``name`` if it exists."""
+
+    if not name:
+        return None
+    slug = _persona_slug(name)
+    return RESEARCH_PERSONAS.get(slug)
+
+
+def enumerate_research_personas() -> Sequence[ResearchPersonaSpec]:
+    """Return all registered research persona specifications."""
+
+    return tuple(RESEARCH_PERSONAS.values())
+
+
+def score_agent_for_persona(
+    agent: SupportsTeamAgent,
+    persona: ResearchPersonaSpec,
+    task: TaskDict,
+) -> int:
+    """Calculate how well ``agent`` aligns with ``persona`` for ``task``."""
+
+    expertise = getattr(agent, "expertise", None) or []
+    if not expertise:
+        return 0
+
+    task_keywords = _extract_task_keywords(task)
+    role_keywords = list(ROLE_KEYWORDS.get(persona.primary_role, ()))
+    for role in persona.supporting_roles:
+        role_keywords.extend(ROLE_KEYWORDS.get(role, ()))
+
+    score = 0
+    for entry in expertise:
+        lower_entry = entry.lower()
+        for keyword in role_keywords:
+            if keyword in lower_entry:
+                weight = 2 if keyword in ROLE_KEYWORDS.get(persona.primary_role, ()) else 1
+                score += weight
+        for keyword in task_keywords:
+            if keyword in lower_entry or lower_entry in keyword:
+                score += 1
+    return score
+
+
+def select_agent_for_persona(
+    agents: Sequence[SupportsTeamAgent],
+    persona: ResearchPersonaSpec,
+    task: TaskDict,
+) -> SupportsTeamAgent | None:
+    """Select the most suitable agent for ``persona`` given ``task``."""
+
+    scored = [
+        (score_agent_for_persona(agent, persona, task), agent)
+        for agent in agents
+    ]
+    scored = [item for item in scored if item[0] > 0]
+    if not scored:
+        return None
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return scored[0][1]
+
+
+def persona_event(
+    persona: ResearchPersonaSpec,
+    agent: SupportsTeamAgent,
+    task: TaskDict,
+    *,
+    fallback: bool,
+) -> dict[str, object]:
+    """Create a telemetry event for persona assignment."""
+
+    return {
+        "persona": persona.display_name,
+        "agent": getattr(agent, "name", "agent"),
+        "task_id": task.get("id"),
+        "phase": str(task.get("phase", "")) or None,
+        "fallback": fallback,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 def _ensure_role_attributes(agent: SupportsTeamAgent) -> None:
@@ -416,5 +564,12 @@ __all__ = [
     "select_primus_by_expertise",
     "rotate_roles",
     "_assign_roles_for_edrr_phase",
+    "ResearchPersonaSpec",
+    "RESEARCH_PERSONAS",
+    "resolve_research_persona",
+    "enumerate_research_personas",
+    "score_agent_for_persona",
+    "select_agent_for_persona",
+    "persona_event",
 ]
 

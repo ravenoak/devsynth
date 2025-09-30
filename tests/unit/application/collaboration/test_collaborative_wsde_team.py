@@ -6,25 +6,35 @@ in the CollaborativeWSDETeam class.
 """
 
 from datetime import datetime
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from devsynth.application.agents.base import BaseAgent
-from devsynth.application.collaboration.collaborative_wsde_team import (
-    CollaborativeWSDETeam,
-)
+from devsynth.application.collaboration.wsde_team_extended import CollaborativeWSDETeam
 from devsynth.application.collaboration.dto import (
     ConflictRecord,
     ConsensusOutcome,
     SynthesisArtifact,
 )
 
+class _StubAgent:
+    """Minimal protocol for agent mocks used in collaboration tests."""
+
+    name: str
+    agent_type: str
+    current_role: str | None
+    expertise: list[str]
+    experience_level: int
+    has_been_primus: bool
+
+    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:  # pragma: no cover - protocol
+        raise NotImplementedError
+
 
 @pytest.fixture
 def mock_agent():
     """Create a mock agent for testing."""
-    agent = MagicMock(spec=BaseAgent)
+    agent = MagicMock(spec=_StubAgent)
     agent.name = "MockAgent"
     agent.agent_type = "mock"
     agent.current_role = None
@@ -39,7 +49,7 @@ def mock_agent_with_expertise():
     """Create mock agents with different expertise areas."""
 
     def _create_agent(name, expertise, experience_level=5):
-        agent = MagicMock(spec=BaseAgent)
+        agent = MagicMock(spec=_StubAgent)
         agent.name = name
         agent.agent_type = "mock"
         agent.current_role = None
@@ -51,6 +61,8 @@ def mock_agent_with_expertise():
             return {
                 "response": f"Response from {name} with expertise in {', '.join(expertise)}",
                 "reasoning": f"Reasoning based on expertise in {', '.join(expertise)}",
+                "solution": f"Solution crafted by {name}",
+                "confidence": 0.9,
             }
 
         agent.process = mock_process
@@ -166,6 +178,59 @@ class TestCollaborativeWSDETeam:
                     assert "Next steps" in (
                         consensus_result.stakeholder_explanation or ""
                     )
+
+    @pytest.mark.medium
+    def test_research_persona_assignments_emit_telemetry(
+        self, mock_agent_with_expertise
+    ) -> None:
+        """Research personas should drive primus selection and telemetry."""
+
+        team = CollaborativeWSDETeam(name="ResearchTeam")
+        lead = mock_agent_with_expertise(
+            "Lead",
+            ["leadership coordination", "strategic research"],
+        )
+        bibliographer = mock_agent_with_expertise(
+            "Biblio",
+            ["evaluator analysis", "source catalogue"],
+        )
+        synthesist = mock_agent_with_expertise(
+            "Synth",
+            ["design synthesis", "analysis integration"],
+        )
+
+        team.add_agent(lead)
+        team.add_agent(bibliographer)
+        team.add_agent(synthesist)
+        team.configure_research_personas(
+            ["Research Lead", "Bibliographer", "Synthesist"]
+        )
+
+        task = {
+            "id": "research-001",
+            "type": "research_task",
+            "description": "Investigate coordination approaches for architecture",
+            "phase": "explore",
+            "is_research": True,
+            "required_expertise": ["leadership", "analysis", "design"],
+        }
+
+        result = team.process_task(task)
+        primus = team.get_primus()
+        assert primus is lead
+
+        persona_assignments = result.get("research_persona_assignments", {})
+        assert persona_assignments["Research Lead"] == "Lead"
+        assert persona_assignments["Bibliographer"] == "Biblio"
+
+        events = team.drain_persona_events()
+        assert events and any(event["persona"] == "Synthesist" for event in events)
+
+        transitions = team.transition_metrics.get("persona_transitions", [])
+        assert transitions
+        latest_transition = transitions[-1]
+        assert latest_transition["assignments"]["Research Lead"] == "Lead"
+        assert latest_transition["fallback"] is False
 
     @pytest.mark.medium
     def test_build_consensus_with_conflicts_succeeds(self, mock_agent_with_expertise):

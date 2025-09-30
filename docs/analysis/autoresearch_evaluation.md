@@ -71,6 +71,19 @@ implementation guidance. Update the role assignment matrix and BDD coverage so
 primus rotation still honours expertise and collaboration checkpoints remain
 automated.
 
+### Implementation Snapshot
+- **Research Lead** now inherits Primus leadership alongside supervisor
+  oversight, coordinating research queues and ensuring critique cycles remain
+  accountable to the existing WSDE rotation contract.
+- **Bibliographer** pairs evaluator analysis with worker execution so citation
+  vetting feeds the same review loops already exercised by WSDE evaluators and
+  supervisors.
+- **Synthesist** extends designer planning with evaluator validation, closing
+  the loop between ideation and assessment before work reaches implementation.
+- Persona toggles in the CLI surface these configurations for Autoresearch
+  sessions while emitting MVUU telemetry that records assignments, transitions,
+  and any expertise-based fallbacks.
+
 ### Socratic Q&A
 - **Q:** How do research personas coexist with the core WSDE roles?
   **A:** Map each new persona to a supporting responsibility (e.g., Synthesist →

@@ -3,7 +3,7 @@ from __future__ import annotations
 """Agent coordinating WSDE team retrospective reviews."""
 
 from collections.abc import Sequence
-from typing import Protocol, TypedDict, cast
+from typing import Any, Protocol, TypedDict, cast
 
 from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
@@ -39,6 +39,12 @@ class RetrospectiveSummary(TypedDict):
     sprint: int
 
 
+class RetrospectiveSummaryPayload(RetrospectiveSummary, total=False):
+    """Retrospective summary extended with optional telemetry."""
+
+    research_persona_events: list[dict[str, Any]]
+
+
 class SupportsRetrospectiveRecorder(Protocol):
     """Protocol for teams that can record retrospective summaries."""
 
@@ -55,7 +61,7 @@ class WSDETeamCoordinatorAgent:
 
     def run_retrospective(
         self, notes: Sequence[RetrospectiveNote], sprint: int
-    ) -> RetrospectiveSummary:
+    ) -> RetrospectiveSummaryPayload:
         """Aggregate notes and record a retrospective summary.
 
         Args:
@@ -78,7 +84,7 @@ class WSDETeamCoordinatorAgent:
             aggregated["action_items"].extend(item.get("action_items", []))
 
         summary = cast(
-            RetrospectiveSummary,
+            RetrospectiveSummaryPayload,
             map_retrospective_to_summary(aggregated, sprint),
         )
 
@@ -97,11 +103,17 @@ class WSDETeamCoordinatorAgent:
                     "Memory synchronization failed during retrospective",
                     exc_info=True,
                 )
+        drain = getattr(self._team, "drain_persona_events", None)
+        if callable(drain):
+            persona_events = drain()
+            if persona_events:
+                summary["research_persona_events"] = persona_events
         return summary
 
 
 __all__ = [
     "RetrospectiveNote",
     "RetrospectiveSummary",
+    "RetrospectiveSummaryPayload",
     "WSDETeamCoordinatorAgent",
 ]
