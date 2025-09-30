@@ -1,0 +1,3 @@
+poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel
+Outcome: FAILED — entry point not installed (`ModuleNotFoundError: No module named 'devsynth'`).
+The CLI shim is unavailable in this environment; use `poetry install` or invoke run_tests via PYTHONPATH=src.

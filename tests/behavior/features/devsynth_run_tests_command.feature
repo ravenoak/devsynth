@@ -21,3 +21,9 @@ Feature: devsynth run-tests command
     Given the environment variable "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" is "false"
     When I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --feature experimental"
     Then the command should succeed
+
+  Scenario: run-tests produces coverage for fast and medium speeds
+    Given the environment variable "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE" is "false"
+    When I invoke "devsynth run-tests --speed=fast --speed=medium --report --no-parallel"
+    Then the command should succeed
+    And the coverage report "test_reports/coverage.json" should exist

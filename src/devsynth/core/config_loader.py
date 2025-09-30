@@ -20,8 +20,8 @@ import yaml
 if TYPE_CHECKING:  # pragma: no cover - used for typing only
     from dataclasses import dataclass
     from typer import Context as TyperContext
-else:  # pragma: no cover - runtime validation uses Pydantic dataclass
-    from pydantic.dataclasses import dataclass
+else:  # pragma: no cover - typer is optional at runtime
+    from dataclasses import dataclass
     TyperContext = object
 
 
@@ -108,21 +108,35 @@ class CoreConfig:
 _ENV_PREFIX = "DEVSYNTH_"
 
 
-def _is_json_value(value: object) -> TypeGuard[JsonValue]:
+_MAX_JSON_DEPTH = 32
+
+
+def _is_json_value(
+    value: object, *, _depth: int = 0, _max_depth: int = _MAX_JSON_DEPTH
+) -> TypeGuard[JsonValue]:
+    if _depth > _max_depth:
+        return False
     if value is None or isinstance(value, (str, int, float, bool)):
         return True
     if isinstance(value, list):
-        return all(_is_json_value(item) for item in value)
+        return all(
+            _is_json_value(item, _depth=_depth + 1, _max_depth=_max_depth)
+            for item in value
+        )
     if isinstance(value, dict):
-        return _is_json_object(value)
+        return _is_json_object(value, _depth=_depth + 1, _max_depth=_max_depth)
     return False
 
 
-def _is_json_object(value: object) -> TypeGuard[JsonObject]:
-    if not isinstance(value, dict):
+def _is_json_object(
+    value: object, *, _depth: int = 0, _max_depth: int = _MAX_JSON_DEPTH
+) -> TypeGuard[JsonObject]:
+    if _depth > _max_depth or not isinstance(value, dict):
         return False
     for key, item in value.items():
-        if not isinstance(key, str) or not _is_json_value(item):
+        if not isinstance(key, str) or not _is_json_value(
+            item, _depth=_depth + 1, _max_depth=_max_depth
+        ):
             return False
     return True
 
