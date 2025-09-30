@@ -395,8 +395,6 @@ def _build_duckdb_stub() -> ModuleType:
                 vector = self._data["memory_vectors"].get(vector_id)
                 if vector:
                     embedding = vector["embedding"]
-                    if isinstance(embedding, str):
-                        embedding = json.loads(embedding)
                     results = [
                         (
                             vector["id"],
@@ -413,8 +411,6 @@ def _build_duckdb_stub() -> ModuleType:
                 results = []
                 for vector in self._data["memory_vectors"].values():
                     embedding = vector["embedding"]
-                    if isinstance(embedding, str):
-                        embedding = json.loads(embedding)
                     results.append(
                         (
                             vector["id"],

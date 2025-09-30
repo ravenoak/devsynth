@@ -1,5 +1,7 @@
 import json
 import os
+import sys
+import types
 import uuid
 from datetime import datetime, timedelta
 
@@ -8,8 +10,62 @@ import pytest
 pytest.importorskip("tinydb")
 if os.environ.get("DEVSYNTH_RESOURCE_TINYDB_AVAILABLE", "true").lower() == "false":
     pytest.skip("TinyDB resource not available", allow_module_level=True)
+sys.modules.pop("devsynth.domain.interfaces.memory", None)
+interfaces_pkg = sys.modules.setdefault(
+    "devsynth.domain.interfaces", types.ModuleType("devsynth.domain.interfaces")
+)
+memory_stub = types.ModuleType("devsynth.domain.interfaces.memory")
+
+class _MemoryStore:
+    def store(self, item): ...
+
+    def retrieve(self, item_id): ...
+
+    def search(self, query): ...
+
+    def delete(self, item_id): ...
+
+    def begin_transaction(self): ...
+
+    def commit_transaction(self, transaction_id): ...
+
+    def rollback_transaction(self, transaction_id): ...
+
+    def is_transaction_active(self, transaction_id): ...
+
+
+class _VectorStore:
+    def store_vector(self, vector): ...
+
+    def retrieve_vector(self, vector_id): ...
+
+    def similarity_search(self, query_embedding, top_k=5): ...
+
+    def delete_vector(self, vector_id): ...
+
+    def get_collection_stats(self): ...
+
+
+class _ContextManager:
+    def add_to_context(self, key, value): ...
+
+    def get_from_context(self, key): ...
+
+    def get_full_context(self): ...
+
+    def clear_context(self): ...
+
+
+memory_stub.MemoryStore = _MemoryStore  # type: ignore[attr-defined]
+memory_stub.VectorStore = _VectorStore  # type: ignore[attr-defined]
+memory_stub.ContextManager = _ContextManager  # type: ignore[attr-defined]
+sys.modules["devsynth.domain.interfaces.memory"] = memory_stub
+setattr(interfaces_pkg, "memory", memory_stub)
+
+sys.modules.pop("devsynth.application.memory.tinydb_store", None)
+
 from devsynth.application.memory.tinydb_store import TinyDBStore
-from devsynth.application.memory.dto import MemoryRecord
+from devsynth.application.memory.dto import MemoryRecord, build_memory_record
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
 
@@ -60,12 +116,13 @@ class TestTinyDBStore:
         assert item.id == item_id
         retrieved_item = store.retrieve(item_id)
         assert retrieved_item is not None
-        assert isinstance(retrieved_item, MemoryItem)
-        assert retrieved_item.id == item_id
-        assert retrieved_item.content == "Test content"
-        assert retrieved_item.memory_type == MemoryType.SHORT_TERM
-        assert retrieved_item.metadata == {"key": "value"}
-        assert isinstance(retrieved_item.created_at, datetime)
+        record = build_memory_record(retrieved_item)
+        assert isinstance(record, MemoryRecord)
+        assert record.id == item_id
+        assert record.content == "Test content"
+        assert record.memory_type == MemoryType.SHORT_TERM
+        assert record.item.metadata == {"key": "value"}
+        assert isinstance(record.created_at, datetime)
 
     @pytest.mark.medium
     def test_retrieve_nonexistent_succeeds(self, store):
@@ -193,6 +250,8 @@ class TestTinyDBStore:
         store2 = TinyDBStore(temp_dir)
         retrieved_item = store2.retrieve(item_id)
         assert retrieved_item is not None
-        assert retrieved_item.id == item_id
-        assert retrieved_item.content == "Test content"
+        record = build_memory_record(retrieved_item)
+        assert isinstance(record, MemoryRecord)
+        assert record.id == item_id
+        assert record.content == "Test content"
         store2.close()
