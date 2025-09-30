@@ -12,7 +12,7 @@ from devsynth.application.collaboration.dto import AgentPayload
 def test_agent_message_to_dict() -> None:
     """ReqID: N/A"""
 
-    payload = AgentPayload(attributes={"x": 1})
+    payload = AgentPayload(attributes={"b": 2, "a": 1})
     msg = AgentMessage("a", "b", MessageType.TASK_ASSIGNMENT, payload)
     data = msg.to_dict()
     assert data["sender_id"] == "a"
@@ -20,7 +20,18 @@ def test_agent_message_to_dict() -> None:
     assert data["message_type"] == "TASK_ASSIGNMENT"
     assert data["content"] == payload.to_dict()
     assert msg.payload == payload
-    assert msg.content == {"x": 1}
+    assert msg.content == {"a": 1, "b": 2}
+
+
+@pytest.mark.fast
+def test_agent_message_accepts_string_payload() -> None:
+    """String payloads are wrapped into AgentPayload summaries."""
+
+    msg = AgentMessage("sender", "recipient", MessageType.STATUS_UPDATE, "hello world")
+
+    assert isinstance(msg.payload, AgentPayload)
+    assert msg.payload.summary == "hello world"
+    assert msg.content == {"summary": "hello world"}
 
 
 class DummyMemoryManager:

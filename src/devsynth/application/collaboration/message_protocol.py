@@ -36,8 +36,8 @@ class Message:
     metadata: Optional[MemorySyncPort]
     timestamp: datetime
 
-    def to_ordered_dict(self) -> Dict[str, Union[str, List[str], Dict[str, object], None]]:
-        data: "OrderedDict[str, Union[str, List[str], Dict[str, object], None]]" = OrderedDict()
+    def to_ordered_dict(self) -> Dict[str, JSONValue]:
+        data: "OrderedDict[str, JSONValue]" = OrderedDict()
         data["message_id"] = self.message_id
         data["message_type"] = self.message_type.value
         data["sender"] = self.sender
@@ -144,21 +144,59 @@ class MessageStore:
         self._save_messages()
 
     def get_all_messages(self) -> List[Message]:
-        return list(self.messages.values())
+        return self.get_messages()
+
+    def get_messages(self, filters: Optional[MessageFilter] = None) -> List[Message]:
+        messages = list(self.messages.values())
+        if filters is None:
+            return messages
+        return [m for m in messages if self._matches_filter(m, filters)]
+
+    @staticmethod
+    def _coerce_message_type(value: str) -> MessageType:
+        try:
+            return MessageType(value)
+        except ValueError:
+            try:
+                return MessageType[value]
+            except KeyError as exc:  # pragma: no cover - defensive
+                raise ValueError(f"Unknown message type: {value!r}") from exc
+
+    def _matches_filter(self, message: Message, filters: MessageFilter) -> bool:
+        if filters.message_type:
+            expected_type = self._coerce_message_type(filters.message_type)
+            if message.message_type != expected_type:
+                return False
+        if filters.sender and message.sender != filters.sender:
+            return False
+        if filters.recipient and filters.recipient not in message.recipients:
+            return False
+        if filters.subject_contains and filters.subject_contains.lower() not in message.subject.lower():
+            return False
+        if filters.since is not None and message.timestamp < filters.since:
+            return False
+        if filters.until is not None and message.timestamp > filters.until:
+            return False
+        return True
 
 
 from ...domain.models.memory import MemoryItem, MemoryType
 from ..memory.memory_manager import MemoryManager
 from .dto import (
     AgentPayload,
+    CollaborationPayloadInput,
     CollaborationDTO,
     ConsensusOutcome,
+    JSONValue,
     MemorySyncPort,
+    MessageFilter,
+    MessageFilterInput,
     MessagePayload,
     PeerReviewRecord,
     TaskDescriptor,
     deserialize_message_payload,
     ensure_collaboration_payload,
+    ensure_message_filter,
     ensure_memory_sync_port,
     serialize_message_payload,
     serialize_memory_sync_port,
@@ -184,7 +222,7 @@ class MessageProtocol:
         memory_manager: Optional[MemoryManager] = None,
     ) -> None:
         self.store = store or MessageStore()
-        self.history: List[Message] = self.store.get_all_messages()
+        self.history: List[Message] = self.store.get_messages()
         self.memory_manager = memory_manager
 
     def send_message(
@@ -193,8 +231,8 @@ class MessageProtocol:
         recipients: List[str],
         message_type: Union[MessageType, str],
         subject: str,
-        content: Union[MessagePayload, Mapping[str, object], str, int, float, bool, None],
-        metadata: Optional[Union[MemorySyncPort, Mapping[str, object]]] = None,
+        content: CollaborationPayloadInput,
+        metadata: Optional[Union[MemorySyncPort, Mapping[str, JSONValue]]] = None,
     ) -> Message:
         """Create and store a message."""
 
@@ -254,20 +292,16 @@ class MessageProtocol:
         return message
 
     def get_messages(
-        self, agent: Optional[str] = None, filters: Optional[Dict[str, Any]] = None
+        self,
+        agent: Optional[str] = None,
+        filters: Optional[MessageFilterInput] = None,
     ) -> List[Message]:
         """Retrieve messages optionally filtered by agent or criteria."""
 
-        messages = list(self.store.get_all_messages())
+        filter_obj = ensure_message_filter(filters) if filters is not None else None
+        messages = self.store.get_messages(filter_obj)
         if agent:
             messages = [
                 m for m in messages if agent in m.recipients or m.sender == agent
             ]
-        if filters:
-            if "message_type" in filters:
-                mt = filters["message_type"]
-                mt = MessageType(mt) if isinstance(mt, str) else mt
-                messages = [m for m in messages if m.message_type == mt]
-            if "since" in filters:
-                messages = [m for m in messages if m.timestamp >= filters["since"]]
         return messages
