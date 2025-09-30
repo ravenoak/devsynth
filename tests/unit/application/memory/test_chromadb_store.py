@@ -4,6 +4,7 @@ import chromadb
 import pytest
 
 from devsynth.application.memory.chromadb_store import ChromaDBStore
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
@@ -44,9 +45,10 @@ def test_store_and_retrieve_with_fallback(monkeypatch, tmp_path):
 
     store.store(item)
     retrieved = store.retrieve(item.id)
-    assert isinstance(retrieved, MemoryItem)
+    assert isinstance(retrieved, MemoryRecord)
+    assert isinstance(retrieved.item.metadata, dict)
     assert isinstance(retrieved.metadata, dict)
-    assert retrieved.content == "hello"
+    assert retrieved.item.content == "hello"
 
     assert store.delete(item.id) is True
     assert store.retrieve(item.id) is None

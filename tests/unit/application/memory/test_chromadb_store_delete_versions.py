@@ -11,6 +11,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from devsynth.application.memory.chromadb_store import ChromaDBStore
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem
 
 
@@ -29,7 +30,10 @@ def test_delete_also_removes_versions(tmp_path):
     item = MemoryItem(
         id="abc", content="x", memory_type=None, metadata={}, created_at=None
     )
-    store.retrieve = lambda item_id: item if item_id == "abc" else None  # type: ignore
+    record = MemoryRecord(item=item)
+    store.retrieve = (  # type: ignore[assignment]
+        lambda item_id: record if item_id == "abc" else None
+    )
 
     # Act
     ok = store.delete("abc")
