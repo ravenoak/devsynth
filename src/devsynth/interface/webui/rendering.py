@@ -5,6 +5,7 @@ import json
 import os
 import time
 from collections.abc import Callable, Mapping, Sequence
+from contextlib import ExitStack
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,49 @@ except ImportError:  # pragma: no cover - optional dependency
 
 
 logger = DevSynthLogger(__name__)
+
+
+def simulate_progress_rendering(
+    pages: "ProjectSetupPages",
+    summary: Mapping[str, Any],
+    *,
+    container: Any | None = None,
+    errors: Sequence[object] | None = None,
+    clock: Callable[[], float] | None = None,
+) -> dict[str, Any]:
+    """Render a deterministic progress summary without a Streamlit runtime."""
+
+    events: list[tuple[str, Mapping[str, Any]]] = []
+
+    with ExitStack() as stack:
+        if clock is not None:
+            original_time = time.time
+
+            def _restore_time() -> None:
+                time.time = original_time
+
+            stack.callback(_restore_time)
+            time.time = clock
+
+        pages._render_progress_summary(summary, container=container)
+        events.append(
+            (
+                "summary",
+                {
+                    "description": sanitize_output(
+                        str(summary.get("description", ""))
+                    ),
+                },
+            )
+        )
+
+        if errors:
+            for raw in errors:
+                message = sanitize_output(str(raw))
+                pages.display_result(message, message_type="error", highlight=False)
+                events.append(("error", {"message": message}))
+
+    return {"events": tuple(events), "streamlit": pages.streamlit}
 
 
 class ProjectSetupPages(CommandHandlingMixin):
