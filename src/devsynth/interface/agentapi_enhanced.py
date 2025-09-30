@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Sequence
+from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import DefaultDict, Sequence
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -43,14 +45,103 @@ logger = DevSynthLogger(__name__)
 # Create a router for the API endpoints
 router = APIRouter()
 
-# Store the latest messages from the API
-LATEST_MESSAGES: tuple[str, ...] = tuple()
+@dataclass(slots=True)
+class RateLimiterState:
+    """Track request timestamps for each client."""
 
-# Store request timestamps for rate limiting
-REQUEST_TIMESTAMPS: dict[str, list[float]] = {}
+    limit: int = 10
+    window_seconds: int = 60
+    buckets: DefaultDict[str, list[float]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
 
-# Store metrics for the API
-API_METRICS = APIMetrics(start_time=time.time())
+    def prune(self, client_ip: str, *, now: float, window: int) -> None:
+        """Drop timestamps outside the configured window."""
+
+        bucket = self.buckets[client_ip]
+        if not bucket:
+            return
+        self.buckets[client_ip] = [ts for ts in bucket if now - ts < window]
+
+    def count(self, client_ip: str) -> int:
+        """Return the number of tracked timestamps for the client."""
+
+        return len(self.buckets[client_ip])
+
+    def record(self, client_ip: str, *, timestamp: float) -> None:
+        """Register a request timestamp for the client."""
+
+        self.buckets[client_ip].append(timestamp)
+
+
+@dataclass(slots=True)
+class MetricsTracker:
+    """Lightweight metrics accumulator that mirrors ``APIMetrics``."""
+
+    start_time: float = field(default_factory=time.time)
+    request_count: int = 0
+    error_count: int = 0
+    endpoint_counts: dict[str, int] = field(default_factory=dict)
+    endpoint_latency: dict[str, list[float]] = field(default_factory=dict)
+
+    def increment(self, endpoint: str) -> None:
+        """Record a request for the provided endpoint."""
+
+        self.request_count += 1
+        self.endpoint_counts[endpoint] = self.endpoint_counts.get(endpoint, 0) + 1
+
+    def record_latency(self, endpoint: str, latency: float) -> None:
+        """Track latency for an endpoint, ignoring negative values."""
+
+        if latency < 0:
+            return
+        samples = self.endpoint_latency.setdefault(endpoint, [])
+        samples.append(latency)
+
+    def record_error(self) -> None:
+        """Increment the error counter."""
+
+        self.error_count += 1
+
+    def snapshot(self) -> APIMetrics:
+        """Materialize the metrics in the shared Pydantic schema."""
+
+        return APIMetrics(
+            start_time=self.start_time,
+            request_count=self.request_count,
+            error_count=self.error_count,
+            endpoint_counts=dict(self.endpoint_counts),
+            endpoint_latency={
+                endpoint: tuple(samples)
+                for endpoint, samples in self.endpoint_latency.items()
+            },
+        )
+
+
+@dataclass(slots=True)
+class AgentAPIState:
+    """Container for mutable API state to simplify testing."""
+
+    latest_messages: tuple[str, ...] = tuple()
+    rate_limiter: RateLimiterState = field(default_factory=RateLimiterState)
+    metrics: MetricsTracker = field(default_factory=MetricsTracker)
+
+
+STATE = AgentAPIState()
+
+
+def get_state() -> AgentAPIState:
+    """Expose the singleton API state for use within the module."""
+
+    return STATE
+
+
+def reset_state(state: AgentAPIState | None = None) -> AgentAPIState:
+    """Reset the global state (primarily for tests)."""
+
+    global STATE
+    STATE = state or AgentAPIState()
+    return STATE
 
 
 class APIBridge(BaseAPIBridge):
@@ -81,18 +172,15 @@ class APIBridge(BaseAPIBridge):
 
 
 def _increment_endpoint(endpoint: str) -> None:
-    API_METRICS.request_count += 1
-    API_METRICS.endpoint_counts[endpoint] = (
-        API_METRICS.endpoint_counts.get(endpoint, 0) + 1
-    )
+    get_state().metrics.increment(endpoint)
 
 
 def _record_latency(endpoint: str, start_time: float) -> None:
-    API_METRICS.record_latency(endpoint, time.time() - start_time)
+    get_state().metrics.record_latency(endpoint, time.time() - start_time)
 
 
 def _record_error() -> None:
-    API_METRICS.error_count += 1
+    get_state().metrics.record_error()
 
 
 class ErrorResponse(BaseModel):
@@ -117,7 +205,37 @@ class ErrorResponse(BaseModel):
     )
 
 
-def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
+def _store_messages(messages: Sequence[str]) -> tuple[str, ...]:
+    """Persist workflow messages and expose them as an immutable tuple."""
+
+    state = get_state()
+    state.latest_messages = tuple(messages)
+    return state.latest_messages
+
+
+def _error_detail(
+    message: str,
+    *,
+    details: str | None = None,
+    suggestions: Sequence[str] | None = None,
+) -> dict[str, object]:
+    """Create a structured error payload for HTTP exceptions."""
+
+    return ErrorResponse(
+        error=message,
+        details=details,
+        suggestions=tuple(suggestions) if suggestions is not None else None,
+    ).model_dump()
+
+
+def rate_limit(
+    request: Request,
+    limit: int | None = None,
+    window: int | None = None,
+    *,
+    state: AgentAPIState | None = None,
+    current_time: float | None = None,
+) -> None:
     """Rate limit requests based on client IP address.
 
     Args:
@@ -129,27 +247,27 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
         HTTPException: If the rate limit is exceeded
     """
     client_ip = request.client.host if request.client else "unknown"
-    current_time = time.time()
+    now = current_time if current_time is not None else time.time()
+    state_obj = state or get_state()
 
-    # Initialize or update timestamps for this client
-    if client_ip not in REQUEST_TIMESTAMPS:
-        REQUEST_TIMESTAMPS[client_ip] = []
+    limiter = state_obj.rate_limiter
+    effective_limit = limit if limit is not None else limiter.limit
+    window_seconds = window if window is not None else limiter.window_seconds
 
-    # Remove timestamps older than the window
-    REQUEST_TIMESTAMPS[client_ip] = [
-        ts for ts in REQUEST_TIMESTAMPS[client_ip] if current_time - ts < window
-    ]
+    limiter.prune(client_ip, now=now, window=window_seconds)
 
-    # Check if the rate limit is exceeded
-    if len(REQUEST_TIMESTAMPS[client_ip]) >= limit:
+    if limiter.count(client_ip) >= effective_limit:
         logger.warning(f"Rate limit exceeded for client {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Rate limit exceeded. Try again in {window} seconds.",
+            detail=_error_detail(
+                "Rate limit exceeded",
+                details=f"Try again in {window_seconds} seconds.",
+                suggestions=("Wait before retrying the request",),
+            ),
         )
 
-    # Add the current timestamp
-    REQUEST_TIMESTAMPS[client_ip].append(current_time)
+    limiter.record(client_ip, timestamp=now)
 
 
 @router.post(
@@ -195,13 +313,13 @@ async def init_endpoint(
             logger.error(f"Path not found: {init_request.path}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Path not found: {init_request.path}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Path not found: {init_request.path}",
+                    suggestions=(
                         "Create the directory before initializing",
                         "Check the path and try again",
-                    ],
-                },
+                    ),
+                ),
             )
 
         init_cmd(
@@ -211,9 +329,8 @@ async def init_endpoint(
             goals=init_request.goals,
             bridge=bridge,
         )
-        global LATEST_MESSAGES
-        LATEST_MESSAGES = tuple(bridge.messages)
-        return WorkflowResponse(messages=LATEST_MESSAGES)
+        messages = _store_messages(bridge.messages)
+        return WorkflowResponse(messages=messages)
     except HTTPException:
         # Re-raise HTTP exceptions
         raise
@@ -224,36 +341,36 @@ async def init_endpoint(
         if isinstance(e, FileNotFoundError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"File not found: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"File not found: {str(e)}",
+                    suggestions=(
                         "Check that the file exists",
                         "Provide the correct file path",
-                    ],
-                },
+                    ),
+                ),
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "error": f"Permission denied: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Permission denied: {str(e)}",
+                    suggestions=(
                         "Check file permissions",
                         "Run the command with appropriate permissions",
-                    ],
-                },
+                    ),
+                ),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error": f"Failed to initialize project: {str(e)}",
-                    "details": str(e),
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Failed to initialize project: {str(e)}",
+                    details=str(e),
+                    suggestions=(
                         "Check the logs for more information",
                         "Try again with different parameters",
-                    ],
-                },
+                    ),
+                ),
             )
 
 
@@ -305,12 +422,11 @@ async def gather_endpoint(
         from devsynth.application.cli import gather_cmd
 
         gather_cmd(bridge=bridge)
-        global LATEST_MESSAGES
-        LATEST_MESSAGES = tuple(bridge.messages)
+        messages = _store_messages(bridge.messages)
 
         _record_latency("gather", start_time)
 
-        return WorkflowResponse(messages=LATEST_MESSAGES)
+        return WorkflowResponse(messages=messages)
     except HTTPException:
         # Re-raise HTTP exceptions
         _record_error()
@@ -323,25 +439,25 @@ async def gather_endpoint(
         if isinstance(e, ValueError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Invalid input: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Invalid input: {str(e)}",
+                    suggestions=(
                         "Check the input values",
                         "Ensure all required fields are provided",
-                    ],
-                },
+                    ),
+                ),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error": f"Failed to gather requirements: {str(e)}",
-                    "details": str(e),
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Failed to gather requirements: {str(e)}",
+                    details=str(e),
+                    suggestions=(
                         "Check the logs for more information",
                         "Try again with different parameters",
-                    ],
-                },
+                    ),
+                ),
             )
 
 
@@ -392,12 +508,11 @@ async def synthesize_endpoint(
             target=synthesize_request.target.value if synthesize_request.target else None,
             bridge=bridge,
         )
-        global LATEST_MESSAGES
-        LATEST_MESSAGES = tuple(bridge.messages)
+        messages = _store_messages(bridge.messages)
 
         _record_latency("synthesize", start_time)
 
-        return WorkflowResponse(messages=LATEST_MESSAGES)
+        return WorkflowResponse(messages=messages)
     except HTTPException:
         # Re-raise HTTP exceptions
         _record_error()
@@ -410,25 +525,25 @@ async def synthesize_endpoint(
         if isinstance(e, FileNotFoundError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"File not found: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"File not found: {str(e)}",
+                    suggestions=(
                         "Check that the file exists",
                         "Provide the correct file path",
-                    ],
-                },
+                    ),
+                ),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error": f"Failed to run synthesis pipeline: {str(e)}",
-                    "details": str(e),
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Failed to run synthesis pipeline: {str(e)}",
+                    details=str(e),
+                    suggestions=(
                         "Check the logs for more information",
                         "Try again with different parameters",
-                    ],
-                },
+                    ),
+                ),
             )
 
 
@@ -480,22 +595,21 @@ async def spec_endpoint(
             )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Requirements file not found: {spec_request.requirements_file}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Requirements file not found: {spec_request.requirements_file}",
+                    suggestions=(
                         "Check that the file exists",
                         "Provide the correct file path",
-                    ],
-                },
+                    ),
+                ),
             )
 
         spec_cmd(requirements_file=spec_request.requirements_file, bridge=bridge)
-        global LATEST_MESSAGES
-        LATEST_MESSAGES = tuple(bridge.messages)
+        messages = _store_messages(bridge.messages)
 
         _record_latency("spec", start_time)
 
-        return WorkflowResponse(messages=LATEST_MESSAGES)
+        return WorkflowResponse(messages=messages)
     except HTTPException:
         # Re-raise HTTP exceptions
         _record_error()
@@ -508,36 +622,36 @@ async def spec_endpoint(
         if isinstance(e, FileNotFoundError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"File not found: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"File not found: {str(e)}",
+                    suggestions=(
                         "Check that the file exists",
                         "Provide the correct file path",
-                    ],
-                },
+                    ),
+                ),
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "error": f"Permission denied: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Permission denied: {str(e)}",
+                    suggestions=(
                         "Check file permissions",
                         "Run the command with appropriate permissions",
-                    ],
-                },
+                    ),
+                ),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error": f"Failed to generate specifications: {str(e)}",
-                    "details": str(e),
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Failed to generate specifications: {str(e)}",
+                    details=str(e),
+                    suggestions=(
                         "Check the logs for more information",
                         "Try again with different parameters",
-                    ],
-                },
+                    ),
+                ),
             )
 
 
@@ -587,13 +701,13 @@ async def test_endpoint(
             logger.error(f"Spec file not found: {test_request.spec_file}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Spec file not found: {test_request.spec_file}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Spec file not found: {test_request.spec_file}",
+                    suggestions=(
                         "Check that the file exists",
                         "Provide the correct file path",
-                    ],
-                },
+                    ),
+                ),
             )
 
         # Check if the output directory exists if provided
@@ -601,13 +715,13 @@ async def test_endpoint(
             logger.error(f"Output directory not found: {test_request.output_dir}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Output directory not found: {test_request.output_dir}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Output directory not found: {test_request.output_dir}",
+                    suggestions=(
                         "Create the directory before generating tests",
                         "Provide the correct directory path",
-                    ],
-                },
+                    ),
+                ),
             )
 
         test_cmd(
@@ -615,12 +729,11 @@ async def test_endpoint(
             output_dir=test_request.output_dir,
             bridge=bridge,
         )
-        global LATEST_MESSAGES
-        LATEST_MESSAGES = tuple(bridge.messages)
+        messages = _store_messages(bridge.messages)
 
         _record_latency("test", start_time)
 
-        return WorkflowResponse(messages=LATEST_MESSAGES)
+        return WorkflowResponse(messages=messages)
     except HTTPException:
         # Re-raise HTTP exceptions
         _record_error()
@@ -633,36 +746,36 @@ async def test_endpoint(
         if isinstance(e, FileNotFoundError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"File not found: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"File not found: {str(e)}",
+                    suggestions=(
                         "Check that the file exists",
                         "Provide the correct file path",
-                    ],
-                },
+                    ),
+                ),
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "error": f"Permission denied: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Permission denied: {str(e)}",
+                    suggestions=(
                         "Check file permissions",
                         "Run the command with appropriate permissions",
-                    ],
-                },
+                    ),
+                ),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error": f"Failed to generate tests: {str(e)}",
-                    "details": str(e),
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Failed to generate tests: {str(e)}",
+                    details=str(e),
+                    suggestions=(
                         "Check the logs for more information",
                         "Try again with different parameters",
-                    ],
-                },
+                    ),
+                ),
             )
 
 
@@ -712,22 +825,21 @@ async def code_endpoint(
             logger.error(f"Output directory not found: {code_request.output_dir}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Output directory not found: {code_request.output_dir}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Output directory not found: {code_request.output_dir}",
+                    suggestions=(
                         "Create the directory before generating code",
                         "Provide the correct directory path",
-                    ],
-                },
+                    ),
+                ),
             )
 
         code_cmd(output_dir=code_request.output_dir, bridge=bridge)
-        global LATEST_MESSAGES
-        LATEST_MESSAGES = tuple(bridge.messages)
+        messages = _store_messages(bridge.messages)
 
         _record_latency("code", start_time)
 
-        return WorkflowResponse(messages=LATEST_MESSAGES)
+        return WorkflowResponse(messages=messages)
     except HTTPException:
         # Re-raise HTTP exceptions
         _record_error()
@@ -740,36 +852,36 @@ async def code_endpoint(
         if isinstance(e, FileNotFoundError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"File not found: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"File not found: {str(e)}",
+                    suggestions=(
                         "Check that the file exists",
                         "Provide the correct file path",
-                    ],
-                },
+                    ),
+                ),
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "error": f"Permission denied: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Permission denied: {str(e)}",
+                    suggestions=(
                         "Check file permissions",
                         "Run the command with appropriate permissions",
-                    ],
-                },
+                    ),
+                ),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error": f"Failed to generate code: {str(e)}",
-                    "details": str(e),
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Failed to generate code: {str(e)}",
+                    details=str(e),
+                    suggestions=(
                         "Check the logs for more information",
                         "Try again with different parameters",
-                    ],
-                },
+                    ),
+                ),
             )
 
 
@@ -819,22 +931,21 @@ async def doctor_endpoint(
             logger.error(f"Path not found: {doctor_request.path}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Path not found: {doctor_request.path}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Path not found: {doctor_request.path}",
+                    suggestions=(
                         "Check that the directory exists",
                         "Provide the correct directory path",
-                    ],
-                },
+                    ),
+                ),
             )
 
         doctor_cmd(path=doctor_request.path, fix=doctor_request.fix, bridge=bridge)
-        global LATEST_MESSAGES
-        LATEST_MESSAGES = tuple(bridge.messages)
+        messages = _store_messages(bridge.messages)
 
         _record_latency("doctor", start_time)
 
-        return WorkflowResponse(messages=LATEST_MESSAGES)
+        return WorkflowResponse(messages=messages)
     except HTTPException:
         # Re-raise HTTP exceptions
         _record_error()
@@ -847,36 +958,36 @@ async def doctor_endpoint(
         if isinstance(e, FileNotFoundError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"File not found: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"File not found: {str(e)}",
+                    suggestions=(
                         "Check that the file exists",
                         "Provide the correct file path",
-                    ],
-                },
+                    ),
+                ),
             )
         elif isinstance(e, PermissionError):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "error": f"Permission denied: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Permission denied: {str(e)}",
+                    suggestions=(
                         "Check file permissions",
                         "Run the command with appropriate permissions",
-                    ],
-                },
+                    ),
+                ),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error": f"Failed to run diagnostics: {str(e)}",
-                    "details": str(e),
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Failed to run diagnostics: {str(e)}",
+                    details=str(e),
+                    suggestions=(
                         "Check the logs for more information",
                         "Try again with different parameters",
-                    ],
-                },
+                    ),
+                ),
             )
 
 
@@ -931,12 +1042,12 @@ async def edrr_cycle_endpoint(
             logger.error(f"Invalid max_iterations: {edrr_cycle_request.max_iterations}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Invalid max_iterations: {edrr_cycle_request.max_iterations}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Invalid max_iterations: {edrr_cycle_request.max_iterations}",
+                    suggestions=(
                         "Use a value between 1 and 10 for max_iterations",
-                    ],
-                },
+                    ),
+                ),
             )
 
         edrr_cycle_cmd(
@@ -945,12 +1056,11 @@ async def edrr_cycle_endpoint(
             max_iterations=edrr_cycle_request.max_iterations,
             bridge=bridge,
         )
-        global LATEST_MESSAGES
-        LATEST_MESSAGES = tuple(bridge.messages)
+        messages = _store_messages(bridge.messages)
 
         _record_latency("edrr-cycle", start_time)
 
-        return WorkflowResponse(messages=LATEST_MESSAGES)
+        return WorkflowResponse(messages=messages)
     except HTTPException:
         # Re-raise HTTP exceptions
         _record_error()
@@ -963,25 +1073,25 @@ async def edrr_cycle_endpoint(
         if isinstance(e, ValueError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Invalid input: {str(e)}",
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Invalid input: {str(e)}",
+                    suggestions=(
                         "Check the input values",
                         "Ensure all required fields are provided",
-                    ],
-                },
+                    ),
+                ),
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "error": f"Failed to run EDRR cycle: {str(e)}",
-                    "details": str(e),
-                    "suggestions": [
+                detail=_error_detail(
+                    f"Failed to run EDRR cycle: {str(e)}",
+                    details=str(e),
+                    suggestions=(
                         "Check the logs for more information",
                         "Try again with different parameters",
-                    ],
-                },
+                    ),
+                ),
             )
 
 
@@ -1019,7 +1129,8 @@ async def health_endpoint(
     # Track metrics
     _increment_endpoint("health")
 
-    uptime = time.time() - API_METRICS.start_time
+    metrics = get_state().metrics
+    uptime = time.time() - metrics.start_time
     payload = HealthResponse(status="ok", uptime=uptime)
     return JSONResponse(content=payload.model_dump())
 
@@ -1058,34 +1169,35 @@ async def metrics_endpoint(
     # Track metrics
     _increment_endpoint("metrics")
 
-    # Calculate uptime
-    uptime = time.time() - API_METRICS.start_time
+    # Snapshot metrics for rendering
+    metrics_state = get_state().metrics.snapshot()
+    uptime = time.time() - metrics_state.start_time
 
     # Generate metrics in Prometheus format
-    metrics = []
-    metrics.append("# HELP api_uptime_seconds The uptime of the API in seconds")
-    metrics.append("# TYPE api_uptime_seconds gauge")
-    metrics.append(f"api_uptime_seconds {uptime}")
+    lines: list[str] = []
+    lines.append("# HELP api_uptime_seconds The uptime of the API in seconds")
+    lines.append("# TYPE api_uptime_seconds gauge")
+    lines.append(f"api_uptime_seconds {uptime}")
 
-    metrics.append("# HELP request_count Total number of requests received")
-    metrics.append("# TYPE request_count counter")
-    metrics.append(f"request_count {API_METRICS.request_count}")
+    lines.append("# HELP request_count Total number of requests received")
+    lines.append("# TYPE request_count counter")
+    lines.append(f"request_count {metrics_state.request_count}")
 
-    metrics.append("# HELP error_count Total number of errors")
-    metrics.append("# TYPE error_count counter")
-    metrics.append(f"error_count {API_METRICS.error_count}")
+    lines.append("# HELP error_count Total number of errors")
+    lines.append("# TYPE error_count counter")
+    lines.append(f"error_count {metrics_state.error_count}")
 
-    metrics.append("# HELP endpoint_requests Number of requests per endpoint")
-    metrics.append("# TYPE endpoint_requests counter")
-    for endpoint, count in API_METRICS.endpoint_counts.items():
-        metrics.append(f'endpoint_requests{{endpoint="{endpoint}"}} {count}')
+    lines.append("# HELP endpoint_requests Number of requests per endpoint")
+    lines.append("# TYPE endpoint_requests counter")
+    for endpoint, count in metrics_state.endpoint_counts.items():
+        lines.append(f'endpoint_requests{{endpoint="{endpoint}"}} {count}')
 
-    metrics.append("# HELP endpoint_latency_seconds Latency per endpoint in seconds")
-    metrics.append("# TYPE endpoint_latency_seconds histogram")
-    for endpoint, latencies in API_METRICS.endpoint_latency.items():
+    lines.append("# HELP endpoint_latency_seconds Latency per endpoint in seconds")
+    lines.append("# TYPE endpoint_latency_seconds histogram")
+    for endpoint, latencies in metrics_state.endpoint_latency.items():
         if latencies:
             avg_latency = sum(latencies) / len(latencies)
-            metrics.append(
+            lines.append(
                 f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="avg"}} {avg_latency}'
             )
             if len(latencies) >= 2:
@@ -1093,17 +1205,17 @@ async def metrics_endpoint(
                 p50 = sorted_latencies[len(sorted_latencies) // 2]
                 p95 = sorted_latencies[int(len(sorted_latencies) * 0.95)]
                 p99 = sorted_latencies[int(len(sorted_latencies) * 0.99)]
-                metrics.append(
+                lines.append(
                     f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.5"}} {p50}'
                 )
-                metrics.append(
+                lines.append(
                     f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.95"}} {p95}'
                 )
-                metrics.append(
+                lines.append(
                     f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.99"}} {p99}'
                 )
 
-    metrics_payload = MetricsResponse(metrics=tuple(metrics))
+    metrics_payload = MetricsResponse(metrics=tuple(lines))
     return PlainTextResponse(content="\n".join(metrics_payload.metrics))
 
 
@@ -1138,7 +1250,7 @@ async def status_endpoint(
     # Apply rate limiting
     rate_limit(request)
 
-    return WorkflowResponse(messages=LATEST_MESSAGES)
+    return WorkflowResponse(messages=get_state().latest_messages)
 
 
 # Create a FastAPI app with the enhanced router
@@ -1166,14 +1278,14 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "error": "An unexpected error occurred",
-            "details": str(exc),
-            "suggestions": [
+        content=_error_detail(
+            "An unexpected error occurred",
+            details=str(exc),
+            suggestions=(
                 "Check the logs for more information",
                 "Contact support if the issue persists",
-            ],
-        },
+            ),
+        ),
     )
 
 

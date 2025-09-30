@@ -5,7 +5,7 @@ pytest.importorskip("fastapi.testclient")
 
 import importlib
 import sys
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
@@ -73,6 +73,19 @@ def _setup(monkeypatch):
         "doctor_cmd": doctor_stub.doctor_cmd,
         "edrr_cycle_cmd": edrr_stub.edrr_cycle_cmd,
     }
+
+
+def _setup_enhanced(monkeypatch):
+    monkeypatch.setattr(
+        "devsynth.api.settings",
+        SimpleNamespace(access_token="test_token"),
+        raising=False,
+    )
+    import devsynth.interface.agentapi_enhanced as enhanced
+
+    importlib.reload(enhanced)
+    enhanced.reset_state()
+    return enhanced
 
 
 @pytest.mark.medium
@@ -186,3 +199,63 @@ def test_edrr_cycle_route_succeeds(monkeypatch):
     assert resp.status_code == 200
     assert resp.json() == {"messages": ["edrr:Improve code"]}
     setup["edrr_cycle_cmd"].assert_called_once()
+
+
+@pytest.mark.medium
+def test_enhanced_metrics_endpoint_reports_requests(monkeypatch):
+    """Metrics endpoint includes counts for health and metrics routes.",
+
+    ReqID: N/A"""
+
+    enhanced = _setup_enhanced(monkeypatch)
+    client = TestClient(enhanced.app)
+    headers = {"Authorization": "Bearer test_token"}
+
+    first = client.get("/health", headers=headers)
+    assert first.status_code == 200
+
+    metrics = client.get("/metrics", headers=headers)
+    assert metrics.status_code == 200
+    lines = [line for line in metrics.text.splitlines() if line]
+    assert "request_count 2" in lines
+    assert 'endpoint_requests{endpoint="health"} 1' in lines
+    assert 'endpoint_requests{endpoint="metrics"} 1' in lines
+
+
+@pytest.mark.medium
+def test_enhanced_rate_limit_returns_structured_error(monkeypatch):
+    """Rate limit responses expose typed payloads for clients.",
+
+    ReqID: N/A"""
+
+    enhanced = _setup_enhanced(monkeypatch)
+    state = enhanced.get_state()
+    state.rate_limiter.limit = 1
+    client = TestClient(enhanced.app)
+    headers = {"Authorization": "Bearer test_token"}
+
+    assert client.get("/health", headers=headers).status_code == 200
+    throttled = client.get("/health", headers=headers)
+    assert throttled.status_code == 429
+    payload = throttled.json()
+    assert payload["error"] == "Rate limit exceeded"
+    assert payload["suggestions"] == ["Wait before retrying the request"]
+
+
+@pytest.mark.medium
+def test_enhanced_init_error_payload(monkeypatch, tmp_path):
+    """Init route surfaces typed error structures on bad input.",
+
+    ReqID: N/A"""
+
+    enhanced = _setup_enhanced(monkeypatch)
+    client = TestClient(enhanced.app)
+    headers = {"Authorization": "Bearer test_token"}
+
+    response = client.post(
+        "/init", json={"path": str(tmp_path / "missing")}, headers=headers
+    )
+    assert response.status_code == 400
+    payload = response.json()
+    assert payload["error"].startswith("Path not found")
+    assert payload["suggestions"][0].startswith("Create the directory")

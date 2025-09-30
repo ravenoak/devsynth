@@ -3,6 +3,7 @@ import pytest
 pytest.importorskip("fastapi")
 pytest.importorskip("fastapi.testclient")
 
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from fastapi import HTTPException
@@ -37,6 +38,16 @@ from devsynth.interface.agentapi_models import (
     TestSpecRequest,
     WorkflowResponse,
 )
+
+
+@pytest.fixture
+def enhanced_api():
+    """Provide a reset enhanced agent API module for type-sensitive tests."""
+
+    import devsynth.interface.agentapi_enhanced as agentapi_enhanced
+
+    agentapi_enhanced.reset_state()
+    return agentapi_enhanced
 
 
 @pytest.fixture
@@ -362,3 +373,73 @@ def test_endpoints_handle_errors_properly_raises_error(mock_cli_commands, clean_
         init_endpoint(request, token=None)
     assert excinfo.value.status_code == 500
     assert "Failed to initialize project" in excinfo.value.detail
+
+
+@pytest.mark.fast
+def test_enhanced_rate_limit_state_tracks_buckets(enhanced_api):
+    """Rate limiter maintains typed buckets across invocations.",
+
+    ReqID: N/A"""
+
+    request = SimpleNamespace(client=SimpleNamespace(host="1.2.3.4"))
+    state = enhanced_api.AgentAPIState()
+
+    enhanced_api.rate_limit(request, limit=2, window=30, state=state, current_time=1.0)
+    enhanced_api.rate_limit(request, limit=2, window=30, state=state, current_time=2.0)
+
+    assert state.rate_limiter.count("1.2.3.4") == 2
+    bucket = state.rate_limiter.buckets["1.2.3.4"]
+    assert all(isinstance(ts, float) for ts in bucket)
+
+    with pytest.raises(enhanced_api.HTTPException) as exc:
+        enhanced_api.rate_limit(
+            request,
+            limit=2,
+            window=30,
+            state=state,
+            current_time=3.0,
+        )
+
+    detail = exc.value.detail
+    assert detail["error"] == "Rate limit exceeded"
+    assert tuple(detail.get("suggestions", ())) == (
+        "Wait before retrying the request",
+    )
+
+
+@pytest.mark.fast
+def test_enhanced_metrics_snapshot_typed(enhanced_api):
+    """Metrics tracker exposes structured snapshots for serialization.",
+
+    ReqID: N/A"""
+
+    state = enhanced_api.AgentAPIState()
+    state.metrics.increment("health")
+    state.metrics.record_latency("health", 0.5)
+    state.metrics.record_error()
+
+    snapshot = state.metrics.snapshot()
+    assert snapshot.request_count == 1
+    assert snapshot.error_count == 1
+    assert snapshot.endpoint_counts == {"health": 1}
+    assert snapshot.endpoint_latency["health"] == (0.5,)
+
+
+@pytest.mark.fast
+def test_enhanced_init_endpoint_returns_typed_error(enhanced_api, tmp_path):
+    """Initialization failures surface typed error payloads.",
+
+    ReqID: N/A"""
+
+    request = SimpleNamespace(client=SimpleNamespace(host="9.9.9.9"))
+    init_request = InitRequest(path=str(tmp_path / "does-not-exist"))
+
+    with pytest.raises(enhanced_api.HTTPException) as exc:
+        enhanced_api.init_endpoint(request, init_request, token=None)
+
+    detail = exc.value.detail
+    assert detail["error"].startswith("Path not found")
+    assert tuple(detail["suggestions"]) == (
+        "Create the directory before initializing",
+        "Check the path and try again",
+    )
