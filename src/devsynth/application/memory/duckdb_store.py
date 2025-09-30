@@ -11,11 +11,11 @@ import json
 import os
 import uuid
 
-import numpy as np
-import tiktoken
+import numpy as np  # type: ignore[import-not-found]
+import tiktoken  # type: ignore[import-not-found]
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import cast
 
 from devsynth.core import feature_flags
 from devsynth.exceptions import (
@@ -32,7 +32,12 @@ from .adapters._duckdb_protocols import (
     DuckDBConnectionProtocol,
     DuckDBModuleProtocol,
 )
-from .dto import MemoryMetadata
+from .dto import (
+    MemoryMetadata,
+    MemoryRecord,
+    MemorySearchQuery,
+    build_memory_record,
+)
 from .metadata_serialization import dumps as metadata_dumps, loads as metadata_loads
 
 # Create a logger for this module
@@ -59,7 +64,7 @@ class DuckDBStore(MemoryStore, VectorStore):
         self,
         base_path: str,
         enable_hnsw: bool = False,
-        hnsw_config: Optional[Dict[str, int]] = None,
+        hnsw_config: dict[str, int] | None = None,
     ):
         """
         Initialize a DuckDBStore.
@@ -107,7 +112,7 @@ class DuckDBStore(MemoryStore, VectorStore):
         # Initialize database schema
         self._initialize_schema()
 
-    def _initialize_schema(self):
+    def _initialize_schema(self) -> None:
         """Initialize the database schema if it doesn't exist."""
         try:
             # Load the vector extension
@@ -217,7 +222,7 @@ class DuckDBStore(MemoryStore, VectorStore):
     def _serialize_metadata(self, metadata: MemoryMetadata | None) -> str:
         """Serialize metadata to a JSON string using typed helpers."""
 
-        return metadata_dumps(metadata)
+        return cast(str, metadata_dumps(metadata))
 
     def _deserialize_metadata(self, metadata_str: str | None) -> MemoryMetadata:
         """Deserialize a JSON string into ``MemoryMetadata`` values."""
@@ -276,7 +281,7 @@ class DuckDBStore(MemoryStore, VectorStore):
             self.token_count += token_count
 
             logger.info(f"Stored item with ID {item.id} in DuckDB")
-            return item.id
+            return str(item.id)
 
         except Exception as e:
             logger.error(f"Failed to store item in DuckDB: {e}")
@@ -287,7 +292,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                 original_error=e,
             )
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """
         Retrieve an item from memory by ID.
 
@@ -350,15 +355,17 @@ class DuckDBStore(MemoryStore, VectorStore):
                 original_error=e,
             )
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
         Args:
-            query: Dictionary of search criteria
+            query: Mapping of search criteria compatible with ``MemoryMetadata``
 
         Returns:
-            List of matching memory items
+            List of matching memory records emitted by the DuckDB store
 
         Raises:
             MemoryStoreError: If the search operation fails
@@ -368,7 +375,7 @@ class DuckDBStore(MemoryStore, VectorStore):
 
             # Build the SQL query
             sql = "SELECT id, content, memory_type, metadata, created_at FROM memory_items WHERE 1=1"
-            params = []
+            params: list[object] = []
 
             # Add query conditions
             for key, value in query.items():
@@ -393,8 +400,8 @@ class DuckDBStore(MemoryStore, VectorStore):
             # Execute the query
             results = self.conn.execute(sql, params).fetchall()
 
-            # Convert results to MemoryItems
-            items = []
+            # Convert results to MemoryRecords
+            records: list[MemoryRecord] = []
             for result in results:
                 # Deserialize metadata
                 metadata = self._deserialize_metadata(result[3])
@@ -414,15 +421,19 @@ class DuckDBStore(MemoryStore, VectorStore):
                     created_at=created_at,
                 )
 
-                items.append(item)
+                records.append(
+                    build_memory_record(item, source=self.__class__.__name__)
+                )
 
             # Update token count
-            if items:
-                token_count = sum(self._count_tokens(str(item)) for item in items)
+            if records:
+                token_count = sum(
+                    self._count_tokens(str(record.item)) for record in records
+                )
                 self.token_count += token_count
 
-            logger.info(f"Found {len(items)} matching items in DuckDB")
-            return items
+            logger.info(f"Found {len(records)} matching items in DuckDB")
+            return records
 
         except Exception as e:
             logger.error(f"Error searching items in DuckDB: {e}")
@@ -576,7 +587,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                     logger.warning(f"Failed to create HNSW index: {e}")
 
             logger.info(f"Stored vector with ID {vector.id} in DuckDB")
-            return vector.id
+            return str(vector.id)
 
         except Exception as e:
             logger.error(f"Failed to store vector in DuckDB: {e}")
@@ -587,7 +598,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                 original_error=e,
             )
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """
         Retrieve a vector from the vector store by ID.
 
@@ -649,8 +660,8 @@ class DuckDBStore(MemoryStore, VectorStore):
             )
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: list[float], top_k: int = 5
+    ) -> list[MemoryVector]:
         """
         Search for vectors similar to the query embedding.
 
@@ -815,7 +826,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                 original_error=e,
             )
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, object]:
         """
         Get statistics about the vector store collection.
 

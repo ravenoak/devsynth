@@ -6,12 +6,13 @@ import json
 import os
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from collections.abc import Mapping
+from typing import cast
 
-import tiktoken
-from tinydb import Query, TinyDB
-from tinydb.middlewares import CachingMiddleware
-from tinydb.storages import JSONStorage, Storage, touch
+import tiktoken  # type: ignore[import-not-found]
+from tinydb import Query, TinyDB  # type: ignore[import-not-found]
+from tinydb.middlewares import CachingMiddleware  # type: ignore[import-not-found]
+from tinydb.storages import JSONStorage, Storage, touch  # type: ignore[import-not-found]
 
 from devsynth.exceptions import (
     DevSynthError,
@@ -25,6 +26,12 @@ from devsynth.security.encryption import decrypt_bytes, encrypt_bytes
 
 from ...domain.interfaces.memory import MemoryStore
 from ...domain.models.memory import MemoryItem, MemoryType
+from .dto import (
+    MemoryMetadata,
+    MemoryRecord,
+    MemorySearchQuery,
+    build_memory_record,
+)
 
 
 class EncryptedJSONStorage(Storage):
@@ -39,7 +46,7 @@ class EncryptedJSONStorage(Storage):
     def close(self) -> None:
         self._handle.close()
 
-    def read(self) -> Optional[Dict[str, Dict[str, Any]]]:
+    def read(self) -> dict[str, dict[str, object]] | None:
         self._handle.seek(0, os.SEEK_END)
         size = self._handle.tell()
         if not size:
@@ -47,9 +54,12 @@ class EncryptedJSONStorage(Storage):
         self._handle.seek(0)
         data = self._handle.read()
         data = decrypt_bytes(data, key=self._key)
-        return json.loads(data.decode("utf-8"))
+        payload = json.loads(data.decode("utf-8"))
+        if not isinstance(payload, dict):
+            raise TypeError("Encrypted TinyDB payload must deserialize into a mapping")
+        return cast(dict[str, dict[str, object]], payload)
 
-    def write(self, data: Dict[str, Dict[str, Any]]):
+    def write(self, data: dict[str, dict[str, object]]) -> None:
         self._handle.seek(0)
         raw = json.dumps(data).encode("utf-8")
         raw = encrypt_bytes(raw, key=self._key)
@@ -71,7 +81,7 @@ class TinyDBStore(MemoryStore):
         base_path: str,
         *,
         encryption_enabled: bool = False,
-        encryption_key: Union[str, None] = None,
+        encryption_key: str | None = None,
     ):
         """
         Initialize a TinyDBStore.
@@ -123,7 +133,7 @@ class TinyDBStore(MemoryStore):
             # Approximate token count (roughly 4 characters per token)
             return len(text) // 4
 
-    def _serialize_memory_item(self, item: MemoryItem) -> Dict[str, Any]:
+    def _serialize_memory_item(self, item: MemoryItem) -> dict[str, object]:
         """
         Serialize a MemoryItem to a dictionary for storage in TinyDB.
 
@@ -140,17 +150,19 @@ class TinyDBStore(MemoryStore):
         created_at_str = item.created_at.isoformat() if item.created_at else None
 
         # Create a serialized representation
+        metadata_payload = dict(item.metadata) if item.metadata else None
+
         serialized = {
             "id": item.id,
             "content": item.content,
             "memory_type": memory_type_str,
-            "metadata": item.metadata,
+            "metadata": metadata_payload,
             "created_at": created_at_str,
         }
 
         return serialized
 
-    def _deserialize_memory_item(self, data: Dict[str, Any]) -> MemoryItem:
+    def _deserialize_memory_item(self, data: Mapping[str, object]) -> MemoryItem:
         """
         Deserialize a dictionary to a MemoryItem.
 
@@ -160,24 +172,39 @@ class TinyDBStore(MemoryStore):
         Returns:
             A MemoryItem object
         """
-        # Convert memory_type string to enum
-        memory_type = MemoryType(data["memory_type"]) if data["memory_type"] else None
+        payload = dict(data)
 
-        # Convert created_at string to datetime
-        created_at = (
-            datetime.fromisoformat(data["created_at"]) if data["created_at"] else None
+        metadata_payload = payload.get("metadata")
+        metadata: MemoryMetadata | None
+        if isinstance(metadata_payload, Mapping):
+            metadata = cast(MemoryMetadata, dict(metadata_payload))
+        else:
+            metadata = None
+
+        memory_type_raw = payload.get("memory_type")
+        memory_type = (
+            MemoryType(memory_type_raw)
+            if isinstance(memory_type_raw, str) and memory_type_raw
+            else None
         )
 
-        # Create a MemoryItem
-        item = MemoryItem(
-            id=data["id"],
-            content=data["content"],
+        created_at_raw = payload.get("created_at")
+        created_at = (
+            datetime.fromisoformat(created_at_raw)
+            if isinstance(created_at_raw, str) and created_at_raw
+            else None
+        )
+
+        identifier = str(payload.get("id", ""))
+        content = payload.get("content")
+
+        return MemoryItem(
+            id=identifier,
+            content=content,
             memory_type=memory_type,
-            metadata=data["metadata"],
+            metadata=metadata,
             created_at=created_at,
         )
-
-        return item
 
     def store(self, item: MemoryItem) -> str:
         """
@@ -213,7 +240,7 @@ class TinyDBStore(MemoryStore):
                 store="TinyDBStore",
                 item_id=item.id,
             )
-            return item.id
+            return str(item.id)
 
         except Exception as e:
             logger.error(f"Failed to store item in TinyDB: {e}")
@@ -224,7 +251,7 @@ class TinyDBStore(MemoryStore):
                 original_error=e,
             )
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """
         Retrieve an item from memory by ID.
 
@@ -277,15 +304,17 @@ class TinyDBStore(MemoryStore):
                 original_error=e,
             )
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
         Args:
-            query: Dictionary of search criteria
+            query: Mapping of search criteria compatible with ``MemoryMetadata``
 
         Returns:
-            List of matching memory items
+            List of matching memory records provided by the TinyDB store
 
         Raises:
             MemoryStoreError: If the search operation fails
@@ -297,7 +326,7 @@ class TinyDBStore(MemoryStore):
             all_items = self.db.all()
 
             # Filter items based on query
-            filtered_items = []
+            filtered_items: list[MemoryRecord] = []
             for item_data in all_items:
                 match = True
 
@@ -330,12 +359,15 @@ class TinyDBStore(MemoryStore):
 
                 if match:
                     # Deserialize matching items
-                    filtered_items.append(self._deserialize_memory_item(item_data))
+                    item = self._deserialize_memory_item(item_data)
+                    filtered_items.append(
+                        build_memory_record(item, source=self.__class__.__name__)
+                    )
 
             # Update token count
             if filtered_items:
                 token_count = sum(
-                    self._count_tokens(str(item)) for item in filtered_items
+                    self._count_tokens(str(record.item)) for record in filtered_items
                 )
                 self.token_count += token_count
 
@@ -406,7 +438,7 @@ class TinyDBStore(MemoryStore):
         """
         return self.token_count
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the database connection and ensure all data is persisted.
 

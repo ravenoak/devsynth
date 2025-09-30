@@ -25,6 +25,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing-only imports
         MemoryMetadata,
         MemoryQueryResults,
         MemoryRecord,
+        MemorySearchQuery,
         build_memory_record,
     )
 else:
@@ -43,6 +44,7 @@ else:
     MemoryMetadata = _DTO_MODULE.MemoryMetadata
     MemoryQueryResults = _DTO_MODULE.MemoryQueryResults
     MemoryRecord = _DTO_MODULE.MemoryRecord
+    MemorySearchQuery = _DTO_MODULE.MemorySearchQuery
     build_memory_record = _DTO_MODULE.build_memory_record
 
 
@@ -490,7 +492,9 @@ else:
 
         def retrieve(self, item_id: str) -> MemoryItem | MemoryRecord | None: ...
 
-        def search(self, query: dict[str, Any] | MemoryMetadata) -> list[MemoryRecord]: ...
+        def search(
+            self, query: MemorySearchQuery | MemoryMetadata
+        ) -> list[MemoryRecord]: ...
 
         def delete(self, item_id: str) -> bool: ...
 

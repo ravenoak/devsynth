@@ -11,9 +11,15 @@ import json
 import os
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, Dict, List, Mapping, Optional, Union
+from collections.abc import Mapping
+from typing import Callable, ParamSpec, TypeVar, cast
 
-from devsynth.application.memory.dto import MemoryQueryResults, MemoryRecord
+from devsynth.application.memory.dto import (
+    MemoryMetadata,
+    MemoryQueryResults,
+    MemoryRecord,
+    MemorySearchQuery,
+)
 from devsynth.application.memory.metadata_serialization import (
     from_serializable,
     query_results_from_rows,
@@ -33,7 +39,7 @@ except ImportError as e:  # pragma: no cover - optional dependency
     )
 
 try:
-    import tiktoken
+    import tiktoken  # type: ignore[import-not-found]
 except ImportError as e:  # pragma: no cover - optional dependency
     raise require_optional_package(
         e,
@@ -62,6 +68,19 @@ logger = DevSynthLogger(__name__)
 __all__ = ["ChromaDBStore"]
 
 
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def _typed_retry_with_backoff(
+    *args: object, **kwargs: object
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    return cast(
+        Callable[[Callable[P, R]], Callable[P, R]],
+        retry_with_exponential_backoff(*args, **kwargs),
+    )
+
+
 class ChromaDBStore(MemoryStore):
     """
     ChromaDB implementation of the MemoryStore interface.
@@ -79,10 +98,10 @@ class ChromaDBStore(MemoryStore):
         self,
         file_path: str,
         *,
-        host: Optional[str] = None,
+        host: str | None = None,
         port: int = 8000,
-        collection_name: Union[str, None] = None,
-        versions_collection_name: Union[str, None] = None,
+        collection_name: str | None = None,
+        versions_collection_name: str | None = None,
     ):
         """
         Initialize the ChromaDB store.
@@ -136,8 +155,8 @@ class ChromaDBStore(MemoryStore):
 
         # Get or create the main collection
         self._use_fallback = False
-        self._store: dict[str, Dict[str, Any]] = {}
-        self._versions: dict[str, list[Dict[str, Any]]] = {}
+        self._store: dict[str, dict[str, object]] = {}
+        self._versions: dict[str, list[dict[str, object]]] = {}
         self._fallback_file = os.path.join(file_path, "fallback_store.json")
 
         if os.path.exists(self._fallback_file):
@@ -269,11 +288,11 @@ class ChromaDBStore(MemoryStore):
         )
 
     def _record_from_serialized(
-        self, payload: Mapping[str, Any], *, fallback: bool | None = None
+        self, payload: Mapping[str, object], *, fallback: bool | None = None
     ) -> MemoryRecord:
         return record_from_row(payload, default_source=self._resolve_source(fallback=fallback))
 
-    def _serialize_memory_item(self, item: MemoryItem) -> Dict[str, Any]:
+    def _serialize_memory_item(self, item: MemoryItem) -> dict[str, object]:
         """
         Serialize a MemoryItem to a dictionary for storage in ChromaDB.
 
@@ -295,7 +314,7 @@ class ChromaDBStore(MemoryStore):
             "created_at": created_at_str,
         }
 
-    def _deserialize_memory_item(self, data: Mapping[str, Any]) -> MemoryItem:
+    def _deserialize_memory_item(self, data: Mapping[str, object]) -> MemoryItem:
         """
         Deserialize a dictionary to a MemoryItem.
 
@@ -335,7 +354,7 @@ class ChromaDBStore(MemoryStore):
             created_at=created_at,
         )
 
-    @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(Exception,))
+    @_typed_retry_with_backoff(max_retries=3, retryable_exceptions=(Exception,))
     def store(self, item: MemoryItem) -> str:
         """
         Store an item in memory and return its ID.
@@ -350,7 +369,7 @@ class ChromaDBStore(MemoryStore):
         Returns:
             The ID of the stored item
         """
-        serialized: Dict[str, Any] | None = None
+        serialized: dict[str, object] | None = None
         record: MemoryRecord | None = None
 
         try:
@@ -408,7 +427,9 @@ class ChromaDBStore(MemoryStore):
             )
 
             if self._use_fallback:
-                serialized_copy = json.loads(json.dumps(serialized))
+                serialized_copy = cast(
+                    dict[str, object], json.loads(json.dumps(serialized))
+                )
                 self._store[item.id] = serialized_copy
                 self._cache[item.id] = record
                 self._save_fallback()
@@ -421,7 +442,7 @@ class ChromaDBStore(MemoryStore):
                 self._cache[item.id] = record
 
             logger.info(f"Stored item with ID {item.id} in ChromaDB")
-            return item.id
+            return str(item.id)
 
         except Exception as e:
             if not self._use_fallback:
@@ -442,11 +463,13 @@ class ChromaDBStore(MemoryStore):
                     serialized = self._serialize_memory_item(prepared_item)
                 if record is None:
                     record = self._record_from_serialized(serialized, fallback=True)
-                serialized_copy = json.loads(json.dumps(serialized))
+                serialized_copy = cast(
+                    dict[str, object], json.loads(json.dumps(serialized))
+                )
                 self._store[item.id] = serialized_copy
                 self._cache[item.id] = record
                 self._save_fallback()
-                return item.id
+                return str(item.id)
             logger.error(f"Error storing item in ChromaDB: {e}")
             raise MemoryStoreError(f"Failed to store item: {e}")
 
@@ -460,11 +483,16 @@ class ChromaDBStore(MemoryStore):
         """
         try:
             serialized = self._serialize_memory_item(record.item)
-            serialized_metadata = serialized.setdefault("metadata", {})
-            serialized_metadata["version"] = version
+            metadata_payload = serialized.get("metadata")
+            if not isinstance(metadata_payload, dict):
+                metadata_payload = {}
+                serialized["metadata"] = metadata_payload
+            metadata_payload["version"] = version
 
             if self._use_fallback:
-                serialized_copy = json.loads(json.dumps(serialized))
+                serialized_copy = cast(
+                    dict[str, object], json.loads(json.dumps(serialized))
+                )
                 self._versions.setdefault(record.id, []).append(serialized_copy)
                 self._save_fallback()
                 return
@@ -504,7 +532,7 @@ class ChromaDBStore(MemoryStore):
             logger.error(f"Error storing version in ChromaDB: {e}")
             raise MemoryStoreError(f"Failed to store version: {e}")
 
-    def _retrieve_from_db(self, item_id: str) -> Optional[MemoryRecord]:
+    def _retrieve_from_db(self, item_id: str) -> MemoryRecord | None:
         """
         Retrieve an item directly from the database without using the cache.
 
@@ -538,15 +566,19 @@ class ChromaDBStore(MemoryStore):
                 logger.warning("Missing item_data in metadata for id %s", item_id)
                 return None
             try:
-                serialized = json.loads(item_data)
+                payload = json.loads(item_data)
             except Exception as je:
                 logger.warning("Invalid item_data JSON for id %s: %s", item_id, je)
                 return None
 
-            record = self._record_from_serialized(serialized)
+            if not isinstance(payload, Mapping):
+                logger.warning("Unexpected payload structure for id %s", item_id)
+                return None
+
+            record = self._record_from_serialized(payload)
 
             # Count tokens
-            token_count = self._count_tokens(str(serialized))
+            token_count = self._count_tokens(str(payload))
             self._token_usage += token_count
 
             logger.info(f"Retrieved item with ID {item_id} from ChromaDB")
@@ -556,8 +588,8 @@ class ChromaDBStore(MemoryStore):
             logger.error(f"Error retrieving item from ChromaDB: {e}")
             return None
 
-    @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(Exception,))
-    def retrieve(self, item_id: str) -> Optional[MemoryRecord]:
+    @_typed_retry_with_backoff(max_retries=3, retryable_exceptions=(Exception,))
+    def retrieve(self, item_id: str) -> MemoryRecord | None:
         """
         Retrieve an item from memory by ID.
 
@@ -584,8 +616,8 @@ class ChromaDBStore(MemoryStore):
 
         return item
 
-    @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(Exception,))
-    def retrieve_version(self, item_id: str, version: int) -> Optional[MemoryRecord]:
+    @_typed_retry_with_backoff(max_retries=3, retryable_exceptions=(Exception,))
+    def retrieve_version(self, item_id: str, version: int) -> MemoryRecord | None:
         """
         Retrieve a specific version of an item.
 
@@ -598,7 +630,7 @@ class ChromaDBStore(MemoryStore):
         """
         try:
             if self._use_fallback:
-                version_payloads: list[Dict[str, Any]] = list(
+                version_payloads: list[dict[str, object]] = list(
                     self._versions.get(item_id, [])
                 )
                 current_payload = self._store.get(item_id)
@@ -642,7 +674,7 @@ class ChromaDBStore(MemoryStore):
                 )
                 return None
             try:
-                serialized = json.loads(item_data)
+                payload = json.loads(item_data)
             except Exception as je:
                 logger.warning(
                     "Invalid item_data JSON for version %s of id %s: %s",
@@ -652,10 +684,14 @@ class ChromaDBStore(MemoryStore):
                 )
                 return None
 
-            record = self._record_from_serialized(serialized)
+            if not isinstance(payload, Mapping):
+                logger.warning("Unexpected payload structure for version %s", version)
+                return None
+
+            record = self._record_from_serialized(payload)
 
             # Count tokens
-            token_count = self._count_tokens(str(serialized))
+            token_count = self._count_tokens(str(payload))
             self._token_usage += token_count
 
             logger.info(
@@ -667,8 +703,10 @@ class ChromaDBStore(MemoryStore):
             logger.error(f"Error retrieving version from ChromaDB: {e}")
             return None
 
-    @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(Exception,))
-    def search(self, query: Dict[str, Any]) -> MemoryQueryResults:
+    @_typed_retry_with_backoff(max_retries=3, retryable_exceptions=(Exception,))
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> MemoryQueryResults:
         """
         Search for items in memory matching the query.
 
@@ -698,7 +736,9 @@ class ChromaDBStore(MemoryStore):
             logger.error(f"Error searching in ChromaDB: {e}")
             return {"store": self._resolve_source(), "records": []}
 
-    def _semantic_search(self, query: Dict[str, Any]) -> List[MemoryRecord]:
+    def _semantic_search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> list[MemoryRecord]:
         """
         Perform a semantic search using ChromaDB's similarity search.
 
@@ -715,7 +755,7 @@ class ChromaDBStore(MemoryStore):
         self._token_usage += token_count
 
         if self._use_fallback:
-            records: List[MemoryRecord] = []
+            records: list[MemoryRecord] = []
             for payload in self._store.values():
                 record = self._record_from_serialized(payload, fallback=True)
                 content = record.content
@@ -732,7 +772,7 @@ class ChromaDBStore(MemoryStore):
         )
 
         # Process results
-        records: List[MemoryRecord] = []
+        records = []
         metadatas = results.get("metadatas") or []
         if metadatas:
             metadata_rows = metadatas[0] if isinstance(metadatas[0], list) else metadatas
@@ -744,12 +784,16 @@ class ChromaDBStore(MemoryStore):
                     logger.debug("Skipping result missing item_data")
                     continue
                 try:
-                    serialized = json.loads(item_data)
+                    payload = json.loads(item_data)
                 except Exception as je:
                     logger.debug("Skipping result with invalid item_data JSON: %s", je)
                     continue
 
-                record = self._record_from_serialized(serialized)
+                if not isinstance(payload, Mapping):
+                    logger.debug("Skipping result with non-mapping payload")
+                    continue
+
+                record = self._record_from_serialized(payload)
                 records.append(record)
 
         logger.info(
@@ -757,7 +801,9 @@ class ChromaDBStore(MemoryStore):
         )
         return records
 
-    def _exact_match_search(self, query: Dict[str, Any]) -> List[MemoryRecord]:
+    def _exact_match_search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> list[MemoryRecord]:
         """
         Perform an exact match search using ChromaDB's filtering.
 
@@ -771,7 +817,7 @@ class ChromaDBStore(MemoryStore):
         # We need to get all items and filter them manually since ChromaDB's
         # filtering is limited to metadata fields
 
-        rows: List[Dict[str, Any]] = []
+        rows: list[dict[str, object]] = []
         if self._use_fallback:
             rows = list(self._store.values())
         else:
@@ -785,15 +831,18 @@ class ChromaDBStore(MemoryStore):
                     logger.debug("Skipping item without item_data during exact search")
                     continue
                 try:
-                    serialized = json.loads(item_data)
+                    payload = json.loads(item_data)
                 except Exception as je:
                     logger.debug(
                         "Skipping item with invalid item_data JSON: %s", je
                     )
                     continue
-                rows.append(serialized)
+                if not isinstance(payload, Mapping):
+                    logger.debug("Skipping item with non-mapping payload")
+                    continue
+                rows.append(dict(payload))
 
-        filtered_items: List[MemoryRecord] = []
+        filtered_items: list[MemoryRecord] = []
         for payload in rows:
             record = self._record_from_serialized(payload, fallback=self._use_fallback)
             match = True
@@ -833,7 +882,7 @@ class ChromaDBStore(MemoryStore):
         logger.info(f"Exact match search returned {len(filtered_items)} results")
         return filtered_items
 
-    @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(Exception,))
+    @_typed_retry_with_backoff(max_retries=3, retryable_exceptions=(Exception,))
     def delete(self, item_id: str) -> bool:
         """
         Delete an item from memory.
@@ -892,7 +941,7 @@ class ChromaDBStore(MemoryStore):
         """
         return self._token_usage
 
-    def get_versions(self, item_id: str) -> List[MemoryItem]:
+    def get_versions(self, item_id: str) -> list[MemoryItem]:
         """
         Get all versions of an item.
 
@@ -904,7 +953,7 @@ class ChromaDBStore(MemoryStore):
         """
         try:
             if self._use_fallback:
-                version_payloads: List[Dict[str, Any]] = list(
+                version_payloads: list[dict[str, object]] = list(
                     self._versions.get(item_id, [])
                 )
                 current_payload = self._store.get(item_id)
@@ -924,14 +973,21 @@ class ChromaDBStore(MemoryStore):
             if not result["ids"] or not result["metadatas"]:
                 # No versions found in the versions collection
                 # Check if the item exists in the main collection
-            current_item = self.retrieve(item_id)
-            return [current_item.item] if current_item else []
+                current_item = self.retrieve(item_id)
+                return [current_item.item] if current_item else []
 
             # Extract and deserialize all versions
             versions = []
             for metadata in result["metadatas"]:
-                serialized = json.loads(metadata["item_data"])
-                item = self._deserialize_memory_item(serialized)
+                item_data = metadata.get("item_data") if isinstance(metadata, dict) else None
+                if not item_data:
+                    logger.debug("Skipping version without item_data for id %s", item_id)
+                    continue
+                payload = json.loads(item_data)
+                if not isinstance(payload, Mapping):
+                    logger.debug("Skipping version with non-mapping payload for id %s", item_id)
+                    continue
+                item = self._deserialize_memory_item(payload)
                 versions.append(item)
 
             # Sort versions by version number
@@ -950,7 +1006,7 @@ class ChromaDBStore(MemoryStore):
             logger.error(f"Error retrieving versions from ChromaDB: {e}")
             return []
 
-    def get_history(self, item_id: str) -> List[Dict[str, Any]]:
+    def get_history(self, item_id: str) -> list[dict[str, object]]:
         """
         Get the history of an item.
 
