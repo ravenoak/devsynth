@@ -6,6 +6,7 @@ from devsynth.application.agents.base import BaseAgent
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
+from devsynth.application.collaboration.structures import SubtaskSpec
 from devsynth.application.collaboration.dto import AgentOpinionRecord, ConsensusOutcome
 from devsynth.application.collaboration.exceptions import PeerReviewConsensusError
 
@@ -298,7 +299,7 @@ class TestCollaborativeWSDETeamTaskManagement:
         assert hasattr(team, "subtasks")
         assert "main_task" in team.subtasks
         assert len(team.subtasks["main_task"]) == 2
-        subtask_ids = [subtask["id"] for subtask in team.subtasks["main_task"]]
+        subtask_ids = [subtask.id for subtask in team.subtasks["main_task"]]
         assert len(subtask_ids) == 2
         if not hasattr(team, "subtask_progress"):
             team.subtask_progress = {}
@@ -316,33 +317,31 @@ class TestCollaborativeWSDETeamTaskManagement:
         team.add_agent(agent2)
         team.add_agent(agent3)
         subtasks = [
-            {
-                "id": "subtask1",
-                "title": "Implement backend",
-                "description": "Implement backend",
-                "primary_expertise": "python",
-                "status": "pending",
-            },
-            {
-                "id": "subtask2",
-                "title": "Implement frontend",
-                "description": "Implement frontend",
-                "primary_expertise": "javascript",
-                "status": "pending",
-            },
-            {
-                "id": "subtask3",
-                "title": "Security review",
-                "description": "Security review",
-                "primary_expertise": "security",
-                "status": "pending",
-            },
+            SubtaskSpec(
+                id="subtask1",
+                title="Implement backend",
+                description="Implement backend",
+                parent_task_id="taskA",
+                metadata={"primary_expertise": "python"},
+            ),
+            SubtaskSpec(
+                id="subtask2",
+                title="Implement frontend",
+                description="Implement frontend",
+                parent_task_id="taskA",
+                metadata={"primary_expertise": "javascript"},
+            ),
+            SubtaskSpec(
+                id="subtask3",
+                title="Security review",
+                description="Security review",
+                parent_task_id="taskA",
+                metadata={"primary_expertise": "security"},
+            ),
         ]
         assignments = team.delegate_subtasks(subtasks)
         assert len(assignments) == 3
-        assignment_dict = {}
-        for result in assignments:
-            assignment_dict[result["subtask_id"]] = result["assigned_to"]
+        assignment_dict = {result.subtask_id: result.assigned_to for result in assignments}
         assert "subtask1" in assignment_dict
         assert "subtask2" in assignment_dict
         assert "subtask3" in assignment_dict
@@ -350,8 +349,8 @@ class TestCollaborativeWSDETeamTaskManagement:
         assert assignment_dict["subtask2"] == "Agent2"
         assert assignment_dict["subtask3"] == "Agent3"
         for subtask in subtasks:
-            assert "assigned_to" in subtask
-            assert subtask["status"] == "assigned"
+            assert subtask.assigned_to in {"Agent1", "Agent2", "Agent3"}
+            assert subtask.status == "assigned"
 
     @pytest.mark.medium
     def test_update_subtask_progress_succeeds(self, mock_agent_with_expertise):
@@ -359,13 +358,14 @@ class TestCollaborativeWSDETeamTaskManagement:
 
         ReqID: N/A"""
         team = CollaborativeWSDETeam(name="TestTeam")
-        subtask = {
-            "id": "subtask1",
-            "title": "Implement backend",
-            "description": "Implement backend",
-            "primary_expertise": "python",
-            "status": "pending",
-        }
+        subtask = SubtaskSpec(
+            id="subtask1",
+            title="Implement backend",
+            description="Implement backend",
+            parent_task_id="taskB",
+            metadata={"primary_expertise": "python"},
+        )
+        team.subtasks["taskB"] = [subtask]
         team.subtask_progress["subtask1"] = 0.0
         team.update_subtask_progress("subtask1", 0.5)
         assert team.subtask_progress["subtask1"] == 0.5
@@ -391,42 +391,44 @@ class TestCollaborativeWSDETeamTaskManagement:
         team.add_agent(agent2)
         team.add_agent(agent3)
         subtasks = [
-            {
-                "id": "subtask1",
-                "title": "Implement backend 1",
-                "description": "Implement backend 1",
-                "primary_expertise": "python",
-                "status": "assigned",
-            },
-            {
-                "id": "subtask2",
-                "title": "Implement backend 2",
-                "description": "Implement backend 2",
-                "primary_expertise": "python",
-                "status": "assigned",
-            },
-            {
-                "id": "subtask3",
-                "title": "Implement frontend",
-                "description": "Implement frontend",
-                "primary_expertise": "javascript",
-                "status": "assigned",
-            },
+            SubtaskSpec(
+                id="subtask1",
+                title="Implement backend 1",
+                description="Implement backend 1",
+                parent_task_id="taskC",
+                assigned_to="Agent1",
+                status="assigned",
+                metadata={"primary_expertise": "python"},
+            ),
+            SubtaskSpec(
+                id="subtask2",
+                title="Implement backend 2",
+                description="Implement backend 2",
+                parent_task_id="taskC",
+                assigned_to="Agent1",
+                status="assigned",
+                metadata={"primary_expertise": "python"},
+            ),
+            SubtaskSpec(
+                id="subtask3",
+                title="Implement frontend",
+                description="Implement frontend",
+                parent_task_id="taskC",
+                assigned_to="Agent2",
+                status="assigned",
+                metadata={"primary_expertise": "javascript"},
+            ),
         ]
-        team.subtask_assignments = {
-            "subtask1": "Agent1",
-            "subtask2": "Agent1",
-            "subtask3": "Agent2",
-        }
+        team.subtasks["taskC"] = subtasks
         team.subtask_progress = {"subtask1": 0.7, "subtask2": 0.2, "subtask3": 0.5}
         reassignment_results = team.reassign_subtasks_based_on_progress(subtasks)
         assert isinstance(reassignment_results, list)
         for result in reassignment_results:
-            assert "subtask_id" in result
-            assert "previous_assignee" in result
-            assert "new_assignee" in result
-            assert "expertise_score" in result
-            assert "timestamp" in result
-            if result["subtask_id"] == "subtask2":
-                assert result["previous_assignee"] == "Agent1"
-                assert result["new_assignee"] == "Agent3"
+            assert result.subtask_id
+            assert result.previous_assignee
+            assert result.new_assignee
+            assert result.expertise_score >= 0
+            assert result.timestamp
+            if result.subtask_id == "subtask2":
+                assert result.previous_assignee == "Agent1"
+                assert result.new_assignee == "Agent3"

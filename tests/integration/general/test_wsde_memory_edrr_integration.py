@@ -5,6 +5,7 @@ import pytest
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.agents.wsde_memory_integration import WSDEMemoryIntegration
 from devsynth.application.collaboration.peer_review import PeerReview
+from devsynth.application.collaboration.structures import ReviewCycleSpec
 from devsynth.application.memory.context_manager import (
     InMemoryStore,
     SimpleContextManager,
@@ -95,10 +96,12 @@ def test_cross_store_sync_and_peer_review_workflow(tmp_path):
     author = SimpleAgent("author")
     reviewers = [SimpleAgent("rev1"), SimpleAgent("rev2")]
     review = PeerReview(
-        work_product={"text": "wp"},
-        author=author,
-        reviewers=reviewers,
-        memory_manager=manager,
+        cycle=ReviewCycleSpec(
+            work_product={"text": "wp"},
+            author=author,
+            reviewers=reviewers,
+            memory_manager=manager,
+        )
     )
     review.assign_reviews()
     review.collect_reviews()

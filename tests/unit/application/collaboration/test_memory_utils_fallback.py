@@ -26,4 +26,6 @@ def test_flush_memory_queue_falls_back_to_sync_manager() -> None:
 
     sync_manager.flush_queue.assert_called_once()
     sync_manager.wait_for_async.assert_called_once()
-    assert flushed == [("default", item)]
+    assert len(flushed) == 1
+    assert flushed[0].store == "default"
+    assert flushed[0].item is item
