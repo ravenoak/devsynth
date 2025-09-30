@@ -24,6 +24,11 @@ milestone.
 
 ## [Unreleased]
 
+### Added
+- Autoresearch overlays for the MVUU dashboard can now be toggled via
+  `mvuu-dashboard --research-overlays`, emitting signed telemetry consumed by
+  Streamlit overlays and documented in `docs/user_guides/mvuu_dashboard.md`.
+
 ### Changed
 - Brought the Agent API and requirements service stack under the strict typing gate, removing the Phase‑5 override and archiving fresh mypy/test diagnostics as release evidence.【F:docs/typing/strictness.md†L18-L21】【F:docs/typing/strictness.md†L130-L136】【F:diagnostics/mypy_strict_agentapi_requirements_20250929T162537Z.txt†L1-L106】【F:diagnostics/devsynth_run_tests_fast_medium_api_strict_20250929T163210Z.txt†L1-L20】
 - Updated release readiness documentation to reinforce the ≥90 % coverage gate, strict mypy verification via `poetry run task mypy:strict`, and fast+medium artifact archival workflows, referencing the latest diagnostics evidence.

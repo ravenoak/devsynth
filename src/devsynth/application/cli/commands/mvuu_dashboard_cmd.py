@@ -8,9 +8,59 @@ external processes. It also supports --help via argparse.
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import subprocess
 import sys
 from pathlib import Path
+
+from devsynth.interface.autoresearch import (
+    SignatureEnvelope,
+    build_autoresearch_payload,
+    sign_payload,
+)
+
+DEFAULT_REPO_ENV = "DEVSYNTH_REPO_ROOT"
+DEFAULT_SIGNATURE_ENV = "DEVSYNTH_AUTORESEARCH_SECRET"
+DEFAULT_SIGNATURE_POINTER = "DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"
+
+
+def _resolve_repo_root() -> Path:
+    """Return the repository root, honouring overrides for tests."""
+
+    override = os.getenv(DEFAULT_REPO_ENV)
+    if override:
+        return Path(override)
+    return Path(__file__).resolve().parents[3]
+
+
+def _write_autoresearch_telemetry(
+    trace_path: Path,
+    telemetry_path: Path,
+    *,
+    signature_env: str,
+) -> SignatureEnvelope | None:
+    """Generate overlay telemetry and persist it to disk."""
+
+    if not trace_path.exists():
+        return None
+
+    trace_data = json.loads(trace_path.read_text(encoding="utf-8"))
+    payload = build_autoresearch_payload(trace_data)
+
+    secret = os.getenv(signature_env, "")
+    envelope: SignatureEnvelope | None = None
+    if secret:
+        envelope = sign_payload(payload, secret=secret, key_id=f"env:{signature_env}")
+        payload_with_signature = payload | {"signature": envelope.as_dict()}
+    else:
+        payload_with_signature = payload
+
+    telemetry_path.write_text(
+        json.dumps(payload_with_signature, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    return envelope
 
 
 def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
@@ -31,19 +81,53 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Validate wiring only; do not execute external subprocesses.",
     )
+    parser.add_argument(
+        "--research-overlays",
+        action="store_true",
+        help="Enable Autoresearch overlays and telemetry generation.",
+    )
+    parser.add_argument(
+        "--telemetry-path",
+        type=Path,
+        default=None,
+        help="Optional path for Autoresearch telemetry JSON output.",
+    )
+    parser.add_argument(
+        "--signature-env",
+        default=DEFAULT_SIGNATURE_ENV,
+        help="Environment variable name containing the Autoresearch signing secret.",
+    )
     args = parser.parse_args(argv)
 
     if args.no_run:
         return 0
 
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = _resolve_repo_root()
     trace_path = repo_root / "traceability.json"
     subprocess.run(
         ["devsynth", "mvu", "report", "--output", str(trace_path)],
         check=False,
     )
-    script_path = repo_root / "interface" / "mvuu_dashboard.py"
-    subprocess.run(["streamlit", "run", str(script_path)], check=False)
+    env = os.environ.copy()
+    script_path = repo_root / "src" / "devsynth" / "interface" / "mvuu_dashboard.py"
+
+    overlays_enabled = args.research_overlays or env.get(
+        "DEVSYNTH_AUTORESEARCH_OVERLAYS", ""
+    )
+    telemetry_path = args.telemetry_path or (repo_root / "traceability_autoresearch.json")
+    if overlays_enabled:
+        envelope = _write_autoresearch_telemetry(
+            trace_path,
+            telemetry_path,
+            signature_env=args.signature_env,
+        )
+        env["DEVSYNTH_AUTORESEARCH_OVERLAYS"] = "1"
+        env["DEVSYNTH_AUTORESEARCH_TELEMETRY"] = str(telemetry_path)
+        env[DEFAULT_SIGNATURE_POINTER] = args.signature_env
+        if envelope is not None:
+            env.setdefault(args.signature_env, os.getenv(args.signature_env, ""))
+
+    subprocess.run(["streamlit", "run", str(script_path)], check=False, env=env)
     return 0
 
 
