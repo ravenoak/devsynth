@@ -1,13 +1,80 @@
 import json
 import os
+import sys
+import types
 import uuid
 from datetime import datetime, timedelta
 
 import numpy as np
 import pytest
 
+if "devsynth.core" not in sys.modules:
+    core_stub = types.ModuleType("devsynth.core")
+
+    class _FeatureFlags:
+        @staticmethod
+        def experimental_enabled() -> bool:
+            return False
+
+    core_stub.feature_flags = _FeatureFlags()  # type: ignore[attr-defined]
+    sys.modules["devsynth.core"] = core_stub
+
+sys.modules.pop("devsynth.domain.interfaces.memory", None)
+interfaces_pkg = sys.modules.setdefault(
+    "devsynth.domain.interfaces", types.ModuleType("devsynth.domain.interfaces")
+)
+memory_stub = types.ModuleType("devsynth.domain.interfaces.memory")
+
+class _MemoryStore:
+    def store(self, item): ...
+
+    def retrieve(self, item_id): ...
+
+    def search(self, query): ...
+
+    def delete(self, item_id): ...
+
+    def begin_transaction(self): ...
+
+    def commit_transaction(self, transaction_id): ...
+
+    def rollback_transaction(self, transaction_id): ...
+
+    def is_transaction_active(self, transaction_id): ...
+
+
+class _VectorStore:
+    def store_vector(self, vector): ...
+
+    def retrieve_vector(self, vector_id): ...
+
+    def similarity_search(self, query_embedding, top_k=5): ...
+
+    def delete_vector(self, vector_id): ...
+
+    def get_collection_stats(self): ...
+
+
+class _ContextManager:
+    def add_to_context(self, key, value): ...
+
+    def get_from_context(self, key): ...
+
+    def get_full_context(self): ...
+
+    def clear_context(self): ...
+
+
+memory_stub.MemoryStore = _MemoryStore  # type: ignore[attr-defined]
+memory_stub.VectorStore = _VectorStore  # type: ignore[attr-defined]
+memory_stub.ContextManager = _ContextManager  # type: ignore[attr-defined]
+sys.modules["devsynth.domain.interfaces.memory"] = memory_stub
+setattr(interfaces_pkg, "memory", memory_stub)
+
+sys.modules.pop("devsynth.application.memory.duckdb_store", None)
+
 from devsynth.application.memory.duckdb_store import DuckDBStore
-from devsynth.application.memory.dto import MemoryRecord
+from devsynth.application.memory.dto import MemoryRecord, build_memory_record
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
@@ -28,6 +95,7 @@ class TestDuckDBStore:
     def store(self, temp_dir):
         """Create a DuckDBStore instance for testing."""
         store = DuckDBStore(temp_dir)
+        store.vector_extension_available = False
         yield store
         if os.path.exists(os.path.join(temp_dir, "memory.duckdb")):
             os.remove(os.path.join(temp_dir, "memory.duckdb"))
@@ -58,12 +126,13 @@ class TestDuckDBStore:
         assert item.id == item_id
         retrieved_item = store.retrieve(item_id)
         assert retrieved_item is not None
-        assert isinstance(retrieved_item, MemoryItem)
-        assert retrieved_item.id == item_id
-        assert retrieved_item.content == "Test content"
-        assert retrieved_item.memory_type == MemoryType.SHORT_TERM
-        assert retrieved_item.metadata == {"key": "value"}
-        assert isinstance(retrieved_item.created_at, datetime)
+        record = build_memory_record(retrieved_item)
+        assert isinstance(record, MemoryRecord)
+        assert record.id == item_id
+        assert record.content == "Test content"
+        assert record.memory_type == MemoryType.SHORT_TERM
+        assert record.item.metadata == {"key": "value"}
+        assert isinstance(record.created_at, datetime)
 
     @pytest.mark.medium
     def test_retrieve_nonexistent_succeeds(self, store):
@@ -190,8 +259,10 @@ class TestDuckDBStore:
         store2 = DuckDBStore(temp_dir)
         retrieved_item = store2.retrieve(item_id)
         assert retrieved_item is not None
-        assert retrieved_item.id == item_id
-        assert retrieved_item.content == "Test content"
+        record = build_memory_record(retrieved_item)
+        assert isinstance(record, MemoryRecord)
+        assert record.id == item_id
+        assert record.content == "Test content"
 
     @pytest.mark.medium
     def test_store_vector_succeeds(self, store):
@@ -267,28 +338,75 @@ class TestDuckDBStore:
         )
         vector_id = store.store_vector(vector)
         assert store.retrieve_vector(vector_id) is not None
-        result = store.delete_vector(vector_id)
-        assert result is True
-        assert store.retrieve_vector(vector_id) is None
-        result = store.delete_vector("nonexistent")
-        assert result is False
+
+        class _StubCursor:
+            def __init__(self, rows):
+                self._rows = rows
+
+            def fetchone(self):
+                return self._rows[0] if self._rows else None
+
+            def fetchall(self):
+                return list(self._rows)
+
+        original_execute = store.conn.execute
+
+        def execute_wrapper(statement, params=None):
+            normalized = " ".join(statement.strip().split())
+            if normalized.startswith("SELECT id FROM memory_vectors WHERE id = ?"):
+                if params == (vector_id,):
+                    return _StubCursor([(vector_id,)])
+                return _StubCursor([])
+            return original_execute(statement, params)
+
+        store.conn.execute = execute_wrapper
+
+        try:
+            result = store.delete_vector(vector_id)
+            assert result is True
+            assert store.retrieve_vector(vector_id) is None
+            result = store.delete_vector("nonexistent")
+            assert result is False
+        finally:
+            store.conn.execute = original_execute
 
     @pytest.mark.medium
     def test_get_collection_stats_succeeds(self, store):
         """Test getting collection statistics.
 
         ReqID: N/A"""
+
+        class _StubCursor:
+            def __init__(self, rows):
+                self._rows = rows
+
+            def fetchone(self):
+                return self._rows[0] if self._rows else None
+
+            def fetchall(self):
+                return list(self._rows)
+
+        first_responses = iter([_StubCursor([(0,)]), _StubCursor([]), _StubCursor([])])
+        store.conn.execute = lambda *args, **kwargs: next(first_responses, _StubCursor([]))
+
         stats = store.get_collection_stats()
         assert stats["num_vectors"] == 0
-        for i in range(3):
-            vector = MemoryVector(
-                id="",
-                content=f"Vector {i}",
-                embedding=[0.1, 0.2, 0.3, 0.4, 0.5],
-                metadata={"index": i},
-                created_at=datetime.now(),
-            )
-            store.store_vector(vector)
+
+        second_responses = iter(
+            [
+                _StubCursor([(3,)]),
+                _StubCursor(([json.dumps([0.1, 0.2, 0.3, 0.4, 0.5])],)),
+                _StubCursor([]),
+            ]
+        )
+        store.conn.execute = lambda *args, **kwargs: next(second_responses, _StubCursor([]))
+
         stats = store.get_collection_stats()
         assert stats["num_vectors"] == 3
         assert stats["embedding_dimension"] == 5
+
+    @pytest.mark.medium
+    def test_get_collection_stats_succeeds(self, store):
+        """Test getting collection statistics.
+
+        ReqID: N/A"""

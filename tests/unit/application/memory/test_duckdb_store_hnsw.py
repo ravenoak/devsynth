@@ -1,6 +1,8 @@
 import json
 import os
+import sys
 import time
+import types
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -12,7 +14,73 @@ import pytest
 pytest.importorskip("duckdb")
 if os.environ.get("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE", "true").lower() == "false":
     pytest.skip("DuckDB resource not available", allow_module_level=True)
+if "devsynth.core" not in sys.modules:
+    core_stub = types.ModuleType("devsynth.core")
+
+    class _FeatureFlags:
+        @staticmethod
+        def experimental_enabled() -> bool:
+            return False
+
+    core_stub.feature_flags = _FeatureFlags()  # type: ignore[attr-defined]
+    sys.modules["devsynth.core"] = core_stub
+
+sys.modules.pop("devsynth.domain.interfaces.memory", None)
+interfaces_pkg = sys.modules.setdefault(
+    "devsynth.domain.interfaces", types.ModuleType("devsynth.domain.interfaces")
+)
+memory_stub = types.ModuleType("devsynth.domain.interfaces.memory")
+
+class _MemoryStore:
+    def store(self, item): ...
+
+    def retrieve(self, item_id): ...
+
+    def search(self, query): ...
+
+    def delete(self, item_id): ...
+
+    def begin_transaction(self): ...
+
+    def commit_transaction(self, transaction_id): ...
+
+    def rollback_transaction(self, transaction_id): ...
+
+    def is_transaction_active(self, transaction_id): ...
+
+
+class _VectorStore:
+    def store_vector(self, vector): ...
+
+    def retrieve_vector(self, vector_id): ...
+
+    def similarity_search(self, query_embedding, top_k=5): ...
+
+    def delete_vector(self, vector_id): ...
+
+    def get_collection_stats(self): ...
+
+
+class _ContextManager:
+    def add_to_context(self, key, value): ...
+
+    def get_from_context(self, key): ...
+
+    def get_full_context(self): ...
+
+    def clear_context(self): ...
+
+
+memory_stub.MemoryStore = _MemoryStore  # type: ignore[attr-defined]
+memory_stub.VectorStore = _VectorStore  # type: ignore[attr-defined]
+memory_stub.ContextManager = _ContextManager  # type: ignore[attr-defined]
+sys.modules["devsynth.domain.interfaces.memory"] = memory_stub
+setattr(interfaces_pkg, "memory", memory_stub)
+
+sys.modules.pop("devsynth.application.memory.duckdb_store", None)
+
 from devsynth.application.memory.duckdb_store import DuckDBStore
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
@@ -41,6 +109,7 @@ class TestDuckDBStoreHNSW:
     def store_with_hnsw(self, temp_dir):
         """Create a DuckDBStore instance with HNSW index enabled."""
         store = DuckDBStore(temp_dir, enable_hnsw=True)
+        store.vector_extension_available = False
         yield store
         if os.path.exists(os.path.join(temp_dir, "memory.duckdb")):
             os.remove(os.path.join(temp_dir, "memory.duckdb"))
@@ -53,6 +122,7 @@ class TestDuckDBStoreHNSW:
             enable_hnsw=True,
             hnsw_config={"M": 16, "efConstruction": 200, "efSearch": 100},
         )
+        store.vector_extension_available = False
         yield store
         if os.path.exists(os.path.join(temp_dir, "memory.duckdb")):
             os.remove(os.path.join(temp_dir, "memory.duckdb"))
@@ -80,6 +150,29 @@ class TestDuckDBStoreHNSW:
             "efConstruction": 200,
             "efSearch": 100,
         }
+
+    @pytest.mark.medium
+    def test_search_returns_typed_records_with_hnsw(self, store_with_hnsw):
+        """DuckDB HNSW stores should emit ``MemoryRecord`` search payloads."""
+
+        item = MemoryItem(
+            id="",
+            content="Vector aware",
+            memory_type=MemoryType.SHORT_TERM,
+            metadata={"key": "value"},
+            created_at=datetime.now(),
+        )
+
+        stored_id = store_with_hnsw.store(item)
+
+        results = store_with_hnsw.search({"memory_type": MemoryType.SHORT_TERM})
+
+        assert results
+        assert all(isinstance(record, MemoryRecord) for record in results)
+        assert any(record.id == stored_id for record in results)
+        for record in results:
+            assert isinstance(record.metadata, dict)
+            assert record.source == "DuckDBStore"
 
     @patch("duckdb.connect")
     @pytest.mark.medium
