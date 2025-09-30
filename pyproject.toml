@@ -318,9 +318,12 @@ module = [
 ignore_errors = true
 
 # Phase 3 – Application workflows (due 2026-02-15; owner: Applications Group – Lara Singh; see docs/typing/strictness.md §Phase 3 commitments)
-# CLI and collaboration packages joined the strict slice on 2025-09-30.
-# The remaining entries capture outstanding orchestration, prompt, and
-# coordination workflows until their typing debt is cleared.
+# CLI and collaboration packages joined the strict slice on 2025-09-30. The
+# memory stack graduated on the same date; `poetry run mypy --strict
+# src/devsynth/application/memory` now enforces the application memory package
+# without overrides (see docs/typing/strictness.md §Phase 4 for diagnostics and
+# follow-up actions). The remaining entries capture outstanding orchestration,
+# prompt, and coordination workflows until their typing debt is cleared.
 [[tool.mypy.overrides]]
 module = [
   "devsynth.application.agents.agent_memory_integration",
