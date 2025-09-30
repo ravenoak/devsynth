@@ -27,3 +27,4 @@ Feature: devsynth run-tests command
     When I invoke "devsynth run-tests --speed=fast --speed=medium --report --no-parallel"
     Then the command should succeed
     And the coverage report "test_reports/coverage.json" should exist
+    And the coverage report speeds should include "fast" and "medium"

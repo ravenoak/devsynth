@@ -1,5 +1,6 @@
 """Step definitions for run-tests behavior tests."""
 
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -189,6 +190,16 @@ def coverage_report_exists(path: str) -> None:
     report_path = Path(_REPO_ROOT) / path
     assert report_path.exists(), f"Coverage report {path} does not exist"
     assert report_path.stat().st_size > 0, f"Coverage report {path} is empty"
+
+
+@then(parsers.parse('the coverage report speeds should include "{speed1}" and "{speed2}"'))
+def coverage_report_includes_speeds(speed1: str, speed2: str) -> None:
+    report_path = Path(_REPO_ROOT) / "test_reports" / "coverage.json"
+    with report_path.open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    speeds = set(payload.get("meta", {}).get("speeds", []))
+    assert speed1 in speeds, f"Expected {speed1} in coverage speeds: {sorted(speeds)}"
+    assert speed2 in speeds, f"Expected {speed2} in coverage speeds: {sorted(speeds)}"
 
 
 @when(
