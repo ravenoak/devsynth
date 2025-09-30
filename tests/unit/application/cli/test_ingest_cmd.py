@@ -4,6 +4,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from devsynth.application.cli.cli_commands import ingest_cmd
+from devsynth.application.cli.ingest_cmd import load_manifest
+from devsynth.application.cli.ingest_models import ManifestModel
 from devsynth.interface.cli import CLIUXBridge
 
 
@@ -44,6 +46,38 @@ def test_ingest_cmd_non_interactive_skips_prompts(
     bridge.confirm_choice.assert_not_called()
     assert os.environ.get("DEVSYNTH_NONINTERACTIVE") == "1"
     assert os.environ.get("DEVSYNTH_AUTO_CONFIRM") == "1"
+
+
+@pytest.mark.fast
+def test_load_manifest_defaults(tmp_path, monkeypatch):
+    """Unmanaged projects receive a typed default manifest."""
+
+    monkeypatch.chdir(tmp_path)
+    manifest = load_manifest()
+
+    assert manifest["metadata"]["name"] == "Unmanaged Project"
+    assert manifest["structure"]["type"] == "standard"
+
+
+@pytest.mark.fast
+def test_load_manifest_reads_yaml(tmp_path):
+    """Loading a YAML manifest preserves typed structure."""
+
+    manifest_dir = tmp_path / ".devsynth"
+    manifest_dir.mkdir()
+    manifest_path = manifest_dir / "project.yaml"
+    manifest_path.write_text(
+        """
+metadata:
+  name: typed
+structure:
+  type: custom
+""".strip()
+    )
+
+    loaded: ManifestModel = load_manifest(manifest_path)
+    assert loaded["metadata"]["name"] == "typed"
+    assert loaded["structure"]["type"] == "custom"
 
 
 @patch("devsynth.application.cli.ingest_cmd.validate_manifest")

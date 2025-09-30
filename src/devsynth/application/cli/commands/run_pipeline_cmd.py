@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional
+from typing import Annotated, Optional, cast
 
 import typer
 
@@ -12,9 +12,10 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
 from ..utils import _check_services, _env_flag, _handle_error, _resolve_bridge
+from ..ingest_models import JSONValue, PipelineReport
 
 
-def _parse_report(value: Optional[str]) -> Optional[Dict[str, Any]]:
+def _parse_report(value: Optional[str]) -> Optional[PipelineReport]:
     """Parse report data from JSON string."""
 
     if not value:
@@ -22,7 +23,7 @@ def _parse_report(value: Optional[str]) -> Optional[Dict[str, Any]]:
     try:
         data = json.loads(value)
         if isinstance(data, dict):
-            return data
+            return cast(PipelineReport, data)
     except json.JSONDecodeError:
         logger.warning("Invalid report JSON provided: %s", value)
     return None
@@ -30,12 +31,13 @@ def _parse_report(value: Optional[str]) -> Optional[Dict[str, Any]]:
 
 def run_pipeline_cmd(
     target: Optional[str] = None,
-    report: Optional[str] = typer.Option(
-        None, "--report", help="JSON string with additional report data"
-    ),
+    report: Annotated[
+        Optional[str],
+        typer.Option(None, "--report", help="JSON string with additional report data"),
+    ] = None,
     *,
     auto_confirm: Optional[bool] = None,
-    bridge: Optional[Any] = typer.Option(None, hidden=True),
+    bridge: Annotated[UXBridge | None, typer.Option(None, hidden=True)] = None,
 ) -> None:
     """Run the generated code or a specific target.
 
@@ -91,9 +93,12 @@ def run_pipeline_cmd(
         # Execute command
         running_label = "target: " + str(target) if target else "default pipeline"
         bridge.display_result("[blue]Running " + running_label + "...[/blue]")
-        result = workflows.execute_command(
-            "run-pipeline", {"target": target, "report": _parse_report(report)}
-        )
+        parsed_report = _parse_report(report)
+        command_payload: dict[str, JSONValue | None] = {
+            "target": target,
+            "report": parsed_report,
+        }
+        result = workflows.execute_command("run-pipeline", command_payload)
 
         # Handle result
         if result.get("success"):
