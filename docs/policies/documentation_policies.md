@@ -33,20 +33,9 @@ DevSynth documentation follows a structured approach to ensure consistency, clar
 
 ## Documentation Structure
 
-The DevSynth documentation is organized into the following directories:
+The DevSynth documentation follows a systematic organizational structure. For detailed information about the repository structure and directory organization, see the [Repository Structure Guide](../repo_structure.md).
 
-- `getting_started/` – Quick start, installation, and basic usage
-- `user_guides/` – User guide, CLI reference, configuration
-- `developer_guides/` – Contributing, development setup, testing, code style
-- `architecture/` – System, agent, memory, and reasoning architecture
-- `technical_reference/` – API, error handling, performance
-- `analysis/` – Project analysis, executive summary, critical recommendations
-- `implementation/` – Implementation status, feature matrix, assessments
-- `specifications/` – Current and archived specifications
-- `roadmap/` – Roadmaps and improvement plans
-- `policies/` – SDLC, security, testing, and maintenance policies
-
-Each directory should contain an `index.md` file that provides an overview of the contents and links to the individual documents.
+Each directory contains an `index.md` file that provides an overview of the contents and links to the individual documents.
 
 ## Specification and Test Alignment
 

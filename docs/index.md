@@ -58,20 +58,9 @@ DevSynth is governed by a comprehensive set of SDLC policies and documentation a
 
 For a detailed rationale and best practices for agentic LLM projects, see [SDLC Policies and Repository Artifacts for Agentic LLM Projects](policies/sdlc_policies_for_agentic_llm_projects.md).
 
-## Documentation Restructuring & Navigation
+## Documentation Navigation
 
-The documentation corpus is organized for clarity and agentic navigation, following the [Documentation Policies](policies/documentation_policies.md):
-
-- `getting_started/` – Quick start, installation, and basic usage
-- `user_guides/` – User guide, CLI reference, configuration
-- `developer_guides/` – Contributing, development setup, testing, code style
-- `architecture/` – System, agent, memory, and reasoning architecture
-- `technical_reference/` – API, error handling, performance
-- `analysis/` – Project analysis, executive summary, critical recommendations
-- `implementation/` – Implementation status, feature matrix, assessments
-- `specifications/` – Current and archived specifications
-- `roadmap/` – Roadmaps and improvement plans
-- `policies/` – SDLC, security, testing, and maintenance policies
+The documentation is organized for clarity and systematic access. For detailed structure information, see the [Repository Structure Guide](repo_structure.md) and [Documentation Policies](policies/documentation_policies.md).
 
 
 The [mkdocs.yml](../mkdocs.yml) file provides a navigable structure for all documentation. The [Repository Structure](repo_structure.md) document provides a comprehensive map of the repository for both human and agentic contributors.

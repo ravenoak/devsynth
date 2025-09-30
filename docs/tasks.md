@@ -1,7 +1,23 @@
-# DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist
+---
+title: "DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist"
+date: "2025-09-13"
+version: "0.1.0-alpha.1"
+tags:
+  - "tasks"
+  - "checklist"
+  - "implementation"
+  - "release-preparation"
+status: "active"
+author: "DevSynth Team"
+last_reviewed: "2025-09-30"
+source: "Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)"
+---
 
-Version: 2025-09-13
-Source: Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; DevSynth 0.1.0a1 Tasks Checklist
+</div>
+
+# DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist
 
 Instructions: Check off each task when completed. Subtasks are enumerated for clarity and traceability. Follow the order for optimal flow. All commands should be run via Poetry.
 

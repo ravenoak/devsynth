@@ -437,24 +437,11 @@ devsynth mvu rewrite --path . --branch-name atomic
 DevSynth itself continues using an ad‑hoc workflow until v0.4, so MVUU is
 optional for now.
 
-## Documentation Structure
-
-The documentation is organized for clarity and ease of navigation, following a comprehensive structure. Key directories:
-
-- `getting_started/` – Quick start, installation, and basic usage
-- `user_guides/` – User guide, CLI reference, configuration
-- `developer_guides/` – Contributing, development setup, testing, code style
-- `architecture/` – System, agent, memory, and reasoning architecture
-- `technical_reference/` – API, error handling, performance
-- `analysis/` – Project analysis, executive summary, critical recommendations
-- `implementation/` – Implementation status, feature matrix, assessments
-- `specifications/` – Current and archived specifications
-- `roadmap/` – Roadmaps and improvement plans
-- `policies/` – SDLC, security, testing, and maintenance policies
-
-The [Repository Structure](docs/repo_structure.md) document provides a comprehensive map of the repository for both human and agentic contributors.
-
 ## Repository Structure
+
+The repository is organized for clarity and systematic development, following hexagonal architecture principles. For a comprehensive technical reference, see the [Repository Structure Guide](docs/repo_structure.md).
+
+### Key Directories
 - `.devsynth/project.yaml` – Configuration file describing the shape and attributes of projects managed by DevSynth. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
 - `src/devsynth/schemas/project_schema.json` – The JSON schema for `.devsynth/project.yaml`.
 - `src/` – Source code (modular, hexagonal architecture)
