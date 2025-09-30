@@ -1,18 +1,30 @@
-"""
-Task management functionality for Collaborative WSDE Team.
+"""Task management functionality for Collaborative WSDE Team."""
 
-This module provides task management methods for the CollaborativeWSDETeam class,
-including subtask handling, progress tracking, and task reassignment.
-
-This is part of an effort to break up the monolithic wsde_team_extended.py
-into smaller, more focused modules.
-"""
+from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Sequence, cast
 
-from devsynth.domain.models.wsde_facade import WSDETeam
+from .structures import (
+    SubtaskSpec,
+    TaskDelegationResult,
+    TaskInput,
+    TaskManagementContext,
+    TaskReassignmentResult,
+    TaskSpec,
+)
+
+
+def _ensure_task_spec(task: TaskInput) -> TaskSpec:
+    """Normalize arbitrary task input into a :class:`TaskSpec`."""
+
+    if isinstance(task, TaskSpec):
+        return task
+
+    payload = dict(task)
+    payload.setdefault("id", str(uuid.uuid4()))
+    return TaskSpec.from_mapping(payload)
 
 
 class TaskManagementMixin:
@@ -23,351 +35,292 @@ class TaskManagementMixin:
     reassigning tasks based on progress.
     """
 
-    def process_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Process a task by breaking it down into subtasks and delegating them.
+    def process_task(self, task: TaskInput) -> Dict[str, Any]:
+        """Process a task by breaking it down into subtasks and delegating them."""
 
-        Args:
-            task: The task to process
+        context = cast(TaskManagementContext, self)
+        task_spec = _ensure_task_spec(task)
 
-        Returns:
-            The processed task with results
-        """
-        # Ensure task has an ID
-        if "id" not in task:
-            task["id"] = str(uuid.uuid4())
-
-        # Log the task processing
-        self.logger.info(
-            f"Processing task {task['id']}: {task.get('title', 'Untitled')}"
+        context.logger.info(
+            "Processing task %s: %s",
+            task_spec.id,
+            task_spec.title or "Untitled",
         )
 
-        # Dynamically reassign roles for this task based on expertise
         if hasattr(self, "dynamic_role_reassignment"):
-            self.dynamic_role_reassignment(task)
+            self.dynamic_role_reassignment(task_spec.to_payload())
 
-        # Check if task has subtasks defined
-        if "subtasks" in task and task["subtasks"]:
-            subtasks = task["subtasks"]
+        if task_spec.subtasks:
+            subtasks = task_spec.subtasks
         else:
-            # Generate subtasks based on task requirements
-            subtasks = self._generate_subtasks(task)
-            task["subtasks"] = subtasks
+            subtasks = self._generate_subtasks(task_spec)
+            task_spec.subtasks = subtasks
 
-        # Associate subtasks with main task
-        self.associate_subtasks(task, subtasks)
+        self.associate_subtasks(task_spec, subtasks)
 
-        # Delegate subtasks to team members
         delegation_results = self.delegate_subtasks(subtasks)
-        task["delegation_results"] = delegation_results
 
-        # Track progress on subtasks
-        self._track_subtask_progress(task["id"])
+        self._track_subtask_progress(task_spec.id)
 
-        # Reassign subtasks if needed based on progress
-        if any(progress < 0.5 for progress in self.subtask_progress.values()):
-            self.reassign_subtasks_based_on_progress(subtasks)
+        if any(
+            context.subtask_progress.get(subtask.id, 0.0) < 0.5
+            for subtask in subtasks
+        ):
+            reassignments = self.reassign_subtasks_based_on_progress(subtasks)
+            if reassignments:
+                task_spec.metadata.setdefault("reassignments", []).extend(
+                    [result.to_payload() for result in reassignments]
+                )
 
-        # Collect results from completed subtasks
-        results = self._collect_subtask_results(task["id"])
-        task["results"] = results
+        results = self._collect_subtask_results(task_spec.id)
+        payload: Dict[str, Any] = task_spec.to_payload()
+        payload["delegation_results"] = [
+            result.to_payload() for result in delegation_results
+        ]
+        payload["results"] = results
 
-        # Update contribution metrics
-        self._update_contribution_metrics(task["id"])
+        self._update_contribution_metrics(task_spec.id)
 
-        return task
+        return payload
 
-    def _generate_subtasks(self, task: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Generate subtasks based on task requirements.
+    def _generate_subtasks(self, task: TaskSpec) -> List[SubtaskSpec]:
+        """Generate subtasks based on task requirements."""
 
-        Args:
-            task: The main task
+        subtasks: List[SubtaskSpec] = []
 
-        Returns:
-            List of generated subtasks
-        """
-        subtasks = []
-
-        # Extract requirements from task
-        requirements = task.get("requirements", [])
-        if not requirements and "description" in task:
-            # Try to extract requirements from description
-            description = task["description"]
+        requirements = list(task.requirements)
+        if not requirements and task.description:
+            description = task.description
             requirements = [
                 line.strip("- ")
                 for line in description.split("\n")
                 if line.strip().startswith("-")
             ]
+            task.requirements = requirements
 
-        # Create a subtask for each requirement
-        for i, req in enumerate(requirements):
-            subtask = {
-                "id": f"{task['id']}_subtask_{i}",
-                "title": f"Subtask {i+1}: {req[:50]}...",
-                "description": req,
-                "parent_task_id": task["id"],
-                "status": "pending",
-                "priority": "medium",
-                "assigned_to": None,
-            }
-            subtasks.append(subtask)
+        for index, requirement in enumerate(requirements):
+            subtask_id = f"{task.id}_subtask_{index}"
+            subtasks.append(
+                SubtaskSpec(
+                    id=subtask_id,
+                    title=f"Subtask {index + 1}: {requirement[:50]}...",
+                    description=requirement,
+                    parent_task_id=task.id,
+                )
+            )
 
         return subtasks
 
     def associate_subtasks(
-        self, main_task: Dict[str, Any], subtasks: List[Dict[str, Any]]
+        self, main_task: TaskSpec, subtasks: Sequence[SubtaskSpec]
     ) -> None:
-        """
-        Associate subtasks with a main task.
+        """Associate subtasks with a main task."""
 
-        Args:
-            main_task: The main task
-            subtasks: List of subtasks to associate
-        """
-        task_id = main_task["id"]
+        context = cast(TaskManagementContext, self)
+        task_id = main_task.id
+        prepared_subtasks: List[SubtaskSpec] = []
+        for index, subtask in enumerate(subtasks):
+            if not subtask.id:
+                subtask.id = f"{task_id}_subtask_{index}"
+            subtask.parent_task_id = task_id
+            prepared_subtasks.append(subtask)
 
-        # Initialize subtasks dictionary for this task if it doesn't exist
-        if task_id not in self.subtasks:
-            self.subtasks[task_id] = []
+        context.subtasks[task_id] = prepared_subtasks
+        main_task.subtasks = list(prepared_subtasks)
 
-        # Add subtasks to the dictionary
-        for subtask in subtasks:
-            # Ensure subtask has an ID
-            if "id" not in subtask:
-                subtask["id"] = f"{task_id}_subtask_{len(self.subtasks[task_id])}"
+        context.logger.debug(
+            "Associated %d subtasks with task %s", len(prepared_subtasks), task_id
+        )
 
-            # Ensure subtask has a reference to parent task
-            subtask["parent_task_id"] = task_id
+    def delegate_subtasks(
+        self, subtasks: Sequence[SubtaskSpec]
+    ) -> List[TaskDelegationResult]:
+        """Delegate subtasks to team members based on expertise."""
 
-            # Add subtask to the list
-            self.subtasks[task_id].append(subtask)
-
-        self.logger.debug(f"Associated {len(subtasks)} subtasks with task {task_id}")
-
-    def delegate_subtasks(self, subtasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Delegate subtasks to team members based on expertise.
-
-        Args:
-            subtasks: List of subtasks to delegate
-
-        Returns:
-            List of delegation results
-        """
-        delegation_results = []
+        context = cast(TaskManagementContext, self)
+        delegation_results: List[TaskDelegationResult] = []
 
         for subtask in subtasks:
-            # Find the best agent for this subtask
             best_agent = None
-            best_score = -1
+            best_score = -1.0
 
-            for agent in self.agents:
-                # Calculate expertise score for this agent and subtask
-                score = self._calculate_expertise_score(agent, subtask)
-
-                # Update best agent if this one has a higher score
+            for agent in context.agents:
+                score = context._calculate_expertise_score(
+                    agent, subtask.to_payload()
+                )
                 if score > best_score:
-                    best_score = score
+                    best_score = float(score)
                     best_agent = agent
 
-            # Assign subtask to the best agent
             if best_agent:
-                subtask["assigned_to"] = best_agent.name
-                subtask["expertise_score"] = best_score
-                subtask["status"] = "assigned"
+                subtask.assigned_to = best_agent.name
+                subtask.expertise_score = best_score
+                subtask.status = "assigned"
 
-                # Log the delegation
-                self.logger.info(
-                    f"Delegated subtask {subtask['id']} to {best_agent.name} (score: {best_score:.2f})"
+                context.logger.info(
+                    "Delegated subtask %s to %s (score: %.2f)",
+                    subtask.id,
+                    best_agent.name,
+                    best_score,
                 )
 
-                # Send a message to the agent
-                self.send_message(
+                context.send_message(
                     sender="system",
                     recipients=[best_agent.name],
                     message_type="task_assignment",
-                    subject=f"Subtask Assignment: {subtask['title']}",
-                    content=subtask,
+                    subject=f"Subtask Assignment: {subtask.title}",
+                    content=subtask.to_payload(),
                 )
 
-                # Add to delegation results
                 delegation_results.append(
-                    {
-                        "subtask_id": subtask["id"],
-                        "assigned_to": best_agent.name,
-                        "expertise_score": best_score,
-                        "timestamp": datetime.now().isoformat(),
-                    }
+                    TaskDelegationResult(
+                        subtask_id=subtask.id,
+                        assigned_to=best_agent.name,
+                        expertise_score=best_score,
+                        timestamp=datetime.now().isoformat(),
+                    )
                 )
             else:
-                # No suitable agent found
-                subtask["status"] = "unassigned"
-                self.logger.warning(
-                    f"No suitable agent found for subtask {subtask['id']}"
+                subtask.status = "unassigned"
+                context.logger.warning(
+                    "No suitable agent found for subtask %s", subtask.id
                 )
 
-                # Add to delegation results
                 delegation_results.append(
-                    {
-                        "subtask_id": subtask["id"],
-                        "assigned_to": None,
-                        "expertise_score": 0,
-                        "timestamp": datetime.now().isoformat(),
-                    }
+                    TaskDelegationResult(
+                        subtask_id=subtask.id,
+                        assigned_to=None,
+                        expertise_score=0.0,
+                        timestamp=datetime.now().isoformat(),
+                    )
                 )
 
         return delegation_results
 
     def update_subtask_progress(self, subtask_id: str, progress: float) -> None:
-        """
-        Update the progress of a subtask.
+        """Update the progress of a subtask."""
 
-        Args:
-            subtask_id: ID of the subtask
-            progress: Progress value between 0 and 1
-        """
-        # Validate progress value
-        if not 0 <= progress <= 1:
+        context = cast(TaskManagementContext, self)
+        if not 0.0 <= progress <= 1.0:
             raise ValueError("Progress must be between 0 and 1")
 
-        # Update progress
-        self.subtask_progress[subtask_id] = progress
+        context.subtask_progress[subtask_id] = progress
+        context.logger.debug(
+            "Updated progress for subtask %s: %.2f", subtask_id, progress
+        )
 
-        # Log the update
-        self.logger.debug(f"Updated progress for subtask {subtask_id}: {progress:.2f}")
-
-        # Find the subtask and update its status
-        for task_id, subtasks in self.subtasks.items():
-            for subtask in subtasks:
-                if subtask["id"] == subtask_id:
+        for task_subtasks in context.subtasks.values():
+            for subtask in task_subtasks:
+                if subtask.id == subtask_id:
                     if progress >= 1.0:
-                        subtask["status"] = "completed"
+                        subtask.status = "completed"
                     elif progress > 0:
-                        subtask["status"] = "in_progress"
+                        subtask.status = "in_progress"
                     else:
-                        subtask["status"] = "assigned"
+                        subtask.status = "assigned" if subtask.assigned_to else "pending"
 
-                    # Update the subtask's progress field
-                    subtask["progress"] = progress
+                    subtask.progress = progress
                     return
 
     def reassign_subtasks_based_on_progress(
-        self, subtasks: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
-        """
-        Reassign subtasks based on progress and agent availability.
+        self, subtasks: Sequence[SubtaskSpec]
+    ) -> List[TaskReassignmentResult]:
+        """Reassign subtasks based on progress and agent availability."""
 
-        Args:
-            subtasks: List of subtasks to potentially reassign
-
-        Returns:
-            List of reassignment results
-        """
-        reassignment_results = []
-
-        # Get current agent workloads
+        context = cast(TaskManagementContext, self)
+        reassignment_results: List[TaskReassignmentResult] = []
         agent_workloads = self._calculate_agent_workloads()
 
-        # Identify subtasks with low progress
-        low_progress_subtasks = []
+        low_progress_subtasks: List[SubtaskSpec] = []
         for subtask in subtasks:
-            subtask_id = subtask["id"]
+            progress = context.subtask_progress.get(subtask.id, 0.0)
             if (
-                subtask_id in self.subtask_progress
-                and self.subtask_progress[subtask_id] < 0.3
+                progress < 0.3
+                and subtask.status != "completed"
+                and subtask.assigned_to
             ):
-                if subtask["status"] != "completed" and "assigned_to" in subtask:
-                    low_progress_subtasks.append(subtask)
+                low_progress_subtasks.append(subtask)
 
-        # Sort by priority and then by progress (lowest first)
+        priority_order = {"high": 0, "medium": 1, "low": 2}
         low_progress_subtasks.sort(
-            key=lambda s: (
-                {"high": 0, "medium": 1, "low": 2}.get(s.get("priority", "medium"), 1),
-                self.subtask_progress.get(s["id"], 0),
+            key=lambda sub: (
+                priority_order.get(sub.priority, 1),
+                context.subtask_progress.get(sub.id, 0.0),
             )
         )
 
-        # Reassign subtasks with low progress
         for subtask in low_progress_subtasks:
-            current_assignee = subtask["assigned_to"]
+            current_assignee = subtask.assigned_to
+            if not current_assignee:
+                continue
 
-            # Find a better agent for this subtask
             best_agent = None
-            best_score = -1
-
-            for agent in self.agents:
-                # Skip the current assignee
+            best_score = -1.0
+            for agent in context.agents:
                 if agent.name == current_assignee:
                     continue
 
-                # Calculate expertise score for this agent and subtask
-                expertise_score = self._calculate_expertise_score(agent, subtask)
-
-                # Adjust score based on agent workload
+                expertise_score = float(
+                    context._calculate_expertise_score(
+                        agent, subtask.to_payload()
+                    )
+                )
                 workload_factor = 1.0 - (
                     agent_workloads.get(agent.name, 0) / max(len(subtasks), 1)
                 )
                 adjusted_score = expertise_score * workload_factor
 
-                # Update best agent if this one has a higher score
                 if adjusted_score > best_score:
                     best_score = adjusted_score
                     best_agent = agent
 
-            # Reassign subtask if a better agent was found
-            if (
-                best_agent
-                and best_score > self.subtask_progress.get(subtask["id"], 0) * 1.5
-            ):
-                # Update subtask assignment
-                old_assignee = subtask["assigned_to"]
-                subtask["assigned_to"] = best_agent.name
-                subtask["expertise_score"] = best_score
-                subtask["reassigned"] = True
-                subtask["previous_assignee"] = old_assignee
+            current_progress = context.subtask_progress.get(subtask.id, 0.0)
+            if best_agent and best_score > current_progress * 1.5:
+                old_assignee = current_assignee
+                subtask.assigned_to = best_agent.name
+                subtask.expertise_score = best_score
+                subtask.reassigned = True
+                subtask.previous_assignee = old_assignee
 
-                # Log the reassignment
-                self.logger.info(
-                    f"Reassigned subtask {subtask['id']} from {old_assignee} to {best_agent.name} "
-                    f"(new score: {best_score:.2f}, progress: {self.subtask_progress.get(subtask['id'], 0):.2f})"
+                context.logger.info(
+                    "Reassigned subtask %s from %s to %s (score: %.2f, progress: %.2f)",
+                    subtask.id,
+                    old_assignee,
+                    best_agent.name,
+                    best_score,
+                    current_progress,
                 )
 
-                # Send messages to both agents
-                self.send_message(
+                context.send_message(
                     sender="system",
                     recipients=[best_agent.name],
                     message_type="task_assignment",
-                    subject=f"Subtask Reassignment: {subtask['title']}",
-                    content=subtask,
+                    subject=f"Subtask Reassignment: {subtask.title}",
+                    content=subtask.to_payload(),
                 )
 
-                self.send_message(
+                context.send_message(
                     sender="system",
                     recipients=[old_assignee],
                     message_type="task_reassignment",
-                    subject=f"Subtask Reassigned: {subtask['title']}",
+                    subject=f"Subtask Reassigned: {subtask.title}",
                     content={
-                        "subtask_id": subtask["id"],
+                        "subtask_id": subtask.id,
                         "new_assignee": best_agent.name,
                     },
                 )
 
-                # Add to reassignment results
                 reassignment_results.append(
-                    {
-                        "subtask_id": subtask["id"],
-                        "previous_assignee": old_assignee,
-                        "new_assignee": best_agent.name,
-                        "expertise_score": best_score,
-                        "progress_at_reassignment": self.subtask_progress.get(
-                            subtask["id"], 0
-                        ),
-                        "timestamp": datetime.now().isoformat(),
-                    }
+                    TaskReassignmentResult(
+                        subtask_id=subtask.id,
+                        previous_assignee=old_assignee,
+                        new_assignee=best_agent.name,
+                        expertise_score=best_score,
+                        progress_at_reassignment=current_progress,
+                        timestamp=datetime.now().isoformat(),
+                    )
                 )
 
-                # Update agent workloads
                 agent_workloads[old_assignee] = max(
                     0, agent_workloads.get(old_assignee, 0) - 1
                 )
@@ -378,144 +331,115 @@ class TaskManagementMixin:
         return reassignment_results
 
     def _calculate_agent_workloads(self) -> Dict[str, int]:
-        """
-        Calculate the current workload for each agent.
+        """Calculate the current workload for each agent."""
 
-        Returns:
-            Dictionary mapping agent names to their workload counts
-        """
-        workloads = {}
-
-        # Count assigned subtasks for each agent
-        for task_subtasks in self.subtasks.values():
+        context = cast(TaskManagementContext, self)
+        workloads: Dict[str, int] = {}
+        for task_subtasks in context.subtasks.values():
             for subtask in task_subtasks:
-                if "assigned_to" in subtask and subtask["status"] != "completed":
-                    assignee = subtask["assigned_to"]
-                    workloads[assignee] = workloads.get(assignee, 0) + 1
+                if subtask.assigned_to and subtask.status != "completed":
+                    workloads[subtask.assigned_to] = (
+                        workloads.get(subtask.assigned_to, 0) + 1
+                    )
 
         return workloads
 
     def _track_subtask_progress(self, task_id: str) -> None:
-        """
-        Track progress on subtasks for a given task.
+        """Track progress on subtasks for a given task."""
 
-        Args:
-            task_id: ID of the main task
-        """
-        if task_id not in self.subtasks:
+        context = cast(TaskManagementContext, self)
+        if task_id not in context.subtasks:
             return
 
-        # Update progress for each subtask
-        for subtask in self.subtasks[task_id]:
-            subtask_id = subtask["id"]
-
-            # Skip if progress is already tracked and subtask is completed
+        for subtask in context.subtasks[task_id]:
             if (
-                subtask_id in self.subtask_progress
-                and self.subtask_progress[subtask_id] >= 1.0
+                subtask.id in context.subtask_progress
+                and context.subtask_progress[subtask.id] >= 1.0
             ):
                 continue
 
-            # Get messages related to this subtask
-            messages = self.get_messages(
-                filters={"metadata.subtask_id": subtask_id, "type": "progress_update"}
+            messages = context.get_messages(
+                filters={
+                    "metadata.subtask_id": subtask.id,
+                    "type": "progress_update",
+                }
             )
 
             if messages:
-                # Use the latest progress update
-                latest_message = max(messages, key=lambda m: m["timestamp"])
+                latest_message = max(messages, key=lambda message: message["timestamp"])
                 progress = latest_message["content"].get("progress", 0)
-                self.update_subtask_progress(subtask_id, progress)
-            elif "progress" in subtask:
-                # Use progress from subtask if available
-                self.update_subtask_progress(subtask_id, subtask["progress"])
+                self.update_subtask_progress(subtask.id, progress)
+            elif subtask.progress:
+                self.update_subtask_progress(subtask.id, subtask.progress)
 
-    def _collect_subtask_results(self, task_id: str) -> List[Dict[str, Any]]:
-        """
-        Collect results from completed subtasks.
+    def _collect_subtask_results(
+        self, task_id: str
+    ) -> List[Dict[str, Any]]:
+        """Collect results from completed subtasks."""
 
-        Args:
-            task_id: ID of the main task
+        context = cast(TaskManagementContext, self)
+        results: List[Dict[str, Any]] = []
 
-        Returns:
-            List of subtask results
-        """
-        results = []
-
-        if task_id not in self.subtasks:
+        if task_id not in context.subtasks:
             return results
 
-        for subtask in self.subtasks[task_id]:
-            subtask_id = subtask["id"]
-
-            # Get result messages for this subtask
-            messages = self.get_messages(
-                filters={"metadata.subtask_id": subtask_id, "type": "subtask_result"}
+        for subtask in context.subtasks[task_id]:
+            messages = context.get_messages(
+                filters={
+                    "metadata.subtask_id": subtask.id,
+                    "type": "subtask_result",
+                }
             )
 
             if messages:
-                # Use the latest result
-                latest_message = max(messages, key=lambda m: m["timestamp"])
-                result = {
-                    "subtask_id": subtask_id,
-                    "title": subtask.get("title", ""),
-                    "assigned_to": subtask.get("assigned_to", ""),
-                    "result": latest_message["content"],
-                    "timestamp": (
-                        latest_message["timestamp"].isoformat()
-                        if isinstance(latest_message["timestamp"], datetime)
-                        else latest_message["timestamp"]
-                    ),
-                }
-                results.append(result)
+                latest_message = max(messages, key=lambda message: message["timestamp"])
+                timestamp = latest_message["timestamp"]
+                if isinstance(timestamp, datetime):
+                    timestamp_str = timestamp.isoformat()
+                else:
+                    timestamp_str = timestamp
+
+                results.append(
+                    {
+                        "subtask_id": subtask.id,
+                        "title": subtask.title,
+                        "assigned_to": subtask.assigned_to or "",
+                        "result": latest_message["content"],
+                        "timestamp": timestamp_str,
+                    }
+                )
 
         return results
 
     def _update_contribution_metrics(self, task_id: str) -> None:
-        """
-        Update contribution metrics for agents based on task completion.
+        """Update contribution metrics for agents based on task completion."""
 
-        Args:
-            task_id: ID of the main task
-        """
-        if task_id not in self.subtasks:
+        context = cast(TaskManagementContext, self)
+        if task_id not in context.subtasks:
             return
 
-        # Initialize metrics for this task if they don't exist
-        if task_id not in self.contribution_metrics:
-            self.contribution_metrics[task_id] = {}
-
-        # Update metrics for each agent
-        for subtask in self.subtasks[task_id]:
-            if "assigned_to" not in subtask:
+        task_metrics = context.contribution_metrics.setdefault(task_id, {})
+        for subtask in context.subtasks[task_id]:
+            if not subtask.assigned_to:
                 continue
 
-            agent_name = subtask["assigned_to"]
-            subtask_id = subtask["id"]
-
-            # Initialize agent metrics if they don't exist
-            if agent_name not in self.contribution_metrics[task_id]:
-                self.contribution_metrics[task_id][agent_name] = {
+            agent_metrics = task_metrics.setdefault(
+                subtask.assigned_to,
+                {
                     "assigned_subtasks": 0,
                     "completed_subtasks": 0,
-                    "total_progress": 0,
-                    "average_progress": 0,
-                }
+                    "total_progress": 0.0,
+                    "average_progress": 0.0,
+                },
+            )
 
-            # Update metrics
-            metrics = self.contribution_metrics[task_id][agent_name]
-            metrics["assigned_subtasks"] += 1
-
-            if subtask_id in self.subtask_progress:
-                progress = self.subtask_progress[subtask_id]
-                metrics["total_progress"] += progress
-
-                if progress >= 1.0:
-                    metrics["completed_subtasks"] += 1
-
-            # Calculate average progress
-            metrics["average_progress"] = (
-                metrics["total_progress"] / metrics["assigned_subtasks"]
+            agent_metrics["assigned_subtasks"] += 1
+            progress = context.subtask_progress.get(subtask.id, subtask.progress)
+            agent_metrics["total_progress"] += progress
+            if progress >= 1.0:
+                agent_metrics["completed_subtasks"] += 1
+            agent_metrics["average_progress"] = (
+                agent_metrics["total_progress"] / agent_metrics["assigned_subtasks"]
             )
 
     def get_contribution_metrics(self, task_id: str) -> Dict[str, Dict[str, Any]]:
@@ -528,79 +452,62 @@ class TaskManagementMixin:
         Returns:
             Dictionary mapping agent names to their contribution metrics
         """
-        return self.contribution_metrics.get(task_id, {})
+        context = cast(TaskManagementContext, self)
+        metrics = context.contribution_metrics.get(task_id)
+        if metrics is None:
+            return {}
+        return {agent: dict(values) for agent, values in metrics.items()}
 
-    def update_task_requirements(self, updated_task: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Update task requirements and adjust subtasks accordingly.
+    def update_task_requirements(self, updated_task: TaskInput) -> Dict[str, Any]:
+        """Update task requirements and adjust subtasks accordingly."""
 
-        Args:
-            updated_task: The updated task with new requirements
+        context = cast(TaskManagementContext, self)
+        task_spec = _ensure_task_spec(updated_task)
+        task_id = task_spec.id
 
-        Returns:
-            The updated task with adjusted subtasks
-        """
-        task_id = updated_task["id"]
+        if task_id not in context.subtasks:
+            return TaskManagementMixin.process_task(self, task_spec)
 
-        # Check if task exists in subtasks dictionary
-        if task_id not in self.subtasks:
-            # If not, treat it as a new task
-            return self.process_task(updated_task)
+        existing_subtasks = context.subtasks[task_id]
+        requirement_map = {
+            subtask.description: subtask for subtask in existing_subtasks
+        }
 
-        # Get existing subtasks
-        existing_subtasks = self.subtasks[task_id]
-
-        # Get new requirements
-        new_requirements = updated_task.get("requirements", [])
-        if not new_requirements and "description" in updated_task:
-            # Try to extract requirements from description
-            description = updated_task["description"]
+        new_requirements = list(task_spec.requirements)
+        if not new_requirements and task_spec.description:
+            description = task_spec.description
             new_requirements = [
                 line.strip("- ")
                 for line in description.split("\n")
                 if line.strip().startswith("-")
             ]
+            task_spec.requirements = new_requirements
 
-        # Map existing subtasks to their requirements
-        existing_req_map = {}
-        for subtask in existing_subtasks:
-            req = subtask.get("description", "")
-            existing_req_map[req] = subtask
-
-        # Create updated subtasks list
-        updated_subtasks = []
-
-        # Process each new requirement
-        for i, req in enumerate(new_requirements):
-            if req in existing_req_map:
-                # Requirement exists, keep the existing subtask
-                updated_subtasks.append(existing_req_map[req])
+        updated_subtasks: List[SubtaskSpec] = []
+        for index, requirement in enumerate(new_requirements):
+            if requirement in requirement_map:
+                updated_subtasks.append(requirement_map[requirement])
             else:
-                # New requirement, create a new subtask
-                new_subtask = {
-                    "id": f"{task_id}_subtask_{len(existing_subtasks) + i}",
-                    "title": f"Subtask {len(updated_subtasks) + 1}: {req[:50]}...",
-                    "description": req,
-                    "parent_task_id": task_id,
-                    "status": "pending",
-                    "priority": "medium",
-                    "assigned_to": None,
-                }
-                updated_subtasks.append(new_subtask)
+                updated_subtasks.append(
+                    SubtaskSpec(
+                        id=f"{task_id}_subtask_{len(existing_subtasks) + index}",
+                        title=f"Subtask {len(updated_subtasks) + 1}: {requirement[:50]}...",
+                        description=requirement,
+                        parent_task_id=task_id,
+                    )
+                )
 
-        # Update the task's subtasks
-        updated_task["subtasks"] = updated_subtasks
-        self.subtasks[task_id] = updated_subtasks
+        task_spec.subtasks = updated_subtasks
+        context.subtasks[task_id] = updated_subtasks
 
-        # Delegate any new subtasks
-        new_subtasks = [s for s in updated_subtasks if s["status"] == "pending"]
-        if new_subtasks:
-            delegation_results = self.delegate_subtasks(new_subtasks)
+        new_pending = [sub for sub in updated_subtasks if sub.status == "pending"]
+        delegation_results: List[TaskDelegationResult] = []
+        if new_pending:
+            delegation_results = self.delegate_subtasks(new_pending)
 
-            # Add to existing delegation results if they exist
-            if "delegation_results" in updated_task:
-                updated_task["delegation_results"].extend(delegation_results)
-            else:
-                updated_task["delegation_results"] = delegation_results
-
-        return updated_task
+        payload: Dict[str, Any] = task_spec.to_payload()
+        if delegation_results:
+            payload.setdefault("delegation_results", []).extend(
+                result.to_payload() for result in delegation_results
+            )
+        return payload

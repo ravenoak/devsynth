@@ -6,6 +6,7 @@ from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
     restore_memory_queue,
 )
+from devsynth.application.collaboration.structures import MemoryQueueEntry
 from devsynth.application.collaboration.dto import MemorySyncPort
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
@@ -54,7 +55,13 @@ def test_restore_memory_queue_requeues_items_in_order() -> None:
         memory_type=MemoryType.TEAM_STATE,
         metadata={"sync_port": sync_port.to_dict()},
     )
-    restore_memory_queue(mm, [("default", first), ("secondary", second)])
+    restore_memory_queue(
+        mm,
+        [
+            MemoryQueueEntry(store="default", item=first),
+            MemoryQueueEntry(store="secondary", item=second),
+        ],
+    )
     assert [call.args[0] for call in mm.queue_update.call_args_list] == [
         "default",
         "secondary",

@@ -8,25 +8,52 @@ to convert between domain objects and memory items.
 import json
 import random
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union, cast
+from typing import (
+    Any,
+    Awaitable,
+    Coroutine,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Union,
+    cast,
+)
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.logging_setup import DevSynthLogger
 
 from .agent_collaboration import AgentMessage, CollaborationTask
 from .dto import ensure_memory_sync_port, serialize_memory_sync_port
+from .structures import MemoryQueueEntry, ReviewCycleSpec
 
-# Use TYPE_CHECKING for type hints to avoid circular imports
-if TYPE_CHECKING:
-    try:
-        from .peer_review import PeerReview
-    except Exception:  # pragma: no cover - optional dependency
-        PeerReview = None  # type: ignore[assignment]
+PeerReview: Optional[type[Any]]
+try:  # pragma: no cover - optional dependency
+    from .peer_review import PeerReview as _PeerReview
+except Exception:  # pragma: no cover - optional dependency
+    _PeerReview = None
+PeerReview = cast(Optional[type[Any]], _PeerReview)
 
 logger = DevSynthLogger(__name__)
 
 
-def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
+async def _await_result(awaitable: Awaitable[Any]) -> Any:
+    """Await an arbitrary awaitable object."""
+
+    return await awaitable
+
+
+def _resolve_entity_id(entity: Any) -> str:
+    """Return a stable string identifier for an entity."""
+
+    identifier = getattr(entity, "id", None) or getattr(entity, "review_id", None)
+    if identifier is None:
+        return str(id(entity))
+    return str(identifier)
+
+
+def flush_memory_queue(memory_manager: Any) -> List[MemoryQueueEntry]:
     """Flush queued memory updates and return flushed items deterministically.
 
     The sync manager maintains an internal queue protected by ``_queue_lock``.
@@ -49,14 +76,14 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
     lock = getattr(sync_manager, "_queue_lock", None)
     if lock:
         with lock:
-            queue: List[tuple[str, MemoryItem]] = list(
+            queue_snapshot: List[tuple[str, MemoryItem]] = list(
                 getattr(sync_manager, "_queue", [])
             )
     else:
-        queue = list(getattr(sync_manager, "_queue", []))
+        queue_snapshot = list(getattr(sync_manager, "_queue", []))
 
-    normalized_queue: List[tuple[str, MemoryItem]] = []
-    for store, item in queue:
+    normalized_queue: List[MemoryQueueEntry] = []
+    for store, item in queue_snapshot:
         if item.metadata and "sync_port" in item.metadata:
             try:
                 item.metadata["sync_port"] = ensure_memory_sync_port(
@@ -64,8 +91,7 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
                 )
             except Exception:  # pragma: no cover - defensive
                 logger.debug("Failed to normalize sync_port metadata", exc_info=True)
-        normalized_queue.append((store, item))
-    queue = normalized_queue
+        normalized_queue.append(MemoryQueueEntry(store=store, item=item))
 
     notified = False
     try:
@@ -87,7 +113,11 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
 
             result = wait()
             if inspect.isawaitable(result):  # pragma: no cover - depends on event loop
-                asyncio.run(result)
+                if inspect.iscoroutine(result):
+                    asyncio.run(cast(Coroutine[Any, Any, Any], result))
+                else:
+                    awaitable_result: Awaitable[Any] = result
+                    asyncio.run(_await_result(awaitable_result))
     except Exception:  # pragma: no cover - defensive
         logger.debug("Flush failed", exc_info=True)
     finally:
@@ -99,11 +129,12 @@ def flush_memory_queue(memory_manager: Any) -> List[tuple[str, MemoryItem]]:
                 except Exception:  # pragma: no cover - defensive
                     logger.debug("Sync hook notification failed", exc_info=True)
 
-    return queue
+    return normalized_queue
 
 
 def restore_memory_queue(
-    memory_manager: Any, queued_items: List[tuple[str, MemoryItem]]
+    memory_manager: Any,
+    queued_items: Iterable[Union[MemoryQueueEntry, tuple[str, MemoryItem]]],
 ) -> None:
     """Requeue memory updates previously returned by :func:`flush_memory_queue`.
 
@@ -112,9 +143,15 @@ def restore_memory_queue(
         queued_items: Items to requeue in their original order.
     """
 
-    if not memory_manager or not queued_items:
+    if not memory_manager:
         return
-    for store, item in queued_items:
+    has_items = False
+    for entry in queued_items:
+        has_items = True
+        if isinstance(entry, MemoryQueueEntry):
+            store, item = entry.store, entry.item
+        else:
+            store, item = entry
         try:
             if item.metadata and "sync_port" in item.metadata:
                 try:
@@ -126,6 +163,8 @@ def restore_memory_queue(
             memory_manager.queue_update(store, item)
         except Exception:  # pragma: no cover - best effort
             logger.debug("Requeue failed", exc_info=True)
+    if not has_items:
+        return
 
 
 def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
@@ -139,19 +178,16 @@ def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
     Returns:
         A MemoryItem representing the entity
     """
-    # Import here to avoid circular imports and optional dependencies
-    try:
-        from .peer_review import PeerReview
-    except Exception:  # pragma: no cover - optional dependency
-        PeerReview = None  # type: ignore[assignment]
-
     if not entity:
         raise ValueError("Cannot convert None to MemoryItem")
 
     # Get entity ID
-    entity_id = getattr(entity, "id", None) or getattr(entity, "review_id", None)
-    if not entity_id:
+    entity_identifier = getattr(entity, "id", None) or getattr(
+        entity, "review_id", None
+    )
+    if entity_identifier is None:
         raise ValueError(f"Entity {entity} does not have an id attribute")
+    entity_id = str(entity_identifier)
 
     if hasattr(entity, "to_dict"):
         content = entity.to_dict()
@@ -164,8 +200,15 @@ def to_memory_item(entity: Any, memory_type: MemoryType) -> MemoryItem:
     if hasattr(entity, "memory_metadata"):
         try:
             memory_metadata = getattr(entity, "memory_metadata")
-            metadata = dict(memory_metadata())  # type: ignore[call-arg]
-            use_custom_metadata = True
+            if callable(memory_metadata):
+                metadata_candidate = memory_metadata()
+                if isinstance(metadata_candidate, Mapping):
+                    metadata = dict(metadata_candidate)
+                elif isinstance(metadata_candidate, dict):
+                    metadata = dict(metadata_candidate)
+                elif metadata_candidate is not None:
+                    metadata = dict(cast(Mapping[str, Any], metadata_candidate))
+                use_custom_metadata = True
         except Exception as exc:  # pragma: no cover - defensive
             logger.debug(
                 "Failed to obtain custom memory metadata",
@@ -293,7 +336,8 @@ def _memory_item_to_review(item: MemoryItem) -> Any:
     # Import here to avoid circular imports
     from devsynth.application.memory.memory_manager import MemoryManager
 
-    from .peer_review import PeerReview
+    if PeerReview is None:
+        return item.content
 
     content = item.content
 
@@ -311,7 +355,7 @@ def _memory_item_to_review(item: MemoryItem) -> Any:
 
     # Handle reviewers - could be a list of agent objects or strings
     reviewers = content.get("reviewers", [])
-    processed_reviewers = []
+    processed_reviewers: List[Any] = []
     for reviewer in reviewers:
         if isinstance(reviewer, dict) and ("id" in reviewer or "name" in reviewer):
             # Similar to author handling
@@ -323,11 +367,24 @@ def _memory_item_to_review(item: MemoryItem) -> Any:
             processed_reviewers.append(reviewer)
 
     # Create the PeerReview object with basic attributes
-    review = PeerReview(
+    acceptance_data = content.get("acceptance_criteria")
+    if acceptance_data is not None and not isinstance(acceptance_data, (list, tuple)):
+        acceptance_data = [acceptance_data]
+
+    quality_metrics = content.get("quality_metrics")
+    if quality_metrics is not None and not isinstance(quality_metrics, Mapping):
+        quality_metrics = None
+
+    review_spec = ReviewCycleSpec(
         work_product=content.get("work_product", {}),
         author=author,
-        reviewers=processed_reviewers,
+        reviewers=tuple(processed_reviewers),
+        acceptance_criteria=acceptance_data,
+        quality_metrics=quality_metrics,
+        team=content.get("team"),
     )
+
+    review = PeerReview(cycle=review_spec)
 
     # Set the review_id
     review.review_id = item.id
@@ -338,7 +395,7 @@ def _memory_item_to_review(item: MemoryItem) -> Any:
 
     # Handle reviews dictionary - keys might be agent objects
     reviews_dict = content.get("reviews", {})
-    processed_reviews = {}
+    processed_reviews: Dict[Any, Any] = {}
     for reviewer_key, review_data in reviews_dict.items():
         # If the key is a string representation of an object, try to convert it
         if (
@@ -360,7 +417,7 @@ def _memory_item_to_review(item: MemoryItem) -> Any:
     review.reviews = processed_reviews
 
     # Set other collection attributes
-    review.revision_history = content.get("revision_history", [])
+    review.revision_history.extend(content.get("revision_history", []))
     review.metrics_results = content.get("metrics_results", {})
     review.consensus_result = content.get("consensus_result", {})
 
@@ -447,9 +504,7 @@ def store_collaboration_entity(
         The ID of the stored entity
     """
     # Get entity ID for logging
-    entity_id = getattr(entity, "id", None) or getattr(
-        entity, "review_id", str(id(entity))
-    )
+    entity_id = _resolve_entity_id(entity)
 
     # Check if memory_manager is valid
     if not memory_manager:
@@ -475,15 +530,12 @@ def store_collaboration_entity(
     # Convert to memory item if not provided
     if memory_item is None:
         try:
-            # Import here to avoid circular imports
-            from .peer_review import PeerReview
-
             # Determine the memory type based on the entity type
             if isinstance(entity, CollaborationTask):
                 memory_type = MemoryType.COLLABORATION_TASK
             elif isinstance(entity, AgentMessage):
                 memory_type = MemoryType.COLLABORATION_MESSAGE
-            elif isinstance(entity, PeerReview):
+            elif PeerReview is not None and isinstance(entity, PeerReview):
                 memory_type = MemoryType.PEER_REVIEW
             else:
                 memory_type = _get_memory_type_for_entity(entity)
@@ -550,7 +602,8 @@ def store_collaboration_entity(
                 logger.warning(f"Failed to commit transaction {transaction_id}: {e}")
                 # We don't rollback here since the operation might have succeeded
 
-        return memory_item.id
+        result_id = str(memory_item.id)
+        return result_id
 
     except Exception as e:
         logger.error(f"Error storing entity {memory_item.id}: {e}")
@@ -674,7 +727,7 @@ def _store_in_graph(
 
 
 def retrieve_collaboration_entity(
-    memory_manager: Any, entity_id: str, entity_type: Type = None
+    memory_manager: Any, entity_id: str, entity_type: type[Any] | None = None
 ) -> Any:
     """
     Retrieve a collaboration entity from memory.
@@ -696,7 +749,7 @@ def retrieve_collaboration_entity(
     entity = from_memory_item(memory_item)
 
     # Verify type if specified
-    if entity_type and not isinstance(entity, entity_type):
+    if entity_type is not None and not isinstance(entity, entity_type):
         logger.warning(
             f"Retrieved entity {entity_id} is not of expected type {entity_type}"
         )
@@ -735,9 +788,7 @@ def store_with_retry(
     import time
 
     # Get entity ID for logging and fallback
-    entity_id = getattr(entity, "id", None) or getattr(
-        entity, "review_id", str(id(entity))
-    )
+    entity_id = _resolve_entity_id(entity)
 
     # Determine available stores for cross-store synchronization
     available_stores = []
@@ -789,7 +840,7 @@ def store_with_retry(
         retries = 0
         last_error = None
         success = False
-        sync_failures = []
+        sync_failures: List[tuple[str, str]] = []
 
         while retries < max_retries and not success:
             try:
@@ -807,7 +858,7 @@ def store_with_retry(
 
                 # If cross-store sync is requested and we have multiple stores
                 if ensure_cross_store_sync and len(available_stores) > 1:
-                    sync_failures = []  # Track any sync failures
+                    sync_failures.clear()  # Track any sync failures
 
                     # Try to store in other available stores for redundancy
                     for store_name in available_stores:
@@ -964,14 +1015,11 @@ def _get_memory_type_for_entity(entity: Any) -> MemoryType:
     Returns:
         The appropriate memory type for the entity
     """
-    # Import here to avoid circular imports
-    from .peer_review import PeerReview
-
     if isinstance(entity, CollaborationTask):
         return MemoryType.COLLABORATION_TASK
     elif isinstance(entity, AgentMessage):
         return MemoryType.COLLABORATION_MESSAGE
-    elif isinstance(entity, PeerReview):
+    elif PeerReview is not None and isinstance(entity, PeerReview):
         return MemoryType.PEER_REVIEW
     else:
         # Default to a generic type

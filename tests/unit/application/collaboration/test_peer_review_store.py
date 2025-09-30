@@ -103,6 +103,7 @@ from devsynth.application.collaboration.peer_review import (
     ReviewDecision,
     _PeerReviewRecordStorage,
 )
+from devsynth.application.collaboration.structures import ReviewCycleSpec
 from devsynth.application.collaboration.dto import (
     AgentOpinionRecord,
     ConsensusOutcome,
@@ -129,7 +130,12 @@ def test_store_in_memory_persists_peer_review_record() -> None:
 
     mm = DummyMemoryManager()
     review = PeerReview(
-        work_product="wp", author="a", reviewers=["r"], memory_manager=mm
+        cycle=ReviewCycleSpec(
+            work_product="wp",
+            author="a",
+            reviewers=["r"],
+            memory_manager=mm,
+        )
     )
     review.status = "approved"
     review.quality_score = 0.9
@@ -180,7 +186,12 @@ def test_collect_reviews_returns_review_decisions() -> None:
     mm = DummyMemoryManager()
     reviewer = FriendlyReviewer()
     review = PeerReview(
-        work_product={}, author="author", reviewers=[reviewer], memory_manager=mm
+        cycle=ReviewCycleSpec(
+            work_product={},
+            author="author",
+            reviewers=[reviewer],
+            memory_manager=mm,
+        )
     )
 
     with patch(
@@ -210,7 +221,12 @@ def test_collect_reviews_failure_yields_error_decision() -> None:
 
     mm = DummyMemoryManager()
     review = PeerReview(
-        work_product={}, author="author", reviewers=[FailingReviewer()], memory_manager=mm
+        cycle=ReviewCycleSpec(
+            work_product={},
+            author="author",
+            reviewers=[FailingReviewer()],
+            memory_manager=mm,
+        )
     )
 
     with patch(
@@ -239,7 +255,12 @@ def test_collect_reviews_wraps_consensus_error_with_serialized_outcome() -> None
     mm = DummyMemoryManager()
     reviewer = CooperativeReviewer()
     review = PeerReview(
-        work_product={}, author="author", reviewers=[reviewer], memory_manager=mm
+        cycle=ReviewCycleSpec(
+            work_product={},
+            author="author",
+            reviewers=[reviewer],
+            memory_manager=mm,
+        )
     )
 
     consensus = ConsensusOutcome(

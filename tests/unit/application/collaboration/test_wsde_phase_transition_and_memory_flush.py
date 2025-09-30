@@ -48,6 +48,8 @@ def test_flush_memory_queue_waits_for_sync():
     mm.queue_update("default", item)
     flushed = flush_memory_queue(mm)
 
-    assert flushed == [("default", item)]
+    assert len(flushed) == 1
+    assert flushed[0].store == "default"
+    assert flushed[0].item is item
     mm.wait_for_sync.assert_called_once()
     assert mm.sync_manager._queue == []
