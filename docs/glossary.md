@@ -31,6 +31,9 @@ An autonomous software component that performs specific tasks within the DevSynt
 ### Agent System
 The collection of modular agents and their orchestration framework within DevSynth, powered by LangGraph.
 
+### API (Application Programming Interface)
+A set of protocols and tools for building software applications, defining how software components should interact.
+
 ### AgentAdapter
 A component that provides a direct interface for interacting with DevSynth's agent capabilities from Python code.
 
@@ -52,6 +55,9 @@ The primary interface for interacting with DevSynth through terminal commands.
 
 ### Code Analysis
 The process of examining code to understand its structure, dependencies, complexity, and potential issues, implemented in DevSynth using NetworkX.
+
+### CI/CD (Continuous Integration/Continuous Deployment)
+A software development practice that involves automatically building, testing, and deploying code changes.
 
 ## D
 

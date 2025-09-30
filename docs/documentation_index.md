@@ -19,13 +19,13 @@ generator: "scripts/generate_doc_index.py"
 
 # Documentation Index
 
-_This index is automatically generated from all documentation files. Last updated: 2025-09-30 16:31:52 UTC_
+_This index is automatically generated from all documentation files. Last updated: 2025-09-30 16:48:37 UTC_
 
 ## Summary Statistics
 
-- **Total Files**: 578
-- **Categories**: 28
-- **Generated**: 2025-09-30 16:31:52 UTC
+- **Total Files**: 582
+- **Categories**: 29
+- **Generated**: 2025-09-30 16:48:37 UTC
 
 ## Files by Category
 
@@ -268,6 +268,13 @@ _This index is automatically generated from all documentation files. Last update
 | docs/getting_started/troubleshooting.md | DevSynth Troubleshooting Guide | published | troubleshooting | 2025-06-01 |
 | docs/getting_started/webui_onboarding_flow.md | WebUI Onboarding Flow | published | getting-started | 2025-07-01 |
 
+### Harmonization (2 files)
+
+| File Path | Title | Status | Release Phase | Date |
+|-----------|-------|--------|---------------|------|
+| docs/harmonization/phase1-completion-report.md | Phase 1 Documentation Harmonization Completion Report | unknown | unknown | unknown |
+| docs/harmonization/phase2-completion-report.md | Phase 2 Documentation Harmonization Completion Report | unknown | unknown | unknown |
+
 ### Implementation (40 files)
 
 | File Path | Title | Status | Release Phase | Date |
@@ -334,7 +341,7 @@ _This index is automatically generated from all documentation files. Last update
 | docs/performance/performance_and_scalability_testing.md | Performance and Scalability Testing | unknown | unknown | unknown |
 | docs/performance/smoke_benchmarks.md | Smoke Benchmarks | guide | unknown | 2025-08-25 |
 
-### Policies (33 files)
+### Policies (35 files)
 
 | File Path | Title | Status | Release Phase | Date |
 |-----------|-------|--------|---------------|------|
@@ -350,7 +357,9 @@ _This index is automatically generated from all documentation files. Last update
 | docs/policies/design.md | Design Policy | published | policy | 2025-07-07 |
 | docs/policies/development.md | Development Policy | published | policy | 2025-07-07 |
 | docs/policies/dialectical_audit.md | Dialectical Audit Policy | published | policy | 2025-07-10 |
+| docs/policies/documentation_maintenance_runbook.md | Documentation Maintenance Runbook | published | documentation | 2025-09-30 |
 | docs/policies/documentation_ownership.md | DevSynth Documentation Ownership | published | documentation | 2025-08-02 |
+| docs/policies/documentation_ownership_model.md | Documentation Ownership Model | published | documentation | 2025-09-30 |
 | docs/policies/documentation_policies.md | Documentation Policies | published | documentation | 2025-06-01 |
 | docs/policies/documentation_review_process.md | Documentation Review Process | published | policies | 2025-06-01 |
 | docs/policies/documentation_review_schedule.md | DevSynth Documentation Review Schedule | published | documentation | 2025-08-02 |
@@ -416,7 +425,7 @@ _This index is automatically generated from all documentation files. Last update
 | docs/DOCUMENTATION_UPDATE_PROGRESS.md | Documentation Update Progress | published | documentation | 2025-07-08 |
 | docs/TESTING_STANDARDS.md | DevSynth Testing Standards | published | documentation | 2025-07-07 |
 | docs/configuration.md | Configuration Overview | draft | configuration | 2025-06-01 |
-| docs/documentation_index.md | Documentation Index | published | documentation | 2025-07-07 |
+| docs/documentation_index.md | Documentation Index | published | documentation | 2025-09-30 |
 | docs/feature_audit.md | Feature Audit Resolution | unknown | unknown | unknown |
 | docs/gap-matrix.md | Gap Matrix | active | documentation | 2025-08-06 |
 | docs/glossary.md | DevSynth Glossary | published | glossary | 2025-08-02 |
@@ -428,12 +437,12 @@ _This index is automatically generated from all documentation files. Last update
 | docs/release_readiness_checklist.md | Release Readiness Checklist (0.1.0a1) | unknown | unknown | unknown |
 | docs/repo_structure.md | DevSynth Repository Structure | published | documentation | 2025-07-08 |
 | docs/requirement_analysis_tests.md | Requirement Analysis Tests Implementation | published | documentation | 2025-07-07 |
-| docs/requirements_traceability.md | Requirements Traceability Matrix | unknown | unknown | unknown |
+| docs/requirements_traceability.md | Requirements Traceability Matrix | published | requirements | 2025-09-29 |
 | docs/requirements_traceability_script_limitations.md | Requirements Traceability Script Limitations | published | requirements | 2025-08-05 |
 | docs/resources_matrix.md | DevSynth Resources Matrix | published | unknown | 2025-08-26 |
 | docs/system_requirements_specification.md | DevSynth System Requirements Specification | draft | documentation | 2025-08-04 |
 | docs/task_notes.md | Task Notes (DevSynth 0.1.0a1) — Iteration Log | unknown | unknown | unknown |
-| docs/tasks.md | DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist | unknown | unknown | unknown |
+| docs/tasks.md | DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist | active | tasks | 2025-09-13 |
 | docs/technical_debt.md | Technical Debt Documentation | published | documentation | 2025-07-07 |
 
 ### Security (5 files)
@@ -781,11 +790,12 @@ Categories are automatically determined from the directory structure under `docs
 - **External Research Papers**: 2 files
 - **Features**: 14 files
 - **Getting Started**: 10 files
+- **Harmonization**: 2 files
 - **Implementation**: 40 files
 - **Methodology**: 1 files
 - **Observability**: 1 files
 - **Performance**: 4 files
-- **Policies**: 33 files
+- **Policies**: 35 files
 - **Rationales**: 2 files
 - **Release**: 8 files
 - **Roadmap**: 12 files

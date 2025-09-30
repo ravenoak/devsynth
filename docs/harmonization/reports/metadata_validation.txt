@@ -1,0 +1,119 @@
+Validating metadata in: docs
+
+METADATA VALIDATION REPORT
+==================================================
+
+Summary:
+- Files processed: 582
+- Files with issues: 164
+- Files compliant: 418
+- Total issues found: 205
+- Compliance rate: 71.8%
+
+Issues by Type:
+- invalid_date_format: 2
+- invalid_status: 70
+- missing_frontmatter: 51
+- missing_required_field: 67
+- version_inconsistency: 15
+
+Files Without Metadata (51):
+- docs/feature_audit.md
+- docs/plan.md
+- docs/task_notes.md
+- docs/release_readiness_checklist.md
+- docs/adr/adr-001-bdd-speed-marking.md
+- docs/specifications/integration_test_generation.md
+- docs/specifications/verify-test-markers-performance.md
+- docs/specifications/generated_test_execution_failure.md
+- docs/specifications/wsde_edrr_collaboration.md
+- docs/analysis/webui_consistency.md
+... and 41 more files
+
+Detailed Issues (164 files):
+----------------------------------------
+
+📁 docs/system_requirements_specification.md
+   ℹ️ Version differs from standard
+      → Consider updating to 0.1.0-alpha.1
+
+📁 docs/metadata_template.md
+   ⚠️ Date format should be YYYY-MM-DD
+      → Use ISO date format (YYYY-MM-DD)
+
+📁 docs/resources_matrix.md
+   ℹ️ Version differs from standard
+      → Consider updating to 0.1.0-alpha.1
+
+📁 docs/feature_audit.md
+   ❌ File has no YAML frontmatter
+      → Add standard metadata header
+
+📁 docs/plan.md
+   ❌ File has no YAML frontmatter
+      → Add standard metadata header
+
+📁 docs/task_notes.md
+   ❌ File has no YAML frontmatter
+      → Add standard metadata header
+
+📁 docs/release_readiness_checklist.md
+   ❌ File has no YAML frontmatter
+      → Add standard metadata header
+
+📁 docs/adr/adr-001-bdd-speed-marking.md
+   ❌ File has no YAML frontmatter
+      → Add standard metadata header
+
+📁 docs/specifications/integration_test_generation.md
+   ❌ File has no YAML frontmatter
+      → Add standard metadata header
+
+📁 docs/specifications/wsde-peer-review-workflow.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/interactive-requirements-wizard.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/memory-and-context-system.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/multi-disciplinary-dialectical-reasoning.md
+   ⚠️ Status "implemented" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/advanced-graph-memory-features.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/consensus-building.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/promise-system-capability-management.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/verify-test-markers-performance.md
+   ❌ File has no YAML frontmatter
+      → Add standard metadata header
+
+📁 docs/specifications/multi-layered-memory-system.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+📁 docs/specifications/logging_setup.md
+   ⚠️ Status "review" is not in valid list
+      → Use one of: published, draft, archived, active
+
+... and 144 more files with issues
+
+==================================================
+
