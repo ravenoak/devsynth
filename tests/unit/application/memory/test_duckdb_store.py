@@ -2,13 +2,12 @@ import json
 import os
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pytest
 
 from devsynth.application.memory.duckdb_store import DuckDBStore
-from devsynth.application.memory.dto import build_memory_record
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
@@ -106,31 +105,35 @@ class TestDuckDBStore:
             store.store(item)
         results = store.search({"memory_type": MemoryType.SHORT_TERM})
         assert isinstance(results, list)
-        assert all(isinstance(item, MemoryItem) for item in results)
-        assert all(isinstance(build_memory_record(item).metadata, dict) for item in results)
+        assert all(isinstance(record, MemoryRecord) for record in results)
+        assert all(isinstance(record.metadata, dict) for record in results)
         assert len(results) == 2
-        assert all((item.memory_type == MemoryType.SHORT_TERM for item in results))
+        assert all(
+            record.item.memory_type == MemoryType.SHORT_TERM for record in results
+        )
         results = store.search({"metadata.tag": "test"})
         assert isinstance(results, list)
-        assert all(isinstance(item, MemoryItem) for item in results)
-        assert all(isinstance(build_memory_record(item).metadata, dict) for item in results)
+        assert all(isinstance(record, MemoryRecord) for record in results)
+        assert all(isinstance(record.metadata, dict) for record in results)
         assert len(results) == 2
-        assert all((item.metadata.get("tag") == "test" for item in results))
+        assert all(
+            (record.metadata or {}).get("tag") == "test" for record in results
+        )
         results = store.search({"content": "Content 2"})
         assert isinstance(results, list)
-        assert all(isinstance(item, MemoryItem) for item in results)
-        assert all(isinstance(build_memory_record(item).metadata, dict) for item in results)
+        assert all(isinstance(record, MemoryRecord) for record in results)
+        assert all(isinstance(record.metadata, dict) for record in results)
         assert len(results) == 1
         assert results[0].content == "Content 2"
         results = store.search(
             {"memory_type": MemoryType.SHORT_TERM, "metadata.tag": "test"}
         )
         assert isinstance(results, list)
-        assert all(isinstance(item, MemoryItem) for item in results)
-        assert all(isinstance(build_memory_record(item).metadata, dict) for item in results)
+        assert all(isinstance(record, MemoryRecord) for record in results)
+        assert all(isinstance(record.metadata, dict) for record in results)
         assert len(results) == 1
-        assert results[0].memory_type == MemoryType.SHORT_TERM
-        assert results[0].metadata.get("tag") == "test"
+        assert results[0].item.memory_type == MemoryType.SHORT_TERM
+        assert (results[0].metadata or {}).get("tag") == "test"
 
     @pytest.mark.medium
     def test_delete_succeeds(self, store):
