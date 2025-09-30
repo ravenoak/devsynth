@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import datetime
 import importlib
-from collections.abc import Iterator, Mapping
+import hashlib
+from collections import deque
+from collections.abc import Iterator, Mapping, Sequence
+from dataclasses import dataclass, field
+from pathlib import Path
 from types import ModuleType
 from typing import Any, cast
 
@@ -12,7 +16,7 @@ from devsynth.exceptions import MemoryItemNotFoundError, MemoryStoreError
 
 from ....domain.models.memory import MemoryItem, MemoryType
 from ....logging_setup import DevSynthLogger
-from .graph_memory_adapter import GraphMemoryAdapter
+from .graph_memory_adapter import GraphMemoryAdapter, MEMORY
 
 rdflib: ModuleType | None
 namespace_module: ModuleType | None
@@ -53,6 +57,27 @@ TEMPORAL = Namespace("http://devsynth.ai/ontology/temporal#")
 CONTEXT = Namespace("http://devsynth.ai/ontology/context#")
 
 
+@dataclass(slots=True)
+class ResearchArtifact:
+    """Structured representation of an Autoresearch artefact."""
+
+    title: str
+    summary: str
+    citation_url: str
+    evidence_hash: str
+    published_at: datetime.datetime
+    supports: Sequence[str] = field(default_factory=tuple)
+    derived_from: Sequence[str] = field(default_factory=tuple)
+    archive_path: str | None = None
+    metadata: Mapping[str, object] | None = None
+
+    @property
+    def identifier(self) -> str:
+        """Return the canonical identifier for the artefact."""
+
+        return f"artifact_{self.evidence_hash}"
+
+
 class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
     """
     Enhanced Graph Memory Adapter that extends the base GraphMemoryAdapter with
@@ -77,6 +102,18 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
             self.graph.bind("temporal", TEMPORAL)
             self.graph.bind("context", CONTEXT)
 
+            # Research artefact schema extensions
+            self.graph.add((DEVSYNTH.ResearchArtifact, RDF.type, OWL.Class))
+            self.graph.add((DEVSYNTH.GenericNode, RDF.type, OWL.Class))
+            self.graph.add((DEVSYNTH.supports, RDF.type, OWL.ObjectProperty))
+            self.graph.add((DEVSYNTH.derivedFrom, RDF.type, OWL.ObjectProperty))
+            self.graph.add((DEVSYNTH.title, RDF.type, OWL.DatatypeProperty))
+            self.graph.add((DEVSYNTH.summary, RDF.type, OWL.DatatypeProperty))
+            self.graph.add((DEVSYNTH.citationUrl, RDF.type, OWL.DatatypeProperty))
+            self.graph.add((DEVSYNTH.evidenceHash, RDF.type, OWL.DatatypeProperty))
+            self.graph.add((DEVSYNTH.publishedAt, RDF.type, OWL.DatatypeProperty))
+            self.graph.add((DEVSYNTH.archivePath, RDF.type, OWL.DatatypeProperty))
+
             # Add OWL properties for transitive inference
             self.graph.add((RELATION.relatedTo, RDF.type, OWL.TransitiveProperty))
             self.graph.add((RELATION.partOf, RDF.type, OWL.TransitiveProperty))
@@ -84,6 +121,202 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
             # Save the graph
             self._save_graph()
+
+    # ------------------------------------------------------------------
+    # Research artefact helpers
+    # ------------------------------------------------------------------
+
+    def summarize_artifact(self, path: Path, max_chars: int = 800) -> str:
+        """Generate a lightweight summary for archival storage."""
+
+        try:
+            raw_text = path.read_text(encoding="utf-8", errors="ignore")
+        except Exception:  # pragma: no cover - defensive binary fallback
+            raw_text = path.read_bytes().decode("utf-8", errors="ignore")
+
+        normalized = " ".join(raw_text.split())
+        if len(normalized) <= max_chars:
+            return normalized
+        return f"{normalized[: max_chars - 1].rstrip()}…"
+
+    def compute_evidence_hash(self, path: Path) -> str:
+        """Return the SHA-256 digest for ``path`` contents."""
+
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(8192), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    def ingest_research_artifact_from_path(
+        self,
+        path: Path,
+        *,
+        title: str,
+        citation_url: str,
+        published_at: datetime.datetime,
+        supports: Sequence[str] | None = None,
+        derived_from: Sequence[str] | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> ResearchArtifact:
+        """Create and persist a research artefact generated from ``path``."""
+
+        summary = self.summarize_artifact(path)
+        evidence_hash = self.compute_evidence_hash(path)
+        artifact = ResearchArtifact(
+            title=title,
+            summary=summary,
+            citation_url=citation_url,
+            evidence_hash=evidence_hash,
+            published_at=published_at,
+            supports=tuple(supports or ()),
+            derived_from=tuple(derived_from or ()),
+            archive_path=str(path),
+            metadata=metadata,
+        )
+        self.store_research_artifact(artifact)
+        return artifact
+
+    def store_research_artifact(self, artifact: ResearchArtifact) -> str:
+        """Persist the research artefact in the RDF graph."""
+
+        if rdflib is None:
+            raise MemoryStoreError(
+                "rdflib is required to store research artefacts in the graph"
+            )
+
+        artifact_uri = URIRef(f"{DEVSYNTH}{artifact.identifier}")
+        for triple in list(self.graph.triples((artifact_uri, None, None))):
+            self.graph.remove(triple)
+
+        self.graph.add((artifact_uri, RDF.type, DEVSYNTH.ResearchArtifact))
+        self.graph.add((artifact_uri, DEVSYNTH.title, Literal(artifact.title)))
+        self.graph.add((artifact_uri, DEVSYNTH.summary, Literal(artifact.summary)))
+        self.graph.add(
+            (artifact_uri, DEVSYNTH.citationUrl, Literal(artifact.citation_url))
+        )
+        self.graph.add(
+            (artifact_uri, DEVSYNTH.evidenceHash, Literal(artifact.evidence_hash))
+        )
+        self.graph.add(
+            (
+                artifact_uri,
+                DEVSYNTH.publishedAt,
+                Literal(artifact.published_at.isoformat()),
+            )
+        )
+        if artifact.archive_path:
+            self.graph.add(
+                (artifact_uri, DEVSYNTH.archivePath, Literal(artifact.archive_path))
+            )
+
+        if artifact.metadata:
+            for key, value in artifact.metadata.items():
+                if isinstance(value, (str, int, float, bool)):
+                    self.graph.add((artifact_uri, DEVSYNTH[key], Literal(value)))
+
+        for node_id in artifact.supports:
+            target_uri = self._ensure_node_uri(node_id)
+            self.graph.add((artifact_uri, DEVSYNTH.supports, target_uri))
+            self.graph.add((artifact_uri, DEVSYNTH.relatedTo, target_uri))
+            self.graph.add((target_uri, DEVSYNTH.relatedTo, artifact_uri))
+
+        for node_id in artifact.derived_from:
+            source_uri = self._ensure_node_uri(node_id)
+            self.graph.add((artifact_uri, DEVSYNTH.derivedFrom, source_uri))
+            self.graph.add((artifact_uri, DEVSYNTH.relatedTo, source_uri))
+            self.graph.add((source_uri, DEVSYNTH.relatedTo, artifact_uri))
+
+        self._save_graph()
+        return artifact.identifier
+
+    def traverse_graph(
+        self, start_id: str, max_depth: int, *, include_research: bool = False
+    ) -> set[str]:
+        """Traverse related nodes with breadth-first depth limits."""
+
+        if rdflib is None or max_depth <= 0:
+            return set()
+
+        start_uri = self._resolve_node_uri(start_id)
+        if start_uri is None:
+            return set()
+
+        visited: set[URIRef] = {start_uri}
+        queue: deque[tuple[URIRef, int]] = deque([(start_uri, 0)])
+        discovered: set[str] = set()
+
+        predicates = [DEVSYNTH.relatedTo]
+        if RELATION is not None:
+            predicates.append(RELATION.relatedTo)
+
+        while queue:
+            current, depth = queue.popleft()
+            if depth >= max_depth:
+                continue
+
+            for predicate in predicates:
+                for _, _, neighbor in self.graph.triples((current, predicate, None)):
+                    if neighbor in visited:
+                        continue
+                    if (not include_research) and self._is_research_artifact(neighbor):
+                        visited.add(neighbor)
+                        continue
+
+                    visited.add(neighbor)
+                    queue.append((neighbor, depth + 1))
+
+                    identifier = self._uri_to_identifier(neighbor)
+                    if identifier and neighbor != start_uri:
+                        discovered.add(identifier)
+
+        return discovered
+
+    def _resolve_node_uri(self, node_id: str) -> URIRef | None:
+        """Return the URIRef for ``node_id`` if present in the graph."""
+
+        candidate_memory = URIRef(f"{MEMORY}{node_id}")
+        if list(self.graph.triples((candidate_memory, None, None))):
+            return candidate_memory
+
+        candidate_artifact = URIRef(f"{DEVSYNTH}{node_id}")
+        if list(self.graph.triples((candidate_artifact, None, None))):
+            return candidate_artifact
+
+        fallback = URIRef(f"{DEVSYNTH}{self._sanitize_node_id(node_id)}")
+        if list(self.graph.triples((fallback, None, None))):
+            return fallback
+
+        return None
+
+    def _ensure_node_uri(self, node_id: str) -> URIRef:
+        """Ensure a URI exists for ``node_id`` and return it."""
+
+        existing = self._resolve_node_uri(node_id)
+        if existing is not None:
+            return existing
+
+        fallback = URIRef(f"{DEVSYNTH}{self._sanitize_node_id(node_id)}")
+        self.graph.add((fallback, RDF.type, DEVSYNTH.GenericNode))
+        self.graph.add((fallback, DEVSYNTH.id, Literal(node_id)))
+        return fallback
+
+    @staticmethod
+    def _sanitize_node_id(node_id: str) -> str:
+        return "node_" + "".join(
+            char if char.isalnum() else "_" for char in node_id
+        )
+
+    def _uri_to_identifier(self, uri: URIRef) -> str | None:
+        value = str(uri)
+        if value.startswith(str(MEMORY)):
+            return value[len(str(MEMORY)) :]
+        if value.startswith(str(DEVSYNTH)):
+            return value[len(str(DEVSYNTH)) :]
+        return None
+
+    def _is_research_artifact(self, uri: URIRef) -> bool:
+        return (uri, RDF.type, DEVSYNTH.ResearchArtifact) in self.graph
 
     def store_with_edrr_phase(
         self,

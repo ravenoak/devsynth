@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import os
+import datetime
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import typer
 
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
+
+from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
+    EnhancedGraphMemoryAdapter,
+)
 
 from ..ingest_cmd import ingest_cmd as _ingest_cmd
 from ..registry import register
@@ -77,6 +82,22 @@ def ingest_cmd(
         None, "--non-interactive", help="Run without interactive prompts"
     ),
     bridge: Optional[UXBridge] = typer.Option(None, hidden=True),
+    research_artifact: Optional[List[Path]] = typer.Option(
+        None,
+        "--research-artifact",
+        help=(
+            "Summarise and persist a research artefact before ingestion. "
+            "Specify multiple times to ingest several artefacts."
+        ),
+    ),
+    verify_research_hash: Optional[List[str]] = typer.Option(
+        None,
+        "--verify-research-hash",
+        help=(
+            "Verify an artefact hash using <expected>=<path> syntax. "
+            "Repeat for multiple artefacts."
+        ),
+    ),
 ) -> None:
     """Ingest a project into DevSynth."""
 
@@ -113,6 +134,75 @@ def ingest_cmd(
     if defaults:
         yes = True
         non_interactive = True
+
+    adapter: EnhancedGraphMemoryAdapter | None = None
+
+    def _ensure_adapter() -> EnhancedGraphMemoryAdapter:
+        nonlocal adapter
+        if adapter is None:
+            base_dir = Path(
+                os.environ.get(
+                    "DEVSYNTH_GRAPH_MEMORY_PATH",
+                    Path.cwd() / ".devsynth" / "memory",
+                )
+            )
+            base_dir.mkdir(parents=True, exist_ok=True)
+            adapter = EnhancedGraphMemoryAdapter(
+                base_path=str(base_dir), use_rdflib_store=True
+            )
+        return adapter
+
+    if research_artifact:
+        graph_adapter = _ensure_adapter()
+        for artifact_path in research_artifact:
+            if not artifact_path.exists():
+                raise typer.BadParameter(
+                    f"Research artefact not found: {artifact_path}",
+                    param_name="research_artifact",
+                )
+            try:
+                published_at = datetime.datetime.fromtimestamp(
+                    artifact_path.stat().st_mtime,
+                    tz=datetime.timezone.utc,
+                )
+            except OSError:
+                published_at = datetime.datetime.now(datetime.timezone.utc)
+
+            artifact = graph_adapter.ingest_research_artifact_from_path(
+                artifact_path,
+                title=artifact_path.stem,
+                citation_url=str(artifact_path),
+                published_at=published_at,
+            )
+            logger.info(
+                "Stored research artefact %s with evidence hash %s",
+                artifact_path,
+                artifact.evidence_hash,
+            )
+
+    if verify_research_hash:
+        graph_adapter = _ensure_adapter()
+        for verification in verify_research_hash:
+            expected, separator, raw_path = verification.partition("=")
+            if not separator:
+                raise typer.BadParameter(
+                    "Expected <hash>=<path> format",
+                    param_name="verify_research_hash",
+                )
+
+            file_path = Path(raw_path).expanduser().resolve()
+            computed = graph_adapter.compute_evidence_hash(file_path)
+            if computed != expected:
+                raise typer.BadParameter(
+                    (
+                        "Hash mismatch for %s: expected %s but computed %s"
+                        % (file_path, expected, computed)
+                    ),
+                    param_name="verify_research_hash",
+                )
+            logger.info(
+                "Verified research artefact %s (hash %s)", file_path, computed
+            )
 
     options = IngestCLIOptions(
         manifest_path=manifest_path,

@@ -1,30 +1,20 @@
-Feature: Advanced Graph Memory Features
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+Feature: Autoresearch graph traversal and durability
+  The enhanced graph adapter should preserve Autoresearch artefacts,
+  bound traversal depth, and expose provenance digests.
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given a persistent enhanced graph memory adapter
+    And a stored research artifact supporting "node2" derived from "node1"
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  @fast
+  Scenario: Traversal excludes research nodes by default
+    When I traverse from "node1" to depth 2 excluding research artifacts
+    Then the traversal result should equal "node2"
+    When I traverse from "node1" to depth 2 including research artifacts
+    Then the traversal result should contain the stored research artifact identifier
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  @fast
+  Scenario: Reload preserves research provenance hashes
+    When I reload the enhanced graph memory adapter
+    Then traversing from "node1" to depth 2 including research artifacts should contain the stored research artifact identifier
+    And recomputing the stored research artifact hash should match the persisted digest
