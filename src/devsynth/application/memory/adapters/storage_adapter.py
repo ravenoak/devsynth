@@ -8,25 +8,17 @@ implements the :class:`~devsynth.domain.interfaces.memory.MemoryStore` contract.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any, ClassVar, Protocol
+from typing import ClassVar, Protocol
 
 from ....domain.models.memory import MemoryItem, MemoryVector
 from ..dto import (
-    GroupedMemoryResults,
     MemoryMetadata,
     MemoryQueryResults,
     MemoryRecord,
+    MemorySearchQuery,
 )
 
 MemorySnapshot = dict[str, MemoryItem] | dict[str, MemoryVector]
-
-MemorySearchResponse = (
-    list[MemoryItem]
-    | list[MemoryRecord]
-    | MemoryQueryResults
-    | GroupedMemoryResults
-)
 
 
 class StorageAdapter(Protocol):
@@ -46,8 +38,8 @@ class StorageAdapter(Protocol):
         """Retrieve an item from memory by ID."""
 
     def search(
-        self, query: Mapping[str, Any] | MemoryMetadata
-    ) -> MemorySearchResponse:
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> MemoryQueryResults | list[MemoryRecord]:
         """Search for items in memory matching the query."""
 
     def delete(self, item_id: str) -> bool:

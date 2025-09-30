@@ -1,20 +1,42 @@
-"""
-Vector Memory Adapter Module
+"""Vector-backed memory adapter implementation."""
 
-This module provides a memory adapter that handles vector-based operations
-for similarity search.
-"""
+from __future__ import annotations
 
 import importlib
 import uuid
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
-from typing import Any, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
 
-np = cast(Any, importlib.import_module("numpy"))
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from numpy.typing import NDArray
+else:  # pragma: no cover - typing fallback for runtime
+    NDArray = Any  # type: ignore[assignment,misc]
+
+
+class _SupportsNorm(Protocol):
+    def norm(self, __x: Sequence[float] | NDArray[Any]) -> float:
+        ...
+
+
+class SupportsVectorOps(Protocol):
+    """Structural protocol describing the ``numpy`` members we rely on."""
+
+    linalg: _SupportsNorm
+
+    def array(
+        self, __object: Sequence[float] | NDArray[Any], dtype: Any | None = ...
+    ) -> NDArray[Any]:
+        ...
+
+    def dot(self, __a: NDArray[Any], __b: NDArray[Any], /) -> float:
+        ...
+
+
+np = cast(SupportsVectorOps, importlib.import_module("numpy"))
 
 from ....domain.models.memory import MemoryVector
-from ..dto import MemoryRecord, build_memory_record
+from ..dto import MemoryRecord, VectorStoreStats, build_memory_record
 from ..vector_protocol import VectorStoreProtocol
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
@@ -38,7 +60,7 @@ class VectorMemoryAdapter(VectorStoreProtocol):
     def __init__(self) -> None:
         """Initialize the Vector Memory Adapter."""
         self.vectors: dict[str, MemoryVector] = {}
-        self.embeddings: dict[str, np.ndarray] = {}
+        self.embeddings: dict[str, NDArray[Any]] = {}
         logger.info("Vector Memory Adapter initialized")
 
     def store_vector(self, vector: MemoryVector) -> str:
@@ -157,18 +179,21 @@ class VectorMemoryAdapter(VectorStoreProtocol):
 
         return False
 
-    def get_collection_stats(self) -> dict[str, int]:
+    def get_collection_stats(self) -> VectorStoreStats:
         """
         Get statistics about the vector store collection.
 
         Returns:
             A dictionary of statistics
         """
+        dimensions = 0
+        if self.embeddings:
+            first = next(iter(self.embeddings.values()))
+            dimensions = len(first) if not hasattr(first, "shape") else int(first.shape[0])
+
         return {
             "vector_count": len(self.vectors),
-            "embedding_dimensions": (
-                len(next(iter(self.embeddings.values()))) if self.embeddings else 0
-            ),
+            "embedding_dimensions": dimensions,
         }
 
     def get_all(self) -> list[MemoryVector]:

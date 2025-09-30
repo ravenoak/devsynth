@@ -6,6 +6,7 @@ to store and retrieve memory items and vectors. It also supports HNSW indexing
 for faster vector similarity search.
 """
 
+import importlib
 import json
 import os
 import uuid
@@ -13,12 +14,8 @@ import uuid
 import numpy as np
 import tiktoken
 
-try:  # pragma: no cover - optional dependency
-    import duckdb  # type: ignore
-except Exception:  # pragma: no cover - gracefully handle missing duckdb
-    duckdb = None  # type: ignore[assignment]
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from devsynth.core import feature_flags
 from devsynth.exceptions import (
@@ -31,11 +28,22 @@ from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from .adapters._duckdb_protocols import (
+    DuckDBConnectionProtocol,
+    DuckDBModuleProtocol,
+)
 from .dto import MemoryMetadata
 from .metadata_serialization import dumps as metadata_dumps, loads as metadata_loads
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+
+
+duckdb_module: DuckDBModuleProtocol | None
+try:  # pragma: no cover - optional dependency
+    duckdb_module = cast(DuckDBModuleProtocol, importlib.import_module("duckdb"))
+except Exception:  # pragma: no cover - gracefully handle missing duckdb
+    duckdb_module = None
 
 
 class DuckDBStore(MemoryStore, VectorStore):
@@ -64,7 +72,7 @@ class DuckDBStore(MemoryStore, VectorStore):
                 - efConstruction: Size of the dynamic list for nearest neighbors during index construction (default: 100)
                 - efSearch: Size of the dynamic list for nearest neighbors during search (default: 50)
         """
-        if duckdb is None:  # pragma: no cover - runtime check for optional dep
+        if duckdb_module is None:  # pragma: no cover - runtime check for optional dep
             raise ImportError(
                 "DuckDBStore requires the 'duckdb' package. Install it with 'pip install duckdb' or use the dev extras."
             )
@@ -85,7 +93,7 @@ class DuckDBStore(MemoryStore, VectorStore):
         os.makedirs(self.base_path, exist_ok=True)
 
         # Initialize DuckDB connection
-        self.conn = duckdb.connect(self.db_file)
+        self.conn: DuckDBConnectionProtocol = duckdb_module.connect(self.db_file)
 
         # Initialize the tokenizer for token counting
         try:

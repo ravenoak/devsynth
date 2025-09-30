@@ -12,7 +12,8 @@ import importlib
 import uuid
 from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any, Protocol, cast
+from types import ModuleType
+from typing import Any, cast
 
 from ....domain.models.memory import (
     MemoryItem,
@@ -24,79 +25,24 @@ from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from ..dto import (
     MemoryMetadata,
+    MemorySearchQuery,
     MemoryQueryResults,
     MemoryRecord,
     build_memory_record,
     build_query_results,
 )
 from ..metadata_serialization import from_serializable, to_serializable
+from ._tinydb_protocols import (
+    TinyDBFactory,
+    TinyDBLike,
+    TinyDBQueryFactory,
+    TinyDBQueryLike,
+    TinyDBTableLike,
+)
 from .storage_adapter import MemorySnapshot, StorageAdapter
 
 
-class TinyDBQueryLike(Protocol):
-    """Protocol describing the subset of TinyDB ``Query`` used by the adapter."""
-
-    def __getattr__(self, name: str) -> "TinyDBQueryLike":
-        """Return a nested attribute query builder."""
-
-    def __getitem__(self, item: str) -> "TinyDBQueryLike":
-        """Support key access for nested metadata fields."""
-
-    def __and__(self, other: "TinyDBQueryLike") -> "TinyDBQueryLike":
-        """Combine two queries with logical AND."""
-
-
-
-class TinyDBQueryFactory(Protocol):
-    """Callable that returns a :class:`TinyDBQueryLike` instance."""
-
-    def __call__(self) -> TinyDBQueryLike:
-        ...
-
-
-class TinyDBTableLike(Protocol):
-    """Protocol describing the TinyDB table operations required by the adapter."""
-
-    def get(self, cond: TinyDBQueryLike) -> Mapping[str, Any] | None:
-        ...
-
-    def insert(self, item: Mapping[str, Any]) -> int:
-        ...
-
-    def update(self, fields: Mapping[str, Any], cond: TinyDBQueryLike) -> list[int]:
-        ...
-
-    def remove(self, cond: TinyDBQueryLike) -> list[int]:
-        ...
-
-    def all(self) -> list[Mapping[str, Any]]:
-        ...
-
-    def search(self, cond: TinyDBQueryLike) -> list[Mapping[str, Any]]:
-        ...
-
-    def truncate(self) -> None:
-        ...
-
-
-class TinyDBFactory(Protocol):
-    """Callable returning a TinyDB-like database instance."""
-
-    def __call__(self, *args: Any, **kwargs: Any) -> "TinyDBLike":
-        ...
-
-
-class TinyDBLike(Protocol):
-    """Protocol describing the TinyDB database operations used by the adapter."""
-
-    def table(self, name: str) -> TinyDBTableLike:
-        ...
-
-    def close(self) -> None:
-        ...
-
-
-tinydb_module = importlib.import_module("tinydb")
+tinydb_module: ModuleType = importlib.import_module("tinydb")
 QueryFactory = cast(TinyDBQueryFactory, getattr(tinydb_module, "Query"))
 TinyDBConstructor = cast(TinyDBFactory, getattr(tinydb_module, "TinyDB"))
 MemoryStorage = getattr(importlib.import_module("tinydb.storages"), "MemoryStorage")
@@ -314,7 +260,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
             return self._dict_to_memory_item(item_dict)
         return None
 
-    def search(self, query: Mapping[str, Any]) -> list[MemoryRecord]:
+    def search(self, query: MemorySearchQuery | MemoryMetadata) -> list[MemoryRecord]:
         """
         Search for memory items in TinyDB matching the query.
 
