@@ -11,7 +11,11 @@ from typing import Optional
 
 from typer.models import OptionInfo
 
-from devsynth.application.cli.models import BridgeErrorPayload
+from devsynth.application.cli.models import (
+    BridgeErrorDetails,
+    BridgeErrorPayload,
+    SupportsBridgeErrorPayload,
+)
 from devsynth.config import get_settings
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
@@ -143,6 +147,16 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
     return True
 
 
+def _coerce_error_payload(error: BridgeErrorPayload) -> Exception | dict[str, object] | str:
+    if isinstance(error, Exception) or isinstance(error, str):
+        return error
+    if isinstance(error, BridgeErrorDetails):
+        return dict(error.to_bridge_error())
+    if isinstance(error, SupportsBridgeErrorPayload):
+        return dict(error.to_bridge_error())
+    return str(error)
+
+
 def _handle_error(bridge: UXBridge, error: BridgeErrorPayload) -> None:
     """Delegate to the bridge's enhanced error handler."""
 
@@ -151,7 +165,7 @@ def _handle_error(bridge: UXBridge, error: BridgeErrorPayload) -> None:
         logger.error("Command error: %s", error, exc_info=True)
     else:
         logger.error("Command error: %s", error)
-    bridge.handle_error(error)
+    bridge.handle_error(_coerce_error_payload(error))
 
 
 def _validate_file_path(path: str, must_exist: bool = True) -> Optional[str]:

@@ -23,6 +23,7 @@ from rich.progress import (
 )
 
 from devsynth.application.cli.models import (
+    coerce_subtask_spec,
     ProgressCheckpoint,
     ProgressHistoryEntry,
     ProgressSnapshot,
@@ -432,15 +433,7 @@ def run_with_long_running_progress(
         # Add subtasks if provided
         if subtasks:
             for subtask in subtasks:
-                spec = (
-                    subtask
-                    if isinstance(subtask, ProgressSubtaskSpec)
-                    else ProgressSubtaskSpec(
-                        name=str(subtask.get("name", "Subtask")),
-                        total=int(subtask.get("total", 100)),
-                        status=str(subtask.get("status", "Starting...")),
-                    )
-                )
+                spec = coerce_subtask_spec(subtask)
                 progress.add_subtask(
                     spec.name,
                     total=spec.total,

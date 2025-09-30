@@ -1,29 +1,31 @@
-"""Enhanced help text for the DevSynth CLI.
+"""Helpers for presenting command help information within the CLI."""
 
-This module provides enhanced help text with examples for the DevSynth CLI commands.
-"""
+from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from collections.abc import Sequence
 
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
+from devsynth.application.cli.models import (
+    CommandListData,
+    CommandTableData,
+    CommandTableRow,
+)
+
 from .autocomplete import COMMAND_DESCRIPTIONS, COMMAND_EXAMPLES, COMMANDS
 
 
 def get_command_help(command: str) -> str:
-    """Get detailed help text for a command.
+    """Return the textual help summary for ``command``."""
 
-    Args:
-        command: The command name
-
-    Returns:
-        Detailed help text for the command, including description and examples
-    """
     if command not in COMMANDS:
-        return f"Command: {command}\n\nCommand not found. Use 'devsynth help' to see available commands."
+        return (
+            f"Command: {command}\n\n"
+            "Command not found. Use 'devsynth help' to see available commands."
+        )
 
     description = COMMAND_DESCRIPTIONS.get(command, "No description available")
     examples = COMMAND_EXAMPLES.get(command, [])
@@ -40,105 +42,94 @@ def get_command_help(command: str) -> str:
 
 
 def display_command_help(command: str, console: Console) -> None:
-    """Display detailed help text for a command.
+    """Display detailed help text for ``command`` using ``console``."""
 
-    Args:
-        command: The command name
-        console: The Rich console to use for output
-    """
     help_text = get_command_help(command)
     console.print(Panel(help_text, title=f"Help: {command}", border_style="blue"))
 
 
 def get_all_commands_help() -> str:
-    """Get help text for all available commands.
+    """Return a textual overview of every registered command."""
 
-    Returns:
-        Help text for all available commands
-    """
     help_text = "Available Commands:\n\n"
 
     for command in sorted(COMMAND_DESCRIPTIONS.keys()):
         description = COMMAND_DESCRIPTIONS.get(command, "No description available")
         help_text += f"{command:15} {description}\n"
 
-    help_text += (
-        "\nUse 'devsynth <command> --help' for more information about a command."
-    )
-
+    help_text += "\nUse 'devsynth <command> --help' for more information about a command."
     return help_text
 
 
 def display_all_commands_help(console: Console) -> None:
-    """Display help text for all available commands.
+    """Render the overview of commands to ``console``."""
 
-    Args:
-        console: The Rich console to use for output
-    """
     help_text = get_all_commands_help()
     console.print(Panel(help_text, title="DevSynth CLI Commands", border_style="blue"))
 
 
-def create_command_table(commands: Optional[List[str]] = None) -> Table:
-    """Create a table of commands with their descriptions.
+def _build_command_rows(commands: Sequence[str] | None) -> CommandTableData:
+    selected = sorted(COMMAND_DESCRIPTIONS.keys()) if commands is None else list(commands)
+    rows = []
+    for command in selected:
+        description = COMMAND_DESCRIPTIONS.get(command, "No description available")
+        examples = COMMAND_EXAMPLES.get(command, [])
+        example = examples[0] if examples else ""
+        rows.append(
+            CommandTableRow(
+                {
+                    "Command": command,
+                    "Description": description,
+                    "Example": example,
+                }
+            )
+        )
+    return CommandTableData(rows=tuple(rows))
 
-    Args:
-        commands: The list of commands to include, or None for all commands
 
-    Returns:
-        The table
-    """
+def create_command_table(commands: Sequence[str] | None = None) -> Table:
+    """Create a Rich table showing commands, descriptions, and examples."""
+
+    data = _build_command_rows(commands)
+
     table = Table(title="DevSynth CLI Commands")
     table.add_column("Command", style="cyan")
     table.add_column("Description")
     table.add_column("Example", style="green")
 
-    if commands is None:
-        commands = sorted(COMMAND_DESCRIPTIONS.keys())
-
-    for command in commands:
-        description = COMMAND_DESCRIPTIONS.get(command, "No description available")
-        examples = COMMAND_EXAMPLES.get(command, [])
-        example = examples[0] if examples else ""
-
-        table.add_row(command, description, example)
+    for row in data:
+        table.add_row(
+            row.get_str("Command"),
+            row.get_str("Description"),
+            row.get_str("Example"),
+        )
 
     return table
 
 
 def display_command_table(
-    commands: Optional[List[str]] = None, console: Console = None
+    commands: Sequence[str] | None = None, console: Console | None = None
 ) -> None:
-    """Display a table of commands with their descriptions.
+    """Display a table of commands with their descriptions."""
 
-    Args:
-        commands: The list of commands to include, or None for all commands
-        console: The Rich console to use for output
-    """
-    # In tests, we always have a console passed in, so we can skip creating one
     if console is None:
         console = Console()
 
-    # Create the table and print it
     table = create_command_table(commands)
     console.print(table)
 
-    # For testing purposes, reset the mock between calls
     if hasattr(console, "_reset_mock") and callable(console._reset_mock):
         console._reset_mock()
 
 
 def format_command_help_markdown(command: str) -> Markdown:
-    """Format detailed help text for a command as Markdown.
+    """Return Markdown formatted help text for ``command``."""
 
-    Args:
-        command: The command name
-
-    Returns:
-        Markdown-formatted help text for the command
-    """
     if command not in COMMANDS:
-        markdown_text = f"# {command}\n\nCommand not found. Use 'devsynth help' to see available commands."
+        markdown_text = (
+            f"# {command}\n\n"
+            "Command not found. Use 'devsynth help' to see available commands."
+        )
         return Markdown(markdown_text)
 
     description = COMMAND_DESCRIPTIONS.get(command, "No description available")
@@ -156,29 +147,15 @@ def format_command_help_markdown(command: str) -> Markdown:
 
 
 def display_command_help_markdown(command: str, console: Console) -> None:
-    """Display detailed help text for a command as Markdown.
+    """Display Markdown formatted help text for ``command``."""
 
-    Args:
-        command: The command name
-        console: The Rich console to use for output
-    """
     markdown = format_command_help_markdown(command)
-    # In tests, markdown might be a mock object, so we don't need to wrap it in Markdown
-    if hasattr(markdown, "_mock_name"):
-        console.print(markdown)
-    else:
-        console.print(markdown)
+    console.print(markdown)
 
 
 def get_command_usage(command: str) -> str:
-    """Get usage information for a command.
+    """Return usage information for ``command``."""
 
-    Args:
-        command: The command name
-
-    Returns:
-        Usage information for the command
-    """
     if command not in COMMANDS:
         return f"Command not found: {command}. Use 'devsynth help' to see available commands."
 
@@ -186,7 +163,6 @@ def get_command_usage(command: str) -> str:
     if not examples:
         return f"Usage: devsynth {command}"
 
-    # Extract the first example and format it as usage
     example = examples[0]
     if example.startswith("devsynth "):
         example = example[len("devsynth ") :]
@@ -195,58 +171,63 @@ def get_command_usage(command: str) -> str:
 
 
 def display_command_usage(command: str, console: Console) -> None:
-    """Display usage information for a command.
+    """Display usage information for ``command``."""
 
-    Args:
-        command: The command name
-        console: The Rich console to use for output
-    """
     usage = get_command_usage(command)
     console.print(f"[bold blue]{usage}[/bold blue]")
 
 
-def get_command_examples(command: str) -> List[str]:
-    """Get examples for a command.
+def get_command_examples(command: str) -> CommandListData:
+    """Return example invocations for ``command``."""
 
-    Args:
-        command: The command name
-
-    Returns:
-        List of examples for the command
-    """
     if command not in COMMANDS:
-        return [
-            f"Command not found: {command}. Use 'devsynth help' to see available commands."
-        ]
+        return CommandListData.from_iterable(
+            (
+                f"Command not found: {command}. Use 'devsynth help' to see available commands.",
+            )
+        )
 
     examples = COMMAND_EXAMPLES.get(command, [])
     if not examples:
-        return [f"No examples available for {command}."]
+        return CommandListData.from_iterable(
+            (f"No examples available for {command}.",)
+        )
 
-    return examples
+    return CommandListData.from_iterable(tuple(examples))
 
 
 def display_command_examples(command: str, console: Console) -> None:
-    """Display examples for a command.
+    """Display example invocations for ``command``."""
 
-    Args:
-        command: The command name
-        console: The Rich console to use for output
-    """
     examples = get_command_examples(command)
 
-    # Check if this is a "Command not found" message
-    if len(examples) == 1 and "Command not found" in examples[0]:
-        console.print(f"[yellow]{examples[0]}[/yellow]")
+    first_example = examples[0]
+    if len(examples) == 1 and isinstance(first_example, str) and "Command not found" in first_example:
+        console.print(f"[yellow]{first_example}[/yellow]")
         return
 
     if not examples:
         console.print("[yellow]No examples available for this command.[/yellow]")
         return
 
-    # Build a single string with all examples
     output = "[bold blue]Examples:[/bold blue]\n"
     for example in examples:
         output += f"  [green]{example}[/green]\n"
 
     console.print(output)
+
+
+__all__ = [
+    "create_command_table",
+    "display_all_commands_help",
+    "display_command_examples",
+    "display_command_help",
+    "display_command_help_markdown",
+    "display_command_table",
+    "display_command_usage",
+    "format_command_help_markdown",
+    "get_all_commands_help",
+    "get_command_examples",
+    "get_command_help",
+    "get_command_usage",
+]

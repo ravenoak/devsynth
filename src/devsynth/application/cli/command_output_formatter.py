@@ -23,9 +23,11 @@ from rich.tree import Tree
 
 from devsynth.application.cli.models import (
     CommandDisplay,
+    CommandListData,
     CommandResultData,
     CommandTableData,
     CommandTableRow,
+    ManifestSummary,
 )
 from devsynth.interface.output_formatter import OutputFormat, OutputFormatter
 from devsynth.logging_setup import DevSynthLogger
@@ -189,7 +191,13 @@ class StandardizedOutputFormatter:
 
     def format_table(
         self,
-        data: CommandTableData | CommandTableRow | Sequence[object] | object,
+        data: CommandTableData
+        | CommandTableRow
+        | Sequence[CommandTableRow]
+        | Mapping[str, object]
+        | Sequence[Mapping[str, object]]
+        | ManifestSummary
+        | object,
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
         title: str | None = None,
         subtitle: str | None = None,
@@ -227,32 +235,101 @@ class StandardizedOutputFormatter:
             padding=padding,
         )
 
-        if isinstance(data, Mapping):
-            table.add_column("Key")
-            table.add_column("Value")
+        if isinstance(data, ManifestSummary):
+            table_data = data.as_table()
+        elif isinstance(data, CommandTableData):
+            table_data = data
+        elif isinstance(data, CommandTableRow):
+            table_data = CommandTableData(rows=(data,))
+        elif isinstance(data, Mapping):
+            rows = []
             for key, value in data.items():
                 nested = value
                 if isinstance(nested, (Mapping, Sequence)) and not isinstance(
                     nested, (str, bytes, bytearray)
                 ):
                     nested = json.dumps(nested, indent=2)
-                table.add_row(str(key), str(nested))
-        elif isinstance(data, Sequence) and not isinstance(data, (str, bytes, bytearray)):
-            if data and isinstance(data[0], Mapping):
-                columns = list(data[0].keys())
-                for column in columns:
-                    table.add_column(column)
-                for row_data in data:
-                    assert isinstance(row_data, Mapping)
-                    table.add_row(*(str(row_data.get(column, "")) for column in columns))
+                rows.append(CommandTableRow({"Key": str(key), "Value": nested}))
+            table_data = CommandTableData(rows=tuple(rows))
+            show_header = True
+            if box is None:
+                box = self.boxes.get(output_style, self.boxes[CommandOutputStyle.STANDARD])
+            if padding is None:
+                padding = self.padding.get(
+                    output_style, self.padding[CommandOutputStyle.STANDARD]
+                )
+            table = Table(
+                title=title,
+                caption=subtitle,
+                show_header=show_header,
+                box=box,
+                padding=padding,
+            )
+            table.add_column("Key")
+            table.add_column("Value")
+            for row in table_data:
+                table.add_row(row.get_str("Key"), str(row.get("Value", "")))
+            return CommandDisplay(
+                renderable=table,
+                output_type=CommandOutputType.DATA,
+                output_style=output_style,
+                title=title,
+                subtitle=subtitle,
+            )
+        elif isinstance(data, Sequence) and not isinstance(
+            data, (str, bytes, bytearray)
+        ):
+            if data and isinstance(data[0], CommandTableRow):
+                table_data = CommandTableData(rows=tuple(data))
+            elif data and isinstance(data[0], Mapping):
+                table_data = CommandTableData.from_iterable(
+                    [CommandTableRow.from_mapping(row) for row in data]
+                )
             else:
                 table.add_column("Items")
                 for item in data:
                     table.add_row(str(item))
+                return CommandDisplay(
+                    renderable=table,
+                    output_type=CommandOutputType.DATA,
+                    output_style=output_style,
+                    title=title,
+                    subtitle=subtitle,
+                )
         else:
-            logger.warning(f"Unsupported data type for table formatting: {type(data)}")
+            logger.warning(
+                "Unsupported data type for table formatting: %s", type(data)
+            )
             table.add_column("Data")
             table.add_row(str(data))
+            return CommandDisplay(
+                renderable=table,
+                output_type=CommandOutputType.DATA,
+                output_style=output_style,
+                title=title,
+                subtitle=subtitle,
+            )
+
+        if not table_data:
+            table.add_column("Data")
+            table.add_row("<empty>")
+            return CommandDisplay(
+                renderable=table,
+                output_type=CommandOutputType.DATA,
+                output_style=output_style,
+                title=title,
+                subtitle=subtitle,
+            )
+
+        if not table.columns:
+            column_names = [str(column) for column in table_data[0].keys()]
+            for column in column_names:
+                table.add_column(column)
+        else:
+            column_names = [column.header or "" for column in table.columns]
+
+        for row in table_data:
+            table.add_row(*(str(row.get(column, "")) for column in column_names))
 
         return CommandDisplay(
             renderable=table,
@@ -264,7 +341,7 @@ class StandardizedOutputFormatter:
 
     def format_list(
         self,
-        items: Sequence[object],
+        items: CommandListData | Sequence[object],
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
         title: str | None = None,
         subtitle: str | None = None,
@@ -283,14 +360,23 @@ class StandardizedOutputFormatter:
             The formatted list
         """
         # Format the list based on the output style
+        if isinstance(items, CommandListData):
+            list_data = items
+        elif isinstance(items, Sequence) and not isinstance(
+            items, (str, bytes, bytearray)
+        ):
+            list_data = CommandListData.from_iterable(tuple(items))
+        else:
+            list_data = CommandListData.from_iterable((items,))
+
         if output_style == CommandOutputStyle.MINIMAL:
             renderable: str | Text | Panel = "\n".join(
-                [f"{bullet} {item}" for item in items]
+                [f"{bullet} {item}" for item in list_data]
             )
         elif output_style == CommandOutputStyle.SIMPLE:
             # Simple styling (basic formatting)
             text = Text()
-            for item in items:
+            for item in list_data:
                 text.append(f"{bullet} {item}\n")
             renderable = text
         else:
@@ -303,7 +389,7 @@ class StandardizedOutputFormatter:
 
             # Create a tree for the list
             tree = Tree(title or "")
-            for item in items:
+            for item in list_data:
                 tree.add(str(item))
 
             # Create a panel with the tree
@@ -398,8 +484,8 @@ class StandardizedOutputFormatter:
         command: str,
         description: str,
         usage: str,
-        examples: Sequence[Mapping[str, str]],
-        options: Sequence[Mapping[str, str]],
+        examples: CommandTableData | Sequence[CommandTableRow],
+        options: CommandTableData | Sequence[CommandTableRow],
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
     ) -> CommandDisplay:
         """Format help text with standardized styling.
@@ -416,17 +502,31 @@ class StandardizedOutputFormatter:
             The formatted help text
         """
         # Format the help text based on the output style
+        options_data = (
+            options
+            if isinstance(options, CommandTableData)
+            else CommandTableData.from_iterable(list(options))
+        )
+        examples_data = (
+            examples
+            if isinstance(examples, CommandTableData)
+            else CommandTableData.from_iterable(list(examples))
+        )
+
         if output_style == CommandOutputStyle.MINIMAL:
             # Minimal styling (plain text)
             help_text = f"{command}\n\n{description}\n\nUsage:\n{usage}\n\nOptions:\n"
-            for option in options:
-                default = (
-                    f" (default: {option['default']})" if "default" in option else ""
+            for option in options_data:
+                default = option.get("default")
+                default_fragment = f" (default: {default})" if default else ""
+                help_text += (
+                    f"  {option.get_str('name')}: {option.get_str('description')}{default_fragment}\n"
                 )
-                help_text += f"  {option['name']}: {option['description']}{default}\n"
             help_text += "\nExamples:\n"
-            for example in examples:
-                help_text += f"  {example['description']}:\n  {example['command']}\n\n"
+            for example in examples_data:
+                help_text += (
+                    f"  {example.get_str('description')}:\n  {example.get_str('command')}\n\n"
+                )
             renderable: str | Text | Panel = help_text
         elif output_style == CommandOutputStyle.SIMPLE:
             # Simple styling (basic formatting)
@@ -436,16 +536,19 @@ class StandardizedOutputFormatter:
             help_text.append("Usage:\n", style="bold")
             help_text.append(f"{usage}\n\n")
             help_text.append("Options:\n", style="bold")
-            for option in options:
-                default = (
-                    f" (default: {option['default']})" if "default" in option else ""
+            for option in options_data:
+                default = option.get("default")
+                default_fragment = f" (default: {default})" if default else ""
+                help_text.append(f"  {option.get_str('name')}: ", style="bold")
+                help_text.append(
+                    f"{option.get_str('description')}{default_fragment}\n"
                 )
-                help_text.append(f"  {option['name']}: ", style="bold")
-                help_text.append(f"{option['description']}{default}\n")
             help_text.append("\nExamples:\n", style="bold")
-            for example in examples:
-                help_text.append(f"  {example['description']}:\n", style="italic")
-                help_text.append(f"  {example['command']}\n\n")
+            for example in examples_data:
+                help_text.append(
+                    f"  {example.get_str('description')}:\n", style="italic"
+                )
+                help_text.append(f"  {example.get_str('command')}\n\n")
             renderable = help_text
         else:
             # Standard, detailed, compact, or expanded styling
@@ -461,10 +564,10 @@ class StandardizedOutputFormatter:
             options_table.add_column("Description")
             options_table.add_column("Default", style="dim")
 
-            for option in options:
+            for option in options_data:
                 default = option.get("default", "")
                 options_table.add_row(
-                    option["name"], option["description"], str(default)
+                    option.get_str("name"), option.get_str("description"), str(default)
                 )
 
             # Create a table for the examples
@@ -472,8 +575,10 @@ class StandardizedOutputFormatter:
             examples_table.add_column("Description", style="bold")
             examples_table.add_column("Command", style="cyan")
 
-            for example in examples:
-                examples_table.add_row(example["description"], example["command"])
+            for example in examples_data:
+                examples_table.add_row(
+                    example.get_str("description"), example.get_str("command")
+                )
 
             # Create a panel with the help text
             content = Text()
@@ -536,6 +641,13 @@ class StandardizedOutputFormatter:
         # Format the result based on its type
         if isinstance(result, CommandDisplay):
             return result
+        if isinstance(result, ManifestSummary):
+            return self.format_table(
+                result.as_table(),
+                output_style=output_style,
+                title=title,
+                subtitle=subtitle,
+            )
         if isinstance(result, str):
             # String result
             return self.format_message(
@@ -545,16 +657,7 @@ class StandardizedOutputFormatter:
                 title=title,
                 subtitle=subtitle,
             )
-        elif isinstance(result, Sequence) and result and isinstance(result[0], Mapping):
-            # List of dictionaries (table data)
-            return self.format_table(
-                result,
-                output_style=output_style,
-                title=title,
-                subtitle=subtitle,
-            )
         elif isinstance(result, Mapping):
-            # Dictionary (table data)
             return self.format_table(
                 result,
                 output_style=output_style,
@@ -564,7 +667,13 @@ class StandardizedOutputFormatter:
         elif isinstance(result, Sequence) and not isinstance(
             result, (str, bytes, bytearray)
         ):
-            # List (list data)
+            if result and isinstance(result[0], (CommandTableRow, Mapping)):
+                return self.format_table(
+                    result,  # type: ignore[arg-type]
+                    output_style=output_style,
+                    title=title,
+                    subtitle=subtitle,
+                )
             return self.format_list(
                 result,
                 output_style=output_style,

@@ -10,7 +10,12 @@ from devsynth.application.cli.command_output_formatter import (
     CommandOutputType,
     StandardizedOutputFormatter,
 )
-from devsynth.application.cli.models import CommandDisplay
+from devsynth.application.cli.models import (
+    CommandDisplay,
+    CommandListData,
+    CommandTableData,
+    CommandTableRow,
+)
 
 
 @pytest.fixture()
@@ -49,8 +54,14 @@ def test_format_message_standard_with_markup_returns_panel_passthrough(formatter
 
 @pytest.mark.fast
 def test_format_table_with_dict_and_list(formatter):
-    tbl1 = formatter.format_table({"a": 1, "b": {"x": 2}})
-    tbl2 = formatter.format_table([{"a": 1, "b": 2}, {"a": 3, "b": 4}])
+    tbl1 = formatter.format_table(CommandTableRow({"a": 1, "b": "c"}))
+    row_data = CommandTableData.from_iterable(
+        [
+            CommandTableRow({"a": 1, "b": 2}),
+            CommandTableRow({"a": 3, "b": 4}),
+        ]
+    )
+    tbl2 = formatter.format_table(row_data)
     assert isinstance(tbl1, CommandDisplay)
     assert isinstance(tbl2, CommandDisplay)
     assert hasattr(tbl1.renderable, "add_row") and hasattr(tbl2.renderable, "add_row")
@@ -65,7 +76,7 @@ def test_format_table_with_unsupported_type_falls_back(formatter):
 
 @pytest.mark.fast
 def test_format_list_variants(formatter):
-    items = ["one", "two"]
+    items = CommandListData.from_iterable(["one", "two"])
     minimal = formatter.format_list(items, output_style=CommandOutputStyle.MINIMAL)
     simple = formatter.format_list(items, output_style=CommandOutputStyle.SIMPLE)
     standard = formatter.format_list(items, output_style=CommandOutputStyle.STANDARD)
@@ -96,8 +107,16 @@ def test_format_code_variants(formatter):
 
 @pytest.mark.fast
 def test_format_help_variants(formatter):
-    examples = [{"description": "Run", "command": "devsynth run"}]
-    options = [{"name": "--opt", "description": "Option desc", "default": "x"}]
+    examples = CommandTableData.from_iterable(
+        [CommandTableRow({"description": "Run", "command": "devsynth run"})]
+    )
+    options = CommandTableData.from_iterable(
+        [
+            CommandTableRow(
+                {"name": "--opt", "description": "Option desc", "default": "x"}
+            )
+        ]
+    )
     minimal = formatter.format_help(
         command="cmd",
         description="desc",
