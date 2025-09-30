@@ -5,6 +5,7 @@ This file implements the step definitions for the WSDE agent model refinement
 feature file, testing the non-hierarchical, context-driven agent collaboration.
 """
 
+import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -24,6 +25,7 @@ from devsynth.domain.models.agent import AgentConfig, AgentType
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.application.cli.commands.autoresearch_cmd import autoresearch_cmd
 
 
 @pytest.fixture
@@ -760,6 +762,70 @@ def critic_applies_dialectical_reasoning(context):
 
     # Store the dialectical result for later steps
     context.dialectical_result = dialectical_result
+
+
+@when("research personas are activated for a research task")
+def activate_research_personas(context):
+    """Enable personas and delegate a research-oriented task."""
+
+    context.team_coordinator.configure_personas(True, ["research_lead", "synthesist"])
+    if context.current_team_id is None:
+        team_id = "persona_team"
+        context.team_coordinator.create_team(team_id)
+        context.current_team_id = team_id
+        context.teams[team_id] = context.team_coordinator.get_team(team_id)
+
+    team = context.teams[context.current_team_id]
+    if not context.agents:
+        agent_specs = {
+            "lead_agent": ["research strategy", "query planning"],
+            "synth_agent": ["insight synthesis", "analysis"],
+        }
+        for name, expertise in agent_specs.items():
+            agent = UnifiedAgent()
+            agent_config = AgentConfig(
+                name=name,
+                agent_type=AgentType.ORCHESTRATOR,
+                description=f"Agent specialising in {', '.join(expertise)}",
+                capabilities=[],
+                parameters={"expertise": expertise},
+            )
+            agent.initialize(agent_config)
+            agent.expertise = expertise
+            context.agents[name] = agent
+            context.team_coordinator.add_agent(agent)
+
+    task = {
+        "id": "persona-task",
+        "type": "research",
+        "description": "Coordinate research strategy and synthesise findings",
+        "persona": "synthesist",
+        "solutions": [],
+    }
+    context.persona_task = task
+    context.persona_result = context.team_coordinator.delegate_task(task)
+
+
+@then("persona telemetry should capture primus transitions")
+def persona_telemetry_captures_transitions(context):
+    """Assert that persona telemetry recorded the selection."""
+
+    telemetry = context.team_coordinator.research_persona_telemetry
+    assert telemetry, "Persona telemetry should not be empty"
+    assert any(event["event"] == "persona_selected" for event in telemetry)
+    team = context.teams[context.current_team_id]
+    assert getattr(team, "research_persona_events", []), "Team should record persona events"
+
+
+@then("MVUU evidence should record the persona activation")
+def mvuu_evidence_records_activation(context, capsys):
+    """Use the CLI command to emit MVUU payload and verify contents."""
+
+    exit_code = autoresearch_cmd(["--enable-personas", "--persona", "research_lead", "--no-trace"])
+    assert exit_code == 0
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert "research_lead" in payload["personas"]
 
 
 @then("the Critic should identify thesis and antithesis")

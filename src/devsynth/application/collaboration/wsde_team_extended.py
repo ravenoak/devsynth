@@ -9,6 +9,13 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
+from devsynth.domain.models.wsde_roles import (
+    ResearchPersonaDefinition,
+    get_research_persona,
+    iter_research_personas,
+    select_primus_for_persona,
+)
+from devsynth.domain.models.wsde_typing import SupportsTeamAgent
 
 from .dto import AgentOpinionRecord, ConsensusOutcome, ConflictRecord
 
@@ -33,6 +40,100 @@ class CollaborativeWSDETeam(WSDETeam):
         self.decision_documentation = {}  # Store decision documentation
         self.implemented_decisions = {}  # Store implemented decisions
         self.decision_tracking = {}  # Store tracked decisions
+        self.research_personas_enabled = False
+        self.active_research_personas: dict[str, ResearchPersonaDefinition] = {}
+        self.research_persona_events: list[dict[str, Any]] = []
+
+    def enable_research_personas(
+        self, personas: Optional[Sequence[str]] = None
+    ) -> list[str]:
+        """Enable persona-aware collaboration for research workflows."""
+
+        self.research_personas_enabled = True
+        self.active_research_personas.clear()
+        selected = personas or [persona.identifier for persona in iter_research_personas()]
+        for identifier in selected:
+            try:
+                definition = get_research_persona(identifier)
+            except KeyError:
+                continue
+            self.active_research_personas[definition.identifier] = definition
+        self._record_research_persona_event(
+            "personas_enabled", {"personas": sorted(self.active_research_personas.keys())}
+        )
+        return sorted(self.active_research_personas.keys())
+
+    def disable_research_personas(self) -> None:
+        """Disable persona-aware collaboration and clear assignments."""
+
+        self.research_personas_enabled = False
+        self.active_research_personas.clear()
+        self._record_research_persona_event("personas_disabled", {})
+
+    def _record_research_persona_event(
+        self, event: str, metadata: Mapping[str, Any]
+    ) -> None:
+        payload = {
+            "event": event,
+            "metadata": dict(metadata),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        self.research_persona_events.append(payload)
+        self.transition_metrics.setdefault("research_personas", {}).setdefault(
+            "events", []
+        ).append(payload)
+
+    def _resolve_persona_from_task(
+        self, task: Mapping[str, Any]
+    ) -> ResearchPersonaDefinition | None:
+        if not self.research_personas_enabled or not self.active_research_personas:
+            return None
+        persona_hint = task.get("persona") or task.get("research_persona")
+        if isinstance(persona_hint, str):
+            try:
+                return self.active_research_personas.get(
+                    get_research_persona(persona_hint).identifier
+                )
+            except KeyError:
+                return None
+        if isinstance(persona_hint, Sequence):
+            for candidate in persona_hint:
+                if isinstance(candidate, str):
+                    try:
+                        definition = get_research_persona(candidate)
+                    except KeyError:
+                        continue
+                    resolved = self.active_research_personas.get(definition.identifier)
+                    if resolved is not None:
+                        return resolved
+        description = str(task.get("description", "")).lower()
+        for definition in self.active_research_personas.values():
+            if any(keyword in description for keyword in definition.keywords()):
+                return definition
+        return None
+
+    def _apply_research_persona_selection(
+        self, task: Mapping[str, Any]
+    ) -> SupportsTeamAgent | None:
+        persona = self._resolve_persona_from_task(task)
+        if persona is None:
+            return None
+        selection = select_primus_for_persona(self, task, persona)
+        if selection is not None:
+            self._record_research_persona_event(
+                "persona_assignment",
+                {
+                    "persona": persona.identifier,
+                    "agent": getattr(selection, "name", "agent"),
+                    "task_id": str(task.get("id", "unknown")),
+                },
+            )
+        else:
+            self._record_research_persona_event(
+                "persona_assignment_fallback",
+                {"persona": persona.identifier, "task_id": str(task.get("id", "unknown"))},
+            )
+        return selection
 
     def collaborative_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Run a collaborative voting process for a critical decision task."""
@@ -55,11 +156,15 @@ class CollaborativeWSDETeam(WSDETeam):
         """
         task_id = task.get("id", str(uuid.uuid4()))
 
+        primus = None
+        if self.research_personas_enabled:
+            primus = self._apply_research_persona_selection(task)
+
         # Select primus based on expertise if not already selected
-        if not self.get_primus():
+        if primus is None and not self.get_primus():
             self.select_primus_by_expertise(task)
 
-        primus = self.get_primus()
+        primus = primus or self.get_primus()
 
         # Initialize contribution metrics
         self.contribution_metrics[task_id] = {

@@ -11,6 +11,7 @@ delegating the heavy lifting to the manager.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Iterable, Mapping, MutableMapping, Optional, Sequence
 
 from devsynth.domain.models.wsde_core import WSDETeam
@@ -26,6 +27,64 @@ from devsynth.methodology.base import Phase
 logger = DevSynthLogger(__name__)
 
 
+@dataclass(frozen=True, slots=True)
+class ResearchPersonaDefinition:
+    """Description of a research persona mapped to WSDE responsibilities."""
+
+    identifier: str
+    title: str
+    primary_role: RoleName
+    supporting_roles: tuple[RoleName, ...]
+    capabilities: tuple[str, ...]
+    fallback_role: RoleName
+
+    def keywords(self) -> tuple[str, ...]:  # pragma: no cover - trivial helper
+        return self.capabilities
+
+
+RESEARCH_PERSONA_DEFINITIONS: dict[str, ResearchPersonaDefinition] = {
+    "research_lead": ResearchPersonaDefinition(
+        identifier="research_lead",
+        title="Research Lead",
+        primary_role=RoleName.PRIMUS,
+        supporting_roles=(RoleName.DESIGNER, RoleName.SUPERVISOR),
+        capabilities=(
+            "research strategy",
+            "query planning",
+            "knowledge graph navigation",
+            "investigation leadership",
+        ),
+        fallback_role=RoleName.PRIMUS,
+    ),
+    "bibliographer": ResearchPersonaDefinition(
+        identifier="bibliographer",
+        title="Bibliographer",
+        primary_role=RoleName.SUPERVISOR,
+        supporting_roles=(RoleName.EVALUATOR,),
+        capabilities=(
+            "source vetting",
+            "citation management",
+            "evidence curation",
+            "literature review",
+        ),
+        fallback_role=RoleName.SUPERVISOR,
+    ),
+    "synthesist": ResearchPersonaDefinition(
+        identifier="synthesist",
+        title="Synthesist",
+        primary_role=RoleName.EVALUATOR,
+        supporting_roles=(RoleName.DESIGNER, RoleName.WORKER),
+        capabilities=(
+            "insight synthesis",
+            "comparative analysis",
+            "recommendation drafting",
+            "implementation guidance",
+        ),
+        fallback_role=RoleName.EVALUATOR,
+    ),
+}
+
+
 ROLE_KEYWORDS: dict[RoleName, tuple[str, ...]] = {
     RoleName.PRIMUS: (
         "leadership",
@@ -38,6 +97,20 @@ ROLE_KEYWORDS: dict[RoleName, tuple[str, ...]] = {
     RoleName.DESIGNER: ("design", "architecture", "planning", "creativity"),
     RoleName.EVALUATOR: ("testing", "evaluation", "assessment", "analysis"),
 }
+
+
+def get_research_persona(identifier: str) -> ResearchPersonaDefinition:
+    """Return the research persona definition for ``identifier``."""
+
+    normalised = identifier.lower().strip()
+    persona = RESEARCH_PERSONA_DEFINITIONS.get(normalised)
+    if persona is None:
+        raise KeyError(f"Unknown research persona: {identifier}")
+    return persona
+
+
+def iter_research_personas() -> tuple[ResearchPersonaDefinition, ...]:  # pragma: no cover - simple helper
+    return tuple(RESEARCH_PERSONA_DEFINITIONS.values())
 
 
 def _ensure_role_attributes(agent: SupportsTeamAgent) -> None:
@@ -178,6 +251,96 @@ class RoleAssignmentManager:
         self.team.primus_index = self.team.agents.index(best_agent)
         logger.info("Selected %s as primus based on expertise", best_agent.name)
         return best_agent
+
+    def select_primus_for_persona(
+        self, task: TaskDict, persona: ResearchPersonaDefinition
+    ) -> SupportsTeamAgent | None:
+        """Select a primus that best matches the requested research persona."""
+
+        if not self.team.agents:
+            logger.warning("Cannot select primus: no agents in team")
+            return None
+
+        self._ensure_persona_bookkeeping()
+        keywords = {kw.lower() for kw in persona.capabilities}
+        if not keywords:
+            return self.select_primus_by_expertise(task)
+
+        best_agent: SupportsTeamAgent | None = None
+        best_score = -1
+        for agent in self.team.agents:
+            expertise = getattr(agent, "expertise", None) or []
+            lower_expertise = [item.lower() for item in expertise]
+            persona_hits = sum(
+                1 for keyword in keywords for item in lower_expertise if keyword in item
+            )
+            base_score = self._calculate_expertise_score(agent, task)
+            support_bonus = sum(
+                1
+                for role in persona.supporting_roles
+                if getattr(agent, "current_role", "").lower() == role.value
+            )
+            total_score = base_score + (persona_hits * 2) + support_bonus
+            if total_score > best_score:
+                best_agent = agent
+                best_score = total_score
+
+        if best_agent is None or best_score <= 0:
+            fallback = self.select_primus_by_expertise(task)
+            if fallback is not None:
+                self._record_persona_event(
+                    persona.identifier,
+                    fallback,
+                    task,
+                    fallback_used=True,
+                )
+            return fallback
+
+        self.team.roles[RoleName.PRIMUS] = best_agent
+        _update_agent_role(best_agent, persona.primary_role)
+        setattr(best_agent, "active_persona", persona.identifier)
+        self.team.primus_index = self.team.agents.index(best_agent)
+        self._record_persona_event(persona.identifier, best_agent, task)
+        logger.info(
+            "Selected %s as primus for persona %s", best_agent.name, persona.identifier
+        )
+        return best_agent
+
+    # ------------------------------------------------------------------
+    # Persona helpers
+    # ------------------------------------------------------------------
+
+    def _ensure_persona_bookkeeping(self) -> None:
+        if not hasattr(self.team, "research_persona_assignments"):
+            setattr(self.team, "research_persona_assignments", {})
+        if not hasattr(self.team, "research_persona_telemetry"):
+            setattr(self.team, "research_persona_telemetry", [])
+
+    def _record_persona_event(
+        self,
+        persona_identifier: str,
+        agent: SupportsTeamAgent,
+        task: TaskDict,
+        *,
+        fallback_used: bool = False,
+    ) -> None:
+        self._ensure_persona_bookkeeping()
+        assignments: MutableMapping[str, str] = getattr(
+            self.team, "research_persona_assignments"
+        )
+        assignments[persona_identifier] = getattr(agent, "name", "agent")
+        telemetry: list[dict[str, object]] = getattr(
+            self.team, "research_persona_telemetry"
+        )
+        telemetry.append(
+            {
+                "timestamp": datetime.utcnow().isoformat(),
+                "persona": persona_identifier,
+                "agent": getattr(agent, "name", "agent"),
+                "task_id": str(task.get("id", "unknown")),
+                "fallback": fallback_used,
+            }
+        )
 
     def get_role_map(self) -> dict[str, str]:
         mapping: dict[str, str] = {}
@@ -397,6 +560,17 @@ def select_primus_by_expertise(self: WSDETeam, task: TaskDict) -> SupportsTeamAg
 
 def rotate_roles(self: WSDETeam) -> RoleAssignments:
     return _manager(self).rotate()
+
+
+def select_primus_for_persona(
+    self: WSDETeam, task: TaskDict, persona: str | ResearchPersonaDefinition
+) -> SupportsTeamAgent | None:
+    definition = (
+        persona
+        if isinstance(persona, ResearchPersonaDefinition)
+        else get_research_persona(str(persona))
+    )
+    return _manager(self).select_primus_for_persona(task, definition)
 
 
 def _assign_roles_for_edrr_phase(self: WSDETeam, phase: Phase, task: TaskDict) -> RoleAssignments:

@@ -17,6 +17,9 @@ from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.agent import Agent, AgentCoordinator, AgentFactory
 from ...domain.models.agent import AgentConfig, AgentType
+from ...application.collaboration.wsde_team_coordinator import (
+    ResearchPersonaCoordinator,
+)
 from ...domain.models.wsde import WSDETeam
 from ...methodology.edrr.contracts import MemoryManager as MemoryManagerProtocol
 from ...ports.llm_port import LLMPort
@@ -335,7 +338,7 @@ class SimplifiedAgentFactory:
         return DEFAULT_AGENT_CLASS
 
 
-class WSDETeamCoordinator:
+class WSDETeamCoordinator(ResearchPersonaCoordinator):
     """
     Coordinator for WSDE teams.
 
@@ -344,6 +347,7 @@ class WSDETeamCoordinator:
     """
 
     def __init__(self, memory_manager: MemoryManagerProtocol | None = None):
+        ResearchPersonaCoordinator.__init__(self)
         self.teams: dict[str, WSDETeam] = {}
         self.current_team_id: str | None = None
         self.memory_manager: MemoryManagerProtocol | None = memory_manager
@@ -355,8 +359,8 @@ class WSDETeamCoordinator:
             CollaborativeWSDETeam,
         )
 
-        # Use CollaborativeWSDETeam if memory_manager is available, otherwise use WSDETeam
-        if self.memory_manager:
+        use_collaborative = self.memory_manager is not None or self.research_personas_enabled
+        if use_collaborative:
             team = CollaborativeWSDETeam(
                 name=team_id, memory_manager=self.memory_manager
             )
@@ -365,6 +369,7 @@ class WSDETeamCoordinator:
 
         self.teams[team_id] = team
         self.current_team_id = team_id
+        self._configure_team_personas(team)
         return team
 
     def add_agent(self, agent: Agent) -> None:
@@ -433,6 +438,7 @@ class WSDETeamCoordinator:
         # For regular tasks, use consensus-based approach
 
         # 1. Select the agent with the most relevant expertise as Primus
+        self._apply_persona_strategy(team, task_mapping)
         team.select_primus_by_expertise(task_mapping)
         primus = team.get_primus()
 
@@ -500,6 +506,16 @@ class WSDETeamCoordinator:
         # 6. Format the result to match the expected output
         contributors = list(consensus.get("initial_preferences", {}).keys())
         explanation = consensus.get("explanation", "")
+        if self.research_personas_enabled:
+            assignments = dict(getattr(team, "research_persona_assignments", {}))
+            self._record_persona_event(
+                "persona_task_completed",
+                {
+                    "team": getattr(team, "name", "team"),
+                    "task_id": str(task_mapping.get("id", "unknown")),
+                    "assignments": assignments,
+                },
+            )
         return {
             "status": consensus.get("status", "failed"),
             "result": consensus.get("result"),

@@ -65,11 +65,14 @@ specializations lack clear acceptance criteria.
 
 ### Synthesis
 - Extend the WSDE role roster with research-focused capabilities but bind each
-persona to measurable outcomes: Research Leads manage query strategies,
-Bibliographers vet sources, and Synthesists translate insights into actionable
-implementation guidance. Update the role assignment matrix and BDD coverage so
-primus rotation still honours expertise and collaboration checkpoints remain
-automated.
+  persona to measurable outcomes: Research Leads manage query strategies,
+  Bibliographers vet sources, and Synthesists translate insights into actionable
+  implementation guidance. Update the role assignment matrix and BDD coverage so
+  primus rotation still honours expertise and collaboration checkpoints remain
+  automated. Persona toggles now live in `devsynth autoresearch`, mapping CLI
+  preferences to `ResearchPersonaDefinition` entries in
+  `src/devsynth/domain/models/wsde_roles.py` and propagating telemetry through
+  the WSDE coordinator mixins for MVUU capture.
 
 ### Socratic Q&A
 - **Q:** How do research personas coexist with the core WSDE roles?

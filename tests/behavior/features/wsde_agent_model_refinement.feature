@@ -42,3 +42,11 @@ Feature: WSDE Agent Model Refinement
     And the Critic should identify thesis and antithesis
     And the team should work toward a synthesis
     And the final solution should reflect the dialectical process
+
+  Scenario: Research personas capture telemetry
+    Given the DevSynth system is initialized
+    And a team of agents is configured
+    And the WSDE model is enabled
+    When research personas are activated for a research task
+    Then persona telemetry should capture primus transitions
+    And MVUU evidence should record the persona activation

@@ -5,6 +5,8 @@ This file contains unit tests for the WSDETeamCoordinator class, which is respon
 for coordinating WSDE teams and implementing consensus-based decision making.
 """
 
+import sys
+import types
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -22,6 +24,33 @@ class TestWSDETeamCoordinator:
 
     def setup_method(self):
         """Set up test fixtures."""
+        if "yaml" not in sys.modules:
+            yaml_module = types.ModuleType("yaml")
+            yaml_module.safe_load = lambda *_args, **_kwargs: {}
+            yaml_module.dump = lambda *_args, **_kwargs: ""
+            sys.modules["yaml"] = yaml_module
+        if "argon2" not in sys.modules:
+            argon_module = types.ModuleType("argon2")
+
+            class _PasswordHasher:  # pragma: no cover - minimal stub
+                def __init__(self, *_, **__):
+                    pass
+
+                def hash(self, password: str) -> str:
+                    return password
+
+                def verify(self, _hash: str, password: str) -> bool:
+                    return True
+
+            argon_module.PasswordHasher = _PasswordHasher
+            sys.modules["argon2"] = argon_module
+            exceptions_module = types.ModuleType("argon2.exceptions")
+
+            class _VerifyMismatchError(Exception):  # pragma: no cover - stub
+                pass
+
+            exceptions_module.VerifyMismatchError = _VerifyMismatchError
+            sys.modules["argon2.exceptions"] = exceptions_module
         self.coordinator = WSDETeamCoordinator()
         self.agent1 = MagicMock(spec=Agent)
         self.agent1.name = "agent1"
@@ -51,6 +80,17 @@ class TestWSDETeamCoordinator:
         self.agent4.config = MagicMock()
         self.agent4.config.name = "agent4"
         self.agent4.config.parameters = {"expertise": ["validation", "security"]}
+
+    @pytest.mark.fast
+    def test_configure_personas_records_preferences(self):
+        """Enabling personas should track telemetry and preferences."""
+
+        personas = self.coordinator.configure_personas(True, ["bibliographer"])
+        assert personas == ["bibliographer"]
+        assert any(
+            event["event"] == "personas_enabled"
+            for event in self.coordinator.research_persona_telemetry
+        )
 
     @pytest.mark.medium
     def test_create_team_succeeds(self):
@@ -128,6 +168,54 @@ class TestWSDETeamCoordinator:
         self.agent3.process.assert_called_once_with(task)
         self.agent4.process.assert_called_once_with(task)
         team.build_consensus.assert_called_once()
+
+    @pytest.mark.medium
+    def test_persona_selection_records_telemetry(self):
+        """Persona-aware primus selection should emit telemetry events."""
+
+        self.coordinator.configure_personas(True, ["synthesist"])
+        team = WSDETeam(name="research_team")
+        self.coordinator.teams["research_team"] = team
+        self.coordinator.current_team_id = "research_team"
+        self.coordinator._configure_team_personas(team)
+
+        synth_agent = MagicMock(spec=Agent)
+        synth_agent.name = "synth"
+        synth_agent.agent_type = "analysis"
+        synth_agent.current_role = None
+        synth_agent.expertise = ["insight synthesis", "python"]
+        synth_agent.process.return_value = {"result": "analysis", "confidence": 0.9}
+        synth_agent.config = MagicMock()
+        synth_agent.config.name = "synth"
+        synth_agent.config.parameters = {"expertise": synth_agent.expertise}
+
+        helper_agent = MagicMock(spec=Agent)
+        helper_agent.name = "helper"
+        helper_agent.agent_type = "support"
+        helper_agent.current_role = None
+        helper_agent.expertise = ["documentation"]
+        helper_agent.process.return_value = {"result": "support", "confidence": 0.7}
+        helper_agent.config = MagicMock()
+        helper_agent.config.name = "helper"
+        helper_agent.config.parameters = {"expertise": helper_agent.expertise}
+
+        self.coordinator.add_agent(synth_agent)
+        self.coordinator.add_agent(helper_agent)
+
+        task = {
+            "id": "task-1",
+            "type": "research",
+            "description": "Generate implementation guidance",
+            "persona": "synthesist",
+        }
+
+        result = self.coordinator.delegate_task(task)
+        assert "status" in result
+        assert self.coordinator.research_persona_telemetry
+        assert any(
+            event["event"] == "persona_task_completed"
+            for event in self.coordinator.research_persona_telemetry
+        )
 
     @pytest.mark.medium
     def test_delegate_task_critical_decision_succeeds(self):

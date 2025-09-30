@@ -5,6 +5,7 @@ Command modules for the CLI application.
 from .align_cmd import align_cmd
 from .alignment_metrics_cmd import alignment_metrics_cmd
 from .analyze_manifest_cmd import analyze_manifest_cmd
+from .autoresearch_cmd import autoresearch_cmd
 from .doctor_cmd import doctor_cmd
 from .edrr_cycle_cmd import edrr_cycle_cmd
 from .generate_docs_cmd import generate_docs_cmd
@@ -29,5 +30,6 @@ __all__ = [
     "test_metrics_cmd",
     "generate_docs_cmd",
     "analyze_manifest_cmd",
+    "autoresearch_cmd",
     "ingest_cmd",
 ]

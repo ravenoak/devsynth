@@ -51,6 +51,13 @@ Autoresearch workflows extend the dashboard with optional overlays:
   CLI so reviewers can verify that research artefacts rendered in the dashboard
   match the underlying knowledge graph data.
 
+Persona telemetry emitted by `devsynth autoresearch` supplies the dashboard with
+primus transition evidence (`persona_selected` and `persona_task_completed`
+events). When overlays are enabled the dashboard highlights which agent assumed
+Research Lead, Bibliographer, or Synthesist duties for each TraceID, pulling the
+structured payload recorded by `ResearchPersonaCoordinator` and exposing it in
+the sidebar alongside MVUU metadata.
+
 These overlays are disabled by default; teams enable them via the `--research-metrics` CLI flag or a dashboard toggle. When active, the dashboard queries the
 knowledge graph to fetch supporting artefacts and annotates TraceIDs with
 bibliographic context, ensuring Autoresearch remains auditable without
