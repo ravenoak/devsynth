@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Callable, Dict, Optional, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from dataclasses import dataclass
+from typing import Literal, Optional, Protocol, TypeAlias, TypedDict
 
 from devsynth.agents.sandbox import sandboxed
 from devsynth.interface.ux_bridge import UXBridge
@@ -13,19 +15,64 @@ from devsynth.testing.run_tests import run_tests
 logger = DevSynthLogger(__name__)
 
 
+JSONPrimitive: TypeAlias = str | int | float | bool | None
+JSONValue: TypeAlias = JSONPrimitive | Sequence["JSONValue"] | Mapping[str, "JSONValue"]
+JSONMapping: TypeAlias = Mapping[str, JSONValue]
+MutableJSONMapping: TypeAlias = MutableMapping[str, JSONValue]
+ToolResponse: TypeAlias = MutableJSONMapping
+
+
+class ToolCallable(Protocol):
+    """Callable protocol for registered tools."""
+
+    def __call__(self, *args: object, **kwargs: object) -> ToolResponse:
+        ...
+
+
+@dataclass(frozen=True)
+class RegisteredTool:
+    """Dataclass storing the callable and schema metadata for a tool."""
+
+    func: ToolCallable
+    description: str
+    parameters: JSONMapping
+
+
+class ToolMetadata(TypedDict):
+    """Metadata exposed for registered tools."""
+
+    description: str
+    parameters: JSONMapping
+
+
+class OpenAIFunctionSpec(TypedDict):
+    """Function metadata compatible with OpenAI tool calling."""
+
+    name: str
+    description: str
+    parameters: JSONMapping
+
+
+class OpenAIToolDefinition(TypedDict):
+    """Tool definition compatible with OpenAI function-calling APIs."""
+
+    type: Literal["function"]
+    function: OpenAIFunctionSpec
+
+
 class ToolRegistry:
     """Registry mapping tool names to callables and metadata."""
 
     def __init__(self) -> None:
         """Initialize the tool registry."""
-        self._tools: Dict[str, Dict[str, Any]] = {}
+        self._tools: dict[str, RegisteredTool] = {}
 
     def register(
         self,
         name: str,
-        func: Callable[..., Any],
+        func: ToolCallable,
         description: str,
-        parameters: Dict[str, Any],
+        parameters: JSONMapping,
         *,
         allow_shell: bool = False,
     ) -> None:
@@ -36,41 +83,38 @@ class ToolRegistry:
         command execution unless ``allow_shell`` is ``True``.
         """
         wrapped = sandboxed(func, allow_shell=allow_shell)
-        self._tools[name] = {
-            "func": wrapped,
-            "description": description,
-            "parameters": parameters,
-        }
+        self._tools[name] = RegisteredTool(
+            func=wrapped,
+            description=description,
+            parameters=parameters,
+        )
         logger.debug("Registered tool %s", name)
 
-    def get(self, name: str) -> Optional[Callable[..., Any]]:
+    def get(self, name: str) -> Optional[ToolCallable]:
         """Return the callable for a registered tool."""
         tool = self._tools.get(name)
-        return tool["func"] if tool else None
+        return tool.func if tool else None
 
-    def get_metadata(self, name: str) -> Optional[Dict[str, Any]]:
+    def get_metadata(self, name: str) -> Optional[ToolMetadata]:
         """Return metadata for a registered tool."""
         tool = self._tools.get(name)
         if tool:
-            return {
-                "description": tool["description"],
-                "parameters": tool["parameters"],
-            }
+            return {"description": tool.description, "parameters": tool.parameters}
         return None
 
-    def list_tools(self) -> Dict[str, Dict[str, Any]]:
+    def list_tools(self) -> dict[str, RegisteredTool]:
         """Return a copy of all registered tools and metadata."""
-        return self._tools.copy()
+        return dict(self._tools)
 
-    def export_for_openai(self) -> Sequence[Dict[str, Any]]:
+    def export_for_openai(self) -> Sequence[OpenAIToolDefinition]:
         """Return tools formatted for OpenAI function calling."""
         return [
             {
                 "type": "function",
                 "function": {
                     "name": name,
-                    "description": meta["description"],
-                    "parameters": meta["parameters"],
+                    "description": meta.description,
+                    "parameters": meta.parameters,
                 },
             }
             for name, meta in self._tools.items()
@@ -89,7 +133,7 @@ def get_tool_registry() -> ToolRegistry:
     return _tool_registry
 
 
-def get_openai_tools() -> Sequence[Dict[str, Any]]:
+def get_openai_tools() -> Sequence[OpenAIToolDefinition]:
     """Export registered tools in OpenAI function-call format."""
     return _tool_registry.export_for_openai()
 
@@ -128,7 +172,7 @@ def alignment_metrics_tool(
     path: str = ".",
     metrics_file: str = ".devsynth/alignment_metrics.json",
     output: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> ToolResponse:
     """Collect alignment metrics and return them.
 
     Args:
@@ -161,7 +205,10 @@ def alignment_metrics_tool(
 
         coverage_metrics = calculate_alignment_coverage(existing_files)
         issues_metrics = calculate_alignment_issues(existing_files)
-        metrics = {**coverage_metrics, **issues_metrics}
+        metrics: dict[str, float | int] = {
+            **coverage_metrics,
+            **issues_metrics,
+        }
 
         historical_metrics = load_historical_metrics(metrics_file)
         save_metrics(metrics, metrics_file, historical_metrics)
@@ -184,7 +231,7 @@ def run_tests_tool(
     parallel: bool = True,
     segment: bool = False,
     segment_size: int = 50,
-) -> Dict[str, Any]:
+) -> ToolResponse:
     """Execute pytest tests and return the result.
 
     Args:
@@ -220,7 +267,7 @@ def security_audit_tool(
     skip_safety: bool = False,
     skip_secrets: bool = False,
     skip_owasp: bool = False,
-) -> Dict[str, Any]:
+) -> ToolResponse:
     """Run security audit checks and return collected output."""
 
     logger.debug(
@@ -257,7 +304,7 @@ def security_audit_tool(
 # Feature: DevSynth Doctor
 # Feature: Doctor Command
 # Feature: Doctor command with missing environment variables
-def doctor_tool(config_dir: str = "config", quick: bool = False) -> Dict[str, Any]:
+def doctor_tool(config_dir: str = "config", quick: bool = False) -> ToolResponse:
     """Validate configuration files and environment setup."""
 
     logger.debug("Running doctor on config_dir=%s quick=%s", config_dir, quick)

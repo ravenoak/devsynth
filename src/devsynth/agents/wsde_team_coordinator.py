@@ -2,7 +2,8 @@ from __future__ import annotations
 
 """Agent coordinating WSDE team retrospective reviews."""
 
-from typing import Any, Dict, List
+from collections.abc import Sequence
+from typing import Protocol, TypedDict, cast
 
 from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
@@ -13,16 +14,48 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
+class RetrospectiveNote(TypedDict, total=False):
+    """Structured retrospective note provided by a WSDE team member."""
+
+    positives: Sequence[str]
+    improvements: Sequence[str]
+    action_items: Sequence[str]
+
+
+class RetrospectiveAggregation(TypedDict):
+    """Aggregate of retrospective notes prior to summary conversion."""
+
+    positives: list[str]
+    improvements: list[str]
+    action_items: list[str]
+
+
+class RetrospectiveSummary(TypedDict):
+    """Structured payload returned to persistence layers."""
+
+    positives: list[str]
+    improvements: list[str]
+    action_items: list[str]
+    sprint: int
+
+
+class SupportsRetrospectiveRecorder(Protocol):
+    """Protocol for teams that can record retrospective summaries."""
+
+    def record_retrospective(self, summary: RetrospectiveSummary) -> None:
+        """Persist a retrospective summary."""
+
+
 class WSDETeamCoordinatorAgent:
     """Coordinate WSDE team retrospective reviews."""
 
-    def __init__(self, team: Any) -> None:
+    def __init__(self, team: SupportsRetrospectiveRecorder | object) -> None:
         """Initialize the coordinator with a team object."""
         self._team = team
 
     def run_retrospective(
-        self, notes: List[Dict[str, Any]], sprint: int
-    ) -> Dict[str, Any]:
+        self, notes: Sequence[RetrospectiveNote], sprint: int
+    ) -> RetrospectiveSummary:
         """Aggregate notes and record a retrospective summary.
 
         Args:
@@ -34,7 +67,7 @@ class WSDETeamCoordinatorAgent:
             :func:`map_retrospective_to_summary`.
         """
 
-        aggregated: Dict[str, Any] = {
+        aggregated: RetrospectiveAggregation = {
             "positives": [],
             "improvements": [],
             "action_items": [],
@@ -44,10 +77,14 @@ class WSDETeamCoordinatorAgent:
             aggregated["improvements"].extend(item.get("improvements", []))
             aggregated["action_items"].extend(item.get("action_items", []))
 
-        summary = map_retrospective_to_summary(aggregated, sprint)
+        summary = cast(
+            RetrospectiveSummary,
+            map_retrospective_to_summary(aggregated, sprint),
+        )
 
         if hasattr(self._team, "record_retrospective"):
-            self._team.record_retrospective(summary)
+            recorder = cast(SupportsRetrospectiveRecorder, self._team)
+            recorder.record_retrospective(summary)
         else:  # pragma: no cover - defensive
             logger.debug("Team object lacks 'record_retrospective' method")
 
@@ -61,3 +98,10 @@ class WSDETeamCoordinatorAgent:
                     exc_info=True,
                 )
         return summary
+
+
+__all__ = [
+    "RetrospectiveNote",
+    "RetrospectiveSummary",
+    "WSDETeamCoordinatorAgent",
+]

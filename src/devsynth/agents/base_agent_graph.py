@@ -7,9 +7,9 @@ This provides a template for creating agentic workflows with state management.
 try:  # pragma: no cover - import guard
     from langgraph.graph import END, StateGraph
 except ImportError:  # pragma: no cover - stubbed in tests
-    StateGraph = None  # type: ignore
-    END = None  # type: ignore
-from typing import Any, Dict, List
+    StateGraph = None  # type: ignore[assignment]
+    END = None  # type: ignore[assignment]
+from collections.abc import Sequence
 
 from devsynth.adapters.provider_system import (
     ProviderError,
@@ -18,24 +18,27 @@ from devsynth.adapters.provider_system import (
     complete as llm_complete,  # Renamed to avoid conflict
 )
 from devsynth.agents.graph_state import AgentState
-from devsynth.agents.tools import get_tool_registry
+from devsynth.agents.tools import (
+    OpenAIToolDefinition,
+    get_tool_registry,
+)
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
 
-def get_available_tools() -> List[Dict[str, Any]]:
+def get_available_tools() -> list[OpenAIToolDefinition]:
     """Return formatted metadata for all registered tools."""
     registry = get_tool_registry()
-    tools = []
+    tools: list[OpenAIToolDefinition] = []
     for name, meta in registry.list_tools().items():
         tools.append(
             {
                 "type": "function",
                 "function": {
                     "name": name,
-                    "description": meta["description"],
-                    "parameters": meta["parameters"],
+                    "description": meta.description,
+                    "parameters": meta.parameters,
                 },
             }
         )
@@ -68,7 +71,7 @@ def llm_call_node(state: AgentState) -> AgentState:
     try:
         # System prompt could be configured or passed in state
         system_prompt = "You are a helpful AI assistant."
-        tools = state.get("available_tools")
+        tools: Sequence[OpenAIToolDefinition] | None = state.get("available_tools")
         parameters = {"tools": tools} if tools else None
         response = llm_complete(
             prompt=input_prompt,

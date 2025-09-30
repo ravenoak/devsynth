@@ -27,6 +27,7 @@ Integration tests for WSDE and EDRR now hang within collaboration memory utiliti
 
 ## Progress
 - 2025-02-19: collaboration tests still hang; workflow updates pending.
+- 2025-09-30: WSDE coordinator interface typed with retrospective DTOs and primus rotation regression tests (`tests/unit/agents/test_wsde_team_coordinator_strict.py`) ensuring compatibility with strict workflows and memory synchronization transcripts.
 
 - Pending fixes from [WSDE collaboration test failures](archived/WSDE-collaboration-test-failures.md).
 

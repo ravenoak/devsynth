@@ -291,17 +291,6 @@ disallow_incomplete_defs = false
 module = "devsynth.core.mvu.*"
 ignore_errors = false
 
-# Phase 1 – Core runtime tightening (due 2025-11-15; owner: Core Platform – Miguel Sato; see docs/typing/strictness.md §Phase 1 commitments)
-[[tool.mypy.overrides]]
-module = [
-  "devsynth.core.workflows",
-  "devsynth.agents.base_agent_graph",
-  "devsynth.agents.wsde_team_coordinator",
-  "devsynth.agents.tools",
-  "devsynth.memory.sync_manager",
-]
-ignore_errors = true
-
 # Phase 1 – Adapter backlog (due 2025-11-15; owner: Integrations Team – Alex Chen; see docs/typing/strictness.md §Phase 1 commitments)
 [[tool.mypy.overrides]]
 module = [

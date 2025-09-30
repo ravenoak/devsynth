@@ -1,54 +1,43 @@
-"""Coordinate multiple memory stores with simple transaction semantics.
-
-This module provides a minimal :class:`SyncManager` that keeps TinyDB,
-DuckDB, LMDB, and Kuzu style stores in sync. It aims to satisfy the
-requirements outlined in
-``docs/specifications/complete-memory-system-integration.md``.
-"""
+"""Coordinate multiple memory stores with simple transaction semantics."""
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, Protocol, runtime_checkable
+from typing import Generic, Protocol, TypeVar, runtime_checkable
 
 
 @runtime_checkable
-class MemoryStore(Protocol):
+class MemoryStore(Protocol["ValueT"]):
     """Protocol for simple key-value stores.
 
-    Stores used with :class:`SyncManager` must implement a small set of
-    operations for writing, reading and snapshotting state.  This mirrors
-    the behaviour of real adapters such as TinyDB, DuckDB, LMDB and Kuzu
-    but keeps the implementation lightweight for unit testing.
+    Stores used with :class:`SyncManager` must implement read/write helpers and
+    be able to snapshot/restore their state. Concrete adapters such as TinyDB
+    and DuckDB satisfy this interface in the application layer.
     """
 
-    def write(
-        self, key: str, value: Any
-    ) -> None:  # ReqID: memory-adapter-read-and-write-operations
-        ...
+    def write(self, key: str, value: "ValueT") -> None:
+        """Persist ``value`` under ``key``."""
 
-    def read(self, key: str) -> Any:  # ReqID: memory-adapter-read-and-write-operations
-        ...
+    def read(self, key: str) -> "ValueT":
+        """Return the stored value for ``key`` or raise ``KeyError``."""
 
-    def snapshot(self) -> Dict[str, Any]: ...
+    def snapshot(self) -> Mapping[str, "ValueT"]:
+        """Return a mapping representing the current store state."""
 
-    def restore(self, snapshot: Dict[str, Any]) -> None: ...
+    def restore(self, snapshot: Mapping[str, "ValueT"]) -> None:
+        """Restore the store from a previous :meth:`snapshot` output."""
 
 
-@dataclass
-class SyncManager:
-    """Synchronise items across multiple memory stores.
+ValueT = TypeVar("ValueT")
 
-    Parameters
-    ----------
-    stores:
-        Mapping of store name to store instance.  The manager expects
-        `tinydb`, `duckdb`, `lmdb` and `kuzu` entries to coordinate a
-        complete set of adapters.
-    """
 
-    stores: Mapping[str, MemoryStore] = field(default_factory=dict)
+@dataclass(slots=True)
+class SyncManager(Generic[ValueT]):
+    """Synchronise items across multiple memory stores."""
+
+    stores: Mapping[str, MemoryStore[ValueT]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         required = {"tinydb", "duckdb", "lmdb", "kuzu"}
@@ -56,15 +45,14 @@ class SyncManager:
         if missing:
             raise ValueError(f"Missing stores: {', '.join(sorted(missing))}")
 
-    # ------------------------------------------------------------------
-    def write(self, key: str, value: Any) -> None:
-        """Write `value` under `key` to all configured stores."""
+    def write(self, key: str, value: ValueT) -> None:
+        """Write ``value`` under ``key`` to all configured stores."""
 
         for store in self.stores.values():
             store.write(key, value)
 
-    def read(self, key: str) -> Any:
-        """Return `key` from the first store containing it."""
+    def read(self, key: str) -> ValueT:
+        """Return ``key`` from the first store containing it."""
 
         for store in self.stores.values():
             try:
@@ -73,15 +61,9 @@ class SyncManager:
                 continue
         raise KeyError(key)
 
-    # ------------------------------------------------------------------
     @contextmanager
     def transaction(self):
-        """Atomic commit/rollback across all stores.
-
-        A snapshot of each store is taken before yielding control.  If an
-        exception escapes the context, every store is restored to its
-        previous state.  Otherwise all mutations are committed implicitly.
-        """
+        """Atomic commit/rollback across all stores."""
 
         snapshots = {name: store.snapshot() for name, store in self.stores.items()}
         try:
