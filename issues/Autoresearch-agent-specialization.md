@@ -12,23 +12,23 @@ roles. Without dedicated responsibilities and telemetry, research initiatives ar
 hard to audit and optimise.
 
 ## Action Plan
-- [ ] Implement Research Lead, Bibliographer, and Synthesist personas mapped to
+- [x] Implement Research Lead, Bibliographer, and Synthesist personas mapped to
       WSDE core roles and controlled by CLI flags.
-- [ ] Update primus selection heuristics to respect Autoresearch expertise
+- [x] Update primus selection heuristics to respect Autoresearch expertise
       signals without regressing default task allocation.
-- [ ] Emit MVUU trace checkpoints and documentation that clarify research
+- [x] Emit MVUU trace checkpoints and documentation that clarify research
       hand-offs and expected deliverables.
 - [ ] Extend prompts and training data with persona expectations and fallback
       behaviours.
 
 ## Acceptance Criteria
-- [ ] Behaviour tests demonstrate persona assignment, collaboration checkpoints,
+- [x] Behaviour tests demonstrate persona assignment, collaboration checkpoints,
       and knowledge graph integration across the Autoresearch workflow.
-- [ ] Unit tests cover CLI toggles, telemetry payloads, and primus selection
+- [x] Unit tests cover CLI toggles, telemetry payloads, and primus selection
       adjustments.
-- [ ] MVUU dashboards surface Autoresearch overlays with trace IDs linked to
+- [x] MVUU dashboards surface Autoresearch overlays with trace IDs linked to
       research summaries.
-- [ ] Documentation highlights research responsibilities and failure modes for
+- [x] Documentation highlights research responsibilities and failure modes for
       each persona.
 
 ## References

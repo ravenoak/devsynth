@@ -67,6 +67,10 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
             str(telemetry_path),
             "--signature-env",
             secret_env,
+            "--research-persona",
+            "Research Lead",
+            "--research-persona",
+            "Synthesist",
         ]
     )
 
@@ -85,6 +89,8 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
         session_id=payload["session_id"],
         generated_at=datetime.fromisoformat(payload["generated_at"]),
     )
+    if "research_personas" in payload:
+        payload_obj["research_personas"] = payload["research_personas"]
     expected = sign_payload(payload_obj, secret="secret-value", key_id=f"env:{secret_env}")
     assert expected.digest == signature["digest"]
 
@@ -95,6 +101,16 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
     assert env["DEVSYNTH_AUTORESEARCH_OVERLAYS"] == "1"
     assert env["DEVSYNTH_AUTORESEARCH_TELEMETRY"] == str(telemetry_path)
     assert env["DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"] == secret_env
+    assert env["DEVSYNTH_AUTORESEARCH_PERSONAS"] == "Research Lead,Synthesist"
+
+    personas_payload = telemetry.get("research_personas", [])
+    assert {item["name"] for item in personas_payload} == {
+        "Research Lead",
+        "Synthesist",
+    }
+    lead_payload = next(item for item in personas_payload if item["name"] == "Research Lead")
+    assert lead_payload["primary_role"] == "primus"
+    assert "capabilities" in lead_payload and lead_payload["capabilities"]
 
     monkeypatch.delenv("DEVSYNTH_REPO_ROOT", raising=False)
     monkeypatch.delenv(secret_env, raising=False)

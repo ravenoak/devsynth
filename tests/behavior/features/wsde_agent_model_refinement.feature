@@ -42,3 +42,10 @@ Feature: WSDE Agent Model Refinement
     And the Critic should identify thesis and antithesis
     And the team should work toward a synthesis
     And the final solution should reflect the dialectical process
+
+  Scenario: Research personas coordinate evidence logging
+    Given research personas Research Lead, Bibliographer, and Synthesist are enabled
+    When a research-intensive task enters the workflow
+    Then the Research Lead persona should become the temporary Primus
+    And persona transitions should be recorded for MVUU telemetry
+    And expertise-based primus selection should be used if no persona matches
