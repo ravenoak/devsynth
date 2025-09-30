@@ -2,7 +2,7 @@
 
 import os
 import subprocess
-from typing import Dict
+from pathlib import Path
 
 import pytest
 from pytest_bdd import given, parsers, then, when
@@ -119,6 +119,26 @@ def invoke_run_tests_feature(command_result: dict[str, str]) -> None:
     command_result["output"] = result.stdout + result.stderr
 
 
+@when('I invoke "devsynth run-tests --speed=fast --speed=medium --report --no-parallel"')
+def invoke_run_tests_fast_medium(command_result: dict[str, str]) -> None:
+    env = os.environ.copy()
+    env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
+    env.setdefault("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false")
+    cmd = [
+        "poetry",
+        "run",
+        "devsynth",
+        "run-tests",
+        "--speed=fast",
+        "--speed=medium",
+        "--report",
+        "--no-parallel",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    command_result["exit_code"] = result.returncode
+    command_result["output"] = result.stdout + result.stderr
+
+
 @when(
     'I invoke "devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1"'
 )
@@ -162,6 +182,13 @@ def output_mentions_no_tests(command_result: dict[str, str]) -> None:
 def output_no_xdist_assertions(command_result: dict[str, str]) -> None:
     output = command_result.get("output", "")
     assert "INTERNALERROR" not in output
+
+
+@then(parsers.parse('the coverage report "{path}" should exist'))
+def coverage_report_exists(path: str) -> None:
+    report_path = Path(_REPO_ROOT) / path
+    assert report_path.exists(), f"Coverage report {path} does not exist"
+    assert report_path.stat().st_size > 0, f"Coverage report {path} is empty"
 
 
 @when(

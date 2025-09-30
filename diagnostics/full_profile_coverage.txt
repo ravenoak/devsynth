@@ -1,23 +1,17 @@
 DevSynth Runtime Evidence — Full Profile Coverage Run
-Date: 2025-09-03 13:08 (local)
+Date: 2025-09-30 16:20 (UTC)
 Environment:
-- DEVSYNTH_STRICT_COVERAGE=1
-- DEVSYNTH_COV_FAIL_UNDER=90
-- PYTEST_TIMEOUT=60
+- PYTHONPATH=src
+- DEVSYNTH_NO_FILE_LOGGING=1
+- DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false
+- pytest/pytest-cov/pytest-bdd/click/typer installed via `poetry run pip install`
 Command:
-  poetry run devsynth run-tests \
-    --target all-tests \
-    --speed fast --speed medium --speed slow \
-    --no-parallel \
-    --segment --segment-size 50 \
-    --report \
-    --cov=src/devsynth \
-    --cov-report=term-missing:skip-covered \
-    --cov-report=html:test_reports/htmlcov \
-    --cov-report=json:test_reports/coverage.json
+  PYTHONPATH=src poetry run python -m pytest \
+    --collect-only -q
 
-Result summary (maintainer run):
-- Completed segmented execution without hangs
-- Coverage JSON written: test_reports/coverage.json
-- HTML report under test_reports/htmlcov
-- Outcome: PASS gating at >=90% pending targeted test additions
+Result summary (current attempt):
+- Command executed to validate environment prior to full fast+medium gate.
+- Collection aborted with 409 errors: missing optional dependencies (e.g., numpy, GUI backends) and misregistered pytest marks.
+- Coverage artifacts were not generated; gating remains blocked until dependencies are provisioned.
+- Follow-up action: install full optional stack (memory backends, GUI providers) before re-running
+  `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` to produce `test_reports/coverage.json`.

@@ -1,0 +1,11 @@
+DevSynth fast+medium regression attempt — 2025-09-30T16:20Z
+Command: PYTHONPATH=src poetry run python -m pytest --collect-only -q
+Outcome: FAILED during collection
+Notes:
+- pytest reported 409 collection errors caused by missing optional dependencies (numpy, GUI stacks, lmstudio providers).
+- Numerous pytest markers (requires_resource, memory_intensive, gui) were unregistered because the full configuration
+  extras were not installed in this environment.
+- Coverage artifacts (test_reports/coverage.json, HTML reports) were not generated.
+Next steps:
+- Install the full test extras (`poetry install --with dev --extras tests retrieval chromadb api`) before rerunning
+  `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`.
