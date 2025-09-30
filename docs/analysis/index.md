@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; Analysis
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; Analysis
-</div>
-
 # Analysis
 
 This section contains various analysis documents related to the DevSynth project, including evaluations, recommendations, and technical deep dives.
@@ -44,7 +40,7 @@ This section contains various analysis documents related to the DevSynth project
 
 For more information on the implementation and roadmap based on these analyses, see:
 
-- **[Development Plan](../roadmap/development_plan.md)**: The development plan derived from these analyses.
+- **[Consolidated Roadmap](../roadmap/CONSOLIDATED_ROADMAP.md)**: The development plan and methodology derived from these analyses.
 - **[Development Status](../roadmap/development_status.md)**: The current status of development.
 ## Implementation Status
 

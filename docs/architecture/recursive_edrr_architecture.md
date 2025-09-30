@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Recursive EDRR Architecture
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Recursive EDRR Architecture
-</div>
-
 # Recursive EDRR Architecture
 
 This document describes how the EDRR (EDRR) framework operates recursively within DevSynth. It explains the flow of nested cycles and points to the underlying algorithms.

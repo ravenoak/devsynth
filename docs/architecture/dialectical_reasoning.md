@@ -16,10 +16,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Dialectical Reasoning System for Requirements Management
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Dialectical Reasoning System for Requirements Management
-</div>
-
 # Dialectical Reasoning System for Requirements Management
 
 ## Overview

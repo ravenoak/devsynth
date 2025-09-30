@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; WebUI Onboarding Flow
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; WebUI Onboarding Flow
-</div>
-
 # WebUI Onboarding Flow
 
 The WebUI provides a simple series of pages for initializing and managing a project.

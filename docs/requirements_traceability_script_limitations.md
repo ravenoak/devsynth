@@ -15,10 +15,6 @@ last_reviewed: "2025-08-05"
 <a href="../index.md">Documentation</a> &gt; Requirements Traceability Script Limitations
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Requirements Traceability Script Limitations
-</div>
-
 # Requirements Traceability Script Limitations
 
 The `scripts/verify_requirements_traceability.py` script checks that each requirement in `docs/requirements_traceability.md` links to code and tests. While useful, it has several limitations:

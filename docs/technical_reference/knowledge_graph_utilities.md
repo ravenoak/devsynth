@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Knowledge Graph Utilities in DevSynth
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Knowledge Graph Utilities in DevSynth
-</div>
-
 # Knowledge Graph Utilities in DevSynth
 
 This document provides an overview of the knowledge graph utilities in DevSynth and how to use them with the WSDE model for dialectical reasoning.

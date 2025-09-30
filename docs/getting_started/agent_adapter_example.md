@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Agent Adapter Example
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Agent Adapter Example
-</div>
-
 # Agent Adapter Example
 
 This guide demonstrates how to combine the DevSynth CLI with direct use of the

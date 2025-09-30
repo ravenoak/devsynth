@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Technical Deep Dive Analysis
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Technical Deep Dive Analysis
-</div>
-
 # DevSynth Technical Deep Dive Analysis
 
 **Analysis Date:** May 29, 2025

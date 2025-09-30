@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; 'Milestone-EDRR Integration: Approval Gates'
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; 'Milestone-EDRR Integration: Approval Gates'
-</div>
-
 # Milestone-EDRR Integration: Approval Gates
 
 ## Overview

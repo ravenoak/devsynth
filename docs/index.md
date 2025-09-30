@@ -16,10 +16,6 @@ last_reviewed: "2025-08-02"
 <a href="../index.md">Documentation</a> &gt; DevSynth Documentation
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; DevSynth Documentation
-</div>
-
 # DevSynth Documentation
 
 ![Test Coverage](coverage.svg)
@@ -34,11 +30,14 @@ Welcome to the DevSynth documentation! This site provides comprehensive guides, 
 - [Architecture Overview](architecture/overview.md)
 - [Recursive EDRR Architecture](architecture/recursive_edrr_architecture.md)
 - [API Reference](technical_reference/api_reference/index.md)
-- [API Reference Generation Guide](user_guides/api_reference_generation.md)
 - [Project Analysis](analysis/executive_summary.md)
 - [Implementation Status](implementation/feature_status_matrix.md)
 - [Project Roadmap](roadmap/CONSOLIDATED_ROADMAP.md)
 - [Glossary](glossary.md)
+
+## Complete Documentation Index
+
+For a comprehensive listing of all documentation files, see the [Documentation Index](documentation_index.md) (automatically generated from all 578+ documentation files).
 
 
 ## Project Policies

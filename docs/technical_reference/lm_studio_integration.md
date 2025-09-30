@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; LM Studio Integration
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; LM Studio Integration
-</div>
-
 # LM Studio Integration
 
 This document describes the integration between DevSynth and LM Studio, including how to configure and use LM Studio models with DevSynth.

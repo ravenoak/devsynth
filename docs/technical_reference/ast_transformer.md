@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; AST Transformer Overview
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; AST Transformer Overview
-</div>
-
 # AST Transformer Overview
 
 This document describes the `AstTransformer` used in DevSynth to perform automated code refactoring.

@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Deployment Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Deployment Policy
-</div>
-
 # Deployment Policy
 
 This policy defines best practices for deployment, CI/CD, and operational safety in DevSynth.

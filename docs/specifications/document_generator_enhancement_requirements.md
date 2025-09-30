@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Documentation Generator Requirements
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Documentation Generator Requirements
-</div>
-
 # DevSynth Documentation Generator Requirements
 
 ## 1. Project Overview

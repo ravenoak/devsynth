@@ -16,10 +16,6 @@ last_reviewed: "2025-06-19"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Agent API Reference
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Agent API Reference
-</div>
-
 # Agent API Reference
 
 This guide demonstrates how to interact with DevSynth programmatically using the stubbed Agent API. The API mirrors CLI behaviour through the `UXBridge` layer.

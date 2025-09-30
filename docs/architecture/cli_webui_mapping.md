@@ -19,10 +19,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; CLI to WebUI and Dear PyGUI Command Mapping
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; CLI to WebUI and Dear PyGUI Command Mapping
-</div>
-
 # CLI to WebUI and Dear PyGUI Command Mapping
 
 The table below maps each DevSynth CLI command to the WebUI page or action and

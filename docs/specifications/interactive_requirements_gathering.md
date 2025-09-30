@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Interactive Requirements Gathering
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Interactive Requirements Gathering
-</div>
-
 # Interactive Requirements Gathering
 
 This specification defines the prompts, data model and storage format for a guided wizard that collects project goals, constraints and priority rankings. The wizard is available from both the CLI and the NiceGUI WebUI via the `UXBridge` abstraction.

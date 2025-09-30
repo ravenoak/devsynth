@@ -12,10 +12,6 @@ last_reviewed: "2025-06-01"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Technical Specification
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Technical Specification
-</div>
-
 # DevSynth Technical Specification
 
 This document summarizes the latest high‑level specification for the DevSynth project. It complements the detailed [DevSynth Specification MVP Updated](devsynth_specification_mvp_updated.md) document and is kept in sync with the implemented API.

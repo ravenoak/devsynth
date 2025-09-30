@@ -16,10 +16,6 @@ last_reviewed: "2025-08-02"
 <a href="../index.md">Documentation</a> &gt; DevSynth Glossary
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; DevSynth Glossary
-</div>
-
 # DevSynth Glossary
 
 This glossary provides definitions for domain-specific terminology used throughout the DevSynth project documentation. It serves as a reference for both users and developers to ensure consistent understanding of key concepts.

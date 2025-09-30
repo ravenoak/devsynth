@@ -14,10 +14,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; Archived &gt; Roadmaps &gt; DevSynth Pre-1.0 Release Plan
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Archived &gt; Roadmaps &gt; DevSynth Pre-1.0 Release Plan
-</div>
-
 # DevSynth Pre-1.0 Release Plan
 
 **Note:** DevSynth is still in pre-release. Current versions are in the `0.1.x`

@@ -14,10 +14,6 @@ last_reviewed: "2025-07-22"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Project Documentation Ingestion
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Project Documentation Ingestion
-</div>
-
 # Summary
 
 Defines the process for ingesting project documentation into DevSynth's knowledge base.

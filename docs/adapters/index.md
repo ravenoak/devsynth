@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Adapters</a> &gt; Adapters
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Adapters</a> &gt; Adapters
-</div>
-
 # Adapters
 
 This section provides documentation on the adapters used in DevSynth to connect the application to external systems and services.

@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; EDRR Command User Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; EDRR Command User Guide
-</div>
-
 # EDRR Command User Guide
 
 ## Overview

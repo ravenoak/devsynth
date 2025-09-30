@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Repository Harmonization Final Summary
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Repository Harmonization Final Summary
-</div>
-
 # DevSynth Repository Harmonization Final Summary
 
 **Note:** DevSynth is still in a pre-release stage. The final release plan is tracked in [release_plan.md](release_plan.md). Current feature completion levels are listed in the [Feature Status Matrix](../implementation/feature_status_matrix.md).

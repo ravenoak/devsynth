@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Documentation Policies
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Documentation Policies
-</div>
-
 # Documentation Policies
 
 This document outlines the comprehensive policies for maintaining high-quality documentation in the DevSynth project. It serves as the central reference point for all documentation-related policies and guidelines.

@@ -19,10 +19,6 @@ last_reviewed: "2025-07-11"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; WSDE Model Validation
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; WSDE Model Validation
-</div>
-
 # WSDE Model Validation
 
 This document provides a comprehensive validation of the current implementation status of the WSDE (WSDE) model within DevSynth. It is a key deliverable of the WSDE Model Validation conducted as part of Phase 1: Foundation Stabilization.

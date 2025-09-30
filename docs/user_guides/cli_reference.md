@@ -18,10 +18,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Reference
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Reference
-</div>
-
 # DevSynth CLI Reference
 
 This document provides a comprehensive reference for the DevSynth Command Line Interface (CLI). It covers all available commands, their options, and usage examples.

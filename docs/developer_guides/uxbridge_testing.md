@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; UXBridge Testing Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; UXBridge Testing Guide
-</div>
-
 # UXBridge Testing Guide
 
 This guide provides comprehensive information on testing the UXBridge abstraction and ensuring cross-interface consistency between CLI, WebUI, and Agent API implementations.

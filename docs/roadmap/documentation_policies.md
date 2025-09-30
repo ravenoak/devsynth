@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; Documentation Policies
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; Documentation Policies
-</div>
-
 # Documentation Policies
 
 **Note:** DevSynth is currently in a pre-release stage. Documentation guidelines may evolve before the 1.0 release.

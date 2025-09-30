@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Security Design
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Security Design
-</div>
-
 # Security Design
 
 This document outlines high-level security considerations for DevSynth. It complements the [Security Policy](../policies/security.md) and will expand as the security framework matures.

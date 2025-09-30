@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Code Style Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Code Style Guide
-</div>
-
 # DevSynth Code Style Guide
 
 This document outlines the coding standards and style guidelines for the DevSynth project. Adhering to these guidelines ensures consistency, readability, and maintainability of the codebase.

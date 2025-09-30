@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth User Guides
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth User Guides
-</div>
-
 # DevSynth User Guides
 
 This section provides comprehensive guides for users of DevSynth, covering general usage, the command-line interface (CLI), and configuration options.

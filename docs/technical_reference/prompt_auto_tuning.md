@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Prompt Auto-Tuning Framework
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Prompt Auto-Tuning Framework
-</div>
-
 # Prompt Auto-Tuning Framework
 
 DevSynth includes a prompt auto-tuning system that evolves prompt templates based on usage feedback.

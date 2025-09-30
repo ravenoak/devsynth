@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Concise DevSynth Walkthrough
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Concise DevSynth Walkthrough
-</div>
-
 # Concise DevSynth Walkthrough
 
 This walkthrough provides a short overview of the DevSynth workflow.

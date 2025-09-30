@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="../index.md">Adapters</a> &gt; Providers &gt; Retry Mechanism with Exponential Backoff
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="../index.md">Adapters</a> &gt; Providers &gt; Retry Mechanism with Exponential Backoff
-</div>
-
 # Retry Mechanism with Exponential Backoff
 
 ## Overview

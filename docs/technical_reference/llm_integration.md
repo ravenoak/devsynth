@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; LLM Integration in DevSynth
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; LLM Integration in DevSynth
-</div>
-
 # LLM Integration in DevSynth
 
 This document describes the LLM integration in DevSynth, focusing on the LM Studio provider and token optimization mechanisms.

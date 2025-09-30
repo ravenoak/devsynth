@@ -14,10 +14,6 @@ last_reviewed: "2025-08-04"
 <a href="../index.md">Documentation</a> &gt; DevSynth System Requirements Specification
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; DevSynth System Requirements Specification
-</div>
-
 # DevSynth System Requirements Specification
 
 ## Document Information

@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; 'DevSynth Post-MVP Development: Executive Summary'
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; 'DevSynth Post-MVP Development: Executive Summary'
-</div>
-
 # DevSynth Post-MVP Development: Executive Summary
 
 ## 1. Introduction

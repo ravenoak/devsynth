@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; Requirement Analysis Tests Implementation
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Requirement Analysis Tests Implementation
-</div>
-
 # Requirement Analysis Tests Implementation
 
 This document describes the implementation of behavior tests for the requirement analysis feature of DevSynth.

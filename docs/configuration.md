@@ -15,10 +15,6 @@ last_reviewed: "2025-06-01"
 <a href="../index.md">Documentation</a> &gt; Configuration Overview
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Configuration Overview
-</div>
-
 # Configuration Overview
 
 This guide explains the feature flags available in `config/*.yml` files and how you can enable them. These flags toggle optional capabilities of DevSynth. By default, most environments keep them disabled to minimize resource usage and limit surprises in production.

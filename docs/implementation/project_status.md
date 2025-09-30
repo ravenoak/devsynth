@@ -16,10 +16,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; DevSynth Project Status
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; DevSynth Project Status
-</div>
-
 # DevSynth Project Status
 
 > **Status:** Partial — deployment automation improvements tracked in [issue 109](../../issues/Improve-deployment-automation.md).

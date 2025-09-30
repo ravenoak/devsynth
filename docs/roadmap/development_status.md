@@ -17,10 +17,6 @@ last_reviewed: '2025-07-20'
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Development Status
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Development Status
-</div>
-
 # DevSynth Development Status
 
 **Note:** DevSynth is in a pre-release state. Current versions are numbered

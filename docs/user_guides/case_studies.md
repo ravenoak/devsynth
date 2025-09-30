@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth Case Studies
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth Case Studies
-</div>
-
 # DevSynth Case Studies
 
 This document summarizes real-world usage examples of DevSynth. Each case study highlights key takeaways and provides guidance for users following similar workflows.

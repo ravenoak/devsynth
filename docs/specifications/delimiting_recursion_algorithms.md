@@ -19,10 +19,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Delimiting Recursion Algorithms
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Delimiting Recursion Algorithms
-</div>
-
 # Delimiting Recursion Algorithms
 
 This specification describes heuristics for terminating recursive EDRR cycles.

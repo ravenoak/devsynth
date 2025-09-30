@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Deployment</a> &gt; Deployment
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Deployment</a> &gt; Deployment
-</div>
-
 # Deployment
 
 This section provides documentation on deploying DevSynth in various environments and configurations.

@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; FAISS Installation Guide for macOS
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; FAISS Installation Guide for macOS
-</div>
-
 # FAISS Installation Guide for macOS
 
 This guide addresses common issues with installing and using the `faiss-cpu` package on macOS systems, which is required for vector similarity search in DevSynth's memory components.

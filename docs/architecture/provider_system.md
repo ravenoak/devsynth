@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Provider System Architecture
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Provider System Architecture
-</div>
-
 # Provider System Architecture
 
 ## Overview

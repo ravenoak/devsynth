@@ -17,10 +17,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Contexts: Development, Usage, and Self-Improvement
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Contexts: Development, Usage, and Self-Improvement
-</div>
-
 # DevSynth Contexts: Development, Usage, and Self-Improvement
 
 This document clarifies the distinction between three different contexts in which DevSynth operates:

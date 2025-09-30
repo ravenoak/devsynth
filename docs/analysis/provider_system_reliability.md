@@ -13,10 +13,6 @@ last_reviewed: "2025-08-21"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; Provider System Reliability
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; Provider System Reliability
-</div>
-
 # Provider System Reliability
 
 This document analyzes the retry and circuit‑breaker mechanisms guarding LM Studio provider calls. The implementation wraps network calls in a resilience function that combines exponential‑backoff retries with a circuit breaker.

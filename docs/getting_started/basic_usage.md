@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Basic Usage Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Basic Usage Guide
-</div>
-
 # DevSynth Basic Usage Guide
 
 This guide provides essential information about the basic usage of DevSynth, including initializing a project, defining requirements, and generating code.

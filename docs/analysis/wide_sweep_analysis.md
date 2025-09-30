@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Project Wide Sweep Analysis
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Project Wide Sweep Analysis
-</div>
-
 # DevSynth Project Wide Sweep Analysis
 
 > **Status:** Partial — follow-up work tracked in [issue 104](../../issues/Critical-recommendations-follow-up.md).

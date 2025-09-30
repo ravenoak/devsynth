@@ -19,10 +19,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Cross-Functional Review Process for Test Cases
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Cross-Functional Review Process for Test Cases
-</div>
-
 # Cross-Functional Review Process for Test Cases
 
 ## 1. Overview

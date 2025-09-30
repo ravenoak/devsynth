@@ -18,10 +18,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; 'DevSynth Project: Multi-Disciplinary Dialectical Evaluation'
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; 'DevSynth Project: Multi-Disciplinary Dialectical Evaluation'
-</div>
-
 # DevSynth Project: Multi-Disciplinary Dialectical Evaluation
 
 **Analysis Date:** May 29, 2025

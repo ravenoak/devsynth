@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Isolation Best Practices
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Isolation Best Practices
-</div>
-
 # Test Isolation Best Practices
 
 ## Overview

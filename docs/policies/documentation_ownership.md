@@ -16,10 +16,6 @@ last_reviewed: "2025-08-02"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Ownership
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Ownership
-</div>
-
 # DevSynth Documentation Ownership
 
 ## Executive Summary

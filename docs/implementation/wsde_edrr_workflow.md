@@ -15,10 +15,6 @@ last_reviewed: "2025-08-01"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; WSDE-EDRR Workflow
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; WSDE-EDRR Workflow
-</div>
-
 # WSDE-EDRR Workflow
 
 The finalized WSDE-EDRR workflow links the Worker Self-Directed Enterprise team model with the Expand–Differentiate–Refine–Retrospect methodology.

@@ -16,10 +16,6 @@ last_reviewed: "2025-08-02"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Command Clarification
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth CLI Command Clarification
-</div>
-
 # DevSynth CLI Command Clarification
 
 This document clarifies inconsistencies in command naming across the DevSynth documentation to help users understand the correct commands to use.

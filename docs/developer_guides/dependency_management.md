@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Dependency Management
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Dependency Management
-</div>
-
 # Dependency Management
 
 This guide explains how DevSynth manages third-party Python packages.

@@ -18,10 +18,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Hexagonal Architecture Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; Hexagonal Architecture Guide
-</div>
-
 # Hexagonal Architecture Guide
 
 This document explains the hexagonal (Hexagonal Architecture) architecture used in DevSynth.

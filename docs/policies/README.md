@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth SDLC Policies
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth SDLC Policies
-</div>
-
 # DevSynth SDLC Policies
 
 This directory contains policies and best practices for each phase of the Software Development Lifecycle (SDLC) in DevSynth. These policies are designed to guide both human and agentic contributors, ensuring high quality, compliance, and effective collaboration across all project activities.

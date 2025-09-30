@@ -15,10 +15,6 @@ author: "DevSynth Team"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Unified Configuration Loader
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; Unified Configuration Loader
-</div>
-
 # Unified Configuration Loader
 
 This specification describes the goals and design of the unified configuration loader. The loader reads project settings from either the YAML file `.devsynth/project.yaml` or the `[tool.devsynth]` table in `pyproject.toml`. Its main goals are:

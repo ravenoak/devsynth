@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Post-MVP Development Roadmap
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Post-MVP Development Roadmap
-</div>
-
 # DevSynth Post-MVP Development Roadmap
 
 **Note:** DevSynth is currently in a pre-release stage. Plans described here may change before version 1.0.

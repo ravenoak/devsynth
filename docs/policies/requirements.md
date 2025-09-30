@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Requirements Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Requirements Policy
-</div>
-
 # Requirements Policy
 
 This policy defines best practices for requirements gathering, documentation, and traceability in DevSynth.

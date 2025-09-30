@@ -16,10 +16,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Command Output Formatting Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Command Output Formatting Guide
-</div>
-
 # Command Output Formatting Guide
 
 This guide explains how to use the CommandOutput utility to format command output consistently across all DevSynth commands and interfaces.

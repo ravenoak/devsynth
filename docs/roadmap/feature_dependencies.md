@@ -14,10 +14,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; Feature Dependencies
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; Feature Dependencies
-</div>
-
 # Feature Dependencies
 
 This document summarizes how major DevSynth features depend on one another. Understanding these relationships helps plan releases in a logical order. For each feature's implementation status, consult the [Feature Status Matrix](../implementation/feature_status_matrix.md).

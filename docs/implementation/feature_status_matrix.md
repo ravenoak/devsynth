@@ -12,10 +12,6 @@ version: "0.1.0a1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; DevSynth Feature Status Matrix
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; DevSynth Feature Status Matrix
-</div>
-
 # DevSynth Feature Status Matrix
 
 This document provides a comprehensive status matrix for all features in the DevSynth project. It is a key deliverable of the Feature Implementation Audit conducted as part of Phase 1: Foundation Stabilization.
