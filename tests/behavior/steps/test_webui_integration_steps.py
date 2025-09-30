@@ -1,11 +1,56 @@
+from __future__ import annotations
+
 import sys
 from types import ModuleType
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
+
+pytest.importorskip("pytest_bdd")
+
 from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
+
+from . import test_webui_integration_error_branches  # noqa: F401
+
+
+def _install_streamlit_stub() -> ModuleType:
+    """Ensure a lightweight ``streamlit`` stub exists for test collection."""
+
+    existing = sys.modules.get("streamlit")
+    if isinstance(existing, ModuleType):
+        return existing
+
+    stub = ModuleType("streamlit")
+    stub.session_state = {}
+    stub.sidebar = ModuleType("sidebar")
+    stub.sidebar.radio = MagicMock(return_value="Onboarding")
+    stub.sidebar.title = MagicMock()
+    stub.sidebar.markdown = MagicMock()
+    stub.header = MagicMock()
+    stub.write = MagicMock()
+    stub.markdown = MagicMock()
+    stub.info = MagicMock()
+    stub.error = MagicMock()
+    stub.warning = MagicMock()
+    stub.success = MagicMock()
+    stub.progress = MagicMock()
+    stub.spinner = MagicMock()
+    stub.form = MagicMock()
+    stub.form_submit_button = MagicMock(return_value=True)
+    stub.text_input = MagicMock()
+    stub.text_area = MagicMock()
+    stub.selectbox = MagicMock()
+    stub.checkbox = MagicMock()
+    stub.button = MagicMock()
+    stub.columns = MagicMock()
+    stub.empty = MagicMock()
+    sys.modules["streamlit"] = stub
+    return stub
+
+
+_ST_STREAMLIT = _install_streamlit_stub()
 
 pytest.importorskip("streamlit")
 
