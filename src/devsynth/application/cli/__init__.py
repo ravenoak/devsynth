@@ -39,7 +39,7 @@ def _register_commands() -> None:
         return
 
     try:  # pragma: no cover - exercised indirectly via attribute access
-        from .commands import (  # type: ignore import-not-found
+        from .commands import (
             config_cmds,
             diagnostics_cmds,
             documentation_cmds,

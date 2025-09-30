@@ -291,62 +291,6 @@ disallow_incomplete_defs = false
 module = "devsynth.core.mvu.*"
 ignore_errors = false
 
-# Phase 1 – Adapter backlog (due 2025-11-15; owner: Integrations Team – Alex Chen; see docs/typing/strictness.md §Phase 1 commitments)
-[[tool.mypy.overrides]]
-module = [
-  "devsynth.adapters.chromadb_memory_store",
-  "devsynth.adapters.kuzu_memory_store",
-  "devsynth.adapters.memory.chroma_db_adapter",
-  "devsynth.adapters.memory.kuzu_adapter",
-  "devsynth.adapters.memory.memory_adapter",
-  "devsynth.adapters.memory.sync_manager",
-  "devsynth.adapters.onnx_runtime_adapter",
-  "devsynth.adapters.orchestration.langgraph_adapter",
-  "devsynth.adapters.provider_system",
-]
-ignore_errors = true
-
-# Phase 3 – Application workflows (due 2026-02-15; owner: Applications Group – Lara Singh; see docs/typing/strictness.md §Phase 3 commitments)
-# CLI and collaboration packages joined the strict slice on 2025-09-30. The
-# memory stack graduated on the same date; `poetry run mypy --strict
-# src/devsynth/application/memory` now enforces the application memory package
-# without overrides (see docs/typing/strictness.md §Phase 4 for diagnostics and
-# follow-up actions). The remaining entries capture outstanding orchestration,
-# prompt, and coordination workflows until their typing debt is cleared.
-[[tool.mypy.overrides]]
-module = [
-  "devsynth.application.agents.agent_memory_integration",
-  "devsynth.application.agents.base",
-  "devsynth.application.agents.test",
-  "devsynth.application.agents.wsde_memory_integration",
-  "devsynth.application.edrr.coordinator.core",
-  "devsynth.application.edrr.coordinator.persistence",
-  "devsynth.application.edrr.coordinator.phase_management",
-  "devsynth.application.edrr.coordinator_core",
-  "devsynth.application.edrr.edrr_coordinator_enhanced",
-  "devsynth.application.edrr.edrr_phase_transitions",
-  "devsynth.application.edrr.manifest_parser",
-  "devsynth.application.ingestion",
-  "devsynth.application.llm",
-  "devsynth.application.llm.lmstudio_provider",
-  "devsynth.application.llm.offline_provider",
-  "devsynth.application.llm.openai_provider",
-  "devsynth.application.llm.provider_factory",
-  "devsynth.application.llm.providers",
-  "devsynth.application.orchestration.refactor_workflow",
-  "devsynth.application.orchestration.workflow",
-  "devsynth.application.promises.agent",
-  "devsynth.application.promises.broker",
-  "devsynth.application.promises.examples",
-  "devsynth.application.promises.implementation",
-  "devsynth.application.promises.interface",
-  "devsynth.application.prompts.prompt_efficacy",
-  "devsynth.application.prompts.prompt_manager",
-  "devsynth.application.prompts.prompt_reflection",
-  "devsynth.application.utils.token_tracker",
-]
-ignore_errors = true
-
 [[tool.mypy.overrides]]
 module = ["chromadb", "chromadb.*"]
 ignore_missing_imports = true

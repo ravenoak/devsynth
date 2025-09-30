@@ -1,5 +1,3 @@
-"""
-Ports for the requirements management system.
 """Ports defining boundary contracts for requirement operations."""
 
 from __future__ import annotations

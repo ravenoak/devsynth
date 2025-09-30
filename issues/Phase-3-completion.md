@@ -15,6 +15,7 @@ Later features rely on the completion of Phase 3, but there is no central issue 
 ## Progress
 - 2025-02-22: Ticket created to serve as the Phase 3 milestone anchor.
 - 2025-09-28: Strict-typing work began on the CLI/orchestration slice—`application/cli/commands/run_tests_cmd.py` now compiles under `poetry run mypy --strict` after tightening option defaults and extending the Typer stub, as captured in the typing progress note.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L163-L367】【F:stubs/typer/typer/__init__.pyi†L12-L22】【F:docs/typing/strictness.md†L135-L139】
+- 2025-09-30: Adapter, orchestration, and prompt overrides lifted; strict transcripts archived and `pyproject.toml` now delegates only `tests.*` to relaxed typing.【F:diagnostics/mypy_strict_adapters_20250930T201103Z.txt†L1-L2】【F:diagnostics/mypy_strict_application_orchestration_20250930T201117Z.txt†L1-L2】【F:diagnostics/mypy_strict_application_prompts_20250930T201132Z.txt†L1-L2】【F:pyproject.toml†L285-L309】【F:docs/typing/strictness.md†L15-L23】
 
 ## References
 -
