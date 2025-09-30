@@ -50,3 +50,9 @@ Feature: WebUI Integration
     Then I should be able to access all CLI commands
     And each command should have a dedicated interface
     And the command interfaces should be consistent
+
+  Scenario: WebUI surfaces actionable guidance for missing files
+    Given a WebUI instance with sanitized stubs
+    When the WebUI reports "File not found: config.yaml"
+    Then the WebUI should surface suggestions and documentation links
+    And the WebUI should log the error banner

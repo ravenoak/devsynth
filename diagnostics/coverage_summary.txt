@@ -1,3 +1,6 @@
+# 2024-10-18: Targeted fast/medium suites enhanced; fast+medium aggregate could not be regenerated because the
+# devsynth CLI entry point is unavailable in this environment (ModuleNotFoundError for `devsynth`). Manual unit,
+# property, and behavior tests now exercise the highlighted modules pending a full coverage sweep.
 Rank  %Cov   Missing  File
 --------------------------
    1    0.0      1054  src/devsynth/interface/webui.py
