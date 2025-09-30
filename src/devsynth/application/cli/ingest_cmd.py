@@ -11,10 +11,11 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Annotated, Optional, Sequence, Union, cast
 
 import yaml
-from rich.console import Console
+from rich.console import Console  # type: ignore[import-not-found]
+import typer
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.ingestion import Ingestion
@@ -31,6 +32,14 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
+from .ingest_models import (
+    DifferentiationPhaseResult,
+    ExpandPhaseResult,
+    ManifestModel,
+    JSONValue,
+    RefinePhaseResult,
+    RetrospectPhaseResult,
+)
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -46,7 +55,7 @@ def ingest_cmd(
     *,
     yes: bool = False,
     priority: Optional[str] = None,
-    bridge: Optional[UXBridge] = None,
+    bridge: Annotated[UXBridge | None, typer.Option(None, hidden=True)] = None,
     auto_phase_transitions: bool = True,
     non_interactive: bool = False,
     defaults: bool = False,
@@ -238,7 +247,7 @@ def validate_manifest(
         sys.path.append(
             str(Path(__file__).parent.parent.parent.parent.parent / "scripts")
         )
-        from validate_manifest import validate_manifest as validate_manifest_script
+        from validate_manifest import validate_manifest as validate_manifest_script  # type: ignore[import-not-found]
 
         # Get the project root directory
         project_root = manifest_path.parent
@@ -266,7 +275,7 @@ def validate_manifest(
 
 def load_manifest(
     manifest_path: Optional[Path] = None,
-) -> Dict[str, Any]:
+) -> ManifestModel:
     """
     Load the manifest file.
 
@@ -294,35 +303,40 @@ def load_manifest(
                     logger.warning(
                         "Project is not managed by DevSynth. Using default minimal manifest."
                     )
-                    return {
-                        "metadata": {
-                            "name": "Unmanaged Project",
-                            "version": "0.1.0",
-                            "description": "This project is not managed by DevSynth.",
+                    return cast(
+                        ManifestModel,
+                        {
+                            "metadata": {
+                                "name": "Unmanaged Project",
+                                "version": "0.1.0",
+                                "description": "This project is not managed by DevSynth.",
+                            },
+                            "structure": {"type": "standard"},
                         },
-                        "structure": {"type": "standard"},
-                    }
+                    )
 
         # Try to open and load the manifest
         with open(manifest_path, "r") as f:
-            manifest = yaml.safe_load(f)
-        return manifest
+            manifest_data = yaml.safe_load(f) or {}
+        if not isinstance(manifest_data, dict):
+            raise ManifestError("Manifest content must be a mapping")
+        return cast(ManifestModel, manifest_data)
 
-    except yaml.YAMLError as e:
+    except yaml.YAMLError as e:  # type: ignore[attr-defined]
         raise ManifestError(f"Failed to parse manifest YAML: {str(e)}")
     except Exception as e:
         raise ManifestError(f"Failed to load manifest: {str(e)}")
 
 
 def expand_phase(
-    manifest: Dict[str, Any],
+    manifest: ManifestModel,
     verbose: bool = False,
     *,
     bridge: Optional[UXBridge] = None,
     memory_manager: Union[MemoryManager, None] = None,
     code_analyzer: Union[CodeAnalyzer, None] = None,
     wsde_team: Union[WSDETeam, None] = None,
-) -> Dict[str, Any]:
+) -> ExpandPhaseResult:
     """Run the Expand phase and gather project metrics.
 
     This implementation builds a :class:`ProjectModel` from the current working
@@ -355,7 +369,10 @@ def expand_phase(
     project_model = ProjectModel(project_root, manifest)
     project_model.build_model()
 
-    artifacts = project_model.to_dict()["artifacts"]
+    artifacts = cast(
+        dict[str, dict[str, JSONValue]],
+        project_model.to_dict().get("artifacts", {}),
+    )
 
     # Analyse all python files discovered
     python_files = [
@@ -376,10 +393,16 @@ def expand_phase(
         total_classes += metrics.get("classes_count", 0)
         total_functions += metrics.get("functions_count", 0)
 
-    ideas = wsde_team.generate_diverse_ideas(
-        {"description": manifest.get("metadata", {}).get("name", "project")}
+    ideas = cast(
+        Sequence[JSONValue],
+        wsde_team.generate_diverse_ideas(
+            {"description": manifest.get("metadata", {}).get("name", "project")}
+        ),
     )
-    knowledge = memory_manager.retrieve_relevant_knowledge({"manifest": manifest})
+    knowledge = cast(
+        JSONValue | None,
+        memory_manager.retrieve_relevant_knowledge({"manifest": manifest}),
+    )
 
     if verbose:
         bridge.print(f"  Discovered {len(artifacts)} artifacts")
@@ -387,7 +410,7 @@ def expand_phase(
 
     duration = int(time.perf_counter() - start)
 
-    results = {
+    results: ExpandPhaseResult = {
         "artifacts_discovered": len(artifacts),
         "files_processed": files_processed,
         "analysis_metrics": {
@@ -409,15 +432,15 @@ def expand_phase(
 
 
 def differentiate_phase(
-    manifest: Dict[str, Any],
-    expand_results: Dict[str, Any],
+    manifest: ManifestModel,
+    expand_results: ExpandPhaseResult,
     verbose: bool = False,
     *,
     bridge: Optional[UXBridge] = None,
     memory_manager: Union[MemoryManager, None] = None,
     code_analyzer: Union[CodeAnalyzer, None] = None,
     wsde_team: Union[WSDETeam, None] = None,
-) -> Dict[str, Any]:
+) -> DifferentiationPhaseResult:
     """Validate the discovered project structure against the manifest."""
 
     start = time.perf_counter()
@@ -429,7 +452,10 @@ def differentiate_phase(
     analyzer = code_analyzer or CodeAnalyzer()
     wsde_team = wsde_team or WSDETeam(name="IngestCmdTeam")
 
-    artifacts = expand_results.get("artifacts", {})
+    artifacts = cast(
+        dict[str, dict[str, JSONValue]],
+        expand_results.get("artifacts", {}),
+    )
 
     if verbose:
         bridge.print("  Validating discovered artifacts...")
@@ -451,19 +477,26 @@ def differentiate_phase(
     ideas = expand_results.get("ideas") or wsde_team.generate_diverse_ideas(
         {"description": manifest.get("metadata", {}).get("name", "project")}
     )
-    comparison_matrix = wsde_team.create_comparison_matrix(
-        ideas, ["feasibility", "impact"]
+    comparison_matrix = cast(
+        JSONValue,
+        wsde_team.create_comparison_matrix(ideas, ["feasibility", "impact"]),
     )
-    evaluated_options = wsde_team.evaluate_options(
-        ideas, comparison_matrix, {"feasibility": 0.5, "impact": 0.5}
+    evaluated_options = cast(
+        JSONValue,
+        wsde_team.evaluate_options(
+            ideas, comparison_matrix, {"feasibility": 0.5, "impact": 0.5}
+        ),
     )
-    trade_offs = wsde_team.analyze_trade_offs(evaluated_options)
-    decision_criteria = wsde_team.formulate_decision_criteria(
-        manifest.get("metadata", {}),
-        evaluated_options,
-        trade_offs,
-        contextualize_with_code=False,
-        code_analyzer=analyzer,
+    trade_offs = cast(JSONValue, wsde_team.analyze_trade_offs(evaluated_options))
+    decision_criteria = cast(
+        JSONValue,
+        wsde_team.formulate_decision_criteria(
+            manifest.get("metadata", {}),
+            evaluated_options,
+            trade_offs,
+            contextualize_with_code=False,
+            code_analyzer=analyzer,
+        ),
     )
 
     if verbose:
@@ -472,7 +505,7 @@ def differentiate_phase(
 
     duration = int(time.perf_counter() - start)
 
-    results = {
+    results: DifferentiationPhaseResult = {
         "inconsistencies_found": len(inconsistencies),
         "gaps_identified": len(missing_paths),
         "missing": missing_paths,
@@ -492,15 +525,15 @@ def differentiate_phase(
 
 
 def refine_phase(
-    manifest: Dict[str, Any],
-    differentiate_results: Dict[str, Any],
+    manifest: ManifestModel,
+    differentiate_results: DifferentiationPhaseResult,
     verbose: bool = False,
     *,
     bridge: Optional[UXBridge] = None,
     memory_manager: Union[MemoryManager, None] = None,
     code_analyzer: Union[CodeAnalyzer, None] = None,
     wsde_team: Union[WSDETeam, None] = None,
-) -> Dict[str, Any]:
+) -> RefinePhaseResult:
     """Create relationships between artifacts and identify outdated items."""
 
     start = time.perf_counter()
@@ -512,7 +545,10 @@ def refine_phase(
     analyzer = code_analyzer or CodeAnalyzer()
     wsde_team = wsde_team or WSDETeam(name="IngestCmdTeam")
 
-    artifacts = differentiate_results.get("artifacts", {}) or {}
+    artifacts = cast(
+        dict[str, dict[str, JSONValue]],
+        differentiate_results.get("artifacts", {}) or {},
+    )
 
     if verbose:
         bridge.print("  Analyzing artifact relationships...")
@@ -526,17 +562,30 @@ def refine_phase(
         analysis = analyzer.analyze_file(path)
         relationships_created += len(analysis.get_imports())
 
-    selected_option = wsde_team.select_best_option(
-        differentiate_results.get("evaluated_options", []),
-        differentiate_results.get("decision_criteria", {}),
+    selected_option = cast(
+        JSONValue,
+        wsde_team.select_best_option(
+            differentiate_results.get("evaluated_options", []),
+            differentiate_results.get("decision_criteria", {}),
+        ),
     )
-    detailed_plan = wsde_team.elaborate_details(selected_option)
-    implementation_plan = wsde_team.create_implementation_plan(detailed_plan)
-    optimized_plan = wsde_team.optimize_implementation(
-        implementation_plan, ["performance", "maintainability"], code_analyzer=analyzer
+    detailed_plan = cast(JSONValue, wsde_team.elaborate_details(selected_option))
+    implementation_plan = cast(
+        JSONValue, wsde_team.create_implementation_plan(detailed_plan)
     )
-    quality_checks = wsde_team.perform_quality_assurance(
-        optimized_plan, ["security", "testing"], code_analyzer=analyzer
+    optimized_plan = cast(
+        JSONValue,
+        wsde_team.optimize_implementation(
+            implementation_plan,
+            ["performance", "maintainability"],
+            code_analyzer=analyzer,
+        ),
+    )
+    quality_checks = cast(
+        JSONValue,
+        wsde_team.perform_quality_assurance(
+            optimized_plan, ["security", "testing"], code_analyzer=analyzer
+        ),
     )
 
     if verbose:
@@ -544,7 +593,7 @@ def refine_phase(
 
     duration = int(time.perf_counter() - start)
 
-    results = {
+    results: RefinePhaseResult = {
         "relationships_created": relationships_created,
         "outdated_items_archived": 0,
         "selected_option": selected_option,
@@ -563,15 +612,15 @@ def refine_phase(
 
 
 def retrospect_phase(
-    manifest: Dict[str, Any],
-    refine_results: Dict[str, Any],
+    manifest: ManifestModel,
+    refine_results: RefinePhaseResult,
     verbose: bool = False,
     *,
     bridge: Optional[UXBridge] = None,
     memory_manager: Union[MemoryManager, None] = None,
     code_analyzer: Union[CodeAnalyzer, None] = None,
     wsde_team: Union[WSDETeam, None] = None,
-) -> Dict[str, Any]:
+) -> RetrospectPhaseResult:
     """Summarize results and suggest improvements."""
 
     start = time.perf_counter()
@@ -589,22 +638,31 @@ def retrospect_phase(
     improvements = refine_results.get("relationships_created", 0)
     gaps = refine_results.get("outdated_items_archived", 0)
 
-    learnings = wsde_team.extract_learnings(refine_results, True)
-    patterns = wsde_team.recognize_patterns(
-        learnings,
-        historical_context=memory_manager.retrieve_historical_patterns(),
-        code_analyzer=analyzer,
+    learnings = cast(JSONValue, wsde_team.extract_learnings(refine_results, True))
+    patterns = cast(
+        JSONValue,
+        wsde_team.recognize_patterns(
+            learnings,
+            historical_context=memory_manager.retrieve_historical_patterns(),
+            code_analyzer=analyzer,
+        ),
     )
-    integrated = wsde_team.integrate_knowledge(learnings, patterns, memory_manager)
-    suggestions = wsde_team.generate_improvement_suggestions(
-        learnings, patterns, refine_results.get("quality_checks", {}), True
+    integrated = cast(
+        JSONValue,
+        wsde_team.integrate_knowledge(learnings, patterns, memory_manager),
+    )
+    suggestions = cast(
+        JSONValue,
+        wsde_team.generate_improvement_suggestions(
+            learnings, patterns, refine_results.get("quality_checks", {}), True
+        ),
     )
 
     insights_captured = improvements + gaps
 
     duration = int(time.perf_counter() - start)
 
-    results = {
+    results: RetrospectPhaseResult = {
         "insights_captured": insights_captured,
         "improvements_identified": gaps,
         "learnings": learnings,

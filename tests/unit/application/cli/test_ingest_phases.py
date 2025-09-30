@@ -6,6 +6,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from devsynth.application.cli.ingest_models import (
+    DifferentiationPhaseResult,
+    ExpandPhaseResult,
+    ManifestModel,
+    RefinePhaseResult,
+    RetrospectPhaseResult,
+)
+
 sys.modules.setdefault("typer", types.ModuleType("typer"))
 spec = importlib.util.spec_from_file_location(
     "ingest_cmd",
@@ -34,7 +42,7 @@ def sample_project(tmp_path):
     (tests_dir / "test_main.py").write_text(
         "from src.main import hello\n\ndef test_hello():\n    assert hello() == 42\n"
     )
-    manifest = {
+    manifest: ManifestModel = {
         "metadata": {"name": "sample"},
         "structure": {
             "type": "single_package",
@@ -67,10 +75,11 @@ def test_expand_phase_succeeds(
     ReqID: N/A"""
     manifest, root = sample_project
     monkeypatch.chdir(root)
-    result = expand_phase(manifest, verbose=False)
+    result: ExpandPhaseResult = expand_phase(manifest, verbose=False)
     assert result["artifacts_discovered"] >= 2
     assert result["files_processed"] == 2
     assert result["analysis_metrics"]["functions"] >= 1
+    assert isinstance(result["analysis_metrics"]["lines_of_code"], int)
     mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
 
@@ -83,11 +92,12 @@ def test_differentiate_phase_succeeds(
     ReqID: N/A"""
     manifest, root = sample_project
     monkeypatch.chdir(root)
-    expand_res = expand_phase(manifest)
+    expand_res: ExpandPhaseResult = expand_phase(manifest)
     mock_memory_manager.reset_mock()
-    result = differentiate_phase(manifest, expand_res)
+    result: DifferentiationPhaseResult = differentiate_phase(manifest, expand_res)
     assert result["gaps_identified"] == 0
     assert result["inconsistencies_found"] == 0
+    assert isinstance(result["missing"], list)
     mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
 
@@ -101,11 +111,12 @@ def test_refine_phase_succeeds(
     manifest, root = sample_project
     monkeypatch.chdir(root)
     expand_res = expand_phase(manifest)
-    diff_res = differentiate_phase(manifest, expand_res)
+    diff_res: DifferentiationPhaseResult = differentiate_phase(manifest, expand_res)
     mock_memory_manager.reset_mock()
-    result = refine_phase(manifest, diff_res)
+    result: RefinePhaseResult = refine_phase(manifest, diff_res)
     assert "relationships_created" in result
     assert result["relationships_created"] >= 0
+    assert "quality_checks" in result
     mock_memory_manager.store_with_edrr_phase.assert_called_once()
 
 
@@ -120,9 +131,10 @@ def test_retrospect_phase_succeeds(
     monkeypatch.chdir(root)
     expand_res = expand_phase(manifest)
     diff_res = differentiate_phase(manifest, expand_res)
-    refine_res = refine_phase(manifest, diff_res)
+    refine_res: RefinePhaseResult = refine_phase(manifest, diff_res)
     mock_memory_manager.reset_mock()
-    result = retrospect_phase(manifest, refine_res)
+    result: RetrospectPhaseResult = retrospect_phase(manifest, refine_res)
     assert "insights_captured" in result
     assert "improvements_identified" in result
+    assert isinstance(result["duration_seconds"], int)
     mock_memory_manager.store_with_edrr_phase.assert_called_once()
