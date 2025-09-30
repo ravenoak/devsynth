@@ -2,14 +2,20 @@
 Unit tests for the GraphMemoryAdapter.
 """
 
+import datetime
 import os
 import tempfile
+from pathlib import Path
 from typing import Any, Dict, Generator, List
 from unittest.mock import MagicMock, patch
 
 import pytest
 from rdflib import Graph, Literal, Namespace, URIRef
 
+from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
+    EnhancedGraphMemoryAdapter,
+    ResearchArtifact,
+)
 from devsynth.application.memory.adapters.graph_memory_adapter import (
     DEVSYNTH,
     MEMORY,
@@ -153,6 +159,106 @@ class TestGraphMemoryAdapter:
             retrieved_item.metadata["language"]
             == sample_memory_item.metadata["language"]
         )
+
+    @pytest.mark.medium
+    def test_research_artifact_traversal_and_reload(self, temp_dir):
+        """Research artefacts persist and participate in traversals."""
+
+        adapter = EnhancedGraphMemoryAdapter(
+            base_path=temp_dir, use_rdflib_store=True
+        )
+
+        item_one = MemoryItem(
+            id="node1",
+            content="Baseline requirement",
+            memory_type=MemoryType.REQUIREMENT,
+            metadata={},
+        )
+        item_two = MemoryItem(
+            id="node2",
+            content="Derived implementation",
+            memory_type=MemoryType.CODE,
+            metadata={"related_to": "node1"},
+        )
+
+        adapter.store(item_one)
+        adapter.store(item_two)
+
+        artifact_path = Path(temp_dir) / "research.txt"
+        artifact_path.write_text("Graph traversal with research nodes")
+
+        evidence_hash = adapter.compute_evidence_hash(artifact_path)
+        summary = adapter.summarize_artifact(artifact_path)
+        assert summary.startswith("Graph traversal")
+
+        artifact = ResearchArtifact(
+            title="Traversal Paper",
+            summary=summary,
+            citation_url="file://" + str(artifact_path),
+            evidence_hash=evidence_hash,
+            published_at=datetime.datetime.now(datetime.timezone.utc),
+            supports=[item_two.id],
+            derived_from=[item_one.id],
+            archive_path=str(artifact_path),
+        )
+
+        artifact_id = adapter.store_research_artifact(artifact)
+
+        without_research = adapter.traverse_graph(item_one.id, 2)
+        assert without_research == {item_two.id}
+
+        with_research = adapter.traverse_graph(
+            item_one.id, 2, include_research=True
+        )
+        assert artifact_id in with_research
+        assert item_two.id in with_research
+
+        graph_file = Path(temp_dir) / "graph_memory.ttl"
+        assert graph_file.exists()
+
+        reloaded = EnhancedGraphMemoryAdapter(
+            base_path=temp_dir, use_rdflib_store=True
+        )
+        reloaded_traversal = reloaded.traverse_graph(
+            item_one.id, 2, include_research=True
+        )
+        assert artifact_id in reloaded_traversal
+
+        artifact_uri = URIRef(f"{DEVSYNTH}{artifact_id}")
+        assert (
+            artifact_uri,
+            DEVSYNTH.evidenceHash,
+            Literal(evidence_hash),
+        ) in reloaded.graph
+
+    @pytest.mark.medium
+    def test_ingest_helper_generates_hash_and_summary(self, temp_dir):
+        """Helper returns deterministic digests and summary content."""
+
+        adapter = EnhancedGraphMemoryAdapter(
+            base_path=temp_dir, use_rdflib_store=True
+        )
+
+        artifact_path = Path(temp_dir) / "digest.txt"
+        artifact_path.write_text("Important experimental log entry")
+
+        artifact = adapter.ingest_research_artifact_from_path(
+            artifact_path,
+            title="Experiment Log",
+            citation_url="file://" + str(artifact_path),
+            published_at=datetime.datetime.now(datetime.timezone.utc),
+            supports=[],
+            derived_from=[],
+        )
+
+        expected_hash = adapter.compute_evidence_hash(artifact_path)
+        assert artifact.evidence_hash == expected_hash
+        assert "Important" in artifact.summary
+
+        traversal = adapter.traverse_graph(
+            artifact.identifier, 1, include_research=True
+        )
+        assert traversal == set()
 
     @pytest.mark.medium
     def test_store_with_relationships_succeeds(self, basic_adapter):

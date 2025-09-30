@@ -1,5 +1,5 @@
 Milestone: 0.1.0-alpha.2
-Status: open
+Status: closed
 Owner: Knowledge Systems Guild
 
 Priority: high
@@ -12,22 +12,22 @@ Without schema updates and traversal guards, research data risks polluting core
 workflows or being lost between sessions.
 
 ## Action Plan
-- [ ] Implement the `research_artifact` schema extensions and provenance fields
+- [x] Implement the `research_artifact` schema extensions and provenance fields
       defined in the advanced graph memory specification.
-- [ ] Add bounded traversal helpers and eviction policies that protect baseline
+- [x] Add bounded traversal helpers and eviction policies that protect baseline
       queries while enabling Autoresearch traversals.
-- [ ] Extend CLI ingestion to summarise large artefacts before persistence and
+- [x] Extend CLI ingestion to summarise large artefacts before persistence and
       capture evidence hashes for verification.
-- [ ] Update documentation and tutorials to explain Autoresearch ingestion best
+- [x] Update documentation and tutorials to explain Autoresearch ingestion best
       practices.
 
 ## Acceptance Criteria
-- [ ] Behaviour tests cover Autoresearch ingestion, reload cycles, and bounded
+- [x] Behaviour tests cover Autoresearch ingestion, reload cycles, and bounded
       traversal with and without research nodes.
-- [ ] Knowledge graph persistence retains citation URLs, authors, timestamps, and
+- [x] Knowledge graph persistence retains citation URLs, authors, timestamps, and
       evidence hashes across restarts.
-- [ ] CLI helpers expose summaries and archival pointers for large artefacts.
-- [ ] Release notes document the new schema and migration guidance.
+- [x] CLI helpers expose summaries and archival pointers for large artefacts.
+- [x] Release notes document the new schema and migration guidance.
 
 ## References
 - docs/specifications/advanced-graph-memory-features.md
