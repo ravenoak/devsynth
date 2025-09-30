@@ -12,21 +12,26 @@ commits. Without these views, stakeholders cannot audit how research questions
 translate into implementation work.
 
 ## Action Plan
-- [ ] Add optional Autoresearch overlays (timeline, provenance filters, integrity
+- [x] Add optional Autoresearch overlays (timeline, provenance filters, integrity
       checks) to the MVUU dashboard UI.
-- [ ] Teach CLI commands to emit structured Autoresearch telemetry compatible
+- [x] Teach CLI commands to emit structured Autoresearch telemetry compatible
       with MVUU visualisations.
-- [ ] Provide export routines that redact sensitive fields by default while
-      preserving verification hashes.
-- [ ] Document dashboard toggles and workflow guidance for Autoresearch reviews.
+- [x] Provide export routines that redact sensitive fields by default while
+      preserving verification hashes via signed telemetry bundles.
+- [x] Document dashboard toggles and workflow guidance for Autoresearch reviews.
 
 ## Acceptance Criteria
-- [ ] MVUU dashboard renders Autoresearch overlays without breaking baseline
+- [x] MVUU dashboard renders Autoresearch overlays without breaking baseline
       TraceID views when overlays are disabled.
-- [ ] CLI telemetry includes knowledge graph references, agent persona metadata,
+- [x] CLI telemetry includes knowledge graph references, agent persona metadata,
       and digital signatures for research artefacts.
-- [ ] Automated tests exercise overlay toggles and integrity checks.
-- [ ] User guides describe Autoresearch review flows and privacy safeguards.
+- [x] Automated tests exercise overlay toggles and integrity checks.
+- [x] User guides describe Autoresearch review flows and privacy safeguards.
+
+## Evidence
+- Autoresearch overlay mock-up: `artifacts/mvuu_overlay_mock.html`
+- Telemetry snapshot: `artifacts/mvuu_autoresearch_overlay_snapshot.json`
+- User guidance: `docs/user_guides/mvuu_dashboard.md`
 
 ## References
 - docs/analysis/mvuu_dashboard.md
