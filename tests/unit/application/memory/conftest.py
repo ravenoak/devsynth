@@ -2,58 +2,75 @@
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import re
 import sys
 import uuid
 from collections import defaultdict
-from collections.abc import Sequence
-from pathlib import Path
+from collections.abc import Mapping, MutableMapping, Sequence
 from types import ModuleType
-from typing import Any, Protocol, TYPE_CHECKING, Callable
+from typing import Any, TYPE_CHECKING, Callable, TypeVar, cast
 
 import numpy as np
 
 import pytest
 
+from devsynth.application.memory.adapters._chromadb_protocols import (
+    ChromaClientProtocol,
+    ChromaCollectionProtocol,
+    ChromaEmbeddingFunctionProtocol,
+    ChromaGetResult,
+    ChromaQueryResult,
+)
+from devsynth.application.memory.adapters._duckdb_protocols import (
+    DuckDBConnectionProtocol,
+    DuckDBModuleProtocol,
+    DuckDBResultProtocol,
+)
+from devsynth.application.memory.adapters._tinydb_protocols import (
+    TinyDBFactory,
+    TinyDBLike,
+    TinyDBQueryFactory,
+    TinyDBQueryLike,
+    TinyDBTableLike,
+)
+from devsynth.application.memory.dto import (
+    GroupedMemoryResults,
+    MemoryMetadata,
+    MemoryQueryResults,
+    MemoryRecord,
+    MemorySearchQuery,
+    build_memory_record,
+)
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-
-if TYPE_CHECKING:  # pragma: no cover - typing-only imports
-    from devsynth.application.memory.dto import (
-        GroupedMemoryResults,
-        MemoryMetadata,
-        MemoryQueryResults,
-        MemoryRecord,
-        MemorySearchQuery,
-        build_memory_record,
-    )
-else:
-    _SRC_ROOT = Path(__file__).resolve().parents[4] / "src"
-    _DTO_SPEC = importlib.util.spec_from_file_location(
-        "tests.unit.application.memory._memory_dto",
-        _SRC_ROOT / "devsynth" / "application" / "memory" / "dto.py",
-    )
-    if _DTO_SPEC is None or _DTO_SPEC.loader is None:  # pragma: no cover - defensive
-        raise ImportError("Unable to load memory DTO module for fixtures")
-    _DTO_MODULE = importlib.util.module_from_spec(_DTO_SPEC)
-    sys.modules[_DTO_SPEC.name] = _DTO_MODULE
-    _DTO_SPEC.loader.exec_module(_DTO_MODULE)
-
-    GroupedMemoryResults = _DTO_MODULE.GroupedMemoryResults
-    MemoryMetadata = _DTO_MODULE.MemoryMetadata
-    MemoryQueryResults = _DTO_MODULE.MemoryQueryResults
-    MemoryRecord = _DTO_MODULE.MemoryRecord
-    MemorySearchQuery = _DTO_MODULE.MemorySearchQuery
-    build_memory_record = _DTO_MODULE.build_memory_record
+from typing_extensions import Protocol
 
 
-def _install_stub(module_name: str, factory: Callable[[], ModuleType]) -> None:
+T_Module = TypeVar("T_Module", bound=ModuleType)
+
+
+def _install_stub(module_name: str, factory: Callable[[], T_Module]) -> T_Module:
     """Install a stub module if the optional dependency is missing."""
 
-    if module_name in sys.modules:
-        return
-    sys.modules[module_name] = factory()
+    existing = sys.modules.get(module_name)
+    if isinstance(existing, ModuleType):
+        return cast(T_Module, existing)
+
+    module = factory()
+    sys.modules[module_name] = module
+    return module
+
+
+class MemoryRecordFactory(Protocol):
+    def __call__(
+        self,
+        payload: MemoryRecord | MemoryItem | MemoryVector | tuple[object, float] | None,
+        *,
+        source: str | None = ...,
+        similarity: float | None = ...,
+        metadata: MemoryMetadata | None = ...,
+    ) -> MemoryRecord:
+        ...
 
 
 def _build_tiktoken_stub() -> ModuleType:
@@ -73,103 +90,117 @@ def _build_tiktoken_stub() -> ModuleType:
 
 
 def _build_chromadb_stub() -> ModuleType:
-    module = ModuleType("chromadb")
+    class _ChromaDBModule(ModuleType):
+        PersistentClient: type[ChromaClientProtocol]
+        EphemeralClient: type[ChromaClientProtocol]
+        HttpClient: type[ChromaClientProtocol]
+        utils: ModuleType
+
+    module = _ChromaDBModule("chromadb")
 
     class _Collection:
         def __init__(self, name: str) -> None:
             self.name = name
-            self._items: dict[str, dict[str, Any]] = {}
+            self._items: dict[str, dict[str, object]] = {}
 
-        def upsert(
+        def add(
             self,
             *,
-            ids: list[str],
-            documents: list[str],
-            metadatas: list[dict[str, Any]],
-            embeddings: list[list[float]] | None = None,
+            ids: Sequence[str],
+            embeddings: Sequence[Sequence[float]],
+            metadatas: Sequence[Mapping[str, object]],
+            documents: Sequence[object],
         ) -> None:
-            for index, (doc, metadata) in enumerate(zip(documents, metadatas)):
-                item_id = ids[index]
-                payload = {
+            for idx, item_id in enumerate(ids):
+                payload: dict[str, object] = {
                     "ids": item_id,
-                    "documents": doc,
-                    "metadatas": metadata,
+                    "documents": documents[idx],
+                    "metadatas": dict(metadatas[idx]),
                 }
-                if embeddings is not None:
-                    payload["embeddings"] = embeddings[index]
+                embedding = list(embeddings[idx]) if embeddings else []
+                payload["embeddings"] = [float(value) for value in embedding]
                 self._items[item_id] = payload
 
         def get(
             self,
-            ids: list[str] | None = None,
-            where: dict[str, Any] | None = None,
-        ) -> dict[str, list[Any]]:
+            ids: Sequence[str] | None = None,
+            include: Sequence[str] | None = None,
+        ) -> ChromaGetResult | None:
             records = list(self._items.values())
             if ids is not None:
-                records = [self._items[i] for i in ids if i in self._items]
-            if where:
-                filtered: list[dict[str, Any]] = []
-                for record in records:
-                    meta = record.get("metadatas", {})
-                    if all(meta.get(key) == value for key, value in where.items()):
-                        filtered.append(record)
-                records = filtered
-            return {
-                "ids": [[record["ids"] for record in records]],
-                "documents": [[record["documents"] for record in records]],
-                "metadatas": [[record.get("metadatas", {}) for record in records]],
-            }
+                records = [self._items[item_id] for item_id in ids if item_id in self._items]
+            if not records:
+                return None
 
-        def delete(
-            self,
-            *,
-            ids: list[str] | None = None,
-            where: dict[str, Any] | None = None,
-        ) -> None:
-            if ids is not None:
-                for idx in ids:
-                    self._items.pop(idx, None)
-            elif where:
-                to_remove = [
-                    key
-                    for key, record in self._items.items()
-                    if all(record.get("metadatas", {}).get(k) == v for k, v in where.items())
+            result: ChromaGetResult = {
+                "ids": [cast(str, record["ids"]) for record in records],
+                "documents": [record.get("documents") for record in records],
+                "metadatas": [
+                    cast(Mapping[str, object], record.get("metadatas", {}))
+                    for record in records
+                ],
+            }
+            if include and "embeddings" in include:
+                result["embeddings"] = [
+                    cast(list[float], record.get("embeddings", [])) for record in records
                 ]
-                for key in to_remove:
-                    self._items.pop(key, None)
+            return result
+
+        def delete(self, *, ids: Sequence[str]) -> None:
+            for identifier in ids:
+                self._items.pop(identifier, None)
 
         def query(
             self,
             *,
-            query_texts: list[str],
-            where: dict[str, Any] | None = None,
-            n_results: int = 5,
-            where_document: dict[str, Any] | None = None,
-        ) -> dict[str, list[list[Any]]]:
-            _ = where_document  # Unused but kept for signature compatibility.
-            results = self.get(where=where or {})
-            ids = results["ids"][0][:n_results]
-            documents = results["documents"][0][:n_results]
-            metadatas = results["metadatas"][0][:n_results]
-            return {
-                "ids": [ids for _ in query_texts],
-                "documents": [documents for _ in query_texts],
-                "metadatas": [metadatas for _ in query_texts],
+            query_embeddings: Sequence[Sequence[float]],
+            n_results: int,
+            include: Sequence[str],
+        ) -> ChromaQueryResult | None:
+            _ = query_embeddings
+            if not self._items:
+                return None
+
+            records = list(self._items.values())[:n_results]
+            ids = [cast(str, record["ids"]) for record in records]
+            documents = [record.get("documents") for record in records]
+            metadatas = [
+                cast(Mapping[str, object], record.get("metadatas", {}))
+                for record in records
+            ]
+            embeddings: list[list[float]] = [
+                cast(list[float], record.get("embeddings", [])) for record in records
+            ]
+
+            result: ChromaQueryResult = {
+                "ids": [ids for _ in query_embeddings],
+                "documents": [documents for _ in query_embeddings]
+                if "documents" in include
+                else [],
+                "metadatas": [metadatas for _ in query_embeddings]
+                if "metadatas" in include
+                else [],
+                "embeddings": [embeddings for _ in query_embeddings]
+                if "embeddings" in include
+                else [],
             }
+            return result
 
     class _Client:
         def __init__(self) -> None:
             self._collections: dict[str, _Collection] = {}
 
-        def get_collection(self, name: str) -> _Collection:
-            if name not in self._collections:
-                raise RuntimeError("collection not found")
-            return self._collections[name]
-
-        def create_collection(self, name: str) -> _Collection:
-            coll = _Collection(name)
-            self._collections[name] = coll
-            return coll
+        def get_or_create_collection(
+            self,
+            name: str,
+            embedding_function: ChromaEmbeddingFunctionProtocol | None = None,
+        ) -> ChromaCollectionProtocol:
+            _ = embedding_function
+            collection = self._collections.get(name)
+            if collection is None:
+                collection = _Collection(name)
+                self._collections[name] = collection
+            return cast(ChromaCollectionProtocol, collection)
 
     class PersistentClient(_Client):
         def __init__(self, path: str | None = None) -> None:
@@ -185,22 +216,30 @@ def _build_chromadb_stub() -> ModuleType:
             self.host = host
             self.port = port
 
-    module.PersistentClient = PersistentClient  # type: ignore[attr-defined]
-    module.EphemeralClient = EphemeralClient  # type: ignore[attr-defined]
-    module.HttpClient = HttpClient  # type: ignore[attr-defined]
-    utils_module = ModuleType("chromadb.utils")
-    embedding_module = ModuleType("chromadb.utils.embedding_functions")
+    module.PersistentClient = PersistentClient
+    module.EphemeralClient = EphemeralClient
+    module.HttpClient = HttpClient
+
+    class _EmbeddingFunctionsModule(ModuleType):
+        DefaultEmbeddingFunction: Callable[[], ChromaEmbeddingFunctionProtocol]
+
+    class _UtilsModule(ModuleType):
+        embedding_functions: ModuleType
+
+    utils_module = _UtilsModule("chromadb.utils")
+    embedding_module = _EmbeddingFunctionsModule("chromadb.utils.embedding_functions")
 
     class _DefaultEmbeddingFunction:
-        def __call__(self, _: str) -> list[float]:
-            return [0.0] * 5
+        def __call__(self, inputs: Sequence[str]) -> Sequence[Sequence[float]]:
+            return [[0.0] * 5 for _ in inputs]
 
-    def _embedding_factory() -> _DefaultEmbeddingFunction:
-        return _DefaultEmbeddingFunction()
+    def _embedding_factory() -> ChromaEmbeddingFunctionProtocol:
+        return cast(ChromaEmbeddingFunctionProtocol, _DefaultEmbeddingFunction())
 
-    embedding_module.DefaultEmbeddingFunction = _embedding_factory  # type: ignore[attr-defined]
-    utils_module.embedding_functions = embedding_module  # type: ignore[attr-defined]
-    module.utils = utils_module  # type: ignore[attr-defined]
+    embedding_module.DefaultEmbeddingFunction = _embedding_factory
+    utils_module.embedding_functions = embedding_module
+    module.utils = utils_module
+
     sys.modules.setdefault("chromadb.utils", utils_module)
     sys.modules.setdefault("chromadb.utils.embedding_functions", embedding_module)
     return module
@@ -223,24 +262,42 @@ _DUCKDB_DATA: dict[str, dict[str, dict[str, Any]]] = defaultdict(
 
 
 def _build_duckdb_stub() -> ModuleType:
-    module = ModuleType("duckdb")
+    class _DuckDBModule(ModuleType):
+        def connect(
+            self,
+            database: str | None = None,
+            read_only: bool | None = None,
+        ) -> DuckDBConnectionProtocol:
+            _ = read_only
+            path = database or ":memory:"
+            return cast(DuckDBConnectionProtocol, _Connection(path))
+
+    module = _DuckDBModule("duckdb")
 
     class _Connection:
         def __init__(self, path: str) -> None:
             self._path = path
             self._data = _DUCKDB_DATA[path]
+            self._last_cursor: _DuckDBCursor | None = None
 
-        def execute(self, sql: str, params: Sequence[Any] | None = None) -> _DuckDBCursor:
+        def _cursor(self, results: list[tuple[Any, ...]]) -> _DuckDBCursor:
+            cursor = _DuckDBCursor(results)
+            self._last_cursor = cursor
+            return cursor
+
+        def execute(
+            self, sql: str, params: Sequence[Any] | None = None
+        ) -> DuckDBResultProtocol:
             statement = " ".join(sql.strip().split())
             params = list(params or [])
             results: list[tuple[Any, ...]] = []
 
             if statement.startswith("INSTALL vector"):
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith("LOAD vector"):
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith("CREATE TABLE"):
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith("INSERT OR REPLACE INTO memory_items"):
                 item_id, content, memory_type, metadata_json, created_at = params
                 self._data["memory_items"][item_id] = {
@@ -250,8 +307,10 @@ def _build_duckdb_stub() -> ModuleType:
                     "metadata": metadata_json,
                     "created_at": created_at,
                 }
-                return _DuckDBCursor(results)
-            if statement.startswith("SELECT id, content, memory_type, metadata, created_at FROM memory_items WHERE id = ?"):
+                return self._cursor(results)
+            if statement.startswith(
+                "SELECT id, content, memory_type, metadata, created_at FROM memory_items WHERE id = ?"
+            ):
                 item_id = params[0]
                 item = self._data["memory_items"].get(item_id)
                 if item:
@@ -264,16 +323,16 @@ def _build_duckdb_stub() -> ModuleType:
                             item["created_at"],
                         )
                     ]
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith("SELECT id FROM memory_items WHERE id = ?"):
                 item_id = params[0]
                 if item_id in self._data["memory_items"]:
                     results = [(item_id,)]
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith("DELETE FROM memory_items WHERE id = ?"):
                 item_id = params[0]
                 self._data["memory_items"].pop(item_id, None)
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith(
                 "SELECT id, content, memory_type, metadata, created_at FROM memory_items WHERE 1=1"
             ):
@@ -287,11 +346,18 @@ def _build_duckdb_stub() -> ModuleType:
                     needle = params[idx].strip("%")
                     idx += 1
                     records = [r for r in records if needle in (r["content"] or "")]
-                for metadata_match in re.finditer(r"json_extract\(metadata, '\$\.(?P<field>[^']+)'\) = \?", statement):
+                for metadata_match in re.finditer(
+                    r"json_extract\(metadata, '\$\.(?P<field>[^']+)'\) = \?",
+                    statement,
+                ):
                     field = metadata_match.group("field")
                     raw = params[idx]
                     idx += 1
-                    expected = json.loads(raw) if isinstance(raw, str) and raw.startswith("\"") else raw
+                    expected = (
+                        json.loads(raw)
+                        if isinstance(raw, str) and raw.startswith("\"")
+                        else raw
+                    )
                     filtered: list[dict[str, Any]] = []
                     for item in records:
                         metadata = json.loads(item["metadata"]) if item["metadata"] else {}
@@ -308,7 +374,7 @@ def _build_duckdb_stub() -> ModuleType:
                     )
                     for item in records
                 ]
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith("INSERT OR REPLACE INTO memory_vectors"):
                 vector_id, content, embedding, metadata_json, created_at = params
                 stored_embedding = embedding
@@ -321,7 +387,7 @@ def _build_duckdb_stub() -> ModuleType:
                     "metadata": metadata_json,
                     "created_at": created_at,
                 }
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith(
                 "SELECT id, content, embedding, metadata, created_at FROM memory_vectors WHERE id = ?"
             ):
@@ -340,7 +406,7 @@ def _build_duckdb_stub() -> ModuleType:
                             vector["created_at"],
                         )
                     ]
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith(
                 "SELECT id, content, embedding, metadata, created_at FROM memory_vectors"
             ):
@@ -358,18 +424,229 @@ def _build_duckdb_stub() -> ModuleType:
                             vector["created_at"],
                         )
                     )
-                return _DuckDBCursor(results)
+                return self._cursor(results)
             if statement.startswith("DELETE FROM memory_vectors WHERE id = ?"):
                 vector_id = params[0]
                 self._data["memory_vectors"].pop(vector_id, None)
-                return _DuckDBCursor(results)
+                return self._cursor(results)
+            return self._cursor(results)
 
-            raise NotImplementedError(f"Unhandled DuckDB stub statement: {statement}")
+        def fetchone(self) -> tuple[Any, ...] | None:
+            if self._last_cursor is None:
+                return None
+            return self._last_cursor.fetchone()
 
-    def connect(path: str) -> _Connection:  # pragma: no cover - executed via store
-        return _Connection(path)
+        def fetchall(self) -> list[tuple[Any, ...]]:
+            if self._last_cursor is None:
+                return []
+            return self._last_cursor.fetchall()
 
-    module.connect = connect  # type: ignore[attr-defined]
+        def close(self) -> None:
+            self._last_cursor = None
+
+    return module
+
+
+def _build_tinydb_stub() -> ModuleType:
+    class _TinyDBModule(ModuleType):
+        TinyDB: type[TinyDBLike]
+        Query: TinyDBQueryFactory
+        storages: ModuleType
+        middlewares: ModuleType
+
+    module = _TinyDBModule("tinydb")
+
+    class _TinyDBQuery:
+        def __init__(
+            self,
+            path: tuple[str, ...] = (),
+            predicate: Callable[[Mapping[str, Any]], bool] | None = None,
+        ) -> None:
+            self._path = path
+            self._predicate = predicate
+
+        def __getattr__(self, name: str) -> "_TinyDBQuery":
+            return _TinyDBQuery(self._path + (name,), self._predicate)
+
+        def __getitem__(self, item: str) -> "_TinyDBQuery":
+            return self.__getattr__(item)
+
+        def __and__(self, other: TinyDBQueryLike) -> TinyDBQueryLike:
+            def _combined(document: Mapping[str, Any]) -> bool:
+                return self(document) and bool(other(document))
+
+            return _TinyDBQuery(predicate=_combined)
+
+        def __call__(self, document: Mapping[str, Any]) -> bool:
+            if self._predicate is not None:
+                return self._predicate(document)
+            current: object = document
+            for part in self._path:
+                if isinstance(current, Mapping) and part in current:
+                    current = current[part]
+                else:
+                    return False
+            return bool(current)
+
+        def __eq__(self, other: object) -> TinyDBQueryLike:  # type: ignore[override]
+            path = self._path
+
+            def _predicate(document: Mapping[str, Any]) -> bool:
+                current: object = document
+                for part in path:
+                    if isinstance(current, Mapping) and part in current:
+                        current = current[part]
+                    else:
+                        return False
+                return current == other
+
+            return _TinyDBQuery(predicate=_predicate)
+
+    class _TinyDBTable(TinyDBTableLike):
+        def __init__(self) -> None:
+            self._rows: list[MutableMapping[str, Any]] = []
+
+        def _matches(self, cond: TinyDBQueryLike, row: Mapping[str, Any]) -> bool:
+            try:
+                return bool(cond(row))
+            except Exception:  # pragma: no cover - defensive
+                return False
+
+        def get(self, cond: TinyDBQueryLike) -> Mapping[str, Any] | None:
+            for row in self._rows:
+                if self._matches(cond, row):
+                    return dict(row)
+            return None
+
+        def insert(self, item: Mapping[str, Any]) -> int:
+            self._rows.append(dict(item))
+            return len(self._rows) - 1
+
+        def update(self, fields: Mapping[str, Any], cond: TinyDBQueryLike) -> list[int]:
+            updated: list[int] = []
+            for idx, row in enumerate(self._rows):
+                if self._matches(cond, row):
+                    row.update(dict(fields))
+                    updated.append(idx)
+            return updated
+
+        def remove(self, cond: TinyDBQueryLike) -> list[int]:
+            removed: list[int] = []
+            remaining: list[MutableMapping[str, Any]] = []
+            for idx, row in enumerate(self._rows):
+                if self._matches(cond, row):
+                    removed.append(idx)
+                else:
+                    remaining.append(row)
+            self._rows = remaining
+            return removed
+
+        def all(self) -> list[Mapping[str, Any]]:
+            return [dict(row) for row in self._rows]
+
+        def search(self, cond: TinyDBQueryLike) -> list[Mapping[str, Any]]:
+            return [dict(row) for row in self._rows if self._matches(cond, row)]
+
+        def truncate(self) -> None:
+            self._rows.clear()
+
+    class _TinyDB(TinyDBLike):
+        def __init__(self, path: str, storage: object | None = None) -> None:
+            self.path = path
+            self._storage = storage
+            self._tables: dict[str, _TinyDBTable] = {"_default": _TinyDBTable()}
+            if callable(storage):  # pragma: no cover - storage initialization side effect
+                try:
+                    storage(path)
+                except TypeError:
+                    storage(path=path)
+
+        def table(self, name: str) -> _TinyDBTable:
+            return self._tables.setdefault(name, _TinyDBTable())
+
+        def close(self) -> None:
+            return None
+
+        # Convenience helpers mirroring TinyDB's default table proxy.
+        def insert(self, item: Mapping[str, Any]) -> int:
+            return self.table("_default").insert(item)
+
+        def upsert(
+            self, item: Mapping[str, Any], cond: TinyDBQueryLike
+        ) -> list[int]:
+            updated = self.table("_default").update(item, cond)
+            if updated:
+                return updated
+            return [self.table("_default").insert(item)]
+
+        def get(self, cond: TinyDBQueryLike) -> Mapping[str, Any] | None:
+            return self.table("_default").get(cond)
+
+        def remove(self, cond: TinyDBQueryLike) -> list[int]:
+            return self.table("_default").remove(cond)
+
+        def all(self) -> list[Mapping[str, Any]]:
+            return self.table("_default").all()
+
+        def search(self, cond: TinyDBQueryLike) -> list[Mapping[str, Any]]:
+            return self.table("_default").search(cond)
+
+        def update(self, fields: Mapping[str, Any], cond: TinyDBQueryLike) -> list[int]:
+            return self.table("_default").update(fields, cond)
+
+        def truncate(self) -> None:
+            self.table("_default").truncate()
+
+    class TinyDB(_TinyDB):
+        def __init__(self, path: str, storage: object | None = None, **_: Any) -> None:
+            super().__init__(path, storage)
+
+    def Query() -> TinyDBQueryLike:
+        return _TinyDBQuery()
+
+    class _Storage:
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            self._args = args
+            self._kwargs = kwargs
+
+        def close(self) -> None:
+            return None
+
+    class JSONStorage(_Storage):
+        def read(self) -> dict[str, dict[str, object]] | None:
+            return {}
+
+        def write(self, data: Mapping[str, Any]) -> None:
+            _ = data
+
+    class Storage(_Storage):
+        pass
+
+    def touch(path: str, create_dirs: bool = False) -> None:  # noqa: ARG001
+        return None
+
+    class CachingMiddleware:
+        def __init__(self, factory: Callable[..., object]) -> None:
+            self._factory = factory
+
+        def __call__(self, *args: Any, **kwargs: Any) -> object:
+            return self._factory(*args, **kwargs)
+
+    storages_module = ModuleType("tinydb.storages")
+    storages_module.JSONStorage = JSONStorage  # type: ignore[attr-defined]
+    storages_module.Storage = Storage  # type: ignore[attr-defined]
+    storages_module.touch = touch  # type: ignore[attr-defined]
+
+    middlewares_module = ModuleType("tinydb.middlewares")
+    middlewares_module.CachingMiddleware = CachingMiddleware  # type: ignore[attr-defined]
+
+    module.TinyDB = TinyDB  # type: ignore[attr-defined]
+    module.Query = Query  # type: ignore[attr-defined]
+    module.storages = storages_module  # type: ignore[attr-defined]
+    module.middlewares = middlewares_module  # type: ignore[attr-defined]
+
+    sys.modules.setdefault("tinydb.storages", storages_module)
+    sys.modules.setdefault("tinydb.middlewares", middlewares_module)
     return module
 
 
@@ -463,15 +740,18 @@ def _build_faiss_stub() -> ModuleType:
 _install_stub("tiktoken", _build_tiktoken_stub)
 _install_stub("chromadb", _build_chromadb_stub)
 _install_stub("duckdb", _build_duckdb_stub)
+_install_stub("tinydb", _build_tinydb_stub)
 _install_stub("kuzu", _build_kuzu_stub)
 _install_stub("faiss", _build_faiss_stub)
+
+_TYPED_BUILD_MEMORY_RECORD = cast(MemoryRecordFactory, build_memory_record)
 
 
 @pytest.fixture(autouse=True)
 def _set_memory_resource_flags(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure optional memory backends are treated as available in tests."""
 
-    for resource in ("CHROMADB", "KUZU", "DUCKDB", "FAISS"):
+    for resource in ("CHROMADB", "KUZU", "DUCKDB", "FAISS", "TINYDB"):
         monkeypatch.setenv(f"DEVSYNTH_RESOURCE_{resource}_AVAILABLE", "1")
 
 
@@ -539,7 +819,7 @@ class ProtocolCompliantMemoryStore(MemoryStore):
     def store(self, item: MemoryItem) -> str:
         if not item.id:
             item.id = str(uuid.uuid4())
-        record = build_memory_record(item)
+        record = _TYPED_BUILD_MEMORY_RECORD(item)
         self._records[item.id] = record
         return item.id
 
@@ -584,7 +864,9 @@ class ProtocolCompliantVectorStore(VectorStore):
         if not vector.id:
             vector.id = str(uuid.uuid4())
         self._vectors[vector.id] = vector
-        self._records[vector.id] = build_memory_record(vector, source="vector-fixture")
+        self._records[vector.id] = _TYPED_BUILD_MEMORY_RECORD(
+            vector, source="vector-fixture"
+        )
         return vector.id
 
     def retrieve_vector(self, vector_id: str) -> MemoryVector | MemoryRecord | None:
@@ -639,10 +921,33 @@ class ProtocolCompliantContextManager(ContextManager):
 
 
 __all__ = [
+    "GroupedMemoryResults",
+    "MemoryMetadata",
+    "MemoryQueryResults",
+    "MemoryRecord",
+    "MemoryRecordFactory",
+    "MemorySearchQuery",
     "ProtocolCompliantContextManager",
     "ProtocolCompliantMemoryStore",
     "ProtocolCompliantVectorStore",
+    "build_memory_record",
+    "memory_record_factory",
+    "memory_item",
+    "memory_vector",
+    "memory_record",
+    "memory_query_results",
+    "grouped_memory_results",
+    "protocol_memory_store",
+    "protocol_vector_store",
+    "protocol_context_manager",
 ]
+
+
+@pytest.fixture
+def memory_record_factory() -> MemoryRecordFactory:
+    """Expose :func:`build_memory_record` with preserved typing."""
+
+    return _TYPED_BUILD_MEMORY_RECORD
 
 
 @pytest.fixture
@@ -673,7 +978,7 @@ def memory_vector() -> MemoryVector:
 def memory_record(memory_item: MemoryItem) -> MemoryRecord:
     """Normalize the fixture item into a ``MemoryRecord``."""
 
-    record = build_memory_record(
+    record = _TYPED_BUILD_MEMORY_RECORD(
         memory_item,
         source="fixture-store",
         similarity=0.75,
