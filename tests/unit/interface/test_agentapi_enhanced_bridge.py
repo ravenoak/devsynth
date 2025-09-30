@@ -17,7 +17,7 @@ def enhanced_module():
     import devsynth.interface.agentapi_enhanced as agentapi_enhanced
 
     importlib.reload(agentapi_enhanced)
-    agentapi_enhanced.REQUEST_TIMESTAMPS.clear()
+    agentapi_enhanced.reset_state()
     return agentapi_enhanced
 
 
@@ -71,14 +71,19 @@ def test_enhanced_progress_tracks_subtasks(enhanced_module):
     assert bridge.messages[-1] == "Completed: Build"
 
 
-def test_enhanced_rate_limit_blocks_abusive_clients(enhanced_module, monkeypatch):
+def test_enhanced_rate_limit_blocks_abusive_clients(enhanced_module):
     """Rate limiting mirrors the base implementation for consistency."""
 
     request = SimpleNamespace(client=SimpleNamespace(host="10.0.0.5"))
-    enhanced_module.REQUEST_TIMESTAMPS["10.0.0.5"] = [1.0, 2.0]
-    monkeypatch.setattr(enhanced_module.time, "time", lambda: 3.0)
-
+    state = enhanced_module.reset_state()
+    state.rate_limiter.buckets["10.0.0.5"] = [1.0, 2.0]
     with pytest.raises(enhanced_module.HTTPException) as exc:
-        enhanced_module.rate_limit(request, limit=2, window=60)
+        enhanced_module.rate_limit(
+            request,
+            limit=2,
+            window=60,
+            state=state,
+            current_time=3.0,
+        )
 
     assert exc.value.status_code == enhanced_module.status.HTTP_429_TOO_MANY_REQUESTS
