@@ -1,6 +1,6 @@
 ---
 author: AI Assistant
-date: '2025-09-26'
+date: '2025-09-30'
 status: published
 tags:
   - implementation
@@ -47,7 +47,7 @@ confirms the persisted structure and cleanup side effects.
 
 ## Progress Completion Cascades Remain Sanitized
 
-Fast WebUI suites verify that completing the top-level progress indicator drives every subtask to completion even when `streamlit.success` is unavailable. The fallback writes sanitized labels to `st.write`, and nested subtasks emit the same escaped completion message, keeping UI telemetry consistent with CLI progress semantics.【F:tests/unit/interface/test_webui_behavior_checklist_fast.py†L1022-L1056】【F:tests/unit/interface/test_webui_rendering_progress.py†L95-L314】
+Fast WebUI suites verify that completing the top-level progress indicator drives every subtask to completion even when `streamlit.success` is unavailable. The fallback writes sanitized labels to `st.write`, and nested subtasks emit the same escaped completion message, keeping UI telemetry consistent with CLI progress semantics.【F:tests/unit/interface/test_webui_behavior_checklist_fast.py†L1022-L1056】【F:tests/unit/interface/test_webui_rendering_progress.py†L95-L314】 The deterministic harness ``simulate_progress_rendering`` feeds the same summary pipeline without importing Streamlit, ensuring ETA banners, history sections, and sanitized error channels render in a predictable order for focused regression tests.【F:src/devsynth/interface/webui/rendering.py†L33-L112】【F:tests/unit/interface/test_webui_simulations_fast.py†L46-L95】
 
 ## Streamlit Fallbacks Stay Sanitized
 
@@ -55,19 +55,15 @@ When Streamlit omits the `info` or `markdown` helpers, the WebUI implementation 
 
 ## Coverage Evidence
 
-A focused fast sweep combines the rendering module regression harness, progress
-summaries, and wizard navigation suites so coverage data reflects the rendering
-surface without pulling the entire Streamlit stack into scope.
+A focused fast sweep combines the rendering module regression harness, progress summaries, and wizard navigation suites so coverage data reflects the rendering surface without pulling the entire Streamlit stack into scope.
 
 | Module | Coverage | Evidence |
 | --- | --- | --- |
 | `devsynth.interface.webui.rendering` | 29 % | `poetry run pytest -o addopts="" tests/unit/interface/test_webui_rendering_module.py tests/unit/interface/test_webui_rendering_progress.py tests/unit/interface/test_webui_progress_cascade_fast.py tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py --cov=devsynth.interface.webui.rendering --cov=devsynth.interface.webui_bridge --cov-report=term --cov-report=json:test_reports/webui_rendering_bridge_coverage.json --cov-report=html:test_reports/htmlcov_webui_rendering_bridge --cov-fail-under=0`【779285†L1-L33】【8fff97†L3-L10】 |
 | `devsynth.interface.webui_bridge` | 25 % | `poetry run pytest -o addopts="" tests/unit/interface/test_webui_rendering_module.py tests/unit/interface/test_webui_rendering_progress.py tests/unit/interface/test_webui_progress_cascade_fast.py tests/unit/interface/test_webui_bridge_wizard_navigation_fast.py --cov=devsynth.interface.webui.rendering --cov=devsynth.interface.webui_bridge --cov-report=term --cov-report=json:test_reports/webui_rendering_bridge_coverage.json --cov-report=html:test_reports/htmlcov_webui_rendering_bridge --cov-fail-under=0`【779285†L1-L33】【79e500†L1-L9】 |
+| Deterministic simulations | — | `poetry run pytest tests/unit/interface/test_webui_simulations_fast.py --maxfail=1` records the Streamlit-free progress and error channels that exercise the new deterministic harnesses, with artefacts stored under `issues/tmp_artifacts/webui_progress_simulations/20250930T214900Z/`.【F:tests/unit/interface/test_webui_simulations_fast.py†L46-L174】【F:issues/tmp_artifacts/webui_progress_simulations/20250930T214900Z/notes.md†L1-L5】 |
 
-The run persists refreshed artifacts at
-`test_reports/webui_rendering_bridge_coverage.json` and
-`test_reports/htmlcov_webui_rendering_bridge/index.html` for future audits and
-plan traceability.【b90c51†L1-L3】
+The run persists refreshed artifacts at `test_reports/webui_rendering_bridge_coverage.json` and `test_reports/htmlcov_webui_rendering_bridge/index.html` for future audits and plan traceability, while the deterministic simulation artefacts document the Streamlit-free regression harness that now guards sanitized rendering behaviour.【b90c51†L1-L3】【F:issues/tmp_artifacts/webui_progress_simulations/20250930T214900Z/notes.md†L1-L5】
 
 ## References
 

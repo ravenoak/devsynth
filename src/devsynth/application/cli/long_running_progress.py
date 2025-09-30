@@ -7,9 +7,10 @@ with features like time estimation, status updates, and subtask tracking.
 from __future__ import annotations
 
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
+from contextlib import ExitStack
 from datetime import datetime, timedelta
-from typing import TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from rich.console import Console
 from rich.progress import (
@@ -40,6 +41,15 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 T = TypeVar("T")
+
+
+def _as_float(value: Any) -> float | None:
+    """Safely coerce ``value`` to ``float`` when possible."""
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 class LongRunningProgressIndicator(EnhancedProgressIndicator):
@@ -387,6 +397,222 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
             remaining=remaining,
             remaining_str=remaining_str,
         )
+
+
+def simulate_progress_timeline(
+    events: Sequence[Mapping[str, object]],
+    *,
+    description: str = "Deterministic progress run",
+    total: int = 100,
+    console: Console | None = None,
+    clock: Callable[[], float] | None = None,
+    progress_factory: Callable[..., Progress] | None = None,
+) -> dict[str, object]:
+    """Drive :class:`LongRunningProgressIndicator` with deterministic events.
+
+    The simulation mirrors CLI behaviour without requiring a Rich console by
+    allowing callers to inject a fake clock, console, or ``Progress`` factory.
+    ``events`` is a sequence of dictionaries with an ``action`` key describing
+    each operation:
+
+    ``update``
+        Advance the main task. Optional keys: ``advance`` (float), ``status``,
+        ``description``.
+    ``add_subtask``
+        Create a subtask. Optional keys: ``total`` (int), ``status``; ``alias``
+        stores a human-friendly name used by later events.
+    ``update_subtask``
+        Update a subtask referenced by ``alias`` or ``subtask``.
+    ``complete_subtask``
+        Mark a subtask as complete.
+    ``tick``
+        Consume additional clock ticks without updating progress. Useful for
+        spacing ETA checkpoints.
+    ``complete``
+        Complete all tasks and stop the progress display.
+
+    Returns a dictionary containing the emitted transcript, latest summary, and
+    sanitized subtask snapshots for deterministic assertions.
+    """
+
+    transcript: list[tuple[str, Mapping[str, object]]] = []
+    console_obj = console or Console()
+
+    with ExitStack() as stack:
+        if clock is not None:
+            original_time = time.time
+
+            def _restore_time() -> None:
+                time.time = original_time
+
+            stack.callback(_restore_time)
+            time.time = clock
+
+        if progress_factory is not None:
+            original_progress = globals()["Progress"]
+
+            def _restore_progress() -> None:
+                globals()["Progress"] = original_progress
+
+            stack.callback(_restore_progress)
+            globals()["Progress"] = progress_factory
+
+        indicator = LongRunningProgressIndicator(console_obj, description, total)
+        progress = indicator._progress
+        alias_to_subtask: dict[str, str] = {}
+
+        for event in events:
+            action = str(event.get("action", "")).lower()
+
+            if action == "tick":
+                ticks = int(_as_float(event.get("times", 1)) or 1)
+                for _ in range(max(0, ticks)):
+                    if clock is not None:
+                        clock()
+                    else:
+                        time.time()
+                transcript.append(("tick", {"times": ticks}))
+                continue
+
+            if action == "add_subtask":
+                subtask_desc = event.get("description", "<subtask>")
+                alias = str(event.get("alias", "")) or str(subtask_desc)
+                subtask_total = int(_as_float(event.get("total", 100)) or 100)
+                status = event.get("status")
+                created = indicator.add_subtask(
+                    cast(str, subtask_desc),
+                    total=subtask_total,
+                    status=cast(str | None, status),
+                )
+                alias_to_subtask[alias] = created
+                subtask_task = progress.tasks[indicator._subtasks[created].task_id]
+                transcript.append(
+                    (
+                        "add_subtask",
+                        {
+                            "alias": alias,
+                            "task_id": created,
+                            "description": subtask_task.description,
+                            "status": subtask_task.fields.get("status", ""),
+                            "total": subtask_task.total,
+                        },
+                    )
+                )
+                continue
+
+            if action == "update_subtask":
+                key = event.get("alias") or event.get("subtask")
+                if not isinstance(key, str):
+                    continue
+                lookup = alias_to_subtask.get(key, key)
+                advance = _as_float(event.get("advance", 1)) or 1.0
+                description_update = event.get("description")
+                status_update = event.get("status")
+                indicator.update_subtask(
+                    lookup,
+                    advance=advance,
+                    description=cast(str | None, description_update),
+                    status=cast(str | None, status_update),
+                )
+                state = indicator._subtasks.get(lookup) or indicator._subtasks.get(
+                    cast(str, description_update)
+                )
+                if (
+                    isinstance(description_update, str)
+                    and state is not None
+                    and cast(str, description_update) in indicator._subtasks
+                ):
+                    alias_to_subtask[key] = cast(str, description_update)
+                if state is not None:
+                    task = progress.tasks[state.task_id]
+                    transcript.append(
+                        (
+                            "update_subtask",
+                            {
+                                "alias": key,
+                                "description": task.description,
+                                "completed": task.completed,
+                                "status": task.fields.get("status", ""),
+                            },
+                        )
+                    )
+                continue
+
+            if action == "complete_subtask":
+                key = event.get("alias") or event.get("subtask")
+                if not isinstance(key, str):
+                    continue
+                lookup = alias_to_subtask.get(key, key)
+                indicator.complete_subtask(lookup)
+                state = indicator._subtasks.get(lookup)
+                if state is not None:
+                    task = progress.tasks[state.task_id]
+                    transcript.append(
+                        (
+                            "complete_subtask",
+                            {
+                                "alias": key,
+                                "completed": task.completed,
+                                "status": task.fields.get("status", ""),
+                            },
+                        )
+                    )
+                continue
+
+            if action == "update":
+                advance = _as_float(event.get("advance", 1)) or 1.0
+                indicator.update(
+                    advance=advance,
+                    description=cast(str | None, event.get("description")),
+                    status=cast(str | None, event.get("status")),
+                )
+                main_task = progress.tasks[indicator._task]
+                transcript.append(
+                    (
+                        "update",
+                        {
+                            "completed": main_task.completed,
+                            "status": main_task.fields.get("status", ""),
+                            "description": main_task.description,
+                        },
+                    )
+                )
+                continue
+
+            if action == "complete":
+                indicator.complete()
+                main_task = progress.tasks[indicator._task]
+                transcript.append(
+                    (
+                        "complete",
+                        {
+                            "completed": main_task.completed,
+                            "status": main_task.fields.get("status", ""),
+                        },
+                    )
+                )
+
+        summary = indicator.get_summary()
+        subtasks_snapshot: dict[str, object] = {}
+        for alias, state in indicator._subtasks.items():
+            task = progress.tasks[state.task_id]
+            subtasks_snapshot[alias] = {
+                "description": task.description,
+                "total": task.total,
+                "completed": task.completed,
+                "status": task.fields.get("status", ""),
+            }
+
+        console_messages = tuple(getattr(console_obj, "messages", ()))
+
+    return {
+        "transcript": tuple(transcript),
+        "summary": summary,
+        "history": tuple(indicator._history),
+        "checkpoints": tuple(indicator._checkpoints),
+        "subtasks": subtasks_snapshot,
+        "console_messages": console_messages,
+    }
 
 
 def create_long_running_progress(

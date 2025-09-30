@@ -411,3 +411,105 @@ def test_subtask_checkpoint_spacing_respects_minimum(fake_clock: FakeClock) -> N
     assert progress_values == pytest.approx([0.125, 0.225, 0.6, 0.8])
     deltas = [b - a for a, b in zip(progress_values, progress_values[1:])]
     assert all(delta >= 0.1 - 1e-9 for delta in deltas)
+
+
+class _Explosive:
+    def __str__(self) -> str:
+        raise RuntimeError("detonate")
+
+
+@pytest.mark.fast
+def test_simulation_timeline_produces_deterministic_transcript(
+    fake_clock: FakeClock,
+) -> None:
+    console = DummyConsole()
+    events = [
+        {
+            "action": "update",
+            "advance": 5,
+            "status": "Booting",
+            "description": "alpha <task>",
+        },
+        {
+            "action": "add_subtask",
+            "description": "stage &1",
+            "alias": "stage-one",
+            "total": 40,
+            "status": "Queued",
+        },
+        {
+            "action": "add_subtask",
+            "description": _Explosive(),
+            "alias": "volatile",
+            "total": 60,
+        },
+        {"action": "tick", "times": 2},
+        {
+            "action": "update_subtask",
+            "alias": "stage-one",
+            "advance": 20,
+            "status": "Working",
+        },
+        {
+            "action": "update_subtask",
+            "alias": "volatile",
+            "advance": 15,
+            "description": "volatile <1>",
+        },
+        {"action": "tick", "times": 1},
+        {"action": "complete_subtask", "alias": "stage-one"},
+        {"action": "update", "advance": 35, "status": "Finalizing"},
+        {"action": "complete"},
+    ]
+
+    result = long_running_progress.simulate_progress_timeline(
+        events,
+        description="Simulated <run>",
+        total=120,
+        console=console,
+    )
+
+    transcript = result["transcript"]
+    assert [entry[0] for entry in transcript] == [
+        "update",
+        "add_subtask",
+        "add_subtask",
+        "tick",
+        "update_subtask",
+        "update_subtask",
+        "tick",
+        "complete_subtask",
+        "update",
+        "complete",
+    ]
+
+    main_updates = [payload for action, payload in transcript if action == "update"]
+    assert main_updates[0]["status"] == "Booting"
+    assert main_updates[0]["description"].endswith("alpha <task>")
+    assert main_updates[-1]["status"] == "Complete"
+
+    add_events = [payload for action, payload in transcript if action == "add_subtask"]
+    assert add_events[0]["description"].startswith("  ↳ stage &1")
+    assert add_events[1]["description"].startswith("  ↳ <subtask>")
+
+    volatile_updates = [
+        payload
+        for action, payload in transcript
+        if action == "update_subtask" and payload["alias"] == "volatile"
+    ]
+    assert volatile_updates[-1]["description"].endswith("volatile <1>")
+
+    summary = result["summary"]
+    assert summary.progress == pytest.approx(1.0)
+    assert summary.eta is not None
+    assert summary.checkpoints
+
+    subtasks = result["subtasks"]
+    assert "stage-one" in subtasks
+    assert subtasks["stage-one"]["status"] == "Complete"
+    assert "volatile" in subtasks
+    assert subtasks["volatile"]["description"].endswith("volatile <1>")
+
+    console_messages = result["console_messages"]
+    assert console_messages
+    assert console_messages[-1][0][0].startswith("[bold green]Task completed in ")
