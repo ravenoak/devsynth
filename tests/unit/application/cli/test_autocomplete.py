@@ -10,6 +10,7 @@ from devsynth.application.cli.autocomplete import (
     command_autocomplete,
     complete_command,
     file_path_autocomplete,
+    generate_completion_script,
     get_all_commands_help,
     get_command_help,
     get_completions,
@@ -193,3 +194,72 @@ def test_get_all_commands_help_returns_expected_result():
         assert (
             COMMAND_DESCRIPTIONS.get(command, "No description available") in help_text
         )
+
+
+class _StubCompletion:
+    """Simple stand-in for Click's ``ShellComplete``."""
+
+    def __init__(self, script: str) -> None:
+        self._script = script
+
+    def source(self) -> str:
+        return self._script
+
+
+@pytest.mark.medium
+def test_generate_completion_script_installs_to_target(monkeypatch, tmp_path):
+    """Ensure installation writes the generated script to the provided path."""
+
+    import devsynth.application.cli import autocomplete as module
+
+    expected = "# completion script"
+    monkeypatch.setattr(module, "_load_click_command", lambda: object())
+    monkeypatch.setattr(
+        module, "_build_shell_complete", lambda shell, command: _StubCompletion(expected)
+    )
+
+    target = tmp_path / "devsynth.zsh"
+    result = generate_completion_script("zsh", install=True, path=target)
+
+    assert result == str(target)
+    assert target.read_text() == expected
+
+
+@pytest.mark.medium
+def test_generate_completion_script_uses_home_directory(monkeypatch, tmp_path):
+    """Validate the default install path leverages ``Path.home()``."""
+
+    import devsynth.application.cli import autocomplete as module
+
+    expected = "# bash completion"
+    monkeypatch.setattr(module, "_load_click_command", lambda: object())
+    monkeypatch.setattr(
+        module, "_build_shell_complete", lambda shell, command: _StubCompletion(expected)
+    )
+    monkeypatch.setattr(
+        module.Path,
+        "home",
+        classmethod(lambda cls: tmp_path),
+    )
+
+    result = generate_completion_script("bash", install=True)
+
+    destination = tmp_path / ".devsynth-completion.bash"
+    assert result == str(destination)
+    assert destination.read_text() == expected
+
+
+@pytest.mark.medium
+def test_generate_completion_script_returns_source(monkeypatch):
+    """The helper should return the script text when not installing."""
+
+    import devsynth.application.cli import autocomplete as module
+
+    expected = "# fish completion"
+    monkeypatch.setattr(module, "_load_click_command", lambda: object())
+    monkeypatch.setattr(
+        module, "_build_shell_complete", lambda shell, command: _StubCompletion(expected)
+    )
+
+    script = generate_completion_script("fish", install=False, path=None)
+    assert script == expected

@@ -8,14 +8,14 @@ the Typer application.
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, cast
 
 from devsynth.core import workflows
 
 init_project = workflows.init_project
 
 from devsynth.interface.cli import CLIUXBridge
-from devsynth.interface.ux_bridge import UXBridge
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 
 # Expose a module-level bridge for tests to monkeypatch.
 # Tests expect `devsynth.application.cli.cli_commands.bridge` to exist.
@@ -68,7 +68,7 @@ def create_progress(
     total: int = 100,
     *,
     bridge: UXBridge | None = None,
-):
+) -> ProgressIndicator:
     """Create a progress indicator for tests.
 
     Args:
@@ -80,7 +80,7 @@ def create_progress(
         A :class:`~devsynth.interface.ux_bridge.ProgressIndicator` instance.
     """
 
-    active_bridge = bridge or globals().get("bridge") or CLIUXBridge()
+    active_bridge = bridge or cast(UXBridge | None, globals().get("bridge")) or CLIUXBridge()
     manager = ProgressManager(active_bridge)
     # Use a fixed task id since tests typically track a single progress bar
     return manager.create_progress("task", description, total=total)

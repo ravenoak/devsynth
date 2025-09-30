@@ -56,6 +56,7 @@ assert "tests/unit" in data["tests"][0]["nodeid"]
 
 - `tests/unit/application/cli/commands/test_run_tests_cmd_inventory.py` confirms JSON export, exit codes, and coverage messaging for the inventory pathway under the current instrumentation defaults.【4a0778†L1-L19】
 - Coverage artifacts for this run are versioned with the docs so future uplifts can quantify improvements in branches such as smoke mode, feature flags, provider defaults, and segmented execution.
+- `tests/unit/application/cli/commands/test_help_rendering.py` guards the Rich panels, tables, and markdown surfaces used by CLI help so UX regressions surface immediately in targeted runs.【F:tests/unit/application/cli/commands/test_help_rendering.py†L1-L78】
 
 ## References
 
