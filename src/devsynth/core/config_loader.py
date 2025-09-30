@@ -3,25 +3,29 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import (
-    TYPE_CHECKING,
-    Mapping,
-    NotRequired,
-    Optional,
-    TypeGuard,
-    TypedDict,
-)
+from typing import Mapping, NotRequired, Optional, TypeGuard, TypedDict, cast
 
-import toml
-import yaml
+try:  # pragma: no cover - optional dependency
+    import yaml
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    yaml = None  # type: ignore[assignment]
 
-if TYPE_CHECKING:  # pragma: no cover - used for typing only
-    from dataclasses import dataclass
+try:  # pragma: no cover - standard library TOML (Python 3.11+)
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - fallback if stdlib missing
+    tomllib = None  # type: ignore[assignment]
+
+try:  # pragma: no cover - optional dependency
+    import toml as _toml_module
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    _toml_module = None  # type: ignore[assignment]
+
+try:  # pragma: no cover - typer is optional at runtime
     from typer import Context as TyperContext
-else:  # pragma: no cover - typer is optional at runtime
-    from dataclasses import dataclass
+except Exception:  # pragma: no cover - typer is optional at runtime
     TyperContext = object
 
 
@@ -82,15 +86,42 @@ class CoreConfig:
     resources: JsonObject | None = None
     mvuu: MVUUConfig | None = None
 
+    def __post_init__(self) -> None:
+        if self.directories is not None and not _is_directory_map(self.directories):
+            raise ValueError("directories must be a mapping of string keys to lists of strings")
+        if self.features is not None and not _is_feature_flags(self.features):
+            raise ValueError("features must map string keys to boolean flags")
+        if self.resources is not None:
+            normalized = _coerce_json_object(self.resources)
+            if normalized is None:
+                raise ValueError("resources must be a JSON-compatible mapping with bounded depth")
+            self.resources = normalized
+        if self.mvuu is not None:
+            normalized_mvuu = _coerce_mvuu_config(self.mvuu)
+            if normalized_mvuu is None:
+                if self.mvuu:
+                    raise ValueError("mvuu must match the MVUUConfig schema")
+                self.mvuu = {}
+            else:
+                self.mvuu = normalized_mvuu
+
     def as_dict(self) -> CoreConfigData:
-        directories: DirectoryMap = self.directories or {
-            "source": ["src"],
-            "tests": ["tests"],
-            "docs": ["docs"],
-        }
-        features: FeatureFlags = self.features or {}
-        resources: JsonObject = self.resources or {}
-        mvuu: MVUUConfig = self.mvuu or {}
+        directories: DirectoryMap = (
+            {key: list(value) for key, value in self.directories.items()}
+            if self.directories is not None
+            else {
+                "source": ["src"],
+                "tests": ["tests"],
+                "docs": ["docs"],
+            }
+        )
+        features: FeatureFlags = dict(self.features) if self.features is not None else {}
+        resources: JsonObject = (
+            _clone_json_object(self.resources)
+            if self.resources is not None
+            else {}
+        )
+        mvuu: MVUUConfig = dict(self.mvuu) if self.mvuu is not None else {}
         return {
             "project_root": self.project_root,
             "structure": self.structure,
@@ -109,6 +140,21 @@ _ENV_PREFIX = "DEVSYNTH_"
 
 
 _MAX_JSON_DEPTH = 32
+
+
+def _load_toml_mapping(path: Path) -> Mapping[str, object]:
+    if _toml_module is not None:
+        return _toml_module.load(path)
+    if tomllib is not None:
+        with path.open("rb") as handle:
+            return tomllib.load(handle)
+    raise RuntimeError("TOML parsing requires the 'toml' package or Python 3.11+'s tomllib")
+
+
+def _dump_toml_mapping(data: Mapping[str, object], handle) -> None:
+    if _toml_module is None:
+        raise RuntimeError("Writing TOML requires the optional 'toml' dependency")
+    _toml_module.dump(data, handle)
 
 
 def _is_json_value(
@@ -159,6 +205,47 @@ def _is_feature_flags(value: object) -> TypeGuard[FeatureFlags]:
         if not isinstance(key, str) or not isinstance(enabled, bool):
             return False
     return True
+
+
+def _clone_json_value(
+    value: JsonValue, *, _depth: int = 0, _max_depth: int = _MAX_JSON_DEPTH
+) -> JsonValue:
+    if _depth > _max_depth:
+        raise ValueError("JSON value exceeds maximum supported depth")
+    if isinstance(value, list):
+        return [
+            _clone_json_value(item, _depth=_depth + 1, _max_depth=_max_depth)
+            for item in value
+        ]
+    if isinstance(value, dict):
+        return {
+            key: _clone_json_value(item, _depth=_depth + 1, _max_depth=_max_depth)
+            for key, item in value.items()
+        }
+    return value
+
+
+def _clone_json_object(
+    value: Mapping[str, JsonValue], *, _depth: int = 0, _max_depth: int = _MAX_JSON_DEPTH
+) -> JsonObject:
+    if _depth > _max_depth:
+        raise ValueError("JSON object exceeds maximum supported depth")
+    result: JsonObject = {}
+    for key, item in value.items():
+        result[key] = _clone_json_value(
+            item, _depth=_depth + 1, _max_depth=_max_depth
+        )
+    return result
+
+
+def _coerce_json_object(value: object) -> JsonObject | None:
+    if not _is_json_object(value):
+        return None
+    mapping = cast(Mapping[str, JsonValue], value)
+    try:
+        return _clone_json_object(mapping)
+    except ValueError:
+        return None
 
 
 def _coerce_issue_provider_config(
@@ -232,8 +319,9 @@ def _coerce_core_config_data(raw: Mapping[str, object]) -> CoreConfigData:
     if _is_feature_flags(features):
         config["features"] = dict(features)
     resources = raw.get("resources")
-    if _is_json_object(resources):
-        config["resources"] = dict(resources)
+    coerced_resources = _coerce_json_object(resources)
+    if coerced_resources is not None:
+        config["resources"] = coerced_resources
     mvuu = raw.get("mvuu")
     mvuu_config = _coerce_mvuu_config(mvuu)
     if mvuu_config is not None:
@@ -252,7 +340,7 @@ def _parse_env(cfg: CoreConfig) -> CoreConfigData:
 
 
 def _read_yaml_mapping(path: Path) -> dict[str, object] | None:
-    if not path.exists():
+    if yaml is None or not path.exists():
         return None
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -283,7 +371,7 @@ def _load_mvuu_yaml(path: Path) -> MVUUConfig:
 def _load_toml(path: Path) -> CoreConfigData:
     if not path.exists():
         return {}
-    data: Mapping[str, object] = toml.load(path)
+    data: Mapping[str, object] = _load_toml_mapping(path)
     sections: list[Mapping[str, object]] = []
     tool_section = data.get("tool")
     if isinstance(tool_section, Mapping):
@@ -313,7 +401,7 @@ def _find_project_config(start: Path) -> Optional[Path]:
     pyproject = start / "pyproject.toml"
     if pyproject.exists():
         try:
-            data = toml.load(pyproject)
+            data = _load_toml_mapping(pyproject)
             if "devsynth" in data.get("tool", {}):
                 return pyproject
         except Exception:
@@ -371,9 +459,11 @@ def save_global_config(config: CoreConfig, use_toml: bool = False) -> Path:
     cfg_dir.mkdir(parents=True, exist_ok=True)
     if use_toml:
         path = cfg_dir / "devsynth.toml"
-        with open(path, "w") as f:
-            toml.dump({"devsynth": config.as_dict()}, f)
+        with open(path, "w", encoding="utf-8") as f:
+            _dump_toml_mapping({"devsynth": config.as_dict()}, f)
     else:
+        if yaml is None:
+            raise RuntimeError("PyYAML is required to write YAML configuration files")
         path = cfg_dir / "global_config.yaml"
         with open(path, "w") as f:
             yaml.safe_dump(config.as_dict(), f)

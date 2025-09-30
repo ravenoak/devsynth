@@ -3,6 +3,8 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import os
+
 import click
 import typer
 from rich.box import ROUNDED
@@ -13,15 +15,21 @@ from rich.table import Table
 from typer import completion as typer_completion
 
 from devsynth.application.cli import config_app
-from devsynth.application.cli.mvu_commands import mvu_app
 from devsynth.application.cli.registry import COMMAND_REGISTRY
-from devsynth.application.cli.requirements_commands import requirements_app
-from devsynth.application.cli.vcs_commands import vcs_app
 from devsynth.core.config_loader import load_config
 from devsynth.interface.cli import DEVSYNTH_THEME, CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import register_dashboard_hook
+
+if os.environ.get("DEVSYNTH_CLI_MINIMAL") == "1":  # pragma: no cover - env shim
+    requirements_app = typer.Typer(help="Requirements commands disabled in minimal mode")
+    vcs_app = typer.Typer(help="VCS commands disabled in minimal mode")
+    mvu_app = typer.Typer(help="MVUU commands disabled in minimal mode")
+else:
+    from devsynth.application.cli.mvu_commands import mvu_app
+    from devsynth.application.cli.requirements_commands import requirements_app
+    from devsynth.application.cli.vcs_commands import vcs_app
 
 
 def init_cmd(wizard: bool = False, *, bridge: UXBridge | None = None) -> None:

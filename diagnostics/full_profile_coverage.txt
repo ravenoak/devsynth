@@ -1,5 +1,5 @@
 DevSynth Runtime Evidence — Full Profile Coverage Run
-Date: 2025-09-30 16:20 (UTC)
+Date: 2025-09-30 17:01 (UTC)
 Environment:
 - PYTHONPATH=src
 - DEVSYNTH_NO_FILE_LOGGING=1
@@ -10,8 +10,10 @@ Command:
     --collect-only -q
 
 Result summary (current attempt):
-- Command executed to validate environment prior to full fast+medium gate.
-- Collection aborted with 409 errors: missing optional dependencies (e.g., numpy, GUI backends) and misregistered pytest marks.
-- Coverage artifacts were not generated; gating remains blocked until dependencies are provisioned.
-- Follow-up action: install full optional stack (memory backends, GUI providers) before re-running
-  `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` to produce `test_reports/coverage.json`.
+- `devsynth.testing.run_tests` invoked via Poetry after installing Typer dependencies, pytest, pytest-cov, pytest-bdd, and
+  backend libraries. The run progressed past CLI bootstrapping using `DEVSYNTH_CLI_MINIMAL=1` to avoid optional command imports.
+- Pytest collection still reported 232 errors because numerous integration suites require optional services and registered
+  pytest markers that remain unavailable in this minimal environment (OpenAI, LM Studio, MVUU dashboard, etc.).
+- Coverage artifacts were not generated; the gate remains blocked until the optional backends and CLI specifications are
+  provisioned so collection can complete without marker/dependency failures.
+- Diagnostic log: `diagnostics/devsynth_run_tests_fast_medium_20250930T170112Z.txt` (fast+medium retry with dependency captures).

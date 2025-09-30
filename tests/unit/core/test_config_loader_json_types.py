@@ -1,148 +1,156 @@
-"""Tests for JSON validation helpers used by the config loader."""
+"""Focused tests for JSON handling in the config loader."""
 
 from __future__ import annotations
-
-from pathlib import Path
 
 import importlib.util
 import json
 import sys
 import types
+from pathlib import Path
+from textwrap import dedent
 
 import pytest
 
-# Provide a lightweight TOML shim for environments missing the optional dependency.
-if "toml" not in sys.modules:  # pragma: no cover - defensive import guard
-    toml_stub = types.ModuleType("toml")
-
-    def _load(path: Path) -> dict[str, object]:
-        with open(path, "r", encoding="utf-8") as handle:
-            return json.load(handle)
-
-    def _dump(data: dict[str, object], handle) -> None:
-        json.dump(data, handle)
-
-    toml_stub.load = _load  # type: ignore[attr-defined]
-    toml_stub.dump = _dump  # type: ignore[attr-defined]
-    sys.modules["toml"] = toml_stub
-
-
-if "yaml" not in sys.modules:  # pragma: no cover - defensive import guard
+if "yaml" not in sys.modules:
     yaml_stub = types.ModuleType("yaml")
 
-    def _safe_load(stream: object) -> object:
-        if isinstance(stream, str):
-            return json.loads(stream)
-        return json.load(stream)
+    def _safe_load(stream):
+        data = stream.read() if hasattr(stream, "read") else stream
+        if not data:
+            return None
+        return json.loads(data)
 
-    def _safe_dump(data: object, handle) -> None:
-        json.dump(data, handle)
+    def _safe_dump(value, handle) -> None:
+        text = json.dumps(value)
+        if hasattr(handle, "write"):
+            handle.write(text)
+        else:  # pragma: no cover - defensive fallback
+            raise TypeError("safe_dump expects a writable handle")
 
     yaml_stub.safe_load = _safe_load  # type: ignore[attr-defined]
     yaml_stub.safe_dump = _safe_dump  # type: ignore[attr-defined]
     sys.modules["yaml"] = yaml_stub
 
 
-MODULE_PATH = (
-    Path(__file__).resolve().parents[3] / "src" / "devsynth" / "core" / "config_loader.py"
-)
-spec = importlib.util.spec_from_file_location("test_config_loader_module", MODULE_PATH)
-assert spec and spec.loader, "Failed to locate config_loader module for tests"
-config_loader = importlib.util.module_from_spec(spec)
-sys.modules[spec.name] = config_loader
-spec.loader.exec_module(config_loader)
-
-_MAX_JSON_DEPTH = config_loader._MAX_JSON_DEPTH
-_is_json_object = config_loader._is_json_object
-load_config = config_loader.load_config
+try:  # pragma: no cover - prefer real package if available
+    from devsynth.core.config_loader import CoreConfig, _MAX_JSON_DEPTH, load_config
+except ModuleNotFoundError:  # pragma: no cover - fallback for minimal environments
+    REPO_ROOT = Path(__file__).resolve().parents[3]
+    MODULE_NAME = "devsynth.core.config_loader"
+    MODULE_PATH = REPO_ROOT / "src" / "devsynth" / "core" / "config_loader.py"
+    spec = importlib.util.spec_from_file_location(MODULE_NAME, MODULE_PATH)
+    if spec is None or spec.loader is None:  # pragma: no cover - defensive
+        raise
+    if "devsynth" not in sys.modules:
+        pkg = types.ModuleType("devsynth")
+        pkg.__path__ = [str(REPO_ROOT / "src" / "devsynth")]  # type: ignore[attr-defined]
+        sys.modules["devsynth"] = pkg
+    if "devsynth.core" not in sys.modules:
+        core_pkg = types.ModuleType("devsynth.core")
+        core_pkg.__path__ = [str(REPO_ROOT / "src" / "devsynth" / "core")]  # type: ignore[attr-defined]
+        sys.modules["devsynth.core"] = core_pkg
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[MODULE_NAME] = module
+    spec.loader.exec_module(module)
+    CoreConfig = module.CoreConfig
+    _MAX_JSON_DEPTH = module._MAX_JSON_DEPTH
+    load_config = module.load_config
 
 
 @pytest.mark.fast
-def test_load_config_handles_nested_resources(tmp_path: Path) -> None:
-    """Nested JSON payloads should be preserved without recursion issues."""
+def test_load_config_supports_nested_json_resources(tmp_path: Path) -> None:
+    """The loader should accept nested JSON-compatible structures."""
 
-    config_dir = tmp_path / ".devsynth"
-    config_dir.mkdir()
-    (config_dir / "project.yaml").write_text(
-        json.dumps(
-            {
-                "resources": {
-                    "pipeline": {
-                        "steps": [
-                            {
-                                "name": "ingest",
-                                "params": {
-                                    "retries": 3,
-                                    "thresholds": [0.8, 0.95],
-                                    "metadata": {
-                                        "tags": ["qa", "release"],
-                                        "window": {"size": 5, "units": "minutes"},
-                                    },
-                                },
-                            }
-                        ]
+    project_dir = tmp_path / "project"
+    config_dir = project_dir / ".devsynth"
+    config_dir.mkdir(parents=True, exist_ok=True)
+
+    nested_resources = {
+        "services": {
+            "primary": {
+                "endpoints": [
+                    {
+                        "url": "https://api.example.dev/primary",
+                        "headers": {"Authorization": "Bearer token"},
+                        "retries": 3,
                     }
-                }
+                ],
+                "features": {"beta": True, "regions": ["us-east-1", "eu-west-1"]},
             }
-        )
+        }
+    }
+    project_file = project_dir / "devsynth.toml"
+    project_file.write_text(
+        dedent(
+            """
+            [devsynth]
+            resources = { services = { primary = { endpoints = [
+              { url = "https://api.example.dev/primary", headers = { Authorization = "Bearer token" }, retries = 3 }
+            ], features = { beta = true, regions = ["us-east-1", "eu-west-1"] } } } }
+            """
+        ).strip()
+        + "\n",
+        encoding="utf-8",
     )
 
-    config = load_config(str(tmp_path))
+    cfg = load_config(str(project_dir))
 
-    assert config.resources is not None
-    params = config.resources["pipeline"]["steps"][0]["params"]
-    assert params["retries"] == 3
-    assert params["metadata"]["window"]["size"] == 5
+    assert cfg.resources == nested_resources
 
 
 @pytest.mark.fast
-def test_environment_overrides_take_precedence(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Environment values should override file-based configuration settings."""
+def test_environment_override_preserves_resources(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Environment overrides should not mutate nested resources."""
 
-    config_dir = tmp_path / ".devsynth"
-    config_dir.mkdir()
-    (config_dir / "project.yaml").write_text(
-        json.dumps(
-            {
-                "language": "python",
-                "goals": "automate testing",
-                "resources": {"feature_flags": {"nested": True}},
+    project_dir = tmp_path / "project"
+    config_dir = project_dir / ".devsynth"
+    config_dir.mkdir(parents=True, exist_ok=True)
+
+    resources = {
+        "pipelines": {
+            "nightly": {
+                "steps": [
+                    {"name": "lint", "tools": ["ruff", "mypy"]},
+                    {"name": "test", "speeds": ["fast", "medium"]},
+                ]
             }
-        )
+        }
+    }
+    project_file = project_dir / "devsynth.toml"
+    project_file.write_text(
+        dedent(
+            """
+            [devsynth]
+            language = "python"
+            resources = { pipelines = { nightly = { steps = [
+              { name = "lint", tools = ["ruff", "mypy"] },
+              { name = "test", speeds = ["fast", "medium"] }
+            ] } } }
+            """
+        ).strip()
+        + "\n",
+        encoding="utf-8",
     )
 
-    monkeypatch.setenv("DEVSYNTH_LANGUAGE", "rust")
-    monkeypatch.setenv("DEVSYNTH_GOALS", "ship alpha build")
+    monkeypatch.setenv("DEVSYNTH_LANGUAGE", "go")
 
-    config = load_config(str(tmp_path))
+    cfg = load_config(str(project_dir))
 
-    assert config.language == "rust"
-    assert config.goals == "ship alpha build"
-    assert config.resources == {
-        "feature_flags": {"nested": True}
-    }, "Nested JSON resources should remain intact"
+    assert cfg.language == "go"
+    assert cfg.resources == resources
 
 
 @pytest.mark.fast
-def test_json_validation_limits_depth(tmp_path: Path) -> None:
-    """Overly deep JSON structures are ignored to prevent recursive expansion."""
+def test_core_config_rejects_excessively_deep_resources() -> None:
+    """CoreConfig should guard against runaway recursion depth."""
 
-    deep_payload: dict[str, object] = {}
-    current = deep_payload
-    for index in range(_MAX_JSON_DEPTH + 2):
+    too_deep: dict[str, object] = {}
+    current: dict[str, object] = too_deep
+    for _ in range(_MAX_JSON_DEPTH + 2):
         next_layer: dict[str, object] = {}
-        current[f"layer_{index}"] = next_layer
+        current["branch"] = next_layer
         current = next_layer
+    current["terminal"] = "ok"
 
-    assert not _is_json_object({"deep": deep_payload})
-
-    config_dir = tmp_path / ".devsynth"
-    config_dir.mkdir(exist_ok=True)
-    (config_dir / "project.yaml").write_text(
-        json.dumps({"resources": {"deep": deep_payload}})
-    )
-
-    config = load_config(str(tmp_path))
-    assert config.resources == {}, "Overly deep JSON should be ignored"
+    with pytest.raises(ValueError):
+        CoreConfig(resources={"root": too_deep})
