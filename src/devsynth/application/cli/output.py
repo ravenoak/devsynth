@@ -1,19 +1,25 @@
-"""Colorized output for the DevSynth CLI.
+"""Colorized output utilities used across the DevSynth CLI."""
 
-This module provides colorized output for different types of information
-in the DevSynth CLI, making it easier to distinguish between different
-types of output.
-"""
+from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Optional, Union
 
-from rich.console import Console
-from rich.markdown import Markdown
-from rich.panel import Panel
-from rich.syntax import Syntax
-from rich.table import Table
-from rich.text import Text
+from rich.console import Console  # type: ignore[import-not-found]
+from rich.markdown import Markdown  # type: ignore[import-not-found]
+from rich.panel import Panel  # type: ignore[import-not-found]
+from rich.syntax import Syntax  # type: ignore[import-not-found]
+from rich.table import Table  # type: ignore[import-not-found]
+from rich.text import Text  # type: ignore[import-not-found]
+
+
+from devsynth.application.cli.models import (
+    CommandListData,
+    CommandTableData,
+    CommandTableRow,
+    ManifestSummary,
+)
 
 
 class OutputType(str, Enum):
@@ -215,9 +221,19 @@ def print_panel(
     console.print(Panel(message, title=title, border_style=style))
 
 
+def _ensure_table_data(
+    data: CommandTableData | Sequence[CommandTableRow] | ManifestSummary,
+) -> CommandTableData:
+    if isinstance(data, ManifestSummary):
+        return data.as_table()
+    if isinstance(data, CommandTableData):
+        return data
+    return CommandTableData.from_iterable(tuple(data))
+
+
 def print_table(
-    data: List[Dict[str, Any]],
-    columns: Optional[List[str]] = None,
+    data: CommandTableData | Sequence[CommandTableRow] | ManifestSummary,
+    columns: Optional[Sequence[str]] = None,
     title: Optional[str] = None,
     console: Optional[Console] = None,
 ) -> None:
@@ -232,21 +248,43 @@ def print_table(
     if console is None:
         console = Console()
 
-    if not data:
+    table_data = _ensure_table_data(data)
+
+    if not table_data:
         console.print("[yellow]No data to display[/yellow]")
         return
 
-    if columns is None:
-        columns = list(data[0].keys())
+    selected_columns = list(columns) if columns is not None else list(table_data[0].keys())
 
     table = Table(title=title)
-    for column in columns:
+    for column in selected_columns:
         table.add_column(column)
 
-    for row in data:
-        table.add_row(*[str(row.get(column, "")) for column in columns])
+    for row in table_data:
+        table.add_row(
+            *[str(row.get(column, "")) for column in selected_columns]
+        )
 
     console.print(table)
+
+
+def print_list(
+    items: CommandListData | Sequence[object],
+    *,
+    console: Optional[Console] = None,
+) -> None:
+    """Render a bullet list using the list data model."""
+
+    if console is None:
+        console = Console()
+
+    list_data = items if isinstance(items, CommandListData) else CommandListData.from_iterable(tuple(items))
+    if not list_data:
+        console.print("[yellow]No items to display[/yellow]")
+        return
+
+    for item in list_data:
+        console.print(f"• {item}")
 
 
 def print_markdown(
