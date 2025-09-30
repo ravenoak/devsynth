@@ -7,7 +7,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 from devsynth.domain.interfaces.agent import Agent
 from devsynth.domain.models.wsde_facade import WSDETeam
@@ -15,6 +15,8 @@ from devsynth.logging_setup import DevSynthLogger
 
 from .dto import (
     AgentPayload,
+    CollaborationPayloadInput,
+    JSONValue,
     MemorySyncPort,
     TaskDescriptor,
     ensure_collaboration_payload,
@@ -49,7 +51,7 @@ class TaskStatus(Enum):
     BLOCKED = auto()
 
 
-def _ensure_agent_payload(content: Any) -> AgentPayload:
+def _ensure_agent_payload(content: CollaborationPayloadInput) -> AgentPayload:
     """Normalize arbitrary message content into an :class:`AgentPayload`."""
 
     if isinstance(content, AgentPayload):
@@ -58,7 +60,7 @@ def _ensure_agent_payload(content: Any) -> AgentPayload:
     try:
         payload = ensure_collaboration_payload(content, default=AgentPayload)
     except TypeError:
-        payload = AgentPayload(payload=content)
+        payload = AgentPayload(payload=content if content is not None else None)
 
     if isinstance(payload, AgentPayload):
         return payload
@@ -66,7 +68,7 @@ def _ensure_agent_payload(content: Any) -> AgentPayload:
     return AgentPayload.from_dict(payload.to_dict())
 
 
-def _sorted_mapping(items: Iterable[tuple[str, Any]]) -> Dict[str, Any]:
+def _sorted_mapping(items: Iterable[tuple[str, JSONValue]]) -> Dict[str, JSONValue]:
     return dict(sorted(items, key=lambda pair: pair[0]))
 
 
@@ -104,18 +106,18 @@ class AgentMessage:
                 self.timestamp = datetime.now()
 
     @property
-    def content(self) -> Any:
+    def content(self) -> JSONValue:
         """Return a simplified view of the payload for backward compatibility."""
 
         if self.payload.attributes:
-            return dict(self.payload.attributes)
+            return _sorted_mapping(tuple(self.payload.attributes.items()))
         if self.payload.payload is not None:
             return self.payload.payload
         if self.payload.summary is not None:
             return {"summary": self.payload.summary}
         return self.payload.to_dict()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, JSONValue]:
         """Convert the message to a dictionary."""
 
         return {
@@ -196,7 +198,7 @@ class CollaborationTask:
 
     def _sync_descriptor(self) -> None:
         descriptor = self.descriptor
-        metadata: Dict[str, Any] = {}
+        metadata: Dict[str, JSONValue] = {}
         if descriptor:
             metadata.update(descriptor.metadata)
 

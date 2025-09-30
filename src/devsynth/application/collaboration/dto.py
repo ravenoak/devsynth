@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections import OrderedDict
 from collections.abc import Mapping as MappingABC, Sequence as SequenceABC
 from dataclasses import MISSING, dataclass, field, fields
+from datetime import datetime
+from enum import Enum
 from typing import (
     Any,
     Callable,
@@ -14,23 +16,32 @@ from typing import (
     Iterator,
     ItemsView,
     KeysView,
+    List,
     Mapping,
     Optional,
+    Protocol,
     Sequence,
     Tuple,
     Type,
+    TypeAlias,
     TypeVar,
     Union,
     ValuesView,
     cast,
     get_args,
     get_origin,
+    runtime_checkable,
 )
 
 
 __all__ = [
     "AgentPayload",
     "TaskDescriptor",
+    "AgentPayloadLike",
+    "TaskDescriptorLike",
+    "MessageFilter",
+    "MessageFilterLike",
+    "MessageFilterInput",
     "ConsensusOutcome",
     "AgentOpinionRecord",
     "ConflictRecord",
@@ -45,6 +56,7 @@ __all__ = [
     "serialize_message_payload",
     "deserialize_message_payload",
     "ensure_collaboration_payload",
+    "ensure_message_filter",
     "ensure_memory_sync_port",
     "serialize_memory_sync_port",
 ]
@@ -52,31 +64,65 @@ __all__ = [
 
 T = TypeVar("T", bound="BaseDTO")
 
+JSONPrimitive: TypeAlias = Union[str, int, float, bool, None]
+JSONValue: TypeAlias = Union[
+    JSONPrimitive,
+    Sequence["JSONValue"],
+    Mapping[str, "JSONValue"],
+]
+JSONMapping: TypeAlias = Mapping[str, JSONValue]
 
-def _ordered_mapping(items: Iterable[Tuple[str, Any]]) -> Dict[str, Any]:
+
+@runtime_checkable
+class AgentPayloadLike(Protocol):
+    """Protocol for objects that can convert themselves into :class:`AgentPayload`."""
+
+    def to_agent_payload(self) -> "AgentPayload":
+        """Return an :class:`AgentPayload` instance."""
+
+
+@runtime_checkable
+class TaskDescriptorLike(Protocol):
+    """Protocol for objects convertible into :class:`TaskDescriptor`."""
+
+    def to_task_descriptor(self) -> "TaskDescriptor":
+        """Return a :class:`TaskDescriptor` instance."""
+
+
+@runtime_checkable
+class MessageFilterLike(Protocol):
+    """Protocol for objects convertible into :class:`MessageFilter`."""
+
+    def to_message_filter(self) -> "MessageFilter":
+        """Return a :class:`MessageFilter` instance."""
+
+
+def _ordered_mapping(items: Iterable[Tuple[str, JSONValue]]) -> Dict[str, JSONValue]:
     return dict(OrderedDict(sorted(items, key=lambda item: item[0])))
 
 
-def _serialize_value(value: Any) -> Any:
+def _serialize_value(value: Any) -> JSONValue:
     if isinstance(value, BaseDTO):
         return value.to_dict()
+    if isinstance(value, datetime):
+        return value.isoformat()
     if isinstance(value, MappingABC):
         return _ordered_mapping((str(k), _serialize_value(v)) for k, v in value.items())
     if isinstance(value, SequenceABC) and not isinstance(value, (str, bytes, bytearray)):
         return [_serialize_value(v) for v in value]
-    return value
+    return cast(JSONValue, value)
 
 
-def _normalize_mapping(value: MappingABC[str, Any]) -> Dict[str, Any]:
+def _normalize_mapping(value: MappingABC[str, Any]) -> Dict[str, JSONValue]:
     return _ordered_mapping((str(k), _deserialize_arbitrary(v)) for k, v in value.items())
 
 
-def _deserialize_arbitrary(value: Any) -> Any:
+def _deserialize_arbitrary(value: Any) -> JSONValue:
     if isinstance(value, MappingABC):
         return _normalize_mapping(value)
     if isinstance(value, SequenceABC) and not isinstance(value, (str, bytes, bytearray)):
         return [_deserialize_arbitrary(v) for v in value]
-    return value
+    return cast(JSONValue, value)
 
 
 def _is_optional(annotation: Any) -> bool:
@@ -133,8 +179,8 @@ class BaseDTO:
     dto_type: ClassVar[str]
     extra_field_name: ClassVar[Optional[str]] = None
 
-    def to_dict(self) -> Dict[str, Any]:
-        result_items = [("dto_type", self.dto_type)]
+    def to_dict(self) -> Dict[str, JSONValue]:
+        result_items: List[Tuple[str, JSONValue]] = [("dto_type", self.dto_type)]
         dataclass_type = cast(Type[Any], type(self))
         for field_info in fields(dataclass_type):
             value = getattr(self, field_info.name)
@@ -235,8 +281,8 @@ class AgentPayload(BaseDTO):
     role: Optional[str] = None
     status: Optional[str] = None
     summary: Optional[str] = None
-    attributes: Mapping[str, Any] = field(default_factory=dict)
-    payload: Optional[Any] = None
+    attributes: JSONMapping = field(default_factory=dict)
+    payload: Optional[JSONValue] = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -250,7 +296,7 @@ class TaskDescriptor(BaseDTO):
     status: Optional[str] = None
     assignee: Optional[str] = None
     tags: Tuple[str, ...] = ()
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: JSONMapping = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -272,7 +318,7 @@ class ConsensusOutcome(BaseDTO):
     majority_opinion: Optional[str] = None
     stakeholder_explanation: Optional[str] = None
     timestamp: Optional[str] = None
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: JSONMapping = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         normalized_metadata = (
@@ -330,7 +376,7 @@ class AgentOpinionRecord(BaseDTO):
     rationale: Optional[str] = None
     timestamp: Optional[str] = None
     weight: Optional[float] = None
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: JSONMapping = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -348,7 +394,7 @@ class ConflictRecord(BaseDTO):
     rationale_b: Optional[str] = None
     severity_label: Optional[str] = None
     severity_score: Optional[float] = None
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: JSONMapping = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -361,7 +407,7 @@ class SynthesisArtifact(BaseDTO):
     expertise_weights: Mapping[str, float] = field(default_factory=dict)
     conflict_resolution_method: Optional[str] = None
     readability_score: Mapping[str, float] = field(default_factory=dict)
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: JSONMapping = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -374,7 +420,7 @@ class ReviewDecision(BaseDTO):
     approved: Optional[bool] = None
     notes: Optional[str] = None
     score: Optional[float] = None
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: JSONMapping = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -387,7 +433,7 @@ class PeerReviewRecord(BaseDTO):
     consensus: Optional[ConsensusOutcome] = None
     reviewers: Tuple[str, ...] = ()
     notes: Optional[str] = None
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: JSONMapping = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -398,7 +444,45 @@ class MemorySyncPort(BaseDTO):
     adapter: str = "conversation"
     channel: str = "default"
     priority: Optional[str] = None
-    options: Mapping[str, Any] = field(default_factory=dict)
+    options: JSONMapping = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class MessageFilter(BaseDTO):
+    """Structured message filter specification."""
+
+    dto_type: ClassVar[str] = "MessageFilter"
+
+    message_type: Optional[str] = None
+    sender: Optional[str] = None
+    recipient: Optional[str] = None
+    subject_contains: Optional[str] = None
+    since: Optional[datetime] = None
+    until: Optional[datetime] = None
+
+    def __post_init__(self) -> None:
+        for field_name in ("since", "until"):
+            value = getattr(self, field_name)
+            if isinstance(value, str):
+                try:
+                    parsed = datetime.fromisoformat(value)
+                except ValueError as exc:  # pragma: no cover - defensive
+                    raise ValueError(
+                        f"Invalid ISO timestamp for {field_name}: {value!r}"
+                    ) from exc
+                object.__setattr__(self, field_name, parsed)
+
+    def with_sender(self, sender: Optional[str]) -> "MessageFilter":
+        """Return a new filter with the provided sender."""
+
+        if sender == self.sender:
+            return self
+        data = self.to_dict()
+        data["sender"] = sender
+        return MessageFilter.from_dict(data)
+
+
+MessageFilterInput = Union[MessageFilter, MessageFilterLike, Mapping[str, JSONValue]]
 
 
 dto_registry: Dict[str, Type[BaseDTO]] = {}
@@ -425,12 +509,17 @@ CollaborationDTO = Union[
     PeerReviewRecord,
 ]
 
-LegacyPayload = Union[str, int, float, bool, None, Sequence[Any], Mapping[str, Any]]
+CollaborationPayloadInput = Union[
+    CollaborationDTO,
+    AgentPayloadLike,
+    TaskDescriptorLike,
+    JSONValue,
+]
 
-MessagePayload = Union[CollaborationDTO, LegacyPayload]
+MessagePayload = Union[CollaborationDTO, JSONValue]
 
 
-def serialize_collaboration_dto(dto: CollaborationDTO) -> Dict[str, Any]:
+def serialize_collaboration_dto(dto: CollaborationDTO) -> Dict[str, JSONValue]:
     return dto.to_dict()
 
 
@@ -452,14 +541,14 @@ def deserialize_collaboration_dto(data: Mapping[str, Any]) -> CollaborationDTO:
     return cast(CollaborationDTO, AgentPayload.from_dict(data))
 
 
-def serialize_message_payload(payload: MessagePayload) -> Any:
+def serialize_message_payload(payload: MessagePayload) -> JSONValue:
     if isinstance(payload, BaseDTO):
         return payload.to_dict()
     if isinstance(payload, MappingABC):
         return _normalize_mapping(payload)
     if isinstance(payload, SequenceABC) and not isinstance(payload, (str, bytes, bytearray)):
         return [_serialize_value(item) for item in payload]
-    return payload
+    return cast(JSONValue, payload)
 
 
 def deserialize_message_payload(data: Any) -> MessagePayload:
@@ -472,19 +561,32 @@ def deserialize_message_payload(data: Any) -> MessagePayload:
                 if isinstance(instance, MemorySyncPort):
                     return instance.to_dict()
                 return cast(MessagePayload, instance)
-        return _normalize_mapping(data)
+        return cast(MessagePayload, _normalize_mapping(data))
     if isinstance(data, SequenceABC) and not isinstance(data, (str, bytes, bytearray)):
-        return [_deserialize_arbitrary(item) for item in data]
+        return cast(
+            MessagePayload,
+            [_deserialize_arbitrary(item) for item in data],
+        )
     return cast(MessagePayload, data)
 
 
 def ensure_collaboration_payload(
-    content: Any, *, default: Type[CollaborationDTO] = AgentPayload
+    content: CollaborationPayloadInput,
+    *,
+    default: Type[CollaborationDTO] = AgentPayload,
 ) -> CollaborationDTO:
     if isinstance(content, BaseDTO):
         if isinstance(content, MemorySyncPort):
             raise TypeError("MemorySyncPort cannot be used as message content")
-        return cast(CollaborationDTO, content)
+        return content
+
+    if isinstance(content, AgentPayloadLike):
+        agent_candidate = content.to_agent_payload()
+        return ensure_collaboration_payload(agent_candidate, default=default)
+
+    if isinstance(content, TaskDescriptorLike):
+        descriptor_candidate = content.to_task_descriptor()
+        return ensure_collaboration_payload(descriptor_candidate, default=default)
 
     if isinstance(content, MappingABC):
         try:
@@ -510,11 +612,17 @@ def ensure_collaboration_payload(
             dto_default.from_dict({"payload": list(content)}),
         )
 
-    raise TypeError("Unsupported message content type for collaboration payload")
+    if content is None:
+        dto_default = cast(Type[BaseDTO], default)
+        return cast(CollaborationDTO, dto_default.from_dict({}))
+
+    raise TypeError(
+        f"Unsupported message content type for collaboration payload: {type(content)!r}"
+    )
 
 
 def ensure_memory_sync_port(
-    metadata: Optional[Union[MemorySyncPort, Mapping[str, Any]]]
+    metadata: Optional[Union[MemorySyncPort, Mapping[str, JSONValue]]]
 ) -> Optional[MemorySyncPort]:
     if metadata is None:
         return None
@@ -536,9 +644,34 @@ def ensure_memory_sync_port(
     raise TypeError("Metadata must be MemorySyncPort or mapping type")
 
 
-def serialize_memory_sync_port(metadata: Optional[MemorySyncPort]) -> Optional[Dict[str, Any]]:
+def serialize_memory_sync_port(
+    metadata: Optional[MemorySyncPort],
+) -> Optional[Dict[str, JSONValue]]:
     if metadata is None:
         return None
     return metadata.to_dict()
+
+
+def ensure_message_filter(
+    filters: Optional[MessageFilterInput],
+) -> Optional[MessageFilter]:
+    if filters is None:
+        return None
+    if isinstance(filters, MessageFilter):
+        return filters
+    if isinstance(filters, MessageFilterLike):
+        return filters.to_message_filter()
+    if isinstance(filters, MappingABC):
+        try:
+            base: Dict[str, Any] = dict(filters)
+            mt_value: Any = base.get("message_type")
+            if isinstance(mt_value, Enum):
+                base["message_type"] = str(mt_value.value)
+            elif mt_value is not None and not isinstance(mt_value, str):
+                base["message_type"] = str(mt_value)
+            return MessageFilter.from_dict(base)
+        except Exception as exc:  # pragma: no cover - defensive
+            raise TypeError("Invalid mapping for MessageFilter") from exc
+    raise TypeError(f"Unsupported filter specification: {type(filters)!r}")
 
 

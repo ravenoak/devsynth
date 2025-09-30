@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import types
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -188,9 +189,13 @@ if "devsynth.config" not in sys.modules:
 from devsynth.application.collaboration.dto import (
     AgentPayload,
     MemorySyncPort,
+    MessageFilter,
+    ensure_collaboration_payload,
+    ensure_message_filter,
     TaskDescriptor,
 )
 from devsynth.application.collaboration.message_protocol import (
+    Message,
     MessageProtocol,
     MessageStore,
     MessageType,
@@ -241,7 +246,8 @@ def test_get_messages_filtered_succeeds(tmp_path: Path) -> None:
         content=payload,
     )
 
-    result = proto.get_messages("b", {"message_type": MessageType.DECISION_REQUEST})
+    filter_spec = MessageFilter(message_type=MessageType.DECISION_REQUEST.value)
+    result = proto.get_messages("b", filter_spec)
 
     assert result == [msg]
     assert isinstance(result[0].content, TaskDescriptor)
@@ -290,7 +296,7 @@ def test_dto_round_trip_and_deterministic_serialization(tmp_path: Path) -> None:
     assert AgentPayload.from_dict(serialized_payload) == payload
 
     reloaded_store = MessageStore(storage_file=str(storage))
-    reloaded_messages = reloaded_store.get_all_messages()
+    reloaded_messages = reloaded_store.get_messages()
     assert len(reloaded_messages) == 1
     reloaded = reloaded_messages[0]
     assert isinstance(reloaded.content, AgentPayload)
@@ -300,3 +306,101 @@ def test_dto_round_trip_and_deterministic_serialization(tmp_path: Path) -> None:
     with storage.open("r", encoding="utf-8") as handle:
         file_data = json.load(handle)
     assert file_data["messages"][0]["content"]["attributes"] == {"a": 1, "b": 2}
+
+
+@pytest.mark.medium
+def test_get_messages_accepts_enum_mapping(tmp_path: Path) -> None:
+    """Enum-based filter mappings are normalized via ensure_message_filter."""
+
+    storage = tmp_path / "enum-filter.json"
+    proto = MessageProtocol(store=MessageStore(storage_file=str(storage)))
+    message = proto.send_message(
+        sender="alpha",
+        recipients=["beta"],
+        message_type=MessageType.STATUS_UPDATE,
+        subject="Status",
+        content={"payload": "ok"},
+    )
+
+    results = proto.get_messages(filters={"message_type": MessageType.STATUS_UPDATE})
+
+    assert results == [message]
+
+
+@pytest.mark.medium
+def test_message_store_filters_by_time_and_subject(tmp_path: Path) -> None:
+    """MessageStore applies temporal and subject filters consistently."""
+
+    storage = tmp_path / "filtered.json"
+    store = MessageStore(storage_file=str(storage))
+    earlier = datetime.now() - timedelta(hours=1)
+    later = datetime.now()
+    base_payload = AgentPayload(summary="payload")
+
+    first = Message(
+        message_id="first",
+        message_type=MessageType.NOTIFICATION,
+        sender="alpha",
+        recipients=["beta"],
+        subject="Alpha update",
+        content=base_payload,
+        metadata=None,
+        timestamp=earlier,
+    )
+    second = Message(
+        message_id="second",
+        message_type=MessageType.NOTIFICATION,
+        sender="alpha",
+        recipients=["beta"],
+        subject="Beta Update",
+        content=base_payload,
+        metadata=None,
+        timestamp=later,
+    )
+    store.add_message(first)
+    store.add_message(second)
+
+    filtered = store.get_messages(
+        MessageFilter(since=earlier + timedelta(minutes=30), subject_contains="beta")
+    )
+
+    assert [message.subject for message in filtered] == ["Beta Update"]
+
+    with pytest.raises(ValueError):
+        store.get_messages(MessageFilter(message_type="unknown"))
+
+
+@pytest.mark.fast
+def test_ensure_collaboration_payload_protocol_support() -> None:
+    """Objects implementing the AgentPayloadLike protocol are supported."""
+
+    class CustomAgentPayload:
+        def to_agent_payload(self) -> AgentPayload:
+            return AgentPayload(summary="custom")
+
+    payload = ensure_collaboration_payload(CustomAgentPayload())
+
+    assert isinstance(payload, AgentPayload)
+    assert payload.summary == "custom"
+
+    with pytest.raises(TypeError):
+        ensure_collaboration_payload(object())  # type: ignore[arg-type]
+
+
+@pytest.mark.fast
+def test_ensure_message_filter_rejects_invalid_input() -> None:
+    """ensure_message_filter rejects unexpected input types."""
+
+    base_filter = MessageFilter(message_type=MessageType.NOTIFICATION.value)
+    assert ensure_message_filter(base_filter) is base_filter
+
+    with pytest.raises(TypeError):
+        ensure_message_filter(42)  # type: ignore[arg-type]
+
+
+@pytest.mark.fast
+def test_message_filter_invalid_timestamp_raises() -> None:
+    """Constructing a MessageFilter with invalid timestamps fails early."""
+
+    with pytest.raises(ValueError):
+        MessageFilter(since="not-a-timestamp")
