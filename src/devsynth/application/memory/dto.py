@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from collections.abc import Mapping
 from typing import Iterable, MutableMapping, Sequence, TypedDict, TypeAlias, cast
 
 from typing_extensions import NotRequired
@@ -43,6 +44,10 @@ can attach precise timestamps prior to serialization.
 
 MemoryMetadata: TypeAlias = MutableMapping[str, MemoryMetadataValue]
 """Normalized metadata mapping carried alongside memory artefacts."""
+
+
+MemorySearchQuery: TypeAlias = Mapping[str, object]
+"""Normalized query mapping accepted by memory search adapters."""
 
 
 @dataclass(slots=True)
@@ -127,6 +132,16 @@ class GroupedMemoryResults(TypedDict, total=False):
     by_store: dict[str, MemoryQueryResults]
     combined: NotRequired[list[MemoryRecord]]
     query: NotRequired[str]
+    metadata: NotRequired[MemoryMetadata]
+
+
+class VectorStoreStats(TypedDict, total=False):
+    """Normalized statistics returned by vector-backed adapters."""
+
+    vector_count: int
+    embedding_dimensions: NotRequired[int]
+    collection_name: NotRequired[str]
+    persist_directory: NotRequired[str | None]
     metadata: NotRequired[MemoryMetadata]
 
 

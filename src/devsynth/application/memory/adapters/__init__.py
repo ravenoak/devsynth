@@ -5,6 +5,7 @@ This package provides adapters for different memory storage backends.
 
 from devsynth.logging_setup import DevSynthLogger
 
+from ..dto import MemorySearchQuery, VectorStoreStats
 from .graph_memory_adapter import GraphMemoryAdapter
 from .storage_adapter import StorageAdapter
 from .tinydb_memory_adapter import TinyDBMemoryAdapter
@@ -35,6 +36,8 @@ __all__ = [
     "VectorMemoryAdapter",
     "TinyDBMemoryAdapter",
     "StorageAdapter",
+    "MemorySearchQuery",
+    "VectorStoreStats",
 ]
 
 if KuzuAdapter is not None:

@@ -1,90 +1,52 @@
-"""ChromaDB vector adapter module.
+"""ChromaDB-backed vector memory adapter."""
 
-This module implements a :class:`VectorStore` backed by ChromaDB. It
-persists and retrieves ``MemoryVector`` objects from a ChromaDB collection
-and supports similarity search as well as basic CRUD operations.
-
-Typical usage::
-
-    adapter = ChromaDBVectorAdapter(collection_name="demo")
-    adapter.store_vector(memory_vector)
-
-"""
+from __future__ import annotations
 
 import importlib
 import uuid
 from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
-from typing import Any, Protocol, TypedDict, cast
+from types import ModuleType
+from typing import Any, Callable, cast
 
 # ``chromadb`` lacks stable typing information and triggers deep imports.
-# Load it dynamically and treat its objects as ``Any`` so mypy focuses on
-# DevSynth code while still raising an ImportError at runtime when absent.
-chromadb: Any
-Settings: Any
+# Load it dynamically and coerce the factories into structural protocols so
+# the rest of the module can rely on precise adapter types.
+chromadb_module: ModuleType
+Settings: type[object]
+PersistentClientFactory: Callable[..., "ChromaClientProtocol"]
+EphemeralClientFactory: Callable[..., "ChromaClientProtocol"]
 try:  # pragma: no cover - optional dependency
-    chromadb = importlib.import_module("chromadb")
-    Settings = importlib.import_module("chromadb.config").Settings
+    chromadb_module = importlib.import_module("chromadb")
+    Settings = cast(
+        type[object], getattr(importlib.import_module("chromadb.config"), "Settings")
+    )
+    PersistentClientFactory = cast(
+        Callable[..., "ChromaClientProtocol"],
+        getattr(chromadb_module, "PersistentClient"),
+    )
+    EphemeralClientFactory = cast(
+        Callable[..., "ChromaClientProtocol"],
+        getattr(chromadb_module, "EphemeralClient"),
+    )
 except Exception as e:  # pragma: no cover - if chromadb is missing the tests skip
     raise ImportError(
         "ChromaDBVectorAdapter requires the 'chromadb' package. Install it with "
         "'pip install chromadb' or use the dev extras."
     ) from e
 
-
-class ChromaGetResult(TypedDict, total=False):
-    ids: list[str]
-    embeddings: list[list[float]]
-    metadatas: list[Mapping[str, object]]
-    documents: list[object]
-
-
-class ChromaQueryResult(TypedDict, total=False):
-    ids: list[list[str]]
-    embeddings: list[list[list[float]]]
-    metadatas: list[list[Mapping[str, object]]]
-    documents: list[list[object]]
-
-
-class ChromaCollectionProtocol(Protocol):
-    def get(
-        self, ids: Sequence[str] | None = ..., include: Sequence[str] | None = ...
-    ) -> ChromaGetResult:
-        ...
-
-    def add(
-        self,
-        *,
-        ids: Sequence[str],
-        embeddings: Sequence[Sequence[float]],
-        metadatas: Sequence[Mapping[str, object]],
-        documents: Sequence[object],
-    ) -> object:
-        ...
-
-    def delete(self, *, ids: Sequence[str]) -> None:
-        ...
-
-    def query(
-        self,
-        *,
-        query_embeddings: Sequence[Sequence[float]],
-        n_results: int,
-        include: Sequence[str],
-    ) -> ChromaQueryResult:
-        ...
-
-
-class ChromaClientProtocol(Protocol):
-    def get_or_create_collection(self, name: str) -> ChromaCollectionProtocol:
-        ...
-
 from ....domain.models.memory import MemoryVector
-from ..dto import MemoryMetadata, MemoryRecord, build_memory_record
+from ..dto import MemoryMetadata, MemoryRecord, VectorStoreStats, build_memory_record
 from ..metadata_serialization import from_serializable, to_serializable
 from ..vector_protocol import VectorStoreProtocol
 from ....logging_setup import DevSynthLogger
+from ._chromadb_protocols import (
+    ChromaClientProtocol,
+    ChromaCollectionProtocol,
+    ChromaGetResult,
+    ChromaQueryResult,
+)
 
 logger = DevSynthLogger(__name__)
 
@@ -115,13 +77,15 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
 
         self.client: ChromaClientProtocol
         if persist_directory:
-            self.client = chromadb.PersistentClient(path=persist_directory)
+            self.client = PersistentClientFactory(path=persist_directory)
         else:
             # Use an in-memory client when no directory is provided
             settings = Settings(anonymized_telemetry=False)
-            self.client = chromadb.EphemeralClient(settings)
+            self.client = EphemeralClientFactory(settings)
 
-        self.collection = self.client.get_or_create_collection(collection_name)
+        self.collection: ChromaCollectionProtocol = self.client.get_or_create_collection(
+            collection_name
+        )
         logger.info(
             "ChromaDB Vector Adapter initialized with collection '%s'",
             collection_name,
@@ -158,7 +122,7 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
         if snapshot is None:
             raise ValueError(f"Unknown transaction {transaction_id}")
         try:
-            existing = self.collection.get(include=[])
+            existing = self.collection.get(include=[]) or {}
             ids = existing.get("ids", []) if existing else []
             if ids:
                 self.collection.delete(ids=ids)
@@ -230,7 +194,7 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
         """
         result = self.collection.get(
             ids=[vector_id], include=["embeddings", "metadatas", "documents"]
-        )
+        ) or {}
         if result and result.get("ids"):
             metadatas = result.get("metadatas") or []
             metadata_payload = metadatas[0] if metadatas else {}
@@ -266,7 +230,7 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
             query_embeddings=[query_embedding],
             n_results=top_k,
             include=["embeddings", "metadatas", "documents"],
-        )
+        ) or {}
 
         if not results or not results.get("ids") or not results["ids"][0]:
             return []
@@ -311,7 +275,7 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
         logger.info("Deleted memory vector with ID %s from ChromaDB", vector_id)
         return True
 
-    def get_collection_stats(self) -> dict[str, int | str | None]:
+    def get_collection_stats(self) -> VectorStoreStats:
         """
         Get statistics about the vector store collection.
 
@@ -321,7 +285,7 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
         # Note: In a real implementation, we would get stats from ChromaDB
         # count = self.collection.count()
 
-        result = self.collection.get(include=["embeddings"])
+        result = self.collection.get(include=["embeddings"]) or {}
         ids = result.get("ids", [])
         count = len(ids)
         dimension = 0
@@ -342,7 +306,7 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
         if self.vectors:
             return list(self.vectors.values())
 
-        result = self.collection.get(include=["embeddings", "metadatas", "documents"])
+        result = self.collection.get(include=["embeddings", "metadatas", "documents"]) or {}
         vectors: list[MemoryVector] = []
         ids = result.get("ids") or []
         documents = result.get("documents") or [None]
