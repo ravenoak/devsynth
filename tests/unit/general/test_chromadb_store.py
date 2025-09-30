@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 try:
@@ -83,7 +84,13 @@ class TestChromaDBStore(unittest.TestCase):
         ]
         for item in items:
             self.store.store(item)
-        results = self.store.search({"memory_type": MemoryType.LONG_TERM})
+        response = self.store.search({"memory_type": MemoryType.LONG_TERM})
+        self.assertIn("records", response)
+        records = response["records"]
+        self.assertTrue(all(isinstance(record, MemoryRecord) for record in records))
+        self.assertTrue(
+            all(isinstance(record.item.metadata, dict) for record in records)
+        )
         no_file_logging = os.environ.get("DEVSYNTH_NO_FILE_LOGGING", "0").lower() in (
             "1",
             "true",
@@ -93,19 +100,20 @@ class TestChromaDBStore(unittest.TestCase):
             print(
                 "In test environment with in-memory ChromaDB client, exact search behavior may differ"
             )
-            self.assertTrue(len(results) > 0)
-            item_ids = [item.id for item in results]
+            self.assertTrue(len(records) > 0)
+            item_ids = [record.id for record in records]
             self.assertIn("item-1", item_ids)
             self.assertIn("item-3", item_ids)
         else:
-            self.assertEqual(len(results), 2)
-            self.assertTrue(any(item.id == "item-1" for item in results))
-            self.assertTrue(any(item.id == "item-3" for item in results))
-        results = self.store.search(
+            self.assertEqual(len(records), 2)
+            self.assertTrue(any(record.id == "item-1" for record in records))
+            self.assertTrue(any(record.id == "item-3" for record in records))
+        response = self.store.search(
             {"memory_type": MemoryType.LONG_TERM, "metadata.category": "test"}
         )
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].id, "item-1")
+        filtered_records = response["records"]
+        self.assertEqual(len(filtered_records), 1)
+        self.assertEqual(filtered_records[0].id, "item-1")
 
     @pytest.mark.fast
     def test_search_semantic_succeeds(self):
@@ -134,13 +142,20 @@ class TestChromaDBStore(unittest.TestCase):
         ]
         for item in items:
             self.store.store(item)
-        results = self.store.search(
+        response = self.store.search(
             {"semantic_query": "Programming languages and software development"}
         )
-        self.assertTrue(len(results) > 0)
+        records = response["records"]
+        self.assertTrue(len(records) > 0)
+        self.assertTrue(
+            all(isinstance(record.item.metadata, dict) for record in records)
+        )
         relevant_topics = ["Python programming", "Web development"]
         self.assertTrue(
-            any(item.metadata["topic"] in relevant_topics for item in results[:2])
+            any(
+                record.item.metadata.get("topic") in relevant_topics
+                for record in records[:2]
+            )
         )
 
     @pytest.mark.fast
