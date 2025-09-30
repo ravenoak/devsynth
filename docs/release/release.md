@@ -15,9 +15,7 @@ Summary
   - Complete stabilization tasks per docs/tasks.md
   - Run Taskfile release:prep
   - Verify dry-run workflows pass
-- Memory stack has graduated to strict typing: `poetry run mypy --strict src/devsynth/memory` now reports a clean sheet and the
-  Issue 3 regression harness passes via `poetry run pytest tests/unit/memory/test_issue3_regression_guard.py`; see the latest
-  diagnostics for both guard rails.【F:diagnostics/mypy_strict_memory_stack_20251001T000000Z.txt†L1-L1】【F:diagnostics/pytest_issue3_regression_guard_20251001T201500Z.txt†L1-L28】
+- Memory stack has graduated to strict typing: `poetry run mypy --strict src/devsynth/application/memory` now reports the strict slice status and the targeted regression harness runs via `poetry run python -m pytest tests/unit/application/memory -m "fast and not integration" --cov=src/devsynth/application/memory --cov-report=json:test_reports/coverage_memory.json`; see the latest diagnostics for both guard rails.【F:diagnostics/mypy_strict_application_memory_20250930T024614Z.txt†L1-L200】【F:diagnostics/pytest_memory_typed_targets_20250930T024540Z.txt†L1-L12】
 
 Notes
 - This file is maintained to reflect the current release status and should be updated when the tag is created and/or published.
