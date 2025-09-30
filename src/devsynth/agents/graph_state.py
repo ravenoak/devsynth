@@ -1,6 +1,10 @@
 """Defines the state for LangGraph agent workflows."""
 
-from typing import Any, Dict, List, Optional, TypedDict
+from __future__ import annotations
+
+from typing import Optional, TypedDict
+
+from devsynth.agents.tools import OpenAIToolDefinition
 
 
 class AgentState(TypedDict):
@@ -20,7 +24,7 @@ class AgentState(TypedDict):
     input_request: str
     processed_input: Optional[str]
     llm_response: Optional[str]
-    intermediate_steps: Optional[List[str]]
+    intermediate_steps: Optional[list[str]]
     final_output: Optional[str]
     error: Optional[str]
-    available_tools: Optional[List[Dict[str, Any]]]
+    available_tools: Optional[list[OpenAIToolDefinition]]

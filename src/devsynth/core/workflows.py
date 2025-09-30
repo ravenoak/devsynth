@@ -1,8 +1,11 @@
 """Wrapper functions and utilities for executing workflows."""
 
+from __future__ import annotations
+
 import json
+from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Optional, TypeAlias, Union
 
 import yaml
 
@@ -12,6 +15,11 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
+
+
+JSONPrimitive: TypeAlias = str | int | float | bool | None
+JSONValue: TypeAlias = JSONPrimitive | Sequence["JSONValue"] | Mapping[str, "JSONValue"]
+MutableJSONMapping: TypeAlias = MutableMapping[str, JSONValue]
 
 
 def _get_workflow_manager():
@@ -30,12 +38,12 @@ except Exception:  # pragma: no cover
     workflow_manager = None
 
 
-def execute_command(command: str, args: Dict[str, Any]) -> Dict[str, Any]:
+def execute_command(command: str, args: MutableJSONMapping) -> MutableJSONMapping:
     """Execute a workflow command through the application workflow manager."""
     return _get_workflow_manager().execute_command(command, args)
 
 
-def filter_args(args: Dict[str, Any]) -> Dict[str, Any]:
+def filter_args(args: Mapping[str, JSONValue]) -> dict[str, JSONValue]:
     """Return a copy of ``args`` without ``None`` values."""
     return {k: v for k, v in args.items() if v is not None}
 
@@ -58,19 +66,19 @@ def _review_content(content: str, bridge: Optional[UXBridge] = None):
     return critique
 
 
-def init_project(**kwargs: Any) -> Dict[str, Any]:
+def init_project(**kwargs: JSONValue) -> MutableJSONMapping:
     """Initialize a new project."""
     return execute_command("init", filter_args(kwargs))
 
 
-def generate_specs(requirements_file: str) -> Dict[str, Any]:
+def generate_specs(requirements_file: str) -> MutableJSONMapping:
     """Generate specifications from a requirements file."""
     return execute_command("spec", {"requirements_file": requirements_file})
 
 
 def generate_tests(
     spec_file: str, *, bridge: Optional[UXBridge] = None
-) -> Dict[str, Any]:
+) -> MutableJSONMapping:
     """Generate tests from specs and run a critique pass."""
 
     result = execute_command("test", {"spec_file": spec_file})
@@ -82,10 +90,11 @@ def generate_tests(
     return result
 
 
-def generate_code(*, bridge: Optional[UXBridge] = None) -> Dict[str, Any]:
+def generate_code(*, bridge: Optional[UXBridge] = None) -> MutableJSONMapping:
     """Generate implementation code from tests and critique it."""
 
-    result = execute_command("code", {})
+    empty_payload: dict[str, JSONValue] = {}
+    result = execute_command("code", empty_payload)
     content = result.get("content")
     if isinstance(content, str):
         critique = _review_content(content, bridge)
@@ -95,8 +104,8 @@ def generate_code(*, bridge: Optional[UXBridge] = None) -> Dict[str, Any]:
 
 
 def run_pipeline(
-    target: Union[str, None] = None, report: Dict[str, Any] | None = None
-) -> Dict[str, Any]:
+    target: Union[str, None] = None, report: Mapping[str, JSONValue] | None = None
+) -> MutableJSONMapping:
     """Execute the generated code or a specific target.
 
     Parameters
@@ -118,7 +127,7 @@ def update_config(
     value: Union[str, None] = None,
     *,
     list_models: bool = False,
-) -> Dict[str, Any]:
+) -> MutableJSONMapping:
     """View or set configuration options."""
     args = filter_args({"key": key, "value": value})
     if list_models:
@@ -128,7 +137,7 @@ def update_config(
 
 def inspect_requirements(
     input: Union[str, None] = None, *, interactive: bool = False
-) -> Dict[str, Any]:
+) -> MutableJSONMapping:
     """Inspect requirements interactively or from a file."""
     return execute_command(
         "inspect", filter_args({"input": input, "interactive": interactive})

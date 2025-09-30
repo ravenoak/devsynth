@@ -14,6 +14,7 @@ Downstream tickets reference Phase 1 completion, but no tracking issue exists to
 
 ## Progress
 - 2025-02-22: Ticket created to anchor Phase 1 milestone dependencies.
+- 2025-09-30: Core workflow and WSDE coordination modules graduated to strict typing; override removed from `pyproject.toml` and regression artefacts captured in `docs/typing/strictness.md` and `diagnostics/mypy_strict_core_agents_memory_20250930T165517Z.txt`.
 
 ## References
 -

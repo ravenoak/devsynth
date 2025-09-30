@@ -1,0 +1,6 @@
+poetry run mypy --strict src/devsynth/core/workflows.py \
+    src/devsynth/agents/base_agent_graph.py \
+    src/devsynth/agents/wsde_team_coordinator.py \
+    src/devsynth/agents/tools.py \
+    src/devsynth/memory/sync_manager.py
+Success: no issues found (captured transcript is empty because mypy produced no diagnostics).
