@@ -9,26 +9,66 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
-from devsynth.application.cli.models import (
-    CommandListData,
-    CommandTableData,
-    CommandTableRow,
-)
+from devsynth.application.cli.models import CommandListData, CommandTableData, CommandTableRow
 
 from .autocomplete import COMMAND_DESCRIPTIONS, COMMAND_EXAMPLES, COMMANDS
+
+_COMMAND_SET = frozenset(COMMANDS)
+
+
+def _command_details(command: str) -> tuple[str, tuple[str, ...]]:
+    """Return description and examples for ``command``."""
+
+    description = COMMAND_DESCRIPTIONS.get(command, "No description available")
+    examples = tuple(COMMAND_EXAMPLES.get(command, ()))
+    return description, examples
+
+
+def _build_command_rows(commands: Sequence[str] | None) -> CommandTableData:
+    """Create table rows describing ``commands``."""
+
+    selected = sorted(COMMAND_DESCRIPTIONS.keys()) if commands is None else list(commands)
+    rows = []
+    for command in selected:
+        description, examples = _command_details(command)
+        example = examples[0] if examples else ""
+        rows.append(
+            CommandTableRow(
+                {
+                    "Command": command,
+                    "Description": description,
+                    "Example": example,
+                }
+            )
+        )
+    return CommandTableData(rows=tuple(rows))
+
+
+def _build_examples(command: str) -> CommandListData:
+    """Return the example list for ``command``."""
+
+    _, examples = _command_details(command)
+    if not examples:
+        return CommandListData.from_iterable((f"No examples available for {command}.",))
+    return CommandListData.from_iterable(examples)
+
+
+def _render_panel(console: Console, content: str, *, title: str) -> None:
+    """Render ``content`` within a :class:`~rich.panel.Panel`."""
+
+    console.print(Panel(content, title=title, border_style="blue"))
 
 
 def get_command_help(command: str) -> str:
     """Return the textual help summary for ``command``."""
 
-    if command not in COMMANDS:
+    if command not in _COMMAND_SET:
         return (
             f"Command: {command}\n\n"
             "Command not found. Use 'devsynth help' to see available commands."
         )
 
-    description = COMMAND_DESCRIPTIONS.get(command, "No description available")
-    examples = COMMAND_EXAMPLES.get(command, [])
+    description, examples = _command_details(command)
 
     help_text = f"Command: {command}\n\n"
     help_text += f"Description:\n  {description}\n\n"
@@ -45,7 +85,7 @@ def display_command_help(command: str, console: Console) -> None:
     """Display detailed help text for ``command`` using ``console``."""
 
     help_text = get_command_help(command)
-    console.print(Panel(help_text, title=f"Help: {command}", border_style="blue"))
+    _render_panel(console, help_text, title=f"Help: {command}")
 
 
 def get_all_commands_help() -> str:
@@ -65,26 +105,7 @@ def display_all_commands_help(console: Console) -> None:
     """Render the overview of commands to ``console``."""
 
     help_text = get_all_commands_help()
-    console.print(Panel(help_text, title="DevSynth CLI Commands", border_style="blue"))
-
-
-def _build_command_rows(commands: Sequence[str] | None) -> CommandTableData:
-    selected = sorted(COMMAND_DESCRIPTIONS.keys()) if commands is None else list(commands)
-    rows = []
-    for command in selected:
-        description = COMMAND_DESCRIPTIONS.get(command, "No description available")
-        examples = COMMAND_EXAMPLES.get(command, [])
-        example = examples[0] if examples else ""
-        rows.append(
-            CommandTableRow(
-                {
-                    "Command": command,
-                    "Description": description,
-                    "Example": example,
-                }
-            )
-        )
-    return CommandTableData(rows=tuple(rows))
+    _render_panel(console, help_text, title="DevSynth CLI Commands")
 
 
 def create_command_table(commands: Sequence[str] | None = None) -> Table:
@@ -107,33 +128,24 @@ def create_command_table(commands: Sequence[str] | None = None) -> Table:
     return table
 
 
-def display_command_table(
-    commands: Sequence[str] | None = None, console: Console | None = None
-) -> None:
+def display_command_table(commands: Sequence[str] | None, console: Console) -> None:
     """Display a table of commands with their descriptions."""
-
-    if console is None:
-        console = Console()
 
     table = create_command_table(commands)
     console.print(table)
-
-    if hasattr(console, "_reset_mock") and callable(console._reset_mock):
-        console._reset_mock()
 
 
 def format_command_help_markdown(command: str) -> Markdown:
     """Return Markdown formatted help text for ``command``."""
 
-    if command not in COMMANDS:
+    if command not in _COMMAND_SET:
         markdown_text = (
             f"# {command}\n\n"
             "Command not found. Use 'devsynth help' to see available commands."
         )
         return Markdown(markdown_text)
 
-    description = COMMAND_DESCRIPTIONS.get(command, "No description available")
-    examples = COMMAND_EXAMPLES.get(command, [])
+    description, examples = _command_details(command)
 
     markdown_text = f"# {command}\n\n"
     markdown_text += f"## Description\n\n{description}\n\n"
@@ -156,10 +168,10 @@ def display_command_help_markdown(command: str, console: Console) -> None:
 def get_command_usage(command: str) -> str:
     """Return usage information for ``command``."""
 
-    if command not in COMMANDS:
+    if command not in _COMMAND_SET:
         return f"Command not found: {command}. Use 'devsynth help' to see available commands."
 
-    examples = COMMAND_EXAMPLES.get(command, [])
+    _, examples = _command_details(command)
     if not examples:
         return f"Usage: devsynth {command}"
 
@@ -180,20 +192,14 @@ def display_command_usage(command: str, console: Console) -> None:
 def get_command_examples(command: str) -> CommandListData:
     """Return example invocations for ``command``."""
 
-    if command not in COMMANDS:
+    if command not in _COMMAND_SET:
         return CommandListData.from_iterable(
             (
                 f"Command not found: {command}. Use 'devsynth help' to see available commands.",
             )
         )
 
-    examples = COMMAND_EXAMPLES.get(command, [])
-    if not examples:
-        return CommandListData.from_iterable(
-            (f"No examples available for {command}.",)
-        )
-
-    return CommandListData.from_iterable(tuple(examples))
+    return _build_examples(command)
 
 
 def display_command_examples(command: str, console: Console) -> None:

@@ -1,9 +1,8 @@
-from unittest.mock import MagicMock, call, patch
+from __future__ import annotations
 
 import pytest
 from rich.console import Console
 from rich.markdown import Markdown
-from rich.panel import Panel
 from rich.table import Table
 
 from devsynth.application.cli.autocomplete import (
@@ -28,38 +27,39 @@ from devsynth.application.cli.help import (
 
 
 @pytest.mark.medium
-def test_get_command_help_returns_expected_result():
+def test_get_command_help_returns_expected_result() -> None:
     """Test that get_command_help returns help text for a specific command.
 
     ReqID: N/A"""
+
     command = next(iter(COMMANDS))
     help_text = get_command_help(command)
     assert command in help_text
     assert COMMAND_DESCRIPTIONS.get(command, "") in help_text
+
     help_text = get_command_help("nonexistent")
     assert "nonexistent" in help_text
     assert "Command not found" in help_text
 
 
 @pytest.mark.medium
-def test_display_command_help_succeeds():
-    """Test that display_command_help displays help text for a specific command.
+def test_display_command_help_succeeds(rich_console: Console) -> None:
+    """Display_command_help should render a panel containing command metadata."""
 
-    ReqID: N/A"""
-    console = MagicMock(spec=Console)
     command = next(iter(COMMANDS))
-    with patch("devsynth.application.cli.help.get_command_help") as mock_get_help:
-        mock_get_help.return_value = f"Help for {command}"
-        display_command_help(command, console)
-        mock_get_help.assert_called_once_with(command)
-        console.print.assert_called_once()
+    display_command_help(command, rich_console)
+
+    output = rich_console.export_text(clear=True)
+    assert command in output
+    assert COMMAND_DESCRIPTIONS.get(command, "") in output
 
 
 @pytest.mark.medium
-def test_get_all_commands_help_returns_expected_result():
+def test_get_all_commands_help_returns_expected_result() -> None:
     """Test that get_all_commands_help returns help text for all commands.
 
     ReqID: N/A"""
+
     help_text = get_all_commands_help()
     assert "Available Commands" in help_text
     for command in COMMANDS:
@@ -67,66 +67,57 @@ def test_get_all_commands_help_returns_expected_result():
 
 
 @pytest.mark.medium
-def test_display_all_commands_help_succeeds():
-    """Test that display_all_commands_help displays help text for all commands.
+def test_display_all_commands_help_succeeds(rich_console: Console) -> None:
+    """The CLI overview should include each command and description."""
 
-    ReqID: N/A"""
-    console = MagicMock(spec=Console)
-    with patch("devsynth.application.cli.help.get_all_commands_help") as mock_get_help:
-        mock_get_help.return_value = "Help for all commands"
-        display_all_commands_help(console)
-        mock_get_help.assert_called_once()
-        console.print.assert_called_once()
+    display_all_commands_help(rich_console)
+    output = rich_console.export_text(clear=True)
+    assert "DevSynth CLI Commands" in output
+    for command in COMMANDS:
+        assert command in output
 
 
 @pytest.mark.medium
-def test_create_command_table_succeeds():
+def test_create_command_table_succeeds() -> None:
     """Test that create_command_table creates a table of commands.
 
     ReqID: N/A"""
+
     table = create_command_table()
     assert isinstance(table, Table)
+
     commands = list(COMMANDS)[:3]
     table = create_command_table(commands)
     assert isinstance(table, Table)
 
 
 @pytest.mark.medium
-def test_display_command_table_succeeds():
-    """Test that display_command_table displays a table of commands.
+def test_display_command_table_succeeds(rich_console: Console) -> None:
+    """Display_command_table should render a Rich table for the provided commands."""
 
-    ReqID: N/A"""
-    console1 = MagicMock(spec=Console)
-    with patch(
-        "devsynth.application.cli.help.create_command_table"
-    ) as mock_create_table:
-        mock_table = MagicMock(spec=Table)
-        mock_create_table.return_value = mock_table
-        display_command_table(console=console1)
-        mock_create_table.assert_called_once_with(None)
-        console1.print.assert_called_once_with(mock_table)
-    console2 = MagicMock(spec=Console)
+    display_command_table(None, rich_console)
+    default_output = rich_console.export_text(clear=True)
+    assert "Command" in default_output
+
     commands = list(COMMANDS)[:3]
-    with patch(
-        "devsynth.application.cli.help.create_command_table"
-    ) as mock_create_table:
-        mock_table = MagicMock(spec=Table)
-        mock_create_table.return_value = mock_table
-        display_command_table(commands, console2)
-        mock_create_table.assert_called_once_with(commands)
-        console2.print.assert_called_once_with(mock_table)
+    display_command_table(commands, rich_console)
+    subset_output = rich_console.export_text(clear=True)
+    for command in commands:
+        assert command in subset_output
 
 
 @pytest.mark.medium
-def test_format_command_help_markdown_succeeds():
+def test_format_command_help_markdown_succeeds() -> None:
     """Test that format_command_help_markdown formats help text as markdown.
 
     ReqID: N/A"""
+
     command = next(iter(COMMAND_EXAMPLES.keys()))
     markdown = format_command_help_markdown(command)
     assert isinstance(markdown, Markdown)
     assert command in markdown.markup
     assert COMMAND_DESCRIPTIONS.get(command, "") in markdown.markup
+
     markdown = format_command_help_markdown("nonexistent")
     assert isinstance(markdown, Markdown)
     assert "nonexistent" in markdown.markup
@@ -134,80 +125,71 @@ def test_format_command_help_markdown_succeeds():
 
 
 @pytest.mark.medium
-def test_display_command_help_markdown_succeeds():
-    """Test that display_command_help_markdown displays help text as markdown.
+def test_display_command_help_markdown_succeeds(rich_console: Console) -> None:
+    """Ensure Markdown help is rendered to the console."""
 
-    ReqID: N/A"""
-    console = MagicMock(spec=Console)
     command = next(iter(COMMANDS))
-    with patch(
-        "devsynth.application.cli.help.format_command_help_markdown"
-    ) as mock_format:
-        mock_markdown = MagicMock(spec=Markdown)
-        mock_format.return_value = mock_markdown
-        display_command_help_markdown(command, console)
-        mock_format.assert_called_once_with(command)
-        console.print.assert_called_once_with(mock_markdown)
+    display_command_help_markdown(command, rich_console)
+    output = rich_console.export_text(clear=True)
+    assert command in output
 
 
 @pytest.mark.medium
-def test_get_command_usage_returns_expected_result():
+def test_get_command_usage_returns_expected_result() -> None:
     """Test that get_command_usage returns usage information for a command.
 
     ReqID: N/A"""
+
     command = next(iter(COMMANDS))
     usage = get_command_usage(command)
     assert command in usage
+
     usage = get_command_usage("nonexistent")
     assert "nonexistent" in usage
     assert "Command not found" in usage
 
 
 @pytest.mark.medium
-def test_display_command_usage_succeeds():
-    """Test that display_command_usage displays usage information for a command.
+def test_display_command_usage_succeeds(rich_console: Console) -> None:
+    """Usage information should be printed to the console in bold blue text."""
 
-    ReqID: N/A"""
-    console = MagicMock(spec=Console)
     command = next(iter(COMMANDS))
-    with patch("devsynth.application.cli.help.get_command_usage") as mock_get_usage:
-        mock_get_usage.return_value = f"Usage for {command}"
-        display_command_usage(command, console)
-        mock_get_usage.assert_called_once_with(command)
-        console.print.assert_called_once()
+    display_command_usage(command, rich_console)
+    output = rich_console.export_text(clear=True)
+    assert command in output
 
 
 @pytest.mark.medium
-def test_get_command_examples_returns_expected_result():
+def test_get_command_examples_returns_expected_result() -> None:
     """Test that get_command_examples returns examples for a command.
 
     ReqID: N/A"""
+
     command = next(iter(COMMAND_EXAMPLES.keys()))
     examples = get_command_examples(command)
-    for example in COMMAND_EXAMPLES.get(command, []):
-        assert example in examples
+    assert tuple(examples) == tuple(COMMAND_EXAMPLES.get(command, []))
+
     command_without_examples = next(
-        (cmd for cmd in COMMANDS if cmd not in COMMAND_EXAMPLES), None
+        (cmd for cmd in COMMANDS if cmd not in COMMAND_EXAMPLES),
+        None,
     )
-    if command_without_examples:
-        examples = get_command_examples(command_without_examples)
-        assert "No examples available" in str(examples)
-    examples = get_command_examples("nonexistent")
-    assert "nonexistent" in str(examples[0]) if examples else False
-    assert "Command not found" in str(examples[0]) if examples else False
+    if command_without_examples is not None:
+        no_example_output = get_command_examples(command_without_examples)
+        assert "No examples available" in " ".join(str(item) for item in no_example_output)
+
+    unknown_examples = get_command_examples("nonexistent")
+    assert "Command not found" in str(unknown_examples[0])
 
 
 @pytest.mark.medium
-def test_display_command_examples_succeeds():
+def test_display_command_examples_succeeds(rich_console: Console) -> None:
     """Test that display_command_examples displays examples for a command.
 
     ReqID: N/A"""
-    console = MagicMock(spec=Console)
+
     command = next(iter(COMMANDS))
-    with patch(
-        "devsynth.application.cli.help.get_command_examples"
-    ) as mock_get_examples:
-        mock_get_examples.return_value = f"Examples for {command}"
-        display_command_examples(command, console)
-        mock_get_examples.assert_called_once_with(command)
-        console.print.assert_called_once()
+    display_command_examples(command, rich_console)
+    output = rich_console.export_text(clear=True)
+    assert "Examples:" in output
+    for example in COMMAND_EXAMPLES.get(command, []):
+        assert example in output
