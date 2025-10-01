@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; DevSynth Repository Structure
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; DevSynth Repository Structure
-</div>
-
 # DevSynth Repository Structure
 
 This document provides a comprehensive map of the DevSynth repository structure, serving as a navigation guide for both human and agentic contributors. It outlines the organization of the codebase, tests, documentation, and related artifacts.

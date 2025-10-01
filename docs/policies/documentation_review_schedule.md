@@ -16,10 +16,6 @@ last_reviewed: "2025-08-02"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Review Schedule
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Review Schedule
-</div>
-
 # DevSynth Documentation Review Schedule
 
 ## Executive Summary

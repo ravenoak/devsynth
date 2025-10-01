@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; 'Kanban-EDRR Integration: Continuous Flow'
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; 'Kanban-EDRR Integration: Continuous Flow'
-</div>
-
 # Kanban-EDRR Integration: Continuous Flow
 
 ## Overview

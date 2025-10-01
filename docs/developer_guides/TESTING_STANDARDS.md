@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Standards
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Standards
-</div>
-
 # DevSynth Testing Standards
 
 This document outlines the testing standards and best practices for the DevSynth project. Following these standards ensures that tests are consistent, reliable, and maintainable.

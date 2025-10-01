@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Privacy Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Privacy Policy
-</div>
-
 # Privacy Policy
 
 DevSynth collects the minimal data necessary to operate. Personal data is processed only for project functionality and is never sold or shared with third parties.

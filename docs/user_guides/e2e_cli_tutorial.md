@@ -14,10 +14,6 @@ last_reviewed: "2025-07-15"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; End-to-End CLI Tutorial
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; End-to-End CLI Tutorial
-</div>
-
 # End-to-End CLI Tutorial
 
 This tutorial walks through a full DevSynth workflow using the command line. It uses the [e2e_cli_example](../../examples/e2e_cli_example) project as a reference.

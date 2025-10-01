@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Documentation Policies
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Documentation Policies
-</div>
-
 # Documentation Policies
 
 This document outlines the comprehensive policies for maintaining high-quality documentation in the DevSynth project. It serves as the central reference point for all documentation-related policies and guidelines.
@@ -37,20 +33,9 @@ DevSynth documentation follows a structured approach to ensure consistency, clar
 
 ## Documentation Structure
 
-The DevSynth documentation is organized into the following directories:
+The DevSynth documentation follows a systematic organizational structure. For detailed information about the repository structure and directory organization, see the [Repository Structure Guide](../repo_structure.md).
 
-- `getting_started/` – Quick start, installation, and basic usage
-- `user_guides/` – User guide, CLI reference, configuration
-- `developer_guides/` – Contributing, development setup, testing, code style
-- `architecture/` – System, agent, memory, and reasoning architecture
-- `technical_reference/` – API, error handling, performance
-- `analysis/` – Project analysis, executive summary, critical recommendations
-- `implementation/` – Implementation status, feature matrix, assessments
-- `specifications/` – Current and archived specifications
-- `roadmap/` – Roadmaps and improvement plans
-- `policies/` – SDLC, security, testing, and maintenance policies
-
-Each directory should contain an `index.md` file that provides an overview of the contents and links to the individual documents.
+Each directory contains an `index.md` file that provides an overview of the contents and links to the individual documents.
 
 ## Specification and Test Alignment
 

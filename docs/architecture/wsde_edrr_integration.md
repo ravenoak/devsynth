@@ -19,10 +19,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; WSDE-EDRR Integration Architecture
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; WSDE-EDRR Integration Architecture
-</div>
-
 # WSDE-EDRR Integration Architecture
 
 This document describes the architecture of the integration between the WSDE (Workplace, Social, and Democratic Economy) model and the EDRR (EDRR) framework in DevSynth.

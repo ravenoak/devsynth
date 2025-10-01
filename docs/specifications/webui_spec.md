@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; WebUI Specification
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; WebUI Specification
-</div>
-
 # WebUI Specification
 
 This specification describes the initial graphical interface for

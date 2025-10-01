@@ -15,10 +15,6 @@ last_reviewed: "2025-08-04"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Pre-commit Hook Samples
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Pre-commit Hook Samples
-</div>
-
 # Pre-commit Hook Samples
 
 ## Overview

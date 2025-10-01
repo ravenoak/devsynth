@@ -16,10 +16,6 @@ last_reviewed: "2025-08-02"
 <a href="../index.md">Documentation</a> &gt; DevSynth Documentation
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; DevSynth Documentation
-</div>
-
 # DevSynth Documentation
 
 ![Test Coverage](coverage.svg)
@@ -34,11 +30,14 @@ Welcome to the DevSynth documentation! This site provides comprehensive guides, 
 - [Architecture Overview](architecture/overview.md)
 - [Recursive EDRR Architecture](architecture/recursive_edrr_architecture.md)
 - [API Reference](technical_reference/api_reference/index.md)
-- [API Reference Generation Guide](user_guides/api_reference_generation.md)
 - [Project Analysis](analysis/executive_summary.md)
 - [Implementation Status](implementation/feature_status_matrix.md)
 - [Project Roadmap](roadmap/CONSOLIDATED_ROADMAP.md)
 - [Glossary](glossary.md)
+
+## Complete Documentation Index
+
+For a comprehensive listing of all documentation files, see the [Documentation Index](documentation_index.md) (automatically generated from all 578+ documentation files).
 
 
 ## Project Policies
@@ -59,20 +58,9 @@ DevSynth is governed by a comprehensive set of SDLC policies and documentation a
 
 For a detailed rationale and best practices for agentic LLM projects, see [SDLC Policies and Repository Artifacts for Agentic LLM Projects](policies/sdlc_policies_for_agentic_llm_projects.md).
 
-## Documentation Restructuring & Navigation
+## Documentation Navigation
 
-The documentation corpus is organized for clarity and agentic navigation, following the [Documentation Policies](policies/documentation_policies.md):
-
-- `getting_started/` – Quick start, installation, and basic usage
-- `user_guides/` – User guide, CLI reference, configuration
-- `developer_guides/` – Contributing, development setup, testing, code style
-- `architecture/` – System, agent, memory, and reasoning architecture
-- `technical_reference/` – API, error handling, performance
-- `analysis/` – Project analysis, executive summary, critical recommendations
-- `implementation/` – Implementation status, feature matrix, assessments
-- `specifications/` – Current and archived specifications
-- `roadmap/` – Roadmaps and improvement plans
-- `policies/` – SDLC, security, testing, and maintenance policies
+The documentation is organized for clarity and systematic access. For detailed structure information, see the [Repository Structure Guide](repo_structure.md) and [Documentation Policies](policies/documentation_policies.md).
 
 
 The [mkdocs.yml](../mkdocs.yml) file provides a navigable structure for all documentation. The [Repository Structure](repo_structure.md) document provides a comprehensive map of the repository for both human and agentic contributors.

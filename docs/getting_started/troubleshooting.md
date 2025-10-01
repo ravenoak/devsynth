@@ -16,10 +16,6 @@ last_reviewed: "2025-08-24"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Troubleshooting Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Troubleshooting Guide
-</div>
-
 # DevSynth Troubleshooting Guide
 
 This guide provides solutions to common issues you might encounter when using DevSynth. If you're experiencing problems, check this guide before submitting an issue.

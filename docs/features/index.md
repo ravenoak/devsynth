@@ -13,10 +13,6 @@ last_reviewed: "2025-07-21"
 <a href="../index.md">Documentation</a> &gt; Feature Documentation
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Feature Documentation
-</div>
-
 # Feature Documentation
 
 This section documents individual features referenced in tests or code.

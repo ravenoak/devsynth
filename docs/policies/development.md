@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Development Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Development Policy
-</div>
-
 # Development Policy
 
 This policy defines best practices for implementation, code quality, collaboration, and security in DevSynth.

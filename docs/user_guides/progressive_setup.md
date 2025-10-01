@@ -17,10 +17,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Progressive Feature Setup
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; Progressive Feature Setup
-</div>
-
 # Progressive Feature Setup
 
 This guide describes how to install DevSynth with minimal features and progressively enable more advanced capabilities such as dialectical reasoning, property-based testing, and SMT-based formal verification.

@@ -14,10 +14,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth WebUI Reference
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; DevSynth WebUI Reference
-</div>
-
 # DevSynth WebUI Reference
 
 The WebUI provides a NiceGUI front-end that mirrors the CLI workflow commands. Start it with:

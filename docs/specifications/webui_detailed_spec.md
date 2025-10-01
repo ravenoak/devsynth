@@ -15,10 +15,6 @@ author: "DevSynth Team"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; WebUI Detailed Specification
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; WebUI Detailed Specification
-</div>
-
 # WebUI Detailed Specification
 
 This document details the features, constraints and interaction flow for the NiceGUI based WebUI. The interface builds upon the `UXBridge` abstraction to reuse the same workflow functions as the CLI.

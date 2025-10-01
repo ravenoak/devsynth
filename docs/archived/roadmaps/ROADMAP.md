@@ -14,10 +14,6 @@ author: DevSynth Team
 <a href="../index.md">Documentation</a> &gt; Archived &gt; Roadmaps &gt; DevSynth Roadmap
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Archived &gt; Roadmaps &gt; DevSynth Roadmap
-</div>
-
 # DevSynth Roadmap
 
 **Note:** DevSynth is currently in a pre-release stage. Refer to the [Release Plan](release_plan.md) for canonical milestones.

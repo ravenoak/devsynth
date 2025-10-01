@@ -24,10 +24,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Development Plan
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Development Plan
-</div>
-
 # DevSynth Development Plan
 
 **Note:** DevSynth is currently a pre-release project. Versions in the `0.1.x`

@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth CLI and UI Improvement Plan
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth CLI and UI Improvement Plan
-</div>
-
 # DevSynth CLI and UI Improvement Plan
 
 This document summarizes the current operating modes of the DevSynth tool and outlines areas needing improvement along with concrete action items. The goal is to reduce the learning curve and provide clearer feedback during the development process.

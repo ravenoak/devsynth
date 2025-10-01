@@ -63,6 +63,27 @@ CI runs `poetry run python scripts/verify_test_markers.py` to ensure each test c
 - Use the in-repo issue tracker (`issues/`; see `issues/README.md`).
 - Consult `docs/release/0.1.0-alpha.1.md` for release steps and `.github/workflows/` for automation guidelines.
 
+## Directory-Specific Guidance
+
+**What additional guidance applies to specific directories?**
+
+### Source Code (`src/devsynth/`)
+- Follow the specification-first BDD workflow: draft specs in `docs/specifications/` and failing features in `tests/behavior/features/` before writing code
+- Adhere to the [Security Policy](docs/policies/security.md) and [Dialectical Audit Policy](docs/policies/dialectical_audit.md)
+- All source changes should be accompanied by appropriate tests
+
+### Testing (`tests/`)
+- Each test must include exactly one speed marker (`fast`, `medium`, `slow`) from `tests/conftest_extensions.py`
+- Guard optional services with `pytest.importorskip` and environment variables like `DEVSYNTH_RESOURCE_<NAME>_AVAILABLE`
+- The `tests/conftest.py` provides an autouse `global_test_isolation` fixture; avoid setting environment variables at import time
+- Agent API tests require the `api` extra: `poetry install --extras api`
+
+### Documentation (`docs/`)
+- Follow [Documentation Policies](docs/policies/documentation_policies.md) for style and structure
+- Capture new requirements in `docs/specifications/` before implementation
+- Honor the [Dialectical Audit Policy](docs/policies/dialectical_audit.md) and resolve `dialectical_audit.log`
+- Use system time when recording current date or datetime
+
 ## Further Reading
 
 **Where can I learn more?**

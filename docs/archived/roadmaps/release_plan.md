@@ -14,10 +14,6 @@ last_reviewed: "2025-07-20"
 <a href="../index.md">Documentation</a> &gt; Archived &gt; Roadmaps &gt; DevSynth Release Plan
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Archived &gt; Roadmaps &gt; DevSynth Release Plan
-</div>
-
 # DevSynth Release Plan
 
 This document consolidates the various roadmap drafts into a single authoritative plan. **It is the canonical source for all roadmap updates.** It outlines the major phases leading to a stable 1.0 release and summarizes key version milestones.

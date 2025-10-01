@@ -18,10 +18,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test-Driven and Behavior-Driven Development in DevSynth
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test-Driven and Behavior-Driven Development in DevSynth
-</div>
-
 # Test-Driven and Behavior-Driven Development in DevSynth
 
 ## 1. Overview

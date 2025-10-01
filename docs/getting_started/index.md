@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Getting Started with DevSynth
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; Getting Started with DevSynth
-</div>
-
 # Getting Started with DevSynth
 
 This section provides essential information for getting started with DevSynth, including installation instructions and basic usage guides.

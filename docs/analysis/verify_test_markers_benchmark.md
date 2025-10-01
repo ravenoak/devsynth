@@ -14,10 +14,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; Verify Test Marker Benchmarks
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; Verify Test Marker Benchmarks
-</div>
-
 # Verify Test Marker Benchmarks
 
 Persistent caching in `scripts/verify_test_markers.py` stores pytest collection

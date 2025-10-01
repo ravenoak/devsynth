@@ -14,10 +14,6 @@ last_reviewed: "2025-07-21"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Feature Documentation</a> &gt; Simple addition input validation
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Feature Documentation</a> &gt; Simple addition input validation
-</div>
-
 # Simple addition input validation
 
 Feature: Simple addition input validation

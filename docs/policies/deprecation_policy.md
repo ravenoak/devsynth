@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Deprecation Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Deprecation Policy
-</div>
-
 # Deprecation Policy
 
 DevSynth deprecates scripts and features prior to their removal. Deprecated

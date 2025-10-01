@@ -15,10 +15,6 @@ last_reviewed: "2025-08-25"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Consolidated Roadmap
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Consolidated Roadmap
-</div>
-
 # DevSynth Consolidated Roadmap
 
 This document serves as the canonical source for all roadmap information, consolidating the previously separate roadmap documents into a single authoritative plan. It outlines the major phases leading to a stable 1.0 release and summarizes key version milestones.
@@ -48,6 +44,34 @@ As of August 25, 2025, the project is finalizing Phase 1 (Foundation Stabilizati
   - Added behavior tests for the sprint EDRR cycle
 
 The project will transition to Phase 2 (Production Readiness) after publishing `0.1.0-alpha.1`.
+
+## Development Methodology
+
+### Strategic Framework
+
+#### Guiding Principles
+
+1. **Truth-seeking over comfort**: Prioritize accurate assessment of implementation status over maintaining comfortable illusions
+2. **User value over feature quantity**: Focus on completing core features that deliver immediate value
+3. **Stability over novelty**: Establish reliable foundations before pursuing advanced capabilities
+4. **Measurable progress over activity**: Define concrete success metrics for all initiatives
+5. **Balanced perspectives**: Integrate technical, operational, user, and business considerations
+
+#### Dialectical Approach
+
+Each major initiative employs a dialectical reasoning process:
+
+1. **Thesis**: Initial proposed approach based on primary objectives
+2. **Antithesis**: Consideration of alternative perspectives and potential drawbacks
+3. **Synthesis**: Balanced solution that incorporates multiple viewpoints and mitigates risks
+
+#### Workflow Steps
+
+The development workflow for each sprint follows these steps:
+
+1. **Sprint Planning Alignment** – Map upcoming work to the appropriate EDRR phase so planning outputs feed the Expand phase
+2. **Phase Execution** – Carry out the Expand, Differentiate, Refine and Retrospect phases to process and refine artifacts
+3. **Retrospective Review** – Summarize outcomes, capture lessons learned and feed action items into the next planning cycle
 
 ## Phased Roadmap
 

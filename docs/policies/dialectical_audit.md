@@ -17,10 +17,6 @@ version: '0.1.0-alpha.1'
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Dialectical Audit Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Dialectical Audit Policy
-</div>
-
 # Dialectical Audit Policy
 
 This policy defines how Socratic dialogues support audits that seek consensus between documentation, implementation, and tests.

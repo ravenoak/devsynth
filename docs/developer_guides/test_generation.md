@@ -12,10 +12,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Generation Review Workflow
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Generation Review Workflow
-</div>
-
 # Test Generation Review Workflow
 
 ## Overview

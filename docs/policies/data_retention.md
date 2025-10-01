@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Data Retention Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Data Retention Policy
-</div>
-
 # Data Retention Policy
 
 DevSynth retains data only as long as necessary for active tasks and auditing.

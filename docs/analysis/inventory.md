@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Project Comprehensive Inventory & Analysis
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Analysis</a> &gt; DevSynth Project Comprehensive Inventory & Analysis
-</div>
-
 # DevSynth Project Comprehensive Inventory & Analysis
 
 **Repository:** https://github.com/ravenoak/devsynth.git

@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Deployment Setup
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Deployment Setup
-</div>
-
 # Deployment Setup
 
 This short guide explains how to run DevSynth locally using Docker Compose and the optional ChromaDB service.

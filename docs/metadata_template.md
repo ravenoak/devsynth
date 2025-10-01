@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; Document Title
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Document Title
-</div>
-
 # Document Title
 
 This document serves as a template and guide for the front-matter metadata to be included at the beginning of every Markdown file in the DevSynth project. Consistent metadata is crucial for documentation management, versioning, searchability, and for tools like DevSynth to ingest and analyze project artifacts.

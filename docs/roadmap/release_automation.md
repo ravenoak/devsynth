@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Release Automation Workflow
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Release Automation Workflow
-</div>
-
 # DevSynth Release Automation Workflow
 
 **Note:** DevSynth is currently in a pre-release stage. Release automation steps may change until the project reaches 1.0.

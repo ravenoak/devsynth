@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; Archived &gt; EDRR Framework Integration Plan (Archived)
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Archived &gt; EDRR Framework Integration Plan (Archived)
-</div>
-
 # EDRR Framework Integration Plan (Archived)
 
 This document has been archived and its contents were merged into the consolidated documentation and roadmap ecosystem.

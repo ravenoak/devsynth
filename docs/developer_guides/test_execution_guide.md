@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Execution Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Execution Guide
-</div>
-
 # DevSynth Test Execution Guide
 
 This guide provides practical strategies for efficiently running and managing tests in the DevSynth project. It covers various approaches for test execution, performance optimization, and test metrics reporting.

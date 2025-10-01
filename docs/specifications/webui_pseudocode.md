@@ -17,10 +17,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; WebUI Pseudocode
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; WebUI Pseudocode
-</div>
-
 # WebUI Pseudocode
 
 The following pseudocode outlines the structure of the NiceGUI pages and how data flows through the `UXBridge` abstraction.

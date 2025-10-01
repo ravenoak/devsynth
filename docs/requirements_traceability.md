@@ -1,8 +1,23 @@
-# Requirements Traceability Matrix
+---
+title: "Requirements Traceability Matrix"
+date: "2025-09-29"
+version: "0.1.0-alpha.1"
+tags:
+  - "requirements"
+  - "traceability"
+  - "testing"
+  - "validation"
+status: "published"
+author: "DevSynth Team"
+last_reviewed: "2025-09-29"
+owner: "DevSynth Maintainers"
+---
 
-Status: Updated
-Last reviewed: 2025-09-29
-Owner: DevSynth Maintainers
+<div class="breadcrumbs">
+<a href="../index.md">Documentation</a> &gt; Requirements Traceability Matrix
+</div>
+
+# Requirements Traceability Matrix
 
 ## Summary
 - Functional requirements FR-41 through FR-43 for WSDE collaboration, role management, and dialectical reasoning now map directly to the refreshed WSDE specifications and their executable behaviour suites, closing the backlog noted in the plan.【F:docs/system_requirements_specification.md†L171-L173】【F:docs/specifications/wsde-peer-review-workflow.md†L1-L80】【F:docs/specifications/wsde-message-passing-and-peer-review.md†L1-L75】【F:docs/specifications/consensus-building.md†L1-L81】

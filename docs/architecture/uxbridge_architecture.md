@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; UXBridge Architecture
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Architecture</a> &gt; UXBridge Architecture
-</div>
-
 # UXBridge Architecture
 
 ## Overview

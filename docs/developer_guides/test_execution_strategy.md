@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Execution Strategy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Test Execution Strategy
-</div>
-
 # Test Execution Strategy
 
 This document outlines the test execution strategy for the DevSynth project, including how to run tests efficiently, categorize tests, and troubleshoot common issues.

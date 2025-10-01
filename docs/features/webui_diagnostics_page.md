@@ -14,10 +14,6 @@ last_reviewed: "2025-07-21"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Feature Documentation</a> &gt; WebUI Diagnostics Page
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Feature Documentation</a> &gt; WebUI Diagnostics Page
-</div>
-
 # WebUI Diagnostics Page
 
 Feature: WebUI Diagnostics Page

@@ -17,10 +17,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Documentation User Testing Plan
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Documentation User Testing Plan
-</div>
-
 # Documentation User Testing Plan
 
 ## Overview

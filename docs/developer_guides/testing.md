@@ -18,10 +18,6 @@ version: "0.1.0a1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Testing Guide
-</div>
-
 # DevSynth Testing Guide
 
 ## Executive Summary

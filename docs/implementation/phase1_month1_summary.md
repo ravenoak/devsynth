@@ -18,10 +18,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; 'Phase 1: Month 1 Implementation Summary'
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; 'Phase 1: Month 1 Implementation Summary'
-</div>
-
 # Phase 1: Month 1 Implementation Summary
 
 This document provides a summary of the implementation work completed during Month 1 of Phase 1: Foundation Stabilization. It covers the key accomplishments, deliverables, and next steps.

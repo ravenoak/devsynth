@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="../index.md">Technical Reference</a> &gt; <a href="index.md">Api Reference</a> &gt; API Reference
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="../index.md">Technical Reference</a> &gt; <a href="index.md">Api Reference</a> &gt; API Reference
-</div>
-
 # API Reference
 
 This document provides detailed information about the internal APIs and extension interfaces of DevSynth.

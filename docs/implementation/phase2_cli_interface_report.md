@@ -16,10 +16,6 @@ last_reviewed: "2025-07-30"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Phase 2 CLI Interface Implementation Report
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Phase 2 CLI Interface Implementation Report
-</div>
-
 # Phase 2 CLI Interface Implementation Report
 
 ## Executive Summary

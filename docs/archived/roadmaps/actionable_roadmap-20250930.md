@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Actionable Implementation Roadmap
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Actionable Implementation Roadmap
-</div>
-
 # DevSynth Actionable Implementation Roadmap
 
 **Note:** DevSynth is currently in a pre-release stage. The [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md) is the canonical source for roadmap updates. Current implementation progress is summarized in the [Feature Status Matrix](../implementation/feature_status_matrix.md).

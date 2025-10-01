@@ -18,10 +18,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; WSDE Agent Collaboration Memory Integration
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; WSDE Agent Collaboration Memory Integration
-</div>
-
 # WSDE Agent Collaboration Memory Integration
 
 This document outlines the integration between the WSDE Agent Collaboration system and the Memory system, focusing on cross-store synchronization and peer review workflow integration.

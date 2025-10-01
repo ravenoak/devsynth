@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Application Technical Specification - MVP Version
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Application Technical Specification - MVP Version
-</div>
-
 # Project Naming Conventions
 
 - Python package name: `devsynth` (lowercase)

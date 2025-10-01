@@ -19,10 +19,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; TDD/BDD-EDRR Integration Training Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; TDD/BDD-EDRR Integration Training Guide
-</div>
-
 # TDD/BDD-EDRR Integration Training Guide
 
 This comprehensive training guide is designed to help developers understand and implement the integration of Test-Driven Development (TDD) and Behavior-Driven Development (BDD) with DevSynth's "Expand, Differentiate, Refine, Retrospect" (EDRR) methodology.

@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Consistency Checklist
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Documentation Consistency Checklist
-</div>
-
 # DevSynth Documentation Consistency Checklist
 
 This document provides a checklist for ensuring consistency across all diagrams, pseudocode, behavior files, and other documentation in the DevSynth project.

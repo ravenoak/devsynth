@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; DevSynth Testing Standards
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; DevSynth Testing Standards
-</div>
-
 # DevSynth Testing Standards
 
 This document outlines the testing standards and best practices for the DevSynth project. Following these standards ensures that our tests are consistent, maintainable, and effective at catching bugs.

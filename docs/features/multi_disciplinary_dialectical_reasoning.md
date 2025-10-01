@@ -14,10 +14,6 @@ last_reviewed: "2025-08-19"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Feature Documentation</a> &gt; Multi-disciplinary Dialectical Reasoning
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Feature Documentation</a> &gt; Multi-disciplinary Dialectical Reasoning
-</div>
-
 # Multi-disciplinary Dialectical Reasoning
 
 Feature: Multi-disciplinary Dialectical Reasoning

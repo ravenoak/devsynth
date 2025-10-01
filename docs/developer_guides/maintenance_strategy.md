@@ -16,10 +16,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Maintenance Strategy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Maintenance Strategy
-</div>
-
 # DevSynth Maintenance Strategy
 
 This guide describes the ongoing processes required to keep DevSynth's documentation, code, and tests aligned. It implements the maintenance strategy defined in the project roadmap and policies.

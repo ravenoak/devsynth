@@ -14,10 +14,6 @@ last_reviewed: "2025-07-15"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; End-to-End WebUI Tutorial
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">User Guides</a> &gt; End-to-End WebUI Tutorial
-</div>
-
 # End-to-End WebUI Tutorial
 
 This tutorial covers the full workflow using the WebUI. It references the [e2e_webui_example](../../examples/e2e_webui_example) project.

@@ -17,10 +17,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth SDLC Policies and Standards Index
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth SDLC Policies and Standards Index
-</div>
-
 # DevSynth SDLC Policies and Standards Index
 
 This document serves as the central index and navigation point for all Software Development Life Cycle (SDLC) policies, standards, and governance documents in the DevSynth project. It provides a comprehensive overview of all policies and references that guide development, testing, deployment, and maintenance activities for both human contributors and agentic LLMs.

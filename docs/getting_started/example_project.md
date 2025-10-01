@@ -15,10 +15,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Example Project
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Getting Started</a> &gt; DevSynth Example Project
-</div>
-
 # DevSynth Example Project
 
 This guide walks through a small calculator example included in the `examples/` directory. It demonstrates project initialization, specification and test generation, code creation, and running the final program.

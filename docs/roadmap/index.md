@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Roadmap
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Roadmap</a> &gt; DevSynth Roadmap
-</div>
-
 # DevSynth Roadmap
 
 **Note:** DevSynth has not reached an official release yet. The roadmap
@@ -30,16 +26,17 @@ current implementation progress, see the [Feature Status Matrix](../implementati
 
 ## Development Plans
 
-- **[Consolidated Roadmap](CONSOLIDATED_ROADMAP.md)**: The canonical source for all roadmap information, consolidating previously separate roadmap documents into a single authoritative plan.
+- **[Consolidated Roadmap](CONSOLIDATED_ROADMAP.md)**: The canonical source for all roadmap information, consolidating previously separate roadmap documents into a single authoritative plan with development methodology.
 - **[Release Plan](release_plan.md)**: Version milestones for upcoming releases.
-- **[Development Plan](development_plan.md)**: The overall development plan for the DevSynth project.
-- **[Roadmap Overview](development_plan.md#roadmap-overview)**: Concise summary of planned phases.
 - **[Development Status](development_status.md)**: The current status of development efforts.
-- **[Actionable Roadmap](actionable_roadmap.md)**: Specific, actionable items on the development roadmap.
 - **[Post-MVP Roadmap](post_mvp_roadmap.md)**: Details the features and enhancements planned after the Minimum Viable Product stage.
 - **[Release Automation Workflow](release_automation.md)**: Describes the CI pipeline for tagging and publishing releases.
 - **[Feature Dependencies](feature_dependencies.md)**: Summarizes how major DevSynth features depend on one another.
 - **[Maintenance Policy](../policies/maintenance.md)**: Defines the maintenance strategy and review process.
+
+### Archived Roadmap Documents
+
+Historical roadmap documents have been consolidated into the Consolidated Roadmap above. Archived versions are available in [`../archived/roadmaps/`](../archived/roadmaps/) for reference.
 
 ## Documentation and Testing Plans
 
@@ -62,7 +59,7 @@ The Strategic Vision includes the Executive Summary, which provides a high-level
 
 ## Getting Started
 
-If you're interested in DevSynth's future direction, we recommend starting with the [Development Plan](development_plan.md), which provides an overview of the project's development trajectory. Then, explore the [Actionable Roadmap](actionable_roadmap.md) for specific items that are currently being worked on.
+If you're interested in DevSynth's future direction, we recommend starting with the [Consolidated Roadmap](CONSOLIDATED_ROADMAP.md), which provides a comprehensive overview of the project's development trajectory, methodology, and specific implementation plans.
 
 ## Related Documents
 

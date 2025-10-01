@@ -12,10 +12,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Periodic Review Process
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Periodic Review Process
-</div>
-
 # Periodic Review Process
 
 DevSynth conducts regular policy reviews to ensure guidelines remain accurate,

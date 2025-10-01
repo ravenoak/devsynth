@@ -18,10 +18,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Benchmarks and Performance Metrics
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Technical Reference</a> &gt; Benchmarks and Performance Metrics
-</div>
-
 # Benchmarks and Performance Metrics
 
 This document provides comprehensive benchmarks and performance metrics for the DevSynth system. It includes performance characteristics of all major components, benchmark scenarios for common operations, performance testing methodology, and optimization recommendations.

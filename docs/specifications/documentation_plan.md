@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Documentation Plan
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; DevSynth Documentation Plan
-</div>
-
 # DevSynth Documentation Plan
 
 This document defines the unified documentation strategy for DevSynth, consolidating post-MVP docs, cleanup checklists, and metadata standards into a coherent roadmap.

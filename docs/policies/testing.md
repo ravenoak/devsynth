@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Testing Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; DevSynth Testing Policy
-</div>
-
 # DevSynth Testing Policy
 
 This document defines the testing policy for the DevSynth project, establishing standards and requirements for all test creation and maintenance. It serves as a governing policy that all contributors—both human and agentic—must follow to ensure the project's ongoing health, resilience, and stability.

@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Semantic Versioning Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Semantic Versioning Policy
-</div>
-
 # Semantic Versioning Policy
 
 DevSynth follows the [Semantic Versioning](https://semver.org/) scheme to communicate changes and compatibility.

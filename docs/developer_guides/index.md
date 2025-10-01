@@ -15,10 +15,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Developer Guides
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; DevSynth Developer Guides
-</div>
-
 # DevSynth Developer Guides
 
 This section is for developers contributing to the DevSynth project or those looking to understand its internal workings for extension or integration.

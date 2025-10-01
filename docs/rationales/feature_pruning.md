@@ -14,10 +14,6 @@ last_reviewed: "2025-07-21"
 <a href="../index.md">Documentation</a> &gt; Feature Pruning Rationale
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Feature Pruning Rationale
-</div>
-
 # Feature Pruning Rationale
 
 The following placeholder features were removed from the test suite:

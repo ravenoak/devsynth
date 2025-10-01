@@ -18,10 +18,6 @@ last_reviewed: "2025-07-11"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; EDRR Framework Assessment
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; EDRR Framework Assessment
-</div>
-
 # EDRR Framework Assessment
 
 This document provides a comprehensive assessment of the current implementation status of the Expand, Differentiate, Refine, Retrospect (EDRR) framework within DevSynth. It is a key deliverable of the EDRR Framework Assessment conducted as part of Phase 1: Foundation Stabilization.

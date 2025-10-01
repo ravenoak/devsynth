@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; Technical Debt Documentation
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; Technical Debt Documentation
-</div>
-
 # Technical Debt Documentation
 
 ## Overview

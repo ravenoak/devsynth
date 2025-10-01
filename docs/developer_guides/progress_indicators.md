@@ -16,10 +16,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Progress Indicators Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Progress Indicators Guide
-</div>
-
 # Progress Indicators Guide
 
 This guide explains how to use progress indicators for long-running operations in DevSynth commands and interfaces.

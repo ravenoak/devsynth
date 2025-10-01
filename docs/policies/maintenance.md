@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Maintenance Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Maintenance Policy
-</div>
-
 # Maintenance Policy
 
 This policy defines best practices for ongoing support, updates, and knowledge continuity in DevSynth.

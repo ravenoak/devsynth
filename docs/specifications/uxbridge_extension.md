@@ -16,10 +16,6 @@ author: "DevSynth Team"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; UXBridge Interface Extension
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Specifications</a> &gt; UXBridge Interface Extension
-</div>
-
 # UXBridge Interface Extension
 
 This document defines the extended interaction methods that allow DevSynth's

@@ -14,10 +14,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Testing Agents in DevSynth
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Testing Agents in DevSynth
-</div>
-
 # Testing Agents in DevSynth
 
 This guide explains how to test agent implementations in the DevSynth project, focusing on both unit testing and behavior-driven testing (BDD) approaches.

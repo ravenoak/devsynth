@@ -13,10 +13,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Cross-Cutting Concerns Policy
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Policies</a> &gt; Cross-Cutting Concerns Policy
-</div>
-
 # Cross-Cutting Concerns Policy
 
 This policy defines best practices for security, ethics, access control, and repository structure in DevSynth.

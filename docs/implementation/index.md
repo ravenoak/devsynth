@@ -13,10 +13,6 @@ last_reviewed: "2025-07-10"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Implementation
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Implementation</a> &gt; Implementation
-</div>
-
 # Implementation
 
 This section provides documentation on the implementation details of DevSynth, including assessments, status reports, and validation documents.
@@ -40,7 +36,7 @@ This section provides documentation on the implementation details of DevSynth, i
 
 For more information on the implementation roadmap and specifications, see:
 
-- **[Development Plan](../roadmap/development_plan.md)**: The overall development plan for DevSynth.
+- **[Consolidated Roadmap](../roadmap/CONSOLIDATED_ROADMAP.md)**: The overall development plan and methodology for DevSynth.
 - **[Development Status](../roadmap/development_status.md)**: The current status of development.
 - **[EDRR Framework](../architecture/edrr_framework.md)**: Documentation on the EDRR framework architecture.
 - **[EDRR Specification](../specifications/edrr_cycle_specification.md)**: Detailed specifications for the EDRR.

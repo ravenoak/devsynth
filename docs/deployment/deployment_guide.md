@@ -18,10 +18,6 @@ version: "0.1.0-alpha.1"
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Deployment</a> &gt; DevSynth Deployment Guide
 </div>
 
-<div class="breadcrumbs">
-<a href="../index.md">Documentation</a> &gt; <a href="index.md">Deployment</a> &gt; DevSynth Deployment Guide
-</div>
-
 # DevSynth Deployment Guide
 
 This guide provides comprehensive instructions for deploying DevSynth in various environments using Docker and the configuration system.
