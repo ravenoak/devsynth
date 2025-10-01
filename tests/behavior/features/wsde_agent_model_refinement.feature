@@ -48,4 +48,7 @@ Feature: WSDE Agent Model Refinement
     When a research-intensive task enters the workflow
     Then the Research Lead persona should become the temporary Primus
     And persona transitions should be recorded for MVUU telemetry
+    And the persona prompt templates should define fallback behavior and success criteria
+    And MVUU telemetry should capture persona prompt metadata
+    And persona training data should align prompts with MVUU trace events
     And expertise-based primus selection should be used if no persona matches

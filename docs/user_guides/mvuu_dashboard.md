@@ -48,6 +48,23 @@ was contacted. The dashboard reads
 holds the shared secret (defaults to `DEVSYNTH_AUTORESEARCH_SECRET`). Replace the
 placeholder with the production secret once the MCP and A2A connectors go live.
 
+### Understanding persona prompts
+
+Research overlays display the exact persona prompts that guided the session.
+The templates in `templates/prompts/autoresearch_personas.json` define baseline
+instructions, fallback behaviour, and success checks for the Research Lead,
+Bibliographer, and Synthesist. The CLI copies those expectations into the
+telemetry bundle so the dashboard can render the instructions that each agent
+received.
+
+Preview training examples live in
+`templates/prompts/autoresearch_persona_training.jsonl`. They show how prompt
+metadata is logged (`prompt_template`, `fallback_behavior`, and
+`success_criteria` fields) when Autoresearch emits MVUU events. When you review a
+session, confirm that the timeline and persona cards include these fields—if a
+persona fell back to expertise-driven primus selection, the associated note will
+appear next to the MVUU TraceID.
+
 ## Privacy and redaction
 
 Autoresearch payloads may include references to knowledge-graph nodes, external

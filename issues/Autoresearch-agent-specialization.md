@@ -18,8 +18,10 @@ hard to audit and optimise.
       signals without regressing default task allocation.
 - [x] Emit MVUU trace checkpoints and documentation that clarify research
       hand-offs and expected deliverables.
-- [ ] Extend prompts and training data with persona expectations and fallback
-      behaviours.
+- [x] Extend prompts and training data with persona expectations and fallback
+      behaviours (templates/prompts/autoresearch_personas.json,
+      templates/prompts/autoresearch_persona_training.jsonl, and updated
+      MVUU telemetry specs/tests).
 
 ## Acceptance Criteria
 - [x] Behaviour tests demonstrate persona assignment, collaboration checkpoints,

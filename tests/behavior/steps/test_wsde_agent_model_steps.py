@@ -5,6 +5,9 @@ This file implements the step definitions for the WSDE agent model refinement
 feature file, testing the non-hierarchical, context-driven agent collaboration.
 """
 
+import json
+from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -21,6 +24,11 @@ scenarios("../features/multi_agent_collaboration.feature")
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
+from devsynth.domain.models.wsde_roles import (
+    ResearchPersonaSpec,
+    resolve_research_persona,
+)
+from devsynth.interface.autoresearch import build_autoresearch_payload
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde_facade import WSDETeam
@@ -42,8 +50,42 @@ def context():
             self.consensus_threshold: float | None = None
             self.peer_review_routes: list[str] = []
             self.leadership_history: list[str] = []
+            self.persona_specs: list[ResearchPersonaSpec] = []
+            self.persona_prompts: dict[str, dict[str, object]] = {}
+            self.persona_training_data: list[dict[str, object]] = []
+            self.mvuu_payload: dict[str, object] | None = None
+            self.traceability: dict[str, dict[str, object]] = {}
 
     return Context()
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
+
+def _load_autoresearch_prompt_templates() -> dict[str, dict[str, object]]:
+    dataset_path = _repo_root() / "templates" / "prompts" / "autoresearch_personas.json"
+    assert dataset_path.exists(), "Autoresearch persona prompt dataset is missing"
+    with dataset_path.open(encoding="utf-8") as handle:
+        content = json.load(handle) or {}
+    personas = content.get("personas", {})
+    normalised: dict[str, dict[str, object]] = {}
+    for key, value in personas.items():
+        normalised[str(key)] = value
+    return normalised
+
+
+def _load_autoresearch_training_data() -> list[dict[str, object]]:
+    dataset_path = _repo_root() / "templates" / "prompts" / "autoresearch_persona_training.jsonl"
+    assert dataset_path.exists(), "Autoresearch persona training data is missing"
+    entries: list[dict[str, object]] = []
+    with dataset_path.open(encoding="utf-8") as handle:
+        for line in handle:
+            cleaned = line.strip()
+            if not cleaned:
+                continue
+            entries.append(json.loads(cleaned))
+    return entries
 
 
 # Background steps
@@ -883,6 +925,133 @@ def final_solution_reflects_dialectical_process(context):
             assert synthesis_content
     else:
         assert synthesis_content
+
+
+@given("research personas Research Lead, Bibliographer, and Synthesist are enabled")
+def research_personas_enabled(context):
+    """Load persona specifications and training artefacts for research workflows."""
+
+    context.persona_prompts = _load_autoresearch_prompt_templates()
+    context.persona_training_data = _load_autoresearch_training_data()
+    context.persona_specs = []
+    for name in ("Research Lead", "Bibliographer", "Synthesist"):
+        spec = resolve_research_persona(name)
+        assert spec is not None, f"Research persona {name} should be registered"
+        context.persona_specs.append(spec)
+
+
+@when("a research-intensive task enters the workflow")
+def research_intensive_task_enters_workflow(context):
+    """Create traceability entries representing an Autoresearch workload."""
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+    training_lookup = {
+        entry.get("persona"): entry for entry in context.persona_training_data
+    }
+    traceability: dict[str, dict[str, object]] = {}
+    for index, spec in enumerate(context.persona_specs, start=1):
+        training_record = training_lookup.get(spec.display_name, {})
+        traceability[f"DSY-AR-{index:03d}"] = {
+            "agent_persona": spec.display_name,
+            "utility_statement": training_record.get(
+                "scenario", f"Research focus for {spec.display_name}"
+            ),
+            "timestamp": timestamp,
+            "knowledge_graph_refs": [f"KG-{index:03d}"],
+        }
+    context.traceability = traceability
+
+
+@then("the Research Lead persona should become the temporary Primus")
+def research_lead_becomes_primus(context):
+    """Ensure the Research Lead retains primus authority for research tasks."""
+
+    assert context.persona_specs, "Persona specifications should be initialised"
+    lead_spec = next(
+        spec for spec in context.persona_specs if spec.display_name == "Research Lead"
+    )
+    assert lead_spec.primary_role.value == "primus"
+    prompt_record = context.persona_prompts.get(lead_spec.slug, {})
+    fallback_notes = [str(item) for item in prompt_record.get("fallback_behavior", [])]
+    assert any("primus" in note.lower() or "expertise" in note.lower() for note in fallback_notes)
+
+
+@then("persona transitions should be recorded for MVUU telemetry")
+def persona_transitions_recorded_for_mvuu(context):
+    """Generate MVUU payloads with persona metadata."""
+
+    assert context.traceability, "Traceability dataset should not be empty"
+    payload = build_autoresearch_payload(
+        context.traceability,
+        generated_at=datetime.now(timezone.utc),
+        session_id="test-autoresearch-session",
+    )
+    payload["research_personas"] = [spec.as_payload() for spec in context.persona_specs]
+    context.mvuu_payload = payload
+
+    timeline_personas = {row["agent_persona"] for row in payload["timeline"]}
+    expected_personas = {spec.display_name for spec in context.persona_specs}
+    assert expected_personas.issubset(timeline_personas)
+
+
+@then("the persona prompt templates should define fallback behavior and success criteria")
+def persona_prompt_templates_define_expectations(context):
+    """Verify prompt templates articulate fallbacks and outcomes."""
+
+    for spec in context.persona_specs:
+        metadata = context.persona_prompts.get(spec.slug, {})
+        fallback = metadata.get("fallback_behavior", [])
+        success = metadata.get("success_criteria", [])
+        assert fallback, f"Fallback behavior missing for {spec.display_name}"
+        assert success, f"Success criteria missing for {spec.display_name}"
+
+
+@then("MVUU telemetry should capture persona prompt metadata")
+def mvuu_telemetry_captures_prompt_metadata(context):
+    """Ensure telemetry includes the enriched prompt expectations."""
+
+    assert context.mvuu_payload is not None, "MVUU payload should be prepared"
+    persona_payloads = context.mvuu_payload.get("research_personas", [])
+    assert persona_payloads, "Research personas should be present in telemetry"
+    for entry in persona_payloads:
+        assert entry.get("prompt_template"), "Prompt template missing in telemetry"
+        assert entry.get("fallback_behavior"), "Fallback behavior missing in telemetry"
+        assert entry.get("success_criteria"), "Success criteria missing in telemetry"
+
+
+@then("persona training data should align prompts with MVUU trace events")
+def persona_training_data_aligns_with_trace_events(context):
+    """Cross-check training entries reference MVUU logging fields."""
+
+    training_lookup = {
+        entry.get("persona"): entry for entry in context.persona_training_data
+    }
+    required_fields = {"prompt_template", "fallback_behavior", "success_criteria"}
+    for spec in context.persona_specs:
+        record = training_lookup.get(spec.display_name)
+        assert record is not None, f"Training entry missing for {spec.display_name}"
+        trace = record.get("mvuu_trace", {})
+        assert trace.get("event") == "autoresearch.prompt.logged"
+        fields_logged = set(trace.get("fields_logged", []))
+        assert required_fields.issubset(fields_logged)
+
+
+@then("expertise-based primus selection should be used if no persona matches")
+def expertise_based_primus_selection_documented(context):
+    """Confirm fallback instructions emphasise expertise-driven rotation."""
+
+    fallback_notes: list[str] = []
+    for spec in context.persona_specs:
+        fallback_notes.extend(
+            str(item)
+            for item in context.persona_prompts.get(spec.slug, {}).get(
+                "fallback_behavior", []
+            )
+        )
+    for entry in context.persona_training_data:
+        fallback_notes.extend(str(item) for item in entry.get("fallback_behavior", []))
+
+    assert any("expertise" in note.lower() for note in fallback_notes)
 
 
 # ---------------------------------------------------------------------------
