@@ -11,3 +11,6 @@ Per-file coverage percentages (term-missing excerpt):
 - src/devsynth/logging_setup.py: 90.85%
 - src/devsynth/interface/ux_bridge.py: 91.34%
 - src/devsynth/core/config_loader.py: 89.75% (below threshold, remediation required)
+
+Full module inventory: see `diagnostics/devsynth_coverage_per_file_20251001T152201Z.txt` (generated from `utils_coverage.json` to
+include files hidden by `--cov-report=term-missing:skip-covered`).
