@@ -100,6 +100,120 @@ def test_rendering_simulation_records_summary_and_errors(monkeypatch: pytest.Mon
 
 
 @pytest.mark.fast
+def test_rendering_simulation_handles_nested_summary_and_clock() -> None:
+    """simulate_progress_rendering formats nested history with a scripted clock."""
+
+    stub = BehaviorStreamlitStub()
+    harness = RenderHarness(stub)
+    primary = stub.container()
+
+    summary = {
+        "description": "Main <summary>",
+        "progress": 0.5,
+        "eta": 250.0,
+        "remaining": 120.0,
+        "elapsed": 80.0,
+        "history": [
+            {"status": "Queued <1>", "progress": 0.1, "time": 50.0},
+            {
+                "status": "Processing",
+                "completed": 30,
+                "total": 100,
+                "time": 70.0,
+            },
+        ],
+        "checkpoints": [
+            {"progress": 0.25, "time": 60.0, "eta": 250.0},
+            {"completed": 80, "total": 100, "time": 80.0, "eta": 250.0},
+        ],
+        "subtasks_detail": [
+            {
+                "description": "stage <alpha>",
+                "progress": 0.75,
+                "status": "Working <soon>",
+                "history": [
+                    {"status": "Primed <1>", "progress": 0.25, "time": 40.0},
+                    {
+                        "status": "Working",
+                        "completed": 30,
+                        "total": 40,
+                        "time": 70.0,
+                    },
+                ],
+                "checkpoints": [
+                    {"progress": 0.5, "time": 45.0, "eta": 250.0},
+                ],
+            },
+            {
+                "description": "stage beta",
+                "completed": 20,
+                "total": 40,
+                "status": "Queued",
+                "history": [
+                    {
+                        "status": "Queued",
+                        "completed": 10,
+                        "total": 40,
+                        "time": 65.0,
+                    }
+                ],
+                "checkpoints": [
+                    {"completed": 20, "total": 40, "time": 75.0, "eta": 250.0},
+                ],
+            },
+        ],
+    }
+
+    clock = _LinearClock(start=200.0, step=0.0)
+    result = rendering.simulate_progress_rendering(
+        harness,
+        summary,
+        container=primary,
+        errors=["<primary>", "<secondary>"],
+        clock=clock,
+    )
+
+    assert [event[0] for event in result["events"]] == [
+        "summary",
+        "error",
+        "error",
+    ]
+    assert result["events"][0][1]["description"] == "Main &lt;summary&gt;"
+    assert harness.error_messages == ["&lt;primary&gt;", "&lt;secondary&gt;"]
+    assert result["streamlit"] is stub
+
+    assert primary.markdown_calls[0] == "**Main &lt;summary&gt;** — 50% complete"
+    assert primary.progress_bars[0].values[-1] == pytest.approx(0.5)
+    assert any(
+        "ETA 1970-01-01 00:04:10" in info and "Remaining 120s" in info
+        for info in primary.info_calls
+    )
+    assert any("Elapsed 80s" in info for info in primary.info_calls)
+
+    assert len(stub.containers) >= 5
+    history_container = stub.containers[1]
+    checkpoint_container = stub.containers[2]
+    subtask_containers = stub.containers[3:5]
+
+    assert history_container.markdown_calls[0] == "**History**"
+    assert any("Queued &lt;1&gt;" in call for call in history_container.markdown_calls)
+    assert any("00:01:10" in call for call in history_container.markdown_calls)
+
+    assert checkpoint_container.markdown_calls[0] == "**Checkpoints**"
+    assert any("25%" in info and "ETA 00:04:10" in info for info in checkpoint_container.info_calls)
+
+    assert len(subtask_containers) == 2
+    assert subtask_containers[0].markdown_calls[0] == "**stage &lt;alpha&gt;** — 75% complete"
+    assert any("Primed &lt;1&gt;" in call for call in subtask_containers[0].markdown_calls)
+    assert any("ETA 00:04:10" in info for info in subtask_containers[0].info_calls)
+    assert subtask_containers[1].markdown_calls[0] == "**stage beta** — 50% complete"
+    assert any("25%" in call for call in subtask_containers[1].markdown_calls)
+
+    # Clock recorded the time lookups performed during rendering.
+    assert len(clock.history) >= 3
+
+
+@pytest.mark.fast
 def test_ui_progress_simulation_drives_eta_and_completion(monkeypatch: pytest.MonkeyPatch) -> None:
     """WebUI._UIProgress under a stubbed Streamlit emits ETA and success messages."""
 

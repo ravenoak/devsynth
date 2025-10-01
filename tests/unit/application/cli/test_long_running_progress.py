@@ -486,7 +486,10 @@ def test_simulation_timeline_produces_deterministic_transcript(
     main_updates = [payload for action, payload in transcript if action == "update"]
     assert main_updates[0]["status"] == "Booting"
     assert main_updates[0]["description"].endswith("alpha <task>")
-    assert main_updates[-1]["status"] == "Complete"
+    complete_payloads = [
+        payload for action, payload in transcript if action == "complete"
+    ]
+    assert complete_payloads[-1]["status"] == "Complete"
 
     add_events = [payload for action, payload in transcript if action == "add_subtask"]
     assert add_events[0]["description"].startswith("  ↳ stage &1")
@@ -505,11 +508,102 @@ def test_simulation_timeline_produces_deterministic_transcript(
     assert summary.checkpoints
 
     subtasks = result["subtasks"]
-    assert "stage-one" in subtasks
-    assert subtasks["stage-one"]["status"] == "Complete"
-    assert "volatile" in subtasks
-    assert subtasks["volatile"]["description"].endswith("volatile <1>")
+    assert "stage &1" in subtasks
+    assert subtasks["stage &1"]["status"] == "Complete"
+    assert "volatile <1>" in subtasks
+    assert subtasks["volatile <1>"]["description"].endswith("volatile <1>")
 
     console_messages = result["console_messages"]
     assert console_messages
     assert console_messages[-1][0][0].startswith("[bold green]Task completed in ")
+
+
+@pytest.mark.fast
+def test_simulation_timeline_tracks_history_and_alias_renames() -> None:
+    """Timeline simulation records history, checkpoints, and alias remaps."""
+
+    clock = FakeClock(start=10.0, default_step=3.0)
+    console = DummyConsole()
+    events = [
+        {
+            "action": "update",
+            "advance": 0,
+            "status": "Queued",
+            "description": "Boot <sequence>",
+        },
+        {"action": "tick", "times": 1},
+        {
+            "action": "add_subtask",
+            "description": "prep <files>",
+            "alias": "prep",
+            "total": 40,
+            "status": "Waiting",
+        },
+        {
+            "action": "update_subtask",
+            "alias": "prep",
+            "advance": 12,
+            "status": "Working",
+        },
+        {"action": "tick", "times": 1},
+        {
+            "action": "update_subtask",
+            "alias": "prep",
+            "advance": 8,
+            "description": "prep review <1>",
+            "status": "Review",
+        },
+        {"action": "tick", "times": 1},
+        {"action": "update", "advance": 0, "status": "Processing"},
+        {"action": "tick", "times": 1},
+        {
+            "action": "update_subtask",
+            "alias": "prep",
+            "advance": 20,
+            "status": "Done",
+        },
+        {"action": "update", "advance": 0, "status": "Finalizing"},
+        {"action": "tick", "times": 1},
+        {"action": "complete_subtask", "alias": "prep"},
+        {"action": "complete"},
+    ]
+
+    result = long_running_progress.simulate_progress_timeline(
+        events,
+        description="Nested rename",
+        total=100,
+        console=console,
+        clock=clock,
+    )
+
+    history = result["history"]
+    history_statuses = [entry.status for entry in history]
+    assert history_statuses == ["Queued", "Processing", "Finalizing"]
+    assert [entry.completed for entry in history] == pytest.approx(
+        [0.0, 51.0, 102.0]
+    )
+
+    checkpoints = result["checkpoints"]
+    checkpoint_progress = [cp.progress for cp in checkpoints]
+    assert checkpoint_progress == pytest.approx([0.31, 0.51, 1.02])
+    assert checkpoint_progress == sorted(checkpoint_progress)
+
+    update_subtask_payloads = [
+        payload
+        for action, payload in result["transcript"]
+        if action == "update_subtask"
+    ]
+    assert len(update_subtask_payloads) == 3
+    assert update_subtask_payloads[1]["description"].endswith("prep review <1>")
+    assert update_subtask_payloads[-1]["status"] == "Done"
+
+    subtasks = result["subtasks"]
+    assert "prep review <1>" in subtasks
+    assert subtasks["prep review <1>"]["status"] == "Complete"
+
+    console_messages = result["console_messages"]
+    assert console_messages
+    assert console_messages[-1][0][0].startswith("[bold green]Task completed in ")
+
+    # Clock ticks capture deterministic ETA calculations for checkpoints.
+    assert clock.history  # clock invoked throughout simulation
