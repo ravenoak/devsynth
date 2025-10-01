@@ -1,24 +1,33 @@
 import pytest
 
-pytest.importorskip("chromadb")
+from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
+
+pytest.importorskip(
+    "chromadb",
+    reason=backend_import_reason("chromadb"),
+)
 
 MultiStoreSyncManager = pytest.importorskip(
-    "devsynth.adapters.memory.sync_manager"
+    "devsynth.adapters.memory.sync_manager",
+    reason="Install the 'memory' Poetry extra to exercise the multi-store sync manager.",
 ).MultiStoreSyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 
 pytestmark = [
-    pytest.mark.requires_resource("lmdb"),
-    pytest.mark.requires_resource("faiss"),
-    pytest.mark.requires_resource("kuzu"),
+    *skip_if_missing_backend("lmdb"),
+    *skip_if_missing_backend("faiss"),
+    *skip_if_missing_backend("kuzu"),
 ]
 
 
 @pytest.mark.medium
 def test_transaction_context_commit_and_rollback(tmp_path, monkeypatch):
     """MultiStoreSyncManager transaction wrapper commits and rolls back."""
-    ef = pytest.importorskip("chromadb.utils.embedding_functions")
+    ef = pytest.importorskip(
+        "chromadb.utils.embedding_functions",
+        reason=backend_import_reason("chromadb"),
+    )
     monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
     manager = MultiStoreSyncManager(str(tmp_path))
 

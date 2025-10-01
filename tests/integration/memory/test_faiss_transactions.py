@@ -1,11 +1,16 @@
 import pytest
 
-FAISSStore = pytest.importorskip("devsynth.application.memory.faiss_store").FAISSStore
+from tests.fixtures.resources import skip_if_missing_backend
+
+FAISSStore = pytest.importorskip(
+    "devsynth.application.memory.faiss_store",
+    reason="Install the 'retrieval' or 'memory' extras to use the FAISS store.",
+).FAISSStore
 from devsynth.domain.models.memory import MemoryVector
 
 
 pytestmark = [
-    pytest.mark.requires_resource("faiss"),
+    *skip_if_missing_backend("faiss"),
 ]
 
 

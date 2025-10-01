@@ -1,14 +1,21 @@
-"""
-Resource and property-testing helpers used by pytest collection hooks.
+"""Utilities and fixtures for optional test resources.
 
-Extracted from tests/conftest.py to improve maintainability (docs/tasks.md #61).
+The helpers defined here centralize feature flags, Poetry extras messaging, and
+optional backend imports so individual tests can share consistent skip
+behaviour. They intentionally avoid importing optional dependencies until a test
+requests them.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable, Mapping, Sequence
+
+import pytest
+
+from tests.conftest import is_resource_available
 
 try:  # pragma: no cover - optional dependency
     import yaml  # type: ignore
@@ -16,18 +23,47 @@ except Exception:  # pragma: no cover
     yaml = None  # type: ignore
 
 
-def is_property_testing_enabled() -> bool:
-    """Return True if property-based tests should run.
+BackendRequirement = Mapping[str, Sequence[str]]
 
-    Checks the DEVSYNTH_PROPERTY_TESTING env var first. If unset, falls back to
-    reading config/default.yml's formalVerification.propertyTesting when PyYAML
-    is available; otherwise defaults to False.
-    """
+OPTIONAL_BACKEND_REQUIREMENTS: dict[str, BackendRequirement] = {
+    "chromadb": {
+        "extras": ("chromadb", "memory"),
+        "imports": ("chromadb",),
+    },
+    "faiss": {
+        "extras": ("retrieval", "memory"),
+        "imports": ("faiss",),
+    },
+    "kuzu": {
+        "extras": ("retrieval", "memory"),
+        "imports": ("kuzu",),
+    },
+    "lmdb": {
+        "extras": ("memory", "tests"),
+        "imports": ("lmdb",),
+    },
+    "tinydb": {
+        "extras": ("memory", "tests"),
+        "imports": ("tinydb",),
+    },
+    "duckdb": {
+        "extras": ("memory", "tests"),
+        "imports": ("duckdb",),
+    },
+    "rdflib": {
+        "extras": ("memory",),
+        "imports": ("rdflib",),
+    },
+}
+
+
+def is_property_testing_enabled() -> bool:
+    """Return True if property-based tests should run."""
+
     flag = os.environ.get("DEVSYNTH_PROPERTY_TESTING")
     if flag is not None:
         return flag.strip().lower() in {"1", "true", "yes"}
 
-    # Fall back to project config if available
     cfg_path = Path(__file__).resolve().parents[2] / "config" / "default.yml"
     if yaml is None:
         return False
@@ -45,3 +81,139 @@ def resource_flag_enabled(resource: str) -> bool:
     env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
     value = os.environ.get(env_name, "").strip().lower()
     return value in {"1", "true", "yes"}
+
+
+def _resolve_backend_metadata(
+    resource: str,
+    *,
+    extras: Sequence[str] | None = None,
+    import_names: Sequence[str] | None = None,
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Return normalized extras/imports for an optional backend resource."""
+
+    meta = OPTIONAL_BACKEND_REQUIREMENTS.get(resource, {})
+    resolved_extras: tuple[str, ...] = tuple(extras or meta.get("extras", ()) or ())
+    resolved_imports: tuple[str, ...] = tuple(
+        import_names or meta.get("imports", ()) or ()
+    )
+    return resolved_extras, resolved_imports
+
+
+def _format_install_commands(extras: Iterable[str]) -> str:
+    """Return a human-friendly installation hint for Poetry extras."""
+
+    commands = [f"`poetry install --extras {extra}`" for extra in sorted(set(extras))]
+    if not commands:
+        return ""
+    if len(commands) == 1:
+        return commands[0]
+    if len(commands) == 2:
+        return " or ".join(commands)
+    return ", ".join(commands[:-1]) + f", or {commands[-1]}"
+
+
+def backend_skip_reason(resource: str, extras: Sequence[str]) -> str:
+    """Generate a consistent skip message for optional backends."""
+
+    env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
+    commands = _format_install_commands(extras)
+    if commands:
+        return (
+            f"Optional backend '{resource}' unavailable. Install {commands} and ensure "
+            f"{env_name}=true once dependencies are present."
+        )
+    return (
+        f"Optional backend '{resource}' disabled or unavailable. Set {env_name}=true "
+        "and install the required dependencies."
+    )
+
+
+def backend_import_reason(
+    resource: str, extras: Sequence[str] | None = None
+) -> str:
+    """Return a message for ``pytest.importorskip`` calls."""
+
+    resolved_extras, _ = _resolve_backend_metadata(resource, extras=extras)
+    commands = _format_install_commands(resolved_extras)
+    if commands:
+        return (
+            f"Install {commands} to enable the optional '{resource}' backend tests."
+        )
+    return f"Optional backend '{resource}' dependencies are not installed."
+
+
+def skip_if_missing_backend(
+    resource: str,
+    *,
+    extras: Sequence[str] | None = None,
+    import_names: Sequence[str] | None = None,
+    include_requires_resource: bool = True,
+) -> list[pytest.MarkDecorator]:
+    """Return markers ensuring optional backends skip cleanly when unavailable."""
+
+    resolved_extras, resolved_imports = _resolve_backend_metadata(
+        resource, extras=extras, import_names=import_names
+    )
+    markers: list[pytest.MarkDecorator] = []
+    if include_requires_resource:
+        markers.append(pytest.mark.requires_resource(resource))
+
+    env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
+    if os.environ.get(env_name, "true").strip().lower() == "false":
+        markers.append(
+            pytest.mark.skip(
+                reason=(
+                    f"Optional backend '{resource}' disabled via {env_name}=false. "
+                    "Enable the flag once dependencies are installed."
+                )
+            )
+        )
+        return markers
+
+    available = is_resource_available(resource)
+    missing_import = None
+    for name in resolved_imports:
+        if importlib.util.find_spec(name) is None:
+            missing_import = name
+            break
+
+    if not available or missing_import:
+        markers.append(
+            pytest.mark.skip(reason=backend_skip_reason(resource, resolved_extras))
+        )
+    return markers
+
+
+def backend_param(
+    *values,
+    resource: str,
+    extras: Sequence[str] | None = None,
+    import_names: Sequence[str] | None = None,
+    marks: Iterable[pytest.MarkDecorator] | None = None,
+):
+    """Convenience wrapper for parametrizing backend-dependent tests."""
+
+    markers = list(marks or [])
+    markers.extend(
+        skip_if_missing_backend(
+            resource,
+            extras=extras,
+            import_names=import_names,
+            include_requires_resource=True,
+        )
+    )
+    return pytest.param(*values, marks=markers)
+
+
+@pytest.fixture(name="skip_if_missing_backend", scope="session")
+def _skip_if_missing_backend_fixture():
+    """Expose ``skip_if_missing_backend`` as a fixture for test functions."""
+
+    return skip_if_missing_backend
+
+
+@pytest.fixture(name="backend_param", scope="session")
+def _backend_param_fixture():
+    """Expose :func:`backend_param` for tests that prefer fixture injection."""
+
+    return backend_param
