@@ -39,7 +39,7 @@ except ImportError as e:  # pragma: no cover - optional dependency
     )
 
 try:
-    import tiktoken  # type: ignore[import-not-found]
+    import tiktoken
 except ImportError as e:  # pragma: no cover - optional dependency
     raise require_optional_package(
         e,

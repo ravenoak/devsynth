@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Mapping, NotRequired, Optional, TypeGuard, TypedDict, cast
+from typing import Mapping, NotRequired, Optional, Protocol, TypeGuard, TypedDict, cast
 
 try:  # pragma: no cover - optional dependency
     import yaml
@@ -23,10 +23,16 @@ try:  # pragma: no cover - optional dependency
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     _toml_module = None  # type: ignore[assignment]
 
+class TyperContextProtocol(Protocol):
+    """Subset of the Typer context API used for autocompletion."""
+
+    params: Mapping[str, object]
+
+
 try:  # pragma: no cover - typer is optional at runtime
-    from typer import Context as TyperContext
+    from typer import Context as TyperContext  # type: ignore[attr-defined]
 except Exception:  # pragma: no cover - typer is optional at runtime
-    TyperContext = object
+    TyperContext = TyperContextProtocol
 
 
 JsonPrimitive = str | int | float | bool | None
@@ -98,12 +104,7 @@ class CoreConfig:
             self.resources = normalized
         if self.mvuu is not None:
             normalized_mvuu = _coerce_mvuu_config(self.mvuu)
-            if normalized_mvuu is None:
-                if self.mvuu:
-                    raise ValueError("mvuu must match the MVUUConfig schema")
-                self.mvuu = {}
-            else:
-                self.mvuu = normalized_mvuu
+            self.mvuu = normalized_mvuu or {}
 
     def as_dict(self) -> CoreConfigData:
         directories: DirectoryMap = (
@@ -283,7 +284,7 @@ def _coerce_mvuu_config(value: object) -> MVUUConfig | None:
     issues = _coerce_mvuu_issues(value.get("issues"))
     if issues is not None:
         config["issues"] = issues
-    return config or None
+    return config
 
 
 def _coerce_core_config_data(raw: Mapping[str, object]) -> CoreConfigData:
@@ -322,10 +323,9 @@ def _coerce_core_config_data(raw: Mapping[str, object]) -> CoreConfigData:
     coerced_resources = _coerce_json_object(resources)
     if coerced_resources is not None:
         config["resources"] = coerced_resources
-    mvuu = raw.get("mvuu")
-    mvuu_config = _coerce_mvuu_config(mvuu)
-    if mvuu_config is not None:
-        config["mvuu"] = mvuu_config
+    if "mvuu" in raw:
+        mvuu_config = _coerce_mvuu_config(raw.get("mvuu"))
+        config["mvuu"] = mvuu_config if mvuu_config is not None else {}
     return config
 
 

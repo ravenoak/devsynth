@@ -31,7 +31,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union, TypedDict
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -53,9 +53,21 @@ class MutationResult:
     error: Optional[str] = None
 
 
+class MutationTypeStats(TypedDict):
+    total: int
+    killed: int
+
+
+class MutationSummary(TypedDict):
+    mutation_types: Dict[str, MutationTypeStats]
+    file_breakdown: Dict[str, MutationTypeStats]
+    slowest_mutations: List[MutationResult]
+
+
 @dataclass
 class MutationReport:
     """Complete mutation testing report."""
+
     target_path: str
     test_path: str
     total_mutations: int
@@ -64,7 +76,7 @@ class MutationReport:
     mutation_score: float
     execution_time: float
     mutations: List[MutationResult]
-    summary: Dict[str, Any]
+    summary: MutationSummary
 
 
 class MutationOperator:
@@ -375,14 +387,14 @@ class MutationTester:
         execution_time = time.time() - start_time
         
         # Generate summary
-        summary = {
+        summary: MutationSummary = {
             'mutation_types': {},
             'file_breakdown': {},
             'slowest_mutations': sorted(
-                mutation_results, 
-                key=lambda r: r.execution_time, 
+                mutation_results,
+                key=lambda r: r.execution_time,
                 reverse=True
-            )[:10]
+            )[:10],
         }
         
         # Mutation type breakdown

@@ -1,52 +1,65 @@
-"""
-Error Logger Module
+"""Structured logging utilities for memory adapter failures."""
 
-This module provides enhanced error logging functionality for memory operations.
-It helps track and analyze errors across memory adapters.
-"""
+from __future__ import annotations
 
+from dataclasses import dataclass
 import json
 import os
-import time
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 from ...logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
 
-class MemoryErrorLogger:
-    """
-    Enhanced error logger for memory operations.
+@dataclass(slots=True)
+class ErrorRecord:
+    """Structured representation of a memory operation error."""
 
-    This class provides methods for logging and analyzing errors in memory operations.
-    It maintains an in-memory log of recent errors and can persist them to disk
-    for later analysis.
-    """
+    timestamp: datetime
+    operation: str
+    adapter_name: str
+    error_type: str
+    error_message: str
+    context: Dict[str, Any]
+
+    def serialize(self) -> Dict[str, Any]:
+        """Return a JSON-serializable mapping for persistence."""
+
+        return {
+            "timestamp": self.timestamp.isoformat(),
+            "operation": self.operation,
+            "adapter_name": self.adapter_name,
+            "error_type": self.error_type,
+            "error_message": self.error_message,
+            "context": self.context,
+        }
+
+
+class ErrorSummary(TypedDict):
+    """Aggregate statistics describing captured memory errors."""
+
+    total_errors: int
+    by_adapter: Dict[str, int]
+    by_operation: Dict[str, int]
+    by_error_type: Dict[str, int]
+
+
+class MemoryErrorLogger:
+    """Capture, persist, and analyse memory adapter errors."""
 
     def __init__(
         self,
         max_errors: int = 100,
         log_dir: Optional[str] = None,
         persist_errors: bool = True,
-    ):
-        """
-        Initialize the memory error logger.
-
-        Args:
-            max_errors: Maximum number of errors to keep in memory
-            log_dir: Directory to store error logs. If None, uses the default log directory.
-            persist_errors: Whether to persist errors to disk
-        """
+    ) -> None:
         self.max_errors = max_errors
-        self.errors: List[Dict[str, Any]] = []
+        self.errors: List[ErrorRecord] = []
         self.persist_errors = persist_errors
 
-        # Set up log directory
         if log_dir is None:
-            # Use default log directory
             home_dir = os.path.expanduser("~")
             self.log_dir = os.path.join(home_dir, ".devsynth", "logs", "memory")
         else:
@@ -61,67 +74,46 @@ class MemoryErrorLogger:
         adapter_name: str,
         error: Exception,
         context: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
-        """
-        Log an error that occurred during a memory operation.
+    ) -> ErrorRecord:
+        """Log an error that occurred during a memory operation."""
 
-        Args:
-            operation: The operation that failed (e.g., "store", "retrieve")
-            adapter_name: The name of the adapter that failed
-            error: The exception that was raised
-            context: Additional context information
+        record = ErrorRecord(
+            timestamp=datetime.now(),
+            operation=operation,
+            adapter_name=adapter_name,
+            error_type=type(error).__name__,
+            error_message=str(error),
+            context=dict(context or {}),
+        )
 
-        Returns:
-            The error entry that was logged
-        """
-        # Create error entry
-        error_entry = {
-            "timestamp": datetime.now().isoformat(),
-            "operation": operation,
-            "adapter_name": adapter_name,
-            "error_type": type(error).__name__,
-            "error_message": str(error),
-            "context": context or {},
-        }
-
-        # Add to in-memory log
-        self.errors.append(error_entry)
-
-        # Trim if necessary
+        self.errors.append(record)
         if len(self.errors) > self.max_errors:
             self.errors = self.errors[-self.max_errors :]
 
-        # Log to standard logger
         logger.error(
-            f"Memory operation '{operation}' failed on adapter '{adapter_name}': "
-            f"{type(error).__name__}: {error}"
+            "Memory operation '%s' failed on adapter '%s': %s: %s",
+            operation,
+            adapter_name,
+            record.error_type,
+            record.error_message,
         )
 
-        # Persist to disk if enabled
         if self.persist_errors:
-            self._persist_error(error_entry)
+            self._persist_error(record)
 
-        return error_entry
+        return record
 
-    def _persist_error(self, error_entry: Dict[str, Any]) -> None:
-        """
-        Persist an error entry to disk.
+    def _persist_error(self, record: ErrorRecord) -> None:
+        """Persist an error entry to disk."""
 
-        Args:
-            error_entry: The error entry to persist
-        """
         try:
-            # Create filename based on timestamp
-            timestamp = datetime.fromisoformat(error_entry["timestamp"])
+            timestamp = record.timestamp
             filename = f"memory_error_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}.json"
             filepath = os.path.join(self.log_dir, filename)
-
-            # Write to file
-            with open(filepath, "w") as f:
-                json.dump(error_entry, f, indent=2)
-
-        except Exception as e:
-            logger.error(f"Failed to persist error log: {e}")
+            with open(filepath, "w", encoding="utf-8") as handle:
+                json.dump(record.serialize(), handle, indent=2)
+        except Exception as exc:  # pragma: no cover - persistence failure is non-fatal
+            logger.error("Failed to persist error log: %s", exc)
 
     def get_recent_errors(
         self,
@@ -129,85 +121,57 @@ class MemoryErrorLogger:
         adapter_name: Optional[str] = None,
         error_type: Optional[str] = None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
-        """
-        Get recent errors, optionally filtered by criteria.
+    ) -> List[ErrorRecord]:
+        """Get recent errors, optionally filtered by criteria."""
 
-        Args:
-            operation: Filter by operation
-            adapter_name: Filter by adapter name
-            error_type: Filter by error type
-            limit: Maximum number of errors to return
+        filtered = list(self.errors)
 
-        Returns:
-            A list of error entries
-        """
-        filtered_errors = self.errors
+        if operation is not None:
+            filtered = [record for record in filtered if record.operation == operation]
 
-        if operation:
-            filtered_errors = [
-                e for e in filtered_errors if e["operation"] == operation
+        if adapter_name is not None:
+            filtered = [
+                record for record in filtered if record.adapter_name == adapter_name
             ]
 
-        if adapter_name:
-            filtered_errors = [
-                e for e in filtered_errors if e["adapter_name"] == adapter_name
-            ]
+        if error_type is not None:
+            filtered = [record for record in filtered if record.error_type == error_type]
 
-        if error_type:
-            filtered_errors = [
-                e for e in filtered_errors if e["error_type"] == error_type
-            ]
-
-        # Return most recent errors first
-        return sorted(filtered_errors, key=lambda e: e["timestamp"], reverse=True)[
+        return sorted(filtered, key=lambda record: record.timestamp, reverse=True)[
             :limit
         ]
 
-    def get_error_summary(self) -> Dict[str, Any]:
-        """
-        Get a summary of errors by type, adapter, and operation.
+    def get_error_summary(self) -> ErrorSummary:
+        """Get a summary of errors by type, adapter, and operation."""
 
-        Returns:
-            A dictionary with error statistics
-        """
         if not self.errors:
-            return {
-                "total_errors": 0,
-                "by_adapter": {},
-                "by_operation": {},
-                "by_error_type": {},
-            }
+            return ErrorSummary(
+                total_errors=0,
+                by_adapter={},
+                by_operation={},
+                by_error_type={},
+            )
 
-        # Count errors by different dimensions
-        by_adapter = {}
-        by_operation = {}
-        by_error_type = {}
+        by_adapter: Dict[str, int] = {}
+        by_operation: Dict[str, int] = {}
+        by_error_type: Dict[str, int] = {}
 
-        for error in self.errors:
-            # Count by adapter
-            adapter = error["adapter_name"]
-            by_adapter[adapter] = by_adapter.get(adapter, 0) + 1
+        for record in self.errors:
+            by_adapter[record.adapter_name] = by_adapter.get(record.adapter_name, 0) + 1
+            by_operation[record.operation] = by_operation.get(record.operation, 0) + 1
+            by_error_type[record.error_type] = by_error_type.get(record.error_type, 0) + 1
 
-            # Count by operation
-            operation = error["operation"]
-            by_operation[operation] = by_operation.get(operation, 0) + 1
-
-            # Count by error type
-            error_type = error["error_type"]
-            by_error_type[error_type] = by_error_type.get(error_type, 0) + 1
-
-        return {
-            "total_errors": len(self.errors),
-            "by_adapter": by_adapter,
-            "by_operation": by_operation,
-            "by_error_type": by_error_type,
-        }
+        return ErrorSummary(
+            total_errors=len(self.errors),
+            by_adapter=by_adapter,
+            by_operation=by_operation,
+            by_error_type=by_error_type,
+        )
 
     def clear_errors(self) -> None:
-        """Clear all in-memory errors."""
+        """Clear the in-memory error log."""
+
         self.errors = []
 
 
-# Create a global instance
 memory_error_logger = MemoryErrorLogger()

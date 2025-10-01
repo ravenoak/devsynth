@@ -153,6 +153,14 @@ if TYPE_CHECKING:  # pragma: no cover - type checking only
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
+MemoryRecordInput: TypeAlias = (
+    "MemoryRecord"
+    | MemoryItem
+    | MemoryVector
+    | tuple[object, float]
+    | None
+)
+
 
 def _normalize_metadata(*payloads: MemoryMetadata | None) -> MemoryMetadata | None:
     merged: MemoryMetadata = {}
@@ -164,7 +172,7 @@ def _normalize_metadata(*payloads: MemoryMetadata | None) -> MemoryMetadata | No
 
 
 def build_memory_record(
-    payload: MemoryRecord | MemoryItem | MemoryVector | tuple[object, float] | None,
+    payload: MemoryRecordInput,
     *,
     source: str | None = None,
     similarity: float | None = None,

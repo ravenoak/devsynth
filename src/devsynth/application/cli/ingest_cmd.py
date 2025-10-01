@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Annotated, Optional, Sequence, Union, cast
 
 import yaml
-from rich.console import Console  # type: ignore[import-not-found]
+from rich.console import Console
 import typer
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer

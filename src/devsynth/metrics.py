@@ -13,7 +13,7 @@ runtime scraping.
 from __future__ import annotations
 
 from collections import Counter as DictCounter
-from typing import Callable, Dict, Optional, Protocol, Self, cast
+from typing import Callable, Dict, Optional, Protocol, Self, Sequence, cast
 
 
 class CounterProtocol(Protocol):
@@ -31,31 +31,59 @@ class CounterProtocol(Protocol):
 # Attempt to import Prometheus metrics, falling back to no-op counters when the
 # optional dependency is unavailable.  This allows the core system and tests to
 # run in minimal environments where ``prometheus_client`` isn't installed.
+class CounterFactory(Protocol):
+    """Callable that constructs :class:`CounterProtocol` instances."""
+
+    def __call__(
+        self, name: str, documentation: str, labelnames: Sequence[str]
+    ) -> CounterProtocol:
+        ...
+
+
+class _NoOpCounter(CounterProtocol):
+    """In-memory counter used when ``prometheus_client`` is unavailable."""
+
+    def labels(self, *args: object, **kwargs: object) -> "_NoOpCounter":
+        return self
+
+    def inc(self, *args: object, **kwargs: object) -> None:
+        return None
+
+    def clear(self) -> None:
+        return None
+
+
+def _noop_counter_factory(
+    name: str, documentation: str, labelnames: Sequence[str]
+) -> CounterProtocol:
+    return _NoOpCounter()
+
+
 try:  # pragma: no cover - import guarded for optional dependency
     from prometheus_client import Counter as _PrometheusCounter
 except Exception:  # pragma: no cover - fallback for minimal environments
     _PrometheusCounter = None
 
 
-def _noop_counter(*args: object, **kwargs: object) -> CounterProtocol:
-    class _NoOpCounter:
-        def labels(self, *l_args: object, **l_kwargs: object) -> "_NoOpCounter":
-            return self
-
-        def inc(self, *i_args: object, **i_kwargs: object) -> None:
-            return None
-
-        def clear(self) -> None:
-            return None
-
-    return cast(CounterProtocol, _NoOpCounter())
+def _resolve_counter_factory() -> CounterFactory:
+    if _PrometheusCounter is None:
+        return _noop_counter_factory
+    return cast(CounterFactory, _PrometheusCounter)
 
 
-Counter: Callable[..., CounterProtocol]
-if _PrometheusCounter is not None:
-    Counter = cast(Callable[..., CounterProtocol], _PrometheusCounter)
-else:
-    Counter = _noop_counter
+_COUNTER_FACTORY: CounterFactory = _resolve_counter_factory()
+
+
+def get_counter_factory() -> CounterFactory:
+    """Return the active counter factory, defaulting to a no-op implementation."""
+
+    return _COUNTER_FACTORY
+
+
+def _create_counter(
+    name: str, documentation: str, labelnames: Sequence[str]
+) -> CounterProtocol:
+    return _COUNTER_FACTORY(name, documentation, list(labelnames))
 
 
 # ---------------------------------------------------------------------------
@@ -82,37 +110,37 @@ _dashboard_hook: Optional[Callable[[str], None]] = None
 # ---------------------------------------------------------------------------
 # Prometheus counters
 # ---------------------------------------------------------------------------
-_memory_counter: CounterProtocol = Counter(
+_memory_counter: CounterProtocol = _create_counter(
     "devsynth_memory_operations_total", "Memory operations", ["op"]
 )
-_provider_counter: CounterProtocol = Counter(
+_provider_counter: CounterProtocol = _create_counter(
     "devsynth_provider_operations_total", "Provider operations", ["op"]
 )
-retry_event_counter: CounterProtocol = Counter(
+retry_event_counter: CounterProtocol = _create_counter(
     "devsynth_retry_events_total", "Retry events", ["status"]
 )
-retry_function_counter: CounterProtocol = Counter(
+retry_function_counter: CounterProtocol = _create_counter(
     "devsynth_retry_function_total", "Retry attempts per function", ["function"]
 )
-retry_error_counter: CounterProtocol = Counter(
+retry_error_counter: CounterProtocol = _create_counter(
     "devsynth_retry_errors_total", "Retry events grouped by exception", ["error_type"]
 )
-retry_condition_counter: CounterProtocol = Counter(
+retry_condition_counter: CounterProtocol = _create_counter(
     "devsynth_retry_conditions_total",
     "Retry aborts grouped by failed condition",
     ["condition"],
 )
-retry_stat_counter: CounterProtocol = Counter(
+retry_stat_counter: CounterProtocol = _create_counter(
     "devsynth_retry_stat_total",
     "Retry outcomes grouped by function and status",
     ["function", "status"],
 )
 # Dashboard events counter
-dashboard_event_counter: CounterProtocol = Counter(
+dashboard_event_counter: CounterProtocol = _create_counter(
     "devsynth_dashboard_events_total", "Dashboard events", ["event"]
 )
 # Circuit breaker state transitions counter
-circuit_breaker_state_counter: CounterProtocol = Counter(
+circuit_breaker_state_counter: CounterProtocol = _create_counter(
     "devsynth_circuit_breaker_state_total",
     "Circuit breaker state transitions",
     ["function", "state"],

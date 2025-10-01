@@ -3,6 +3,7 @@ import os
 import pytest
 
 from devsynth.config import load_config, load_project_config
+from devsynth.core.config_loader import CoreConfig
 
 
 @pytest.mark.medium
@@ -93,3 +94,34 @@ def test_load_project_config_pyproject_succeeds(tmp_path):
     cfg = load_project_config(tmp_path)
     assert cfg.config.language == "python"
     assert cfg.use_pyproject
+
+
+@pytest.mark.fast
+def test_core_config_normalizes_mvuu_invalid_entries() -> None:
+    """Invalid MVUU payloads degrade to an empty mapping instead of raising."""
+
+    config = CoreConfig(mvuu={"issues": {"github": {"token": 123}}})
+    assert config.mvuu == {}
+
+
+@pytest.mark.medium
+def test_load_config_normalizes_mvuu_section(tmp_path, monkeypatch):
+    """MVUU configuration is normalized even when provider data is incomplete."""
+
+    home = tmp_path / "home"
+    monkeypatch.setattr(
+        os.path,
+        "expanduser",
+        lambda p: str(home) if p == "~" else os.path.expanduser(p),
+    )
+    (tmp_path / "pyproject.toml").write_text(
+        """
+        [tool.devsynth]
+        language = "python"
+
+        [tool.devsynth.mvuu.issues.github]
+        token = 123
+        """
+    )
+    cfg = load_config(tmp_path)
+    assert cfg.mvuu == {}

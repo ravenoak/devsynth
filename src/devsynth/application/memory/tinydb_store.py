@@ -9,7 +9,7 @@ from datetime import datetime
 from collections.abc import Mapping
 from typing import cast
 
-import tiktoken  # type: ignore[import-not-found]
+import tiktoken
 from tinydb import Query, TinyDB  # type: ignore[import-not-found]
 from tinydb.middlewares import CachingMiddleware  # type: ignore[import-not-found]
 from tinydb.storages import JSONStorage, Storage, touch  # type: ignore[import-not-found]

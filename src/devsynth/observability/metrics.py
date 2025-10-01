@@ -15,31 +15,17 @@ allocation overhead minimal.
 
 from __future__ import annotations
 
-from typing import Callable, Dict, Optional, Protocol, Self, Tuple, cast
+from typing import Dict, Optional, Tuple, cast
 
-
-class CounterProtocol(Protocol):
-    """Minimal protocol for Prometheus counters used by DevSynth."""
-
-    def labels(self, *args: object, **kwargs: object) -> Self:
-        ...
-
-    def inc(self, *args: object, **kwargs: object) -> None:
-        ...
+from devsynth.metrics import CounterFactory, CounterProtocol
 
 
 try:  # pragma: no cover - import guard
     from prometheus_client import Counter as _PrometheusCounter
 except Exception:  # pragma: no cover - absent or broken client
-    _PrometheusCounter = None
-
-
-CounterFactory = Optional[Callable[..., CounterProtocol]]
-Counter: CounterFactory
-if _PrometheusCounter is not None:
-    Counter = cast(Callable[..., CounterProtocol], _PrometheusCounter)
+    _COUNTER_FACTORY: CounterFactory | None = None
 else:
-    Counter = None
+    _COUNTER_FACTORY = cast(CounterFactory, _PrometheusCounter)
 
 # Registry of created counters to avoid re-definitions with conflicting types
 _COUNTERS: Dict[Tuple[str, Tuple[str, ...]], CounterProtocol] = {}
@@ -62,7 +48,7 @@ def increment_counter(
         labels: Optional labels mapping; values are coerced to str by Prometheus client.
         description: Optional human-friendly help text.
     """
-    counter_factory = Counter
+    counter_factory = _COUNTER_FACTORY
     if counter_factory is None:  # No prometheus installed; no-op
         return
 

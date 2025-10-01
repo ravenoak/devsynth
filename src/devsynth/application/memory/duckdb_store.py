@@ -12,7 +12,7 @@ import os
 import uuid
 
 import numpy as np  # type: ignore[import-not-found]
-import tiktoken  # type: ignore[import-not-found]
+import tiktoken
 
 from datetime import datetime
 from typing import cast
