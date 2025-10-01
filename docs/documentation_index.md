@@ -19,13 +19,13 @@ generator: "scripts/generate_doc_index.py"
 
 # Documentation Index
 
-_This index is automatically generated from all documentation files. Last updated: 2025-09-30 16:48:37 UTC_
+_This index is automatically generated from all documentation files. Last updated: 2025-09-30 17:07:21 UTC_
 
 ## Summary Statistics
 
-- **Total Files**: 582
+- **Total Files**: 583
 - **Categories**: 29
-- **Generated**: 2025-09-30 16:48:37 UTC
+- **Generated**: 2025-09-30 17:07:21 UTC
 
 ## Files by Category
 
@@ -268,10 +268,11 @@ _This index is automatically generated from all documentation files. Last update
 | docs/getting_started/troubleshooting.md | DevSynth Troubleshooting Guide | published | troubleshooting | 2025-06-01 |
 | docs/getting_started/webui_onboarding_flow.md | WebUI Onboarding Flow | published | getting-started | 2025-07-01 |
 
-### Harmonization (2 files)
+### Harmonization (3 files)
 
 | File Path | Title | Status | Release Phase | Date |
 |-----------|-------|--------|---------------|------|
+| docs/harmonization/final-harmonization-report.md | DevSynth Documentation Harmonization - Final Report | unknown | unknown | unknown |
 | docs/harmonization/phase1-completion-report.md | Phase 1 Documentation Harmonization Completion Report | unknown | unknown | unknown |
 | docs/harmonization/phase2-completion-report.md | Phase 2 Documentation Harmonization Completion Report | unknown | unknown | unknown |
 
@@ -790,7 +791,7 @@ Categories are automatically determined from the directory structure under `docs
 - **External Research Papers**: 2 files
 - **Features**: 14 files
 - **Getting Started**: 10 files
-- **Harmonization**: 2 files
+- **Harmonization**: 3 files
 - **Implementation**: 40 files
 - **Methodology**: 1 files
 - **Observability**: 1 files

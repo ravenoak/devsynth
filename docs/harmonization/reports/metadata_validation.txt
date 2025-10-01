@@ -4,20 +4,20 @@ METADATA VALIDATION REPORT
 ==================================================
 
 Summary:
-- Files processed: 582
-- Files with issues: 164
+- Files processed: 583
+- Files with issues: 165
 - Files compliant: 418
-- Total issues found: 205
-- Compliance rate: 71.8%
+- Total issues found: 206
+- Compliance rate: 71.7%
 
 Issues by Type:
 - invalid_date_format: 2
 - invalid_status: 70
-- missing_frontmatter: 51
+- missing_frontmatter: 52
 - missing_required_field: 67
 - version_inconsistency: 15
 
-Files Without Metadata (51):
+Files Without Metadata (52):
 - docs/feature_audit.md
 - docs/plan.md
 - docs/task_notes.md
@@ -28,9 +28,9 @@ Files Without Metadata (51):
 - docs/specifications/generated_test_execution_failure.md
 - docs/specifications/wsde_edrr_collaboration.md
 - docs/analysis/webui_consistency.md
-... and 41 more files
+... and 42 more files
 
-Detailed Issues (164 files):
+Detailed Issues (165 files):
 ----------------------------------------
 
 📁 docs/system_requirements_specification.md
@@ -113,7 +113,7 @@ Detailed Issues (164 files):
    ⚠️ Status "review" is not in valid list
       → Use one of: published, draft, archived, active
 
-... and 144 more files with issues
+... and 145 more files with issues
 
 ==================================================
 

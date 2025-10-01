@@ -4,7 +4,7 @@ INTERNAL LINK VALIDATION REPORT
 ==================================================
 
 Summary:
-- Files processed: 582
+- Files processed: 583
 - Total internal links checked: 2396
 - Valid links: 2227
 - Broken links: 169
