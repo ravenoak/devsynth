@@ -23,7 +23,9 @@ The main pytest configuration file defines:
 
 Key settings:
 ```ini
-addopts = -p no:benchmark --cov=src/devsynth --cov-report=term-missing --cov-fail-under=90 -m "not slow and not gui"
+addopts = -p no:benchmark --cov=src/devsynth --cov-report=term-missing:skip-covered \
+          --cov-report=json:test_reports/coverage.json --cov-fail-under=90 \
+          -m "not slow and not gui and not memory_intensive" --strict-markers --strict-config -ra
 ```
 
 ### .coveragerc
@@ -34,7 +36,7 @@ Unified coverage configuration replacing multiple specialized configs:
 - **Threshold**: 90% aggregate coverage (default). Use
   `DEVSYNTH_COV_FAIL_UNDER` or append `--cov-fail-under=<value>` for focused
   smoke/debugging runs when intentionally bypassing the release gate.
-- **Reports**: Terminal, HTML, XML, JSON
+- **Reports**: Terminal (per-file percentages via `term-missing:skip-covered`), HTML, XML, JSON
 - **Exclusions**: Standard boilerplate and unreachable code patterns
 
 ## Test Markers
