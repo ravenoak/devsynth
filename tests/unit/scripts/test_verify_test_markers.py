@@ -84,3 +84,32 @@ def test_verify_test_markers_path_filter(tmp_path: Path) -> None:
     assert result["total_files"] == 1
     assert str(file_a) in result["files"]
     assert str(file_b) not in result["files"]
+
+
+@pytest.mark.fast
+def test_find_undocumented_markers_flags_missing_docs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Missing documentation is surfaced for configured markers."""
+
+    doc_path = tmp_path / "markers.md"
+    monkeypatch.setattr(vtm, "MARKER_DOCUMENTATION_PATHS", {"custom": doc_path})
+    monkeypatch.setattr(vtm, "load_configured_markers", lambda: {"custom": "desc"})
+
+    missing = vtm.find_undocumented_markers()
+    assert missing == ["custom"]
+
+
+@pytest.mark.fast
+def test_find_undocumented_markers_passes_when_documented(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Documentation satisfies the custom marker requirement."""
+
+    doc_path = tmp_path / "markers.md"
+    doc_path.write_text("custom marker docs", encoding="utf-8")
+    monkeypatch.setattr(vtm, "MARKER_DOCUMENTATION_PATHS", {"custom": doc_path})
+    monkeypatch.setattr(vtm, "load_configured_markers", lambda: {"custom": "desc"})
+
+    missing = vtm.find_undocumented_markers()
+    assert missing == []

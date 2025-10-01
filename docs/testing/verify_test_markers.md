@@ -31,6 +31,16 @@ def test_addition():
     assert 1 + 2 == 3
 ```
 
+## Custom markers
+
+Project-specific markers must be documented so automation can verify they exist.
+The current integration profile uses:
+
+- `integtest`: Marks integration-provider smoke tests that rely on optional
+  providers. Combine it with a speed marker (`fast`/`medium`/`slow`) and
+  `requires_resource` guards so the suite skips cleanly when providers are not
+  available.
+
 ## Local usage
 
 Run the verification script before committing new or updated tests:

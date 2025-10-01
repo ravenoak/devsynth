@@ -15,6 +15,8 @@ import responses
 pytest.importorskip("lmstudio")
 if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
     pytest.skip("LMStudio service not available", allow_module_level=True)
+if not os.environ.get("DEVSYNTH_RESOURCE_OPENAI_AVAILABLE"):
+    pytest.skip("OpenAI service not available", allow_module_level=True)
 
 from devsynth.adapters.provider_system import (
     FallbackProvider,
@@ -32,7 +34,10 @@ from devsynth.adapters.provider_system import (
 )
 from devsynth.application.llm.providers import LMStudioProvider
 
-pytestmark = [pytest.mark.requires_resource("lmstudio")]
+pytestmark = [
+    pytest.mark.requires_resource("lmstudio"),
+    pytest.mark.requires_resource("openai"),
+]
 
 
 class TestProviderConfig:

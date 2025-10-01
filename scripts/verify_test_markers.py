@@ -18,6 +18,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import tomllib
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -27,6 +28,7 @@ TESTS_DIR = ROOT / "tests"
 REPORT_PATH = ROOT / "test_reports" / "test_markers_report.json"
 CACHE_PATH = ROOT / ".cache" / "test_markers_cache.json"
 CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+PYPROJECT_PATH = ROOT / "pyproject.toml"
 
 MARK_RE = re.compile(r"@pytest\.mark\.([a-zA-Z_][a-zA-Z0-9_]*)")
 
@@ -34,11 +36,73 @@ MARK_RE = re.compile(r"@pytest\.mark\.([a-zA-Z_][a-zA-Z0-9_]*)")
 PERSISTENT_CACHE: dict[str, dict] = {}
 FILE_SIGNATURES: dict[str, tuple[float, str]] = {}
 
+MARKER_DOCUMENTATION_PATHS: dict[str, pathlib.Path] = {
+    "integtest": ROOT / "docs" / "testing" / "verify_test_markers.md",
+}
+
 
 @dataclass
 class FileVerification:
     markers: dict[str, int]
     issues: list
+
+
+def _normalize_marker_name(raw: str) -> str:
+    """Return the canonical marker name without parameter hints."""
+
+    base = raw.split("(", 1)[0]
+    return base.strip()
+
+
+def load_configured_markers() -> dict[str, str]:
+    """Load configured pytest markers from pyproject.toml."""
+
+    if not PYPROJECT_PATH.exists():
+        return {}
+    try:
+        data = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    markers_section = (
+        data.get("tool", {})
+        .get("pytest", {})
+        .get("ini_options", {})
+        .get("markers", [])
+    )
+    configured: dict[str, str] = {}
+    for entry in markers_section or []:
+        if not isinstance(entry, str):
+            continue
+        name_part, _, description = entry.partition(":")
+        name = _normalize_marker_name(name_part)
+        if not name:
+            continue
+        configured[name] = description.strip()
+    return configured
+
+
+def find_undocumented_markers(
+    marker_docs: dict[str, pathlib.Path] | None = None,
+) -> list[str]:
+    """Return configured markers that are missing documentation."""
+
+    docs = marker_docs or MARKER_DOCUMENTATION_PATHS
+    configured = load_configured_markers()
+    missing: list[str] = []
+    for marker, doc_path in docs.items():
+        if marker not in configured:
+            # Skip documentation requirements for markers not configured.
+            continue
+        try:
+            text = doc_path.read_text(encoding="utf-8")
+        except Exception:
+            missing.append(marker)
+            continue
+        pattern = re.compile(rf"\b{re.escape(marker)}\b")
+        if not pattern.search(text):
+            missing.append(marker)
+    # Deterministic order for reporting
+    return sorted(dict.fromkeys(missing))
 
 
 def get_arg_parser():
@@ -546,7 +610,9 @@ def _attempt_collection(path: pathlib.Path, text: str) -> list:
     return issues
 
 
-def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
+def verify_files(
+    file_paths: Iterable[pathlib.Path | str], *, check_documentation: bool = True
+) -> dict:
     """Verify markers for the provided files with caching.
 
     Returns a result dict including cache stats and file-level info.
@@ -565,10 +631,7 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
         if p.is_dir():
             # Recurse directories to keep behavior intuitive
             for sub in sorted(p.rglob("*.py")):
-                # Re-enqueue sub files by tail recursion-like approach
-                for _k, _v in verify_files([sub]).items():
-                    # Only used for side-effect updates; merging dicts here is avoided
-                    pass
+                verify_files([sub], check_documentation=False)
             continue
         key = str(p)
         try:
@@ -604,17 +667,19 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
             file_result = {"markers": markers, "issues": issues}
             PERSISTENT_CACHE[key] = {"hash": sig[1], "verification": file_result}
 
-        # Count a file as having marker issues only if speed/property marker
-        # violations exist. Collection errors are informative but do not
-        # contribute to files_with_issues for Task 10 metrics.
+        # Count a file as having issues when marker or collection problems
+        # are discovered so callers can surface actionable failures.
         if file_result["issues"]:
             has_marker_issue = any(
                 i.get("type") in {"speed_marker_violation", "property_marker_violation"}
                 for i in file_result["issues"]
             )
-            if has_marker_issue:
+            has_collection_error = any(
+                i.get("type") == "collection_error" for i in file_result["issues"]
+            )
+            if has_marker_issue or has_collection_error:
                 files_with_issues += 1
-            if any(i.get("type") == "collection_error" for i in file_result["issues"]):
+            if has_collection_error:
                 collection_errors.append(key)
             for i in file_result["issues"]:
                 if i.get("type") == "speed_marker_violation":
@@ -630,6 +695,7 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
         "collection_errors": collection_errors,
         "speed_marker_violations": speed_marker_violations,
         "property_marker_violations": property_marker_violations,
+        "total_files": len(files),
     }
 
     # Also build a brief markers summary for the legacy JSON report
@@ -638,10 +704,14 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
         for name, count in fr["markers"].items():
             total_markers[name] += count
 
+    undocumented_markers = find_undocumented_markers() if check_documentation else []
+    result["undocumented_markers"] = undocumented_markers
+
     summary_report = {
         "markers": dict(total_markers),
         "files_scanned": len(files),
         "files_with_issues": files_with_issues,
+        "undocumented_markers": undocumented_markers,
     }
     # Write report to default location; main() may rewrite if --report-file provided.
     report_target = REPORT_PATH
@@ -653,11 +723,15 @@ def verify_files(file_paths: Iterable[pathlib.Path | str]) -> dict:
     return result
 
 
-def verify_directory_markers(directory: str) -> dict:
+def verify_directory_markers(
+    directory: str, *, paths: Iterable[pathlib.Path | str] | None = None
+) -> dict:
     """Verify markers for all .py files under directory with caching.
 
     Returns a result dict including cache stats and file-level info.
     """
+    if paths is not None:
+        return verify_files(paths)
     base = pathlib.Path(directory)
     return verify_files(base.rglob("*.py"))
 
@@ -816,6 +890,12 @@ def main() -> int:
         if total_property_violations > 50:
             print(f" ... and {total_property_violations - 50} more")
 
+    undocumented_markers = result.get("undocumented_markers", [])
+    if undocumented_markers:
+        print("[error] undocumented custom markers detected:")
+        for marker in undocumented_markers:
+            print(f" - {marker}")
+
     print(
         "[info] verify_test_markers: files=%d, cache_hits=%d, cache_misses=%d, "
         "issues=%d, speed_violations=%d, property_violations=%d"
@@ -830,7 +910,10 @@ def main() -> int:
     )
     # Enforce discipline: fail if any speed marker violations were found.
     # Property marker advisories are informational and do not affect exit status.
-    return 1 if total_speed_violations or cross_check_exit else 0
+    exit_code = 1 if total_speed_violations or cross_check_exit else 0
+    if undocumented_markers:
+        exit_code = 1
+    return exit_code
 
 
 if __name__ == "__main__":
