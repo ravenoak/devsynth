@@ -311,7 +311,11 @@ addopts = [
     "--cov=src/devsynth",
     "--cov-report=term-missing:skip-covered",
     "--cov-report=json:test_reports/coverage.json",
-    "--cov-fail-under=80",
+    # Fail runs below 90% aggregate coverage. Override with
+    #   PYTEST_ADDOPTS="--cov-fail-under=<value>" or
+    #   DEVSYNTH_COV_FAIL_UNDER=<value>
+    # when intentionally running focused suites (e.g., smoke triage).
+    "--cov-fail-under=90",
     "-m", "not slow and not gui and not memory_intensive",
     "--strict-markers",
     "--strict-config",

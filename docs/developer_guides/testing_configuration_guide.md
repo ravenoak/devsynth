@@ -23,7 +23,7 @@ The main pytest configuration file defines:
 
 Key settings:
 ```ini
-addopts = -p no:benchmark --cov=src/devsynth --cov-report=term-missing --cov-fail-under=80 -m "not slow and not gui"
+addopts = -p no:benchmark --cov=src/devsynth --cov-report=term-missing --cov-fail-under=90 -m "not slow and not gui"
 ```
 
 ### .coveragerc
@@ -31,7 +31,9 @@ addopts = -p no:benchmark --cov=src/devsynth --cov-report=term-missing --cov-fai
 Unified coverage configuration replacing multiple specialized configs:
 
 - **Source**: `src/devsynth`
-- **Threshold**: 80% (alpha release target, will increase to 90% for stable)
+- **Threshold**: 90% aggregate coverage (default). Use
+  `DEVSYNTH_COV_FAIL_UNDER` or append `--cov-fail-under=<value>` for focused
+  smoke/debugging runs when intentionally bypassing the release gate.
 - **Reports**: Terminal, HTML, XML, JSON
 - **Exclusions**: Standard boilerplate and unreachable code patterns
 
@@ -140,7 +142,7 @@ From `tests/fixtures/determinism.py`:
 ### Unified Approach
 - Single `.coveragerc` file for all coverage measurement
 - No specialized configurations for different modules
-- Consistent 80% threshold across all contexts
+- Consistent 90% threshold across all contexts
 
 ### Reports Generated
 - Terminal: Immediate feedback during test runs
@@ -222,7 +224,7 @@ This consolidated configuration replaces:
 - Fragmented testing scripts
 
 ### Breaking Changes
-- Coverage threshold unified at 80%
+- Coverage threshold unified at 90%
 - Removed auto-injection of speed markers for BDD tests
 - Simplified isolation fixture behavior
 - Consolidated resource availability checking
