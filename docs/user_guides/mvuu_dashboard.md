@@ -4,6 +4,9 @@ The MVUU (Minimum Viable Utility Unit) dashboard renders Streamlit views for
 traceability data exported by `devsynth mvu report`. Planned Autoresearch
 overlays will surface investigation timelines, provenance filters, and integrity
 badges once the external Autoresearch bridge begins delivering signed telemetry.
+Until the MCP → A2A → SPARQL connectors ship, all Autoresearch references in this
+guide describe preview flows that rely on local fixtures rather than live
+telemetry.
 
 ## Enabling the dashboard
 
@@ -19,7 +22,8 @@ launching Streamlit.
 
 Autoresearch overlays will remain opt-in because they include extra provenance
 data and digital signatures. Enable the stubbed flow when launching the CLI to
-exercise the interface ahead of the external rollout:
+exercise the interface ahead of the external rollout. The command below operates
+entirely against placeholder payloads until the external bridge is online:
 
 ```bash
 export DEVSYNTH_AUTORESEARCH_SECRET="<shared hmac secret>"
@@ -38,7 +42,8 @@ The CLI will emit a signed telemetry bundle containing:
   hash of the MVUU payload used during signing.
 
 While the Autoresearch service remains external, the CLI stores placeholder
-signatures alongside the payload in JSON form. The dashboard reads
+signatures alongside the payload in JSON form and logs that no remote telemetry
+was contacted. The dashboard reads
 `DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY` to determine which environment variable
 holds the shared secret (defaults to `DEVSYNTH_AUTORESEARCH_SECRET`). Replace the
 placeholder with the production secret once the MCP and A2A connectors go live.
