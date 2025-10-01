@@ -1,6 +1,6 @@
 ---
 author: DevSynth Team
-date: '2025-09-30'
+date: '2025-10-01'
 status: published
 tags:
 - implementation
@@ -45,6 +45,12 @@ This behavior is exercised by `tests/property/test_webui_properties.py::test_nex
 ## Bridge Wizard Clamps and Lazy Loader
 
 Fast suites now exercise the WebUI bridge directly so wizard navigation mirrors the CLI clamps without requiring the optional Streamlit extra. `_require_streamlit` caches the injected stub on first import and surfaces the install command when the dependency is missing,【F:tests/unit/interface/test_webui_bridge_fast_suite.py†L214-L247】 while `adjust_wizard_step` and `normalize_wizard_step` warn on invalid totals, directions, or values before clamping into range.【F:tests/unit/interface/test_webui_bridge_fast_suite.py†L250-L271】 Complementary unit coverage reloads `devsynth.interface.webui` with a deterministic Streamlit stub to prove the lazy loader only imports once, converts rich markup to HTML, and records wizard warnings when callers supply malformed inputs, aligning with the Streamlit-free BDD scenarios.【F:tests/unit/interface/test_webui_lazy_streamlit_and_wizard.py†L1-L81】 The same fast harness proves that `display_result` continues to route through `OutputFormatter` and that highlight messages fall back to `st.write` when `st.info` is unavailable, maintaining parity with CLI formatting expectations.【F:tests/unit/interface/test_webui_bridge_fast_suite.py†L274-L359】 Targeted simulations extend this coverage by calling the new deterministic harnesses: `tests/unit/interface/test_webui_simulations_fast.py` drives `_UIProgress` updates, sanitized error rendering, and wizard clamps entirely under the stubbed Streamlit runtime so both the WebUI module and bridge exercise their optional dependency fallbacks.【F:tests/unit/interface/test_webui_simulations_fast.py†L46-L174】
+
+Focused Streamlit-free regressions now patch both `_STREAMLIT` and `webui_bridge.st` to deterministic recorders, proving the lazy loader's install guidance, sanitised message routing, nested `WebUIProgressIndicator` lifecycle, ETA formatting, and wizard clamps without importing the real dependency.【F:tests/unit/interface/test_webui_streamlit_free_regressions.py†L404-L552】 These tests demonstrate that script tags are stripped before the bridge or UI forwards results, hierarchical subtasks stay escaped through completion, and malformed wizard navigation requests are clamped defensively.
+
+## Coverage Signal (2025-10-01)
+
+- **Streamlit-free regression harness:** `pytest --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge --cov-report=term-missing --cov-fail-under=0 tests/unit/interface/test_webui_streamlit_free_regressions.py` records 18.27 % coverage for `webui.py` and 25.37 % for `webui_bridge.py`, confirming the sanitized display branches, progress ETA formatting, and wizard clamps exercised by the new stubbed suite. Artefacts and the raw report are stored under `issues/tmp_artifacts/webui/20251001T035910Z/` for traceability.【F:issues/tmp_artifacts/webui/20251001T035910Z/coverage.log†L20-L24】
 
 ## Coverage Signal (2025-09-30)
 
