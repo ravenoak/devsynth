@@ -6,6 +6,7 @@ import importlib.util
 import json
 import sys
 import types
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -31,6 +32,9 @@ try:  # pragma: no cover - prefer installed package
         _coerce_mvuu_config,
         _coerce_mvuu_issues,
         _is_directory_map,
+        _parse_env,
+        CoreConfig,
+        load_config,
         _load_toml,
         _load_yaml,
     )
@@ -49,6 +53,9 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for minimal environme
     _coerce_mvuu_config = module._coerce_mvuu_config
     _coerce_mvuu_issues = module._coerce_mvuu_issues
     _is_directory_map = module._is_directory_map
+    _parse_env = module._parse_env
+    CoreConfig = module.CoreConfig
+    load_config = module.load_config
     _load_toml = module._load_toml
     _load_yaml = module._load_yaml
 
@@ -268,3 +275,235 @@ def test_load_toml_returns_coerced_core_config_data(tmp_path):
             }
         },
     }
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize(
+    ("env_values", "expected"),
+    [
+        pytest.param(
+            {"DEVSYNTH_LANGUAGE": "rust"},
+            {"language": "rust"},
+            id="single_override",
+        ),
+        pytest.param(
+            {
+                "DEVSYNTH_PRIORITY": "p1",
+                "DEVSYNTH_GOALS": "ship",
+            },
+            {"priority": "p1", "goals": "ship"},
+            id="multiple_fields",
+        ),
+        pytest.param(
+            {
+                "DEVSYNTH_STRUCTURE": "monorepo",
+                "UNRELATED": "ignore-me",
+            },
+            {"structure": "monorepo"},
+            id="ignores_irrelevant_keys",
+        ),
+    ],
+)
+def test_parse_env_extracts_known_overrides(env_values, expected, monkeypatch):
+    """Exercise env parsing; marked fast because it only touches in-memory state."""
+
+    defaults = CoreConfig(project_root="/workspace/project")
+
+    for key, value in env_values.items():
+        monkeypatch.setenv(key, value)
+
+    try:
+        result = _parse_env(defaults)
+    finally:
+        for key in env_values:
+            monkeypatch.delenv(key, raising=False)
+
+    assert result == expected
+
+
+@pytest.mark.fast
+def test_load_config_merges_sources_without_mutating_resources(tmp_path, monkeypatch):
+    """Ensure precedence order stays intact; filesystem work remains minimal and fast."""
+
+    project_root = tmp_path / "project"
+    project_root.mkdir(exist_ok=True)
+    home_dir = tmp_path / "home"
+    home_dir.mkdir(exist_ok=True)
+    config_dir = home_dir / ".devsynth" / "config"
+    config_dir.mkdir(parents=True, exist_ok=True)
+
+    global_payload = {
+        "language": "typescript",
+        "resources": {
+            "pipelines": {"nightly": {"steps": ["lint"]}},
+        },
+        "mvuu": {
+            "issues": {
+                "github": {
+                    "base_url": "https://api.github.com",
+                    "token": "gho_global",
+                }
+            }
+        },
+    }
+    (config_dir / "global_config.yaml").write_text(
+        json.dumps(global_payload),
+        encoding="utf-8",
+    )
+
+    project_dir = project_root / ".devsynth"
+    project_dir.mkdir(exist_ok=True)
+    project_payload = {
+        "structure": "monorepo",
+        "resources": {
+            "pipelines": {"nightly": {"steps": ["test", "deploy"]}},
+        },
+    }
+    (project_dir / "project.yaml").write_text(
+        json.dumps(project_payload),
+        encoding="utf-8",
+    )
+
+    mvuu_payload = {
+        "issues": {
+            "jira": {
+                "base_url": "https://jira.example.com",
+                "token": "jira_project",
+            }
+        }
+    }
+    (project_dir / "mvu.yml").write_text(json.dumps(mvuu_payload), encoding="utf-8")
+
+    monkeypatch.setenv("HOME", str(home_dir))
+    monkeypatch.setenv("DEVSYNTH_LANGUAGE", "python-env")
+    monkeypatch.setenv("DEVSYNTH_PRIORITY", "p0")
+
+    expected_resources = deepcopy(project_payload["resources"])
+
+    try:
+        config = load_config(str(project_root))
+        assert config.project_root == str(project_root)
+        assert config.structure == "monorepo"
+        assert config.language == "python-env"
+        assert config.priority == "p0"
+        assert config.mvuu == mvuu_payload
+        assert config.resources == expected_resources
+        assert config.resources is not expected_resources
+
+        if config.resources is not None:
+            config.resources["pipelines"]["nightly"]["steps"].append("mutated")
+
+        config_again = load_config(str(project_root))
+        assert config_again.resources == expected_resources
+    finally:
+        for key in ("DEVSYNTH_LANGUAGE", "DEVSYNTH_PRIORITY", "HOME"):
+            monkeypatch.delenv(key, raising=False)
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize(
+    ("mvuu_payload", "expected"),
+    [
+        pytest.param(
+            {
+                "issues": {
+                    "github": {
+                        "base_url": "https://api.github.com",
+                        "token": "gho_token",
+                        "extra": "ignored",
+                    }
+                }
+            },
+            {
+                "issues": {
+                    "github": {
+                        "base_url": "https://api.github.com",
+                        "token": "gho_token",
+                    }
+                }
+            },
+            id="github_only",
+        ),
+        pytest.param(
+            {
+                "issues": {
+                    "jira": {
+                        "base_url": "https://jira.example.com",
+                        "token": "jira_token",
+                    }
+                }
+            },
+            {
+                "issues": {
+                    "jira": {
+                        "base_url": "https://jira.example.com",
+                        "token": "jira_token",
+                    }
+                }
+            },
+            id="jira_only",
+        ),
+        pytest.param(
+            {
+                "issues": {
+                    "github": {
+                        "base_url": "https://api.github.com",
+                        "token": "gho_both",
+                    },
+                    "jira": {
+                        "base_url": "https://jira.example.com",
+                        "token": "jira_both",
+                    },
+                }
+            },
+            {
+                "issues": {
+                    "github": {
+                        "base_url": "https://api.github.com",
+                        "token": "gho_both",
+                    },
+                    "jira": {
+                        "base_url": "https://jira.example.com",
+                        "token": "jira_both",
+                    },
+                }
+            },
+            id="both_providers",
+        ),
+    ],
+)
+def test_load_config_normalizes_mvuu_with_env_overrides(
+    mvuu_payload, expected, tmp_path, monkeypatch
+):
+    """Exercise MVUU/env precedence; fast because fixtures only touch tmp_path files."""
+
+    home_dir = tmp_path / "home"
+    home_dir.mkdir(exist_ok=True)
+    project_root = tmp_path / "workspace"
+    project_root.mkdir(exist_ok=True)
+    project_dir = project_root / ".devsynth"
+    project_dir.mkdir(exist_ok=True)
+
+    (project_dir / "project.yaml").write_text(
+        json.dumps({"structure": "single_package"}),
+        encoding="utf-8",
+    )
+    (project_dir / "mvu.yml").write_text(json.dumps(mvuu_payload), encoding="utf-8")
+
+    monkeypatch.setenv("HOME", str(home_dir))
+
+    env_values = {
+        "DEVSYNTH_LANGUAGE": "env-lang",
+        "DEVSYNTH_GOALS": "deliver",
+    }
+    for key, value in env_values.items():
+        monkeypatch.setenv(key, value)
+
+    try:
+        config = load_config(str(project_root))
+        assert config.language == "env-lang"
+        assert config.goals == "deliver"
+        assert config.mvuu == expected
+    finally:
+        for key in (*env_values.keys(), "HOME"):
+            monkeypatch.delenv(key, raising=False)
