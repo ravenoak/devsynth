@@ -77,3 +77,26 @@ def test_api_bridge_progress_records_subtasks(agentapi_module):
         message.strip().endswith("Subtask complete") for message in bridge.messages
     )
     assert bridge.messages[-1] == "Task complete"
+
+
+def test_api_bridge_progress_normalizes_string_advances(agentapi_module):
+    """String increments are coerced to floats and invalid entries ignored."""
+
+    bridge = agentapi_module.APIBridge()
+    progress = bridge.create_progress("Task", total=4)
+
+    progress.update(advance="1")
+    assert bridge.messages[1].startswith("Task (1/4)")
+
+    subtask_id = progress.add_subtask("Subtask", total=2)
+    progress.update_subtask(subtask_id, advance="1")
+    assert any("Subtask (1/2)" in message for message in bridge.messages)
+
+    nested_id = progress.add_nested_subtask(subtask_id, "Nested", total=2)
+    progress.update_nested_subtask(subtask_id, nested_id, advance="1")
+    assert any("Nested (1/2)" in message for message in bridge.messages)
+
+    previous_messages = tuple(bridge.messages)
+    progress.update(advance="invalid")
+    assert bridge.messages[-1].startswith("Task (1/4)")
+    assert len(bridge.messages) == len(previous_messages) + 1
