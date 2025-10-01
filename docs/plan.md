@@ -476,5 +476,7 @@ Notes and next actions
 - 2025-09-15: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report --maxfail=1` completed but yielded only 13.68 % coverage; the new gate fails and artifacts persist. Reopened issues/coverage-below-threshold.md to track remediation.
 
 ## Autoresearch alignment
-- Autoresearch RFC evaluation published in [docs/analysis/autoresearch_evaluation.md](analysis/autoresearch_evaluation.md) with follow-up tickets tracking knowledge graph expansion, agent specialization, and dashboard overlays ([issues/Autoresearch-knowledge-graph-expansion.md](../issues/Autoresearch-knowledge-graph-expansion.md), [issues/Autoresearch-agent-specialization.md](../issues/Autoresearch-agent-specialization.md), [issues/Autoresearch-traceability-dashboard.md](../issues/Autoresearch-traceability-dashboard.md)).
+- Autoresearch RFC evaluation published in [docs/analysis/autoresearch_evaluation.md](analysis/autoresearch_evaluation.md).
+- Traceability dashboard overlays, signed telemetry bundles, and MVUU user-guide updates have been delivered and archived (`artifacts/mvuu_overlay_mock.html`, `artifacts/mvuu_autoresearch_overlay_snapshot.json`, and [docs/user_guides/mvuu_dashboard.md](user_guides/mvuu_dashboard.md)), closing [issues/Autoresearch-traceability-dashboard.md](../issues/Autoresearch-traceability-dashboard.md) for the 0.1.0a1 milestone.
+- Next milestone: integrate external Autoresearch connectors (MCP tool exposure → A2A orchestration → SPARQL access) so live telemetry replaces the current stubs while maintaining privacy safeguards and signed evidence flows.
 

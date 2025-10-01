@@ -1,5 +1,5 @@
 Milestone: 0.1.0-alpha.2
-Status: open
+Status: closed
 Owner: Observability Guild
 
 Priority: medium
@@ -32,6 +32,9 @@ translate into implementation work.
 - Autoresearch overlay mock-up: `artifacts/mvuu_overlay_mock.html`
 - Telemetry snapshot: `artifacts/mvuu_autoresearch_overlay_snapshot.json`
 - User guidance: `docs/user_guides/mvuu_dashboard.md`
+
+## Resolution (2025-10-01)
+- Acceptance criteria met with overlays, telemetry exports, and documentation updates archived for 0.1.0a1. See the overlay mock (`artifacts/mvuu_overlay_mock.html`), signed telemetry snapshot (`artifacts/mvuu_autoresearch_overlay_snapshot.json`), and MVUU user guide (`docs/user_guides/mvuu_dashboard.md`) for the implementation evidence. Next milestone tracks external connector integration so live Autoresearch telemetry can replace the current stubs.
 
 ## References
 - docs/analysis/mvuu_dashboard.md
