@@ -6,6 +6,7 @@ from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.domain.models.memory import MemoryVector
 
 # Transactions require kuzu and run a bit longer than unit tests
+
 pytestmark = [pytest.mark.requires_resource("kuzu")]
 
 

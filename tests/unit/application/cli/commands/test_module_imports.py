@@ -9,6 +9,8 @@ import pytest
 
 import devsynth.application.cli.commands as commands_pkg
 
+pytestmark = [pytest.mark.fast]
+
 MODULE_NAMES = sorted(
     [
         module.name

@@ -1,4 +1,7 @@
 from devsynth.application.llm.provider_factory import factory
+import pytest
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_default_selection_is_deterministic(monkeypatch):

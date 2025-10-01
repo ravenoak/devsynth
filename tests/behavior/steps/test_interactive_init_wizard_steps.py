@@ -12,6 +12,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.config.unified_loader import UnifiedConfigLoader
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/interactive_init_wizard.feature")

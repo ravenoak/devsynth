@@ -11,6 +11,7 @@ from .cli_commands_steps import (  # noqa: F401
     valid_devsynth_project,
 )
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/dbschema_generation.feature")

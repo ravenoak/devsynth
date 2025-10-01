@@ -14,6 +14,7 @@ from devsynth.domain.models.requirement import (
     RequirementChange,
 )
 
+
 pytestmark = [pytest.mark.fast]
 
 # Load the feature file

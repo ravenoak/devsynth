@@ -36,6 +36,7 @@ if "argon2" not in sys.modules:
 from devsynth.agents.sandbox import Sandbox
 from devsynth.agents.tools import ToolRegistry
 
+
 pytestmark = pytest.mark.fast
 
 

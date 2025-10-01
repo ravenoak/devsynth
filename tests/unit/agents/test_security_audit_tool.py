@@ -2,8 +2,11 @@
 
 from types import ModuleType
 from unittest.mock import patch
+import pytest
 
 from devsynth.agents.tools import get_tool_registry, security_audit_tool
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_security_audit_tool_returns_structure() -> None:

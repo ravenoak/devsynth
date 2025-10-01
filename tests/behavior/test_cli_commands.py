@@ -27,6 +27,7 @@ DOCTOR_FEATURE = os.path.join(
 )
 
 # Mark all tests as requiring CLI resource
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.requires_resource("cli"),

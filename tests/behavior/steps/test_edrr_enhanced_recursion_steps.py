@@ -12,6 +12,7 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Register feature scenarios.
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/edrr_enhanced_recursion.feature")

@@ -4,6 +4,8 @@ import pytest
 
 from devsynth.domain.models.wsde_facade import WSDETeam
 
+pytestmark = [pytest.mark.fast]
+
 
 def create_agent(name: str, expertise: list[str]):
     agent = MagicMock()

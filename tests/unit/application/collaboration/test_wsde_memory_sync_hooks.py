@@ -6,6 +6,8 @@ import pytest
 
 from devsynth.application.collaboration.dto import AgentOpinionRecord
 from devsynth.application.collaboration.wsde_team_consensus import (
+
+pytestmark = [pytest.mark.fast]
     ConsensusBuildingMixin,
 )
 from devsynth.application.memory.memory_manager import MemoryManager

@@ -4,6 +4,8 @@ import pytest
 
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 
+pytestmark = [pytest.mark.slow]
+
 
 def _build_coord(config):
     return EDRRCoordinator(

@@ -3,6 +3,8 @@ import types
 
 import pytest
 
+pytestmark = [pytest.mark.fast]
+
 # Stub heavy optional dependencies before importing cli_commands
 langgraph = types.ModuleType("langgraph")
 checkpoint = types.ModuleType("langgraph.checkpoint")

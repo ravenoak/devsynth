@@ -120,4 +120,3 @@ def test_multidisciplinary_analysis_structures_results():
     assert len(result["perspectives"]) == 2
     assert result["evaluation"]["score"] > 0
     assert any("inclusive design" in rec for rec in result["perspectives"][0]["recommendations"])
-

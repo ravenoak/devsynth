@@ -13,6 +13,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.memory.layered_cache import DictCacheLayer, MultiLayeredMemory
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/memory_adapter_read_and_write_operations.feature")

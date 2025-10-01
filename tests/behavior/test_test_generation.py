@@ -7,6 +7,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.agents.test import TestAgent
 
+
 pytestmark = [pytest.mark.fast]
 
 FEATURE_FILE = (

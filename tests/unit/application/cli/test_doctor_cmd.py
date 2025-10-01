@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+
 pytestmark = [pytest.mark.memory_intensive]
 
 # Create minimal stubs to avoid importing heavy dependencies when loading doctor_cmd

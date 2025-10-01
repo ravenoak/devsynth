@@ -1,5 +1,8 @@
 import sys
 import types
+import pytest
+
+pytestmark = [pytest.mark.slow]
 
 openai_mod = types.ModuleType("openai")
 setattr(openai_mod, "OpenAI", object)

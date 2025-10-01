@@ -6,6 +6,7 @@ from pytest_bdd import scenarios
 # Import step definitions to register them
 from .steps.test_cli_webui_parity_steps import *  # noqa: F401,F403
 
+
 pytestmark = [pytest.mark.fast]
 
 feature_file = os.path.join(

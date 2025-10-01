@@ -16,6 +16,7 @@ from devsynth.application.requirements.interactions import (
 )
 from devsynth.interface.ux_bridge import UXBridge
 
+
 pytestmark = pytest.mark.fast
 
 

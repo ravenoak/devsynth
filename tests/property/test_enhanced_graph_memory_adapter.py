@@ -19,6 +19,7 @@ from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
 
 pytest.importorskip("rdflib")
 
+
 pytestmark = [pytest.mark.medium]
 
 

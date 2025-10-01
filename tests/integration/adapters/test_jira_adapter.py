@@ -1,6 +1,9 @@
 import yaml
+import pytest
 
 from devsynth.adapters.jira_adapter import JiraAdapter
+
+pytestmark = [pytest.mark.medium]
 
 
 def test_jira_adapter_config_loading(tmp_path) -> None:

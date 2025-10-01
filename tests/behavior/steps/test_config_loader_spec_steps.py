@@ -8,6 +8,7 @@ from devsynth.config.loader import (
     save_config,
 )
 
+
 pytestmark = pytest.mark.fast
 
 scenarios("../features/config_loader_spec.feature")

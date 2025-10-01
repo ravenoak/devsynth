@@ -5,6 +5,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.orchestration.workflow import workflow_manager
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/edrr_cycle.feature")

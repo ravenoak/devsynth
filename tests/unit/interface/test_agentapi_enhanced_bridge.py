@@ -7,6 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
+
 pytestmark = [pytest.mark.requires_resource("webui"), pytest.mark.fast]
 
 

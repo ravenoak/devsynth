@@ -10,6 +10,7 @@ import pytest
 
 import devsynth.testing.run_tests as rt
 
+
 pytestmark = pytest.mark.fast
 
 

@@ -11,6 +11,7 @@ from devsynth.application.ingestion import (
     ProjectStructureType,
 )
 
+
 pytestmark = pytest.mark.fast
 
 

@@ -9,6 +9,7 @@ from devsynth.application.cli._command_exports import COMMAND_ATTRIBUTE_NAMES
 from devsynth.interface.agentapi import APIBridge
 
 # Resource gating: exercises both CLI and WebUI layers
+
 pytestmark = [
     pytest.mark.gui,
     pytest.mark.requires_resource("cli"),

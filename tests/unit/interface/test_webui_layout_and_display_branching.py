@@ -8,6 +8,7 @@ import pytest
 
 import devsynth.interface.webui as webui_module
 
+
 pytestmark = [pytest.mark.fast]
 
 

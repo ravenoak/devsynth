@@ -4,6 +4,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/memory/memory_operations.feature")

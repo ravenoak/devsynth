@@ -9,6 +9,7 @@ from devsynth.interface import webui
 from devsynth.interface.webui.commands import CommandHandlingMixin
 from tests.fixtures.streamlit_mocks import make_streamlit_mock
 
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.usefixtures("force_webui_available"),

@@ -29,6 +29,7 @@ feature_file = os.path.join(
 
 # Load the scenarios from the feature file
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_file)

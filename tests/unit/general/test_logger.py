@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 import importlib
 import logging
 from logging.handlers import RotatingFileHandler
@@ -10,6 +12,8 @@ from pathlib import Path
 from _pytest.logging import LogCaptureHandler
 
 import devsynth.logger as ds_logger
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_configure_logging_creates_rotating_handler(tmp_path, monkeypatch):

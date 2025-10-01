@@ -5,6 +5,7 @@ from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.autocomplete import generate_completion_script
 
 # Resource gating: these tests exercise the CLI layer
+
 pytestmark = pytest.mark.requires_resource("cli")
 
 

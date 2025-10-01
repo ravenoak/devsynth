@@ -12,6 +12,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.consensus import build_consensus
 
+
 pytestmark = pytest.mark.fast
 
 scenarios("../features/consensus_building.feature")

@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = [pytest.mark.medium]
+
 pytest.importorskip("streamlit")
 from streamlit.testing.v1 import AppTest
 

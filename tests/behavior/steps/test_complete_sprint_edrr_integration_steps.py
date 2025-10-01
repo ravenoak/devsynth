@@ -8,6 +8,7 @@ from devsynth.methodology.sprint_adapter import (
     align_sprint_review,
 )
 
+
 pytestmark = [pytest.mark.fast]
 
 # Load the feature file

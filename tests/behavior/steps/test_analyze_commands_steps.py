@@ -16,6 +16,7 @@ from devsynth.adapters.cli.typer_adapter import parse_args, run_cli, show_help
 from devsynth.application.cli.commands.inspect_code_cmd import inspect_code_cmd
 from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_cmd
 
+
 pytestmark = [pytest.mark.fast]
 
 # Register the scenarios

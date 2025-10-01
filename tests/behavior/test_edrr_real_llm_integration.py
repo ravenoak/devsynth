@@ -8,6 +8,7 @@ import pytest
 from pytest_bdd import scenarios
 
 # Mark all scenarios with documented resource markers for live providers
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.requires_resource("openai"),

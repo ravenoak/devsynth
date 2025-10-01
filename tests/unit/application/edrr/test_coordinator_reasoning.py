@@ -6,6 +6,8 @@ import pytest
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.documentation.documentation_manager import (
+
+pytestmark = [pytest.mark.fast]
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator

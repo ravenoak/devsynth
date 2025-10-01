@@ -17,6 +17,7 @@ from devsynth.application.cli.cli_commands import webui_cmd
 
 # Register the feature scenarios
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/webui/command.feature")

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import pytest
+
 from devsynth.core.mvu.models import MVUU
 from devsynth.core.mvu.storage import append_mvuu_footer, format_mvuu_footer
+
+pytestmark = [pytest.mark.fast]
 
 
 def _sample_mvuu() -> MVUU:

@@ -2,6 +2,7 @@ import pytest
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
+
 pytestmark = [
     pytest.mark.requires_resource("lmdb"),
     pytest.mark.requires_resource("faiss"),

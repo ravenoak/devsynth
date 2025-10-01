@@ -4,6 +4,8 @@ from pathlib import Path
 import pytest
 from jsonschema import validate
 
+pytestmark = [pytest.mark.fast]
+
 
 @pytest.mark.no_network
 def test_mvuu_example_conforms_to_schema():

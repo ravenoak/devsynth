@@ -12,6 +12,7 @@ import pytest
 import devsynth.adapters.provider_system as provider_system
 import devsynth.fallback as fallback_module
 
+
 pytestmark = pytest.mark.fast
 
 

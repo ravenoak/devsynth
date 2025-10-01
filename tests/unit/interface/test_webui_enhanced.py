@@ -4,6 +4,8 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
+pytestmark = [pytest.mark.fast]
+
 
 class SessionState(dict):
     """A dictionary that also allows attribute access."""

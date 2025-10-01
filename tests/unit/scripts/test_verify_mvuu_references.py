@@ -1,4 +1,7 @@
 import sys
+import pytest
+
+pytestmark = [pytest.mark.fast]
 
 sys.path.append("scripts")
 

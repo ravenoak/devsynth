@@ -16,6 +16,7 @@ FEATURE_FILE = os.path.join(
     os.path.dirname(__file__), "features", "general", "run_tests.feature"
 )
 
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.requires_resource("cli"),

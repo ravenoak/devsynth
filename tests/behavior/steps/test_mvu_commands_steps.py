@@ -13,6 +13,7 @@ from devsynth.application.cli.commands.mvu_lint_cmd import mvu_lint_cmd
 from devsynth.application.cli.commands.mvu_report_cmd import mvu_report_cmd
 from devsynth.application.cli.commands.mvu_rewrite_cmd import mvu_rewrite_cmd
 
+
 pytestmark = [pytest.mark.fast]
 
 

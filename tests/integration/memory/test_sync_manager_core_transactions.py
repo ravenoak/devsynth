@@ -7,6 +7,7 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
+
 pytestmark = [
     pytest.mark.requires_resource("lmdb"),
     pytest.mark.requires_resource("faiss"),

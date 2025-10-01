@@ -3,6 +3,7 @@
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/alignment_metrics_command.feature")

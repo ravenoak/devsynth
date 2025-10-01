@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import pytest
+
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from devsynth.core import mvu
+
+pytestmark = [pytest.mark.fast]
 
 
 def _init_repo(path: Path) -> None:

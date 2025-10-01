@@ -9,6 +9,7 @@ import pytest
 
 from devsynth.application.memory import duckdb_store
 
+
 pytestmark = [pytest.mark.fast, pytest.mark.requires_resource("duckdb")]
 
 

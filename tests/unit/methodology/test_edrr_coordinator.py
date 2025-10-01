@@ -2,6 +2,9 @@
 
 from devsynth.exceptions import ConsensusError
 from devsynth.methodology.edrr import EDRRCoordinator
+import pytest
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_automate_retrospective_review_summarizes_results() -> None:

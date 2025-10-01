@@ -16,6 +16,7 @@ from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
 from devsynth.application.memory.adapters.graph_memory_adapter import DEVSYNTH
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/advanced_graph_memory_features.feature")

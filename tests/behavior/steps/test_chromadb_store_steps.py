@@ -4,6 +4,7 @@ from pytest_bdd import given, scenarios, then, when
 pytest.importorskip("chromadb")
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.requires_resource("chromadb"),

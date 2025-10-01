@@ -6,6 +6,7 @@ from types import ModuleType
 import pytest
 
 # Speed discipline
+
 pytestmark = pytest.mark.fast
 
 

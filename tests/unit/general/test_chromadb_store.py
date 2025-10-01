@@ -20,6 +20,7 @@ try:
     from devsynth.application.memory.chromadb_store import ChromaDBStore
 except Exception as exc:
     pytest.skip(f"ChromaDBStore unavailable: {exc}", allow_module_level=True)
+
 pytestmark = pytest.mark.requires_resource("chromadb")
 
 

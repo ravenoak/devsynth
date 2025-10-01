@@ -15,6 +15,7 @@ from devsynth.domain.models.requirement import (
     RequirementPriority,
 )
 
+
 pytestmark = pytest.mark.fast
 
 

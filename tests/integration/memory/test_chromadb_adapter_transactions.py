@@ -7,6 +7,7 @@ ChromaDBAdapter = pytest.importorskip(
 ).ChromaDBAdapter
 from devsynth.domain.models.memory import MemoryVector
 
+
 pytestmark = [pytest.mark.requires_resource("chromadb")]
 
 

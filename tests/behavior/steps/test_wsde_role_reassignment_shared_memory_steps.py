@@ -16,6 +16,7 @@ from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.memory_manager import MemoryManager
 
+
 pytestmark = pytest.mark.fast
 
 if not hasattr(lmdb_mod, "open"):

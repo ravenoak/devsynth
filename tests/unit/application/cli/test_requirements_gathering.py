@@ -1,10 +1,13 @@
 import logging
+import pytest
 
 from _pytest.logging import LogCaptureHandler
 
 from devsynth.application.cli import requirements_commands as rc
 from devsynth.application.cli.errors import handle_error
 from devsynth.logging_setup import configure_logging
+
+pytestmark = [pytest.mark.fast]
 
 
 class DummyBridge:

@@ -102,6 +102,8 @@ def test_wsde_edrr_integration_end_to_end_succeeds(coordinator):
     """Test the complete integration between WSDE and EDRR.
 
     ReqID: N/A"""
+
+pytestmark = [pytest.mark.slow]
     task = {
         "description": "Create a Python function to calculate Fibonacci numbers",
         "language": "python",

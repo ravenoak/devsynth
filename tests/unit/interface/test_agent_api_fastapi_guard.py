@@ -12,6 +12,7 @@ pytest.importorskip("fastapi.testclient")
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+
 pytestmark = pytest.mark.fast
 
 

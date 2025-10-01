@@ -5,6 +5,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.simple_addition import add
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/simple_addition_input_validation.feature")

@@ -3,6 +3,7 @@ from pytest_bdd import scenarios, then, when
 
 from .webui_steps import webui_context
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/webui_spec_editor.feature")

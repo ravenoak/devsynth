@@ -28,6 +28,7 @@ chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
 if not chromadb_enabled:
     pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.requires_resource("chromadb"),

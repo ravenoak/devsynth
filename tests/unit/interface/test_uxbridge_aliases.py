@@ -2,6 +2,8 @@ import pytest
 
 from devsynth.interface.ux_bridge import UXBridge
 
+pytestmark = [pytest.mark.fast]
+
 
 class DummyBridge(UXBridge):
 

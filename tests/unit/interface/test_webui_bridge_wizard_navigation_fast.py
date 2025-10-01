@@ -9,6 +9,7 @@ import pytest
 
 from devsynth.interface import webui_bridge
 
+
 pytestmark = pytest.mark.fast
 
 

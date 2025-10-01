@@ -5,6 +5,8 @@ import pytest
 from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.metrics import get_retry_count_metrics, get_retry_metrics, reset_metrics
 
+pytestmark = [pytest.mark.fast]
+
 
 class NetworkError(Exception):
     pass

@@ -6,6 +6,7 @@ from pytest_bdd import scenarios
 from .steps.cli_commands_steps import *
 from .steps.test_devsynth_doctor_steps import *
 
+
 pytestmark = [pytest.mark.fast]
 
 # Get the absolute path to the feature file

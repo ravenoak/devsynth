@@ -1,6 +1,7 @@
 import pytest
 
 # Speed marker discipline: exactly one speed marker
+
 pytestmark = pytest.mark.fast
 
 """

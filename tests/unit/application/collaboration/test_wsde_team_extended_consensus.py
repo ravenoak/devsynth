@@ -14,6 +14,7 @@ from devsynth.application.collaboration.wsde_team_extended import CollaborativeW
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 
+
 pytestmark = [pytest.mark.medium]
 
 

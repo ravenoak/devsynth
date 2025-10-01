@@ -182,6 +182,8 @@ def test_code_analysis_in_wsde_team_succeeds(wsde_team_with_code_analysis):
     """Test that code analysis can be performed by a WSDE team.
 
     ReqID: N/A"""
+
+pytestmark = [pytest.mark.slow]
     task_data = {
         "analyze_code": """
 def calculate_sum(a, b):

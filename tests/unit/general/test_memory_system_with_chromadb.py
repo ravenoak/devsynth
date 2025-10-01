@@ -19,6 +19,7 @@ from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
+
 pytestmark = pytest.mark.requires_resource("chromadb")
 
 

@@ -4,6 +4,8 @@ from datetime import datetime
 import pytest
 
 from devsynth.application.collaboration.collaborative_wsde_team import (
+
+pytestmark = [pytest.mark.slow]
     CollaborativeWSDETeam,
 )
 from devsynth.application.memory.memory_manager import MemoryManager

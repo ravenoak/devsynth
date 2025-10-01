@@ -11,6 +11,7 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 from devsynth.domain.models.wsde_facade import WSDETeam
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/delegate_task.feature")

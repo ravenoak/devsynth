@@ -4,6 +4,8 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
+pytestmark = [pytest.mark.fast]
+
 
 @pytest.fixture
 def stub_streamlit(monkeypatch):

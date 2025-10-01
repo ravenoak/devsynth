@@ -15,6 +15,7 @@ from devsynth.domain.interfaces.requirement import (
 )
 from devsynth.domain.models.requirement import RequirementChange
 
+
 pytestmark = pytest.mark.fast
 scenarios("../features/dialectical_reasoning.feature")
 

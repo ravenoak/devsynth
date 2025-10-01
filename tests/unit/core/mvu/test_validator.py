@@ -7,6 +7,8 @@ import pytest
 from devsynth.core.mvu.models import MVUU
 from devsynth.core.mvu.validator import validate_affected_files, validate_commit_message
 
+pytestmark = [pytest.mark.fast]
+
 
 def _sample_data() -> dict:
     return {

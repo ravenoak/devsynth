@@ -22,6 +22,7 @@ from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
+
 pytestmark = [pytest.mark.fast]
 
 # Register feature scenarios.

@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, mock_open
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
 pytestmark = pytest.mark.fast
 
 

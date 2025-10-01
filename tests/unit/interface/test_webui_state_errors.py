@@ -4,6 +4,8 @@ import pytest
 
 from devsynth.interface import webui_state
 
+pytestmark = [pytest.mark.fast]
+
 
 class BrokenSessionState(dict):
     def keys(self):  # pragma: no cover - used for triggering error
