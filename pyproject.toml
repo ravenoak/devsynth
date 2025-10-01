@@ -367,6 +367,7 @@ markers = [
     # Test type markers
     "unit: mark test as a unit test subset",
     "integration: mark test as an integration test",
+    "integtest: mark integration-provider smoke tests",
     "performance: mark test as a performance test",
     "property: mark property-based test (opt-in via DEVSYNTH_PROPERTY_TESTING)",
     "smoke: mark test as part of smoke profile (minimal plugins, no parallel)",
