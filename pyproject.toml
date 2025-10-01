@@ -223,6 +223,13 @@ mypy_path = [
     "stubs/rdflib",
     "stubs/jsonschema",
     "stubs/astor",
+    "stubs/pydantic",
+    "stubs/pydantic_settings",
+    "stubs/coverage",
+    "stubs/rich",
+    "stubs/argon2",
+    "stubs/tiktoken",
+    "stubs/networkx",
 ]
 python_version = "3.12"
 warn_return_any = true

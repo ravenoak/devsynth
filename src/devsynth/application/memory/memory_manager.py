@@ -33,7 +33,7 @@ from .dto import (
     build_memory_record,
     build_query_results,
 )
-from .error_logger import memory_error_logger
+from .error_logger import ErrorRecord, memory_error_logger
 from .query_router import QueryRouter
 from .retry import retry_memory_operation, retry_with_backoff
 from .sync_manager import SyncManager
@@ -852,7 +852,7 @@ class MemoryManager:
         adapter_name: Optional[str] = None,
         error_type: Optional[str] = None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[ErrorRecord]:
         """
         Get recent memory operation errors, optionally filtered by criteria.
 
@@ -863,7 +863,7 @@ class MemoryManager:
             limit: Maximum number of errors to return
 
         Returns:
-            A list of error entries
+            A list of structured error entries
         """
         return memory_error_logger.get_recent_errors(
             operation=operation,

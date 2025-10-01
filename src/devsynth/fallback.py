@@ -68,17 +68,38 @@ logger = DevSynthLogger("fallback")
 ANONYMOUS_CONDITION = "<anonymous>"
 
 
+def _substring_condition(substring: str) -> RetryConditionFunc:
+    def _matches_message(exc: Exception) -> bool:
+        return substring in str(exc)
+
+    return _matches_message
+
+
+def _exception_condition(exception_type: type[BaseException]) -> RetryConditionFunc:
+    def _matches_type(exc: Exception) -> bool:
+        return isinstance(exc, exception_type)
+
+    return _matches_type
+
+
 def _condition_from_spec(spec: RetryConditionSpec) -> RetryConditionFunc:
     if isinstance(spec, str):
-        return lambda exc, substr=spec: substr in str(exc)
+        return _substring_condition(spec)
     if isinstance(spec, type) and issubclass(spec, BaseException):
-        return lambda exc, cls=spec: isinstance(exc, cls)
+        return _exception_condition(spec)
     return spec
+
+
+def _status_code_predicate(code: int) -> Callable[[ResultT], bool]:
+    def _matches_status(result: ResultT) -> bool:
+        return getattr(result, "status_code", None) == code
+
+    return _matches_status
 
 
 def _predicate_from_spec(value: Callable[[ResultT], bool] | int) -> Callable[[ResultT], bool]:
     if isinstance(value, int):
-        return lambda res, code=value: getattr(res, "status_code", None) == code
+        return _status_code_predicate(value)
     return value
 
 
@@ -86,7 +107,7 @@ def _fallback_condition_from_spec(
     spec: FallbackConditionSpec,
 ) -> FallbackConditionFunc:
     if isinstance(spec, str):
-        return lambda exc, substr=spec: substr in str(exc)
+        return _substring_condition(spec)
     return spec
 
 

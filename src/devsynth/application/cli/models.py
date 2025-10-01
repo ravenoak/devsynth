@@ -9,7 +9,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Protocol, TypeAlias, overload, runtime_checkable
 
 if TYPE_CHECKING:  # pragma: no cover - import for typing only
-    from rich.console import RenderableType  # type: ignore[import-not-found]
+    from rich.console import RenderableType
 else:  # pragma: no cover - fallback for runtime when Rich is unavailable
     RenderableType = object
 

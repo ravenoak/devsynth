@@ -18,7 +18,7 @@ def test_log_error_enforces_max_errors():
             logger.log_error("op", f"adapter{i}", exc)
 
     assert len(logger.errors) == 5
-    assert logger.errors[0]["error_message"] == "error 2"
+    assert logger.errors[0].error_message == "error 2"
 
 
 @pytest.mark.fast

@@ -6,12 +6,12 @@ from collections.abc import Sequence
 from enum import Enum
 from typing import Optional, Union
 
-from rich.console import Console  # type: ignore[import-not-found]
-from rich.markdown import Markdown  # type: ignore[import-not-found]
-from rich.panel import Panel  # type: ignore[import-not-found]
-from rich.syntax import Syntax  # type: ignore[import-not-found]
-from rich.table import Table  # type: ignore[import-not-found]
-from rich.text import Text  # type: ignore[import-not-found]
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.syntax import Syntax
+from rich.table import Table
+from rich.text import Text
 
 
 from devsynth.application.cli.models import (
