@@ -9,10 +9,9 @@ produced.
 
 Inside each timestamped folder:
 
-- Archive coverage output as zipped HTML bundles named
-  `htmlcov-<timestamp>-fast-medium.zip` so they can be tracked alongside the raw
-  reports, and store the accompanying `test_reports/coverage.json` showing ≥90 %
-  totals.
+- Capture coverage output with `test_reports/coverage.json` and, when HTML
+  bundles are produced, add a `.manifest.txt` note that records how to
+  regenerate them locally (binary artifacts are not committed).
 - Capture the relevant log files (e.g. copies from `logs/` and
   `diagnostics/`) that prove which commands ran and their environment details.
 - Include any additional evidence (screenshots, JSON summaries, strict mypy

@@ -154,7 +154,7 @@ if TYPE_CHECKING:  # pragma: no cover - type checking only
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 MemoryRecordInput: TypeAlias = (
-    "MemoryRecord"
+    MemoryRecord
     | MemoryItem
     | MemoryVector
     | tuple[object, float]

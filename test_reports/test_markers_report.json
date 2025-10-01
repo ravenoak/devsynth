@@ -1,14 +1,14 @@
 {
   "markers": {
-    "fast": 1660,
-    "medium": 1562,
-    "requires_resource": 80,
+    "fast": 1667,
     "no_network": 15,
+    "medium": 1562,
+    "parametrize": 70,
+    "requires_resource": 76,
     "integration": 4,
     "gui": 1,
     "cli": 1,
     "isolation": 7,
-    "parametrize": 62,
     "docker": 2,
     "slow": 39,
     "memory_intensive": 1,
@@ -22,7 +22,7 @@
     "skip": 2,
     "allow_real_coverage_artifacts": 2
   },
-  "files_scanned": 1231,
+  "files_scanned": 1234,
   "files_with_issues": 0,
   "undocumented_markers": []
 }
