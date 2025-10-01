@@ -12,6 +12,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 pytest.importorskip("kuzu")
 
 # Memory system tests involve kuzu but remain reasonably quick
+
 pytestmark = [pytest.mark.requires_resource("kuzu")]
 
 

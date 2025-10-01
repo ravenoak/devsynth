@@ -29,6 +29,7 @@ from .steps.test_cli_ux_enhancements_steps import (
     type_partial_command,
 )
 
+
 pytestmark = [pytest.mark.fast]
 
 # Load scenarios from the feature file

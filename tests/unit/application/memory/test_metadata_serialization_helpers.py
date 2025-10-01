@@ -120,4 +120,3 @@ def test_query_results_from_rows_shapes_records() -> None:
     assert primary_record.source == "primary"
     assert secondary_record.source == "secondary"
     assert secondary_record.similarity == pytest.approx(0.33)
-

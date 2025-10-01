@@ -13,6 +13,7 @@ from devsynth.exceptions import DevSynthError
 from devsynth.metrics import get_retry_metrics, reset_metrics
 
 # These unit tests execute quickly
+
 pytestmark = [
     pytest.mark.requires_resource("lmstudio")
 ]  # speed markers on functions only

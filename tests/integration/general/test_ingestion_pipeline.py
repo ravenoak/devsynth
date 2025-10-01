@@ -136,6 +136,8 @@ class TestIngestionMetrics:
 
     ReqID: N/A"""
 
+
+pytestmark = [pytest.mark.slow]
     def test_metrics_initialization_succeeds(self):
         """Test initialization of IngestionMetrics.
 

@@ -3,6 +3,7 @@ import pytest
 FAISSStore = pytest.importorskip("devsynth.application.memory.faiss_store").FAISSStore
 from devsynth.domain.models.memory import MemoryVector
 
+
 pytestmark = [
     pytest.mark.requires_resource("faiss"),
 ]

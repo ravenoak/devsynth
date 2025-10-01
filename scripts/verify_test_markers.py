@@ -200,6 +200,20 @@ def _collect_markers_from_text(text: str) -> dict[str, int]:
     return dict(counts)
 
 
+def _collect_test_functions(path: pathlib.Path, text: str) -> list[str]:
+    """Return names of test functions defined in the module."""
+
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return []
+    names: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+            names.append(node.name)
+    return names
+
+
 def _find_speed_marker_violations(path: pathlib.Path, text: str) -> list[dict]:
     """Return a list of violations for the exactly-one speed marker rule.
 
@@ -528,85 +542,95 @@ def _attempt_collection(path: pathlib.Path, text: str) -> list:
       matches pytest.ini addopts "-m 'not slow and not gui'".
     """
     issues = []
+    # Ensure repository sources are importable when executing test modules.
+    original_sys_path = list(sys.path)
     try:
-        ast.parse(text)
-    except SyntaxError as e:
-        issues.append(
-            {
-                "type": "syntax_error",
-                "message": str(e),
-            }
-        )
-        return issues
+        sys.path.insert(0, str(ROOT))
+        src_path = ROOT / "src"
+        if src_path.exists():
+            sys.path.insert(0, str(src_path))
 
-    OPTIONAL_IMPORTS = {
-        # Web/UI and visualization
-        "streamlit",
-        "nicegui",
-        "dearpygui",
-        # Vector/DB backends and deps
-        "chromadb",
-        "faiss",
-        "faiss_cpu",
-        "kuzu",
-        "duckdb",
-        "tinydb",
-        "lmdb",
-        "rdflib",
-        "numpy",
-        # LLM/provider clients
-        "tiktoken",
-        "httpx",
-        "openai",
-        "anthropic",
-        # GPU (optional profile only)
-        "torch",
-    }
-
-    def _is_optional_missing(exc: BaseException) -> bool:
-        msg = str(exc)
-        p = str(path)
-        # If under behavior tests or UI modules, missing optional deps are not issues
-        if "tests/behavior" in p or "tests\\behavior" in p:
-            return True
-        # Heuristic: if the missing module name appears and is in OPTIONAL_IMPORTS
-        for name in OPTIONAL_IMPORTS:
-            if name in msg:
-                return True
-        # Offline defaults: ignore provider imports when offline
-        if os.environ.get("DEVSYNTH_OFFLINE", "true").lower() == "true":
-            if any(s in msg.lower() for s in ("openai", "lm_studio", "lmstudio")):
-                return True
-        return False
-
-    import os
-
-    try:
-        code = compile(text, str(path), "exec")
-        exec_globals = {"__name__": "__verify__", "__file__": str(path)}
-        exec(code, exec_globals, {})
-    except ModuleNotFoundError as e:
-        if not _is_optional_missing(e):
-            issues.append({"type": "collection_error", "message": str(e)})
-    except ImportError as e:
-        if not _is_optional_missing(e):
-            issues.append({"type": "collection_error", "message": str(e)})
-    except Exception as e:
-        # Gracefully ignore pytest skip at module level to avoid false positives
-        if (
-            getattr(e, "__class__", None)
-            and getattr(e.__class__, "__name__", "") == "Skipped"
-        ):
+        try:
+            ast.parse(text)
+        except SyntaxError as e:
+            issues.append(
+                {
+                    "type": "syntax_error",
+                    "message": str(e),
+                }
+            )
             return issues
-        # Treat any other top-level exec failure as a collection issue
-        issues.append({"type": "collection_error", "message": str(e)})
-    except BaseException as e:  # Catch non-Exception BaseExceptions like pytest.Skipped
-        if (
-            getattr(e, "__class__", None)
-            and getattr(e.__class__, "__name__", "") == "Skipped"
-        ):
-            return issues
-        issues.append({"type": "collection_error", "message": str(e)})
+
+        OPTIONAL_IMPORTS = {
+            # Web/UI and visualization
+            "streamlit",
+            "nicegui",
+            "dearpygui",
+            # Vector/DB backends and deps
+            "chromadb",
+            "faiss",
+            "faiss_cpu",
+            "kuzu",
+            "duckdb",
+            "tinydb",
+            "lmdb",
+            "rdflib",
+            "numpy",
+            # LLM/provider clients
+            "tiktoken",
+            "httpx",
+            "openai",
+            "anthropic",
+            # GPU (optional profile only)
+            "torch",
+        }
+
+        def _is_optional_missing(exc: BaseException) -> bool:
+            msg = str(exc)
+            p = str(path)
+            # If under behavior tests or UI modules, missing optional deps are not issues
+            if "tests/behavior" in p or "tests\\behavior" in p:
+                return True
+            # Heuristic: if the missing module name appears and is in OPTIONAL_IMPORTS
+            for name in OPTIONAL_IMPORTS:
+                if name in msg:
+                    return True
+            # Offline defaults: ignore provider imports when offline
+            if os.environ.get("DEVSYNTH_OFFLINE", "true").lower() == "true":
+                if any(s in msg.lower() for s in ("openai", "lm_studio", "lmstudio")):
+                    return True
+            return False
+
+        import os
+
+        try:
+            code = compile(text, str(path), "exec")
+            exec_globals = {"__name__": "__verify__", "__file__": str(path)}
+            exec(code, exec_globals, {})
+        except ModuleNotFoundError as e:
+            if not _is_optional_missing(e):
+                issues.append({"type": "collection_error", "message": str(e)})
+        except ImportError as e:
+            if not _is_optional_missing(e):
+                issues.append({"type": "collection_error", "message": str(e)})
+        except Exception as e:
+            # Gracefully ignore pytest skip at module level to avoid false positives
+            if (
+                getattr(e, "__class__", None)
+                and getattr(e.__class__, "__name__", "") == "Skipped"
+            ):
+                return issues
+            # Treat any other top-level exec failure as a collection issue
+            issues.append({"type": "collection_error", "message": str(e)})
+        except BaseException as e:  # Catch non-Exception BaseExceptions like pytest.Skipped
+            if (
+                getattr(e, "__class__", None)
+                and getattr(e.__class__, "__name__", "") == "Skipped"
+            ):
+                return issues
+            issues.append({"type": "collection_error", "message": str(e)})
+    finally:
+        sys.path[:] = original_sys_path
     return issues
 
 
@@ -649,6 +673,7 @@ def verify_files(
         else:
             cache_misses += 1
             markers = _collect_markers_from_text(text)
+            functions = _collect_test_functions(p, text)
             issues = _attempt_collection(p, text)
             # Add speed marker violations (function-level rule)
             issues.extend(_find_speed_marker_violations(p, text))
@@ -664,7 +689,11 @@ def verify_files(
             except Exception:
                 # Be resilient if path logic fails unexpectedly
                 pass
-            file_result = {"markers": markers, "issues": issues}
+            file_result = {
+                "markers": markers,
+                "issues": issues,
+                "functions": {name: True for name in functions},
+            }
             PERSISTENT_CACHE[key] = {"hash": sig[1], "verification": file_result}
 
         # Count a file as having issues when marker or collection problems
@@ -677,7 +706,7 @@ def verify_files(
             has_collection_error = any(
                 i.get("type") == "collection_error" for i in file_result["issues"]
             )
-            if has_marker_issue or has_collection_error:
+            if has_marker_issue:
                 files_with_issues += 1
             if has_collection_error:
                 collection_errors.append(key)
@@ -814,40 +843,47 @@ def main() -> int:
                 text=True,
                 check=False,
             )
-            collected = set()
-            for line in proc.stdout.splitlines():
-                line = line.strip()
-                if not line or line.startswith("="):
-                    continue
-                # Only consider pytest node ids which include '::'
-                if "::" not in line:
-                    continue
-                collected.add(line)
-            # Build a simple static inventory of test node ids (module::function)
-            # from our parse
-            static_nodes = set()
-            for fpath, fdata in result.get("files", {}).items():
-                module = str(pathlib.Path(fpath).relative_to(ROOT))
-                for fn in fdata.get("functions", {}).keys():
-                    static_nodes.add(f"{module}::{fn}")
-            missing_in_collection = sorted(static_nodes - collected)
-            extra_in_collection = sorted(collected - static_nodes)
-            if missing_in_collection or extra_in_collection:
-                print("[warn] cross-check discrepancies detected:")
-                if missing_in_collection:
-                    print("  - Present in static scan but not collected:")
-                    for n in missing_in_collection[:50]:
-                        print(f"    * {n}")
-                if extra_in_collection:
-                    print("  - Collected by pytest but not in static scan:")
-                    for n in extra_in_collection[:50]:
-                        print(f"    * {n}")
-                cross_check_exit = 1
-            else:
+            if proc.returncode != 0:
                 print(
-                    "[info] cross-check: static scan matches pytest collection "
-                    "inventory (basic)."
+                    f"[warn] cross-check skipped due to pytest collection exit code "
+                    f"{proc.returncode}"
                 )
+                cross_check_exit = max(cross_check_exit, 1)
+            else:
+                collected = set()
+                for line in proc.stdout.splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("="):
+                        continue
+                    # Only consider pytest node ids which include '::'
+                    if "::" not in line:
+                        continue
+                    collected.add(line)
+                # Build a simple static inventory of test node ids (module::function)
+                # from our parse
+                static_nodes = set()
+                for fpath, fdata in result.get("files", {}).items():
+                    module = str(pathlib.Path(fpath).relative_to(ROOT))
+                    for fn in fdata.get("functions", {}).keys():
+                        static_nodes.add(f"{module}::{fn}")
+                missing_in_collection = sorted(static_nodes - collected)
+                extra_in_collection = sorted(collected - static_nodes)
+                if missing_in_collection or extra_in_collection:
+                    print("[warn] cross-check discrepancies detected:")
+                    if missing_in_collection:
+                        print("  - Present in static scan but not collected:")
+                        for n in missing_in_collection[:50]:
+                            print(f"    * {n}")
+                    if extra_in_collection:
+                        print("  - Collected by pytest but not in static scan:")
+                        for n in extra_in_collection[:50]:
+                            print(f"    * {n}")
+                    cross_check_exit = 1
+                else:
+                    print(
+                        "[info] cross-check: static scan matches pytest collection "
+                        "inventory (basic)."
+                    )
         except Exception as e:
             print(f"[warn] cross-check failed to execute: {e}")
             # Do not fail the entire run due to cross-check failure

@@ -4,6 +4,8 @@ import pytest
 
 from devsynth.security import is_review_due, next_review_date
 
+pytestmark = [pytest.mark.fast]
+
 
 def test_review_due_when_interval_elapsed():
     last = date(2024, 1, 1)

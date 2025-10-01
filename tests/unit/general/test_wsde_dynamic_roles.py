@@ -5,6 +5,8 @@ import pytest
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
+pytestmark = [pytest.mark.fast]
+
 
 class SimpleAgent:
 

@@ -6,6 +6,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from devsynth.domain.models.wsde_utils import (
+
+pytestmark = [pytest.mark.fast]
     add_solution,
     broadcast_message,
     conduct_peer_review,

@@ -13,6 +13,7 @@ pytest.importorskip("lmdb")
 if os.environ.get("DEVSYNTH_RESOURCE_LMDB_AVAILABLE", "true").lower() == "false":
     pytest.skip("LMDB resource not available", allow_module_level=True)
 
+
 pytestmark = pytest.mark.requires_resource("lmdb")
 
 

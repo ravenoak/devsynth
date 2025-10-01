@@ -9,6 +9,7 @@ from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
     pytest.mark.requires_resource("kuzu"),

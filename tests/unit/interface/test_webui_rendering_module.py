@@ -6,6 +6,7 @@ import pytest
 
 from devsynth.interface.webui.rendering import ProjectSetupPages
 
+
 pytestmark = [pytest.mark.requires_resource("webui"), pytest.mark.fast]
 
 

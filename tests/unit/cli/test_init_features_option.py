@@ -4,6 +4,8 @@ from devsynth.application.cli.cli_commands import init_cmd
 from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.interface.cli import CLIUXBridge
 
+pytestmark = [pytest.mark.fast]
+
 
 def _run_init(tmp_path, features, monkeypatch):
     monkeypatch.chdir(tmp_path)

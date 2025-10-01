@@ -1,4 +1,7 @@
 from devsynth.testing.run_tests import _sanitize_node_ids
+import pytest
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_sanitize_node_ids_strips_trailing_line_without_function_delimiter():

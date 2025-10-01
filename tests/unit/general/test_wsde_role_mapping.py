@@ -4,6 +4,8 @@ import pytest
 
 from devsynth.domain.models.wsde_facade import WSDETeam
 
+pytestmark = [pytest.mark.fast]
+
 # These tests previously required the ``DEVSYNTH_RUN_WSDE_TESTS`` environment
 # variable to be set.  They now execute unconditionally as the global test
 # isolation fixture ensures no side effects.

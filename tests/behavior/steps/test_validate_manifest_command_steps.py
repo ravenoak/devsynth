@@ -9,6 +9,7 @@ from pytest_bdd import given, scenarios, then
 from .cli_commands_steps import *  # noqa: F401,F403 - re-export CLI steps
 from .test_analyze_commands_steps import check_error_message  # noqa: F401
 
+
 pytestmark = [pytest.mark.fast]
 
 

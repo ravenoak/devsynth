@@ -1,6 +1,9 @@
 from unittest.mock import MagicMock
+import pytest
 
 from devsynth.application.cli.progress import ProgressManager
+
+pytestmark = [pytest.mark.fast]
 
 
 class DummyBridge:

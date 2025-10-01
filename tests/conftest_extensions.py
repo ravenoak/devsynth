@@ -1,28 +1,123 @@
-"""
-Extensions to pytest configuration for test categorization and organization.
-"""
+"""Extensions to pytest configuration for test categorization and organization."""
+
+from __future__ import annotations
 
 import time
-from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List
 
 import pytest
+
+try:  # Python 3.11 fallback when running in older virtualenvs locally
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - compatibility shim for 3.11
+    import tomli as tomllib
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+_DECLARED_MARKERS: set[str] = set()
+_AD_HOC_WARNED: set[str] = set()
+
+_SAFE_RUNTIME_MARKERS = {
+    "parametrize",
+    "skip",
+    "skipif",
+    "xfail",
+    "usefixtures",
+    "filterwarnings",
+}
+_DERIVED_MARKER_PREFIXES = {"resource_"}
+_AD_HOC_MARKERS = {"asyncio", "anyio"}
 
 test_times: dict[str, float] = {}
 
 
-def pytest_configure(config):
+def _load_declared_markers() -> dict[str, str]:
+    """Return normalized marker definitions from pyproject.toml."""
+
+    pyproject = PROJECT_ROOT / "pyproject.toml"
+    try:
+        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    markers_section = (
+        data.get("tool", {})
+        .get("pytest", {})
+        .get("ini_options", {})
+        .get("markers", [])
+    )
+    declared: dict[str, str] = {}
+    for entry in markers_section or []:
+        if not isinstance(entry, str):
+            continue
+        name_part, _, description = entry.partition(":")
+        base = name_part.split("(", 1)[0].strip()
+        if not base:
+            continue
+        declared[base] = description.strip()
+    return declared
+
+
+def _ensure_marker_registered(
+    config: pytest.Config, name: str, description: str
+) -> None:
+    """Register a marker with pytest if not already present."""
+
+    summary = description or "auto-registered from pyproject.toml"
+    config.addinivalue_line("markers", f"{name}: {summary}")
+
+
+def _warn_on_ad_hoc_marker(item: pytest.Item, marker: str) -> None:
+    """Emit a single warning for markers missing from the canonical registry."""
+
+    if marker in _AD_HOC_WARNED:
+        return
+    message = (
+        "Marker '{marker}' is not declared in pyproject.toml. "
+        "Request registration via docs/testing/verify_test_markers.md."
+    )
+    try:
+        item.warn(pytest.PytestWarning(message.format(marker=marker)))
+    except Exception:
+        pass
+    _AD_HOC_WARNED.add(marker)
+
+
+def _warn_on_legacy_marker(item: pytest.Item, marker: str) -> None:
+    """Inform contributors about plugin-provided markers we intentionally track."""
+
+    if marker in _AD_HOC_WARNED:
+        return
+    message = (
+        "Marker '{marker}' relies on plugin defaults and is not tracked in "
+        "pyproject.toml. Document justification or request registration via "
+        "docs/testing/verify_test_markers.md."
+    )
+    try:
+        item.warn(pytest.PytestWarning(message.format(marker=marker)))
+    except Exception:
+        pass
+    _AD_HOC_WARNED.add(marker)
+
+
+def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with custom markers."""
-    config.addinivalue_line("markers", "fast: mark test as fast (execution time < 1s)")
-    config.addinivalue_line(
-        "markers",
-        "medium: mark test as medium speed (execution time between 1s and 5s)",
-    )
-    config.addinivalue_line("markers", "slow: mark test as slow (execution time > 5s)")
-    config.addinivalue_line(
-        "markers", "cli: mark test as part of the CLI verification suite"
-    )
+
+    declared = _load_declared_markers()
+    _DECLARED_MARKERS.clear()
+    _DECLARED_MARKERS.update(declared)
+    for marker, description in declared.items():
+        _ensure_marker_registered(config, marker, description)
+
+    # Ensure foundational markers are always registered even if parsing fails.
+    for fallback_marker, desc in [
+        ("fast", "mark test as fast (execution time < 1s)"),
+        ("medium", "mark test as medium speed (execution time between 1s and 5s)"),
+        ("slow", "mark test as slow (execution time > 5s)"),
+        ("cli", "mark test as part of the CLI verification suite"),
+    ]:
+        if fallback_marker not in declared:
+            _ensure_marker_registered(config, fallback_marker, desc)
+
     config.pluginmanager.register(TestCategorization(), "test_categorization")
 
 
@@ -105,16 +200,9 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_collection_modifyitems(config, items):
-    """Validate test speed markers and apply filtering.
+def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item]) -> None:
+    """Validate test speed markers and apply filtering."""
 
-    Harmonization rules:
-    - Do not auto-add a default speed marker here; centralized suite conftests
-      (tests/unit|integration|behavior/conftest.py) are authoritative for defaults.
-    - Only warn when a test lacks exactly one speed marker; let the verifier and
-      suite hooks drive remediation. Apply --speed filtering only when a single
-      speed marker is present.
-    """
     speed = config.getoption("--speed")
     skip_other_speeds = None
     if speed != "all":
@@ -127,7 +215,6 @@ def pytest_collection_modifyitems(config, items):
         ]
         marker = None
         if len(speed_markers) != 1:
-            # Emit a warning so contributors add an explicit marker in-source.
             try:
                 item.warn(
                     pytest.PytestWarning(
@@ -138,16 +225,26 @@ def pytest_collection_modifyitems(config, items):
                 pass
         else:
             marker = speed_markers[0]
-        # Only apply --speed filtering when we have an unambiguous marker
+
+        for mark in item.iter_markers():
+            marker_name = mark.name.split("(", 1)[0]
+            if marker_name in _DECLARED_MARKERS:
+                continue
+            if marker_name in _SAFE_RUNTIME_MARKERS:
+                continue
+            if any(marker_name.startswith(prefix) for prefix in _DERIVED_MARKER_PREFIXES):
+                continue
+            if marker_name in _AD_HOC_MARKERS:
+                _warn_on_legacy_marker(item, marker_name)
+            else:
+                _warn_on_ad_hoc_marker(item, marker_name)
+
         if marker and skip_other_speeds and marker != speed:
             item.add_marker(skip_other_speeds)
 
-    # Apply flaky retries to online resource-marked tests if configured
     try:
         import os
 
-        # Retries are disabled by default to avoid masking logic errors.
-        # Enable explicitly via environment when running idempotent online subsets.
         retries_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRIES", "0").strip()
         delay_raw = os.environ.get("DEVSYNTH_ONLINE_TEST_RETRY_DELAY", "0").strip()
         retries = int(retries_raw) if retries_raw != "" else 0
@@ -158,11 +255,9 @@ def pytest_collection_modifyitems(config, items):
     if retries > 0:
         for item in items:
             if item.get_closest_marker("requires_resource"):
-                # Add a flaky marker understood by pytest-rerunfailures if installed.
                 try:
                     item.add_marker(
                         pytest.mark.flaky(reruns=retries, reruns_delay=delay)
                     )
                 except Exception:
-                    # If plugin is unavailable, marker is inert; behavior remains unchanged.
                     pass

@@ -1,8 +1,11 @@
 """Verify that integration test scaffolds are written to disk."""
 
 from pathlib import Path
+import pytest
 
 from devsynth.application.agents.test import TestAgent
+
+pytestmark = [pytest.mark.medium]
 
 
 def test_scaffold_integration_tests_creates_files(tmp_path: Path) -> None:

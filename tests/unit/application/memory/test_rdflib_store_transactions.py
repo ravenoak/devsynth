@@ -7,6 +7,7 @@ import pytest
 
 from devsynth.application.memory import rdflib_store
 
+
 pytestmark = [pytest.mark.fast, pytest.mark.requires_resource("rdflib")]
 
 

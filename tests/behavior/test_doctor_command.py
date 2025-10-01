@@ -7,6 +7,7 @@ from .steps.cli_commands_steps import *  # noqa: F401,F403
 from .steps.test_devsynth_doctor_steps import *  # noqa: F401,F403
 from .steps.test_doctor_command_steps import *  # noqa: F401,F403
 
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.requires_resource("cli"),

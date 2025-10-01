@@ -6,6 +6,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from .webui_steps import webui_context
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/webui_commands.feature")

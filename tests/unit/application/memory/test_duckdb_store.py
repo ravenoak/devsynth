@@ -78,6 +78,7 @@ from devsynth.application.memory.dto import MemoryRecord, build_memory_record
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
+
 pytestmark = pytest.mark.requires_resource("duckdb")
 
 

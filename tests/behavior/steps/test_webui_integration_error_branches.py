@@ -19,6 +19,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, then, when
 
+
 pytestmark = [pytest.mark.fast]
 
 

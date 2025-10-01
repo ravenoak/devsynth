@@ -155,6 +155,8 @@ def test_code_analysis_in_edrr_workflow_succeeds(code_analysis_coordinator):
     """Test that code analysis components can be used in an EDRR workflow.
 
     ReqID: N/A"""
+
+pytestmark = [pytest.mark.slow]
     task = {
         "analyze_code": """
 def calculate_sum(a, b):

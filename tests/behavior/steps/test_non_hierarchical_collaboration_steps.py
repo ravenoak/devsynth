@@ -15,6 +15,7 @@ from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDETeam
 
+
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file

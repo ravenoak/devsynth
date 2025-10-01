@@ -7,6 +7,7 @@ from devsynth.interface import webui
 from devsynth.interface.webui import WebUI
 
 # Resource gating: exercises the WebUI layer
+
 pytestmark = [pytest.mark.gui, pytest.mark.requires_resource("webui")]
 
 

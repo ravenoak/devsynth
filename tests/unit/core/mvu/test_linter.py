@@ -1,4 +1,7 @@
 from devsynth.core.mvu.linter import lint_commit_message
+import pytest
+
+pytestmark = [pytest.mark.fast]
 
 VALID_MESSAGE = (
     "feat: add example\n\n"

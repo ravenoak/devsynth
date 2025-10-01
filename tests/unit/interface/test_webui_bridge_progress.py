@@ -10,6 +10,8 @@ from devsynth.exceptions import DevSynthError
 from devsynth.interface import webui_bridge
 from tests.fixtures.fake_streamlit import FakeSessionState
 
+pytestmark = [pytest.mark.fast]
+
 
 class _SanitizeSpy:
     """Callable spy that tracks sanitize invocations and supports failures."""

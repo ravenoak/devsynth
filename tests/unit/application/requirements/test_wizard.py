@@ -10,6 +10,8 @@ from devsynth.application.requirements import wizard as wizard_mod
 from devsynth.application.requirements.wizard import requirements_wizard
 from devsynth.interface.ux_bridge import UXBridge
 
+pytestmark = [pytest.mark.fast]
+
 
 def test_priority_and_constraints_persist_after_navigation(tmp_path, monkeypatch):
     """User selections persist when navigating backwards."""

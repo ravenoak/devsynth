@@ -3,6 +3,8 @@ import pytest
 from devsynth.exceptions import DevSynthError
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 from devsynth.metrics import (
+
+pytestmark = [pytest.mark.fast]
     get_circuit_breaker_state_metrics,
     get_retry_condition_metrics,
     get_retry_stat_metrics,

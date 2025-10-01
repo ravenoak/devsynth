@@ -19,6 +19,7 @@ from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.ports.memory_port import MemoryPort
 
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.requires_resource("lmdb"),

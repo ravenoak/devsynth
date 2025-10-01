@@ -15,6 +15,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the feature file
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/memory_manager.feature")

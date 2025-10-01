@@ -7,6 +7,7 @@ import os
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+
 pytestmark = [pytest.mark.fast]
 
 # Get the absolute path to the feature file

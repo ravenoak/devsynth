@@ -4,6 +4,8 @@ import pytest
 
 from devsynth.application.promises.interface import PromiseInterface
 
+pytestmark = [pytest.mark.fast]
+
 
 class DummyPromise(PromiseInterface[int]):
     @property

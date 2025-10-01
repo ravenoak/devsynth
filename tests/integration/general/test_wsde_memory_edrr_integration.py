@@ -7,6 +7,8 @@ from devsynth.application.agents.wsde_memory_integration import WSDEMemoryIntegr
 from devsynth.application.collaboration.peer_review import PeerReview
 from devsynth.application.collaboration.structures import ReviewCycleSpec
 from devsynth.application.memory.context_manager import (
+
+pytestmark = [pytest.mark.slow]
     InMemoryStore,
     SimpleContextManager,
 )

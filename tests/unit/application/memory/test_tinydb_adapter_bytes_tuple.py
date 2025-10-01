@@ -8,6 +8,7 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
 )
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+
 pytestmark = pytest.mark.requires_resource("tinydb")
 
 

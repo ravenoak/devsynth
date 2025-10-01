@@ -2,6 +2,7 @@ import importlib
 
 import pytest
 
+
 pytestmark = [pytest.mark.no_network, pytest.mark.gui]
 
 

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import pytest
+
 import subprocess
 import sys
 from pathlib import Path
+
+pytestmark = [pytest.mark.fast]
 
 
 def run_script(path: Path) -> subprocess.CompletedProcess[str]:

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import pytest
+
 from devsynth.core.mvu.models import MVUU
 from devsynth.core.mvu.report import TraceRecord, generate_report
+
+pytestmark = [pytest.mark.fast]
 
 
 def _records() -> list[TraceRecord]:

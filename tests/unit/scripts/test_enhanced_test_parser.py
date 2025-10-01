@@ -2,6 +2,8 @@ import pytest
 
 from scripts import enhanced_test_parser as etp
 
+pytestmark = [pytest.mark.fast]
+
 
 def test_build_test_path_integration_component():
     path = etp.build_test_path("integration", "api_workflow", component="interface")

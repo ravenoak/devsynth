@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import pytest
+
 from devsynth.core.mvu.api import get_by_affected_path, get_by_trace_id
 from devsynth.core.mvu.models import MVUU
+
+pytestmark = [pytest.mark.fast]
 
 
 def _iter_stub(ref: str, enrich: bool = False):

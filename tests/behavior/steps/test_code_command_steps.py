@@ -7,6 +7,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.cli import cli_commands
 
+
 pytestmark = [pytest.mark.fast]
 
 

@@ -14,6 +14,7 @@ from devsynth.application.memory.rdflib_store import RDFLibStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
+
 pytestmark = pytest.mark.requires_resource("rdflib")
 
 

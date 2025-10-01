@@ -11,6 +11,7 @@ import pytest
 
 from tests.fixtures.fake_streamlit import FakeStreamlit
 
+
 pytestmark = [pytest.mark.fast]
 
 COVERAGE_MODE = os.getenv("DEVSYNTH_WEBUI_COVERAGE") == "1"

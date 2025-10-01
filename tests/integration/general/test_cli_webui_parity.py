@@ -9,6 +9,8 @@ import pytest
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import ProgressIndicator
 
+pytestmark = [pytest.mark.slow]
+
 
 class DummyForm:
 

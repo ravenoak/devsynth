@@ -12,6 +12,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import the scenarios from the feature file
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/wsde_edrr_integration.feature")

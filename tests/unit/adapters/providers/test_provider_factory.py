@@ -8,6 +8,7 @@ from devsynth.adapters.providers.provider_factory import (
     ProviderType,
 )
 
+
 pytestmark = [pytest.mark.memory_intensive]
 
 

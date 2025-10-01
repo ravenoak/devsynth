@@ -1,8 +1,11 @@
 from pathlib import Path
+import pytest
 
 import yaml
 
 from devsynth.adapters.github_project import GitHubProjectAdapter
+
+pytestmark = [pytest.mark.medium]
 
 
 def test_github_project_adapter_config_loading(tmp_path: Path) -> None:

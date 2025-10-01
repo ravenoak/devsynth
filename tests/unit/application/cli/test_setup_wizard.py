@@ -6,6 +6,8 @@ from devsynth.application.cli.setup_wizard import SetupWizard
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
+pytestmark = [pytest.mark.fast]
+
 
 class DummyBridge(UXBridge):
     """Legacy DummyBridge implementation - not recommended for new tests."""

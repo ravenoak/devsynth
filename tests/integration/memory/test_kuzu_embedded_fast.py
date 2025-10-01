@@ -17,6 +17,7 @@ from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+
 pytestmark = [pytest.mark.requires_resource("kuzu"), pytest.mark.fast]
 
 

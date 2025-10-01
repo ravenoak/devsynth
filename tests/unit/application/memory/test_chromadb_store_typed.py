@@ -72,6 +72,7 @@ from devsynth.application.memory.metadata_serialization import (
 )
 from devsynth.domain.models.memory import MemoryType
 
+
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
 ]

@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 # Gate Dear PyGui tests unless explicitly enabled
+
 pytestmark = pytest.mark.skipif(
     os.getenv("DEVSYNTH_TEST_ALLOW_GUI", "").lower() not in {"1", "true", "yes"},
     reason="GUI tests are skipped unless DEVSYNTH_TEST_ALLOW_GUI is set",

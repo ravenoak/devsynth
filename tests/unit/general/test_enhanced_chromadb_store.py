@@ -26,6 +26,7 @@ from unittest.mock import MagicMock, call, patch
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+
 pytestmark = pytest.mark.requires_resource("chromadb")
 
 

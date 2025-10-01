@@ -1,4 +1,7 @@
 from devsynth.domain.models.wsde_facade import WSDETeam
+import pytest
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_vote_on_critical_decision_not_critical_raises_error():

@@ -11,6 +11,7 @@ import pytest
 from devsynth.exceptions import DevSynthError
 from devsynth.interface import webui
 
+
 pytestmark = [pytest.mark.fast]
 
 

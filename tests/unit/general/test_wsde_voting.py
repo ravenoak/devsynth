@@ -1,8 +1,11 @@
 """Tests for WSDETeam voting mechanisms."""
 
 from unittest.mock import MagicMock, patch
+import pytest
 
 from devsynth.domain.models.wsde_facade import WSDETeam
+
+pytestmark = [pytest.mark.fast]
 
 
 def _make_agent(name: str, vote: str, expertise=None, level="novice"):

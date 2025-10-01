@@ -1,9 +1,12 @@
 """Integration tests for sprint planning CLI and WSDE coordinator."""
 
 import json
+import pytest
 
 from devsynth.agents.wsde_team_coordinator import WSDETeamCoordinatorAgent
 from devsynth.application.cli.sprint_cmd import sprint_planning_cmd
+
+pytestmark = [pytest.mark.slow]
 
 
 class DummyTeam:

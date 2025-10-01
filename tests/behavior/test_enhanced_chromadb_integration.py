@@ -17,6 +17,7 @@ if not chromadb_enabled:
     pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 from pytest_bdd import scenarios
 
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.requires_resource("chromadb"),

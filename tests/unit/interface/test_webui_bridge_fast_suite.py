@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Tuple
 
 import pytest
 
+
 pytestmark = [pytest.mark.fast, pytest.mark.usefixtures("force_webui_available")]
 
 

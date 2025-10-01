@@ -5,6 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+pytestmark = [pytest.mark.slow]
+
 """
 This test file implements integration tests for end-to-end workflows in the WebUI,
 focusing on user journeys that span multiple pages.

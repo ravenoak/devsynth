@@ -12,6 +12,8 @@ from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.methodology.base import Phase
 from devsynth.methodology.edrr import EDRRCoordinator as MethodologyEDRRCoordinator
 
+pytestmark = [pytest.mark.fast]
+
 
 class DummyConsensusError(ConsensusError):
     def __init__(self, message: str):  # pragma: no cover - simple helper

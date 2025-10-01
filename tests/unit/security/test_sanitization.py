@@ -3,6 +3,8 @@ import pytest
 from devsynth.exceptions import InputSanitizationError
 from devsynth.security.sanitization import sanitize_input, validate_safe_input
 
+pytestmark = [pytest.mark.fast]
+
 
 def test_sanitize_input_removes_script_succeeds():
     """Test that sanitize_input removes script tags.

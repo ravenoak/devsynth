@@ -4,6 +4,7 @@ import types
 import pytest
 
 # Speed marker discipline
+
 pytestmark = pytest.mark.fast
 
 

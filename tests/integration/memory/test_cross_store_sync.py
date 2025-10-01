@@ -19,6 +19,7 @@ import pytest
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+
 pytestmark = [pytest.mark.integration]
 
 

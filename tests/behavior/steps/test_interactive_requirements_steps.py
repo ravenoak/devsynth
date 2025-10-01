@@ -8,6 +8,7 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.application.cli.config import CLIConfig
 from devsynth.application.cli.requirements_wizard import requirements_wizard
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/interactive_requirements.feature")

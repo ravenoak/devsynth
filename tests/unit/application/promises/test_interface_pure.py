@@ -7,6 +7,7 @@ import pytest
 from devsynth.application.promises import BasicPromise, PromiseState
 from devsynth.exceptions import PromiseStateError
 
+
 pytestmark = pytest.mark.fast
 
 

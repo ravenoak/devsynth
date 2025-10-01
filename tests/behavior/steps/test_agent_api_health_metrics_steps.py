@@ -12,6 +12,7 @@ pytest.importorskip("fastapi.testclient")
 from fastapi.testclient import TestClient
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/general/agent_api_health_metrics.feature")

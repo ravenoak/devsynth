@@ -9,6 +9,7 @@ from rich.text import Text
 
 from tests.fixtures.streamlit_mocks import make_streamlit_mock
 
+
 pytestmark = [
     pytest.mark.fast,
     pytest.mark.usefixtures("force_webui_available"),

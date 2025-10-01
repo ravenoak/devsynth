@@ -18,6 +18,7 @@ from devsynth.application.documentation.documentation_ingestion_manager import (
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
 
+
 pytestmark = [pytest.mark.fast]
 
 # Register scenarios

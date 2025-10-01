@@ -19,6 +19,7 @@ from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
 from devsynth.adapters.provider_system import embed, get_provider
 from devsynth.ports.memory_port import MemoryPort
 
+
 pytestmark = pytest.mark.requires_resource("chromadb")
 
 

@@ -42,6 +42,7 @@ class DummyBridge(UXBridge):
         pass
 
 
+
 pytestmark = pytest.mark.fast
 
 scenarios("../features/general/requirements_gathering.feature")

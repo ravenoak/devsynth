@@ -1,6 +1,8 @@
 import pytest
 
 from devsynth.application.collaboration.dto import (
+
+pytestmark = [pytest.mark.fast]
     AgentOpinionRecord,
     ConsensusOutcome,
     SynthesisArtifact,

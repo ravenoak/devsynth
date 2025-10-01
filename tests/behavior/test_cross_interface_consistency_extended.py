@@ -10,6 +10,7 @@ from tests.behavior.steps.test_cross_interface_consistency_extended_steps import
     cross_interface_context,
 )
 
+
 pytestmark = [pytest.mark.fast]
 
 # Register the scenarios from the feature file

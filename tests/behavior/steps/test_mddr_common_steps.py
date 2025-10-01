@@ -7,6 +7,7 @@ from devsynth.application.agents.base import BaseAgent
 from devsynth.domain.models.memory import MemoryItem
 from devsynth.domain.models.wsde_facade import WSDETeam
 
+
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file

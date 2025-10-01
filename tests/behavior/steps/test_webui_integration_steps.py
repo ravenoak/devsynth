@@ -10,6 +10,7 @@ pytest.importorskip("pytest_bdd")
 
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
 pytestmark = [pytest.mark.fast]
 
 from . import test_webui_integration_error_branches  # noqa: F401

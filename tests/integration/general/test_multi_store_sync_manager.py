@@ -6,6 +6,7 @@ pytest.importorskip("lmdb")
 from devsynth.adapters.memory.sync_manager import MultiStoreSyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
+
 pytestmark = [
     pytest.mark.requires_resource("lmdb"),
     pytest.mark.requires_resource("faiss"),

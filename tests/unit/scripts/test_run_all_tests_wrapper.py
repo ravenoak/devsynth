@@ -1,8 +1,11 @@
 """Tests for the legacy run_all_tests wrapper. ReqID: QA-06"""
 
 from types import SimpleNamespace
+import pytest
 
 import scripts.run_all_tests as run_all_tests
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_wrapper_invokes_cli(monkeypatch):

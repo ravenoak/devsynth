@@ -5,6 +5,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth import feature_markers
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios("../features/feature_markers.feature")

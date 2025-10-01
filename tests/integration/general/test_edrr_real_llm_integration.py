@@ -47,6 +47,8 @@ def test_edrr_cycle_with_real_llm_has_expected(tmp_path, provider_resource):
     It requires either OPENAI_API_KEY or LM_STUDIO_ENDPOINT to be set.
 
     ReqID: N/A"""
+
+pytestmark = [pytest.mark.slow]
     tinydb_adapter = TinyDBMemoryAdapter()
     graph_adapter = GraphMemoryAdapter(base_path=str(tmp_path / "graph_memory"))
     memory_manager = MemoryManager(

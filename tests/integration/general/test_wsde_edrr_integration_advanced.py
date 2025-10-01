@@ -107,6 +107,8 @@ def test_phase_specific_role_assignment_has_expected(enhanced_coordinator):
     """Test that roles are assigned based on the current EDRR phase.
 
     ReqID: N/A"""
+
+pytestmark = [pytest.mark.slow]
     task = {
         "description": "Create a Python function to calculate Fibonacci numbers",
         "language": "python",
