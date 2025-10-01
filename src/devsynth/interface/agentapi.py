@@ -11,7 +11,8 @@ the terminal or WebUI.
 from __future__ import annotations
 
 import time
-from typing import Sequence
+from dataclasses import dataclass
+from typing import Any, Callable, Mapping, Sequence, TypeVar, cast
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -37,21 +38,114 @@ from devsynth.interface.agentapi_models import (
 )
 from devsynth.interface.ux_bridge import (
     ProgressIndicator,
-    SubtaskProgressSnapshot,
     UXBridge,
     sanitize_output,
 )
 from devsynth.logging_setup import DevSynthLogger
 
+from typing import assert_never
+from typing_extensions import ParamSpec, TypedDict, Unpack
+
 logger = DevSynthLogger(__name__)
 router = APIRouter()
+
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+class _RouteDecoratorKwargs(TypedDict, total=False):
+    response_model: type[Any]
+    responses: Mapping[int, Any]
+    tags: Sequence[str]
+    summary: str
+    description: str
+
+
+def api_get(
+    path: str, **kwargs: Unpack[_RouteDecoratorKwargs]
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """Typed wrapper around :meth:`fastapi.APIRouter.get`."""
+
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        return router.get(path, **kwargs)(func)
+
+    return decorator
+
+
+def api_post(
+    path: str, **kwargs: Unpack[_RouteDecoratorKwargs]
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """Typed wrapper around :meth:`fastapi.APIRouter.post`."""
+
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        return router.post(path, **kwargs)(func)
+
+    return decorator
+
+
+@dataclass(slots=True)
+class HealthEnvelope:
+    """Dataclass wrapper for the health endpoint payload."""
+
+    status: str
+    uptime: float
+
+    def to_model(self) -> HealthResponse:
+        return HealthResponse(status=self.status, uptime=self.uptime)
+
+    def to_dict(self) -> dict[str, Any]:
+        return cast(dict[str, Any], self.to_model().model_dump())
+
+
+@dataclass(slots=True)
+class MetricsEnvelope:
+    """Dataclass wrapper for the metrics endpoint payload."""
+
+    metrics: tuple[str, ...]
+
+    def to_model(self) -> MetricsResponse:
+        return MetricsResponse(metrics=self.metrics)
+
+    def to_text(self) -> str:
+        return "\n".join(self.to_model().metrics)
+
+
+@dataclass(slots=True)
+class SubtaskState:
+    """Track subtask progress with guaranteed numeric counters."""
+
+    description: str
+    total: float
+    current: float = 0.0
+    status: str = ProgressStatus.STARTING.value
+
+
+def _coerce_progress_value(value: float | int | str, *, context: str) -> float:
+    """Normalize numeric increments used by the progress helpers."""
+
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value.strip())
+        except ValueError:
+            logger.warning("Invalid %s advance value %r; ignoring", context, value)
+            return 0.0
+    assert_never(value)
+
+
+def _format_progress_value(value: float) -> str:
+    """Format progress counters without trailing zeros."""
+
+    return f"{value:g}"
 
 
 def _verify_token(authorization: str | None = Header(default=None)) -> None:
     """Lazy import to avoid circular dependency during FastAPI setup."""
     from devsynth.api import verify_token as _verify
 
-    return _verify(authorization)
+    _verify(authorization)
 
 
 # Store the latest messages from the API
@@ -128,8 +222,8 @@ class APIBridge(UXBridge):
             self._total = float(total)
             self._current = 0.0
             self._status = ProgressStatus.STARTING
-            self._subtasks: dict[str, SubtaskProgressSnapshot] = {}
-            self._nested_subtasks: dict[str, dict[str, SubtaskProgressSnapshot]] = {}
+            self._subtasks: dict[str, SubtaskState] = {}
+            self._nested_subtasks: dict[str, dict[str, SubtaskState]] = {}
             self._messages.append(self._description)
             self._record_snapshot()
 
@@ -173,10 +267,17 @@ class APIBridge(UXBridge):
             if description:
                 self._description = sanitize_output(description)
 
-            self._current = max(0.0, self._current + float(advance))
-            self._status = self._sanitize_status(status)
+            increment = _coerce_progress_value(advance, context="task")
+            next_status = self._sanitize_status(status)
+            self._current = max(0.0, self._current + increment)
+            self._status = next_status
             self._messages.append(
-                f"{self._description} ({self._current}/{self._total}) - {self._status.value}"
+                "{description} ({current}/{total}) - {status}".format(
+                    description=self._description,
+                    current=_format_progress_value(self._current),
+                    total=_format_progress_value(self._total),
+                    status=self._status.value,
+                )
             )
             self._record_snapshot()
 
@@ -192,15 +293,14 @@ class APIBridge(UXBridge):
             self, description: str, total: int = 100, status: str = "Starting..."
         ) -> str:
             task_id = f"subtask_{len(self._subtasks)}"
-            self._subtasks[task_id] = {
-                "description": sanitize_output(description),
-                "total": float(total),
-                "current": 0.0,
-                "status": status,
-            }
-            self._messages.append(
-                f"  ↳ {self._subtasks[task_id]['description']} - {status}"
+            state = SubtaskState(
+                description=sanitize_output(description),
+                total=float(total),
+                current=0.0,
+                status=sanitize_output(status),
             )
+            self._subtasks[task_id] = state
+            self._messages.append(f"  ↳ {state.description} - {state.status}")
             return task_id
 
         def update_subtask(
@@ -210,44 +310,53 @@ class APIBridge(UXBridge):
             description: str | None = None,
             status: str | None = None,
         ) -> None:
-            if task_id not in self._subtasks:
+            subtask = self._subtasks.get(task_id)
+            if subtask is None:
                 return
 
             if description:
-                self._subtasks[task_id]["description"] = sanitize_output(description)
+                subtask.description = sanitize_output(description)
 
             if status:
-                self._subtasks[task_id]["status"] = sanitize_output(status)
+                subtask.status = sanitize_output(status)
             else:
-                current = self._subtasks[task_id]["current"]
-                total = self._subtasks[task_id]["total"]
+                current = subtask.current
+                total = subtask.total
                 if current >= total:
-                    self._subtasks[task_id]["status"] = ProgressStatus.COMPLETE.value
+                    subtask.status = ProgressStatus.COMPLETE.value
                 elif current >= 0.99 * total:
-                    self._subtasks[task_id]["status"] = ProgressStatus.FINALIZING.value
+                    subtask.status = ProgressStatus.FINALIZING.value
                 elif current >= 0.75 * total:
-                    self._subtasks[task_id]["status"] = ProgressStatus.ALMOST_DONE.value
+                    subtask.status = ProgressStatus.ALMOST_DONE.value
                 elif current >= 0.5 * total:
-                    self._subtasks[task_id]["status"] = ProgressStatus.HALF_COMPLETE.value
+                    subtask.status = ProgressStatus.HALF_COMPLETE.value
                 elif current >= 0.25 * total:
-                    self._subtasks[task_id]["status"] = ProgressStatus.PROCESSING.value
+                    subtask.status = ProgressStatus.PROCESSING.value
                 else:
-                    self._subtasks[task_id]["status"] = ProgressStatus.STARTING.value
+                    subtask.status = ProgressStatus.STARTING.value
 
-            self._subtasks[task_id]["current"] += float(advance)
+            subtask.current = max(
+                0.0,
+                subtask.current
+                + _coerce_progress_value(advance, context=f"subtask:{task_id}"),
+            )
             self._messages.append(
-                f"  ↳ {self._subtasks[task_id]['description']} ({self._subtasks[task_id]['current']}/{self._subtasks[task_id]['total']}) - {self._subtasks[task_id]['status']}"
+                "  ↳ {description} ({current}/{total}) - {status}".format(
+                    description=subtask.description,
+                    current=_format_progress_value(subtask.current),
+                    total=_format_progress_value(subtask.total),
+                    status=subtask.status,
+                )
             )
 
         def complete_subtask(self, task_id: str) -> None:
-            if task_id not in self._subtasks:
+            subtask = self._subtasks.get(task_id)
+            if subtask is None:
                 return
 
-            self._subtasks[task_id]["current"] = self._subtasks[task_id]["total"]
-            self._subtasks[task_id]["status"] = ProgressStatus.COMPLETE.value
-            self._messages.append(
-                f"  ↳ {self._subtasks[task_id]['description']} complete"
-            )
+            subtask.current = subtask.total
+            subtask.status = ProgressStatus.COMPLETE.value
+            self._messages.append(f"  ↳ {subtask.description} complete")
 
         def add_nested_subtask(
             self,
@@ -259,15 +368,14 @@ class APIBridge(UXBridge):
             if parent_id not in self._nested_subtasks:
                 self._nested_subtasks[parent_id] = {}
             task_id = f"nested_{len(self._nested_subtasks[parent_id])}"
-            self._nested_subtasks[parent_id][task_id] = {
-                "description": sanitize_output(description),
-                "total": float(total),
-                "current": 0.0,
-                "status": status,
-            }
-            self._messages.append(
-                f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} - {status}"
+            state = SubtaskState(
+                description=sanitize_output(description),
+                total=float(total),
+                current=0.0,
+                status=sanitize_output(status),
             )
+            self._nested_subtasks[parent_id][task_id] = state
+            self._messages.append(f"    ↳ {state.description} - {state.status}")
             return task_id
 
         def update_nested_subtask(
@@ -278,70 +386,55 @@ class APIBridge(UXBridge):
             description: str | None = None,
             status: str | None = None,
         ) -> None:
-            if (
-                parent_id not in self._nested_subtasks
-                or task_id not in self._nested_subtasks[parent_id]
-            ):
+            nested = self._nested_subtasks.get(parent_id, {}).get(task_id)
+            if nested is None:
                 return
 
             if description:
-                self._nested_subtasks[parent_id][task_id]["description"] = (
-                    sanitize_output(description)
-                )
+                nested.description = sanitize_output(description)
 
             if status:
-                self._nested_subtasks[parent_id][task_id]["status"] = sanitize_output(
-                    status
-                )
+                nested.status = sanitize_output(status)
             else:
-                current = self._nested_subtasks[parent_id][task_id]["current"]
-                total = self._nested_subtasks[parent_id][task_id]["total"]
+                current = nested.current
+                total = nested.total
                 if current >= total:
-                    self._nested_subtasks[parent_id][task_id][
-                        "status"
-                    ] = ProgressStatus.COMPLETE.value
+                    nested.status = ProgressStatus.COMPLETE.value
                 elif current >= 0.99 * total:
-                    self._nested_subtasks[parent_id][task_id][
-                        "status"
-                    ] = ProgressStatus.FINALIZING.value
+                    nested.status = ProgressStatus.FINALIZING.value
                 elif current >= 0.75 * total:
-                    self._nested_subtasks[parent_id][task_id][
-                        "status"
-                    ] = ProgressStatus.ALMOST_DONE.value
+                    nested.status = ProgressStatus.ALMOST_DONE.value
                 elif current >= 0.5 * total:
-                    self._nested_subtasks[parent_id][task_id][
-                        "status"
-                    ] = ProgressStatus.HALF_COMPLETE.value
+                    nested.status = ProgressStatus.HALF_COMPLETE.value
                 elif current >= 0.25 * total:
-                    self._nested_subtasks[parent_id][task_id][
-                        "status"
-                    ] = ProgressStatus.PROCESSING.value
+                    nested.status = ProgressStatus.PROCESSING.value
                 else:
-                    self._nested_subtasks[parent_id][task_id][
-                        "status"
-                    ] = ProgressStatus.STARTING.value
+                    nested.status = ProgressStatus.STARTING.value
 
-            self._nested_subtasks[parent_id][task_id]["current"] += float(advance)
+            nested.current = max(
+                0.0,
+                nested.current
+                + _coerce_progress_value(
+                    advance, context=f"nested-subtask:{parent_id}:{task_id}"
+                ),
+            )
             self._messages.append(
-                f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} ({self._nested_subtasks[parent_id][task_id]['current']}/{self._nested_subtasks[parent_id][task_id]['total']}) - {self._nested_subtasks[parent_id][task_id]['status']}"
+                "    ↳ {description} ({current}/{total}) - {status}".format(
+                    description=nested.description,
+                    current=_format_progress_value(nested.current),
+                    total=_format_progress_value(nested.total),
+                    status=nested.status,
+                )
             )
 
         def complete_nested_subtask(self, parent_id: str, task_id: str) -> None:
-            if (
-                parent_id not in self._nested_subtasks
-                or task_id not in self._nested_subtasks[parent_id]
-            ):
+            nested = self._nested_subtasks.get(parent_id, {}).get(task_id)
+            if nested is None:
                 return
 
-            self._nested_subtasks[parent_id][task_id]["current"] = (
-                self._nested_subtasks[parent_id][task_id]["total"]
-            )
-            self._nested_subtasks[parent_id][task_id]["status"] = (
-                ProgressStatus.COMPLETE.value
-            )
-            self._messages.append(
-                f"    ↳ {self._nested_subtasks[parent_id][task_id]['description']} complete"
-            )
+            nested.current = nested.total
+            nested.status = ProgressStatus.COMPLETE.value
+            self._messages.append(f"    ↳ {nested.description} complete")
 
     def create_progress(
         self, description: str, *, total: int = 100
@@ -382,6 +475,8 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
 
     # Add the current timestamp
     REQUEST_TIMESTAMPS[client_ip].append(current_time)
+
+
 class AgentAPI:
     """Programmatic wrapper around the CLI workflows."""
 
@@ -499,7 +594,7 @@ class AgentAPI:
         return WorkflowResponse(messages=LATEST_MESSAGES)
 
 
-@router.post("/init", response_model=WorkflowResponse)
+@api_post("/init", response_model=WorkflowResponse)
 def init_endpoint(
     request: InitRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
@@ -531,7 +626,7 @@ def init_endpoint(
         )
 
 
-@router.post("/gather", response_model=WorkflowResponse)
+@api_post("/gather", response_model=WorkflowResponse)
 def gather_endpoint(
     request: GatherRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
@@ -542,7 +637,11 @@ def gather_endpoint(
         raise HTTPException(status_code=400, detail="goals cannot be empty")
 
     try:
-        answers = [request.goals, request.constraints, request.priority]
+        answers: tuple[str, ...] = (
+            request.goals,
+            request.constraints or "",
+            request.priority.value,
+        )
         bridge = APIBridge(answers)
         from devsynth.application.cli import gather_cmd
 
@@ -558,7 +657,7 @@ def gather_endpoint(
         )
 
 
-@router.post("/synthesize", response_model=WorkflowResponse)
+@api_post("/synthesize", response_model=WorkflowResponse)
 def synthesize_endpoint(
     request: SynthesizeRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
@@ -598,7 +697,7 @@ def synthesize_endpoint(
         )
 
 
-@router.post("/spec", response_model=WorkflowResponse)
+@api_post("/spec", response_model=WorkflowResponse)
 def spec_endpoint(
     request: SpecRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
@@ -624,7 +723,7 @@ def spec_endpoint(
         )
 
 
-@router.post("/test", response_model=WorkflowResponse)
+@api_post("/test", response_model=WorkflowResponse)
 def test_endpoint(
     request: TestSpecRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
@@ -656,7 +755,7 @@ def test_endpoint(
 test_endpoint.__test__ = False
 
 
-@router.post("/code", response_model=WorkflowResponse)
+@api_post("/code", response_model=WorkflowResponse)
 def code_endpoint(
     request: CodeRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
@@ -677,7 +776,7 @@ def code_endpoint(
         )
 
 
-@router.post("/doctor", response_model=WorkflowResponse)
+@api_post("/doctor", response_model=WorkflowResponse)
 def doctor_endpoint(
     request: DoctorRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
@@ -698,7 +797,7 @@ def doctor_endpoint(
         )
 
 
-@router.post("/edrr-cycle", response_model=WorkflowResponse)
+@api_post("/edrr-cycle", response_model=WorkflowResponse)
 def edrr_cycle_endpoint(
     request: EDRRCycleRequest, token: None = Depends(_verify_token)
 ) -> WorkflowResponse:
@@ -731,13 +830,13 @@ def edrr_cycle_endpoint(
         )
 
 
-@router.get("/status", response_model=WorkflowResponse)
+@api_get("/status", response_model=WorkflowResponse)
 def status_endpoint(token: None = Depends(_verify_token)) -> WorkflowResponse:
     """Return messages from the most recent workflow invocation."""
     return WorkflowResponse(messages=LATEST_MESSAGES)
 
 
-@router.get(
+@api_get(
     "/health",
     responses={
         200: {"description": "API is healthy"},
@@ -775,11 +874,11 @@ def health_endpoint(
     )
 
     uptime = time.time() - API_METRICS.start_time
-    payload = HealthResponse(status="ok", uptime=uptime)
-    return JSONResponse(content=payload.model_dump())
+    payload = HealthEnvelope(status="ok", uptime=uptime)
+    return JSONResponse(content=payload.to_dict())
 
 
-@router.get(
+@api_get(
     "/metrics",
     responses={
         200: {"description": "API metrics"},
@@ -861,8 +960,8 @@ def metrics_endpoint(
                     f'endpoint_latency_seconds{{endpoint="{endpoint}",quantile="0.99"}} {p99}'
                 )
 
-    metrics_payload = MetricsResponse(metrics=tuple(metrics))
-    return PlainTextResponse(content="\n".join(metrics_payload.metrics))
+    metrics_payload = MetricsEnvelope(metrics=tuple(metrics))
+    return PlainTextResponse(content=metrics_payload.to_text())
 
 
 # Add exception handlers for common errors
