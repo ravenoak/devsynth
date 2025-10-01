@@ -36,7 +36,9 @@ Unified coverage configuration replacing multiple specialized configs:
 - **Threshold**: 90% aggregate coverage (default). Use
   `DEVSYNTH_COV_FAIL_UNDER` or append `--cov-fail-under=<value>` for focused
   smoke/debugging runs when intentionally bypassing the release gate.
-- **Reports**: Terminal (per-file percentages via `term-missing:skip-covered`), HTML, XML, JSON
+- **Reports**: Terminal (per-file percentages via `term-missing:skip-covered`), HTML, XML, JSON. For a full module inventory that
+  includes files hidden by `skip-covered`, refresh `diagnostics/devsynth_coverage_per_file_<timestamp>.txt` via
+  `utils_coverage.json`.
 - **Exclusions**: Standard boilerplate and unreachable code patterns
 
 ## Test Markers
