@@ -14,4 +14,4 @@ Next Actions:
   - [ ] Reintroduce strict typing for logger.
   - [ ] Remove temporary mypy overrides.
 Resolution Evidence:
-  - TBD
+  - 2025-10-01: `logging_setup` now enforces strict typing, including context-var aware metadata and JSON formatter checks; new unit coverage locks in request metadata serialization. Remaining hotspot: `devsynth.utils.logging` still mirrors legacy wrappers.

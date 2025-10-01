@@ -14,4 +14,4 @@ Next Actions:
   - [ ] Reintroduce strict typing for application.memory.adapters.
   - [ ] Remove temporary mypy overrides.
 Resolution Evidence:
-  - TBD
+  - 2025-10-01: `application.memory.circuit_breaker` typed with ParamSpec-driven decorator, strict logger handling, and new unit assertions; registry and retry layers still require annotation.
