@@ -35,7 +35,12 @@ from devsynth.interface.agentapi_models import (
     WorkflowResponse,
     SynthesisTarget,
 )
-from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
+from devsynth.interface.ux_bridge import (
+    ProgressIndicator,
+    SubtaskProgressSnapshot,
+    UXBridge,
+    sanitize_output,
+)
 from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
@@ -123,8 +128,8 @@ class APIBridge(UXBridge):
             self._total = float(total)
             self._current = 0.0
             self._status = ProgressStatus.STARTING
-            self._subtasks: dict[str, dict[str, float | str]] = {}
-            self._nested_subtasks: dict[str, dict[str, dict[str, float | str]]] = {}
+            self._subtasks: dict[str, SubtaskProgressSnapshot] = {}
+            self._nested_subtasks: dict[str, dict[str, SubtaskProgressSnapshot]] = {}
             self._messages.append(self._description)
             self._record_snapshot()
 

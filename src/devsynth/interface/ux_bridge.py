@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import html
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Sequence, Union
+from collections.abc import Mapping, Sequence
+from typing import Any, Literal, Protocol, TypedDict, TypeAlias, runtime_checkable
 
 from devsynth.security.validation import parse_bool_env
 
@@ -37,6 +38,89 @@ def sanitize_output(text: str) -> str:
     return html.escape(sanitized)
 
 
+PROGRESS_STATUS_VALUES: tuple[str, ...] = (
+    "Starting...",
+    "Processing...",
+    "Halfway there...",
+    "Almost done...",
+    "Finalizing...",
+    "In progress...",
+    "Complete",
+)
+
+ProgressStatusText: TypeAlias = Literal[
+    "Starting...",
+    "Processing...",
+    "Halfway there...",
+    "Almost done...",
+    "Finalizing...",
+    "In progress...",
+    "Complete",
+]
+
+
+class SubtaskProgressSnapshot(TypedDict, total=False):
+    """Structure describing a subtask or nested subtask."""
+
+    description: str
+    total: float
+    current: float
+    status: ProgressStatusText
+    nested_subtasks: dict[str, "SubtaskProgressSnapshot"]
+
+
+@runtime_checkable
+class SupportsSubtasks(Protocol):
+    """Protocol capturing operations available on subtask-aware indicators."""
+
+    def add_subtask(
+        self,
+        description: str,
+        total: int = 100,
+        status: str = "Starting...",
+    ) -> str:
+        ...
+
+    def update_subtask(
+        self,
+        task_id: str,
+        advance: float = 1,
+        description: str | None = None,
+        status: str | None = None,
+    ) -> None:
+        ...
+
+    def complete_subtask(self, task_id: str) -> None:
+        ...
+
+
+@runtime_checkable
+class SupportsNestedSubtasks(SupportsSubtasks, Protocol):
+    """Protocol documenting nested subtask helpers when available."""
+
+    def add_nested_subtask(
+        self,
+        parent_id: str,
+        description: str,
+        total: int = 100,
+        status: str = "Starting...",
+    ) -> str:
+        ...
+
+    def update_nested_subtask(
+        self,
+        parent_id: str,
+        task_id: str,
+        advance: float = 1,
+        description: str | None = None,
+        status: str | None = None,
+    ) -> None:
+        ...
+
+    def complete_nested_subtask(self, parent_id: str, task_id: str) -> None:
+        ...
+
+
 class ProgressIndicator(ABC):
     """Handle to update progress for long running operations."""
 
@@ -53,8 +137,8 @@ class ProgressIndicator(ABC):
         self,
         *,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Advance the progress indicator.
 
@@ -67,6 +151,63 @@ class ProgressIndicator(ABC):
     @abstractmethod
     def complete(self) -> None:
         """Mark the progress indicator as complete."""
+
+    # ------------------------------------------------------------------
+    # Optional subtask helpers
+    # ------------------------------------------------------------------
+    def add_subtask(
+        self,
+        description: str,
+        total: int = 100,
+        status: str = "Starting...",
+    ) -> str:
+        """Register a subtask with the progress indicator."""
+
+        raise NotImplementedError("Subtasks are not supported by this indicator")
+
+    def update_subtask(
+        self,
+        task_id: str,
+        advance: float = 1,
+        description: str | None = None,
+        status: str | None = None,
+    ) -> None:
+        """Update a previously registered subtask."""
+
+        raise NotImplementedError("Subtasks are not supported by this indicator")
+
+    def complete_subtask(self, task_id: str) -> None:
+        """Complete a registered subtask."""
+
+        raise NotImplementedError("Subtasks are not supported by this indicator")
+
+    def add_nested_subtask(
+        self,
+        parent_id: str,
+        description: str,
+        total: int = 100,
+        status: str = "Starting...",
+    ) -> str:
+        """Register a nested subtask under a parent subtask."""
+
+        raise NotImplementedError("Nested subtasks are not supported by this indicator")
+
+    def update_nested_subtask(
+        self,
+        parent_id: str,
+        task_id: str,
+        advance: float = 1,
+        description: str | None = None,
+        status: str | None = None,
+    ) -> None:
+        """Update a nested subtask."""
+
+        raise NotImplementedError("Nested subtasks are not supported by this indicator")
+
+    def complete_nested_subtask(self, parent_id: str, task_id: str) -> None:
+        """Complete a nested subtask."""
+
+        raise NotImplementedError("Nested subtasks are not supported by this indicator")
 
 
 class UXBridge(ABC):
@@ -88,8 +229,8 @@ class UXBridge(ABC):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         """Prompt the user with a question and return their response."""
@@ -114,7 +255,7 @@ class UXBridge(ABC):
             message_type: Optional type of message (info, success, warning, error, etc.)
         """
 
-    def handle_error(self, error: Union[Exception, Dict[str, Any], str]) -> None:
+    def handle_error(self, error: Exception | Mapping[str, Any] | str) -> None:
         """Handle an error with enhanced error messages.
 
         This method formats the error with actionable suggestions and documentation links,
@@ -128,7 +269,7 @@ class UXBridge(ABC):
 
     def display_error(
         self,
-        error: Union[Exception, Dict[str, Any], str],
+        error: Exception | Mapping[str, Any] | str,
         *,
         include_suggestions: bool = True,
     ) -> None:
@@ -162,17 +303,72 @@ class UXBridge(ABC):
         lightweight test bridges do not need to implement the method.
         """
 
-        class _DummyProgress(ProgressIndicator):
+        class _DummyProgress(ProgressIndicator, SupportsNestedSubtasks):
+            """Minimal indicator used during tests when no UI is attached."""
+
+            def __init__(self) -> None:
+                self._counter = 0
+
+            def _next_id(self, prefix: str) -> str:
+                self._counter += 1
+                return f"{prefix}_{self._counter}"
+
             def update(
                 self,
                 *,
                 advance: float = 1,
-                description: Optional[str] = None,
-                status: Optional[str] = None,
+                description: str | None = None,
+                status: str | None = None,
             ) -> None:  # pragma: no cover - simple no-op
                 pass
 
             def complete(self) -> None:  # pragma: no cover - simple no-op
+                pass
+
+            def add_subtask(
+                self,
+                description: str,
+                total: int = 100,
+                status: str = "Starting...",
+            ) -> str:  # pragma: no cover - simple no-op
+                return self._next_id("subtask")
+
+            def update_subtask(
+                self,
+                task_id: str,
+                advance: float = 1,
+                description: str | None = None,
+                status: str | None = None,
+            ) -> None:  # pragma: no cover - simple no-op
+                pass
+
+            def complete_subtask(
+                self, task_id: str
+            ) -> None:  # pragma: no cover - simple no-op
+                pass
+
+            def add_nested_subtask(
+                self,
+                parent_id: str,
+                description: str,
+                total: int = 100,
+                status: str = "Starting...",
+            ) -> str:  # pragma: no cover - simple no-op
+                return self._next_id("nested")
+
+            def update_nested_subtask(
+                self,
+                parent_id: str,
+                task_id: str,
+                advance: float = 1,
+                description: str | None = None,
+                status: str | None = None,
+            ) -> None:  # pragma: no cover - simple no-op
+                pass
+
+            def complete_nested_subtask(
+                self, parent_id: str, task_id: str
+            ) -> None:  # pragma: no cover - simple no-op
                 pass
 
         return _DummyProgress()
@@ -185,8 +381,8 @@ class UXBridge(ABC):
         self,
         message: str,
         *,
-        choices: Optional[Sequence[str]] = None,
-        default: Optional[str] = None,
+        choices: Sequence[str] | None = None,
+        default: str | None = None,
         show_default: bool = True,
     ) -> str:
         """Backward compatible alias for :meth:`ask_question`.
@@ -223,4 +419,13 @@ class UXBridge(ABC):
         self.display_result(message, highlight=highlight, message_type=message_type)
 
 
-__all__ = ["UXBridge", "ProgressIndicator", "sanitize_output"]
+__all__ = [
+    "UXBridge",
+    "ProgressIndicator",
+    "sanitize_output",
+    "PROGRESS_STATUS_VALUES",
+    "ProgressStatusText",
+    "SubtaskProgressSnapshot",
+    "SupportsSubtasks",
+    "SupportsNestedSubtasks",
+]
