@@ -5,6 +5,9 @@ from pathlib import Path
 from typing import Set
 
 import pytest
+
+pytest.importorskip("pytest_bdd")
+
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
@@ -71,15 +74,15 @@ def stored_research_artifact(context: _Context) -> None:
     context.artifact_id = artifact.identifier
 
 
-@when('I traverse from "node1" to depth 2 excluding research artifacts')
-def traverse_without_research(context: _Context) -> None:
-    context.traversal_result = context.adapter.traverse_graph("node1", 2)
+@when('I traverse from "{start}" to depth {depth:d} excluding research artifacts')
+def traverse_without_research(context: _Context, start: str, depth: int) -> None:
+    context.traversal_result = context.adapter.traverse_graph(start, depth)
 
 
-@when('I traverse from "node1" to depth 2 including research artifacts')
-def traverse_with_research(context: _Context) -> None:
+@when('I traverse from "{start}" to depth {depth:d} including research artifacts')
+def traverse_with_research(context: _Context, start: str, depth: int) -> None:
     context.traversal_result = context.adapter.traverse_graph(
-        "node1", 2, include_research=True
+        start, depth, include_research=True
     )
 
 
@@ -92,6 +95,11 @@ def traversal_equals_node(context: _Context) -> None:
 def traversal_contains_artifact(context: _Context) -> None:
     assert context.artifact_id is not None
     assert context.artifact_id in context.traversal_result
+
+
+@then("the traversal result should be empty")
+def traversal_should_be_empty(context: _Context) -> None:
+    assert context.traversal_result == set()
 
 
 @when("I reload the enhanced graph memory adapter")

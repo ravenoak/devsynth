@@ -18,3 +18,8 @@ Feature: Autoresearch graph traversal and durability
     When I reload the enhanced graph memory adapter
     Then traversing from "node1" to depth 2 including research artifacts should contain the stored research artifact identifier
     And recomputing the stored research artifact hash should match the persisted digest
+
+  @fast
+  Scenario: Traversal gracefully handles unknown starting nodes
+    When I traverse from "ghost" to depth 2 including research artifacts
+    Then the traversal result should be empty

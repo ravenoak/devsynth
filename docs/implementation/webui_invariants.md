@@ -48,9 +48,14 @@ Fast suites now exercise the WebUI bridge directly so wizard navigation mirrors 
 
 Focused Streamlit-free regressions now patch both `_STREAMLIT` and `webui_bridge.st` to deterministic recorders, proving the lazy loader's install guidance, sanitised message routing, nested `WebUIProgressIndicator` lifecycle, ETA formatting, and wizard clamps without importing the real dependency.【F:tests/unit/interface/test_webui_streamlit_free_regressions.py†L404-L552】 These tests demonstrate that script tags are stripped before the bridge or UI forwards results, hierarchical subtasks stay escaped through completion, and malformed wizard navigation requests are clamped defensively.
 
+### Dashboard Layout Toggles and Error Guidance
+
+`tests/unit/interface/test_webui_dashboard_toggles_fast.py` reloads `devsynth.interface.webui` with stubbed optional dependencies so `get_layout_config` still flips between mobile, tablet, and desktop breakpoints while `display_result` surfaces the suggestions and documentation blocks for missing files without relying on a real Streamlit install.【F:tests/unit/interface/test_webui_dashboard_toggles_fast.py†L1-L146】 The suite proves the dashboard toggle UX and sanitised error guidance remain intact even when Streamlit, Rich, and downstream formatters are unavailable during fast regressions.
+
 ## Coverage Signal (2025-10-01)
 
 - **Streamlit-free regression harness:** `pytest --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge --cov-report=term-missing --cov-fail-under=0 tests/unit/interface/test_webui_streamlit_free_regressions.py` records 18.27 % coverage for `webui.py` and 25.37 % for `webui_bridge.py`, confirming the sanitized display branches, progress ETA formatting, and wizard clamps exercised by the new stubbed suite. Artefacts and the raw report are stored under `issues/tmp_artifacts/webui/20251001T035910Z/` for traceability.【F:issues/tmp_artifacts/webui/20251001T035910Z/coverage.log†L20-L24】
+- **Targeted fast toggle check (2025-10-??):** Running `poetry run pytest tests/unit/interface/test_webui_dashboard_toggles_fast.py --cov=devsynth.interface.webui --cov-report=term --cov-report=term-missing --cov-fail-under=0` currently fails before instrumentation because the lightweight environment omits `pytest-cov`; the command output is captured in `diagnostics/webui_dashboard_toggles_coverage.txt` for traceability while awaiting plugin availability.【F:diagnostics/webui_dashboard_toggles_coverage.txt†L1-L6】
 
 ## Coverage Signal (2025-09-30)
 

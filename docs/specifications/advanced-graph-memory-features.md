@@ -102,6 +102,9 @@ infinite loops.
 - `advanced_graph_memory_features.feature` scenarios demonstrate traversal from
   an initial node through multiple hops and verify persistence after adapter
   reload.
+- Scenario "Traversal gracefully handles unknown starting nodes" ensures the
+  breadth-first traversal helper returns an empty set when the start node is
+  absent, guarding the optional research overlay against bad inputs.【F:tests/behavior/features/advanced_graph_memory_features.feature†L23-L25】
 - Autoresearch feature scenarios add research artefacts through mocked
   connectors representing the external service, reload the adapter, and query
   provenance fields to confirm durability.
