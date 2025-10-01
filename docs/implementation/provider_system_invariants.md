@@ -112,6 +112,26 @@ provider when failure probabilities remain below 30 %.【F:tests/property/test
 
 The coverage deltas derive from the tracked JSON snapshot for the focused run.【F:issues/tmp_cov_provider_system.json†L3-L23】
 
+## Deterministic Async Retry Harness (2025-10-01)
+
+- `tests/unit/adapters/conftest.py` now exposes an async-aware `async_retry_harness`
+  fixture that replaces the random jitter inside `retry_with_exponential_backoff`
+  with a predictable sequence, records every back-pressure sleep, and shortcuts
+  `time.sleep` so event-loop driven tests do not stall.【F:tests/unit/adapters/conftest.py†L3-L220】
+- `tests/unit/adapters/test_provider_system_resilience.py` exercises the harness
+  to confirm jitter factors of 0.25 and 0.75 yield 150 ms and 375 ms delays,
+  while provider retry telemetry increments `inc_provider("retry")` twice for
+  the failing attempts before the successful third call.【F:tests/unit/adapters/test_provider_system_resilience.py†L124-L141】
+- The same suite toggles `_RecordingBreaker` instances through failure→open and
+  recovery paths, proving asynchronous `_call_async` promotes errors to
+  `ProviderError` while incrementing `acomplete:OPEN`, and synchronous
+  `_call_sync` reports the open breaker state on subsequent invocations with two
+  `complete:OPEN` increments.【F:tests/unit/adapters/test_provider_system_resilience.py†L143-L197】
+- A focused run of `tests/unit/adapters/test_provider_system_resilience.py`
+  captures 13.05 % coverage for `devsynth.adapters.provider_system`, emitting
+  HTML/JSON artifacts under `issues/tmp_artifacts/provider-system/20251001T042140Z/`
+  for audit trails.【b204e4†L1-L23】【F:issues/tmp_artifacts/provider-system/20251001T042140Z/coverage.json†L1-L20】
+
 ## Coverage Signal (2025-09-20)
 
 - Fast regression tests [`tests/unit/providers/test_provider_system_additional.py`](../../tests/unit/providers/test_provider_system_additional.py) simulate offline safeguards, safe-provider selection, and retry configuration plumbing without requiring optional HTTP extras. A focused `pytest --cov=devsynth.adapters.provider_system` run records 16.86 % line coverage, improving on the prior 12 % baseline and proving the fallback invariants remain enforced when toggling environment flags.【F:tests/unit/providers/test_provider_system_additional.py†L72-L150】【F:issues/tmp_cov_provider_system.json†L3-L9】
