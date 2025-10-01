@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import os
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 from uuid import UUID, uuid4
 
 from devsynth.application.collaboration.exceptions import (
@@ -33,6 +33,53 @@ from devsynth.ports.requirement_port import (
 )
 
 logger = DevSynthLogger(__name__)
+
+
+@dataclass(frozen=True)
+class ParsedDialecticalArgument:
+    """Structured representation of a dialectical argument exchange."""
+
+    position: str
+    content: str
+    counterargument: str = ""
+
+
+@dataclass(frozen=True)
+class ChatHistoryEntry:
+    """Lightweight record of a chat message used when building prompts."""
+
+    speaker_label: str
+    content: str
+
+
+@dataclass(frozen=True)
+class RecommendationEntry:
+    """Container for parsed recommendation text."""
+
+    text: str
+
+
+def _arguments_to_primitives(
+    arguments: Sequence[ParsedDialecticalArgument],
+) -> List[Dict[str, str]]:
+    """Convert parsed argument dataclasses into repository-compatible payloads."""
+
+    return [
+        {
+            "position": argument.position,
+            "content": argument.content,
+            "counterargument": argument.counterargument,
+        }
+        for argument in arguments
+    ]
+
+
+def _recommendations_to_primitives(
+    recommendations: Sequence[RecommendationEntry],
+) -> List[str]:
+    """Convert recommendation entries into their textual representations."""
+
+    return [entry.text for entry in recommendations]
 
 
 class ConsensusError(BaseConsensusError):
@@ -158,12 +205,13 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         reasoning.antithesis = self._generate_antithesis(change)
 
         # Generate arguments
-        reasoning.arguments = self._generate_arguments(
+        argument_entries = self._generate_arguments(
             change, reasoning.thesis, reasoning.antithesis
         )
+        reasoning.arguments = _arguments_to_primitives(argument_entries)
 
         # Generate synthesis
-        reasoning.synthesis = self._generate_synthesis(change, reasoning.arguments)
+        reasoning.synthesis = self._generate_synthesis(change, argument_entries)
 
         # Generate conclusion and recommendation
         reasoning.conclusion, reasoning.recommendation = (
@@ -340,8 +388,11 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         )
 
         # Generate recommendations
-        assessment.recommendations = self._generate_impact_recommendations(
+        recommendation_entries = self._generate_impact_recommendations(
             change, assessment.analysis, assessment.risk_level
+        )
+        assessment.recommendations = _recommendations_to_primitives(
+            recommendation_entries
         )
 
         # Save and return the assessment
@@ -508,7 +559,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
     def _generate_arguments(
         self, change: RequirementChange, thesis: str, antithesis: str
-    ) -> List[Dict[str, str]]:
+    ) -> List[ParsedDialecticalArgument]:
         """
         Generate arguments for and against a requirement change.
 
@@ -521,51 +572,59 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             A list of arguments.
         """
         prompt = self._create_arguments_prompt(change, thesis, antithesis)
-        arguments_text = self.llm_service.query(prompt).strip()
+        arguments_text: str = self.llm_service.query(prompt).strip()
 
         # Parse the arguments and their counterarguments into a structured format
-        arguments = []
-        current_argument = {}
+        arguments: List[ParsedDialecticalArgument] = []
+        current_position: str = ""
+        current_content: str = ""
+        current_counterargument: str = ""
+        has_position: bool = False
+        has_content: bool = False
+
+        def _flush_current() -> None:
+            nonlocal current_position, current_content, current_counterargument
+            nonlocal has_position, has_content
+            if has_position and has_content:
+                arguments.append(
+                    ParsedDialecticalArgument(
+                        position=current_position,
+                        content=current_content,
+                        counterargument=current_counterargument,
+                    )
+                )
+            current_position = ""
+            current_content = ""
+            current_counterargument = ""
+            has_position = False
+            has_content = False
 
         for line in arguments_text.split("\n"):
-            line = line.strip()
-            if not line:
+            normalized = line.strip()
+            if not normalized:
                 continue
 
-            if line.startswith("Argument "):
-                if (
-                    current_argument
-                    and "position" in current_argument
-                    and "content" in current_argument
-                ):
-                    # Ensure counterargument key exists even if empty
-                    current_argument.setdefault("counterargument", "")
-                    arguments.append(current_argument)
-                current_argument = {
-                    "position": "",
-                    "content": "",
-                    "counterargument": "",
-                }
-            elif ":" in line:
-                key, value = line.split(":", 1)
-                key = key.strip().lower()
-                value = value.strip()
+            if normalized.startswith("Argument "):
+                _flush_current()
+                continue
 
-                if key == "position":
-                    current_argument["position"] = value
-                elif key in ("content", "argument"):
-                    current_argument["content"] = value
-                elif key == "counterargument":
-                    current_argument["counterargument"] = value
+            if ":" not in normalized:
+                continue
 
-        # Add the last argument if it exists
-        if (
-            current_argument
-            and "position" in current_argument
-            and "content" in current_argument
-        ):
-            current_argument.setdefault("counterargument", "")
-            arguments.append(current_argument)
+            key, value = normalized.split(":", 1)
+            key = key.strip().lower()
+            cleaned_value = value.strip()
+
+            if key == "position":
+                current_position = cleaned_value
+                has_position = True
+            elif key in ("content", "argument"):
+                current_content = cleaned_value
+                has_content = True
+            elif key == "counterargument":
+                current_counterargument = cleaned_value
+
+        _flush_current()
 
         # Deterministic ordering (can be disabled with env flag)
         if os.getenv("DEVSYNTH_DETERMINISTIC_REASONING", "1").lower() not in (
@@ -574,8 +633,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             "no",
         ):  # pragma: no cover - env branch
 
-            def _pos_rank(p: str) -> int:
-                p = (p or "").lower()
+            def _pos_rank(position: str) -> int:
+                p = position.lower()
                 # Prefer supporting positions first for stability
                 if p.startswith("for") or p.startswith("thesis"):
                     return 0
@@ -584,16 +643,18 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             arguments = sorted(
                 arguments,
                 key=lambda a: (
-                    _pos_rank(a.get("position")),
-                    (a.get("content") or "").lower(),
-                    (a.get("counterargument") or "").lower(),
+                    _pos_rank(a.position),
+                    a.content.lower(),
+                    a.counterargument.lower(),
                 ),
             )
 
         return arguments
 
     def _generate_synthesis(
-        self, change: RequirementChange, arguments: List[Dict[str, str]]
+        self,
+        change: RequirementChange,
+        arguments: Sequence[ParsedDialecticalArgument],
     ) -> str:
         """
         Generate a synthesis based on the arguments.
@@ -666,6 +727,18 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         # Generate a response
         return self.llm_service.query(prompt).strip()
 
+    def _collect_chat_history_entries(
+        self, session: ChatSession
+    ) -> List[ChatHistoryEntry]:
+        """Return the most recent chat messages formatted for prompt injection."""
+
+        recent_messages: List[ChatMessage] = session.messages[-5:]
+        history: List[ChatHistoryEntry] = []
+        for message in recent_messages:
+            label = "User" if message.sender == session.user_id else "Assistant"
+            history.append(ChatHistoryEntry(speaker_label=label, content=message.content))
+        return history
+
     def _generate_welcome_message(self, reasoning: DialecticalReasoning) -> str:
         """
         Generate a welcome message for a chat session with context about the reasoning.
@@ -709,7 +782,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             affected_requirements.append(change.requirement_id)
 
         # Get all requirements
-        all_requirements = self.requirement_repository.get_all_requirements()
+        all_requirements: List[Requirement] = (
+            self.requirement_repository.get_all_requirements()
+        )
 
         # Check for dependencies
         for req in all_requirements:
@@ -834,7 +909,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
             The impact analysis.
         """
         # Get the affected requirements
-        requirements = []
+        requirements: List[Requirement] = []
         for req_id in affected_requirements:
             req = self.requirement_repository.get_requirement(req_id)
             if req:
@@ -850,7 +925,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
     def _generate_impact_recommendations(
         self, change: RequirementChange, analysis: str, risk_level: str
-    ) -> List[str]:
+    ) -> List[RecommendationEntry]:
         """
         Generate recommendations based on the impact analysis.
 
@@ -868,20 +943,20 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         )
 
         # Generate the recommendations
-        recommendations_text = self.llm_service.query(prompt).strip()
+        recommendations_text: str = self.llm_service.query(prompt).strip()
 
         # Parse the recommendations
-        recommendations = []
-        for line in recommendations_text.split("\n"):
-            line = line.strip()
+        recommendations: List[RecommendationEntry] = []
+        for raw_line in recommendations_text.split("\n"):
+            line = raw_line.strip()
             if line.startswith("- ") or line.startswith("* "):
-                recommendations.append(line[2:])
+                recommendations.append(RecommendationEntry(text=line[2:]))
             elif (
                 line.startswith("1. ")
                 or line.startswith("2. ")
                 or line.startswith("3. ")
             ):
-                recommendations.append(line[3:])
+                recommendations.append(RecommendationEntry(text=line[3:]))
 
         return recommendations
 
@@ -1013,7 +1088,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         return prompt
 
     def _create_synthesis_prompt(
-        self, change: RequirementChange, arguments: List[Dict[str, str]]
+        self,
+        change: RequirementChange,
+        arguments: Sequence[ParsedDialecticalArgument],
     ) -> str:
         """
         Create a prompt for generating a synthesis.
@@ -1051,8 +1128,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
 
         for i, arg in enumerate(arguments, 1):
             prompt += f"Argument {i}:\n"
-            prompt += f"Position: {arg['position']}\n"
-            prompt += f"Content: {arg['content']}\n\n"
+            prompt += f"Position: {arg.position}\n"
+            prompt += f"Content: {arg.content}\n\n"
 
         prompt += "Synthesis:"
 
@@ -1129,13 +1206,8 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         )
 
         # Add the chat history
-        for msg in session.messages[
-            -5:
-        ]:  # Include only the last 5 messages for context
-            if msg.sender == session.user_id:
-                prompt += f"User: {msg.content}\n"
-            else:
-                prompt += f"Assistant: {msg.content}\n"
+        for entry in self._collect_chat_history_entries(session):
+            prompt += f"{entry.speaker_label}: {entry.content}\n"
 
         # Add context about the change and reasoning if available
         if change:

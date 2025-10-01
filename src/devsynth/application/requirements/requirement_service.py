@@ -137,6 +137,9 @@ class RequirementService:
             return None
 
         # Create a copy of the previous state
+        previous_dependencies: list[UUID] = list(requirement.dependencies)
+        previous_tags: list[str] = list(requirement.tags)
+        previous_metadata: dict[str, str] = dict(requirement.metadata)
         previous_state = Requirement(
             id=requirement.id,
             title=requirement.title,
@@ -147,13 +150,13 @@ class RequirementService:
             created_at=requirement.created_at,
             updated_at=requirement.updated_at,
             created_by=requirement.created_by,
-            dependencies=requirement.dependencies.copy(),
-            tags=requirement.tags.copy(),
-            metadata=requirement.metadata.copy(),
+            dependencies=previous_dependencies,
+            tags=previous_tags,
+            metadata=previous_metadata,
         )
 
         # Apply the update payload to the requirement
-        update_kwargs = updates.to_update_kwargs()
+        update_kwargs: dict[str, object] = updates.to_update_kwargs()
         if not update_kwargs:
             return requirement
 
