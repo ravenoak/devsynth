@@ -490,13 +490,19 @@ class WebUI(PageRenderer, UXBridge):
                 f"Completed: {self._description}"
             )
 
-        def add_subtask(self, description: str, total: int = 100) -> str:
+        def add_subtask(
+            self,
+            description: str,
+            total: int = 100,
+            status: str = "Starting...",
+        ) -> str:
             st = self._streamlit
             task_id = f"subtask_{len(self._subtasks)}"
             self._subtasks[task_id] = {
                 "description": sanitize_output(description),
                 "total": total,
                 "current": 0,
+                "status": sanitize_output(status),
             }
             with st.container() as container:
                 progress_bar = container.progress(0.0)
@@ -513,27 +519,37 @@ class WebUI(PageRenderer, UXBridge):
             subtask = self._subtasks[task_id]
             containers = self._subtask_containers[task_id]
             progress_pct = min(1.0, subtask["current"] / subtask["total"])
+            status_suffix = subtask.get("status", "")
             status_text = (
                 f"&nbsp;&nbsp;&nbsp;&nbsp;**{subtask['description']}** - "
                 f"{int(progress_pct * 100)}%"
             )
+            if status_suffix:
+                status_text = f"{status_text} ({status_suffix})"
             containers["container"].markdown(status_text)
             containers["bar"].progress(progress_pct)
 
         def update_subtask(
-            self, task_id: str, advance: float = 1, description: str | None = None
+            self,
+            task_id: str,
+            advance: float = 1,
+            description: str | None = None,
+            status: str | None = None,
         ) -> None:
             if task_id not in self._subtasks:
                 return
             self._subtasks[task_id]["current"] += advance
             if description:
                 self._subtasks[task_id]["description"] = sanitize_output(description)
+            if status is not None:
+                self._subtasks[task_id]["status"] = sanitize_output(status)
             self._update_subtask_display(task_id)
 
         def complete_subtask(self, task_id: str) -> None:
             if task_id not in self._subtasks:
                 return
             self._subtasks[task_id]["current"] = self._subtasks[task_id]["total"]
+            self._subtasks[task_id]["status"] = "Complete"
             self._update_subtask_display(task_id)
             subtask = self._subtasks[task_id]
             containers = self._subtask_containers.get(task_id)

@@ -7,7 +7,7 @@ import hmac
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Mapping
+from typing import Any, Mapping, TypedDict
 from uuid import uuid4
 
 DEFAULT_SIGNATURE_ALGORITHM = "HMAC-SHA256"
@@ -30,6 +30,84 @@ class SignatureEnvelope:
         }
 
 
+class TimelineRowPayload(TypedDict):
+    trace_id: str
+    summary: str
+    timestamp: str
+    agent_persona: str
+    knowledge_refs: list[str]
+
+
+class ProvenanceFilterPayload(TypedDict):
+    dimension: str
+    label: str
+    value: str
+
+
+class IntegrityBadgePayload(TypedDict):
+    trace_id: str
+    status: str
+    evidence_hash: str
+    notes: str
+
+
+class AutoresearchPayload(TypedDict):
+    version: str
+    generated_at: str
+    session_id: str
+    timeline: list[TimelineRowPayload]
+    provenance_filters: list[ProvenanceFilterPayload]
+    integrity_badges: list[IntegrityBadgePayload]
+
+
+@dataclass(frozen=True, slots=True)
+class TimelineRow:
+    trace_id: str
+    summary: str
+    timestamp: str
+    agent_persona: str
+    knowledge_refs: tuple[str, ...]
+
+    def to_payload(self) -> TimelineRowPayload:
+        return {
+            "trace_id": self.trace_id,
+            "summary": self.summary,
+            "timestamp": self.timestamp,
+            "agent_persona": self.agent_persona,
+            "knowledge_refs": list(self.knowledge_refs),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ProvenanceFilter:
+    dimension: str
+    label: str
+    value: str
+
+    def to_payload(self) -> ProvenanceFilterPayload:
+        return {
+            "dimension": self.dimension,
+            "label": self.label,
+            "value": self.value,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class IntegrityBadge:
+    trace_id: str
+    status: str
+    evidence_hash: str
+    notes: str
+
+    def to_payload(self) -> IntegrityBadgePayload:
+        return {
+            "trace_id": self.trace_id,
+            "status": self.status,
+            "evidence_hash": self.evidence_hash,
+            "notes": self.notes,
+        }
+
+
 def _canonicalize_payload(payload: Mapping[str, Any]) -> bytes:
     """Return a canonical JSON representation for signing."""
 
@@ -47,18 +125,18 @@ def build_autoresearch_payload(
     *,
     generated_at: datetime | None = None,
     session_id: str | None = None,
-) -> dict[str, Any]:
+) -> AutoresearchPayload:
     """Create the overlay payload that Streamlit will consume."""
 
     timestamp = (generated_at or datetime.now(timezone.utc)).isoformat()
     session = session_id or _derive_session_id()
 
-    timeline: list[dict[str, Any]] = []
+    timeline_rows: list[TimelineRow] = []
     provenance_filters: dict[str, set[str]] = {
         "agent_persona": set(),
         "knowledge_graph": set(),
     }
-    integrity_badges: list[dict[str, Any]] = []
+    integrity_badges: list[IntegrityBadge] = []
 
     for trace_id, entry in traceability.items():
         entry = entry or {}
@@ -77,61 +155,68 @@ def build_autoresearch_payload(
         )
         event_time = entry.get("timestamp") or timestamp
 
-        timeline.append(
-            {
-                "trace_id": trace_id,
-                "summary": summary,
-                "timestamp": event_time,
-                "agent_persona": persona,
-                "knowledge_refs": knowledge_refs,
-            }
+        normalized_refs = [str(ref) for ref in knowledge_refs]
+
+        timeline_rows.append(
+            TimelineRow(
+                trace_id=trace_id,
+                summary=summary,
+                timestamp=event_time,
+                agent_persona=persona,
+                knowledge_refs=tuple(normalized_refs),
+            )
         )
 
         provenance_filters["agent_persona"].add(persona)
-        for ref in knowledge_refs:
+        for ref in normalized_refs:
             provenance_filters["knowledge_graph"].add(str(ref))
 
         badge_basis = json.dumps({"trace_id": trace_id, "entry": entry}, sort_keys=True).encode("utf-8")
         badge_hash = hashlib.sha256(badge_basis).hexdigest()
         integrity_badges.append(
-            {
-                "trace_id": trace_id,
-                "status": entry.get("integrity_status", "verified" if badge_hash else "unknown"),
-                "evidence_hash": badge_hash,
-                "notes": entry.get("integrity_notes") or "Signature derived from MVUU report payload.",
-            }
+            IntegrityBadge(
+                trace_id=trace_id,
+                status=entry.get("integrity_status", "verified" if badge_hash else "unknown"),
+                evidence_hash=badge_hash,
+                notes=(
+                    entry.get("integrity_notes")
+                    or "Signature derived from MVUU report payload."
+                ),
+            )
         )
 
     filters_payload = [
-        {
-            "dimension": "agent_persona",
-            "label": f"Agent Persona: {value}",
-            "value": value,
-        }
+        ProvenanceFilter(
+            dimension="agent_persona",
+            label=f"Agent Persona: {value}",
+            value=value,
+        )
         for value in sorted(provenance_filters["agent_persona"])
     ] + [
-        {
-            "dimension": "knowledge_graph",
-            "label": f"Knowledge Graph: {value}",
-            "value": value,
-        }
+        ProvenanceFilter(
+            dimension="knowledge_graph",
+            label=f"Knowledge Graph: {value}",
+            value=value,
+        )
         for value in sorted(provenance_filters["knowledge_graph"])
     ]
 
-    payload = {
+    payload: AutoresearchPayload = {
         "version": "1.0",
         "generated_at": timestamp,
         "session_id": session,
-        "timeline": sorted(timeline, key=lambda item: item["timestamp"]),
-        "provenance_filters": filters_payload,
-        "integrity_badges": integrity_badges,
+        "timeline": [
+            row.to_payload() for row in sorted(timeline_rows, key=lambda item: item.timestamp)
+        ],
+        "provenance_filters": [filter_.to_payload() for filter_ in filters_payload],
+        "integrity_badges": [badge.to_payload() for badge in integrity_badges],
     }
 
     return payload
 
 
 def sign_payload(
-    payload: Mapping[str, Any],
+    payload: AutoresearchPayload,
     *,
     secret: str,
     key_id: str,

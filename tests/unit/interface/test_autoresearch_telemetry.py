@@ -5,11 +5,23 @@ from __future__ import annotations
 import pytest
 
 from devsynth.interface.autoresearch import (
+    AutoresearchPayload,
     SignatureEnvelope,
     build_autoresearch_payload,
     sign_payload,
     verify_signature,
 )
+
+
+def _minimal_payload() -> AutoresearchPayload:
+    return {
+        "version": "1.0",
+        "generated_at": "2025-01-01T00:00:00+00:00",
+        "session_id": "session",
+        "timeline": [],
+        "provenance_filters": [],
+        "integrity_badges": [],
+    }
 
 
 @pytest.mark.fast
@@ -42,7 +54,16 @@ def test_build_autoresearch_payload_produces_timeline_snapshot() -> None:
 def test_signature_roundtrip_validates() -> None:
     """Signatures should verify against canonical payloads."""
 
-    payload = {"timeline": [{"trace_id": "DSY-0001"}]}
+    payload = _minimal_payload()
+    payload["timeline"].append(
+        {
+            "trace_id": "DSY-0001",
+            "summary": "",
+            "timestamp": "2025-01-01T00:00:00+00:00",
+            "agent_persona": "Analyst",
+            "knowledge_refs": [],
+        }
+    )
     secret = "topsecret"
 
     envelope = sign_payload(payload, secret=secret, key_id="env:TEST")
@@ -55,7 +76,7 @@ def test_signature_roundtrip_validates() -> None:
 def test_signature_failure_with_wrong_secret() -> None:
     """Changing the secret should invalidate the signature."""
 
-    payload = {"timeline": []}
+    payload = _minimal_payload()
     secret = "alpha"
     envelope = sign_payload(payload, secret=secret, key_id="env:TEST")
 

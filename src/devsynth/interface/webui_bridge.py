@@ -129,7 +129,12 @@ class WebUIProgressIndicator(ProgressIndicator):
         """Mark the progress indicator as complete."""
         self._current = self._total
 
-    def add_subtask(self, description: str, total: int = 100) -> str:
+    def add_subtask(
+        self,
+        description: str,
+        total: int = 100,
+        status: str = "Starting...",
+    ) -> str:
         """Add a subtask to the progress indicator.
 
         Args:
@@ -141,15 +146,20 @@ class WebUIProgressIndicator(ProgressIndicator):
         """
         desc = _safe_text(description, fallback="<subtask>")
         task_id = f"subtask_{len(self._subtasks)}"
+        initial_status = _safe_text(status, fallback=_default_status(0.0, total))
         self._subtasks[task_id] = SubtaskState(
             description=desc,
             total=total,
-            status=_default_status(0.0, total),
+            status=initial_status,
         )
         return task_id
 
     def update_subtask(
-        self, task_id: str, advance: float = 1, description: str | None = None
+        self,
+        task_id: str,
+        advance: float = 1,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update a subtask's progress.
 
@@ -168,7 +178,10 @@ class WebUIProgressIndicator(ProgressIndicator):
             )
 
         subtask.current += advance
-        subtask.status = _default_status(subtask.current, subtask.total)
+        if status is not None:
+            subtask.status = _safe_text(status, fallback=subtask.status)
+        else:
+            subtask.status = _default_status(subtask.current, subtask.total)
 
     def complete_subtask(self, task_id: str) -> None:
         """Mark a subtask as complete.
