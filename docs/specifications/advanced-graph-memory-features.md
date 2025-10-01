@@ -41,8 +41,9 @@ Agents reason over relationships between memories. Without a bounded traversal
 mechanism, durable graph storage, and a structured way to store research
 artefacts, agents cannot reliably follow chains of related items or resume
 reasoning after a restart. Providing a documented traversal API with persistence
-and research provenance guarantees enables richer memory queries and long-lived
-Autoresearch workflows across all supported backends.
+and research provenance guarantees enables richer memory queries and prepares
+DevSynth to coordinate with the external Autoresearch service once the bridge is
+enabled across all supported backends.
 
 ## Specification
 
@@ -55,16 +56,20 @@ Autoresearch workflows across all supported backends.
   are stored. On initialization the adapter loads the file if it exists,
   ensuring all nodes, `relatedTo` edges, and research provenance survive process
   restarts.
-- Extend the schema with the following Autoresearch constructs:
+- Extend the schema with the following Autoresearch constructs, scoped for the
+  external Autoresearch integration:
   - `devsynth:ResearchArtifact` class with properties `title`, `summary`,
     `citationUrl`, `evidenceHash`, and `publishedAt`.
   - `devsynth:supports` relationships that link a research artefact to
     requirements, issues, or commits.
   - `devsynth:derivedFrom` relationships that connect research artefacts to
     upstream knowledge graph nodes (e.g., experiments, datasets).
-- Provide CLI helpers that summarise large artefacts before ingestion. For large
-  PDFs or datasets, store a digest node referencing the original file path while
-  keeping the full content in archival storage outside the RDF triple store.
+- Provide CLI helpers that summarise large artefacts before ingestion once the
+  Autoresearch bridge ships. Until then, stub the CLI flags and documentation so
+  local commands can validate argument flow without attempting to call the
+  external service. For large PDFs or datasets, store a digest node referencing
+  the original file path while keeping the full content in archival storage
+  outside the RDF triple store.
 - Expose traversal, persistence, and Autoresearch behaviour through
   behaviour-driven tests exercising graph traversal, reload cycles, provenance
   verification, and integration with other memory stores.
@@ -87,13 +92,37 @@ infinite loops.
 - Research artefacts include immutable `evidenceHash` values verified by tests
   that compare stored hashes to recomputed digests.
 - Behavioural tests cover traversal, persistence, and Autoresearch workflows
-  across TinyDB and ChromaDB backends and pass under the `fast` marker.
+  across TinyDB and ChromaDB backends using mocked external connectors and pass
+  under the `fast` marker.
 
 ## Proofs
 
 - `advanced_graph_memory_features.feature` scenarios demonstrate traversal from
   an initial node through multiple hops and verify persistence after adapter
   reload.
-- Autoresearch feature scenarios add research artefacts, reload the adapter, and
-  query provenance fields to confirm durability.
+- Autoresearch feature scenarios add research artefacts through mocked
+  connectors representing the external service, reload the adapter, and query
+  provenance fields to confirm durability.
 - Unit and integration tests execute without errors for all memory backends.
+
+## Autoresearch Coordination Interfaces
+
+DevSynth will orchestrate external Autoresearch workflows using a layered
+interface plan:
+
+1. **Model Context Protocol (MCP)** – introduces tool-calling surfaces the
+   Autoresearch service can invoke when streaming artefact metadata into
+   DevSynth. MCP support is a prerequisite for exposing Autoresearch ingestion
+   hooks in the CLI.
+2. **Agent-to-Agent (A2A) channel** – enables WSDE personas to hand off
+   investigative tasks to the Autoresearch primus. The channel depends on MCP
+   scaffolding so both sides can negotiate capabilities before a session
+   begins.
+3. **SPARQL gateway** – provides a sanctioned query surface for the external
+   service to read/write research nodes. The gateway requires the A2A handshake
+   so DevSynth can authorise writes and map provenance back to local memory
+   identifiers.
+
+Specifications in this document must ensure adapters and CLI surfaces can be
+exercised via mocks until each connector milestone is delivered, keeping local
+tests hermetic while signalling the integration order to downstream teams.

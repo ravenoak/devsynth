@@ -9,14 +9,17 @@ version: 0.1.0-alpha.1
 # Memory Guide
 
 DevSynth stores working knowledge in multiple adapters (graph, vector, TinyDB).
-This guide highlights the enhanced graph memory workflow, including
-Autoresearch artefacts introduced in 0.1.0-alpha.1.
+This guide highlights the enhanced graph memory workflow and explains how the
+external Autoresearch service will contribute artefacts once the integration
+sequence (MCP → agent-to-agent → SPARQL) lands during the 0.1.0-alpha.1 cycle.
 
 ## Research Artefacts
 
 Autoresearch artefacts capture external evidence (papers, datasets, transcripts)
 and link it to DevSynth requirements. The enhanced graph adapter defines the
-`devsynth:ResearchArtifact` class with provenance fields:
+`devsynth:ResearchArtifact` class with provenance fields that will be populated
+by the Autoresearch bridge once the external service begins streaming
+structured payloads into DevSynth:
 
 - **Title** – human-readable label for the source.
 - **Summary** – automatically generated synopsis stored inside the RDF graph.
@@ -37,7 +40,9 @@ Graph traversal honours these nodes by default when the caller explicitly opts
 in. Use `EnhancedGraphMemoryAdapter.traverse_graph(start_id, depth,
 include_research=True)` to include research artefacts in the breadth-first walk;
 when `include_research` is `False` (the default) the traversal skips artefacts so
-core reasoning stays lightweight.
+core reasoning stays lightweight. Until the SPARQL gateway is live, tests should
+seed artefact nodes via fixtures or mocks rather than real Autoresearch
+sessions.
 
 ## Archival Summaries
 
@@ -59,31 +64,55 @@ artifact = adapter.ingest_research_artifact_from_path(
 ```
 
 The helper reads the source file once, stores a compact summary and the hash in
-`graph_memory.ttl`, and keeps the full file in archival storage.
+`graph_memory.ttl`, and keeps the full file in archival storage. During the
+integration window, run these helpers behind feature flags so local experiments
+remain hermetic and do not imply direct communication with Autoresearch.
 
 ## CLI Integration
 
-`devsynth ingest` now ships with two options for research artefacts:
+`devsynth ingest` now includes stubbed options for the upcoming research
+artefact bridge:
 
-- `--research-artifact PATH` – Generate a summary and evidence hash for the
-  artefact at `PATH`, persist the provenance node, and log the resulting digest.
-  Repeat the flag to ingest multiple artefacts before the standard ingestion
-  flow runs.
-- `--verify-research-hash HASH=PATH` – Recompute the SHA-256 digest for `PATH`
-  and ensure it matches `HASH`. The command raises a `BadParameter` error if the
-  hash differs, preventing stale or tampered evidence from entering the release
-  pipeline.
+- `--research-artifact PATH` – Generates summaries and evidence hashes once the
+  Autoresearch MCP connector is live. Today the flag validates arguments, logs a
+  placeholder, and exits early so scripted workflows can adopt the interface in
+  advance.
+- `--verify-research-hash HASH=PATH` – Will recompute SHA-256 digests for
+  Autoresearch-managed artefacts. Until telemetry arrives from the external
+  service, the flag delegates to local hashing helpers and warns that no remote
+  verification occurred.
 
 Both options rely on the persisted `graph_memory.ttl` file located under
 `$DEVSYNTH_GRAPH_MEMORY_PATH` (defaults to `./.devsynth/memory/`). The file is
 reloaded automatically when the adapter starts, so artefacts survive CLI runs
-and test sessions.
+and test sessions. When Autoresearch connectivity is unavailable the CLI should
+continue operating against local fixtures while emitting clear warnings that the
+external bridge is not yet active.
 
 ## Workflow Tips
 
 1. Store artefacts alongside their original filenames so the citation URL
-   doubles as an archival pointer.
+   doubles as an archival pointer once Autoresearch begins referencing the
+   remote archive.
 2. Run `devsynth ingest --verify-research-hash HASH=path` during release prep to
-   confirm that previously published hashes remain valid.
+   confirm that previously published hashes remain valid, acknowledging the
+   warning that verification is currently local-only.
 3. Use `traverse_graph(start_id, depth, include_research=True)` to gather the
-   supporting evidence when preparing audit reports or compliance checklists.
+   supporting evidence when preparing audit reports or compliance checklists,
+   populating research nodes through fixtures until the SPARQL gateway is
+   deployed.
+
+## Autoresearch Interface Roadmap
+
+The Autoresearch bridge will come online in three phases:
+
+1. **Model Context Protocol (MCP)** stubs land first so the external service can
+   request ingestion helpers through a consistent tool interface.
+2. **Agent-to-Agent (A2A)** handshakes follow, enabling WSDE personas to
+   orchestrate Autoresearch sessions and authorize artefact writes.
+3. **SPARQL Gateway** activates last, unlocking managed read/write access to
+   research nodes once capability negotiation and authentication are stable.
+
+Documentation and CLI affordances described above should remain in "preview"
+mode until each milestone completes, keeping user expectations aligned with the
+external dependency timeline.
