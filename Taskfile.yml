@@ -365,11 +365,12 @@ tasks:
     cmds:
       - poetry env info --path
       - poetry run python scripts/verify_python_version.py
+      - poetry install --with dev --extras "tests retrieval chromadb api"
+      - bash -lc 'mkdir -p diagnostics; poetry run python scripts/verify_test_markers.py | tee diagnostics/release_prep_verify_markers.txt; EXIT=${PIPESTATUS[0]}; exit $EXIT'
       - task: clean
       - task: build:wheel
       - task: build:sdist
       - task: test:smoke
-      - poetry run python scripts/verify_test_markers.py
       - task: security:audit
       - task: verify:minimal
       - poetry run python scripts/verify_release_state.py
