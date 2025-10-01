@@ -1,17 +1,15 @@
-"""
-Circuit Breaker implementation for memory operations.
+"""Circuit breaker utilities for the memory subsystem."""
 
-This module provides a circuit breaker pattern implementation to prevent
-cascading failures in cross-store memory operations.
-"""
+from __future__ import annotations
 
-import logging
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, Optional, TypeVar, cast
+from typing import Any, ParamSpec, TypeVar
 
 from devsynth.logging_setup import DevSynthLogger
 
+P = ParamSpec("P")
 T = TypeVar("T")
 
 
@@ -52,8 +50,9 @@ class CircuitBreaker:
         name: str,
         failure_threshold: int = 3,
         reset_timeout: float = 60.0,
-        logger: Optional[logging.Logger] = None,
-    ):
+        *,
+        logger: DevSynthLogger | None = None,
+    ) -> None:
         """
         Initialize the circuit breaker.
 
@@ -69,9 +68,9 @@ class CircuitBreaker:
         self.state = CircuitBreakerState.CLOSED
         self.failure_count = 0
         self.last_failure_time = 0.0
-        self.logger = logger or DevSynthLogger(__name__)
+        self.logger: DevSynthLogger = logger or DevSynthLogger(__name__)
 
-    def execute(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    def execute(self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
         """
         Execute a function with circuit breaker protection.
 
@@ -164,7 +163,7 @@ class CircuitBreaker:
         self.last_failure_time = 0.0
         self.logger.info(f"Circuit breaker '{self.name}' has been reset")
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """
         Get the current state of the circuit breaker.
 
@@ -189,10 +188,10 @@ class CircuitBreakerRegistry:
     circuit breakers by name.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the circuit breaker registry."""
-        self._circuit_breakers: Dict[str, CircuitBreaker] = {}
-        self.logger = DevSynthLogger(__name__)
+        self._circuit_breakers: dict[str, CircuitBreaker] = {}
+        self.logger: DevSynthLogger = DevSynthLogger(__name__)
 
     def get_or_create(
         self, name: str, failure_threshold: int = 3, reset_timeout: float = 60.0
@@ -219,7 +218,7 @@ class CircuitBreakerRegistry:
 
         return self._circuit_breakers[name]
 
-    def get(self, name: str) -> Optional[CircuitBreaker]:
+    def get(self, name: str) -> CircuitBreaker | None:
         """
         Get an existing circuit breaker by name.
 
@@ -236,7 +235,7 @@ class CircuitBreakerRegistry:
         for circuit_breaker in self._circuit_breakers.values():
             circuit_breaker.reset()
 
-    def get_all_states(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_states(self) -> dict[str, dict[str, Any]]:
         """
         Get the current state of all circuit breakers.
 
@@ -267,8 +266,10 @@ def get_circuit_breaker_registry() -> CircuitBreakerRegistry:
 
 
 def with_circuit_breaker(
-    circuit_breaker_name: str, failure_threshold: int = 3, reset_timeout: float = 60.0
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    circuit_breaker_name: str,
+    failure_threshold: int = 3,
+    reset_timeout: float = 60.0,
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """
     Decorator for applying circuit breaker pattern to a function.
 
@@ -281,8 +282,8 @@ def with_circuit_breaker(
         Decorator function
     """
 
-    def decorator(func: Callable[..., T]) -> Callable[..., T]:
-        def wrapper(*args: Any, **kwargs: Any) -> T:
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             registry = get_circuit_breaker_registry()
             circuit_breaker = registry.get_or_create(
                 name=circuit_breaker_name,
@@ -291,6 +292,6 @@ def with_circuit_breaker(
             )
             return circuit_breaker.execute(func, *args, **kwargs)
 
-        return cast(Callable[..., T], wrapper)
+        return wrapper
 
     return decorator

@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from threading import RLock
 from types import TracebackType
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 # We'll import DevSynthError later to avoid circular imports
 
@@ -36,7 +36,7 @@ _logging_configured = False
 
 # Track last effective configuration for idempotency
 _EffectiveConfig = tuple[str, str, int, bool]
-_last_effective_config: Optional[_EffectiveConfig] = None
+_last_effective_config: _EffectiveConfig | None = None
 
 # Reentrant lock to make configuration thread-safe
 _config_lock: RLock = RLock()
@@ -45,8 +45,8 @@ _config_lock: RLock = RLock()
 logger: logging.Logger = logging.getLogger(__name__)
 
 # Context variables for request context
-request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
-phase_var: ContextVar[Optional[str]] = ContextVar("phase", default=None)
+request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
+phase_var: ContextVar[str | None] = ContextVar("phase", default=None)
 
 # Secret keys to redact from logs
 _SECRET_ENV_VARS: list[str] = [
@@ -200,9 +200,7 @@ class RequestContextFilter(logging.Filter):
         return True
 
 
-def set_request_context(
-    request_id: Optional[str] = None, phase: Optional[str] = None
-) -> None:
+def set_request_context(request_id: str | None = None, phase: str | None = None) -> None:
     """Set request context variables for logging."""
     if request_id is not None:
         request_id_var.set(request_id)
@@ -243,7 +241,7 @@ def get_log_file() -> str:
     )
 
 
-def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
+def ensure_log_dir_exists(log_dir: str | None = None) -> str:
     """
     Ensure the log directory exists, creating it if necessary.
 
@@ -315,9 +313,9 @@ def ensure_log_dir_exists(log_dir: Optional[str] = None) -> str:
 
 
 def configure_logging(
-    log_dir: Optional[str] = None,
-    log_file: Optional[str] = None,
-    log_level: Optional[int] = None,
+    log_dir: str | None = None,
+    log_file: str | None = None,
+    log_level: int | None = None,
     create_dir: bool = True,
 ) -> None:
     """

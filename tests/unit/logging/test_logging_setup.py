@@ -180,6 +180,32 @@ def test_request_context_filter_attaches_context():
 
 
 @pytest.mark.fast
+def test_json_formatter_serializes_request_context() -> None:
+    """JSON formatter includes request metadata from context vars."""
+
+    set_request_context("req-json-7", "phase-json")
+    try:
+        record = logging.LogRecord(
+            name="devsynth.test.json.context",
+            level=logging.INFO,
+            pathname=__file__,
+            lineno=0,
+            msg="payload",  # message is required even if unused
+            args=(),
+            exc_info=None,
+            func="test",
+        )
+        RequestContextFilter().filter(record)
+        formatted = JSONFormatter().format(record)
+    finally:
+        clear_request_context()
+
+    payload = json.loads(formatted)
+    assert payload["request_id"] == "req-json-7"
+    assert payload["phase"] == "phase-json"
+
+
+@pytest.mark.fast
 def test_redaction_in_message_and_payload(monkeypatch):
     """ReqID: LOG-01 — redacts secrets in message/payload.
     Keeps non-sensitive fields intact.

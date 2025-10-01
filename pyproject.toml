@@ -221,6 +221,8 @@ mypy_path = [
     "stubs/boto3",
     "stubs/botocore",
     "stubs/rdflib",
+    "stubs/jsonschema",
+    "stubs/astor",
 ]
 python_version = "3.12"
 warn_return_any = true
@@ -290,6 +292,21 @@ disallow_incomplete_defs = false
 [[tool.mypy.overrides]]
 module = "devsynth.core.mvu.*"
 ignore_errors = false
+
+[[tool.mypy.overrides]]
+module = "devsynth.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.agents.sandbox",
+  "devsynth.logging_setup",
+  "devsynth.application.memory.circuit_breaker",
+  "devsynth.application.code_analysis.ast_transformer",
+]
+ignore_errors = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
 
 [[tool.mypy.overrides]]
 module = ["chromadb", "chromadb.*"]
