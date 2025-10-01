@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-import os
 import uuid
 
 import pytest
 
-try:  # pragma: no cover - guarded optional dependency
-    import kuzu  # type: ignore  # noqa: F401
-except Exception:  # pragma: no cover - optional dependency missing
-    pytest.skip("Kuzu package not available", allow_module_level=True)
+from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
+
+pytest.importorskip(
+    "kuzu",
+    reason=backend_import_reason("kuzu"),
+)
 
 from devsynth.adapters import kuzu_memory_store
 from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
@@ -18,24 +19,14 @@ from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
-pytestmark = [pytest.mark.requires_resource("kuzu"), pytest.mark.fast]
-
-
-def _kuzu_enabled() -> bool:
-    """Return ``True`` when the Kuzu resource flag is opt-in."""
-
-    return os.environ.get("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "true").lower() in {
-        "true",
-        "1",
-        "yes",
-    }
+pytestmark = [
+    *skip_if_missing_backend("kuzu"),
+    pytest.mark.fast,
+]
 
 
 def test_kuzu_store_round_trip(tmp_path, monkeypatch):
     """Exercise :class:`KuzuStore` when the embedded backend is active. ReqID: N/A"""
-
-    if not _kuzu_enabled():
-        pytest.skip("Kuzu resource not enabled")
 
     monkeypatch.setenv("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "true")
     monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "true")
@@ -65,9 +56,6 @@ def test_kuzu_store_round_trip(tmp_path, monkeypatch):
 
 def test_kuzu_memory_store_search_round_trip(tmp_path, monkeypatch):
     """Exercise :class:`KuzuMemoryStore` end-to-end with vector search. ReqID: N/A"""
-
-    if not _kuzu_enabled():
-        pytest.skip("Kuzu resource not enabled")
 
     monkeypatch.setenv("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "true")
     monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "true")

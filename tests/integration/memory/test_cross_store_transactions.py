@@ -1,19 +1,35 @@
 import sys
 
+import sys
+
 import pytest
 
-LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
-FAISSStore = pytest.importorskip("devsynth.application.memory.faiss_store").FAISSStore
-from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
-from devsynth.application.memory.kuzu_store import KuzuStore
+from tests.fixtures.resources import skip_if_missing_backend
+
+LMDBStore = pytest.importorskip(
+    "devsynth.application.memory.lmdb_store",
+    reason="Install the 'memory' or 'tests' extras to enable LMDB-backed tests.",
+).LMDBStore
+FAISSStore = pytest.importorskip(
+    "devsynth.application.memory.faiss_store",
+    reason="Install the 'retrieval' or 'memory' extras to enable FAISS-backed tests.",
+).FAISSStore
+KuzuMemoryStore = pytest.importorskip(
+    "devsynth.adapters.kuzu_memory_store",
+    reason="Install the 'retrieval' or 'memory' extras to enable Kuzu-backed tests.",
+).KuzuMemoryStore
+KuzuStore = pytest.importorskip(
+    "devsynth.application.memory.kuzu_store",
+    reason="Install the 'retrieval' or 'memory' extras to enable Kuzu-backed tests.",
+).KuzuStore
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 
 pytestmark = [
-    pytest.mark.requires_resource("lmdb"),
-    pytest.mark.requires_resource("faiss"),
+    *skip_if_missing_backend("lmdb"),
+    *skip_if_missing_backend("faiss"),
 ]
 
 

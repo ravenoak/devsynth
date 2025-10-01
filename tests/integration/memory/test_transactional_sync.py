@@ -2,15 +2,17 @@ import sys
 
 import pytest
 
+from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
+
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 
 pytestmark = [
-    pytest.mark.requires_resource("lmdb"),
-    pytest.mark.requires_resource("faiss"),
-    pytest.mark.requires_resource("chromadb"),
+    *skip_if_missing_backend("lmdb"),
+    *skip_if_missing_backend("faiss"),
+    *skip_if_missing_backend("chromadb"),
 ]
 
 
@@ -23,19 +25,29 @@ def no_kuzu(monkeypatch):
 def test_transactional_sync_rollback(tmp_path, monkeypatch):
     """Rolls back when synchronization target fails. ReqID: FR-60"""
 
-    LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
+    LMDBStore = pytest.importorskip(
+        "devsynth.application.memory.lmdb_store",
+        reason="Install the 'memory' or 'tests' extras to enable LMDB-backed tests.",
+    ).LMDBStore
     FAISSStore = pytest.importorskip(
-        "devsynth.application.memory.faiss_store"
+        "devsynth.application.memory.faiss_store",
+        reason="Install the 'retrieval' or 'memory' extras to enable FAISS-backed tests.",
     ).FAISSStore
     KuzuMemoryStore = pytest.importorskip(
-        "devsynth.adapters.kuzu_memory_store"
+        "devsynth.adapters.kuzu_memory_store",
+        reason="Install the 'retrieval' or 'memory' extras to enable Kuzu-backed tests.",
     ).KuzuMemoryStore
-    KuzuStore = pytest.importorskip("devsynth.application.memory.kuzu_store").KuzuStore
+    KuzuStore = pytest.importorskip(
+        "devsynth.application.memory.kuzu_store",
+        reason="Install the 'retrieval' or 'memory' extras to enable Kuzu-backed tests.",
+    ).KuzuStore
     ChromaDBStore = pytest.importorskip(
-        "devsynth.application.memory.chromadb_store"
+        "devsynth.application.memory.chromadb_store",
+        reason=backend_import_reason("chromadb"),
     ).ChromaDBStore
     ChromaDBAdapter = pytest.importorskip(
-        "devsynth.adapters.memory.chroma_db_adapter"
+        "devsynth.adapters.memory.chroma_db_adapter",
+        reason="Install the 'chromadb' or 'memory' extras to enable the ChromaDB adapter.",
     ).ChromaDBAdapter
 
     for cls in (KuzuMemoryStore, KuzuStore, LMDBStore, FAISSStore, ChromaDBStore):
@@ -43,7 +55,10 @@ def test_transactional_sync_rollback(tmp_path, monkeypatch):
 
     monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
     monkeypatch.setenv("ENABLE_CHROMADB", "1")
-    ef = pytest.importorskip("chromadb.utils.embedding_functions")
+    ef = pytest.importorskip(
+        "chromadb.utils.embedding_functions",
+        reason=backend_import_reason("chromadb"),
+    )
     monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
 
     lmdb_store = LMDBStore(str(tmp_path / "lmdb"))

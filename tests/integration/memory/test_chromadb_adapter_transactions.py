@@ -1,20 +1,31 @@
 import pytest
 
-pytest.importorskip("chromadb")
+from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
+
+pytest.importorskip(
+    "chromadb",
+    reason=backend_import_reason("chromadb"),
+)
 
 ChromaDBAdapter = pytest.importorskip(
-    "devsynth.adapters.memory.chroma_db_adapter"
+    "devsynth.adapters.memory.chroma_db_adapter",
+    reason="Install the 'chromadb' or 'memory' extras to use the ChromaDB adapter.",
 ).ChromaDBAdapter
 from devsynth.domain.models.memory import MemoryVector
 
 
-pytestmark = [pytest.mark.requires_resource("chromadb")]
+pytestmark = [
+    *skip_if_missing_backend("chromadb"),
+]
 
 
 @pytest.mark.medium
 def test_chromadb_transaction_commit_and_rollback(tmp_path, monkeypatch):
     """Vectors added within a transaction should rollback correctly. ReqID: FR-60"""
-    ef = pytest.importorskip("chromadb.utils.embedding_functions")
+    ef = pytest.importorskip(
+        "chromadb.utils.embedding_functions",
+        reason=backend_import_reason("chromadb"),
+    )
     # Avoid network calls by supplying a no-op embedding function
     monkeypatch.setattr(ef, "DefaultEmbeddingFunction", lambda: (lambda x: [0.0] * 5))
 
