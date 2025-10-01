@@ -29,11 +29,13 @@ Required metadata fields:
 - What is the problem?
   The graph memory system stores items as RDF triples but lacks explicit
   traversal capabilities, documented guarantees that nodes and links persist
-  across adapter restarts, and a schema for Autoresearch artefacts.
+  across adapter restarts, and a schema for Autoresearch artefacts that keeps
+  the upcoming external connector boundaries visible to downstream teams.
 - What proofs confirm the solution?
   Behaviour-driven tests traverse stored relationships, reload the adapter to
-  verify persistence, and validate that Autoresearch artefacts retain provenance
-  metadata and bounded traversal behaviour.
+  verify persistence, and validate—via mocked connectors—that Autoresearch
+  artefacts retain provenance metadata and bounded traversal behaviour without
+  implying the external service already ships inside DevSynth.
 
 ## Motivation
 
@@ -41,9 +43,9 @@ Agents reason over relationships between memories. Without a bounded traversal
 mechanism, durable graph storage, and a structured way to store research
 artefacts, agents cannot reliably follow chains of related items or resume
 reasoning after a restart. Providing a documented traversal API with persistence
-and research provenance guarantees enables richer memory queries and prepares
-DevSynth to coordinate with the external Autoresearch service once the bridge is
-enabled across all supported backends.
+and research provenance guarantees enables richer memory queries while keeping
+expectations clear that the Autoresearch service remains external until the MCP
+→ A2A → SPARQL bridge is delivered.
 
 ## Specification
 
@@ -57,7 +59,7 @@ enabled across all supported backends.
   ensuring all nodes, `relatedTo` edges, and research provenance survive process
   restarts.
 - Extend the schema with the following Autoresearch constructs, scoped for the
-  external Autoresearch integration:
+  forthcoming external Autoresearch integration:
   - `devsynth:ResearchArtifact` class with properties `title`, `summary`,
     `citationUrl`, `evidenceHash`, and `publishedAt`.
   - `devsynth:supports` relationships that link a research artefact to
@@ -65,11 +67,11 @@ enabled across all supported backends.
   - `devsynth:derivedFrom` relationships that connect research artefacts to
     upstream knowledge graph nodes (e.g., experiments, datasets).
 - Provide CLI helpers that summarise large artefacts before ingestion once the
-  Autoresearch bridge ships. Until then, stub the CLI flags and documentation so
-  local commands can validate argument flow without attempting to call the
-  external service. For large PDFs or datasets, store a digest node referencing
-  the original file path while keeping the full content in archival storage
-  outside the RDF triple store.
+  Autoresearch bridge ships. Until then, keep the CLI flags and documentation in
+  preview mode so local commands validate argument flow without attempting to
+  call the external service. For large PDFs or datasets, store a digest node
+  referencing the original file path while keeping the full content in archival
+  storage outside the RDF triple store.
 - Expose traversal, persistence, and Autoresearch behaviour through
   behaviour-driven tests exercising graph traversal, reload cycles, provenance
   verification, and integration with other memory stores.
@@ -92,8 +94,8 @@ infinite loops.
 - Research artefacts include immutable `evidenceHash` values verified by tests
   that compare stored hashes to recomputed digests.
 - Behavioural tests cover traversal, persistence, and Autoresearch workflows
-  across TinyDB and ChromaDB backends using mocked external connectors and pass
-  under the `fast` marker.
+  across TinyDB and ChromaDB backends using mocked external connectors only and
+  pass under the `fast` marker.
 
 ## Proofs
 

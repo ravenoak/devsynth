@@ -20,7 +20,10 @@ first-class memory, specialize WSDE agents for research workflows, and extend
 traceability dashboards so every inquiry, insight, and implementation artifact
 stays auditable. This evaluation applies dialectical and Socratic scrutiny to
 each recommendation before translating the approved improvements into tracked
-follow-ups.
+follow-ups. All recommendations reaffirm that no Autoresearch client ships in
+0.1.0-alpha.1; the work focuses on stubbing interfaces and documenting
+dependencies while teams wait for the MCP, A2A, and SPARQL connectors to come
+online.
 
 ## Recommendation 1 — Expand the Research Knowledge Graph
 

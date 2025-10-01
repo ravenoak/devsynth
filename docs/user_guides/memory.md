@@ -11,7 +11,9 @@ version: 0.1.0-alpha.1
 DevSynth stores working knowledge in multiple adapters (graph, vector, TinyDB).
 This guide highlights the enhanced graph memory workflow and explains how the
 external Autoresearch service will contribute artefacts once the integration
-sequence (MCP → agent-to-agent → SPARQL) lands during the 0.1.0-alpha.1 cycle.
+sequence (MCP → agent-to-agent → SPARQL) lands. As of the 0.1.0-alpha.1 release
+the connectors remain under development, so every Autoresearch reference below
+describes preview functionality intended for local stubs and mocks only.
 
 ## Research Artefacts
 
@@ -19,7 +21,8 @@ Autoresearch artefacts capture external evidence (papers, datasets, transcripts)
 and link it to DevSynth requirements. The enhanced graph adapter defines the
 `devsynth:ResearchArtifact` class with provenance fields that will be populated
 by the Autoresearch bridge once the external service begins streaming
-structured payloads into DevSynth:
+structured payloads into DevSynth. Until then, populate the fields via fixtures
+or CLI stubs so tests remain deterministic:
 
 - **Title** – human-readable label for the source.
 - **Summary** – automatically generated synopsis stored inside the RDF graph.
@@ -40,7 +43,7 @@ Graph traversal honours these nodes by default when the caller explicitly opts
 in. Use `EnhancedGraphMemoryAdapter.traverse_graph(start_id, depth,
 include_research=True)` to include research artefacts in the breadth-first walk;
 when `include_research` is `False` (the default) the traversal skips artefacts so
-core reasoning stays lightweight. Until the SPARQL gateway is live, tests should
+core reasoning stays lightweight. Because the SPARQL gateway is not yet live,
 seed artefact nodes via fixtures or mocks rather than real Autoresearch
 sessions.
 
@@ -71,7 +74,8 @@ remain hermetic and do not imply direct communication with Autoresearch.
 ## CLI Integration
 
 `devsynth ingest` now includes stubbed options for the upcoming research
-artefact bridge:
+artefact bridge. These flags validate inputs and emit preview warnings, but they
+do **not** contact the external Autoresearch service yet:
 
 - `--research-artifact PATH` – Generates summaries and evidence hashes once the
   Autoresearch MCP connector is live. Today the flag validates arguments, logs a
