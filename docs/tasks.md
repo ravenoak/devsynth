@@ -189,6 +189,7 @@ Notes:
 - 2025-09-20: diagnostics/devsynth_cli_missing_20250920.log and diagnostics/poetry_install_20250920.log show the CLI still missing after codex bootstrap until `poetry install --with dev --all-extras` reruns; task 15.5 tracks automating this reinstall.
 - 2025-09-21: diagnostics/devsynth_cli_bootstrap_attempt1_20250921T021025Z.log and diagnostics/poetry_install_bootstrap_attempt1_20250921T021025Z.log confirm `scripts/install_dev.sh` now retries automatically when the CLI entry point is absent, closing task 15.5.【F:diagnostics/devsynth_cli_bootstrap_attempt1_20250921T021025Z.log†L1-L27】【F:diagnostics/poetry_install_bootstrap_attempt1_20250921T021025Z.log†L1-L63】
 - 2025-09-21: diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log and diagnostics/post_install_check_20250921T150333Z.log show the new unconditional Poetry install plus post-install verification that blocks on `poetry env info --path` or CLI failures.【F:diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log†L1-L40】【F:diagnostics/post_install_check_20250921T150333Z.log†L1-L2】
+- 2025-10-01: Autoresearch traceability dashboard overlays, telemetry exports, and user-guide updates accepted for 0.1.0a1; issue `issues/Autoresearch-traceability-dashboard.md` closed. Next milestone focuses on integrating external Autoresearch connectors (MCP → A2A → SPARQL) so live telemetry feeds the overlays.
 
 17. Documentation Maintenance
 17.1 [x] Deduplicate historical entries in docs/task_notes.md to keep the iteration log concise.
