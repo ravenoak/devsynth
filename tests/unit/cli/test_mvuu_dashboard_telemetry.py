@@ -71,6 +71,8 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
             "Research Lead",
             "--research-persona",
             "Synthesist",
+            "--research-persona",
+            "Bibliographer",
         ]
     )
 
@@ -101,16 +103,28 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
     assert env["DEVSYNTH_AUTORESEARCH_OVERLAYS"] == "1"
     assert env["DEVSYNTH_AUTORESEARCH_TELEMETRY"] == str(telemetry_path)
     assert env["DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"] == secret_env
-    assert env["DEVSYNTH_AUTORESEARCH_PERSONAS"] == "Research Lead,Synthesist"
+    assert (
+        env["DEVSYNTH_AUTORESEARCH_PERSONAS"]
+        == "Research Lead,Synthesist,Bibliographer"
+    )
 
     personas_payload = telemetry.get("research_personas", [])
     assert {item["name"] for item in personas_payload} == {
         "Research Lead",
         "Synthesist",
+        "Bibliographer",
     }
     lead_payload = next(item for item in personas_payload if item["name"] == "Research Lead")
     assert lead_payload["primary_role"] == "primus"
     assert "capabilities" in lead_payload and lead_payload["capabilities"]
+    assert lead_payload.get("prompt_template")
+    assert lead_payload.get("fallback_behavior")
+    assert lead_payload.get("success_criteria")
+
+    for persona_entry in personas_payload:
+        assert persona_entry.get("prompt_template")
+        assert persona_entry.get("fallback_behavior")
+        assert persona_entry.get("success_criteria")
 
     monkeypatch.delenv("DEVSYNTH_REPO_ROOT", raising=False)
     monkeypatch.delenv(secret_env, raising=False)

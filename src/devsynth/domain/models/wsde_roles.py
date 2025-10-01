@@ -12,7 +12,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Iterable, Mapping, MutableMapping, Optional, Sequence
+
+import json
 
 from devsynth.domain.models.wsde_core import WSDETeam
 from devsynth.domain.models.wsde_typing import (
@@ -50,60 +53,130 @@ class ResearchPersonaSpec:
     primary_role: RoleName
     supporting_roles: tuple[RoleName, ...]
     capabilities: tuple[str, ...]
+    prompt_template: str = ""
+    fallback_behavior: tuple[str, ...] = ()
+    success_criteria: tuple[str, ...] = ()
 
     def as_payload(self) -> dict[str, object]:
         """Expose a serialisable payload for telemetry helpers."""
 
-        return {
+        payload: dict[str, object] = {
             "name": self.display_name,
             "slug": self.slug,
             "primary_role": self.primary_role.value,
             "supporting_roles": [role.value for role in self.supporting_roles],
             "capabilities": list(self.capabilities),
         }
+        if self.prompt_template:
+            payload["prompt_template"] = self.prompt_template
+        if self.fallback_behavior:
+            payload["fallback_behavior"] = list(self.fallback_behavior)
+        if self.success_criteria:
+            payload["success_criteria"] = list(self.success_criteria)
+        return payload
 
 
 def _persona_slug(name: str) -> str:
     return "_".join(part for part in name.strip().lower().split())
 
 
-RESEARCH_PERSONAS: dict[str, ResearchPersonaSpec] = {
-    spec.slug: spec
-    for spec in (
-        ResearchPersonaSpec(
-            slug="research_lead",
-            display_name="Research Lead",
-            primary_role=RoleName.PRIMUS,
-            supporting_roles=(RoleName.SUPERVISOR,),
-            capabilities=(
+def _load_persona_prompt_dataset() -> dict[str, dict[str, object]]:
+    """Load persona prompt metadata from the repository template directory."""
+
+    root = Path(__file__).resolve().parents[4]
+    dataset_path = root / "templates" / "prompts" / "autoresearch_personas.json"
+    if not dataset_path.exists():
+        return {}
+
+    with dataset_path.open(encoding="utf-8") as handle:
+        content = json.load(handle) or {}
+
+    personas: Mapping[str, dict[str, object]] = content.get("personas", {})
+    normalised: dict[str, dict[str, object]] = {}
+    for key, value in personas.items():
+        slug = _persona_slug(value.get("display_name", key))
+        normalised[slug] = value
+    return normalised
+
+
+def _coerce_text_sequence(value: object) -> tuple[str, ...]:
+    """Convert ``value`` into a tuple of strings."""
+
+    if not value:
+        return ()
+    if isinstance(value, str):
+        return (value,)
+    if isinstance(value, Iterable):
+        return tuple(str(item) for item in value if str(item))
+    return (str(value),)
+
+
+def _build_research_persona_specs() -> tuple[ResearchPersonaSpec, ...]:
+    """Construct persona specifications enriched with prompt metadata."""
+
+    prompt_dataset = _load_persona_prompt_dataset()
+
+    base_specs = (
+        {
+            "slug": "research_lead",
+            "display_name": "Research Lead",
+            "primary_role": RoleName.PRIMUS,
+            "supporting_roles": (RoleName.SUPERVISOR,),
+            "capabilities": (
                 "Coordinate primus leadership for investigative work",
                 "Audit research deliverables via supervisor oversight",
                 "Plan exploration strategies aligned with task context",
             ),
-        ),
-        ResearchPersonaSpec(
-            slug="bibliographer",
-            display_name="Bibliographer",
-            primary_role=RoleName.EVALUATOR,
-            supporting_roles=(RoleName.WORKER,),
-            capabilities=(
+        },
+        {
+            "slug": "bibliographer",
+            "display_name": "Bibliographer",
+            "primary_role": RoleName.EVALUATOR,
+            "supporting_roles": (RoleName.WORKER,),
+            "capabilities": (
                 "Catalogue and vet sources using evaluator analysis",
                 "Ground implementation tasks with curated evidence",
                 "Flag citation gaps for supervisor review loops",
             ),
-        ),
-        ResearchPersonaSpec(
-            slug="synthesist",
-            display_name="Synthesist",
-            primary_role=RoleName.DESIGNER,
-            supporting_roles=(RoleName.EVALUATOR,),
-            capabilities=(
+        },
+        {
+            "slug": "synthesist",
+            "display_name": "Synthesist",
+            "primary_role": RoleName.DESIGNER,
+            "supporting_roles": (RoleName.EVALUATOR,),
+            "capabilities": (
                 "Translate findings into designer implementation plans",
                 "Validate analytical coherence before execution",
                 "Surface integration risks for primus coordination",
             ),
-        ),
+        },
     )
+
+    specs: list[ResearchPersonaSpec] = []
+    for entry in base_specs:
+        metadata = prompt_dataset.get(entry["slug"], {})
+        prompt_template = str(metadata.get("prompt_template", ""))
+        fallback = _coerce_text_sequence(metadata.get("fallback_behavior"))
+        success = _coerce_text_sequence(metadata.get("success_criteria"))
+
+        specs.append(
+            ResearchPersonaSpec(
+                slug=entry["slug"],
+                display_name=entry["display_name"],
+                primary_role=entry["primary_role"],
+                supporting_roles=entry["supporting_roles"],
+                capabilities=entry["capabilities"],
+                prompt_template=prompt_template,
+                fallback_behavior=fallback,
+                success_criteria=success,
+            )
+        )
+
+    return tuple(specs)
+
+
+RESEARCH_PERSONAS: dict[str, ResearchPersonaSpec] = {
+    spec.slug: spec for spec in _build_research_persona_specs()
 }
 
 

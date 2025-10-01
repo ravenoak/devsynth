@@ -64,3 +64,23 @@ Research Lead, Bibliographer, and Synthesist overlays alongside
 `DEVSYNTH_AUTORESEARCH_PERSONAS`, allowing the WSDE collaboration layer to
 favour persona-aware primus selection while telemetry bundles capture persona
 assignments and fallback decisions for MVUU traceability.
+
+### Prompt-driven instrumentation
+
+The Autoresearch overlays now consume structured prompt templates defined in
+`templates/prompts/autoresearch_personas.json`. Each persona declares the
+baseline instructions, fallback behaviour, and success criteria that the WSDE
+team expects during an investigation. Companion training exemplars in
+`templates/prompts/autoresearch_persona_training.jsonl` demonstrate how those
+expectations appear in MVUU telemetry: the JSONL rows capture prompt text,
+record the fallback path taken when a domain expert is unavailable, and list the
+fields (`prompt_template`, `fallback_behavior`, `success_criteria`) that the
+dashboard must persist for audits.
+
+The telemetry writer attaches the enriched persona payload (prompt template,
+fallback notes, and success checks) to every MVUU bundle. When reviewers open
+the dashboard, each persona overlay includes the exact text issued to the agent
+alongside the rationale for any expertise-based primus rotation. This makes
+Autoresearch sessions reproducible—stakeholders can trace how the Research Lead
+or Bibliographer responded when sources were missing, and they can confirm that
+the Synthesist logged residual risks before closing the trace.
