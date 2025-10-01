@@ -31,9 +31,12 @@ COVERAGE_TARGET = "src/devsynth"
 COVERAGE_JSON_PATH = Path("test_reports/coverage.json")
 COVERAGE_HTML_DIR = Path("htmlcov")
 LEGACY_HTML_DIRS: tuple[Path, ...] = (Path("test_reports/htmlcov"),)
-DEFAULT_COVERAGE_THRESHOLD = (
-    70.0  # Alpha release target; will increase to 90% for stable release
-)
+# Minimum aggregate coverage enforced for standard test runs.
+#
+# The alpha program previously used a 70% gate to keep iteration tight while
+# the suite stabilized. Release readiness now requires the long-term
+# expectation—90%—so the helper mirrors the CLI/pytest default fail-under.
+DEFAULT_COVERAGE_THRESHOLD = 90.0
 # TTL for collection cache in seconds (default: 3600); configurable via env var
 try:
     COLLECTION_CACHE_TTL_SECONDS: int = int(

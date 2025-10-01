@@ -444,7 +444,7 @@ def test_enforce_coverage_threshold_below_minimum(
 
     with pytest.raises(RuntimeError) as excinfo:
         rt.enforce_coverage_threshold(
-            coverage_file, minimum_percent=80.0, exit_on_failure=False
+            coverage_file, minimum_percent=90.0, exit_on_failure=False
         )
 
     assert "below the required" in str(excinfo.value)

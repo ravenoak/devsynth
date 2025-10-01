@@ -418,7 +418,8 @@ def run_tests_cmd(
             suffix = f" ({notice})" if notice else ""
             ux_bridge.print(
                 "[yellow]Coverage enforcement skipped in smoke mode"
-                f"{suffix}. Run fast+medium profiles before enforcing thresholds.[/yellow]"
+                f"{suffix}. Run fast+medium profiles before enforcing the "
+                f"{DEFAULT_COVERAGE_THRESHOLD:.0f}% gate.[/yellow]"
             )
 
             if coverage_enabled:
