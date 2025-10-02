@@ -33,3 +33,15 @@ workflows or being lost between sessions.
 - docs/specifications/advanced-graph-memory-features.md
 - docs/analysis/autoresearch_evaluation.md
 - tests/behavior/features/advanced_graph_memory_features.feature
+- docs/ontology/devsynth.ttl
+- diagnostics/autoresearch_graph_queries.md
+
+## Evidence (2025-10-02)
+- Added SPARQL-ready ontology (`docs/ontology/devsynth.ttl`) with `hasRole`
+  support, matching the dashboard provenance snapshot.
+- Implemented WSDE specialist rotation feature tests
+  (`tests/behavior/features/wsde_multi_agent.feature`) covering traversal API
+  usage.
+- CLI ingestion now records provenance roles; see `devsynth ingest` command logs
+  and MVUU dashboard "Knowledge Graph Provenance Snapshot" section for runtime
+  confirmation.

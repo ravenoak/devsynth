@@ -5,8 +5,7 @@ from __future__ import annotations
 import datetime
 import importlib
 import hashlib
-from collections import deque
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
@@ -41,8 +40,9 @@ else:  # pragma: no cover - executed when rdflib is unavailable
 if namespace_module is not None:
     DC = namespace_module.DC
     FOAF = namespace_module.FOAF
+    RDFS = namespace_module.RDFS
 else:  # pragma: no cover - executed when rdflib namespace is unavailable
-    DC = FOAF = cast(Any, None)
+    DC = FOAF = RDFS = cast(Any, None)
 
 
 # Setup logger
@@ -210,10 +210,19 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
                 (artifact_uri, DEVSYNTH.archivePath, Literal(artifact.archive_path))
             )
 
+        role_values: tuple[str, ...] = ()
         if artifact.metadata:
+            roles_candidate = artifact.metadata.get("roles")
+            role_values = self._coerce_role_values(roles_candidate)
             for key, value in artifact.metadata.items():
+                if key == "roles":
+                    continue
                 if isinstance(value, (str, int, float, bool)):
                     self.graph.add((artifact_uri, DEVSYNTH[key], Literal(value)))
+
+        for role in role_values:
+            role_uri = self._ensure_role_uri(role)
+            self.graph.add((artifact_uri, DEVSYNTH.hasRole, role_uri))
 
         for node_id in artifact.supports:
             target_uri = self._ensure_node_uri(node_id)
@@ -230,47 +239,60 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
         self._save_graph()
         return artifact.identifier
 
+    def get_artifact_provenance(self, artifact_id: str) -> dict[str, tuple[str, ...]]:
+        """Return provenance metadata for ``artifact_id``."""
+
+        if rdflib is None:
+            raise MemoryStoreError("rdflib is required to inspect research artefacts")
+
+        artifact_uri = self._resolve_node_uri(artifact_id)
+        if artifact_uri is None:
+            raise MemoryItemNotFoundError(f"Artifact {artifact_id} was not found in the graph")
+
+        return {
+            "supports": self._collect_identifier_set(artifact_uri, DEVSYNTH.supports),
+            "derived_from": self._collect_identifier_set(
+                artifact_uri, DEVSYNTH.derivedFrom
+            ),
+            "roles": self._collect_role_labels(artifact_uri),
+        }
+
     def traverse_graph(
         self, start_id: str, max_depth: int, *, include_research: bool = False
     ) -> set[str]:
-        """Traverse related nodes with breadth-first depth limits."""
+        """Expose graph traversal while supporting research node filters."""
 
-        if rdflib is None or max_depth <= 0:
-            return set()
+        return super().traverse_graph(
+            start_id, max_depth, include_research=include_research
+        )
 
-        start_uri = self._resolve_node_uri(start_id)
-        if start_uri is None:
-            return set()
+    # ------------------------------------------------------------------
+    # Overrides for GraphMemoryAdapter traversal helpers
+    # ------------------------------------------------------------------
 
-        visited: set[URIRef] = {start_uri}
-        queue: deque[tuple[URIRef, int]] = deque([(start_uri, 0)])
-        discovered: set[str] = set()
+    def _resolve_traversal_uri(self, node_id: str) -> URIRef | None:
+        return self._resolve_node_uri(node_id)
 
-        predicates = [DEVSYNTH.relatedTo]
+    def _traversal_predicates(self) -> tuple[URIRef, ...]:
+        predicates: list[URIRef] = [DEVSYNTH.relatedTo]
+        if rdflib is not None:
+            predicates.extend((DEVSYNTH.supports, DEVSYNTH.derivedFrom))
         if RELATION is not None:
             predicates.append(RELATION.relatedTo)
+        return tuple(dict.fromkeys(predicates))
 
-        while queue:
-            current, depth = queue.popleft()
-            if depth >= max_depth:
-                continue
+    def _should_skip_traversal_target(
+        self, uri: URIRef, *, include_research: bool
+    ) -> bool:
+        if not include_research and self._is_research_artifact(uri):
+            return True
+        return False
 
-            for predicate in predicates:
-                for _, _, neighbor in self.graph.triples((current, predicate, None)):
-                    if neighbor in visited:
-                        continue
-                    if (not include_research) and self._is_research_artifact(neighbor):
-                        visited.add(neighbor)
-                        continue
-
-                    visited.add(neighbor)
-                    queue.append((neighbor, depth + 1))
-
-                    identifier = self._uri_to_identifier(neighbor)
-                    if identifier and neighbor != start_uri:
-                        discovered.add(identifier)
-
-        return discovered
+    def _uri_to_identifier(self, uri: URIRef) -> str | None:
+        identifier = super()._uri_to_identifier(uri)
+        if identifier and identifier.startswith("http"):
+            return identifier.split("#", 1)[-1]
+        return identifier
 
     def _resolve_node_uri(self, node_id: str) -> URIRef | None:
         """Return the URIRef for ``node_id`` if present in the graph."""
@@ -301,6 +323,17 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
         self.graph.add((fallback, DEVSYNTH.id, Literal(node_id)))
         return fallback
 
+    def _ensure_role_uri(self, role_name: str) -> URIRef:
+        """Ensure a role node exists for ``role_name``."""
+
+        sanitized = self._sanitize_node_id(role_name or "role")
+        role_uri = URIRef(f"{DEVSYNTH}{sanitized}")
+        if (role_uri, RDF.type, DEVSYNTH.Role) not in self.graph:
+            self.graph.add((role_uri, RDF.type, DEVSYNTH.Role))
+            if RDFS is not None:
+                self.graph.add((role_uri, RDFS.label, Literal(role_name)))
+        return role_uri
+
     @staticmethod
     def _sanitize_node_id(node_id: str) -> str:
         return "node_" + "".join(
@@ -317,6 +350,41 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
     def _is_research_artifact(self, uri: URIRef) -> bool:
         return (uri, RDF.type, DEVSYNTH.ResearchArtifact) in self.graph
+
+    def _collect_identifier_set(
+        self, subject: URIRef, predicate: URIRef
+    ) -> tuple[str, ...]:
+        values: set[str] = set()
+        for _, _, obj in self.graph.triples((subject, predicate, None)):
+            identifier = self._uri_to_identifier(obj)
+            if identifier:
+                values.add(identifier)
+        return tuple(sorted(values))
+
+    def _collect_role_labels(self, subject: URIRef) -> tuple[str, ...]:
+        labels: set[str] = set()
+        for _, _, role_uri in self.graph.triples((subject, DEVSYNTH.hasRole, None)):
+            label_value = None
+            if RDFS is not None:
+                label_value = self.graph.value(role_uri, RDFS.label)
+            if label_value:
+                labels.add(str(label_value))
+                continue
+            identifier = self._uri_to_identifier(role_uri)
+            if identifier:
+                labels.add(identifier)
+        return tuple(sorted(labels))
+
+    @staticmethod
+    def _coerce_role_values(value: object) -> tuple[str, ...]:
+        if not value:
+            return ()
+        if isinstance(value, str):
+            return (value,)
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+            return tuple(str(item) for item in value if str(item).strip())
+        coerced = str(value).strip()
+        return (coerced,) if coerced else ()
 
     def store_with_edrr_phase(
         self,

@@ -200,6 +200,7 @@ class TestGraphMemoryAdapter:
             supports=[item_two.id],
             derived_from=[item_one.id],
             archive_path=str(artifact_path),
+            metadata={"roles": ("Research Lead",)},
         )
 
         artifact_id = adapter.store_research_artifact(artifact)
@@ -230,6 +231,38 @@ class TestGraphMemoryAdapter:
             DEVSYNTH.evidenceHash,
             Literal(evidence_hash),
         ) in reloaded.graph
+
+        persisted = Path(temp_dir) / "graph_memory.ttl"
+        content = persisted.read_text(encoding="utf-8")
+        assert "devsynth:supports" in content
+        assert "devsynth:derivedFrom" in content
+        assert "devsynth:hasRole" in content
+
+        provenance = reloaded.get_artifact_provenance(artifact_id)
+        assert provenance["supports"] == (item_two.id,)
+        assert provenance["derived_from"] == (item_one.id,)
+        assert provenance["roles"] == ("Research Lead",)
+
+    @pytest.mark.fast
+    def test_traverse_graph_depth_and_missing_nodes(self, basic_adapter):
+        """Traversal respects depth bounds and missing nodes yield empty sets."""
+
+        item = MemoryItem(
+            id="root", content="Root", memory_type=MemoryType.CODE, metadata={}
+        )
+        related = MemoryItem(
+            id="child",
+            content="Child",
+            memory_type=MemoryType.CODE,
+            metadata={"related_to": "root"},
+        )
+
+        basic_adapter.store(item)
+        basic_adapter.store(related)
+
+        assert basic_adapter.traverse_graph("unknown", 2) == set()
+        assert basic_adapter.traverse_graph("root", 0) == set()
+        assert basic_adapter.traverse_graph("root", 1) == {"child"}
 
     @pytest.mark.medium
     def test_ingest_helper_generates_hash_and_summary(self, temp_dir):
