@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Mapping
-from typing import Any, Literal
+from typing import Literal
 
 from ...domain.models.memory import MemoryItem, MemoryType
 from ...logging_setup import DevSynthLogger
@@ -142,7 +142,18 @@ class MultiLayeredMemorySystem:
             logger.warning(f"Unknown memory layer: {layer}")
             return []
 
-    def query(self, query_params: Mapping[str, Any]) -> list[MemoryItem]:
+    def _normalize_layer(self, layer: object | None) -> LayerName | None:
+        if isinstance(layer, str):
+            candidate = layer.strip().lower()
+            if candidate == "short-term":
+                return "short-term"
+            if candidate == "episodic":
+                return "episodic"
+            if candidate == "semantic":
+                return "semantic"
+        return None
+
+    def query(self, query_params: Mapping[str, object]) -> list[MemoryItem]:
         """
         Query memory items across layers.
 
@@ -153,18 +164,17 @@ class MultiLayeredMemorySystem:
             A list of memory items matching the query
         """
         # Check if a specific layer is requested
-        layer = query_params.get("layer")
+        layer_param = query_params.get("layer")
+        normalized = self._normalize_layer(layer_param)
 
-        if isinstance(layer, str):
-            # Query a specific layer
-            return self.get_items_by_layer(layer)
-        else:
-            # Query all layers
-            all_items: list[MemoryItem] = []
-            all_items.extend(self.short_term_memory.values())
-            all_items.extend(self.episodic_memory.values())
-            all_items.extend(self.semantic_memory.values())
-            return all_items
+        if normalized is not None:
+            return self.get_items_by_layer(normalized)
+
+        all_items: list[MemoryItem] = []
+        all_items.extend(self.short_term_memory.values())
+        all_items.extend(self.episodic_memory.values())
+        all_items.extend(self.semantic_memory.values())
+        return all_items
 
     def enable_tiered_cache(self, max_size: int = 100) -> None:
         """

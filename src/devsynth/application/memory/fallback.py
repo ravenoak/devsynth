@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from __future__ import annotations
+
 import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast, TYPE_CHECKING
+from typing import Any, Optional, cast, TYPE_CHECKING
+
+from collections.abc import Mapping
 
 from devsynth.domain.interfaces.memory import (
     MemorySearchResponse,
@@ -24,9 +28,6 @@ if TYPE_CHECKING:  # pragma: no cover - imported for typing only
         MemoryRecord,
     )
 
-T = TypeVar("T")
-
-
 MemoryStoreProtocol = MemoryStore
 
 
@@ -42,7 +43,7 @@ class PendingOperation:
 class FallbackError(Exception):
     """Exception raised when all fallback attempts fail."""
 
-    def __init__(self, message: str, errors: Optional[Dict[str, Exception]] = None):
+    def __init__(self, message: str, errors: Optional[dict[str, Exception]] = None):
         """
         Initialize the fallback error.
 
@@ -75,7 +76,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
     def __init__(
         self,
         primary_store: MemoryStoreProtocol,
-        fallback_stores: List[MemoryStoreProtocol],
+        fallback_stores: list[MemoryStoreProtocol],
         logger: Optional[logging.Logger] = None,
     ):
         """
@@ -91,17 +92,17 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         self.logger = logger or DevSynthLogger(__name__)
 
         # Store status tracking
-        self.store_status: Dict[MemoryStoreProtocol, StoreStatus] = {
+        self.store_status: dict[MemoryStoreProtocol, StoreStatus] = {
             primary_store: StoreStatus.AVAILABLE
         }
         for store in fallback_stores:
             self.store_status[store] = StoreStatus.AVAILABLE
 
         # Last error tracking
-        self.last_errors: Dict[MemoryStoreProtocol, Exception] = {}
+        self.last_errors: dict[MemoryStoreProtocol, Exception] = {}
 
         # Pending operations for reconciliation
-        self.pending_operations: List[PendingOperation] = []
+        self.pending_operations: list[PendingOperation] = []
 
     def store(self, item: MemoryItem) -> str:
         """
@@ -151,7 +152,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -186,7 +187,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         self.logger.error(error_message)
         raise FallbackError(error_message, errors)
 
-    def retrieve(self, item_id: str) -> MemoryItem | "MemoryRecord":
+    def retrieve(self, item_id: str) -> MemoryItem | MemoryRecord:
         """
         Retrieve a memory artefact with fallback.
 
@@ -218,7 +219,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -243,7 +244,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         raise KeyError(error_message)
 
     def search(
-        self, query: Dict[str, Any] | "MemoryMetadata"
+        self, query: Mapping[str, object] | MemoryMetadata
     ) -> MemorySearchResponse:
         """
         Search for memory artefacts with fallback.
@@ -272,7 +273,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -321,7 +322,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
 
         # Try fallback stores
         fallback_success = False
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -354,7 +355,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         # Return success if either primary or fallback succeeded
         return primary_success or fallback_success
 
-    def get_all_items(self) -> List[MemoryItem]:
+    def get_all_items(self) -> list[MemoryItem]:
         """
         Get all memory items with fallback.
 
@@ -379,7 +380,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -437,7 +438,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -500,7 +501,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
 
         # Try fallback stores
         fallback_success = False
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -563,7 +564,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
 
         # Try fallback stores
         fallback_success = False
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -624,7 +625,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors: Dict[str, Exception] = {}
+        errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -690,7 +691,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
             f"Reconciliation complete, {len(self.pending_operations)} operations remaining"
         )
 
-    def get_store_status(self) -> Dict[str, str]:
+    def get_store_status(self) -> dict[str, str]:
         """
         Get the status of all stores.
 
@@ -716,7 +717,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
 
 def with_fallback(
     primary_store: MemoryStoreProtocol,
-    fallback_stores: List[MemoryStoreProtocol],
+    fallback_stores: list[MemoryStoreProtocol],
 ) -> FallbackStore:
     """
     Create a fallback store.

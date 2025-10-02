@@ -12,14 +12,22 @@ import os
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import AbstractContextManager
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from ...config import get_settings
-from ...domain.interfaces.memory import MemoryStore, VectorStore
-from ...domain.models.memory import MemoryItem, MemoryItemType, MemoryType, MemoryVector
+from ...domain.interfaces.memory import MemoryStore
+from ...domain.models.memory import MemoryItem, MemoryItemType, MemoryType
 from ...exceptions import CircuitBreakerOpenError, MemoryTransactionError
 from ...logging_setup import DevSynthLogger
 from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
+from .adapter_types import (
+    AdapterRegistry,
+    MemoryAdapter,
+    SupportsEdrrRetrieval,
+    SupportsGraphQueries,
+    SupportsStructuredQuery,
+)
+from .vector_protocol import VectorStoreProtocol
 
 if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
     from .adapters.s3_memory_adapter import S3MemoryAdapter as S3MemoryAdapterType
@@ -71,10 +79,6 @@ class SyncHook(Protocol):
 
     def __call__(self, item: MemoryItem | None, /) -> None:  # pragma: no cover - protocol
         ...
-
-
-MemoryAdapter: TypeAlias = MemoryStore | VectorStore[Any] | Any
-AdapterRegistry: TypeAlias = dict[str, MemoryAdapter]
 
 
 class MemoryManager:
@@ -258,14 +262,15 @@ class MemoryManager:
         search_meta["edrr_phase"] = edrr_phase
 
         for adapter in self.adapters.values():
-            if hasattr(adapter, "retrieve_with_edrr_phase"):
+            if isinstance(adapter, SupportsEdrrRetrieval):
                 item = adapter.retrieve_with_edrr_phase(
                     item_type, edrr_phase, search_meta
                 )
                 if item is not None:
                     return item
             if hasattr(adapter, "retrieve"):
-                item = adapter.retrieve(item_type.value)
+                store_adapter = cast(MemoryStore, adapter)
+                item = store_adapter.retrieve(item_type.value)
                 if (
                     item is not None
                     and getattr(item, "metadata", {}).get("edrr_phase") == edrr_phase
@@ -351,12 +356,13 @@ class MemoryManager:
             A list of related memory items
         """
         if "graph" in self.adapters:
-            # Use the graph adapter for relationship queries
             graph_adapter = self.adapters["graph"]
-            return graph_adapter.query_related_items(item_id)
-        else:
-            logger.warning("Graph adapter not available for querying related items")
+            if isinstance(graph_adapter, SupportsGraphQueries):
+                return list(graph_adapter.query_related_items(item_id))
+            logger.warning("Graph adapter missing relationship API")
             return []
+        logger.warning("Graph adapter not available for querying related items")
+        return []
 
     def similarity_search(
         self, query_embedding: Sequence[float], top_k: int = 5
@@ -365,7 +371,10 @@ class MemoryManager:
 
         if "vector" in self.adapters:
             vector_adapter = self.adapters["vector"]
-            results = vector_adapter.similarity_search(query_embedding, top_k)
+            results = cast(
+                VectorStoreProtocol,
+                vector_adapter,
+            ).similarity_search(query_embedding, top_k)
             return [
                 build_memory_record(candidate, source="vector") for candidate in results
             ]
@@ -378,7 +387,10 @@ class MemoryManager:
 
         if "tinydb" in self.adapters:
             tinydb_adapter = self.adapters["tinydb"]
-            raw = tinydb_adapter.query_structured_data(query)
+            if isinstance(tinydb_adapter, SupportsStructuredQuery):
+                raw = tinydb_adapter.query_structured_data(query)
+            else:
+                raw = []
             return build_query_results("tinydb", raw)
 
         logger.warning("TinyDB adapter not available for querying structured data")
@@ -415,14 +427,21 @@ class MemoryManager:
             )
             return []
 
-        # Get the item and its related items
         graph_adapter = self.adapters["graph"]
-        item = graph_adapter.retrieve(item_id)
+        if not hasattr(graph_adapter, "retrieve") or not isinstance(
+            graph_adapter, SupportsGraphQueries
+        ):
+            logger.warning("Graph adapter missing retrieval or relationship support")
+            return []
+
+        item = cast(MemoryStore, graph_adapter).retrieve(item_id)
         if item is None:
             return []
 
         # Get all related items recursively
-        related_items = self._get_all_related_items(item_id, graph_adapter)
+        related_items = self._get_all_related_items(
+            item_id, graph_adapter
+        )
 
         # Add the original item
         all_items = [item] + related_items
@@ -437,7 +456,7 @@ class MemoryManager:
         return sorted_items
 
     def _get_all_related_items(
-        self, item_id: str, graph_adapter: Any
+        self, item_id: str, graph_adapter: SupportsGraphQueries
     ) -> list[MemoryItem]:
         """
         Get all items related to the given item ID recursively.
@@ -449,7 +468,7 @@ class MemoryManager:
         Returns:
             A list of related memory items
         """
-        related_items = graph_adapter.query_related_items(item_id)
+        related_items = list(graph_adapter.query_related_items(item_id))
         result: list[MemoryItem] = []
 
         for item in related_items:
@@ -679,7 +698,7 @@ class MemoryManager:
                     break
             return filtered
 
-        vector_adapter: VectorStore[MemoryVector] = self.adapters["vector"]
+        vector_adapter = cast(VectorStoreProtocol, self.adapters["vector"])
 
         query_embedding = self._embed_text(query)
 

@@ -16,14 +16,16 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Optional
+
+from collections.abc import Iterable, Iterator, Sequence
 
 try:  # pragma: no cover - optional dependencies
     from .lmdb_store import LMDBStore
 except Exception:  # pragma: no cover - optional dependency
     LMDBStore = None
 
-from ...domain.models.memory import MemoryItem
+from ...domain.models.memory import MemoryItem, MemoryVector
 from ...logging_setup import DevSynthLogger
 from .dto import (
     GroupedMemoryResults,
@@ -31,6 +33,8 @@ from .dto import (
     MemoryRecord,
     build_memory_record,
 )
+from .adapter_types import AdapterRegistry, MemoryAdapter
+from .vector_protocol import VectorStoreProtocol
 from .tiered_cache import TieredCache
 
 if TYPE_CHECKING:
@@ -122,31 +126,49 @@ class SyncManager:
         async_mode: bool = False,
     ) -> None:
         self.memory_manager = memory_manager
-        self._queue: List[tuple[str, MemoryRecord]] = []
+        self._queue: list[tuple[str, MemoryRecord]] = []
         self._queue_lock = Lock()
         self.cache: TieredCache[GroupedMemoryResults] = TieredCache(
             max_size=cache_size
         )
-        self.conflict_log: List[Dict[str, Any]] = []
-        self.stats: Dict[str, int] = {"synchronized": 0, "conflicts": 0}
-        self._async_tasks: List[asyncio.Task] = []
+        self.conflict_log: list[dict[str, Any]] = []
+        self.stats: dict[str, int] = {"synchronized": 0, "conflicts": 0}
+        self._async_tasks: list[asyncio.Task[None]] = []
         self.async_mode = async_mode
         # Dictionary to store active transactions
-        self._active_transactions: Dict[str, Dict[str, Any]] = {}
+        self._active_transactions: dict[str, dict[str, Any]] = {}
 
-    def _get_all_items(self, adapter: Any) -> List[MemoryItem]:
+    def _get_all_items(
+        self, adapter: MemoryAdapter, *, store_name: str
+    ) -> list[MemoryItem]:
         if hasattr(adapter, "get_all_items"):
-            return adapter.get_all_items()
+            items = adapter.get_all_items()
+            return list(items)
         if hasattr(adapter, "search"):
-            return adapter.search({})
+            results = adapter.search({})
+            if isinstance(results, list):
+                return [
+                    build_memory_record(candidate, source=store_name).item
+                    for candidate in results
+                ]
+            if isinstance(results, dict):
+                collected: list[MemoryItem] = []
+                records = results.get("records") or results.get("combined")
+                if isinstance(records, Sequence):
+                    for candidate in records:
+                        collected.append(
+                            build_memory_record(candidate, source=store_name).item
+                        )
+                return collected
         return []
 
-    def _get_all_vectors(self, adapter: Any) -> List[Any]:
+    def _get_all_vectors(self, adapter: MemoryAdapter) -> list[MemoryVector]:
         if hasattr(adapter, "get_all_vectors"):
-            return adapter.get_all_vectors()
+            vectors = adapter.get_all_vectors()
+            return list(vectors)
         return []
 
-    def _get_transaction_context(self, adapter: Any, transaction_id: str):
+    def _get_transaction_context(self, adapter: MemoryAdapter, transaction_id: str):
         """Return an adapter-specific transaction context if supported."""
 
         if LMDBStore and isinstance(adapter, LMDBStore):
@@ -215,14 +237,14 @@ class SyncManager:
 
     def _normalize_records(
         self, payloads: Iterable[Any], *, source: str
-    ) -> List[MemoryRecord]:
+    ) -> list[MemoryRecord]:
         """Return a list of normalized :class:`MemoryRecord` objects."""
 
         return [self._build_record(payload, source=source) for payload in payloads]
 
     # ------------------------------------------------------------------
     @contextmanager
-    def transaction(self, stores: List[str]):
+    def transaction(self, stores: list[str]) -> Iterator[dict[str, Any]]:
         """Context manager for multi-store transactions.
 
         This manager attempts to use native transaction support on each
@@ -241,18 +263,18 @@ class SyncManager:
         transaction_id = str(uuid.uuid4())
         logger.debug(f"Starting transaction {transaction_id} for stores: {stores}")
 
-        snapshots: Dict[str, Dict[str, Dict[str, Any]]] = {}
-        contexts: Dict[str, Any] = {}
-        txns: Dict[str, Any] = {}
-        added_items: Dict[str, Set[str]] = {}
+        snapshots: dict[str, dict[str, dict[str, Any]]] = {}
+        contexts: dict[str, Any] = {}
+        txns: dict[str, Any] = {}
+        added_items: dict[str, set[str]] = {}
 
         # Track which stores are participating in the transaction
-        participating_stores = []
+        participating_stores: list[str] = []
 
         # Begin transaction for each store
         for name in stores:
             adapter = self.memory_manager.adapters.get(name)
-            if not adapter:
+            if adapter is None:
                 logger.warning(f"Store {name} not found, skipping")
                 continue
 
@@ -265,7 +287,7 @@ class SyncManager:
                     txns[name] = ctx.__enter__()
                     contexts[name] = ctx
                 else:
-                    items = self._get_all_items(adapter)
+                    items = self._get_all_items(adapter, store_name=name)
                     vectors = self._get_all_vectors(adapter)
                     snapshots[name] = {
                         "items": {item.id: self._copy_item(item) for item in items},
@@ -318,9 +340,9 @@ class SyncManager:
 
     def _rollback_partial_transaction(
         self,
-        contexts: Dict[str, Any],
-        snapshots: Dict[str, Dict[str, Dict[str, Any]]],
-        added_items: Dict[str, Set[str]],
+        contexts: dict[str, Any],
+        snapshots: dict[str, dict[str, dict[str, Any]]],
+        added_items: dict[str, set[str]],
         exc: Exception = None,
     ):
         """
@@ -351,14 +373,14 @@ class SyncManager:
         # Restore snapshots for stores without native transaction support
         for name, snap in snapshots.items():
             adapter = self.memory_manager.adapters.get(name)
-            if not adapter:
+            if adapter is None:
                 continue
 
             try:
                 items = snap.get("items", {})
                 vectors = snap.get("vectors", {})
 
-                current_items = self._get_all_items(adapter)
+                current_items = self._get_all_items(adapter, store_name=name)
                 current_ids = {item.id for item in current_items}
                 for item_id in current_ids - set(items.keys()):
                     if hasattr(adapter, "delete"):
@@ -404,7 +426,9 @@ class SyncManager:
         # Any cached query results are now stale
         self.clear_cache()
 
-    def _sync_one_way(self, source_adapter: Any, target_adapter: Any) -> int:
+    def _sync_one_way(
+        self, source_adapter: MemoryAdapter, target_adapter: MemoryAdapter
+    ) -> int:
         """Synchronize data from ``source_adapter`` to ``target_adapter``.
 
         This helper performs a one-way sync of both memory items and vectors,
@@ -421,7 +445,8 @@ class SyncManager:
         count = 0
 
         # Synchronize memory items
-        for item in self._get_all_items(source_adapter):
+        source_label = self._adapter_label(source_adapter, "source")
+        for item in self._get_all_items(source_adapter, store_name=source_label):
             to_store = item
             existing = None
             if hasattr(target_adapter, "retrieve"):
@@ -449,7 +474,7 @@ class SyncManager:
 
     def synchronize(
         self, source: str, target: str, bidirectional: bool = False
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Synchronize items from ``source`` to ``target`` transactionally.
 
         If ``bidirectional`` is ``True``, the reverse synchronization is
@@ -459,13 +484,13 @@ class SyncManager:
 
         source_adapter = self.memory_manager.adapters.get(source)
         target_adapter = self.memory_manager.adapters.get(target)
-        if not source_adapter or not target_adapter:
+        if source_adapter is None or target_adapter is None:
             logger.warning(
                 "Sync skipped due to missing adapters: %s -> %s", source, target
             )
             return {f"{source}_to_{target}": 0}
 
-        result: Dict[str, int] = {}
+        result: dict[str, int] = {}
 
         # Execute synchronization inside a transaction for atomicity
         with self.transaction([source, target]):
@@ -480,7 +505,7 @@ class SyncManager:
             logger.warning("Peer review failed: %s", exc)
         return result
 
-    def synchronize_core(self) -> Dict[str, int]:
+    def synchronize_core(self) -> dict[str, int]:
         """Synchronize LMDB and FAISS stores into the Kuzu store.
 
         This helper coordinates synchronization across the primary persistent
@@ -492,14 +517,14 @@ class SyncManager:
             Mapping of synchronization directions to counts.
         """
 
-        results: Dict[str, int] = {}
-        adapters = self.memory_manager.adapters
+        results: dict[str, int] = {}
+        adapters: AdapterRegistry = self.memory_manager.adapters
 
         # Ensure Kuzu is available as the central store
         if "kuzu" not in adapters:
             return results
 
-        stores: List[str] = ["kuzu"]
+        stores: list[str] = ["kuzu"]
         if "lmdb" in adapters:
             stores.append("lmdb")
         if "faiss" in adapters:
@@ -635,11 +660,11 @@ class SyncManager:
         self.clear_cache()
 
     def schedule_flush(self, delay: float = 0.1) -> None:
-        async def _delayed():
+        async def _delayed() -> None:
             await asyncio.sleep(delay)
             await self.flush_queue_async()
 
-        task = asyncio.create_task(_delayed())
+        task: asyncio.Task[None] = asyncio.create_task(_delayed())
         self._async_tasks.append(task)
 
     async def wait_for_async(self) -> None:
@@ -648,7 +673,7 @@ class SyncManager:
             self._async_tasks = []
 
     def cross_store_query(
-        self, query: str, stores: Optional[List[str]] | None = None
+        self, query: str, stores: Optional[list[str]] = None
     ) -> GroupedMemoryResults:
         """Query multiple stores and cache normalized DTO results.
 
@@ -666,17 +691,19 @@ class SyncManager:
 
         stores = stores or list(self.memory_manager.adapters.keys())
         grouped: GroupedMemoryResults = {"by_store": {}, "query": query}
-        combined: List[MemoryRecord] = []
+        combined: list[MemoryRecord] = []
         for name in stores:
             adapter = self.memory_manager.adapters.get(name)
-            if not adapter:
+            if adapter is None:
                 continue
             label = self._adapter_label(adapter, name)
             if hasattr(adapter, "similarity_search"):
                 embedding = self.memory_manager._embed_text(
                     query, getattr(adapter, "dimension", 5)
                 )
-                raw_results = adapter.similarity_search(embedding, top_k=5)
+                raw_results = cast(VectorStoreProtocol, adapter).similarity_search(
+                    embedding, top_k=5
+                )
             elif hasattr(adapter, "search"):
                 raw_results = adapter.search({"content": query})
             else:
@@ -695,7 +722,7 @@ class SyncManager:
         return grouped
 
     async def cross_store_query_async(
-        self, query: str, stores: Optional[List[str]] | None = None
+        self, query: str, stores: Optional[list[str]] = None
     ) -> GroupedMemoryResults:
         """Asynchronously query multiple stores and cache normalized results."""
 
@@ -707,9 +734,9 @@ class SyncManager:
 
         stores = stores or list(self.memory_manager.adapters.keys())
 
-        async def _query(name: str) -> Tuple[str, str, List[Any]]:
+        async def _query(name: str) -> tuple[str, str, list[Any]]:
             adapter = self.memory_manager.adapters.get(name)
-            if not adapter:
+            if adapter is None:
                 return name, name, []
             label = self._adapter_label(adapter, name)
             if hasattr(adapter, "similarity_search"):
@@ -717,7 +744,9 @@ class SyncManager:
                     query, getattr(adapter, "dimension", 5)
                 )
                 result = await asyncio.to_thread(
-                    adapter.similarity_search, embedding, top_k=5
+                    cast(VectorStoreProtocol, adapter).similarity_search,
+                    embedding,
+                    top_k=5,
                 )
                 return name, label, result
             if hasattr(adapter, "search"):
@@ -727,7 +756,7 @@ class SyncManager:
 
         pairs = await asyncio.gather(*(_query(name) for name in stores))
         grouped: GroupedMemoryResults = {"by_store": {}, "query": query}
-        combined: List[MemoryRecord] = []
+        combined: list[MemoryRecord] = []
         for _, label, raw_items in pairs:
             records = self._normalize_records(raw_items, source=label)
             combined.extend(records)
@@ -748,7 +777,7 @@ class SyncManager:
         return self.cache.size()
 
     # ------------------------------------------------------------------
-    def get_sync_stats(self) -> Dict[str, int]:
+    def get_sync_stats(self) -> dict[str, int]:
         """Return statistics about synchronization operations."""
 
         return dict(self.stats)
@@ -782,14 +811,14 @@ class SyncManager:
         stores = list(self.memory_manager.adapters.keys())
 
         # Initialize transaction state
-        snapshots: Dict[str, Dict[str, List[Any]]] = {}
+        snapshots: dict[str, dict[str, list[Any]]] = {}
         contexts = {}
         txns = {}
 
         # Begin transaction for each store
         for name in stores:
             adapter = self.memory_manager.adapters.get(name)
-            if not adapter:
+            if adapter is None:
                 continue
             if hasattr(adapter, "begin_transaction"):
                 ctx = DummyTransactionContext(adapter, tx_id)
@@ -797,7 +826,10 @@ class SyncManager:
                 contexts[name] = ctx
             else:
                 snapshots[name] = {
-                    "items": [self._copy_item(i) for i in self._get_all_items(adapter)],
+                    "items": [
+                        self._copy_item(i)
+                        for i in self._get_all_items(adapter, store_name=name)
+                    ],
                     "vectors": [deepcopy(v) for v in self._get_all_vectors(adapter)],
                 }
 
@@ -888,12 +920,12 @@ class SyncManager:
         # Restore snapshots for stores without native transaction support
         for name, snap in snapshots.items():
             adapter = self.memory_manager.adapters.get(name)
-            if not adapter:
+            if adapter is None:
                 continue
             items = snap.get("items", [])
             vectors = snap.get("vectors", [])
             if hasattr(adapter, "delete"):
-                for itm in self._get_all_items(adapter):
+                for itm in self._get_all_items(adapter, store_name=name):
                     adapter.delete(itm.id)
             if hasattr(adapter, "delete_vector"):
                 for vec in self._get_all_vectors(adapter):

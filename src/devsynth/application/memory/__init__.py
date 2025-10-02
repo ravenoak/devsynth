@@ -7,7 +7,7 @@ This module provides memory storage and retrieval functionality for DevSynth,
 including a Memory Manager with adapters for different storage backends.
 """
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 from devsynth.logging_setup import DevSynthLogger
 
@@ -33,7 +33,7 @@ else:  # pragma: no cover - fallback definitions when optional adapters missing
     TinyDBMemoryAdapterType = Any  # type: ignore[assignment]
     VectorMemoryAdapterType = Any  # type: ignore[assignment]
 
-GraphMemoryAdapter: type[GraphMemoryAdapterType] | None
+GraphMemoryAdapter: ClassVar[type[GraphMemoryAdapterType] | None]
 try:  # pragma: no cover - optional dependency
     from .adapters.graph_memory_adapter import GraphMemoryAdapter as _GraphMemoryAdapter
 except ImportError as exc:  # pragma: no cover - fallback path
@@ -42,7 +42,7 @@ except ImportError as exc:  # pragma: no cover - fallback path
 else:
     GraphMemoryAdapter = cast("type[GraphMemoryAdapterType]", _GraphMemoryAdapter)
 
-VectorMemoryAdapter: type[VectorMemoryAdapterType] | None
+VectorMemoryAdapter: ClassVar[type[VectorMemoryAdapterType] | None]
 try:  # pragma: no cover - optional dependency
     from .adapters.vector_memory_adapter import (
         VectorMemoryAdapter as _VectorMemoryAdapter,
@@ -53,7 +53,7 @@ except ImportError as exc:  # pragma: no cover - fallback path
 else:
     VectorMemoryAdapter = cast("type[VectorMemoryAdapterType]", _VectorMemoryAdapter)
 
-TinyDBMemoryAdapter: type[TinyDBMemoryAdapterType] | None
+TinyDBMemoryAdapter: ClassVar[type[TinyDBMemoryAdapterType] | None]
 try:  # pragma: no cover - optional dependency
     from .adapters.tinydb_memory_adapter import (
         TinyDBMemoryAdapter as _TinyDBMemoryAdapter,
@@ -64,7 +64,7 @@ except ImportError as exc:  # pragma: no cover - fallback path
 else:
     TinyDBMemoryAdapter = cast("type[TinyDBMemoryAdapterType]", _TinyDBMemoryAdapter)
 
-__all__ = [
+__all__: list[str] = [
     "InMemoryStore",
     "SimpleContextManager",
     "JSONFileStore",

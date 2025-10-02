@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, cast
+from typing import Any, Mapping, Optional, TYPE_CHECKING, cast
 
 from devsynth.application.memory.dto import MemoryMetadata, MemoryRecord, build_memory_record
 from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStoreError
@@ -20,7 +20,7 @@ logger = DevSynthLogger(__name__)
 
 def _records_from_response(
     response: MemorySearchResponse, store_name: str
-) -> List[MemoryRecord]:
+) -> list[MemoryRecord]:
     """Normalize search responses into :class:`MemoryRecord` instances."""
 
     if isinstance(response, list):
@@ -28,7 +28,7 @@ def _records_from_response(
 
     if isinstance(response, dict):
         if "by_store" in response:
-            grouped_records: List[MemoryRecord] = []
+            grouped_records: list[MemoryRecord] = []
             by_store = cast("GroupedMemoryResults", response)["by_store"]
             for nested_store, payload in by_store.items():
                 grouped_records.extend(_records_from_response(payload, nested_store))
@@ -75,8 +75,8 @@ class MemoryIntegrationManager:
 
     def __init__(self):
         """Initialize the Memory Integration Manager."""
-        self.memory_stores = {}
-        self.vector_stores: Dict[str, VectorStore[MemoryVector]] = {}
+        self.memory_stores: dict[str, MemoryStore] = {}
+        self.vector_stores: dict[str, VectorStore[MemoryVector]] = {}
         logger.info("Memory Integration Manager initialized")
 
     def register_memory_store(self, name: str, store: MemoryStore) -> None:
@@ -153,7 +153,7 @@ class MemoryIntegrationManager:
 
     def synchronize_stores(
         self, store1: str, store2: str, bidirectional: bool = True
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """
         Synchronize memory items between two stores.
 
@@ -227,9 +227,9 @@ class MemoryIntegrationManager:
 
     def query_across_stores(
         self,
-        query: Dict[str, Any] | MemoryMetadata,
-        stores: List[str] = None,
-    ) -> Dict[str, MemorySearchResponse]:
+        query: Mapping[str, object] | MemoryMetadata,
+        stores: list[str] | None = None,
+    ) -> dict[str, MemorySearchResponse]:
         """
         Query for memory items across multiple stores.
 
@@ -254,7 +254,7 @@ class MemoryIntegrationManager:
                     raise MemoryStoreError(f"Store '{store}' not registered")
 
             # Query each store
-            results: Dict[str, MemorySearchResponse] = {}
+            results: dict[str, MemorySearchResponse] = {}
             for store in stores:
                 store_results = self.memory_stores[store].search(query)
                 results[store] = store_results
@@ -267,7 +267,7 @@ class MemoryIntegrationManager:
 
     def apply_volatility_across_stores(
         self, decay_rate: float = 0.1, threshold: float = 0.5
-    ) -> Dict[str, List[str]]:
+    ) -> dict[str, list[str]]:
         """
         Apply memory volatility controls across all registered stores that support it.
 
