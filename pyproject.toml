@@ -267,11 +267,6 @@ module = [
 ]
 ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-module = "devsynth.domain.interfaces.memory"
-follow_imports = "normal"
-ignore_errors = false
-
 [tool.black]
 line-length = 88
 target-version = ["py312"]
@@ -352,6 +347,15 @@ module = [
   "devsynth.utils.*",
 ]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.application.memory",
+  "devsynth.application.memory.*",
+  "devsynth.domain.interfaces.memory",
+]
+follow_imports = "normal"
+ignore_errors = false
 
 [[tool.mypy.overrides]]
 module = ["chromadb", "chromadb.*"]

@@ -59,6 +59,17 @@ def main() -> int:
         ),
         (["poetry", "run", "mypy", "src/devsynth"], diagnostics / "mypy.txt"),
         (
+            [
+                "poetry",
+                "run",
+                "mypy",
+                "--strict",
+                "src/devsynth/application/memory",
+            ],
+            diagnostics
+            / f"mypy_strict_application_memory_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.txt",
+        ),
+        (
             ["poetry", "run", "bandit", "-r", "src/devsynth", "-x", "tests"],
             diagnostics / "bandit.txt",
         ),
