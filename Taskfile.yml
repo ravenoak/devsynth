@@ -144,6 +144,12 @@ tasks:
     desc: Run strict mypy on typed application slices (code_analysis now in the enforced set)
     cmds:
       - poetry run mypy --strict src/devsynth {{.CLI_ARGS}}
+      - task: mypy:strict:memory
+
+  mypy:strict:memory:
+    desc: Run strict mypy for the memory stack and capture diagnostics
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; TS=$(date -u +%Y%m%dT%H%M%SZ); OUT="diagnostics/mypy_strict_application_memory_${TS}.txt"; echo "[info] Writing strict memory diagnostics to $OUT"; poetry run mypy --strict src/devsynth/application/memory | tee "$OUT"; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "mypy --strict src/devsynth/application/memory" --exit-code $EXIT --artifacts "$OUT" --notes "memory strict typing"; exit $EXIT'
 
   tests:property:
     desc: Run opt-in property tests (requires DEVSYNTH_PROPERTY_TESTING=true)
