@@ -87,6 +87,16 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
             "Synthesist",
             "--research-persona",
             "Bibliographer",
+            "--research-persona",
+            "Synthesizer",
+            "--research-persona",
+            "Contrarian",
+            "--research-persona",
+            "Fact Checker",
+            "--research-persona",
+            "Planner",
+            "--research-persona",
+            "Moderator",
         ]
     )
 
@@ -119,14 +129,14 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
     assert env["DEVSYNTH_EXTERNAL_RESEARCH_MODE"] == "fixture"
     assert (
         env["DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS"]
-        == "Research Lead,Synthesist,Bibliographer"
+        == "Research Lead,Synthesist,Bibliographer,Synthesizer,Contrarian,Fact Checker,Planner,Moderator"
     )
     assert env["DEVSYNTH_AUTORESEARCH_OVERLAYS"] == "1"
     assert env["DEVSYNTH_AUTORESEARCH_TELEMETRY"] == str(telemetry_path)
     assert env["DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"] == secret_env
     assert (
         env["DEVSYNTH_AUTORESEARCH_PERSONAS"]
-        == "Research Lead,Synthesist,Bibliographer"
+        == "Research Lead,Synthesist,Bibliographer,Synthesizer,Contrarian,Fact Checker,Planner,Moderator"
     )
 
     personas_payload = telemetry.get("research_personas", [])
@@ -134,6 +144,11 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
         "Research Lead",
         "Synthesist",
         "Bibliographer",
+        "Synthesizer",
+        "Contrarian",
+        "Fact Checker",
+        "Planner",
+        "Moderator",
     }
     lead_payload = next(item for item in personas_payload if item["name"] == "Research Lead")
     assert lead_payload["primary_role"] == "primus"
