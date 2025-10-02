@@ -47,7 +47,9 @@ class CollaborativeWSDETeam(WSDETeam):
         self._active_persona_slugs: tuple[str, ...] = ()
         self._persona_events: list[dict[str, Any]] = []
 
-        env_personas = os.getenv("DEVSYNTH_AUTORESEARCH_PERSONAS", "")
+        env_personas = os.getenv("DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS", "") or os.getenv(
+            "DEVSYNTH_AUTORESEARCH_PERSONAS", ""
+        )
         if env_personas:
             self.configure_research_personas(env_personas.split(","))
 

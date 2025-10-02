@@ -1,4 +1,10 @@
-"""Utilities for Autoresearch telemetry and overlays."""
+"""Utilities for external research telemetry overlays.
+
+This module generalizes the telemetry helpers previously scoped to
+Autoresearch. Autoresearch remains the upstream provider, but DevSynth now
+refers to these flows generically so alternative research telemetry sources can
+participate via dependency-injected connectors.
+"""
 
 from __future__ import annotations
 
@@ -10,8 +16,10 @@ from datetime import datetime, timezone
 from typing import Any, Mapping, TypedDict
 from uuid import uuid4
 
+from devsynth.integrations import A2AConnector, MCPConnector
+
 DEFAULT_SIGNATURE_ALGORITHM = "HMAC-SHA256"
-DEFAULT_SESSION_PREFIX = "autoresearch"
+DEFAULT_SESSION_PREFIX = "external-research"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,7 +59,7 @@ class IntegrityBadgePayload(TypedDict):
     notes: str
 
 
-class AutoresearchPayload(TypedDict):
+class ResearchTelemetryPayload(TypedDict):
     version: str
     generated_at: str
     session_id: str
@@ -120,16 +128,23 @@ def _derive_session_id() -> str:
     return f"{DEFAULT_SESSION_PREFIX}-{uuid4()}"
 
 
-def build_autoresearch_payload(
+def build_research_telemetry_payload(
     traceability: Mapping[str, Any],
     *,
     generated_at: datetime | None = None,
     session_id: str | None = None,
-) -> AutoresearchPayload:
+    mcp_connector: MCPConnector | None = None,
+    a2a_connector: A2AConnector | None = None,
+) -> ResearchTelemetryPayload:
     """Create the overlay payload that Streamlit will consume."""
 
     timestamp = (generated_at or datetime.now(timezone.utc)).isoformat()
     session = session_id or _derive_session_id()
+
+    if mcp_connector is not None:
+        mcp_connector.ensure_session(session)
+    if a2a_connector is not None:
+        a2a_connector.prepare_channel(session)
 
     timeline_rows: list[TimelineRow] = []
     provenance_filters: dict[str, set[str]] = {
@@ -201,7 +216,7 @@ def build_autoresearch_payload(
         for value in sorted(provenance_filters["knowledge_graph"])
     ]
 
-    payload: AutoresearchPayload = {
+    payload: ResearchTelemetryPayload = {
         "version": "1.0",
         "generated_at": timestamp,
         "session_id": session,
@@ -216,7 +231,7 @@ def build_autoresearch_payload(
 
 
 def sign_payload(
-    payload: AutoresearchPayload,
+    payload: ResearchTelemetryPayload,
     *,
     secret: str,
     key_id: str,
@@ -249,3 +264,15 @@ def verify_signature(
 
     expected = sign_payload(payload, secret=secret, key_id=key_id).digest
     return hmac.compare_digest(expected, digest)
+
+
+__all__ = [
+    "ResearchTelemetryPayload",
+    "SignatureEnvelope",
+    "TimelineRow",
+    "ProvenanceFilter",
+    "IntegrityBadge",
+    "build_research_telemetry_payload",
+    "sign_payload",
+    "verify_signature",
+]

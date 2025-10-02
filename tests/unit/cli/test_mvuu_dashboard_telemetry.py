@@ -25,7 +25,10 @@ mvuu_dashboard_cmd = importlib.util.module_from_spec(spec)
 sys.modules.setdefault("mvuu_dashboard_cmd", mvuu_dashboard_cmd)
 assert spec.loader is not None
 spec.loader.exec_module(mvuu_dashboard_cmd)
-from devsynth.interface.autoresearch import build_autoresearch_payload, sign_payload
+from devsynth.interface.research_telemetry import (
+    build_research_telemetry_payload,
+    sign_payload,
+)
 
 
 @pytest.mark.fast
@@ -46,7 +49,7 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
     trace_path.write_text(json.dumps(trace_payload), encoding="utf-8")
 
     telemetry_path = repo_root / "telemetry.json"
-    secret_env = "CLI_AUTORESEARCH_SECRET"
+    secret_env = "CLI_EXTERNAL_RESEARCH_SECRET"
     monkeypatch.setenv(secret_env, "secret-value")
     monkeypatch.setenv("DEVSYNTH_REPO_ROOT", str(repo_root))
 
@@ -86,7 +89,7 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
     assert signature["algorithm"] == "HMAC-SHA256"
     assert signature["key_id"] == f"env:{secret_env}"
 
-    payload_obj = build_autoresearch_payload(
+    payload_obj = build_research_telemetry_payload(
         trace_payload,
         session_id=payload["session_id"],
         generated_at=datetime.fromisoformat(payload["generated_at"]),
@@ -100,6 +103,13 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
         (cmd, env) for cmd, env in captured if cmd[:2] == ["streamlit", "run"]
     )
     _, env = streamlit_call
+    assert env["DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS"] == "1"
+    assert env["DEVSYNTH_EXTERNAL_RESEARCH_TELEMETRY"] == str(telemetry_path)
+    assert env["DEVSYNTH_EXTERNAL_RESEARCH_SIGNATURE_KEY"] == secret_env
+    assert (
+        env["DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS"]
+        == "Research Lead,Synthesist,Bibliographer"
+    )
     assert env["DEVSYNTH_AUTORESEARCH_OVERLAYS"] == "1"
     assert env["DEVSYNTH_AUTORESEARCH_TELEMETRY"] == str(telemetry_path)
     assert env["DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"] == secret_env

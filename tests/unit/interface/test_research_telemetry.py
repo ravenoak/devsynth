@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import pytest
 
-from devsynth.interface.autoresearch import (
-    AutoresearchPayload,
+from devsynth.interface.research_telemetry import (
+    ResearchTelemetryPayload,
     SignatureEnvelope,
-    build_autoresearch_payload,
+    build_research_telemetry_payload,
     sign_payload,
     verify_signature,
 )
 
 
-def _minimal_payload() -> AutoresearchPayload:
+def _minimal_payload() -> ResearchTelemetryPayload:
     return {
         "version": "1.0",
         "generated_at": "2025-01-01T00:00:00+00:00",
@@ -24,8 +24,30 @@ def _minimal_payload() -> AutoresearchPayload:
     }
 
 
+class _RecordingMCPConnector:
+    def __init__(self) -> None:
+        self.sessions: list[str] = []
+
+    def ensure_session(self, session_id: str) -> None:
+        self.sessions.append(session_id)
+
+    def close(self) -> None:
+        pass
+
+
+class _RecordingA2AConnector:
+    def __init__(self) -> None:
+        self.sessions: list[str] = []
+
+    def prepare_channel(self, session_id: str) -> None:
+        self.sessions.append(session_id)
+
+    def close(self) -> None:
+        pass
+
+
 @pytest.mark.fast
-def test_build_autoresearch_payload_produces_timeline_snapshot() -> None:
+def test_build_research_telemetry_payload_produces_timeline_snapshot() -> None:
     """Ensure payload captures timeline, filters, and badges."""
 
     sample = {
@@ -41,13 +63,36 @@ def test_build_autoresearch_payload_produces_timeline_snapshot() -> None:
         },
     }
 
-    payload = build_autoresearch_payload(sample, session_id="test-session", generated_at=None)
+    payload = build_research_telemetry_payload(
+        sample,
+        session_id="test-session",
+        generated_at=None,
+        mcp_connector=_RecordingMCPConnector(),
+        a2a_connector=_RecordingA2AConnector(),
+    )
 
     assert payload["version"] == "1.0"
     assert payload["session_id"] == "test-session"
     assert [event["trace_id"] for event in payload["timeline"]] == ["DSY-0001", "DSY-0002"]
     assert payload["provenance_filters"][0]["label"].startswith("Agent Persona")
     assert payload["integrity_badges"][0]["trace_id"] == "DSY-0001"
+
+
+@pytest.mark.fast
+def test_build_research_telemetry_payload_invokes_connectors() -> None:
+    sample = {"DSY-0001": {}}
+    mcp = _RecordingMCPConnector()
+    a2a = _RecordingA2AConnector()
+
+    build_research_telemetry_payload(
+        sample,
+        session_id="session-123",
+        mcp_connector=mcp,
+        a2a_connector=a2a,
+    )
+
+    assert mcp.sessions == ["session-123"]
+    assert a2a.sessions == ["session-123"]
 
 
 @pytest.mark.fast

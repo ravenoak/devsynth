@@ -35,6 +35,7 @@ translate into implementation work.
 
 ## Resolution (2025-10-01)
 - Acceptance criteria met with overlays, telemetry exports, and documentation updates archived for 0.1.0a1. See the overlay mock (`artifacts/mvuu_overlay_mock.html`), signed telemetry snapshot (`artifacts/mvuu_autoresearch_overlay_snapshot.json`), and MVUU user guide (`docs/user_guides/mvuu_dashboard.md`) for the implementation evidence. Next milestone tracks external connector integration so live Autoresearch telemetry can replace the current stubs.
+- Naming policy refreshed in 2025-10 to reserve the Autoresearch label for external client integrations. In-repo telemetry helpers now live under `src/devsynth/interface/research_telemetry.py`, with MCP/A2A hand-off scaffolding tracked in `src/devsynth/integrations/`.
 
 ## References
 - docs/analysis/mvuu_dashboard.md
