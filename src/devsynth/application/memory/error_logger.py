@@ -145,12 +145,13 @@ class MemoryErrorLogger:
         """Get a summary of errors by type, adapter, and operation."""
 
         if not self.errors:
-            return ErrorSummary(
-                total_errors=0,
-                by_adapter={},
-                by_operation={},
-                by_error_type={},
-            )
+            summary: ErrorSummary = {
+                "total_errors": 0,
+                "by_adapter": {},
+                "by_operation": {},
+                "by_error_type": {},
+            }
+            return summary
 
         by_adapter: Dict[str, int] = {}
         by_operation: Dict[str, int] = {}
@@ -161,12 +162,13 @@ class MemoryErrorLogger:
             by_operation[record.operation] = by_operation.get(record.operation, 0) + 1
             by_error_type[record.error_type] = by_error_type.get(record.error_type, 0) + 1
 
-        return ErrorSummary(
-            total_errors=len(self.errors),
-            by_adapter=by_adapter,
-            by_operation=by_operation,
-            by_error_type=by_error_type,
-        )
+        summary: ErrorSummary = {
+            "total_errors": len(self.errors),
+            "by_adapter": by_adapter,
+            "by_operation": by_operation,
+            "by_error_type": by_error_type,
+        }
+        return summary
 
     def clear_errors(self) -> None:
         """Clear the in-memory error log."""

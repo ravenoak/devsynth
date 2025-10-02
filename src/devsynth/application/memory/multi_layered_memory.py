@@ -58,9 +58,11 @@ class MultiLayeredMemorySystem:
         """
         # Generate an ID if not provided
         if not memory_item.id:
-            memory_item.id = str(uuid.uuid4())
+            generated_id = str(uuid.uuid4())
+            memory_item.id = generated_id
         else:
-            memory_item.id = str(memory_item.id)
+            generated_id = str(memory_item.id)
+            memory_item.id = generated_id
 
         # Determine the appropriate memory layer based on the memory type
         if memory_item.memory_type in [MemoryType.CONTEXT, MemoryType.CONVERSATION]:
@@ -83,7 +85,7 @@ class MultiLayeredMemorySystem:
             self.short_term_memory[memory_item.id] = memory_item
             logger.debug(f"Stored item {memory_item.id} in short-term memory (default)")
 
-        return memory_item.id
+        return generated_id
 
     def retrieve(self, item_id: str) -> MemoryItem | None:
         """
@@ -218,7 +220,7 @@ class MultiLayeredMemorySystem:
         Returns:
             The number of items in the cache, or 0 if cache is disabled
         """
-        if self.cache_enabled:
+        if self.cache_enabled and self.cache is not None:
             return self.cache.size()
         return 0
 
@@ -229,13 +231,13 @@ class MultiLayeredMemorySystem:
         Returns:
             The maximum number of items in the cache, or 0 if cache is disabled
         """
-        if self.cache_enabled:
+        if self.cache_enabled and self.cache is not None:
             return self.cache.max_size
         return 0
 
     def clear_cache(self) -> None:
         """Clear the cache."""
-        if self.cache_enabled:
+        if self.cache_enabled and self.cache is not None:
             self.cache.clear()
             logger.info("Cache cleared")
 
@@ -244,7 +246,7 @@ class MultiLayeredMemorySystem:
         self.short_term_memory.clear()
         self.episodic_memory.clear()
         self.semantic_memory.clear()
-        if self.cache_enabled:
+        if self.cache_enabled and self.cache is not None:
             self.cache.clear()
         self.cache_stats = {"hits": 0, "misses": 0}
         logger.info("All memory layers and cache cleared")

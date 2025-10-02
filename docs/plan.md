@@ -10,7 +10,7 @@ Executive summary
 - Current state (evidence):
   - Test collection succeeds across a large suite (unit/integration/behavior/property).
   - Fast smoke/unit/integration/behavior profiles run successfully via the CLI.
-  - Strict mypy gating remains red; latest audit captured in `diagnostics/mypy_strict_2025-09-30_refresh.txt` after running `poetry run mypy --strict src/devsynth`.【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L1-L20】【F:diagnostics/mypy_strict_2025-09-30_refresh.txt†L850-L850】
+- Strict mypy gating remains red; the 2025-10-02 rerun recorded 366 errors across 29 modules with a per-owner inventory under `diagnostics/mypy_strict_inventory_20251003.md` after executing `poetry run mypy --strict src/devsynth`.【F:diagnostics/devsynth_mypy_strict_20251002T230536Z.txt†L1-L40】【F:diagnostics/mypy_strict_inventory_20251003.md†L1-L10】
 - Speed-marker discipline validated (0 violations).
  - Property marker verification reports 0 violations after converting nested Hypothesis helpers into decorated tests.
  - Property tests (opt-in) now pass after dummy adjustments and Hypothesis fixes.

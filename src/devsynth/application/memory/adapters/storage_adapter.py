@@ -8,6 +8,7 @@ implements the :class:`~devsynth.domain.interfaces.memory.MemoryStore` contract.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import ClassVar, Protocol
 
 from ....domain.models.memory import MemoryItem, MemoryVector

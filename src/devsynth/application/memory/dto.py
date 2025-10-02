@@ -20,7 +20,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from collections.abc import Mapping
-from typing import Iterable, MutableMapping, Sequence, TypedDict, TypeAlias, cast
+from typing import Iterable, MutableMapping, Sequence, TypedDict, TypeAlias
 
 from typing_extensions import NotRequired
 
@@ -78,7 +78,7 @@ class MemoryRecord:
     def id(self) -> str:
         """Expose the underlying item's identifier for backward compatibility."""
 
-        return cast(str, self.item.id)
+        return self.item.id
 
     @property
     def content(self) -> object:
@@ -96,7 +96,7 @@ class MemoryRecord:
     def created_at(self) -> datetime | None:
         """Mirror the wrapped item's ``created_at`` timestamp."""
 
-        return cast(datetime | None, self.item.created_at)
+        return self.item.created_at
 
     @property
     def score(self) -> float | None:
@@ -163,12 +163,12 @@ MemoryRecordInput: TypeAlias = (
 
 
 def _normalize_metadata(*payloads: MemoryMetadata | None) -> MemoryMetadata | None:
-    merged: MemoryMetadata = {}
+    merged: dict[str, MemoryMetadataValue] = {}
     for payload in payloads:
         if not payload:
             continue
-        merged.update(payload)
-    return merged or None
+        merged.update(dict(payload))
+    return merged if merged else None
 
 
 def build_memory_record(
