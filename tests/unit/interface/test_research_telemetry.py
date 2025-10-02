@@ -8,6 +8,7 @@ from devsynth.interface.research_telemetry import (
     ResearchTelemetryPayload,
     SignatureEnvelope,
     build_research_telemetry_payload,
+    merge_extended_metadata_into_payload,
     sign_payload,
     verify_signature,
 )
@@ -21,6 +22,11 @@ def _minimal_payload() -> ResearchTelemetryPayload:
         "timeline": [],
         "provenance_filters": [],
         "integrity_badges": [],
+        "socratic_checkpoints": [],
+        "debate_logs": [],
+        "coalition_messages": [],
+        "query_state_snapshots": [],
+        "planner_graph_exports": [],
     }
 
 
@@ -76,6 +82,61 @@ def test_build_research_telemetry_payload_produces_timeline_snapshot() -> None:
     assert [event["trace_id"] for event in payload["timeline"]] == ["DSY-0001", "DSY-0002"]
     assert payload["provenance_filters"][0]["label"].startswith("Agent Persona")
     assert payload["integrity_badges"][0]["trace_id"] == "DSY-0001"
+    assert payload["socratic_checkpoints"] == []
+    assert payload["planner_graph_exports"] == []
+
+
+@pytest.mark.fast
+def test_build_research_telemetry_payload_merges_extended_metadata() -> None:
+    sample = {"DSY-0001": {"summary": "Initial"}}
+    extended = {
+        "socratic_checkpoints": [
+            {
+                "checkpoint_id": "chk-1",
+                "prompt": "What is the objective?",
+                "response": "Validate telemetry",
+            }
+        ],
+        "debate_logs": [
+            {
+                "label": "Feasibility",
+                "participants": ["Analyst", "Reviewer"],
+                "transcript": ["Pros", "Cons"],
+                "outcome": "Proceed",
+            }
+        ],
+        "coalition_messages": [
+            {"sender": "Coalition", "message": "Sync update", "timestamp": "2025-01-01"}
+        ],
+        "query_state_snapshots": [
+            {"name": "Primary", "status": "ready", "summary": "Up to date"}
+        ],
+        "planner_graph_exports": [
+            {"graph_id": "graph-1", "graphviz_source": "digraph { a -> b }"}
+        ],
+    }
+
+    payload = build_research_telemetry_payload(sample, extended_metadata=extended)
+
+    assert payload["socratic_checkpoints"][0]["checkpoint_id"] == "chk-1"
+    assert payload["debate_logs"][0]["label"] == "Feasibility"
+    assert payload["coalition_messages"][0]["message"] == "Sync update"
+    assert payload["query_state_snapshots"][0]["name"] == "Primary"
+    assert payload["planner_graph_exports"][0]["graphviz_source"].startswith("digraph")
+
+
+@pytest.mark.fast
+def test_merge_extended_metadata_into_payload_appends_sections() -> None:
+    sample = {"DSY-0001": {"summary": "Entry"}}
+    payload = build_research_telemetry_payload(sample)
+    enriched = merge_extended_metadata_into_payload(
+        payload,
+        {"debate_logs": [{"label": "Review", "transcript": ["Check"]}]},
+    )
+
+    assert payload["debate_logs"] == []
+    assert enriched is not payload
+    assert enriched["debate_logs"][0]["label"] == "Review"
 
 
 @pytest.mark.fast

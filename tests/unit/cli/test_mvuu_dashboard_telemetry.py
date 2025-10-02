@@ -109,6 +109,10 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
     expected = sign_payload(payload, secret="secret-value", key_id=f"env:{secret_env}")
     assert expected.digest == signature["digest"]
 
+    assert payload["socratic_checkpoints"] == []
+    assert payload["debate_logs"] == []
+    assert payload["planner_graph_exports"] == []
+
     streamlit_call = next(
         (cmd, env) for cmd, env in captured if cmd[:2] == ["streamlit", "run"]
     )
@@ -187,6 +191,27 @@ def test_mvuu_dashboard_cli_uses_live_connectors(
             return {
                 "results": {"records": [{"trace_id": "remote-1"}], "session_id": session_id},
                 "metrics": {"pending": 0},
+                "extended_metadata": {
+                    "socratic_checkpoints": [
+                        {
+                            "checkpoint_id": "remote-ck",
+                            "prompt": "Why now?",
+                            "response": "Connector insight",
+                        }
+                    ],
+                    "debate_logs": [
+                        {
+                            "label": "Remote Debate",
+                            "transcript": ["Point", "Counterpoint"],
+                        }
+                    ],
+                    "planner_graph_exports": [
+                        {
+                            "graph_id": "remote-graph",
+                            "graphviz_source": "digraph { remote -> local }",
+                        }
+                    ],
+                },
             }
 
     stub_client = StubClient()
@@ -217,6 +242,9 @@ def test_mvuu_dashboard_cli_uses_live_connectors(
     assert connector_status.get("reasons") in (None, [])
     assert connector_status["handshake"]["session"]["session_id"] == telemetry["session_id"]
     assert connector_status["query"]["results"]["records"] == [{"trace_id": "remote-1"}]
+    assert telemetry["socratic_checkpoints"][0]["checkpoint_id"] == "remote-ck"
+    assert telemetry["debate_logs"][0]["label"] == "Remote Debate"
+    assert telemetry["planner_graph_exports"][0]["graphviz_source"].startswith("digraph")
 
     assert stub_client.handshake_calls
     assert stub_client.fetch_calls

@@ -185,6 +185,130 @@ def load_research_telemetry(path: Path | None = None) -> dict[str, Any] | None:
         return json.load(handle)
 
 
+def _call_streamlit(container: Any, method: str, *args, **kwargs) -> bool:
+    func = getattr(container, method, None)
+    if callable(func):
+        func(*args, **kwargs)
+        return True
+    return False
+
+
+def _render_socratic_checkpoints(container: Any, checkpoints: list[dict[str, Any]]) -> None:
+    for checkpoint in checkpoints:
+        title_parts = []
+        checkpoint_id = checkpoint.get("checkpoint_id")
+        prompt = checkpoint.get("prompt") or checkpoint.get("question")
+        if checkpoint_id:
+            title_parts.append(str(checkpoint_id))
+        if prompt:
+            title_parts.append(str(prompt))
+        heading = " — ".join(title_parts) if title_parts else "Socratic Checkpoint"
+        if not _call_streamlit(container, "markdown", f"**{heading}**"):
+            _call_streamlit(container, "write", heading)
+
+        response = checkpoint.get("response") or checkpoint.get("answer")
+        if response:
+            _call_streamlit(container, "write", f"Response: {response}")
+
+        rationale = checkpoint.get("rationale") or checkpoint.get("analysis")
+        if rationale:
+            _call_streamlit(container, "caption", f"Rationale: {rationale}")
+
+        timestamp = checkpoint.get("timestamp")
+        if timestamp:
+            _call_streamlit(container, "caption", f"Timestamp: {timestamp}")
+
+        raw = checkpoint.get("raw")
+        if raw:
+            if not _call_streamlit(container, "json", raw):
+                _call_streamlit(container, "write", raw)
+
+
+def _render_debate_logs(container: Any, debates: list[dict[str, Any]]) -> None:
+    for debate in debates:
+        label = debate.get("label") or debate.get("title") or "Debate Log"
+        round_info = debate.get("round")
+        heading = str(label) if round_info is None else f"{label} (round {round_info})"
+        if not _call_streamlit(container, "markdown", f"**{heading}**"):
+            _call_streamlit(container, "write", heading)
+
+        participants = debate.get("participants") or []
+        if participants:
+            joined = ", ".join(str(item) for item in participants)
+            _call_streamlit(container, "caption", f"Participants: {joined}")
+
+        transcript = debate.get("transcript") or []
+        for idx, message in enumerate(transcript, start=1):
+            _call_streamlit(container, "write", f"{idx}. {message}")
+
+        outcome = debate.get("outcome")
+        if outcome:
+            _call_streamlit(container, "write", f"Outcome: {outcome}")
+
+        raw = debate.get("raw")
+        if raw:
+            if not _call_streamlit(container, "json", raw):
+                _call_streamlit(container, "write", raw)
+
+
+def _render_coalition_messages(container: Any, messages: list[dict[str, Any]]) -> None:
+    for message in messages:
+        sender = message.get("sender") or message.get("role") or "Coalition"
+        channel = message.get("channel")
+        heading = str(sender) if not channel else f"{sender} — {channel}"
+        if not _call_streamlit(container, "markdown", f"**{heading}**"):
+            _call_streamlit(container, "write", heading)
+
+        body = message.get("message") or message.get("content")
+        if body:
+            _call_streamlit(container, "write", body)
+
+        timestamp = message.get("timestamp")
+        if timestamp:
+            _call_streamlit(container, "caption", f"Timestamp: {timestamp}")
+
+        raw = message.get("raw")
+        if raw:
+            if not _call_streamlit(container, "json", raw):
+                _call_streamlit(container, "write", raw)
+
+
+def _render_query_states(container: Any, snapshots: list[dict[str, Any]]) -> None:
+    for snapshot in snapshots:
+        name = snapshot.get("name") or "QueryState"
+        status = snapshot.get("status")
+        heading = str(name) if not status else f"{name} [{status}]"
+        if not _call_streamlit(container, "markdown", f"**{heading}**"):
+            _call_streamlit(container, "write", heading)
+
+        summary = snapshot.get("summary")
+        if summary:
+            _call_streamlit(container, "write", summary)
+
+        raw = snapshot.get("raw")
+        if raw:
+            if not _call_streamlit(container, "json", raw):
+                _call_streamlit(container, "write", raw)
+
+
+def _render_planner_graphs(container: Any, graphs: list[dict[str, Any]]) -> None:
+    for graph in graphs:
+        title = graph.get("title") or graph.get("graph_id") or "Planner Graph"
+        _call_streamlit(container, "markdown", f"**{title}**")
+
+        graph_source = graph.get("graphviz_source") or graph.get("dot")
+        if graph_source:
+            if not _call_streamlit(container, "graphviz_chart", graph_source):
+                _call_streamlit(container, "write", graph_source)
+
+        data = graph.get("data")
+        raw = graph.get("raw")
+        payload = data or raw
+        if payload:
+            if not _call_streamlit(container, "json", payload):
+                _call_streamlit(container, "write", payload)
+
+
 def render_research_telemetry_overlays(
     st: Any,
     telemetry: dict[str, Any],
@@ -246,6 +370,35 @@ def render_research_telemetry_overlays(
         notes = badge.get("notes", "")
         st.markdown(f"{icon} {trace_id}: {status.title()} — {notes}")
         st.caption(f"Evidence hash: {badge.get('evidence_hash', 'n/a')}")
+
+    optional_sections: list[tuple[str, list[dict[str, Any]], Any]] = []
+    socratic = telemetry.get("socratic_checkpoints") or []
+    if socratic:
+        optional_sections.append(("Socratic Checkpoints", socratic, _render_socratic_checkpoints))
+    debates = telemetry.get("debate_logs") or []
+    if debates:
+        optional_sections.append(("Debate Logs", debates, _render_debate_logs))
+    coalition = telemetry.get("coalition_messages") or []
+    if coalition:
+        optional_sections.append(("Coalition Messages", coalition, _render_coalition_messages))
+    query_states = telemetry.get("query_state_snapshots") or []
+    if query_states:
+        optional_sections.append(("QueryState Snapshots", query_states, _render_query_states))
+    planner_graphs = telemetry.get("planner_graph_exports") or []
+    if planner_graphs:
+        optional_sections.append(("Planner Graph Exports", planner_graphs, _render_planner_graphs))
+
+    if optional_sections:
+        tabs_fn = getattr(st, "tabs", None)
+        if callable(tabs_fn):
+            tab_titles = [title for title, _, _ in optional_sections]
+            tab_containers = tabs_fn(tab_titles)
+            for tab, (_, entries, renderer) in zip(tab_containers, optional_sections):
+                renderer(tab, entries)
+        else:
+            for title, entries, renderer in optional_sections:
+                _call_streamlit(st, "markdown", f"#### {title}")
+                renderer(st, entries)
 
     graph_entries = _load_graph_artifact_summary()
     if graph_entries:
