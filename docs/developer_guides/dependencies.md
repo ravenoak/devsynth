@@ -60,6 +60,21 @@ For contributing to DevSynth a lightweight setup is often sufficient:
 poetry install --with dev --extras "tests retrieval chromadb api"
 ```
 
+If your platform cannot build the retrieval extras (common when FAISS, Kuzu,
+or ChromaDB wheels are unavailable), fall back to the tests-only profile and
+explicitly disable the heavy resources until wheels are published:
+
+```bash
+poetry install --with dev --extras "tests"
+export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=false
+export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=false
+export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false
+```
+
+This keeps the fast and medium suites runnable in CI while preserving the
+coverage instrumentation hooks. Re-enable the environment flags once the
+corresponding extras are installed successfully.
+
 From PyPI you can simply run:
 
 ```bash

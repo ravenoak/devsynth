@@ -69,7 +69,15 @@ def _register_commands() -> None:
         slug = COMMAND_ATTRIBUTE_TO_SLUG.get(attr_name)
         if slug is None:
             continue
-        globals()[attr_name] = _registered_command(slug)
+        try:
+            globals()[attr_name] = _registered_command(slug)
+        except RuntimeError as exc:  # pragma: no cover - optional commands
+            logger.debug(
+                "Skipping CLI export for %s: %s",
+                slug,
+                exc,
+            )
+            globals()[attr_name] = None
 
     _COMMANDS_LOADED = True
 

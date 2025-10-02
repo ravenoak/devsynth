@@ -14,7 +14,7 @@ import random
 import time
 from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
-from typing import TYPE_CHECKING, Protocol, Type, TypeVar, cast
+from typing import TYPE_CHECKING, Protocol, Type, TypeAlias, TypeVar, cast
 
 # ``prometheus_client`` is an optional dependency. Import it lazily and
 # degrade to no-op metrics when unavailable so that memory logic remains
@@ -103,14 +103,16 @@ if TYPE_CHECKING:  # pragma: no cover - import for static analysis only
         MemoryRecord,
     )
 
+    MemoryRetryResult: TypeAlias = (
+        MemoryRecord
+        | list[MemoryRecord]
+        | MemoryQueryResults
+        | GroupedMemoryResults
+        | None
+    )
+else:
+    MemoryRetryResult: TypeAlias = object
 
-MemoryRetryResult = (
-    "MemoryRecord"
-    | list["MemoryRecord"]
-    | "MemoryQueryResults"
-    | "GroupedMemoryResults"
-    | None
-)
 """Result types commonly emitted by retryable memory callables."""
 
 

@@ -275,6 +275,39 @@ def test_fast_medium_command_generates_coverage_artifacts_with_autoload_disabled
 
 
 @pytest.mark.fast
+def test_fast_medium_preserves_existing_cov_fail_under(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Custom fail-under thresholds survive coverage plugin injection."""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    monkeypatch.setenv("PYTEST_ADDOPTS", "--cov-fail-under=95")
+
+    popen_envs, _ = _install_pytest_stubs(monkeypatch)
+
+    runner = CliRunner()
+    app = _build_minimal_app(monkeypatch)
+    result = runner.invoke(
+        app,
+        [
+            "--speed=fast",
+            "--speed=medium",
+            "--no-parallel",
+            "--maxfail=1",
+        ],
+        prog_name="run-tests",
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert popen_envs, "Pytest subprocess should capture PYTEST_ADDOPTS"
+    env = popen_envs[0]
+    addopts = env.get("PYTEST_ADDOPTS", "")
+    assert "--cov-fail-under=95" in addopts
+    assert "-p pytest_cov" in addopts
+
+
+@pytest.mark.fast
 def test_fast_medium_command_handles_empty_collection(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -343,7 +376,7 @@ def test_fast_profile_generates_coverage_and_exits_successfully(
     )
 
     assert result.exit_code == 0, result.stdout
-    assert "Coverage 100.00% meets the 70% threshold" in result.stdout
+    assert "Coverage 100.00% meets the 90% threshold" in result.stdout
     assert (tmp_path / ".coverage").exists()
     assert (tmp_path / "test_reports" / "coverage.json").exists()
     assert (tmp_path / "htmlcov" / "index.html").exists()

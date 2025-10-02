@@ -28,6 +28,7 @@ def test_speed_marker_merged_with_lmstudio_keyword_filter(
         check: bool = False,
         capture_output: bool = False,
         text: bool = False,
+        **_kwargs: Any,
     ):  # type: ignore[no-redef]
         # Record calls to inspect '-k' and '-m' usage
         recorded["runs"].append(list(cmd))
@@ -101,6 +102,7 @@ def test_global_marker_with_lmstudio_keyword_filter(monkeypatch) -> None:
         check: bool = False,
         capture_output: bool = False,
         text: bool = False,
+        **_kwargs: Any,
     ):  # type: ignore[no-redef]
         recorded["runs"].append(list(cmd))
 
@@ -149,4 +151,5 @@ def test_global_marker_with_lmstudio_keyword_filter(monkeypatch) -> None:
     m_indices = [i for i, v in enumerate(collect) if v == "-m"]
     m_index = m_indices[-1]
     marker_expr = collect[m_index + 1]
-    assert marker_expr == "not memory_intensive"
+    assert "not memory_intensive" in marker_expr
+    assert "requires_resource" not in marker_expr

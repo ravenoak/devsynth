@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -55,7 +56,13 @@ def test_speed_loop_uses_keyword_filter_and_executes_node_ids(
         ]
     )
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        **_kwargs: Any,
+    ):  # noqa: ANN001
         # Ensure '-k lmstudio' applied during collection in speed loop
         assert "-k" in cmd and "lmstudio" in cmd, cmd
         return DummyCompleted(stdout=collect_stdout, returncode=0)

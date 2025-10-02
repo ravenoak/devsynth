@@ -31,6 +31,12 @@ Prerequisites
 Setup (choose one)
 - Recommended targeted baseline (tests without heavy GPU/LLM deps):
   - poetry install --with dev --extras "tests retrieval chromadb api"
+  - If FAISS/Kuzu/ChromaDB wheels are unavailable on your platform, fall back to
+    `poetry install --with dev --extras "tests"` and temporarily export
+    `DEVSYNTH_RESOURCE_FAISS_AVAILABLE=false`,
+    `DEVSYNTH_RESOURCE_KUZU_AVAILABLE=false`, and
+    `DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false` so smoke and fast suites still
+    run while coverage instrumentation remains active.
 - Minimal contributor setup:
   - poetry install --with dev --extras minimal
 - Full dev + docs with all extras:
