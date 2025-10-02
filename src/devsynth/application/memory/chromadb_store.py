@@ -9,10 +9,10 @@ This implementation includes enhanced features:
 
 import json
 import os
-from contextlib import contextmanager
 from datetime import datetime
+from functools import wraps
 from collections.abc import Mapping
-from typing import Callable, ParamSpec, TypeVar, cast
+from typing import Callable, ParamSpec, TypeVar
 
 from devsynth.application.memory.dto import (
     MemoryMetadata,
@@ -71,14 +71,23 @@ __all__ = ["ChromaDBStore"]
 P = ParamSpec("P")
 R = TypeVar("R")
 
+SerializedPayload = dict[str, object]
+SerializedVersionHistory = list[SerializedPayload]
+
 
 def _typed_retry_with_backoff(
     *args: object, **kwargs: object
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    return cast(
-        Callable[[Callable[P, R]], Callable[P, R]],
-        retry_with_exponential_backoff(*args, **kwargs),
-    )
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        wrapped = retry_with_exponential_backoff(*args, **kwargs)(func)
+
+        @wraps(func)
+        def wrapper(*inner_args: P.args, **inner_kwargs: P.kwargs) -> R:
+            return wrapped(*inner_args, **inner_kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class ChromaDBStore(MemoryStore):
@@ -155,8 +164,8 @@ class ChromaDBStore(MemoryStore):
 
         # Get or create the main collection
         self._use_fallback = False
-        self._store: dict[str, dict[str, object]] = {}
-        self._versions: dict[str, list[dict[str, object]]] = {}
+        self._store: dict[str, SerializedPayload] = {}
+        self._versions: dict[str, SerializedVersionHistory] = {}
         self._fallback_file = os.path.join(file_path, "fallback_store.json")
 
         if os.path.exists(self._fallback_file):
@@ -166,16 +175,24 @@ class ChromaDBStore(MemoryStore):
                     for item_dict in data.get("items", []):
                         if not isinstance(item_dict, dict):
                             continue
+                        serialized_item: SerializedPayload = {
+                            str(key): value for key, value in item_dict.items()
+                        }
                         record = self._record_from_serialized(
-                            item_dict, fallback=True
+                            serialized_item, fallback=True
                         )
-                        self._store[record.id] = item_dict
+                        self._store[record.id] = serialized_item
                         self._cache[record.id] = record
                     for vid, versions in data.get("versions", {}).items():
-                        if not isinstance(versions, list):
+                        if not isinstance(vid, str) or not isinstance(versions, list):
                             continue
-                        sanitized = [
-                            entry for entry in versions if isinstance(entry, dict)
+                        sanitized: SerializedVersionHistory = [
+                            {
+                                str(key): value
+                                for key, value in entry.items()
+                            }
+                            for entry in versions
+                            if isinstance(entry, dict)
                         ]
                         if sanitized:
                             self._versions[vid] = sanitized
@@ -208,21 +225,28 @@ class ChromaDBStore(MemoryStore):
                             for item_dict in data.get("items", []):
                                 if not isinstance(item_dict, dict):
                                     continue
+                                serialized_item: SerializedPayload = {
+                                    str(key): value
+                                    for key, value in item_dict.items()
+                                }
                                 record = self._record_from_serialized(
-                                    item_dict, fallback=True
+                                    serialized_item, fallback=True
                                 )
-                                self._store[record.id] = item_dict
+                                self._store[record.id] = serialized_item
                                 self._cache[record.id] = record
                             for vid, versions in data.get("versions", {}).items():
-                                if not isinstance(versions, list):
+                                if not isinstance(vid, str) or not isinstance(versions, list):
                                     continue
-                                sanitized = [
-                                    entry
+                                sanitized_versions: SerializedVersionHistory = [
+                                    {
+                                        str(key): value
+                                        for key, value in entry.items()
+                                    }
                                     for entry in versions
                                     if isinstance(entry, dict)
                                 ]
-                                if sanitized:
-                                    self._versions[vid] = sanitized
+                                if sanitized_versions:
+                                    self._versions[vid] = sanitized_versions
                     except Exception as e3:
                         logger.error(
                             f"Failed to load fallback store from {self._fallback_file}: {e3}"
@@ -292,7 +316,7 @@ class ChromaDBStore(MemoryStore):
     ) -> MemoryRecord:
         return record_from_row(payload, default_source=self._resolve_source(fallback=fallback))
 
-    def _serialize_memory_item(self, item: MemoryItem) -> dict[str, object]:
+    def _serialize_memory_item(self, item: MemoryItem) -> SerializedPayload:
         """
         Serialize a MemoryItem to a dictionary for storage in ChromaDB.
 
@@ -369,7 +393,7 @@ class ChromaDBStore(MemoryStore):
         Returns:
             The ID of the stored item
         """
-        serialized: dict[str, object] | None = None
+        serialized: SerializedPayload | None = None
         record: MemoryRecord | None = None
 
         try:
@@ -427,10 +451,19 @@ class ChromaDBStore(MemoryStore):
             )
 
             if self._use_fallback:
-                serialized_copy = cast(
-                    dict[str, object], json.loads(json.dumps(serialized))
-                )
-                self._store[item.id] = serialized_copy
+                serialized_copy = json.loads(json.dumps(serialized))
+                if isinstance(serialized_copy, dict):
+                    fallback_payload: SerializedPayload = {
+                        str(key): value
+                        for key, value in serialized_copy.items()
+                    }
+                    self._store[item.id] = fallback_payload
+                else:
+                    logger.error(
+                        "Serialized payload for item %s did not deserialize to a mapping",
+                        item.id,
+                    )
+                    self._store[item.id] = serialized
                 self._cache[item.id] = record
                 self._save_fallback()
             else:
@@ -463,10 +496,19 @@ class ChromaDBStore(MemoryStore):
                     serialized = self._serialize_memory_item(prepared_item)
                 if record is None:
                     record = self._record_from_serialized(serialized, fallback=True)
-                serialized_copy = cast(
-                    dict[str, object], json.loads(json.dumps(serialized))
-                )
-                self._store[item.id] = serialized_copy
+                serialized_copy = json.loads(json.dumps(serialized))
+                if isinstance(serialized_copy, dict):
+                    fallback_payload = {
+                        str(key): value
+                        for key, value in serialized_copy.items()
+                    }
+                    self._store[item.id] = fallback_payload
+                else:
+                    logger.error(
+                        "Serialized payload for item %s did not deserialize to a mapping",
+                        item.id,
+                    )
+                    self._store[item.id] = serialized
                 self._cache[item.id] = record
                 self._save_fallback()
                 return str(item.id)
@@ -490,10 +532,18 @@ class ChromaDBStore(MemoryStore):
             metadata_payload["version"] = version
 
             if self._use_fallback:
-                serialized_copy = cast(
-                    dict[str, object], json.loads(json.dumps(serialized))
-                )
-                self._versions.setdefault(record.id, []).append(serialized_copy)
+                serialized_copy = json.loads(json.dumps(serialized))
+                if isinstance(serialized_copy, dict):
+                    fallback_payload: SerializedPayload = {
+                        str(key): value
+                        for key, value in serialized_copy.items()
+                    }
+                    self._versions.setdefault(record.id, []).append(fallback_payload)
+                else:
+                    logger.error(
+                        "Serialized version payload for %s did not deserialize to a mapping",
+                        record.id,
+                    )
                 self._save_fallback()
                 return
 
@@ -630,7 +680,7 @@ class ChromaDBStore(MemoryStore):
         """
         try:
             if self._use_fallback:
-                version_payloads: list[dict[str, object]] = list(
+                version_payloads: list[SerializedPayload] = list(
                     self._versions.get(item_id, [])
                 )
                 current_payload = self._store.get(item_id)
@@ -817,7 +867,7 @@ class ChromaDBStore(MemoryStore):
         # We need to get all items and filter them manually since ChromaDB's
         # filtering is limited to metadata fields
 
-        rows: list[dict[str, object]] = []
+        rows: list[SerializedPayload] = []
         if self._use_fallback:
             rows = list(self._store.values())
         else:
@@ -953,7 +1003,7 @@ class ChromaDBStore(MemoryStore):
         """
         try:
             if self._use_fallback:
-                version_payloads: list[dict[str, object]] = list(
+                version_payloads: list[SerializedPayload] = list(
                     self._versions.get(item_id, [])
                 )
                 current_payload = self._store.get(item_id)
@@ -977,7 +1027,7 @@ class ChromaDBStore(MemoryStore):
                 return [current_item.item] if current_item else []
 
             # Extract and deserialize all versions
-            versions = []
+            versions: list[MemoryItem] = []
             for metadata in result["metadatas"]:
                 item_data = metadata.get("item_data") if isinstance(metadata, dict) else None
                 if not item_data:
@@ -1093,7 +1143,7 @@ class ChromaDBStore(MemoryStore):
         if not self._use_fallback:
             return
         try:
-            data = {
+            data: dict[str, object] = {
                 "items": list(self._store.values()),
                 "versions": {k: list(vals) for k, vals in self._versions.items()},
             }
