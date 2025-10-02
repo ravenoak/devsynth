@@ -230,6 +230,11 @@ mypy_path = [
     "stubs/argon2",
     "stubs/tiktoken",
     "stubs/networkx",
+    "stubs/numpy",
+    "stubs/faiss",
+    "stubs/lmdb",
+    "stubs/tinydb",
+    "stubs/kuzu",
 ]
 python_version = "3.12"
 warn_return_any = true
@@ -261,6 +266,11 @@ module = [
   "rdflib.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "devsynth.domain.interfaces.memory"
+follow_imports = "normal"
+ignore_errors = false
 
 [tool.black]
 line-length = 88

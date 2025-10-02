@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 RDFLib implementation of MemoryStore and VectorStore.
 
@@ -10,28 +12,59 @@ import json
 import os
 import uuid
 from datetime import datetime
-from typing import Any, List, Optional, Tuple, Union
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import tiktoken
 
-try:  # pragma: no cover - optional dependency
-    import rdflib
-    from rdflib import RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
-    from rdflib.namespace import DC, FOAF
+if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
+    import rdflib as rdflib_module
+    from rdflib import Graph as GraphType, Literal as LiteralType, Namespace as NamespaceType
+    from rdflib import RDF as RDFType, RDFS as RDFSSType, URIRef as URIRefType, XSD as XSDType
+    from rdflib.namespace import DC as DCType, FOAF as FOAFType
+else:  # pragma: no cover - runtime fallbacks when rdflib is absent
+    GraphType = LiteralType = NamespaceType = URIRefType = object  # type: ignore[assignment]
+    RDFType = RDFSSType = XSDType = object  # type: ignore[assignment]
+    DCType = FOAFType = object  # type: ignore[assignment]
 
-    try:
-        Namespace("test")
-    except Exception:
-        raise ImportError("Invalid rdflib stub")
+rdflib: ModuleType | None
+Graph: type[GraphType] | None
+Literal: type[LiteralType] | None
+Namespace: Callable[[str], Any]
+URIRef: type[URIRefType] | None
+RDF: RDFType | None
+RDFS: RDFSSType | None
+XSD: XSDType | None
+DC: DCType | None
+FOAF: FOAFType | None
+
+try:  # pragma: no cover - optional dependency
+    import rdflib as _rdflib
+    from rdflib import Graph as _Graph, Literal as _Literal, Namespace as _Namespace, URIRef as _URIRef
+    from rdflib import RDF as _RDF, RDFS as _RDFS, XSD as _XSD
+    from rdflib.namespace import DC as _DC, FOAF as _FOAF
+
+    _Namespace("test")
 except Exception:  # pragma: no cover - graceful fallback for tests
     rdflib = None
-    Graph = Literal = URIRef = object  # type: ignore
-    RDF = RDFS = XSD = object  # type: ignore
-    FOAF = DC = object  # type: ignore
+    Graph = Literal = URIRef = None
+    RDF = RDFS = XSD = None
+    DC = FOAF = None
 
-    def Namespace(uri: str):  # type: ignore
+    def Namespace(uri: str) -> str:  # type: ignore[override]
         return uri
+else:
+    rdflib = _rdflib
+    Graph = cast("type[GraphType]", _Graph)
+    Literal = cast("type[LiteralType]", _Literal)
+    Namespace = cast("NamespaceType", _Namespace)
+    URIRef = cast("type[URIRefType]", _URIRef)
+    RDF = cast("RDFType", _RDF)
+    RDFS = cast("RDFSSType", _RDFS)
+    XSD = cast("XSDType", _XSD)
+    DC = cast("DCType", _DC)
+    FOAF = cast("FOAFType", _FOAF)
 
 
 from devsynth.exceptions import (

@@ -17,7 +17,7 @@ import uuid
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union, ContextManager
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol, Union, cast, ContextManager
 
 canonical_name = "devsynth.application.memory.kuzu_store"
 # Ensure the module is registered under its canonical name even when loaded
@@ -35,11 +35,20 @@ if sys.modules.get(canonical_name) is None:
 if __spec__ is not None:
     __spec__.name = canonical_name
 
+class _TiktokenModule(Protocol):
+    def get_encoding(self, name: str) -> Any: ...
 
+
+if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
+    import tiktoken as _tiktoken_module
+
+tiktoken: _TiktokenModule | None
 try:  # pragma: no cover - optional dependency
-    import tiktoken
+    import tiktoken as _tiktoken
 except Exception:  # pragma: no cover - optional dependency
     tiktoken = None
+else:
+    tiktoken = cast("_TiktokenModule", _tiktoken)
 
 # Import the settings module so tests can monkeypatch ``ensure_path_exists``
 from devsynth.config import settings as settings_module

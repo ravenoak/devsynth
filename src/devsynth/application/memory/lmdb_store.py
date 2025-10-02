@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 LMDB implementation of MemoryStore.
 
@@ -11,14 +13,23 @@ import uuid
 from contextlib import contextmanager
 from datetime import datetime
 from collections.abc import Mapping, Sequence
-from typing import Any, ContextManager, TYPE_CHECKING
+from typing import Any, ContextManager, TYPE_CHECKING, cast
 
 import tiktoken
 
+if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
+    import lmdb as lmdb_module
+
+lmdb: "lmdb_module" | None
 try:  # pragma: no cover - optional dependency
-    import lmdb  # type: ignore[import]
+    import lmdb as _lmdb
 except Exception:  # pragma: no cover - graceful fallback
-    lmdb = None  # type: ignore[assignment]
+    lmdb = None
+else:
+    if TYPE_CHECKING:  # pragma: no cover - assists type checkers
+        lmdb = _lmdb
+    else:
+        lmdb = cast("lmdb_module", _lmdb)
 
 from devsynth.exceptions import MemoryStoreError
 from devsynth.logging_setup import DevSynthLogger

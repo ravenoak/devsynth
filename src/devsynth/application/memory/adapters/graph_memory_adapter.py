@@ -13,7 +13,8 @@ import uuid
 from collections import deque
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
-from typing import Any, cast
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, cast
 
 from devsynth.exceptions import MemoryStoreError
 
@@ -24,19 +25,38 @@ from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from ..rdflib_store import RDFLibStore
 
+if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
+    import rdflib as rdflib_module
+    from rdflib import Graph as GraphType, Literal as LiteralType, Namespace as NamespaceType, URIRef as URIRefType
+    from rdflib.namespace import DC as DCType, FOAF as FOAFType
+else:  # pragma: no cover - runtime fallbacks when rdflib is absent
+    GraphType = LiteralType = NamespaceType = URIRefType = object  # type: ignore[assignment]
+    DCType = FOAFType = object  # type: ignore[assignment]
+
+rdflib: ModuleType | None
+RDF: Any
+Graph: type[GraphType] | None
+Literal: type[LiteralType] | None
+Namespace: type[NamespaceType] | None
+URIRef: type[URIRefType] | None
+DC: DCType | None
+FOAF: FOAFType | None
+
 try:  # pragma: no cover - optional dependency
     rdflib = importlib.import_module("rdflib")
     namespace_module = importlib.import_module("rdflib.namespace")
-    RDF = rdflib.RDF
-    Graph = rdflib.Graph
-    Literal = rdflib.Literal
-    Namespace = rdflib.Namespace
-    URIRef = rdflib.URIRef
-    DC = namespace_module.DC
-    FOAF = namespace_module.FOAF
+    RDF = getattr(rdflib, "RDF")
+    Graph = cast("type[GraphType]", getattr(rdflib, "Graph"))
+    Literal = cast("type[LiteralType]", getattr(rdflib, "Literal"))
+    Namespace = cast("type[NamespaceType]", getattr(rdflib, "Namespace"))
+    URIRef = cast("type[URIRefType]", getattr(rdflib, "URIRef"))
+    DC = cast("DCType", getattr(namespace_module, "DC"))
+    FOAF = cast("FOAFType", getattr(namespace_module, "FOAF"))
 except Exception:  # pragma: no cover - fallback when rdflib is missing
     rdflib = None
-    RDF = Graph = Literal = Namespace = URIRef = DC = FOAF = cast(Any, None)
+    RDF = None
+    Graph = Literal = Namespace = URIRef = None
+    DC = FOAF = None
 
 logger = DevSynthLogger(__name__)
 
