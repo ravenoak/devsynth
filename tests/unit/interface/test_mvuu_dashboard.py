@@ -103,7 +103,7 @@ def test_require_streamlit_raises(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.mark.fast
 def test_render_research_overlays_snapshot() -> None:
-    """Snapshot expected overlay rendering calls."""
+    """Snapshot expected overlay rendering calls, including optional sections."""
 
     telemetry = {
         "provenance_filters": [
@@ -127,6 +127,36 @@ def test_render_research_overlays_snapshot() -> None:
                 "evidence_hash": "abc123",
             }
         ],
+        "socratic_checkpoints": [
+            {
+                "checkpoint_id": "chk-1",
+                "prompt": "Why investigate?",
+                "response": "To validate the signal",
+            }
+        ],
+        "debate_logs": [
+            {
+                "label": "Feasibility",
+                "round": 1,
+                "participants": ["Analyst", "Reviewer"],
+                "transcript": ["Pros", "Cons"],
+                "outcome": "Proceed",
+            }
+        ],
+        "coalition_messages": [
+            {
+                "sender": "Coalition",
+                "channel": "#research",
+                "message": "Alignment achieved",
+                "timestamp": "2025-01-01T00:00:00+00:00",
+            }
+        ],
+        "query_state_snapshots": [
+            {"name": "Primary", "status": "ready", "summary": "Up to date"}
+        ],
+        "planner_graph_exports": [
+            {"graph_id": "graph-1", "graphviz_source": "digraph { a -> b }"}
+        ],
     }
 
     mock_sidebar = MagicMock()
@@ -134,6 +164,8 @@ def test_render_research_overlays_snapshot() -> None:
     mock_st.sidebar = mock_sidebar
     mock_st.info = MagicMock()
     mock_st.caption = MagicMock()
+    tab_mocks = [MagicMock() for _ in range(5)]
+    mock_st.tabs.return_value = tab_mocks
 
     mvuu_dashboard.render_research_telemetry_overlays(
         mock_st,
@@ -154,6 +186,45 @@ def test_render_research_overlays_snapshot() -> None:
     assert any("DSY-0001" in call for call in timeline_calls)
     badge_line = timeline_calls[-1]
     assert "Hash matches" in badge_line
+
+    mock_st.tabs.assert_called_once_with(
+        [
+            "Socratic Checkpoints",
+            "Debate Logs",
+            "Coalition Messages",
+            "QueryState Snapshots",
+            "Planner Graph Exports",
+        ]
+    )
+    tab_mocks[0].markdown.assert_any_call("**chk-1 — Why investigate?**")
+    tab_mocks[1].write.assert_any_call("1. Pros")
+    tab_mocks[2].write.assert_any_call("Alignment achieved")
+    tab_mocks[3].write.assert_any_call("Up to date")
+    tab_mocks[4].graphviz_chart.assert_called_once_with("digraph { a -> b }")
+
+
+@pytest.mark.fast
+def test_render_research_overlays_without_optional_sections() -> None:
+    telemetry = {
+        "provenance_filters": [],
+        "timeline": [],
+        "integrity_badges": [],
+    }
+
+    mock_sidebar = MagicMock()
+    mock_st = MagicMock()
+    mock_st.sidebar = mock_sidebar
+    mock_st.info = MagicMock()
+    mock_st.caption = MagicMock()
+
+    mvuu_dashboard.render_research_telemetry_overlays(
+        mock_st,
+        telemetry,
+        signature_verified=None,
+        signature_error=None,
+    )
+
+    mock_st.tabs.assert_not_called()
 
 
 @pytest.mark.fast

@@ -19,6 +19,7 @@ from devsynth.domain.models.wsde_roles import ResearchPersonaSpec, resolve_resea
 from devsynth.interface.research_telemetry import (
     SignatureEnvelope,
     build_research_telemetry_payload,
+    merge_extended_metadata_into_payload,
     sign_payload,
 )
 from devsynth.integrations import (
@@ -155,6 +156,10 @@ def _write_research_telemetry(
         )
 
     payload["connector_status"] = connector_state
+
+    for metadata_source in (handshake_data, query_data):
+        if isinstance(metadata_source, Mapping):
+            payload = merge_extended_metadata_into_payload(payload, metadata_source)
 
     secret = os.getenv(signature_env, "")
     envelope: SignatureEnvelope | None = None
