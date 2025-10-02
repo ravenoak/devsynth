@@ -6,9 +6,13 @@ allowing for efficient querying of different types of memory and tagging
 items with EDRR phases.
 """
 
+from __future__ import annotations
+
 import os
+from collections.abc import Callable, Mapping, Sequence
+from contextlib import AbstractContextManager
 from functools import lru_cache
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Protocol, TypeAlias
 
 from ...config import get_settings
 from ...domain.interfaces.memory import MemoryStore, VectorStore
@@ -27,9 +31,12 @@ from .circuit_breaker import (
     with_circuit_breaker,
 )
 from .dto import (
+    GroupedMemoryResults,
     MemoryMetadata,
+    MemoryMetadataValue,
     MemoryQueryResults,
     MemoryRecord,
+    MemorySearchQuery,
     build_memory_record,
     build_query_results,
 )
@@ -42,6 +49,26 @@ from .transaction_context import TransactionContext
 logger = DevSynthLogger(__name__)
 
 
+class EmbeddingProvider(Protocol):
+    """Structural protocol for embedding providers."""
+
+    def embed(
+        self, text: str
+    ) -> Sequence[float] | Sequence[Sequence[float]]:  # pragma: no cover - protocol
+        ...
+
+
+class SyncHook(Protocol):
+    """Callable invoked after synchronization events."""
+
+    def __call__(self, item: MemoryItem | None, /) -> None:  # pragma: no cover - protocol
+        ...
+
+
+MemoryAdapter: TypeAlias = MemoryStore | VectorStore[Any] | Any
+AdapterRegistry: TypeAlias = dict[str, MemoryAdapter]
+
+
 class MemoryManager:
     """
     Memory Manager provides a unified interface to different memory adapters.
@@ -52,11 +79,11 @@ class MemoryManager:
 
     def __init__(
         self,
-        adapters: Union[Dict[str, Any], Any] = None,
-        query_router: Union[QueryRouter, None] = None,
-        sync_manager: Union[SyncManager, None] = None,
-        embedding_provider: Union[Any, None] = None,
-    ):
+        adapters: Mapping[str, MemoryAdapter] | MemoryAdapter | None = None,
+        query_router: QueryRouter | None = None,
+        sync_manager: SyncManager | None = None,
+        embedding_provider: EmbeddingProvider | None = None,
+    ) -> None:
         """
         Initialize the Memory Manager with the specified adapters.
 
@@ -64,6 +91,8 @@ class MemoryManager:
             adapters: Dictionary of adapters with keys 'graph', 'vector', 'tinydb',
                      or a single adapter that will be used as the default
         """
+        self.adapters: AdapterRegistry
+
         if adapters is None:
             settings = get_settings()
             store_type = os.getenv(
@@ -84,8 +113,8 @@ class MemoryManager:
             else:
                 # Default to TinyDB for simple usage and unit tests
                 self.adapters = {"tinydb": TinyDBMemoryAdapter()}
-        elif isinstance(adapters, dict):
-        self.adapters = adapters
+        elif isinstance(adapters, Mapping):
+            self.adapters = dict(adapters)
         else:
             # If a single adapter is provided, use it as the default adapter
             self.adapters = {"default": adapters}
@@ -97,16 +126,16 @@ class MemoryManager:
         # Initialize helpers
         self.query_router = query_router or QueryRouter(self)
         self.sync_manager = sync_manager or SyncManager(self)
-        self.embedding_provider = embedding_provider
+        self.embedding_provider: EmbeddingProvider | None = embedding_provider
         # Registered hooks called after synchronization events
-        self._sync_hooks: List[Callable[[Optional[MemoryItem]], None]] = []
+        self._sync_hooks: list[SyncHook] = []
 
-    def register_sync_hook(self, hook: Callable[[Optional[MemoryItem]], None]) -> None:
+    def register_sync_hook(self, hook: SyncHook) -> None:
         """Register a callback invoked after memory synchronization."""
 
         self._sync_hooks.append(hook)
 
-    def _notify_sync_hooks(self, item: Optional[MemoryItem]) -> None:
+    def _notify_sync_hooks(self, item: MemoryItem | None) -> None:
         """Invoke registered synchronization hooks with ``item``."""
 
         for hook in list(self._sync_hooks):
@@ -116,7 +145,7 @@ class MemoryManager:
                 logger.debug(f"Sync hook failed: {exc}")
 
     @lru_cache(maxsize=128)
-    def _cached_embedding(self, text: str, dimension: int) -> Tuple[float, ...]:
+    def _cached_embedding(self, text: str, dimension: int) -> tuple[float, ...]:
         """Return a cached embedding for ``text``.
 
         The result is cached to avoid recomputing embeddings for repeated
@@ -128,7 +157,7 @@ class MemoryManager:
                 result = self.embedding_provider.embed(text)
                 if isinstance(result, list) and result and isinstance(result[0], list):
                     result = result[0]
-                return tuple(result)
+                return tuple(float(value) for value in result)
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning(
                     "Embedding provider failed: %s; falling back to deterministic embedding",
@@ -145,7 +174,7 @@ class MemoryManager:
         length = float(len(text))
         return tuple(v / length for v in vector)
 
-    def _embed_text(self, text: str, dimension: int = 5) -> List[float]:
+    def _embed_text(self, text: str, dimension: int = 5) -> list[float]:
         """Return an embedding for ``text`` using an LRU cache."""
         return list(self._cached_embedding(text, dimension))
 
@@ -170,12 +199,17 @@ class MemoryManager:
         """
         # Create metadata with EDRR phase
         if metadata is None:
-            metadata = {}
-        metadata["edrr_phase"] = edrr_phase
+            metadata_payload: dict[str, MemoryMetadataValue] = {}
+        else:
+            metadata_payload = dict(metadata)
+        metadata_payload["edrr_phase"] = edrr_phase
 
         # Create the memory item
         memory_item = MemoryItem(
-            id="", content=content, memory_type=memory_type, metadata=metadata
+            id="",
+            content=content,
+            memory_type=memory_type,
+            metadata=metadata_payload,
         )
 
         # Determine primary store preference order
@@ -198,7 +232,7 @@ class MemoryManager:
         item_type: MemoryType,
         edrr_phase: str,
         metadata: MemoryMetadata | None = None,
-    ) -> Any:
+    ) -> object:
         """Retrieve an item stored with a specific EDRR phase.
 
         This helper iterates over available adapters and returns the first match
@@ -212,7 +246,7 @@ class MemoryManager:
         Returns:
             The retrieved item or an empty dictionary if not found.
         """
-        search_meta = metadata.copy() if metadata else {}
+        search_meta: dict[str, MemoryMetadataValue] = dict(metadata) if metadata else {}
         search_meta["edrr_phase"] = edrr_phase
 
         for adapter in self.adapters.values():
@@ -233,7 +267,7 @@ class MemoryManager:
         return {}
 
     @retry_memory_operation(max_retries=3, initial_backoff=0.1, max_backoff=2.0)
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """
         Retrieve a memory item by ID.
 
@@ -248,7 +282,7 @@ class MemoryManager:
             The retrieved memory item, or None if not found
         """
         # Try to retrieve from each adapter
-        errors = {}
+        errors: dict[str, str] = {}
         for adapter_name, adapter in self.adapters.items():
             if hasattr(adapter, "retrieve"):
                 try:
@@ -298,7 +332,7 @@ class MemoryManager:
 
         return None
 
-    def query_related_items(self, item_id: str) -> List[MemoryItem]:
+    def query_related_items(self, item_id: str) -> list[MemoryItem]:
         """
         Query for items related to a given item ID.
 
@@ -317,8 +351,8 @@ class MemoryManager:
             return []
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryRecord]:
+        self, query_embedding: Sequence[float], top_k: int = 5
+    ) -> list[MemoryRecord]:
         """Perform a similarity search and normalize results into DTOs."""
 
         if "vector" in self.adapters:
@@ -331,7 +365,7 @@ class MemoryManager:
         logger.warning("Vector adapter not available for similarity search")
         return []
 
-    def query_structured_data(self, query: Dict[str, Any]) -> MemoryQueryResults:
+    def query_structured_data(self, query: MemorySearchQuery) -> MemoryQueryResults:
         """Query structured data and return a :class:`MemoryQueryResults` DTO."""
 
         if "tinydb" in self.adapters:
@@ -342,10 +376,10 @@ class MemoryManager:
         logger.warning("TinyDB adapter not available for querying structured data")
         return build_query_results("tinydb", [])
 
-    def query_by_edrr_phase(self, edrr_phase: str) -> List[MemoryRecord]:
+    def query_by_edrr_phase(self, edrr_phase: str) -> list[MemoryRecord]:
         """Query memory items by EDRR phase and normalize the results."""
 
-        records: List[MemoryRecord] = []
+        records: list[MemoryRecord] = []
 
         for adapter_name, adapter in self.adapters.items():
             if not hasattr(adapter, "search"):
@@ -357,7 +391,7 @@ class MemoryManager:
 
         return records
 
-    def query_evolution_across_edrr_phases(self, item_id: str) -> List[MemoryItem]:
+    def query_evolution_across_edrr_phases(self, item_id: str) -> list[MemoryItem]:
         """
         Query for the evolution of an item across EDRR phases.
 
@@ -396,7 +430,7 @@ class MemoryManager:
 
     def _get_all_related_items(
         self, item_id: str, graph_adapter: Any
-    ) -> List[MemoryItem]:
+    ) -> list[MemoryItem]:
         """
         Get all items related to the given item ID recursively.
 
@@ -408,7 +442,7 @@ class MemoryManager:
             A list of related memory items
         """
         related_items = graph_adapter.query_related_items(item_id)
-        result = []
+        result: list[MemoryItem] = []
 
         for item in related_items:
             result.append(item)
@@ -448,7 +482,7 @@ class MemoryManager:
             raise ValueError("No adapters available for storing memory items")
 
         # Try adapters in order of preference
-        errors = {}
+        errors: dict[str, str] = {}
         for adapter_name in adapter_preference:
             if adapter_name not in self.adapters:
                 continue
@@ -493,7 +527,7 @@ class MemoryManager:
         logger.error(error_msg)
         raise MemoryTransactionError(error_msg, operation="store_item")
 
-    def query_by_type(self, memory_type: MemoryType) -> List[MemoryItem]:
+    def query_by_type(self, memory_type: MemoryType) -> list[MemoryItem]:
         """
         Query memory items by type.
 
@@ -503,7 +537,7 @@ class MemoryManager:
         Returns:
             A list of memory items with the specified type
         """
-        results = []
+        results: list[MemoryItem] = []
 
         # Query each adapter for items with the specified type
         for adapter_name, adapter in self.adapters.items():
@@ -530,7 +564,7 @@ class MemoryManager:
 
         return results
 
-    def query_by_metadata(self, metadata: Dict[str, Any]) -> List[MemoryItem]:
+    def query_by_metadata(self, metadata: Mapping[str, Any]) -> list[MemoryItem]:
         """
         Query memory items by metadata.
 
@@ -540,7 +574,7 @@ class MemoryManager:
         Returns:
             A list of memory items with the specified metadata
         """
-        results = []
+        results: list[MemoryItem] = []
 
         # Query each adapter for items with the specified metadata
         for adapter_name, adapter in self.adapters.items():
@@ -550,11 +584,11 @@ class MemoryManager:
                 results.extend(items)
             elif hasattr(adapter, "search"):
                 # Use the search method if available
-                items = adapter.search(metadata)
+                items = adapter.search(dict(metadata))
                 results.extend(items)
             elif hasattr(adapter, "get_all"):
                 # Use the get_all method if available and filter by metadata
-                items = []
+                items: list[MemoryItem] = []
                 for item in adapter.get_all():
                     if all(
                         item.metadata.get(key) == value
@@ -571,7 +605,7 @@ class MemoryManager:
         memory_type: Any = None,
         metadata_filter: MemoryMetadata | None = None,
         limit: int = 10,
-    ) -> List[MemoryRecord]:
+    ) -> list[MemoryRecord]:
         """Search memory items and return normalized :class:`MemoryRecord` values."""
         memory_type_str = memory_type
         if hasattr(memory_type, "value"):
@@ -585,7 +619,7 @@ class MemoryManager:
 
         if "vector" not in self.adapters:
             logger.info("Vector adapter not available; using keyword fallback search")
-            aggregated: List[MemoryRecord] = []
+            aggregated: list[MemoryRecord] = []
 
             def maybe_add(item: Any, store_name: str) -> None:
                 try:
@@ -610,7 +644,7 @@ class MemoryManager:
                     except Exception:
                         continue
 
-            filtered: List[MemoryRecord] = []
+            filtered: list[MemoryRecord] = []
             for record in aggregated:
                 metadata = record.item.metadata or {}
                 if memory_type is not None:
@@ -643,7 +677,7 @@ class MemoryManager:
 
         results = vector_adapter.similarity_search(query_embedding, top_k=limit)
 
-        filtered: List[MemoryRecord] = []
+        filtered: list[MemoryRecord] = []
         for candidate in results:
             record = build_memory_record(candidate, source="vector")
             metadata = record.item.metadata or {}
@@ -674,7 +708,7 @@ class MemoryManager:
 
         return filtered
 
-    def store(self, memory_item: MemoryItem, **kwargs) -> str:
+    def store(self, memory_item: MemoryItem, **kwargs: Any) -> str:
         """
         Store a memory item. This is an alias for store_item for backward compatibility.
 
@@ -687,7 +721,7 @@ class MemoryManager:
         """
         return self.store_item(memory_item)
 
-    def query(self, query_string: str, **kwargs) -> List[MemoryRecord]:
+    def query(self, query_string: str, **kwargs: Any) -> list[MemoryRecord]:
         """Delegate to :meth:`search_memory` and return normalized records."""
 
         logger.info(f"Querying memory with: {query_string}")
@@ -697,38 +731,44 @@ class MemoryManager:
         self,
         query: str,
         *,
-        store: Union[str, None] = None,
+        store: str | None = None,
         strategy: str = "direct",
-        context: Optional[Dict[str, Any]] = None,
-        stores: Optional[List[str]] | None = None,
-    ) -> Any:
+        context: Mapping[str, Any] | None = None,
+        stores: Sequence[str] | None = None,
+    ) -> MemoryQueryResults | GroupedMemoryResults | list[MemoryRecord]:
         """Route a query through the :class:`QueryRouter`."""
 
+        context_payload = dict(context) if context is not None else None
         return self.query_router.route(
-            query, store=store, strategy=strategy, context=context, stores=stores
+            query,
+            store=store,
+            strategy=strategy,
+            context=context_payload,
+            stores=list(stores) if stores is not None else None,
         )
 
     def synchronize(
         self, source_store: str, target_store: str, bidirectional: bool = False
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Synchronize two stores using the :class:`SyncManager`."""
 
         return self.sync_manager.synchronize(source_store, target_store, bidirectional)
 
-    def synchronize_core_stores(self) -> Dict[str, int]:
+    def synchronize_core_stores(self) -> dict[str, int]:
         """Synchronize LMDB and FAISS stores into the Kuzu store."""
 
         return self.sync_manager.synchronize_core()
 
     # ------------------------------------------------------------------
     def cross_store_query(
-        self, query: str, stores: Optional[List[str]] | None = None
-    ) -> Dict[str, List[Any]]:
+        self, query: str, stores: Sequence[str] | None = None
+    ) -> GroupedMemoryResults:
         """Query multiple stores using the :class:`SyncManager`."""
 
-        return self.sync_manager.cross_store_query(query, stores)
+        store_list = list(stores) if stores is not None else None
+        return self.sync_manager.cross_store_query(query, store_list)
 
-    def begin_transaction(self, stores: List[str]):
+    def begin_transaction(self, stores: Sequence[str]) -> AbstractContextManager[Any]:
         """
         Begin a multi-store transaction.
 
@@ -752,7 +792,7 @@ class MemoryManager:
             ```
         """
         # Get the adapters for the specified stores
-        adapters = []
+        adapters: list[Any] = []
         for store_name in stores:
             adapter = self.adapters.get(store_name)
             if adapter:
@@ -765,7 +805,7 @@ class MemoryManager:
             logger.warning(
                 "No valid adapters found for transaction, falling back to sync manager"
             )
-            return self.sync_manager.transaction(stores)
+            return self.sync_manager.transaction(list(stores))
 
         # Create and return a transaction context
         return TransactionContext(adapters)
@@ -805,18 +845,18 @@ class MemoryManager:
 
         await self.sync_manager.wait_for_async()
 
-    def get_sync_stats(self) -> Dict[str, int]:
+    def get_sync_stats(self) -> dict[str, int]:
         """Return statistics about synchronization operations."""
 
         return self.sync_manager.get_sync_stats()
 
     def retrieve_relevant_knowledge(
         self,
-        task: Dict[str, Any],
+        task: Mapping[str, Any],
         retrieval_strategy: str = "broad",
         max_results: int = 5,
         similarity_threshold: float = 0.5,
-    ) -> List[Any]:
+    ) -> list[Any]:
         """Retrieve knowledge relevant to the provided task.
 
         This default implementation returns an empty list, allowing tests to
@@ -825,7 +865,7 @@ class MemoryManager:
 
         return []
 
-    def retrieve_historical_patterns(self) -> List[Any]:
+    def retrieve_historical_patterns(self) -> list[Any]:
         """Return historical patterns stored in memory.
 
         The base implementation returns an empty list so that unit tests remain
@@ -834,7 +874,7 @@ class MemoryManager:
 
         return []
 
-    def get_error_summary(self) -> Dict[str, Any]:
+    def get_error_summary(self) -> dict[str, Any]:
         """
         Get a summary of memory operation errors.
 
@@ -848,11 +888,11 @@ class MemoryManager:
 
     def get_recent_errors(
         self,
-        operation: Optional[str] = None,
-        adapter_name: Optional[str] = None,
-        error_type: Optional[str] = None,
+        operation: str | None = None,
+        adapter_name: str | None = None,
+        error_type: str | None = None,
         limit: int = 10,
-    ) -> List[ErrorRecord]:
+    ) -> list[ErrorRecord]:
         """
         Get recent memory operation errors, optionally filtered by criteria.
 
