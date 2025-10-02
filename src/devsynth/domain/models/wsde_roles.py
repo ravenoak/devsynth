@@ -150,6 +150,61 @@ def _build_research_persona_specs() -> tuple[ResearchPersonaSpec, ...]:
                 "Surface integration risks for primus coordination",
             ),
         },
+        {
+            "slug": "synthesizer",
+            "display_name": "Synthesizer",
+            "primary_role": RoleName.WORKER,
+            "supporting_roles": (RoleName.DESIGNER, RoleName.EVALUATOR),
+            "capabilities": (
+                "Convert research packets into worker-ready prototypes with designer foresight",
+                "Preserve evaluator traceability tying design choices to cited evidence",
+                "Coordinate fallback hand-offs with planner and moderator overlays",
+            ),
+        },
+        {
+            "slug": "contrarian",
+            "display_name": "Contrarian",
+            "primary_role": RoleName.EVALUATOR,
+            "supporting_roles": (RoleName.SUPERVISOR,),
+            "capabilities": (
+                "Challenge consensus through evaluator stress-tests of key assumptions",
+                "Document governance-ready dissent logs for supervisor review",
+                "Surface risk mitigations before primus decisions are finalised",
+            ),
+        },
+        {
+            "slug": "fact_checker",
+            "display_name": "Fact Checker",
+            "primary_role": RoleName.SUPERVISOR,
+            "supporting_roles": (RoleName.EVALUATOR,),
+            "capabilities": (
+                "Audit claims for supervisor-grade compliance and attribution",
+                "Reconstruct evaluator validation chains for contested evidence",
+                "Enforce corrective actions before implementation proceeds",
+            ),
+        },
+        {
+            "slug": "planner",
+            "display_name": "Planner",
+            "primary_role": RoleName.DESIGNER,
+            "supporting_roles": (RoleName.PRIMUS,),
+            "capabilities": (
+                "Sequence designer roadmaps that respect primus governance gates",
+                "Balance scope, risk, and capacity across supporting roles",
+                "Publish contingency playbooks for research-driven pivots",
+            ),
+        },
+        {
+            "slug": "moderator",
+            "display_name": "Moderator",
+            "primary_role": RoleName.PRIMUS,
+            "supporting_roles": (RoleName.SUPERVISOR,),
+            "capabilities": (
+                "Facilitate primus-level decision forums with supervisor safeguards",
+                "Resolve persona conflicts while maintaining audit trails",
+                "Escalate governance checkpoints when collaboration stalls",
+            ),
+        },
     )
 
     specs: list[ResearchPersonaSpec] = []
