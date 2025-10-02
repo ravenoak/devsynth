@@ -17,7 +17,7 @@ import uuid
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, ContextManager
 
 canonical_name = "devsynth.application.memory.kuzu_store"
 # Ensure the module is registered under its canonical name even when loaded
@@ -43,7 +43,7 @@ except Exception:  # pragma: no cover - optional dependency
 
 # Import the settings module so tests can monkeypatch ``ensure_path_exists``
 from devsynth.config import settings as settings_module
-from devsynth.domain.interfaces.memory import MemoryStore
+from devsynth.domain.interfaces.memory import MemoryStore, SupportsTransactions
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
 from devsynth.fallback import retry_with_exponential_backoff
@@ -52,7 +52,7 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
-class KuzuStore(MemoryStore):
+class KuzuStore(MemoryStore, SupportsTransactions):
     """Lightweight ``MemoryStore`` backed by KuzuDB."""
 
     def __init__(
@@ -222,12 +222,16 @@ class KuzuStore(MemoryStore):
                 )
         return True
 
+    supports_transactions: bool = True
+
     @contextmanager
-    def transaction(self, transaction_id: str | None = None):
+    def transaction(
+        self, transaction_id: str | None = None
+    ) -> ContextManager[str]:
         """Context manager that wraps begin/commit/rollback."""
         tx_id = self.begin_transaction(transaction_id)
         try:
-            yield
+            yield tx_id
             self.commit_transaction(tx_id)
         except Exception:
             self.rollback_transaction(tx_id)

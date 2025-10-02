@@ -809,6 +809,8 @@ else:
 class ProtocolCompliantMemoryStore(MemoryStore):
     """In-memory ``MemoryStore`` implementation satisfying the protocol."""
 
+    supports_transactions: bool = True
+
     def __init__(self, *args: object, **kwargs: object) -> None:
         self._records: dict[str, MemoryRecord] = {}
         self._active_transactions: set[str] = set()

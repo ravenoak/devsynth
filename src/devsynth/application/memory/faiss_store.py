@@ -21,7 +21,7 @@ except ImportError as e:  # pragma: no cover - optional dependency
     ) from e
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union, ContextManager
 
 from devsynth.exceptions import (
     DevSynthError,
@@ -31,7 +31,7 @@ from devsynth.exceptions import (
 )
 from devsynth.logging_setup import DevSynthLogger
 
-from ...domain.interfaces.memory import VectorStore
+from ...domain.interfaces.memory import SupportsTransactions, VectorStore
 from ...domain.models.memory import MemoryVector
 from .dto import MemoryMetadata, VectorStoreStats
 from .metadata_serialization import from_serializable, to_serializable
@@ -40,7 +40,7 @@ from .metadata_serialization import from_serializable, to_serializable
 logger = DevSynthLogger(__name__)
 
 
-class FAISSStore(VectorStore[MemoryVector]):
+class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
     """
     FAISS implementation of the VectorStore interface.
 
@@ -205,7 +205,9 @@ class FAISSStore(VectorStore[MemoryVector]):
         return True
 
     @contextmanager
-    def transaction(self, transaction_id: str | None = None):
+    def transaction(
+        self, transaction_id: str | None = None
+    ) -> ContextManager[str]:
         """Context manager providing transactional semantics."""
 
         tx_id = self.begin_transaction(transaction_id)
@@ -529,3 +531,5 @@ class FAISSStore(VectorStore[MemoryVector]):
             if vec:
                 vectors.append(vec)
         return vectors
+    supports_transactions: bool = True
+
