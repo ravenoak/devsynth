@@ -28,7 +28,8 @@
     "Feature 'Finalize dialectical reasoning' reference discrepancy resolved (2025-09-09).",
     "Feature 'Logging Setup Utilities' reference discrepancy resolved (2025-09-09).",
     "Feature 'Performance and scalability testing' reference discrepancy resolved (2025-09-09).",
-    "Restoring strict typing for devsynth.application.edrr.* deferred after mypy reported 430 errors (2025-09-13)."
-    "External research telemetry naming policy adopted; integration stubs documented for Autoresearch MCP/A2A flows (2025-10-02)."
+    "Restoring strict typing for devsynth.application.edrr.* deferred after mypy reported 430 errors (2025-09-13).",
+    "External research telemetry naming policy adopted; integration stubs documented for Autoresearch MCP/A2A flows (2025-10-02).",
+    "Dialectical + Socratic review reopened v0.1.0a1 readiness; execution plan established with staged PR roadmap (2025-10-02)."
   ]
 }

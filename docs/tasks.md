@@ -9,7 +9,7 @@ tags:
   - "release-preparation"
 status: "active"
 author: "DevSynth Team"
-last_reviewed: "2025-09-30"
+last_reviewed: "2025-10-02"
 source: "Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)"
 ---
 
@@ -20,6 +20,13 @@ source: "Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan
 # DevSynth 0.1.0a1 — Actionable Improvement Tasks Checklist
 
 Instructions: Check off each task when completed. Subtasks are enumerated for clarity and traceability. Follow the order for optimal flow. All commands should be run via Poetry.
+
+0. Execution Plan Realignment (Phase preflight)
+0.1 [ ] Review `docs/release/v0.1.0a1_execution_plan.md` and confirm staged PR ownership in planning meeting notes.
+0.2 [ ] Update release readiness issues (`coverage-below-threshold.md`, `critical-mypy-errors-v0-1-0a1.md`, `release-readiness-assessment-v0-1-0a1.md`) to match 2025-10-02 status.
+0.3 [ ] Draft `docs/typing/strict_typing_wave1.md` with module owners, baseline error counts, and remediation hypotheses.
+0.4 [ ] Draft `docs/testing/coverage_wave1.md` mapping low-coverage modules to targeted tests and responsible engineers.
+0.5 [ ] Circulate plan via WSDE standup; log acknowledgment in meeting notes and dialectical audit follow-up.
 
 1. Environment and Tooling Baseline (Phase 0)
 1.1 [x] Provision environment and install go-task: `bash scripts/install_dev.sh`.
