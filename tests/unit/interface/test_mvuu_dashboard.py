@@ -9,7 +9,10 @@ from unittest.mock import MagicMock, call
 import pytest
 
 from devsynth.interface import mvuu_dashboard
-from devsynth.interface.autoresearch import build_autoresearch_payload, sign_payload
+from devsynth.interface.research_telemetry import (
+    build_research_telemetry_payload,
+    sign_payload,
+)
 
 
 @pytest.mark.fast
@@ -99,7 +102,7 @@ def test_require_streamlit_raises(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.mark.fast
-def test_render_autoresearch_overlays_snapshot() -> None:
+def test_render_research_overlays_snapshot() -> None:
     """Snapshot expected overlay rendering calls."""
 
     telemetry = {
@@ -132,7 +135,7 @@ def test_render_autoresearch_overlays_snapshot() -> None:
     mock_st.info = MagicMock()
     mock_st.caption = MagicMock()
 
-    mvuu_dashboard.render_autoresearch_overlays(
+    mvuu_dashboard.render_research_telemetry_overlays(
         mock_st,
         telemetry,
         signature_verified=True,
@@ -147,7 +150,7 @@ def test_render_autoresearch_overlays_snapshot() -> None:
         ),
     ]
     timeline_calls = [call.args[0] for call in mock_st.markdown.call_args_list]
-    assert "### Autoresearch Timeline" in timeline_calls[0]
+    assert "### External Research Timeline" in timeline_calls[0]
     assert any("DSY-0001" in call for call in timeline_calls)
     badge_line = timeline_calls[-1]
     assert "Hash matches" in badge_line
@@ -164,11 +167,11 @@ def test_render_dashboard_with_overlays_loads_telemetry(monkeypatch: pytest.Monk
         }
     }
 
-    payload = build_autoresearch_payload(
+    payload = build_research_telemetry_payload(
         {"DSY-0001": {"utility_statement": "Investigate"}},
         session_id="session",
     )
-    secret_env = "TEST_AUTORESEARCH_SECRET"
+    secret_env = "TEST_EXTERNAL_RESEARCH_SECRET"
     signature = sign_payload(payload, secret="secret", key_id=f"env:{secret_env}").as_dict()
     telemetry = payload | {"signature": signature}
 
@@ -184,12 +187,12 @@ def test_render_dashboard_with_overlays_loads_telemetry(monkeypatch: pytest.Monk
     mock_st = MagicMock()
     mock_st.sidebar = mock_sidebar
 
-    monkeypatch.setenv("DEVSYNTH_AUTORESEARCH_OVERLAYS", "1")
+    monkeypatch.setenv("DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS", "1")
     monkeypatch.setenv(mvuu_dashboard._SIGNATURE_POINTER_ENV, secret_env)
     monkeypatch.setenv(secret_env, "secret")
     monkeypatch.setattr(mvuu_dashboard, "_require_streamlit", lambda: mock_st)
-    monkeypatch.setattr(mvuu_dashboard, "load_autoresearch_telemetry", lambda path=None: telemetry)
-    monkeypatch.setattr(mvuu_dashboard, "render_autoresearch_overlays", fake_render)
+    monkeypatch.setattr(mvuu_dashboard, "load_research_telemetry", lambda path=None: telemetry)
+    monkeypatch.setattr(mvuu_dashboard, "render_research_telemetry_overlays", fake_render)
 
     mvuu_dashboard.render_dashboard(data)
 
@@ -197,5 +200,40 @@ def test_render_dashboard_with_overlays_loads_telemetry(monkeypatch: pytest.Monk
     assert captured["signature_error"] is None
     assert captured["payload"]["session_id"] == "session"
 
-    monkeypatch.delenv("DEVSYNTH_AUTORESEARCH_OVERLAYS", raising=False)
+    monkeypatch.delenv("DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS", raising=False)
     monkeypatch.delenv(secret_env, raising=False)
+
+
+@pytest.mark.fast
+def test_signature_pointer_legacy_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(mvuu_dashboard._SIGNATURE_POINTER_ENV, raising=False)
+    monkeypatch.setenv("DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY", "LEGACY_PTR")
+
+    pointer = mvuu_dashboard._resolve_signature_pointer()
+
+    assert pointer == "LEGACY_PTR"
+
+
+@pytest.mark.fast
+def test_signature_secret_falls_back_to_legacy(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(mvuu_dashboard._SIGNATURE_POINTER_ENV, raising=False)
+    monkeypatch.delenv("DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY", raising=False)
+    monkeypatch.delenv(mvuu_dashboard._SIGNATURE_DEFAULT_ENV, raising=False)
+    monkeypatch.setenv("DEVSYNTH_AUTORESEARCH_SECRET", "legacy-secret")
+
+    secret = mvuu_dashboard._resolve_signature_secret(mvuu_dashboard._SIGNATURE_DEFAULT_ENV)
+
+    assert secret == "legacy-secret"
+
+
+@pytest.mark.fast
+def test_resolve_telemetry_path_prefers_legacy(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    default_path = tmp_path / "traceability_external_research.json"
+    legacy_path = tmp_path / "traceability_autoresearch.json"
+    legacy_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(mvuu_dashboard, "_DEFAULT_TELEMETRY_PATH", default_path)
+    monkeypatch.setattr(mvuu_dashboard, "_LEGACY_TELEMETRY_PATH", legacy_path)
+
+    resolved = mvuu_dashboard._resolve_telemetry_path()
+
+    assert resolved == legacy_path

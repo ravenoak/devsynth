@@ -61,7 +61,7 @@ sacrificing day-to-day usability.
 Repeatable `--research-persona` options on `devsynth mvuu-dashboard` activate the
 Research Lead, Bibliographer, and Synthesist overlays alongside
 `--research-overlays`. The command persists the selection to
-`DEVSYNTH_AUTORESEARCH_PERSONAS`, allowing the WSDE collaboration layer to
+`DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS` (legacy: `DEVSYNTH_AUTORESEARCH_PERSONAS`), allowing the WSDE collaboration layer to
 favour persona-aware primus selection while telemetry bundles capture persona
 assignments and fallback decisions for MVUU traceability.
 

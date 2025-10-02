@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from devsynth.exceptions import DevSynthError
-from devsynth.interface.autoresearch import verify_signature
+from devsynth.interface.research_telemetry import verify_signature
 
 
 # Optional dependency guard for Streamlit
@@ -29,12 +29,20 @@ def _require_streamlit():
 # Path to the traceability and telemetry files relative to the repository root
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_TRACE_PATH = _REPO_ROOT / "traceability.json"
-_DEFAULT_TELEMETRY_PATH = _REPO_ROOT / "traceability_autoresearch.json"
+_DEFAULT_TELEMETRY_PATH = _REPO_ROOT / "traceability_external_research.json"
+_LEGACY_TELEMETRY_PATH = _REPO_ROOT / "traceability_autoresearch.json"
 
-_OVERLAY_FLAG_ENV = "DEVSYNTH_AUTORESEARCH_OVERLAYS"
-_TELEMETRY_PATH_ENV = "DEVSYNTH_AUTORESEARCH_TELEMETRY"
-_SIGNATURE_POINTER_ENV = "DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"
-_SIGNATURE_DEFAULT_ENV = "DEVSYNTH_AUTORESEARCH_SECRET"
+_OVERLAY_FLAG_ENV = "DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS"
+_LEGACY_OVERLAY_ENVS = ("DEVSYNTH_AUTORESEARCH_OVERLAYS",)
+
+_TELEMETRY_PATH_ENV = "DEVSYNTH_EXTERNAL_RESEARCH_TELEMETRY"
+_LEGACY_TELEMETRY_ENVS = ("DEVSYNTH_AUTORESEARCH_TELEMETRY",)
+
+_SIGNATURE_POINTER_ENV = "DEVSYNTH_EXTERNAL_RESEARCH_SIGNATURE_KEY"
+_LEGACY_SIGNATURE_POINTER_ENVS = ("DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY",)
+
+_SIGNATURE_DEFAULT_ENV = "DEVSYNTH_EXTERNAL_RESEARCH_SECRET"
+_LEGACY_SIGNATURE_DEFAULT_ENVS = ("DEVSYNTH_AUTORESEARCH_SECRET",)
 
 
 def load_traceability(path: Path = _DEFAULT_TRACE_PATH) -> dict:
@@ -63,20 +71,58 @@ def load_traceability(path: Path = _DEFAULT_TRACE_PATH) -> dict:
 
 
 def _overlays_enabled() -> bool:
-    flag = os.getenv(_OVERLAY_FLAG_ENV, "")
-    return flag.lower() in {"1", "true", "yes", "on"}
+    value = os.getenv(_OVERLAY_FLAG_ENV)
+    if value is None:
+        for legacy_env in _LEGACY_OVERLAY_ENVS:
+            legacy_value = os.getenv(legacy_env)
+            if legacy_value is not None:
+                value = legacy_value
+                break
+    if not value:
+        return False
+    return value.lower() in {"1", "true", "yes", "on"}
 
 
 def _resolve_telemetry_path(path: Path | None = None) -> Path:
     if path is not None:
         return path
     env_path = os.getenv(_TELEMETRY_PATH_ENV)
+    if not env_path:
+        for legacy_env in _LEGACY_TELEMETRY_ENVS:
+            legacy_value = os.getenv(legacy_env)
+            if legacy_value:
+                env_path = legacy_value
+                break
     if env_path:
         return Path(env_path)
-    return _DEFAULT_TELEMETRY_PATH
+    if _DEFAULT_TELEMETRY_PATH.exists():
+        return _DEFAULT_TELEMETRY_PATH
+    return _LEGACY_TELEMETRY_PATH
 
 
-def load_autoresearch_telemetry(path: Path | None = None) -> dict[str, Any] | None:
+def _resolve_signature_pointer() -> str:
+    pointer = os.getenv(_SIGNATURE_POINTER_ENV)
+    if pointer:
+        return pointer
+    for legacy_env in _LEGACY_SIGNATURE_POINTER_ENVS:
+        legacy_value = os.getenv(legacy_env)
+        if legacy_value:
+            return legacy_value
+    return _SIGNATURE_DEFAULT_ENV
+
+
+def _resolve_signature_secret(pointer: str) -> str:
+    secret = os.getenv(pointer, "")
+    if secret:
+        return secret
+    for legacy_secret in _LEGACY_SIGNATURE_DEFAULT_ENVS:
+        legacy_value = os.getenv(legacy_secret, "")
+        if legacy_value:
+            return legacy_value
+    return ""
+
+
+def load_research_telemetry(path: Path | None = None) -> dict[str, Any] | None:
     telemetry_path = _resolve_telemetry_path(path)
     if not telemetry_path.exists():
         return None
@@ -84,7 +130,7 @@ def load_autoresearch_telemetry(path: Path | None = None) -> dict[str, Any] | No
         return json.load(handle)
 
 
-def render_autoresearch_overlays(
+def render_research_telemetry_overlays(
     st: Any,
     telemetry: dict[str, Any],
     *,
@@ -92,7 +138,7 @@ def render_autoresearch_overlays(
     signature_error: str | None,
 ) -> None:
     sidebar = getattr(st, "sidebar", st)
-    sidebar.header("Autoresearch Filters")
+    sidebar.header("External Research Filters (Autoresearch)")
 
     filters = telemetry.get("provenance_filters", [])
     filter_labels = [f["label"] for f in filters]
@@ -101,7 +147,7 @@ def render_autoresearch_overlays(
             "Provenance filters",
             filter_labels,
             default=filter_labels,
-            key="autoresearch_filters",
+            key="external_research_filters",
         )
     else:
         sidebar.info("No Autoresearch provenance filters available.")
@@ -114,7 +160,7 @@ def render_autoresearch_overlays(
     elif signature_error:
         sidebar.warning(signature_error)
 
-    st.markdown("### Autoresearch Timeline")
+    st.markdown("### External Research Timeline (Autoresearch)")
     timeline = telemetry.get("timeline", [])
     if not timeline:
         getattr(st, "info", st.write)("No Autoresearch timeline entries available.")
@@ -171,10 +217,10 @@ def render_dashboard(data: dict) -> None:
             st.write(f"- {feature}")
 
     if _overlays_enabled():
-        telemetry = load_autoresearch_telemetry()
+        telemetry = load_research_telemetry()
         if telemetry is None:
             st.warning(
-                "Autoresearch overlays enabled but telemetry was not found. "
+                "External research overlays enabled but telemetry was not found. "
                 "Run the CLI with --research-overlays to generate it."
             )
         else:
@@ -184,8 +230,8 @@ def render_dashboard(data: dict) -> None:
             signature_verified: bool | None = None
             signature_error: str | None = None
 
-            signature_env = os.getenv(_SIGNATURE_POINTER_ENV, _SIGNATURE_DEFAULT_ENV)
-            secret = os.getenv(signature_env, "")
+            signature_env = _resolve_signature_pointer()
+            secret = _resolve_signature_secret(signature_env)
 
             if signature:
                 verified = verify_signature(payload, secret=secret, signature=signature)
@@ -203,7 +249,7 @@ def render_dashboard(data: dict) -> None:
                     "Autoresearch signing secret is configured but telemetry lacks a signature."
                 )
 
-            render_autoresearch_overlays(
+            render_research_telemetry_overlays(
                 st,
                 payload,
                 signature_verified=signature_verified,

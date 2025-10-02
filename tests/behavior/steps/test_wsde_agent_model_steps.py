@@ -29,7 +29,7 @@ from devsynth.domain.models.wsde_roles import (
     ResearchPersonaSpec,
     resolve_research_persona,
 )
-from devsynth.interface.autoresearch import build_autoresearch_payload
+from devsynth.interface.research_telemetry import build_research_telemetry_payload
 
 # Import the modules needed for the steps
 from devsynth.domain.models.wsde_facade import WSDETeam
@@ -982,7 +982,7 @@ def persona_transitions_recorded_for_mvuu(context):
     """Generate MVUU payloads with persona metadata."""
 
     assert context.traceability, "Traceability dataset should not be empty"
-    payload = build_autoresearch_payload(
+    payload = build_research_telemetry_payload(
         context.traceability,
         generated_at=datetime.now(timezone.utc),
         session_id="test-autoresearch-session",

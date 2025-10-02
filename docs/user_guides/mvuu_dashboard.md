@@ -1,12 +1,12 @@
 # MVUU Traceability Dashboard
 
 The MVUU (Minimum Viable Utility Unit) dashboard renders Streamlit views for
-traceability data exported by `devsynth mvu report`. Planned Autoresearch
-overlays will surface investigation timelines, provenance filters, and integrity
-badges once the external Autoresearch bridge begins delivering signed telemetry.
-Until the MCP → A2A → SPARQL connectors ship, all Autoresearch references in this
-guide describe preview flows that rely on local fixtures rather than live
-telemetry.
+traceability data exported by `devsynth mvu report`. Planned external research
+telemetry overlays—powered upstream by Autoresearch—surface investigation
+timelines, provenance filters, and integrity badges once the external bridge
+begins delivering signed bundles. Until the MCP → A2A → SPARQL connectors ship,
+all references in this guide describe preview flows that rely on local fixtures
+rather than live telemetry.
 
 ## Enabling the dashboard
 
@@ -18,18 +18,19 @@ Running the command without extra flags renders the classic TraceID sidebar and
 details pane. The CLI automatically regenerates `traceability.json` before
 launching Streamlit.
 
-## Opting into Autoresearch overlays
+## Opting into external research telemetry overlays
 
-Autoresearch overlays will remain opt-in because they include extra provenance
-data and digital signatures. Enable the stubbed flow when launching the CLI to
-exercise the interface ahead of the external rollout. The command below operates
-entirely against placeholder payloads until the external bridge is online:
+External research telemetry overlays remain opt-in because they include extra
+provenance data and digital signatures. Enable the stubbed flow when launching
+the CLI to exercise the interface ahead of the Autoresearch rollout. The command
+below operates entirely against placeholder payloads until the external bridge
+is online:
 
 ```bash
-export DEVSYNTH_AUTORESEARCH_SECRET="<shared hmac secret>"
+export DEVSYNTH_EXTERNAL_RESEARCH_SECRET="<shared hmac secret>"
 poetry run devsynth mvuu-dashboard \
   --research-overlays \
-  --telemetry-path traceability_autoresearch.json
+  --telemetry-path traceability_external_research.json
 ```
 
 The CLI will emit a signed telemetry bundle containing:
@@ -41,12 +42,16 @@ The CLI will emit a signed telemetry bundle containing:
 - `integrity_badges`: verification summaries for each TraceID, including the
   hash of the MVUU payload used during signing.
 
-While the Autoresearch service remains external, the CLI stores placeholder
+While Autoresearch remains an upstream dependency, the CLI stores placeholder
 signatures alongside the payload in JSON form and logs that no remote telemetry
 was contacted. The dashboard reads
-`DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY` to determine which environment variable
-holds the shared secret (defaults to `DEVSYNTH_AUTORESEARCH_SECRET`). Replace the
-placeholder with the production secret once the MCP and A2A connectors go live.
+`DEVSYNTH_EXTERNAL_RESEARCH_SIGNATURE_KEY` (falling back to the legacy
+`DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY`) to determine which environment variable
+holds the shared secret. The default points at
+`DEVSYNTH_EXTERNAL_RESEARCH_SECRET`, and the legacy
+`DEVSYNTH_AUTORESEARCH_SECRET` continues to work for existing scripts. Replace
+the placeholder with the production secret once the MCP and A2A connectors go
+live.
 
 ### Understanding persona prompts
 
@@ -86,8 +91,8 @@ added to the traceability report.
 
 | Symptom | Resolution |
 | --- | --- |
-| Dashboard shows “telemetry was not found” | Ensure the CLI ran with `--research-overlays` or set `DEVSYNTH_AUTORESEARCH_OVERLAYS=1` after generating telemetry. Preview builds emit a stub file named `traceability_autoresearch.json.stub`. |
-| Signature validation failed | Confirm `DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY` points to an environment variable that is set when Streamlit launches. Replace stub secrets once Autoresearch provides production keys. |
+| Dashboard shows “telemetry was not found” | Ensure the CLI ran with `--research-overlays` or set `DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS=1` (legacy: `DEVSYNTH_AUTORESEARCH_OVERLAYS=1`) after generating telemetry. Preview builds emit a stub file named `traceability_external_research.json.stub`. |
+| Signature validation failed | Confirm `DEVSYNTH_EXTERNAL_RESEARCH_SIGNATURE_KEY` points to an environment variable that is set when Streamlit launches (legacy pointer names still work). Replace stub secrets once Autoresearch provides production keys. |
 | No filters appear in the sidebar | The telemetry `provenance_filters` list was empty. Re-run `devsynth mvuu-dashboard --research-overlays` after confirming the MVUU report contains agent personas and knowledge references or update the stub fixture. |
 | Integrity badge shows a warning icon | The recorded hash did not match the MVUU entry. Regenerate the traceability report and telemetry bundle to re-compute hashes, or acknowledge the warning if running against preview fixtures. |
 
@@ -101,11 +106,12 @@ the external bridge is available:
 - Overlay rendering snapshots and signature validation logic are exercised in
   `tests/unit/interface/test_mvuu_dashboard.py`.
 - Telemetry builders and signature helpers are validated by
-  `tests/unit/interface/test_autoresearch_telemetry.py`.
+  `tests/unit/interface/test_research_telemetry.py`.
 
-Refer to `traceability_autoresearch.json` for a signed example bundle once the
-external Autoresearch service delivers telemetry. Until then, rely on
-`traceability_autoresearch.json.stub` to validate configuration.
+Refer to `traceability_external_research.json` for a signed example bundle once
+the external Autoresearch service delivers telemetry. Until then, rely on
+`traceability_external_research.json.stub` (or the legacy
+`traceability_autoresearch.json.stub`) to validate configuration.
 
 ## Autoresearch Integration Path
 

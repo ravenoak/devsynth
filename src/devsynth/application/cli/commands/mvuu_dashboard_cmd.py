@@ -16,15 +16,21 @@ from pathlib import Path
 from typing import Sequence
 
 from devsynth.domain.models.wsde_roles import ResearchPersonaSpec, resolve_research_persona
-from devsynth.interface.autoresearch import (
+from devsynth.interface.research_telemetry import (
     SignatureEnvelope,
-    build_autoresearch_payload,
+    build_research_telemetry_payload,
     sign_payload,
 )
 
 DEFAULT_REPO_ENV = "DEVSYNTH_REPO_ROOT"
-DEFAULT_SIGNATURE_ENV = "DEVSYNTH_AUTORESEARCH_SECRET"
-DEFAULT_SIGNATURE_POINTER = "DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"
+DEFAULT_SIGNATURE_ENV = "DEVSYNTH_EXTERNAL_RESEARCH_SECRET"
+DEFAULT_SIGNATURE_POINTER = "DEVSYNTH_EXTERNAL_RESEARCH_SIGNATURE_KEY"
+
+LEGACY_OVERLAY_ENV = "DEVSYNTH_AUTORESEARCH_OVERLAYS"
+LEGACY_TELEMETRY_ENV = "DEVSYNTH_AUTORESEARCH_TELEMETRY"
+LEGACY_SIGNATURE_ENV = "DEVSYNTH_AUTORESEARCH_SECRET"
+LEGACY_SIGNATURE_POINTER = "DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"
+LEGACY_PERSONAS_ENV = "DEVSYNTH_AUTORESEARCH_PERSONAS"
 
 
 def _resolve_repo_root() -> Path:
@@ -36,7 +42,7 @@ def _resolve_repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _write_autoresearch_telemetry(
+def _write_research_telemetry(
     trace_path: Path,
     telemetry_path: Path,
     *,
@@ -49,7 +55,7 @@ def _write_autoresearch_telemetry(
         return None
 
     trace_data = json.loads(trace_path.read_text(encoding="utf-8"))
-    payload = build_autoresearch_payload(trace_data)
+    payload = build_research_telemetry_payload(trace_data)
     if personas:
         payload["research_personas"] = [spec.as_payload() for spec in personas]
 
@@ -89,7 +95,7 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--research-overlays",
         action="store_true",
-        help="Enable Autoresearch overlays and telemetry generation.",
+        help="Enable external research telemetry overlays (Autoresearch upstream).",
     )
     parser.add_argument(
         "--research-persona",
@@ -102,7 +108,7 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
         "--telemetry-path",
         type=Path,
         default=None,
-        help="Optional path for Autoresearch telemetry JSON output.",
+        help="Optional path for external research telemetry JSON output (Autoresearch).",
     )
     parser.add_argument(
         "--signature-env",
@@ -124,7 +130,8 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
     script_path = repo_root / "src" / "devsynth" / "interface" / "mvuu_dashboard.py"
 
     overlays_enabled = args.research_overlays or env.get(
-        "DEVSYNTH_AUTORESEARCH_OVERLAYS", ""
+        "DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS",
+        env.get(LEGACY_OVERLAY_ENV, ""),
     )
     persona_specs: list[ResearchPersonaSpec] = []
     if args.research_personas:
@@ -134,23 +141,30 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
             if spec and spec.slug not in seen:
                 persona_specs.append(spec)
                 seen.add(spec.slug)
-    telemetry_path = args.telemetry_path or (repo_root / "traceability_autoresearch.json")
+    telemetry_path = args.telemetry_path or (repo_root / "traceability_external_research.json")
     if overlays_enabled:
-        envelope = _write_autoresearch_telemetry(
+        envelope = _write_research_telemetry(
             trace_path,
             telemetry_path,
             signature_env=args.signature_env,
             personas=persona_specs,
         )
-        env["DEVSYNTH_AUTORESEARCH_OVERLAYS"] = "1"
-        env["DEVSYNTH_AUTORESEARCH_TELEMETRY"] = str(telemetry_path)
+        env["DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS"] = "1"
+        env["DEVSYNTH_EXTERNAL_RESEARCH_TELEMETRY"] = str(telemetry_path)
         env[DEFAULT_SIGNATURE_POINTER] = args.signature_env
+        env[LEGACY_OVERLAY_ENV] = "1"
+        env[LEGACY_TELEMETRY_ENV] = str(telemetry_path)
+        env[LEGACY_SIGNATURE_POINTER] = args.signature_env
         if envelope is not None:
             env.setdefault(args.signature_env, os.getenv(args.signature_env, ""))
+            if args.signature_env == DEFAULT_SIGNATURE_ENV:
+                env.setdefault(LEGACY_SIGNATURE_ENV, env[args.signature_env])
+            elif args.signature_env == LEGACY_SIGNATURE_ENV:
+                env.setdefault(DEFAULT_SIGNATURE_ENV, env[args.signature_env])
     if persona_specs:
-        env["DEVSYNTH_AUTORESEARCH_PERSONAS"] = ",".join(
-            spec.display_name for spec in persona_specs
-        )
+        personas_value = ",".join(spec.display_name for spec in persona_specs)
+        env["DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS"] = personas_value
+        env[LEGACY_PERSONAS_ENV] = personas_value
 
     subprocess.run(["streamlit", "run", str(script_path)], check=False, env=env)
     return 0
