@@ -99,13 +99,16 @@ def _decode_value(value: JSONValue) -> MemoryMetadataValue:
 def to_serializable(metadata: MemoryMetadata | None) -> dict[str, JSONValue]:
     if not metadata:
         return {}
-    return {key: _encode_value(value) for key, value in metadata.items()}
+    return {
+        key: _encode_value(value)
+        for key, value in dict(metadata).items()
+    }
 
 
 def from_serializable(payload: Mapping[str, object] | None) -> MemoryMetadata:
-    result: MemoryMetadata = {}
+    result: dict[str, MemoryMetadataValue] = {}
     if not payload:
-        return result
+        return {}
     for key, value in payload.items():
         result[key] = _decode_value(cast(JSONValue, value))
     return result
@@ -188,7 +191,8 @@ def row_from_record(
 ) -> dict[str, object]:
     """Serialize a :class:`MemoryRecord` into a persistence-friendly mapping."""
 
-    row = record.item.to_dict()
+    base_row = record.item.to_dict()
+    row: dict[str, object] = dict(base_row)
     row[metadata_field] = to_serializable(record.item.metadata)
 
     if include_similarity and record.similarity is not None:
