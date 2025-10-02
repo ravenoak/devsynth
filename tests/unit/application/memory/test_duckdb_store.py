@@ -391,7 +391,7 @@ class TestDuckDBStore:
         store.conn.execute = lambda *args, **kwargs: next(first_responses, _StubCursor([]))
 
         stats = store.get_collection_stats()
-        assert stats["num_vectors"] == 0
+        assert stats["vector_count"] == 0
 
         second_responses = iter(
             [
@@ -403,8 +403,8 @@ class TestDuckDBStore:
         store.conn.execute = lambda *args, **kwargs: next(second_responses, _StubCursor([]))
 
         stats = store.get_collection_stats()
-        assert stats["num_vectors"] == 3
-        assert stats["embedding_dimension"] == 5
+        assert stats["vector_count"] == 3
+        assert stats["embedding_dimensions"] == 5
 
     @pytest.mark.medium
     def test_get_collection_stats_succeeds(self, store):

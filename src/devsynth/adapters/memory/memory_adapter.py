@@ -19,10 +19,11 @@ from ...application.memory.tiered_cache import TieredCache
 from ...application.memory.tinydb_store import TinyDBStore
 from ...config.settings import ensure_path_exists, get_settings
 from ...domain.interfaces.memory import ContextManager, MemoryStore, VectorStore
+from ...domain.models.memory import MemoryVector
 
 logger = DevSynthLogger(__name__)
 
-FAISSStore: type[VectorStore] | None
+FAISSStore: type[VectorStore[MemoryVector]] | None
 try:  # pragma: no cover - optional dependency
     from ...application.memory.faiss_store import FAISSStore
 except Exception as exc:  # pragma: no cover - graceful fallback
@@ -82,7 +83,7 @@ class MemorySystemAdapter:
         config: dict[str, Any] = None,
         memory_store: MemoryStore | None = None,
         context_manager: ContextManager | None = None,
-        vector_store: VectorStore | None = None,
+        vector_store: VectorStore[MemoryVector] | None = None,
         create_paths: bool = True,
     ):
         """
@@ -442,7 +443,7 @@ class MemorySystemAdapter:
         """Get the context manager."""
         return self.context_manager
 
-    def get_vector_store(self) -> VectorStore | None:
+    def get_vector_store(self) -> VectorStore[MemoryVector] | None:
         """Get the vector store if available."""
         return self.vector_store
 

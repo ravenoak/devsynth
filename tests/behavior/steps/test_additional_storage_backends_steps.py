@@ -608,14 +608,16 @@ def check_collection_stats(request):
     assert stats is not None, "Collection stats not found in cache"
 
     # Verify that we have stats
-    assert "num_vectors" in stats, "num_vectors not found in collection stats"
+    assert "vector_count" in stats, "vector_count not found in collection stats"
     assert (
-        "embedding_dimension" in stats
-    ), "embedding_dimension not found in collection stats"
+        "embedding_dimensions" in stats
+    ), "embedding_dimensions not found in collection stats"
 
     # Verify that the stats are reasonable
-    assert stats["num_vectors"] >= 5, "Expected at least 5 vectors in collection"
-    assert stats["embedding_dimension"] == 5, "Expected embedding dimension to be 5"
+    assert stats["vector_count"] >= 5, "Expected at least 5 vectors in collection"
+    assert (
+        stats["embedding_dimensions"] == 5
+    ), "Expected embedding dimension to be 5"
 
 
 @when("I begin a transaction")

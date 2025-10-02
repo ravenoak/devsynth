@@ -42,7 +42,7 @@ allowing nested ``Sequence`` and ``MutableMapping`` containers composed of other
 can attach precise timestamps prior to serialization.
 """
 
-MemoryMetadata: TypeAlias = MutableMapping[str, MemoryMetadataValue]
+MemoryMetadata: TypeAlias = Mapping[str, MemoryMetadataValue]
 """Normalized metadata mapping carried alongside memory artefacts."""
 
 

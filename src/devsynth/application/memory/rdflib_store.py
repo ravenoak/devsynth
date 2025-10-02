@@ -44,6 +44,7 @@ from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import MemoryStore, VectorStore
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
+from .dto import VectorStoreStats
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -53,7 +54,7 @@ DEVSYNTH = Namespace("https://github.com/ravenoak/devsynth/ontology#")
 MEMORY = Namespace("https://github.com/ravenoak/devsynth/ontology/memory#")
 
 
-class RDFLibStore(MemoryStore, VectorStore):
+class RDFLibStore(MemoryStore, VectorStore[MemoryVector]):
     """
     RDFLib implementation of the MemoryStore and VectorStore interfaces.
 
@@ -759,18 +760,10 @@ class RDFLibStore(MemoryStore, VectorStore):
                 original_error=e,
             )
 
-    def get_collection_stats(self) -> Dict[str, Any]:
-        """
-        Get statistics about the vector store collection.
+    def get_collection_stats(self) -> VectorStoreStats:
+        """Return statistics about the vector store collection."""
 
-        Returns:
-            A dictionary of collection statistics
-
-        Raises:
-            MemoryStoreError: If there is an error getting collection statistics
-        """
         try:
-            # Get the number of vectors
             sparql_query = """
                 SELECT (COUNT(?vector) as ?count)
                 WHERE {
@@ -780,7 +773,6 @@ class RDFLibStore(MemoryStore, VectorStore):
             results = self.graph.query(sparql_query)
             num_vectors = int(list(results)[0][0])
 
-            # Get the embedding dimension (from the first vector if available)
             embedding_dimension = 0
             if num_vectors > 0:
                 sparql_query = """
@@ -796,26 +788,29 @@ class RDFLibStore(MemoryStore, VectorStore):
                 embedding = json.loads(embedding_json)
                 embedding_dimension = len(embedding)
 
-            # Get the total number of triples in the graph
-            num_triples = len(self.graph)
-
-            stats = {
-                "num_vectors": num_vectors,
-                "embedding_dimension": embedding_dimension,
-                "num_triples": num_triples,
-                "graph_file": self.graph_file,
+            stats: VectorStoreStats = {
+                "collection_name": os.path.basename(self.graph_file),
+                "vector_count": num_vectors,
+                "embedding_dimensions": embedding_dimension,
+                "persist_directory": self.base_path,
+                "metadata": {
+                    "graph_file": self.graph_file,
+                    "triple_count": len(self.graph),
+                },
             }
 
-            logger.info(f"Retrieved collection statistics: {stats}")
+            logger.info("Retrieved collection statistics: %s", stats)
             return stats
 
-        except Exception as e:
-            logger.error(f"Error getting collection statistics from RDFLib graph: {e}")
+        except Exception as exc:
+            logger.error(
+                "Error getting collection statistics from RDFLib graph: %s", exc
+            )
             raise MemoryStoreError(
                 "Error getting collection statistics",
                 store_type="rdflib",
                 operation="get_collection_stats",
-                original_error=e,
+                original_error=exc,
             )
 
     def get_all_vectors(self) -> List[MemoryVector]:

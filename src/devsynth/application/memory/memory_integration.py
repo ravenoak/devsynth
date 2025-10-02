@@ -76,7 +76,7 @@ class MemoryIntegrationManager:
     def __init__(self):
         """Initialize the Memory Integration Manager."""
         self.memory_stores = {}
-        self.vector_stores = {}
+        self.vector_stores: Dict[str, VectorStore[MemoryVector]] = {}
         logger.info("Memory Integration Manager initialized")
 
     def register_memory_store(self, name: str, store: MemoryStore) -> None:
@@ -90,7 +90,9 @@ class MemoryIntegrationManager:
         self.memory_stores[name] = store
         logger.info(f"Registered memory store '{name}'")
 
-    def register_vector_store(self, name: str, store: VectorStore) -> None:
+    def register_vector_store(
+        self, name: str, store: VectorStore[MemoryVector]
+    ) -> None:
         """
         Register a vector store with the integration manager.
 

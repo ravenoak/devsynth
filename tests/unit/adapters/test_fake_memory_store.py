@@ -76,9 +76,9 @@ def test_fake_vector_store_similarity_and_stats():
 
     # Stats and retrieve
     stats = vs.get_collection_stats()
-    assert stats["count"] == 3
+    assert stats["vector_count"] == 3
     assert vs.retrieve_vector(id2).metadata["name"] == "y"
 
     # Delete
     assert vs.delete_vector(id3)
-    assert vs.get_collection_stats()["count"] == 2
+    assert vs.get_collection_stats()["vector_count"] == 2

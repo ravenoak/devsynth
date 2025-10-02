@@ -85,7 +85,7 @@ class MemoryManager:
                 # Default to TinyDB for simple usage and unit tests
                 self.adapters = {"tinydb": TinyDBMemoryAdapter()}
         elif isinstance(adapters, dict):
-            self.adapters = adapters
+        self.adapters = adapters
         else:
             # If a single adapter is provided, use it as the default adapter
             self.adapters = {"default": adapters}
@@ -637,7 +637,7 @@ class MemoryManager:
                     break
             return filtered
 
-        vector_adapter: VectorStore = self.adapters["vector"]
+        vector_adapter: VectorStore[MemoryVector] = self.adapters["vector"]
 
         query_embedding = self._embed_text(query)
 

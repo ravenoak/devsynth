@@ -157,6 +157,6 @@ class TestChromaDBAdapter:
             adapter.store_vector(vector)
         stats = adapter.get_collection_stats()
         assert stats["collection_name"] == "test_vectors"
-        assert stats["num_vectors"] >= 3
-        assert stats["embedding_dimension"] == 5
+        assert stats["vector_count"] >= 3
+        assert stats["embedding_dimensions"] == 5
         assert stats["persist_directory"] == adapter.persist_directory

@@ -139,7 +139,7 @@ def test_similarity_search_and_stats_ignore_deleted_vectors(tmp_path) -> None:
     assert ids[1] not in result_ids
 
     stats = store.get_collection_stats()
-    assert stats["num_vectors"] == 2
+    assert stats["vector_count"] == 2
 
     active_ids = {vec.id for vec in store.get_all_vectors()}
     assert active_ids == {ids[0], ids[2]}

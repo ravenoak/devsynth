@@ -22,13 +22,14 @@ from devsynth.exceptions import MemoryStoreError
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from ...application.memory.dto import VectorStoreStats
 from ...domain.interfaces.memory import VectorStore
 from ...domain.models.memory import MemoryVector
 
 logger = DevSynthLogger(__name__)
 
 
-class ChromaDBAdapter(VectorStore):
+class ChromaDBAdapter(VectorStore[MemoryVector]):
     """ChromaDB implementation of the VectorStore interface."""
 
     def __init__(
@@ -469,48 +470,37 @@ class ChromaDBAdapter(VectorStore):
         except Exception:
             logger.debug("ChromaDB flush failed", exc_info=True)
 
-    def get_collection_stats(self) -> Dict[str, Any]:
-        """
-        Get statistics about the vector store collection.
+    def get_collection_stats(self) -> VectorStoreStats:
+        """Return a typed view of the collection statistics."""
 
-        Returns:
-            A dictionary of collection statistics
-
-        Raises:
-            MemoryStoreError: If there is an error getting collection statistics
-        """
         try:
-            # Get all vectors to calculate statistics
             result = self.collection.get(include=["embeddings"])
 
-            # Calculate statistics
-            num_vectors = len(result["ids"]) if result["ids"] else 0
+            vector_count = len(result["ids"]) if result["ids"] else 0
 
-            # Calculate embedding dimension if vectors exist
-            embedding_dimension = 0
-            if num_vectors > 0 and len(result["embeddings"]) > 0:
-                # Handle the case where embeddings might be a numpy array
+            embedding_dimensions = 0
+            if vector_count > 0 and len(result["embeddings"]) > 0:
                 first_embedding = result["embeddings"][0]
                 if hasattr(first_embedding, "shape"):
-                    # It's a numpy array
-                    embedding_dimension = first_embedding.shape[0]
+                    embedding_dimensions = first_embedding.shape[0]
                 else:
-                    # It's a list
-                    embedding_dimension = len(first_embedding)
+                    embedding_dimensions = len(first_embedding)
 
-            stats = {
+            stats: VectorStoreStats = {
                 "collection_name": self.collection_name,
-                "num_vectors": num_vectors,
-                "embedding_dimension": embedding_dimension,
+                "vector_count": vector_count,
+                "embedding_dimensions": embedding_dimensions,
                 "persist_directory": self.persist_directory,
             }
 
-            logger.info(f"Retrieved collection statistics: {stats}")
+            logger.info("Retrieved collection statistics: %s", stats)
             return stats
-        except Exception as e:
-            logger.error(f"Failed to get collection statistics from ChromaDB: {e}")
+        except Exception as exc:
+            logger.error(
+                "Failed to get collection statistics from ChromaDB: %s", exc
+            )
             raise MemoryStoreError(
-                f"Failed to get collection statistics from ChromaDB: {e}"
+                f"Failed to get collection statistics from ChromaDB: {exc}"
             )
 
     def get_all_vectors(self) -> List[MemoryVector]:
