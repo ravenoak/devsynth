@@ -7,6 +7,7 @@ This implementation uses FAISS for efficient vector similarity search.
 import json
 import os
 import uuid
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from copy import deepcopy
 
@@ -21,10 +22,9 @@ except ImportError as e:  # pragma: no cover - optional dependency
     ) from e
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Union, ContextManager
+from typing import Any
 
 from devsynth.exceptions import (
-    DevSynthError,
     MemoryError,
     MemoryItemNotFoundError,
     MemoryStoreError,
@@ -79,9 +79,9 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
         # Track transaction snapshots.  Each active transaction stores a
         # cloned FAISS index and metadata dictionary so that rollback can
         # restore the previous state if an error occurs.
-        self._snapshots: Dict[str, Dict[str, Any]] = {}
+        self._snapshots: dict[str, dict[str, Any]] = {}
 
-    def _initialize_store(self):
+    def _initialize_store(self) -> None:
         """Initialize the FAISS index and metadata store."""
         try:
             # Initialize metadata dictionary
@@ -110,7 +110,7 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             logger.error(f"Failed to initialize FAISS store: {e}")
             raise MemoryStoreError(f"Failed to initialize FAISS store: {e}")
 
-    def _save_index(self):
+    def _save_index(self) -> None:
         """Save the FAISS index to disk."""
         try:
             faiss.write_index(self.index, self.index_file)
@@ -119,7 +119,7 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             logger.error(f"Failed to save FAISS index: {e}")
             raise MemoryStoreError(f"Failed to save FAISS index: {e}")
 
-    def _save_metadata(self):
+    def _save_metadata(self) -> None:
         """Save the metadata to disk."""
         try:
             with open(self.metadata_file, "w") as f:
@@ -149,12 +149,13 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
     def _serialize_metadata(self, metadata: MemoryMetadata | None) -> dict[str, Any]:
         """Normalize ``MemoryMetadata`` for JSON persistence."""
 
-        return to_serializable(metadata)
+        serialized = to_serializable(metadata)
+        return dict(serialized)
 
     def _deserialize_metadata(self, metadata: Mapping[str, Any] | None) -> MemoryMetadata:
         """Restore ``MemoryMetadata`` from serialized payloads."""
 
-        json_ready = metadata if isinstance(metadata, Mapping) else {}
+        json_ready: Mapping[str, Any] | None = metadata if isinstance(metadata, Mapping) else None
         return from_serializable(json_ready)
 
     # ------------------------------------------------------------------
@@ -207,10 +208,10 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
     @contextmanager
     def transaction(
         self, transaction_id: str | None = None
-    ) -> ContextManager[str]:
+    ) -> Iterator[str]:
         """Context manager providing transactional semantics."""
 
-        tx_id = self.begin_transaction(transaction_id)
+        tx_id: str = self.begin_transaction(transaction_id)
         try:
             yield tx_id
         except Exception:
@@ -218,6 +219,11 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             raise
         else:
             self.commit_transaction(tx_id)
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        """Return ``True`` when ``transaction_id`` corresponds to a snapshot."""
+
+        return transaction_id in self._snapshots
 
     def store_vector(self, vector: MemoryVector) -> str:
         """
@@ -288,7 +294,7 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             logger.error(f"Failed to store vector in FAISS: {e}")
             raise MemoryStoreError(f"Failed to store vector: {e}")
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         """
         Retrieve a vector from the vector store by ID.
 
@@ -342,8 +348,8 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             raise MemoryStoreError(f"Error retrieving vector: {e}")
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: list[float], top_k: int = 5
+    ) -> list[MemoryVector]:
         """
         Search for vectors similar to the query embedding.
 
@@ -522,10 +528,10 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             )
             raise MemoryStoreError(f"Error getting collection statistics: {exc}")
 
-    def get_all_vectors(self) -> List[MemoryVector]:
+    def get_all_vectors(self) -> list[MemoryVector]:
         """Return all stored vectors."""
 
-        vectors: List[MemoryVector] = []
+        vectors: list[MemoryVector] = []
         for vid in list(self.metadata.keys()):
             vec = self.retrieve_vector(vid)
             if vec:
