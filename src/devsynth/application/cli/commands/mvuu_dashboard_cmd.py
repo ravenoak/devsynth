@@ -13,7 +13,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from devsynth.domain.models.wsde_roles import ResearchPersonaSpec, resolve_research_persona
 from devsynth.interface.research_telemetry import (
@@ -21,6 +21,14 @@ from devsynth.interface.research_telemetry import (
     build_research_telemetry_payload,
     sign_payload,
 )
+from devsynth.integrations import (
+    AUTORESEARCH_API_BASE_ENV,
+    AutoresearchA2AConnector,
+    AutoresearchClient,
+    AutoresearchMCPConnector,
+    CONNECTORS_ENABLED_ENV,
+)
+from devsynth.logger import DevSynthLogger, get_logger
 
 DEFAULT_REPO_ENV = "DEVSYNTH_REPO_ROOT"
 DEFAULT_SIGNATURE_ENV = "DEVSYNTH_EXTERNAL_RESEARCH_SECRET"
@@ -31,6 +39,22 @@ LEGACY_TELEMETRY_ENV = "DEVSYNTH_AUTORESEARCH_TELEMETRY"
 LEGACY_SIGNATURE_ENV = "DEVSYNTH_AUTORESEARCH_SECRET"
 LEGACY_SIGNATURE_POINTER = "DEVSYNTH_AUTORESEARCH_SIGNATURE_KEY"
 LEGACY_PERSONAS_ENV = "DEVSYNTH_AUTORESEARCH_PERSONAS"
+
+FORCE_LOCAL_ENV = "DEVSYNTH_EXTERNAL_RESEARCH_FORCE_LOCAL"
+
+DEFAULT_TRACE_UPDATE_QUERY = """
+PREFIX dsy: <http://devsynth.ai/ontology#>
+SELECT ?trace ?summary ?persona ?timestamp ?reference
+WHERE {
+  ?trace dsy:summary ?summary .
+  OPTIONAL { ?trace dsy:agentPersona ?persona }
+  OPTIONAL { ?trace dsy:timestamp ?timestamp }
+  OPTIONAL { ?trace dsy:references ?reference }
+}
+LIMIT 200
+""".strip()
+
+LOGGER: DevSynthLogger = get_logger(__name__)
 
 
 def _resolve_repo_root() -> Path:
@@ -48,6 +72,10 @@ def _write_research_telemetry(
     *,
     signature_env: str,
     personas: Sequence[ResearchPersonaSpec] | None = None,
+    client: AutoresearchClient | None = None,
+    force_local: bool = False,
+    connectors_requested: bool = False,
+    query: str = DEFAULT_TRACE_UPDATE_QUERY,
 ) -> SignatureEnvelope | None:
     """Generate overlay telemetry and persist it to disk."""
 
@@ -58,6 +86,75 @@ def _write_research_telemetry(
     payload = build_research_telemetry_payload(trace_data)
     if personas:
         payload["research_personas"] = [spec.as_payload() for spec in personas]
+
+    connector_state: dict[str, object] = {
+        "provider": "autoresearch" if connectors_requested or client else "local",
+        "mode": "fixture",
+        "forced_local": bool(force_local),
+    }
+    handshake_data: Mapping[str, object] | None = None
+    query_data: Mapping[str, object] | None = None
+    failure_reasons: list[str] = []
+
+    if client and not force_local:
+        session_id = payload.get("session_id", "")
+        try:
+            handshake_data = client.handshake(session_id)
+        except Exception as exc:  # noqa: BLE001 - defensive catch per requirements
+            LOGGER.warning(
+                "Autoresearch handshake failed; using fixture telemetry.",
+                exc_info=exc,
+                extra={"session_id": session_id},
+            )
+            failure_reasons.append("handshake-error")
+        else:
+            if handshake_data:
+                connector_state["mode"] = "live"
+            else:
+                failure_reasons.append("handshake-empty")
+
+        if connector_state["mode"] == "live":
+            try:
+                query_data = client.fetch_trace_updates(query, session_id=session_id)
+            except Exception as exc:  # noqa: BLE001 - defensive catch per requirements
+                LOGGER.warning(
+                    "Autoresearch SPARQL query failed; using fixture telemetry.",
+                    exc_info=exc,
+                    extra={"session_id": session_id},
+                )
+                failure_reasons.append("query-error")
+                connector_state["mode"] = "fixture"
+            else:
+                if not query_data:
+                    connector_state["mode"] = "fixture"
+                    failure_reasons.append("query-empty")
+    else:
+        if force_local:
+            failure_reasons.append("forced-local")
+        elif connectors_requested:
+            failure_reasons.append("client-unavailable")
+        elif not client and not connectors_requested:
+            failure_reasons.append("not-configured")
+
+    if failure_reasons:
+        connector_state["reasons"] = failure_reasons
+
+    if handshake_data is not None:
+        connector_state["handshake"] = handshake_data
+    if query_data is not None:
+        connector_state["query"] = query_data
+
+    if connector_state.get("mode") != "live":
+        LOGGER.info(
+            "Autoresearch connectors unavailable; overlay running in fixture mode.",
+            extra={
+                "forced_local": force_local,
+                "connectors_requested": connectors_requested,
+                "reasons": failure_reasons,
+            },
+        )
+
+    payload["connector_status"] = connector_state
 
     secret = os.getenv(signature_env, "")
     envelope: SignatureEnvelope | None = None
@@ -72,6 +169,21 @@ def _write_research_telemetry(
         encoding="utf-8",
     )
     return envelope
+
+
+def _build_autoresearch_client(*, enabled: bool) -> AutoresearchClient | None:
+    """Construct an Autoresearch client instance when connectors are configured."""
+
+    try:
+        mcp = AutoresearchMCPConnector()
+        a2a = AutoresearchA2AConnector()
+        return AutoresearchClient(mcp, a2a, enabled=enabled)
+    except Exception as exc:  # noqa: BLE001 - defensive guard against optional deps
+        LOGGER.warning(
+            "Failed to initialise Autoresearch connectors; continuing in fixture mode.",
+            exc_info=exc,
+        )
+        return None
 
 
 def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
@@ -96,6 +208,11 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
         "--research-overlays",
         action="store_true",
         help="Enable external research telemetry overlays (Autoresearch upstream).",
+    )
+    parser.add_argument(
+        "--force-local-research",
+        action="store_true",
+        help="Bypass Autoresearch connectors and emit fixture telemetry only.",
     )
     parser.add_argument(
         "--research-persona",
@@ -133,6 +250,11 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
         "DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS",
         env.get(LEGACY_OVERLAY_ENV, ""),
     )
+    force_local_env = env.get(FORCE_LOCAL_ENV, "")
+    force_local = args.force_local_research or (
+        isinstance(force_local_env, str)
+        and force_local_env.lower() in {"1", "true", "yes", "on"}
+    )
     persona_specs: list[ResearchPersonaSpec] = []
     if args.research_personas:
         seen: set[str] = set()
@@ -143,11 +265,22 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
                 seen.add(spec.slug)
     telemetry_path = args.telemetry_path or (repo_root / "traceability_external_research.json")
     if overlays_enabled:
+        connectors_flag = env.get(CONNECTORS_ENABLED_ENV, "")
+        connectors_requested = bool(
+            (isinstance(connectors_flag, str) and connectors_flag.lower() in {"1", "true", "yes", "on"})
+            or env.get(AUTORESEARCH_API_BASE_ENV)
+        )
+        client: AutoresearchClient | None = None
+        if not force_local and connectors_requested:
+            client = _build_autoresearch_client(enabled=True)
         envelope = _write_research_telemetry(
             trace_path,
             telemetry_path,
             signature_env=args.signature_env,
             personas=persona_specs,
+            client=client,
+            force_local=force_local,
+            connectors_requested=connectors_requested,
         )
         env["DEVSYNTH_EXTERNAL_RESEARCH_OVERLAYS"] = "1"
         env["DEVSYNTH_EXTERNAL_RESEARCH_TELEMETRY"] = str(telemetry_path)
@@ -155,6 +288,14 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
         env[LEGACY_OVERLAY_ENV] = "1"
         env[LEGACY_TELEMETRY_ENV] = str(telemetry_path)
         env[LEGACY_SIGNATURE_POINTER] = args.signature_env
+        connector_mode = "fixture"
+        if client and not force_local:
+            try:
+                telemetry = json.loads(telemetry_path.read_text(encoding="utf-8"))
+                connector_mode = telemetry.get("connector_status", {}).get("mode", "fixture")
+            except Exception:  # noqa: BLE001 - defensive read guard
+                connector_mode = "fixture"
+        env["DEVSYNTH_EXTERNAL_RESEARCH_MODE"] = connector_mode
         if envelope is not None:
             env.setdefault(args.signature_env, os.getenv(args.signature_env, ""))
             if args.signature_env == DEFAULT_SIGNATURE_ENV:
