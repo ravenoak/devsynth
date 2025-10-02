@@ -1,19 +1,124 @@
-"""
-Unit tests for the fallback mechanisms for memory store failures.
-"""
+"""Unit tests for the fallback mechanisms for memory store failures."""
 
+from __future__ import annotations
+
+import json
+from copy import deepcopy
+from dataclasses import asdict
 from datetime import datetime
-from unittest.mock import MagicMock, call, patch
+from typing import Any
 
 import pytest
 
 from devsynth.application.memory.fallback import (
     FallbackError,
     FallbackStore,
+    PendingOperation,
     StoreStatus,
     with_fallback,
 )
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+
+class TypedMemoryStore:
+    """Simple in-memory store implementing the MemoryStore protocol."""
+
+    def __init__(self, name: str, *, items: list[MemoryItem] | None = None) -> None:
+        self.name = name
+        self.items: dict[str, MemoryItem] = {
+            item.id: deepcopy(item) for item in items or []
+        }
+        self.calls: dict[str, int] = {
+            "store": 0,
+            "retrieve": 0,
+            "search": 0,
+            "delete": 0,
+            "get_all_items": 0,
+            "begin_transaction": 0,
+            "commit_transaction": 0,
+            "rollback_transaction": 0,
+            "is_transaction_active": 0,
+        }
+        self._failures: dict[str, list[Exception | None]] = {}
+        self._tx_counter = 0
+        self._active_transactions: set[str] = set()
+
+    def set_failure(self, method: str, exc: Exception) -> None:
+        self._failures[method] = [exc]
+
+    def set_failure_sequence(
+        self, method: str, sequence: list[Exception | None]
+    ) -> None:
+        self._failures[method] = list(sequence)
+
+    def clear_failures(self) -> None:
+        self._failures.clear()
+
+    def _consume_failure(self, method: str) -> None:
+        queue = self._failures.get(method)
+        if not queue:
+            return
+        exc = queue.pop(0)
+        if not queue:
+            self._failures.pop(method, None)
+        if exc is not None:
+            raise exc
+
+    def store(self, item: MemoryItem) -> str:
+        self.calls["store"] += 1
+        self._consume_failure("store")
+        stored = deepcopy(item)
+        if not stored.id:
+            stored.id = f"{self.name}-{len(self.items) + 1}"
+        self.items[stored.id] = stored
+        return stored.id
+
+    def retrieve(self, item_id: str) -> MemoryItem:
+        self.calls["retrieve"] += 1
+        self._consume_failure("retrieve")
+        if item_id not in self.items:
+            raise KeyError(f"Item {item_id} not found")
+        return deepcopy(self.items[item_id])
+
+    def search(self, query: dict[str, Any]) -> list[MemoryItem]:
+        self.calls["search"] += 1
+        self._consume_failure("search")
+        return [deepcopy(item) for item in self.items.values()]
+
+    def delete(self, item_id: str) -> bool:
+        self.calls["delete"] += 1
+        self._consume_failure("delete")
+        return self.items.pop(item_id, None) is not None
+
+    def get_all_items(self) -> list[MemoryItem]:
+        self.calls["get_all_items"] += 1
+        self._consume_failure("get_all_items")
+        return [deepcopy(item) for item in self.items.values()]
+
+    def begin_transaction(self) -> str:
+        self.calls["begin_transaction"] += 1
+        self._consume_failure("begin_transaction")
+        self._tx_counter += 1
+        tx = f"{self.name}-tx-{self._tx_counter}"
+        self._active_transactions.add(tx)
+        return tx
+
+    def commit_transaction(self, transaction_id: str) -> bool:
+        self.calls["commit_transaction"] += 1
+        self._consume_failure("commit_transaction")
+        self._active_transactions.discard(transaction_id)
+        return True
+
+    def rollback_transaction(self, transaction_id: str) -> bool:
+        self.calls["rollback_transaction"] += 1
+        self._consume_failure("rollback_transaction")
+        self._active_transactions.discard(transaction_id)
+        return True
+
+    def is_transaction_active(self, transaction_id: str) -> bool:
+        self.calls["is_transaction_active"] += 1
+        self._consume_failure("is_transaction_active")
+        return transaction_id in self._active_transactions
 
 
 @pytest.fixture
@@ -30,64 +135,30 @@ def memory_item():
 
 @pytest.fixture
 def primary_store():
-    """Create a mock primary store."""
-    store = MagicMock()
-    store.store.return_value = "test-item-1"
-    store.retrieve.return_value = MemoryItem(
-        id="test-item-1", content="This is a test item", memory_type=MemoryType.WORKING
+    """Create a typed primary store."""
+
+    base_item = MemoryItem(
+        id="test-item-1",
+        content="This is a test item",
+        memory_type=MemoryType.WORKING,
+        metadata={"test": "value"},
+        created_at=datetime.now(),
     )
-    store.search.return_value = [
-        MemoryItem(
-            id="test-item-1",
-            content="This is a test item",
-            memory_type=MemoryType.WORKING,
-        )
-    ]
-    store.delete.return_value = True
-    store.get_all_items.return_value = [
-        MemoryItem(
-            id="test-item-1",
-            content="This is a test item",
-            memory_type=MemoryType.WORKING,
-        )
-    ]
-    store.begin_transaction.return_value = "tx-1"
-    store.commit_transaction.return_value = True
-    store.rollback_transaction.return_value = True
-    store.is_transaction_active.return_value = True
-    return store
+    return TypedMemoryStore("primary", items=[base_item])
 
 
 @pytest.fixture
 def fallback_store():
-    """Create a mock fallback store."""
-    store = MagicMock()
-    store.store.return_value = "test-item-1"
-    store.retrieve.return_value = MemoryItem(
+    """Create a typed fallback store."""
+
+    fallback_item = MemoryItem(
         id="test-item-1",
         content="This is a test item from fallback",
         memory_type=MemoryType.WORKING,
+        metadata={"test": "value", "source": "fallback"},
+        created_at=datetime.now(),
     )
-    store.search.return_value = [
-        MemoryItem(
-            id="test-item-1",
-            content="This is a test item from fallback",
-            memory_type=MemoryType.WORKING,
-        )
-    ]
-    store.delete.return_value = True
-    store.get_all_items.return_value = [
-        MemoryItem(
-            id="test-item-1",
-            content="This is a test item from fallback",
-            memory_type=MemoryType.WORKING,
-        )
-    ]
-    store.begin_transaction.return_value = "tx-1"
-    store.commit_transaction.return_value = True
-    store.rollback_transaction.return_value = True
-    store.is_transaction_active.return_value = True
-    return store
+    return TypedMemoryStore("fallback", items=[fallback_item])
 
 
 class TestFallbackStore:
@@ -114,22 +185,22 @@ class TestFallbackStore:
         )
         item_id = store.store(memory_item)
         assert item_id == "test-item-1"
-        primary_store.store.assert_called_once()
-        fallback_store.store.assert_called_once()
+        assert primary_store.calls["store"] == 1
+        assert fallback_store.calls["store"] == 1
         assert store.store_status[primary_store] == StoreStatus.AVAILABLE
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_store_primary_failure(self, primary_store, fallback_store, memory_item):
         """Test storing an item when the primary store fails."""
-        primary_store.store.side_effect = ValueError("Primary store failed")
+        primary_store.set_failure("store", ValueError("Primary store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
         item_id = store.store(memory_item)
         assert item_id == "test-item-1"
-        primary_store.store.assert_called_once()
-        fallback_store.store.assert_called_once()
+        assert primary_store.calls["store"] == 1
+        assert fallback_store.calls["store"] == 1
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
         assert len(store.pending_operations) == 1
@@ -139,8 +210,8 @@ class TestFallbackStore:
     @pytest.mark.medium
     def test_store_all_failures(self, primary_store, fallback_store, memory_item):
         """Test storing an item when all stores fail."""
-        primary_store.store.side_effect = ValueError("Primary store failed")
-        fallback_store.store.side_effect = ValueError("Fallback store failed")
+        primary_store.set_failure("store", ValueError("Primary store failed"))
+        fallback_store.set_failure("store", ValueError("Fallback store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -159,46 +230,49 @@ class TestFallbackStore:
         item = store.retrieve("test-item-1")
         assert item.id == "test-item-1"
         assert item.content == "This is a test item"
-        primary_store.retrieve.assert_called_once_with("test-item-1")
-        fallback_store.retrieve.assert_not_called()
+        assert isinstance(item.metadata, dict)
+        assert primary_store.calls["retrieve"] == 1
+        assert fallback_store.calls["retrieve"] == 0
         assert store.store_status[primary_store] == StoreStatus.AVAILABLE
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_retrieve_primary_failure(self, primary_store, fallback_store):
         """Test retrieving an item when the primary store fails."""
-        primary_store.retrieve.side_effect = ValueError("Primary store failed")
+        primary_store.set_failure("retrieve", ValueError("Primary store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
         item = store.retrieve("test-item-1")
         assert item.id == "test-item-1"
         assert item.content == "This is a test item from fallback"
-        primary_store.retrieve.assert_called_once_with("test-item-1")
-        fallback_store.retrieve.assert_called_once_with("test-item-1")
+        assert isinstance(item.metadata, dict)
+        assert primary_store.calls["retrieve"] == 1
+        assert fallback_store.calls["retrieve"] == 1
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_retrieve_primary_not_found(self, primary_store, fallback_store):
         """Test retrieving an item when the primary store doesn't find it."""
-        primary_store.retrieve.side_effect = KeyError("Item not found")
+        primary_store.set_failure("retrieve", KeyError("Item not found"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
         item = store.retrieve("test-item-1")
         assert item.id == "test-item-1"
         assert item.content == "This is a test item from fallback"
-        primary_store.retrieve.assert_called_once_with("test-item-1")
-        fallback_store.retrieve.assert_called_once_with("test-item-1")
+        assert isinstance(item.metadata, dict)
+        assert primary_store.calls["retrieve"] == 1
+        assert fallback_store.calls["retrieve"] == 1
         assert store.store_status[primary_store] == StoreStatus.AVAILABLE
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_retrieve_all_failures(self, primary_store, fallback_store):
         """Test retrieving an item when all stores fail."""
-        primary_store.retrieve.side_effect = ValueError("Primary store failed")
-        fallback_store.retrieve.side_effect = ValueError("Fallback store failed")
+        primary_store.set_failure("retrieve", ValueError("Primary store failed"))
+        fallback_store.set_failure("retrieve", ValueError("Fallback store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -218,15 +292,15 @@ class TestFallbackStore:
         assert len(items) == 1
         assert items[0].id == "test-item-1"
         assert items[0].content == "This is a test item"
-        primary_store.search.assert_called_once_with({"query": "test"})
-        fallback_store.search.assert_not_called()
+        assert primary_store.calls["search"] == 1
+        assert fallback_store.calls["search"] == 0
         assert store.store_status[primary_store] == StoreStatus.AVAILABLE
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_search_primary_failure(self, primary_store, fallback_store):
         """Test searching for items when the primary store fails."""
-        primary_store.search.side_effect = ValueError("Primary store failed")
+        primary_store.set_failure("search", ValueError("Primary store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -234,16 +308,16 @@ class TestFallbackStore:
         assert len(items) == 1
         assert items[0].id == "test-item-1"
         assert items[0].content == "This is a test item from fallback"
-        primary_store.search.assert_called_once_with({"query": "test"})
-        fallback_store.search.assert_called_once_with({"query": "test"})
+        assert primary_store.calls["search"] == 1
+        assert fallback_store.calls["search"] == 1
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_search_all_failures(self, primary_store, fallback_store):
         """Test searching for items when all stores fail."""
-        primary_store.search.side_effect = ValueError("Primary store failed")
-        fallback_store.search.side_effect = ValueError("Fallback store failed")
+        primary_store.set_failure("search", ValueError("Primary store failed"))
+        fallback_store.set_failure("search", ValueError("Fallback store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -261,22 +335,22 @@ class TestFallbackStore:
         )
         result = store.delete("test-item-1")
         assert result is True
-        primary_store.delete.assert_called_once_with("test-item-1")
-        fallback_store.delete.assert_called_once_with("test-item-1")
+        assert primary_store.calls["delete"] == 1
+        assert fallback_store.calls["delete"] == 1
         assert store.store_status[primary_store] == StoreStatus.AVAILABLE
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_delete_primary_failure(self, primary_store, fallback_store):
         """Test deleting an item when the primary store fails."""
-        primary_store.delete.side_effect = ValueError("Primary store failed")
+        primary_store.set_failure("delete", ValueError("Primary store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
         result = store.delete("test-item-1")
         assert result is True
-        primary_store.delete.assert_called_once_with("test-item-1")
-        fallback_store.delete.assert_called_once_with("test-item-1")
+        assert primary_store.calls["delete"] == 1
+        assert fallback_store.calls["delete"] == 1
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
         assert len(store.pending_operations) == 1
@@ -286,8 +360,8 @@ class TestFallbackStore:
     @pytest.mark.medium
     def test_delete_all_failures(self, primary_store, fallback_store):
         """Test deleting an item when all stores fail."""
-        primary_store.delete.side_effect = ValueError("Primary store failed")
-        fallback_store.delete.side_effect = ValueError("Fallback store failed")
+        primary_store.set_failure("delete", ValueError("Primary store failed"))
+        fallback_store.set_failure("delete", ValueError("Fallback store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -306,15 +380,17 @@ class TestFallbackStore:
         assert len(items) == 1
         assert items[0].id == "test-item-1"
         assert items[0].content == "This is a test item"
-        primary_store.get_all_items.assert_called_once()
-        fallback_store.get_all_items.assert_not_called()
+        assert primary_store.calls["get_all_items"] == 1
+        assert fallback_store.calls["get_all_items"] == 0
         assert store.store_status[primary_store] == StoreStatus.AVAILABLE
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_get_all_items_primary_failure(self, primary_store, fallback_store):
         """Test getting all items when the primary store fails."""
-        primary_store.get_all_items.side_effect = ValueError("Primary store failed")
+        primary_store.set_failure(
+            "get_all_items", ValueError("Primary store failed")
+        )
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -322,16 +398,20 @@ class TestFallbackStore:
         assert len(items) == 1
         assert items[0].id == "test-item-1"
         assert items[0].content == "This is a test item from fallback"
-        primary_store.get_all_items.assert_called_once()
-        fallback_store.get_all_items.assert_called_once()
+        assert primary_store.calls["get_all_items"] == 1
+        assert fallback_store.calls["get_all_items"] == 1
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_get_all_items_all_failures(self, primary_store, fallback_store):
         """Test getting all items when all stores fail."""
-        primary_store.get_all_items.side_effect = ValueError("Primary store failed")
-        fallback_store.get_all_items.side_effect = ValueError("Fallback store failed")
+        primary_store.set_failure(
+            "get_all_items", ValueError("Primary store failed")
+        )
+        fallback_store.set_failure(
+            "get_all_items", ValueError("Fallback store failed")
+        )
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -349,22 +429,24 @@ class TestFallbackStore:
         )
         transaction_id = store.begin_transaction()
         assert transaction_id == "tx-1"
-        primary_store.begin_transaction.assert_called_once()
-        fallback_store.begin_transaction.assert_called_once()
+        assert primary_store.calls["begin_transaction"] == 1
+        assert fallback_store.calls["begin_transaction"] == 1
         assert store.store_status[primary_store] == StoreStatus.AVAILABLE
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_begin_transaction_primary_failure(self, primary_store, fallback_store):
         """Test beginning a transaction when the primary store fails."""
-        primary_store.begin_transaction.side_effect = ValueError("Primary store failed")
+        primary_store.set_failure(
+            "begin_transaction", ValueError("Primary store failed")
+        )
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
         transaction_id = store.begin_transaction()
         assert transaction_id == "tx-1"
-        primary_store.begin_transaction.assert_called_once()
-        fallback_store.begin_transaction.assert_called_once()
+        assert primary_store.calls["begin_transaction"] == 1
+        assert fallback_store.calls["begin_transaction"] == 1
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
         assert len(store.pending_operations) == 1
@@ -374,9 +456,11 @@ class TestFallbackStore:
     @pytest.mark.medium
     def test_begin_transaction_all_failures(self, primary_store, fallback_store):
         """Test beginning a transaction when all stores fail."""
-        primary_store.begin_transaction.side_effect = ValueError("Primary store failed")
-        fallback_store.begin_transaction.side_effect = ValueError(
-            "Fallback store failed"
+        primary_store.set_failure(
+            "begin_transaction", ValueError("Primary store failed")
+        )
+        fallback_store.set_failure(
+            "begin_transaction", ValueError("Fallback store failed")
         )
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
@@ -395,24 +479,24 @@ class TestFallbackStore:
         )
         result = store.commit_transaction("tx-1")
         assert result is True
-        primary_store.commit_transaction.assert_called_once_with("tx-1")
-        fallback_store.commit_transaction.assert_called_once_with("tx-1")
+        assert primary_store.calls["commit_transaction"] == 1
+        assert fallback_store.calls["commit_transaction"] == 1
         assert store.store_status[primary_store] == StoreStatus.AVAILABLE
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
 
     @pytest.mark.medium
     def test_commit_transaction_primary_failure(self, primary_store, fallback_store):
         """Test committing a transaction when the primary store fails."""
-        primary_store.commit_transaction.side_effect = ValueError(
-            "Primary store failed"
+        primary_store.set_failure(
+            "commit_transaction", ValueError("Primary store failed")
         )
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
         result = store.commit_transaction("tx-1")
         assert result is True
-        primary_store.commit_transaction.assert_called_once_with("tx-1")
-        fallback_store.commit_transaction.assert_called_once_with("tx-1")
+        assert primary_store.calls["commit_transaction"] == 1
+        assert fallback_store.calls["commit_transaction"] == 1
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
         assert len(store.pending_operations) == 1
@@ -422,11 +506,11 @@ class TestFallbackStore:
     @pytest.mark.medium
     def test_commit_transaction_all_failures(self, primary_store, fallback_store):
         """Test committing a transaction when all stores fail."""
-        primary_store.commit_transaction.side_effect = ValueError(
-            "Primary store failed"
+        primary_store.set_failure(
+            "commit_transaction", ValueError("Primary store failed")
         )
-        fallback_store.commit_transaction.side_effect = ValueError(
-            "Fallback store failed"
+        fallback_store.set_failure(
+            "commit_transaction", ValueError("Fallback store failed")
         )
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
@@ -441,16 +525,16 @@ class TestFallbackStore:
         self, primary_store, fallback_store, memory_item
     ):
         """Test reconciling pending operations when the primary store becomes available."""
-        primary_store.store.side_effect = [ValueError("Primary store failed"), None]
+        primary_store.set_failure_sequence(
+            "store", [ValueError("Primary store failed"), None]
+        )
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
         store.store(memory_item)
         assert len(store.pending_operations) == 1
-        primary_store.reset_mock()
-        primary_store.store.side_effect = None
         store._reconcile_pending_operations()
-        primary_store.store.assert_called_once()
+        assert primary_store.calls["store"] >= 2
         assert len(store.pending_operations) == 0
 
     @pytest.mark.medium
@@ -468,13 +552,58 @@ class TestFallbackStore:
         self, primary_store, fallback_store, memory_item
     ):
         """Test getting the number of pending operations."""
-        primary_store.store.side_effect = ValueError("Primary store failed")
+        primary_store.set_failure("store", ValueError("Primary store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
         store.store(memory_item)
         count = store.get_pending_operations_count()
         assert count == 1
+
+    @pytest.mark.medium
+    def test_pending_operation_serialization_round_trip(
+        self, primary_store, fallback_store, memory_item
+    ):
+        """Pending operations serialize and hydrate with typed metadata payloads."""
+
+        primary_store.set_failure("store", ValueError("Primary store failed"))
+        store = FallbackStore(
+            primary_store=primary_store, fallback_stores=[fallback_store]
+        )
+        store.store(memory_item)
+
+        pending = store.pending_operations[0]
+        serialized_payload = asdict(pending)
+        if pending.item is not None:
+            serialized_payload["item"] = pending.item.to_dict()
+
+        serialized = json.dumps(serialized_payload)
+        decoded: dict[str, Any] = json.loads(serialized)
+
+        item_payload = decoded.get("item")
+        restored_item = (
+            MemoryItem.from_dict(item_payload) if item_payload is not None else None
+        )
+
+        restored_operation = PendingOperation(
+            operation=decoded["operation"],
+            timestamp=float(decoded["timestamp"]),
+            item=restored_item,
+            item_id=decoded.get("item_id"),
+            transaction_id=decoded.get("transaction_id"),
+        )
+
+        store.pending_operations = [restored_operation]
+        primary_store.clear_failures()
+        store._reconcile_pending_operations()
+
+        assert not store.pending_operations
+        assert isinstance(restored_operation.item, MemoryItem)
+        assert isinstance(restored_operation.item.metadata, dict)
+        for value in restored_operation.item.metadata.values():
+            assert isinstance(
+                value, (str, int, float, bool, type(None), dict, list)
+            )
 
 
 @pytest.mark.medium

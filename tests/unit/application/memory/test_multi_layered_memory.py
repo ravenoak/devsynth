@@ -205,6 +205,70 @@ class TestMultiLayeredMemorySystem:
         assert memory_system.cache_stats["misses"] == 1
 
     @pytest.mark.medium
+    def test_store_preserves_typed_metadata(self, memory_system):
+        """Stored items retain metadata mappings with supported value types.",
+
+        ReqID: N/A"""
+
+        metadata = {"score": 0.42, "tags": ["alpha", "beta"]}
+        memory_item = MemoryItem(
+            id="typed-1",
+            content="Metadata aware",
+            memory_type=MemoryType.CONTEXT,
+            metadata=metadata,
+        )
+
+        item_id = memory_system.store(memory_item)
+        retrieved = memory_system.retrieve(item_id)
+
+        assert isinstance(retrieved.metadata, dict)
+        assert retrieved.metadata is metadata
+        assert isinstance(retrieved.metadata["tags"], list)
+        assert retrieved.metadata["score"] == pytest.approx(0.42)
+
+    @pytest.mark.medium
+    def test_cache_round_trip_keeps_metadata_mapping(self, memory_system):
+        """Cache hits should not alter metadata typing.",
+
+        ReqID: N/A"""
+
+        memory_system.enable_tiered_cache(max_size=5)
+        metadata = {"count": 1, "details": {"phase": "EXPAND"}}
+        memory_item = MemoryItem(
+            id="cache-1",
+            content="Cached",
+            memory_type=MemoryType.CONVERSATION,
+            metadata=metadata,
+        )
+
+        item_id = memory_system.store(memory_item)
+        first = memory_system.retrieve(item_id)
+        second = memory_system.retrieve(item_id)
+
+        assert first is second
+        assert isinstance(second.metadata, dict)
+        assert isinstance(second.metadata["details"], dict)
+        assert second.metadata["details"]["phase"] == "EXPAND"
+
+    @pytest.mark.medium
+    def test_query_returns_metadata_rich_items(
+        self, memory_system, sample_memory_items
+    ):
+        """Layer queries yield items exposing typed metadata mappings.",
+
+        ReqID: N/A"""
+
+        for item in sample_memory_items.values():
+            memory_system.store(item)
+
+        semantic_items = memory_system.query({"layer": "semantic"})
+        assert semantic_items
+        for entry in semantic_items:
+            assert isinstance(entry.metadata, dict)
+            for value in entry.metadata.values():
+                assert isinstance(value, (str, int, float, bool, type(None), dict, list))
+
+    @pytest.mark.medium
     def test_get_items_by_layer_succeeds(self, memory_system, sample_memory_items):
         """Test getting items by layer.
 
