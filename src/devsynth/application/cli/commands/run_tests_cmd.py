@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 import shlex
-from typing import Sequence
 
 import typer
 
@@ -166,7 +165,7 @@ def run_tests_cmd(
         "--target",
         help="Test target to run",
     ),
-    speeds: Sequence[str] | None = typer.Option(
+    speeds: list[str] | None = typer.Option(
         None,
         "--speed",
         help="Speed categories to run (can be used multiple times)",
@@ -193,7 +192,7 @@ def run_tests_cmd(
     maxfail: int | None = typer.Option(
         None, "--maxfail", help="Exit after this many failures"
     ),
-    features: Sequence[str] | None = typer.Option(
+    features: list[str] | None = typer.Option(
         None,
         "--feature",
         help="Feature flags to enable/disable (format: name or name=false)",
@@ -213,7 +212,7 @@ def run_tests_cmd(
         ),
     ),
     *,
-    bridge: UXBridge | None = typer.Option(None, hidden=True),
+    bridge: str | None = typer.Option(None, hidden=True),
 ) -> None:
     """Run DevSynth test suites.
 

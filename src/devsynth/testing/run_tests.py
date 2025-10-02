@@ -7,6 +7,8 @@ intended for use by helper scripts such as ``scripts/manual_cli_testing.py``.
 
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
 import logging
 import os
@@ -101,6 +103,13 @@ TARGET_PATHS: dict[str, str] = {
 }
 
 logger = DevSynthLogger(__name__)
+
+_RESOURCE_NAME_PATTERN = re.compile(
+    r"requires_resource\((['\"])(?P<name>[^'\"]+)\1\)"
+)
+_RESOURCE_CALL_PATTERN = re.compile(
+    r"^requires_resource\((['\"])(?P<name>[^'\"]+)\1\)$"
+)
 
 
 def _reset_coverage_artifacts() -> None:
@@ -484,13 +493,69 @@ def _sanitize_node_ids(ids: list[str]) -> list[str]:
     return out
 
 
+def _normalize_keyword_filter(keyword_filter: str | None) -> str | None:
+    """Normalize keyword filters for cache fingerprints."""
+
+    if keyword_filter is None:
+        return None
+    normalized = " ".join(keyword_filter.split())
+    return normalized or None
+
+
+def _cache_key_suffix(keyword_filter: str | None) -> str:
+    """Return a filesystem-safe suffix for cache keys."""
+
+    if not keyword_filter:
+        return ""
+    digest = hashlib.sha256(keyword_filter.encode("utf-8")).hexdigest()
+    return f"kw-{digest[:16]}"
+
+
+def _strip_resource_markers(marker_expr: str) -> str:
+    """Remove ``requires_resource`` calls from a marker expression."""
+
+    if not marker_expr.strip():
+        return ""
+
+    tokens = re.split(r"(\band\b|\bor\b)", marker_expr)
+    cleaned_parts: list[str] = []
+    pending_connector: str | None = None
+
+    for token in tokens:
+        stripped = token.strip()
+        if not stripped:
+            continue
+        lowered = stripped.lower()
+        if lowered in {"and", "or"}:
+            pending_connector = lowered
+            continue
+        if _RESOURCE_CALL_PATTERN.match(stripped):
+            pending_connector = None
+            continue
+        if pending_connector and cleaned_parts:
+            cleaned_parts.append(pending_connector)
+        pending_connector = None
+        cleaned_parts.append(stripped)
+
+    return " ".join(cleaned_parts).strip()
+
+
 def collect_tests_with_cache(
-    target: str, speed_category: str | None = None
+    target: str,
+    speed_category: str | None = None,
+    *,
+    keyword_filter: str | None = None,
 ) -> list[str]:
-    print(
-        f"collect_tests_with_cache called for target: {target}, speed_category: {speed_category}"
-    )  # Debug print
-    """Collect tests for the given target and speed category."""
+    """Collect tests for the given target and speed category.
+
+    Args:
+        target: Logical test target such as ``unit-tests`` or ``all-tests``.
+        speed_category: Optional speed marker used to scope collection.
+        keyword_filter: Optional ``-k`` expression applied during collection.
+
+    Returns:
+        A list of pytest node identifiers matching the requested filters.
+    """
     test_path = TARGET_PATHS.get(target, TARGET_PATHS["all-tests"])
 
     # Build the marker expression we'll use and compute a simple fingerprint of
@@ -514,8 +579,11 @@ def collect_tests_with_cache(
                         continue
         return latest
 
+    normalized_filter = _normalize_keyword_filter(keyword_filter)
     latest_mtime = _latest_mtime(test_path)
-    cache_key = f"{target}_{speed_category or 'all'}"
+    base_cache_key = f"{target}_{speed_category or 'all'}"
+    suffix = _cache_key_suffix(normalized_filter)
+    cache_key = f"{base_cache_key}_{suffix}" if suffix else base_cache_key
     cache_file = (
         COLLECTION_CACHE_DIR / f"{cache_key}_tests.json"
     )  # Use Path object for cache_file
@@ -531,6 +599,9 @@ def collect_tests_with_cache(
                 "category_expr"
             )
             stored_test_path = cached_data.get("fingerprint", {}).get("test_path")
+            stored_keyword_filter = cached_data.get("fingerprint", {}).get(
+                "keyword_filter"
+            )
 
             cache_time = (
                 datetime.fromisoformat(stored_timestamp_str)
@@ -543,6 +614,7 @@ def collect_tests_with_cache(
                 (stored_mtime == latest_mtime)
                 and (stored_category_expr == category_expr)
                 and (stored_test_path == test_path)
+                and (stored_keyword_filter == normalized_filter)
             )
 
             if (
@@ -581,6 +653,9 @@ def collect_tests_with_cache(
         category_expr,
     ]
 
+    if normalized_filter:
+        collect_cmd.extend(["-k", normalized_filter])
+
     try:
         result = subprocess.run(
             collect_cmd,
@@ -608,6 +683,7 @@ def collect_tests_with_cache(
                 "latest_mtime": latest_mtime,
                 "category_expr": category_expr,
                 "test_path": test_path,
+                "keyword_filter": normalized_filter,
             },
         }
         with open(cache_file, "w") as f:
@@ -668,13 +744,44 @@ def run_tests(
     ensure_pytest_cov_plugin_env(env)
     ensure_pytest_bdd_plugin_env(env)
 
-    # Build marker expression
-    marker_parts = ["not memory_intensive"]
+    # Normalize requested speed categories; default to fast+medium for parity
+    # with the repository-wide pytest.ini when no explicit speeds are provided.
+    normalized_speeds: list[str] = []
     if speed_categories:
-        speed_expr = " or ".join(speed_categories)
-        marker_parts.append(f"({speed_expr})")
-    if extra_marker:
-        marker_parts.append(f"({extra_marker})")
+        for category in speed_categories:
+            if category not in normalized_speeds:
+                normalized_speeds.append(category)
+    else:
+        normalized_speeds = ["fast", "medium"]
+
+    # Build marker expression with deterministic ordering.
+    marker_parts = ["not memory_intensive"]
+    if normalized_speeds:
+        if len(normalized_speeds) == 1:
+            marker_parts.append(normalized_speeds[0])
+        else:
+            speed_expr = " or ".join(normalized_speeds)
+            marker_parts.append(f"({speed_expr})")
+
+    extra_marker_value = extra_marker or ""
+    cleaned_extra_marker = extra_marker_value
+    effective_keyword_filter = keyword_filter
+    if effective_keyword_filter is None and extra_marker_value:
+        resource_matches = [
+            match.group("name")
+            for match in _RESOURCE_NAME_PATTERN.finditer(extra_marker_value)
+        ]
+        if resource_matches:
+            unique_resources = list(dict.fromkeys(resource_matches))
+            effective_keyword_filter = " and ".join(unique_resources)
+            cleaned_extra_marker = _strip_resource_markers(extra_marker_value)
+    allow_gui_env = os.environ.get("DEVSYNTH_RESOURCE_WEBUI_AVAILABLE", "false")
+    allow_gui = allow_gui_env.strip().lower() in {"1", "true", "yes", "on"}
+    gui_requested = "gui" in extra_marker_value or "webui" in extra_marker_value
+    if cleaned_extra_marker:
+        marker_parts.append(f"({cleaned_extra_marker})")
+    if not allow_gui and not gui_requested:
+        marker_parts.append("not gui")
 
     marker_expr = " and ".join(marker_parts)
 
@@ -685,29 +792,55 @@ def run_tests(
             f"Available targets are: {', '.join(TARGET_PATHS.keys())}"
         )
 
-    # Collect tests
+    # Collect tests for each requested speed category and merge results.
+    collected_node_ids: list[str] = []
+    collect_callable = collect_tests_with_cache
     try:
-        collected_node_ids = collect_tests_with_cache(
-            target, speed_categories[0] if speed_categories else None
-        )
+        collect_signature = inspect.signature(collect_callable)
+    except (TypeError, ValueError):  # pragma: no cover - fallback for builtins
+        supports_keyword_filter = True
+    else:
+        supports_keyword_filter = "keyword_filter" in collect_signature.parameters
+
+    try:
+        for category in normalized_speeds or [None]:
+            if supports_keyword_filter:
+                nodes = collect_callable(
+                    target,
+                    category,
+                    keyword_filter=effective_keyword_filter,
+                )
+            else:  # pragma: no cover - compatibility for patched callables
+                nodes = collect_callable(target, category)
+            collected_node_ids.extend(nodes)
     except RuntimeError as e:
         return False, str(e)
+
+    # Deduplicate node identifiers while preserving order so marker filtering
+    # can run once per unique test path.
+    deduped_nodes: list[str] = []
+    seen_nodes: set[str] = set()
+    for node in collected_node_ids:
+        if node not in seen_nodes:
+            seen_nodes.add(node)
+            deduped_nodes.append(node)
+    collected_node_ids = deduped_nodes
 
     marker_fallback = False
     if not collected_node_ids:
         logger.info(
             "marker fallback triggered for target=%s (speeds=%s)",
             target,
-            ",".join(speed_categories or ["all"]),
+            ",".join(normalized_speeds or ["all"]),
         )
         marker_fallback = True
         collected_node_ids = [TARGET_PATHS[target]]
 
-    if segment and speed_categories and not marker_fallback:
+    if segment and normalized_speeds and not marker_fallback:
         # Segmented execution
         return _run_segmented_tests(
             target=target,
-            speed_categories=speed_categories,
+            speed_categories=normalized_speeds,
             marker_expr=marker_expr,
             node_ids=collected_node_ids,  # Pass collected node_ids
             verbose=verbose,
@@ -715,7 +848,7 @@ def run_tests(
             parallel=parallel,
             segment_size=segment_size or 50,
             maxfail=maxfail,
-            keyword_filter=keyword_filter,
+            keyword_filter=effective_keyword_filter,
             env=env,
         )
 
@@ -727,7 +860,7 @@ def run_tests(
         report=report,
         parallel=parallel,
         maxfail=maxfail,
-        keyword_filter=keyword_filter,
+        keyword_filter=effective_keyword_filter,
         env=env,
     )
     _ensure_coverage_artifacts()

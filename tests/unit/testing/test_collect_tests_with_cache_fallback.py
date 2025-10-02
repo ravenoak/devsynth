@@ -15,7 +15,7 @@ def test_collect_uses_cached_and_prunes_when_collection_empty(monkeypatch, tmp_p
     monkeypatch.setattr(rt, "COLLECTION_CACHE_DIR", str(tmp_path))
 
     # Build the exact filename expected by collect_tests_with_cache
-    expected_cache = tmp_path / "unit-tests_all_tests_tests.json"
+    expected_cache = tmp_path / "unit-tests_all_tests.json"
     expected_cache.write_text(
         "{\n"
         '  "timestamp": "2025-01-01T00:00:00",\n'
