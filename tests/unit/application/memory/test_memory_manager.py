@@ -2,6 +2,8 @@ import importlib.util
 import pathlib
 import sys
 import types
+from collections import UserDict
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -21,7 +23,44 @@ memory_manager_module = _load_module(
     PACKAGE_PATH / "memory_manager.py", "devsynth.application.memory.memory_manager"
 )
 MemoryManager = memory_manager_module.MemoryManager
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+
+class RecordingStore:
+
+    def __init__(self, name: str):
+        self.name = name
+        self.items: dict[str, MemoryItem] = {}
+        self.calls: dict[str, int] = {
+            "store": 0,
+            "retrieve_with_edrr_phase": 0,
+        }
+
+    def store(self, item: MemoryItem) -> str:
+        self.calls["store"] += 1
+        if not item.id:
+            item.id = f"{self.name}-{len(self.items) + 1}"
+        self.items[item.id] = item
+        return item.id
+
+    def retrieve_with_edrr_phase(
+        self,
+        item_type: MemoryType,
+        edrr_phase: str,
+        metadata: dict[str, object],
+    ) -> MemoryRecord:
+        self.calls["retrieve_with_edrr_phase"] += 1
+        stored = self.items.get(f"{item_type.value}-{edrr_phase}")
+        if stored is None:
+            stored = MemoryItem(
+                id=f"{item_type.value}-{edrr_phase}",
+                content={"phase": edrr_phase},
+                memory_type=item_type,
+                metadata={"edrr_phase": edrr_phase, "seen_at": datetime.utcnow()},
+            )
+            self.items[stored.id] = stored
+        return MemoryRecord(item=stored, metadata=metadata)
 
 
 @pytest.fixture(autouse=True)
@@ -109,6 +148,51 @@ class TestMemoryManagerStore:
         assert vector.stored
 
 
+class RecordingSyncManager:
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, MemoryItem]] = []
+
+    def update_item(self, store_key: str, item: MemoryItem) -> None:
+        self.calls.append((store_key, item))
+
+
+class TestMemoryManagerTyping:
+
+    @pytest.mark.medium
+    def test_store_with_edrr_phase_coerces_metadata_mapping(self):
+        adapters = {"tinydb": RecordingStore("tinydb")}
+        sync_manager = RecordingSyncManager()
+
+        metadata = UserDict({"origin": "suite"})
+        manager = MemoryManager(adapters=adapters, sync_manager=sync_manager)
+        item_id = manager.store_with_edrr_phase(
+            {"payload": True}, MemoryType.KNOWLEDGE, "EXPAND", metadata
+        )
+
+        assert isinstance(item_id, str)
+        assert sync_manager.calls, "sync manager should receive the stored item"
+
+        _, recorded_item = sync_manager.calls[0]
+        assert isinstance(recorded_item.metadata, dict)
+        assert recorded_item.metadata is not metadata
+        assert recorded_item.metadata["origin"] == "suite"
+        assert recorded_item.metadata["edrr_phase"] == "EXPAND"
+        for value in recorded_item.metadata.values():
+            assert isinstance(
+                value,
+                (
+                    str,
+                    int,
+                    float,
+                    bool,
+                    type(None),
+                    datetime,
+                    list,
+                    dict,
+                ),
+            )
+
 class TestMemoryManagerRetrieve:
     """Tests for the MemoryManagerRetrieve component.
 
@@ -153,6 +237,32 @@ class TestMemoryManagerRetrieve:
             "CODE", "EXPAND", {"cycle_id": "123"}
         )
         assert result == test_content
+
+    @pytest.mark.medium
+    def test_retrieve_with_edrr_phase_returns_typed_record(self):
+        adapter = RecordingStore("graph")
+        manager = MemoryManager(adapters={"graph": adapter})
+
+        record = manager.retrieve_with_edrr_phase(MemoryType.CODE, "REFINE")
+
+        assert isinstance(record, MemoryRecord)
+        assert adapter.calls["retrieve_with_edrr_phase"] == 1
+        assert isinstance(record.metadata, dict)
+        assert record.metadata["edrr_phase"] == "REFINE"
+        for value in record.metadata.values():
+            assert isinstance(
+                value,
+                (
+                    str,
+                    int,
+                    float,
+                    bool,
+                    type(None),
+                    datetime,
+                    list,
+                    dict,
+                ),
+            )
 
 
 class TestEmbedText:

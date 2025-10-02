@@ -21,6 +21,8 @@ from devsynth.application.collaboration.dto import (
     ConflictRecord,
     SynthesisArtifact,
 )
+from devsynth.application.memory.dto import MemoryRecord
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.domain.models.requirement import (
     Requirement,
     RequirementChange,
@@ -89,6 +91,31 @@ def _metadata_strategy() -> st.SearchStrategy[Mapping[str, Any]]:
         values=_json_value_strategy(),
         max_size=3,
     ).map(lambda data: dict(data))
+
+
+def memory_item_strategy() -> st.SearchStrategy[MemoryItem]:
+    identifiers = st.one_of(st.text(min_size=1, max_size=12), st.just(""))
+    contents = _json_value_strategy(max_leaves=3)
+    memory_types = st.sampled_from(list(MemoryType))
+    metadata = _metadata_strategy()
+    return st.builds(
+        MemoryItem,
+        id=identifiers,
+        content=contents,
+        memory_type=memory_types,
+        metadata=metadata,
+    )
+
+
+def memory_record_strategy() -> st.SearchStrategy[MemoryRecord]:
+    return st.builds(
+        MemoryRecord,
+        item=memory_item_strategy(),
+        similarity=st.none()
+        | st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False),
+        source=st.none() | _bounded_text(1, 16),
+        metadata=_metadata_strategy(),
+    )
 
 
 def _agent_opinion_record_strategy() -> st.SearchStrategy[AgentOpinionRecord]:
