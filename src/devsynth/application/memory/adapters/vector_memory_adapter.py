@@ -6,16 +6,18 @@ import importlib
 import uuid
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Protocol, TypedDict, TypeAlias, cast
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from numpy.typing import NDArray
 else:  # pragma: no cover - typing fallback for runtime
     NDArray = Any  # type: ignore[assignment,misc]
 
+VectorArray: TypeAlias = "NDArray[Any]"
+
 
 class _SupportsNorm(Protocol):
-    def norm(self, __x: Sequence[float] | NDArray[Any]) -> float:
+    def norm(self, __x: Sequence[float] | VectorArray) -> float:
         ...
 
 
@@ -25,11 +27,11 @@ class SupportsVectorOps(Protocol):
     linalg: _SupportsNorm
 
     def array(
-        self, __object: Sequence[float] | NDArray[Any], dtype: Any | None = ...
-    ) -> NDArray[Any]:
+        self, __object: Sequence[float] | VectorArray, dtype: Any | None = ...
+    ) -> VectorArray:
         ...
 
-    def dot(self, __a: NDArray[Any], __b: NDArray[Any], /) -> float:
+    def dot(self, __a: VectorArray, __b: VectorArray, /) -> float:
         ...
 
 
@@ -60,7 +62,8 @@ class VectorMemoryAdapter(VectorStoreProtocol):
     def __init__(self) -> None:
         """Initialize the Vector Memory Adapter."""
         self.vectors: dict[str, MemoryVector] = {}
-        self.embeddings: dict[str, NDArray[Any]] = {}
+        self.embeddings: dict[str, VectorArray] = {}
+        self._active_transactions: dict[str, _TransactionState] = {}
         logger.info("Vector Memory Adapter initialized")
 
     def store_vector(self, vector: MemoryVector) -> str:
@@ -212,9 +215,6 @@ class VectorMemoryAdapter(VectorStoreProtocol):
             transaction_id = str(uuid.uuid4())
         logger.debug(f"Beginning transaction {transaction_id} in VectorMemoryAdapter")
 
-        if not hasattr(self, "_active_transactions"):
-            self._active_transactions: dict[str, _TransactionState] = {}
-
         snapshot: dict[str, MemoryVector] = deepcopy(self.vectors)
 
         self._active_transactions[transaction_id] = {
@@ -244,10 +244,7 @@ class VectorMemoryAdapter(VectorStoreProtocol):
         )
 
         # Check if this is an active transaction
-        if (
-            not hasattr(self, "_active_transactions")
-            or transaction_id not in self._active_transactions
-        ):
+        if transaction_id not in self._active_transactions:
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,
@@ -276,11 +273,7 @@ class VectorMemoryAdapter(VectorStoreProtocol):
         logger.debug(f"Committing transaction {transaction_id} in VectorMemoryAdapter")
 
         # Check if this is an active transaction
-        if (
-            transaction_id is None
-            or not hasattr(self, "_active_transactions")
-            or transaction_id not in self._active_transactions
-        ):
+        if transaction_id is None or transaction_id not in self._active_transactions:
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,
@@ -311,11 +304,7 @@ class VectorMemoryAdapter(VectorStoreProtocol):
         )
 
         # Check if this is an active transaction
-        if (
-            transaction_id is None
-            or not hasattr(self, "_active_transactions")
-            or transaction_id not in self._active_transactions
-        ):
+        if transaction_id is None or transaction_id not in self._active_transactions:
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,

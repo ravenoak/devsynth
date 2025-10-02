@@ -6,6 +6,8 @@ using a graph-based approach with RDFLib. It integrates with RDFLibStore for enh
 functionality and improved integration between different memory stores.
 """
 
+from __future__ import annotations
+
 import importlib
 import json
 import os
@@ -14,7 +16,7 @@ from collections import deque
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 from devsynth.exceptions import MemoryStoreError
 
@@ -61,8 +63,20 @@ except Exception:  # pragma: no cover - fallback when rdflib is missing
 logger = DevSynthLogger(__name__)
 
 # Define custom namespaces
-DEVSYNTH = Namespace("http://devsynth.ai/ontology/")
-MEMORY = Namespace("http://devsynth.ai/memory/")
+if Namespace is not None:
+    _devsynth_namespace = Namespace("http://devsynth.ai/ontology/")
+    _memory_namespace = Namespace("http://devsynth.ai/memory/")
+else:  # pragma: no cover - Namespace unavailable without rdflib
+    _devsynth_namespace = None
+    _memory_namespace = None
+
+DEVSYNTH = cast("NamespaceType", _devsynth_namespace)
+MEMORY = cast("NamespaceType", _memory_namespace)
+
+
+class _GraphTransactionState(TypedDict):
+    snapshot: str
+    prepared: bool
 
 
 class GraphMemoryAdapter(MemoryStore):
@@ -79,6 +93,44 @@ class GraphMemoryAdapter(MemoryStore):
 
     backend_type = "graph"
 
+    @staticmethod
+    def _ensure_core_dependencies() -> None:
+        if Graph is None or URIRef is None or Literal is None or RDF is None:
+            raise MemoryStoreError(
+                "GraphMemoryAdapter requires the 'rdflib' package. "
+                "Install it to enable graph memory support."
+            )
+        if _devsynth_namespace is None or _memory_namespace is None:
+            raise MemoryStoreError(
+                "Required RDF namespaces are unavailable. Ensure rdflib is installed."
+            )
+
+    @staticmethod
+    def _require_graph_class() -> type[GraphType]:
+        GraphMemoryAdapter._ensure_core_dependencies()
+        return cast("type[GraphType]", Graph)
+
+    @staticmethod
+    def _require_uri_ref_class() -> type[URIRefType]:
+        GraphMemoryAdapter._ensure_core_dependencies()
+        return cast("type[URIRefType]", URIRef)
+
+    def _create_graph_instance(self) -> GraphType:
+        graph_cls = self._require_graph_class()
+        return graph_cls()
+
+    def _bind_default_namespaces(self) -> None:
+        self.graph.bind("devsynth", DEVSYNTH)
+        self.graph.bind("memory", MEMORY)
+        if FOAF is not None:
+            self.graph.bind("foaf", FOAF)
+        if DC is not None:
+            self.graph.bind("dc", DC)
+
+    def _memory_uri(self, identifier: str | uuid.UUID) -> URIRefType:
+        uri_cls = self._require_uri_ref_class()
+        return uri_cls(f"{MEMORY}{str(identifier)}")
+
     def __init__(self, base_path: str | None = None, use_rdflib_store: bool = False):
         """
         Initialize the Graph Memory Adapter.
@@ -90,8 +142,11 @@ class GraphMemoryAdapter(MemoryStore):
                              If True, a RDFLibStore instance will be created and used
                              for advanced operations.
         """
+        self._ensure_core_dependencies()
+
         self.base_path = base_path
         self.use_rdflib_store = use_rdflib_store
+        self._active_transactions: dict[str, _GraphTransactionState] = {}
         self._transaction_stack: list[str] = []
 
         if use_rdflib_store and base_path:
@@ -112,13 +167,8 @@ class GraphMemoryAdapter(MemoryStore):
         else:
             # Use basic RDFLib functionality
             self.rdflib_store = None
-            self.graph = Graph()
-
-            # Register namespaces
-            self.graph.bind("devsynth", DEVSYNTH)
-            self.graph.bind("memory", MEMORY)
-            self.graph.bind("foaf", FOAF)
-            self.graph.bind("dc", DC)
+            self.graph = self._create_graph_instance()
+            self._bind_default_namespaces()
 
             # Load existing graph if base_path is provided
             if base_path:
@@ -181,12 +231,8 @@ class GraphMemoryAdapter(MemoryStore):
         """
         logger.debug(f"Beginning transaction {transaction_id} in GraphMemoryAdapter")
 
-        # Store the transaction ID
-        if not hasattr(self, "_active_transactions"):
-            self._active_transactions = {}
-
         # Create a snapshot of the current state
-        snapshot = self.graph.serialize(format="turtle")
+        snapshot = cast(str, self.graph.serialize(format="turtle"))
 
         # Store the snapshot with the transaction ID
         self._active_transactions[transaction_id] = {
@@ -195,8 +241,6 @@ class GraphMemoryAdapter(MemoryStore):
         }
 
         # Also maintain compatibility with the existing transaction stack
-        if not hasattr(self, "_transaction_stack"):
-            self._transaction_stack = []
         self._transaction_stack.append(snapshot)
 
         return transaction_id
@@ -221,10 +265,7 @@ class GraphMemoryAdapter(MemoryStore):
         )
 
         # Check if this is an active transaction
-        if (
-            not hasattr(self, "_active_transactions")
-            or transaction_id not in self._active_transactions
-        ):
+        if transaction_id not in self._active_transactions:
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,
@@ -256,10 +297,7 @@ class GraphMemoryAdapter(MemoryStore):
         logger.debug(f"Committing transaction {transaction_id} in GraphMemoryAdapter")
 
         # Check if this is an active transaction
-        if (
-            not hasattr(self, "_active_transactions")
-            or transaction_id not in self._active_transactions
-        ):
+        if transaction_id not in self._active_transactions:
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,
@@ -271,7 +309,7 @@ class GraphMemoryAdapter(MemoryStore):
         del self._active_transactions[transaction_id]
 
         # Also maintain compatibility with the existing transaction stack
-        if hasattr(self, "_transaction_stack") and self._transaction_stack:
+        if self._transaction_stack:
             self._transaction_stack.pop()
 
         # Save the current state to ensure durability
@@ -289,10 +327,7 @@ class GraphMemoryAdapter(MemoryStore):
             ``True`` if the transaction is active, ``False`` otherwise.
         """
 
-        return (
-            hasattr(self, "_active_transactions")
-            and transaction_id in self._active_transactions
-        )
+        return transaction_id in self._active_transactions
 
     def rollback_transaction(self, transaction_id: str) -> bool:
         """
@@ -310,10 +345,7 @@ class GraphMemoryAdapter(MemoryStore):
         logger.debug(f"Rolling back transaction {transaction_id} in GraphMemoryAdapter")
 
         # Check if this is an active transaction
-        if (
-            not hasattr(self, "_active_transactions")
-            or transaction_id not in self._active_transactions
-        ):
+        if transaction_id not in self._active_transactions:
             raise MemoryTransactionError(
                 f"Transaction {transaction_id} is not active",
                 transaction_id=transaction_id,
@@ -325,7 +357,7 @@ class GraphMemoryAdapter(MemoryStore):
         snapshot = self._active_transactions[transaction_id]["snapshot"]
 
         # Restore the graph from the snapshot
-        self.graph = Graph()
+        self.graph = self._create_graph_instance()
         self.graph.parse(data=snapshot, format="turtle")
 
         # Save the restored graph
@@ -335,7 +367,7 @@ class GraphMemoryAdapter(MemoryStore):
         del self._active_transactions[transaction_id]
 
         # Also maintain compatibility with the existing transaction stack
-        if hasattr(self, "_transaction_stack") and self._transaction_stack:
+        if self._transaction_stack:
             self._transaction_stack.pop()
 
         return True
@@ -363,7 +395,7 @@ class GraphMemoryAdapter(MemoryStore):
             return False
 
         try:
-            self.graph = Graph()
+            self.graph = self._create_graph_instance()
             self.graph.parse(data=snapshot, format="turtle")
             self._save_graph()
             return True
@@ -381,7 +413,7 @@ class GraphMemoryAdapter(MemoryStore):
             return cast(list[MemoryVector], self.rdflib_store.get_all_vectors())
         return []
 
-    def _memory_item_to_triples(self, item: MemoryItem) -> URIRef:
+    def _memory_item_to_triples(self, item: MemoryItem) -> URIRefType:
         """
         Convert a memory item to RDF triples and add them to the graph.
 
@@ -392,7 +424,7 @@ class GraphMemoryAdapter(MemoryStore):
             The URI reference for the item
         """
         # Create a URI for the item
-        item_uri = URIRef(f"{MEMORY}{item.id}")
+        item_uri = self._memory_uri(str(item.id))
 
         # Add basic triples
         self.graph.add((item_uri, RDF.type, DEVSYNTH.MemoryItem))
@@ -560,7 +592,7 @@ class GraphMemoryAdapter(MemoryStore):
             if not item.id:
                 item.id = f"graph_{uuid.uuid4()}"
 
-            existing_uri = URIRef(f"{MEMORY}{item.id}")
+            existing_uri = self._memory_uri(str(item.id))
             if (existing_uri, RDF.type, DEVSYNTH.MemoryItem) in self.graph:
                 self.graph.remove((existing_uri, None, None))
 
@@ -570,7 +602,7 @@ class GraphMemoryAdapter(MemoryStore):
             # Process relationships
             related_to = item.metadata.get("related_to")
             if related_to:
-                related_uri = URIRef(f"{MEMORY}{related_to}")
+                related_uri = self._memory_uri(str(related_to))
 
                 # Add the relationship
                 self.graph.add((item_uri, DEVSYNTH.relatedTo, related_uri))
@@ -599,7 +631,7 @@ class GraphMemoryAdapter(MemoryStore):
         """
         try:
             # Create a URI for the item
-            item_uri = URIRef(f"{MEMORY}{item_id}")
+            item_uri = self._memory_uri(item_id)
 
             # Convert triples to a memory item
             item = self._triples_to_memory_item(item_uri)
@@ -710,7 +742,7 @@ class GraphMemoryAdapter(MemoryStore):
         """
         try:
             # Create a URI for the item
-            item_uri = URIRef(f"{MEMORY}{item_id}")
+            item_uri = self._memory_uri(item_id)
 
             # Check if the item exists
             if (item_uri, RDF.type, DEVSYNTH.MemoryItem) not in self.graph:
@@ -753,7 +785,7 @@ class GraphMemoryAdapter(MemoryStore):
         """
         try:
             # Create a URI for the item
-            item_uri = URIRef(f"{MEMORY}{item_id}")
+            item_uri = self._memory_uri(item_id)
 
             # Check if the item exists
             if (item_uri, RDF.type, DEVSYNTH.MemoryItem) not in self.graph:
@@ -881,7 +913,7 @@ class GraphMemoryAdapter(MemoryStore):
     def _resolve_traversal_uri(self, node_id: str) -> URIRef | None:
         """Resolve ``node_id`` into a URI present in the graph."""
 
-        candidate = URIRef(f"{MEMORY}{node_id}")
+        candidate = self._memory_uri(node_id)
         if list(self.graph.triples((candidate, None, None))):
             return candidate
         return None
