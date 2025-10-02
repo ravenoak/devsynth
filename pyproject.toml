@@ -301,10 +301,6 @@ module = "devsynth.core.mvu.*"
 ignore_errors = false
 
 [[tool.mypy.overrides]]
-module = "devsynth.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 module = [
   "devsynth.agents.sandbox",
   "devsynth.logging_setup",
@@ -314,6 +310,38 @@ module = [
 ignore_errors = false
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+
+# TODO(strict-typing-roadmap): Enumerate the remaining packages that fail
+# strict typing because they depend on dynamic dataclass factories,
+# third-party SDKs without usable stubs, or runtime-only protocol
+# implementations. Track the cleanup in issues/strict-typing-roadmap.md and
+# the per-package follow-ups under issues/restore-strict-typing-*.md.
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.adapters.*",
+  "devsynth.agents.*",
+  "devsynth.application.*",
+  "devsynth.cli",
+  "devsynth.config.*",
+  "devsynth.consensus",
+  "devsynth.core.*",
+  "devsynth.domain.*",
+  "devsynth.fallback",
+  "devsynth.integrations.*",
+  "devsynth.interface.*",
+  "devsynth.logger",
+  "devsynth.memory.*",
+  "devsynth.metrics",
+  "devsynth.methodology.*",
+  "devsynth.observability.*",
+  "devsynth.orchestration.*",
+  "devsynth.ports.*",
+  "devsynth.schemas.*",
+  "devsynth.security.*",
+  "devsynth.testing.*",
+  "devsynth.utils.*",
+]
+ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = ["chromadb", "chromadb.*"]
