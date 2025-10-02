@@ -122,6 +122,61 @@ def _resolve_signature_secret(pointer: str) -> str:
     return ""
 
 
+def _resolve_graph_memory_path() -> Path:
+    env_path = os.getenv("DEVSYNTH_GRAPH_MEMORY_PATH")
+    if env_path:
+        candidate = Path(env_path)
+        if candidate.is_file():
+            return candidate
+        return candidate / "graph_memory.ttl"
+    default_dir = _REPO_ROOT / ".devsynth" / "memory"
+    return default_dir / "graph_memory.ttl"
+
+
+def _load_graph_artifact_summary(graph_path: Path | None = None) -> list[dict[str, object]]:
+    path = graph_path or _resolve_graph_memory_path()
+    if not path.exists():
+        return []
+    try:  # pragma: no cover - optional dependency
+        import rdflib
+        from rdflib import RDF
+        from rdflib.namespace import RDFS
+    except Exception:  # pragma: no cover - rdflib unavailable
+        return []
+
+    graph = rdflib.Graph()
+    try:
+        graph.parse(path, format="turtle")
+    except Exception:  # pragma: no cover - invalid TTL content
+        return []
+
+    devsynth_ns = rdflib.Namespace("http://devsynth.ai/ontology#")
+    entries: list[dict[str, object]] = []
+    for artifact_uri in graph.subjects(RDF.type, devsynth_ns.ResearchArtifact):
+        artifact_id = str(artifact_uri).split("#", 1)[-1]
+        supports = sorted(
+            str(obj).split("#", 1)[-1]
+            for obj in graph.objects(artifact_uri, devsynth_ns.supports)
+        )
+        derived = sorted(
+            str(obj).split("#", 1)[-1]
+            for obj in graph.objects(artifact_uri, devsynth_ns.derivedFrom)
+        )
+        roles = []
+        for role_uri in graph.objects(artifact_uri, devsynth_ns.hasRole):
+            label = graph.value(role_uri, RDFS.label)
+            roles.append(str(label) if label else str(role_uri).split("#", 1)[-1])
+        entries.append(
+            {
+                "artifact": artifact_id,
+                "supports": supports,
+                "derived_from": derived,
+                "roles": sorted(set(roles)),
+            }
+        )
+    return entries
+
+
 def load_research_telemetry(path: Path | None = None) -> dict[str, Any] | None:
     telemetry_path = _resolve_telemetry_path(path)
     if not telemetry_path.exists():
@@ -191,6 +246,16 @@ def render_research_telemetry_overlays(
         notes = badge.get("notes", "")
         st.markdown(f"{icon} {trace_id}: {status.title()} — {notes}")
         st.caption(f"Evidence hash: {badge.get('evidence_hash', 'n/a')}")
+
+    graph_entries = _load_graph_artifact_summary()
+    if graph_entries:
+        st.markdown("### Knowledge Graph Provenance Snapshot")
+        for entry in graph_entries:
+            supports = ", ".join(entry["supports"]) or "n/a"
+            derived = ", ".join(entry["derived_from"]) or "n/a"
+            roles = ", ".join(entry["roles"]) or "n/a"
+            st.markdown(f"**{entry['artifact']}** — supports: {supports}; derived from: {derived}")
+            st.caption(f"Roles: {roles}")
 
 
 def render_dashboard(data: dict) -> None:

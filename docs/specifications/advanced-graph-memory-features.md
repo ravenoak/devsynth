@@ -1,8 +1,8 @@
 ---
 author: DevSynth Team
 date: 2025-08-19
-last_reviewed: 2025-10-20
-status: review
+last_reviewed: 2025-10-02
+status: published
 tags:
 
 - specification
@@ -66,12 +66,16 @@ expectations clear that the Autoresearch service remains external until the MCP
     requirements, issues, or commits.
   - `devsynth:derivedFrom` relationships that connect research artefacts to
     upstream knowledge graph nodes (e.g., experiments, datasets).
+  - `devsynth:hasRole` relationships binding artefacts to WSDE personas so
+    dashboards can surface provenance responsibilities.
 - Provide CLI helpers that summarise large artefacts before ingestion once the
   Autoresearch bridge ships. Until then, keep the CLI flags and documentation in
   preview mode so local commands validate argument flow without attempting to
   call the external service. For large PDFs or datasets, store a digest node
   referencing the original file path while keeping the full content in archival
   storage outside the RDF triple store.
+- Surface provenance roles and traversal context in CLI and dashboard views so
+  operators can trace how Autoresearch artefacts influence EDRR decisions.
 - Expose traversal, persistence, and Autoresearch behaviour through
   behaviour-driven tests exercising graph traversal, reload cycles, provenance
   verification, and integration with other memory stores.

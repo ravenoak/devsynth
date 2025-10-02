@@ -16,6 +16,7 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
     EnhancedGraphMemoryAdapter,
 )
+from devsynth.exceptions import MemoryItemNotFoundError
 
 from ..ingest_cmd import ingest_cmd as _ingest_cmd
 from ..registry import register
@@ -178,6 +179,17 @@ def ingest_cmd(
                 "Stored research artefact %s with evidence hash %s",
                 artifact_path,
                 artifact.evidence_hash,
+            )
+            try:
+                provenance = graph_adapter.get_artifact_provenance(artifact.identifier)
+            except MemoryItemNotFoundError:  # pragma: no cover - defensive
+                provenance = {"supports": (), "derived_from": (), "roles": ()}
+            logger.info(
+                "Provenance summary for %s — supports=%s derived_from=%s roles=%s",
+                artifact.identifier,
+                ", ".join(provenance.get("supports", ())) or "none",
+                ", ".join(provenance.get("derived_from", ())) or "none",
+                ", ".join(provenance.get("roles", ())) or "none",
             )
 
     if verify_research_hash:

@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-16'
-last_reviewed: "2025-08-24"
+last_reviewed: "2025-10-02"
 status: published
 tags:
 - architecture
@@ -75,7 +75,7 @@ If you're new to DevSynth's architecture, we recommend starting with the [Overvi
 
 ## Diagrams
 
-Note: Diagrams were last refreshed on 2025-08-24. See scripts/regenerate_architecture_diagrams.py for the automated regeneration path.
+Note: Diagrams were last refreshed on 2025-10-02. See scripts/regenerate_architecture_diagrams.py for the automated regeneration path.
 
 - [DPG Overview](diagrams/dpg_overview.svg)
 - [Init Workflow (1)](diagrams/init_workflow-1.svg)
@@ -86,6 +86,7 @@ Note: Diagrams were last refreshed on 2025-08-24. See scripts/regenerate_archite
 - [WebUI Overview (4)](diagrams/webui_overview-4.svg)
 - [WebUI Overview (5)](diagrams/webui_overview-5.svg)
 - [WSDE/EDRR Integration](diagrams/wsde_edrr_integration-1.svg)
+- [MCP → A2A → SPARQL Flows](diagrams/mcp_a2a_sparql.md)
 
 ## Implementation Status
 

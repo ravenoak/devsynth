@@ -1,0 +1,110 @@
+@prefix devsynth: <http://devsynth.ai/ontology#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ontology header ------------------------------------------------------------
+
+devsynth: a owl:Ontology ;
+    rdfs:label "DevSynth Autoresearch Ontology" ;
+    rdfs:comment "Schema describing research artefacts, provenance, and WSDE provenance roles." .
+
+# Core classes ---------------------------------------------------------------
+
+devsynth:MemoryItem a owl:Class ;
+    rdfs:label "Memory Item" ;
+    rdfs:comment "Generic memory node persisted by the GraphMemoryAdapter." .
+
+devsynth:ResearchArtifact a owl:Class ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:label "Research Artifact" ;
+    rdfs:comment "Summarised research evidence captured during Autoresearch flows." .
+
+# Role metadata --------------------------------------------------------------
+
+devsynth:Role a owl:Class ;
+    rdfs:label "WSDE Role" ;
+    rdfs:comment "Represents a specialized WSDE agent persona (Research Lead, Critic, Test Writer)." .
+
+# Properties ----------------------------------------------------------------
+
+devsynth:title a owl:DatatypeProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range xsd:string .
+
+devsynth:summary a owl:DatatypeProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range xsd:string .
+
+devsynth:citationUrl a owl:DatatypeProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range xsd:anyURI .
+
+devsynth:evidenceHash a owl:DatatypeProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range xsd:string .
+
+devsynth:publishedAt a owl:DatatypeProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range xsd:dateTime .
+
+devsynth:archivePath a owl:DatatypeProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range xsd:string .
+
+devsynth:hasRole a owl:ObjectProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range devsynth:Role ;
+    rdfs:comment "Captures the WSDE persona responsible for curating or critiquing an artifact." .
+
+devsynth:supports a owl:ObjectProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range devsynth:MemoryItem ;
+    rdfs:comment "Indicates the memory item or requirement supported by the artifact." .
+
+devsynth:derivedFrom a owl:ObjectProperty ;
+    rdfs:domain devsynth:ResearchArtifact ;
+    rdfs:range devsynth:MemoryItem ;
+    rdfs:comment "References upstream sources that informed the artifact." .
+
+# Relationship aliases for traversal ----------------------------------------
+
+devsynth:relatedTo a owl:ObjectProperty ;
+    rdfs:domain devsynth:MemoryItem ;
+    rdfs:range devsynth:MemoryItem ;
+    rdfs:comment "Generic relation enabling breadth-first traversals between memory nodes." .
+
+# Sample individuals ---------------------------------------------------------
+
+devsynth:ResearchLead a devsynth:Role ;
+    rdfs:label "Research Lead" ;
+    rdfs:comment "Coordinates investigative backlog and validates provenance." .
+
+devsynth:Critic a devsynth:Role ;
+    rdfs:label "Critic" ;
+    rdfs:comment "Challenges assumptions and logs dialectical counter-arguments." .
+
+devsynth:TestWriter a devsynth:Role ;
+    rdfs:label "Test Writer" ;
+    rdfs:comment "Translates research findings into executable validation artefacts." .
+
+# Example artifact linking to graph nodes -----------------------------------
+
+devsynth:artifact_example a devsynth:ResearchArtifact ;
+    devsynth:title "Traversal Guarantees" ;
+    devsynth:summary "Evidence describing bounded breadth-first traversal within DevSynth." ;
+    devsynth:citationUrl "https://example.invalid/autoresearch/traversal"^^xsd:anyURI ;
+    devsynth:evidenceHash "examplehash" ;
+    devsynth:publishedAt "2025-10-02T00:00:00Z"^^xsd:dateTime ;
+    devsynth:supports devsynth:memory_requirement_1 ;
+    devsynth:derivedFrom devsynth:memory_design_1 ;
+    devsynth:hasRole devsynth:ResearchLead .
+
+
+devsynth:memory_requirement_1 a devsynth:MemoryItem ;
+    rdfs:label "Requirement Node" .
+
+devsynth:memory_design_1 a devsynth:MemoryItem ;
+    rdfs:label "Design Reference Node" .

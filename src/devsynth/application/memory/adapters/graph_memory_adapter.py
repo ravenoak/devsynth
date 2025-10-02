@@ -10,6 +10,7 @@ import importlib
 import json
 import os
 import uuid
+from collections import deque
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from typing import Any, cast
@@ -787,7 +788,13 @@ class GraphMemoryAdapter(MemoryStore):
             logger.error(f"Failed to get all relationships: {e}")
             raise MemoryStoreError(f"Failed to get all relationships: {e}")
 
-    def traverse_graph(self, start_id: str, max_depth: int = 1) -> set[str]:
+    def traverse_graph(
+        self,
+        start_id: str,
+        max_depth: int = 1,
+        *,
+        include_research: bool = False,
+    ) -> set[str]:
         """
         Traverse related nodes starting from the given item ID.
 
@@ -799,36 +806,88 @@ class GraphMemoryAdapter(MemoryStore):
             A set of item IDs reachable within the given depth, excluding the
             starting node.
         """
-        if rdflib is None:
+        if rdflib is None or max_depth <= 0:
             return set()
 
         try:
-            visited: set[str] = set()
-            frontier: set[str] = {start_id}
-            depth = 0
+            start_uri = self._resolve_traversal_uri(start_id)
+            if start_uri is None:
+                return set()
 
-            while frontier and depth < max_depth:
-                next_frontier: set[str] = set()
-                for current_id in frontier:
-                    item_uri = URIRef(f"{MEMORY}{current_id}")
-                    for related_uri in self.graph.objects(item_uri, DEVSYNTH.relatedTo):
-                        related_id = str(self.graph.value(related_uri, DEVSYNTH.id))
-                        if related_id == "None" or not related_id:
-                            related_id = str(related_uri).replace(str(MEMORY), "")
-                        if related_id not in visited:
-                            visited.add(related_id)
-                            next_frontier.add(related_id)
+            visited: set[URIRef] = {start_uri}
+            queue: deque[tuple[URIRef, int]] = deque([(start_uri, 0)])
+            discovered: set[str] = set()
 
-                frontier = next_frontier
-                depth += 1
+            predicates = tuple(self._traversal_predicates())
+
+            while queue:
+                current, depth = queue.popleft()
+                if depth >= max_depth:
+                    continue
+
+                for predicate in predicates:
+                    for _, _, neighbor in self.graph.triples((current, predicate, None)):
+                        if neighbor in visited:
+                            continue
+
+                        if self._should_skip_traversal_target(
+                            neighbor, include_research=include_research
+                        ):
+                            visited.add(neighbor)
+                            continue
+
+                        visited.add(neighbor)
+                        queue.append((neighbor, depth + 1))
+
+                        identifier = self._uri_to_identifier(neighbor)
+                        if identifier and neighbor != start_uri:
+                            discovered.add(identifier)
 
             logger.info(
-                f"Traversed graph from {start_id} to depth {max_depth} and found {len(visited)} nodes"
+                "Traversed graph from %s to depth %s and found %s nodes",
+                start_id,
+                max_depth,
+                len(discovered),
             )
-            return visited
+            return discovered
         except Exception as e:
             logger.error(f"Failed to traverse graph: {e}")
             raise MemoryStoreError(f"Failed to traverse graph: {e}")
+
+    # ------------------------------------------------------------------
+    # Traversal helpers
+    # ------------------------------------------------------------------
+
+    def _resolve_traversal_uri(self, node_id: str) -> URIRef | None:
+        """Resolve ``node_id`` into a URI present in the graph."""
+
+        candidate = URIRef(f"{MEMORY}{node_id}")
+        if list(self.graph.triples((candidate, None, None))):
+            return candidate
+        return None
+
+    def _traversal_predicates(self) -> tuple[URIRef, ...]:
+        """Return the predicates followed during traversal."""
+
+        return (DEVSYNTH.relatedTo,)
+
+    def _should_skip_traversal_target(
+        self, uri: URIRef, *, include_research: bool
+    ) -> bool:
+        """Return True when ``uri`` should be excluded from traversal results."""
+
+        return False
+
+    def _uri_to_identifier(self, uri: URIRef) -> str | None:
+        """Convert a node URI into its stored identifier."""
+
+        value = str(uri)
+        if value.startswith(str(MEMORY)):
+            return value[len(str(MEMORY)) :]
+        identifier_literal = self.graph.value(uri, DEVSYNTH.id)
+        if identifier_literal is not None:
+            return str(identifier_literal)
+        return value
 
     def add_memory_volatility(
         self,
