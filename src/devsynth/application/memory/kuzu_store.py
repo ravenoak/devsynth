@@ -17,7 +17,17 @@ import uuid
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol, Union, cast, ContextManager
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Protocol,
+    Union,
+    cast,
+)
 
 canonical_name = "devsynth.application.memory.kuzu_store"
 # Ensure the module is registered under its canonical name even when loaded
@@ -98,6 +108,8 @@ class KuzuStore(MemoryStore, SupportsTransactions):
             os.makedirs(self.file_path, exist_ok=True)
 
         self.db_path = os.path.join(self.file_path, "kuzu.db")
+        self.db: Any | None = None
+        self.conn: Any | None = None
         self._cache: Dict[str, MemoryItem] = {}
         self._versions: Dict[str, List[MemoryItem]] = {}
         self._token_usage = 0
@@ -137,12 +149,13 @@ class KuzuStore(MemoryStore, SupportsTransactions):
                 settings_module.ensure_path_exists(self.file_path)
                 self.db = kuzu_mod.Database(self.db_path)
                 self.conn = kuzu_mod.Connection(self.db)
-                self.conn.execute(
-                    "CREATE TABLE IF NOT EXISTS memory(id STRING PRIMARY KEY, item STRING);"
-                )
-                self.conn.execute(
-                    "CREATE TABLE IF NOT EXISTS versions(id STRING, version INT, item STRING);"
-                )
+                if self.conn is not None:
+                    self.conn.execute(
+                        "CREATE TABLE IF NOT EXISTS memory(id STRING PRIMARY KEY, item STRING);"
+                    )
+                    self.conn.execute(
+                        "CREATE TABLE IF NOT EXISTS versions(id STRING, version INT, item STRING);"
+                    )
             except Exception as e:  # pragma: no cover - fallback to memory
                 logger.warning(
                     f"Failed to initialise KuzuDB: {e}. Falling back to in-memory store"
@@ -194,7 +207,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         snapshot: Dict[str, MemoryItem] | None = None
         if self._use_fallback:
             snapshot = deepcopy(getattr(self, "_store", {}))
-        else:  # pragma: no cover - requires kuzu
+        elif self.conn is not None:  # pragma: no cover - requires kuzu
             try:
                 self.conn.execute("BEGIN TRANSACTION")
             except Exception as exc:  # pragma: no cover - defensive
@@ -205,7 +218,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
     def commit_transaction(self, transaction_id: str) -> bool:
         """Commit a previously started transaction."""
         self._transactions.pop(transaction_id, None)
-        if not self._use_fallback:  # pragma: no cover - requires kuzu
+        if not self._use_fallback and self.conn is not None:  # pragma: no cover - requires kuzu
             try:
                 self.conn.execute("COMMIT")
             except Exception as exc:  # pragma: no cover - defensive
@@ -220,7 +233,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         if self._use_fallback:
             if snapshot is not None:
                 self._store = snapshot
-        else:  # pragma: no cover - requires kuzu
+        elif self.conn is not None:  # pragma: no cover - requires kuzu
             try:
                 self.conn.execute("ROLLBACK")
             except Exception as exc:  # pragma: no cover - defensive
@@ -236,7 +249,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
     @contextmanager
     def transaction(
         self, transaction_id: str | None = None
-    ) -> ContextManager[str]:
+    ) -> Iterator[str]:
         """Context manager that wraps begin/commit/rollback."""
         tx_id = self.begin_transaction(transaction_id)
         try:
@@ -261,7 +274,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
 
         if self._use_fallback:
             self._store[item.id] = item
-        else:  # pragma: no cover - requires kuzu
+        elif self.conn is not None:  # pragma: no cover - requires kuzu
             self.conn.execute(
                 "MERGE INTO memory(id,item) VALUES (?, ?)", [item.id, serialised]
             )
@@ -276,6 +289,8 @@ class KuzuStore(MemoryStore, SupportsTransactions):
     def _retrieve_from_db(self, item_id: str) -> Optional[MemoryItem]:
         if self._use_fallback:
             return self._store.get(item_id)
+        if self.conn is None:  # pragma: no cover - defensive
+            return None
         try:  # pragma: no cover - requires kuzu
             res = self.conn.execute(
                 "MATCH (n:memory) WHERE n.id=? RETURN n.item", [item_id]
@@ -361,6 +376,8 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         return results
 
     def _all_ids(self) -> List[str]:  # pragma: no cover - requires kuzu
+        if self.conn is None:
+            return []
         try:
             res = self.conn.execute("MATCH (n:memory) RETURN n.id")
             ids = []
@@ -376,6 +393,8 @@ class KuzuStore(MemoryStore, SupportsTransactions):
             self._store.pop(item_id, None)
             self._cache.pop(item_id, None)
             return existed
+        if self.conn is None:  # pragma: no cover - defensive
+            return False
         try:  # pragma: no cover - requires kuzu
             self.conn.execute("DELETE FROM memory WHERE id=?", [item_id])
             self.conn.execute("DELETE FROM versions WHERE id=?", [item_id])
@@ -421,7 +440,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
             item.metadata["threshold"] = threshold
             if self._use_fallback:
                 self._store[item.id] = item
-            else:  # pragma: no cover - requires kuzu
+            elif self.conn is not None:  # pragma: no cover - requires kuzu
                 self.conn.execute(
                     "MERGE INTO memory(id,item) VALUES (?, ?)",
                     [item.id, self._serialise(item)],
@@ -441,7 +460,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
                 volatile.append(item.id)
             if self._use_fallback:
                 self._store[item.id] = item
-            else:  # pragma: no cover - requires kuzu
+            elif self.conn is not None:  # pragma: no cover - requires kuzu
                 self.conn.execute(
                     "MERGE INTO memory(id,item) VALUES (?, ?)",
                     [item.id, self._serialise(item)],
@@ -455,7 +474,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         if self._use_fallback:
             return
         try:  # pragma: no cover - requires kuzu
-            if getattr(self, "conn", None):
+            if self.conn is not None:
                 try:
                     self.conn.execute("COMMIT")
                 except Exception as exc:
@@ -465,11 +484,13 @@ class KuzuStore(MemoryStore, SupportsTransactions):
                         self.conn.close()
                     except Exception as exc:
                         logger.debug("Connection close failed: %s", exc)
-            if getattr(self, "db", None) and hasattr(self.db, "close"):
+                self.conn = None
+            if self.db is not None and hasattr(self.db, "close"):
                 try:
                     self.db.close()
                 except Exception as exc:
                     logger.debug("Database close failed: %s", exc)
+                self.db = None
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Failed to close Kuzu resources: %s", exc)
 
