@@ -13,7 +13,7 @@ import os
 import uuid
 from datetime import datetime
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Callable, List, Optional, cast
 
 import numpy as np
 import tiktoken
@@ -28,16 +28,16 @@ else:  # pragma: no cover - runtime fallbacks when rdflib is absent
     RDFType = RDFSSType = XSDType = object  # type: ignore[assignment]
     DCType = FOAFType = object  # type: ignore[assignment]
 
-rdflib: ModuleType | None
-Graph: type[GraphType] | None
-Literal: type[LiteralType] | None
-Namespace: Callable[[str], Any]
-URIRef: type[URIRefType] | None
-RDF: RDFType | None
-RDFS: RDFSSType | None
-XSD: XSDType | None
-DC: DCType | None
-FOAF: FOAFType | None
+rdflib: ModuleType | None = None
+Graph: type[GraphType] | None = None
+Literal: type[LiteralType] | None = None
+Namespace: Callable[[str], NamespaceType] | None = None
+URIRef: type[URIRefType] | None = None
+RDF: RDFType | None = None
+RDFS: RDFSSType | None = None
+XSD: XSDType | None = None
+DC: DCType | None = None
+FOAF: FOAFType | None = None
 
 try:  # pragma: no cover - optional dependency
     import rdflib as _rdflib
@@ -47,18 +47,12 @@ try:  # pragma: no cover - optional dependency
 
     _Namespace("test")
 except Exception:  # pragma: no cover - graceful fallback for tests
-    rdflib = None
-    Graph = Literal = URIRef = None
-    RDF = RDFS = XSD = None
-    DC = FOAF = None
-
-    def Namespace(uri: str) -> str:  # type: ignore[override]
-        return uri
+    pass
 else:
     rdflib = _rdflib
     Graph = cast("type[GraphType]", _Graph)
     Literal = cast("type[LiteralType]", _Literal)
-    Namespace = cast("NamespaceType", _Namespace)
+    Namespace = cast("Callable[[str], NamespaceType]", _Namespace)
     URIRef = cast("type[URIRefType]", _URIRef)
     RDF = cast("RDFType", _RDF)
     RDFS = cast("RDFSSType", _RDFS)
@@ -88,9 +82,15 @@ from .dto import (
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
-# Define namespaces for the RDF graph
-DEVSYNTH = Namespace("https://github.com/ravenoak/devsynth/ontology#")
-MEMORY = Namespace("https://github.com/ravenoak/devsynth/ontology/memory#")
+# Define namespaces for the RDF graph when rdflib is available
+DEVSYNTH: NamespaceType | None
+MEMORY: NamespaceType | None
+if Namespace is not None:
+    DEVSYNTH = Namespace("https://github.com/ravenoak/devsynth/ontology#")
+    MEMORY = Namespace("https://github.com/ravenoak/devsynth/ontology/memory#")
+else:
+    DEVSYNTH = None
+    MEMORY = None
 
 
 class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
@@ -101,6 +101,16 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
     as RDF triples in a knowledge graph. It also supports SPARQL queries for
     advanced search capabilities.
     """
+
+    _literal: type[LiteralType]
+    _uri_ref: type[URIRefType]
+    _rdf: RDFType
+    _xsd: XSDType
+    _dc: DCType
+    _foaf: FOAFType
+    _memory_ns: NamespaceType
+    _devsynth_ns: NamespaceType
+    graph: GraphType
 
     def __init__(self, base_path: str):
         """
@@ -116,14 +126,66 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         # Ensure the directory exists
         os.makedirs(self.base_path, exist_ok=True)
 
-        # Initialize the RDF graph
-        self.graph = Graph()
+        graph_cls = Graph
+        literal_cls = Literal
+        uri_ref_cls = URIRef
+        rdf_ns = RDF
+        xsd_ns = XSD
+        dc_ns = DC
+        foaf_ns = FOAF
+        devsynth_ns = DEVSYNTH
+        memory_ns = MEMORY
+
+        missing_aliases = [
+            name
+            for name, value in (
+                ("Graph", graph_cls),
+                ("Literal", literal_cls),
+                ("URIRef", uri_ref_cls),
+                ("RDF", rdf_ns),
+                ("XSD", xsd_ns),
+                ("DC", dc_ns),
+                ("FOAF", foaf_ns),
+                ("DEVSYNTH", devsynth_ns),
+                ("MEMORY", memory_ns),
+            )
+            if value is None
+        ]
+
+        if missing_aliases:
+            missing = ", ".join(missing_aliases)
+            raise MemoryStoreError(
+                "rdflib is required to initialize RDFLibStore",
+                store_type="rdflib",
+                operation="initialize",
+                original_error=ImportError(f"Missing rdflib aliases: {missing}"),
+            )
+
+        assert graph_cls is not None
+        assert literal_cls is not None
+        assert uri_ref_cls is not None
+        assert rdf_ns is not None
+        assert xsd_ns is not None
+        assert dc_ns is not None
+        assert foaf_ns is not None
+        assert devsynth_ns is not None
+        assert memory_ns is not None
+
+        self.graph = graph_cls()
+        self._literal = literal_cls
+        self._uri_ref = uri_ref_cls
+        self._rdf = rdf_ns
+        self._xsd = xsd_ns
+        self._dc = dc_ns
+        self._foaf = foaf_ns
+        self._devsynth_ns = devsynth_ns
+        self._memory_ns = memory_ns
 
         # Bind namespaces to the graph for more readable serialization
-        self.graph.bind("devsynth", DEVSYNTH)
-        self.graph.bind("memory", MEMORY)
-        self.graph.bind("foaf", FOAF)
-        self.graph.bind("dc", DC)
+        self.graph.bind("devsynth", self._devsynth_ns)
+        self.graph.bind("memory", self._memory_ns)
+        self.graph.bind("foaf", self._foaf)
+        self.graph.bind("dc", self._dc)
 
         # Initialize the tokenizer for token counting
         try:
@@ -225,7 +287,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             # Approximate token count (roughly 4 characters per token)
             return len(text) // 4
 
-    def _memory_item_to_triples(self, item: MemoryItem):
+    def _memory_item_to_triples(self, item: MemoryItem) -> None:
         """
         Convert a MemoryItem to RDF triples and add them to the graph.
 
@@ -233,39 +295,39 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             item: The MemoryItem to convert
         """
         # Create a URI for the memory item
-        item_uri = URIRef(f"{MEMORY}item/{item.id}")
+        item_uri = self._uri_ref(f"{self._memory_ns}item/{item.id}")
 
         # Add basic triples for the memory item
-        self.graph.add((item_uri, RDF.type, MEMORY.MemoryItem))
-        self.graph.add((item_uri, MEMORY.id, Literal(item.id)))
-        self.graph.add((item_uri, MEMORY.content, Literal(str(item.content))))
-        self.graph.add((item_uri, MEMORY.memoryType, Literal(item.memory_type.value)))
+        self.graph.add((item_uri, self._rdf.type, self._memory_ns.MemoryItem))
+        self.graph.add((item_uri, self._memory_ns.id, self._literal(item.id)))
+        self.graph.add((item_uri, self._memory_ns.content, self._literal(str(item.content))))
+        self.graph.add((item_uri, self._memory_ns.memoryType, self._literal(item.memory_type.value)))
         self.graph.add(
             (
                 item_uri,
-                MEMORY.createdAt,
-                Literal(item.created_at.isoformat(), datatype=XSD.dateTime),
+                self._memory_ns.createdAt,
+                self._literal(item.created_at.isoformat(), datatype=self._xsd.dateTime),
             )
         )
 
         # Add metadata as triples
         if item.metadata:
-            metadata_uri = URIRef(f"{MEMORY}metadata/{item.id}")
-            self.graph.add((item_uri, MEMORY.hasMetadata, metadata_uri))
-            self.graph.add((metadata_uri, RDF.type, MEMORY.Metadata))
+            metadata_uri = self._uri_ref(f"{self._memory_ns}metadata/{item.id}")
+            self.graph.add((item_uri, self._memory_ns.hasMetadata, metadata_uri))
+            self.graph.add((metadata_uri, self._rdf.type, self._memory_ns.Metadata))
 
             for key, value in item.metadata.items():
                 # Convert the key to a valid predicate name (replace spaces, etc.)
                 predicate_name = key.replace(" ", "_").lower()
-                predicate = MEMORY[predicate_name]
+                predicate = self._memory_ns[predicate_name]
 
                 # Add the metadata triple
                 if isinstance(value, (int, float, bool)):
-                    self.graph.add((metadata_uri, predicate, Literal(value)))
+                    self.graph.add((metadata_uri, predicate, self._literal(value)))
                 else:
-                    self.graph.add((metadata_uri, predicate, Literal(str(value))))
+                    self.graph.add((metadata_uri, predicate, self._literal(str(value))))
 
-    def _triples_to_memory_item(self, item_uri: URIRef) -> Optional[MemoryItem]:
+    def _triples_to_memory_item(self, item_uri: URIRefType) -> Optional[MemoryItem]:
         """
         Convert RDF triples to a MemoryItem.
 
@@ -276,23 +338,23 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             The converted MemoryItem, or None if not found
         """
         # Check if the item exists
-        if (item_uri, RDF.type, MEMORY.MemoryItem) not in self.graph:
+        if (item_uri, self._rdf.type, self._memory_ns.MemoryItem) not in self.graph:
             return None
 
         # Get the basic properties
-        item_id = str(self.graph.value(item_uri, MEMORY.id))
-        content = str(self.graph.value(item_uri, MEMORY.content))
-        memory_type_value = str(self.graph.value(item_uri, MEMORY.memoryType))
+        item_id = str(self.graph.value(item_uri, self._memory_ns.id))
+        content = str(self.graph.value(item_uri, self._memory_ns.content))
+        memory_type_value = str(self.graph.value(item_uri, self._memory_ns.memoryType))
         memory_type = MemoryType(memory_type_value)
-        created_at_str = str(self.graph.value(item_uri, MEMORY.createdAt))
+        created_at_str = str(self.graph.value(item_uri, self._memory_ns.createdAt))
         created_at = datetime.fromisoformat(created_at_str)
 
         # Get the metadata
-        metadata = {}
-        metadata_uri = self.graph.value(item_uri, MEMORY.hasMetadata)
+        metadata: dict[str, object] = {}
+        metadata_uri = self.graph.value(item_uri, self._memory_ns.hasMetadata)
         if metadata_uri:
             for s, p, o in self.graph.triples((metadata_uri, None, None)):
-                if p != RDF.type:
+                if p != self._rdf.type:
                     # Extract the predicate name from the URI
                     predicate_name = p.split("#")[-1]
                     metadata[predicate_name] = o.toPython()
@@ -306,7 +368,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             created_at=created_at,
         )
 
-    def _memory_vector_to_triples(self, vector: MemoryVector):
+    def _memory_vector_to_triples(self, vector: MemoryVector) -> None:
         """
         Convert a MemoryVector to RDF triples and add them to the graph.
 
@@ -314,42 +376,42 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             vector: The MemoryVector to convert
         """
         # Create a URI for the memory vector
-        vector_uri = URIRef(f"{MEMORY}vector/{vector.id}")
+        vector_uri = self._uri_ref(f"{self._memory_ns}vector/{vector.id}")
 
         # Add basic triples for the memory vector
-        self.graph.add((vector_uri, RDF.type, MEMORY.MemoryVector))
-        self.graph.add((vector_uri, MEMORY.id, Literal(vector.id)))
-        self.graph.add((vector_uri, MEMORY.content, Literal(str(vector.content))))
+        self.graph.add((vector_uri, self._rdf.type, self._memory_ns.MemoryVector))
+        self.graph.add((vector_uri, self._memory_ns.id, self._literal(vector.id)))
+        self.graph.add((vector_uri, self._memory_ns.content, self._literal(str(vector.content))))
         self.graph.add(
             (
                 vector_uri,
-                MEMORY.createdAt,
-                Literal(vector.created_at.isoformat(), datatype=XSD.dateTime),
+                self._memory_ns.createdAt,
+                self._literal(vector.created_at.isoformat(), datatype=self._xsd.dateTime),
             )
         )
 
         # Add embedding as a JSON string
         embedding_json = json.dumps(vector.embedding)
-        self.graph.add((vector_uri, MEMORY.embedding, Literal(embedding_json)))
+        self.graph.add((vector_uri, self._memory_ns.embedding, self._literal(embedding_json)))
 
         # Add metadata as triples
         if vector.metadata:
-            metadata_uri = URIRef(f"{MEMORY}metadata/{vector.id}")
-            self.graph.add((vector_uri, MEMORY.hasMetadata, metadata_uri))
-            self.graph.add((metadata_uri, RDF.type, MEMORY.Metadata))
+            metadata_uri = self._uri_ref(f"{self._memory_ns}metadata/{vector.id}")
+            self.graph.add((vector_uri, self._memory_ns.hasMetadata, metadata_uri))
+            self.graph.add((metadata_uri, self._rdf.type, self._memory_ns.Metadata))
 
             for key, value in vector.metadata.items():
                 # Convert the key to a valid predicate name (replace spaces, etc.)
                 predicate_name = key.replace(" ", "_").lower()
-                predicate = MEMORY[predicate_name]
+                predicate = self._memory_ns[predicate_name]
 
                 # Add the metadata triple
                 if isinstance(value, (int, float, bool)):
-                    self.graph.add((metadata_uri, predicate, Literal(value)))
+                    self.graph.add((metadata_uri, predicate, self._literal(value)))
                 else:
-                    self.graph.add((metadata_uri, predicate, Literal(str(value))))
+                    self.graph.add((metadata_uri, predicate, self._literal(str(value))))
 
-    def _triples_to_memory_vector(self, vector_uri: URIRef) -> Optional[MemoryVector]:
+    def _triples_to_memory_vector(self, vector_uri: URIRefType) -> Optional[MemoryVector]:
         """
         Convert RDF triples to a MemoryVector.
 
@@ -360,23 +422,23 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             The converted MemoryVector, or None if not found
         """
         # Check if the vector exists
-        if (vector_uri, RDF.type, MEMORY.MemoryVector) not in self.graph:
+        if (vector_uri, self._rdf.type, self._memory_ns.MemoryVector) not in self.graph:
             return None
 
         # Get the basic properties
-        vector_id = str(self.graph.value(vector_uri, MEMORY.id))
-        content = str(self.graph.value(vector_uri, MEMORY.content))
-        embedding_json = str(self.graph.value(vector_uri, MEMORY.embedding))
+        vector_id = str(self.graph.value(vector_uri, self._memory_ns.id))
+        content = str(self.graph.value(vector_uri, self._memory_ns.content))
+        embedding_json = str(self.graph.value(vector_uri, self._memory_ns.embedding))
         embedding = json.loads(embedding_json)
-        created_at_str = str(self.graph.value(vector_uri, MEMORY.createdAt))
+        created_at_str = str(self.graph.value(vector_uri, self._memory_ns.createdAt))
         created_at = datetime.fromisoformat(created_at_str)
 
         # Get the metadata
-        metadata = {}
-        metadata_uri = self.graph.value(vector_uri, MEMORY.hasMetadata)
+        metadata: dict[str, object] = {}
+        metadata_uri = self.graph.value(vector_uri, self._memory_ns.hasMetadata)
         if metadata_uri:
             for s, p, o in self.graph.triples((metadata_uri, None, None)):
-                if p != RDF.type:
+                if p != self._rdf.type:
                     # Extract the predicate name from the URI
                     predicate_name = p.split("#")[-1]
                     metadata[predicate_name] = o.toPython()
@@ -445,7 +507,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         """
         try:
             # Create a URI for the memory item
-            item_uri = URIRef(f"{MEMORY}item/{item_id}")
+            item_uri = self._uri_ref(f"{self._memory_ns}item/{item_id}")
 
             # Convert the RDF triples to a MemoryItem
             item = self._triples_to_memory_item(item_uri)
@@ -584,15 +646,15 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         """
         try:
             # Create a URI for the memory item
-            item_uri = URIRef(f"{MEMORY}item/{item_id}")
+            item_uri = self._uri_ref(f"{self._memory_ns}item/{item_id}")
 
             # Check if the item exists
-            if (item_uri, RDF.type, MEMORY.MemoryItem) not in self.graph:
+            if (item_uri, self._rdf.type, self._memory_ns.MemoryItem) not in self.graph:
                 logger.warning(f"Item with ID {item_id} not found for deletion")
                 return False
 
             # Get the metadata URI
-            metadata_uri = self.graph.value(item_uri, MEMORY.hasMetadata)
+            metadata_uri = self.graph.value(item_uri, self._memory_ns.hasMetadata)
 
             # Remove all triples related to the item
             self.graph.remove((item_uri, None, None))
@@ -676,7 +738,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         """
         try:
             # Create a URI for the memory vector
-            vector_uri = URIRef(f"{MEMORY}vector/{vector_id}")
+            vector_uri = self._uri_ref(f"{self._memory_ns}vector/{vector_id}")
 
             # Convert the RDF triples to a MemoryVector
             vector = self._triples_to_memory_vector(vector_uri)
@@ -773,15 +835,15 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         """
         try:
             # Create a URI for the memory vector
-            vector_uri = URIRef(f"{MEMORY}vector/{vector_id}")
+            vector_uri = self._uri_ref(f"{self._memory_ns}vector/{vector_id}")
 
             # Check if the vector exists
-            if (vector_uri, RDF.type, MEMORY.MemoryVector) not in self.graph:
+            if (vector_uri, self._rdf.type, self._memory_ns.MemoryVector) not in self.graph:
                 logger.warning(f"Vector with ID {vector_id} not found for deletion")
                 return False
 
             # Get the metadata URI
-            metadata_uri = self.graph.value(vector_uri, MEMORY.hasMetadata)
+            metadata_uri = self.graph.value(vector_uri, self._memory_ns.hasMetadata)
 
             # Remove all triples related to the vector
             self.graph.remove((vector_uri, None, None))
