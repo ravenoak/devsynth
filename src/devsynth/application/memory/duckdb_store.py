@@ -78,7 +78,8 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
                 - efConstruction: Size of the dynamic list for nearest neighbors during index construction (default: 100)
                 - efSearch: Size of the dynamic list for nearest neighbors during search (default: 50)
         """
-        if duckdb_module is None:  # pragma: no cover - runtime check for optional dep
+        module = duckdb_module
+        if module is None:  # pragma: no cover - runtime check for optional dep
             raise ImportError(
                 "DuckDBStore requires the 'duckdb' package. Install it with 'pip install duckdb' or use the dev extras."
             )
@@ -99,7 +100,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
         os.makedirs(self.base_path, exist_ok=True)
 
         # Initialize DuckDB connection
-        self.conn: DuckDBConnectionProtocol = duckdb_module.connect(self.db_file)
+        self.conn: DuckDBConnectionProtocol = module.connect(self.db_file)
 
         # Initialize the tokenizer for token counting
         try:
@@ -223,7 +224,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
     def _serialize_metadata(self, metadata: MemoryMetadata | None) -> str:
         """Serialize metadata to a JSON string using typed helpers."""
 
-        return cast(str, metadata_dumps(metadata))
+        return metadata_dumps(metadata)
 
     def _deserialize_metadata(self, metadata_str: str | None) -> MemoryMetadata:
         """Deserialize a JSON string into ``MemoryMetadata`` values."""
