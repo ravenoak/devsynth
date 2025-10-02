@@ -15,6 +15,8 @@ from devsynth.exceptions import DevSynthError
 class InMemoryStore(MemoryStore):
     """In-memory implementation of MemoryStore."""
 
+    supports_transactions: bool = True
+
     def __init__(self):
         self.items = {}
         # Simple transaction support: map tx_id -> snapshot of items

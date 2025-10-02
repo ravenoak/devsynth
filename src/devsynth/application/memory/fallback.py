@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import logging
 import time
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast, TYPE_CHECKING
 
-from devsynth.domain.interfaces.memory import MemorySearchResponse, MemoryStore
+from devsynth.domain.interfaces.memory import (
+    MemorySearchResponse,
+    MemoryStore,
+    SupportsTransactions,
+)
 from devsynth.domain.models.memory import MemoryItem
 from devsynth.logging_setup import DevSynthLogger
 
@@ -20,6 +25,18 @@ if TYPE_CHECKING:  # pragma: no cover - imported for typing only
     )
 
 T = TypeVar("T")
+
+
+MemoryStoreProtocol = MemoryStore
+
+
+@dataclass(slots=True)
+class PendingOperation:
+    operation: str
+    timestamp: float
+    item: MemoryItem | None = None
+    item_id: str | None = None
+    transaction_id: str | None = None
 
 
 class FallbackError(Exception):
@@ -45,7 +62,7 @@ class StoreStatus(Enum):
     UNAVAILABLE = "UNAVAILABLE"  # Store is unavailable
 
 
-class FallbackStore(MemoryStore):
+class FallbackStore(MemoryStore, SupportsTransactions):
     """
     Memory store with fallback capabilities.
 
@@ -53,10 +70,12 @@ class FallbackStore(MemoryStore):
     when the primary store is unavailable or experiencing issues.
     """
 
+    supports_transactions: bool = True
+
     def __init__(
         self,
-        primary_store: MemoryStore,
-        fallback_stores: List[MemoryStore],
+        primary_store: MemoryStoreProtocol,
+        fallback_stores: List[MemoryStoreProtocol],
         logger: Optional[logging.Logger] = None,
     ):
         """
@@ -72,17 +91,17 @@ class FallbackStore(MemoryStore):
         self.logger = logger or DevSynthLogger(__name__)
 
         # Store status tracking
-        self.store_status: Dict[MemoryStore, StoreStatus] = {
+        self.store_status: Dict[MemoryStoreProtocol, StoreStatus] = {
             primary_store: StoreStatus.AVAILABLE
         }
         for store in fallback_stores:
             self.store_status[store] = StoreStatus.AVAILABLE
 
         # Last error tracking
-        self.last_errors: Dict[MemoryStore, Exception] = {}
+        self.last_errors: Dict[MemoryStoreProtocol, Exception] = {}
 
         # Pending operations for reconciliation
-        self.pending_operations: List[Dict[str, Any]] = []
+        self.pending_operations: List[PendingOperation] = []
 
     def store(self, item: MemoryItem) -> str:
         """
@@ -132,7 +151,7 @@ class FallbackStore(MemoryStore):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -143,7 +162,11 @@ class FallbackStore(MemoryStore):
 
                     # Add to pending operations for reconciliation
                     self.pending_operations.append(
-                        {"type": "store", "item": item, "timestamp": time.time()}
+                        PendingOperation(
+                            operation="store",
+                            item=item,
+                            timestamp=time.time(),
+                        )
                     )
 
                     self.logger.info(
@@ -195,7 +218,7 @@ class FallbackStore(MemoryStore):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -249,7 +272,7 @@ class FallbackStore(MemoryStore):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -298,7 +321,7 @@ class FallbackStore(MemoryStore):
 
         # Try fallback stores
         fallback_success = False
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -316,7 +339,11 @@ class FallbackStore(MemoryStore):
         # If primary store failed but fallback succeeded, add to pending operations
         if not primary_success and fallback_success:
             self.pending_operations.append(
-                {"type": "delete", "item_id": item_id, "timestamp": time.time()}
+                PendingOperation(
+                    operation="delete",
+                    item_id=item_id,
+                    timestamp=time.time(),
+                )
             )
 
             self.logger.info(
@@ -352,7 +379,7 @@ class FallbackStore(MemoryStore):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -410,7 +437,7 @@ class FallbackStore(MemoryStore):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -421,11 +448,11 @@ class FallbackStore(MemoryStore):
 
                     # Add to pending operations for reconciliation
                     self.pending_operations.append(
-                        {
-                            "type": "begin_transaction",
-                            "transaction_id": transaction_id,
-                            "timestamp": time.time(),
-                        }
+                        PendingOperation(
+                            operation="begin_transaction",
+                            transaction_id=transaction_id,
+                            timestamp=time.time(),
+                        )
                     )
 
                     self.logger.info(
@@ -473,7 +500,7 @@ class FallbackStore(MemoryStore):
 
         # Try fallback stores
         fallback_success = False
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -491,11 +518,11 @@ class FallbackStore(MemoryStore):
         # If primary store failed but fallback succeeded, add to pending operations
         if not primary_success and fallback_success:
             self.pending_operations.append(
-                {
-                    "type": "commit_transaction",
-                    "transaction_id": transaction_id,
-                    "timestamp": time.time(),
-                }
+                PendingOperation(
+                    operation="commit_transaction",
+                    transaction_id=transaction_id,
+                    timestamp=time.time(),
+                )
             )
 
             self.logger.info(
@@ -536,7 +563,7 @@ class FallbackStore(MemoryStore):
 
         # Try fallback stores
         fallback_success = False
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -554,11 +581,11 @@ class FallbackStore(MemoryStore):
         # If primary store failed but fallback succeeded, add to pending operations
         if not primary_success and fallback_success:
             self.pending_operations.append(
-                {
-                    "type": "rollback_transaction",
-                    "transaction_id": transaction_id,
-                    "timestamp": time.time(),
-                }
+                PendingOperation(
+                    operation="rollback_transaction",
+                    transaction_id=transaction_id,
+                    timestamp=time.time(),
+                )
             )
 
             self.logger.info(
@@ -597,7 +624,7 @@ class FallbackStore(MemoryStore):
                 self.store_status[self.primary_store] = StoreStatus.DEGRADED
 
         # Try fallback stores
-        errors = {}
+        errors: Dict[str, Exception] = {}
         for store in self.fallback_stores:
             if self.store_status[store] != StoreStatus.UNAVAILABLE:
                 try:
@@ -635,14 +662,12 @@ class FallbackStore(MemoryStore):
         # Process pending operations in order
         for operation in self.pending_operations[:]:
             try:
-                operation_type = operation["type"]
+                operation_type = operation.operation
 
-                if operation_type == "store":
-                    item = operation["item"]
-                    self.primary_store.store(item)
-                elif operation_type == "delete":
-                    item_id = operation["item_id"]
-                    self.primary_store.delete(item_id)
+                if operation_type == "store" and operation.item:
+                    self.primary_store.store(operation.item)
+                elif operation_type == "delete" and operation.item_id:
+                    self.primary_store.delete(operation.item_id)
                 elif operation_type == "begin_transaction":
                     # Skip begin_transaction operations
                     pass
@@ -690,7 +715,8 @@ class FallbackStore(MemoryStore):
 
 
 def with_fallback(
-    primary_store: MemoryStore, fallback_stores: List[MemoryStore]
+    primary_store: MemoryStoreProtocol,
+    fallback_stores: List[MemoryStoreProtocol],
 ) -> FallbackStore:
     """
     Create a fallback store.

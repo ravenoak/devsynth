@@ -10,7 +10,8 @@ import os
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, ContextManager
+from collections.abc import Mapping, Sequence
+from typing import Any, ContextManager, TYPE_CHECKING
 
 import tiktoken
 
@@ -24,14 +25,20 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.security.audit import audit_event
 from devsynth.security.encryption import decrypt_bytes, encrypt_bytes
 
-from ...domain.interfaces.memory import MemoryStore
+from ...domain.interfaces.memory import MemoryStore, SupportsTransactions
 from ...domain.models.memory import MemoryItem, MemoryType
+from .dto import MemoryMetadata, MemoryMetadataValue
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from lmdb import Transaction as LMDBTransaction
+else:  # pragma: no cover - runtime fallback when lmdb missing
+    LMDBTransaction = Any
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
 
-class LMDBStore(MemoryStore):
+class LMDBStore(MemoryStore, SupportsTransactions):
     """
     LMDB implementation of the MemoryStore interface.
 
@@ -98,7 +105,7 @@ class LMDBStore(MemoryStore):
         # rollback even when the context manager form isn't used. Each entry
         # maps a transaction identifier to the underlying LMDB transaction
         # object.
-        self._transactions: dict[str, lmdb.Transaction] = {}
+        self._transactions: dict[str, LMDBTransaction] = {}
 
     def close(self):
         """Close the LMDB environment."""
@@ -114,10 +121,10 @@ class LMDBStore(MemoryStore):
     @contextmanager
     def begin_transaction(
         self, write: bool = True, transaction_id: str | None = None
-    ) -> ContextManager:
+    ) -> ContextManager[LMDBTransaction]:
         """Begin a transaction and optionally register it by ``transaction_id``."""
 
-        txn = self.env.begin(write=write)
+        txn: LMDBTransaction = self.env.begin(write=write)
         if transaction_id:
             self._transactions[transaction_id] = txn
         try:
@@ -205,11 +212,18 @@ class LMDBStore(MemoryStore):
         created_at_str = item.created_at.isoformat() if item.created_at else None
 
         # Create a serialized representation
-        serialized = {
+        metadata_payload: dict[str, MemoryMetadataValue] | None = None
+        if item.metadata:
+            metadata_payload = {
+                key: self._normalize_metadata_value(value)
+                for key, value in item.metadata.items()
+            }
+
+        serialized: dict[str, object] = {
             "id": item.id,
             "content": item.content,
             "memory_type": memory_type_str,
-            "metadata": item.metadata,
+            "metadata": metadata_payload,
             "created_at": created_at_str,
         }
 
@@ -228,31 +242,61 @@ class LMDBStore(MemoryStore):
         """
         # Convert bytes to JSON
         serialized = json.loads(data.decode("utf-8"))
+        if not isinstance(serialized, Mapping):
+            raise TypeError("LMDB payload must deserialize into a mapping")
+        payload: dict[str, object] = dict(serialized)
 
         # Convert memory_type string to enum
         memory_type = (
-            MemoryType(serialized["memory_type"]) if serialized["memory_type"] else None
+            MemoryType(payload["memory_type"]) if payload.get("memory_type") else None
         )
 
         # Convert created_at string to datetime
         created_at = (
-            datetime.fromisoformat(serialized["created_at"])
-            if serialized["created_at"]
+            datetime.fromisoformat(str(payload["created_at"]))
+            if payload.get("created_at")
             else None
         )
 
+        metadata_payload = payload.get("metadata")
+        metadata = self._deserialize_metadata(metadata_payload)
+
         # Create a MemoryItem
         item = MemoryItem(
-            id=serialized["id"],
-            content=serialized["content"],
+            id=str(payload["id"]),
+            content=payload.get("content"),
             memory_type=memory_type,
-            metadata=serialized["metadata"],
+            metadata=metadata,
             created_at=created_at,
         )
 
         return item
 
-    def store_in_transaction(self, txn, item: MemoryItem) -> str:
+    @staticmethod
+    def _normalize_metadata_value(value: object) -> MemoryMetadataValue:
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            return value
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, Mapping):
+            return {
+                str(key): LMDBStore._normalize_metadata_value(inner)
+                for key, inner in value.items()
+            }
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+            return [LMDBStore._normalize_metadata_value(inner) for inner in value]
+        raise TypeError(f"Unsupported metadata value: {value!r}")
+
+    @staticmethod
+    def _deserialize_metadata(payload: object) -> MemoryMetadata | None:
+        if not isinstance(payload, Mapping):
+            return None
+        return {
+            str(key): LMDBStore._normalize_metadata_value(value)
+            for key, value in payload.items()
+        }
+
+    def store_in_transaction(self, txn: LMDBTransaction, item: MemoryItem) -> str:
         """
         Store an item in memory within a transaction and return its ID.
 
@@ -330,7 +374,9 @@ class LMDBStore(MemoryStore):
             logger.error(f"Failed to store item in LMDB: {e}")
             raise MemoryStoreError(f"Failed to store item: {e}")
 
-    def retrieve_in_transaction(self, txn, item_id: str) -> MemoryItem | None:
+    def retrieve_in_transaction(
+        self, txn: LMDBTransaction, item_id: str
+    ) -> MemoryItem | None:
         """
         Retrieve an item from memory within a transaction by ID.
 
@@ -399,7 +445,9 @@ class LMDBStore(MemoryStore):
             logger.error(f"Error retrieving item from LMDB: {e}")
             raise MemoryStoreError(f"Error retrieving item: {e}")
 
-    def search(self, query: dict[str, Any]) -> list[MemoryItem]:
+    def search(
+        self, query: Mapping[str, object] | MemoryMetadata
+    ) -> list[MemoryItem]:
         """
         Search for items in memory matching the query.
 
@@ -577,3 +625,5 @@ class LMDBStore(MemoryStore):
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Failed to fetch all items: %s", exc)
         return items
+    supports_transactions: bool = True
+

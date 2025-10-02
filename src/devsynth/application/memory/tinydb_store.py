@@ -6,8 +6,7 @@ import json
 import os
 import uuid
 from datetime import datetime
-from collections.abc import Mapping
-from typing import cast
+from collections.abc import Mapping, Sequence
 
 import tiktoken
 from tinydb import Query, TinyDB  # type: ignore[import-not-found]
@@ -28,10 +27,56 @@ from ...domain.interfaces.memory import MemoryStore
 from ...domain.models.memory import MemoryItem, MemoryType
 from .dto import (
     MemoryMetadata,
+    MemoryMetadataValue,
     MemoryRecord,
     MemorySearchQuery,
     build_memory_record,
 )
+
+
+def _coerce_metadata_value(value: object) -> MemoryMetadataValue:
+    """Normalize arbitrary objects into ``MemoryMetadataValue`` entries."""
+
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, Mapping):
+        return {
+            str(key): _coerce_metadata_value(inner_value)
+            for key, inner_value in value.items()
+        }
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return [_coerce_metadata_value(inner) for inner in value]
+    raise TypeError(f"Unsupported metadata value: {value!r}")
+
+
+def _deserialize_metadata(payload: object) -> MemoryMetadata | None:
+    """Convert raw payloads from TinyDB into ``MemoryMetadata`` mappings."""
+
+    if not isinstance(payload, Mapping):
+        return None
+    normalized: dict[str, MemoryMetadataValue] = {}
+    for key, value in payload.items():
+        if not isinstance(key, str):
+            raise TypeError("Metadata keys must be strings")
+        normalized[key] = _coerce_metadata_value(value)
+    return normalized
+
+
+def _deserialize_table(payload: object) -> dict[str, dict[str, object]]:
+    """Ensure TinyDB tables deserialize into nested dictionaries."""
+
+    if not isinstance(payload, Mapping):
+        raise TypeError("TinyDB payload must be a mapping")
+    normalized: dict[str, dict[str, object]] = {}
+    for key, value in payload.items():
+        if not isinstance(key, str):
+            raise TypeError("TinyDB table keys must be strings")
+        if not isinstance(value, Mapping):
+            raise TypeError("TinyDB table rows must be mappings")
+        normalized[key] = {str(inner_key): inner_value for inner_key, inner_value in value.items()}
+    return normalized
 
 
 class EncryptedJSONStorage(Storage):
@@ -55,9 +100,7 @@ class EncryptedJSONStorage(Storage):
         data = self._handle.read()
         data = decrypt_bytes(data, key=self._key)
         payload = json.loads(data.decode("utf-8"))
-        if not isinstance(payload, dict):
-            raise TypeError("Encrypted TinyDB payload must deserialize into a mapping")
-        return cast(dict[str, dict[str, object]], payload)
+        return _deserialize_table(payload)
 
     def write(self, data: dict[str, dict[str, object]]) -> None:
         self._handle.seek(0)
@@ -150,7 +193,12 @@ class TinyDBStore(MemoryStore):
         created_at_str = item.created_at.isoformat() if item.created_at else None
 
         # Create a serialized representation
-        metadata_payload = dict(item.metadata) if item.metadata else None
+        metadata_payload: dict[str, MemoryMetadataValue] | None = None
+        if item.metadata:
+            metadata_payload = {
+                key: _coerce_metadata_value(value)
+                for key, value in item.metadata.items()
+            }
 
         serialized = {
             "id": item.id,
@@ -175,11 +223,7 @@ class TinyDBStore(MemoryStore):
         payload = dict(data)
 
         metadata_payload = payload.get("metadata")
-        metadata: MemoryMetadata | None
-        if isinstance(metadata_payload, Mapping):
-            metadata = cast(MemoryMetadata, dict(metadata_payload))
-        else:
-            metadata = None
+        metadata = _deserialize_metadata(metadata_payload)
 
         memory_type_raw = payload.get("memory_type")
         memory_type = (
@@ -451,3 +495,5 @@ class TinyDBStore(MemoryStore):
             # Close the database
             self.db.close()
             logger.info(f"Closed TinyDB database at {self.db_file}")
+    supports_transactions: bool = False
+

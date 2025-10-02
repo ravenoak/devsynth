@@ -133,8 +133,8 @@ class TestFallbackStore:
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
         assert len(store.pending_operations) == 1
-        assert store.pending_operations[0]["type"] == "store"
-        assert store.pending_operations[0]["item"] == memory_item
+        assert store.pending_operations[0].operation == "store"
+        assert store.pending_operations[0].item == memory_item
 
     @pytest.mark.medium
     def test_store_all_failures(self, primary_store, fallback_store, memory_item):
@@ -280,8 +280,8 @@ class TestFallbackStore:
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
         assert len(store.pending_operations) == 1
-        assert store.pending_operations[0]["type"] == "delete"
-        assert store.pending_operations[0]["item_id"] == "test-item-1"
+        assert store.pending_operations[0].operation == "delete"
+        assert store.pending_operations[0].item_id == "test-item-1"
 
     @pytest.mark.medium
     def test_delete_all_failures(self, primary_store, fallback_store):
@@ -368,8 +368,8 @@ class TestFallbackStore:
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
         assert len(store.pending_operations) == 1
-        assert store.pending_operations[0]["type"] == "begin_transaction"
-        assert store.pending_operations[0]["transaction_id"] == "tx-1"
+        assert store.pending_operations[0].operation == "begin_transaction"
+        assert store.pending_operations[0].transaction_id == "tx-1"
 
     @pytest.mark.medium
     def test_begin_transaction_all_failures(self, primary_store, fallback_store):
@@ -416,8 +416,8 @@ class TestFallbackStore:
         assert store.store_status[primary_store] == StoreStatus.DEGRADED
         assert store.store_status[fallback_store] == StoreStatus.AVAILABLE
         assert len(store.pending_operations) == 1
-        assert store.pending_operations[0]["type"] == "commit_transaction"
-        assert store.pending_operations[0]["transaction_id"] == "tx-1"
+        assert store.pending_operations[0].operation == "commit_transaction"
+        assert store.pending_operations[0].transaction_id == "tx-1"
 
     @pytest.mark.medium
     def test_commit_transaction_all_failures(self, primary_store, fallback_store):

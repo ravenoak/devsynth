@@ -1,6 +1,6 @@
-"""
-JSON file-based implementation of MemoryStore.
-"""
+"""JSON file-based implementation of MemoryStore."""
+
+from __future__ import annotations
 
 import errno
 import json
@@ -8,8 +8,10 @@ import os
 import shutil
 import uuid
 from contextlib import contextmanager
+from copy import deepcopy
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Literal
 
 from devsynth.exceptions import (
     DevSynthError,
@@ -27,14 +29,34 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.security.audit import audit_event
 from devsynth.security.encryption import decrypt_bytes, encrypt_bytes
 
-from ...domain.interfaces.memory import MemoryStore
+from ...domain.interfaces.memory import MemoryStore, SupportsTransactions
 from ...domain.models.memory import MemoryItem, MemoryType
+from .dto import (
+    MemoryMetadata,
+    MemoryRecord,
+    MemorySearchQuery,
+    build_memory_record,
+)
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
 
-class JSONFileStore(MemoryStore):
+@dataclass(slots=True)
+class _TransactionChange:
+    operation: Literal["store", "delete"]
+    item_id: str
+    item: MemoryItem
+
+
+@dataclass(slots=True)
+class _TransactionState:
+    snapshot: dict[str, MemoryItem]
+    changes: list[_TransactionChange] = field(default_factory=list)
+    started_at: datetime = field(default_factory=datetime.now)
+
+
+class JSONFileStore(MemoryStore, SupportsTransactions):
     """JSON file-based implementation of MemoryStore."""
 
     def __init__(
@@ -60,11 +82,13 @@ class JSONFileStore(MemoryStore):
         self.no_file_logging = os.environ.get(
             "DEVSYNTH_NO_FILE_LOGGING", "0"
         ).lower() in ("1", "true", "yes")
-        self.items = self._load_items()
+        self.items: dict[str, MemoryItem] = self._load_items()
         self.token_count = 0
 
         # Transaction support
-        self.active_transactions = {}  # transaction_id -> {snapshot, changes}
+        self.active_transactions: dict[str, _TransactionState] = {}
+
+    supports_transactions: bool = True
 
     def _encrypt(self, data: bytes) -> bytes:
         if not self.encryption_enabled:
@@ -152,7 +176,7 @@ class JSONFileStore(MemoryStore):
                 ) from e
 
     @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(OSError,))
-    def _load_items(self) -> Dict[str, MemoryItem]:
+    def _load_items(self) -> dict[str, MemoryItem]:
         """
         Load items from the JSON file.
 
@@ -188,7 +212,7 @@ class JSONFileStore(MemoryStore):
                     raw = self._decrypt(raw).decode("utf-8")
                 data = json.loads(raw)
 
-            items = {}
+            items: dict[str, MemoryItem] = {}
             for item_data in data.get("items", []):
                 try:
                     memory_type = MemoryType(item_data.get("memory_type"))
@@ -358,7 +382,7 @@ class JSONFileStore(MemoryStore):
                 original_error=e,
             ) from e
 
-    def store(self, item: MemoryItem, transaction_id: str = None) -> str:
+    def store(self, item: MemoryItem, transaction_id: str | None = None) -> str:
         """
         Store an item in memory and return its ID.
 
@@ -401,8 +425,8 @@ class JSONFileStore(MemoryStore):
                 transaction = self.active_transactions[transaction_id]
 
                 # Add the change to the transaction
-                transaction["changes"].append(
-                    {"operation": "store", "item_id": item.id, "item": item}
+                transaction.changes.append(
+                    _TransactionChange(operation="store", item_id=item.id, item=item)
                 )
 
                 # Apply the change
@@ -446,7 +470,7 @@ class JSONFileStore(MemoryStore):
                 original_error=e,
             ) from e
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """
         Retrieve an item from memory by ID.
 
@@ -493,7 +517,9 @@ class JSONFileStore(MemoryStore):
                 original_error=e,
             ) from e
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
@@ -508,7 +534,7 @@ class JSONFileStore(MemoryStore):
         """
         try:
             logger.debug(f"Searching memory items", query=query)
-            result = []
+            records: list[MemoryRecord] = []
 
             for item in self.items.values():
                 match = True
@@ -537,14 +563,18 @@ class JSONFileStore(MemoryStore):
                         match = False
                         break
                 if match:
-                    result.append(item)
+                    records.append(
+                        build_memory_record(item, source=self.__class__.__name__)
+                    )
 
             # Update token count (rough estimate)
-            if result:
-                self.token_count += sum(len(str(item)) for item in result) // 4
+            if records:
+                self.token_count += sum(
+                    len(str(record.item)) for record in records
+                ) // 4
 
-            logger.debug(f"Found {len(result)} matching memory items", query=query)
-            return result
+            logger.debug(f"Found {len(records)} matching memory items", query=query)
+            return records
         except Exception as e:
             logger.error(
                 f"Error searching memory items: {str(e)}", error=e, query=query
@@ -556,7 +586,7 @@ class JSONFileStore(MemoryStore):
                 original_error=e,
             ) from e
 
-    def delete(self, item_id: str, transaction_id: str = None) -> bool:
+    def delete(self, item_id: str, transaction_id: str | None = None) -> bool:
         """
         Delete an item from memory.
 
@@ -609,14 +639,12 @@ class JSONFileStore(MemoryStore):
                 transaction = self.active_transactions[transaction_id]
 
                 # Add the change to the transaction
-                transaction["changes"].append(
-                    {
-                        "operation": "delete",
-                        "item_id": item_id,
-                        "item": self.items[
-                            item_id
-                        ],  # Store the item in case we need to rollback
-                    }
+                transaction.changes.append(
+                    _TransactionChange(
+                        operation="delete",
+                        item_id=item_id,
+                        item=self.items[item_id],
+                    )
                 )
 
                 # Apply the change
@@ -686,14 +714,12 @@ class JSONFileStore(MemoryStore):
             transaction_id = str(uuid.uuid4())
 
             # Create a snapshot of the current state
-            snapshot = {item_id: item.copy() for item_id, item in self.items.items()}
+            snapshot = {item_id: deepcopy(item) for item_id, item in self.items.items()}
 
             # Initialize the transaction
-            self.active_transactions[transaction_id] = {
-                "snapshot": snapshot,
-                "changes": [],
-                "started_at": datetime.now().isoformat(),
-            }
+            self.active_transactions[transaction_id] = _TransactionState(
+                snapshot=snapshot
+            )
 
             logger.debug(f"Started transaction", transaction_id=transaction_id)
             audit_event(
@@ -737,8 +763,6 @@ class JSONFileStore(MemoryStore):
                 )
 
             # Get the transaction
-            transaction = self.active_transactions[transaction_id]
-
             # Save the changes to disk
             self._save_items()
 
@@ -797,7 +821,7 @@ class JSONFileStore(MemoryStore):
             transaction = self.active_transactions[transaction_id]
 
             # Restore the snapshot
-            self.items = transaction["snapshot"]
+            self.items = transaction.snapshot
 
             # Remove the transaction
             del self.active_transactions[transaction_id]

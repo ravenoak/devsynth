@@ -10,7 +10,7 @@ import json
 import os
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 import tiktoken
@@ -42,9 +42,15 @@ from devsynth.exceptions import (
 )
 from devsynth.logging_setup import DevSynthLogger
 
-from ...domain.interfaces.memory import MemoryStore, VectorStore
+from ...domain.interfaces.memory import MemoryStore, SupportsTransactions, VectorStore
 from ...domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from .dto import VectorStoreStats
+from .dto import (
+    MemoryMetadata,
+    MemoryRecord,
+    MemorySearchQuery,
+    VectorStoreStats,
+    build_memory_record,
+)
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -54,7 +60,7 @@ DEVSYNTH = Namespace("https://github.com/ravenoak/devsynth/ontology#")
 MEMORY = Namespace("https://github.com/ravenoak/devsynth/ontology/memory#")
 
 
-class RDFLibStore(MemoryStore, VectorStore[MemoryVector]):
+class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
     """
     RDFLib implementation of the MemoryStore and VectorStore interfaces.
 
@@ -431,7 +437,9 @@ class RDFLibStore(MemoryStore, VectorStore[MemoryVector]):
                 original_error=e,
             )
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> List[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
@@ -500,20 +508,24 @@ class RDFLibStore(MemoryStore, VectorStore[MemoryVector]):
             results = self.graph.query(sparql_query)
 
             # Convert the results to MemoryItems
-            items = []
+            records: List[MemoryRecord] = []
             for row in results:
                 item_uri = row[0]
                 item = self._triples_to_memory_item(item_uri)
                 if item:
-                    items.append(item)
+                    records.append(
+                        build_memory_record(item, source=self.__class__.__name__)
+                    )
 
             # Update token count
-            if items:
-                token_count = sum(self._count_tokens(str(item)) for item in items)
+            if records:
+                token_count = sum(
+                    self._count_tokens(str(record.item)) for record in records
+                )
                 self.token_count += token_count
 
-            logger.info(f"Found {len(items)} matching items in RDFLib graph")
-            return items
+            logger.info(f"Found {len(records)} matching items in RDFLib graph")
+            return records
 
         except Exception as e:
             logger.error(f"Error searching items in RDFLib graph: {e}")
@@ -832,3 +844,5 @@ class RDFLibStore(MemoryStore, VectorStore[MemoryVector]):
         except Exception as e:  # pragma: no cover - safe fallback
             logger.error(f"Failed to retrieve vectors: {e}")
         return vectors
+    supports_transactions: bool = True
+
