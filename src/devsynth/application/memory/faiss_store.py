@@ -33,14 +33,14 @@ from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import VectorStore
 from ...domain.models.memory import MemoryVector
-from .dto import MemoryMetadata
+from .dto import MemoryMetadata, VectorStoreStats
 from .metadata_serialization import from_serializable, to_serializable
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
 
-class FAISSStore(VectorStore):
+class FAISSStore(VectorStore[MemoryVector]):
     """
     FAISS implementation of the VectorStore interface.
 
@@ -490,37 +490,35 @@ class FAISSStore(VectorStore):
             logger.error(f"Error deleting vector from FAISS: {e}")
             raise MemoryStoreError(f"Error deleting vector: {e}")
 
-    def get_collection_stats(self) -> Dict[str, Any]:
-        """
-        Get statistics about the vector store collection.
+    def get_collection_stats(self) -> VectorStoreStats:
+        """Return statistics about the vector store collection."""
 
-        Returns:
-            A dictionary of collection statistics
-
-        Raises:
-            MemoryStoreError: If there is an error getting collection statistics
-        """
         try:
-            # Count non-deleted vectors
             active_vectors = sum(
                 1
                 for meta in self.metadata.values()
                 if not meta.get("is_deleted", False)
             )
 
-            stats = {
-                "num_vectors": active_vectors,
-                "embedding_dimension": self.dimension,
-                "index_file": self.index_file,
-                "total_vectors_in_index": self.index.ntotal,
+            stats: VectorStoreStats = {
+                "collection_name": Path(self.base_path).name,
+                "vector_count": active_vectors,
+                "embedding_dimensions": self.dimension,
+                "persist_directory": self.base_path,
+                "metadata": {
+                    "index_file": self.index_file,
+                    "total_vectors_in_index": int(self.index.ntotal),
+                },
             }
 
-            logger.info(f"Retrieved collection statistics: {stats}")
+            logger.info("Retrieved collection statistics: %s", stats)
             return stats
 
-        except Exception as e:
-            logger.error(f"Error getting collection statistics from FAISS: {e}")
-            raise MemoryStoreError(f"Error getting collection statistics: {e}")
+        except Exception as exc:
+            logger.error(
+                "Error getting collection statistics from FAISS: %s", exc
+            )
+            raise MemoryStoreError(f"Error getting collection statistics: {exc}")
 
     def get_all_vectors(self) -> List[MemoryVector]:
         """Return all stored vectors."""

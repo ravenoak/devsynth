@@ -40,6 +40,7 @@ from devsynth.application.memory.dto import (
     MemoryQueryResults,
     MemoryRecord,
     MemorySearchQuery,
+    VectorStoreStats,
     build_memory_record,
 )
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
@@ -886,7 +887,7 @@ class ProtocolCompliantVectorStore(VectorStore):
             removed = True
         return removed
 
-    def get_collection_stats(self) -> dict[str, int]:
+    def get_collection_stats(self) -> VectorStoreStats:
         embedding_dimensions = 0
         if self._vectors:
             first = next(iter(self._vectors.values()))

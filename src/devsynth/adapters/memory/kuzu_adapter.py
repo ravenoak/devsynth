@@ -24,6 +24,7 @@ except Exception:  # pragma: no cover - optional dependency
 
 # Import settings module so ``ensure_path_exists`` can be monkeypatched
 from devsynth.config import settings as settings_module
+from devsynth.application.memory.dto import VectorStoreStats
 from devsynth.domain.interfaces.memory import VectorStore
 from devsynth.domain.models.memory import MemoryVector
 from devsynth.exceptions import MemoryStoreError
@@ -32,7 +33,7 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
-class KuzuAdapter(VectorStore):
+class KuzuAdapter(VectorStore[MemoryVector]):
     """Vector store interface mimicking ``ChromaDBAdapter``."""
 
     def __init__(
@@ -158,14 +159,14 @@ class KuzuAdapter(VectorStore):
 
         return list(self._store.values())
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> VectorStoreStats:
         dim = 0
         if self._store:
             dim = len(next(iter(self._store.values())).embedding)
         return {
             "collection_name": self.collection_name,
-            "num_vectors": len(self._store),
-            "embedding_dimension": dim,
+            "vector_count": len(self._store),
+            "embedding_dimensions": dim,
             "persist_directory": self.persist_directory,
         }
 

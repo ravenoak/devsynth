@@ -1226,7 +1226,7 @@ class GraphMemoryAdapter(MemoryStore):
 
     def integrate_with_store(
         self,
-        other_store: MemoryStore | VectorStore,
+        other_store: MemoryStore | VectorStore[MemoryVector],
         sync_mode: str = "bidirectional",
     ) -> None:
         """

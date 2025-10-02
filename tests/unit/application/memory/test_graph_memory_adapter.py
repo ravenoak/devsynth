@@ -601,7 +601,7 @@ class TestGraphMemoryAdapter:
 
         ReqID: N/A"""
         mock_vector_store = MagicMock()
-        mock_vector_store.get_collection_stats.return_value = {"num_vectors": 5}
+        mock_vector_store.get_collection_stats.return_value = {"vector_count": 5}
         rdflib_adapter.integrate_with_store(mock_vector_store, sync_mode="import")
         mock_vector_store.get_collection_stats.assert_called()
 

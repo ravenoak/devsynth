@@ -36,6 +36,7 @@ from .dto import (
     MemoryMetadata,
     MemoryRecord,
     MemorySearchQuery,
+    VectorStoreStats,
     build_memory_record,
 )
 from .metadata_serialization import dumps as metadata_dumps, loads as metadata_loads
@@ -51,7 +52,7 @@ except Exception:  # pragma: no cover - gracefully handle missing duckdb
     duckdb_module = None
 
 
-class DuckDBStore(MemoryStore, VectorStore):
+class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
     """
     DuckDB implementation of the MemoryStore and VectorStore interfaces.
 
@@ -875,27 +876,32 @@ class DuckDBStore(MemoryStore, VectorStore):
                 except Exception:
                     hnsw_index_exists = False
 
-            stats = {
-                "num_vectors": num_vectors,
-                "embedding_dimension": embedding_dimension,
-                "database_file": self.db_file,
-                "vector_extension_available": self.vector_extension_available,
-                "hnsw_enabled": self.enable_hnsw,
-                "hnsw_index_exists": hnsw_index_exists,
+            stats: VectorStoreStats = {
+                "collection_name": os.path.basename(self.base_path.rstrip(os.sep)),
+                "vector_count": int(num_vectors),
+                "embedding_dimensions": embedding_dimension,
+                "persist_directory": self.base_path,
+                "metadata": {
+                    "database_file": self.db_file,
+                    "vector_extension_available": self.vector_extension_available,
+                    "hnsw_enabled": self.enable_hnsw,
+                    "hnsw_index_exists": hnsw_index_exists,
+                },
             }
 
-            # Add HNSW configuration if enabled
             if self.enable_hnsw:
-                stats["hnsw_config"] = self.hnsw_config
+                stats.setdefault("metadata", {})["hnsw_config"] = self.hnsw_config
 
-            logger.info(f"Retrieved collection statistics: {stats}")
+            logger.info("Retrieved collection statistics: %s", stats)
             return stats
 
-        except Exception as e:
-            logger.error(f"Error getting collection statistics from DuckDB: {e}")
+        except Exception as exc:
+            logger.error(
+                "Error getting collection statistics from DuckDB: %s", exc
+            )
             raise MemoryStoreError(
                 "Error getting collection statistics",
                 store_type="duckdb",
                 operation="get_collection_stats",
-                original_error=e,
+                original_error=exc,
             )

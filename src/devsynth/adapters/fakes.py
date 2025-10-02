@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from devsynth.application.memory.dto import VectorStoreStats
 from devsynth.domain.interfaces.memory import MemoryStore, VectorStore
 from devsynth.domain.models.memory import MemoryItem, MemoryVector
 
@@ -107,7 +108,7 @@ class FakeMemoryStore(MemoryStore):
         return transaction_id == self._active_tx
 
 
-class FakeVectorStore(VectorStore):
+class FakeVectorStore(VectorStore[MemoryVector]):
     """A simple in-memory vector store with cosine similarity for tests."""
 
     def __init__(self) -> None:
@@ -157,5 +158,5 @@ class FakeVectorStore(VectorStore):
     def delete_vector(self, vector_id: str) -> bool:
         return self._vectors.pop(vector_id, None) is not None
 
-    def get_collection_stats(self) -> dict[str, Any]:
-        return {"count": len(self._vectors)}
+    def get_collection_stats(self) -> VectorStoreStats:
+        return {"collection_name": "fake", "vector_count": len(self._vectors)}

@@ -14,9 +14,9 @@ logger = DevSynthLogger(__name__)
 if TYPE_CHECKING:  # pragma: no cover - import for typing only
     from devsynth.application.memory.dto import MemoryMetadata
 else:  # Fallback to keep runtime import graph minimal.
-    from typing import MutableMapping
+    from typing import Mapping
 
-    MemoryMetadata = MutableMapping[str, Any]
+    MemoryMetadata = Mapping[str, Any]
 
 
 class MemoryType(Enum):

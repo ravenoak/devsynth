@@ -298,7 +298,7 @@ class TestRDFLibStore:
 
         ReqID: N/A"""
         stats = store.get_collection_stats()
-        assert stats["num_vectors"] == 0
+        assert stats["vector_count"] == 0
         assert stats["num_triples"] == 0
         for i in range(3):
             vector = MemoryVector(
@@ -310,6 +310,6 @@ class TestRDFLibStore:
             )
             store.store_vector(vector)
         stats = store.get_collection_stats()
-        assert stats["num_vectors"] == 3
-        assert stats["embedding_dimension"] == 5
+        assert stats["vector_count"] == 3
+        assert stats["embedding_dimensions"] == 5
         assert stats["num_triples"] > 0

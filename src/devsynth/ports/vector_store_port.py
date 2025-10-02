@@ -9,6 +9,7 @@ from devsynth.logging_setup import DevSynthLogger
 
 from ..domain.interfaces.memory import VectorStore
 from ..domain.models.memory import MemoryVector
+from ..application.memory.dto import VectorStoreStats
 
 logger = DevSynthLogger(__name__)
 
@@ -16,7 +17,7 @@ logger = DevSynthLogger(__name__)
 class VectorStorePort:
     """Port for vector storage operations."""
 
-    def __init__(self, vector_store: VectorStore):
+    def __init__(self, vector_store: VectorStore[MemoryVector]):
         self.vector_store = vector_store
 
     def store_vector(
@@ -45,6 +46,6 @@ class VectorStorePort:
         """Delete a vector from the vector store."""
         return self.vector_store.delete_vector(vector_id)
 
-    def get_collection_stats(self) -> dict[str, Any]:
+    def get_collection_stats(self) -> VectorStoreStats:
         """Get statistics about the vector store collection."""
         return self.vector_store.get_collection_stats()
