@@ -30,8 +30,10 @@ MemoryMetadataMapping: TypeAlias = Mapping[str, MemoryMetadataValue]
 """Structural alias capturing the metadata mapping contract for backends."""
 
 TRecord_co = TypeVar("TRecord_co", covariant=True)
-TMetadata_co = TypeVar("TMetadata_co", bound=MemoryMetadataMapping, covariant=True)
-TVectorRecord_co = TypeVar("TVectorRecord_co", covariant=True)
+TMetadata_contra = TypeVar(
+    "TMetadata_contra", bound=MemoryMetadataMapping, contravariant=True
+)
+TVectorRecord = TypeVar("TVectorRecord")
 TStats_co = TypeVar("TStats_co", covariant=True)
 
 MemorySearchResponse: TypeAlias = Union[
@@ -86,7 +88,7 @@ class SupportsStats(Protocol[TStats_co]):
         """Return an implementation-defined statistics payload."""
 
 
-class MemoryBackend(Protocol[TRecord_co, TMetadata_co]):
+class MemoryBackend(Protocol[TRecord_co, TMetadata_contra]):
     """Protocol describing the capabilities required from memory backends."""
 
     @abstractmethod
@@ -99,7 +101,7 @@ class MemoryBackend(Protocol[TRecord_co, TMetadata_co]):
 
     @abstractmethod
     def search(
-        self, query: Mapping[str, object] | TMetadata_co
+        self, query: Mapping[str, object] | TMetadata_contra
     ) -> MemorySearchResponse:
         """Search for items in memory matching the query payload."""
 
@@ -114,7 +116,7 @@ class MemoryStore(
     """Backward compatible protocol for stores emitting items or records."""
 
 
-class VectorStore(SupportsStats[VectorStoreStats], Protocol[TVectorRecord_co]):
+class VectorStore(SupportsStats[VectorStoreStats], Protocol[TVectorRecord]):
     """Protocol for vector storage backends returning ``TVector_co`` entries."""
 
     @abstractmethod
@@ -122,13 +124,13 @@ class VectorStore(SupportsStats[VectorStoreStats], Protocol[TVectorRecord_co]):
         """Store a vector in the vector store and return its identifier."""
 
     @abstractmethod
-    def retrieve_vector(self, vector_id: str) -> TVectorRecord_co | None:
+    def retrieve_vector(self, vector_id: str) -> TVectorRecord | None:
         """Retrieve a vector from the vector store by identifier."""
 
     @abstractmethod
     def similarity_search(
         self, query_embedding: list[float], top_k: int = 5
-    ) -> list[TVectorRecord_co]:
+    ) -> list[TVectorRecord]:
         """Return the ``top_k`` closest matches for ``query_embedding``."""
 
     @abstractmethod
@@ -160,19 +162,19 @@ class ContextManager(Protocol):
         ...
 
 
-class VectorStoreProviderFactory(Protocol[TVectorRecord_co]):
+class VectorStoreProviderFactory(Protocol[TVectorRecord]):
     """Protocol for creating typed :class:`VectorStore` providers."""
 
     @abstractmethod
     def create_provider(
         self, provider_type: str, config: dict[str, Any] | None = None
-    ) -> VectorStore[TVectorRecord_co]:
+    ) -> VectorStore[TVectorRecord]:
         """Create a VectorStore provider of the specified type."""
         ...
 
     @abstractmethod
     def register_provider_type(
-        self, provider_type: str, provider_class: type[VectorStore[TVectorRecord_co]]
+        self, provider_type: str, provider_class: type[VectorStore[TVectorRecord]]
     ) -> None:
         """Register a new provider type."""
         ...
