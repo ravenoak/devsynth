@@ -12,7 +12,7 @@ import os
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import AbstractContextManager
 from functools import lru_cache
-from typing import Any, Protocol, TypeAlias
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, cast
 
 from ...config import get_settings
 from ...domain.interfaces.memory import MemoryStore, VectorStore
@@ -21,10 +21,18 @@ from ...exceptions import CircuitBreakerOpenError, MemoryTransactionError
 from ...logging_setup import DevSynthLogger
 from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
 
+if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
+    from .adapters.s3_memory_adapter import S3MemoryAdapter as S3MemoryAdapterType
+else:  # pragma: no cover - runtime fallback when optional dependency missing
+    S3MemoryAdapterType = Any  # type: ignore[assignment]
+
+S3MemoryAdapter: type[S3MemoryAdapterType] | None
 try:  # pragma: no cover - optional dependency
-    from .adapters.s3_memory_adapter import S3MemoryAdapter
+    from .adapters.s3_memory_adapter import S3MemoryAdapter as _S3MemoryAdapter
 except Exception:  # pragma: no cover - missing optional dependency
     S3MemoryAdapter = None
+else:
+    S3MemoryAdapter = cast("type[S3MemoryAdapterType]", _S3MemoryAdapter)
 from .circuit_breaker import (
     CircuitBreaker,
     circuit_breaker_registry,
