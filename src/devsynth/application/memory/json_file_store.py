@@ -7,11 +7,12 @@ import json
 import os
 import shutil
 import uuid
+from collections.abc import Iterator
 from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any, BinaryIO, Literal, TextIO, cast
 
 from devsynth.exceptions import (
     DevSynthError,
@@ -41,17 +42,22 @@ from .dto import (
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
+STORE_LABEL = "JSONFileStore"
+
 
 @dataclass(slots=True)
 class _TransactionChange:
     operation: Literal["store", "delete"]
-    item_id: str
-    item: MemoryItem
+    record: MemoryRecord
+
+    @property
+    def item_id(self) -> str:
+        return self.record.id
 
 
 @dataclass(slots=True)
 class _TransactionState:
-    snapshot: dict[str, MemoryItem]
+    snapshot: dict[str, MemoryRecord]
     changes: list[_TransactionChange] = field(default_factory=list)
     started_at: datetime = field(default_factory=datetime.now)
 
@@ -65,7 +71,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
         version_control: bool = True,
         *,
         encryption_enabled: bool = False,
-        encryption_key: Union[str, None] = None,
+        encryption_key: str | None = None,
     ):
         """
         Initialize a JSONFileStore.
@@ -115,7 +121,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
     @contextmanager
     def _safe_open_file(
         self, path: str, mode: str = "r", encoding: str = "utf-8"
-    ) -> Any:
+    ) -> Iterator[TextIO | BinaryIO]:
         """
         Safely open a file with proper error handling.
 
@@ -153,9 +159,9 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
 
             # Open the file
             if "b" in mode:
-                file = open(path, mode)
+                file = cast(BinaryIO, open(path, mode))
             else:
-                file = open(path, mode, encoding=encoding)
+                file = cast(TextIO, open(path, mode, encoding=encoding))
             try:
                 yield file
             finally:
@@ -195,14 +201,16 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
             logger.info(
                 f"In test environment, using in-memory store", file_path=self.items_file
             )
-            return {}
+            empty: dict[str, MemoryItem] = {}
+            return empty
 
         if not os.path.exists(self.items_file):
             logger.info(
                 f"Memory store file not found, creating new store",
                 file_path=self.items_file,
             )
-            return {}
+            empty: dict[str, MemoryItem] = {}
+            return empty
 
         try:
             mode = "rb" if self.encryption_enabled else "r"
@@ -426,7 +434,12 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
 
                 # Add the change to the transaction
                 transaction.changes.append(
-                    _TransactionChange(operation="store", item_id=item.id, item=item)
+                    _TransactionChange(
+                        operation="store",
+                        record=build_memory_record(
+                            deepcopy(item), source=STORE_LABEL
+                        ),
+                    )
                 )
 
                 # Apply the change
@@ -435,7 +448,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 # Don't save to disk yet - will be saved on commit
                 audit_event(
                     "store_memory",
-                    store="JSONFileStore",
+                    store=STORE_LABEL,
                     item_id=item.id,
                     transaction_id=transaction_id,
                 )
@@ -445,7 +458,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 self._save_items()
                 audit_event(
                     "store_memory",
-                    store="JSONFileStore",
+                    store=STORE_LABEL,
                     item_id=item.id,
                 )
 
@@ -492,7 +505,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 self.token_count += len(str(item)) // 4
                 audit_event(
                     "retrieve_memory",
-                    store="JSONFileStore",
+                    store=STORE_LABEL,
                     item_id=item_id,
                     found=True,
                 )
@@ -501,7 +514,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 logger.debug(f"Memory item not found", item_id=item_id)
                 audit_event(
                     "retrieve_memory",
-                    store="JSONFileStore",
+                    store=STORE_LABEL,
                     item_id=item_id,
                     found=False,
                 )
@@ -611,7 +624,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 )
                 audit_event(
                     "delete_memory",
-                    store="JSONFileStore",
+                    store=STORE_LABEL,
                     item_id=item_id,
                     deleted=False,
                     transaction_id=transaction_id,
@@ -642,8 +655,9 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 transaction.changes.append(
                     _TransactionChange(
                         operation="delete",
-                        item_id=item_id,
-                        item=self.items[item_id],
+                        record=build_memory_record(
+                            deepcopy(self.items[item_id]), source=STORE_LABEL
+                        ),
                     )
                 )
 
@@ -653,7 +667,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 # Don't save to disk yet - will be saved on commit
                 audit_event(
                     "delete_memory",
-                    store="JSONFileStore",
+                    store=STORE_LABEL,
                     item_id=item_id,
                     deleted=True,
                     transaction_id=transaction_id,
@@ -664,7 +678,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 self._save_items()
                 audit_event(
                     "delete_memory",
-                    store="JSONFileStore",
+                    store=STORE_LABEL,
                     item_id=item_id,
                     deleted=True,
                 )
@@ -714,7 +728,10 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
             transaction_id = str(uuid.uuid4())
 
             # Create a snapshot of the current state
-            snapshot = {item_id: deepcopy(item) for item_id, item in self.items.items()}
+            snapshot = {
+                item_id: build_memory_record(deepcopy(item), source=STORE_LABEL)
+                for item_id, item in self.items.items()
+            }
 
             # Initialize the transaction
             self.active_transactions[transaction_id] = _TransactionState(
@@ -723,9 +740,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
 
             logger.debug(f"Started transaction", transaction_id=transaction_id)
             audit_event(
-                "begin_transaction",
-                store="JSONFileStore",
-                transaction_id=transaction_id,
+                "begin_transaction", store=STORE_LABEL, transaction_id=transaction_id
             )
 
             return transaction_id
@@ -771,9 +786,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
 
             logger.debug(f"Committed transaction", transaction_id=transaction_id)
             audit_event(
-                "commit_transaction",
-                store="JSONFileStore",
-                transaction_id=transaction_id,
+                "commit_transaction", store=STORE_LABEL, transaction_id=transaction_id
             )
 
             return True
@@ -821,7 +834,10 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
             transaction = self.active_transactions[transaction_id]
 
             # Restore the snapshot
-            self.items = transaction.snapshot
+            self.items = {
+                item_id: deepcopy(record.item)
+                for item_id, record in transaction.snapshot.items()
+            }
 
             # Remove the transaction
             del self.active_transactions[transaction_id]
@@ -829,7 +845,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
             logger.debug(f"Rolled back transaction", transaction_id=transaction_id)
             audit_event(
                 "rollback_transaction",
-                store="JSONFileStore",
+                store=STORE_LABEL,
                 transaction_id=transaction_id,
             )
 

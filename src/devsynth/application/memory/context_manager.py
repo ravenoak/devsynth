@@ -1,15 +1,19 @@
+"""In-memory context and store utilities with explicit typing guarantees."""
+
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Protocol, TypeAlias
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import ContextManager, MemoryStore
 from ...domain.models.memory import MemoryItem, MemoryType
+from .dto import MemoryMetadata, MemoryMetadataValue
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 class InMemoryStore(MemoryStore):
@@ -17,12 +21,12 @@ class InMemoryStore(MemoryStore):
 
     supports_transactions: bool = True
 
-    def __init__(self):
-        self.items = {}
+    def __init__(self) -> None:
+        self.items: dict[str, MemoryItem] = {}
         # Simple transaction support: map tx_id -> snapshot of items
         # This lightweight approach avoids heavy copy-on-write mechanisms
         # while satisfying the MemoryStore protocol required by tests.
-        self._transactions: Dict[str, Dict[str, MemoryItem]] = {}
+        self._transactions: dict[str, dict[str, MemoryItem]] = {}
 
     def store(self, item: MemoryItem) -> str:
         """Store an item in memory and return its ID."""
@@ -31,11 +35,11 @@ class InMemoryStore(MemoryStore):
         self.items[item.id] = item
         return item.id
 
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         """Retrieve an item from memory by ID."""
         return self.items.get(item_id)
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(self, query: MemoryMetadata) -> list[MemoryItem]:
         """Search for items in memory matching the query."""
         result = []
         for item in self.items.values():
@@ -93,7 +97,7 @@ class InMemoryStore(MemoryStore):
         """Return True if the transaction is still active."""
         return transaction_id in self._transactions
 
-    def get_item(self, item_id: str) -> Optional[MemoryItem]:
+    def get_item(self, item_id: str) -> MemoryItem | None:
         """
         Get an item from memory by ID.
 
@@ -123,21 +127,46 @@ class InMemoryStore(MemoryStore):
         return True
 
 
-class SimpleContextManager(ContextManager):
+ContextValue = (
+    MemoryMetadataValue
+    | MemoryItem
+    | list[MemoryItem]
+    | dict[str, MemoryMetadataValue | MemoryItem]
+)
+"""Union describing supported payloads stored within the context."""
+
+ContextState: TypeAlias = dict[str, ContextValue]
+"""Dictionary mapping context keys to :class:`ContextValue` payloads."""
+
+
+class StructuredContextManager(ContextManager, Protocol):
+    """Typed extension of :class:`ContextManager` without ``Any`` usage."""
+
+    def add_to_context(self, key: str, value: ContextValue) -> None:  # pragma: no cover - protocol
+        ...
+
+    def get_from_context(self, key: str) -> ContextValue | None:  # pragma: no cover - protocol
+        ...
+
+    def get_full_context(self) -> ContextState:  # pragma: no cover - protocol
+        ...
+
+
+class SimpleContextManager(StructuredContextManager):
     """Simple implementation of ContextManager."""
 
-    def __init__(self):
-        self.context = {}
+    def __init__(self) -> None:
+        self.context: ContextState = {}
 
-    def add_to_context(self, key: str, value: Any) -> None:
+    def add_to_context(self, key: str, value: ContextValue) -> None:
         """Add a value to the current context."""
         self.context[key] = value
 
-    def get_from_context(self, key: str) -> Optional[Any]:
+    def get_from_context(self, key: str) -> ContextValue | None:
         """Get a value from the current context."""
         return self.context.get(key)
 
-    def get_full_context(self) -> Dict[str, Any]:
+    def get_full_context(self) -> ContextState:
         """Get the full current context."""
         return self.context.copy()
 

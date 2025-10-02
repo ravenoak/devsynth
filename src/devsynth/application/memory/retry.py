@@ -12,40 +12,81 @@ from __future__ import annotations
 import logging
 import random
 import time
+from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-    TYPE_CHECKING,
-)
+from typing import TYPE_CHECKING, Protocol, Type, TypeVar, cast
 
-# ``prometheus_client`` is an optional dependency.  Import it lazily and
+# ``prometheus_client`` is an optional dependency. Import it lazily and
 # degrade to no-op metrics when unavailable so that memory logic remains
 # functional in lightweight environments.
 try:  # pragma: no cover - import guarded for optional dependency
-    from prometheus_client import Counter
+    from prometheus_client import Counter as _PrometheusCounter
 except Exception:  # pragma: no cover - fallback for minimal environments
+    _PrometheusCounter = None
 
-    class Counter:  # type: ignore[override]
-        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401
-            pass
 
-        def labels(self, *args: object, **kwargs: object) -> "Counter":
-            return self
+class CounterAPI(Protocol):
+    """Protocol describing the subset of Prometheus counter behaviour we use."""
 
-        def inc(self, *args: object, **kwargs: object) -> None:
-            pass
+    def labels(self, *args: object, **kwargs: object) -> "CounterAPI":  # pragma: no cover - protocol
+        ...
 
-        def clear(self) -> None:
-            pass
+    def inc(self, amount: float = 1.0) -> None:  # pragma: no cover - protocol
+        ...
+
+    def clear(self) -> None:  # pragma: no cover - protocol
+        ...
+
+
+class _CounterWrapper:
+    """Lightweight adapter that mirrors the Prometheus ``Counter`` API."""
+
+    __slots__ = ("_counter",)
+
+    def __init__(self, counter: object) -> None:
+        self._counter = counter
+
+    def labels(self, *args: object, **kwargs: object) -> CounterAPI:
+        method = getattr(self._counter, "labels", None)
+        if callable(method):
+            return _CounterWrapper(method(*args, **kwargs))
+        return self
+
+    def inc(self, amount: float = 1.0) -> None:
+        method = getattr(self._counter, "inc", None)
+        if callable(method):
+            method(amount)
+
+    def clear(self) -> None:
+        method = getattr(self._counter, "clear", None)
+        if callable(method):
+            method()
+
+
+class _NoOpCounter:
+    """Fallback counter used when Prometheus is unavailable."""
+
+    __slots__ = ()
+
+    def labels(self, *args: object, **kwargs: object) -> CounterAPI:
+        return self
+
+    def inc(self, amount: float = 1.0) -> None:
+        return None
+
+    def clear(self) -> None:
+        return None
+
+
+def _create_counter(
+    name: str, documentation: str, labelnames: Sequence[str]
+) -> CounterAPI:
+    """Build a Prometheus counter or a no-op placeholder when unavailable."""
+
+    if _PrometheusCounter is None:  # pragma: no cover - runtime fallback
+        return _NoOpCounter()
+    counter = _PrometheusCounter(name, documentation, list(labelnames))
+    return _CounterWrapper(counter)
 
 
 from devsynth.application.memory.circuit_breaker import (
@@ -63,23 +104,37 @@ if TYPE_CHECKING:  # pragma: no cover - import for static analysis only
     )
 
 
-MemoryRetryResult = Union[
-    "MemoryRecord",
-    list["MemoryRecord"],
-    "MemoryQueryResults",
-    "GroupedMemoryResults",
-    None,
-]
+MemoryRetryResult = (
+    "MemoryRecord"
+    | list["MemoryRecord"]
+    | "MemoryQueryResults"
+    | "GroupedMemoryResults"
+    | None
+)
 """Result types commonly emitted by retryable memory callables."""
 
-ConditionCallback = Callable[[Exception, int], bool]
-"""Callable signature used to determine whether a retry should proceed."""
 
-MemoryConditionCallback = Callable[
-    [Exception, int, Optional["MemoryRecord"]],
-    bool,
-]
-"""Condition callback that can inspect a :class:`MemoryRecord` context."""
+class ConditionCallback(Protocol):
+    """Callable signature used to determine whether a retry should proceed."""
+
+    def __call__(self, error: Exception, attempt: int) -> bool:  # pragma: no cover - protocol
+        ...
+
+
+class MemoryConditionCallback(Protocol):
+    """Condition callback that can inspect a :class:`MemoryRecord` context."""
+
+    def __call__(
+        self, error: Exception, attempt: int, record: "MemoryRecord" | None
+    ) -> bool:  # pragma: no cover - protocol
+        ...
+
+
+class RetryCondition(Protocol):
+    """Predicate evaluated against an exception to gate retries."""
+
+    def __call__(self, error: Exception) -> bool:  # pragma: no cover - protocol
+        ...
 
 __all__ = [
     "RetryError",
@@ -106,7 +161,7 @@ T = TypeVar("T")
 class RetryError(Exception):
     """Exception raised when all retry attempts fail."""
 
-    def __init__(self, message: str, last_exception: Optional[Exception] = None):
+    def __init__(self, message: str, last_exception: Exception | None = None):
         """
         Initialize the retry error.
 
@@ -118,29 +173,29 @@ class RetryError(Exception):
         self.last_exception = last_exception
 
 
-retry_event_counter = Counter(
+retry_event_counter: CounterAPI = _create_counter(
     "devsynth_memory_retry_events_total",
     "Retry events for memory operations",
     ["status"],
 )
-retry_function_counter = Counter(
+retry_function_counter: CounterAPI = _create_counter(
     "devsynth_memory_retry_function_total",
     "Memory retry attempts per function",
     ["function"],
 )
-retry_error_counter = Counter(
+retry_error_counter: CounterAPI = _create_counter(
     "devsynth_memory_retry_errors_total",
     "Memory retry events per exception type",
     ["error_type"],
 )
 
-retry_condition_counter = Counter(
+retry_condition_counter: CounterAPI = _create_counter(
     "devsynth_memory_retry_conditions_total",
     "Memory retry events grouped by failed condition name",
     ["condition"],
 )
 
-retry_stat_counter = Counter(
+retry_stat_counter: CounterAPI = _create_counter(
     "devsynth_memory_retry_stat_total",
     "Memory retry outcomes grouped by function and status",
     ["function", "status"],
@@ -159,15 +214,16 @@ def reset_memory_retry_metrics() -> None:
 
 
 def _adapt_memory_condition_callbacks(
-    callbacks: Optional[List[MemoryConditionCallback]],
-) -> Optional[List[ConditionCallback]]:
+    callbacks: Sequence[MemoryConditionCallback] | None,
+) -> list[ConditionCallback] | None:
     """Bridge memory-aware callbacks to the generic retry signature."""
 
     if not callbacks:
         return None
 
-    adapted: List[ConditionCallback] = []
+    adapted: list[ConditionCallback] = []
     for cb_fn in callbacks:
+
         def adapter(error: Exception, attempt: int, *, _cb=cb_fn) -> bool:
             return _cb(error, attempt, None)
 
@@ -181,17 +237,16 @@ def retry_with_backoff(
     backoff_multiplier: float = 2.0,
     max_backoff: float = 60.0,
     jitter: bool = True,
-    exceptions_to_retry: Optional[List[Type[Exception]]] = None,
-    logger: Optional[logging.Logger] = None,
-    condition_callbacks: Optional[List[ConditionCallback]] = None,
-    retry_conditions: Optional[
-        Union[
-            List[Union[Callable[[Exception], bool], str]],
-            Dict[str, Union[Callable[[Exception], bool], str]],
-        ]
-    ] = None,
+    exceptions_to_retry: Sequence[Type[Exception]] | None = None,
+    logger: logging.Logger | None = None,
+    condition_callbacks: Sequence[ConditionCallback] | None = None,
+    retry_conditions: (
+        Sequence[RetryCondition | str]
+        | Mapping[str, RetryCondition | str]
+        | None
+    ) = None,
     track_metrics: bool = True,
-    circuit_breaker_name: Optional[str] = None,
+    circuit_breaker_name: str | None = None,
     circuit_breaker_failure_threshold: int = 3,
     circuit_breaker_reset_timeout: float = 60.0,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
@@ -204,11 +259,11 @@ def retry_with_backoff(
         backoff_multiplier: Multiplier for backoff time after each retry
         max_backoff: Maximum backoff time in seconds
         jitter: Whether to add random jitter to backoff time
-        exceptions_to_retry: List of exception types to retry on (defaults to all exceptions)
+        exceptions_to_retry: Sequence of exception types to retry on (defaults to all exceptions)
         logger: Optional logger instance
-        condition_callbacks: Optional list of callbacks invoked after each
+        condition_callbacks: Optional sequence of callbacks invoked after each
             exception to determine if retry should continue
-        retry_conditions: Optional list or dict of additional conditions that
+        retry_conditions: Optional sequence or mapping of additional conditions that
             must evaluate to ``True`` for retries to continue. String entries
             are treated as substrings that must appear in the exception message.
         track_metrics: Whether to track Prometheus metrics
@@ -226,43 +281,47 @@ def retry_with_backoff(
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
+        def wrapper(*args: object, **kwargs: object) -> T:
             nonlocal logger
             logger = logger or DevSynthLogger(__name__)
             func_name = getattr(func, "__name__", "<unknown>")
 
             retry_count = 0
             backoff = initial_backoff
-            last_exception: Optional[Exception] = None
-            callbacks = condition_callbacks or []
-            anonymous_conditions: List[Callable[[Exception], bool]] = []
-            named_conditions: List[Tuple[str, Callable[[Exception], bool]]] = []
+            last_exception: Exception | None = None
+            callbacks = list(condition_callbacks) if condition_callbacks else []
+            anonymous_conditions: list[RetryCondition] = []
+            named_conditions: list[tuple[str, RetryCondition]] = []
             if retry_conditions:
-                if isinstance(retry_conditions, dict):
+                if isinstance(retry_conditions, Mapping):
                     for name, cond in retry_conditions.items():
-                        if callable(cond):
-                            named_conditions.append((name, cond))
-                        elif isinstance(cond, str):
+                        if isinstance(cond, str):
                             named_conditions.append(
                                 (name, lambda exc, substr=cond: substr in str(exc))
                             )
+                        elif callable(cond):
+                            named_conditions.append((name, cond))
                         else:  # pragma: no cover - defensive
                             raise TypeError(
                                 "retry_conditions values must be callables or strings"
                             )
+                elif isinstance(retry_conditions, str):
+                    raise TypeError(
+                        "retry_conditions must not be provided as a plain string"
+                    )
                 else:
                     for cond in retry_conditions:
-                        if callable(cond):
-                            anonymous_conditions.append(cond)
-                        elif isinstance(cond, str):
+                        if isinstance(cond, str):
                             anonymous_conditions.append(
                                 lambda exc, substr=cond: substr in str(exc)
                             )
+                        elif callable(cond):
+                            anonymous_conditions.append(cond)
                         else:  # pragma: no cover - defensive
                             raise TypeError(
                                 "retry_conditions must be callables or strings"
                             )
-            cb: Optional[CircuitBreaker] = None
+            cb: CircuitBreaker | None = None
             if circuit_breaker_name:
                 registry = get_circuit_breaker_registry()
                 cb = registry.get_or_create(
@@ -364,7 +423,7 @@ def retry_with_backoff(
                             raise
 
                     if callbacks:
-                        cb_results: List[bool] = []
+                        cb_results: list[bool] = []
                         for cb_fn in callbacks:
                             try:
                                 res = cb_fn(e, retry_count)
@@ -456,21 +515,20 @@ def retry_operation(
     backoff_multiplier: float = 2.0,
     max_backoff: float = 60.0,
     jitter: bool = True,
-    exceptions_to_retry: Optional[List[Type[Exception]]] = None,
-    logger: Optional[logging.Logger] = None,
-    condition_callbacks: Optional[List[ConditionCallback]] = None,
-    retry_conditions: Optional[
-        Union[
-            List[Union[Callable[[Exception], bool], str]],
-            Dict[str, Union[Callable[[Exception], bool], str]],
-        ]
-    ] = None,
+    exceptions_to_retry: Sequence[Type[Exception]] | None = None,
+    logger: logging.Logger | None = None,
+    condition_callbacks: Sequence[ConditionCallback] | None = None,
+    retry_conditions: (
+        Sequence[RetryCondition | str]
+        | Mapping[str, RetryCondition | str]
+        | None
+    ) = None,
     track_metrics: bool = True,
-    circuit_breaker_name: Optional[str] = None,
+    circuit_breaker_name: str | None = None,
     circuit_breaker_failure_threshold: int = 3,
     circuit_breaker_reset_timeout: float = 60.0,
-    *args: Any,
-    **kwargs: Any,
+    *args: object,
+    **kwargs: object,
 ) -> T:
     """Retry an operation with exponential backoff."""
 
@@ -502,15 +560,14 @@ class RetryConfig:
         backoff_multiplier: float = 2.0,
         max_backoff: float = 60.0,
         jitter: bool = True,
-        exceptions_to_retry: Optional[List[Type[Exception]]] = None,
-        condition_callbacks: Optional[List[ConditionCallback]] = None,
-        retry_conditions: Optional[
-            Union[
-                List[Union[Callable[[Exception], bool], str]],
-                Dict[str, Union[Callable[[Exception], bool], str]],
-            ]
-        ] = None,
-        circuit_breaker_name: Optional[str] = None,
+        exceptions_to_retry: Sequence[Type[Exception]] | None = None,
+        condition_callbacks: Sequence[ConditionCallback] | None = None,
+        retry_conditions: (
+            Sequence[RetryCondition | str]
+            | Mapping[str, RetryCondition | str]
+            | None
+        ) = None,
+        circuit_breaker_name: str | None = None,
         circuit_breaker_failure_threshold: int = 3,
         circuit_breaker_reset_timeout: float = 60.0,
     ):
@@ -523,9 +580,9 @@ class RetryConfig:
             backoff_multiplier: Multiplier for backoff time after each retry
             max_backoff: Maximum backoff time in seconds
             jitter: Whether to add random jitter to backoff time
-            exceptions_to_retry: List of exception types to retry on (defaults to all exceptions)
-            condition_callbacks: Optional list of callbacks to determine if retry should continue
-            retry_conditions: Optional list or dict of additional conditions that must evaluate
+            exceptions_to_retry: Sequence of exception types to retry on (defaults to all exceptions)
+            condition_callbacks: Optional sequence of callbacks to determine if retry should continue
+            retry_conditions: Optional sequence or mapping of additional conditions that must evaluate
                 to ``True`` for retries to continue
             circuit_breaker_name: Optional name of circuit breaker to use
             circuit_breaker_failure_threshold: Failures allowed before opening circuit breaker
@@ -577,7 +634,7 @@ def retry_memory_operation(
     initial_backoff: float = 0.1,
     max_backoff: float = 2.0,
     *,
-    condition_callbacks: Optional[List[MemoryConditionCallback]] = None,
+    condition_callbacks: Sequence[MemoryConditionCallback] | None = None,
 ) -> Callable[[Callable[..., MemoryRetryResult]], Callable[..., MemoryRetryResult]]:
     """
     Decorator specifically for memory operations with DTO-aware typing.
@@ -612,7 +669,7 @@ def retry_memory_operation(
 
 
 def with_retry(
-    retry_config: Optional[RetryConfig] = None,
+    retry_config: RetryConfig | None = None,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying a function with the specified retry configuration.

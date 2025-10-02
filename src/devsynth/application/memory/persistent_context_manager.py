@@ -1,27 +1,26 @@
-"""
-Persistent implementation of ContextManager.
-"""
+"""Persistent context manager implementation with DTO-aligned typing."""
+
+from __future__ import annotations
 
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import cast
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
-from ...domain.interfaces.memory import ContextManager
+from .context_manager import ContextState, ContextValue, StructuredContextManager
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
-class PersistentContextManager(ContextManager):
+class PersistentContextManager(StructuredContextManager):
     """Persistent implementation of ContextManager."""
 
     def __init__(
         self, file_path: str, max_context_size: int = 1000, expiration_days: int = 7
-    ):
+    ) -> None:
         """
         Initialize a PersistentContextManager.
 
@@ -34,14 +33,14 @@ class PersistentContextManager(ContextManager):
         self.context_file = os.path.join(self.base_path, "context.json")
         self.max_context_size = max_context_size
         self.expiration_days = expiration_days
-        self.context = self._load_context()
+        self.context: ContextState = self._load_context()
         self.token_count = 0
 
     def _ensure_directory_exists(self) -> None:
         """Ensure the directory for storing files exists."""
         os.makedirs(self.base_path, exist_ok=True)
 
-    def _load_context(self) -> Dict[str, Any]:
+    def _load_context(self) -> ContextState:
         """Load context from the JSON file."""
         if not os.path.exists(self.context_file):
             return {}
@@ -52,14 +51,14 @@ class PersistentContextManager(ContextManager):
 
             # Prune expired context items
             now = datetime.now()
-            context = {}
+            context: ContextState = {}
             for key, item in data.get("context", {}).items():
                 if "timestamp" in item:
                     timestamp = datetime.fromisoformat(item["timestamp"])
                     if (now - timestamp).days <= self.expiration_days:
-                        context[key] = item["value"]
+                        context[key] = cast(ContextValue, item["value"])
                 else:
-                    context[key] = item.get("value")
+                    context[key] = cast(ContextValue, item.get("value"))
 
             return context
         except Exception as e:
@@ -100,7 +99,7 @@ class PersistentContextManager(ContextManager):
             return
 
         # Get context items with timestamps
-        context_with_timestamps = {}
+        context_with_timestamps: dict[str, datetime] = {}
         try:
             with open(self.context_file, "r") as f:
                 data = json.load(f)
@@ -127,7 +126,7 @@ class PersistentContextManager(ContextManager):
             key = sorted_keys.pop(0)
             del self.context[key]
 
-    def add_to_context(self, key: str, value: Any) -> None:
+    def add_to_context(self, key: str, value: ContextValue) -> None:
         """Add a value to the current context."""
         self.context[key] = value
         self._prune_context()
@@ -136,7 +135,7 @@ class PersistentContextManager(ContextManager):
         # Update token count (rough estimate)
         self.token_count += len(str({key: value})) // 4
 
-    def get_from_context(self, key: str) -> Optional[Any]:
+    def get_from_context(self, key: str) -> ContextValue | None:
         """Get a value from the current context."""
         value = self.context.get(key)
 
@@ -146,7 +145,7 @@ class PersistentContextManager(ContextManager):
 
         return value
 
-    def get_full_context(self) -> Dict[str, Any]:
+    def get_full_context(self) -> ContextState:
         """Get the full current context."""
         # Update token count (rough estimate)
         self.token_count += len(str(self.context)) // 4
@@ -158,7 +157,7 @@ class PersistentContextManager(ContextManager):
         self.context.clear()
         self._save_context()
 
-    def get_relevant_context(self, query: str, max_items: int = 5) -> Dict[str, Any]:
+    def get_relevant_context(self, query: str, max_items: int = 5) -> ContextState:
         """
         Get context items relevant to the query.
 
@@ -170,7 +169,7 @@ class PersistentContextManager(ContextManager):
             Dictionary of relevant context items
         """
         # Simple relevance implementation based on string matching
-        scores = {}
+        scores: dict[str, int] = {}
         for key, value in self.context.items():
             # Calculate simple relevance score based on substring matching
             score = 0
@@ -190,7 +189,7 @@ class PersistentContextManager(ContextManager):
         relevant_keys = sorted(scores.keys(), key=lambda k: scores[k], reverse=True)[
             :max_items
         ]
-        result = {k: self.context[k] for k in relevant_keys}
+        result: ContextState = {k: self.context[k] for k in relevant_keys}
 
         # Update token count (rough estimate)
         if result:

@@ -10,8 +10,9 @@ rollbacks.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, Iterable, List
-from typing import Literal, Protocol, Sequence, Tuple, TypedDict, runtime_checkable
+from collections.abc import Iterable, Sequence
+from types import TracebackType
+from typing import Literal, Protocol, TypedDict, runtime_checkable
 
 from ...domain.models.memory import MemoryItem
 from ...exceptions import MemoryTransactionError
@@ -25,7 +26,7 @@ logger = DevSynthLogger(__name__)
 class SupportsTransactionalStore(Protocol):
     """Protocol for adapters that expose transaction primitives."""
 
-    def begin_transaction(self, transaction_id: str) -> Any:  # pragma: no cover - protocol
+    def begin_transaction(self, transaction_id: str) -> None:  # pragma: no cover - protocol
         ...
 
     def commit_transaction(self, transaction_id: str) -> None:  # pragma: no cover - protocol
@@ -61,7 +62,7 @@ class SupportsGenericFlush(Protocol):
 
 class AdapterSnapshot(TypedDict):
     store: str
-    records: Dict[str, MemoryRecord]
+    records: dict[str, MemoryRecord]
 
 
 OperationPhase = Literal["snapshot", "commit", "rollback"]
@@ -70,7 +71,7 @@ OperationPhase = Literal["snapshot", "commit", "rollback"]
 class OperationLogEntry(TypedDict):
     store: str
     phase: OperationPhase
-    records: List[MemoryRecord]
+    records: list[MemoryRecord]
 
 
 class TransactionContext:
@@ -83,20 +84,20 @@ class TransactionContext:
     inspect the normalized operation log.
     """
 
-    def __init__(self, adapters: Sequence[Any]):
+    def __init__(self, adapters: Sequence[object]):
         """
         Initialize the transaction context.
 
         Args:
             adapters: List of memory adapters to include in the transaction
         """
-        self.adapters = list(adapters)
+        self.adapters: list[object] = list(adapters)
         self.transaction_id = str(uuid.uuid4())
-        self.snapshots: Dict[int, AdapterSnapshot] = {}
-        self.operations: List[OperationLogEntry] = []
-        self.prepared_adapters: List[Any] = []
+        self.snapshots: dict[int, AdapterSnapshot] = {}
+        self.operations: list[OperationLogEntry] = []
+        self.prepared_adapters: list[object] = []
 
-    def __enter__(self):
+    def __enter__(self) -> "TransactionContext":
         """
         Begin the transaction on all adapters.
 
@@ -143,7 +144,12 @@ class TransactionContext:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> bool:
         """
         End the transaction on all adapters.
 
@@ -173,7 +179,7 @@ class TransactionContext:
             self._rollback()
             return False
 
-    def _commit(self):
+    def _commit(self) -> None:
         """
         Commit the transaction using a two-phase commit protocol.
 
@@ -205,8 +211,8 @@ class TransactionContext:
             raise MemoryTransactionError(f"Failed to prepare transaction: {e}")
 
         # Phase 2: Flush and commit
-        commit_errors = []
-        committed_snapshots: List[Tuple[str, List[MemoryRecord]]] = []
+        commit_errors: list[str] = []
+        committed_snapshots: list[tuple[str, list[MemoryRecord]]] = []
         for adapter in self.adapters:
             label = self._adapter_label(adapter)
             try:
@@ -244,7 +250,7 @@ class TransactionContext:
 
         logger.debug(f"Transaction {self.transaction_id} committed successfully")
 
-    def _flush_adapter(self, adapter: Any) -> None:
+    def _flush_adapter(self, adapter: object) -> None:
         """Flush pending writes for an adapter if supported."""
 
         label = self._adapter_label(adapter)
@@ -282,7 +288,7 @@ class TransactionContext:
                 method()
                 break
 
-    def _rollback(self):
+    def _rollback(self) -> None:
         """
         Rollback the transaction on all adapters.
 
@@ -342,7 +348,7 @@ class TransactionContext:
         else:
             logger.debug(f"Transaction {self.transaction_id} rolled back successfully")
 
-    def _adapter_label(self, adapter: Any) -> str:
+    def _adapter_label(self, adapter: object) -> str:
         """Return a human readable name for ``adapter``."""
 
         label = getattr(adapter, "name", None)
@@ -350,7 +356,9 @@ class TransactionContext:
             return label
         return adapter.__class__.__name__
 
-    def _ensure_record(self, payload: MemoryRecord | MemoryItem, store: str) -> MemoryRecord:
+    def _ensure_record(
+        self, payload: MemoryRecord | MemoryItem, store: str
+    ) -> MemoryRecord:
         """Normalize ``payload`` into a :class:`MemoryRecord`."""
 
         record = build_memory_record(payload, source=store)
@@ -359,14 +367,14 @@ class TransactionContext:
         return record
 
     def _snapshot_adapter_state(
-        self, adapter: Any, store: str
-    ) -> Dict[str, MemoryRecord]:
+        self, adapter: object, store: str
+    ) -> dict[str, MemoryRecord]:
         """Capture the adapter state as ``MemoryRecord`` entries."""
 
-        snapshot: Dict[str, MemoryRecord] = {}
+        snapshot: dict[str, MemoryRecord] = {}
         get_all = getattr(adapter, "get_all", None)
         get_all_items = getattr(adapter, "get_all_items", None)
-        items: Iterable[Any] | None = None
+        items: Iterable[object] | None = None
         if callable(get_all):
             items = get_all()
         elif callable(get_all_items):
