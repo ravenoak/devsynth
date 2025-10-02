@@ -5,6 +5,12 @@ external research overlays using a staged MCP → A2A → SPARQL negotiation. Th
 naming policy reserves the Autoresearch label for these client integrations,
 while local telemetry helpers live under `src/devsynth/interface/research_telemetry.py`.
 
+Runtime configuration keeps the bridge optional. Operators must set
+`DEVSYNTH_EXTERNAL_RESEARCH_CONNECTORS=1` and provide the Autoresearch base URL
+via `DEVSYNTH_EXTERNAL_RESEARCH_API_BASE` before DevSynth reaches out to the
+external service. Otherwise the connectors short-circuit and the existing
+fixtures continue to drive dashboards and tests.
+
 ## Components
 
 - **DevSynth CLI (mvuu-dashboard)** – triggers traceability exports and invokes

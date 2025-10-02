@@ -126,3 +126,20 @@ The MVUU dashboard depends on the broader Autoresearch sequencing:
 
 Keep overlays behind feature flags until all three layers are operational to
 avoid implying local Autoresearch ingestion or telemetry collection.
+
+### Enabling the live Autoresearch connectors
+
+The new MCP and A2A connectors remain opt-in so preview builds continue to use
+fixture-backed telemetry unless operators explicitly enable the external
+service. Set the following environment variables before launching the CLI or
+Streamlit interface to activate the live bridge:
+
+- `DEVSYNTH_EXTERNAL_RESEARCH_CONNECTORS=1` toggles the HTTP-backed connectors
+  on. Any other value leaves the stub fixtures in place.
+- `DEVSYNTH_EXTERNAL_RESEARCH_API_BASE=<https://autoresearch.example/api/>`
+  points DevSynth at the Autoresearch gateway. The connectors negotiate
+  `/health`, `/mcp`, `/capabilities`, `/metrics`, and `/query` endpoints during
+  handshake and query execution.
+
+If either variable is omitted the client logs a notice and continues returning
+the existing fixture payloads so local development and CI remain hermetic.
