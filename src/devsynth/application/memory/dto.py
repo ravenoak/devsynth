@@ -159,7 +159,10 @@ if TYPE_CHECKING:  # pragma: no cover - type checking only
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 LegacyRecordMapping: TypeAlias = Mapping[str, object]
-LegacyRecordTuple: TypeAlias = tuple[MemoryRecord | MemoryItem | "MemoryVector" | LegacyRecordMapping, float | int | None]
+LegacyRecordTuple: TypeAlias = tuple[
+    MemoryRecord | MemoryItem | MemoryVector | LegacyRecordMapping,
+    float | int | None,
+]
 
 MemoryRecordInput: TypeAlias = (
     MemoryRecord

@@ -14,17 +14,11 @@ import random
 import time
 from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
-from typing import TYPE_CHECKING, Protocol, Type, TypeAlias, TypeVar, cast
+from typing import Protocol, Type, TypeAlias, TypeVar, cast
 
 # ``prometheus_client`` is an optional dependency. Import it lazily and
 # degrade to no-op metrics when unavailable so that memory logic remains
 # functional in lightweight environments.
-try:  # pragma: no cover - import guarded for optional dependency
-    from prometheus_client import Counter as _PrometheusCounter
-except Exception:  # pragma: no cover - fallback for minimal environments
-    _PrometheusCounter = None
-
-
 class CounterAPI(Protocol):
     """Protocol describing the subset of Prometheus counter behaviour we use."""
 
@@ -83,9 +77,16 @@ def _create_counter(
 ) -> CounterAPI:
     """Build a Prometheus counter or a no-op placeholder when unavailable."""
 
-    if _PrometheusCounter is None:  # pragma: no cover - runtime fallback
+    prometheus_counter_cls: type[object] | None
+    try:  # pragma: no cover - import guarded for optional dependency
+        from prometheus_client import Counter as PrometheusCounter
+        prometheus_counter_cls = PrometheusCounter
+    except Exception:  # pragma: no cover - fallback for minimal environments
+        prometheus_counter_cls = None
+
+    if prometheus_counter_cls is None:  # pragma: no cover - runtime fallback
         return _NoOpCounter()
-    counter = _PrometheusCounter(name, documentation, list(labelnames))
+    counter = prometheus_counter_cls(name, documentation, list(labelnames))
     return _CounterWrapper(counter)
 
 
@@ -94,24 +95,20 @@ from devsynth.application.memory.circuit_breaker import (
     CircuitBreakerOpenError,
     get_circuit_breaker_registry,
 )
+from devsynth.application.memory.dto import (
+    GroupedMemoryResults,
+    MemoryQueryResults,
+    MemoryRecord,
+)
 from devsynth.logging_setup import DevSynthLogger
 
-if TYPE_CHECKING:  # pragma: no cover - import for static analysis only
-    from devsynth.application.memory.dto import (
-        GroupedMemoryResults,
-        MemoryQueryResults,
-        MemoryRecord,
-    )
-
-    MemoryRetryResult: TypeAlias = (
-        MemoryRecord
-        | list[MemoryRecord]
-        | MemoryQueryResults
-        | GroupedMemoryResults
-        | None
-    )
-else:
-    MemoryRetryResult: TypeAlias = object
+MemoryRetryResult: TypeAlias = (
+    MemoryRecord
+    | list[MemoryRecord]
+    | MemoryQueryResults
+    | GroupedMemoryResults
+    | None
+)
 
 """Result types commonly emitted by retryable memory callables."""
 
@@ -124,10 +121,10 @@ class ConditionCallback(Protocol):
 
 
 class MemoryConditionCallback(Protocol):
-    """Condition callback that can inspect a :class:`MemoryRecord` context."""
+    """Condition callback that can inspect DTO-centric retry payloads."""
 
     def __call__(
-        self, error: Exception, attempt: int, record: "MemoryRecord" | None
+        self, error: Exception, attempt: int, payload: MemoryRetryResult
     ) -> bool:  # pragma: no cover - protocol
         ...
 
@@ -226,8 +223,14 @@ def _adapt_memory_condition_callbacks(
     adapted: list[ConditionCallback] = []
     for cb_fn in callbacks:
 
-        def adapter(error: Exception, attempt: int, *, _cb=cb_fn) -> bool:
-            return _cb(error, attempt, None)
+        def adapter(
+            error: Exception,
+            attempt: int,
+            *,
+            _cb: MemoryConditionCallback = cb_fn,
+        ) -> bool:
+            payload: MemoryRetryResult = None
+            return _cb(error, attempt, payload)
 
         adapted.append(adapter)
     return adapted
@@ -385,10 +388,10 @@ def retry_with_backoff(
                             ).inc()
                         if not cond_result:
                             logger.warning(
-                                f"Not retrying {func_name} due to retry_conditions policy",
-                                error=e,
-                                function=func_name,
-                                condition=name,
+                                "Not retrying %s due to retry_conditions policy (%s): %s",
+                                func_name,
+                                name,
+                                e,
                             )
                             if track_metrics:
                                 retry_event_counter.labels(status="abort").inc()
@@ -410,9 +413,9 @@ def retry_with_backoff(
                                 ).inc()
                         if not all(anon_results):
                             logger.warning(
-                                f"Not retrying {func_name} due to retry_conditions policy",
-                                error=e,
-                                function=func_name,
+                                "Not retrying %s due to retry_conditions policy: %s",
+                                func_name,
+                                e,
                             )
                             if track_metrics:
                                 retry_event_counter.labels(status="abort").inc()
@@ -430,10 +433,14 @@ def retry_with_backoff(
                             try:
                                 res = cb_fn(e, retry_count)
                             except Exception as cb_error:
+                                callback_name = getattr(
+                                    cb_fn, "__name__", ANONYMOUS_CONDITION
+                                )
                                 logger.warning(
-                                    f"Error in condition callback {getattr(cb_fn, '__name__', ANONYMOUS_CONDITION)}: {cb_error}",
-                                    error=cb_error,
-                                    function=func_name,
+                                    "Error in condition callback %s while retrying %s: %s",
+                                    callback_name,
+                                    func_name,
+                                    cb_error,
                                 )
                                 res = False
                             if track_metrics:

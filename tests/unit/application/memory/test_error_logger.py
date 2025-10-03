@@ -15,10 +15,29 @@ def test_log_error_enforces_max_errors():
         try:
             raise ValueError(f"error {i}")
         except ValueError as exc:  # pragma: no cover - we expect the exception
-            logger.log_error("op", f"adapter{i}", exc)
+            logger.log_error("op", f"adapter{i}", exc, context={"index": i})
 
     assert len(logger.errors) == 5
     assert logger.errors[0].error_message == "error 2"
+    assert logger.errors[0].context == {"index": 2}
+
+
+@pytest.mark.fast
+def test_log_error_accepts_nested_context():
+    """Context payloads honor ``MemoryMetadataValue`` typing."""
+
+    logger = MemoryErrorLogger(max_errors=5, persist_errors=False)
+    try:
+        raise RuntimeError("boom")
+    except RuntimeError as exc:  # pragma: no cover
+        record = logger.log_error(
+            "store",
+            "adapter",
+            exc,
+            context={"attempt": 1, "meta": {"nested": True}},
+        )
+
+    assert record.context == {"attempt": 1, "meta": {"nested": True}}
 
 
 @pytest.mark.fast
@@ -31,7 +50,7 @@ def test_persist_errors_respects_toggle(tmp_path):
     try:
         raise RuntimeError("boom")
     except RuntimeError as exc:  # pragma: no cover
-        logger.log_error("store", "adapter", exc)
+        logger.log_error("store", "adapter", exc, context={"path": str(log_dir)})
     assert len(list(log_dir.iterdir())) == 1
 
     log_dir2 = tmp_path / "no_persist"
@@ -41,7 +60,7 @@ def test_persist_errors_respects_toggle(tmp_path):
     try:
         raise RuntimeError("boom")
     except RuntimeError as exc:  # pragma: no cover
-        logger.log_error("store", "adapter", exc)
+        logger.log_error("store", "adapter", exc, context={"path": str(log_dir2)})
     assert not log_dir2.exists()
 
 
@@ -55,17 +74,17 @@ def test_get_recent_errors_and_summary():
     try:
         raise ValueError("v1")
     except ValueError as exc:  # pragma: no cover
-        logger.log_error("store", "adapter1", exc)
+        logger.log_error("store", "adapter1", exc, context={"index": 0})
 
     try:
         raise KeyError("missing")
     except KeyError as exc:  # pragma: no cover
-        logger.log_error("retrieve", "adapter1", exc)
+        logger.log_error("retrieve", "adapter1", exc, context={"index": 1})
 
     try:
         raise ValueError("v2")
     except ValueError as exc:  # pragma: no cover
-        logger.log_error("store", "adapter2", exc)
+        logger.log_error("store", "adapter2", exc, context={"index": 2})
 
     assert len(logger.get_recent_errors(operation="store")) == 2
     assert len(logger.get_recent_errors(adapter_name="adapter1")) == 2

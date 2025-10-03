@@ -14,10 +14,13 @@ from devsynth.application.memory.retry import (
     QUICK_RETRY_CONFIG,
     RetryConfig,
     RetryError,
+    retry_memory_operation,
     retry_operation,
     retry_with_backoff,
     with_retry,
 )
+from devsynth.application.memory.dto import MemoryRecord
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
 class TestRetryWithBackoff:
@@ -198,6 +201,50 @@ class TestRetryConfig:
         assert QUICK_RETRY_CONFIG.backoff_multiplier == 1.5
         assert QUICK_RETRY_CONFIG.max_backoff == 5.0
         assert QUICK_RETRY_CONFIG.jitter is True
+
+
+class TestRetryMemoryOperation:
+    """DTO-focused tests for the memory retry helper."""
+
+    @pytest.mark.medium
+    def test_retry_memory_operation_preserves_memory_record(self):
+        """Decorated callables emit the original ``MemoryRecord`` DTO."""
+
+        record = MemoryRecord(
+            item=MemoryItem(
+                id="abc",
+                content="payload",
+                memory_type=MemoryType.WORKING,
+            ),
+            source="primary",
+        )
+
+        @retry_memory_operation(max_retries=0)
+        def emit_record() -> MemoryRecord:
+            return record
+
+        assert emit_record() is record
+
+    @pytest.mark.medium
+    def test_retry_memory_operation_condition_receives_payload_union(self):
+        """Condition callbacks receive DTO-union payloads (``None`` when absent)."""
+
+        captured: list[object] = []
+
+        def callback(error: Exception, attempt: int, payload: object) -> bool:
+            captured.append(payload)
+            return False
+
+        failing = MagicMock(side_effect=ValueError("boom"))
+        decorated = retry_memory_operation(
+            max_retries=0,
+            condition_callbacks=[callback],
+        )(failing)
+
+        with pytest.raises(ValueError, match="boom"):
+            decorated()
+
+        assert captured == [None]
         assert QUICK_RETRY_CONFIG.exceptions_to_retry is None
 
     @pytest.mark.medium
@@ -246,6 +293,7 @@ class TestWithRetry:
                 jitter=DEFAULT_RETRY_CONFIG.jitter,
                 exceptions_to_retry=DEFAULT_RETRY_CONFIG.exceptions_to_retry,
                 condition_callbacks=DEFAULT_RETRY_CONFIG.condition_callbacks,
+                retry_conditions=DEFAULT_RETRY_CONFIG.retry_conditions,
                 circuit_breaker_name=DEFAULT_RETRY_CONFIG.circuit_breaker_name,
                 circuit_breaker_failure_threshold=DEFAULT_RETRY_CONFIG.circuit_breaker_failure_threshold,
                 circuit_breaker_reset_timeout=DEFAULT_RETRY_CONFIG.circuit_breaker_reset_timeout,
@@ -279,6 +327,7 @@ class TestWithRetry:
                 jitter=custom_config.jitter,
                 exceptions_to_retry=custom_config.exceptions_to_retry,
                 condition_callbacks=custom_config.condition_callbacks,
+                retry_conditions=custom_config.retry_conditions,
                 circuit_breaker_name=custom_config.circuit_breaker_name,
                 circuit_breaker_failure_threshold=custom_config.circuit_breaker_failure_threshold,
                 circuit_breaker_reset_timeout=custom_config.circuit_breaker_reset_timeout,
