@@ -35,6 +35,19 @@ def segmentation_reflected(command_context):
 
 
 @pytest.mark.fast
+@then("the CLI should request segmentation without explicit speeds")
+def segmentation_without_speeds(command_context):
+    """Segmentation fallback keeps speeds unset while honoring size hints."""
+
+    call = command_context.get("run_tests_call")
+    assert call is not None, "run_tests invocation was not captured"
+    args = call["args"]
+    assert args[1] is None, "Expected no explicit speed categories"
+    assert bool(args[5]) is True, "Segment flag should remain truthy"
+    assert args[6] == 3, f"Expected segment_size=3, got {args[6]}"
+
+
+@pytest.mark.fast
 @then("plugin autoload should be disabled in the environment")
 def plugin_autoload_disabled():
     assert os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"

@@ -2,11 +2,204 @@
 
 from __future__ import annotations
 
+import importlib.util
+import sys
 import time
+import types
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
+
+if importlib.util.find_spec("argon2") is None:
+    argon2_stub = types.ModuleType("argon2")
+
+    class PasswordHasher:  # pragma: no cover - minimal stub
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            return None
+
+        def hash(self, value: str) -> str:
+            return value
+
+        def verify(self, hashed: str, plain: str) -> bool:
+            return hashed == plain
+
+    argon2_stub.PasswordHasher = PasswordHasher  # type: ignore[attr-defined]
+    exceptions_stub = types.ModuleType("argon2.exceptions")
+
+    class VerifyMismatchError(Exception):
+        pass
+
+    exceptions_stub.VerifyMismatchError = VerifyMismatchError
+    argon2_stub.exceptions = exceptions_stub  # type: ignore[attr-defined]
+    sys.modules["argon2"] = argon2_stub
+    sys.modules["argon2.exceptions"] = exceptions_stub
+
+if importlib.util.find_spec("jsonschema") is None:
+    jsonschema_stub = types.ModuleType("jsonschema")
+
+    class ValidationError(Exception):
+        pass
+
+    def validate(instance: object, schema: object) -> None:  # pragma: no cover
+        return None
+
+    jsonschema_stub.ValidationError = ValidationError
+    jsonschema_stub.validate = validate  # type: ignore[attr-defined]
+    sys.modules["jsonschema"] = jsonschema_stub
+
+if importlib.util.find_spec("toml") is None:
+    toml_stub = types.ModuleType("toml")
+
+    def load(file: object, *args: object, **kwargs: object) -> dict[str, object]:  # pragma: no cover
+        return {}
+
+    def loads(text: str, *args: object, **kwargs: object) -> dict[str, object]:  # pragma: no cover
+        return {}
+
+    def dump(data: object, file: object, *args: object, **kwargs: object) -> None:  # pragma: no cover
+        return None
+
+    def dumps(data: object, *args: object, **kwargs: object) -> str:  # pragma: no cover
+        return ""
+
+    toml_stub.load = load  # type: ignore[attr-defined]
+    toml_stub.loads = loads  # type: ignore[attr-defined]
+    toml_stub.dump = dump  # type: ignore[attr-defined]
+    toml_stub.dumps = dumps  # type: ignore[attr-defined]
+    sys.modules["toml"] = toml_stub
+
+if importlib.util.find_spec("yaml") is None:
+    yaml_stub = types.ModuleType("yaml")
+
+    def safe_load(stream: object) -> dict[str, object] | list[object] | None:  # pragma: no cover
+        return {}
+
+    def safe_dump(data: object, stream: object = None, *args: object, **kwargs: object) -> str | None:  # pragma: no cover
+        if stream is None:
+            return ""
+        return None
+
+    yaml_stub.safe_load = safe_load  # type: ignore[attr-defined]
+    yaml_stub.safe_dump = safe_dump  # type: ignore[attr-defined]
+    sys.modules["yaml"] = yaml_stub
+
+if importlib.util.find_spec("pydantic") is None:
+    config_stub = types.ModuleType("devsynth.config")
+
+    def load_project_config(path: object | None = None) -> dict[str, object]:  # pragma: no cover
+        return {}
+
+    def save_config(config: object, path: object | None = None) -> None:  # pragma: no cover
+        return None
+
+    config_stub.load_project_config = load_project_config  # type: ignore[attr-defined]
+    config_stub.save_config = save_config  # type: ignore[attr-defined]
+    settings_stub = types.ModuleType("devsynth.config.settings")
+
+    def ensure_path_exists(path: object) -> str:
+        return str(path)
+
+    settings_stub.ensure_path_exists = ensure_path_exists  # type: ignore[attr-defined]
+    config_stub.settings = settings_stub  # type: ignore[attr-defined]
+    sys.modules["devsynth.config"] = config_stub
+    sys.modules["devsynth.config.settings"] = settings_stub
+
+if importlib.util.find_spec("rich") is None:
+    rich_module = types.ModuleType("rich")
+    sys.modules["rich"] = rich_module
+
+    rich_box = types.ModuleType("rich.box")
+    rich_box.ROUNDED = object()  # type: ignore[attr-defined]
+    rich_box.Box = object  # type: ignore[attr-defined]
+    sys.modules["rich.box"] = rich_box
+
+    class _Console:  # pragma: no cover - minimal stub
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            return None
+
+        def print(self, *_args: object, **_kwargs: object) -> None:
+            return None
+
+    rich_console = types.ModuleType("rich.console")
+    rich_console.Console = _Console  # type: ignore[attr-defined]
+    sys.modules["rich.console"] = rich_console
+
+    class _Markdown:  # pragma: no cover - minimal stub
+        def __init__(self, text: str, **_kwargs: object) -> None:
+            self.text = text
+
+    rich_markdown = types.ModuleType("rich.markdown")
+    rich_markdown.Markdown = _Markdown  # type: ignore[attr-defined]
+    sys.modules["rich.markdown"] = rich_markdown
+
+    class _Panel:  # pragma: no cover - minimal stub
+        def __init__(self, renderable: object, **_kwargs: object) -> None:
+            self.renderable = renderable
+
+    rich_panel = types.ModuleType("rich.panel")
+    rich_panel.Panel = _Panel  # type: ignore[attr-defined]
+    sys.modules["rich.panel"] = rich_panel
+
+    rich_style = types.ModuleType("rich.style")
+    rich_style.Style = object  # type: ignore[attr-defined]
+    sys.modules["rich.style"] = rich_style
+
+    class _Syntax:  # pragma: no cover - minimal stub
+        def __init__(self, code: str, lexer: str, **_kwargs: object) -> None:
+            self.code = code
+            self.lexer = lexer
+
+    rich_syntax = types.ModuleType("rich.syntax")
+    rich_syntax.Syntax = _Syntax  # type: ignore[attr-defined]
+    sys.modules["rich.syntax"] = rich_syntax
+
+    class _Table:  # pragma: no cover - minimal stub
+        def __init__(self, *args: object, **_kwargs: object) -> None:
+            self.rows: list[tuple[object, ...]] = []
+
+        def add_column(self, *_args: object, **_kwargs: object) -> None:
+            return None
+
+        def add_row(self, *cells: object) -> None:
+            self.rows.append(tuple(cells))
+
+    rich_table = types.ModuleType("rich.table")
+    rich_table.Table = _Table  # type: ignore[attr-defined]
+    sys.modules["rich.table"] = rich_table
+
+    class _Text(str):  # pragma: no cover - minimal stub
+        def __new__(cls, text: str, **_kwargs: object):
+            return super().__new__(cls, text)
+
+    rich_text = types.ModuleType("rich.text")
+    rich_text.Text = _Text  # type: ignore[attr-defined]
+    sys.modules["rich.text"] = rich_text
+
+if importlib.util.find_spec("cryptography") is None:
+    crypto_module = types.ModuleType("cryptography")
+    sys.modules["cryptography"] = crypto_module
+
+    fernet_module = types.ModuleType("cryptography.fernet")
+
+    class Fernet:  # pragma: no cover - minimal stub
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            return None
+
+        @staticmethod
+        def generate_key() -> bytes:
+            return b"stub-key"
+
+        def encrypt(self, data: bytes) -> bytes:
+            return data
+
+        def decrypt(self, token: bytes) -> bytes:
+            return token
+
+    fernet_module.Fernet = Fernet  # type: ignore[attr-defined]
+    fernet_module.InvalidToken = Exception  # type: ignore[attr-defined]
+    sys.modules["cryptography.fernet"] = fernet_module
+
 
 import devsynth.interface.webui.rendering as rendering
 from devsynth.interface.webui.rendering import ProjectSetupPages
@@ -312,3 +505,30 @@ def test_gather_wizard_renders_cli_summary(monkeypatch: pytest.MonkeyPatch) -> N
     assert interviews_container.info_calls == []
 
     assert stub.button.call_count == 4
+
+
+@pytest.mark.fast
+def test_render_progress_summary_prefers_checkpoint_eta_strings() -> None:
+    """Checkpoint rendering uses provided ETA labels instead of numeric fallback."""
+
+    stub = BehaviorStreamlitStub()
+    harness = _Harness(stub)
+
+    summary = {
+        "description": "<Daily run>",
+        "progress": 0.5,
+        "remaining": 12,
+        "elapsed": 30,
+        "checkpoints": [
+            {
+                "progress": 0.5,
+                "eta_str": "T+5m",
+            }
+        ],
+    }
+
+    harness._render_progress_summary(summary)
+
+    assert stub.containers[0].info_calls == ["Remaining 12s • Elapsed 30s"]
+    assert stub.containers[1].markdown_calls == ["**Checkpoints**"]
+    assert stub.containers[1].info_calls == ["50% • ETA T+5m"]

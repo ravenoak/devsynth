@@ -217,3 +217,34 @@ def test_devsynth_logger_filters_reserved_extra_keys(
     assert captured["kwargs"]["extra"] == {"safe": "ok"}
     assert captured["kwargs"]["stack_info"] is True
     assert captured["kwargs"]["stacklevel"] == 2
+
+
+def test_redact_filter_masks_args_and_payload(
+    monkeypatch: pytest.MonkeyPatch, logging_setup_module: object
+) -> None:
+    """ReqID: coverage-logging-setup-args — tuple args and payload fields are redacted."""
+
+    logging_setup = logging_setup_module
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-new-secret")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "anthropic-secret")
+
+    filt = logging_setup.RedactSecretsFilter()
+
+    record = logging.LogRecord(
+        name="devsynth.test",
+        level=logging.WARNING,
+        pathname=__file__,
+        lineno=99,
+        msg="sending sk-new-secret over the wire",
+        args=("header anthropic-secret", 42),
+        exc_info=None,
+    )
+    record.payload = {"api_key": "sk-new-secret", "note": "anthropic-secret"}
+
+    assert filt.filter(record) is True
+    masked_msg = record.msg
+    assert "sk-new-secret" not in masked_msg
+    assert "anthropic-secret" not in masked_msg
+    assert record.args[0].startswith("header ***REDACTED***")
+    assert record.payload["api_key"].startswith("***REDACTED***")
+    assert record.payload["note"].startswith("***REDACTED***")
