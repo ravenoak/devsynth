@@ -4,9 +4,17 @@ import sys
 import types
 from collections import UserDict
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
+
+from devsynth.application.memory.dto import (
+    MemoryMetadata,
+    MemoryQueryResults,
+    MemoryRecord,
+    build_query_results,
+)
+from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 SRC_ROOT = pathlib.Path(__file__).resolve().parents[4] / "src"
 
@@ -23,8 +31,6 @@ memory_manager_module = _load_module(
     PACKAGE_PATH / "memory_manager.py", "devsynth.application.memory.memory_manager"
 )
 MemoryManager = memory_manager_module.MemoryManager
-from devsynth.application.memory.dto import MemoryRecord
-from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
 class RecordingStore:
@@ -48,7 +54,7 @@ class RecordingStore:
         self,
         item_type: MemoryType,
         edrr_phase: str,
-        metadata: dict[str, object],
+        metadata: MemoryMetadata,
     ) -> MemoryRecord:
         self.calls["retrieve_with_edrr_phase"] += 1
         stored = self.items.get(f"{item_type.value}-{edrr_phase}")
@@ -96,8 +102,17 @@ class DummyGraphStore:
 
     def store_with_edrr_phase(self, content, memory_type, edrr_phase, metadata=None):
         key = f"{memory_type}_{edrr_phase}"
-        self.edrr_items[key] = content
-        return "graph-edrr-id"
+        payload_metadata = {"edrr_phase": edrr_phase}
+        if metadata:
+            payload_metadata.update(metadata)
+        item = MemoryItem(
+            id=key,
+            content=content,
+            memory_type=MemoryType.from_raw(memory_type),
+            metadata=payload_metadata,
+        )
+        self.edrr_items[key] = item
+        return item.id
 
 
 class TestMemoryManagerStore:
@@ -193,6 +208,36 @@ class TestMemoryManagerTyping:
                 ),
             )
 
+
+class TestRouteQuery:
+    @pytest.mark.fast
+    def test_route_query_normalizes_context_mapping(self):
+        class StubRouter:
+            def __init__(self) -> None:
+                self.captured: MemoryMetadata | None = None
+
+            def route(
+                self,
+                query: str,
+                *,
+                store: str | None = None,
+                strategy: str = "direct",
+                context: MemoryMetadata | None = None,
+                stores: list[str] | None = None,
+            ) -> MemoryQueryResults:
+                self.captured = context
+                return build_query_results("stub", [])
+
+        router = StubRouter()
+        manager = MemoryManager(adapters={}, query_router=router)
+
+        context = UserDict({"phase": "EXPAND"})
+        result = manager.route_query("hello", context=context)
+
+        assert isinstance(result, dict)
+        assert result["store"] == "stub"
+        assert router.captured == {"phase": "EXPAND"}
+
 class TestMemoryManagerRetrieve:
     """Tests for the MemoryManagerRetrieve component.
 
@@ -211,10 +256,17 @@ class TestMemoryManagerRetrieve:
         """Test that retrieve with edrr phase succeeds.
 
         ReqID: N/A"""
-        test_content = {"key": "value"}
-        graph_adapter.edrr_items["CODE_EXPAND"] = test_content
+        test_item = MemoryItem(
+            id="CODE_EXPAND",
+            content={"key": "value"},
+            memory_type=MemoryType.CODE,
+            metadata={"edrr_phase": "EXPAND"},
+        )
+        graph_adapter.edrr_items[test_item.id] = test_item
         result = manager_with_graph.retrieve_with_edrr_phase("CODE", "EXPAND")
-        assert result == test_content
+        assert isinstance(result, MemoryRecord)
+        assert result.content == {"key": "value"}
+        assert result.metadata.get("edrr_phase") == "EXPAND"
 
     @pytest.mark.medium
     def test_retrieve_with_edrr_phase_not_found_succeeds(self, manager_with_graph):
@@ -222,7 +274,7 @@ class TestMemoryManagerRetrieve:
 
         ReqID: N/A"""
         result = manager_with_graph.retrieve_with_edrr_phase("CODE", "NONEXISTENT")
-        assert result == {}
+        assert result is None
 
     @pytest.mark.medium
     def test_retrieve_with_edrr_phase_with_metadata_succeeds(
@@ -231,12 +283,19 @@ class TestMemoryManagerRetrieve:
         """Test that retrieve with edrr phase with metadata succeeds.
 
         ReqID: N/A"""
-        test_content = {"key": "value"}
-        graph_adapter.edrr_items["CODE_EXPAND"] = test_content
+        test_item = MemoryItem(
+            id="CODE_EXPAND",
+            content={"key": "value"},
+            memory_type=MemoryType.CODE,
+            metadata={"edrr_phase": "EXPAND"},
+        )
+        graph_adapter.edrr_items[test_item.id] = test_item
         result = manager_with_graph.retrieve_with_edrr_phase(
             "CODE", "EXPAND", {"cycle_id": "123"}
         )
-        assert result == test_content
+        assert isinstance(result, MemoryRecord)
+        assert result.metadata.get("edrr_phase") == "EXPAND"
+        assert result.metadata.get("cycle_id") == "123"
 
     @pytest.mark.medium
     def test_retrieve_with_edrr_phase_returns_typed_record(self):

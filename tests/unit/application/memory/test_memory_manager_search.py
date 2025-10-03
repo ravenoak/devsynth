@@ -2,8 +2,12 @@ import importlib.util
 import pathlib
 import sys
 import types
+from typing import Union
 
 import pytest
+
+from devsynth.application.memory.dto import MemoryRecord
+from devsynth.domain.models.memory import MemoryType, MemoryVector
 
 SRC_ROOT = pathlib.Path(__file__).resolve().parents[4] / "src"
 
@@ -25,9 +29,6 @@ vector_adapter_module = _load_module(
 )
 MemoryManager = memory_manager_module.MemoryManager
 VectorMemoryAdapter = vector_adapter_module.VectorMemoryAdapter
-from typing import Union
-
-from devsynth.domain.models.memory import MemoryType, MemoryVector
 
 
 @pytest.fixture(autouse=True)
@@ -75,6 +76,7 @@ class TestMemoryManagerSearch:
         self._add_vector(manager, "car", "DOC")
         results = manager.search_memory("apple", limit=2)
         assert results
+        assert all(isinstance(record, MemoryRecord) for record in results)
         assert results[0].content == "apple item"
 
     @pytest.mark.medium
@@ -92,4 +94,5 @@ class TestMemoryManagerSearch:
             limit=5,
         )
         assert len(results) == 2
-        assert all((v.metadata.get("category") == "fruit" for v in results))
+        assert all(isinstance(record, MemoryRecord) for record in results)
+        assert all((record.metadata.get("category") == "fruit" for record in results))
