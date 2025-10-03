@@ -52,6 +52,7 @@ from .dto import (
     MemoryMetadataValue,
     MemoryQueryResults,
     MemoryRecord,
+    MemoryRecordInput,
     MemorySearchQuery,
     build_memory_record,
     build_query_results,
@@ -192,7 +193,7 @@ class MemoryManager:
 
     def store_with_edrr_phase(
         self,
-        content: Any,
+        content: MemoryMetadataValue,
         memory_type: MemoryType,
         edrr_phase: str,
         metadata: MemoryMetadata | None = None,
@@ -241,43 +242,54 @@ class MemoryManager:
 
     def retrieve_with_edrr_phase(
         self,
-        item_type: MemoryType,
+        item_type: MemoryType | str,
         edrr_phase: str,
         metadata: MemoryMetadata | None = None,
-    ) -> object:
+    ) -> MemoryRecord | None:
         """Retrieve an item stored with a specific EDRR phase.
 
         This helper iterates over available adapters and returns the first match
-        found. It is intentionally simple so unit tests remain hermetic.
+        found. Results are normalized into :class:`MemoryRecord` instances so
+        downstream callers can rely on DTO semantics regardless of the adapter
+        implementation.
 
         Args:
-            item_type: Identifier of the stored item as a :class:`MemoryType`.
+            item_type: Identifier of the stored item as a :class:`MemoryType` or
+                a compatible raw value.
             edrr_phase: The phase tag used during storage.
             metadata: Optional additional metadata for adapter queries.
 
         Returns:
-            The retrieved item or an empty dictionary if not found.
+            A normalized memory record or ``None`` if not found.
         """
-        search_meta: dict[str, MemoryMetadataValue] = dict(metadata) if metadata else {}
+
+        normalized_type = (
+            item_type
+            if isinstance(item_type, MemoryType)
+            else MemoryType.from_raw(item_type)
+        )
+        search_meta: dict[str, MemoryMetadataValue] = (
+            dict(metadata) if metadata else {}
+        )
         search_meta["edrr_phase"] = edrr_phase
 
-        for adapter in self.adapters.values():
+        for adapter_name, adapter in self.adapters.items():
             if isinstance(adapter, SupportsEdrrRetrieval):
                 item = adapter.retrieve_with_edrr_phase(
-                    item_type, edrr_phase, search_meta
+                    normalized_type, edrr_phase, search_meta
                 )
                 if item is not None:
-                    return item
+                    return build_memory_record(item, source=adapter_name)
             if hasattr(adapter, "retrieve"):
                 store_adapter = cast(MemoryStore, adapter)
-                item = store_adapter.retrieve(item_type.value)
+                item = store_adapter.retrieve(normalized_type.value)
                 if (
                     item is not None
                     and getattr(item, "metadata", {}).get("edrr_phase") == edrr_phase
                 ):
-                    return getattr(item, "content", item)
+                    return build_memory_record(item, source=adapter_name)
 
-        return {}
+        return None
 
     @retry_memory_operation(max_retries=3, initial_backoff=0.1, max_backoff=2.0)
     def retrieve(self, item_id: str) -> MemoryItem | None:
@@ -591,7 +603,7 @@ class MemoryManager:
 
         return results
 
-    def query_by_metadata(self, metadata: Mapping[str, Any]) -> list[MemoryItem]:
+    def query_by_metadata(self, metadata: Mapping[str, MemoryMetadataValue]) -> list[MemoryItem]:
         """
         Query memory items by metadata.
 
@@ -629,16 +641,19 @@ class MemoryManager:
     def search_memory(
         self,
         query: str,
-        memory_type: Any = None,
+        memory_type: MemoryType | str | None = None,
         metadata_filter: MemoryMetadata | None = None,
         limit: int = 10,
     ) -> list[MemoryRecord]:
         """Search memory items and return normalized :class:`MemoryRecord` values."""
-        memory_type_str = memory_type
-        if hasattr(memory_type, "value"):
-            memory_type_str = memory_type.value
-        elif hasattr(memory_type, "name"):
-            memory_type_str = memory_type.name
+        if isinstance(memory_type, MemoryType):
+            memory_type_str: str | None = memory_type.value
+        elif isinstance(memory_type, str):
+            memory_type_str = memory_type
+        elif memory_type is None:
+            memory_type_str = None
+        else:
+            memory_type_str = str(memory_type)
 
         logger.info(
             f"Searching memory with query: {query}, type: {memory_type_str}, filter: {metadata_filter}, limit: {limit}"
@@ -648,14 +663,15 @@ class MemoryManager:
             logger.info("Vector adapter not available; using keyword fallback search")
             aggregated: list[MemoryRecord] = []
 
-            def maybe_add(item: Any, store_name: str) -> None:
+            def maybe_add(item: MemoryRecordInput, store_name: str) -> None:
+                record = build_memory_record(item, source=store_name)
                 try:
-                    content_text = str(getattr(item, "content", item) or "")
+                    content_text = str(record.content or "")
                 except Exception:
                     content_text = ""
                 if query and query.lower() not in content_text.lower():
                     return
-                aggregated.append(build_memory_record(item, source=store_name))
+                aggregated.append(record)
 
             for store_name, adapter in self.adapters.items():
                 if hasattr(adapter, "get_all"):
@@ -674,12 +690,8 @@ class MemoryManager:
             filtered: list[MemoryRecord] = []
             for record in aggregated:
                 metadata = record.item.metadata or {}
-                if memory_type is not None:
-                    expected = (
-                        memory_type.value
-                        if hasattr(memory_type, "value")
-                        else str(memory_type)
-                    )
+                if memory_type_str is not None:
+                    expected = memory_type_str
                     actual = metadata.get("memory_type")
                     if hasattr(actual, "value"):
                         actual = actual.value
@@ -708,12 +720,8 @@ class MemoryManager:
         for candidate in results:
             record = build_memory_record(candidate, source="vector")
             metadata = record.item.metadata or {}
-            if memory_type is not None:
-                expected = (
-                    memory_type.value
-                    if hasattr(memory_type, "value")
-                    else str(memory_type)
-                )
+            if memory_type_str is not None:
+                expected = memory_type_str
                 actual = metadata.get("memory_type")
                 if hasattr(actual, "value"):
                     actual = actual.value
@@ -735,7 +743,7 @@ class MemoryManager:
 
         return filtered
 
-    def store(self, memory_item: MemoryItem, **kwargs: Any) -> str:
+    def store(self, memory_item: MemoryItem, **_: object) -> str:
         """
         Store a memory item. This is an alias for store_item for backward compatibility.
 
@@ -748,11 +756,23 @@ class MemoryManager:
         """
         return self.store_item(memory_item)
 
-    def query(self, query_string: str, **kwargs: Any) -> list[MemoryRecord]:
+    def query(
+        self,
+        query_string: str,
+        *,
+        memory_type: MemoryType | str | None = None,
+        metadata_filter: MemoryMetadata | None = None,
+        limit: int = 10,
+    ) -> list[MemoryRecord]:
         """Delegate to :meth:`search_memory` and return normalized records."""
 
         logger.info(f"Querying memory with: {query_string}")
-        return self.search_memory(query_string, **kwargs)
+        return self.search_memory(
+            query_string,
+            memory_type=memory_type,
+            metadata_filter=metadata_filter,
+            limit=limit,
+        )
 
     def route_query(
         self,
@@ -760,12 +780,14 @@ class MemoryManager:
         *,
         store: str | None = None,
         strategy: str = "direct",
-        context: Mapping[str, Any] | None = None,
+        context: Mapping[str, MemoryMetadataValue] | None = None,
         stores: Sequence[str] | None = None,
     ) -> MemoryQueryResults | GroupedMemoryResults | list[MemoryRecord]:
         """Route a query through the :class:`QueryRouter`."""
 
-        context_payload = dict(context) if context is not None else None
+        context_payload: MemoryMetadata | None = (
+            dict(context) if context is not None else None
+        )
         return self.query_router.route(
             query,
             store=store,
@@ -795,7 +817,7 @@ class MemoryManager:
         store_list = list(stores) if stores is not None else None
         return self.sync_manager.cross_store_query(query, store_list)
 
-    def begin_transaction(self, stores: Sequence[str]) -> AbstractContextManager[Any]:
+    def begin_transaction(self, stores: Sequence[str]) -> AbstractContextManager[object]:
         """
         Begin a multi-store transaction.
 
@@ -819,7 +841,7 @@ class MemoryManager:
             ```
         """
         # Get the adapters for the specified stores
-        adapters: list[Any] = []
+        adapters: list[MemoryAdapter] = []
         for store_name in stores:
             adapter = self.adapters.get(store_name)
             if adapter:
@@ -879,11 +901,11 @@ class MemoryManager:
 
     def retrieve_relevant_knowledge(
         self,
-        task: Mapping[str, Any],
+        task: Mapping[str, MemoryMetadataValue],
         retrieval_strategy: str = "broad",
         max_results: int = 5,
         similarity_threshold: float = 0.5,
-    ) -> list[Any]:
+    ) -> list[MemoryRecord]:
         """Retrieve knowledge relevant to the provided task.
 
         This default implementation returns an empty list, allowing tests to
@@ -892,7 +914,7 @@ class MemoryManager:
 
         return []
 
-    def retrieve_historical_patterns(self) -> list[Any]:
+    def retrieve_historical_patterns(self) -> list[MemoryRecord]:
         """Return historical patterns stored in memory.
 
         The base implementation returns an empty list so that unit tests remain

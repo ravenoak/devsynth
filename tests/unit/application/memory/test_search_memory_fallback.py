@@ -3,6 +3,7 @@ import pytest
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
@@ -41,11 +42,11 @@ def test_search_memory_fallback_without_vector_adapter_returns_results():
     # Execute: query that matches two items by keyword
     results = mm.search_memory("alpha", limit=10)
 
-    # Verify: should not be empty and embeddings should be optional (empty list)
+    # Verify: results are normalized DTO records sourced from TinyDB
     assert len(results) >= 2
-    assert all(hasattr(v, "embedding") for v in results)
-    # Ensure that we are not requiring real embeddings
-    assert all(v.embedding == [] for v in results)
+    assert all(isinstance(record, MemoryRecord) for record in results)
+    assert {record.source for record in results} == {"tinydb"}
+    assert all("alpha" in str(record.content).lower() for record in results)
 
     # Verify filtering by metadata and memory_type still works
     # Filter by memory_type=KNOWLEDGE should only include those metadata entries
@@ -56,6 +57,8 @@ def test_search_memory_fallback_without_vector_adapter_returns_results():
         limit=10,
     )
     assert len(filtered) >= 1
+    assert all(isinstance(record, MemoryRecord) for record in filtered)
     assert all(
-        v.metadata.get("memory_type") == MemoryType.KNOWLEDGE.value for v in filtered
+        record.metadata.get("memory_type") == MemoryType.KNOWLEDGE.value
+        for record in filtered
     )
