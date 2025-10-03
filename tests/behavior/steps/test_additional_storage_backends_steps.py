@@ -632,10 +632,10 @@ def begin_transaction(request):
     store = request.getfixturevalue("lmdb_store")
 
     # Begin a transaction
-    txn = store.begin_transaction(write=True)
+    txn_id = store.begin_transaction(write=True)
 
-    # Save the transaction for later use
-    request.config.cache.set("transaction", txn)
+    # Save the transaction identifier for later use
+    request.config.cache.set("transaction_id", txn_id)
 
 
 @when("I store multiple items within the transaction")
@@ -643,11 +643,14 @@ def begin_transaction(request):
 def store_items_in_transaction(request):
     """Store multiple items within the transaction."""
     # Get the transaction
-    txn = request.config.cache.get("transaction", None)
-    assert txn is not None, "Transaction not found in cache"
+    txn_id = request.config.cache.get("transaction_id", None)
+    assert txn_id is not None, "Transaction not found in cache"
 
     # Get the LMDB store
     store = request.getfixturevalue("lmdb_store")
+
+    txn = store._transactions.get(txn_id)
+    assert txn is not None, "Active transaction handle not found"
 
     # Store multiple items
     items = []
@@ -669,11 +672,11 @@ def store_items_in_transaction(request):
 def commit_transaction(request):
     """Commit the transaction."""
     # Get the transaction
-    txn = request.config.cache.get("transaction", None)
-    assert txn is not None, "Transaction not found in cache"
+    txn_id = request.config.cache.get("transaction_id", None)
+    assert txn_id is not None, "Transaction not found in cache"
 
     # Commit the transaction
-    txn.commit()
+    store.commit_transaction(txn_id)
 
 
 @then("all items should be stored atomically")
@@ -701,8 +704,8 @@ def check_transaction_items(request):
 def modify_item_in_transaction(request):
     """Modify an item within the transaction."""
     # Get the transaction
-    txn = request.config.cache.get("transaction", None)
-    assert txn is not None, "Transaction not found in cache"
+    txn_id = request.config.cache.get("transaction_id", None)
+    assert txn_id is not None, "Transaction not found in cache"
 
     # Get the LMDB store
     store = request.getfixturevalue("lmdb_store")
@@ -720,6 +723,9 @@ def modify_item_in_transaction(request):
     )
 
     # Store the modified item
+    txn = store._transactions.get(txn_id)
+    assert txn is not None, "Active transaction handle not found"
+
     store.store_in_transaction(txn, modified_item)
 
 
@@ -728,11 +734,11 @@ def modify_item_in_transaction(request):
 def abort_transaction(request):
     """Abort the transaction."""
     # Get the transaction
-    txn = request.config.cache.get("transaction", None)
-    assert txn is not None, "Transaction not found in cache"
+    txn_id = request.config.cache.get("transaction_id", None)
+    assert txn_id is not None, "Transaction not found in cache"
 
     # Abort the transaction
-    txn.abort()
+    store.rollback_transaction(txn_id)
 
 
 @then("the item should remain unchanged")

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, runtime_checkable
 
 from ...domain.models.memory import MemoryVector
 from .dto import MemoryRecord, VectorStoreStats
@@ -19,6 +19,7 @@ else:  # pragma: no cover - runtime fallback
 EmbeddingVector: TypeAlias = Sequence[float] | NumpyEmbedding
 
 
+@runtime_checkable
 class VectorStoreProtocol(Protocol):
     """Structural protocol implemented by vector store adapters."""
 

@@ -12,7 +12,7 @@ import os
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import AbstractContextManager
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol
 
 from ...config import get_settings
 from ...domain.interfaces.memory import MemoryStore
@@ -25,22 +25,14 @@ from .adapter_types import (
     MemoryAdapter,
     SupportsEdrrRetrieval,
     SupportsGraphQueries,
+    SupportsRetrieve,
+    SupportsSearch,
     SupportsStructuredQuery,
 )
 from .vector_protocol import VectorStoreProtocol
 
-if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
-    from .adapters.s3_memory_adapter import S3MemoryAdapter as S3MemoryAdapterType
-else:  # pragma: no cover - runtime fallback when optional dependency missing
-    S3MemoryAdapterType = Any  # type: ignore[assignment]
-
-S3MemoryAdapter: type[S3MemoryAdapterType] | None
-try:  # pragma: no cover - optional dependency
-    from .adapters.s3_memory_adapter import S3MemoryAdapter as _S3MemoryAdapter
-except Exception:  # pragma: no cover - missing optional dependency
-    S3MemoryAdapter = None
-else:
-    S3MemoryAdapter = cast("type[S3MemoryAdapterType]", _S3MemoryAdapter)
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from .adapters.s3_memory_adapter import S3MemoryAdapter
 from .circuit_breaker import (
     CircuitBreaker,
     circuit_breaker_registry,
@@ -57,13 +49,29 @@ from .dto import (
     build_memory_record,
     build_query_results,
 )
-from .error_logger import ErrorRecord, memory_error_logger
+from .error_logger import ErrorRecord, ErrorSummary, memory_error_logger
 from .query_router import QueryRouter
 from .retry import retry_memory_operation, retry_with_backoff
 from .sync_manager import SyncManager
 from .transaction_context import TransactionContext
 
 logger = DevSynthLogger(__name__)
+
+
+def _build_s3_adapter(bucket: str) -> MemoryAdapter | None:
+    """Return an instantiated S3 adapter when the optional dependency exists."""
+
+    try:  # pragma: no cover - optional dependency import
+        from .adapters.s3_memory_adapter import S3MemoryAdapter as RuntimeS3Adapter
+    except Exception as exc:  # pragma: no cover - defensive logging for CI
+        logger.debug("S3 adapter unavailable: %s", exc)
+        return None
+
+    try:
+        return RuntimeS3Adapter(bucket)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning("Failed to init S3MemoryAdapter: %s", exc)
+        return None
 
 
 class EmbeddingProvider(Protocol):
@@ -112,16 +120,15 @@ class MemoryManager:
                 "DEVSYNTH_MEMORY_STORE",
                 getattr(settings, "memory_store_type", "tinydb"),
             ).lower()
-            if store_type == "s3" and S3MemoryAdapter is not None:
+            if store_type == "s3":
                 bucket = os.getenv(
                     "DEVSYNTH_S3_BUCKET",
                     getattr(settings, "s3_bucket_name", "devsynth-memory"),
                 )
-                try:
-                    adapter = S3MemoryAdapter(bucket)
+                adapter = _build_s3_adapter(bucket)
+                if adapter is not None:
                     self.adapters = {"s3": adapter}
-                except Exception as exc:  # pragma: no cover - defensive
-                    logger.warning("Failed to init S3MemoryAdapter: %s", exc)
+                else:
                     self.adapters = {"tinydb": TinyDBMemoryAdapter()}
             else:
                 # Default to TinyDB for simple usage and unit tests
@@ -280,14 +287,13 @@ class MemoryManager:
                 )
                 if item is not None:
                     return build_memory_record(item, source=adapter_name)
-            if hasattr(adapter, "retrieve"):
-                store_adapter = cast(MemoryStore, adapter)
-                item = store_adapter.retrieve(normalized_type.value)
-                if (
-                    item is not None
-                    and getattr(item, "metadata", {}).get("edrr_phase") == edrr_phase
-                ):
-                    return build_memory_record(item, source=adapter_name)
+            if isinstance(adapter, SupportsRetrieve):
+                artefact = adapter.retrieve(normalized_type.value)
+                if artefact is None:
+                    continue
+                record = build_memory_record(artefact, source=adapter_name)
+                if record.metadata.get("edrr_phase") == edrr_phase:
+                    return record
 
         return None
 
@@ -309,46 +315,49 @@ class MemoryManager:
         # Try to retrieve from each adapter
         errors: dict[str, str] = {}
         for adapter_name, adapter in self.adapters.items():
-            if hasattr(adapter, "retrieve"):
-                try:
-                    # Use circuit breaker to protect the retrieve operation
-                    circuit = circuit_breaker_registry.get_or_create(
-                        f"memory_retrieve_{adapter_name}",
-                        failure_threshold=3,
-                        reset_timeout=60.0,
-                    )
+            if not isinstance(adapter, SupportsRetrieve):
+                continue
+            try:
+                # Use circuit breaker to protect the retrieve operation
+                circuit = circuit_breaker_registry.get_or_create(
+                    f"memory_retrieve_{adapter_name}",
+                    failure_threshold=3,
+                    reset_timeout=60.0,
+                )
 
-                    item = circuit.execute(adapter.retrieve, item_id)
-                    if item is not None:
-                        return item
-                except CircuitBreakerOpenError as e:
-                    # Circuit is open, log and continue to next adapter
-                    logger.warning(
-                        f"Circuit breaker for {adapter_name} is open, skipping: {e}"
-                    )
-                    errors[adapter_name] = f"Circuit breaker open: {e}"
+                item = circuit.execute(adapter.retrieve, item_id)
+                if item is not None and isinstance(item, MemoryItem):
+                    return item
+                if item is not None:
+                    return build_memory_record(item, source=adapter_name).item
+            except CircuitBreakerOpenError as e:
+                # Circuit is open, log and continue to next adapter
+                logger.warning(
+                    f"Circuit breaker for {adapter_name} is open, skipping: {e}"
+                )
+                errors[adapter_name] = f"Circuit breaker open: {e}"
 
-                    # Log to error logger
-                    memory_error_logger.log_error(
-                        operation="retrieve",
-                        adapter_name=adapter_name,
-                        error=e,
-                        context={"item_id": item_id, "circuit_breaker": True},
-                    )
-                except Exception as e:
-                    # Retrieve operation failed, log and continue to next adapter
-                    logger.error(
-                        f"Failed to retrieve memory item from {adapter_name}: {e}"
-                    )
-                    errors[adapter_name] = str(e)
+                # Log to error logger
+                memory_error_logger.log_error(
+                    operation="retrieve",
+                    adapter_name=adapter_name,
+                    error=e,
+                    context={"item_id": item_id, "circuit_breaker": True},
+                )
+            except Exception as e:
+                # Retrieve operation failed, log and continue to next adapter
+                logger.error(
+                    f"Failed to retrieve memory item from {adapter_name}: {e}"
+                )
+                errors[adapter_name] = str(e)
 
-                    # Log to error logger
-                    memory_error_logger.log_error(
-                        operation="retrieve",
-                        adapter_name=adapter_name,
-                        error=e,
-                        context={"item_id": item_id},
-                    )
+                # Log to error logger
+                memory_error_logger.log_error(
+                    operation="retrieve",
+                    adapter_name=adapter_name,
+                    error=e,
+                    context={"item_id": item_id},
+                )
 
         if errors:
             logger.warning(
@@ -383,13 +392,12 @@ class MemoryManager:
 
         if "vector" in self.adapters:
             vector_adapter = self.adapters["vector"]
-            results = cast(
-                VectorStoreProtocol,
-                vector_adapter,
-            ).similarity_search(query_embedding, top_k)
-            return [
-                build_memory_record(candidate, source="vector") for candidate in results
-            ]
+            if isinstance(vector_adapter, VectorStoreProtocol):
+                results = vector_adapter.similarity_search(query_embedding, top_k)
+                return [
+                    build_memory_record(candidate, source="vector")
+                    for candidate in results
+                ]
 
         logger.warning("Vector adapter not available for similarity search")
         return []
@@ -414,7 +422,7 @@ class MemoryManager:
         records: list[MemoryRecord] = []
 
         for adapter_name, adapter in self.adapters.items():
-            if not hasattr(adapter, "search"):
+            if not isinstance(adapter, SupportsSearch):
                 continue
             items = adapter.search({"edrr_phase": edrr_phase})
             records.extend(
@@ -440,13 +448,13 @@ class MemoryManager:
             return []
 
         graph_adapter = self.adapters["graph"]
-        if not hasattr(graph_adapter, "retrieve") or not isinstance(
-            graph_adapter, SupportsGraphQueries
+        if not isinstance(graph_adapter, SupportsGraphQueries) or not isinstance(
+            graph_adapter, SupportsRetrieve
         ):
             logger.warning("Graph adapter missing retrieval or relationship support")
             return []
 
-        item = cast(MemoryStore, graph_adapter).retrieve(item_id)
+        item = graph_adapter.retrieve(item_id)
         if item is None:
             return []
 
@@ -710,7 +718,10 @@ class MemoryManager:
                     break
             return filtered
 
-        vector_adapter = cast(VectorStoreProtocol, self.adapters["vector"])
+        vector_adapter = self.adapters.get("vector")
+        if not isinstance(vector_adapter, VectorStoreProtocol):
+            logger.warning("Vector adapter not available for vector similarity search")
+            return []
 
         query_embedding = self._embed_text(query)
 
@@ -923,7 +934,7 @@ class MemoryManager:
 
         return []
 
-    def get_error_summary(self) -> dict[str, Any]:
+    def get_error_summary(self) -> ErrorSummary:
         """
         Get a summary of memory operation errors.
 

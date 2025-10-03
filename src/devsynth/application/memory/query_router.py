@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING
 
 from ...logging_setup import DevSynthLogger
 from .dto import (
@@ -16,21 +16,13 @@ from .dto import (
     build_query_results,
     deduplicate_records,
 )
-from .adapter_types import AdapterRegistry
+from .adapter_types import AdapterRegistry, SupportsSearch
+from .vector_protocol import VectorStoreProtocol
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard
     from .memory_manager import MemoryManager
 
 logger = DevSynthLogger(__name__)
-
-
-class _SupportsSearch(Protocol):
-    """Structural protocol for adapters exposing a ``search`` method."""
-
-    def search(
-        self, query: MemorySearchQuery | MemoryMetadata
-    ) -> Sequence[MemoryRecordInput] | MemoryRecordInput | MemoryQueryResults:
-        """Return records matching ``query``."""
 
 
 class QueryRouter:
@@ -57,9 +49,8 @@ class QueryRouter:
             results = self.memory_manager.query_related_items(query)
             return build_query_results(store_key, results)
 
-        if hasattr(adapter, "search"):
-            searcher = cast(_SupportsSearch, adapter)
-            payload = searcher.search({"content": query})
+        if isinstance(adapter, SupportsSearch):
+            payload = adapter.search({"content": query})
             return build_query_results(store_key, payload)
 
         logger.warning("Adapter %s does not support direct queries", store_key)
@@ -110,12 +101,19 @@ class QueryRouter:
         unique_records = deduplicate_records(aggregated)
         query_emb = self.memory_manager._embed_text(query)
 
+        vector_adapter = self.memory_manager.adapters.get("vector")
+        vector_dim = None
+        if isinstance(vector_adapter, VectorStoreProtocol):
+            vector_dim = getattr(vector_adapter, "dimension", None)
+
         def _embedding(record: MemoryRecord) -> list[float]:
             metadata = record.metadata or {}
             candidate = metadata.get("embedding")
             if isinstance(candidate, list):
                 return [float(x) for x in candidate]
-            return self.memory_manager._embed_text(str(record.content))
+            if vector_dim is None:
+                return self.memory_manager._embed_text(str(record.content))
+            return self.memory_manager._embed_text(str(record.content), dimension=int(vector_dim))
 
         def _similarity(a: list[float], b: list[float]) -> float:
             import math

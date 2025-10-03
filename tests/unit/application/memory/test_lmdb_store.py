@@ -219,7 +219,7 @@ class TestLMDBStore:
         """Test that transactions are isolated.
 
         ReqID: N/A"""
-        with store.begin_transaction() as txn:
+        with store.transaction() as txn:
             item = MemoryItem(
                 id="",
                 content="Transaction test",
@@ -249,7 +249,7 @@ class TestLMDBStore:
         )
         item1_id = store.store(item1)
         try:
-            with store.begin_transaction() as txn:
+            with store.transaction() as txn:
                 item2 = MemoryItem(
                     id="",
                     content="Inside transaction",
@@ -280,7 +280,7 @@ class TestLMDBStore:
         transaction_id = str(uuid.uuid4())
 
         with pytest.raises(RuntimeError):
-            with store.begin_transaction(transaction_id=transaction_id):
+            with store.transaction(transaction_id=transaction_id):
                 assert store.is_transaction_active(transaction_id)
                 raise RuntimeError("abort for cleanup check")
 
