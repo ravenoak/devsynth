@@ -35,7 +35,7 @@ from .dto import (
     MemoryRecordInput,
     build_memory_record,
 )
-from .adapter_types import AdapterRegistry, MemoryAdapter
+from .adapter_types import AdapterRegistry, MemoryAdapter, SupportsSearch
 from .vector_protocol import VectorStoreProtocol
 from .tiered_cache import TieredCache
 from .transaction_context import AdapterSnapshot
@@ -175,12 +175,9 @@ class LMDBTransactionContext(AbstractContextManager[object]):
         self._context: TransactionContextProtocol | None = None
 
     def __enter__(self) -> object:
-        ctx = self.adapter.begin_transaction()
-        if hasattr(ctx, "__enter__"):
-            self._context = cast(TransactionContextProtocol, ctx)
-            return self._context.__enter__()
-        self._context = None
-        return ctx
+        ctx = self.adapter.transaction()
+        self._context = cast(TransactionContextProtocol, ctx)
+        return self._context.__enter__()
 
     def __exit__(
         self,
@@ -814,14 +811,12 @@ class SyncManager:
             if adapter is None:
                 continue
             label = self._adapter_label(adapter, name)
-            if hasattr(adapter, "similarity_search"):
+            if isinstance(adapter, VectorStoreProtocol):
                 embedding = self.memory_manager._embed_text(
                     query, getattr(adapter, "dimension", 5)
                 )
-                raw_results = cast(VectorStoreProtocol, adapter).similarity_search(
-                    embedding, top_k=5
-                )
-            elif hasattr(adapter, "search"):
+                raw_results = adapter.similarity_search(embedding, top_k=5)
+            elif isinstance(adapter, SupportsSearch):
                 raw_results = adapter.search({"content": query})
             else:
                 raw_results = []
@@ -856,17 +851,17 @@ class SyncManager:
             if adapter is None:
                 return name, name, []
             label = self._adapter_label(adapter, name)
-            if hasattr(adapter, "similarity_search"):
+            if isinstance(adapter, VectorStoreProtocol):
                 embedding = self.memory_manager._embed_text(
                     query, getattr(adapter, "dimension", 5)
                 )
                 result = await asyncio.to_thread(
-                    cast(VectorStoreProtocol, adapter).similarity_search,
+                    adapter.similarity_search,
                     embedding,
                     top_k=5,
                 )
                 return name, label, result
-            if hasattr(adapter, "search"):
+            if isinstance(adapter, SupportsSearch):
                 result = await asyncio.to_thread(adapter.search, {"content": query})
                 if isinstance(result, Sequence) and not isinstance(
                     result, (str, bytes)

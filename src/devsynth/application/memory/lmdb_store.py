@@ -163,57 +163,73 @@ class LMDBStore(MemoryStore, SupportsTransactions):
         """Ensure the environment is closed when the object is deleted."""
         self.close()
 
-    @contextmanager
     def begin_transaction(
-        self, write: bool = True, transaction_id: str | None = None
-    ) -> Iterator[LMDBTransactionProtocol]:
-        """Begin a transaction and optionally register it by ``transaction_id``."""
+        self,
+        transaction_id: str | None = None,
+        *,
+        write: bool = True,
+    ) -> str:
+        """Begin a transaction and return its identifier."""
 
         if self.env is None:
             raise MemoryStoreError("LMDB environment is not initialized")
+        tx_id = transaction_id or str(uuid.uuid4())
+        if tx_id in self._transactions:
+            raise MemoryStoreError(f"Transaction {tx_id} already active")
         txn = cast(LMDBTransactionProtocol, self.env.begin(write=write))
-        if transaction_id:
-            self._transactions[transaction_id] = txn
-        try:
-            yield txn
-            txn.commit()
-        except Exception:
-            txn.abort()
-            raise
-        finally:
-            if transaction_id:
-                self._transactions.pop(transaction_id, None)
+        self._transactions[tx_id] = txn
+        return tx_id
 
-    def commit_transaction(self, transaction_id: str) -> None:
+    def commit_transaction(self, transaction_id: str) -> bool:
         """Commit a previously started explicit transaction."""
 
         txn = self._transactions.pop(transaction_id, None)
         if txn is None:
             logger.warning(f"No transaction {transaction_id} to commit")
-            return
+            return False
         try:
             txn.commit()
         except Exception as exc:
             logger.error(f"LMDB commit failed for {transaction_id}: {exc}")
             raise
+        return True
 
-    def rollback_transaction(self, transaction_id: str) -> None:
+    def rollback_transaction(self, transaction_id: str) -> bool:
         """Abort a previously started explicit transaction."""
 
         txn = self._transactions.pop(transaction_id, None)
         if txn is None:
             logger.warning(f"No transaction {transaction_id} to roll back")
-            return
+            return False
         try:
             txn.abort()
         except Exception as exc:
             logger.error(f"LMDB rollback failed for {transaction_id}: {exc}")
             raise
+        return True
 
     def is_transaction_active(self, transaction_id: str) -> bool:
         """Return ``True`` if an explicit transaction is still active."""
 
         return transaction_id in self._transactions
+
+    @contextmanager
+    def transaction(
+        self,
+        *,
+        write: bool = True,
+        transaction_id: str | None = None,
+    ) -> Iterator[LMDBTransactionProtocol]:
+        """Context manager wrapping :meth:`begin_transaction`."""
+
+        tx_id = self.begin_transaction(transaction_id=transaction_id, write=write)
+        txn = self._transactions[tx_id]
+        try:
+            yield txn
+            self.commit_transaction(tx_id)
+        except Exception:
+            self.rollback_transaction(tx_id)
+            raise
 
     def _count_tokens(self, text: str) -> int:
         """
@@ -403,7 +419,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
             MemoryStoreError: If the item cannot be stored
         """
         try:
-            with self.begin_transaction() as txn:
+            with self.transaction() as txn:
                 item_id = self.store_in_transaction(txn, item)
 
             # Update token count
@@ -463,7 +479,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
             MemoryStoreError: If there is an error retrieving the item
         """
         try:
-            with self.begin_transaction(write=False) as txn:
+            with self.transaction(write=False) as txn:
                 item = self.retrieve_in_transaction(txn, item_id)
 
             if not item:
@@ -515,7 +531,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
             matching_ids = set()
             first_query = True
 
-            with self.begin_transaction(write=False) as txn:
+            with self.transaction(write=False) as txn:
                 # Process each query criterion
                 for key, value in query.items():
                     current_ids = set()
@@ -608,7 +624,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
             MemoryStoreError: If the delete operation fails
         """
         try:
-            with self.begin_transaction() as txn:
+            with self.transaction() as txn:
                 # Check if the item exists
                 item = self.retrieve_in_transaction(txn, item_id)
                 if not item:
@@ -668,7 +684,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
 
         items: list[MemoryItem] = []
         try:
-            with self.begin_transaction(write=False) as txn:
+            with self.transaction(write=False) as txn:
                 cursor = txn.cursor(db=self.items_db)
                 if cursor.first():
                     while True:

@@ -12,6 +12,7 @@ from .dto import (
     MemoryMetadataValue,
     MemoryQueryResults,
     MemoryRecord,
+    MemoryRecordInput,
     MemorySearchQuery,
 )
 from .vector_protocol import VectorStoreProtocol
@@ -53,6 +54,24 @@ class SupportsGraphQueries(Protocol):
         """Return memory items related to ``item_id``."""
 
 
+@runtime_checkable
+class SupportsRetrieve(Protocol):
+    """Protocol for adapters exposing ``retrieve`` operations."""
+
+    def retrieve(self, item_id: str) -> MemoryItem | MemoryRecord | None:
+        """Return a memory artefact identified by ``item_id``."""
+
+
+@runtime_checkable
+class SupportsSearch(Protocol):
+    """Protocol for adapters exposing ``search`` helpers."""
+
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> Sequence[MemoryRecordInput] | MemoryRecordInput | MemoryQueryResults:
+        """Return search results for ``query``."""
+
+
 MemoryAdapter: TypeAlias = MemoryStore | VectorStoreProtocol
 """Union of supported adapter surfaces managed by :class:`MemoryManager`."""
 
@@ -68,4 +87,6 @@ __all__ = [
     "SupportsStructuredQuery",
     "SupportsEdrrRetrieval",
     "SupportsGraphQueries",
+    "SupportsRetrieve",
+    "SupportsSearch",
 ]
