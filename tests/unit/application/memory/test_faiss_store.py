@@ -58,7 +58,8 @@ def test_store_and_retrieve_round_trip_preserves_metadata(tmp_path) -> None:
     retrieved = store.retrieve_vector(vector_id)
     assert retrieved is not None
     assert retrieved.id == vector_id
-    assert np.allclose(retrieved.embedding, vector.embedding)
+    assert np.allclose(retrieved.item.embedding, vector.embedding)
+    assert retrieved.metadata is not None
     assert retrieved.metadata["created_at"] == created_at
     assert retrieved.metadata["topic"] == "faiss"
     assert store.token_count > 0
@@ -134,7 +135,8 @@ def test_similarity_search_and_stats_ignore_deleted_vectors(tmp_path) -> None:
     assert store.delete_vector(ids[1]) is True
 
     results = store.similarity_search(embeddings[0], top_k=5)
-    result_ids = [vec.id for vec in results]
+    result_ids = [record.id for record in results]
+    assert all(record.similarity is None or 0.0 <= record.similarity <= 1.0 for record in results)
     assert ids[0] in result_ids
     assert ids[1] not in result_ids
 

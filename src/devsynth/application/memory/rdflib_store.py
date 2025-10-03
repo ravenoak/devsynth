@@ -13,7 +13,7 @@ import os
 import uuid
 from datetime import datetime
 from types import ModuleType
-from typing import TYPE_CHECKING, Callable, List, Optional, cast
+from typing import TYPE_CHECKING, Callable, Optional, Sequence, cast
 
 import numpy as np
 import tiktoken
@@ -188,13 +188,14 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         self.graph.bind("dc", self._dc)
 
         # Initialize the tokenizer for token counting
-        try:
-            self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
-        except Exception as e:
-            logger.warning(
-                f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
-            )
-            self.tokenizer = None
+        self.tokenizer: object | None = None
+        if tiktoken is not None:
+            try:
+                self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
+            except Exception as e:
+                logger.warning(
+                    f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
+                )
 
         # Load the graph from file if it exists
         self._load_graph()
@@ -534,7 +535,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
 
     def search(
         self, query: MemorySearchQuery | MemoryMetadata
-    ) -> List[MemoryRecord]:
+    ) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
@@ -603,7 +604,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             results = self.graph.query(sparql_query)
 
             # Convert the results to MemoryItems
-            records: List[MemoryRecord] = []
+            records: list[MemoryRecord] = []
             for row in results:
                 item_uri = row[0]
                 item = self._triples_to_memory_item(item_uri)
@@ -687,6 +688,18 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         """
         return self.token_count
 
+    def _build_vector_record(
+        self, vector: MemoryVector, *, similarity: float | None = None
+    ) -> MemoryRecord:
+        """Convert a :class:`MemoryVector` into a normalized memory record."""
+
+        return build_memory_record(
+            vector,
+            source=self.__class__.__name__,
+            similarity=similarity,
+            metadata=vector.metadata,
+        )
+
     def store_vector(self, vector: MemoryVector) -> str:
         """
         Store a vector in the vector store and return its ID.
@@ -723,7 +736,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
                 original_error=e,
             )
 
-    def retrieve_vector(self, vector_id: str) -> Optional[MemoryVector]:
+    def retrieve_vector(self, vector_id: str) -> MemoryRecord | None:
         """
         Retrieve a vector from the vector store by ID.
 
@@ -731,7 +744,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             vector_id: The ID of the vector to retrieve
 
         Returns:
-            The retrieved MemoryVector, or None if not found
+            The retrieved :class:`MemoryRecord`, or ``None`` if not found
 
         Raises:
             MemoryStoreError: If there is an error retrieving the vector
@@ -745,10 +758,11 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
 
             if vector:
                 logger.info(f"Retrieved vector with ID {vector_id} from RDFLib graph")
+                return self._build_vector_record(vector)
             else:
                 logger.warning(f"Vector with ID {vector_id} not found in RDFLib graph")
 
-            return vector
+            return None
 
         except Exception as e:
             logger.error(f"Error retrieving vector from RDFLib graph: {e}")
@@ -760,8 +774,8 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             )
 
     def similarity_search(
-        self, query_embedding: List[float], top_k: int = 5
-    ) -> List[MemoryVector]:
+        self, query_embedding: Sequence[float], top_k: int = 5
+    ) -> list[MemoryRecord]:
         """
         Search for vectors similar to the query embedding.
 
@@ -770,14 +784,14 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             top_k: The number of results to return
 
         Returns:
-            A list of MemoryVectors similar to the query embedding
+            A list of :class:`MemoryRecord` entries similar to the query embedding
 
         Raises:
             MemoryStoreError: If there is an error performing the search
         """
         try:
             # Convert query_embedding to a numpy array
-            query_embedding_np = np.array(query_embedding)
+            query_embedding_np = np.array(list(query_embedding), dtype=float)
 
             # Get all vectors from the graph
             sparql_query = """
@@ -789,7 +803,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             results = self.graph.query(sparql_query)
 
             # Convert the results to MemoryVectors and compute distances
-            vectors_with_distances = []
+            vectors_with_distances: list[tuple[MemoryVector, float]] = []
             for row in results:
                 vector_uri = row[0]
                 vector = self._triples_to_memory_vector(vector_uri)
@@ -806,10 +820,13 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
 
             # Sort by distance and take top_k
             vectors_with_distances.sort(key=lambda x: x[1])
-            vectors = [v for v, _ in vectors_with_distances[:top_k]]
+            records = [
+                self._build_vector_record(vector, similarity=1.0 - distance)
+                for vector, distance in vectors_with_distances[:top_k]
+            ]
 
-            logger.info(f"Found {len(vectors)} similar vectors in RDFLib graph")
-            return vectors
+            logger.info(f"Found {len(records)} similar vectors in RDFLib graph")
+            return records
 
         except Exception as e:
             logger.error(f"Error performing similarity search in RDFLib graph: {e}")
@@ -920,9 +937,9 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
                 original_error=exc,
             )
 
-    def get_all_vectors(self) -> List[MemoryVector]:
+    def get_all_vectors(self) -> list[MemoryVector]:
         """Return all vectors stored in the graph."""
-        vectors: List[MemoryVector] = []
+        vectors: list[MemoryVector] = []
         try:
             sparql_query = """
                 SELECT ?vector

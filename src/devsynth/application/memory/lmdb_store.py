@@ -10,26 +10,26 @@ and retrieve memory items with transaction support.
 import json
 import os
 import uuid
+from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
 from datetime import datetime
-from collections.abc import Mapping, Sequence
-from typing import Any, ContextManager, TYPE_CHECKING, cast
+from types import ModuleType
+from typing import TYPE_CHECKING, Iterator, Protocol, cast
 
 import tiktoken
 
 if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
     import lmdb as lmdb_module
+else:  # pragma: no cover - runtime fallback alias
+    lmdb_module = ModuleType
 
-lmdb: "lmdb_module" | None
+lmdb: lmdb_module | None
 try:  # pragma: no cover - optional dependency
     import lmdb as _lmdb
 except Exception:  # pragma: no cover - graceful fallback
     lmdb = None
 else:
-    if TYPE_CHECKING:  # pragma: no cover - assists type checkers
-        lmdb = _lmdb
-    else:
-        lmdb = cast("lmdb_module", _lmdb)
+    lmdb = cast("lmdb_module", _lmdb)
 
 from devsynth.exceptions import MemoryStoreError
 from devsynth.logging_setup import DevSynthLogger
@@ -38,12 +38,41 @@ from devsynth.security.encryption import decrypt_bytes, encrypt_bytes
 
 from ...domain.interfaces.memory import MemoryStore, SupportsTransactions
 from ...domain.models.memory import MemoryItem, MemoryType
-from .dto import MemoryMetadata, MemoryMetadataValue
+from .dto import MemoryMetadata, MemoryMetadataValue, MemoryRecord, build_memory_record
 
-if TYPE_CHECKING:  # pragma: no cover - typing only
-    from lmdb import Transaction as LMDBTransaction
-else:  # pragma: no cover - runtime fallback when lmdb missing
-    LMDBTransaction = Any
+
+class LMDBCursorProtocol(Protocol):
+    def set_range(self, key: bytes) -> bool: ...
+
+    def key(self) -> bytes: ...
+
+    def value(self) -> bytes: ...
+
+    def next(self) -> bool: ...
+
+    def first(self) -> bool: ...
+
+
+class LMDBTransactionProtocol(Protocol):
+    def commit(self) -> None: ...
+
+    def abort(self) -> None: ...
+
+    def put(self, key: bytes, value: bytes, *, db: object | None = ...) -> bool: ...
+
+    def get(self, key: bytes, *, db: object | None = ...) -> bytes | None: ...
+
+    def delete(self, key: bytes, *, db: object | None = ...) -> bool: ...
+
+    def cursor(self, db: object | None = ...) -> LMDBCursorProtocol: ...
+
+
+class LMDBEnvironmentProtocol(Protocol):
+    def begin(self, *, write: bool = ...) -> LMDBTransactionProtocol: ...
+
+    def open_db(self, name: bytes) -> object: ...
+
+    def close(self) -> None: ...
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -89,39 +118,44 @@ class LMDBStore(MemoryStore, SupportsTransactions):
         os.makedirs(self.base_path, exist_ok=True)
 
         # Initialize LMDB environment
-        self.env = lmdb.open(
-            self.db_path,
-            map_size=self.map_size,  # 10MB by default
-            metasync=True,
-            sync=True,
-            max_dbs=2,  # Main DB and metadata DB
+        self.env: LMDBEnvironmentProtocol | None = cast(
+            LMDBEnvironmentProtocol,
+            lmdb.open(
+                self.db_path,
+                map_size=self.map_size,  # 10MB by default
+                metasync=True,
+                sync=True,
+                max_dbs=2,  # Main DB and metadata DB
+            ),
         )
 
         # Open databases
-        self.items_db = self.env.open_db(b"items")
-        self.metadata_db = self.env.open_db(b"metadata")
+        self.items_db: object = self.env.open_db(b"items")
+        self.metadata_db: object = self.env.open_db(b"metadata")
 
         # Initialize the tokenizer for token counting
-        try:
-            self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
-        except Exception as exc:
-            logger.warning(
-                "Failed to initialize tokenizer: %s. "
-                "Token counting will be approximate.",
-                exc,
-            )
-            self.tokenizer = None
+        self.tokenizer: object | None = None
+        if tiktoken is not None:
+            try:
+                self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
+            except Exception as exc:
+                logger.warning(
+                    "Failed to initialize tokenizer: %s. "
+                    "Token counting will be approximate.",
+                    exc,
+                )
 
         # Track explicit transactions so SyncManager can manage commit and
         # rollback even when the context manager form isn't used. Each entry
         # maps a transaction identifier to the underlying LMDB transaction
         # object.
-        self._transactions: dict[str, LMDBTransaction] = {}
+        self._transactions: dict[str, LMDBTransactionProtocol] = {}
 
     def close(self):
         """Close the LMDB environment."""
-        if hasattr(self, "env") and self.env:
-            self.env.close()
+        env = self.env
+        if env is not None:
+            env.close()
             self.env = None
             logger.info("LMDB environment closed")
 
@@ -132,10 +166,12 @@ class LMDBStore(MemoryStore, SupportsTransactions):
     @contextmanager
     def begin_transaction(
         self, write: bool = True, transaction_id: str | None = None
-    ) -> ContextManager[LMDBTransaction]:
+    ) -> Iterator[LMDBTransactionProtocol]:
         """Begin a transaction and optionally register it by ``transaction_id``."""
 
-        txn: LMDBTransaction = self.env.begin(write=write)
+        if self.env is None:
+            raise MemoryStoreError("LMDB environment is not initialized")
+        txn = cast(LMDBTransactionProtocol, self.env.begin(write=write))
         if transaction_id:
             self._transactions[transaction_id] = txn
         try:
@@ -307,7 +343,9 @@ class LMDBStore(MemoryStore, SupportsTransactions):
             for key, value in payload.items()
         }
 
-    def store_in_transaction(self, txn: LMDBTransaction, item: MemoryItem) -> str:
+    def store_in_transaction(
+        self, txn: LMDBTransactionProtocol, item: MemoryItem
+    ) -> str:
         """
         Store an item in memory within a transaction and return its ID.
 
@@ -386,7 +424,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
             raise MemoryStoreError(f"Failed to store item: {e}")
 
     def retrieve_in_transaction(
-        self, txn: LMDBTransaction, item_id: str
+        self, txn: LMDBTransactionProtocol, item_id: str
     ) -> MemoryItem | None:
         """
         Retrieve an item from memory within a transaction by ID.
@@ -458,7 +496,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
 
     def search(
         self, query: Mapping[str, object] | MemoryMetadata
-    ) -> list[MemoryItem]:
+    ) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
@@ -466,7 +504,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
             query: Dictionary of search criteria
 
         Returns:
-            List of matching memory items
+            List of matching memory records
 
         Raises:
             MemoryStoreError: If the search operation fails
@@ -532,15 +570,21 @@ class LMDBStore(MemoryStore, SupportsTransactions):
                         matching_ids &= current_ids
 
                 # Retrieve all matching items
-                items = []
+                items: list[MemoryRecord] = []
                 for item_id in matching_ids:
                     item = self.retrieve_in_transaction(txn, item_id)
                     if item:
-                        items.append(item)
+                        items.append(
+                            build_memory_record(
+                                item, source=self.__class__.__name__
+                            )
+                        )
 
             # Update token count
             if items:
-                token_count = sum(self._count_tokens(str(item)) for item in items)
+                token_count = sum(
+                    self._count_tokens(str(record.item)) for record in items
+                )
                 self.token_count += token_count
 
             logger.info(f"Found {len(items)} matching items in LMDB")

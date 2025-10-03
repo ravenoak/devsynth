@@ -284,8 +284,10 @@ class TestDuckDBStore:
         assert retrieved_vector is not None
         assert retrieved_vector.id == vector_id
         assert retrieved_vector.content == "Test vector content"
-        assert len(retrieved_vector.embedding) == 5
-        assert np.allclose(retrieved_vector.embedding, [0.1, 0.2, 0.3, 0.4, 0.5])
+        assert len(retrieved_vector.item.embedding) == 5
+        assert np.allclose(
+            retrieved_vector.item.embedding, [0.1, 0.2, 0.3, 0.4, 0.5]
+        )
         assert retrieved_vector.metadata == {"key": "value"}
         assert isinstance(retrieved_vector.created_at, datetime)
 
@@ -324,6 +326,10 @@ class TestDuckDBStore:
         assert len(results) == 2
         assert results[0].content == "Vector 1"
         assert results[1].content in ["Vector 2", "Vector 3"]
+        assert all(
+            record.similarity is None or 0.0 <= record.similarity <= 1.0
+            for record in results
+        )
 
     @pytest.mark.medium
     def test_delete_vector_succeeds(self, store):
