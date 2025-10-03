@@ -1,1 +1,0 @@
-[info] verify_test_markers: files=5, cache_hits=5, cache_misses=0, issues=2, speed_violations=0, property_violations=0
