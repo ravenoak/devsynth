@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, BinaryIO, Literal, TextIO, cast
+from typing import BinaryIO, Literal, TextIO, cast
 
 from devsynth.exceptions import (
     DevSynthError,

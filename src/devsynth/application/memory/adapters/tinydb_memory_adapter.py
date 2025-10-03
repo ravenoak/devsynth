@@ -25,13 +25,16 @@ from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
 from ..dto import (
     MemoryMetadata,
-    MemorySearchQuery,
     MemoryQueryResults,
     MemoryRecord,
+    MemorySearchQuery,
     build_memory_record,
     build_query_results,
 )
-from ..metadata_serialization import from_serializable, to_serializable
+from ..metadata_serialization import (
+    record_from_row,
+    row_from_record,
+)
 from ._tinydb_protocols import (
     TinyDBFactory,
     TinyDBLike,
@@ -120,58 +123,28 @@ class TinyDBMemoryAdapter(StorageAdapter):
         return value
 
     def _memory_item_to_dict(self, item: MemoryItem) -> SerializedMemoryItem:
-        """
-        Convert a MemoryItem to a dictionary for storage in TinyDB.
+        """Serialize ``item`` into a TinyDB-compatible mapping."""
 
-        Args:
-            item: The memory item to convert
-
-        Returns:
-            A dictionary representation of the memory item
-        """
-        # Handle both enum and string types for memory_type
-        metadata_payload = cast(MemoryMetadata | None, item.metadata)
-        return {
-            "id": item.id,
-            "content": self._serialize_value(item.content),
-            "memory_type": item.memory_type.value,
-            "metadata": cast(MemoryMetadata, to_serializable(metadata_payload)),
-            "created_at": self._serialize_value(item.created_at),
-        }
-
-    def _dict_to_memory_item(self, item_dict: Mapping[str, Any]) -> MemoryItem:
-        """
-        Convert a dictionary from TinyDB to a MemoryItem.
-
-        Args:
-            item_dict: The dictionary to convert
-
-        Returns:
-            A MemoryItem
-        """
-        from datetime import datetime
-
-        memory_type = MemoryType.from_raw(item_dict["memory_type"])
-
-        metadata_value = item_dict.get("metadata")
-        metadata: MemoryMetadata | None = None
-        if isinstance(metadata_value, Mapping):
-            metadata = from_serializable(metadata_value)
-
-        created_at_raw = item_dict.get("created_at")
-        created_at = (
-            datetime.fromisoformat(created_at_raw)
-            if isinstance(created_at_raw, str) and created_at_raw
-            else None
+        record = build_memory_record(item, source=self.backend_type)
+        row = row_from_record(
+            record,
+            include_similarity=False,
+            include_source=False,
         )
+        row["content"] = self._serialize_value(row["content"])
+        metadata_payload = row.get("metadata")
+        if isinstance(metadata_payload, Mapping):
+            row["metadata"] = {
+                key: self._serialize_value(value)
+                for key, value in metadata_payload.items()
+            }
+        return cast(SerializedMemoryItem, row)
 
-        return MemoryItem(
-            id=item_dict["id"],
-            content=item_dict["content"],
-            memory_type=memory_type,
-            metadata=metadata,
-            created_at=created_at,
-        )
+    def _dict_to_memory_item(self, item_dict: Mapping[str, object]) -> MemoryItem:
+        """Reconstruct a :class:`MemoryItem` from a TinyDB row."""
+
+        record = record_from_row(item_dict, default_source=self.backend_type)
+        return record.item
 
     def store(self, item: MemoryItem, transaction_id: str | None = None) -> str:
         """
@@ -257,7 +230,8 @@ class TinyDBMemoryAdapter(StorageAdapter):
         condition = cast(TinyDBQueryLike, cast(Any, query.id) == item_id)
         item_dict = self.items_table.get(condition)
         if item_dict:
-            return self._dict_to_memory_item(item_dict)
+            typed_row = cast(Mapping[str, object], dict(item_dict))
+            return self._dict_to_memory_item(typed_row)
         return None
 
     def search(self, query: MemorySearchQuery | MemoryMetadata) -> list[MemoryRecord]:
@@ -309,17 +283,18 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 query_conditions &= condition
 
         # If no conditions, return all items
-        if query_conditions is None:
-            results = self.items_table.all()
-        else:
-            results = self.items_table.search(query_conditions)
+        raw_results = (
+            self.items_table.all()
+            if query_conditions is None
+            else self.items_table.search(query_conditions)
+        )
 
-        # Convert to MemoryRecord objects
         return [
-            build_memory_record(
-                self._dict_to_memory_item(item_dict), source=self.backend_type
+            record_from_row(
+                cast(Mapping[str, object], dict(item_dict)),
+                default_source=self.backend_type,
             )
-            for item_dict in results
+            for item_dict in raw_results
         ]
 
     def delete(self, item_id: str, transaction_id: str | None = None) -> bool:
@@ -376,7 +351,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
                 return True
             return False
 
-    def query_structured_data(self, query: Mapping[str, Any]) -> MemoryQueryResults:
+    def query_structured_data(self, query: MemorySearchQuery) -> MemoryQueryResults:
         """
         Query structured data in TinyDB.
 
@@ -399,7 +374,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
         self,
         item_type: MemoryType,
         edrr_phase: str,
-        metadata: Mapping[str, Any] | None = None,
+        metadata: MemoryMetadata | None = None,
     ) -> Any:
         """
         Retrieve an item stored with a specific EDRR phase.
@@ -429,7 +404,7 @@ class TinyDBMemoryAdapter(StorageAdapter):
 
         if results:
             # Return the content of the first matching item
-            item_dict = results[0]
+            item_dict = cast(Mapping[str, object], dict(results[0]))
             memory_item = self._dict_to_memory_item(item_dict)
             return memory_item.content
 
