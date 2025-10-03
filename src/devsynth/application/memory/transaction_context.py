@@ -17,7 +17,8 @@ from typing import Literal, Protocol, TypedDict, runtime_checkable
 from ...domain.models.memory import MemoryItem
 from ...exceptions import MemoryTransactionError
 from ...logging_setup import DevSynthLogger
-from .dto import MemoryRecord, build_memory_record
+from .dto import MemoryRecord, MemoryRecordInput, build_memory_record
+from .adapter_types import MemoryAdapter
 
 logger = DevSynthLogger(__name__)
 
@@ -84,18 +85,18 @@ class TransactionContext:
     inspect the normalized operation log.
     """
 
-    def __init__(self, adapters: Sequence[object]):
+    def __init__(self, adapters: Sequence[MemoryAdapter]):
         """
         Initialize the transaction context.
 
         Args:
             adapters: List of memory adapters to include in the transaction
         """
-        self.adapters: list[object] = list(adapters)
+        self.adapters: list[MemoryAdapter] = list(adapters)
         self.transaction_id = str(uuid.uuid4())
         self.snapshots: dict[int, AdapterSnapshot] = {}
         self.operations: list[OperationLogEntry] = []
-        self.prepared_adapters: list[object] = []
+        self.prepared_adapters: list[MemoryAdapter] = []
 
     def __enter__(self) -> "TransactionContext":
         """
@@ -250,7 +251,7 @@ class TransactionContext:
 
         logger.debug(f"Transaction {self.transaction_id} committed successfully")
 
-    def _flush_adapter(self, adapter: object) -> None:
+    def _flush_adapter(self, adapter: MemoryAdapter) -> None:
         """Flush pending writes for an adapter if supported."""
 
         label = self._adapter_label(adapter)
@@ -348,7 +349,7 @@ class TransactionContext:
         else:
             logger.debug(f"Transaction {self.transaction_id} rolled back successfully")
 
-    def _adapter_label(self, adapter: object) -> str:
+    def _adapter_label(self, adapter: MemoryAdapter) -> str:
         """Return a human readable name for ``adapter``."""
 
         label = getattr(adapter, "name", None)
@@ -357,7 +358,7 @@ class TransactionContext:
         return adapter.__class__.__name__
 
     def _ensure_record(
-        self, payload: MemoryRecord | MemoryItem, store: str
+        self, payload: MemoryRecordInput, store: str
     ) -> MemoryRecord:
         """Normalize ``payload`` into a :class:`MemoryRecord`."""
 
@@ -367,14 +368,14 @@ class TransactionContext:
         return record
 
     def _snapshot_adapter_state(
-        self, adapter: object, store: str
+        self, adapter: MemoryAdapter, store: str
     ) -> dict[str, MemoryRecord]:
         """Capture the adapter state as ``MemoryRecord`` entries."""
 
         snapshot: dict[str, MemoryRecord] = {}
         get_all = getattr(adapter, "get_all", None)
         get_all_items = getattr(adapter, "get_all_items", None)
-        items: Iterable[object] | None = None
+        items: Iterable[MemoryRecordInput] | None = None
         if callable(get_all):
             items = get_all()
         elif callable(get_all_items):
