@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import shlex
+from typing import List, Optional
 
 import typer
 
@@ -165,7 +166,7 @@ def run_tests_cmd(
         "--target",
         help="Test target to run",
     ),
-    speeds: list[str] | None = typer.Option(
+    speeds: Optional[List[str]] = typer.Option(
         None,
         "--speed",
         help="Speed categories to run (can be used multiple times)",
@@ -189,10 +190,10 @@ def run_tests_cmd(
     segment_size: int = typer.Option(
         50, "--segment-size", help="Number of tests per batch when segmenting"
     ),
-    maxfail: int | None = typer.Option(
+    maxfail: Optional[int] = typer.Option(
         None, "--maxfail", help="Exit after this many failures"
     ),
-    features: list[str] | None = typer.Option(
+    features: Optional[List[str]] = typer.Option(
         None,
         "--feature",
         help="Feature flags to enable/disable (format: name or name=false)",
@@ -202,7 +203,7 @@ def run_tests_cmd(
         "--inventory",
         help="Export test inventory to test_reports/test_inventory.json and exit",
     ),
-    marker: str | None = typer.Option(
+    marker: Optional[str] = typer.Option(
         None,
         "-m",
         "--marker",
@@ -212,7 +213,7 @@ def run_tests_cmd(
         ),
     ),
     *,
-    bridge: str | None = typer.Option(None, hidden=True),
+    bridge: Optional[str] = typer.Option(None, hidden=True),
 ) -> None:
     """Run DevSynth test suites.
 

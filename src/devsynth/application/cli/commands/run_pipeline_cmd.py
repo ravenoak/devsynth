@@ -31,13 +31,12 @@ def _parse_report(value: Optional[str]) -> Optional[PipelineReport]:
 
 def run_pipeline_cmd(
     target: Optional[str] = None,
-    report: Annotated[
-        Optional[str],
-        typer.Option(None, "--report", help="JSON string with additional report data"),
-    ] = None,
+    report: Optional[str] = typer.Option(
+        None, "--report", help="JSON string with additional report data"
+    ),
     *,
     auto_confirm: Optional[bool] = None,
-    bridge: Annotated[UXBridge | None, typer.Option(None, hidden=True)] = None,
+    bridge: Optional[UXBridge] = typer.Option(None, hidden=True),
 ) -> None:
     """Run the generated code or a specific target.
 

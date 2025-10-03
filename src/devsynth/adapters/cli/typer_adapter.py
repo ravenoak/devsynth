@@ -1,7 +1,7 @@
 import importlib
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import os
 
@@ -128,6 +128,61 @@ def _patch_typer_types() -> None:
             return click.STRING
 
     typer.main.get_click_type = patched_get_click_type
+
+    orig_get_click_param = typer.main.get_click_param
+
+    def _is_optional_union(annotation: Any) -> Tuple[bool, Tuple[Any, ...]]:
+        try:
+            origin = typer.main.get_origin(annotation)
+        except Exception:  # pragma: no cover - defensive
+            return False, ()
+        if origin is None:
+            return False, ()
+        if not typer.main.is_union(origin):
+            return False, ()
+        try:
+            args = tuple(typer.main.get_args(annotation))
+        except Exception:  # pragma: no cover - defensive
+            return False, ()
+        non_none = tuple(arg for arg in args if arg is not typer.main.NoneType)
+        return True, non_none
+
+    def patched_get_click_param(
+        param: typer.models.ParamMeta,
+    ) -> tuple[click.Parameter, Any]:
+        original_annotation = getattr(param, "annotation", typer.main.ParamMeta.empty)
+        should_restore = False
+        if original_annotation is not typer.main.ParamMeta.empty:
+            is_union, non_none_args = _is_optional_union(original_annotation)
+            if is_union and len(non_none_args) > 1:
+                logger.info(
+                    "Typer union fallback for parameter '%s' with annotation %r",
+                    getattr(param, "name", "<unknown>"),
+                    original_annotation,
+                )
+                param.annotation = non_none_args[0]
+                should_restore = True
+        try:
+            logger.debug(
+                "Building click parameter '%s' with annotation %r and default %r",
+                getattr(param, "name", "<unknown>"),
+                getattr(param, "annotation", None),
+                getattr(param, "default", None),
+            )
+            return orig_get_click_param(param)
+        except Exception as exc:  # pragma: no cover - diagnostic aid
+            logger.error(
+                "Failed to build click parameter '%s' with annotation %r: %s",
+                getattr(param, "name", "<unknown>"),
+                getattr(param, "annotation", None),
+                exc,
+            )
+            raise
+        finally:
+            if should_restore:
+                param.annotation = original_annotation
+
+    typer.main.get_click_param = patched_get_click_param
 
 
 logger = DevSynthLogger(__name__)

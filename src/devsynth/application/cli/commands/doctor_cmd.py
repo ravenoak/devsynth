@@ -38,7 +38,7 @@ class DoctorOptions:
 
 
 def doctor_cmd(
-    config_dir: Path | str = Path("config"),
+    config_dir: Path = Path("config"),
     quick: bool = False,
     *,
     bridge: Optional[UXBridge] = None,

@@ -7,7 +7,7 @@ import logging
 import os
 import uuid
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import typer
 from rich.console import Console
@@ -801,23 +801,23 @@ def wizard_cmd(
         "requirements_wizard.json",
         help="File to store collected requirements",
     ),
-    title: Union[str, None] = typer.Option(
+    title: Optional[str] = typer.Option(
         None,
         help="Requirement title",
     ),
-    description: Union[str, None] = typer.Option(
+    description: Optional[str] = typer.Option(
         None,
         help="Requirement description",
     ),
-    req_type: Union[str, None] = typer.Option(
+    req_type: Optional[str] = typer.Option(
         None,
         help="Requirement type",
     ),
-    priority: Union[str, None] = typer.Option(
+    priority: Optional[str] = typer.Option(
         None,
         help="Requirement priority",
     ),
-    constraints: Union[str, None] = typer.Option(
+    constraints: Optional[str] = typer.Option(
         None,
         help="Constraints (comma separated)",
     ),

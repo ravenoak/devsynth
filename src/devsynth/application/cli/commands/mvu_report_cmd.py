@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import typer
 
@@ -20,7 +20,7 @@ else:  # pragma: no cover - fallback for optional dependency
 
 
 def mvu_report_cmd(
-    since: str | None = typer.Option(
+    since: Optional[str] = typer.Option(
         None,
         "--since",
         help="Git revision to start scanning from (e.g. origin/main).",
@@ -30,13 +30,13 @@ def mvu_report_cmd(
         "--format",
         help="Output format: markdown or html.",
     ),
-    output: Path | None = typer.Option(
+    output: Optional[Path] = typer.Option(
         None,
         "--output",
         help="Destination file. Prints to stdout when omitted.",
     ),
     *,
-    bridge: UXBridge | None = None,
+    bridge: Optional[UXBridge] = None,
 ) -> None:
     """Generate a traceability matrix from MVU metadata in git history."""
 
