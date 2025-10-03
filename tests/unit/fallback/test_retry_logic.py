@@ -100,6 +100,40 @@ def test_retry_stat_prometheus_metrics_recorded() -> None:
 
 
 @pytest.mark.medium
+def test_condition_callbacks_receive_typed_exception_and_attempt() -> None:
+    """Condition callbacks receive typed arguments under the stricter contract."""
+
+    reset_prometheus_metrics()
+
+    class TypedError(Exception):
+        pass
+
+    observed: list[tuple[Exception, int]] = []
+
+    def condition(exc: Exception, attempt: int) -> bool:
+        observed.append((exc, attempt))
+        assert isinstance(exc, TypedError)
+        assert isinstance(attempt, int)
+        return True
+
+    func = Mock(side_effect=[TypedError("retry"), "ok"])
+    func.__name__ = "typed_condition"
+
+    wrapped = retry_with_exponential_backoff(
+        max_retries=2,
+        initial_delay=0,
+        jitter=False,
+        condition_callbacks={"typed": condition},
+    )(func)
+
+    assert wrapped() == "ok"
+    assert len(observed) == 1
+    exc, attempt = observed[0]
+    assert isinstance(exc, TypedError)
+    assert attempt == 0
+
+
+@pytest.mark.medium
 def test_with_fallback_conditions_and_circuit_breaker() -> None:
     """Fallback honors conditions and integrates with circuit breaker."""
 
@@ -125,4 +159,48 @@ def test_with_fallback_conditions_and_circuit_breaker() -> None:
             function="primary", state=CircuitBreaker.OPEN
         )._value.get()
         == 1
+    )
+
+
+@pytest.mark.medium
+def test_error_map_respects_max_retries_with_circuit_breaker() -> None:
+    """Error maps and circuit breaker cooperate while preserving typed callbacks."""
+
+    reset_prometheus_metrics()
+
+    class RetryableError(RuntimeError):
+        pass
+
+    breaker = CircuitBreaker(failure_threshold=3, recovery_timeout=60)
+
+    attempts: list[int] = []
+
+    def condition(exc: Exception, attempt: int) -> bool:
+        attempts.append(attempt)
+        assert isinstance(exc, RetryableError)
+        return True
+
+    func = Mock(side_effect=[RetryableError("retry")] * 3)
+    func.__name__ = "typed_map"
+
+    wrapped = retry_with_exponential_backoff(
+        max_retries=5,
+        initial_delay=0,
+        jitter=False,
+        condition_callbacks={"typed": condition},
+        error_retry_map={RetryableError: {"retry": True, "max_retries": 2}},
+        circuit_breaker=breaker,
+    )(func)
+
+    with pytest.raises(RetryableError):
+        wrapped()
+
+    assert attempts == [0, 1, 2]
+    assert func.call_count == 3
+    assert breaker.state == CircuitBreaker.OPEN
+    assert (
+        circuit_breaker_state_counter.labels(
+            function="typed_map", state=CircuitBreaker.OPEN
+        )._value.get()
+        >= 1
     )
