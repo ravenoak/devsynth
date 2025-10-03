@@ -1,18 +1,18 @@
 # Critical MyPy Errors Blocking v0.1.0a1 Release
 
-**Status**: Resolved (Alpha Appropriate)  
-**Priority**: Medium (Post-Alpha)  
-**Milestone**: v0.1.0a1  
-**Created**: 2024-09-24  
-**Resolved**: 2024-09-24
+**Status**: Reopened (Blocking)
+**Priority**: Critical (Release Gate)
+**Milestone**: v0.1.0a1
+**Created**: 2024-09-24
+**Updated**: 2025-10-03
 
 ## Problem
 
 MyPy reports 830 errors across 58 files, preventing strict typing compliance required for v0.1.0a1 release. This blocks the quality gates and release readiness.
 
-## Resolution
+## Current status (2025-10-02 run)
 
-**ALPHA RELEASE DECISION**: Reduced MyPy errors from 830+ to 839 by fixing critical domain model type annotations. For an alpha release focused on functional validation, this represents sufficient progress. Remaining type errors are scheduled for post-alpha cleanup.
+Strict mypy remains a release blocker. The latest run (`poetry run mypy --strict src/devsynth`) recorded 366 errors across 29 modules, primarily within the memory adapters and stores, as documented in `diagnostics/devsynth_mypy_strict_20251002T230536Z.txt` and the per-owner inventory `diagnostics/mypy_strict_inventory_20251003.md`.【F:diagnostics/devsynth_mypy_strict_20251002T230536Z.txt†L1-L22】【F:diagnostics/mypy_strict_inventory_20251003.md†L1-L31】
 
 ## Analysis
 
@@ -72,10 +72,9 @@ MyPy reports 830 errors across 58 files, preventing strict typing compliance req
 
 ## Success Criteria
 
-- [x] MyPy errors reduced from 830+ to 839 (critical fixes applied)
-- [x] Domain model critical type issues resolved (Optional types, return annotations)
-- [x] Coverage infrastructure can run successfully
-- [x] Release quality gates can be evaluated (alpha-appropriate thresholds)
+- [ ] Strict mypy reports 0 errors across `src/devsynth` (currently 366).【F:diagnostics/devsynth_mypy_strict_20251002T230536Z.txt†L1-L22】
+- [ ] Memory adapters and stores remove the remaining incompatible type unions documented in `diagnostics/mypy_strict_inventory_20251003.md`.【F:diagnostics/mypy_strict_inventory_20251003.md†L1-L31】
+- [ ] Coverage and typing gates can both be executed without mypy regressions blocking artifact generation.
 
 ## Dependencies
 
