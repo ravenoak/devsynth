@@ -49,6 +49,20 @@ FAIL Required test coverage of 90% not reached. Total coverage: 20.92%
 - [x] Resolve FastAPI/Starlette TestClient MRO regression blocking smoke runs before attempting new coverage aggregates (Issue: [run-tests-smoke-fast-fastapi-starlette-mro.md](run-tests-smoke-fast-fastapi-starlette-mro.md); remediation captured in docs/plan.md §2025-09-23B and the 2025-09-23 smoke log).【F:docs/plan.md†L228-L235】【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1-L6】
 - [ ] Raise coverage across the CLI orchestration, WebUI rendering/bridge, provider system, progress telemetry, and EDRR coordinator modules so each clears at least 60 % (40 % for the EDRR coordinator) before rerunning the fast+medium aggregate.
 
+- 2025-10-03 audit: fresh branch inventory confirms the following previously
+  untested paths now have deterministic coverage. The `--report` UX reminder in
+  `run_tests_cmd` finally executes via a Typer regression harness, including the
+  segmentation failure remediation banner that had only been observed in manual
+  logs.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L394-L440】【F:tests/unit/application/cli/commands/test_run_tests_cmd_report_guidance.py†L18-L184】
+  The orchestration fallback that swaps to raw target paths when no nodes match
+  a speed filter no longer exits untested—`run_tests` now emits the "Marker
+  fallback executed" prefix under test, exercising lines 829–868 of the helper
+  along with the non-segmented batch execution path.【F:src/devsynth/testing/run_tests.py†L829-L868】【F:tests/unit/testing/test_run_tests_marker_fallback.py†L13-L53】
+  The progress timeline simulator’s alias rebinding logic and deterministic
+  transcript snapshotting likewise move out of the "0 %" column; the new stubbed
+  progress harness drives the alias rewrite branch and ensures completed subtasks
+  still appear in the exported summary despite name changes.【F:src/devsynth/application/cli/long_running_progress.py†L402-L615】【F:tests/unit/application/cli/commands/test_long_running_progress_timeline_bridge.py†L1-L140】
+
 ## Notes
 - 2025-10-01: Scripted progress sweeps (`poetry run python -m pytest tests/unit/application/cli/test_long_running_progress.py tests/unit/interface/test_webui_simulations_fast.py --cov=devsynth.application.cli.long_running_progress --cov=devsynth.interface.webui.rendering --cov-report=term --cov-report=json:coverage.json --cov-fail-under=0`) now record 26.91 % coverage for `long_running_progress.py` and 6.32 % for `webui/rendering.py`; refreshed JSON plus a curated HTML digest live under `issues/tmp_artifacts/progress/20251001T033958Z/` for audit trails.【062e6d†L1-L36】【F:issues/tmp_artifacts/progress/20251001T033958Z/notes.md†L1-L5】【F:issues/tmp_artifacts/progress/20251001T033958Z/htmlcov/index.html†L1-L20】
 - 2025-10-01: Streamlit-free WebUI regressions (`pytest --cov=devsynth.interface.webui --cov=devsynth.interface.webui_bridge --cov-report=term-missing --cov-fail-under=0 tests/unit/interface/test_webui_streamlit_free_regressions.py`) document sanitized display routing, nested progress lifecycles, and wizard clamps without importing Streamlit; coverage reached 18.27 % for `webui.py` and 25.37 % for `webui_bridge.py`, with artefacts stored under `issues/tmp_artifacts/webui/20251001T035910Z/`.【F:tests/unit/interface/test_webui_streamlit_free_regressions.py†L404-L552】【F:issues/tmp_artifacts/webui/20251001T035910Z/coverage.log†L20-L24】
