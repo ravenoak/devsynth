@@ -1,1 +1,0 @@
-Verified 3 requirements and 5 published specs; all traceability references present.

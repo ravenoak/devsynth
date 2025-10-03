@@ -1,9 +1,0 @@
-[info] task command missing or not functioning; installing go-task
-[info] appended devsynth-task-path snippet to /root/.profile
-[info] appended devsynth-task-path snippet to /root/.bash_profile
-[info] appended devsynth-task-path snippet to /root/.bashrc
-[info] appended devsynth-task-path snippet to /root/.zprofile
-[info] appended devsynth-task-path snippet to /root/.zshrc
-3.45.4
-[info] removing legacy Poetry virtualenv at /root/.cache/pypoetry/virtualenvs/devsynth-MeXVnKii-py3.12
-[info] created in-project virtualenv at /workspace/devsynth/.venv
