@@ -1,10 +1,12 @@
-import pytest
+import importlib
+import sys
 
 import pytest
 
 from devsynth.application.memory.adapters.vector_memory_adapter import (
     VectorMemoryAdapter,
 )
+from devsynth.application.memory import vector_providers
 from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryType, MemoryVector
 
@@ -48,3 +50,34 @@ def test_collection_stats():
     stats = adapter.get_collection_stats()
     assert stats["vector_count"] == 1
     assert stats["embedding_dimensions"] == 2
+
+
+@pytest.mark.fast
+def test_default_provider_registration() -> None:
+    """The vector provider factory registers the in-memory backend."""
+
+    assert "in_memory" in vector_providers.factory.provider_types
+
+
+@pytest.mark.fast
+def test_optional_provider_guard(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Missing optional imports skip registration without raising."""
+
+    module_name = "devsynth.application.memory.vector_providers"
+    original_import = importlib.import_module
+
+    def fake_import(name: str, *args: object, **kwargs: object):
+        if name == "devsynth.application.memory.adapters.vector_memory_adapter":
+            raise ImportError("guarded")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(importlib, "import_module", fake_import)
+    sys.modules.pop(module_name, None)
+    guarded = importlib.import_module(module_name)
+    try:
+        assert "in_memory" not in guarded.factory.provider_types
+    finally:
+        sys.modules.pop(module_name, None)
+        restored = importlib.import_module(module_name)
+        globals()["vector_providers"] = restored
+        assert "in_memory" in restored.factory.provider_types

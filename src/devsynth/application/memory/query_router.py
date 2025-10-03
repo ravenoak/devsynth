@@ -2,21 +2,35 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Protocol, cast
 
 from ...logging_setup import DevSynthLogger
 from .dto import (
     GroupedMemoryResults,
+    MemoryMetadata,
     MemoryQueryResults,
     MemoryRecord,
+    MemoryRecordInput,
+    MemorySearchQuery,
     build_query_results,
     deduplicate_records,
 )
+from .adapter_types import AdapterRegistry
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard
     from .memory_manager import MemoryManager
 
 logger = DevSynthLogger(__name__)
+
+
+class _SupportsSearch(Protocol):
+    """Structural protocol for adapters exposing a ``search`` method."""
+
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> Sequence[MemoryRecordInput] | MemoryRecordInput | MemoryQueryResults:
+        """Return records matching ``query``."""
 
 
 class QueryRouter:
@@ -28,37 +42,38 @@ class QueryRouter:
     def direct_query(self, query: str, store: str) -> MemoryQueryResults:
         """Query a single store and return normalized results."""
 
-        store = store.lower()
-        adapter = self.memory_manager.adapters.get(store)
-        if not adapter:
-            logger.warning("Adapter %s not found", store)
-            return build_query_results(store, [])
+        store_key = store.lower()
+        adapters: AdapterRegistry = self.memory_manager.adapters
+        adapter = adapters.get(store_key)
+        if adapter is None:
+            logger.warning("Adapter %s not found", store_key)
+            return build_query_results(store_key, [])
 
-        if store == "vector":
+        if store_key == "vector":
             records = self.memory_manager.search_memory(query)
-            return build_query_results(store, records)
+            return build_query_results(store_key, records)
 
-        if store == "graph" and not hasattr(adapter, "search"):
+        if store_key == "graph" and not hasattr(adapter, "search"):
             results = self.memory_manager.query_related_items(query)
-            return build_query_results(store, results)
+            return build_query_results(store_key, results)
 
         if hasattr(adapter, "search"):
-            payload = (
-                adapter.search({"content": query})
-                if isinstance(query, str)
-                else adapter.search(query)
-            )
-            return build_query_results(store, payload)
+            searcher = cast(_SupportsSearch, adapter)
+            payload = searcher.search({"content": query})
+            return build_query_results(store_key, payload)
 
-        logger.warning("Adapter %s does not support direct queries", store)
-        return build_query_results(store, [])
+        logger.warning("Adapter %s does not support direct queries", store_key)
+        return build_query_results(store_key, [])
 
     def cross_store_query(
-        self, query: str, stores: Optional[List[str]] | None = None
+        self, query: str, stores: Sequence[str] | None = None
     ) -> GroupedMemoryResults:
         """Query configured stores and return grouped DTO results."""
 
-        raw_grouped = self.memory_manager.sync_manager.cross_store_query(query, stores)
+        requested = list(stores) if stores is not None else None
+        raw_grouped = self.memory_manager.sync_manager.cross_store_query(
+            query, requested
+        )
         by_store = {
             name: build_query_results(name, payload)
             for name, payload in raw_grouped.items()
@@ -66,38 +81,43 @@ class QueryRouter:
         return {"by_store": by_store, "query": query}
 
     def cascading_query(
-        self, query: str, order: Optional[List[str]] = None
-    ) -> List[MemoryRecord]:
+        self, query: str, order: Sequence[str] | None = None
+    ) -> list[MemoryRecord]:
         """Query stores sequentially and concatenate unique records."""
 
-        order = order or ["document", "tinydb", "vector", "graph"]
-        collected: List[MemoryRecord] = []
-        for name in order:
+        cascade_order = list(order) if order is not None else [
+            "document",
+            "tinydb",
+            "vector",
+            "graph",
+        ]
+        collected: list[MemoryRecord] = []
+        for name in cascade_order:
             if name not in self.memory_manager.adapters:
                 continue
             results = self.direct_query(query, name)
-            collected.extend(results["records"])
+            collected.extend(results.get("records", []))
         return deduplicate_records(collected)
 
-    def federated_query(self, query: str) -> List[MemoryRecord]:
+    def federated_query(self, query: str) -> list[MemoryRecord]:
         """Aggregate results from all stores and rank by cosine similarity."""
 
         grouped = self.cross_store_query(query)
-        aggregated: List[MemoryRecord] = []
+        aggregated: list[MemoryRecord] = []
         for payload in grouped["by_store"].values():
-            aggregated.extend(payload["records"])
+            aggregated.extend(payload.get("records", []))
 
         unique_records = deduplicate_records(aggregated)
         query_emb = self.memory_manager._embed_text(query)
 
-        def _embedding(record: MemoryRecord) -> List[float]:
+        def _embedding(record: MemoryRecord) -> list[float]:
             metadata = record.metadata or {}
             candidate = metadata.get("embedding")
             if isinstance(candidate, list):
                 return [float(x) for x in candidate]
             return self.memory_manager._embed_text(str(record.content))
 
-        def _similarity(a: List[float], b: List[float]) -> float:
+        def _similarity(a: list[float], b: list[float]) -> float:
             import math
 
             dot = sum(x * y for x, y in zip(a, b))
@@ -115,7 +135,10 @@ class QueryRouter:
         return unique_records
 
     def context_aware_query(
-        self, query: str, context: Dict[str, Any], store: Optional[str] = None
+        self,
+        query: str,
+        context: MemoryMetadata,
+        store: str | None = None,
     ) -> MemoryQueryResults | GroupedMemoryResults:
         """Enhance the query with context information before routing."""
 
@@ -128,11 +151,11 @@ class QueryRouter:
     def route(
         self,
         query: str,
-        store: Optional[str] = None,
+        store: str | None = None,
         strategy: str = "direct",
-        context: Optional[Dict[str, Any]] = None,
-        stores: Optional[List[str]] | None = None,
-    ) -> MemoryQueryResults | GroupedMemoryResults | List[MemoryRecord]:
+        context: MemoryMetadata | None = None,
+        stores: Sequence[str] | None = None,
+    ) -> MemoryQueryResults | GroupedMemoryResults | list[MemoryRecord]:
         """Route a query according to the specified strategy."""
 
         if strategy == "direct" and store:

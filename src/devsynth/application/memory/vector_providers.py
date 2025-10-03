@@ -1,9 +1,17 @@
-from typing import Any, TypeAlias
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 from devsynth.exceptions import ValidationError
 
 from ...domain.interfaces.memory import VectorStore, VectorStoreProviderFactory
 from ...domain.models.memory import MemoryVector
+from ...logging_setup import DevSynthLogger
+
+if TYPE_CHECKING:  # pragma: no cover - typing only import guard
+    from .adapters.vector_memory_adapter import VectorMemoryAdapter
+
+logger = DevSynthLogger(__name__)
 
 
 VectorStoreRegistry: TypeAlias = dict[str, type[VectorStore[MemoryVector]]]
@@ -57,7 +65,16 @@ class SimpleVectorStoreProviderFactory(VectorStoreProviderFactory[MemoryVector])
 
 factory = SimpleVectorStoreProviderFactory()
 
-# Register built-in in-memory provider
-from .adapters.vector_memory_adapter import VectorMemoryAdapter
 
-factory.register_provider_type("in_memory", VectorMemoryAdapter)
+def _register_default_providers() -> None:
+    try:
+        from .adapters.vector_memory_adapter import VectorMemoryAdapter as _VectorMemoryAdapter
+    except ImportError:
+        logger.debug(
+            "VectorMemoryAdapter unavailable; skipping default provider registration",
+        )
+    else:
+        factory.register_provider_type("in_memory", _VectorMemoryAdapter)
+
+
+_register_default_providers()

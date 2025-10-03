@@ -6,7 +6,8 @@ import importlib
 import uuid
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Protocol, TypedDict, TypeAlias, cast
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, cast
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from numpy.typing import NDArray
@@ -46,9 +47,12 @@ from ....logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
-class _TransactionState(TypedDict):
+@dataclass(slots=True)
+class _TransactionState:
+    """In-memory transaction bookkeeping for the vector adapter."""
+
     snapshot: dict[str, MemoryVector]
-    prepared: bool
+    prepared: bool = False
 
 
 class VectorMemoryAdapter(VectorStoreProtocol):
@@ -217,10 +221,7 @@ class VectorMemoryAdapter(VectorStoreProtocol):
 
         snapshot: dict[str, MemoryVector] = deepcopy(self.vectors)
 
-        self._active_transactions[transaction_id] = {
-            "snapshot": snapshot,
-            "prepared": False,
-        }
+        self._active_transactions[transaction_id] = _TransactionState(snapshot)
 
         return transaction_id
 
@@ -253,7 +254,7 @@ class VectorMemoryAdapter(VectorStoreProtocol):
             )
 
         # Mark the transaction as prepared
-        self._active_transactions[transaction_id]["prepared"] = True
+        self._active_transactions[transaction_id].prepared = True
 
         return True
 
@@ -313,7 +314,7 @@ class VectorMemoryAdapter(VectorStoreProtocol):
             )
 
         # Get the snapshot
-        snapshot = self._active_transactions[transaction_id]["snapshot"]
+        snapshot = self._active_transactions[transaction_id].snapshot
 
         # Restore from the snapshot
         self.vectors = snapshot
