@@ -1,30 +1,13 @@
 Feature: Run tests from the CLI
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a developer working in a constrained environment
+  I want segmentation fallbacks to be observable
+  So that coverage sweeps stay predictable when the CLI cannot batch tests
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given the DevSynth CLI is installed
+    And I have a valid DevSynth project
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
-
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Segmentation falls back to a single batch without explicit speeds
+    When I run the command "devsynth run-tests --target unit-tests --segment --segment-size 3 --no-parallel"
+    Then the command should exit successfully
+    And the CLI should request segmentation without explicit speeds

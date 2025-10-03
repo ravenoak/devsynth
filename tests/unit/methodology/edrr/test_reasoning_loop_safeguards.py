@@ -108,3 +108,16 @@ def test_missing_status_relies_on_max_iterations(
 
     assert len(results) == 2
     assert calls["count"] == 2
+
+
+@pytest.mark.fast
+def test_reasoning_loop_raises_for_non_mapping_results(monkeypatch):
+    """Returning a non-mapping payload triggers a TypeError guard."""
+
+    def invalid_apply(*_args, **_kwargs):
+        return "unsupported"
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: invalid_apply)
+
+    with pytest.raises(TypeError, match="must return a mapping payload"):
+        rl.reasoning_loop(NullWSDETeam(), {"solution": "seed"}, None)
