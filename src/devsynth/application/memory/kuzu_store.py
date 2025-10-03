@@ -17,17 +17,8 @@ import uuid
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Protocol,
-    Union,
-    cast,
-)
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Iterator, Protocol, cast
 
 canonical_name = "devsynth.application.memory.kuzu_store"
 # Ensure the module is registered under its canonical name even when loaded
@@ -46,7 +37,15 @@ if __spec__ is not None:
     __spec__.name = canonical_name
 
 class _TiktokenModule(Protocol):
-    def get_encoding(self, name: str) -> Any: ...
+    def get_encoding(self, name: str) -> object: ...
+
+
+class _KuzuConnection(Protocol):
+    def execute(self, query: str, params: Sequence[object] | None = ...) -> object: ...
+
+
+class _KuzuDatabase(Protocol):
+    def close(self) -> None: ...
 
 
 if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
@@ -67,6 +66,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
 from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.logging_setup import DevSynthLogger
+from .dto import MemoryRecord, build_memory_record
 
 logger = DevSynthLogger(__name__)
 
@@ -75,7 +75,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
     """Lightweight ``MemoryStore`` backed by KuzuDB."""
 
     def __init__(
-        self, file_path: Union[str, None] = None, use_embedded: Union[bool, None] = None
+        self, file_path: str | None = None, use_embedded: bool | None = None
     ) -> None:
         # Load the latest configuration to honour environment variable
         # overrides that may have been applied after module import.  Rely on
@@ -108,18 +108,20 @@ class KuzuStore(MemoryStore, SupportsTransactions):
             os.makedirs(self.file_path, exist_ok=True)
 
         self.db_path = os.path.join(self.file_path, "kuzu.db")
-        self.db: Any | None = None
-        self.conn: Any | None = None
-        self._cache: Dict[str, MemoryItem] = {}
-        self._versions: Dict[str, List[MemoryItem]] = {}
+        self.db: _KuzuDatabase | None = None
+        self.conn: _KuzuConnection | None = None
+        self._cache: dict[str, MemoryItem] = {}
+        self._versions: dict[str, list[MemoryItem]] = {}
         self._token_usage = 0
-        self._transactions: Dict[str, Dict[str, MemoryItem]] = {}
+        self._transactions: dict[str, dict[str, MemoryItem]] = {}
 
         # tokenizer for token usage
-        try:
-            self.tokenizer = tiktoken.get_encoding("cl100k_base")
-        except Exception:  # pragma: no cover - optional
-            self.tokenizer = None
+        self.tokenizer: object | None = None
+        if tiktoken is not None:
+            try:
+                self.tokenizer = tiktoken.get_encoding("cl100k_base")
+            except Exception:  # pragma: no cover - optional
+                self.tokenizer = None
 
         # Determine whether the embedded Kuzu backend should be used.  When no
         # explicit value is provided, consult the live settings to honour any
@@ -134,7 +136,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
             raw_embedded = raw_embedded.lower() in {"1", "true", "yes"}
         self.use_embedded = bool(raw_embedded)
 
-        kuzu_mod = None
+        kuzu_mod: ModuleType | None = None
         if "kuzu" in sys.modules and sys.modules["kuzu"] is not None:
             kuzu_mod = sys.modules["kuzu"]
         else:  # pragma: no cover - optional dependency
@@ -147,8 +149,8 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         if not self._use_fallback:
             try:
                 settings_module.ensure_path_exists(self.file_path)
-                self.db = kuzu_mod.Database(self.db_path)
-                self.conn = kuzu_mod.Connection(self.db)
+                self.db = cast(_KuzuDatabase, kuzu_mod.Database(self.db_path))
+                self.conn = cast(_KuzuConnection, kuzu_mod.Connection(self.db))
                 if self.conn is not None:
                     self.conn.execute(
                         "CREATE TABLE IF NOT EXISTS memory(id STRING PRIMARY KEY, item STRING);"
@@ -163,7 +165,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
                 self._use_fallback = True
 
         if self._use_fallback:
-            self._store: Dict[str, MemoryItem] = {}
+            self._store: dict[str, MemoryItem] = {}
 
     # utility serialisation helpers -------------------------------------------------
     def _count_tokens(self, text: str) -> int:
@@ -204,7 +206,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
     def begin_transaction(self, transaction_id: str | None = None) -> str:
         """Begin a transaction and capture a snapshot if needed."""
         tx_id = transaction_id or str(uuid.uuid4())
-        snapshot: Dict[str, MemoryItem] | None = None
+        snapshot: dict[str, MemoryItem] | None = None
         if self._use_fallback:
             snapshot = deepcopy(getattr(self, "_store", {}))
         elif self.conn is not None:  # pragma: no cover - requires kuzu
@@ -286,7 +288,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
             del self._cache[item.id]
         return item.id
 
-    def _retrieve_from_db(self, item_id: str) -> Optional[MemoryItem]:
+    def _retrieve_from_db(self, item_id: str) -> MemoryItem | None:
         if self._use_fallback:
             return self._store.get(item_id)
         if self.conn is None:  # pragma: no cover - defensive
@@ -303,7 +305,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         return None
 
     @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(Exception,))
-    def retrieve(self, item_id: str) -> Optional[MemoryItem]:
+    def retrieve(self, item_id: str) -> MemoryItem | None:
         if item_id in self._cache:
             return self._cache[item_id]
         item = self._retrieve_from_db(item_id)
@@ -312,7 +314,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         return item
 
     @retry_with_exponential_backoff(max_retries=3, retryable_exceptions=(Exception,))
-    def retrieve_version(self, item_id: str, version: int) -> Optional[MemoryItem]:
+    def retrieve_version(self, item_id: str, version: int) -> MemoryItem | None:
         if version == self.get_latest_version(item_id):
             return self.retrieve(item_id)
         versions = self.get_versions(item_id)
@@ -325,11 +327,11 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         versions = self._versions.get(item_id, [])
         return len(versions) + (1 if self.retrieve(item_id) else 0)
 
-    def get_versions(self, item_id: str) -> List[MemoryItem]:
+    def get_versions(self, item_id: str) -> list[MemoryItem]:
         return list(self._versions.get(item_id, []))
 
-    def get_history(self, item_id: str) -> List[Dict[str, Any]]:
-        history = []
+    def get_history(self, item_id: str) -> list[dict[str, object]]:
+        history: list[dict[str, object]] = []
         for item in self.get_versions(item_id) + (
             [self.retrieve(item_id)] if self.retrieve(item_id) else []
         ):
@@ -347,12 +349,12 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         history.sort(key=lambda x: x["version"])
         return history
 
-    def search(self, query: Dict[str, Any]) -> List[MemoryItem]:
+    def search(self, query: Mapping[str, object]) -> list[MemoryRecord]:
         items = [
             self.retrieve(i)
             for i in (self._store.keys() if self._use_fallback else self._all_ids())
         ]
-        results = []
+        results: list[MemoryRecord] = []
         for item in items:
             if not item:
                 continue
@@ -372,10 +374,12 @@ class KuzuStore(MemoryStore, SupportsTransactions):
                         match = False
                         break
             if match:
-                results.append(item)
+                results.append(
+                    build_memory_record(item, source=self.__class__.__name__)
+                )
         return results
 
-    def _all_ids(self) -> List[str]:  # pragma: no cover - requires kuzu
+    def _all_ids(self) -> list[str]:  # pragma: no cover - requires kuzu
         if self.conn is None:
             return []
         try:
@@ -413,13 +417,13 @@ class KuzuStore(MemoryStore, SupportsTransactions):
     def get_embedding_storage_efficiency(self) -> float:
         return 0.85
 
-    def get_all_items(self) -> List[MemoryItem]:
+    def get_all_items(self) -> list[MemoryItem]:
         """Return all stored :class:`MemoryItem` objects."""
 
         if self._use_fallback:
             return list(self._store.values())
 
-        items: List[MemoryItem] = []
+        items: list[MemoryItem] = []
         try:  # pragma: no cover - requires kuzu
             for item_id in self._all_ids():
                 itm = self._retrieve_from_db(item_id)
@@ -447,9 +451,9 @@ class KuzuStore(MemoryStore, SupportsTransactions):
                 )
         self._cache.clear()
 
-    def apply_memory_decay(self) -> List[str]:
+    def apply_memory_decay(self) -> list[str]:
         """Apply decay and return items below threshold."""
-        volatile: List[str] = []
+        volatile: list[str] = []
         for item in self.get_all_items():
             conf = float(item.metadata.get("confidence", 1.0))
             decay = float(item.metadata.get("decay_rate", 0.1))

@@ -1,5 +1,8 @@
 from typing import Any, Iterable, Iterator, Tuple
 
+from typing import Any, Iterator, Tuple
+
+
 class Graph:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
     def parse(self, *args: Any, **kwargs: Any) -> "Graph": ...

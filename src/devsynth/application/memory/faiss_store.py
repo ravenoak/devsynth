@@ -1,46 +1,68 @@
-"""
-FAISS implementation of VectorStore.
+"""FAISS-backed vector store implementation."""
 
-This implementation uses FAISS for efficient vector similarity search.
-"""
+from __future__ import annotations
 
 import json
 import os
 import uuid
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from types import ModuleType
+from typing import TYPE_CHECKING, TypedDict, cast
 
 import numpy as np
 import tiktoken
 
-try:
-    import faiss
-except ImportError as e:  # pragma: no cover - optional dependency
-    raise ImportError(
-        "FAISSStore requires the 'faiss' package. Install it with 'pip install faiss-cpu' or use the dev extras."
-    ) from e
-from datetime import datetime
-from pathlib import Path
-from typing import Any
+if TYPE_CHECKING:  # pragma: no cover - typing only import
+    import faiss as faiss_module
+    from faiss import Index, IndexFlatL2
+else:  # pragma: no cover - runtime fallback type alias
+    faiss_module = ModuleType
 
-from devsynth.exceptions import (
-    MemoryError,
-    MemoryItemNotFoundError,
-    MemoryStoreError,
-)
+faiss: faiss_module | None
+try:  # pragma: no cover - optional dependency import
+    import faiss as _faiss
+except Exception:  # pragma: no cover - graceful fallback when unavailable
+    faiss = None
+else:
+    faiss = cast("faiss_module", _faiss)
+
+from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStoreError
 from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import SupportsTransactions, VectorStore
-from ...domain.models.memory import MemoryVector
-from .dto import MemoryMetadata, VectorStoreStats
+from ...domain.models.memory import MemoryItem, MemoryVector
+from .dto import MemoryMetadata, MemoryRecord, VectorStoreStats, build_memory_record
 from .metadata_serialization import from_serializable, to_serializable
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
 
-class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
+class _StoredVectorEntry(TypedDict, total=False):
+    """Serialized representation persisted for each FAISS vector."""
+
+    content: str | None
+    embedding: list[float]
+    metadata: dict[str, object]
+    created_at: str
+    index: int
+    is_deleted: bool
+
+
+@dataclass(slots=True)
+class _Snapshot:
+    """Snapshot of index state captured for transactional rollbacks."""
+
+    index: "Index"
+    metadata: dict[str, _StoredVectorEntry]
+
+
+class FAISSStore(VectorStore[MemoryRecord], SupportsTransactions):
     """
     FAISS implementation of the VectorStore interface.
 
@@ -55,23 +77,33 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             base_path: Base path for storing the FAISS index and metadata
             dimension: Dimension of the vectors to store (default: 5)
         """
+        module = faiss
+        if module is None:
+            raise ImportError(
+                "FAISSStore requires the 'faiss' package. Install it with 'pip install faiss-cpu' "
+                "or enable the retrieval extra."
+            )
+
+        self._module = module
         self.base_path = base_path
         self.index_file = os.path.join(self.base_path, "faiss_index.bin")
         self.metadata_file = os.path.join(self.base_path, "metadata.json")
         self.token_count = 0
         self.dimension = dimension
+        self.metadata: dict[str, _StoredVectorEntry] = {}
+        self.index = cast("Index", self._module.IndexFlatL2(max(1, self.dimension)))
 
         # Ensure the directory exists
         os.makedirs(self.base_path, exist_ok=True)
 
         # Initialize the tokenizer for token counting
+        self.tokenizer: object | None = None
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
         except Exception as e:
             logger.warning(
                 f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
             )
-            self.tokenizer = None
 
         # Initialize FAISS index and metadata
         self._initialize_store()
@@ -79,30 +111,36 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
         # Track transaction snapshots.  Each active transaction stores a
         # cloned FAISS index and metadata dictionary so that rollback can
         # restore the previous state if an error occurs.
-        self._snapshots: dict[str, dict[str, Any]] = {}
+        self._snapshots: dict[str, _Snapshot] = {}
 
     def _initialize_store(self) -> None:
         """Initialize the FAISS index and metadata store."""
         try:
             # Initialize metadata dictionary
             if os.path.exists(self.metadata_file):
-                with open(self.metadata_file, "r") as f:
-                    self.metadata = json.load(f)
+                with open(self.metadata_file, "r", encoding="utf-8") as fh:
+                    raw_metadata = json.load(fh)
+                self.metadata: dict[str, _StoredVectorEntry] = {
+                    key: cast(_StoredVectorEntry, value)
+                    for key, value in raw_metadata.items()
+                    if isinstance(value, Mapping)
+                }
                 # Get dimension from existing metadata
-                if self.metadata and len(self.metadata) > 0:
+                if self.metadata:
                     first_id = next(iter(self.metadata))
-                    if "embedding" in self.metadata[first_id]:
-                        self.dimension = len(self.metadata[first_id]["embedding"])
+                    embedding = self.metadata[first_id].get("embedding", [])
+                    if embedding:
+                        self.dimension = len(embedding)
             else:
                 self.metadata = {}
 
             # Initialize or load FAISS index
             if os.path.exists(self.index_file):
-                self.index = faiss.read_index(self.index_file)
+                self.index = cast("Index", self._module.read_index(self.index_file))
                 logger.info(f"Loaded existing FAISS index from {self.index_file}")
             else:
                 # Create a new index - using L2 distance (Euclidean)
-                self.index = faiss.IndexFlatL2(self.dimension)
+                self.index = cast("Index", self._module.IndexFlatL2(self.dimension))
                 logger.info(f"Created new FAISS index with dimension {self.dimension}")
 
             logger.info("FAISS store initialized successfully")
@@ -113,7 +151,7 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
     def _save_index(self) -> None:
         """Save the FAISS index to disk."""
         try:
-            faiss.write_index(self.index, self.index_file)
+            self._module.write_index(self.index, self.index_file)
             logger.info(f"Saved FAISS index to {self.index_file}")
         except Exception as e:
             logger.error(f"Failed to save FAISS index: {e}")
@@ -122,8 +160,8 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
     def _save_metadata(self) -> None:
         """Save the metadata to disk."""
         try:
-            with open(self.metadata_file, "w") as f:
-                json.dump(self.metadata, f)
+            with open(self.metadata_file, "w", encoding="utf-8") as fh:
+                json.dump(self.metadata, fh)
             logger.info(f"Saved metadata to {self.metadata_file}")
         except Exception as e:
             logger.error(f"Failed to save metadata: {e}")
@@ -146,17 +184,20 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             # Approximate token count (roughly 4 characters per token)
             return len(text) // 4
 
-    def _serialize_metadata(self, metadata: MemoryMetadata | None) -> dict[str, Any]:
+    def _serialize_metadata(self, metadata: MemoryMetadata | None) -> dict[str, object]:
         """Normalize ``MemoryMetadata`` for JSON persistence."""
 
         serialized = to_serializable(metadata)
         return dict(serialized)
 
-    def _deserialize_metadata(self, metadata: Mapping[str, Any] | None) -> MemoryMetadata:
+    def _deserialize_metadata(
+        self, metadata: Mapping[str, object] | None
+    ) -> MemoryMetadata:
         """Restore ``MemoryMetadata`` from serialized payloads."""
 
-        json_ready: Mapping[str, Any] | None = metadata if isinstance(metadata, Mapping) else None
-        return from_serializable(json_ready)
+        if metadata is None or not isinstance(metadata, Mapping):
+            return {}
+        return from_serializable(metadata)
 
     # ------------------------------------------------------------------
     # Transaction management
@@ -169,14 +210,15 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             raise MemoryStoreError(f"Transaction {tx_id} already active")
         # Clone index and metadata for rollback
         try:
-            index_clone = faiss.deserialize_index(faiss.serialize_index(self.index))
+            serialized = self._module.serialize_index(self.index)
+            index_clone = cast("Index", self._module.deserialize_index(serialized))
         except Exception as exc:  # pragma: no cover - defensive
             logger.error(f"Failed to snapshot FAISS index: {exc}")
             raise MemoryStoreError("Failed to snapshot FAISS index")
-        self._snapshots[tx_id] = {
-            "index": index_clone,
-            "metadata": deepcopy(self.metadata),
-        }
+        self._snapshots[tx_id] = _Snapshot(
+            index=index_clone,
+            metadata=deepcopy(self.metadata),
+        )
         return tx_id
 
     def commit_transaction(self, transaction_id: str) -> bool:
@@ -199,8 +241,8 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             raise MemoryStoreError(
                 f"Rollback requested for unknown transaction {transaction_id}"
             )
-        self.index = snap["index"]
-        self.metadata = snap["metadata"]
+        self.index = snap.index
+        self.metadata = snap.metadata
         self._save_index()
         self._save_metadata()
         return True
@@ -224,6 +266,33 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
         """Return ``True`` when ``transaction_id`` corresponds to a snapshot."""
 
         return transaction_id in self._snapshots
+
+    def _build_record(
+        self,
+        vector_id: str,
+        entry: _StoredVectorEntry,
+        *,
+        similarity: float | None = None,
+    ) -> MemoryRecord:
+        """Construct a :class:`MemoryRecord` from serialized vector metadata."""
+
+        metadata_payload = self._deserialize_metadata(entry.get("metadata"))
+        created_at = (
+            datetime.fromisoformat(entry["created_at"]) if entry.get("created_at") else None
+        )
+        vector = MemoryVector(
+            id=vector_id,
+            content=entry.get("content"),
+            embedding=list(entry.get("embedding", [])),
+            metadata=metadata_payload,
+            created_at=created_at,
+        )
+        return build_memory_record(
+            vector,
+            source=self.__class__.__name__,
+            similarity=similarity,
+            metadata=metadata_payload,
+        )
 
     def store_vector(self, vector: MemoryVector) -> str:
         """
@@ -253,7 +322,7 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             if len(self.metadata) == 0:
                 self.dimension = embedding.shape[1]
                 # Reinitialize the index with the correct dimension
-                self.index = faiss.IndexFlatL2(self.dimension)
+                self.index = cast("Index", self._module.IndexFlatL2(self.dimension))
 
             # Check if the vector already exists
             if vector.id in self.metadata:
@@ -272,7 +341,7 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             # Store metadata
             self.metadata[vector.id] = {
                 "content": vector.content,
-                "embedding": vector.embedding,
+                "embedding": list(vector.embedding),
                 "metadata": self._serialize_metadata(vector.metadata or {}),
                 "created_at": (
                     vector.created_at.isoformat()
@@ -294,7 +363,7 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             logger.error(f"Failed to store vector in FAISS: {e}")
             raise MemoryStoreError(f"Failed to store vector: {e}")
 
-    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
+    def retrieve_vector(self, vector_id: str) -> MemoryRecord | None:
         """
         Retrieve a vector from the vector store by ID.
 
@@ -302,7 +371,7 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             vector_id: The ID of the vector to retrieve
 
         Returns:
-            The retrieved MemoryVector, or None if not found
+            The retrieved :class:`MemoryRecord`, or ``None`` if not found
 
         Raises:
             MemoryStoreError: If there is an error retrieving the vector
@@ -321,35 +390,22 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
                 logger.warning(f"Vector with ID {vector_id} is marked as deleted")
                 return None
 
-            # Create a MemoryVector
-            vector = MemoryVector(
-                id=vector_id,
-                content=vector_metadata.get("content"),
-                embedding=vector_metadata.get("embedding"),
-                metadata=self._deserialize_metadata(
-                    vector_metadata.get("metadata", {})
-                ),
-                created_at=(
-                    datetime.fromisoformat(vector_metadata.get("created_at"))
-                    if vector_metadata.get("created_at")
-                    else None
-                ),
-            )
+            record = self._build_record(vector_id, vector_metadata)
 
             # Update token count
-            token_count = self._count_tokens(str(vector))
+            token_count = self._count_tokens(str(record.item))
             self.token_count += token_count
 
             logger.info(f"Retrieved vector with ID {vector_id} from FAISS")
-            return vector
+            return record
 
         except Exception as e:
             logger.error(f"Error retrieving vector from FAISS: {e}")
             raise MemoryStoreError(f"Error retrieving vector: {e}")
 
     def similarity_search(
-        self, query_embedding: list[float], top_k: int = 5
-    ) -> list[MemoryVector]:
+        self, query_embedding: Sequence[float], top_k: int = 5
+    ) -> list[MemoryRecord]:
         """
         Search for vectors similar to the query embedding.
 
@@ -358,14 +414,14 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             top_k: The number of results to return
 
         Returns:
-            A list of MemoryVectors similar to the query embedding
+            A list of :class:`MemoryRecord` entries similar to the query embedding
 
         Raises:
             MemoryStoreError: If there is an error performing the search
         """
         try:
             # Convert query_embedding to numpy array
-            query = np.array(query_embedding, dtype=np.float32)
+            query = np.array(list(query_embedding), dtype=np.float32)
 
             # Reshape for FAISS (expects 2D array)
             query = query.reshape(1, -1)
@@ -388,9 +444,10 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
             effective_top_k = min(top_k, self.index.ntotal)
 
             # Ensure the index is properly initialized
-            if not isinstance(self.index, faiss.IndexFlatL2):
+            index_flat_l2 = getattr(self._module, "IndexFlatL2", None)
+            if index_flat_l2 is not None and not isinstance(self.index, index_flat_l2):
                 logger.warning("FAISS index is not properly initialized, recreating it")
-                self.index = faiss.IndexFlatL2(self.dimension)
+                self.index = cast("Index", self._module.IndexFlatL2(self.dimension))
                 # If we had to recreate the index, we need to return empty results
                 # since the index no longer contains the vectors
                 return []
@@ -427,29 +484,31 @@ class FAISSStore(VectorStore[MemoryVector], SupportsTransactions):
                 return []
 
             # Map indices to vector IDs
-            results = []
-            for i, idx in enumerate(indices[0]):
+            results: list[MemoryRecord] = []
+            for position, idx in enumerate(indices[0]):
                 # Skip invalid indices
                 if idx < 0 or idx >= self.index.ntotal:
                     logger.warning(f"Skipping invalid index {idx}")
                     continue
 
                 # Find the vector ID for this index
-                vector_id = None
+                vector_id: str | None = None
+                entry: _StoredVectorEntry | None = None
                 for vid, meta in self.metadata.items():
                     if meta.get("index") == idx and not meta.get("is_deleted", False):
                         vector_id = vid
+                        entry = meta
                         break
 
-                if vector_id:
+                if vector_id and entry is not None:
                     try:
-                        # Retrieve the vector
-                        vector = self.retrieve_vector(vector_id)
-                        if vector:
-                            results.append(vector)
-                    except Exception as e:
-                        logger.warning(f"Error retrieving vector {vector_id}: {e}")
-                        continue
+                        distance = float(distances[0][position])
+                    except Exception:  # pragma: no cover - defensive
+                        distance = 0.0
+                    similarity = 1.0 / (1.0 + max(distance, 0.0))
+                    results.append(
+                        self._build_record(vector_id, entry, similarity=similarity)
+                    )
 
             logger.info(f"Found {len(results)} similar vectors in FAISS")
             return results

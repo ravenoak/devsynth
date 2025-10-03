@@ -15,7 +15,7 @@ import numpy as np  # type: ignore[import-not-found]
 import tiktoken
 
 from datetime import datetime
-from typing import cast
+from typing import Sequence, cast
 
 from devsynth.core import feature_flags
 from devsynth.exceptions import (
@@ -103,13 +103,14 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
         self.conn: DuckDBConnectionProtocol = module.connect(self.db_file)
 
         # Initialize the tokenizer for token counting
-        try:
-            self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
-        except Exception as e:
-            logger.warning(
-                f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
-            )
-            self.tokenizer = None
+        self.tokenizer: object | None = None
+        if tiktoken is not None:
+            try:
+                self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
+            except Exception as e:
+                logger.warning(
+                    f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
+                )
 
         # Initialize database schema
         self._initialize_schema()
@@ -501,6 +502,32 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
         """
         return self.token_count
 
+    def _build_vector_record(
+        self,
+        *,
+        vector_id: str,
+        content: str | None,
+        embedding: Sequence[float],
+        metadata: MemoryMetadata | None,
+        created_at: datetime | None,
+        similarity: float | None = None,
+    ) -> MemoryRecord:
+        """Construct a :class:`MemoryRecord` from vector components."""
+
+        vector = MemoryVector(
+            id=vector_id,
+            content=content,
+            embedding=list(embedding),
+            metadata=metadata,
+            created_at=created_at,
+        )
+        return build_memory_record(
+            vector,
+            source=self.__class__.__name__,
+            similarity=similarity,
+            metadata=metadata,
+        )
+
     def store_vector(self, vector: MemoryVector) -> str:
         """
         Store a vector in the vector store and return its ID.
@@ -600,7 +627,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
                 original_error=e,
             )
 
-    def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
+    def retrieve_vector(self, vector_id: str) -> MemoryRecord | None:
         """
         Retrieve a vector from the vector store by ID.
 
@@ -608,7 +635,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
             vector_id: The ID of the vector to retrieve
 
         Returns:
-            The retrieved MemoryVector, or None if not found
+            The retrieved :class:`MemoryRecord`, or ``None`` if not found
 
         Raises:
             MemoryStoreError: If there is an error retrieving the vector
@@ -636,21 +663,20 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
             created_at = datetime.fromisoformat(result[4]) if result[4] else None
 
             # Parse embedding if needed
-            embedding = result[2]
-            if not self.vector_extension_available and isinstance(embedding, str):
-                embedding = json.loads(embedding)
+            raw_embedding = result[2]
+            if not self.vector_extension_available and isinstance(raw_embedding, str):
+                embedding = json.loads(raw_embedding)
+            else:
+                embedding = list(raw_embedding)
 
-            # Create a MemoryVector
-            vector = MemoryVector(
-                id=result[0],
+            logger.info(f"Retrieved vector with ID {vector_id} from DuckDB")
+            return self._build_vector_record(
+                vector_id=vector_id,
                 content=result[1],
                 embedding=embedding,
                 metadata=metadata,
                 created_at=created_at,
             )
-
-            logger.info(f"Retrieved vector with ID {vector_id} from DuckDB")
-            return vector
 
         except Exception as e:
             logger.error(f"Error retrieving vector from DuckDB: {e}")
@@ -663,7 +689,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
 
     def similarity_search(
         self, query_embedding: list[float], top_k: int = 5
-    ) -> list[MemoryVector]:
+    ) -> list[MemoryRecord]:
         """
         Search for vectors similar to the query embedding.
 
@@ -672,7 +698,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
             top_k: The number of results to return
 
         Returns:
-            A list of MemoryVectors similar to the query embedding
+            A list of :class:`MemoryRecord` entries similar to the query embedding
 
         Raises:
             MemoryStoreError: If there is an error performing the search
@@ -682,9 +708,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
             if isinstance(query_embedding, np.ndarray):
                 query_embedding = query_embedding.tolist()
 
-            # Use DuckDB's vector similarity search if vector extension is available
             if self.vector_extension_available:
-                # If HNSW is enabled, the index will be used automatically
                 results = self.conn.execute(
                     """
                     SELECT id, content, embedding, metadata, created_at,
@@ -696,35 +720,36 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
                     (query_embedding, top_k),
                 ).fetchall()
 
-                # Convert results to MemoryVectors
-                vectors = []
+                records: list[MemoryRecord] = []
                 for result in results:
-                    # Deserialize metadata
                     metadata = self._deserialize_metadata(result[3])
-
-                    # Convert created_at string to datetime
                     created_at = (
                         datetime.fromisoformat(result[4]) if result[4] else None
                     )
-
-                    # Create a MemoryVector
-                    vector = MemoryVector(
-                        id=result[0],
-                        content=result[1],
-                        embedding=result[2],
-                        metadata=metadata,
-                        created_at=created_at,
+                    distance = float(result[5]) if result[5] is not None else 0.0
+                    similarity = 1.0 / (1.0 + max(distance, 0.0))
+                    embedding_raw = result[2]
+                    embedding = (
+                        embedding_raw
+                        if isinstance(embedding_raw, list)
+                        else list(embedding_raw)
                     )
-
-                    vectors.append(vector)
+                    records.append(
+                        self._build_vector_record(
+                            vector_id=result[0],
+                            content=result[1],
+                            embedding=embedding,
+                            metadata=metadata,
+                            created_at=created_at,
+                            similarity=similarity,
+                        )
+                    )
 
                 search_type = "HNSW index" if self.enable_hnsw else "linear scan"
                 logger.info(
-                    f"Found {len(vectors)} similar vectors in DuckDB using {search_type}"
+                    f"Found {len(records)} similar vectors in DuckDB using {search_type}"
                 )
             else:
-                # Fallback for testing without vector extension
-                # Get all vectors and compute distances in Python
                 results = self.conn.execute(
                     """
                     SELECT id, content, embedding, metadata, created_at
@@ -732,46 +757,35 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
                 """
                 ).fetchall()
 
-                # Compute distances and sort
-                vectors_with_distances = []
+                vectors_with_distances: list[tuple[MemoryRecord, float]] = []
                 for result in results:
-                    # Deserialize metadata
                     metadata = self._deserialize_metadata(result[3])
-
-                    # Convert created_at string to datetime
                     created_at = (
                         datetime.fromisoformat(result[4]) if result[4] else None
                     )
-
-                    # Parse embedding from JSON string
                     embedding = json.loads(result[2])
-
-                    # Compute Euclidean distance
                     distance = (
                         sum((a - b) ** 2 for a, b in zip(embedding, query_embedding))
                         ** 0.5
                     )
-
-                    # Create a MemoryVector
-                    vector = MemoryVector(
-                        id=result[0],
+                    record = self._build_vector_record(
+                        vector_id=result[0],
                         content=result[1],
                         embedding=embedding,
                         metadata=metadata,
                         created_at=created_at,
+                        similarity=1.0 / (1.0 + distance),
                     )
+                    vectors_with_distances.append((record, distance))
 
-                    vectors_with_distances.append((vector, distance))
-
-                # Sort by distance and take top_k
-                vectors_with_distances.sort(key=lambda x: x[1])
-                vectors = [v for v, _ in vectors_with_distances[:top_k]]
+                vectors_with_distances.sort(key=lambda item: item[1])
+                records = [record for record, _ in vectors_with_distances[:top_k]]
 
                 logger.info(
-                    f"Found {len(vectors)} similar vectors in DuckDB using Python fallback (vector extension not available)"
+                    "Found %d similar vectors in DuckDB using Python fallback", len(records)
                 )
 
-            return vectors
+            return records
 
         except Exception as e:
             logger.error(f"Error performing similarity search in DuckDB: {e}")
