@@ -6,6 +6,11 @@
 - Archive strict transcripts for every graduated stack (latest: `poetry run mypy --strict src/devsynth/application/memory`) inside `diagnostics/` so regressions surface quickly.【F:diagnostics/mypy_strict_application_memory_20251002T220045Z.txt†L1-L200】
 - After each graduation, schedule targeted follow-up audits for neighboring modules so the new strict coverage keeps upstream/downstream contracts aligned.
 
+## Current enforcement
+- `task mypy:strict` now executes the repo-wide `poetry run mypy --strict src/devsynth` sweep, keeping the entire production tree under the strict guard; pass extra CLI arguments to focus on subsystems during investigations.【F:Taskfile.yml†L143-L147】
+- Fast tests `tests/unit/general/test_mypy_config.py::{test_mypy_configuration_raises_error,test_mypy_project_configuration_raises_error}` assert that mypy fails on intentional regressions, so the strict gate produces actionable signals rather than false positives.【F:tests/unit/general/test_mypy_config.py†L1-L70】
+- The first clean run landed in PR 1 and is archived at [diagnostics/mypy_strict_src_devsynth_20251003T172126Z.txt](../../diagnostics/mypy_strict_src_devsynth_20251003T172126Z.txt); the [Unreleased changelog](../../CHANGELOG.md#unreleased) links back here for ongoing enforcement notes.【F:diagnostics/mypy_strict_src_devsynth_20251003T172126Z.txt†L1-L1】
+
 ## Override Inventory
 `pyproject.toml` now records the remaining relaxations as module-level commitments with explicit owners and deadlines.【F:pyproject.toml†L251-L446】 The table below mirrors the scoped lists so teams can track progress at a glance.
 
