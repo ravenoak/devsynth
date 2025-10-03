@@ -9,7 +9,7 @@ tags:
   - "release-preparation"
 status: "active"
 author: "DevSynth Team"
-last_reviewed: "2025-10-02"
+last_reviewed: "2025-10-03"
 source: "Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)"
 ---
 
@@ -120,7 +120,8 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 9.4 [x] Add guidance to always aggregate coverage for readiness claims, avoiding narrow subset runs.
 
 10. Release Preparation and CI/CD Strategy (Phase 6)
-10.1 [x] Keep GitHub Actions disabled until 0.1.0a1 is tagged.
+10.1 [x] Keep GitHub Actions disabled until 0.1.0a1 is tagged; workflows must remain `workflow_dispatch`-only (no `push`, `pull_request`, or `schedule` triggers).
+10.1.1 [x] Verify `.github/workflows/ci.yml` and related automation reference only `workflow_dispatch` so accidental trigger modes cannot reappear before tagging.【F:.github/workflows/ci.yml†L1-L11】
 10.2 [x] After release, enable low-throughput workflows with concurrency control:
 10.2.1 [x] Add smoke job (fast, --no-parallel, PYTEST_DISABLE_PLUGIN_AUTOLOAD=1).
 10.2.2 [x] Add unit+integration job (fast+medium) without xdist.
@@ -159,6 +160,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
 13.3 [ ] Combined coverage >= 90% with HTML report generated and saved (latest gate attempt fails because coverage artifacts are missing; remediation tracked under §6.3 and §21.8).
 13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
+13.4.1 [x] Archive the zero-error strict typing evidence: `poetry run mypy --strict src/devsynth` (2025-10-03) completes cleanly with the transcript stored at `diagnostics/mypy_strict_src_devsynth_20251003T220923Z.txt` for auditability.【F:diagnostics/mypy_strict_src_devsynth_20251003T220923Z.txt†L1-L2】
 13.5 [x] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags, coverage guidance.
 13.6 [x] Known environment warnings in doctor.txt triaged and documented as non-blocking by default.
 
