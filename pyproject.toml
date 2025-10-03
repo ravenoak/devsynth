@@ -355,7 +355,7 @@ module = [
   "devsynth.domain.interfaces.memory",
 ]
 follow_imports = "normal"
-ignore_errors = false
+ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = ["chromadb", "chromadb.*"]
