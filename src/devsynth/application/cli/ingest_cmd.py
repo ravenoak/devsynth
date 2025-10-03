@@ -55,7 +55,7 @@ def ingest_cmd(
     *,
     yes: bool = False,
     priority: Optional[str] = None,
-    bridge: Annotated[UXBridge | None, typer.Option(None, hidden=True)] = None,
+    bridge: Annotated[Optional[UXBridge], typer.Option(None, hidden=True)] = None,
     auto_phase_transitions: bool = True,
     non_interactive: bool = False,
     defaults: bool = False,

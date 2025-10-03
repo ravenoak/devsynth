@@ -30,9 +30,9 @@ def lint_cmd(*, bridge: Optional[UXBridge] = None) -> None:
 
 @mvu_app.command("report")
 def report_cmd(
-    since: str | None = typer.Option(None, help="Git revision to scan"),
+    since: Optional[str] = typer.Option(None, help="Git revision to scan"),
     fmt: str = typer.Option("markdown", help="Output format"),
-    output: Path | None = typer.Option(None, help="Optional output path"),
+    output: Optional[Path] = typer.Option(None, help="Optional output path"),
     *,
     bridge: Optional[UXBridge] = None,
 ) -> None:
