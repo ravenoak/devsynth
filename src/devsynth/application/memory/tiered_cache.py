@@ -7,7 +7,7 @@ eviction policy to manage cache size.
 """
 
 from collections import OrderedDict
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
 
 from ...logging_setup import DevSynthLogger
 
