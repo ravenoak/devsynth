@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from __future__ import annotations
-
 import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional, cast, TYPE_CHECKING
+from typing import Iterable, Optional, Protocol, TypeAlias, cast
 
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 
+from devsynth.application.memory.dto import (
+    GroupedMemoryResults,
+    MemoryMetadata,
+    MemoryQueryResults,
+    MemoryRecord,
+)
 from devsynth.domain.interfaces.memory import (
     MemorySearchResponse,
     MemoryStore,
@@ -20,15 +24,18 @@ from devsynth.domain.interfaces.memory import (
 from devsynth.domain.models.memory import MemoryItem
 from devsynth.logging_setup import DevSynthLogger
 
-if TYPE_CHECKING:  # pragma: no cover - imported for typing only
-    from devsynth.application.memory.dto import (
-        GroupedMemoryResults,
-        MemoryMetadata,
-        MemoryQueryResults,
-        MemoryRecord,
-    )
+class FallbackMemoryStore(MemoryStore, SupportsTransactions, Protocol):
+    def get_all_items(self) -> list[MemoryItem]:  # pragma: no cover - protocol
+        ...
 
-MemoryStoreProtocol = MemoryStore
+
+MemoryStoreProtocol = FallbackMemoryStore
+
+MemoryRetrieveResult: TypeAlias = MemoryRecord
+"""Typed DTO returned from :meth:`FallbackStore.retrieve`."""
+
+MemorySearchResult: TypeAlias = MemoryQueryResults | GroupedMemoryResults
+"""Typed DTO returned from :meth:`FallbackStore.search`."""
 
 
 @dataclass(slots=True)
@@ -63,6 +70,35 @@ class StoreStatus(Enum):
     UNAVAILABLE = "UNAVAILABLE"  # Store is unavailable
 
 
+@dataclass(slots=True)
+class StoreState:
+    """Track runtime health for a specific :class:`MemoryStore` instance."""
+
+    status: StoreStatus = StoreStatus.AVAILABLE
+    last_error: Exception | None = None
+
+    def mark_available(self) -> None:
+        self.status = StoreStatus.AVAILABLE
+        self.last_error = None
+
+    def mark_degraded(self, error: Exception) -> None:
+        self.status = StoreStatus.DEGRADED
+        self.last_error = error
+
+    def mark_unavailable(self, error: Exception | None = None) -> None:
+        self.status = StoreStatus.UNAVAILABLE
+        self.last_error = error
+
+
+@dataclass(slots=True)
+class StoreStatusReport:
+    """Snapshot of the fallback store health."""
+
+    primary: StoreStatus
+    fallbacks: list[StoreStatus]
+    last_errors: dict[str, str | None]
+
+
 class FallbackStore(MemoryStore, SupportsTransactions):
     """
     Memory store with fallback capabilities.
@@ -92,17 +128,91 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         self.logger = logger or DevSynthLogger(__name__)
 
         # Store status tracking
-        self.store_status: dict[MemoryStoreProtocol, StoreStatus] = {
-            primary_store: StoreStatus.AVAILABLE
-        }
+        self._store_states: dict[MemoryStoreProtocol, StoreState] = {}
+        self._register_store(primary_store)
         for store in fallback_stores:
-            self.store_status[store] = StoreStatus.AVAILABLE
-
-        # Last error tracking
-        self.last_errors: dict[MemoryStoreProtocol, Exception] = {}
+            self._register_store(store)
 
         # Pending operations for reconciliation
         self.pending_operations: list[PendingOperation] = []
+
+    def _register_store(self, store: MemoryStoreProtocol) -> None:
+        if store not in self._store_states:
+            self._store_states[store] = StoreState()
+
+    def _state_for(self, store: MemoryStoreProtocol) -> StoreState:
+        return self._store_states.setdefault(store, StoreState())
+
+    def _resolve_store_name(self, store: MemoryStoreProtocol) -> str:
+        return cast(str, getattr(store, "name", store.__class__.__name__))
+
+    def _coerce_record(
+        self, store: MemoryStoreProtocol, payload: MemoryItem | MemoryRecord
+    ) -> MemoryRecord:
+        store_name = self._resolve_store_name(store)
+        if isinstance(payload, MemoryRecord):
+            if payload.source == store_name:
+                return payload
+            return MemoryRecord(
+                item=payload.item,
+                similarity=payload.similarity,
+                source=payload.source or store_name,
+                metadata=payload.metadata,
+            )
+        metadata: MemoryMetadata | None = None
+        if isinstance(payload.metadata, MutableMapping):
+            metadata = cast(MemoryMetadata, dict(payload.metadata))
+        elif payload.metadata is not None:
+            metadata = cast(MemoryMetadata, payload.metadata)
+        return MemoryRecord(
+            item=payload,
+            source=store_name,
+            metadata=metadata,
+        )
+
+    def _normalize_search_result(
+        self, store: MemoryStoreProtocol, response: MemorySearchResponse
+    ) -> MemorySearchResult:
+        if isinstance(response, dict):
+            if "by_store" in response:
+                return cast(GroupedMemoryResults, response)
+            query_result = cast(MemoryQueryResults, response)
+            records_payload = cast(
+                Iterable[MemoryItem | MemoryRecord], query_result.get("records", [])
+            )
+            normalized_records = [
+                self._coerce_record(store, record) for record in records_payload
+            ]
+            store_name = query_result.get("store")
+            result: MemoryQueryResults = {
+                "store": store_name if store_name is not None else self._resolve_store_name(store),
+                "records": normalized_records,
+            }
+            if "total" in query_result:
+                result["total"] = cast(int, query_result["total"])
+            if "latency_ms" in query_result:
+                result["latency_ms"] = cast(float, query_result["latency_ms"])
+            if "metadata" in query_result:
+                result["metadata"] = cast(MemoryMetadata, query_result["metadata"])
+            return result
+
+        records = [self._coerce_record(store, record) for record in response]
+        return {
+            "store": self._resolve_store_name(store),
+            "records": records,
+        }
+
+    @property
+    def store_states(self) -> dict[MemoryStoreProtocol, StoreState]:
+        return dict(self._store_states)
+
+    @property
+    def last_errors(self) -> dict[MemoryStoreProtocol, Exception]:
+        return {
+            store: state.last_error
+            for store, state in self._store_states.items()
+            if state.last_error is not None
+        }
 
     def store(self, item: MemoryItem) -> str:
         """
@@ -118,48 +228,48 @@ class FallbackStore(MemoryStore, SupportsTransactions):
             FallbackError: If all stores fail
         """
         # Try primary store first
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 item_id = self.primary_store.store(item)
 
                 # If we were in degraded mode, try to reconcile pending operations
-                if self.store_status[self.primary_store] == StoreStatus.DEGRADED:
+                if primary_state.status == StoreStatus.DEGRADED:
                     self.logger.info(
                         "Primary store is available again, reconciling pending operations"
                     )
                     self._reconcile_pending_operations()
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
 
                 # Store in fallback stores asynchronously (in a real implementation)
                 # For now, just store sequentially
                 for store in self.fallback_stores:
                     try:
                         store.store(item)
-                        self.store_status[store] = StoreStatus.AVAILABLE
+                        self._state_for(store).mark_available()
                     except Exception as e:
                         self.logger.warning(
                             f"Failed to store item in fallback store: {e}"
                         )
-                        self.last_errors[store] = e
-                        self.store_status[store] = StoreStatus.DEGRADED
+                        self._state_for(store).mark_degraded(e)
 
                 return item_id
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     item_id = store.store(item)
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
 
                     # Add to pending operations for reconciliation
                     self.pending_operations.append(
@@ -178,8 +288,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
                     return item_id
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # All stores failed
@@ -187,55 +296,55 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         self.logger.error(error_message)
         raise FallbackError(error_message, errors)
 
-    def retrieve(self, item_id: str) -> MemoryItem | MemoryRecord:
+    def retrieve(self, item_id: str) -> MemoryRetrieveResult:
         """
-        Retrieve a memory artefact with fallback.
+        Retrieve a memory artefact with fallback and normalize to a DTO.
 
         Args:
             item_id: ID of the item to retrieve
 
         Returns:
-            Retrieved memory item or DTO record
+            Typed memory record DTO
 
         Raises:
             FallbackError: If all stores fail
             KeyError: If the item is not found in any store
         """
         # Try primary store first
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 item = self.primary_store.retrieve(item_id)
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
 
-                return item
+                return self._coerce_record(self.primary_store, item)
             except KeyError:
                 # Item not found, try fallback stores
                 pass
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     item = store.retrieve(item_id)
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
 
-                    return item
+                    return self._coerce_record(store, item)
                 except KeyError:
                     # Item not found, try next store
                     pass
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # Item not found in any store
@@ -245,7 +354,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
 
     def search(
         self, query: Mapping[str, object] | MemoryMetadata
-    ) -> MemorySearchResponse:
+    ) -> MemorySearchResult:
         """
         Search for memory artefacts with fallback.
 
@@ -253,40 +362,40 @@ class FallbackStore(MemoryStore, SupportsTransactions):
             query: Search query or metadata filter
 
         Returns:
-            Typed collection of matching memory records or items
+            DTO encapsulating matching memory records
 
         Raises:
             FallbackError: If all stores fail
         """
         # Try primary store first
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 items = self.primary_store.search(query)
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
 
-                return items
+                return self._normalize_search_result(self.primary_store, items)
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     items = store.search(query)
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
 
-                    return items
+                    return self._normalize_search_result(store, items)
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # All stores failed
@@ -309,32 +418,32 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         """
         # Try primary store first
         primary_success = False
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 primary_success = self.primary_store.delete(item_id)
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         fallback_success = False
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     result = store.delete(item_id)
                     fallback_success = fallback_success or result
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # If primary store failed but fallback succeeded, add to pending operations
@@ -366,34 +475,34 @@ class FallbackStore(MemoryStore, SupportsTransactions):
             FallbackError: If all stores fail
         """
         # Try primary store first
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 items = self.primary_store.get_all_items()
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
 
                 return items
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     items = store.get_all_items()
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
 
                     return items
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # All stores failed
@@ -412,40 +521,40 @@ class FallbackStore(MemoryStore, SupportsTransactions):
             FallbackError: If all stores fail
         """
         # Try primary store first
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 transaction_id = self.primary_store.begin_transaction()
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
 
                 # Begin transaction on fallback stores
                 for store in self.fallback_stores:
                     try:
                         store.begin_transaction()
-                        self.store_status[store] = StoreStatus.AVAILABLE
+                        self._state_for(store).mark_available()
                     except Exception as e:
                         self.logger.warning(
                             f"Failed to begin transaction on fallback store: {e}"
                         )
-                        self.last_errors[store] = e
-                        self.store_status[store] = StoreStatus.DEGRADED
+                        self._state_for(store).mark_degraded(e)
 
                 return transaction_id
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     transaction_id = store.begin_transaction()
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
 
                     # Add to pending operations for reconciliation
                     self.pending_operations.append(
@@ -464,8 +573,7 @@ class FallbackStore(MemoryStore, SupportsTransactions):
                     return transaction_id
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # All stores failed
@@ -488,32 +596,32 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         """
         # Try primary store first
         primary_success = False
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 primary_success = self.primary_store.commit_transaction(transaction_id)
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         fallback_success = False
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     result = store.commit_transaction(transaction_id)
                     fallback_success = fallback_success or result
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # If primary store failed but fallback succeeded, add to pending operations
@@ -549,34 +657,34 @@ class FallbackStore(MemoryStore, SupportsTransactions):
         """
         # Try primary store first
         primary_success = False
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 primary_success = self.primary_store.rollback_transaction(
                     transaction_id
                 )
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         fallback_success = False
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     result = store.rollback_transaction(transaction_id)
                     fallback_success = fallback_success or result
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # If primary store failed but fallback succeeded, add to pending operations
@@ -611,34 +719,34 @@ class FallbackStore(MemoryStore, SupportsTransactions):
             FallbackError: If all stores fail
         """
         # Try primary store first
-        if self.store_status[self.primary_store] != StoreStatus.UNAVAILABLE:
+        primary_state = self._state_for(self.primary_store)
+        if primary_state.status != StoreStatus.UNAVAILABLE:
             try:
                 result = self.primary_store.is_transaction_active(transaction_id)
 
                 # Update status
-                self.store_status[self.primary_store] = StoreStatus.AVAILABLE
+                primary_state.mark_available()
 
                 return result
             except Exception as e:
                 self.logger.warning(f"Primary store failed: {e}")
-                self.last_errors[self.primary_store] = e
-                self.store_status[self.primary_store] = StoreStatus.DEGRADED
+                primary_state.mark_degraded(e)
 
         # Try fallback stores
         errors: dict[str, Exception] = {}
         for store in self.fallback_stores:
-            if self.store_status[store] != StoreStatus.UNAVAILABLE:
+            store_state = self._state_for(store)
+            if store_state.status != StoreStatus.UNAVAILABLE:
                 try:
                     result = store.is_transaction_active(transaction_id)
 
                     # Update status
-                    self.store_status[store] = StoreStatus.AVAILABLE
+                    store_state.mark_available()
 
                     return result
                 except Exception as e:
                     self.logger.warning(f"Fallback store failed: {e}")
-                    self.last_errors[store] = e
-                    self.store_status[store] = StoreStatus.DEGRADED
+                    store_state.mark_degraded(e)
                     errors[str(id(store))] = e
 
         # All stores failed
@@ -691,19 +799,20 @@ class FallbackStore(MemoryStore, SupportsTransactions):
             f"Reconciliation complete, {len(self.pending_operations)} operations remaining"
         )
 
-    def get_store_status(self) -> dict[str, str]:
-        """
-        Get the status of all stores.
+    def get_store_status(self) -> StoreStatusReport:
+        """Return a typed snapshot describing all managed stores."""
 
-        Returns:
-            Dictionary mapping store IDs to status strings
-        """
-        return {
-            "primary": self.store_status[self.primary_store].value,
-            "fallbacks": [
-                self.store_status[store].value for store in self.fallback_stores
-            ],
+        last_errors: dict[str, str | None] = {
+            self._resolve_store_name(store): (
+                str(state.last_error) if state.last_error is not None else None
+            )
+            for store, state in self._store_states.items()
         }
+        return StoreStatusReport(
+            primary=self._state_for(self.primary_store).status,
+            fallbacks=[self._state_for(store).status for store in self.fallback_stores],
+            last_errors=last_errors,
+        )
 
     def get_pending_operations_count(self) -> int:
         """

@@ -2,15 +2,30 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional, TypedDict
+from dataclasses import dataclass
+from typing import Optional, TypedDict
+
+from collections.abc import Mapping
 
 from ...logging_setup import DevSynthLogger
+from .dto import MemoryMetadataValue
 
 logger = DevSynthLogger(__name__)
+
+
+ErrorContext = dict[str, MemoryMetadataValue]
+"""Normalized error context payload."""
+
+
+def _coerce_context(
+    context: Mapping[str, MemoryMetadataValue] | None,
+) -> ErrorContext:
+    if context is None:
+        return {}
+    return {str(key): value for key, value in context.items()}
 
 
 @dataclass(slots=True)
@@ -22,9 +37,9 @@ class ErrorRecord:
     adapter_name: str
     error_type: str
     error_message: str
-    context: Dict[str, Any]
+    context: ErrorContext
 
-    def serialize(self) -> Dict[str, Any]:
+    def serialize(self) -> dict[str, object]:
         """Return a JSON-serializable mapping for persistence."""
 
         return {
@@ -41,9 +56,9 @@ class ErrorSummary(TypedDict):
     """Aggregate statistics describing captured memory errors."""
 
     total_errors: int
-    by_adapter: Dict[str, int]
-    by_operation: Dict[str, int]
-    by_error_type: Dict[str, int]
+    by_adapter: dict[str, int]
+    by_operation: dict[str, int]
+    by_error_type: dict[str, int]
 
 
 class MemoryErrorLogger:
@@ -56,7 +71,7 @@ class MemoryErrorLogger:
         persist_errors: bool = True,
     ) -> None:
         self.max_errors = max_errors
-        self.errors: List[ErrorRecord] = []
+        self.errors: list[ErrorRecord] = []
         self.persist_errors = persist_errors
 
         if log_dir is None:
@@ -73,7 +88,7 @@ class MemoryErrorLogger:
         operation: str,
         adapter_name: str,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
+        context: Mapping[str, MemoryMetadataValue] | None = None,
     ) -> ErrorRecord:
         """Log an error that occurred during a memory operation."""
 
@@ -83,7 +98,7 @@ class MemoryErrorLogger:
             adapter_name=adapter_name,
             error_type=type(error).__name__,
             error_message=str(error),
-            context=dict(context or {}),
+            context=_coerce_context(context),
         )
 
         self.errors.append(record)
@@ -121,10 +136,10 @@ class MemoryErrorLogger:
         adapter_name: Optional[str] = None,
         error_type: Optional[str] = None,
         limit: int = 10,
-    ) -> List[ErrorRecord]:
+    ) -> list[ErrorRecord]:
         """Get recent errors, optionally filtered by criteria."""
 
-        filtered = list(self.errors)
+        filtered: list[ErrorRecord] = list(self.errors)
 
         if operation is not None:
             filtered = [record for record in filtered if record.operation == operation]
@@ -153,9 +168,9 @@ class MemoryErrorLogger:
             }
             return summary
 
-        by_adapter: Dict[str, int] = {}
-        by_operation: Dict[str, int] = {}
-        by_error_type: Dict[str, int] = {}
+        by_adapter: dict[str, int] = {}
+        by_operation: dict[str, int] = {}
+        by_error_type: dict[str, int] = {}
 
         for record in self.errors:
             by_adapter[record.adapter_name] = by_adapter.get(record.adapter_name, 0) + 1
