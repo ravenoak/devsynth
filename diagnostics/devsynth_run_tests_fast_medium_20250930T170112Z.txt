@@ -1,3 +1,0 @@
-Command: PYTHONPATH=src DEVSYNTH_NO_FILE_LOGGING=1 poetry run python - <<PY (invoke devsynth.testing.run_tests with target="all-tests", speeds=["fast","medium"], report=True, parallel=False)
-collect_tests_with_cache called for target: all-tests, speed_category: fast
-Test collection failed: Traceback omitted; pytest reported 232 collection errors (missing optional services, unknown custom markers).
