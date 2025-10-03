@@ -3,10 +3,20 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
 
 from ...domain.models.memory import MemoryVector
-from .dto import MemoryRecord
+from .dto import MemoryRecord, VectorStoreStats
+
+if TYPE_CHECKING:  # pragma: no cover - typing-only imports
+    from numpy.typing import NDArray
+    import numpy as np
+
+    NumpyEmbedding: TypeAlias = NDArray[np.floating[Any]]
+else:  # pragma: no cover - runtime fallback
+    NumpyEmbedding: TypeAlias = Sequence[float]
+
+EmbeddingVector: TypeAlias = Sequence[float] | NumpyEmbedding
 
 
 class VectorStoreProtocol(Protocol):
@@ -19,12 +29,12 @@ class VectorStoreProtocol(Protocol):
         ...
 
     def similarity_search(
-        self, query_embedding: Sequence[float], top_k: int = 5
-    ) -> list[MemoryRecord] | list[MemoryVector]:
+        self, query_embedding: EmbeddingVector, top_k: int = 5
+    ) -> list[MemoryRecord]:
         ...
 
     def delete_vector(self, vector_id: str) -> bool:
         ...
 
-    def get_collection_stats(self) -> dict[str, Any]:
+    def get_collection_stats(self) -> VectorStoreStats:
         ...

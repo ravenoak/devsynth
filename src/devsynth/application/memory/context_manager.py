@@ -11,7 +11,7 @@ from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.memory import ContextManager, MemoryStore
 from ...domain.models.memory import MemoryItem, MemoryType
-from .dto import MemoryMetadata, MemoryMetadataValue
+from .dto import MemoryMetadata, MemoryMetadataValue, MemorySearchQuery
 
 logger = DevSynthLogger(__name__)
 
@@ -39,7 +39,9 @@ class InMemoryStore(MemoryStore):
         """Retrieve an item from memory by ID."""
         return self.items.get(item_id)
 
-    def search(self, query: MemoryMetadata) -> list[MemoryItem]:
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> list[MemoryItem]:
         """Search for items in memory matching the query."""
         result = []
         for item in self.items.values():
@@ -127,7 +129,7 @@ class InMemoryStore(MemoryStore):
         return True
 
 
-ContextValue = (
+ContextValue: TypeAlias = (
     MemoryMetadataValue
     | MemoryItem
     | list[MemoryItem]

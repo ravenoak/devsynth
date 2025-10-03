@@ -19,8 +19,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from collections.abc import Mapping
-from typing import Iterable, MutableMapping, Sequence, TypedDict, TypeAlias
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
+from typing import TYPE_CHECKING, TypedDict, TypeAlias, cast
 
 from typing_extensions import NotRequired
 
@@ -46,7 +46,14 @@ MemoryMetadata: TypeAlias = Mapping[str, MemoryMetadataValue]
 """Normalized metadata mapping carried alongside memory artefacts."""
 
 
-MemorySearchQuery: TypeAlias = Mapping[str, object]
+MemoryQueryValue: TypeAlias = (
+    MemoryMetadataValue
+    | Sequence[MemoryMetadataValue]
+    | Mapping[str, MemoryMetadataValue]
+)
+"""Supported value types accepted by structured memory search queries."""
+
+MemorySearchQuery: TypeAlias = Mapping[str, MemoryQueryValue]
 """Normalized query mapping accepted by memory search adapters."""
 
 
@@ -81,13 +88,13 @@ class MemoryRecord:
         return self.item.id
 
     @property
-    def content(self) -> object:
-        """Return the wrapped item's content."""
+    def content(self) -> MemoryMetadataValue:
+        """Return the wrapped item's content using metadata-compatible types."""
 
-        return self.item.content
+        return cast(MemoryMetadataValue, self.item.content)
 
     @property
-    def memory_type(self) -> object:
+    def memory_type(self) -> MemoryType:
         """Return the wrapped item's memory type."""
 
         return self.item.memory_type
@@ -146,18 +153,20 @@ class VectorStoreStats(TypedDict, total=False):
 
 
 # Delayed import to avoid circular dependencies during runtime initialization.
-from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:  # pragma: no cover - type checking only
-    from devsynth.domain.models.memory import MemoryItem, MemoryVector
+    from devsynth.domain.models.memory import MemoryVector
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+
+LegacyRecordMapping: TypeAlias = Mapping[str, object]
+LegacyRecordTuple: TypeAlias = tuple[MemoryRecord | MemoryItem | "MemoryVector" | LegacyRecordMapping, float | int | None]
 
 MemoryRecordInput: TypeAlias = (
     MemoryRecord
     | MemoryItem
     | MemoryVector
-    | tuple[object, float]
+    | LegacyRecordMapping
+    | LegacyRecordTuple
     | None
 )
 
@@ -171,6 +180,102 @@ def _normalize_metadata(*payloads: MemoryMetadata | None) -> MemoryMetadata | No
     return merged if merged else None
 
 
+def _coerce_metadata_value(value: object) -> MemoryMetadataValue:
+    """Normalize arbitrary payloads into ``MemoryMetadataValue`` instances."""
+
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, Mapping):
+        return {
+            str(key): _coerce_metadata_value(inner_value)
+            for key, inner_value in value.items()
+        }
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return [_coerce_metadata_value(inner) for inner in value]
+    return str(value)
+
+
+def _coerce_metadata(payload: object) -> MemoryMetadata | None:
+    if not isinstance(payload, Mapping):
+        return None
+    normalized: dict[str, MemoryMetadataValue] = {}
+    for key, value in payload.items():
+        if not isinstance(key, str):
+            normalized[str(key)] = _coerce_metadata_value(value)
+        else:
+            normalized[key] = _coerce_metadata_value(value)
+    return normalized
+
+
+def _coerce_created_at(value: object) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:  # pragma: no cover - defensive guard
+            return None
+    return None
+
+
+def _coerce_similarity(*values: object) -> float | None:
+    for candidate in values:
+        if isinstance(candidate, (int, float)):
+            return float(candidate)
+        if isinstance(candidate, str):
+            try:
+                return float(candidate)
+            except ValueError:  # pragma: no cover - defensive guard
+                continue
+    return None
+
+
+def _coerce_memory_type(value: object, fallback: MemoryType = MemoryType.CONTEXT) -> MemoryType:
+    try:
+        return MemoryType.from_raw(value)
+    except ValueError:
+        return fallback
+
+
+def _memory_item_from_vector(vector: MemoryVector) -> MemoryItem:
+    vector_metadata = {
+        key: _coerce_metadata_value(value)
+        for key, value in (vector.metadata or {}).items()
+    }
+    raw_type = vector_metadata.get("memory_type")
+    memory_type = _coerce_memory_type(raw_type) if raw_type is not None else MemoryType.CONTEXT
+    vector_metadata["memory_type"] = memory_type.value
+    vector_metadata.setdefault("embedding", list(vector.embedding))
+    return MemoryItem(
+        id=vector.id,
+        content=vector.content,
+        memory_type=memory_type,
+        metadata=vector_metadata,
+        created_at=vector.created_at,
+    )
+
+
+def _memory_item_from_mapping(payload: LegacyRecordMapping) -> tuple[MemoryItem, MemoryMetadata | None]:
+    if "item" in payload and isinstance(payload["item"], MemoryItem):
+        item = payload["item"]
+        return item, item.metadata
+
+    raw_type = payload.get("memory_type", MemoryType.CONTEXT)
+    memory_type = _coerce_memory_type(raw_type)
+    metadata_payload = _coerce_metadata(payload.get("metadata"))
+    created_at = _coerce_created_at(payload.get("created_at"))
+    item = MemoryItem(
+        id=str(payload.get("id", "")),
+        content=payload.get("content"),
+        memory_type=memory_type,
+        metadata=metadata_payload,
+        created_at=created_at,
+    )
+    return item, metadata_payload
+
+
 def build_memory_record(
     payload: MemoryRecordInput,
     *,
@@ -180,6 +285,8 @@ def build_memory_record(
 ) -> MemoryRecord:
     """Coerce adapter payloads into :class:`MemoryRecord` instances."""
 
+    record_source = source
+
     if payload is None:
         item = MemoryItem(id="", content="", memory_type=MemoryType.CONTEXT)
         base_similarity = None
@@ -188,62 +295,41 @@ def build_memory_record(
         base_similarity = payload.similarity
         base_metadata = payload.metadata
         item = payload.item
+        if record_source is None:
+            record_source = payload.source
     else:
         tuple_similarity: float | None = None
-        underlying = payload
+        underlying: object = payload
         if isinstance(payload, tuple) and len(payload) == 2:
-            possible_item, possible_score = payload
-            if isinstance(possible_score, (int, float)):
-                underlying = possible_item
-                tuple_similarity = float(possible_score)
+            candidate, candidate_score = payload
+            tuple_similarity = _coerce_similarity(candidate_score)
+            underlying = candidate
+        base_metadata = None
         if isinstance(underlying, MemoryItem):
             item = underlying
+            base_metadata = underlying.metadata
         elif isinstance(underlying, MemoryVector):
-            vector_metadata = dict(underlying.metadata or {})
-            raw_type = vector_metadata.get("memory_type")
-            try:
-                memory_type = (
-                    MemoryType.from_raw(raw_type)
-                    if raw_type is not None
-                    else MemoryType.CONTEXT
+            item = _memory_item_from_vector(underlying)
+            base_metadata = item.metadata
+        elif isinstance(underlying, Mapping):
+            mapping = cast(LegacyRecordMapping, underlying)
+            item, base_metadata = _memory_item_from_mapping(mapping)
+            if record_source is None:
+                raw_source = mapping.get("source")
+                record_source = raw_source if isinstance(raw_source, str) else None
+            if tuple_similarity is None:
+                tuple_similarity = _coerce_similarity(
+                    mapping.get("similarity"), mapping.get("score")
                 )
-            except ValueError:
-                memory_type = MemoryType.CONTEXT
-            vector_metadata["memory_type"] = memory_type.value
-            vector_metadata.setdefault("embedding", list(underlying.embedding))
-            item = MemoryItem(
-                id=underlying.id,
-                content=underlying.content,
-                memory_type=memory_type,
-                metadata=vector_metadata,
-                created_at=underlying.created_at,
-            )
-        else:
-            if hasattr(underlying, "get"):
-                mapping = dict(underlying)  # type: ignore[arg-type]
-                raw_type = mapping.get("memory_type", MemoryType.CONTEXT)
-                try:
-                    memory_type = MemoryType.from_raw(raw_type)
-                except ValueError:
-                    memory_type = MemoryType.CONTEXT
-                item = MemoryItem(
-                    id=mapping.get("id", ""),
-                    content=mapping.get("content"),
-                    memory_type=memory_type,
-                    metadata=mapping.get("metadata"),
-                )
-                base_metadata = mapping.get("metadata")
-            else:  # pragma: no cover - defensive fallback for unexpected payloads
-                item = MemoryItem(id="", content=underlying, memory_type=MemoryType.CONTEXT)
+            if base_metadata is None and "metadata" in mapping:
+                base_metadata = _coerce_metadata(mapping.get("metadata"))
+        else:  # pragma: no cover - defensive fallback for unexpected payloads
+            item = MemoryItem(id="", content=underlying, memory_type=MemoryType.CONTEXT)
+            base_metadata = item.metadata
         base_similarity = tuple_similarity
-        base_metadata = getattr(item, "metadata", None)
 
     merged_similarity = similarity if similarity is not None else base_similarity
     merged_metadata = _normalize_metadata(base_metadata, metadata)
-
-    record_source = source
-    if record_source is None and isinstance(payload, MemoryRecord):
-        record_source = payload.source
 
     return MemoryRecord(
         item=item,
@@ -255,7 +341,7 @@ def build_memory_record(
 
 def build_query_results(
     store: str,
-    payload: MemoryQueryResults | Sequence[object] | object | None,
+    payload: MemoryQueryResults | Sequence[MemoryRecordInput] | MemoryRecordInput | None,
     *,
     metadata: MemoryMetadata | None = None,
 ) -> MemoryQueryResults:
@@ -281,7 +367,7 @@ def build_query_results(
     normalized_records: list[MemoryRecord]
     if payload is None:
         normalized_records = []
-    elif isinstance(payload, Sequence) and not isinstance(payload, (str, bytes)):
+    elif isinstance(payload, Sequence) and not isinstance(payload, (str, bytes, bytearray)):
         normalized_records = [
             build_memory_record(item, source=store) for item in payload
         ]

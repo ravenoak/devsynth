@@ -14,6 +14,7 @@ from devsynth.application.memory.metadata_serialization import (
     row_from_record,
     to_serializable,
 )
+from devsynth.domain.models.memory import MemoryType
 
 
 @pytest.mark.fast
@@ -47,6 +48,7 @@ def test_record_round_trip_preserves_metadata() -> None:
     assert restored.source == "vector-store"
     assert restored.similarity == pytest.approx(0.91)
     assert restored.item.id == "rec-1"
+    assert restored.memory_type is MemoryType.CONTEXT
     assert restored.item.metadata["timestamp"] == nested_metadata["timestamp"]
     assert restored.item.metadata["nested"]["entries"][0]["seen_at"] == nested_metadata["nested"]["entries"][0]["seen_at"]
 
@@ -77,6 +79,7 @@ def test_record_from_row_handles_stringified_metadata() -> None:
 
     assert restored.source == "duckdb"
     assert restored.similarity == pytest.approx(0.42)
+    assert restored.memory_type is MemoryType.CONTEXT
     assert restored.item.metadata["level"] == 3
     assert restored.item.metadata["expires_at"] == datetime(2024, 5, 6, 7, 8, 9)
 
@@ -118,5 +121,30 @@ def test_query_results_from_rows_shapes_records() -> None:
 
     primary_record, secondary_record = results["records"]
     assert primary_record.source == "primary"
+    assert primary_record.memory_type is MemoryType.CONTEXT
     assert secondary_record.source == "secondary"
     assert secondary_record.similarity == pytest.approx(0.33)
+    assert secondary_record.memory_type is MemoryType.CONTEXT
+
+
+@pytest.mark.fast
+def test_build_memory_record_coerces_legacy_mapping() -> None:
+    """Legacy mapping payloads should coerce into typed ``MemoryRecord`` values."""
+
+    record = build_memory_record(
+        {
+            "id": "legacy-1",
+            "content": {"message": "hello"},
+            "memory_type": "knowledge",
+            "metadata": {"level": "3"},
+            "score": "0.75",
+            "source": "legacy-store",
+        }
+    )
+
+    assert record.item.id == "legacy-1"
+    assert record.memory_type is MemoryType.KNOWLEDGE
+    assert record.similarity == pytest.approx(0.75)
+    assert record.source == "legacy-store"
+    assert record.metadata is not None
+    assert record.metadata["level"] == "3"

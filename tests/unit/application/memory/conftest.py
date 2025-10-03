@@ -43,6 +43,8 @@ from devsynth.application.memory.dto import (
     VectorStoreStats,
     build_memory_record,
 )
+from devsynth.application.memory.context_manager import ContextState, ContextValue
+from devsynth.application.memory.vector_protocol import EmbeddingVector
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from typing_extensions import Protocol
 
@@ -65,7 +67,15 @@ def _install_stub(module_name: str, factory: Callable[[], T_Module]) -> T_Module
 class MemoryRecordFactory(Protocol):
     def __call__(
         self,
-        payload: MemoryRecord | MemoryItem | MemoryVector | tuple[object, float] | None,
+        payload: MemoryRecord
+        | MemoryItem
+        | MemoryVector
+        | Mapping[str, object]
+        | tuple[
+            MemoryRecord | MemoryItem | MemoryVector | Mapping[str, object],
+            float | int | None,
+        ]
+        | None,
         *,
         source: str | None = ...,
         similarity: float | None = ...,
@@ -789,19 +799,19 @@ else:
         def retrieve_vector(self, vector_id: str) -> MemoryVector | MemoryRecord | None: ...
 
         def similarity_search(
-            self, query_embedding: Sequence[float], top_k: int = 5
+            self, query_embedding: EmbeddingVector, top_k: int = 5
         ) -> list[MemoryRecord]: ...
 
         def delete_vector(self, vector_id: str) -> bool: ...
 
-        def get_collection_stats(self) -> dict[str, Any]: ...
+        def get_collection_stats(self) -> VectorStoreStats: ...
 
     class ContextManager(Protocol):
-        def add_to_context(self, key: str, value: Any) -> None: ...
+        def add_to_context(self, key: str, value: ContextValue) -> None: ...
 
-        def get_from_context(self, key: str) -> Any | None: ...
+        def get_from_context(self, key: str) -> ContextValue | None: ...
 
-        def get_full_context(self) -> dict[str, Any]: ...
+        def get_full_context(self) -> ContextState: ...
 
         def clear_context(self) -> None: ...
 
@@ -825,7 +835,9 @@ class ProtocolCompliantMemoryStore(MemoryStore):
     def retrieve(self, item_id: str) -> MemoryRecord | None:
         return self._records.get(item_id)
 
-    def search(self, query: dict[str, Any] | MemoryMetadata) -> list[MemoryRecord]:
+    def search(
+        self, query: MemorySearchQuery | MemoryMetadata
+    ) -> list[MemoryRecord]:
         return list(self._records.values())
 
     def delete(self, item_id: str) -> bool:
