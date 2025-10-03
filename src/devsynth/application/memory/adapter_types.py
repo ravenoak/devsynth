@@ -8,12 +8,18 @@ from typing import Protocol, TypeAlias, runtime_checkable
 from ...domain.interfaces.memory import MemoryStore
 from ...domain.models.memory import MemoryItem, MemoryType
 from .dto import (
+    MemoryMetadata,
     MemoryMetadataValue,
     MemoryQueryResults,
     MemoryRecord,
     MemorySearchQuery,
 )
 from .vector_protocol import VectorStoreProtocol
+
+StructuredQueryRow: TypeAlias = Mapping[
+    str,
+    MemoryMetadataValue | Sequence[MemoryMetadataValue] | MemoryItem | MemoryMetadata,
+]
 
 
 @runtime_checkable
@@ -22,7 +28,7 @@ class SupportsStructuredQuery(Protocol):
 
     def query_structured_data(
         self, query: MemorySearchQuery
-    ) -> Sequence[Mapping[str, object]] | MemoryQueryResults:
+    ) -> Sequence[StructuredQueryRow] | MemoryQueryResults:
         """Return structured query results for ``query``."""
 
 
@@ -34,7 +40,7 @@ class SupportsEdrrRetrieval(Protocol):
         self,
         item_type: MemoryType,
         edrr_phase: str,
-        metadata: Mapping[str, MemoryMetadataValue],
+        metadata: MemoryMetadata,
     ) -> MemoryItem | MemoryRecord | None:
         """Return a memory artefact tagged with ``edrr_phase``."""
 
@@ -58,6 +64,7 @@ AdapterRegistry: TypeAlias = dict[str, MemoryAdapter]
 __all__ = [
     "AdapterRegistry",
     "MemoryAdapter",
+    "StructuredQueryRow",
     "SupportsStructuredQuery",
     "SupportsEdrrRetrieval",
     "SupportsGraphQueries",
