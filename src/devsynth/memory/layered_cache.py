@@ -7,52 +7,70 @@ derivations.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List
+from typing import Dict, Generic, Iterable, List, Protocol, TypeVar, runtime_checkable
+
+
+T_co = TypeVar("T_co", covariant=True)
+T = TypeVar("T")
+
+
+@runtime_checkable
+class CacheLayerProtocol(Protocol[T_co]):
+    """Protocol capturing the minimal cache layer interface."""
+
+    def get(self, key: str) -> T_co:  # pragma: no cover - protocol
+        ...
+
+    def set(self, key: str, value: T_co) -> None:  # pragma: no cover - protocol
+        ...
+
+    def contains(self, key: str) -> bool:  # pragma: no cover - protocol
+        ...
 
 
 @dataclass
-class DictCacheLayer:
+class DictCacheLayer(Generic[T]):
     """Simple dictionary-backed cache layer."""
 
-    store: Dict[str, Any] = field(default_factory=dict)
+    store: Dict[str, T] = field(default_factory=dict)
 
-    def get(self, key: str) -> Any:
+    def get(self, key: str) -> T:
         return self.store[key]
 
-    def set(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: T) -> None:
         self.store[key] = value
 
     def contains(self, key: str) -> bool:
         return key in self.store
 
     # Read/write aliases for interface parity. ReqID: memory-adapter-read-and-write-operations
-    def read(self, key: str) -> Any:
+    def read(self, key: str) -> T:
         return self.get(key)
 
-    def write(self, key: str, value: Any) -> None:
+    def write(self, key: str, value: T) -> None:
         self.set(key, value)
 
 
-class MultiLayeredMemory:
+class MultiLayeredMemory(Generic[T]):
     """Orchestrates multiple cache layers with promotion and statistics."""
 
-    def __init__(self, layers: Iterable[DictCacheLayer]):
-        self.layers: List[DictCacheLayer] = list(layers)
+    def __init__(self, layers: Iterable[CacheLayerProtocol[T]]):
+        self.layers: List[CacheLayerProtocol[T]] = list(layers)
         if not self.layers:
             raise ValueError("At least one cache layer is required")
         self._accesses = 0
         self._hits: List[int] = [0 for _ in self.layers]
 
-    def set(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: T) -> None:
         """Write-through to all cache layers."""
         for layer in self.layers:
             layer.set(key, value)
 
     # Maintain a conventional API alongside ``set``/``get``. ReqID: memory-adapter-read-and-write-operations
-    def write(self, key: str, value: Any) -> None:
+    def write(self, key: str, value: T) -> None:
         self.set(key, value)
 
-    def get(self, key: str) -> Any:
+    def get(self, key: str) -> T:
         """Retrieve ``key`` promoting values up the hierarchy."""
         self._accesses += 1
         for idx, layer in enumerate(self.layers):
@@ -64,7 +82,7 @@ class MultiLayeredMemory:
                 return value
         raise KeyError(key)
 
-    def read(self, key: str) -> Any:
+    def read(self, key: str) -> T:
         return self.get(key)
 
     def hit_ratio(self, layer: int | None = None) -> float:

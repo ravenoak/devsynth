@@ -10,21 +10,21 @@ transaction rollbacks can restore consistent snapshots.
 from __future__ import annotations
 
 import asyncio
-import time
 import uuid
 from contextlib import AbstractContextManager, contextmanager
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
+from types import TracebackType
 from threading import Lock
-from typing import TYPE_CHECKING, Any, ContextManager, Optional, cast
+from typing import TYPE_CHECKING, Protocol, TypedDict, cast
 
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 
 try:  # pragma: no cover - optional dependencies
-    from .lmdb_store import LMDBStore
+    from .lmdb_store import LMDBStore as LMDBStoreRuntime
 except Exception:  # pragma: no cover - optional dependency
-    LMDBStore = None
+    LMDBStoreRuntime = None
 
 from ...domain.models.memory import MemoryItem, MemoryVector
 from ...logging_setup import DevSynthLogger
@@ -42,9 +42,56 @@ from .transaction_context import AdapterSnapshot
 
 if TYPE_CHECKING:
     from .memory_manager import MemoryManager
+    from .lmdb_store import LMDBStore as LMDBStoreType
+else:
+    LMDBStoreType = object
 
 
-TransactionContextManager = ContextManager[object]
+class TransactionContextProtocol(Protocol):
+    """Protocol representing transaction context managers."""
+
+    def __enter__(self) -> object:  # pragma: no cover - protocol
+        ...
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> bool:  # pragma: no cover - protocol
+        ...
+
+
+TransactionContextManager = TransactionContextProtocol
+
+
+class QueuedUpdate(TypedDict):
+    """Structured payload for queued synchronization work."""
+
+    store: str
+    record: MemoryRecord
+    transaction_id: str | None
+
+
+class ConflictRecord(TypedDict):
+    """Normalized entry describing a conflict resolution decision."""
+
+    id: str
+    existing: MemoryItem
+    incoming: MemoryItem
+    chosen: MemoryItem
+    timestamp: datetime
+
+
+@dataclass(slots=True)
+class SyncStats:
+    """Summary counters for synchronization activity."""
+
+    synchronized: int = 0
+    conflicts: int = 0
+
+    def as_dict(self) -> dict[str, int]:
+        return {"synchronized": self.synchronized, "conflicts": self.conflicts}
 
 
 @dataclass(slots=True)
@@ -65,11 +112,14 @@ class DummyTransactionContext(AbstractContextManager[object]):
     but don't return a context manager.
     """
 
-    def __init__(self, adapter: Any, transaction_id: str = None):
+    def __init__(
+        self, adapter: MemoryAdapter, transaction_id: str | None = None
+    ) -> None:
         self.adapter = adapter
-        self.transaction_id = transaction_id or str(uuid.uuid4())
+        self.transaction_id: str = transaction_id or str(uuid.uuid4())
         self.committed = False
         self.rolled_back = False
+        self.context: TransactionContextProtocol | None = None
 
     def __enter__(self) -> object:
         """Begin the transaction."""
@@ -85,7 +135,7 @@ class DummyTransactionContext(AbstractContextManager[object]):
 
             # If begin_transaction returns a context manager, use it
             if hasattr(result, "__enter__") and hasattr(result, "__exit__"):
-                self.context = cast(AbstractContextManager[object], result)
+                self.context = cast(TransactionContextProtocol, result)
                 return self.context.__enter__()
             # Otherwise, just return the result
             return result
@@ -95,10 +145,10 @@ class DummyTransactionContext(AbstractContextManager[object]):
         self,
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
-        exc_tb,
+        exc_tb: TracebackType | None,
     ) -> bool:
         """Commit or roll back the transaction."""
-        if hasattr(self, "context"):
+        if self.context is not None:
             return self.context.__exit__(exc_type, exc_val, exc_tb)
 
         if exc_type is None:
@@ -120,15 +170,15 @@ logger = DevSynthLogger(__name__)
 class LMDBTransactionContext(AbstractContextManager[object]):
     """Transaction context for :class:`LMDBStore`."""
 
-    def __init__(self, adapter: Any) -> None:
+    def __init__(self, adapter: "LMDBStoreType") -> None:
         self.adapter = adapter
-        self._context = None
+        self._context: TransactionContextProtocol | None = None
 
     def __enter__(self) -> object:
         ctx = self.adapter.begin_transaction()
         if hasattr(ctx, "__enter__"):
-            self._context = cast(AbstractContextManager[object], ctx)
-            return ctx.__enter__()
+            self._context = cast(TransactionContextProtocol, ctx)
+            return self._context.__enter__()
         self._context = None
         return ctx
 
@@ -136,9 +186,9 @@ class LMDBTransactionContext(AbstractContextManager[object]):
         self,
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
-        exc_tb,
+        exc_tb: TracebackType | None,
     ) -> bool:
-        if self._context and hasattr(self._context, "__exit__"):
+        if self._context is not None:
             return self._context.__exit__(exc_type, exc_val, exc_tb)
         return False
 
@@ -154,13 +204,13 @@ class SyncManager:
         async_mode: bool = False,
     ) -> None:
         self.memory_manager = memory_manager
-        self._queue: list[tuple[str, MemoryRecord]] = []
+        self._queue: list[QueuedUpdate] = []
         self._queue_lock = Lock()
         self.cache: TieredCache[GroupedMemoryResults] = TieredCache(
             max_size=cache_size
         )
-        self.conflict_log: list[dict[str, Any]] = []
-        self.stats: dict[str, int] = {"synchronized": 0, "conflicts": 0}
+        self.conflict_log: list[ConflictRecord] = []
+        self.stats = SyncStats()
         self._async_tasks: list[asyncio.Task[None]] = []
         self.async_mode = async_mode
         # Dictionary to store active transactions
@@ -201,8 +251,8 @@ class SyncManager:
     ) -> TransactionContextManager | None:
         """Return an adapter-specific transaction context if supported."""
 
-        if LMDBStore and isinstance(adapter, LMDBStore):
-            return LMDBTransactionContext(adapter)
+        if LMDBStoreRuntime is not None and isinstance(adapter, LMDBStoreRuntime):
+            return LMDBTransactionContext(cast(LMDBStoreType, adapter))
         if hasattr(adapter, "begin_transaction") or hasattr(adapter, "transaction"):
             return DummyTransactionContext(adapter, transaction_id)
         return None
@@ -221,24 +271,25 @@ class SyncManager:
     ) -> MemoryItem:
         """Resolve a conflict by choosing the newest item."""
 
-        winner = incoming if incoming.created_at >= existing.created_at else existing
-        self.conflict_log.append(
-            {
-                "id": existing.id,
-                "existing": existing,
-                "incoming": incoming,
-                "chosen": winner,
-                "timestamp": datetime.now(),
-            }
-        )
-        self.stats["conflicts"] += 1
+        existing_created = existing.created_at or datetime.min
+        incoming_created = incoming.created_at or datetime.min
+        winner = incoming if incoming_created >= existing_created else existing
+        record: ConflictRecord = {
+            "id": existing.id,
+            "existing": existing,
+            "incoming": incoming,
+            "chosen": winner,
+            "timestamp": datetime.now(),
+        }
+        self.conflict_log.append(record)
+        self.stats.conflicts += 1
         return winner
 
     def _copy_item(self, item: MemoryItem) -> MemoryItem:
         return deepcopy(item)
 
     # ------------------------------------------------------------------
-    def _adapter_label(self, adapter: Any, default: str) -> str:
+    def _adapter_label(self, adapter: MemoryAdapter, default: str) -> str:
         """Return a human readable label for ``adapter``.
 
         Adapters may expose a ``name`` attribute.  When absent we fall back to
@@ -492,18 +543,28 @@ class SyncManager:
         # Synchronize memory items
         source_label = self._adapter_label(source_adapter, "source")
         for item in self._get_all_items(source_adapter, store_name=source_label):
-            to_store = item
-            existing = None
+            to_store: MemoryItem = item
+            existing_record: MemoryRecord | None = None
             if hasattr(target_adapter, "retrieve"):
-                existing = target_adapter.retrieve(item.id)
-            if existing and self._detect_conflict(existing, item):
-                to_store = self._resolve_conflict(existing, item)
+                existing_raw = target_adapter.retrieve(item.id)
+                if existing_raw is not None:
+                    existing_record = self._build_record(existing_raw, source=source_label)
+            if existing_record is not None and self._detect_conflict(
+                existing_record.item, item
+            ):
+                to_store = self._resolve_conflict(existing_record.item, item)
+            elif existing_record is not None:
+                to_store = existing_record.item
             if hasattr(target_adapter, "store"):
                 target_adapter.store(to_store)
                 count += 1
-                self.stats["synchronized"] += 1
-            if existing and to_store is existing and hasattr(source_adapter, "store"):
-                source_adapter.store(existing)
+                self.stats.synchronized += 1
+            if (
+                existing_record is not None
+                and to_store is existing_record.item
+                and hasattr(source_adapter, "store")
+            ):
+                source_adapter.store(existing_record.item)
 
         # Synchronize vectors
         for vector in self._get_all_vectors(source_adapter):
@@ -513,7 +574,7 @@ class SyncManager:
             if existing_vec is None and hasattr(target_adapter, "store_vector"):
                 target_adapter.store_vector(vector)
                 count += 1
-                self.stats["synchronized"] += 1
+                self.stats.synchronized += 1
 
         return count
 
@@ -601,7 +662,7 @@ class SyncManager:
         """
 
         adapter = self.memory_manager.adapters.get(store)
-        if not adapter:
+        if adapter is None:
             return False
 
         record = self._build_record(item, source=store)
@@ -612,12 +673,12 @@ class SyncManager:
         for name, other in self.memory_manager.adapters.items():
             if name == store or not hasattr(other, "store"):
                 continue
-            existing: Any = None
+            existing: MemoryRecordInput | None = None
             existing_record: MemoryRecord | None = None
             if hasattr(other, "retrieve"):
                 existing = other.retrieve(primary_item.id)
             to_store = primary_item
-            if existing:
+            if existing is not None:
                 existing_record = self._build_record(existing, source=name)
                 if self._detect_conflict(existing_record.item, primary_item):
                     to_store = self._resolve_conflict(
@@ -627,13 +688,13 @@ class SyncManager:
                     to_store = existing_record.item
             other.store(to_store)
             if (
-                existing
+                existing is not None
                 and existing_record is not None
                 and to_store is existing_record.item
                 and hasattr(adapter, "store")
             ):
                 adapter.store(existing_record.item)
-        self.stats["synchronized"] += 1
+        self.stats.synchronized += 1
         try:
             self.memory_manager._notify_sync_hooks(primary_item)
         except Exception as exc:
@@ -643,7 +704,13 @@ class SyncManager:
         self.clear_cache()
         return True
 
-    def queue_update(self, store: str, item: MemoryItem | MemoryRecord) -> None:
+    def queue_update(
+        self,
+        store: str,
+        item: MemoryItem | MemoryRecord,
+        *,
+        transaction_id: str | None = None,
+    ) -> None:
         """Queue an update for asynchronous propagation.
 
         The update is coerced into a :class:`MemoryRecord` immediately so the
@@ -652,8 +719,13 @@ class SyncManager:
         """
 
         record = self._build_record(item, source=store)
+        entry: QueuedUpdate = {
+            "store": store,
+            "record": record,
+            "transaction_id": transaction_id,
+        }
         with self._queue_lock:
-            self._queue.append((store, record))
+            self._queue.append(entry)
         if self.async_mode:
             self.schedule_flush()
         try:
@@ -674,8 +746,8 @@ class SyncManager:
             with self._queue_lock:
                 if not self._queue:
                     break
-                store, record = self._queue.pop(0)
-            self.update_item(store, record)
+                entry = self._queue.pop(0)
+            self.update_item(entry["store"], entry["record"])
         with self._queue_lock:
             self._queue = []
         try:
@@ -692,8 +764,8 @@ class SyncManager:
             with self._queue_lock:
                 if not self._queue:
                     break
-                store, record = self._queue.pop(0)
-            self.update_item(store, record)
+                entry = self._queue.pop(0)
+            self.update_item(entry["store"], entry["record"])
             await asyncio.sleep(0)
         with self._queue_lock:
             self._queue = []
@@ -718,7 +790,7 @@ class SyncManager:
             self._async_tasks = []
 
     def cross_store_query(
-        self, query: str, stores: Optional[list[str]] = None
+        self, query: str, stores: list[str] | None = None
     ) -> GroupedMemoryResults:
         """Query multiple stores and cache normalized DTO results.
 
@@ -734,10 +806,10 @@ class SyncManager:
         if cached is not None:
             return cached
 
-        stores = stores or list(self.memory_manager.adapters.keys())
+        target_stores = stores or list(self.memory_manager.adapters.keys())
         grouped: GroupedMemoryResults = {"by_store": {}, "query": query}
         combined: list[MemoryRecord] = []
-        for name in stores:
+        for name in target_stores:
             adapter = self.memory_manager.adapters.get(name)
             if adapter is None:
                 continue
@@ -767,7 +839,7 @@ class SyncManager:
         return grouped
 
     async def cross_store_query_async(
-        self, query: str, stores: Optional[list[str]] = None
+        self, query: str, stores: list[str] | None = None
     ) -> GroupedMemoryResults:
         """Asynchronously query multiple stores and cache normalized results."""
 
@@ -777,9 +849,9 @@ class SyncManager:
         if cached is not None:
             return cached
 
-        stores = stores or list(self.memory_manager.adapters.keys())
+        target_stores = stores or list(self.memory_manager.adapters.keys())
 
-        async def _query(name: str) -> tuple[str, str, list[Any]]:
+        async def _query(name: str) -> tuple[str, str, Iterable[MemoryRecordInput]]:
             adapter = self.memory_manager.adapters.get(name)
             if adapter is None:
                 return name, name, []
@@ -796,10 +868,17 @@ class SyncManager:
                 return name, label, result
             if hasattr(adapter, "search"):
                 result = await asyncio.to_thread(adapter.search, {"content": query})
-                return name, label, result
+                if isinstance(result, Sequence) and not isinstance(
+                    result, (str, bytes)
+                ):
+                    return name, label, list(result)
+                if isinstance(result, Mapping):
+                    records = result.get("records") or result.get("combined") or []
+                    return name, label, cast(Iterable[MemoryRecordInput], records)
+                return name, label, []
             return name, label, []
 
-        pairs = await asyncio.gather(*(_query(name) for name in stores))
+        pairs = await asyncio.gather(*(_query(name) for name in target_stores))
         grouped: GroupedMemoryResults = {"by_store": {}, "query": query}
         combined: list[MemoryRecord] = []
         for _, label, raw_items in pairs:
@@ -825,7 +904,7 @@ class SyncManager:
     def get_sync_stats(self) -> dict[str, int]:
         """Return statistics about synchronization operations."""
 
-        return dict(self.stats)
+        return self.stats.as_dict()
 
     # ------------------------------------------------------------------
     # Explicit transaction methods to support peer review workflow
