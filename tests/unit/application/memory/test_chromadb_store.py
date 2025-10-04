@@ -1,7 +1,12 @@
 import uuid
 
-import chromadb
 import pytest
+
+chromadb = pytest.importorskip(
+    "chromadb", reason="ChromaDB optional backend is required for these tests"
+)
+
+pytestmark = [pytest.mark.requires_resource("chromadb"), pytest.mark.fast]
 
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.application.memory.dto import MemoryRecord
@@ -22,8 +27,6 @@ class _TestableChromaDBStore(ChromaDBStore):
         return False
 
 
-@pytest.mark.requires_resource("chromadb")
-@pytest.mark.fast
 def test_store_and_retrieve_with_fallback(monkeypatch, tmp_path):
     """Store and retrieve items using fallback storage. ReqID: N/A"""
     class FailingClient:

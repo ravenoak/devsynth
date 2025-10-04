@@ -15,9 +15,6 @@ from .webui_steps import webui_context
 # These steps exercise both CLI and WebUI flows for requirements gathering
 
 
-pytest_plugins = ["tests.fixtures.webui_test_utils"]
-
-
 class DummyBridge(UXBridge):
     def __init__(self, answers: Sequence[str]):
         self.answers = list(answers)

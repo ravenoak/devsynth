@@ -5,9 +5,6 @@ import pytest
 from tests import conftest as root_conftest
 
 
-pytest_plugins = ["tests.fixtures.webui_bridge_stub"]
-
-
 @pytest.fixture
 def force_webui_available(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure WebUI-gated tests run against the lightweight stub configuration."""

@@ -11,11 +11,6 @@ from pytest_bdd import given, parsers, then, when
 
 from devsynth.interface import webui_bridge
 
-pytest_plugins = [
-    "tests.fixtures.webui_bridge_stub",
-    "tests.fixtures.webui_test_utils",
-]
-
 import tests.fixtures.webui_test_utils as webui_test_utils_module
 from tests.fixtures.webui_test_utils import webui_context  # noqa: F401
 from tests.fixtures.webui_bridge_stub import install_streamlit_stub

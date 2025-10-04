@@ -1,4 +1,3 @@
-pytest_plugins = ["tests.fixtures.ports"]
 import pytest
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
