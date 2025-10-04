@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 from types import SimpleNamespace
 
@@ -139,6 +140,42 @@ def test_retry_decorator_uses_provider_config(monkeypatch, provider_module):
     assert captured["max_retries"] == 1
     assert captured["initial_delay"] == 0.1
     assert captured["exponential_base"] == 2.0
+    assert captured["track_metrics"] is True
+    assert captured["on_retry"] == base._emit_retry_telemetry
+
+
+def test_retry_decorator_respects_track_metrics_flag(monkeypatch, provider_module):
+    """Providers disable retry telemetry when track_metrics is ``False``."""
+
+    module = provider_module
+    captured = {}
+
+    def fake_retry(**kwargs):  # noqa: ANN001
+        captured.update(kwargs)
+
+        def decorator(func):  # noqa: ANN001
+            return func
+
+        return decorator
+
+    monkeypatch.setattr(module, "retry_with_exponential_backoff", fake_retry)
+
+    base = module.BaseProvider(
+        retry_config={
+            "max_retries": 2,
+            "initial_delay": 0.2,
+            "exponential_base": 3.0,
+            "max_delay": 1.0,
+            "jitter": False,
+            "track_metrics": False,
+            "conditions": [],
+        }
+    )
+
+    base.get_retry_decorator()
+
+    assert captured["max_retries"] == 2
+    assert captured["track_metrics"] is False
 
 
 def test_stub_provider_deterministic_embeddings(provider_module):
@@ -152,3 +189,100 @@ def test_stub_provider_deterministic_embeddings(provider_module):
     values = stub.embed("hello world")
     assert len(values) == 1
     assert all(0 <= number < 1 for number in values[0])
+
+
+def test_create_tls_config_uses_settings(provider_module):
+    """TLS helper mirrors verification flags and certificate paths from settings."""
+
+    module = provider_module
+    settings = SimpleNamespace(
+        tls_verify=False,
+        tls_cert_file="cert.pem",
+        tls_key_file="key.pem",
+        tls_ca_file="ca.pem",
+    )
+
+    tls = module._create_tls_config(settings)
+
+    assert tls.verify is False
+    assert tls.cert_file == "cert.pem"
+    assert tls.key_file == "key.pem"
+    assert tls.ca_file == "ca.pem"
+
+
+def test_provider_factory_prefers_explicit_tls_config(provider_module):
+    """Passing a TLS config overrides derived settings for stub providers."""
+
+    module = provider_module
+    custom_tls = module.TLSConfig(verify=False, cert_file="custom.pem")
+
+    provider = module.ProviderFactory.create_provider(
+        "stub", tls_config=custom_tls, retry_config={"max_retries": 0}
+    )
+
+    assert provider.tls_config is custom_tls
+    assert provider.retry_config["max_retries"] == 0
+
+
+def test_fallback_async_skips_open_circuit(provider_module):
+    """Fallback iterates to the next provider when the first circuit is open."""
+
+    module = provider_module
+
+    class PrimaryProvider:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def aembed(self, **kwargs):  # noqa: ANN001
+            self.calls += 1
+            return [[0.0]]
+
+    class SecondaryProvider:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def aembed(self, **kwargs):  # noqa: ANN001
+            self.calls += 1
+            return [[1.0]]
+
+    primary = PrimaryProvider()
+    secondary = SecondaryProvider()
+    config = {
+        "retry": module.get_provider_config()["retry"],
+        "fallback": {"enabled": True, "order": ["primary", "secondary"]},
+        "circuit_breaker": {
+            "enabled": True,
+            "failure_threshold": 1,
+            "recovery_timeout": 1.0,
+        },
+    }
+
+    class CircuitStub(SimpleNamespace):
+        def __init__(self, state: str) -> None:  # noqa: D401 - simple recorder
+            super().__init__(state=state, failures=0, successes=0)
+
+        def _record_failure(self) -> None:
+            self.failures += 1
+            self.state = "open"
+
+        def _record_success(self) -> None:
+            self.successes += 1
+            self.state = "closed"
+
+    fallback = module.FallbackProvider(
+        providers=[primary, secondary],
+        config=config,
+    )
+    fallback.circuit_breakers = {
+        "primary": CircuitStub("open"),
+        "secondary": CircuitStub("closed"),
+    }
+
+    async def _runner() -> None:
+        result = await fallback.aembed(["payload"])
+
+        assert result == [[1.0]]
+        assert primary.calls == 0
+        assert secondary.calls == 1
+
+    asyncio.run(_runner())
