@@ -29,6 +29,9 @@ from devsynth.testing.run_tests import (
     enforce_coverage_threshold,
     ensure_pytest_bdd_plugin_env,
     ensure_pytest_cov_plugin_env,
+    PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE,
+    PYTEST_COV_PLUGIN_MISSING_MESSAGE,
+    pytest_cov_support_status,
     run_tests,
 )
 
@@ -145,19 +148,7 @@ def _coverage_instrumentation_disabled(tokens: list[str]) -> bool:
 def _coverage_instrumentation_status() -> tuple[bool, str | None]:
     """Determine whether pytest-cov instrumentation is active."""
 
-    addopts = os.environ.get("PYTEST_ADDOPTS", "")
-    tokens = _parse_pytest_addopts(addopts)
-    if "--no-cov" in tokens:
-        return False, "PYTEST_ADDOPTS contains --no-cov"
-    if _addopts_has_plugin(tokens, "no:cov"):
-        return False, "PYTEST_ADDOPTS disables pytest-cov via -p no:cov"
-    if _addopts_has_plugin(tokens, "no:pytest_cov"):
-        return False, "PYTEST_ADDOPTS disables pytest-cov via -p no:pytest_cov"
-    if os.environ.get(
-        "PYTEST_DISABLE_PLUGIN_AUTOLOAD"
-    ) == "1" and not _addopts_has_plugin(tokens, "pytest_cov"):
-        return False, "pytest plugin autoload disabled without -p pytest_cov"
-    return True, None
+    return pytest_cov_support_status(os.environ)
 
 
 def run_tests_cmd(
@@ -349,6 +340,20 @@ def run_tests_cmd(
         )
         ux_bridge.print(message)
 
+    coverage_enabled_initial, coverage_skip_reason_initial = _coverage_instrumentation_status()
+    if not coverage_enabled_initial:
+        detail = coverage_skip_reason_initial or (
+            "pytest-cov instrumentation is required for coverage enforcement."
+        )
+        ux_bridge.print(
+            f"[red]Coverage instrumentation unavailable: {detail}[/red]"
+        )
+        if (
+            coverage_skip_reason_initial == PYTEST_COV_PLUGIN_MISSING_MESSAGE
+            or not smoke
+        ):
+            raise typer.Exit(code=1)
+
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
     # to catch stalls while avoiding flakiness on slower machines.
     if not smoke:
@@ -433,7 +438,7 @@ def run_tests_cmd(
             )
             ux_bridge.print(message)
 
-            if skip_reason and "pytest plugin autoload disabled" in skip_reason:
+            if skip_reason == PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE:
                 remediation = (
                     "[red]Coverage artifacts were not generated because pytest-cov was "
                     "disabled. Unset PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 or append "
