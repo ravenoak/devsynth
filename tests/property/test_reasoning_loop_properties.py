@@ -52,8 +52,8 @@ def test_reasoning_loop_stops_on_completion(monkeypatch, statuses):
 
     monkeypatch.setattr(
         reasoning_loop_module,
-        "_apply_dialectical_reasoning",
-        fake_apply,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
     )
 
     results = reasoning_loop_module.reasoning_loop(
@@ -84,8 +84,8 @@ def test_reasoning_loop_respects_max_iterations(monkeypatch, max_iterations):
 
     monkeypatch.setattr(
         reasoning_loop_module,
-        "_apply_dialectical_reasoning",
-        fake_apply,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
     )
 
     results = reasoning_loop_module.reasoning_loop(
@@ -102,6 +102,7 @@ def test_reasoning_loop_respects_max_iterations(monkeypatch, max_iterations):
         st.one_of(
             st.none(),
             st.sampled_from([Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE]),
+            st.sampled_from(["invalid", "UNKNOWN", ""]),
         ),
         min_size=1,
         max_size=5,
@@ -130,8 +131,12 @@ def test_reasoning_loop_phase_transitions(monkeypatch, next_phases):
             "phase": current.value,
         }
         if np_phase is not None:
-            result["next_phase"] = np_phase.value
-            current = np_phase
+            if isinstance(np_phase, Phase):
+                result["next_phase"] = np_phase.value
+                current = np_phase
+            else:
+                result["next_phase"] = np_phase
+                current = phase_map[current]
         else:
             current = phase_map[current]
         results.append(result)
@@ -145,8 +150,8 @@ def test_reasoning_loop_phase_transitions(monkeypatch, next_phases):
 
     monkeypatch.setattr(
         reasoning_loop_module,
-        "_apply_dialectical_reasoning",
-        fake_apply,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
     )
 
     recorded: list[Phase] = []
@@ -200,8 +205,8 @@ def test_reasoning_loop_propagates_synthesis(monkeypatch, syntheses):
 
     monkeypatch.setattr(
         reasoning_loop_module,
-        "_apply_dialectical_reasoning",
-        fake_apply,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
     )
 
     reasoning_loop_module.reasoning_loop(
@@ -209,7 +214,12 @@ def test_reasoning_loop_propagates_synthesis(monkeypatch, syntheses):
     )
 
     for i in range(1, len(tasks)):
-        assert tasks[i]["solution"] == syntheses[i - 1]
+        solution = tasks[i]["solution"]
+        if isinstance(solution, dict):
+            observed = solution.get("content", solution)
+        else:
+            observed = solution
+        assert observed == syntheses[i - 1]
 
 
 @pytest.mark.property
@@ -265,5 +275,13 @@ def test_reasoning_loop_invokes_dialectical_hooks(
     assert len(recorded) == len(results)
     expected_solutions = [initial_solution, *syntheses[:-1]]
     for idx, (task_solution, recorded_synthesis) in enumerate(recorded):
-        assert task_solution == expected_solutions[idx]
-        assert recorded_synthesis == syntheses[idx]
+        if isinstance(task_solution, dict):
+            observed_task_solution = task_solution.get("content", task_solution)
+        else:
+            observed_task_solution = task_solution
+        assert observed_task_solution == expected_solutions[idx]
+        if isinstance(recorded_synthesis, dict):
+            recorded_value = recorded_synthesis.get("content", recorded_synthesis)
+        else:
+            recorded_value = recorded_synthesis
+        assert recorded_value == syntheses[idx]

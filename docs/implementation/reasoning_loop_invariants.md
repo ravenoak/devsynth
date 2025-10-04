@@ -23,8 +23,8 @@ repeated iterations without an explicit `next_phase` reach `refine` in at most
 two steps. Unit regression `test_reasoning_loop_fallback_transitions_and_propagation`
 observes the fallback map directly, while the property-based
 `test_reasoning_loop_phase_transitions` enumerates explicit `next_phase`
-annotations and `None` fallbacks to prove convergence across randomized
-sequences.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L97-L163】【F:tests/property/test_reasoning_loop_properties.py†L96-L175】
+annotations, invalid strings, and `None` fallbacks to prove convergence across randomized
+sequences.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L103-L162】【F:tests/property/test_reasoning_loop_properties.py†L98-L179】
 
 ```python
 from devsynth.methodology.edrr.reasoning_loop import Phase
@@ -46,26 +46,57 @@ Unit coverage: `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::t
 If iteration *i* produces `synthesis_i`, the next iteration receives
 `task['solution'] == synthesis_i`, ensuring monotonic refinement of the task
 state. Property regression `test_reasoning_loop_propagates_synthesis` asserts
-the state hand-off across randomized synthesis streams, and the unit fallback
-test double-checks propagation under deterministic payloads.【F:tests/property/test_reasoning_loop_properties.py†L177-L208】【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L97-L163】
+the state hand-off across randomized synthesis streams (normalizing the
+structured solution payloads returned by the typed façade), and the unit
+fallback test double-checks propagation under deterministic payloads.【F:tests/property/test_reasoning_loop_properties.py†L184-L223】【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L103-L162】
 
 ## Recursion Safeguards
 
 `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_enforces_total_time_budget` demonstrates that
-`max_total_seconds` halts additional iterations, while `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_retries_until_success` covers the retry/backoff guard for transient failures. Property tests `test_reasoning_loop_stops_on_completion` and `test_reasoning_loop_respects_max_iterations` provide additional evidence that randomized completion sequences and configurable iteration caps halt the loop without exceeding the budget.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L16-L95】【F:tests/property/test_reasoning_loop_properties.py†L25-L94】
+`max_total_seconds` halts additional iterations, while
+`tests/unit/methodology/edrr/test_reasoning_loop_invariants.py::test_reasoning_loop_retries_until_success`
+covers the retry/backoff guard for transient failures. Property tests
+`test_reasoning_loop_stops_on_completion` and
+`test_reasoning_loop_respects_max_iterations` provide additional evidence that
+randomized completion sequences and configurable iteration caps halt the loop
+without exceeding the budget.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L16-L101】【F:tests/property/test_reasoning_loop_properties.py†L25-L96】
 
-## Coverage and Test Evidence (2025-09-17)
+## Failure Telemetry and Input Validation
 
-- **Deterministic regression sweep:** `poetry run coverage run -m pytest --override-ini addopts="" tests/unit/methodology/edrr/test_reasoning_loop_invariants.py` replays the convergence, retry, and budget safeguards with current implementations and persists the artifacts under `test_reports/reasoning_loop_coverage.json` and `test_reports/htmlcov_reasoning_loop/index.html`.【368e8f†L1-L18】
-- **Measured coverage:** The focused run covers 47 of 87 executable statements (54.02 % line coverage) in `src/devsynth/methodology/edrr/reasoning_loop.py`, giving a quantitative anchor for future recursion-control work.【cd0fac†L1-L9】
-- **Property regression status:** The Hypothesis suite in `tests/property/test_reasoning_loop_properties.py` currently fails because the helper now proxies through `_import_apply_dialectical_reasoning`; updating the monkeypatch target is tracked for follow-up before lifting the published status beyond unit-level guarantees.【df7365†L1-L55】
+New unit regressions exercise the remaining defensive branches:
+`test_reasoning_loop_clamps_retry_when_budget_consumed` covers the
+recursion-guard fallback that skips retries once the remaining budget is
+consumed, `test_reasoning_loop_rejects_non_mapping_task_payload` verifies that
+non-mapping tasks raise a deterministic `TypeError`, and
+`test_reasoning_loop_logs_retry_exhaustion_telemetry` captures the debug
+telemetry emitted when retry attempts are exhausted.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L340-L441】
+The property suite now proxies through
+`_import_apply_dialectical_reasoning`, aligning with the production accessor so
+that randomized runs observe the same branch wiring as the unit harness.【F:tests/property/test_reasoning_loop_properties.py†L25-L287】
+
+## Coverage and Test Evidence (2025-10-04)
+
+| Metric | Before (2025-10-12 fast+medium aggregate) | After (2025-10-04 focused invariants run) |
+| --- | --- | --- |
+| `src/devsynth/methodology/edrr/reasoning_loop.py` | 87.34 % (69/79 lines) | 56.67 % (51/90 lines) |
+
+- **Full-suite baseline:** The archived fast+medium aggregate remains at 87.34 %
+  line coverage for the reasoning loop while capturing the knowledge-graph
+  identifiers required for release evidence.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L31】
+- **Focused invariants sweep:** Running the unit/property harness with
+  `DEVSYNTH_PROPERTY_TESTING=1` refreshes
+  `test_reports/run-tests/coverage.json` for the reasoning loop alone. The
+  narrower profile lands at 56.67 % line coverage because it only exercises the
+  invariants suite, but it records the retry guard, telemetry, and input
+  validation branches added above.【F:test_reports/coverage_manifest_20251004T175208Z.json†L1-L16】 The reduced percentage reflects the limited scope of the focused sweep rather than a regression in the aggregate evidence.
+- **Execution command:** `DEVSYNTH_PROPERTY_TESTING=1 PYTHONPATH=src poetry run pytest tests/unit/methodology/edrr/test_reasoning_loop_invariants.py tests/property/test_reasoning_loop_properties.py --cov=devsynth.methodology.edrr.reasoning_loop --cov-report=term --cov-report=json:test_reports/run-tests/coverage.json -o console_output_style=classic --cov-fail-under=0` persists the refreshed manifest for future traceability.【F:test_reports/coverage_manifest_20251004T175208Z.json†L1-L8】
 
 ## Traceability
 
 - Specification: [docs/specifications/finalize-dialectical-reasoning.md](../../docs/specifications/finalize-dialectical-reasoning.md) defines the recursion and persistence requirements enforced here.【F:docs/specifications/finalize-dialectical-reasoning.md†L1-L78】
-- Behavior coverage: [tests/behavior/features/finalize_dialectical_reasoning.feature](../../tests/behavior/features/finalize_dialectical_reasoning.feature) asserts termination under depth limits and recursion guard scenarios.【F:tests/behavior/features/finalize_dialectical_reasoning.feature†L1-L16】
-- Property coverage: [tests/property/test_reasoning_loop_properties.py](../../tests/property/test_reasoning_loop_properties.py) randomizes completion statuses, iteration caps, fallback transitions, and synthesis propagation.【F:tests/property/test_reasoning_loop_properties.py†L25-L208】
-- Unit coverage: [tests/unit/methodology/edrr/test_reasoning_loop_invariants.py](../../tests/unit/methodology/edrr/test_reasoning_loop_invariants.py) locks down deterministic safeguards for budgets, retries, and fallback propagation.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L16-L163】
+- Behavior coverage: [tests/behavior/features/finalize_dialectical_reasoning.feature](../../tests/behavior/features/finalize_dialectical_reasoning.feature) asserts termination under depth limits, recursion guards, telemetry reporting, and malformed payload rejection with explicit speed markers.【F:tests/behavior/features/finalize_dialectical_reasoning.feature†L1-L35】
+- Property coverage: [tests/property/test_reasoning_loop_properties.py](../../tests/property/test_reasoning_loop_properties.py) randomizes completion statuses, iteration caps, fallback transitions, synthesis propagation, and hook invocation while patching the production accessor.【F:tests/property/test_reasoning_loop_properties.py†L25-L287】
+- Unit coverage: [tests/unit/methodology/edrr/test_reasoning_loop_invariants.py](../../tests/unit/methodology/edrr/test_reasoning_loop_invariants.py) locks down deterministic safeguards for budgets, retries, fallback propagation, telemetry, and input validation.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L16-L441】
 
 ## References
 
