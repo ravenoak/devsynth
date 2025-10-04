@@ -10,7 +10,7 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import ExitStack
 from datetime import datetime, timedelta
-from typing import Any, TypeVar, cast
+from typing import Any, TYPE_CHECKING, TypeVar, cast
 
 from rich.console import Console
 from rich.progress import (
@@ -33,8 +33,6 @@ from devsynth.application.cli.models import (
     ProgressUpdate,
     SubtaskState,
 )
-from devsynth.application.cli.progress import EnhancedProgressIndicator
-from devsynth.interface.cli import CLIProgressIndicator
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
@@ -52,7 +50,16 @@ def _as_float(value: Any) -> float | None:
         return None
 
 
-class LongRunningProgressIndicator(EnhancedProgressIndicator):
+def _console_for_bridge(bridge: UXBridge) -> Console:
+    """Return a console from ``bridge`` when available."""
+
+    console = getattr(bridge, "console", None)
+    if isinstance(console, Console):
+        return console
+    return Console()
+
+
+class LongRunningProgressIndicator(_ProgressIndicatorBase):
     """Progress indicator for long-running operations.
 
     This class extends the EnhancedProgressIndicator with additional features
@@ -126,8 +133,8 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
         self,
         *,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update the progress indicator.
 
@@ -139,7 +146,7 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
         current_time = time.time()
 
         # Update the task fields
-        update_kwargs = {}
+        update_kwargs: dict[str, object] = {}
 
         if description is not None:
             # Sanitize the description
@@ -248,8 +255,8 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
         self,
         subtask_id: str,
         advance: float = 1,
-        description: Optional[str] = None,
-        status: Optional[str] = None,
+        description: str | None = None,
+        status: str | None = None,
     ) -> None:
         """Update a subtask's progress.
 
@@ -264,7 +271,7 @@ class LongRunningProgressIndicator(EnhancedProgressIndicator):
             task_id = state.task_id
 
             # Prepare update kwargs
-            update_kwargs = {}
+            update_kwargs: dict[str, object] = {}
 
             # If a new description is provided, update the subtask's description
             if description is not None:
@@ -458,7 +465,7 @@ def simulate_progress_timeline(
             globals()["Progress"] = progress_factory
 
         indicator = LongRunningProgressIndicator(console_obj, description, total)
-        progress = indicator._progress
+        progress: Progress = indicator._progress
         alias_to_subtask: dict[str, str] = {}
 
         for event in events:
@@ -476,13 +483,16 @@ def simulate_progress_timeline(
 
             if action == "add_subtask":
                 subtask_desc = event.get("description", "<subtask>")
-                alias = str(event.get("alias", "")) or str(subtask_desc)
+                description_text = str(subtask_desc)
+                alias_raw = event.get("alias", "")
+                alias = str(alias_raw) or description_text
                 subtask_total = int(_as_float(event.get("total", 100)) or 100)
-                status = event.get("status")
+                status_obj = event.get("status")
+                status_text = status_obj if isinstance(status_obj, str) else "Starting..."
                 created = indicator.add_subtask(
-                    cast(str, subtask_desc),
+                    description_text,
                     total=subtask_total,
-                    status=cast(str | None, status),
+                    status=status_text,
                 )
                 alias_to_subtask[alias] = created
                 subtask_task = progress.tasks[indicator._subtasks[created].task_id]
@@ -506,23 +516,28 @@ def simulate_progress_timeline(
                     continue
                 lookup = alias_to_subtask.get(key, key)
                 advance = _as_float(event.get("advance", 1)) or 1.0
-                description_update = event.get("description")
-                status_update = event.get("status")
+                description_obj = event.get("description")
+                status_obj = event.get("status")
+                description_update_text = (
+                    str(description_obj) if isinstance(description_obj, str) else None
+                )
+                status_update_text = (
+                    str(status_obj) if isinstance(status_obj, str) else None
+                )
                 indicator.update_subtask(
                     lookup,
                     advance=advance,
-                    description=cast(str | None, description_update),
-                    status=cast(str | None, status_update),
+                    description=description_update_text,
+                    status=status_update_text,
                 )
-                state = indicator._subtasks.get(lookup) or indicator._subtasks.get(
-                    cast(str, description_update)
-                )
+                state = indicator._subtasks.get(lookup)
+                if state is None and description_update_text is not None:
+                    state = indicator._subtasks.get(description_update_text)
                 if (
-                    isinstance(description_update, str)
-                    and state is not None
-                    and cast(str, description_update) in indicator._subtasks
+                    description_update_text is not None
+                    and description_update_text in indicator._subtasks
                 ):
-                    alias_to_subtask[key] = cast(str, description_update)
+                    alias_to_subtask[key] = description_update_text
                 if state is not None:
                     task = progress.tasks[state.task_id]
                     transcript.append(
@@ -561,10 +576,16 @@ def simulate_progress_timeline(
 
             if action == "update":
                 advance = _as_float(event.get("advance", 1)) or 1.0
+                description_value = event.get("description")
+                status_value = event.get("status")
                 indicator.update(
                     advance=advance,
-                    description=cast(str | None, event.get("description")),
-                    status=cast(str | None, event.get("status")),
+                    description=(
+                        str(description_value)
+                        if isinstance(description_value, str)
+                        else None
+                    ),
+                    status=str(status_value) if isinstance(status_value, str) else None,
                 )
                 main_task = progress.tasks[indicator._task]
                 transcript.append(
@@ -653,7 +674,9 @@ def run_with_long_running_progress(
         The result of the task function
     """
     # Create a progress indicator for the task
-    progress = create_long_running_progress(bridge.console, task_name, total)
+    progress = create_long_running_progress(
+        _console_for_bridge(bridge), task_name, total
+    )
 
     try:
         # Add subtasks if provided
@@ -686,3 +709,37 @@ def run_with_long_running_progress(
     finally:
         # Mark the task as complete, even if an exception occurs
         progress.complete()
+if TYPE_CHECKING:
+    from typing import Protocol
+
+    class _ProgressIndicatorBase(Protocol):
+        def update(
+            self,
+            *,
+            advance: float = 1,
+            description: str | None = None,
+            status: str | None = None,
+        ) -> None:
+            ...
+
+        def complete(self) -> None:
+            ...
+
+        def add_subtask(
+            self, description: str, total: int = 100, status: str = "Starting..."
+        ) -> str:
+            ...
+
+        def update_subtask(
+            self,
+            task_id: str,
+            advance: float = 1,
+            description: str | None = None,
+            status: str | None = None,
+        ) -> None:
+            ...
+
+        def complete_subtask(self, task_id: str) -> None:
+            ...
+else:
+    _ProgressIndicatorBase = ProgressIndicator

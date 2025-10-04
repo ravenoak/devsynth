@@ -111,6 +111,21 @@ def _failure_tips(returncode: int, cmd: Sequence[str]) -> str:
     return "\n" + "\n".join(tips) + "\n"
 
 
+def _coerce_int(value: object, default: int = 0) -> int:
+    """Best-effort conversion of ``value`` to ``int``."""
+
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return default
+    return default
+
+
 # Mapping of CLI targets to test paths
 TARGET_PATHS: dict[str, str] = {
     "unit-tests": "tests/unit/",
@@ -544,33 +559,48 @@ def _maybe_publish_coverage_evidence(
         logger.error("Unable to compute coverage artifact checksum: %s", exc)
         return f"[knowledge-graph] coverage ingestion failed: checksum error ({exc})"
 
-    commands = execution_metadata.get("commands")
-    if not commands:
+    commands_raw = execution_metadata.get("commands")
+    command_entries: list[object] = []
+    if isinstance(commands_raw, Sequence) and not isinstance(commands_raw, (str, bytes)):
+        command_entries = list(commands_raw)
+    elif commands_raw is not None:
+        command_entries = [commands_raw]
+
+    if not command_entries:
         primary_command = execution_metadata.get("command")
-        commands = [primary_command] if primary_command else []
+        if isinstance(primary_command, Sequence) and not isinstance(
+            primary_command, (str, bytes)
+        ):
+            command_entries = [list(primary_command)]
+        elif isinstance(primary_command, str):
+            command_entries = [primary_command]
+        elif primary_command is not None:
+            command_entries = [primary_command]
 
     command_strings: list[str] = []
-    for entry in commands:
-        if isinstance(entry, (list, tuple)):
-            command_strings.append(" ".join(str(part) for part in entry))
-        elif isinstance(entry, str):
+    for entry in command_entries:
+        if isinstance(entry, str):
             command_strings.append(entry)
-        elif entry is None:
-            continue
+        elif isinstance(entry, Sequence) and not isinstance(entry, (str, bytes)):
+            command_strings.append(" ".join(str(part) for part in entry))
         else:
-            try:
-                command_strings.append(" ".join(str(part) for part in entry))
-            except Exception:
-                command_strings.append(str(entry))
+            command_strings.append(str(entry))
 
     source_command = " && ".join(command_strings) if command_strings else ""
 
-    started_at = str(execution_metadata.get("started_at") or datetime.now(UTC).isoformat())
-    completed_at = str(execution_metadata.get("completed_at") or datetime.now(UTC).isoformat())
-    try:
-        exit_code = int(execution_metadata.get("returncode", 0))
-    except Exception:
-        exit_code = 0
+    started_raw = execution_metadata.get("started_at")
+    completed_raw = execution_metadata.get("completed_at")
+    started_at = (
+        str(started_raw)
+        if isinstance(started_raw, (str, datetime))
+        else datetime.now(UTC).isoformat()
+    )
+    completed_at = (
+        str(completed_raw)
+        if isinstance(completed_raw, (str, datetime))
+        else datetime.now(UTC).isoformat()
+    )
+    exit_code = _coerce_int(execution_metadata.get("returncode", 0))
 
     if exit_code not in (0, 5):
         gate_status = "blocked"
@@ -647,15 +677,22 @@ def _maybe_publish_coverage_evidence(
         logger.error("Release graph publication failed: %s", exc)
         return f"[knowledge-graph] coverage ingestion failed: {exc}"
 
-    release_evidence_created = publication.created.get("release_evidence", [])
+    raw_release_flags = publication.created.get("release_evidence", [])
+    evidence_created: Sequence[object]
+    if isinstance(raw_release_flags, Sequence) and not isinstance(
+        raw_release_flags, (str, bytes)
+    ):
+        evidence_created = raw_release_flags
+    else:
+        evidence_created = ()
     evidence_parts = []
-    for evidence_id, created in zip(publication.evidence_ids, release_evidence_created):
-        suffix = " (new)" if created else ""
+    for evidence_id, created in zip(publication.evidence_ids, evidence_created):
+        suffix = " (new)" if bool(created) else ""
         evidence_parts.append(f"{evidence_id}{suffix}")
     evidence_summary = ", ".join(evidence_parts)
 
-    test_run_state = "new" if publication.created.get("test_run") else "updated"
-    gate_state = "new" if publication.created.get("quality_gate") else "updated"
+    test_run_state = "new" if bool(publication.created.get("test_run")) else "updated"
+    gate_state = "new" if bool(publication.created.get("quality_gate")) else "updated"
 
     return (
         "[knowledge-graph] coverage gate "
@@ -1064,15 +1101,26 @@ def run_tests(
         supports_keyword_filter = "keyword_filter" in collect_signature.parameters
 
     try:
-        for category in normalized_speeds or [None]:
+        if normalized_speeds:
+            for category in normalized_speeds:
+                if supports_keyword_filter:
+                    nodes = collect_callable(
+                        target,
+                        category,
+                        keyword_filter=effective_keyword_filter,
+                    )
+                else:  # pragma: no cover - compatibility for patched callables
+                    nodes = collect_callable(target, category)
+                collected_node_ids.extend(nodes)
+        else:
             if supports_keyword_filter:
                 nodes = collect_callable(
                     target,
-                    category,
+                    None,
                     keyword_filter=effective_keyword_filter,
                 )
             else:  # pragma: no cover - compatibility for patched callables
-                nodes = collect_callable(target, category)
+                nodes = collect_callable(target, None)
             collected_node_ids.extend(nodes)
     except RuntimeError as e:
         return False, str(e)

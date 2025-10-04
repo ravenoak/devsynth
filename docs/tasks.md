@@ -160,7 +160,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
 13.3 [ ] Combined coverage >= 90% with HTML report generated and saved (latest gate attempt fails because coverage artifacts are missing; remediation tracked under §6.3 and §21.8).
 13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
-13.4.1 [x] Archive the zero-error strict typing evidence: `poetry run mypy --strict src/devsynth` (2025-10-03) completes cleanly with the transcript stored at `diagnostics/mypy_strict_src_devsynth_20251003T220923Z.txt` for auditability.【F:diagnostics/mypy_strict_src_devsynth_20251003T220923Z.txt†L1-L2】
+13.4.1 [x] Archive the zero-error strict typing evidence: `PYTHONPATH=src poetry run python -m devsynth.testing.mypy_strict_runner` (2025-10-04) completes cleanly with the transcript stored at `diagnostics/mypy_strict_src_devsynth_20251004T030200Z.txt` for auditability; CLI `run-tests` orchestration, long-running progress helpers, and the shared `devsynth.testing.run_tests` harness now participate in the strict gate.【6ab9a5†L1-L19】【F:diagnostics/mypy_strict_src_devsynth_20251004T030200Z.txt†L1-L1】
 13.5 [x] Docs updated: maintainer setup, CLI reference, provider defaults, resource flags, coverage guidance.
 13.6 [x] Known environment warnings in doctor.txt triaged and documented as non-blocking by default.
 

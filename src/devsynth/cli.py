@@ -19,11 +19,11 @@ import importlib
 import json
 import sys
 from collections.abc import Callable
-from dataclasses import asdict
-from typing import cast
+from typing import Any, cast
 
 from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
 from devsynth.logger import setup_logging
+from typer import Typer as TyperApp
 
 logger = setup_logging(__name__)
 
@@ -60,17 +60,19 @@ def main(argv: list[str] | None = None) -> None:
         # guarantees this code path does not rely on it and keeps import-time light.
         sys.modules.pop("devsynth.adapters.cli.typer_adapter", None)
         analyze_repo = cast(str, args.analyze_repo)
-        analyzer: RepoAnalyzer = RepoAnalyzer(analyze_repo)
+        analyzer = RepoAnalyzer(analyze_repo)
         result = analyzer.analyze()
-        print(json.dumps(asdict(result), indent=2))
+        payload = {
+            "dependencies": result.dependencies,
+            "structure": result.structure,
+        }
+        print(json.dumps(payload, indent=2))
     else:
         from devsynth.application.cli.errors import handle_error
         from devsynth.interface.cli import CLIUXBridge
 
         if remaining and remaining[0] == "run-tests":
             try:
-                import typer
-
                 from devsynth.application.cli.commands.run_tests_cmd import (
                     run_tests_cmd,
                 )
@@ -82,10 +84,11 @@ def main(argv: list[str] | None = None) -> None:
                 handle_error(CLIUXBridge(), msg)
                 raise SystemExit(1)
 
-            app: typer.Typer = typer.Typer(add_completion=False)
+            app = TyperApp(add_completion=False)
             app.command("run-tests")(run_tests_cmd)
             try:
-                app(prog_name="devsynth", args=remaining)
+                app_runner = cast(Callable[..., Any], app)
+                app_runner(prog_name="devsynth", args=remaining)
             except Exception as err:  # pragma: no cover - defensive
                 handle_error(CLIUXBridge(), err)
                 raise SystemExit(1)
