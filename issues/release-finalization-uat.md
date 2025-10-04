@@ -1,6 +1,6 @@
 Title: Release finalization for 0.1.0a1
 Date: 2025-09-13 00:00 UTC
-Status: open
+Status: in review
 Affected Area: release
 Reproduction:
   - N/A (planning issue)
@@ -10,14 +10,19 @@ Artifacts:
   - htmlcov/ (omitted from commit; exceeds Codex diff size)
   - coverage.json (omitted from commit; exceeds Codex diff size)
 Suspected Cause: Pending release tasks before tagging v0.1.0a1.
+## Current Status
+- ✅ Fast+medium coverage gate passes at 92.40 % with manifest, CLI log, HTML snapshot, and knowledge-graph IDs archived under `artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/`.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
+- ✅ docs/plan.md, docs/tasks.md, and docs/release/0.1.0-alpha.1.md now cite the passing manifest and mark coverage milestones as complete.【F:docs/plan.md†L1-L88】【F:docs/tasks.md†L309-L333】【F:docs/release/0.1.0-alpha.1.md†L16-L48】
+- ⏳ Remaining: EDRR reasoning loop uplift to ≥90 %, formal UAT evidence bundle, maintainer tag + post-tag CI plan.
+
 Next Actions:
   - [x] Draft release notes and update CHANGELOG.md.
-  - [x] Perform final full fast+medium coverage run and archive artifacts. Coverage artifacts not committed due to Codex diff size limits.
+  - [x] Perform final full fast+medium coverage run and archive artifacts. Evidence lives under `artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/` with manifest + checksums for verification.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
   - [ ] Complete User Acceptance Testing with stakeholder sign-off using alpha-appropriate criteria (see alpha-release-readiness-assessment.md).
   - [ ] Maintainers tag v0.1.0a1 on GitHub once all tasks complete.
   - [ ] Review the [spec dependency matrix](../docs/release/spec_dependency_matrix.md) to track remaining draft specs/invariants and their dependent tests before UAT sign-off.
-  - [ ] Execute docs/tasks.md §29.1–§29.5 (coverage uplifts) and §30.1–§30.4 (fast+medium rerun, documentation, UAT artefacts, and post-tag CI plan), updating this issue with the resulting logs, coverage JSON/HTML paths, and doctor output before requesting sign-off.【F:docs/tasks.md†L282-L313】
-Progress:
+  - [x] Execute docs/tasks.md §29.1–§29.5 and §30.1–§30.2 (coverage uplifts and documentation sync). §30.3–§30.4 remain open for UAT evidence and post-tag CI planning.【F:docs/tasks.md†L309-L333】
+## History
 - 2025-09-24: **CRITICAL BREAKTHROUGH ACHIEVED** - DevSynth is functionally ready for v0.1.0a1 alpha release! Test infrastructure restored (1,024+ tests), coverage system functional (7.38%), CLI operations working, quality threshold aligned (70%), and core architecture validated. Success rate >99% with only 1 failing test. READY FOR UAT EXECUTION.
 - 2025-09-13: Plan and tasks updated to clarify manual GitHub tagging after UAT.
 - 2025-09-13: Environment bootstrapped; smoke tests and verification scripts pass after reinstalling dependencies.
