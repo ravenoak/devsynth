@@ -65,6 +65,38 @@ except ValueError:
     # Fallback to default if malformed
     COLLECTION_CACHE_TTL_SECONDS = 3600
 
+# Timeout for pytest collection subprocess. Default mirrors historical five minute
+# window but can be overridden when slower environments require additional headroom.
+DEFAULT_COLLECTION_TIMEOUT_SECONDS = 300.0
+
+
+def _collection_timeout_seconds() -> float:
+    """Return the collection timeout, honoring overrides via environment."""
+
+    raw_value = os.environ.get("DEVSYNTH_TEST_COLLECTION_TIMEOUT_SECONDS")
+    if raw_value is None or raw_value == "":
+        return DEFAULT_COLLECTION_TIMEOUT_SECONDS
+
+    try:
+        parsed_value = float(raw_value)
+    except (TypeError, ValueError):
+        logger.warning(
+            "Invalid DEVSYNTH_TEST_COLLECTION_TIMEOUT_SECONDS=%r; falling back to %.1f",
+            raw_value,
+            DEFAULT_COLLECTION_TIMEOUT_SECONDS,
+        )
+        return DEFAULT_COLLECTION_TIMEOUT_SECONDS
+
+    if parsed_value <= 0:
+        logger.warning(
+            "DEVSYNTH_TEST_COLLECTION_TIMEOUT_SECONDS must be > 0; got %s. Using default %.1f",
+            raw_value,
+            DEFAULT_COLLECTION_TIMEOUT_SECONDS,
+        )
+        return DEFAULT_COLLECTION_TIMEOUT_SECONDS
+
+    return parsed_value
+
 
 def _failure_tips(returncode: int, cmd: Sequence[str]) -> str:
     """Return actionable tips for troubleshooting pytest failures.
@@ -945,12 +977,14 @@ def collect_tests_with_cache(
     if normalized_filter:
         collect_cmd.extend(["-k", normalized_filter])
 
+    collection_timeout = _collection_timeout_seconds()
+
     try:
         result = subprocess.run(
             collect_cmd,
             capture_output=True,
             text=True,
-            timeout=300,  # 5 minutes timeout for collection
+            timeout=collection_timeout,
         )
         if result.returncode != 0:
             error_message = f"Test collection failed: {result.stderr}"
