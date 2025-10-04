@@ -40,7 +40,7 @@ This specification translates the RFC guidance on knowledge graph alignment into
 
 **Deliverables**
 
-1. CLI hook in `devsynth.testing.run_tests` that, when `--report` is supplied, writes a manifest alongside `coverage.json` containing checksums, timestamps, and command metadata, then calls `create_test_run`/`create_release_evidence` with the fast+medium summary (e.g., 14.26 % coverage on 2025-10-02).【F:diagnostics/devsynth_run_tests_fast_medium_20251002T233820Z_summary.txt†L1-L6】
+1. CLI hook in `devsynth.testing.run_tests` that, when `--report` is supplied, writes a manifest alongside `coverage.json` containing checksums, timestamps, and command metadata, then calls `create_test_run`/`create_release_evidence` with the fast+medium summary (e.g., 92.40 % coverage with QualityGate/TestRun/ReleaseEvidence identifiers on 2025-10-12).【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
 2. Typing task wrapper (`task mypy:strict`) publishes the strict inventory (`diagnostics/mypy_strict_inventory_20251003.md`) and the raw mypy log as `ReleaseEvidence` nodes linked to the `typing` quality gate.【F:diagnostics/mypy_strict_inventory_20251003.md†L1-L31】
 3. Automation guard that deduplicates artifacts by checksum, ensuring repeated rehearsals update `TestRun` nodes while keeping historical evidence accessible.
 4. Backfill script (deferred; see backlog) that ingests previous rehearsal artifacts when available.
