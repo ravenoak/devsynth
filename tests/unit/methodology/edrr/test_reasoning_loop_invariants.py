@@ -333,3 +333,109 @@ def test_reasoning_loop_honors_phase_and_next_phase_fields(
     assert [r["status"] for r in results] == ["in_progress", "completed"]
     assert recorder.calls == ["differentiate", "refine"]
     assert observed_tasks[1]["solution"] == {"step": 1}
+
+
+@pytest.mark.fast
+def test_reasoning_loop_clamps_retry_when_budget_consumed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: DRL-UNIT-07 — Recursion guard fallbacks skip retries with no budget.
+
+    Issue: issues/coverage-below-threshold.md
+    """
+
+    attempts = {"count": 0}
+
+    def failing_apply(_team, _task, _critic, _memory):
+        attempts["count"] += 1
+        raise RuntimeError("transient")
+
+    monkeypatch.setattr(
+        reasoning_loop_module,
+        "_import_apply_dialectical_reasoning",
+        lambda: failing_apply,
+    )
+
+    # `time.monotonic()` order: start_time, loop guard, retry budget evaluation.
+    monotonic_values = iter([0.0, 0.004, 0.02])
+
+    def fake_monotonic() -> float:
+        try:
+            return next(monotonic_values)
+        except StopIteration:  # pragma: no cover - deterministic guard
+            return 0.02
+
+    sleep_calls: list[float] = []
+
+    monkeypatch.setattr(reasoning_loop_module.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(reasoning_loop_module.time, "sleep", sleep_calls.append)
+
+    results = reasoning_loop_module.reasoning_loop(
+        NullWSDETeam(),
+        {"id": "task-retry-budget"},
+        MagicMock(),
+        retry_attempts=3,
+        retry_backoff=0.1,
+        max_total_seconds=0.01,
+    )
+
+    assert results == []
+    assert attempts["count"] == 1
+    assert sleep_calls == []
+
+
+@pytest.mark.fast
+def test_reasoning_loop_rejects_non_mapping_task_payload() -> None:
+    """ReqID: DRL-UNIT-08 — Non-mapping task payloads raise deterministic TypeError.
+
+    Issue: issues/coverage-below-threshold.md
+    """
+
+    with pytest.raises(TypeError) as excinfo:
+        reasoning_loop_module.reasoning_loop(
+            NullWSDETeam(),
+            ["not", "a", "mapping"],
+            MagicMock(),
+        )
+
+    assert "Unsupported task payload type" in str(excinfo.value)
+
+
+@pytest.mark.fast
+def test_reasoning_loop_logs_retry_exhaustion_telemetry(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """ReqID: DRL-UNIT-09 — Retry exhaustion emits debug telemetry for diagnostics.
+
+    Issue: issues/coverage-below-threshold.md
+    """
+
+    def failing_apply(_team, _task, _critic, _memory):
+        raise RuntimeError("transient")
+
+    monkeypatch.setattr(
+        reasoning_loop_module,
+        "_import_apply_dialectical_reasoning",
+        lambda: failing_apply,
+    )
+
+    sleep_calls: list[float] = []
+
+    monkeypatch.setattr(reasoning_loop_module.time, "sleep", sleep_calls.append)
+
+    caplog.set_level("DEBUG", logger=reasoning_loop_module.logger.logger.name)
+
+    results = reasoning_loop_module.reasoning_loop(
+        NullWSDETeam(),
+        {"id": "task-telemetry"},
+        MagicMock(),
+        retry_attempts=1,
+        retry_backoff=0.05,
+    )
+
+    assert results == []
+    assert sleep_calls == [0.05]
+    assert any(
+        "Giving up after retries" in record.getMessage() for record in caplog.records
+    )

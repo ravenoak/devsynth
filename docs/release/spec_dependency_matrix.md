@@ -23,6 +23,16 @@ This matrix maps every remaining `status: draft` specification or implementation
   - `tests/behavior/features/edrr_coordinator.feature`
   - `tests/unit/application/edrr/test_coordinator_macro_micro_simulation.py`
 
+### Finalize dialectical reasoning (`docs/specifications/finalize-dialectical-reasoning.md`)
+
+- Spec file: [docs/specifications/finalize-dialectical-reasoning.md](../specifications/finalize-dialectical-reasoning.md)
+- Dependent issues:
+  - [Finalize dialectical reasoning](../../issues/Finalize-dialectical-reasoning.md) — in review; milestone: 0.1.0
+- Dependent tests:
+  - `tests/behavior/features/finalize_dialectical_reasoning.feature`
+  - `tests/property/test_reasoning_loop_properties.py`
+  - `tests/unit/methodology/edrr/test_reasoning_loop_invariants.py`
+
 ### Finalize WSDE/EDRR workflow logic (`docs/specifications/finalize-wsde-edrr-workflow-logic.md`)
 
 - Spec file: [docs/specifications/finalize-wsde-edrr-workflow-logic.md](../specifications/finalize-wsde-edrr-workflow-logic.md)
