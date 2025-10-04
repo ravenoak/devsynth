@@ -48,6 +48,13 @@ How to use this document:
 | devsynth.interface.dpg_ui | ignore_errors | TBD | [restore-strict-typing-interface-dpg-ui.md](restore-strict-typing-interface-dpg-ui.md) | 2025-10-01 | open |
 | devsynth.application.cli.__init__ | ignore_errors | TBD | [restore-strict-typing-cli.md](restore-strict-typing-cli.md) | 2025-10-01 | open |
 
+## Targeted checklist (2025-10-04)
+
+- [x] Audit `devsynth.application.cli.commands` for lingering `type: ignore` suppressions and replace them with typed helpers in `dpg_cmd` and `webui_cmd`.
+- [x] Verify `devsynth.application.cli.long_running_progress` exposes a protocol-safe boundary for progress indicators without suppression.
+- [x] Confirm `devsynth.testing.run_tests` satisfies strict typing with explicit command contracts and no `type: ignore` usage.
+- [x] Remove the corresponding module patterns from the `ignore_errors = true` allowlist in `pyproject.toml` after the strict run passes.
+
 Notes:
 - This table is seeded automatically from pyproject.toml relaxations as of 2025-09-02. Keep it updated as overrides are narrowed or removed.
 - Add TODO comments in modules when touching code to remind about the strictness restoration deadline.

@@ -5,17 +5,21 @@ This command requires the GUI extra and may be unavailable in default setups.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Callable, Optional
 
 from devsynth.config import get_settings
 from devsynth.interface.ux_bridge import UXBridge
 
 from ..utils import _resolve_bridge
 
+RunDPGUi = Callable[[], None]
+
 try:  # pragma: no cover - optional dependency handling
-    from devsynth.interface.dpg_ui import run as run_dpg_ui
+    from devsynth.interface.dpg_ui import run as _run_dpg_ui
 except Exception:  # pragma: no cover - defensive
-    run_dpg_ui = None  # type: ignore
+    run_dpg_ui: RunDPGUi | None = None
+else:
+    run_dpg_ui = _run_dpg_ui
 
 
 def dpg_cmd(*, bridge: Optional[UXBridge] = None) -> None:

@@ -10,6 +10,7 @@ import json
 from collections.abc import Mapping, Sequence
 from datetime import datetime
 from enum import Enum, auto
+from typing import cast
 
 import yaml
 from rich.box import MINIMAL, ROUNDED, SIMPLE, SQUARE, Box
@@ -242,7 +243,7 @@ class StandardizedOutputFormatter:
         elif isinstance(data, CommandTableRow):
             table_data = CommandTableData(rows=(data,))
         elif isinstance(data, Mapping):
-            rows = []
+            rows: list[CommandTableRow] = []
             for key, value in data.items():
                 nested = value
                 if isinstance(nested, (Mapping, Sequence)) and not isinstance(
@@ -252,12 +253,6 @@ class StandardizedOutputFormatter:
                 rows.append(CommandTableRow({"Key": str(key), "Value": nested}))
             table_data = CommandTableData(rows=tuple(rows))
             show_header = True
-            if box is None:
-                box = self.boxes.get(output_style, self.boxes[CommandOutputStyle.STANDARD])
-            if padding is None:
-                padding = self.padding.get(
-                    output_style, self.padding[CommandOutputStyle.STANDARD]
-                )
             table = Table(
                 title=title,
                 caption=subtitle,
@@ -280,10 +275,12 @@ class StandardizedOutputFormatter:
             data, (str, bytes, bytearray)
         ):
             if data and isinstance(data[0], CommandTableRow):
-                table_data = CommandTableData(rows=tuple(data))
+                command_rows = cast(Sequence[CommandTableRow], data)
+                table_data = CommandTableData(rows=tuple(command_rows))
             elif data and isinstance(data[0], Mapping):
+                mapping_rows = cast(Sequence[Mapping[str, object]], data)
                 table_data = CommandTableData.from_iterable(
-                    [CommandTableRow.from_mapping(row) for row in data]
+                    [CommandTableRow.from_mapping(row) for row in mapping_rows]
                 )
             else:
                 table.add_column("Items")
@@ -668,8 +665,13 @@ class StandardizedOutputFormatter:
             result, (str, bytes, bytearray)
         ):
             if result and isinstance(result[0], (CommandTableRow, Mapping)):
+                table_rows = cast(
+                    Sequence[CommandTableRow | Mapping[str, object]],
+                    result,
+                )
+                normalized_rows = CommandTableData.from_iterable(table_rows)
                 return self.format_table(
-                    result,  # type: ignore[arg-type]
+                    normalized_rows,
                     output_style=output_style,
                     title=title,
                     subtitle=subtitle,

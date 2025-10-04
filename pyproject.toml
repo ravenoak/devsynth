@@ -331,8 +331,6 @@ module = [
   "devsynth.application.cli.apispec",
   "devsynth.application.cli.autocomplete",
   "devsynth.application.cli.cli_commands",
-  "devsynth.application.cli.command_output_formatter",
-  "devsynth.application.cli.commands.*",
   "devsynth.application.cli.config",
   "devsynth.application.cli.errors",
   "devsynth.application.cli.help",
@@ -388,6 +386,67 @@ module = [
   "devsynth.testing.prompts",
   "devsynth.testing.__init__",
   "devsynth.utils.*",
+]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.application.cli.command_output_formatter",
+  "devsynth.application.cli.commands.dpg_cmd",
+  "devsynth.application.cli.commands.webui_cmd",
+]
+ignore_errors = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.application.cli.commands.align_cmd",
+  "devsynth.application.cli.commands.alignment_metrics_cmd",
+  "devsynth.application.cli.commands.analyze_manifest_cmd",
+  "devsynth.application.cli.commands.atomic_rewrite_cmd",
+  "devsynth.application.cli.commands.code_cmd",
+  "devsynth.application.cli.commands.completion_cmd",
+  "devsynth.application.cli.commands.config_cmd",
+  "devsynth.application.cli.commands.config_cmds",
+  "devsynth.application.cli.commands.dbschema_cmd",
+  "devsynth.application.cli.commands.diagnostics_cmds",
+  "devsynth.application.cli.commands.doctor_cmd",
+  "devsynth.application.cli.commands.documentation_cmds",
+  "devsynth.application.cli.commands.edrr_cycle_cmd",
+  "devsynth.application.cli.commands.extra_cmds",
+  "devsynth.application.cli.commands.gather_cmd",
+  "devsynth.application.cli.commands.generate_docs_cmd",
+  "devsynth.application.cli.commands.generation_cmds",
+  "devsynth.application.cli.commands.ingest_cmd",
+  "devsynth.application.cli.commands.init_cmd",
+  "devsynth.application.cli.commands.inspect_cmd",
+  "devsynth.application.cli.commands.inspect_code_cmd",
+  "devsynth.application.cli.commands.inspect_config_cmd",
+  "devsynth.application.cli.commands.interface_cmds",
+  "devsynth.application.cli.commands.metrics_cmds",
+  "devsynth.application.cli.commands.mvu_exec_cmd",
+  "devsynth.application.cli.commands.mvu_init_cmd",
+  "devsynth.application.cli.commands.mvu_lint_cmd",
+  "devsynth.application.cli.commands.mvu_report_cmd",
+  "devsynth.application.cli.commands.mvu_rewrite_cmd",
+  "devsynth.application.cli.commands.mvuu_dashboard_cmd",
+  "devsynth.application.cli.commands.pipeline_cmds",
+  "devsynth.application.cli.commands.refactor_cmd",
+  "devsynth.application.cli.commands.reprioritize_issues_cmd",
+  "devsynth.application.cli.commands.run_pipeline_cmd",
+  "devsynth.application.cli.commands.security_audit_cmd",
+  "devsynth.application.cli.commands.serve_cmd",
+  "devsynth.application.cli.commands.spec_cmd",
+  "devsynth.application.cli.commands.test_cmd",
+  "devsynth.application.cli.commands.test_metrics_cmd",
+  "devsynth.application.cli.commands.testing_cmd",
+  "devsynth.application.cli.commands.validate_manifest_cmd",
+  "devsynth.application.cli.commands.validate_metadata_cmd",
+  "devsynth.application.cli.commands.validation_cmds",
+  "devsynth.application.cli.commands.vcs_chunk_commit_cmd",
+  "devsynth.application.cli.commands.vcs_fix_rebase_pr_cmd",
+  "devsynth.application.cli.commands.webapp_cmd",
 ]
 ignore_errors = true
 
