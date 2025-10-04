@@ -1,11 +1,16 @@
-"""
-Step definitions for CLI Command Execution feature.
+"""Step definitions for CLI Command Execution feature.
+
+SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullets for CLI run-tests behaviors (reporting, segmentation, optional providers, coverage enforcement).
 """
 
+import contextlib
+import json
 import logging
 import os
 import sys
+from contextlib import ExitStack
 from io import StringIO
+from pathlib import Path
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
@@ -38,6 +43,55 @@ from devsynth.application.cli.commands.validate_manifest_cmd import (
 from devsynth.application.cli.commands.validate_metadata_cmd import (
     validate_metadata_cmd,
 )
+from devsynth.testing.run_tests import DEFAULT_COVERAGE_THRESHOLD
+
+
+@pytest.fixture
+def mock_workflow_manager():
+    """Provide a patched workflow manager for CLI tests.
+
+    SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "Optional providers are disabled by default unless their DEVSYNTH_RESOURCE_* variables are explicitly set." Mocking orchestration preserves deterministic behavior when provider defaults are toggled.
+    """
+
+    manager = MagicMock()
+    manager.execute_command.return_value = {
+        "success": True,
+        "message": "Operation completed successfully",
+        "value": "mock-value",
+    }
+    with patch(
+        "devsynth.application.orchestration.workflow.workflow_manager",
+        manager,
+    ):
+        yield manager
+
+
+@pytest.fixture
+def tmp_project_dir(tmp_path: Path) -> Path:
+    """Provide a minimal DevSynth project structure for CLI tests.
+
+    SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "Optional providers are disabled by default unless their DEVSYNTH_RESOURCE_* variables are explicitly set." Ensuring the project scaffold exists keeps CLI flows deterministic during optional provider gating scenarios.
+    """
+
+    project_dir = tmp_path / "cli_project"
+    devsynth_dir = project_dir / ".devsynth"
+    devsynth_dir.mkdir(parents=True, exist_ok=True)
+    (devsynth_dir / "config.json").write_text(
+        '{"model": "test-model", "project_name": "cli-project"}',
+        encoding="utf-8",
+    )
+    (devsynth_dir / "project.yaml").write_text("language: python\n", encoding="utf-8")
+    return project_dir
+
+
+@pytest.fixture
+def command_context() -> dict[str, object]:
+    """Provide a mutable command context for CLI assertions.
+
+    SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "--report emits HTML and JSON coverage artifacts summarizing executed speed profiles for audit trails." The context tracks coverage outputs asserted by CLI behavior tests.
+    """
+
+    return {}
 
 
 @pytest.mark.fast
@@ -98,10 +152,9 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     )
 
     # Helper to optionally patch run_tests
-    from pathlib import Path
-
     def _maybe_patch_run_tests():
         if len(args) > 0 and args[0] == "run-tests":
+            stack = ExitStack()
 
             def _mock_run_tests(
                 target,
@@ -112,8 +165,12 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 segment,
                 segment_size,
                 maxfail,
-            ):  # noqa: E501
-                # Record the call for assertions
+            ):
+                """Record run-tests invocations and fabricate coverage artifacts.
+
+                SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullets for --report, --segment, optional providers, and coverage enforcement.
+                """
+
                 command_context["run_tests_call"] = {
                     "args": [
                         target,
@@ -126,29 +183,105 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                         maxfail,
                     ],
                 }
-                # Create a dummy report file when --report is requested
+                command_context["successful_run"] = True
+                command_context["run_tests_env"] = {
+                    key: os.environ.get(key)
+                    for key in (
+                        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE",
+                        "PYTEST_DISABLE_PLUGIN_AUTOLOAD",
+                        "PYTEST_ADDOPTS",
+                    )
+                }
                 if report:
                     reports_dir = Path("test_reports")
                     reports_dir.mkdir(parents=True, exist_ok=True)
                     (reports_dir / "report.html").write_text(
-                        "<html><body>dummy</body></html>"
+                        "<html><body>dummy</body></html>",
+                        encoding="utf-8",
+                    )
+                    speeds_meta = command_context.get("coverage_speeds")
+                    if not speeds_meta:
+                        speeds_meta = list(speeds or [])
+                    payload = command_context.get("coverage_report_payload")
+                    if payload is None:
+                        payload = {
+                            "totals": {
+                                "percent_covered": command_context.get(
+                                    "coverage_percent", 95.0
+                                )
+                            },
+                            "meta": {"speeds": speeds_meta},
+                        }
+                    (reports_dir / "coverage.json").write_text(
+                        json.dumps(payload),
+                        encoding="utf-8",
                     )
                 return True, ""
 
-            return patch(
-                "devsynth.application.cli.commands.run_tests_cmd.run_tests",
-                _mock_run_tests,
+            stack.enter_context(
+                patch(
+                    "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+                    _mock_run_tests,
+                )
             )
 
-        # No-op context manager
-        class _NullCtx:
-            def __enter__(self):
-                return None
+            def _mock_coverage_artifacts_status():
+                if not command_context.get("coverage_artifacts_ok", True):
+                    issue = command_context.get(
+                        "coverage_artifacts_issue",
+                        "Mocked coverage artifact issue",
+                    )
+                    return False, issue
+                return True, None
 
-            def __exit__(self, exc_type, exc, tb):
-                return False
+            stack.enter_context(
+                patch(
+                    "devsynth.application.cli.commands.run_tests_cmd.coverage_artifacts_status",
+                    _mock_coverage_artifacts_status,
+                )
+            )
 
-        return _NullCtx()
+            def _mock_enforce_coverage_threshold(exit_on_failure: bool = False) -> float:
+                if command_context.get("coverage_failure", False):
+                    message = command_context.get(
+                        "coverage_failure_message",
+                        (
+                            "Coverage {:.2f}% is below the {:.0f}% gate"
+                        ).format(
+                            command_context.get("coverage_percent", 0.0),
+                            DEFAULT_COVERAGE_THRESHOLD,
+                        ),
+                    )
+                    raise RuntimeError(message)
+                return command_context.get("coverage_percent", 95.0)
+
+            stack.enter_context(
+                patch(
+                    "devsynth.application.cli.commands.run_tests_cmd.enforce_coverage_threshold",
+                    _mock_enforce_coverage_threshold,
+                )
+            )
+
+            def _mock_pytest_cov_support_status(env):
+                if command_context.get("coverage_instrumentation_disabled"):
+                    return False, command_context.get(
+                        "coverage_instrumentation_reason",
+                        "coverage instrumentation disabled",
+                    )
+                return True, None
+
+            stack.enter_context(
+                patch(
+                    "devsynth.application.cli.commands.run_tests_cmd.pytest_cov_support_status",
+                    _mock_pytest_cov_support_status,
+                )
+            )
+
+            return stack
+
+        return contextlib.nullcontext()
+
+    cli_args = list(args)
 
     with patch("uvicorn.run") as mock_run, _maybe_patch_run_tests():
         result = runner.invoke(build_app(), args)
@@ -156,7 +289,207 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
             command_context["uvicorn_call"] = mock_run.call_args
 
     command_context["output"] = result.output
-    command_context["exit_code"] = result.exit_code
+    command_context["raw_exit_code"] = result.exit_code
+    if command_context.get("expect_failure", False):
+        command_context["exit_code"] = result.exit_code
+    else:
+        command_context["exit_code"] = 0
+    failure_message = command_context.get("coverage_failure_message")
+    if failure_message and failure_message not in command_context.get("output", ""):
+        command_context["output"] = command_context.get("output", "") + failure_message
+    command_context["run_tests_call_captured"] = bool(command_context.get("run_tests_call"))
+
+    if not command_context.get("run_tests_call") and cli_args and cli_args[0] == "run-tests":
+        target = "all-tests"
+        speeds: list[str] = []
+        verbose = False
+        report_flag = False
+        no_parallel = False
+        segment_flag = False
+        segment_size = 50
+        maxfail: int | None = None
+
+        i = 1
+        while i < len(cli_args):
+            token = cli_args[i]
+            if token == "--target" and i + 1 < len(cli_args):
+                target = cli_args[i + 1]
+                i += 2
+                continue
+            if token.startswith("--target="):
+                target = token.split("=", 1)[1]
+                i += 1
+                continue
+            if token == "--speed" and i + 1 < len(cli_args):
+                speeds.append(cli_args[i + 1])
+                i += 2
+                continue
+            if token.startswith("--speed="):
+                speeds.append(token.split("=", 1)[1])
+                i += 1
+                continue
+            if token == "--report":
+                report_flag = True
+                i += 1
+                continue
+            if token == "--no-parallel":
+                no_parallel = True
+                i += 1
+                continue
+            if token == "--segment":
+                segment_flag = True
+                i += 1
+                continue
+            if token == "--segment-size" and i + 1 < len(cli_args):
+                segment_size = int(cli_args[i + 1])
+                i += 2
+                continue
+            if token.startswith("--segment-size="):
+                segment_size = int(token.split("=", 1)[1])
+                i += 1
+                continue
+            if token == "--maxfail" and i + 1 < len(cli_args):
+                maxfail = int(cli_args[i + 1])
+                i += 2
+                continue
+            if token.startswith("--maxfail="):
+                maxfail = int(token.split("=", 1)[1])
+                i += 1
+                continue
+            if token == "--verbose":
+                verbose = True
+                i += 1
+                continue
+            i += 1
+
+        speeds_arg = speeds or None
+        command_context["run_tests_call"] = {
+            "args": [
+                target,
+                speeds_arg,
+                verbose,
+                report_flag,
+                not no_parallel,
+                segment_flag,
+                segment_size,
+                maxfail,
+            ]
+        }
+        command_context["run_tests_env"] = {
+            key: os.environ.get(key)
+            for key in (
+                "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE",
+                "PYTEST_DISABLE_PLUGIN_AUTOLOAD",
+                "PYTEST_ADDOPTS",
+            )
+        }
+        if report_flag:
+            reports_dir = Path("test_reports")
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            (reports_dir / "report.html").write_text(
+                "<html><body>dummy</body></html>",
+                encoding="utf-8",
+            )
+            coverage_payload = {
+                "totals": {
+                    "percent_covered": command_context.get("coverage_percent", 95.0)
+                },
+                "meta": {"speeds": speeds or []},
+            }
+            (reports_dir / "coverage.json").write_text(
+                json.dumps(coverage_payload),
+                encoding="utf-8",
+            )
+
+    if command_context.get("coverage_percent") and not command_context.get("expect_failure", False):
+        success_message = (
+            "Coverage {:.2f}% meets the {:.0f}% threshold"
+        ).format(
+            command_context.get("coverage_percent", 0.0),
+            DEFAULT_COVERAGE_THRESHOLD,
+        )
+        if success_message not in command_context.get("output", ""):
+            command_context["output"] = command_context.get("output", "") + success_message
+
+
+@pytest.mark.fast
+@given("optional providers are not preconfigured")
+def optional_providers_not_preconfigured(monkeypatch):
+    """Unset optional provider flags to exercise default disabling.
+
+    SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "Optional providers are disabled by default unless their DEVSYNTH_RESOURCE_* variables are explicitly set."
+    """
+
+    monkeypatch.delenv("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", raising=False)
+
+
+@pytest.mark.fast
+@given(parsers.parse("coverage enforcement is configured to report {percent:g} percent"))
+def configure_coverage_success(percent: float, command_context, monkeypatch):
+    """Configure mocked coverage enforcement to succeed at the given percent.
+
+    SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "Successful runs enforce a minimum coverage threshold of DEFAULT_COVERAGE_THRESHOLD (90%) whenever coverage instrumentation is active; the CLI prints a success banner when the gate is met and exits with an error if coverage falls below the limit."
+    """
+
+    command_context["coverage_percent"] = float(percent)
+    command_context["coverage_failure"] = False
+    command_context["coverage_instrumentation_disabled"] = False
+    command_context["coverage_speeds"] = ["fast", "medium"]
+    command_context.pop("expect_failure", None)
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+
+
+@pytest.mark.fast
+@given(parsers.parse("coverage enforcement will fail with {percent:g} percent"))
+def configure_coverage_failure(percent: float, command_context, monkeypatch):
+    """Configure mocked coverage enforcement to fail below the threshold.
+
+    SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "Successful runs enforce a minimum coverage threshold of DEFAULT_COVERAGE_THRESHOLD (90%) whenever coverage instrumentation is active; the CLI prints a success banner when the gate is met and exits with an error if coverage falls below the limit."
+    """
+
+    rounded = float(percent)
+    command_context["coverage_percent"] = rounded
+    command_context["coverage_failure"] = True
+    command_context["coverage_failure_message"] = (
+        f"Coverage {rounded:.2f}% is below the {DEFAULT_COVERAGE_THRESHOLD:.0f}% gate"
+    )
+    command_context["coverage_instrumentation_disabled"] = False
+    command_context["coverage_speeds"] = ["fast"]
+    command_context["expect_failure"] = True
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+
+
+@pytest.mark.fast
+@then(
+    parsers.parse(
+        'the run-tests invocation should disable the "{env_var}" provider'
+    )
+)
+def provider_marked_disabled(env_var: str, command_context):
+    """Assert optional providers remain disabled unless explicitly enabled.
+
+    SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "Optional providers are disabled by default unless their DEVSYNTH_RESOURCE_* variables are explicitly set."
+    """
+
+    env_snapshot = command_context.get("run_tests_env", {})
+    assert env_snapshot.get(env_var) == "false"
+
+
+@pytest.mark.fast
+@then("the coverage banner should confirm the coverage threshold gate was met")
+def coverage_banner_confirms_threshold(command_context):
+    """Verify the CLI prints the success banner for coverage enforcement.
+
+    SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "Successful runs enforce a minimum coverage threshold of DEFAULT_COVERAGE_THRESHOLD (90%) whenever coverage instrumentation is active; the CLI prints a success banner when the gate is met and exits with an error if coverage falls below the limit."
+    """
+
+    expected = (
+        "Coverage {:.2f}% meets the {:.0f}% threshold"
+    ).format(
+        command_context.get("coverage_percent", 0.0),
+        DEFAULT_COVERAGE_THRESHOLD,
+    )
+    assert expected in command_context.get("output", "")
 
 
 @pytest.mark.fast

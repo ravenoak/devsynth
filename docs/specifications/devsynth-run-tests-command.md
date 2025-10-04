@@ -31,9 +31,13 @@ Reliable test runs require bypassing unavailable providers, splitting large suit
 - `--segment` runs tests in batches; `--segment-size` sets batch size (default 50).
 - `--feature NAME[=BOOLEAN]` sets `DEVSYNTH_FEATURE_<NAME>` to `true` or `false` for the test process.
 - Optional providers are disabled by default unless their `DEVSYNTH_RESOURCE_*` variables are explicitly set.
+- `--report` emits HTML and JSON coverage artifacts summarizing executed speed profiles for audit trails.
+- Successful runs enforce a minimum coverage threshold of `DEFAULT_COVERAGE_THRESHOLD` (90%) whenever coverage instrumentation is active; the CLI prints a success banner when the gate is met and exits with an error if coverage falls below the limit.
 
 ## Acceptance Criteria
 - `devsynth run-tests --target unit-tests --speed=fast --no-parallel` completes without waiting on optional providers.
 - `devsynth run-tests --target unit-tests --speed=fast --no-parallel --segment --segment-size=1` executes tests in batches of one.
 - `devsynth run-tests --target unit-tests --speed=fast --no-parallel --feature demo=false` sets `DEVSYNTH_FEATURE_DEMO=false` during test execution.
 - Invocations without `--no-parallel` run tests in parallel while still skipping optional providers.
+- `devsynth run-tests --target unit-tests --speed=fast --report` emits `test_reports/report.html` and `test_reports/coverage.json` artifacts that list executed speed profiles.
+- When coverage instrumentation reports at least 90% coverage, the CLI prints the "Coverage XX.XX% meets the 90% threshold" success banner; otherwise the command exits non-zero and includes a helpful error message.
