@@ -11,6 +11,7 @@ Executive summary
   - Test collection succeeds across a large suite (unit/integration/behavior/property).
   - Fast smoke/unit/integration/behavior profiles run successfully via the CLI.
 - Strict mypy gating now passes; the 2025-10-04 rerun reported zero errors across 429 modules with artifacts published under `diagnostics/mypy_strict_src_devsynth_20251004T020206Z.txt` and `diagnostics/mypy_strict_inventory_20251004T020206Z.md`. The knowledge-graph bridge recorded fresh `QualityGate`, `TestRun`, and `ReleaseEvidence` nodes for the audit trail.【F:diagnostics/mypy_strict_src_devsynth_20251004T020206Z.txt†L1-L1】【F:diagnostics/mypy_strict_inventory_20251004T020206Z.md†L1-L9】【d7def6†L1-L18】
+- 2025-10-04 smoke run regression: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` currently fails during collection because `_ProgressIndicatorBase` helpers are not importable, `SyncManager` Protocol generics reject concrete type parameters, and several behavior suites reference missing `.feature` files. Optional backend tests also attempt to import Chromadb/Faiss/Kuzu directly, raising `ValueError` when extras are absent.【dd1c30†L1-L4】【9ecea8†L1-L164】
 - Speed-marker discipline validated (0 violations).
  - Property marker verification reports 0 violations after converting nested Hypothesis helpers into decorated tests.
  - Property tests (opt-in) now pass after dummy adjustments and Hypothesis fixes.
@@ -453,6 +454,7 @@ Maintainer quickstart (authoritative commands)
 
 Notes and next actions
 - Immediate: Repair coverage instrumentation so both smoke and fast+medium profiles emit `.coverage`, then resume adding targeted tests for run_tests_cmd, logging_setup, webui, and reasoning_loop before regenerating the coverage report above 90%.【d5fad8†L1-L4】【20dbec†L1-L5】
+- 2025-10-04 immediate triage: Create PR sequencing (see docs/release/v0.1.0a1_execution_plan.md) that first restores CLI progress scaffolding, fixes memory Protocol generics, relocates stray `pytest_plugins`, and reinstates missing behavior `.feature` files before attempting new coverage work.【a75c62†L1-L74】【9ecea8†L1-L164】 Track the regression via `issues/test-collection-regressions-20251004.md` and ensure optional backend suites respect `requires_resource` guards instead of importing unavailable drivers.【9ecea8†L96-L120】
 - Formal proofs for reasoning loop and provider system invariants recorded in
   docs/implementation/reasoning_loop_invariants.md and
   docs/implementation/provider_system_invariants.md.
