@@ -12,16 +12,20 @@ Artifacts:
 Suspected Cause: Pending release tasks before tagging v0.1.0a1.
 ## Current Status
 - ✅ Fast+medium coverage gate passes at 92.40 % with manifest, CLI log, HTML snapshot, and knowledge-graph IDs archived under `artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/`.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
-- ✅ docs/plan.md, docs/tasks.md, and docs/release/0.1.0-alpha.1.md now cite the passing manifest and mark coverage milestones as complete.【F:docs/plan.md†L1-L88】【F:docs/tasks.md†L309-L333】【F:docs/release/0.1.0-alpha.1.md†L16-L48】
-- ⏳ Remaining: EDRR reasoning loop uplift to ≥90 %, formal UAT evidence bundle, maintainer tag + post-tag CI plan.
+- ✅ docs/plan.md, docs/tasks.md, and docs/release/0.1.0-alpha.1.md now cite the passing manifest and mark coverage milestones as complete.【F:docs/plan.md†L20-L34】【F:docs/tasks.md†L309-L333】【F:docs/release/0.1.0-alpha.1.md†L1-L72】
+- 🔴 Maintainer automation (`task release:prep`, `task mypy:strict`) fails with `invalid keys in command`, and smoke mode aborts on the `MemoryStore` Protocol TypeError; these must be resolved before final UAT and tagging.【F:diagnostics/release_prep_20251004T183136Z.log†L1-L8】【F:diagnostics/mypy_strict_20251004T183708Z.log†L1-L8】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
+- ⏳ Remaining: Repair Taskfile automation, patch the memory Protocol regression, regenerate strict mypy + coverage artifacts (closing the 87.34 % EDRR gap), assemble the UAT bundle, and prepare the post-tag CI plan following the refreshed execution roadmap.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:docs/release/v0.1.0a1_execution_plan.md†L61-L128】
 
 Next Actions:
   - [x] Draft release notes and update CHANGELOG.md.
-  - [x] Perform final full fast+medium coverage run and archive artifacts. Evidence lives under `artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/` with manifest + checksums for verification.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
-  - [x] Complete User Acceptance Testing with stakeholder sign-off using alpha-appropriate criteria (see alpha-release-readiness-assessment.md). Evidence captured in the 2025-10-04 UAT session summary and stakeholder approval table below, referencing the readiness assessment.
-  - [ ] Maintainers tag v0.1.0a1 on GitHub once all tasks complete.
-  - [x] Review the [spec dependency matrix](../docs/release/spec_dependency_matrix.md) to track remaining draft specs/invariants and their dependent tests before UAT sign-off. Confirmed during the 2025-10-04 review cycle when reconciling stakeholder approvals.【F:docs/release/spec_dependency_matrix.md†L1-L120】
-  - [x] Execute docs/tasks.md §29.1–§29.5 and §30.1–§30.2 (coverage uplifts and documentation sync). §30.3–§30.4 remain open for UAT evidence and post-tag CI planning.【F:docs/tasks.md†L309-L333】
+  - [x] Perform fast+medium coverage run and archive artifacts (2025-10-12 manifest with knowledge-graph IDs).【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
+  - [ ] Repair Taskfile.yml §23, rerun `task release:prep`/`task mypy:strict`, and attach the passing logs to this issue.【F:diagnostics/release_prep_20251004T183136Z.log†L1-L8】【F:diagnostics/mypy_strict_20251004T183708Z.log†L1-L8】
+  - [ ] Patch the `MemoryStore` Protocol generics, add coverage, and rerun smoke with a green log replacing the 2025-10-04 failure.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
+  - [ ] Regenerate strict mypy and fast+medium artifacts post-fix, ensuring `methodology/edrr/reasoning_loop.py` reaches ≥90 % coverage before hand-off.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】
+  - [ ] Capture updated UAT evidence (smoke, doctor, QA notes) and secure stakeholder sign-off once the above gates are green.【F:issues/release-readiness-assessment-v0-1-0a1.md†L1-L128】【F:issues/alpha-release-readiness-assessment.md†L1-L141】
+  - [ ] Maintainers tag v0.1.0a1 on GitHub once all tasks complete and the post-tag CI re-enable PR is queued.【F:docs/release/v0.1.0a1_execution_plan.md†L118-L128】
+  - [x] Review the [spec dependency matrix](../docs/release/spec_dependency_matrix.md) to track remaining draft specs/invariants and their dependent tests before UAT sign-off.【F:docs/release/spec_dependency_matrix.md†L1-L120】
+  - [x] Execute docs/tasks.md §29.1–§29.5 and §30.1–§30.2 (coverage uplifts and documentation sync); §30.3–§30.4 and §31 remain open for UAT evidence, automation fixes, and post-tag CI planning.【F:docs/tasks.md†L309-L333】【F:docs/tasks.md†L334-L347】
 
 ## 2025-10-04 UAT session
 
