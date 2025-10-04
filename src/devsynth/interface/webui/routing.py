@@ -1,7 +1,24 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import Any
+from typing import Protocol, cast
+
+from devsynth.interface.streamlit_contracts import SessionState, StreamlitModule
+
+
+class StreamlitUI(Protocol):
+    """Contract implemented by UI bridges that expose Streamlit."""
+
+    @property
+    def streamlit(self) -> StreamlitModule: ...
+
+    def display_result(
+        self,
+        message: str,
+        *,
+        highlight: bool = False,
+        message_type: str | None = None,
+    ) -> None: ...
 
 
 class Router:
@@ -9,7 +26,7 @@ class Router:
 
     def __init__(
         self,
-        ui: Any,
+        ui: StreamlitUI,
         pages: Mapping[str, Callable[[], None]],
         *,
         default: str | None = None,
@@ -28,7 +45,7 @@ class Router:
     def run(self) -> None:
         st = self._ui.streamlit
         nav_list = list(self._pages)
-        session_state = getattr(st, "session_state", None)
+        session_state: SessionState | None = getattr(st, "session_state", None)
         stored_nav = self._default
         if session_state is not None:
             stored_nav = getattr(session_state, "nav", self._default)

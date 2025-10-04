@@ -13,6 +13,7 @@ from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.progress_utils import run_with_progress
 from devsynth.interface.ux_bridge import sanitize_output
+from devsynth.interface.webui.rendering_simulation import simulate_progress_rendering
 from devsynth.interface.webui.commands import (
     CommandHandlingMixin,
     SetupWizard,
@@ -1637,6 +1638,7 @@ class PageRenderer(
 
 
 __all__ = [
+    "simulate_progress_rendering",
     "PageRenderer",
     "ProjectSetupPages",
     "LifecyclePages",

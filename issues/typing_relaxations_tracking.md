@@ -24,6 +24,29 @@ How to use this document:
 | devsynth.logger | removed | TBD | [restore-strict-typing-logger.md](restore-strict-typing-logger.md) | 2025-10-01 | closed |
 | devsynth.methodology.* | removed | TBD | [restore-strict-typing-methodology.md](restore-strict-typing-methodology.md) | 2025-10-01 | closed |
 | devsynth.application.edrr.* | removed | TBD | [restore-strict-typing-application-edrr.md](restore-strict-typing-application-edrr.md) | 2025-10-01 | closed |
+| devsynth.interface.agentapi_models | ignore_errors | TBD | [restore-strict-typing-interface-agentapi-models.md](restore-strict-typing-interface-agentapi-models.md) | 2025-10-01 | open |
+| devsynth.interface.webui_state | ignore_errors | TBD | [restore-strict-typing-interface-webui-state.md](restore-strict-typing-interface-webui-state.md) | 2025-10-01 | open |
+| devsynth.interface.enhanced_error_handler | ignore_errors | TBD | [restore-strict-typing-interface-enhanced-error-handler.md](restore-strict-typing-interface-enhanced-error-handler.md) | 2025-10-01 | open |
+| devsynth.interface.ux_bridge | ignore_errors | TBD | [restore-strict-typing-interface-ux-bridge.md](restore-strict-typing-interface-ux-bridge.md) | 2025-10-01 | open |
+| devsynth.interface.wizard_state_manager | ignore_errors | TBD | [restore-strict-typing-interface-wizard-state-manager.md](restore-strict-typing-interface-wizard-state-manager.md) | 2025-10-01 | open |
+| devsynth.interface.progress_utils | ignore_errors | TBD | [restore-strict-typing-interface-progress-utils.md](restore-strict-typing-interface-progress-utils.md) | 2025-10-01 | open |
+| devsynth.interface.output_formatter | ignore_errors | TBD | [restore-strict-typing-interface-output-formatter.md](restore-strict-typing-interface-output-formatter.md) | 2025-10-01 | open |
+| devsynth.interface.simple_run | ignore_errors | TBD | [restore-strict-typing-interface-simple-run.md](restore-strict-typing-interface-simple-run.md) | 2025-10-01 | open |
+| devsynth.interface.shared_bridge | ignore_errors | TBD | [restore-strict-typing-interface-shared-bridge.md](restore-strict-typing-interface-shared-bridge.md) | 2025-10-01 | open |
+| devsynth.interface.command_output | ignore_errors | TBD | [restore-strict-typing-interface-command-output.md](restore-strict-typing-interface-command-output.md) | 2025-10-01 | open |
+| devsynth.interface.webui_bridge | ignore_errors | TBD | [restore-strict-typing-interface-webui-bridge.md](restore-strict-typing-interface-webui-bridge.md) | 2025-10-01 | open |
+| devsynth.interface.webui.rendering | ignore_errors | TBD | [restore-strict-typing-interface-webui-rendering.md](restore-strict-typing-interface-webui-rendering.md) | 2025-10-01 | open |
+| devsynth.interface.research_telemetry | ignore_errors | TBD | [restore-strict-typing-interface-research-telemetry.md](restore-strict-typing-interface-research-telemetry.md) | 2025-10-01 | open |
+| devsynth.interface.nicegui_webui | ignore_errors | TBD | [restore-strict-typing-interface-nicegui-webui.md](restore-strict-typing-interface-nicegui-webui.md) | 2025-10-01 | open |
+| devsynth.interface.dpg_bridge | ignore_errors | TBD | [restore-strict-typing-interface-dpg-bridge.md](restore-strict-typing-interface-dpg-bridge.md) | 2025-10-01 | open |
+| devsynth.interface.cli | ignore_errors | TBD | [restore-strict-typing-interface-cli.md](restore-strict-typing-interface-cli.md) | 2025-10-01 | open |
+| devsynth.interface.agentapi | ignore_errors | TBD | [restore-strict-typing-interface-agentapi.md](restore-strict-typing-interface-agentapi.md) | 2025-10-01 | open |
+| devsynth.interface.agentapi_enhanced | ignore_errors | TBD | [restore-strict-typing-interface-agentapi-enhanced.md](restore-strict-typing-interface-agentapi-enhanced.md) | 2025-10-01 | open |
+| devsynth.interface.webui.commands | ignore_errors | TBD | [restore-strict-typing-interface-webui-commands.md](restore-strict-typing-interface-webui-commands.md) | 2025-10-01 | open |
+| devsynth.interface.mvuu_dashboard | ignore_errors | TBD | [restore-strict-typing-interface-mvuu-dashboard.md](restore-strict-typing-interface-mvuu-dashboard.md) | 2025-10-01 | open |
+| devsynth.interface.webui_setup | ignore_errors | TBD | [restore-strict-typing-interface-webui-setup.md](restore-strict-typing-interface-webui-setup.md) | 2025-10-01 | open |
+| devsynth.interface.dpg_ui | ignore_errors | TBD | [restore-strict-typing-interface-dpg-ui.md](restore-strict-typing-interface-dpg-ui.md) | 2025-10-01 | open |
+| devsynth.application.cli.__init__ | ignore_errors | TBD | [restore-strict-typing-cli.md](restore-strict-typing-cli.md) | 2025-10-01 | open |
 
 Notes:
 - This table is seeded automatically from pyproject.toml relaxations as of 2025-09-02. Keep it updated as overrides are narrowed or removed.
