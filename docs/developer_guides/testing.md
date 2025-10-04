@@ -359,6 +359,12 @@ poetry run devsynth run-tests --speed=slow
 
 The test runner automatically disables coverage collection and the `pytest-benchmark` plugin when running in parallel to avoid `pytest-xdist` assertion errors.
 
+#### Release evidence manifests and knowledge graph updates
+
+- `poetry run devsynth run-tests --report` writes `test_reports/coverage_manifest_<UTC>.json` (plus `coverage_manifest_latest.json`) and prints a `[knowledge-graph] coverage gate …` banner identifying the `QualityGate`, `TestRun`, and `ReleaseEvidence` nodes it updated. Capture those IDs in issue or PR notes for traceability.
+- `poetry run task mypy:strict` delegates to `python -m devsynth.testing.mypy_strict_runner`, which captures the strict log, regenerates `diagnostics/mypy_strict_inventory_<UTC>.md`, emits a typing manifest, and prints a `[knowledge-graph] typing gate …` banner with the node IDs. The manifests include SHA-256 checksums so operators no longer need to hash artifacts manually.
+- All release-evidence commands must run inside the Poetry environment (`poetry run …`) so the generated manifests and knowledge graph updates remain consistent across rehearsal machines.
+
 Skip resource-heavy tests during routine development by running only fast tests:
 
 ```bash

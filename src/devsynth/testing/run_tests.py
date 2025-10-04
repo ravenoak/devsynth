@@ -18,12 +18,18 @@ import shutil
 import subprocess
 import sys
 from collections.abc import MutableMapping, Sequence
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 from unittest.mock import patch
 
 from devsynth.logging_setup import DevSynthLogger
+from devsynth.release import (
+    compute_file_checksum,
+    get_release_tag,
+    publish_manifest,
+    write_manifest,
+)
 
 # Cache directory for test collection
 COLLECTION_CACHE_DIR = Path(".test_collection_cache")
@@ -412,6 +418,172 @@ def coverage_artifacts_status() -> tuple[bool, str | None]:
         return False, "Coverage HTML indicates no recorded data"
 
     return True, None
+
+
+def _maybe_publish_coverage_evidence(
+    *,
+    report: bool,
+    success: bool,
+    marker_fallback: bool,
+    execution_metadata: dict[str, object],
+    normalized_speeds: list[str],
+    collected_node_ids: list[str],
+) -> str | None:
+    """Publish coverage run outputs to the knowledge graph when possible."""
+
+    if not report or not success or marker_fallback:
+        return None
+
+    artifacts_ok, reason = coverage_artifacts_status()
+    if not artifacts_ok:
+        logger.warning("Skipping release graph publication: %s", reason)
+        return f"[knowledge-graph] coverage ingestion skipped: {reason}"
+
+    try:
+        coverage_payload = json.loads(COVERAGE_JSON_PATH.read_text())
+    except Exception as exc:
+        logger.error("Unable to parse coverage JSON for graph ingestion: %s", exc)
+        return f"[knowledge-graph] coverage ingestion failed: invalid JSON ({exc})"
+
+    totals = coverage_payload.get("totals") if isinstance(coverage_payload, dict) else None
+    raw_percent = None
+    if isinstance(totals, dict):
+        raw_percent = totals.get("percent_covered")
+    if not isinstance(raw_percent, (int, float)):
+        return "[knowledge-graph] coverage ingestion failed: percent_covered missing"
+    coverage_percent = float(raw_percent)
+
+    html_index = COVERAGE_HTML_DIR / "index.html"
+    if not html_index.exists():
+        return f"[knowledge-graph] coverage ingestion failed: missing {html_index}"
+
+    try:
+        coverage_checksum = compute_file_checksum(COVERAGE_JSON_PATH)
+        html_checksum = compute_file_checksum(html_index)
+    except OSError as exc:
+        logger.error("Unable to compute coverage artifact checksum: %s", exc)
+        return f"[knowledge-graph] coverage ingestion failed: checksum error ({exc})"
+
+    commands = execution_metadata.get("commands")
+    if not commands:
+        primary_command = execution_metadata.get("command")
+        commands = [primary_command] if primary_command else []
+
+    command_strings: list[str] = []
+    for entry in commands:
+        if isinstance(entry, (list, tuple)):
+            command_strings.append(" ".join(str(part) for part in entry))
+        elif isinstance(entry, str):
+            command_strings.append(entry)
+        elif entry is None:
+            continue
+        else:
+            try:
+                command_strings.append(" ".join(str(part) for part in entry))
+            except Exception:
+                command_strings.append(str(entry))
+
+    source_command = " && ".join(command_strings) if command_strings else ""
+
+    started_at = str(execution_metadata.get("started_at") or datetime.now(UTC).isoformat())
+    completed_at = str(execution_metadata.get("completed_at") or datetime.now(UTC).isoformat())
+    try:
+        exit_code = int(execution_metadata.get("returncode", 0))
+    except Exception:
+        exit_code = 0
+
+    if exit_code not in (0, 5):
+        gate_status = "blocked"
+    elif coverage_percent >= DEFAULT_COVERAGE_THRESHOLD:
+        gate_status = "pass"
+    else:
+        gate_status = "fail"
+
+    checksum_builder = hashlib.sha256()
+    checksum_builder.update("|".join(sorted(normalized_speeds or ["all"])).encode("utf-8"))
+    checksum_builder.update(str(coverage_percent).encode("utf-8"))
+    checksum_builder.update(str(len(collected_node_ids)).encode("utf-8"))
+    checksum_builder.update(str(exit_code).encode("utf-8"))
+    checksum_builder.update(coverage_checksum.encode("utf-8"))
+    checksum_builder.update(html_checksum.encode("utf-8"))
+    run_checksum = checksum_builder.hexdigest()
+
+    profile = "+".join(normalized_speeds) if normalized_speeds else "all"
+    release_tag = get_release_tag()
+    evaluated_at = datetime.now(UTC).isoformat()
+    manifest = {
+        "run_type": "coverage",
+        "release_tag": release_tag,
+        "source_command": source_command,
+        "artifacts": [
+            {
+                "artifact_type": "coverage_json",
+                "path": str(COVERAGE_JSON_PATH),
+                "checksum": coverage_checksum,
+                "collected_at": completed_at,
+            },
+            {
+                "artifact_type": "coverage_html",
+                "path": str(html_index),
+                "checksum": html_checksum,
+                "collected_at": completed_at,
+            },
+        ],
+        "test_run": {
+            "profile": profile,
+            "coverage_percent": coverage_percent,
+            "tests_collected": len(collected_node_ids),
+            "exit_code": exit_code,
+            "started_at": started_at,
+            "completed_at": completed_at,
+            "run_checksum": run_checksum,
+            "metadata": {
+                "commands": command_strings,
+                "artifact_checksums": [coverage_checksum, html_checksum],
+            },
+        },
+        "quality_gate": {
+            "gate_name": "coverage",
+            "threshold": DEFAULT_COVERAGE_THRESHOLD,
+            "status": gate_status,
+            "evaluated_at": evaluated_at,
+            "metadata": {
+                "coverage_percent": coverage_percent,
+                "tests_collected": len(collected_node_ids),
+            },
+        },
+    }
+
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    manifest_dir = COVERAGE_JSON_PATH.parent
+    manifest_path = manifest_dir / f"coverage_manifest_{timestamp}.json"
+    latest_manifest_path = manifest_dir / "coverage_manifest_latest.json"
+    write_manifest(manifest_path, manifest)
+    write_manifest(latest_manifest_path, manifest)
+
+    try:
+        publication = publish_manifest(manifest)
+    except Exception as exc:
+        logger.error("Release graph publication failed: %s", exc)
+        return f"[knowledge-graph] coverage ingestion failed: {exc}"
+
+    release_evidence_created = publication.created.get("release_evidence", [])
+    evidence_parts = []
+    for evidence_id, created in zip(publication.evidence_ids, release_evidence_created):
+        suffix = " (new)" if created else ""
+        evidence_parts.append(f"{evidence_id}{suffix}")
+    evidence_summary = ", ".join(evidence_parts)
+
+    test_run_state = "new" if publication.created.get("test_run") else "updated"
+    gate_state = "new" if publication.created.get("quality_gate") else "updated"
+
+    return (
+        "[knowledge-graph] coverage gate "
+        f"{publication.gate_status} → QualityGate {publication.quality_gate_id} ({gate_state}), "
+        f"TestRun {publication.test_run_id} ({test_run_state}), "
+        f"Evidence [{evidence_summary}] via {publication.adapter_backend}; "
+        f"coverage={coverage_percent:.2f}% threshold={DEFAULT_COVERAGE_THRESHOLD:.2f}%"
+    )
 
 def enforce_coverage_threshold(
     coverage_file: Path | str = COVERAGE_JSON_PATH,
@@ -836,9 +1008,10 @@ def run_tests(
         marker_fallback = True
         collected_node_ids = [TARGET_PATHS[target]]
 
+    execution_metadata: dict[str, object]
     if segment and normalized_speeds and not marker_fallback:
         # Segmented execution
-        return _run_segmented_tests(
+        success, output, execution_metadata = _run_segmented_tests(
             target=target,
             speed_categories=normalized_speeds,
             marker_expr=marker_expr,
@@ -851,21 +1024,34 @@ def run_tests(
             keyword_filter=effective_keyword_filter,
             env=env,
         )
+    else:
+        # Single execution
+        success, output, execution_metadata = _run_single_test_batch(
+            node_ids=collected_node_ids,  # Pass collected node_ids
+            marker_expr=marker_expr,
+            verbose=verbose,
+            report=report,
+            parallel=parallel,
+            maxfail=maxfail,
+            keyword_filter=effective_keyword_filter,
+            env=env,
+        )
+        _ensure_coverage_artifacts()
 
-    # Single execution
-    success, output = _run_single_test_batch(
-        node_ids=collected_node_ids,  # Pass collected node_ids
-        marker_expr=marker_expr,
-        verbose=verbose,
-        report=report,
-        parallel=parallel,
-        maxfail=maxfail,
-        keyword_filter=effective_keyword_filter,
-        env=env,
-    )
-    _ensure_coverage_artifacts()
     if marker_fallback:
         output = "Marker fallback executed.\n" + output
+
+    publication_message = _maybe_publish_coverage_evidence(
+        report=report,
+        success=success,
+        marker_fallback=marker_fallback,
+        execution_metadata=execution_metadata,
+        normalized_speeds=normalized_speeds,
+        collected_node_ids=collected_node_ids,
+    )
+    if publication_message:
+        output = f"{output.rstrip()}\n{publication_message}\n"
+
     return success, output
 
 
@@ -881,9 +1067,10 @@ def _run_segmented_tests(
     maxfail: int | None,
     keyword_filter: str | None,
     env: dict[str, str],
-) -> tuple[bool, str]:
+) -> tuple[bool, str, dict[str, object]]:
     """Run tests in segments to handle large test suites."""
     all_outputs = []
+    segment_metadata: list[dict[str, object]] = []
     overall_success = True
 
     # Sanitize node IDs
@@ -910,7 +1097,7 @@ def _run_segmented_tests(
             "Running segment %d/%d (%d tests)", i + 1, len(segments), len(segment_nodes)
         )
 
-        success, output = _run_single_test_batch(
+        success, output, metadata = _run_single_test_batch(
             node_ids=segment_nodes,  # Pass collected node_ids
             marker_expr=marker_expr,
             verbose=verbose,
@@ -924,6 +1111,7 @@ def _run_segmented_tests(
         )
 
         all_outputs.append(output)
+        segment_metadata.append(metadata)
         if not success:
             overall_success = False
             if maxfail:
@@ -932,7 +1120,28 @@ def _run_segmented_tests(
     # Ensure coverage artifacts are generated
     _ensure_coverage_artifacts()
 
-    return overall_success, "\n".join(all_outputs)
+    combined_metadata: dict[str, object]
+    if segment_metadata:
+        first_meta = segment_metadata[0]
+        last_meta = segment_metadata[-1]
+        combined_metadata = {
+            "commands": [meta.get("command") for meta in segment_metadata],
+            "returncode": last_meta.get("returncode", 0),
+            "started_at": first_meta.get("started_at"),
+            "completed_at": last_meta.get("completed_at"),
+            "segments": segment_metadata,
+        }
+    else:
+        now_iso = datetime.now(UTC).isoformat()
+        combined_metadata = {
+            "commands": [],
+            "returncode": -1,
+            "started_at": now_iso,
+            "completed_at": now_iso,
+            "segments": [],
+        }
+
+    return overall_success, "\n".join(all_outputs), combined_metadata
 
 
 def _run_single_test_batch(
@@ -944,7 +1153,7 @@ def _run_single_test_batch(
     maxfail: int | None,
     keyword_filter: str | None,
     env: dict[str, str],
-) -> tuple[bool, str]:
+) -> tuple[bool, str, dict[str, object]]:
     """Run a single batch of tests."""
     cmd = [sys.executable, "-m", "pytest"]
 
@@ -985,6 +1194,7 @@ def _run_single_test_batch(
             env["PYTEST_ADDOPTS"] = f"{addopts} -p pytest_cov -p pytest_bdd".strip()
 
     try:
+        started_at = datetime.now(UTC)
         logger.debug("Running command: %s", " ".join(cmd))
         process = subprocess.Popen(
             cmd,
@@ -995,16 +1205,29 @@ def _run_single_test_batch(
         )
 
         output, _ = process.communicate()
+        completed_at = datetime.now(UTC)
         success = process.returncode in (0, 5)  # 0 = success, 5 = no tests collected
 
         if not success:
             output += _failure_tips(process.returncode, cmd)
 
-        return success, output
+        metadata: dict[str, object] = {
+            "command": cmd,
+            "returncode": process.returncode,
+            "started_at": started_at.isoformat(),
+            "completed_at": completed_at.isoformat(),
+        }
+        return success, output, metadata
     except Exception as e:
         error_msg = f"Failed to run tests: {e}"
         logger.error(error_msg)
-        return False, error_msg
+        now_iso = datetime.now(UTC).isoformat()
+        return False, error_msg, {
+            "command": cmd,
+            "returncode": -1,
+            "started_at": now_iso,
+            "completed_at": now_iso,
+        }
 
 if __name__ == "__main__":
     # This block is for internal testing and coverage analysis.
