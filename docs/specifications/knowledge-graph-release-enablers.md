@@ -19,7 +19,7 @@ This specification translates the RFC guidance on knowledge graph alignment into
 
 **Additions**
 
-* `ReleaseEvidence` node type with properties: `id` (UUID), `release_tag`, `artifact_path`, `artifact_type` (`coverage_json`, `coverage_html`, `mypy_inventory`), `collected_at` (UTC ISO-8601), `checksum` (SHA-256), `source_command`.
+* `ReleaseEvidence` node type with properties: `id` (UUID), `release_tag`, `artifact_path`, `artifact_type` (`coverage_json`, `coverage_html`, `mypy_inventory`, `mypy_log`), `collected_at` (UTC ISO-8601), `checksum` (SHA-256), `source_command`.
 * `TestRun` node type with properties: `id`, `profile` (`fast`, `medium`, `fast+medium`), `coverage_percent`, `tests_collected`, `exit_code`, `started_at`, `completed_at`.
 * `QualityGate` node type with properties: `id`, `gate_name` (`coverage`, `typing`), `threshold`, `status` (`pass`, `fail`, `blocked`), `evaluated_at`.
 * Relationships:

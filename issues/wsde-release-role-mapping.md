@@ -11,8 +11,8 @@ The WSDE framework defines Designer, Worker, Supervisor, Evaluator, and Primus r
 
 ## Objectives
 
-1. Produce a role-to-task matrix tying each release checklist item (`docs/release/0.1.0-alpha.1.md`) to a WSDE role owner.  
-2. Document the execution workflow (Designer → Worker → Supervisor → Evaluator → Primus) for coverage runs, typing runs, and knowledge graph ingestion.  
+1. Produce a role-to-task matrix tying each release checklist item (`docs/release/0.1.0-alpha.1.md`) to a WSDE role owner.
+2. Document the execution workflow (Designer → Worker → Supervisor → Evaluator → Primus) for coverage runs, typing runs, and knowledge graph ingestion, noting that the Worker now records the `[knowledge-graph]` banner IDs emitted by the CLI and shares them with the Supervisor/Evaluator for validation.
 3. Update automation scripts or Taskfile targets with annotations indicating the responsible role for each step.  
 4. Define audit checkpoints where the Primus validates that gate status, graph evidence, and documentation stay synchronized.
 

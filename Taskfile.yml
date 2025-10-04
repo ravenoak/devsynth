@@ -143,7 +143,7 @@ tasks:
   mypy:strict:
     desc: Run strict mypy on typed application slices (code_analysis now in the enforced set)
     cmds:
-      - poetry run mypy --strict src/devsynth {{.CLI_ARGS}}
+      - poetry run python -m devsynth.testing.mypy_strict_runner {{.CLI_ARGS}}
       - task: mypy:strict:memory
 
   mypy:strict:memory:
