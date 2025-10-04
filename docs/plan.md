@@ -100,10 +100,15 @@ Coverage instrumentation and gating (authoritative)
   `--cov=src/devsynth --cov-report=json:test_reports/coverage.json --cov-report=html:htmlcov --cov-append`. `_ensure_coverage_artifacts()`
   only emits HTML/JSON once `.coverage` exists and contains measured files; otherwise it logs a structured warning and leaves
   the artifacts absent so downstream tooling can fail fast.【F:src/devsynth/testing/run_tests.py†L121-L192】
+- The harness probes for `pytest_cov` before attaching coverage flags. Missing plugins raise a deterministic `[coverage] pytest plugin 'pytest_cov' not found...`
+  banner and instruct operators to install `pytest-cov` or rerun `poetry install --with dev --extras tests` before retrying the suite.【F:src/devsynth/testing/run_tests.py†L343-L376】【F:src/devsynth/testing/run_tests.py†L906-L918】
 - `src/devsynth/application/cli/commands/run_tests_cmd.py` still enforces the default 90 % threshold via
   `enforce_coverage_threshold`, but it now double-checks both pytest instrumentation and the generated artifacts. If
   `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` is set without `-p pytest_cov` or the coverage JSON lacks `totals.percent_covered`, the
   command exits with remediation instead of synthesizing placeholders.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L214-L276】
+- `_coverage_instrumentation_status` reuses the same probe to distinguish missing plugins from autoload suppression. Standard runs print
+  `[red]Coverage instrumentation unavailable…` with recovery steps and exit immediately, while smoke mode still surfaces the warning but
+  continues to aid diagnostics.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L321-L353】【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L404-L456】
 - Single-run aggregate (preferred for release readiness and the strict gate):
   ```bash
   poetry run devsynth run-tests --target all-tests --speed=fast --speed=medium --no-parallel --report

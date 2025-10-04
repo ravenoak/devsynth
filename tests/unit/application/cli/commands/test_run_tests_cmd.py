@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 import typer
 
+import devsynth.application.cli.commands.run_tests_cmd as run_tests_cmd_module
 from devsynth.application.cli.commands.run_tests_cmd import run_tests_cmd
 from devsynth.interface.ux_bridge import UXBridge
 
@@ -36,6 +37,10 @@ def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "devsynth.application.cli.commands.run_tests_cmd.coverage_artifacts_status",
         lambda: (True, None),
+    )
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.pytest_cov_support_status",
+        lambda env=None: (True, None),
     )
 
 
@@ -441,3 +446,89 @@ def test_failed_run_surfaces_maxfail_guidance(monkeypatch) -> None:
     assert any("Tests failed" in msg for msg in bridge.messages)
     assert any("--maxfail=2" in msg for msg in bridge.messages)
     assert any("Pytest exited with code 1" in msg for msg in bridge.messages)
+
+
+@pytest.mark.fast
+def test_run_tests_cmd_exits_when_pytest_cov_missing(monkeypatch) -> None:
+    """Missing pytest-cov triggers an actionable remediation banner."""
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.pytest_cov_support_status",
+        lambda env=None: (False, run_tests_cmd_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE),
+    )
+
+    def _fail_run_tests(*args: object, **kwargs: object) -> tuple[bool, str]:
+        raise AssertionError("run_tests should not execute when pytest-cov is missing")
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        _fail_run_tests,
+    )
+
+    bridge = DummyBridge()
+
+    with pytest.raises(typer.Exit) as excinfo:
+        run_tests_cmd(
+            target="unit-tests",
+            speeds=[],
+            report=False,
+            verbose=False,
+            no_parallel=False,
+            smoke=False,
+            segment=False,
+            segment_size=50,
+            maxfail=None,
+            features=[],
+            inventory=False,
+            marker=None,
+            bridge=bridge,
+        )
+
+    assert excinfo.value.code == 1
+    assert any(
+        run_tests_cmd_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE in msg
+        for msg in bridge.messages
+    )
+
+
+@pytest.mark.fast
+def test_run_tests_cmd_exits_when_autoload_blocks_pytest_cov(monkeypatch) -> None:
+    """Autoload blocking pytest-cov halts execution for standard runs."""
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.pytest_cov_support_status",
+        lambda env=None: (False, run_tests_cmd_module.PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE),
+    )
+
+    def _fail_run_tests(*args: object, **kwargs: object) -> tuple[bool, str]:
+        raise AssertionError("run_tests should not execute when pytest-cov is disabled")
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.commands.run_tests_cmd.run_tests",
+        _fail_run_tests,
+    )
+
+    bridge = DummyBridge()
+
+    with pytest.raises(typer.Exit) as excinfo:
+        run_tests_cmd(
+            target="unit-tests",
+            speeds=[],
+            report=False,
+            verbose=False,
+            no_parallel=False,
+            smoke=False,
+            segment=False,
+            segment_size=50,
+            maxfail=None,
+            features=[],
+            inventory=False,
+            marker=None,
+            bridge=bridge,
+        )
+
+    assert excinfo.value.code == 1
+    assert any(
+        run_tests_cmd_module.PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE in msg
+        for msg in bridge.messages
+    )

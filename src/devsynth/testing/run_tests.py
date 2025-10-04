@@ -8,6 +8,7 @@ intended for use by helper scripts such as ``scripts/manual_cli_testing.py``.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import inspect
 import json
 import logging
@@ -20,7 +21,7 @@ import sys
 from collections.abc import MutableMapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Mapping, cast
 from unittest.mock import patch
 
 from devsynth.logging_setup import DevSynthLogger
@@ -39,6 +40,16 @@ COVERAGE_TARGET = "src/devsynth"
 COVERAGE_JSON_PATH = Path("test_reports/coverage.json")
 COVERAGE_HTML_DIR = Path("htmlcov")
 LEGACY_HTML_DIRS: tuple[Path, ...] = (Path("test_reports/htmlcov"),)
+PYTEST_COV_PLUGIN_MODULES: tuple[str, ...] = ("pytest_cov", "pytest_cov.plugin")
+PYTEST_COV_PLUGIN_MISSING_MESSAGE = (
+    "pytest plugin 'pytest_cov' not found. Install pytest-cov with "
+    "`poetry add --group dev pytest-cov` or rerun `poetry install --with dev --extras tests` "
+    "to restore coverage instrumentation."
+)
+PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE = (
+    "pytest plugin autoload disabled without '-p pytest_cov'. Unset "
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 or append '-p pytest_cov' to PYTEST_ADDOPTS."
+)
 # Minimum aggregate coverage enforced for standard test runs.
 #
 # The alpha program previously used a 70% gate to keep iteration tight while
@@ -389,6 +400,75 @@ def ensure_pytest_bdd_plugin_env(env: MutableMapping[str, str]) -> bool:
         extra={"pytest_addopts": updated},
     )
     return True
+
+
+def _pytest_cov_module_available() -> bool:
+    """Return ``True`` when the pytest-cov plugin module is importable."""
+
+    for module_name in PYTEST_COV_PLUGIN_MODULES:
+        try:
+            spec = importlib.util.find_spec(module_name)
+        except (ImportError, AttributeError, ValueError):
+            continue
+        if spec is not None:
+            return True
+    return False
+
+
+def pytest_cov_support_status(
+    env: Mapping[str, str] | None = None,
+) -> tuple[bool, str | None]:
+    """Determine whether pytest-cov instrumentation can be enabled."""
+
+    mapping = env or os.environ
+    addopts_value = mapping.get("PYTEST_ADDOPTS", "")
+    tokens = _parse_pytest_addopts(addopts_value)
+
+    if "--no-cov" in tokens:
+        return (
+            False,
+            "PYTEST_ADDOPTS contains --no-cov. Remove --no-cov to restore pytest-cov instrumentation.",
+        )
+    if _addopts_has_plugin(tokens, "no:cov"):
+        return (
+            False,
+            "PYTEST_ADDOPTS disables pytest-cov via -p no:cov. Remove '-p no:cov' to restore coverage instrumentation.",
+        )
+    if _addopts_has_plugin(tokens, "no:pytest_cov"):
+        return (
+            False,
+            "PYTEST_ADDOPTS disables pytest-cov via -p no:pytest_cov. Remove '-p no:pytest_cov' to restore coverage instrumentation.",
+        )
+
+    autoload_disabled = mapping.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
+    if autoload_disabled:
+        plugin_aliases = ("pytest_cov", "pytest_cov.plugin")
+        if not any(_addopts_has_plugin(tokens, alias) for alias in plugin_aliases):
+            return False, PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE
+
+    if not _pytest_cov_module_available():
+        return False, PYTEST_COV_PLUGIN_MISSING_MESSAGE
+
+    return True, None
+
+
+def _resolve_coverage_configuration(
+    env: Mapping[str, str],
+) -> tuple[list[str], bool, str | None]:
+    """Build pytest coverage arguments based on plugin availability."""
+
+    coverage_enabled, coverage_issue = pytest_cov_support_status(env)
+    if not coverage_enabled:
+        return [], coverage_enabled, coverage_issue
+
+    coverage_arguments = [
+        f"--cov={COVERAGE_TARGET}",
+        f"--cov-report=json:{COVERAGE_JSON_PATH}",
+        f"--cov-report=html:{COVERAGE_HTML_DIR}",
+        "--cov-append",
+    ]
+    return coverage_arguments, coverage_enabled, coverage_issue
+
 
 def coverage_artifacts_status() -> tuple[bool, str | None]:
     """Return whether generated coverage artifacts contain useful data."""
@@ -916,6 +996,15 @@ def run_tests(
     ensure_pytest_cov_plugin_env(env)
     ensure_pytest_bdd_plugin_env(env)
 
+    coverage_ready, coverage_issue = pytest_cov_support_status(env)
+    if not coverage_ready and coverage_issue == PYTEST_COV_PLUGIN_MISSING_MESSAGE:
+        message = f"[coverage] {coverage_issue}"
+        logger.error(
+            "pytest-cov plugin unavailable; aborting test run",
+            extra={"coverage_issue": coverage_issue},
+        )
+        return False, message
+
     # Normalize requested speed categories; default to fast+medium for parity
     # with the repository-wide pytest.ini when no explicit speeds are provided.
     normalized_speeds: list[str] = []
@@ -1163,15 +1252,9 @@ def _run_single_test_batch(
     # Add marker expression
     cmd.extend(["-m", marker_expr])
 
-    # Add coverage options
-    cmd.extend(
-        [
-            f"--cov={COVERAGE_TARGET}",
-            f"--cov-report=json:{COVERAGE_JSON_PATH}",
-            f"--cov-report=html:{COVERAGE_HTML_DIR}",
-            "--cov-append",
-        ]
-    )
+    coverage_args, coverage_enabled, coverage_issue = _resolve_coverage_configuration(env)
+    if coverage_enabled:
+        cmd.extend(coverage_args)
 
     # Add other options
     if verbose:
@@ -1188,10 +1271,20 @@ def _run_single_test_batch(
 
     # Disable plugin autoload in smoke mode
     if env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1":
-        # Explicitly enable required plugins
         addopts = env.get("PYTEST_ADDOPTS", "")
-        if "-p pytest_cov" not in addopts:
-            env["PYTEST_ADDOPTS"] = f"{addopts} -p pytest_cov -p pytest_bdd".strip()
+        tokens = _parse_pytest_addopts(addopts)
+        additions: list[str] = []
+        if coverage_enabled and not any(
+            _addopts_has_plugin(tokens, alias) for alias in ("pytest_cov", "pytest_cov.plugin")
+        ):
+            additions.append("-p pytest_cov")
+        if not any(
+            _addopts_has_plugin(tokens, alias) for alias in ("pytest_bdd", "pytest_bdd.plugin")
+        ):
+            additions.append("-p pytest_bdd")
+        if additions:
+            normalized = addopts.strip()
+            env["PYTEST_ADDOPTS"] = f"{normalized} {' '.join(additions)}".strip()
 
     try:
         started_at = datetime.now(UTC)
@@ -1216,7 +1309,10 @@ def _run_single_test_batch(
             "returncode": process.returncode,
             "started_at": started_at.isoformat(),
             "completed_at": completed_at.isoformat(),
+            "coverage_enabled": coverage_enabled,
         }
+        if coverage_issue:
+            metadata["coverage_issue"] = coverage_issue
         return success, output, metadata
     except Exception as e:
         error_msg = f"Failed to run tests: {e}"
