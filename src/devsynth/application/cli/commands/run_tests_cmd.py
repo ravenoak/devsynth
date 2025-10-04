@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 import shlex
-from typing import List, Optional
 
 import typer
 
@@ -36,7 +35,7 @@ from devsynth.testing.run_tests import (
 )
 
 logger = DevSynthLogger(__name__)
-bridge: UXBridge = CLIUXBridge()
+DEFAULT_BRIDGE: UXBridge = CLIUXBridge()
 
 def _parse_feature_options(values: list[str]) -> dict[str, bool]:
     """Convert ``--feature`` options into a dictionary.
@@ -157,7 +156,7 @@ def run_tests_cmd(
         "--target",
         help="Test target to run",
     ),
-    speeds: Optional[List[str]] = typer.Option(
+    speeds: list[str] | None = typer.Option(
         None,
         "--speed",
         help="Speed categories to run (can be used multiple times)",
@@ -181,10 +180,10 @@ def run_tests_cmd(
     segment_size: int = typer.Option(
         50, "--segment-size", help="Number of tests per batch when segmenting"
     ),
-    maxfail: Optional[int] = typer.Option(
+    maxfail: int | None = typer.Option(
         None, "--maxfail", help="Exit after this many failures"
     ),
-    features: Optional[List[str]] = typer.Option(
+    features: list[str] | None = typer.Option(
         None,
         "--feature",
         help="Feature flags to enable/disable (format: name or name=false)",
@@ -194,7 +193,7 @@ def run_tests_cmd(
         "--inventory",
         help="Export test inventory to test_reports/test_inventory.json and exit",
     ),
-    marker: Optional[str] = typer.Option(
+    marker: str | None = typer.Option(
         None,
         "-m",
         "--marker",
@@ -204,7 +203,7 @@ def run_tests_cmd(
         ),
     ),
     *,
-    bridge: Optional[str] = typer.Option(None, hidden=True),
+    bridge: object | None = typer.Option(None, hidden=True),
 ) -> None:
     """Run DevSynth test suites.
 
@@ -212,7 +211,10 @@ def run_tests_cmd(
     ``docs/analysis/run_tests_workflow.md``.
     """
 
-    ux_bridge = bridge if isinstance(bridge, UXBridge) else globals()["bridge"]
+    if isinstance(bridge, UXBridge):
+        ux_bridge = bridge
+    else:
+        ux_bridge = DEFAULT_BRIDGE
 
     # Typer guarantees booleans for "inventory", but tests may invoke this
     # function directly. Normalize parameters defensively for that scenario.
@@ -369,11 +371,6 @@ def run_tests_cmd(
             os.environ[env_var] = "true" if enabled else "false"
         logger.info("Feature flags: %s", feature_map)
 
-    extra_kwargs: dict[str, str] = {}
-    if marker is not None:
-        # Map CLI --marker to the internal run_tests extra_marker parameter.
-        extra_kwargs["extra_marker"] = marker
-
     success, output = run_tests(
         target,
         speed_categories,
@@ -383,7 +380,7 @@ def run_tests_cmd(
         segment,
         segment_size,
         maxfail,
-        **extra_kwargs,
+        extra_marker=marker,
     )
 
     if output:

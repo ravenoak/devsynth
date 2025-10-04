@@ -4,15 +4,15 @@
 **Priority**: Critical (Release Gate)
 **Milestone**: v0.1.0a1
 **Created**: 2024-09-24
-**Updated**: 2025-10-03
+**Updated**: 2025-10-04
 
 ## Problem
 
 MyPy reports 830 errors across 58 files, preventing strict typing compliance required for v0.1.0a1 release. This blocks the quality gates and release readiness.
 
-## Current status (2025-10-02 run)
+## Current status (2025-10-04 run)
 
-Strict mypy remains a release blocker. The latest run (`poetry run mypy --strict src/devsynth`) recorded 366 errors across 29 modules, primarily within the memory adapters and stores, as documented in `diagnostics/devsynth_mypy_strict_20251002T230536Z.txt` and the per-owner inventory `diagnostics/mypy_strict_inventory_20251003.md`.【F:diagnostics/devsynth_mypy_strict_20251002T230536Z.txt†L1-L22】【F:diagnostics/mypy_strict_inventory_20251003.md†L1-L31】
+The strict typing gate now executes cleanly for the enforced modules after replacing the blanket CLI/testing overrides with an explicit allowlist and restoring strict checks for `devsynth.application.cli.commands.run_tests_cmd`, `devsynth.application.cli.long_running_progress`, and `devsynth.testing.run_tests`. The latest sweep (`PYTHONPATH=src poetry run python -m devsynth.testing.mypy_strict_runner`) reports zero errors and archived its inventory at `diagnostics/mypy_strict_inventory_20251004T030200Z.md`.【F:pyproject.toml†L324-L380】【6ab9a5†L1-L19】【F:diagnostics/mypy_strict_inventory_20251004T030200Z.md†L1-L9】 Broad `ignore_errors` allowlists still cover most application subpackages, so v0.1.0a1 remains blocked until those packages are typed or their overrides are lifted.
 
 ## Analysis
 

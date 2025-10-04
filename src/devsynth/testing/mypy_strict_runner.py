@@ -20,6 +20,14 @@ from devsynth.release import (
 )
 
 
+def _coerce_sequence(value: object) -> Sequence[object]:
+    """Return ``value`` as a safe sequence for iteration."""
+
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return value
+    return ()
+
+
 def _build_inventory_markdown(
     *,
     combined_output: str,
@@ -175,14 +183,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     except Exception as exc:
         print(f"[knowledge-graph] typing ingestion failed: {exc}", file=sys.stderr)
     else:
-        evidence_created = publication.created.get("release_evidence", [])
+        evidence_created = _coerce_sequence(publication.created.get("release_evidence"))
         evidence_parts = []
         for evidence_id, created in zip(publication.evidence_ids, evidence_created):
-            suffix = " (new)" if created else ""
+            suffix = " (new)" if bool(created) else ""
             evidence_parts.append(f"{evidence_id}{suffix}")
         evidence_summary = ", ".join(evidence_parts) or "none"
-        test_run_state = "new" if publication.created.get("test_run") else "updated"
-        gate_state = "new" if publication.created.get("quality_gate") else "updated"
+        test_run_state = "new" if bool(publication.created.get("test_run")) else "updated"
+        gate_state = "new" if bool(publication.created.get("quality_gate")) else "updated"
         print(
             "[knowledge-graph] typing gate "
             f"{publication.gate_status} → QualityGate {publication.quality_gate_id} ({gate_state}), "

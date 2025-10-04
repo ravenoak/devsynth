@@ -325,8 +325,26 @@ disallow_incomplete_defs = true
 module = [
   "devsynth.adapters.*",
   "devsynth.agents.*",
-  "devsynth.application.*",
-  "devsynth.cli",
+  "devsynth.application.agents.*",
+  "devsynth.application.cli.*",
+  "devsynth.application.code_analysis.*",
+  "devsynth.application.collaboration.*",
+  "devsynth.application.config.*",
+  "devsynth.application.documentation.*",
+  "devsynth.application.edrr.*",
+  "devsynth.application.ingestion.*",
+  "devsynth.application.issues.*",
+  "devsynth.application.knowledge_graph.*",
+  "devsynth.application.llm.*",
+  "devsynth.application.memory.*",
+  "devsynth.application.orchestration.*",
+  "devsynth.application.performance.*",
+  "devsynth.application.promises.*",
+  "devsynth.application.prompts.*",
+  "devsynth.application.requirements.*",
+  "devsynth.application.server.*",
+  "devsynth.application.sprint.*",
+  "devsynth.application.utils.*",
   "devsynth.config.*",
   "devsynth.consensus",
   "devsynth.core.*",
@@ -343,10 +361,24 @@ module = [
   "devsynth.ports.*",
   "devsynth.schemas.*",
   "devsynth.security.*",
-  "devsynth.testing.*",
+  "devsynth.testing.generation",
+  "devsynth.testing.mutation_testing",
+  "devsynth.testing.performance",
+  "devsynth.testing.prompts",
+  "devsynth.testing.__init__",
   "devsynth.utils.*",
 ]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+  "devsynth.application.cli.commands.run_tests_cmd",
+  "devsynth.application.cli.long_running_progress",
+  "devsynth.testing.run_tests",
+]
+ignore_errors = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
 
 [[tool.mypy.overrides]]
 module = [
