@@ -696,3 +696,179 @@ def test_devsynth_logger_log_normalizes_truthy_exc_info(
     string_kwargs = mock_log.call_args_list[1].kwargs
     assert truthy_kwargs["exc_info"] == sentinel
     assert string_kwargs["exc_info"] == sentinel
+
+
+class _RecordCaptureHandler(logging.Handler):
+    """Capture log records for direct inspection in tests."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover - trivial
+        self.records.append(record)
+
+
+@pytest.mark.fast
+def test_configure_logging_console_only_uses_caplog(
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    test_environment: dict[str, object],
+) -> None:
+    """configure_logging leaves only stream handlers and surfaces console output via caplog."""
+
+    import src.devsynth.logging_setup as logging_setup_module
+
+    root_logger = logging.getLogger()
+    original_handlers = list(root_logger.handlers)
+    original_filters = list(root_logger.filters)
+    original_level = root_logger.level
+
+    monkeypatch.setattr(logging_setup_module, "_logging_configured", False)
+    monkeypatch.setattr(logging_setup_module, "_last_effective_config", None)
+    monkeypatch.setattr(logging_setup_module, "_configured_log_dir", None)
+    monkeypatch.setattr(logging_setup_module, "_configured_log_file", None)
+
+    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
+    caplog.set_level(logging.INFO)
+
+    try:
+        configure_logging(
+            log_dir=str(test_environment["logs_dir"]),
+            create_dir=False,
+        )
+
+        handlers = list(logging.getLogger().handlers)
+        assert handlers
+        assert all(not isinstance(handler, logging.FileHandler) for handler in handlers)
+        assert any(isinstance(handler, logging.StreamHandler) for handler in handlers)
+
+        root_logger = logging.getLogger()
+        if caplog.handler not in root_logger.handlers:
+            root_logger.addHandler(caplog.handler)
+        root_logger.info("console-only sentinel")
+        assert "console-only sentinel" in caplog.text
+    finally:
+        for handler in logging.getLogger().handlers[:]:
+            logging.getLogger().removeHandler(handler)
+        for handler in original_handlers:
+            logging.getLogger().addHandler(handler)
+
+        for filt in logging.getLogger().filters[:]:
+            logging.getLogger().removeFilter(filt)
+        for filt in original_filters:
+            logging.getLogger().addFilter(filt)
+
+        logging.getLogger().setLevel(original_level)
+
+
+@pytest.mark.fast
+def test_redact_filter_masks_secret_tokens_via_caplog(
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Secrets in DevSynthLogger output are redacted before reaching captured logs."""
+
+    import src.devsynth.logging_setup as logging_setup_module
+
+    root_logger = logging.getLogger()
+    original_handlers = list(root_logger.handlers)
+    original_filters = list(root_logger.filters)
+    original_level = root_logger.level
+
+    monkeypatch.setattr(logging_setup_module, "_logging_configured", False)
+    monkeypatch.setattr(logging_setup_module, "_last_effective_config", None)
+    monkeypatch.setattr(logging_setup_module, "_configured_log_dir", None)
+    monkeypatch.setattr(logging_setup_module, "_configured_log_file", None)
+
+    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-secret-987654321")
+    caplog.set_level(logging.INFO)
+
+    try:
+        configure_logging(log_dir=str(tmp_path / "logs"), create_dir=False)
+
+        root_logger = logging.getLogger()
+        if caplog.handler not in root_logger.handlers:
+            root_logger.addHandler(caplog.handler)
+
+        logger = DevSynthLogger("tests.logging.redaction")
+        logger.info("Token %s", "sk-secret-987654321")
+
+        assert "tests.logging.redaction" in caplog.text
+        assert "sk-secret-987654321" not in caplog.text
+        assert "***REDACTED***" in caplog.text
+    finally:
+        for handler in logging.getLogger().handlers[:]:
+            logging.getLogger().removeHandler(handler)
+        for handler in original_handlers:
+            logging.getLogger().addHandler(handler)
+
+        for filt in logging.getLogger().filters[:]:
+            logging.getLogger().removeFilter(filt)
+        for filt in original_filters:
+            logging.getLogger().addFilter(filt)
+
+        logging.getLogger().setLevel(original_level)
+
+
+@pytest.mark.fast
+def test_dev_synth_logger_emits_structured_extras_with_context(
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Structured extras and request context propagate through DevSynthLogger._log."""
+
+    import src.devsynth.logging_setup as logging_setup_module
+
+    root_logger = logging.getLogger()
+    original_handlers = list(root_logger.handlers)
+    original_filters = list(root_logger.filters)
+    original_level = root_logger.level
+
+    monkeypatch.setattr(logging_setup_module, "_logging_configured", False)
+    monkeypatch.setattr(logging_setup_module, "_last_effective_config", None)
+    monkeypatch.setattr(logging_setup_module, "_configured_log_dir", None)
+    monkeypatch.setattr(logging_setup_module, "_configured_log_file", None)
+
+    monkeypatch.setenv("DEVSYNTH_NO_FILE_LOGGING", "1")
+    caplog.set_level(logging.INFO)
+
+    try:
+        configure_logging(create_dir=False)
+
+        logger = DevSynthLogger("tests.logging.structured")
+        capture = _RecordCaptureHandler()
+        logger.logger.addHandler(capture)
+        logger.logger.setLevel(logging.INFO)
+
+        set_request_context("req-42", "phase-one")
+        try:
+            logger.info(
+                "Processing batch",
+                extra={"component": "runner"},
+                task="sync",
+            )
+        finally:
+            clear_request_context()
+            logger.logger.removeHandler(capture)
+
+        assert capture.records
+        record = capture.records[-1]
+        assert getattr(record, "component", None) == "runner"
+        assert getattr(record, "task", None) == "sync"
+        assert getattr(record, "request_id", None) == "req-42"
+        assert getattr(record, "phase", None) == "phase-one"
+    finally:
+        for handler in logging.getLogger().handlers[:]:
+            logging.getLogger().removeHandler(handler)
+        for handler in original_handlers:
+            logging.getLogger().addHandler(handler)
+
+        for filt in logging.getLogger().filters[:]:
+            logging.getLogger().removeFilter(filt)
+        for filt in original_filters:
+            logging.getLogger().addFilter(filt)
+
+        logging.getLogger().setLevel(original_level)
