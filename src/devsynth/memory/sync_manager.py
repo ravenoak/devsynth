@@ -8,8 +8,11 @@ from dataclasses import dataclass, field
 from typing import Generic, Protocol, TypeVar, runtime_checkable
 
 
+ValueT = TypeVar("ValueT")
+
+
 @runtime_checkable
-class MemoryStore(Protocol["ValueT"]):
+class MemoryStore(Protocol[ValueT]):
     """Protocol for simple key-value stores.
 
     Stores used with :class:`SyncManager` must implement read/write helpers and
@@ -17,21 +20,17 @@ class MemoryStore(Protocol["ValueT"]):
     and DuckDB satisfy this interface in the application layer.
     """
 
-    def write(self, key: str, value: "ValueT") -> None:
+    def write(self, key: str, value: ValueT) -> None:
         """Persist ``value`` under ``key``."""
 
-    def read(self, key: str) -> "ValueT":
+    def read(self, key: str) -> ValueT:
         """Return the stored value for ``key`` or raise ``KeyError``."""
 
-    def snapshot(self) -> Mapping[str, "ValueT"]:
+    def snapshot(self) -> Mapping[str, ValueT]:
         """Return a mapping representing the current store state."""
 
-    def restore(self, snapshot: Mapping[str, "ValueT"]) -> None:
+    def restore(self, snapshot: Mapping[str, ValueT]) -> None:
         """Restore the store from a previous :meth:`snapshot` output."""
-
-
-ValueT = TypeVar("ValueT")
-
 
 @dataclass(slots=True)
 class SyncManager(Generic[ValueT]):
