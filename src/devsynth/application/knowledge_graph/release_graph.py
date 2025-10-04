@@ -22,9 +22,9 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Mapping, Sequence
 
 import networkx as nx
 from networkx.readwrite import json_graph
@@ -170,28 +170,26 @@ class NetworkXReleaseGraphAdapter(ReleaseGraphAdapter):
         )
         node_id = existing_id or node.id or str(uuid.uuid4())
         payload = asdict(node)
-        payload.update({"type": "ReleaseEvidence"})
-        node_id, created = self._ensure_node(node_id, payload)
-        stored = ReleaseEvidenceNode(**{**payload, "id": node_id})
+        payload["id"] = node_id
+        graph_payload = {**payload, "type": "ReleaseEvidence"}
+        node_id, created = self._ensure_node(node_id, graph_payload)
+        stored = ReleaseEvidenceNode(**payload)
         return stored, created
 
     def upsert_test_run(self, node: TestRunNode) -> tuple[TestRunNode, bool]:
-        existing_id = self._find_node(
-            type_="TestRun", run_checksum=node.run_checksum
-        )
+        existing_id = self._find_node(type_="TestRun", run_checksum=node.run_checksum)
         node_id = existing_id or node.id or str(uuid.uuid4())
         payload = asdict(node)
-        payload.update({"type": "TestRun"})
-        node_id, created = self._ensure_node(node_id, payload)
-        stored = TestRunNode(**{**payload, "id": node_id})
+        payload["id"] = node_id
+        graph_payload = {**payload, "type": "TestRun"}
+        node_id, created = self._ensure_node(node_id, graph_payload)
+        stored = TestRunNode(**payload)
         return stored, created
 
     def link_test_run_to_evidence(self, test_run_id: str, evidence_id: str) -> None:
         existing_edges = [
             (u, v, key)
-            for u, v, key, attrs in self._graph.edges(
-                data=True, keys=True
-            )
+            for u, v, key, attrs in self._graph.edges(data=True, keys=True)
             if u == test_run_id and v == evidence_id and attrs.get("type") == "EMITS"
         ]
         for edge in existing_edges:
@@ -205,18 +203,15 @@ class NetworkXReleaseGraphAdapter(ReleaseGraphAdapter):
         test_run_id: str,
         evidence_ids: Sequence[str],
     ) -> tuple[QualityGateNode, bool]:
-        existing_id = self._find_node(
-            type_="QualityGate", gate_name=node.gate_name
-        )
+        existing_id = self._find_node(type_="QualityGate", gate_name=node.gate_name)
         node_id = existing_id or node.id or str(uuid.uuid4())
         payload = asdict(node)
-        payload.update({"type": "QualityGate"})
-        node_id, created = self._ensure_node(node_id, payload)
+        payload["id"] = node_id
+        graph_payload = {**payload, "type": "QualityGate"}
+        node_id, created = self._ensure_node(node_id, graph_payload)
 
         # Refresh relationships: HAS_EVIDENCE and EVALUATED_FROM
-        for u, v, key, attrs in list(
-            self._graph.edges(data=True, keys=True)
-        ):
+        for u, v, key, attrs in list(self._graph.edges(data=True, keys=True)):
             if u != node_id:
                 continue
             if attrs.get("type") in {"HAS_EVIDENCE", "EVALUATED_FROM"}:
@@ -229,11 +224,9 @@ class NetworkXReleaseGraphAdapter(ReleaseGraphAdapter):
             )
 
         eval_key = f"EVALUATED_FROM::{node_id}->{test_run_id}"
-        self._graph.add_edge(
-            node_id, test_run_id, key=eval_key, type="EVALUATED_FROM"
-        )
+        self._graph.add_edge(node_id, test_run_id, key=eval_key, type="EVALUATED_FROM")
 
-        stored = QualityGateNode(**{**payload, "id": node_id})
+        stored = QualityGateNode(**payload)
         return stored, created
 
     def finalize(self) -> None:
@@ -251,9 +244,7 @@ class KuzuReleaseGraphAdapter(NetworkXReleaseGraphAdapter):
         db_path: str | Path | None = None,
     ) -> None:
         super().__init__(graph_path=graph_path)
-        self._db_path = Path(
-            db_path or Path(".devsynth") / "knowledge_graph" / "kuzu"
-        )
+        self._db_path = Path(db_path or Path(".devsynth") / "knowledge_graph" / "kuzu")
         self._conn = None
         self._kuzu_available = False
         try:  # pragma: no cover - optional dependency
@@ -443,4 +434,3 @@ __all__ = [
     "NetworkXReleaseGraphAdapter",
     "KuzuReleaseGraphAdapter",
 ]
-
