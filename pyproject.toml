@@ -326,7 +326,29 @@ module = [
   "devsynth.adapters.*",
   "devsynth.agents.*",
   "devsynth.application.agents.*",
-  "devsynth.application.cli.*",
+  "devsynth.application.cli._command_exports",
+  "devsynth.application.cli.__init__",
+  "devsynth.application.cli.apispec",
+  "devsynth.application.cli.autocomplete",
+  "devsynth.application.cli.cli_commands",
+  "devsynth.application.cli.command_output_formatter",
+  "devsynth.application.cli.commands.*",
+  "devsynth.application.cli.config",
+  "devsynth.application.cli.errors",
+  "devsynth.application.cli.help",
+  "devsynth.application.cli.ingest_cmd",
+  "devsynth.application.cli.ingest_models",
+  "devsynth.application.cli.models",
+  "devsynth.application.cli.mvu_commands",
+  "devsynth.application.cli.output",
+  "devsynth.application.cli.progress",
+  "devsynth.application.cli.registry",
+  "devsynth.application.cli.requirements_commands",
+  "devsynth.application.cli.requirements_wizard",
+  "devsynth.application.cli.setup_wizard",
+  "devsynth.application.cli.sprint_cmd",
+  "devsynth.application.cli.utils",
+  "devsynth.application.cli.vcs_commands",
   "devsynth.application.code_analysis.*",
   "devsynth.application.collaboration.*",
   "devsynth.application.config.*",
@@ -351,7 +373,6 @@ module = [
   "devsynth.domain.*",
   "devsynth.fallback",
   "devsynth.integrations.*",
-  "devsynth.interface.*",
   "devsynth.logger",
   "devsynth.memory.*",
   "devsynth.metrics",
@@ -368,6 +389,144 @@ module = [
   "devsynth.testing.__init__",
   "devsynth.utils.*",
 ]
+ignore_errors = true
+
+# TODO(typing-interface-agentapi-models): Track strict restoration in
+# issues/restore-strict-typing-interface-agentapi-models.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.agentapi_models"]
+ignore_errors = true
+
+# TODO(typing-interface-webui-state): Track strict restoration in
+# issues/restore-strict-typing-interface-webui-state.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.webui_state"]
+ignore_errors = true
+
+# TODO(typing-interface-enhanced-error-handler): Track strict restoration in
+# issues/restore-strict-typing-interface-enhanced-error-handler.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.enhanced_error_handler"]
+ignore_errors = true
+
+# TODO(typing-interface-ux-bridge): Track strict restoration in
+# issues/restore-strict-typing-interface-ux-bridge.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.ux_bridge"]
+ignore_errors = true
+
+# TODO(typing-interface-wizard-state-manager): Track strict restoration in
+# issues/restore-strict-typing-interface-wizard-state-manager.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.wizard_state_manager"]
+ignore_errors = true
+
+# TODO(typing-interface-progress-utils): Track strict restoration in
+# issues/restore-strict-typing-interface-progress-utils.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.progress_utils"]
+ignore_errors = true
+
+# TODO(typing-interface-output-formatter): Track strict restoration in
+# issues/restore-strict-typing-interface-output-formatter.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.output_formatter"]
+ignore_errors = true
+
+# TODO(typing-interface-simple-run): Track strict restoration in
+# issues/restore-strict-typing-interface-simple-run.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.simple_run"]
+ignore_errors = true
+
+# TODO(typing-interface-shared-bridge): Track strict restoration in
+# issues/restore-strict-typing-interface-shared-bridge.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.shared_bridge"]
+ignore_errors = true
+
+# TODO(typing-interface-command-output): Track strict restoration in
+# issues/restore-strict-typing-interface-command-output.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.command_output"]
+ignore_errors = true
+
+# TODO(typing-interface-webui-bridge): Track strict restoration in
+# issues/restore-strict-typing-interface-webui-bridge.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.webui_bridge"]
+ignore_errors = true
+
+# TODO(typing-interface-webui-rendering): Track strict restoration in
+# issues/restore-strict-typing-interface-webui-rendering.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.webui.rendering"]
+ignore_errors = true
+
+# TODO(typing-interface-research-telemetry): Track strict restoration in
+# issues/restore-strict-typing-interface-research-telemetry.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.research_telemetry"]
+ignore_errors = true
+
+# TODO(typing-interface-nicegui-webui): Track strict restoration in
+# issues/restore-strict-typing-interface-nicegui-webui.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.nicegui_webui"]
+ignore_errors = true
+
+# TODO(typing-interface-dpg-bridge): Track strict restoration in
+# issues/restore-strict-typing-interface-dpg-bridge.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.dpg_bridge"]
+ignore_errors = true
+
+# TODO(typing-interface-cli): Track strict restoration in
+# issues/restore-strict-typing-interface-cli.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.cli"]
+ignore_errors = true
+
+# TODO(typing-interface-agentapi): Track strict restoration in
+# issues/restore-strict-typing-interface-agentapi.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.agentapi"]
+ignore_errors = true
+
+# TODO(typing-interface-agentapi-enhanced): Track strict restoration in
+# issues/restore-strict-typing-interface-agentapi-enhanced.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.agentapi_enhanced"]
+ignore_errors = true
+
+# TODO(typing-interface-webui-commands): Track strict restoration in
+# issues/restore-strict-typing-interface-webui-commands.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.webui.commands"]
+ignore_errors = true
+
+# TODO(typing-interface-mvuu-dashboard): Track strict restoration in
+# issues/restore-strict-typing-interface-mvuu-dashboard.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.mvuu_dashboard"]
+ignore_errors = true
+
+# TODO(typing-interface-webui-setup): Track strict restoration in
+# issues/restore-strict-typing-interface-webui-setup.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.webui_setup"]
+ignore_errors = true
+
+# TODO(typing-interface-dpg-ui): Track strict restoration in
+# issues/restore-strict-typing-interface-dpg-ui.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.interface.dpg_ui"]
+ignore_errors = true
+
+# TODO(typing-application-cli-init): Track strict restoration in
+# issues/restore-strict-typing-cli.md.
+[[tool.mypy.overrides]]
+module = ["devsynth.application.cli.__init__"]
 ignore_errors = true
 
 [[tool.mypy.overrides]]

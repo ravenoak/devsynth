@@ -20,6 +20,14 @@ pipelines.
   `tests.helpers.dummies.DummyStreamlit` stub to avoid importing the real
   `streamlit` package. New code should prefer this helper over bespoke mocks so
   the contract remains consistent.
+* The typed simulation helper
+  `devsynth.interface.webui.rendering_simulation.simulate_progress_rendering`
+  **must** sanitize progress summaries and error payloads and return a
+  structured `SimulationResult` so tests can assert safe rendering without a
+  live Streamlit runtime.
+* UI bridges and routers **must** satisfy the shared contracts defined in
+  `devsynth.interface.streamlit_contracts` so the lazy import guards remain
+  type-checked under the strict mypy gate.
 
 ## Command dispatch parity
 

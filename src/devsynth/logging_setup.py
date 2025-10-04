@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from threading import RLock
 from types import TracebackType
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 
 # We'll import DevSynthError later to avoid circular imports
 
@@ -56,6 +56,9 @@ _SECRET_ENV_VARS: list[str] = [
 ]
 
 
+T = TypeVar("T", bound=object)
+
+
 class RedactSecretsFilter(logging.Filter):
     """A logging filter that redacts known secret values from log messages and extras.
 
@@ -88,11 +91,11 @@ class RedactSecretsFilter(logging.Filter):
                 out = out.replace(secret, self._mask(secret))
         return out
 
-    def _redact_in_mapping(self, mapping: Mapping[str, Any]) -> dict[str, Any]:
-        redacted: dict[str, Any] = {}
+    def _redact_in_mapping(self, mapping: Mapping[str, T]) -> dict[str, T]:
+        redacted: dict[str, T] = {}
         for key, value in mapping.items():
             if isinstance(value, str):
-                redacted[key] = self._redact_in_text(value)
+                redacted[key] = cast(T, self._redact_in_text(value))
             else:
                 redacted[key] = value
         return redacted

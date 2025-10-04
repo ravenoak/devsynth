@@ -11,7 +11,7 @@ from .registry import COMMAND_REGISTRY
 
 logger = DevSynthLogger(__name__)
 
-CommandCallable = Callable[..., object]
+CommandCallable = Callable[..., object] | object
 
 _COMMANDS_LOADED = False
 
