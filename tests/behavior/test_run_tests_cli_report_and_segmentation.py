@@ -1,5 +1,7 @@
 """Behavior tests for run-tests CLI reporting and segmentation.
 
+SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullets for --report, --segment, optional providers, and coverage enforcement.
+
 ReqID: FR-22 | Matrix items 4.2.2, 4.2.3, 4.2.5, 4.2.6
 """
 
