@@ -1,58 +1,69 @@
----
-author: DevSynth Team
-date: 2025-08-19
-last_reviewed: 2025-09-20
-status: review
-tags:
+# WebUI Integration Contract
 
-- specification
+## Overview
 
-title: WebUI Integration
-version: 0.1.0-alpha.1
----
+This specification captures the expectations for wiring the Streamlit WebUI,
+its bridge helpers, and the provider system fallbacks without invoking external
+services. It documents the deterministic seams exercised by the fast unit tests
+so changes to the UI façade or provider orchestrator remain reliable in offline
+pipelines.
 
-<!--
-Required metadata fields:
-- author: document author
-- date: creation date
-- last_reviewed: last review date
-- status: draft | review | published
-- tags: search keywords
-- title: short descriptive name
-- version: specification version
--->
+## WebUI bootstrapping
 
-# Summary
-Streamlit-driven WebUI surfaces the DevSynth CLI feature set with enhanced telemetry, UXBridge parity, and resilient feedback channels.
+* `devsynth.interface.webui.WebUI.run()` **must** construct a router with the
+  navigation map returned by `navigation_items()` and execute it once the page
+  is configured.
+* The WebUI bootstrapper **must** hydrate `st.session_state.screen_width` and
+  `st.session_state.screen_height` defaults when the session lacks screen
+  dimensions so downstream layout helpers have deterministic baselines.
+* Streamlit interactions in the fast tests use the reusable
+  `tests.helpers.dummies.DummyStreamlit` stub to avoid importing the real
+  `streamlit` package. New code should prefer this helper over bespoke mocks so
+  the contract remains consistent.
 
-## Socratic Checklist
-- **What is the problem?** Streamlit pages previously lagged behind the CLI by lacking coverage of long-running operations, UXBridge parity, and detailed feedback for command execution.
-- **What proofs confirm the solution?** Behavior, unit, and property tests exercise the wizard state machine, CLI bridging, and error handling while invariants document remaining Streamlit gating.
+## Command dispatch parity
 
-## Motivation
-Maintain functional parity with the CLI so that teams adopting the WebUI gain the same diagnostics, coverage-aware execution, and onboarding aids without leaving the browser experience.
+* WebUI command mixins resolve callable targets via `_cli(name)`; resolutions
+  should first check module-level exports before falling back to CLI modules so
+  the UI stays aligned with the CLI surface area.
+* `_handle_command_errors` **must** return the command result on success and
+  surface actionable remediation when common exceptions (`ValueError`,
+  `PermissionError`, etc.) bubble up. Tests assert that ValueError paths record
+  both the error banner and follow-up guidance via `display_result`.
 
-## What proofs confirm the solution?
-- High-level behavior scenarios in [`tests/behavior/features/general/webui_integration.feature`](../../tests/behavior/features/general/webui_integration.feature) describe progress indicators, CLI coverage, and responsive layout; their step definitions live in [`tests/behavior/steps/test_webui_integration_steps.py`](../../tests/behavior/steps/test_webui_integration_steps.py) and are registered by [`tests/behavior/test_webui_integration.py`](../../tests/behavior/test_webui_integration.py), which currently skips execution until Streamlit-backed end-to-end runs stabilize.
-- Unit harnesses cover UXBridge parity and error funnels, ensuring command failures surface actionable hints in the UI ([`tests/unit/interface/test_webui_handle_command_errors.py`](../../tests/unit/interface/test_webui_handle_command_errors.py)).
-- Targeted fast tests [`tests/unit/interface/test_webui_targeted_branches.py`](../../tests/unit/interface/test_webui_targeted_branches.py) and [`tests/unit/interface/test_webui_bridge_targeted.py`](../../tests/unit/interface/test_webui_bridge_targeted.py) exercise Streamlit question prompts, tracebacks, highlight routing, and progress-state thresholds. Running `pytest` with `--cov` against these suites records 22 % line coverage for `webui.py` and `webui_bridge.py`, demonstrating measurable progress over the prior 10 % baseline while highlighting remaining rendering gaps.【F:issues/tmp_cov_webui.json†L1-L1】【F:issues/tmp_cov_webui_bridge.json†L1-L1】
-- Property-based checks guarantee the wizard navigation model converges and honors bounds even when Streamlit state mutates unexpectedly ([`tests/property/test_webui_properties.py`](../../tests/property/test_webui_properties.py)).
-- Finite state transitions and telemetry invariants are summarized in [`docs/implementation/webui_invariants.md`](../implementation/webui_invariants.md), documenting coverage evidence and outstanding Streamlit dependency requirements.
+## WebUI bridge state hydration
 
-## Specification
-- Provide enhanced progress indicators for long-running commands, including estimated time remaining and subtask tracking.
-- Render color-coded output streams so that success, warning, error, and informational messages mirror CLI styling.
-- Surface detailed error guidance with documentation links and remediation hints whenever command execution fails.
-- Deliver contextual help panes with examples and option coverage for each CLI command page.
-- Maintain UXBridge integration so browser interactions and CLI usage stay synchronized.
-- Keep layouts responsive when the browser window resizes, ensuring controls stay accessible.
-- Expose the full CLI catalog inside the WebUI, offering dedicated, consistent forms per command.
+* `devsynth.interface.webui_bridge.WebUIBridge.get_wizard_manager()` **must**
+  call `_require_streamlit()` and use the active `st.session_state` object when
+  instantiating wizard managers.
+* `create_wizard_manager()` **must** delegate to
+  `devsynth.interface.wizard_state_manager.WizardStateManager` with the
+  provided session, wizard name, step count, and initial state so the wizard
+  lifecycle stays centralized.
+* `get_session_value` and `set_session_value` are thin passthroughs to
+  `devsynth.interface.state_access` helpers; the tests ensure these proxies are
+  invoked exactly once per call so future refactors do not bypass the shared
+  validation logic.
+* The deterministic wizard and session objects live under
+  `tests.helpers.dummies` (`DummyWizardManager`, `DummySessionState`) and should
+  be reused when new WebUI bridge scenarios require offline fixtures.
 
-## Acceptance Criteria
-- Long-running operations display an enhanced progress indicator with estimated time remaining and visible subtasks.
-- Command output is color-coded: success (green), warnings (yellow), errors (red), and informational messages (blue).
-- Error dialogs include actionable suggestions and documentation references.
-- Help overlays list command usage examples and cover all available options.
-- UXBridge abstractions back each WebUI action so CLI and WebUI stay in sync.
-- Layout adjusts responsively when resized without hiding command controls.
-- Every CLI command page is available through the WebUI with consistent affordances.
+## Provider system fallbacks
+
+* `devsynth.adapters.provider_system.FallbackProvider.complete()` **must** try
+  providers sequentially, short-circuiting on the first success and surfacing a
+  `ProviderError` with the last failure when all providers exhaust.
+* Configuration can disable circuit breakers and retries; the tests exercise
+  this by injecting dummy providers via the shared helpers without invoking
+  network transports.
+* `provider_system.embed()` **must** wrap unexpected exceptions (anything other
+  than `ProviderError`/`NotImplementedError`) so callers receive a consistent
+  `ProviderError` contract even when provider implementations raise arbitrary
+  exceptions.
+
+## Testing guidance
+
+* Place fast unit tests for these seams under `tests/unit/interface/` and
+  `tests/unit/adapters/` with the `@pytest.mark.fast` marker.
+* Prefer the shared dummy helpers for Streamlit sessions, wizard managers, and
+  providers to keep the orchestrator logic deterministic and offline-friendly.
