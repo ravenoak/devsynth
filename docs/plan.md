@@ -22,12 +22,14 @@ Executive summary
 - Module-specific coverage targets after this uplift now read:
   - `src/devsynth/application/cli/commands/run_tests_cmd.py`: ≥85% with the CLI focus tests exercising marker passthrough, segmentation, inventory export, and failure remediation paths.【F:tests/unit/application/cli/commands/test_run_tests_cmd_cli_focus.py†L1-L162】
   - `src/devsynth/testing/run_tests.py`: ≥80% once the artifact reset/ensure helpers and success/failure flows remain under fast regression coverage.【F:tests/unit/testing/test_run_tests_artifacts.py†L1-L122】
+  - `src/devsynth/logging_setup.py`: ≥60% now that console-only configuration, redaction masking, and structured extra-field logging are under deterministic coverage.【F:src/devsynth/logging_setup.py†L1-L429】【F:tests/unit/logging/test_logging_setup.py†L701-L874】
 
   remediation banner and segmented failure tips directly, closing the last
   branch of `run_tests_cmd` that required manual log inspection.【F:src/devsynth/application/cli/commands/run_tests_cmd.py†L394-L440】【F:tests/unit/application/cli/commands/test_run_tests_cmd_report_guidance.py†L18-L184】
   The `run_tests` marker fallback path and the progress timeline alias
-  rebinding logic both gained deterministic fast tests, lifting those regions
-  out of the "0 %" bucket highlighted in earlier audits.【F:src/devsynth/testing/run_tests.py†L829-L868】【F:tests/unit/testing/test_run_tests_marker_fallback.py†L13-L53】【F:src/devsynth/application/cli/long_running_progress.py†L402-L615】【F:tests/unit/application/cli/commands/test_long_running_progress_timeline_bridge.py†L1-L140】
+  rebinding, ETA formatting, and failure-diagnostics history all gained
+  deterministic fast tests, lifting those regions out of the "0 %" bucket
+  highlighted in earlier audits.【F:src/devsynth/testing/run_tests.py†L829-L868】【F:tests/unit/testing/test_run_tests_marker_fallback.py†L13-L53】【F:src/devsynth/application/cli/long_running_progress.py†L402-L615】【F:tests/unit/application/cli/commands/test_long_running_progress_timeline_bridge.py†L1-L281】
   The fast+medium aggregate still fails to boot in the constrained container—
   `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel`
   exits immediately because `devsynth` is not importable until the environment
