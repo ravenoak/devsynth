@@ -1,9 +1,9 @@
 {
   "markers": {
-    "fast": 1667,
+    "fast": 1746,
     "no_network": 15,
-    "medium": 1562,
-    "parametrize": 70,
+    "medium": 1579,
+    "parametrize": 71,
     "requires_resource": 76,
     "integration": 4,
     "gui": 1,
@@ -13,16 +13,16 @@
     "slow": 39,
     "memory_intensive": 1,
     "integtest": 1,
-    "asyncio": 24,
+    "asyncio": 25,
     "skipif": 3,
-    "property": 29,
+    "property": 31,
     "anyio": 3,
-    "unit": 6,
+    "unit": 7,
     "smoke": 4,
     "skip": 2,
     "allow_real_coverage_artifacts": 2
   },
-  "files_scanned": 1234,
+  "files_scanned": 1253,
   "files_with_issues": 0,
   "undocumented_markers": []
 }
