@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import importlib
+import json
 import logging
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from pathlib import Path
 from types import ModuleType
 from typing import Sequence
@@ -119,6 +120,79 @@ def test_redact_secrets_filter_masks_known_tokens(
 
 
 @pytest.mark.fast
+def test_redact_secrets_filter_redacts_payload_and_details(
+    reloaded_logging_setup: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: LOG-INV-02b — Payload and detail extras are scrubbed."""
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-example987654321")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "anthropic-secret-654321")
+
+    logging_setup = reloaded_logging_setup
+    filt = logging_setup.RedactSecretsFilter()
+
+    record = logging.LogRecord(
+        name="devsynth.tests.payload",
+        level=logging.WARNING,
+        pathname=__file__,
+        lineno=0,
+        msg="Token sk-example987654321 and anthropic-secret-654321",
+        args=("anthropic-secret-654321",),
+        exc_info=None,
+    )
+    record.payload = {"token": "sk-example987654321"}
+    record.details = {"nested": "anthropic-secret-654321"}
+    record.extra = {"note": "sk-example987654321"}
+
+    assert filt.filter(record)
+    assert "***REDACTED***4321" in record.msg
+    assert record.args[0].startswith("***REDACTED***")
+    assert record.payload["token"].startswith("***REDACTED***")
+    assert record.details["nested"].startswith("***REDACTED***")
+    assert record.extra["note"].startswith("***REDACTED***")
+
+
+@pytest.mark.fast
+def test_redact_secrets_filter_survives_mapping_errors(
+    reloaded_logging_setup: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: LOG-INV-02c — Redaction errors never break logging."""
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-errormap1234")
+    logging_setup = reloaded_logging_setup
+    filt = logging_setup.RedactSecretsFilter()
+
+    class ExplosiveMapping(Mapping[str, str]):
+        def __iter__(self):  # pragma: no cover - unused iteration branch
+            return iter(())
+
+        def __len__(self) -> int:  # pragma: no cover - not queried
+            return 1
+
+        def __getitem__(self, key: str) -> str:  # pragma: no cover - not queried
+            raise KeyError(key)
+
+        def items(self):  # noqa: D401 - mimic Mapping API
+            raise RuntimeError("explode")
+
+    record = logging.LogRecord(
+        name="devsynth.tests.payload",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=0,
+        msg="sk-errormap1234",
+        args=(),
+        exc_info=None,
+    )
+    record.extra = ExplosiveMapping()
+
+    assert filt.filter(record)
+    assert record.msg.endswith("1234")
+
+
+@pytest.mark.fast
 def test_cli_to_test_context_switch_updates_log_destination(
     reloaded_logging_setup: ModuleType,
     tmp_path: Path,
@@ -151,3 +225,41 @@ def test_cli_to_test_context_switch_updates_log_destination(
     assert test_path.is_relative_to(project_dir)
     assert test_path != cli_path
     assert Path(logging_setup.get_log_file()) == test_path
+
+
+@pytest.mark.fast
+def test_json_formatter_includes_structured_extras(
+    reloaded_logging_setup: ModuleType,
+) -> None:
+    """ReqID: LOG-INV-04 — Structured extras persist in JSON payloads."""
+
+    logging_setup = reloaded_logging_setup
+    formatter = logging_setup.JSONFormatter()
+
+    record = logging.LogRecord(
+        name="devsynth.tests.json",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=42,
+        msg="Structured payload",
+        args=(),
+        exc_info=None,
+    )
+    record.request_id = "req-123"
+    record.phase = "rendering"
+    record.details = {"hint": "ok"}
+    record.payload = {"status": "success"}
+    record.caller_module = "expected.module"
+    record.caller_function = "expected_func"
+    record.caller_line = 99
+
+    output = formatter.format(record)
+    payload = json.loads(output)
+
+    assert payload["request_id"] == "req-123"
+    assert payload["phase"] == "rendering"
+    assert payload["details"] == {"hint": "ok"}
+    assert payload["payload"] == {"status": "success"}
+    assert payload["module"] == "expected.module"
+    assert payload["function"] == "expected_func"
+    assert payload["line"] == 99
