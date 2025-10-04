@@ -6,8 +6,6 @@ from pathlib import Path
 
 import pytest
 
-pytest_plugins = ["tests.unit.testing"]
-
 import devsynth.testing.run_tests as rt
 
 

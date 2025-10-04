@@ -3,8 +3,6 @@
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-pytest_plugins = ["tests.fixtures.webui_test_utils"]
-
 from tests.fixtures.webui_test_utils import simulate_form_submission, webui_context
 
 pytestmark = [pytest.mark.fast]

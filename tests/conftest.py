@@ -5,7 +5,21 @@ This module provides fixtures for ensuring all tests are hermetic (isolated from
 and don't pollute the developer's environment, file system, or depend on external services.
 """
 
-pytest_plugins = ["tests.conftest_extensions", "tests.fixtures.backends"]
+pytest_plugins = [
+    "tests.conftest_extensions",
+    "tests.fixtures.backends",
+    "tests.fixtures.ports",
+    "tests.fixtures.kuzu",
+    "tests.fixtures.state_access_fixture",
+    "tests.fixtures.webui_wizard_state_fixture",
+    "tests.fixtures.optional_deps",
+    "tests.fixtures.lmstudio_mock",
+    "tests.fixtures.lmstudio_service",
+    "tests.fixtures.webui_bridge_stub",
+    "tests.fixtures.webui_test_utils",
+    "tests.unit.testing",
+    "pytester",
+]
 
 import logging
 import os
