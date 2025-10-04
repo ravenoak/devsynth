@@ -8,7 +8,7 @@ tags:
   - "version history"
 status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-09-13"
+last_reviewed: "2025-10-04"
 ---
 
 # Changelog
@@ -35,6 +35,7 @@ milestone.
 - Brought the Agent API and requirements service stack under the strict typing gate, removing the Phase‑5 override and archiving fresh mypy/test diagnostics as release evidence.【F:docs/typing/strictness.md†L18-L21】【F:docs/typing/strictness.md†L130-L136】【F:diagnostics/mypy_strict_agentapi_requirements_20250929T162537Z.txt†L1-L106】【F:diagnostics/devsynth_run_tests_fast_medium_api_strict_20250929T163210Z.txt†L1-L20】
 - Removed legacy strict-typing overrides for adapters and application workflows after strict sweeps, consolidating the `pyproject.toml` configuration and archiving diagnostics for each batch.【F:pyproject.toml†L285-L309】【F:docs/typing/strictness.md†L15-L23】【F:diagnostics/mypy_strict_adapters_20250930T201103Z.txt†L1-L2】【F:diagnostics/mypy_strict_application_orchestration_20250930T201117Z.txt†L1-L2】【F:diagnostics/mypy_strict_application_prompts_20250930T201132Z.txt†L1-L2】
 - Updated release readiness documentation to reinforce the ≥90 % coverage gate, strict mypy verification via `poetry run task mypy:strict`, and fast+medium artifact archival workflows, referencing the latest diagnostics evidence.
+- Documented the 2025-10-04 strict mypy success and staged coverage remediation milestones across `docs/plan.md`, `docs/release/0.1.0-alpha.1.md`, and `issues/coverage-below-threshold.md`, highlighting the knowledge-graph publication banner and pending evidence folders for each milestone.【F:docs/plan.md†L1-L8】【F:docs/plan.md†L176-L182】【F:docs/release/0.1.0-alpha.1.md†L20-L23】【F:issues/coverage-below-threshold.md†L1-L12】
 - Realigned the FastAPI 0.116.x pin with Starlette 0.47.3 after reviewing the
   upstream release notes; the `sitecustomize` shim continues to patch
   `WebSocketDenialResponse` until the Python 3.12 TestClient MRO fix lands

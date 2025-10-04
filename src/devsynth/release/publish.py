@@ -6,9 +6,9 @@ import hashlib
 import json
 import os
 import uuid
-from dataclasses import dataclass, field
+from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
-from typing import Any, Mapping, MutableMapping, Sequence
+from typing import Any
 
 from devsynth.application.knowledge_graph import (
     KuzuReleaseGraphAdapter,
@@ -24,19 +24,41 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
-@dataclass(slots=True)
 class ArtifactInfo:
     """Metadata for a single release artifact."""
+
+    __slots__ = ("artifact_type", "path", "checksum", "collected_at")
 
     artifact_type: str
     path: str
     checksum: str
     collected_at: str
 
+    def __init__(
+        self,
+        *,
+        artifact_type: str,
+        path: str,
+        checksum: str,
+        collected_at: str,
+    ) -> None:
+        self.artifact_type = artifact_type
+        self.path = path
+        self.checksum = checksum
+        self.collected_at = collected_at
 
-@dataclass(slots=True)
+
 class PublicationSummary:
     """Result of publishing a manifest to the knowledge graph."""
+
+    __slots__ = (
+        "test_run_id",
+        "quality_gate_id",
+        "evidence_ids",
+        "gate_status",
+        "created",
+        "adapter_backend",
+    )
 
     test_run_id: str
     quality_gate_id: str
@@ -45,9 +67,36 @@ class PublicationSummary:
     created: Mapping[str, object]
     adapter_backend: str
 
+    def __init__(
+        self,
+        *,
+        test_run_id: str,
+        quality_gate_id: str,
+        evidence_ids: Sequence[str],
+        gate_status: str,
+        created: Mapping[str, object],
+        adapter_backend: str,
+    ) -> None:
+        self.test_run_id = test_run_id
+        self.quality_gate_id = quality_gate_id
+        self.evidence_ids = tuple(evidence_ids)
+        self.gate_status = gate_status
+        self.created = dict(created)
+        self.adapter_backend = adapter_backend
 
-@dataclass(slots=True)
+
 class _TestRunPayload:
+    __slots__ = (
+        "profile",
+        "coverage_percent",
+        "tests_collected",
+        "exit_code",
+        "started_at",
+        "completed_at",
+        "run_checksum",
+        "metadata",
+    )
+
     profile: str
     coverage_percent: float | None
     tests_collected: int | None
@@ -55,16 +104,53 @@ class _TestRunPayload:
     started_at: str
     completed_at: str
     run_checksum: str
-    metadata: MutableMapping[str, object] = field(default_factory=dict)
+    metadata: MutableMapping[str, object]
+
+    def __init__(
+        self,
+        *,
+        profile: str,
+        coverage_percent: float | None,
+        tests_collected: int | None,
+        exit_code: int,
+        started_at: str,
+        completed_at: str,
+        run_checksum: str,
+        metadata: MutableMapping[str, object] | None = None,
+    ) -> None:
+        self.profile = profile
+        self.coverage_percent = coverage_percent
+        self.tests_collected = tests_collected
+        self.exit_code = exit_code
+        self.started_at = started_at
+        self.completed_at = completed_at
+        self.run_checksum = run_checksum
+        self.metadata = dict(metadata or {})
 
 
-@dataclass(slots=True)
 class _QualityGatePayload:
+    __slots__ = ("gate_name", "threshold", "status", "evaluated_at", "metadata")
+
     gate_name: str
     threshold: float
     status: str
     evaluated_at: str
-    metadata: MutableMapping[str, object] = field(default_factory=dict)
+    metadata: MutableMapping[str, object]
+
+    def __init__(
+        self,
+        *,
+        gate_name: str,
+        threshold: float,
+        status: str,
+        evaluated_at: str,
+        metadata: MutableMapping[str, object] | None = None,
+    ) -> None:
+        self.gate_name = gate_name
+        self.threshold = threshold
+        self.status = status
+        self.evaluated_at = evaluated_at
+        self.metadata = dict(metadata or {})
 
 
 def compute_file_checksum(path: Path) -> str:
@@ -107,9 +193,7 @@ def create_release_graph_adapter() -> ReleaseGraphAdapter:
         try:
             return KuzuReleaseGraphAdapter()
         except Exception as exc:  # pragma: no cover - optional dependency
-            logger.warning(
-                "Falling back to NetworkX release graph adapter: %s", exc
-            )
+            logger.warning("Falling back to NetworkX release graph adapter: %s", exc)
     return NetworkXReleaseGraphAdapter()
 
 
@@ -243,4 +327,3 @@ __all__ = [
     "publish_manifest",
     "write_manifest",
 ]
-

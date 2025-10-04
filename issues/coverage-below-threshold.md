@@ -1,6 +1,10 @@
 # Coverage below threshold
 Status: IN PROGRESS - coverage gate still blocked in constrained environment
 
+## 2025-10-04 STATUS UPDATE
+
+**Typing gate cleared; coverage remediation staged**: The strict mypy sweep now returns zero errors (`diagnostics/mypy_strict_src_devsynth_20251004T020206Z.txt` / `diagnostics/mypy_strict_inventory_20251004T020206Z.md`), removing the typing blocker. Focus shifts entirely to the three coverage milestones recorded in docs/plan.md and docs/release/0.1.0-alpha.1.md: (1) 2025-10-05 CLI orchestration uplift with artifacts under `artifacts/releases/0.1.0a1/fast-medium/pending-20251005-cli-hotspots/`; (2) 2025-10-07 WebUI/provider bridge coverage staged at `artifacts/releases/0.1.0a1/fast-medium/pending-20251007-ui-bridge/`; (3) 2025-10-10 fast+medium aggregate confirming ≥90 % coverage. Each milestone remains **OPEN** until evidence folders contain HTML/JSON coverage plus diagnostics. Maintain the release readiness issue linkage while gathering artifacts.【F:diagnostics/mypy_strict_src_devsynth_20251004T020206Z.txt†L1-L1】【F:diagnostics/mypy_strict_inventory_20251004T020206Z.md†L1-L9】【F:docs/plan.md†L1-L8】【F:docs/plan.md†L176-L182】【F:docs/release/0.1.0-alpha.1.md†L20-L23】
+
 ## 2025-09-24 BREAKTHROUGH UPDATE
 
 **CRITICAL UPDATE (2025-09-24)**: Targeted CLI regression tests now exercise smoke coverage skips, inventory exports, and artifact emission via Typer’s runner, but the fast+medium aggregate still fails before pytest starts because `devsynth.core.config_loader` triggers a `pydantic` recursion error when invoked outside the test harness. Focus remains on stabilizing the CLI import graph and raising module coverage to the ≥90 % gate.【F:tests/unit/application/cli/commands/test_run_tests_cmd_cli_runner_invalid_inputs.py†L1-L337】【093eb1†L1-L120】
