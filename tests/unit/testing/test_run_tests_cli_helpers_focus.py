@@ -183,6 +183,92 @@ def test_segmented_batch_exception_emits_tips_and_plugins(
 
 
 @pytest.mark.fast
+def test_segmented_batches_reinject_when_env_mutates(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Segments reapply plugin directives even if previous runs stripped them."""
+
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+    monkeypatch.setenv("PYTEST_ADDOPTS", "-q")
+    monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tmp_path))
+    monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", str(tmp_path))
+
+    first = tmp_path / "test_first.py"
+    second = tmp_path / "test_second.py"
+    first.write_text("def test_one():\n    assert True\n")
+    second.write_text("def test_two():\n    assert True\n")
+
+    def fake_collect(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+        assert "--collect-only" in cmd
+        return SimpleNamespace(
+            returncode=0,
+            stdout="\n".join([f"{first}::test_one", f"{second}::test_two"]),
+            stderr="",
+        )
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_collect)
+
+    popen_envs: list[dict[str, str]] = []
+
+    class MutatingPopen:
+        call_index = 0
+
+        def __init__(
+            self,
+            cmd,
+            stdout=None,
+            stderr=None,
+            text=True,
+            env=None,
+        ):  # noqa: ANN001
+            MutatingPopen.call_index += 1
+            env_map = dict(env or {})
+            popen_envs.append(env_map)
+            _assert_plugins_in_env(env_map)
+
+            if env is not None:
+                tokens = env.get("PYTEST_ADDOPTS", "").split()
+                filtered = [
+                    token
+                    for token in tokens
+                    if token not in {"-p", "pytest_cov", "pytest_bdd.plugin"}
+                ]
+                env["PYTEST_ADDOPTS"] = " ".join(filtered)
+
+            self.returncode = 0
+            self._stdout = f"segment {MutatingPopen.call_index} ok"
+            self._stderr = ""
+
+        def communicate(self):  # noqa: D401 - subprocess API emulation
+            """Return the stubbed stdout/stderr pair."""
+
+            return self._stdout, self._stderr
+
+    monkeypatch.setattr(rt.subprocess, "Popen", MutatingPopen)
+
+    success, output = rt.run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=True,
+        segment_size=1,
+        maxfail=None,
+        extra_marker=None,
+    )
+
+    assert success is True
+    assert "segment 1 ok" in output
+    assert "segment 2 ok" in output
+    assert len(popen_envs) == 2
+    for env_snapshot in popen_envs:
+        _assert_plugins_in_env(env_snapshot)
+    _assert_plugins_in_env(dict(os.environ))
+
+
+@pytest.mark.fast
 def test_run_tests_env_var_propagation_retains_existing_addopts(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

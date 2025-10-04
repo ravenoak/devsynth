@@ -251,6 +251,8 @@ def test_cli_runner_rejects_invalid_target(monkeypatch: pytest.MonkeyPatch) -> N
     )
 
     assert result.exit_code == 2
+    assert isinstance(result.exception, SystemExit)
+    assert result.exception.code == 2
     assert "Invalid --target value" in result.stdout
     assert "docs/user_guides/cli_command_reference.md" in result.stdout
 
@@ -338,3 +340,78 @@ def test_cli_runner_failed_run_surfaces_maxfail_guidance(
     assert "Tests failed" in result.stdout
     assert "--maxfail=1" in result.stdout
     assert "Segment large suites" in result.stdout
+
+
+@pytest.mark.fast
+def test_cli_runner_inventory_write_failure_exits_nonzero(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Disk errors while exporting inventory should exit with code 1."""
+
+    monkeypatch.chdir(tmp_path)
+
+    def fake_collect(target: str, speed: str | None) -> list[str]:
+        suffix = speed or "all"
+        return [f"{target}::{suffix}::case"]
+
+    app, cli_module = _build_minimal_app(monkeypatch)
+    monkeypatch.setattr(cli_module, "collect_tests_with_cache", fake_collect)
+
+    def fail_write(self: Path, *_: object, **__: object) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr(Path, "write_text", fail_write)
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["--inventory"], prog_name="run-tests")
+
+    assert result.exit_code == 1
+    assert isinstance(result.exception, OSError)
+    assert "disk full" in str(result.exception)
+
+
+@pytest.mark.fast
+def test_cli_runner_maxfail_option_propagates_to_runner(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The Typer surface must forward --maxfail to run_tests."""
+
+    app, cli_module = _build_minimal_app(monkeypatch)
+
+    received: dict[str, object] = {}
+
+    def fake_run_tests(*args: object, **kwargs: object) -> tuple[bool, str]:
+        received["args"] = args
+        received["kwargs"] = dict(kwargs)
+        return True, "pytest ok"
+
+    monkeypatch.setattr(cli_module, "run_tests", fake_run_tests)
+    monkeypatch.setattr(
+        cli_module, "_coverage_instrumentation_status", lambda: (True, None)
+    )
+    monkeypatch.setattr(
+        cli_module, "coverage_artifacts_status", lambda: (True, None)
+    )
+    monkeypatch.setattr(
+        cli_module,
+        "enforce_coverage_threshold",
+        lambda exit_on_failure=False: 95.0,
+    )
+    monkeypatch.setattr(
+        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
+    )
+    monkeypatch.setattr(
+        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        ["--maxfail", "3", "--speed", "fast", "--target", "unit-tests"],
+        prog_name="run-tests",
+    )
+
+    assert result.exit_code == 0
+    assert received["kwargs"]["maxfail"] == 3
+    assert received["kwargs"]["segment"] is False
