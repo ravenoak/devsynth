@@ -9,6 +9,7 @@ from typing import Generic, Protocol, TypeVar, runtime_checkable
 
 
 ValueT = TypeVar("ValueT")
+Snapshot = Mapping[str, ValueT]
 
 
 @runtime_checkable
@@ -26,10 +27,10 @@ class MemoryStore(Protocol[ValueT]):
     def read(self, key: str) -> ValueT:
         """Return the stored value for ``key`` or raise ``KeyError``."""
 
-    def snapshot(self) -> Mapping[str, ValueT]:
+    def snapshot(self) -> Snapshot:
         """Return a mapping representing the current store state."""
 
-    def restore(self, snapshot: Mapping[str, ValueT]) -> None:
+    def restore(self, snapshot: Snapshot) -> None:
         """Restore the store from a previous :meth:`snapshot` output."""
 
 @dataclass(slots=True)

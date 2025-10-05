@@ -36,6 +36,42 @@ from devsynth.application.cli.models import (
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
+if TYPE_CHECKING:
+    from typing import Protocol
+
+    class _ProgressIndicatorBase(Protocol):
+        def update(
+            self,
+            *,
+            advance: float = 1,
+            description: str | None = None,
+            status: str | None = None,
+        ) -> None:
+            ...
+
+        def complete(self) -> None:
+            ...
+
+        def add_subtask(
+            self, description: str, total: int = 100, status: str = "Starting..."
+        ) -> str:
+            ...
+
+        def update_subtask(
+            self,
+            task_id: str,
+            advance: float = 1,
+            description: str | None = None,
+            status: str | None = None,
+        ) -> None:
+            ...
+
+        def complete_subtask(self, task_id: str) -> None:
+            ...
+else:
+    _ProgressIndicatorBase = ProgressIndicator
+
+
 logger = DevSynthLogger(__name__)
 
 T = TypeVar("T")
@@ -483,7 +519,10 @@ def simulate_progress_timeline(
 
             if action == "add_subtask":
                 subtask_desc = event.get("description", "<subtask>")
-                description_text = str(subtask_desc)
+                try:
+                    description_text = str(subtask_desc)
+                except Exception:
+                    description_text = "<subtask>"
                 alias_raw = event.get("alias", "")
                 alias = str(alias_raw) or description_text
                 subtask_total = int(_as_float(event.get("total", 100)) or 100)
@@ -709,37 +748,3 @@ def run_with_long_running_progress(
     finally:
         # Mark the task as complete, even if an exception occurs
         progress.complete()
-if TYPE_CHECKING:
-    from typing import Protocol
-
-    class _ProgressIndicatorBase(Protocol):
-        def update(
-            self,
-            *,
-            advance: float = 1,
-            description: str | None = None,
-            status: str | None = None,
-        ) -> None:
-            ...
-
-        def complete(self) -> None:
-            ...
-
-        def add_subtask(
-            self, description: str, total: int = 100, status: str = "Starting..."
-        ) -> str:
-            ...
-
-        def update_subtask(
-            self,
-            task_id: str,
-            advance: float = 1,
-            description: str | None = None,
-            status: str | None = None,
-        ) -> None:
-            ...
-
-        def complete_subtask(self, task_id: str) -> None:
-            ...
-else:
-    _ProgressIndicatorBase = ProgressIndicator

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 from dataclasses import dataclass, field
 
 import pytest
@@ -39,6 +40,21 @@ def build_manager(*, failing_key: str | None = None) -> SyncManager[int]:
         for name in ("tinydb", "duckdb", "lmdb", "kuzu")
     }
     return SyncManager(stores)
+
+
+@pytest.mark.fast
+def test_sync_manager_import_and_construction_succeeds() -> None:
+    """Reloading the module and constructing a manager never raises ``TypeError``."""
+
+    module = importlib.reload(importlib.import_module("devsynth.memory.sync_manager"))
+    stores = {
+        name: IntStore()
+        for name in ("tinydb", "duckdb", "lmdb", "kuzu")
+    }
+    manager = module.SyncManager(stores)
+
+    assert isinstance(manager, module.SyncManager)
+    assert set(manager.stores) == {"tinydb", "duckdb", "lmdb", "kuzu"}
 
 
 @pytest.mark.fast

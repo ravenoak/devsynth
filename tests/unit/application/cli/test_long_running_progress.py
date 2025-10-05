@@ -28,6 +28,16 @@ long_running_progress = importlib.import_module(
 from devsynth.application.cli.models import ProgressCheckpoint, ProgressHistoryEntry
 
 
+@pytest.mark.fast
+def test_progress_indicator_base_alias_is_exported() -> None:
+    """The hoisted alias remains available for runtime imports."""
+
+    assert hasattr(long_running_progress, "_ProgressIndicatorBase")
+    base = long_running_progress._ProgressIndicatorBase
+    assert base is long_running_progress.ProgressIndicator
+    assert issubclass(long_running_progress.LongRunningProgressIndicator, base)
+
+
 class FakeClock:
     """Deterministic clock returning monotonically increasing floats."""
 

@@ -42,3 +42,37 @@ Affected Area: tests
 
 ## Resolution Evidence
 - 2025-10-04: Smoke command still fails pending broader regression fixes; captured output in `logs/devsynth_run-tests_smoke_fast_20251004T201351Z.log`.
+- 2025-10-04: `poetry run pytest tests/unit/application/cli/test_long_running_progress.py tests/unit/memory/test_sync_manager_protocol_runtime.py -q` passes locally after restoring `_ProgressIndicatorBase` exports and SyncManager generics.
+
+```
+$ poetry run pytest tests/unit/application/cli/test_long_running_progress.py tests/unit/memory/test_sync_manager_protocol_runtime.py -q
+======================================================= warnings summary =======================================================
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137: DeprecationWarning: `FieldValidationInfo` is deprecated, use `ValidationInfo` instead.
+    warnings.warn(msg, DeprecationWarning, stacklevel=1)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================= Test Categorization Summary ==================================================
+Test Type Distribution:
+  Unit Tests: 12
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 12
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+===================================================== Top 10 Slowest Tests =====================================================
+1. tests/unit/application/cli/test_long_running_progress.py::test_progress_indicator_base_alias_is_exported: 0.06s
+2. tests/unit/memory/test_sync_manager_protocol_runtime.py::test_sync_manager_import_and_construction_succeeds: 0.01s
+3. tests/unit/application/cli/test_long_running_progress.py::test_update_adapts_interval_and_checkpoints: 0.01s
+4. tests/unit/application/cli/test_long_running_progress.py::test_subtask_checkpoint_spacing_respects_minimum: 0.01s
+5. tests/unit/application/cli/test_long_running_progress.py::test_simulation_timeline_tracks_history_and_alias_renames: 0.01s
+6. tests/unit/application/cli/test_long_running_progress.py::test_status_history_tracks_unique_status_changes: 0.01s
+7. tests/unit/application/cli/test_long_running_progress.py::test_subtask_completion_rolls_up_and_freezes_summary: 0.01s
+8. tests/unit/memory/test_sync_manager_protocol_runtime.py::test_transaction_rolls_back_typed_stores: 0.01s
+9. tests/unit/application/cli/test_long_running_progress.py::test_simulation_timeline_produces_deterministic_transcript: 0.01s
+10. tests/unit/application/cli/test_long_running_progress.py::test_summary_reflects_fake_timeline_and_sanitizes_descriptions: 0.01s
+12 passed, 2 warnings in 0.83s
+```
