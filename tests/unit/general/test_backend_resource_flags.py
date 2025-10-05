@@ -1,4 +1,5 @@
 import os
+from importlib.machinery import ModuleSpec
 from unittest.mock import patch
 
 import pytest
@@ -50,3 +51,54 @@ def test_rdflib_env_mapping_disables_rdflib():
         os.environ, {"DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE": "false"}, clear=False
     ):
         assert is_resource_available("rdflib") is False
+
+
+@pytest.mark.fast
+def test_skip_if_missing_backend_handles_partial_spec(monkeypatch):
+    """``skip_if_missing_backend`` should handle ModuleSpec objects lacking loaders."""
+
+    from tests.fixtures import resources
+
+    spec = ModuleSpec("kuzu", loader=None)
+    spec.origin = None
+    spec.submodule_search_locations = None
+
+    captured: dict[str, tuple[str, str]] = {}
+
+    def fake_importorskip(name: str, *, reason: str) -> None:
+        captured["call"] = (name, reason)
+        raise pytest.skip.Exception(reason)
+
+    monkeypatch.setattr(resources, "is_resource_available", lambda _: True)
+    monkeypatch.setattr(resources, "_safe_find_spec", lambda _: spec)
+    monkeypatch.setattr(resources.pytest, "importorskip", fake_importorskip)
+
+    marks = resources.skip_if_missing_backend("kuzu", include_requires_resource=False)
+
+    assert any(mark.name == "skip" for mark in marks)
+    assert captured.get("call", (None,))[0] == "kuzu"
+
+
+@pytest.mark.fast
+def test_skip_if_missing_backend_converts_find_spec_value_error(monkeypatch):
+    """ValueError from ``find_spec`` should result in a clean skip marker."""
+
+    from tests.fixtures import resources
+
+    calls: list[tuple[str, str]] = []
+
+    def raising_find_spec(_name: str):
+        raise ValueError("bad spec")
+
+    def fake_importorskip(name: str, *, reason: str) -> None:
+        calls.append((name, reason))
+        raise pytest.skip.Exception(reason)
+
+    monkeypatch.setattr(resources.importlib.util, "find_spec", raising_find_spec)
+    monkeypatch.setattr(resources, "is_resource_available", lambda _: True)
+    monkeypatch.setattr(resources.pytest, "importorskip", fake_importorskip)
+
+    marks = resources.skip_if_missing_backend("faiss", include_requires_resource=False)
+
+    assert any(mark.name == "skip" for mark in marks)
+    assert calls and calls[0][0] == "faiss"

@@ -5,17 +5,13 @@ can register every step definition.  The previous lazy-import approach caused
 ``StepDefinitionNotFound`` errors when step modules were not referenced
 explicitly in test files.  Importing everything eagerly keeps collection
 reliable without a noticeable performance impact.
+
+Pytest plugin exports now live in :mod:`tests.behavior.steps.pytest_plugins`
+and are loaded from :mod:`tests.conftest`, matching pytest 8's guidance for
+centralized plugin declarations.
 """
 
 from __future__ import annotations
-
-# Pytest inspects packages for a ``pytest_plugins`` variable when importing test
-# modules.  Without this variable defined, ``pytest`` attempts to import a
-# ``pytest_plugins`` *module* from this package which triggers our ``__getattr__``
-# loader and results in ``ModuleNotFoundError`` during test collection.  Export
-# an empty list so pytest does not try to load a missing module.
-pytest_plugins: list[str] = []
-
 
 # Provide no-op ``setUpModule`` and ``tearDownModule`` hooks so pytest does not
 # attempt to lazy-import these as modules via ``__getattr__`` on this package.
