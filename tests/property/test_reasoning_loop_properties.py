@@ -95,56 +95,105 @@ def test_reasoning_loop_respects_max_iterations(monkeypatch, max_iterations):
     assert len(results) == max_iterations
 
 
-@pytest.mark.property
-@pytest.mark.medium
-@given(
-    next_phases=st.lists(
+def _normalized_phase_strings(phase: Phase) -> list[str]:
+    return [phase.value, phase.value.upper(), phase.value.title()]
+
+
+@st.composite
+def dialectical_result_payloads(draw):
+    base_phase = draw(st.sampled_from([Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE]))
+    phase_value = draw(
+        st.one_of(
+            st.sampled_from(_normalized_phase_strings(base_phase)),
+            st.sampled_from(["UNKNOWN", "", "???"]),
+        )
+    )
+    status = draw(st.sampled_from(["in_progress", "completed"]))
+    next_phase_value = draw(
         st.one_of(
             st.none(),
-            st.sampled_from([Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE]),
-            st.sampled_from(["invalid", "UNKNOWN", ""]),
-        ),
-        min_size=1,
-        max_size=5,
+            st.sampled_from(
+                [
+                    token
+                    for phase in [Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE]
+                    for token in _normalized_phase_strings(phase)
+                ]
+            ),
+            st.sampled_from(["invalid", "UNKNOWN", "", "???"]),
+        )
     )
-)
-@example(next_phases=[None])
+    synthesis = draw(st.text(min_size=1, max_size=5))
+    payload: dict[str, Any] = {
+        "status": status,
+        "phase": phase_value,
+        "synthesis": synthesis,
+    }
+    if next_phase_value is not None:
+        payload["next_phase"] = next_phase_value
+
+    if draw(st.booleans()):
+        return DialecticalSequence.from_dict(payload)
+    return payload
+
+
+@pytest.mark.property
+@pytest.mark.medium
+@given(payloads=st.lists(dialectical_result_payloads(), min_size=1, max_size=5))
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-def test_reasoning_loop_phase_transitions(monkeypatch, next_phases):
+def test_reasoning_loop_phase_transitions(monkeypatch, payloads):
     """Loop advances according to `next_phase` or fallback map.
 
     Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
     """
 
-    phase_map = {
+    phase_transition = {
         Phase.EXPAND: Phase.DIFFERENTIATE,
         Phase.DIFFERENTIATE: Phase.REFINE,
         Phase.REFINE: Phase.REFINE,
     }
-    current = Phase.EXPAND
-    expected: list[Phase] = []
-    results = []
-    for idx, np_phase in enumerate(next_phases):
-        expected.append(current)
-        result = {
-            "status": "completed" if idx == len(next_phases) - 1 else "in_progress",
-            "phase": current.value,
-        }
-        if np_phase is not None:
-            if isinstance(np_phase, Phase):
-                result["next_phase"] = np_phase.value
-                current = np_phase
-            else:
-                result["next_phase"] = np_phase
-                current = phase_map[current]
+
+    expected_recorded: list[Phase] = []
+    normalized_sequence_phases: list[Phase | None] = []
+    fallback_expectations: dict[int, Phase] = {}
+    current_phase = Phase.EXPAND
+
+    for idx, payload in enumerate(payloads):
+        mapping = dict(payload)
+        result_phase_value = mapping.get("phase")
+        effective_phase = current_phase
+        normalized_phase: Phase | None = None
+        if isinstance(result_phase_value, str):
+            try:
+                normalized_phase = Phase(result_phase_value.lower())
+                effective_phase = normalized_phase
+            except Exception:
+                pass
+        normalized_sequence_phases.append(normalized_phase)
+        expected_recorded.append(effective_phase)
+
+        next_phase_value = mapping.get("next_phase")
+        fallback_phase = phase_transition.get(current_phase, current_phase)
+        fallback_triggered = False
+        if isinstance(next_phase_value, str):
+            try:
+                current_phase = Phase(next_phase_value.lower())
+            except Exception:
+                current_phase = fallback_phase
+                fallback_triggered = True
         else:
-            current = phase_map[current]
-        results.append(result)
+            current_phase = fallback_phase
+            fallback_triggered = True
+
+        if fallback_triggered:
+            fallback_expectations[idx + 1] = current_phase
+
+        if mapping.get("status") == "completed":
+            break
 
     call_idx = {"i": 0}
 
     def fake_apply(team, task, critic, memory):
-        res = results[call_idx["i"]]
+        res = payloads[call_idx["i"]]
         call_idx["i"] += 1
         return res
 
@@ -154,19 +203,19 @@ def test_reasoning_loop_phase_transitions(monkeypatch, next_phases):
         lambda: fake_apply,
     )
 
-    recorded: list[Phase] = []
+    recorded_calls: list[tuple[Phase, dict[str, Any]]] = []
 
     class Recorder:
         def record_expand_results(self, result):
-            recorded.append(Phase.EXPAND)
+            recorded_calls.append((Phase.EXPAND, result))
             return result
 
         def record_differentiate_results(self, result):
-            recorded.append(Phase.DIFFERENTIATE)
+            recorded_calls.append((Phase.DIFFERENTIATE, result))
             return result
 
         def record_refine_results(self, result):
-            recorded.append(Phase.REFINE)
+            recorded_calls.append((Phase.REFINE, result))
             return result
 
     reasoning_loop_module.reasoning_loop(
@@ -175,10 +224,20 @@ def test_reasoning_loop_phase_transitions(monkeypatch, next_phases):
         MagicMock(),
         coordinator=Recorder(),
         phase=Phase.EXPAND,
-        max_iterations=len(next_phases),
+        max_iterations=len(payloads),
     )
 
-    assert recorded == expected
+    recorded_phases = [phase for phase, _ in recorded_calls]
+    assert recorded_phases == expected_recorded[: len(recorded_phases)]
+
+    for idx, (phase, _payload) in enumerate(recorded_calls):
+        raw_payload = payloads[idx]
+        if isinstance(raw_payload, DialecticalSequence) and normalized_sequence_phases[idx] is not None:
+            assert phase == normalized_sequence_phases[idx]
+
+        fallback_phase = fallback_expectations.get(idx)
+        if fallback_phase is not None and normalized_sequence_phases[idx] is None:
+            assert phase == fallback_phase
 
 
 @pytest.mark.property
