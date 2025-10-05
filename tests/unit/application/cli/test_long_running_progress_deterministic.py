@@ -181,6 +181,16 @@ else:
 from .test_long_running_progress import DummyConsole, FakeProgress, FakeTask
 
 
+@pytest.mark.fast
+def test_progress_indicator_base_alias_stays_exported() -> None:
+    """Ensure the module still exposes the base alias under stub imports."""
+
+    assert hasattr(long_running_progress, "_ProgressIndicatorBase")
+    base = long_running_progress._ProgressIndicatorBase
+    assert base is long_running_progress.ProgressIndicator
+    assert issubclass(long_running_progress.LongRunningProgressIndicator, base)
+
+
 class CountingClock:
     """Generator-backed clock based on ``itertools.count``."""
 
