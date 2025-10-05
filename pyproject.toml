@@ -256,6 +256,7 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 
+# Per-module options
 [[tool.mypy.overrides]]
 module = "tests._typing_utils"
 follow_imports = "normal"
@@ -266,36 +267,6 @@ module = [
   "rdflib.*",
 ]
 ignore_missing_imports = true
-
-[tool.black]
-line-length = 88
-target-version = ["py312"]
-
-[tool.isort]
-profile = "black"
-line_length = 88
-
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203", "W503"]
-per-file-ignores = [
-  # Allow long docstrings and BDD steps in behavior tests; ignore common harmless scaffolding issues
-  "tests/behavior/*.py: E501,F401,E402",
-  "tests/behavior/steps/*.py: E501,F401,E402,F811",
-  "tests/behavior/test_cli_ux_enhancements.py: F401",
-  # Adapters contain deliberate import ordering and long lines due to external API constraints; documented in code comments
-  "src/devsynth/adapters/agents/agent_adapter.py: E402,F401,E501",
-  "src/devsynth/adapters/chromadb_memory_store.py: E501",
-  "src/devsynth/application/edrr/coordinator/core.py: E501",
-]
-
-[tool.devsynth]
-project_root = "."
-language = "python"
-directories = {source = ["src"], tests = ["tests"], docs = ["docs"]}
-features = {}
-
-# Per-module options
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
@@ -610,6 +581,34 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = ["chromadb", "chromadb.*"]
 ignore_missing_imports = true
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+per-file-ignores = [
+  # Allow long docstrings and BDD steps in behavior tests; ignore common harmless scaffolding issues
+  "tests/behavior/*.py: E501,F401,E402",
+  "tests/behavior/steps/*.py: E501,F401,E402,F811",
+  "tests/behavior/test_cli_ux_enhancements.py: F401",
+  # Adapters contain deliberate import ordering and long lines due to external API constraints; documented in code comments
+  "src/devsynth/adapters/agents/agent_adapter.py: E402,F401,E501",
+  "src/devsynth/adapters/chromadb_memory_store.py: E501",
+  "src/devsynth/application/edrr/coordinator/core.py: E501",
+]
+
+[tool.devsynth]
+project_root = "."
+language = "python"
+directories = {source = ["src"], tests = ["tests"], docs = ["docs"]}
+features = {}
 
 # === Pytest Configuration ===
 # Consolidated from pytest.ini for centralized configuration management
