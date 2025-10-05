@@ -1,0 +1,20 @@
+# Coverage Wave 1 (2025-10-05 UTC)
+
+## Gate Status Snapshot
+- Fast+medium aggregate remains at 92.40 % (2,601/2,815 statements) with artifacts archived under `20251012T164512Z-fast-medium/` and knowledge-graph nodes `QualityGate=QG-20251012-FASTMED`, `TestRun=TR-20251012-FASTMED`, `ReleaseEvidence=RE-20251012-FASTMED`.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】【F:artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/devsynth_run_tests_fast_medium_20251012T164512Z.txt†L1-L9】
+- Targeted hot-spot rerun for `methodology/edrr/reasoning_loop.py` (2025-10-05 fast profile) captured 68.89 % coverage to guide the final uplift before the aggregate rerun.【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L25】
+
+## Ownership & Module Deltas
+| Module | Owner | Current Coverage | Gap to 90 % | Evidence | Planned Follow-up |
+| --- | --- | --- | --- | --- | --- |
+| `src/devsynth/application/cli/commands/run_tests_cmd.py` | Automation (PR-A/PR-D) | 93.07 % | ✅ | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L16-L24】 | Monitor for regressions while Taskfile/CLI fixes land; rerun aggregate after MemoryStore patch to confirm stability.【F:docs/tasks.md†L309-L333】 |
+| `src/devsynth/testing/run_tests.py` | Automation (PR-A/PR-D) | 91.48 % | ✅ | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L16-L24】 | Keep regression harness active when rerunning `task release:prep` to guard artifact resets.【F:docs/release/v0.1.0a1_execution_plan.md†L31-L62】 |
+| `src/devsynth/methodology/edrr/reasoning_loop.py` | Runtime (PR-D) | 87.34 % (aggregate) / 68.89 % (fast hot-spot) | -2.66 % aggregate / -21.11 % fast-only | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L32-L40】【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L25】 | Add deterministic recursion + failure simulations per §31.4 before the final aggregate rerun lifts the module above 90 %.【F:docs/tasks.md†L340-L343】 |
+| `src/devsynth/interface/webui_bridge.py` | Runtime/UI (PR-C) | 90.24 % | ✅ | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L24-L33】 | Verify smoke toggles once MemoryStore fixes land to ensure optional backend hooks remain green.【F:docs/release/v0.1.0a1_execution_plan.md†L92-L110】 |
+| `src/devsynth/interface/webui.py` | Runtime/UI (PR-C) | 94.30 % | ✅ | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L24-L33】 | Maintain targeted fast tests for wizard navigation while chasing MemoryStore regressions.【F:docs/tasks.md†L309-L333】 |
+| `src/devsynth/adapters/provider_system.py` | Runtime (PR-D) | 91.11 % | ✅ | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L32-L38】 | Re-run async retry fixtures alongside MemoryStore fixes to ensure coverage remains ≥90 %.【F:docs/tasks.md†L323-L333】 |
+
+## Follow-up Experiments
+1. **Reasoning loop uplift** – Expand the deterministic recursion simulations highlighted in §31.4 and rerun the fast-only profile to verify the 68.89 % snapshot rises above 90 % before the aggregate rerun.【F:docs/tasks.md†L340-L343】【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L25】
+2. **Smoke-to-coverage handoff** – After the MemoryStore Protocol fix, execute `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` followed immediately by the fast+medium aggregate to confirm the gate still prints the knowledge-graph banner and that coverage manifests refresh with new timestamps.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L1-L55】【F:artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/devsynth_run_tests_fast_medium_20251012T164512Z.txt†L1-L9】
+3. **Knowledge-graph audit** – Cross-check the stored `QualityGate` node after the next aggregate to ensure the knowledge graph now references both the 2025-10-12 evidence and the forthcoming rerun, keeping documentation synchronized.【F:artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/devsynth_run_tests_fast_medium_20251012T164512Z.txt†L1-L9】【F:docs/release/0.1.0-alpha.1.md†L16-L86】
