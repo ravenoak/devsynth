@@ -32,7 +32,7 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
-from .ingest_models import (
+from devsynth.application.cli.ingest_models import (
     DifferentiationPhaseResult,
     ExpandPhaseResult,
     ManifestModel,

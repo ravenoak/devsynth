@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import typer
+from typer.models import OptionInfo
 
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
@@ -152,6 +153,12 @@ def ingest_cmd(
                 base_path=str(base_dir), use_rdflib_store=True
             )
         return adapter
+
+    if isinstance(research_artifact, OptionInfo):
+        research_artifact = None
+
+    if isinstance(verify_research_hash, OptionInfo):
+        verify_research_hash = None
 
     if research_artifact:
         graph_adapter = _ensure_adapter()

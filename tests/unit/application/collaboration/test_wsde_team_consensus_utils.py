@@ -1,11 +1,13 @@
 from unittest.mock import MagicMock
+
 import pytest
 
 from devsynth.application.collaboration.wsde_team_consensus import (
-
-pytestmark = [pytest.mark.fast]
     ConsensusBuildingMixin,
 )
+
+
+pytestmark = [pytest.mark.fast]
 
 
 class DummyConsensus(ConsensusBuildingMixin):

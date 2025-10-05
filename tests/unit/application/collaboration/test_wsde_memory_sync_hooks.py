@@ -6,12 +6,13 @@ import pytest
 
 from devsynth.application.collaboration.dto import AgentOpinionRecord
 from devsynth.application.collaboration.wsde_team_consensus import (
-
-pytestmark = [pytest.mark.fast]
     ConsensusBuildingMixin,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.interfaces.memory import MemoryStore
+
+
+pytestmark = [pytest.mark.fast]
 
 
 class DummyAgent:
