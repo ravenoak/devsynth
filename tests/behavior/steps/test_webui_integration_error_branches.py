@@ -1,14 +1,3 @@
-import importlib
-import sys
-from types import ModuleType, SimpleNamespace
-from unittest.mock import MagicMock
-
-import pytest
-
-pytest.importorskip("pytest_bdd")
-
-from pytest_bdd import given, then, when
-
 from __future__ import annotations
 
 import importlib
