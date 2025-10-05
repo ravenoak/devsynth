@@ -21,6 +21,7 @@
 1. **EDRR coverage top-up** – raise `methodology/edrr/reasoning_loop.py` from 87.34 % to ≥90 % while preserving the passing aggregate (tracked in docs/tasks.md §29.5).【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】【F:docs/tasks.md†L326-L331】
 2. **UAT sign-off** – capture stakeholder evidence and update issues/release-finalization-uat.md before tagging.
 3. **Post-tag workflow reactivation** – stage the PR that re-enables CI triggers once maintainers cut the tag (docs/tasks.md §30.4).
+4. **Test hygiene remediation** – land a fast PR to relocate `pytestmark`, restore WebUI feature paths, re-export `_ProgressIndicatorBase`, and import pytest in integration suites so collection/coverage evidence can be reproduced.【d62a9a†L12-L33】【6cd789†L12-L28】【68488c†L1-L27】【e85f55†L1-L22】
 
 ### 🎯 Quality Targets (Alpha)
 - **Coverage Threshold**: Maintain the ≥90 % fail-under and meet it prior to tagging.

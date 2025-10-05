@@ -1,5 +1,5 @@
 # Coverage below threshold
-Status: READY FOR VERIFICATION - ≥90 % gate satisfied with archived evidence
+Status: AT RISK — ≥90 % evidence exists but current test collection regressions block reproduction (2025-10-05)
 
 ## 2025-10-12 COVERAGE GATE PASS
 
@@ -12,6 +12,7 @@ Status: READY FOR VERIFICATION - ≥90 % gate satisfied with archived evidence
 - ✅ docs/plan.md, docs/tasks.md §29–§30, and docs/release/0.1.0-alpha.1.md now reflect the passing gate and point to the manifest folder, keeping milestones and task checkboxes synchronized.【F:docs/plan.md†L1-L88】【F:docs/tasks.md†L309-L333】【F:docs/release/0.1.0-alpha.1.md†L16-L48】
 - ℹ️ The manifest shows `methodology/edrr/reasoning_loop.py` at 87.34 %; follow-up work is tracked under docs/tasks.md §29.5 even though the aggregate gate is satisfied.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
 - 🔁 A focused invariants sweep (`DEVSYNTH_PROPERTY_TESTING=1 PYTHONPATH=src poetry run pytest … --cov-fail-under=0`) now archives `coverage_manifest_20251004T175208Z.json` with 56.67 % coverage for `reasoning_loop.py`, exercising the retry-budget clamp, non-mapping input guard, and failure telemetry branches added to the unit/property suites.【F:test_reports/coverage_manifest_20251004T175208Z.json†L1-L16】【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L340-L441】【F:tests/property/test_reasoning_loop_properties.py†L25-L287】
+- ⚠️ 2025-10-05 regression audit: targeted `pytest` runs now fail with SyntaxError (misplaced `pytestmark`), missing WebUI `.feature` assets, `_ProgressIndicatorBase` NameErrors, and integration modules lacking pytest imports, preventing fresh coverage evidence until hygiene fixes land.【d62a9a†L12-L33】【6cd789†L12-L28】【68488c†L1-L27】【e85f55†L1-L22】
 
 ## Key Artifacts
 

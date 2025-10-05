@@ -25,6 +25,9 @@ Affected Area: tests
 - `tests/unit/interface/conftest.py` defines `pytest_plugins`, which pytest 8+ no longer supports outside the top-level conftest; collection aborts before tests run.【9ecea8†L57-L76】
 - Behavior suites reference `.feature` files that are missing from the repository (UXBridge/WebUI flow files under `tests/behavior/general/`).【9ecea8†L120-L164】
 - Optional backend smoke tests (Chromadb, Faiss, Kuzu) import drivers eagerly rather than respecting `requires_resource` markers, raising `ValueError` when extras are not installed.【9ecea8†L96-L120】
+- Repository-wide `pytestmark` auto-injection placed markers inside import tuples; Python now raises `SyntaxError: invalid syntax` before tests collect.【d62a9a†L12-L33】
+- Integration modules such as `test_deployment_automation.py` declare `pytestmark` without importing pytest, triggering `NameError` at import time.【e85f55†L1-L22】
+- WebUI BDD suites still load `general/*.feature` rather than `features/general/*.feature`, producing `FileNotFoundError` for assets that exist under the features directory.【6cd789†L12-L28】
 
 ## Next Actions
 - [ ] Restore `_ProgressIndicatorBase` exports (likely `devsynth.application.cli.long_running_progress`) and ensure tests import helpers from supported modules.
@@ -32,6 +35,9 @@ Affected Area: tests
 - [ ] Move `pytest_plugins` declarations into the repository root `conftest.py` or convert to plugin registration helpers.
 - [ ] Recreate or relocate the missing `.feature` files referenced by behavior suites; update loaders and traceability documents accordingly.
 - [ ] Guard optional backend tests with `pytest.importorskip` plus `requires_resource` flags so they skip cleanly without extras.
+- [ ] Sweep unit/domain suites to move `pytestmark` statements outside import contexts and rerun targeted `pytest -k nothing` checks to prove SyntaxErrors are gone.【d62a9a†L12-L33】
+- [ ] Add explicit `import pytest` lines (or remove unused `pytestmark`) in integration suites to prevent import-time NameErrors.【e85f55†L1-L22】
+- [ ] Update `pytest_bdd.scenarios(...)` paths to reference `features/general/*.feature` and capture refreshed traceability manifests.【6cd789†L12-L28】
 - [ ] Re-run smoke and `--collect-only` commands, attaching new logs when failures cease.
 
 ## Resolution Evidence

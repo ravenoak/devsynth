@@ -8,10 +8,11 @@ Executive summary
 - Goal: Reach and sustain >90% coverage with a well‑functioning, reliable test suite across unit, integration, behavior, and property tests for the 0.1.0a1 release, with strict marker discipline and resource gating.
 - Hand-off: The `v0.1.0a1` tag will be created on GitHub by human maintainers after User Acceptance Testing; LLM agents prepare the repository for tagging.
 - Current state (evidence):
-  - Test collection succeeds across a large suite (unit/integration/behavior/property).
-  - Fast smoke/unit/integration/behavior profiles run successfully via the CLI.
+  - Test collection presently fails in multiple suites: SyntaxErrors from misplaced `pytestmark` assignments, missing WebUI `.feature` paths, `_ProgressIndicatorBase` NameErrors, and integration modules lacking `import pytest` all halt imports before tests execute.【d62a9a†L12-L33】【6cd789†L12-L28】【68488c†L1-L27】【e85f55†L1-L22】
+  - Smoke/unit/integration/behavior commands remain blocked until the collection regressions above are resolved; automation evidence is therefore stale pending remediation.
 - Strict mypy gating now passes; the 2025-10-04 rerun reported zero errors across 429 modules with artifacts published under `diagnostics/mypy_strict_src_devsynth_20251004T020206Z.txt` and `diagnostics/mypy_strict_inventory_20251004T020206Z.md`. The knowledge-graph bridge recorded fresh `QualityGate`, `TestRun`, and `ReleaseEvidence` nodes for the audit trail.【F:diagnostics/mypy_strict_src_devsynth_20251004T020206Z.txt†L1-L1】【F:diagnostics/mypy_strict_inventory_20251004T020206Z.md†L1-L9】【d7def6†L1-L18】
 - 2025-10-04 smoke run regression: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` currently fails during collection because `_ProgressIndicatorBase` helpers are not importable, `SyncManager` Protocol generics reject concrete type parameters, and several behavior suites reference missing `.feature` files. Optional backend tests also attempt to import Chromadb/Faiss/Kuzu directly, raising `ValueError` when extras are absent.【dd1c30†L1-L4】【9ecea8†L1-L164】
+- 2025-10-05 regression audit: Targeted `pytest -k nothing` runs confirm the SyntaxError (`pytestmark` inserted within import tuples), missing WebUI `.feature` files, `_ProgressIndicatorBase` timing bug, and absent pytest imports now block even minimal collection, reinforcing the need for a hygiene-first PR before automation reruns.【d62a9a†L12-L33】【6cd789†L12-L28】【68488c†L1-L27】【e85f55†L1-L22】
 - Speed-marker discipline validated (0 violations).
  - Property marker verification reports 0 violations after converting nested Hypothesis helpers into decorated tests.
  - Property tests (opt-in) now pass after dummy adjustments and Hypothesis fixes.
@@ -47,6 +48,11 @@ Executive summary
   tests` (diagnostics/bandit_2025-09-17.txt) shows the expected 146 low-confidence findings pending broader remediation.
 
 Commands executed (audit trail)
+- poetry run mypy --strict src/devsynth → strict sweep succeeds with zero issues as of 2025-10-05, confirming typing remains green while test hygiene regresses.【a5ebfa†L1-L2】
+- poetry run pytest tests/unit/application/requirements/test_dialectical_reasoner.py -k nothing → Fails with `SyntaxError: invalid syntax` because `pytestmark` was injected inside an import tuple.【d62a9a†L12-L33】
+- poetry run pytest tests/behavior/test_webui.py -k nothing → Fails with `FileNotFoundError` for `tests/behavior/general/webui.feature`, proving scenario paths must point into `features/general/`.【6cd789†L12-L28】
+- poetry run pytest tests/unit/application/cli/test_long_running_progress.py -k nothing → Fails with `NameError` for `_ProgressIndicatorBase`, confirming the alias executes too late.【68488c†L1-L27】
+- poetry run pytest tests/integration/general/test_deployment_automation.py -k nothing → Fails with `NameError: name 'pytest' is not defined`, highlighting missing imports in integration modules.【e85f55†L1-L22】
 - poetry run pytest --collect-only -q → Collected successfully (very large suite).
 - poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 → Success; smoke mode now forces `--cov-fail-under=0`, skips coverage enforcement, and records diagnostics under `logs/run-tests-smoke-fast-20250921T160631Z.log` plus `test_reports/coverage.json`.【F:logs/run-tests-smoke-fast-20250921T160631Z.log†L1-L37】【F:logs/run-tests-smoke-fast-20250921T160631Z.log†L33-L40】
 - poetry run devsynth run-tests --target unit-tests --speed=fast --no-parallel --maxfail=1 → Success.

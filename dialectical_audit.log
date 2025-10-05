@@ -1,5 +1,7 @@
 {
-  "questions": [],
+  "questions": [
+    "2025-10-05 audit logged new collection blockers (pytestmark SyntaxError, missing WebUI features, `_ProgressIndicatorBase` alias timing, missing pytest imports); remediation sequenced via PR-0 through PR-5 in docs/release/v0.1.0a1_execution_plan.md."
+  ],
   "resolved": [
     "Feature 'Review and Reprioritize Open Issues' addressed through release-blocker audit (2025-09-09).",
     "Feature 'Code Analysis' documented with specification and BDD references (2025-09-09).",
