@@ -1,8 +1,6 @@
 import pytest
 
 from devsynth.application.collaboration.dto import (
-
-pytestmark = [pytest.mark.fast]
     AgentOpinionRecord,
     ConsensusOutcome,
     SynthesisArtifact,
@@ -10,6 +8,9 @@ pytestmark = [pytest.mark.fast]
 from devsynth.application.collaboration.wsde_team_consensus import (
     ConsensusBuildingMixin,
 )
+
+
+pytestmark = [pytest.mark.fast]
 
 
 class DummyTeam(ConsensusBuildingMixin):
