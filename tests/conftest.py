@@ -21,6 +21,29 @@ pytest_plugins = [
     "pytester",
 ]
 
+from importlib import import_module
+
+
+def _load_additional_pytest_plugins(module_name: str) -> None:
+    """Extend ``pytest_plugins`` with entries exported from helper modules."""
+
+    try:
+        module = import_module(module_name)
+    except Exception:
+        return
+    plugin_names = getattr(module, "PYTEST_PLUGINS", None)
+    if not plugin_names:
+        plugin_names = getattr(module, "pytest_plugins", None)
+    if not plugin_names:
+        return
+    for plugin_name in plugin_names:
+        if plugin_name not in pytest_plugins:
+            pytest_plugins.append(plugin_name)
+
+
+for _provider in ["tests.behavior.steps.pytest_plugins"]:
+    _load_additional_pytest_plugins(_provider)
+
 import logging
 import os
 import random

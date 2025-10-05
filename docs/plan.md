@@ -387,6 +387,27 @@ Maintainer setup quickstart (resource-gated backends)
   - export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
   - export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true
   - export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
+
+### Optional Resource Toggles
+
+| Resource | Flag | Default behavior | Enablement guidance |
+| --- | --- | --- | --- |
+| Anthropic API calls | `DEVSYNTH_RESOURCE_ANTHROPIC_AVAILABLE` | Auto (skips without the `anthropic` package or `ANTHROPIC_API_KEY`) | Install the `anthropic` package and export `ANTHROPIC_API_KEY` before running Anthropics-bound suites. |
+| LLM provider fallback | `DEVSYNTH_RESOURCE_LLM_PROVIDER_AVAILABLE` | Auto (detects OpenAI or LM Studio endpoints) | Provide `OPENAI_API_KEY` or `LM_STUDIO_ENDPOINT`; the `llm` extra supplies tokenizer helpers. |
+| LM Studio bridge | `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE` | `false` | Opt-in once the LM Studio server is reachable and the `lmstudio` extra is installed. |
+| OpenAI client | `DEVSYNTH_RESOURCE_OPENAI_AVAILABLE` | Auto (requires `OPENAI_API_KEY`) | Export `OPENAI_API_KEY`; combine with the `llm` extra when tokenizer coverage is needed. |
+| Repository inspection | `DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE` | `true` | Leave enabled for local and CI runs that mount `src/devsynth`; set `false` only when intentionally omitting the code checkout. |
+| DevSynth CLI smoke tests | `DEVSYNTH_RESOURCE_CLI_AVAILABLE` | `true` | Requires the `devsynth` entry point (`poetry install --with dev`). |
+| ChromaDB store | `DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE` | Auto (skips on missing imports) | Install `poetry install --extras chromadb` or `--extras memory`. |
+| FAISS vector index | `DEVSYNTH_RESOURCE_FAISS_AVAILABLE` | Auto | Install `poetry install --extras retrieval` or `--extras memory`. |
+| Kuzu graph store | `DEVSYNTH_RESOURCE_KUZU_AVAILABLE` | Auto | Install `poetry install --extras retrieval` or `--extras memory`. |
+| LMDB key-value store | `DEVSYNTH_RESOURCE_LMDB_AVAILABLE` | Auto | Install `poetry install --extras memory` or `--extras tests`. |
+| DuckDB warehouse | `DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE` | Auto | Install `poetry install --extras memory` or `--extras tests`. |
+| TinyDB document store | `DEVSYNTH_RESOURCE_TINYDB_AVAILABLE` | Auto | Install `poetry install --extras memory` or `--extras tests`. |
+| RDFLib graph utilities | `DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE` | Auto | Install `poetry install --extras memory`. |
+| Memory-intensive suites | `DEVSYNTH_RESOURCE_MEMORY_AVAILABLE` | `true` | Set to `false` to skip heavy memory orchestration tests when machines are resource constrained. |
+| Sentinel test toggle | `DEVSYNTH_RESOURCE_TEST_RESOURCE_AVAILABLE` | `false` | Reserved for regression tests validating the gating helpers. |
+| WebUI integrations | `DEVSYNTH_RESOURCE_WEBUI_AVAILABLE` | Auto | Install `poetry install --extras webui` (or `--extras webui_nicegui`) for UI regression coverage. |
 - Keep runs deterministic:
   - Prefer: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report`
   - For smoke/stability: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel`

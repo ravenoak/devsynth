@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+from importlib.machinery import ModuleSpec
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -142,6 +143,53 @@ def backend_import_reason(
     return f"Optional backend '{resource}' dependencies are not installed."
 
 
+def _safe_find_spec(name: str) -> ModuleSpec | None:
+    """Return a module spec, tolerating environments with partial metadata."""
+
+    try:
+        spec = importlib.util.find_spec(name)
+    except (ImportError, AttributeError, ValueError):
+        return None
+    return spec
+
+
+def _spec_is_importable(spec: ModuleSpec | None) -> bool:
+    """Return ``True`` when the provided spec represents an importable module."""
+
+    if spec is None:
+        return False
+    loader = getattr(spec, "loader", None)
+    submodule_locations = getattr(spec, "submodule_search_locations", ()) or ()
+    if loader is None and not submodule_locations:
+        return False
+    if getattr(spec, "has_location", True) is False and not submodule_locations:
+        return False
+    origin = getattr(spec, "origin", None)
+    if origin in {None, "namespace"} and not submodule_locations:
+        # ``built-in`` origin with no loader/submodules indicates the spec is a
+        # namespace stub emitted by importlib when the underlying module is absent.
+        return False
+    return True
+
+
+def _importorskip_with_reason(
+    module_name: str,
+    *,
+    import_reason: str,
+    skip_reason: str,
+) -> pytest.MarkDecorator | None:
+    """Invoke :func:`pytest.importorskip`, returning a skip marker on failure."""
+
+    try:
+        pytest.importorskip(module_name, reason=import_reason)
+    except pytest.skip.Exception as exc:  # pragma: no cover - exercised via tests
+        message = getattr(exc, "msg", None) or skip_reason
+        return pytest.mark.skip(reason=message)
+    except Exception:
+        return pytest.mark.skip(reason=skip_reason)
+    return None
+
+
 def skip_if_missing_backend(
     resource: str,
     *,
@@ -170,17 +218,24 @@ def skip_if_missing_backend(
         )
         return markers
 
-    available = is_resource_available(resource)
-    missing_import = None
-    for name in resolved_imports:
-        if importlib.util.find_spec(name) is None:
-            missing_import = name
-            break
+    skip_reason = backend_skip_reason(resource, resolved_extras)
+    import_reason = backend_import_reason(resource, resolved_extras)
 
-    if not available or missing_import:
-        markers.append(
-            pytest.mark.skip(reason=backend_skip_reason(resource, resolved_extras))
-        )
+    for name in resolved_imports:
+        spec = _safe_find_spec(name)
+        if not _spec_is_importable(spec):
+            mark = _importorskip_with_reason(
+                name, import_reason=import_reason, skip_reason=skip_reason
+            )
+            if mark is not None:
+                markers.append(mark)
+            else:
+                markers.append(pytest.mark.skip(reason=skip_reason))
+            return markers
+
+    if not is_resource_available(resource):
+        markers.append(pytest.mark.skip(reason=skip_reason))
+
     return markers
 
 

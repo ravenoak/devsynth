@@ -18,6 +18,11 @@ from typing import Iterator, Optional
 import pytest
 
 from tests.conftest import is_resource_available
+from tests.fixtures.resources import (
+    OPTIONAL_BACKEND_REQUIREMENTS,
+    backend_import_reason,
+    backend_skip_reason,
+)
 
 
 # --------------------------- ChromaDB -----------------------------------------
@@ -39,6 +44,16 @@ def chromadb_client(chromadb_temp_path: Path):
     """
     if not is_resource_available("chromadb"):
         pytest.skip("Resource 'chromadb' not available")
+    extras = OPTIONAL_BACKEND_REQUIREMENTS["chromadb"]["extras"]
+    skip_reason = backend_skip_reason("chromadb", extras)
+    import_reason = backend_import_reason("chromadb", extras)
+    try:
+        pytest.importorskip("chromadb", reason=import_reason)
+    except pytest.skip.Exception:
+        raise
+    except Exception as exc:  # pragma: no cover - safety for exotic import errors
+        pytest.skip(f"{skip_reason} (import failure: {exc})")
+
     try:  # pragma: no cover - simple import check
         import chromadb
 
@@ -56,6 +71,16 @@ def faiss_index():
     """
     if not is_resource_available("faiss"):
         pytest.skip("Resource 'faiss' not available")
+    extras = OPTIONAL_BACKEND_REQUIREMENTS["faiss"]["extras"]
+    skip_reason = backend_skip_reason("faiss", extras)
+    import_reason = backend_import_reason("faiss", extras)
+    try:
+        pytest.importorskip("faiss", reason=import_reason)
+    except pytest.skip.Exception:
+        raise
+    except Exception as exc:  # pragma: no cover
+        pytest.skip(f"{skip_reason} (import failure: {exc})")
+
     try:  # pragma: no cover - import check only
         import faiss  # type: ignore
 
@@ -86,6 +111,16 @@ def duckdb_path(tmp_path: Path) -> Path:
 def duckdb_connection(duckdb_path: Path):
     if not is_resource_available("duckdb"):
         pytest.skip("Resource 'duckdb' not available")
+    extras = OPTIONAL_BACKEND_REQUIREMENTS["duckdb"]["extras"]
+    skip_reason = backend_skip_reason("duckdb", extras)
+    import_reason = backend_import_reason("duckdb", extras)
+    try:
+        pytest.importorskip("duckdb", reason=import_reason)
+    except pytest.skip.Exception:
+        raise
+    except Exception as exc:  # pragma: no cover
+        pytest.skip(f"{skip_reason} (import failure: {exc})")
+
     try:  # pragma: no cover - import check only
         import duckdb  # type: ignore
 
@@ -100,6 +135,16 @@ def lmdb_env(tmp_path: Path):
     """Return a minimal LMDB environment under a temporary directory."""
     if not is_resource_available("lmdb"):
         pytest.skip("Resource 'lmdb' not available")
+    extras = OPTIONAL_BACKEND_REQUIREMENTS["lmdb"]["extras"]
+    skip_reason = backend_skip_reason("lmdb", extras)
+    import_reason = backend_import_reason("lmdb", extras)
+    try:
+        pytest.importorskip("lmdb", reason=import_reason)
+    except pytest.skip.Exception:
+        raise
+    except Exception as exc:  # pragma: no cover
+        pytest.skip(f"{skip_reason} (import failure: {exc})")
+
     try:  # pragma: no cover - import check only
         import lmdb  # type: ignore
 
@@ -123,6 +168,16 @@ def rdflib_graph():
     """Return an empty rdflib.Graph if available, else skip."""
     if not is_resource_available("rdflib"):
         pytest.skip("Resource 'rdflib' not available")
+    extras = OPTIONAL_BACKEND_REQUIREMENTS["rdflib"]["extras"]
+    skip_reason = backend_skip_reason("rdflib", extras)
+    import_reason = backend_import_reason("rdflib", extras)
+    try:
+        pytest.importorskip("rdflib", reason=import_reason)
+    except pytest.skip.Exception:
+        raise
+    except Exception as exc:  # pragma: no cover
+        pytest.skip(f"{skip_reason} (import failure: {exc})")
+
     try:  # pragma: no cover - import check only
         import rdflib  # type: ignore
 

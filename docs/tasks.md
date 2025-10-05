@@ -196,6 +196,32 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 16.3 [x] Update issues/missing-bdd-tests.md and docs/plan.md with progress.
 16.4 [x] Populate `tests/behavior/features/memory_and_context_system.feature` with executable scenarios before promoting docs/specifications/memory-and-context-system.md beyond draft.【F:docs/specifications/memory-and-context-system.md†L1-L88】【F:tests/behavior/features/memory_and_context_system.feature†L1-L28】【F:tests/behavior/steps/test_memory_and_context_system_steps.py†L1-L137】
 
+## Optional Resource Toggles
+
+The following `DEVSYNTH_RESOURCE_*` flags gate optional integrations across the
+test suite. Leave the flag unset to use the default behavior shown below, set it
+to `true` once dependencies are available, or force `false` to skip even when
+extras are installed.
+
+| Resource | Environment flag | Default | Enablement guidance |
+| --- | --- | --- | --- |
+| Anthropic API calls | `DEVSYNTH_RESOURCE_ANTHROPIC_AVAILABLE` | Auto (requires `anthropic` import and `ANTHROPIC_API_KEY`) | Install the `anthropic` package and export `ANTHROPIC_API_KEY` when exercising Anthropic adapters. |
+| LLM provider fallback | `DEVSYNTH_RESOURCE_LLM_PROVIDER_AVAILABLE` | Auto (detects OpenAI or LM Studio endpoints) | Provide `OPENAI_API_KEY` or `LM_STUDIO_ENDPOINT`; combine with the `llm` extra for local tokenizers. |
+| LM Studio bridge | `DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE` | `false` | Install the `lmstudio` extra (`poetry install --extras lmstudio`) and start the LM Studio server before setting the flag to `true`. |
+| OpenAI client | `DEVSYNTH_RESOURCE_OPENAI_AVAILABLE` | Auto (requires `OPENAI_API_KEY`) | Export `OPENAI_API_KEY` and, if necessary, install the `llm` extra for tokenizer helpers. |
+| Repository inspection | `DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE` | `true` | Keep enabled unless intentionally running without the checked-out `src/devsynth` tree. |
+| DevSynth CLI smoke tests | `DEVSYNTH_RESOURCE_CLI_AVAILABLE` | `true` | Ensure the `devsynth` entry point is installed (via `poetry install --with dev`). |
+| ChromaDB store | `DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE` | Auto (skips when imports fail) | Install `poetry install --extras chromadb` or `--extras memory` before enabling. |
+| FAISS vector index | `DEVSYNTH_RESOURCE_FAISS_AVAILABLE` | Auto | Install `poetry install --extras retrieval` or `--extras memory`. |
+| Kuzu graph store | `DEVSYNTH_RESOURCE_KUZU_AVAILABLE` | Auto | Install `poetry install --extras retrieval` or `--extras memory`. |
+| LMDB key-value store | `DEVSYNTH_RESOURCE_LMDB_AVAILABLE` | Auto | Install `poetry install --extras memory` or `--extras tests`. |
+| DuckDB warehouse | `DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE` | Auto | Install `poetry install --extras memory` or `--extras tests`. |
+| TinyDB document store | `DEVSYNTH_RESOURCE_TINYDB_AVAILABLE` | Auto | Install `poetry install --extras memory` or `--extras tests`. |
+| RDFLib graph utilities | `DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE` | Auto | Install `poetry install --extras memory`. |
+| Memory-intensive suites | `DEVSYNTH_RESOURCE_MEMORY_AVAILABLE` | `true` | Set to `false` to skip end-to-end memory orchestration tests when resources are constrained. |
+| Sentinel test toggle | `DEVSYNTH_RESOURCE_TEST_RESOURCE_AVAILABLE` | `false` | Reserved for unit tests validating the gating helpers. |
+| WebUI integrations | `DEVSYNTH_RESOURCE_WEBUI_AVAILABLE` | Auto | Install `poetry install --extras webui` (or `--extras webui_nicegui`) before enabling UI regressions. |
+
 Notes:
 - 2025-09-21: Smoke suite now passes with Starlette pinned `<0.47` and the sitecustomize shim; see §13.1.1 plus logs/run-tests-smoke-fast-20250921T160631Z.log for the green evidence.【F:logs/run-tests-smoke-fast-20250921T160631Z.log†L33-L40】
 - Ensure tests use resource gating and avoid accidental network calls. The run-tests command should set provider defaults when unset.
