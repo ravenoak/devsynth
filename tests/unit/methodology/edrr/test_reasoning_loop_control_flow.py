@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import types
+from datetime import datetime, timedelta
 from typing import Any
 
 import pytest
@@ -51,6 +52,94 @@ def test_reasoning_loop_exhausts_retry_budget_and_backoff(monkeypatch):
     assert results == []
     assert call_counter["count"] == 3
     assert sleep_calls == pytest.approx([0.1, 0.2])
+
+
+@pytest.mark.fast
+def test_reasoning_loop_retries_clamp_sleep_to_remaining_budget(monkeypatch):
+    """Transient errors clamp retry sleep to remaining total time budget."""
+
+    call_counter = {"count": 0}
+
+    def transient_then_complete(*_args, **_kwargs):
+        call_counter["count"] += 1
+        if call_counter["count"] == 1:
+            raise RuntimeError("transient")
+        return {"status": "completed"}
+
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: transient_then_complete
+    )
+
+    monotonic_values = iter([0.0, 0.01, 0.07])
+
+    def fake_monotonic() -> float:
+        try:
+            return next(monotonic_values)
+        except StopIteration:
+            return 0.07
+
+    sleep_calls: list[float] = []
+
+    def fake_sleep(duration: float) -> None:
+        sleep_calls.append(duration)
+
+    monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(rl.time, "sleep", fake_sleep)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "clamp"},
+        critic_agent=None,
+        retry_attempts=1,
+        retry_backoff=0.05,
+        max_total_seconds=0.1,
+    )
+
+    assert results == [{"status": "completed"}]
+    assert call_counter["count"] == 2
+    assert sleep_calls == pytest.approx([0.03], rel=1e-9)
+
+
+@pytest.mark.fast
+def test_reasoning_loop_stops_retry_when_total_budget_exhausted(monkeypatch):
+    """Remaining budget exhaustion stops retries without invoking sleep."""
+
+    call_counter = {"count": 0}
+
+    def always_transient(*_args, **_kwargs):
+        call_counter["count"] += 1
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+
+    monotonic_values = iter([0.0, 0.05, 0.2])
+
+    def fake_monotonic() -> float:
+        try:
+            return next(monotonic_values)
+        except StopIteration:
+            return 0.2
+
+    sleep_calls: list[float] = []
+
+    def fake_sleep(duration: float) -> None:  # pragma: no cover - guard
+        sleep_calls.append(duration)
+
+    monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(rl.time, "sleep", fake_sleep)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "exhaust"},
+        critic_agent=None,
+        retry_attempts=2,
+        retry_backoff=0.05,
+        max_total_seconds=0.1,
+    )
+
+    assert results == []
+    assert call_counter["count"] == 1
+    assert sleep_calls == []
 
 
 @pytest.mark.fast
@@ -122,6 +211,97 @@ def test_reasoning_loop_coordinator_records_phase_transitions(monkeypatch):
     assert calls_seen[0]["solution"] is None
     assert calls_seen[1]["solution"] == payloads[0]["synthesis"]
     assert calls_seen[2]["solution"] == payloads[1]["synthesis"]
+
+
+@pytest.mark.fast
+def test_reasoning_loop_records_dialectical_sequences_for_coordinator(monkeypatch):
+    """Coordinator receives dict copies when dialectical sequences report phases."""
+
+    phases = [
+        ("expand", "differentiate", "in_progress", {"draft": "alpha"}),
+        ("differentiate", "refine", "in_progress", {"draft": "beta"}),
+        ("refine", None, "completed", {"draft": "gamma"}),
+    ]
+
+    sequences: list[DialecticalSequence] = []
+
+    def build_sequence(index: int) -> DialecticalSequence:
+        phase, next_phase, status, synthesis = phases[index]
+        timestamp = datetime(2024, 1, 1) + timedelta(minutes=index)
+        step_payload = {
+            "id": f"step-{index}",
+            "timestamp": timestamp,
+            "task_id": f"task-{index}",
+            "thesis": {"content": f"thesis-{index}"},
+            "antithesis": {
+                "id": f"antithesis-{index}",
+                "timestamp": timestamp,
+                "agent": "critic",
+                "critiques": [],
+                "critique_details": [],
+                "alternative_approaches": [],
+                "improvement_suggestions": [],
+            },
+            "synthesis": {
+                "plan_id": f"plan-{index}",
+                "timestamp": timestamp,
+                "integrated_critiques": [],
+                "rejected_critiques": [],
+                "improvements": [],
+                "reasoning": "",
+                "content": f"content-{index}",
+            },
+            "method": "dialectical_reasoning",
+        }
+        sequence = DialecticalSequence.from_dict(
+            {
+                "sequence_id": f"sequence-{index}",
+                "status": status,
+                "steps": [step_payload],
+            }
+        )
+        sequence._payload["phase"] = phase
+        if next_phase is not None:
+            sequence._payload["next_phase"] = next_phase
+        else:
+            sequence._payload.pop("next_phase", None)
+        sequence._payload["synthesis"] = synthesis
+        return sequence
+
+    def scripted_sequences(*_args, **_kwargs) -> DialecticalSequence:
+        index = len(sequences)
+        sequence = build_sequence(index)
+        sequences.append(sequence)
+        return sequence
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: scripted_sequences)
+
+    coordinator = CoordinatorRecorder()
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "phases"},
+        critic_agent=None,
+        coordinator=coordinator,
+        phase=rl.Phase.EXPAND,
+        max_iterations=5,
+    )
+
+    assert results == sequences
+    assert [record[0] for record in coordinator.records] == [
+        "expand",
+        "differentiate",
+        "refine",
+    ]
+    assert all(isinstance(record[1], dict) for record in coordinator.records)
+    assert all(record[1] is not sequence for record, sequence in zip(coordinator.records, sequences))
+    assert [record[1]["phase"] for record in coordinator.records] == [phase for phase, *_ in phases]
+    assert [record[1].get("next_phase") for record in coordinator.records] == [
+        next_phase for _, next_phase, *_ in phases
+    ]
+    assert [record[1]["synthesis"] for record in coordinator.records] == [
+        synthesis for *_, synthesis in phases
+    ]
 
 
 @pytest.mark.fast
