@@ -568,24 +568,64 @@ tasks:
           echo "[Maintainer] Step 2: Collect and verify markers"
       - cmd: |-
           bash <<'BASH'
-            CMD='task tests:collect'
-            task tests:collect
+            set -euo pipefail
+            if command -v task >/dev/null 2>&1; then
+              RUNNER=task
+            elif command -v go-task >/dev/null 2>&1; then
+              RUNNER=go-task
+            else
+              echo "[error] go-task is not installed" >&2
+              exit 1
+            fi
+            CMD="$RUNNER tests:collect"
+            $RUNNER tests:collect
             EXIT=$?
             poetry run python scripts/append_exec_log.py --command "$CMD" --exit-code "$EXIT" --artifacts "diagnostics/pytest_collect.txt" --notes "maintainer step 2a"
             exit 0
           BASH
       - cmd: |-
           bash <<'BASH'
-            task verify:markers
+            set -euo pipefail
+            if command -v task >/dev/null 2>&1; then
+              RUNNER=task
+            elif command -v go-task >/dev/null 2>&1; then
+              RUNNER=go-task
+            else
+              echo "[error] go-task is not installed" >&2
+              exit 1
+            fi
+            $RUNNER verify:markers
           BASH
       - cmd: |-
           echo "[Maintainer] Step 3: Unit fast"
       - cmd: |-
-          task tests:unit-fast
+          bash <<'BASH'
+            set -euo pipefail
+            if command -v task >/dev/null 2>&1; then
+              RUNNER=task
+            elif command -v go-task >/dev/null 2>&1; then
+              RUNNER=go-task
+            else
+              echo "[error] go-task is not installed" >&2
+              exit 1
+            fi
+            $RUNNER tests:unit-fast
+          BASH
       - cmd: |-
           echo "[Maintainer] Step 4: Integration fast"
       - cmd: |-
-          task tests:integration-fast
+          bash <<'BASH'
+            set -euo pipefail
+            if command -v task >/dev/null 2>&1; then
+              RUNNER=task
+            elif command -v go-task >/dev/null 2>&1; then
+              RUNNER=go-task
+            else
+              echo "[error] go-task is not installed" >&2
+              exit 1
+            fi
+            $RUNNER tests:integration-fast
+          BASH
       - cmd: |-
           echo "[Maintainer] Step 5: Behavior fast (no-parallel)"
       - cmd: |-
@@ -599,7 +639,18 @@ tasks:
       - cmd: |-
           echo "[Maintainer] Step 6: Offline fast subset excludes OpenAI/LM Studio"
       - cmd: |-
-          task tests:offline-fast-subset
+          bash <<'BASH'
+            set -euo pipefail
+            if command -v task >/dev/null 2>&1; then
+              RUNNER=task
+            elif command -v go-task >/dev/null 2>&1; then
+              RUNNER=go-task
+            else
+              echo "[error] go-task is not installed" >&2
+              exit 1
+            fi
+            $RUNNER tests:offline-fast-subset
+          BASH
       - cmd: |-
           echo "[Maintainer] Step 7: Live OpenAI (opt-in) — skipped unless DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true"
       - cmd: |-
@@ -618,9 +669,18 @@ tasks:
           echo "[Maintainer] Step 8: Live LM Studio (opt-in)"
       - cmd: |-
           bash <<'BASH'
+            set -euo pipefail
+            if command -v task >/dev/null 2>&1; then
+              RUNNER=task
+            elif command -v go-task >/dev/null 2>&1; then
+              RUNNER=go-task
+            else
+              echo "[error] go-task is not installed" >&2
+              exit 1
+            fi
             if [ "${DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE:-false}" = "true" ]; then
-              task doctor:lmstudio
-              task tests:lmstudio-fast
+              $RUNNER doctor:lmstudio
+              $RUNNER tests:lmstudio-fast
             else
               echo "[Maintainer] LM Studio subset skipped (env flag not set)"
             fi
@@ -638,19 +698,34 @@ tasks:
       - cmd: |-
           echo "[Maintainer] Step 10: Guardrails suite"
       - cmd: |-
-          task guardrails:all
+          bash <<'BASH'
+            set -euo pipefail
+            if command -v task >/dev/null 2>&1; then
+              RUNNER=task
+            elif command -v go-task >/dev/null 2>&1; then
+              RUNNER=go-task
+            else
+              echo "[error] go-task is not installed" >&2
+              exit 1
+            fi
+            $RUNNER guardrails:all
+          BASH
   lint:taskfile:
     desc: Validate Taskfile syntax with a dry-run
     cmds:
       - |-
-          if command -v task >/dev/null 2>&1; then
-            task --list >/dev/null
-          elif command -v go-task >/dev/null 2>&1; then
-            go-task --list >/dev/null
-          else
-            echo "[error] go-task is not installed" >&2
-            exit 1
-          fi
+          bash <<'BASH'
+            set -euo pipefail
+            if command -v task >/dev/null 2>&1; then
+              RUNNER=task
+            elif command -v go-task >/dev/null 2>&1; then
+              RUNNER=go-task
+            else
+              echo "[error] go-task is not installed" >&2
+              exit 1
+            fi
+            $RUNNER -n maintainer:must-run >/dev/null
+          BASH
 
   exit:verify:
     desc: Verify exit criteria and capture artifacts under diagnostics/
