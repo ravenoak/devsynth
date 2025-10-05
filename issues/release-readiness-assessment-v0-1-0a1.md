@@ -40,14 +40,17 @@ Strict typing and coverage evidence now include a fresh 2025-10-05 strict run th
 
 ## Critical Issues
 
-1. **Taskfile Automation Regression — CRITICAL**  
+1. **Taskfile Automation Regression — CRITICAL**
    `task release:prep` and `task mypy:strict` fail before executing any commands. Fixing the YAML structure is a prerequisite for regenerating strict mypy manifests and the maintainer checklist.【F:diagnostics/release_prep_20251004T183136Z.log†L1-L8】【F:diagnostics/mypy_strict_20251004T183708Z.log†L1-L8】
 
-2. **Memory Protocol TypeError — CRITICAL**  
+2. **Memory Protocol TypeError — CRITICAL**
    Smoke mode still imports the broken `MemoryStore` Protocol definition, causing collection to abort and leaving coverage artifacts empty.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
 
-3. **Evidence Freshness — HIGH**  
+3. **Evidence Freshness — HIGH**
    Coverage and typing artifacts are from earlier runs; once the above fixes land we must regenerate them and close the remaining EDRR coverage gap to maintain ≥90 %.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】
+
+4. **Test Hygiene Regressions — CRITICAL**
+   Repository-wide marker injection and integration imports now fail fast: SyntaxErrors from misplaced `pytestmark`, missing WebUI `.feature` assets, `_ProgressIndicatorBase` timing, and absent pytest imports stop collection before smoke or coverage can rerun.【d62a9a†L12-L33】【6cd789†L12-L28】【68488c†L1-L27】【e85f55†L1-L22】
 
 ## Recommended Action Plan
 

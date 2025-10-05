@@ -162,6 +162,9 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 13.1.4 [ ] Relocate `pytest_plugins` declarations to a repository-level conftest to satisfy pytest 8+ collection rules (Issue: [test-collection-regressions-20251004.md](../issues/test-collection-regressions-20251004.md)).【9ecea8†L57-L76】
 13.1.5 [ ] Recreate missing behavior `.feature` files (UXBridge/WebUI) and update loaders so behavior suites stop raising `FileNotFoundError` (Issue: [test-collection-regressions-20251004.md](../issues/test-collection-regressions-20251004.md)).【9ecea8†L120-L164】
 13.1.6 [ ] Harden optional backend guards so Chromadb, Faiss, and Kuzu suites skip when extras are absent (Issue: [test-collection-regressions-20251004.md](../issues/test-collection-regressions-20251004.md)).【9ecea8†L96-L120】
+13.1.7 [ ] Move `pytestmark` assignments outside import statements across affected unit/domain suites to clear SyntaxErrors during collection (Issue: [test-collection-regressions-20251004.md](../issues/test-collection-regressions-20251004.md)).【d62a9a†L12-L33】
+13.1.8 [ ] Add explicit `import pytest` statements to integration modules that only reference `pytestmark` to avoid NameError at import time (Issue: [test-collection-regressions-20251004.md](../issues/test-collection-regressions-20251004.md)).【e85f55†L1-L22】
+13.1.9 [ ] Update behavior scenario loaders to reference `features/general/*.feature` paths so pytest-bdd can locate WebUI assets (Issue: [test-collection-regressions-20251004.md](../issues/test-collection-regressions-20251004.md)).【6cd789†L12-L28】
 13.2 [x] Property tests pass under `DEVSYNTH_PROPERTY_TESTING=true` with exactly one speed marker per function.
 13.3 [ ] Combined coverage >= 90% with HTML report generated and saved (latest gate attempt fails because coverage artifacts are missing; remediation tracked under §6.3 and §21.8).
 13.4 [x] Lint, type, and security gates pass with documented exceptions (if any).
