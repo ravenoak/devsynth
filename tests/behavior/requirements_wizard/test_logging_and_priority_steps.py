@@ -7,8 +7,6 @@ import pytest
 import yaml
 from pytest_bdd import given, scenarios, then, when
 
-pytest_plugins = ("pytest_bdd.plugin",)
-
 from devsynth.application.requirements.wizard import requirements_wizard
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.utils.logging import configure_logging
