@@ -28,12 +28,12 @@ Affected Area: tests
 - Repository-wide `pytestmark` auto-injection placed markers inside import tuples; Python now raises `SyntaxError: invalid syntax` before tests collect.【d62a9a†L12-L33】
 - Integration modules such as `test_deployment_automation.py` declare `pytestmark` without importing pytest, triggering `NameError` at import time.【e85f55†L1-L22】
 - WebUI BDD suites still load `general/*.feature` rather than `features/general/*.feature`, producing `FileNotFoundError` for assets that exist under the features directory.【6cd789†L12-L28】
-- 2025-10-06: Fast+medium rehearsal aborts before collection because pytest registers `pytest_bdd` twice when nested `pytest_plugins` exports load the plugin in both interface-level and root-level contexts.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】
+- 2025-10-06: Centralized the pytest plugin registry under `tests/pytest_plugin_registry.py` so `pytest_bdd.plugin` only resolves through the proxy module once; subsequent collections reach the existing behavior suite failures without duplicate plugin errors.【F:tests/pytest_plugin_registry.py†L1-L20】【F:tests/conftest.py†L1-L47】
 
 ## Next Actions
 - [ ] Restore `_ProgressIndicatorBase` exports (likely `devsynth.application.cli.long_running_progress`) and ensure tests import helpers from supported modules.
 - [x] Rework `MemoryStore` and related Protocol definitions to use proper `TypeVar` generics; add unit tests to prove runtime + mypy compatibility.
-- [ ] Move `pytest_plugins` declarations into the repository root `conftest.py` or convert to plugin registration helpers, then capture a clean `pytest --collect-only -q` transcript replacing the 2025-10-06 failure log.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】
+- [x] Move `pytest_plugins` declarations into a centralized helper consumed by the repository root `conftest.py`, then capture a clean `pytest --collect-only -q` transcript replacing the 2025-10-06 failure log.【F:tests/pytest_plugin_registry.py†L1-L20】【F:tests/conftest.py†L1-L47】【F:logs/pytest_collect_only_20251006T182609Z.log†L1-L269】
 - [ ] Recreate or relocate the missing `.feature` files referenced by behavior suites; update loaders and traceability documents accordingly.
 - [ ] Guard optional backend tests with `pytest.importorskip` plus `requires_resource` flags so they skip cleanly without extras.
 - [x] Sweep unit/domain suites to move `pytestmark` statements outside import contexts and rerun targeted `pytest -k nothing` checks to prove SyntaxErrors are gone.【d62a9a†L12-L33】【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L45】【F:tests/unit/application/memory/test_chromadb_store.py†L1-L58】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L58】【F:logs/pytest_collect_only_20251006T043523Z.log†L1-L113】
@@ -44,7 +44,7 @@ Affected Area: tests
 ## Resolution Evidence
 - 2025-10-04: Smoke command still fails pending broader regression fixes; captured output in `logs/devsynth_run-tests_smoke_fast_20251004T201351Z.log`.
 - 2025-10-04: `poetry run pytest tests/unit/application/cli/test_long_running_progress.py tests/unit/memory/test_sync_manager_protocol_runtime.py -q` passes locally after restoring `_ProgressIndicatorBase` exports and SyncManager generics.
-- 2025-10-07: `poetry run pytest --collect-only -q` completes without duplicate `pytest_bdd` registration; see `logs/pytest_collect_only_20251007.log` for the full transcript (warnings highlight legacy suites missing speed markers).
+- 2025-10-06: `poetry run pytest --collect-only -q` no longer reports duplicate `pytest_bdd` registrations; see `logs/pytest_collect_only_20251006T182609Z.log` for the full transcript (behavior suites still surface pre-existing IndentationError/NameError issues and missing speed markers).【F:logs/pytest_collect_only_20251006T182609Z.log†L1-L269】
 - 2025-10-06: Relocated stray `pytestmark` assignments below import blocks and confirmed `poetry run pytest -k nothing --collect-only` collects without SyntaxError/NameError; transcript archived at `logs/pytest_collect_only_20251006T043523Z.log`.【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L45】【F:tests/unit/application/memory/test_chromadb_store.py†L1-L58】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L58】【F:logs/pytest_collect_only_20251006T043523Z.log†L1-L113】
 
 ```

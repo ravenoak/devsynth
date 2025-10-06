@@ -1,7 +1,7 @@
-"""Central registry for pytest plugins used by behavior step packages."""
+"""Compatibility shim that re-exports the shared pytest plugin registry."""
 
 from __future__ import annotations
 
-# tests/conftest.py imports this module to satisfy pytest 8's
-# requirement that plugin declarations live outside package ``__init__`` files.
-PYTEST_PLUGINS: list[str] = ["pytest_bdd.plugin"]
+from tests.pytest_plugin_registry import PYTEST_PLUGINS
+
+__all__ = ["PYTEST_PLUGINS"]

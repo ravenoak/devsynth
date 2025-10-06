@@ -101,7 +101,10 @@ def test_pytest_plugins_registers_pytest_bdd_once() -> None:
 
     import importlib
 
-    helper = importlib.import_module("tests.behavior.steps.pytest_plugins")
-    plugin_list = list(helper.PYTEST_PLUGINS)
+    registry = importlib.import_module("tests.pytest_plugin_registry")
+    root_plugins = list(registry.PYTEST_PLUGINS)
 
-    assert plugin_list.count("pytest_bdd.plugin") == 1
+    assert root_plugins.count("pytest_bdd.plugin") == 1
+
+    helper = importlib.import_module("tests.behavior.steps.pytest_plugins")
+    assert list(helper.PYTEST_PLUGINS) == root_plugins
