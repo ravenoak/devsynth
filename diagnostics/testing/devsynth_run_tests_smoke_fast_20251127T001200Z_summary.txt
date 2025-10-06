@@ -1,0 +1,11 @@
+Command: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+Timestamp (UTC): 2025-10-06T21:44:06Z (from CLI log)
+Log: logs/devsynth_run-tests_smoke_fast_20251127T001200Z.log
+Outcome: Command hung in pytest collection with no coverage artifacts or knowledge-graph banner. After 4 minutes the pytest
+process was still running as `/workspace/devsynth/.venv/bin/python -m pytest tests/ --collect-only -q -o addopts= -m fast and not memory_intensive`
+and consuming CPU, so the run was interrupted manually with Ctrl+C.
+ps snapshot:
+PID     ELAPSED %CPU %MEM CMD
+11092   01:49   15.6  1.5 /workspace/devsynth/.venv/bin/python -m pytest tests/ --collect-only -q -o addopts= -m fast and not memory_intensive
+Artifacts produced: none (.coverage absent, no manifests updated).
+Follow-up: Track collection hang under docs/plan.md and issues/run-tests-fast-medium-collection-errors.md alongside existing behavior step regressions.
