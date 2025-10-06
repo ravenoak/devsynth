@@ -37,12 +37,21 @@ def _load_additional_pytest_plugins(module_name: str) -> None:
     if not plugin_names:
         return
     for plugin_name in plugin_names:
-        if plugin_name not in pytest_plugins:
-            pytest_plugins.append(plugin_name)
+        target_name = _PLUGIN_REDIRECTS.get(plugin_name, plugin_name)
+        if target_name not in pytest_plugins:
+            pytest_plugins.append(target_name)
 
+_ADDITIONAL_PYTEST_PLUGIN_PROVIDERS = [
+    "tests.behavior.steps.pytest_plugins",
+]
 
-for _provider in ["tests.behavior.steps.pytest_plugins"]:
+_PLUGIN_REDIRECTS = {
+    "pytest_bdd.plugin": "tests.behavior.steps._pytest_bdd_proxy",
+}
+
+for _provider in _ADDITIONAL_PYTEST_PLUGIN_PROVIDERS:
     _load_additional_pytest_plugins(_provider)
+del _provider
 
 import logging
 import os

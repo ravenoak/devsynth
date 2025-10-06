@@ -7,7 +7,8 @@ import pytest
 pytestmark = [pytest.mark.medium]
 
 pytest.importorskip("streamlit")
-from streamlit.testing.v1 import AppTest
+streamlit_testing = pytest.importorskip("streamlit.testing.v1")
+AppTest = streamlit_testing.AppTest
 
 
 def test_dashboard_renders_from_generated_report(monkeypatch):

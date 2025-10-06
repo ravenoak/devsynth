@@ -93,3 +93,15 @@ def test_ensure_pytest_bdd_plugin_env_handles_explicit_optouts(
 
     assert changed is expected_changed
     assert env.get("PYTEST_ADDOPTS") == expected_addopts
+
+
+@pytest.mark.fast
+def test_pytest_plugins_registers_pytest_bdd_once() -> None:
+    """Ensure the centralized helper exports pytest-bdd exactly once."""
+
+    import importlib
+
+    helper = importlib.import_module("tests.behavior.steps.pytest_plugins")
+    plugin_list = list(helper.PYTEST_PLUGINS)
+
+    assert plugin_list.count("pytest_bdd.plugin") == 1
