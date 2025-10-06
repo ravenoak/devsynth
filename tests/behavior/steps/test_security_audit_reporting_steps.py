@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import json
 import subprocess
 import sys
@@ -9,6 +10,7 @@ from pathlib import Path
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -78,4 +80,3 @@ def verify_report(context, filename: str):
 @then("the workflow should execute successfully")
 def workflow_succeeds(context):
     assert context.exit_code == 0
-from tests.behavior.feature_paths import feature_path

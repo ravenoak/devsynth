@@ -6,6 +6,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.fixtures.webui_test_utils import simulate_form_submission, webui_context
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "webui.feature"))

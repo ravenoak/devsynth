@@ -5,6 +5,7 @@ from pytest_bdd import scenarios, then, when
 from .webui_steps import webui_context
 
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "webui_spec_editor.feature"))

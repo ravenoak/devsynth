@@ -1,7 +1,9 @@
 """Steps for the workflow execution feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
+
 
 # Import the CLI install step used by the feature background
 from .cli_commands_steps import (  # noqa: F401
@@ -13,6 +15,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 
 pytestmark = [pytest.mark.fast]
+
 
 scenarios(feature_path(__file__, "general", "workflow_execution.feature"))
 
@@ -35,4 +38,3 @@ def when_execute(workflow_context):
 @then("the workflow_execution workflow completes")
 def then_complete(workflow_context):
     assert workflow_context.get("executed") is True
-from tests.behavior.feature_paths import feature_path

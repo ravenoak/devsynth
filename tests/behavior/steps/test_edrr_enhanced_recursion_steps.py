@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import json
 import os
 import tempfile
@@ -11,9 +12,11 @@ from typing import Dict, Tuple
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-# Register feature scenarios.
 
 pytestmark = [pytest.mark.fast]
+
+# Register feature scenarios.
+
 
 scenarios(feature_path(__file__, "general", "edrr_enhanced_recursion.feature"))
 scenarios(feature_path(__file__, "general", "edrr_coordinator.feature"))
@@ -36,7 +39,6 @@ from devsynth.methodology.base import Phase
 def context():
     """Fixture to provide a context object for storing test state between steps."""
 
-from tests.behavior.feature_paths import feature_path
     class Context:
 
         def __init__(self):

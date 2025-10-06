@@ -11,6 +11,7 @@ from devsynth.config.unified_loader import UnifiedConfig, UnifiedConfigLoader
 from devsynth.exceptions import ConfigurationError
 
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "configuration_loader.feature"))

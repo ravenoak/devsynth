@@ -8,6 +8,7 @@ from typer.testing import CliRunner
 from devsynth.adapters.cli.typer_adapter import build_app
 
 
+
 pytestmark = [pytest.mark.fast]
 
 

@@ -12,12 +12,14 @@ import uuid
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
+pytestmark = [pytest.mark.fast]
+
 logger = logging.getLogger(__name__)
 
 # Import the feature file
 
 
-pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "ast_code_analysis.feature"))
 

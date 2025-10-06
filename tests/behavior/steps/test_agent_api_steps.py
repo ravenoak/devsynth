@@ -1,5 +1,6 @@
 """Steps exercising the Agent API endpoints."""
 
+from tests.behavior.feature_paths import feature_path
 import importlib
 import sys
 from types import ModuleType
@@ -7,7 +8,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from tests.behavior.feature_paths import feature_path
+
+
+pytestmark = [pytest.mark.fast]
 
 pytest.importorskip("fastapi")
 pytest.importorskip("fastapi.testclient")
@@ -15,7 +18,6 @@ from fastapi.testclient import TestClient
 from pytest_bdd import given, parsers, scenarios, then, when
 
 
-pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "agent_api_interactions.feature"))
 

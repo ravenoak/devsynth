@@ -1,5 +1,6 @@
 """Step definitions for hybrid_memory_query_patterns.feature."""
 
+from tests.behavior.feature_paths import feature_path
 import tempfile
 from typing import Any, Dict, Union
 
@@ -8,6 +9,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
+
+
     TinyDBMemoryAdapter,
 )
 from devsynth.application.memory.adapters.vector_memory_adapter import (
@@ -16,6 +19,7 @@ from devsynth.application.memory.adapters.vector_memory_adapter import (
 from devsynth.application.memory.json_file_store import JSONFileStore
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -414,4 +418,3 @@ def track_status(context):
 @then("queries should indicate if results might include stale data")
 def stale_data_indicator(context):
     assert True
-from tests.behavior.feature_paths import feature_path

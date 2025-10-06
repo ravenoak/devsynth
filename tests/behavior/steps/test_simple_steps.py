@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import json
 import os
 import shutil
@@ -9,6 +10,7 @@ from typing import Dict, Generator
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -21,7 +23,6 @@ scenarios(feature_path(__file__, "general", "edrr_cycle.feature"))
 def context() -> Generator[Dict[str, object], None, None]:
     """Create a context dictionary for sharing state between steps.
 
-from tests.behavior.feature_paths import feature_path
     This fixture uses a generator pattern to provide teardown functionality.
     """
     # Setup: Create an empty context dictionary

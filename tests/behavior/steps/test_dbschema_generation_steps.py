@@ -1,7 +1,9 @@
 """Steps for the dbschema generation feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
+
 
 # Ensure CLI-related background steps are available
 from .cli_commands_steps import (  # noqa: F401
@@ -14,6 +16,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
 
+
 scenarios(feature_path(__file__, "general", "dbschema_generation.feature"))
 
 
@@ -25,7 +28,6 @@ def dbschema_context():
 @given("the dbschema_generation feature context")
 def given_context(dbschema_context):
     """Prepare context for dbschema generation."""
-from tests.behavior.feature_paths import feature_path
     return dbschema_context
 
 

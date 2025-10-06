@@ -11,6 +11,9 @@ from typing import Any, Dict, List
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
+pytestmark = [pytest.mark.fast]
+
 pytest.importorskip("chromadb.api")
 
 from devsynth.application.memory.adapters.chromadb_vector_adapter import (
@@ -23,7 +26,6 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 
-pytestmark = [pytest.mark.fast]
 
 # Register scenarios
 scenarios(feature_path(__file__, "general", "advanced_graph_memory_features.feature"))

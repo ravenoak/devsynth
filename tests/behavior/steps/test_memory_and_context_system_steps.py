@@ -3,9 +3,9 @@
 ReqID: memory-and-context-system
 """
 
-from tests.behavior.feature_paths import feature_path
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 from dataclasses import dataclass, field
 from typing import Any, Dict
 
@@ -15,6 +15,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from devsynth.application.memory.context_manager import SimpleContextManager
 from devsynth.application.memory.multi_layered_memory import MultiLayeredMemorySystem
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
 
 
 pytestmark = [pytest.mark.fast]

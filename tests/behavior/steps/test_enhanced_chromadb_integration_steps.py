@@ -1,7 +1,9 @@
 """Steps for the enhanced chromadb integration feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -27,4 +29,3 @@ def when_execute(enhanced_chroma_context):
 @then("the enhanced_chromadb_integration workflow completes")
 def then_complete(enhanced_chroma_context):
     assert enhanced_chroma_context.get("executed") is True
-from tests.behavior.feature_paths import feature_path

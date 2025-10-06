@@ -10,11 +10,12 @@ import pytest
 import yaml
 from pytest_bdd import given, parsers, then, when
 
+pytestmark = pytest.mark.fast
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RELEASE_PATH = REPO_ROOT / "docs" / "release" / "0.1.0-alpha.1.md"
 AUDIT_LOG_PATH = REPO_ROOT / "dialectical_audit.log"
 
-pytestmark = pytest.mark.fast
 
 
 def _read_release_document(path: Path) -> tuple[dict[str, Any], list[str]]:

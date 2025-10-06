@@ -1,7 +1,9 @@
 """Steps for the docs fetch feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -27,4 +29,3 @@ def when_execute(docs_context):
 @then("the docs_fetch workflow completes")
 def then_complete(docs_context):
     assert docs_context.get("executed") is True
-from tests.behavior.feature_paths import feature_path

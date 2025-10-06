@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.progress import Progress
 
 
+
 pytestmark = [pytest.mark.fast]
 
 # The scenarios function is called in the test file, so we don't need to call it here

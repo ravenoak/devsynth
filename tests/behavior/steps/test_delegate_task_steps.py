@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import types
 from typing import List, Union
 
@@ -10,6 +11,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 from devsynth.domain.models.wsde_facade import WSDETeam
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -21,7 +23,6 @@ scenarios(feature_path(__file__, "multi_agent_task_delegation.feature"))
 class SimpleTeam(WSDETeam):
     """WSDE team with deterministic consensus and dialectical hooks."""
 
-from tests.behavior.feature_paths import feature_path
     def __init__(self) -> None:
         super().__init__(name="TestSimpleTeam")
         self.dialectical_called = False

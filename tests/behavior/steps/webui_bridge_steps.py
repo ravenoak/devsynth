@@ -16,9 +16,10 @@ from tests.fixtures.webui_test_utils import webui_context  # noqa: F401
 from tests.fixtures.webui_bridge_stub import install_streamlit_stub
 from tests.fixtures.fake_streamlit import FakeStreamlit
 
+pytestmark = [pytest.mark.gui, pytest.mark.medium]
+
 webui_test_utils_module.ModuleType = ModuleType
 
-pytestmark = [pytest.mark.gui, pytest.mark.medium]
 
 
 @pytest.fixture

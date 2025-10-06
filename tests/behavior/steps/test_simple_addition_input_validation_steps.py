@@ -1,9 +1,11 @@
 """BDD steps for simple addition input validation."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.simple_addition import add
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -15,7 +17,6 @@ scenarios(feature_path(__file__, "general", "simple_addition_input_validation.fe
 def context():
     """Context object for storing test data."""
 
-from tests.behavior.feature_paths import feature_path
     class Context:
         def __init__(self):
             self.a = None

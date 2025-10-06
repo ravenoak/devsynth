@@ -1,7 +1,9 @@
 """Steps for the error handling feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
+
 
 # Ensure the CLI installation step is registered for the feature background
 from .cli_commands_steps import (  # noqa: F401
@@ -13,6 +15,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 
 pytestmark = [pytest.mark.fast]
+
 
 scenarios(feature_path(__file__, "general", "error_handling.feature"))
 
@@ -35,4 +38,3 @@ def when_execute(error_context):
 @then("the error_handling workflow completes")
 def then_complete(error_context):
     assert error_context.get("executed") is True
-from tests.behavior.feature_paths import feature_path

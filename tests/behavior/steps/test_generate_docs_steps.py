@@ -1,10 +1,12 @@
 """BDD steps for the ``generate-docs`` command."""
 
+from tests.behavior.feature_paths import feature_path
 import importlib
 from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
+
 
 # Register the CLI installed step so feature backgrounds load correctly
 from .cli_commands_steps import (  # noqa: F401
@@ -18,10 +20,10 @@ from .cli_commands_steps import (  # noqa: F401
 pytestmark = [pytest.mark.fast]
 
 
+
 @pytest.fixture
 def docs_context(monkeypatch):
     """Provide a patched ``generate_docs_cmd`` for testing."""
-from tests.behavior.feature_paths import feature_path
     import devsynth.application.cli.commands.generate_docs_cmd as docs_module
 
     mock_cmd = MagicMock()

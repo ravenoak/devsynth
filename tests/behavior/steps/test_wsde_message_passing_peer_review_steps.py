@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 from typing import Any, Dict, Iterable
 
 from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
+
 
 
 pytestmark = pytest.mark.fast
@@ -26,7 +28,6 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 def _normalise_message(message: Any) -> Dict[str, Any]:
     """Return a serialisable message dictionary from protocol objects."""
 
-from tests.behavior.feature_paths import feature_path
     if isinstance(message, dict):
         return {
             "id": message.get("id") or message.get("message_id"),
