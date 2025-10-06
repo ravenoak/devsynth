@@ -1,9 +1,11 @@
 """Step definitions for the ``edrr_cycle.feature`` file."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.orchestration.workflow import workflow_manager
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -15,7 +17,6 @@ scenarios(feature_path(__file__, "general", "edrr_cycle.feature"))
 def context():
     """Context object for storing state between steps."""
 
-from tests.behavior.feature_paths import feature_path
     class Context:
         def __init__(self):
             self.manifest = None

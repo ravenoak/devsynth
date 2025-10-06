@@ -4,10 +4,13 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.methodology.base import Phase
 from devsynth.methodology.sprint_adapter import (
+
+
     CEREMONY_PHASE_MAP,
     align_sprint_planning,
     align_sprint_review,
 )
+
 
 
 pytestmark = [pytest.mark.fast]

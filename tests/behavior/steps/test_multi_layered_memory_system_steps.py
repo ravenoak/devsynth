@@ -13,10 +13,12 @@ from typing import Any, Dict, List, Optional
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
+pytestmark = [pytest.mark.fast]
+
 # Import the feature file
 
 
-pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "multi_layered_memory_system.feature"))
 

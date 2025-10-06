@@ -1,7 +1,9 @@
 """Steps for the webapp generation feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
+
 
 # Import the common CLI step so background steps are registered
 from .cli_commands_steps import (  # noqa: F401
@@ -13,6 +15,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 
 pytestmark = [pytest.mark.fast]
+
 
 scenarios(feature_path(__file__, "general", "webapp_generation.feature"))
 
@@ -35,4 +38,3 @@ def when_execute(webapp_context):
 @then("the webapp_generation workflow completes")
 def then_complete(webapp_context):
     assert webapp_context.get("executed") is True
-from tests.behavior.feature_paths import feature_path

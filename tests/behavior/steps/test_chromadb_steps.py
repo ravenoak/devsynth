@@ -14,13 +14,15 @@ from pytest_bdd import given, parsers, then, when
 # Import the necessary modules
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
+pytestmark = pytest.mark.requires_resource("chromadb")
+
+
 pytest.importorskip("chromadb")
 from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
 from devsynth.adapters.provider_system import embed, get_provider
 from devsynth.ports.memory_port import MemoryPort
 
 
-pytestmark = pytest.mark.requires_resource("chromadb")
 
 
 @pytest.fixture

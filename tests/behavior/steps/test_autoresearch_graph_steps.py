@@ -7,6 +7,9 @@ from typing import Set
 
 import pytest
 
+
+pytestmark = [pytest.mark.fast]
+
 pytest.importorskip("pytest_bdd")
 
 from pytest_bdd import given, scenarios, then, when
@@ -18,7 +21,6 @@ from devsynth.application.memory.adapters.graph_memory_adapter import DEVSYNTH
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
-pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "advanced_graph_memory_features.feature"))
 

@@ -6,6 +6,8 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.requirements.dialectical_reasoner import (
+
+
     DialecticalReasonerService,
 )
 from devsynth.domain.models.memory import MemoryType
@@ -14,6 +16,7 @@ from devsynth.domain.models.requirement import (
     Requirement,
     RequirementChange,
 )
+
 
 
 pytestmark = [pytest.mark.fast]

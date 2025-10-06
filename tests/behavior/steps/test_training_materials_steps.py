@@ -1,6 +1,9 @@
 from tests.behavior.feature_paths import feature_path
 import pytest
 
+
+pytestmark = [pytest.mark.fast]
+
 pytest.skip(
     "Advanced WSDE collaboration features not implemented", allow_module_level=True
 )
@@ -10,7 +13,6 @@ from typing import Any, Dict, List
 from pytest_bdd import given, parsers, scenarios, then, when
 
 
-pytestmark = [pytest.mark.fast]
 
 # Import the feature file
 scenarios(feature_path(__file__, "general", "training_materials.feature"))

@@ -10,6 +10,7 @@ from devsynth.application.cli.config import CLIConfig
 from devsynth.application.cli.requirements_wizard import requirements_wizard
 
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "interactive_requirements.feature"))

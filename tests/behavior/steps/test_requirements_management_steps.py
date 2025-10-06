@@ -1,6 +1,9 @@
 from tests.behavior.feature_paths import feature_path
 import pytest
 
+
+pytestmark = [pytest.mark.fast]
+
 """Steps for the requirements management feature."""
 
 from pytest_bdd import given, scenarios, then, when
@@ -14,7 +17,6 @@ from .cli_commands_steps import (  # noqa: F401
 )
 
 
-pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "requirements_management.feature"))
 

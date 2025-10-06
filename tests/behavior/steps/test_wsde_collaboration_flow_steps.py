@@ -9,6 +9,7 @@ from devsynth.domain.wsde.workflow import progress_roles
 from devsynth.methodology.base import Phase
 
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "wsde", "collaboration_flow.feature"))

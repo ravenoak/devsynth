@@ -13,10 +13,12 @@ from devsynth.interface.ux_bridge import UXBridge
 
 from .webui_steps import webui_context
 
+
+pytestmark = pytest.mark.fast
+
 # These steps exercise both CLI and WebUI flows for requirements gathering
 
 
-pytestmark = pytest.mark.fast
 
 
 class DummyBridge(UXBridge):

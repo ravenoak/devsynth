@@ -1,5 +1,6 @@
 """Steps for the code generation feature."""
 
+from tests.behavior.feature_paths import feature_path
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -11,6 +12,7 @@ from .cli_commands_steps import run_command
 from .test_generation_steps import have_analyzed_project
 
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "code_generation.feature"))
@@ -19,7 +21,6 @@ scenarios(feature_path(__file__, "general", "code_generation.feature"))
 @pytest.fixture
 def command_context():
     """Context object shared between steps."""
-from tests.behavior.feature_paths import feature_path
     return {}
 
 

@@ -1,5 +1,6 @@
 """Steps for the validate manifest feature."""
 
+from tests.behavior.feature_paths import feature_path
 import os
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -7,11 +8,14 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
 # Import CLI steps to satisfy feature background requirements
 from .cli_commands_steps import *  # noqa: F401,F403 - re-export CLI steps
 
-
 pytestmark = [pytest.mark.fast]
+
+
+
 
 scenarios(feature_path(__file__, "general", "validate_manifest.feature"))
 
@@ -19,7 +23,6 @@ scenarios(feature_path(__file__, "general", "validate_manifest.feature"))
 @given("a project with an invalid configuration file")
 def project_with_invalid_config(tmp_project_dir, command_context):
     """Create an invalid configuration file for testing."""
-from tests.behavior.feature_paths import feature_path
     config_path = os.path.join(tmp_project_dir, ".devsynth", "project.yaml")
     os.makedirs(os.path.dirname(config_path), exist_ok=True)
     with open(config_path, "w") as f:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import json
 import sys
 from types import ModuleType
@@ -10,6 +11,7 @@ from unittest.mock import MagicMock, mock_open
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
+
 
 
 pytestmark = pytest.mark.fast
@@ -22,7 +24,6 @@ scenarios(feature_path(__file__, "webui_requirements_wizard_with_wizardstate.fea
 def wizard_context(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
     """Provide a fully stubbed Streamlit environment for the wizard tests."""
 
-from tests.behavior.feature_paths import feature_path
     st = ModuleType("streamlit")
 
     class SessionState(dict):

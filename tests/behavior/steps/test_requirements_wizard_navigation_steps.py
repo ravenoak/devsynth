@@ -7,11 +7,13 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+
+pytestmark = [pytest.mark.fast]
+
 pytest.importorskip("streamlit")
 from devsynth.interface.webui import WebUI
 
 
-pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "requirements_wizard_navigation.feature"))
 

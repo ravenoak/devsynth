@@ -9,6 +9,7 @@ from devsynth.application.collaboration.WSDE import WSDE
 from devsynth.logger import DevSynthLogger
 
 
+
 pytestmark = pytest.mark.fast
 
 scenarios(feature_path(__file__, "wsde", "consensus_failure_logging.feature"))

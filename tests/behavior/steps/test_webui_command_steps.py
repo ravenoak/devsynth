@@ -10,16 +10,17 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
 # Import the CLI modules
 from typer.testing import CliRunner
-
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.cli_commands import webui_cmd
+
+pytestmark = [pytest.mark.fast]
 
 # Register the feature scenarios
 
 
-pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "webui", "command.feature"))
 

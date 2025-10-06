@@ -1,5 +1,6 @@
 """Steps for the config_enable_feature.feature."""
 
+from tests.behavior.feature_paths import feature_path
 import os
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.config.loader import ConfigModel, load_config, save_config
 
 from .cli_commands_steps import *
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -62,4 +64,3 @@ def feature_enabled(context):
         monkeypatch._cwd = context.orig_cwd  # ensure undo path exists
     else:
         os.chdir(context.orig_cwd)
-from tests.behavior.feature_paths import feature_path

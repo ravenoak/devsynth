@@ -9,6 +9,8 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.edrr.wsde_specialized_agents import (
+
+
     CriticAgent,
     ResearchLeadAgent,
     TestWriterAgent,
@@ -19,6 +21,7 @@ from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
     ResearchArtifact,
 )
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
 
 pytestmark = pytest.mark.fast
 

@@ -1,9 +1,11 @@
 """Steps for the exceptions framework feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.exceptions import DevSynthError
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -31,4 +33,3 @@ def when_handle(component):
 @then("I can catch the base class")
 def caught(handle):
     assert isinstance(handle, DevSynthError)
-from tests.behavior.feature_paths import feature_path

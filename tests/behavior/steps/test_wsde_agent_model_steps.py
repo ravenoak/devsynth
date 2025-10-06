@@ -14,10 +14,12 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
+pytestmark = pytest.mark.fast
+
 # Import the feature files
 
 
-pytestmark = pytest.mark.fast
 
 scenarios(feature_path(__file__, "wsde_agent_model_refinement.feature"))
 scenarios(feature_path(__file__, "general", "wsde_agent_model.feature"))

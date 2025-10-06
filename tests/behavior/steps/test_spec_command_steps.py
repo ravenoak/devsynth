@@ -8,6 +8,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from devsynth.application.cli import cli_commands
 
 
+
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "spec_command.feature"))

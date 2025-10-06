@@ -5,6 +5,9 @@ from datetime import datetime
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+
+pytestmark = pytest.mark.fast
+
 # Optional dependencies
 lmdb_mod = pytest.importorskip("lmdb")
 pytest.importorskip("faiss")
@@ -18,7 +21,6 @@ from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.memory_manager import MemoryManager
 
 
-pytestmark = pytest.mark.fast
 
 if not hasattr(lmdb_mod, "open"):
     pytest.skip("lmdb unavailable", allow_module_level=True)

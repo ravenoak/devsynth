@@ -1,9 +1,11 @@
 """Steps for the feature markers feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth import feature_markers
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -26,4 +28,3 @@ def when_search_module(documented_feature):
 @then("I find a corresponding marker function")
 def found(search_module):
     assert callable(search_module)
-from tests.behavior.feature_paths import feature_path

@@ -1,15 +1,18 @@
 """Step definitions for WSDE voting mechanisms."""
 
+from tests.behavior.feature_paths import feature_path
 import logging
 from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+
+pytestmark = [pytest.mark.fast]
+
 # Import the feature file
 
 
-pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "wsde_voting_mechanisms.feature"))
 scenarios(feature_path(__file__, "wsde_voting_mechanisms_for_critical_decisions.feature"))
@@ -26,7 +29,6 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 def context():
     """Fixture to provide a context object for sharing state between steps."""
 
-from tests.behavior.feature_paths import feature_path
     class Context:
         def __init__(self):
             self.team_coordinator = WSDETeamCoordinator()

@@ -1,5 +1,6 @@
 """Step definitions for delegate_task_consensus.feature."""
 
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,6 +8,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.domain.interfaces.agent import Agent
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -137,4 +139,3 @@ def dialectical_error_message(context):
     assert context.result is None
     assert context.error is not None
     assert "Dialectical reasoning failed" in context.error
-from tests.behavior.feature_paths import feature_path

@@ -6,6 +6,7 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 
+
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file

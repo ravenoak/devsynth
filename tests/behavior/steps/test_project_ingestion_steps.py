@@ -1,7 +1,9 @@
 """Steps for the project ingestion feature."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
+
 
 
 pytestmark = [pytest.mark.fast]
@@ -24,4 +26,3 @@ def when_execute():
 @then("the project_ingestion workflow completes")
 def then_complete():
     pass
-from tests.behavior.feature_paths import feature_path

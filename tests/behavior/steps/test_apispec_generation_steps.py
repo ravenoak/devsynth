@@ -1,5 +1,6 @@
 """BDD steps for the ``apispec`` command."""
 
+from tests.behavior.feature_paths import feature_path
 import importlib
 import os
 from unittest.mock import MagicMock
@@ -8,13 +9,13 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 
+
 pytestmark = [pytest.mark.fast]
 
 
 @pytest.fixture
 def apispec_context(monkeypatch):
     """Provide a patched ``apispec_cmd`` for testing."""
-from tests.behavior.feature_paths import feature_path
     import devsynth.application.cli.apispec as api_module
 
     mock_cmd = MagicMock()

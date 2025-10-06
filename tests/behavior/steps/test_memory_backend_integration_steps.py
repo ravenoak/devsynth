@@ -21,6 +21,14 @@ from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 
+
+pytestmark = [
+    pytest.mark.fast,
+    pytest.mark.requires_resource("chromadb"),
+    pytest.mark.requires_resource("lmdb"),
+    pytest.mark.requires_resource("faiss"),
+]
+
 chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
     "0",
     "false",
@@ -30,12 +38,6 @@ if not chromadb_enabled:
     pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 
 
-pytestmark = [
-    pytest.mark.fast,
-    pytest.mark.requires_resource("chromadb"),
-    pytest.mark.requires_resource("lmdb"),
-    pytest.mark.requires_resource("faiss"),
-]
 
 logger = logging.getLogger(__name__)
 

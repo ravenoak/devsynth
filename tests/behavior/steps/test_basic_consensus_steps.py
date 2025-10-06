@@ -3,15 +3,16 @@
 Issue: issues/consensus-building.md
 """
 
-from tests.behavior.feature_paths import feature_path
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 from typing import Any
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.consensus import build_consensus
+
 
 
 pytestmark = pytest.mark.fast
