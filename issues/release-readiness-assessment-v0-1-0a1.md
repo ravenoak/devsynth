@@ -1,7 +1,7 @@
 # Release Readiness Assessment: v0.1.0a1
 
-**Status**: Open  
-**Priority**: Critical  
+**Status**: Open
+**Priority**: Critical
 **Assessment Date**: 2025-10-05
 **Target Release**: v0.1.0a1
 
@@ -9,7 +9,7 @@
 
 **RELEASE STATUS: 🔴 BLOCKED**
 
-Strict typing and coverage evidence now include a fresh 2025-10-05 strict run that published knowledge-graph IDs (`QualityGate=c54c967d-6a97-4c68-a7df-237a609fd53e`, `TestRun=3ec7408d-1201-4456-8104-ee1b504342cc`, `ReleaseEvidence={9f4bf6fc-4826-4ff6-8aa2-24c5e6396b37,e3208765-a9f9-4293-9a1d-bbd3726552af}`), but maintainer automation still stops early: `task release:prep` now reaches `poetry build` before failing on duplicate `overrides` keys, and smoke mode continues to halt on the `MemoryStore` Protocol generics regression. Until the pyproject duplication and memory typing fix land, the team cannot regenerate coverage artifacts or deliver a green smoke log for the hand-off package.【F:diagnostics/release_prep_20251005T035109Z.log†L1-L25】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】 The updated execution plan (PR-A → PR-E) sequences these fixes ahead of UAT sign-off.【F:docs/release/v0.1.0a1_execution_plan.md†L1-L128】
+Strict typing and coverage evidence now include a fresh 2025-10-05 strict run that published knowledge-graph IDs (`QualityGate=c54c967d-6a97-4c68-a7df-237a609fd53e`, `TestRun=3ec7408d-1201-4456-8104-ee1b504342cc`, `ReleaseEvidence={9f4bf6fc-4826-4ff6-8aa2-24c5e6396b37,e3208765-a9f9-4293-9a1d-bbd3726552af}`). Maintainer automation now clears the earlier duplication in `[[tool.mypy.overrides]]`: `task release:prep` completes the wheel and sdist builds before tripping an existing IndentationError in `tests/behavior/steps/test_agent_api_health_metrics_steps.py`, and smoke mode continues to halt on the `MemoryStore` Protocol generics regression. Until the indentation fix and memory typing fix land, the team cannot regenerate coverage artifacts or deliver a green smoke log for the hand-off package.【F:pyproject.toml†L300-L345】【F:pyproject.toml†L557-L577】【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】 The updated execution plan (PR-A → PR-E) sequences these fixes ahead of UAT sign-off.【F:docs/release/v0.1.0a1_execution_plan.md†L1-L128】
 
 ## Dialectical Analysis
 
@@ -19,8 +19,8 @@ Strict typing and coverage evidence now include a fresh 2025-10-05 strict run th
 
 ## Socratic Check
 
-1. **What prevents tagging today?** – `task release:prep` still fails at `poetry build` because of duplicate `overrides` keys even though the Taskfile parser fix landed, and the `MemoryStore` Protocol TypeError continues to stop smoke from producing artifacts.【F:diagnostics/release_prep_20251005T035109Z.log†L1-L25】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
-2. **What proofs will confirm remediation?** – Green `task release:prep`, the existing strict typing run repeated after the pyproject fix (with new knowledge-graph IDs), a passing smoke log, and a refreshed fast+medium coverage manifest showing ≥90 % with `methodology/edrr/reasoning_loop.py` lifted to ≥90 %.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】
+1. **What prevents tagging today?** – `task release:prep` now clears `poetry build` but aborts on the indentation error in `tests/behavior/steps/test_agent_api_health_metrics_steps.py`, and the `MemoryStore` Protocol TypeError continues to stop smoke from producing artifacts.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
+2. **What proofs will confirm remediation?** – Green `task release:prep` after fixing the indentation regression, the existing strict typing run repeated for freshness, a passing smoke log, and a refreshed fast+medium coverage manifest showing ≥90 % with `methodology/edrr/reasoning_loop.py` lifted to ≥90 %.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】
 3. **What resources are available?** – Existing coverage/typing artifacts, diagnostics, the multi-PR execution plan, and the in-repo issue tracker.
 4. **What remains uncertain?** – Whether additional regressions appear after the Taskfile/memory fixes and how quickly UAT stakeholders can re-review.
 
@@ -31,7 +31,7 @@ Strict typing and coverage evidence now include a fresh 2025-10-05 strict run th
 - **Strict Typing (2025-10-05 rerun)**: `poetry run task mypy:strict` succeeded with zero errors, produced refreshed manifests, and published knowledge-graph nodes `QualityGate=c54c967d-6a97-4c68-a7df-237a609fd53e`, `TestRun=3ec7408d-1201-4456-8104-ee1b504342cc`, and `ReleaseEvidence={9f4bf6fc-4826-4ff6-8aa2-24c5e6396b37,e3208765-a9f9-4293-9a1d-bbd3726552af}` for audit traceability.【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】【F:diagnostics/mypy_strict_src_devsynth_20251005T035143Z.txt†L1-L1】【F:diagnostics/mypy_strict_application_memory_20251005T035144Z.txt†L1-L1】
 
 ### 🔴 Failing
-- **Maintainer Automation**: `task release:prep` now reaches `poetry build` before failing on duplicate `overrides` keys in `pyproject.toml`, while `task mypy:strict` completes; the pyproject fix must land before the checklist can finish.【F:diagnostics/release_prep_20251005T035109Z.log†L1-L25】
+- **Maintainer Automation**: `task release:prep` now reaches `poetry build` before failing on the indentation error in `tests/behavior/steps/test_agent_api_health_metrics_steps.py`, while `task mypy:strict` completes; release prep remains blocked until that test is repaired.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】
 - **Smoke Verification**: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` times out during collection fallback, then fails on the `MemoryStore` Protocol generics error, preventing coverage artifacts and behavior verification.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
 
 ### ⚠️ Attention Required
@@ -40,8 +40,8 @@ Strict typing and coverage evidence now include a fresh 2025-10-05 strict run th
 
 ## Critical Issues
 
-1. **Taskfile Automation Regression — CRITICAL**
-   `task release:prep` and `task mypy:strict` fail before executing any commands. Fixing the YAML structure is a prerequisite for regenerating strict mypy manifests and the maintainer checklist.【F:diagnostics/release_prep_20251004T183136Z.log†L1-L8】【F:diagnostics/mypy_strict_20251004T183708Z.log†L1-L8】
+1. **Maintainer Automation Failure — CRITICAL**
+   `task release:prep` now finishes both `poetry build` targets but still aborts on the indentation error in `tests/behavior/steps/test_agent_api_health_metrics_steps.py`, leaving the maintainer checklist blocked until that test is fixed and fresh artifacts are captured.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】
 
 2. **Memory Protocol TypeError — CRITICAL**
    Smoke mode still imports the broken `MemoryStore` Protocol definition, causing collection to abort and leaving coverage artifacts empty.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
@@ -56,7 +56,7 @@ Strict typing and coverage evidence now include a fresh 2025-10-05 strict run th
 
 | Phase | Objective | Key Actions | Owner | Evidence |
 |-------|-----------|-------------|-------|----------|
-| **PR-A** | Restore maintainer automation | Refactor Taskfile §23, add lint/check guard, rerun `task release:prep` + `task mypy:strict`. | Automation | 【F:diagnostics/release_prep_20251005T035109Z.log†L1-L25】【F:docs/release/v0.1.0a1_execution_plan.md†L1-L62】 |
+| **PR-A** | Restore maintainer automation | Refactor Taskfile §23, add lint/check guard, rerun `task release:prep` + `task mypy:strict`. | Automation | 【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:docs/release/v0.1.0a1_execution_plan.md†L1-L62】 |
 | **PR-B** | Fix memory Protocol regression | Implement `TypeVar`-based Protocol, add SyncManager tests, rerun smoke and marker verification. | Runtime | 【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】【F:docs/release/v0.1.0a1_execution_plan.md†L92-L110】 |
 | **PR-C/PR-D** | Refresh gates & coverage | Audit optional backends/behavior assets, regenerate strict mypy + fast+medium coverage, raise EDRR coverage to ≥90 %. | QA/Testing | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L25】【F:docs/release/v0.1.0a1_execution_plan.md†L88-L128】 |
 | **PR-E** | Compile UAT bundle & post-tag plan | Capture passing UAT table, update issues/docs, queue CI re-enable PR. | Release | 【F:issues/release-finalization-uat.md†L19-L64】【F:docs/release/v0.1.0a1_execution_plan.md†L118-L128】 |
@@ -79,14 +79,13 @@ Mitigations: follow the PR sequencing above, capture fresh diagnostics after eac
 
 ## Next Steps
 
-1. Deliver PR-A (Taskfile fix + guard) and rerun blocked task targets.【F:diagnostics/release_prep_20251005T035109Z.log†L1-L25】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】
+1. Deliver PR-A (Taskfile fix + guard) and rerun blocked task targets.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】
 2. Execute PR-B to repair the memory Protocol regression and revalidate smoke.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
 3. After smoke is green, regenerate strict mypy/coverage artifacts (PR-C/PR-D) and resolve the EDRR delta.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】
 4. Compile the refreshed UAT bundle and queue the post-tag workflow PR (PR-E).【F:issues/release-finalization-uat.md†L19-L64】【F:docs/release/v0.1.0a1_execution_plan.md†L88-L128】【F:issues/re-enable-github-actions-triggers-post-v0-1-0a1.md†L1-L18】
 
 ---
 
-**Assessment by**: AI Assistant using dialectical and Socratic reasoning  
-**Review Required**: Yes — maintainers  
+**Assessment by**: AI Assistant using dialectical and Socratic reasoning
+**Review Required**: Yes — maintainers
 **Update Frequency**: Daily during stabilization
-
