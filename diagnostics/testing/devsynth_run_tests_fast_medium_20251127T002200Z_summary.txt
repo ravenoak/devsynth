@@ -1,0 +1,11 @@
+Command: poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel
+Timestamp (UTC): 2025-10-06T21:46:00Z (invocation)
+Log: logs/devsynth_run-tests_fast_medium_20251127T002200Z.log (no CLI output before interruption)
+Outcome: Command produced no CLI output before stalling in pytest collection. After waiting several minutes the pytest collector
+remained active without emitting knowledge-graph IDs, coverage manifests, or HTML/JSON artifacts. The process snapshot shows
+the hung collector and indicates CPU usage during the stall; the run was terminated manually with Ctrl+C.
+ps snapshot:
+PID     ELAPSED %CPU %MEM CMD
+11553   00:18   70.0  1.5 /workspace/devsynth/.venv/bin/python -m pytest tests/ --collect-only -q -o addopts=
+Artifacts produced: none (.coverage absent, coverage_manifest_latest.json unchanged).
+Follow-up: Document the hang in docs/plan.md, docs/release/0.1.0-alpha.1.md, docs/tasks.md §13, and issues/run-tests-fast-medium-collection-errors.md for continued triage.

@@ -82,3 +82,6 @@ Notes:
   comments remain.
 - 2025-09-14: Revalidated `devsynth.testing.*`; `poetry run mypy src/devsynth/testing`
   reports no issues.
+- 2025-10-06: `poetry run task mypy:strict` now fails on segmented helpers inside `devsynth.testing.run_tests`, publishing `QualityGate b2bd60e7-30cd-4b84-8e3d-4dfed0817ee3`/`TestRun 71326ec2-aa95-49dd-a600-f3672d728982`; regression evidence archived at `diagnostics/mypy_strict_20251006T212233Z.log` pending follow-up tickets.【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】
+- 2025-10-06: `poetry run task mypy:strict` now fails on segmented helpers inside `devsynth.testing.run_tests`, publishing `QualityGate b2bd60e7-30cd-4b84-8e3d-4dfed0817ee3`/`TestRun 71326ec2-aa95-49dd-a600-f3672d728982`; regression evidence archived at `diagnostics/mypy_strict_20251006T212233Z.log` pending follow-up tickets.【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】
+- 2025-10-06 21:44 UTC: A follow-up strict run reproduced the failure with updated knowledge-graph nodes (`TestRun 01f68130-3127-4f9e-8c2b-cd7d17485d6c`, evidence `44dce9f6-38ca-47ed-9a01-309d02418927`), captured in `diagnostics/typing/mypy_strict_20251127T000000Z.log` for ongoing triage.【F:diagnostics/typing/mypy_strict_20251127T000000Z.log†L1-L40】
