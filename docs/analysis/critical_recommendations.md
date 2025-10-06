@@ -29,6 +29,7 @@ version: "0.1.0-alpha.1"
 
 - Deployment security hardening utilities are now available in `src/devsynth/security`.
 - EDRR coordination steps now capture results from the Expand, Differentiate and Refine phases.
+- 2025-10-06 verification pass: strict mypy still reports zero errors, yet the fast+medium aggregate and release prep fail during pytest collection because multiple behavior step files carry indentation drift and unresolved `feature_path` sentinels; diagnostics captured under `diagnostics/mypy_strict_manifest_20251006T155640Z.json`, `diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log`, and `diagnostics/release_prep_20251006T150353Z.log` guide the remediation plan.【F:diagnostics/mypy_strict_manifest_20251006T155640Z.json†L1-L39】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【F:diagnostics/release_prep_20251006T150353Z.log†L1-L79】
 
 ## Critical Issues Requiring Immediate Action
 
