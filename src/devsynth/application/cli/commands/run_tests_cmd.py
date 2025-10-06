@@ -319,6 +319,10 @@ def run_tests_cmd(
             normalized_speeds = ["fast"]
         # Enforce a conservative per-test timeout for smoke runs unless overridden
         os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "30")
+        if dry_run:
+            ux_bridge.print(
+                "[cyan]Smoke dry-run enabled — previewing fast lane with plugins disabled and xdist off.[/cyan]"
+            )
 
     # Optimize inner subprocess validation runs used by tests: disable plugins
     # and parallelism to avoid timeouts and reduce startup overhead, but only

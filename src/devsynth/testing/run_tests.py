@@ -1408,6 +1408,7 @@ def _run_single_test_batch(
             }
             if coverage_issue:
                 metadata["coverage_issue"] = coverage_issue
+            logger.info("Dry run preview (no execution): %s", command_preview)
             lines = [
                 "Dry run: pytest invocation prepared but not executed.",
                 f"Command: {command_preview}",

@@ -318,9 +318,9 @@ def test_run_tests_dry_run_skips_execution(monkeypatch):
     """ReqID: RUN-TESTS-MAIN-8 — dry-run previews command without running pytest."""
 
     monkeypatch.setattr(
-        rt, "collect_tests_with_cache", lambda *_args, **_kwargs: [
-            "tests/unit/test_example.py::test_case"
-        ]
+        rt,
+        "collect_tests_with_cache",
+        lambda *_args, **_kwargs: ["tests/unit/test_example.py::test_case"],
     )
 
     def fail_reset() -> None:  # pragma: no cover - should not run
@@ -332,11 +332,22 @@ def test_run_tests_dry_run_skips_execution(monkeypatch):
     def boom(*_args, **_kwargs):  # pragma: no cover - subprocess must not spawn
         raise AssertionError("Subprocess should not spawn during dry run")
 
+    cov_calls: list[dict[str, str]] = []
+    bdd_calls: list[dict[str, str]] = []
+
+    def record_cov(env: dict[str, str]) -> bool:
+        cov_calls.append(dict(env))
+        return False
+
+    def record_bdd(env: dict[str, str]) -> bool:
+        bdd_calls.append(dict(env))
+        return False
+
     monkeypatch.setattr(rt, "_reset_coverage_artifacts", fail_reset)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", fail_ensure)
     monkeypatch.setattr(rt.subprocess, "Popen", boom)
-    monkeypatch.setattr(rt, "ensure_pytest_cov_plugin_env", lambda env: False)
-    monkeypatch.setattr(rt, "ensure_pytest_bdd_plugin_env", lambda env: False)
+    monkeypatch.setattr(rt, "ensure_pytest_cov_plugin_env", record_cov)
+    monkeypatch.setattr(rt, "ensure_pytest_bdd_plugin_env", record_bdd)
 
     success, output = rt.run_tests(
         target="unit-tests",
@@ -347,6 +358,8 @@ def test_run_tests_dry_run_skips_execution(monkeypatch):
 
     assert success is True
     assert "Dry run" in output
+    assert cov_calls, "ensure_pytest_cov_plugin_env should run even in dry mode"
+    assert bdd_calls, "ensure_pytest_bdd_plugin_env should run even in dry mode"
 
 
 @pytest.mark.fast
