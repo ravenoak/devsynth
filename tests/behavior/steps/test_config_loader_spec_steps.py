@@ -15,7 +15,7 @@ from devsynth.config.loader import (
 
 pytestmark = pytest.mark.fast
 
-scenarios(feature_path(__file__, "config_loader_spec.feature"))
+scenarios(feature_path(__file__, "general", "config_loader_spec.feature"))
 
 
 @pytest.fixture

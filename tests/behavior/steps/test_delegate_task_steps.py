@@ -17,7 +17,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "delegate_task.feature"))
-scenarios(feature_path(__file__, "multi_agent_task_delegation.feature"))
+scenarios(feature_path(__file__, "general", "multi_agent_task_delegation.feature"))
 
 
 class SimpleTeam(WSDETeam):

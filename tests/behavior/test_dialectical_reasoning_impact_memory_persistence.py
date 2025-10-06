@@ -7,4 +7,4 @@ from .steps.test_dialectical_reasoning_impact_memory_persistence_steps import * 
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "dialectical_reasoning", "impact_assessment_memory_persistence.feature"))
+scenarios(feature_path(__file__, "general", "impact_assessment_memory_persistence.feature"))

@@ -952,7 +952,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Import the scenarios from the feature file
-scenarios(feature_path(__file__, "general", "edrr_enhanced_recursion.feature"))
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer

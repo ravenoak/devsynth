@@ -20,7 +20,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "memory_and_context_system.feature"))
+scenarios(feature_path(__file__, "general", "memory_and_context_system.feature"))
 
 
 @dataclass

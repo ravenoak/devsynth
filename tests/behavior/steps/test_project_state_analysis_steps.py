@@ -14,7 +14,7 @@ from devsynth.application.code_analysis.project_state_analysis import (
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "project_state_analysis.feature"))
+scenarios(feature_path(__file__, "general", "project_state_analysis.feature"))
 
 
 @pytest.fixture

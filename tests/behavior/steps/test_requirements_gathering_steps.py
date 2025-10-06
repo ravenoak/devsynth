@@ -45,7 +45,7 @@ class DummyBridge(UXBridge):
         pass
 
 scenarios(feature_path(__file__, "general", "requirements_gathering.feature"))
-scenarios(feature_path(__file__, "interactive_requirements_gathering.feature"))
+scenarios(feature_path(__file__, "general", "interactive_requirements_gathering.feature"))
 
 
 @given("the DevSynth CLI is installed")

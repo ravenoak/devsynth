@@ -12,7 +12,6 @@ pytestmark = [pytest.mark.fast]
 
 
 scenarios(feature_path(__file__, "general", "recursive_edrr_coordinator.feature"))
-scenarios(feature_path(__file__, "recursive_edrr_coordinator.feature"))
 
 # Import the necessary components
 

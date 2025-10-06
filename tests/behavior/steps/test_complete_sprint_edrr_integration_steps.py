@@ -16,7 +16,7 @@ from devsynth.methodology.sprint_adapter import (
 pytestmark = [pytest.mark.fast]
 
 # Load the feature file
-scenarios(feature_path(__file__, "complete_sprint_edrr_integration.feature"))
+scenarios(feature_path(__file__, "general", "complete_sprint_edrr_integration.feature"))
 
 
 @pytest.fixture

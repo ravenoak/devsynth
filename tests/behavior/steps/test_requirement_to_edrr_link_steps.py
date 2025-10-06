@@ -22,7 +22,7 @@ from devsynth.domain.models.requirement import (
 pytestmark = [pytest.mark.fast]
 
 # Load the feature file
-scenarios(feature_path(__file__, "dialectical_reasoning", "requirement_to_edrr_link.feature"))
+scenarios(feature_path(__file__, "general", "requirement_to_edrr_link.feature"))
 
 
 class DummyMemoryManager:

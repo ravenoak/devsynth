@@ -12,7 +12,7 @@ from devsynth.logger import DevSynthLogger
 
 pytestmark = pytest.mark.fast
 
-scenarios(feature_path(__file__, "wsde", "consensus_failure_logging.feature"))
+scenarios(feature_path(__file__, "general", "consensus_failure_logging.feature"))
 
 
 class DummyAgent:

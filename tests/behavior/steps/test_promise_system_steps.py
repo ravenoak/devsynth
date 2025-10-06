@@ -16,7 +16,7 @@ pytestmark = [pytest.mark.fast]
 
 # Import the feature file
 scenarios(feature_path(__file__, "general", "promise_system.feature"))
-scenarios(feature_path(__file__, "promise_system_capability_management.feature"))
+scenarios(feature_path(__file__, "general", "promise_system_capability_management.feature"))
 
 
 # Define a fixture for the context

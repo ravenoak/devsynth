@@ -13,6 +13,7 @@ pytestmark = [pytest.mark.fast]
 feature_file = os.path.join(
     os.path.dirname(__file__),
     "features",
+    "general",
     "release_state_check.feature",
 )
 

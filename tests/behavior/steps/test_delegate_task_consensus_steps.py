@@ -14,7 +14,7 @@ from devsynth.domain.interfaces.agent import Agent
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "delegate_task_consensus.feature"))
-scenarios(feature_path(__file__, "delegating_tasks_with_consensus_voting.feature"))
+scenarios(feature_path(__file__, "general", "delegating_tasks_with_consensus_voting.feature"))
 
 
 @pytest.fixture

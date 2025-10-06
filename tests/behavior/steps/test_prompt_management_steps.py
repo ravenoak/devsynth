@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 scenarios(feature_path(__file__, "general", "prompt_management.feature"))
-scenarios(feature_path(__file__, "prompt_management_with_dpsy_ai.feature"))
+scenarios(feature_path(__file__, "general", "prompt_management_with_dpsy_ai.feature"))
 
 from devsynth.adapters.llm.mock_llm_adapter import MockLLMAdapter
 from devsynth.application.agents.unified_agent import UnifiedAgent

@@ -17,7 +17,7 @@ from devsynth.consensus import build_consensus
 
 pytestmark = pytest.mark.fast
 
-scenarios(feature_path(__file__, "consensus_building.feature"))
+scenarios(feature_path(__file__, "general", "consensus_building.feature"))
 
 
 @pytest.fixture

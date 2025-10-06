@@ -65,7 +65,6 @@ def _run_wizard(
 
 
 scenarios(feature_path(__file__, "general", "requirements_wizard.feature"))
-scenarios(feature_path(__file__, "requirements_wizard.feature"))
 
 
 @given("the DevSynth CLI is installed")

@@ -14,7 +14,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "wsde", "peer_review.feature"))
+scenarios(feature_path(__file__, "general", "peer_review.feature"))
 
 
 @pytest.fixture

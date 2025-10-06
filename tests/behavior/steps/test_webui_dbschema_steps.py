@@ -9,7 +9,7 @@ from .webui_steps import given_webui_initialized, webui_context
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-scenarios(feature_path(__file__, "webui", "dbschema.feature"))
+scenarios(feature_path(__file__, "general", "dbschema.feature"))
 
 
 @then("the DBSchema page should be displayed")

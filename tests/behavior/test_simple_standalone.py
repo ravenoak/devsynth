@@ -1,19 +1,15 @@
 """Standalone test to verify pytest-bdd integration."""
 
-import os
-
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
+
+from tests.behavior.feature_paths import feature_path
 
 
 pytestmark = [pytest.mark.fast]
 
 # Load scenarios from the static feature file
-scenarios(
-    os.path.join(
-        os.path.dirname(__file__), "features", "examples", "simple_addition.feature"
-    )
-)
+scenarios(feature_path(__file__, "general", "simple_addition.feature"))
 
 
 @pytest.fixture

@@ -9,7 +9,7 @@ from .webui_steps import given_webui_initialized, webui_context
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-scenarios(feature_path(__file__, "webui", "inspect_config.feature"))
+scenarios(feature_path(__file__, "general", "inspect_config.feature"))
 
 
 @then("the inspect config page should be displayed")

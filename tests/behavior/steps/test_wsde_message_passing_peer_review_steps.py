@@ -14,8 +14,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = pytest.mark.fast
 
-scenarios(feature_path(__file__, "wsde_message_passing_and_peer_review.feature"))
-scenarios(feature_path(__file__, "wsde_peer_review_workflow.feature"))
+scenarios(feature_path(__file__, "general", "wsde_message_passing_and_peer_review.feature"))
+scenarios(feature_path(__file__, "general", "wsde_peer_review_workflow.feature"))
 scenarios(feature_path(__file__, "general", "wsde_message_passing_peer_review.feature"))
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator

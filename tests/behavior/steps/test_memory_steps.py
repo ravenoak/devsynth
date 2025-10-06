@@ -9,7 +9,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "memory", "memory_operations.feature"))
+scenarios(feature_path(__file__, "general", "memory_operations.feature"))
 
 
 @pytest.fixture

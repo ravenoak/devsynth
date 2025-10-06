@@ -17,7 +17,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = pytest.mark.fast
 
 
-scenarios(feature_path(__file__, "webui_requirements_wizard_with_wizardstate.feature"))
+scenarios(feature_path(__file__, "general", "webui_requirements_wizard_with_wizardstate.feature"))
 
 
 @pytest.fixture

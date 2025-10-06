@@ -22,7 +22,6 @@ pytestmark = [pytest.mark.fast]
 
 # Import the feature file
 scenarios(feature_path(__file__, "general", "non_hierarchical_collaboration.feature"))
-scenarios(feature_path(__file__, "non_hierarchical_collaboration.feature"))
 
 
 # Define a fixture for the context

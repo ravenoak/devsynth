@@ -13,7 +13,7 @@ from devsynth.application.memory.chromadb_store import ChromaDBStore
 
 
 
-scenarios(feature_path(__file__, "memory", "chromadb_store.feature"))
+scenarios(feature_path(__file__, "general", "chromadb_store.feature"))
 
 
 @pytest.fixture

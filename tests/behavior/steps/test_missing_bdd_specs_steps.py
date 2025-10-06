@@ -47,7 +47,7 @@ FEATURES = [
     "wsde_role_progression_memory.feature",
 ]
 for feature in FEATURES:
-    scenarios(feature_path(__file__, feature))
+    scenarios(feature_path(__file__, "general", feature))
 
 SPEC_DIR = Path(__file__).parents[2] / "docs" / "specifications"
 

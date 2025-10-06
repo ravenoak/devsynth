@@ -15,7 +15,7 @@ from devsynth.testing.performance import (
 
 pytestmark = [pytest.mark.medium]
 
-scenarios(feature_path(__file__, "performance_and_scalability_testing.feature"))
+scenarios(feature_path(__file__, "general", "performance_and_scalability_testing.feature"))
 
 
 @pytest.fixture

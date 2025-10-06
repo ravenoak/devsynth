@@ -10,7 +10,7 @@ from devsynth.exceptions import DevSynthError
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "exceptions_framework.feature"))
+scenarios(feature_path(__file__, "general", "exceptions_framework.feature"))
 
 
 @given("a component that raises a DevSynthError", target_fixture="component")

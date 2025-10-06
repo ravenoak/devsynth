@@ -13,6 +13,7 @@ from .steps.test_run_tests_cli_steps import *  # noqa: F401,F403
 FEATURE_FILE = os.path.join(
     os.path.dirname(__file__),
     "features",
+    "general",
     "run_tests_from_the_cli.feature",
 )
 
