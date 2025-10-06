@@ -411,6 +411,7 @@ Maintainer setup quickstart (resource-gated backends)
 | Memory-intensive suites | `DEVSYNTH_RESOURCE_MEMORY_AVAILABLE` | `true` | Set to `false` to skip heavy memory orchestration tests when machines are resource constrained. |
 | Sentinel test toggle | `DEVSYNTH_RESOURCE_TEST_RESOURCE_AVAILABLE` | `false` | Reserved for regression tests validating the gating helpers. |
 | WebUI integrations | `DEVSYNTH_RESOURCE_WEBUI_AVAILABLE` | Auto | Install `poetry install --extras webui` (or `--extras webui_nicegui`) for UI regression coverage. |
+- 2025-10-06: Integration suites that touch ChromaDB/LMDB/FAISS/Kuzu now call `pytest.importorskip` with `@pytest.mark.requires_resource` decorators so missing `memory`, `tests`, or `retrieval` extras trigger clean skips (ref: `tests/integration/collaboration/test_role_reassignment_shared_memory.py`, `tests/integration/memory/test_cross_store_sync.py`).
 - Keep runs deterministic:
   - Prefer: `poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report`
   - For smoke/stability: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel`

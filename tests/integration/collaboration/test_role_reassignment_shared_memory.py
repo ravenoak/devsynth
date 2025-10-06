@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime
 
 import pytest
@@ -8,17 +7,15 @@ from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
+from tests.conftest import is_resource_available
+from tests.fixtures.resources import (
+    OPTIONAL_BACKEND_REQUIREMENTS,
+    backend_import_reason,
+    backend_skip_reason,
+)
 
 
 pytestmark = [pytest.mark.slow]
-
-
-def _require_resource(resource: str) -> None:
-    """Skip the test when a resource is explicitly disabled."""
-
-    env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
-    if os.environ.get(env_name, "true").lower() == "false":
-        pytest.skip(f"Resource '{resource}' disabled via {env_name}")
 
 
 class DummyAgent:
@@ -64,26 +61,48 @@ class RoleTeam(CollaborativeWSDETeam):
         return self.build_consensus(task)
 
 
+@pytest.mark.slow
 @pytest.mark.requires_resource("lmdb")
 @pytest.mark.requires_resource("faiss")
 @pytest.mark.requires_resource("kuzu")
 def test_role_reassignment_shared_memory(tmp_path):
-    lmdb_mod = pytest.importorskip("lmdb")
-    pytest.importorskip("faiss")
-    pytest.importorskip("kuzu")
+    extras_map = {
+        name: tuple(OPTIONAL_BACKEND_REQUIREMENTS[name]["extras"])
+        for name in ("lmdb", "faiss", "kuzu")
+    }
+
+    for resource, extras in extras_map.items():
+        if not is_resource_available(resource):
+            pytest.skip(backend_skip_reason(resource, extras))
+
+    lmdb_mod = pytest.importorskip(
+        "lmdb",
+        reason=backend_import_reason("lmdb"),
+    )
+    pytest.importorskip(
+        "faiss",
+        reason=backend_import_reason("faiss"),
+    )
+    pytest.importorskip(
+        "kuzu",
+        reason=backend_import_reason("kuzu"),
+    )
 
     if not hasattr(lmdb_mod, "open"):
         pytest.skip("lmdb unavailable")
 
-    for resource in ("lmdb", "faiss", "kuzu"):
-        _require_resource(resource)
-
-    try:
-        from devsynth.application.memory.faiss_store import FAISSStore
-        from devsynth.application.memory.kuzu_store import KuzuStore
-        from devsynth.application.memory.lmdb_store import LMDBStore
-    except ImportError as exc:  # pragma: no cover - optional dependency missing
-        pytest.skip(f"Optional memory store dependency missing: {exc}")
+    LMDBStore = pytest.importorskip(
+        "devsynth.application.memory.lmdb_store",
+        reason=backend_import_reason("lmdb"),
+    ).LMDBStore
+    FAISSStore = pytest.importorskip(
+        "devsynth.application.memory.faiss_store",
+        reason=backend_import_reason("faiss"),
+    ).FAISSStore
+    KuzuStore = pytest.importorskip(
+        "devsynth.application.memory.kuzu_store",
+        reason=backend_import_reason("kuzu"),
+    ).KuzuStore
 
     class LMDBTestStore(LMDBStore):
         def is_transaction_active(self, transaction_id: str) -> bool:
@@ -122,4 +141,3 @@ def test_role_reassignment_shared_memory(tmp_path):
         else:
             results = store.search({"metadata.type": "CONSENSUS_DECISION"})
             assert results
-pytestmark = [pytest.mark.slow]
