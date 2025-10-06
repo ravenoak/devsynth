@@ -101,7 +101,14 @@ def test_pytest_plugins_registers_pytest_bdd_once() -> None:
 
     import importlib
 
-    helper = importlib.import_module("tests.behavior.steps.pytest_plugins")
-    plugin_list = list(helper.PYTEST_PLUGINS)
+    registry = importlib.import_module("tests.pytest_plugin_registry")
+    plugin_list = list(registry.PYTEST_PLUGINS)
 
     assert plugin_list.count("pytest_bdd.plugin") == 1
+
+    root_conftest = importlib.import_module("tests.conftest")
+    assert (
+        root_conftest.pytest_plugins.count("tests.behavior.steps._pytest_bdd_proxy")
+        == 1
+    )
+    assert "pytest_bdd.plugin" not in root_conftest.pytest_plugins
