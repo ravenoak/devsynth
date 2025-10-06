@@ -18,6 +18,12 @@ import pytest
 
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from tests.conftest import is_resource_available
+from tests.fixtures.resources import (
+    OPTIONAL_BACKEND_REQUIREMENTS,
+    backend_import_reason,
+    backend_skip_reason,
+)
 
 
 pytestmark = [pytest.mark.integration]
@@ -245,13 +251,20 @@ def test_cross_store_sync_copies_missing_items() -> None:
 
 @pytest.mark.integration
 @pytest.mark.slow
+@pytest.mark.requires_resource("chromadb")
 def test_cross_store_sync_with_chromadb_if_available(tmp_path, monkeypatch):
     """Cross-store sync using ChromaDBMemoryStore when chromadb extra is present.
 
     Skips if chromadb is not installed. Provider system is disabled to avoid any
     network usage; default embedding or no-embed path should suffice.
     """
-    chroma = pytest.importorskip("chromadb", reason="chromadb extra not installed")
+    chroma_extras = tuple(OPTIONAL_BACKEND_REQUIREMENTS["chromadb"]["extras"])
+    if not is_resource_available("chromadb"):
+        pytest.skip(backend_skip_reason("chromadb", chroma_extras))
+    pytest.importorskip(
+        "chromadb",
+        reason=backend_import_reason("chromadb"),
+    )
 
     # Import inside test to avoid import-time failures when extra missing
     from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
