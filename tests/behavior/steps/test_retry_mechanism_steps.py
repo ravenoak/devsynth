@@ -6,7 +6,7 @@ from pytest_bdd import given, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/retry_mechanism.feature")
+scenarios(feature_path(__file__, "general", "retry_mechanism.feature"))
 
 
 @pytest.fixture
@@ -27,3 +27,4 @@ def when_execute(retry_context):
 @then("the retry_mechanism workflow completes")
 def then_complete(retry_context):
     assert retry_context.get("executed") is True
+from tests.behavior.feature_paths import feature_path

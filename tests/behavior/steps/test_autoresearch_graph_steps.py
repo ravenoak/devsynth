@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import datetime
 from pathlib import Path
 from typing import Set
@@ -19,7 +20,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/advanced_graph_memory_features.feature")
+scenarios(feature_path(__file__, "advanced_graph_memory_features.feature"))
 
 
 class _Context:

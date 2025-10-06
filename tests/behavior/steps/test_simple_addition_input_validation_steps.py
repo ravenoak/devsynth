@@ -8,13 +8,14 @@ from devsynth.simple_addition import add
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/simple_addition_input_validation.feature")
+scenarios(feature_path(__file__, "general", "simple_addition_input_validation.feature"))
 
 
 @pytest.fixture
 def context():
     """Context object for storing test data."""
 
+from tests.behavior.feature_paths import feature_path
     class Context:
         def __init__(self):
             self.a = None

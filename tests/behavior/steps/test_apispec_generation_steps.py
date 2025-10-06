@@ -14,6 +14,7 @@ pytestmark = [pytest.mark.fast]
 @pytest.fixture
 def apispec_context(monkeypatch):
     """Provide a patched ``apispec_cmd`` for testing."""
+from tests.behavior.feature_paths import feature_path
     import devsynth.application.cli.apispec as api_module
 
     mock_cmd = MagicMock()
@@ -21,7 +22,7 @@ def apispec_context(monkeypatch):
     return {"cmd": mock_cmd}
 
 
-scenarios("../features/general/apispec_generation.feature")
+scenarios(feature_path(__file__, "general", "apispec_generation.feature"))
 
 
 @given("the DevSynth CLI is installed")

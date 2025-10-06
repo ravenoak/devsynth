@@ -15,6 +15,7 @@ pytestmark = [pytest.mark.fast]
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     """Placeholder for CLI availability."""
+from tests.behavior.feature_paths import feature_path
     return True
 
 
@@ -37,7 +38,7 @@ def chroma_context(monkeypatch, tmp_path):
     return {"cls": mock_cls, "store": mock_store, "path": tmp_path}
 
 
-scenarios("../features/general/chromadb_integration.feature")
+scenarios(feature_path(__file__, "general", "chromadb_integration.feature"))
 
 
 @given("the chromadb_integration feature context")

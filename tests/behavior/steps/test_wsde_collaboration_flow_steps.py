@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,7 +11,7 @@ from devsynth.methodology.base import Phase
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/wsde/collaboration_flow.feature")
+scenarios(feature_path(__file__, "wsde", "collaboration_flow.feature"))
 
 
 @pytest.fixture

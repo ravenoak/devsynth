@@ -3,6 +3,7 @@
 ReqID: memory-adapter-read-and-write-operations
 """
 
+from tests.behavior.feature_paths import feature_path
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -16,7 +17,7 @@ from devsynth.memory.layered_cache import DictCacheLayer, MultiLayeredMemory
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/memory_adapter_read_and_write_operations.feature")
+scenarios(feature_path(__file__, "memory_adapter_read_and_write_operations.feature"))
 
 
 @dataclass

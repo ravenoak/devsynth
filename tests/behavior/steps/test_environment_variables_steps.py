@@ -2,6 +2,7 @@
 Step definitions for Environment Variables Integration feature.
 """
 
+from tests.behavior.feature_paths import feature_path
 import os
 import tempfile
 from pathlib import Path
@@ -13,7 +14,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-scenarios("../features/general/environment_variables.feature")
+scenarios(feature_path(__file__, "general", "environment_variables.feature"))
 
 
 @given(parsers.parse("I have a .env file with the following content:\n{content}"))

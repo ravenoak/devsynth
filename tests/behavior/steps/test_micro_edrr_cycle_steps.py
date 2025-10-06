@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
@@ -8,7 +9,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/micro_edrr_cycle.feature")
+scenarios(feature_path(__file__, "general", "micro_edrr_cycle.feature"))
 
 import json
 

@@ -2,6 +2,7 @@
 Step definitions for version-aware documentation feature tests.
 """
 
+from tests.behavior.feature_paths import feature_path
 import json
 import os
 import tempfile
@@ -20,7 +21,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-scenarios("../features/general/version_aware_documentation.feature")
+scenarios(feature_path(__file__, "general", "version_aware_documentation.feature"))
 
 
 # Define a fixture for the context

@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
@@ -10,7 +11,7 @@ pytestmark = [
     pytest.mark.requires_resource("chromadb"),
 ]
 
-scenarios("../features/memory/chromadb_store.feature")
+scenarios(feature_path(__file__, "memory", "chromadb_store.feature"))
 
 
 @pytest.fixture

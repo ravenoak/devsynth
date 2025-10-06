@@ -8,13 +8,14 @@ from devsynth.application.orchestration.workflow import workflow_manager
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/edrr_cycle.feature")
+scenarios(feature_path(__file__, "general", "edrr_cycle.feature"))
 
 
 @pytest.fixture
 def context():
     """Context object for storing state between steps."""
 
+from tests.behavior.feature_paths import feature_path
     class Context:
         def __init__(self):
             self.manifest = None

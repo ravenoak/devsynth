@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import sys
 from unittest.mock import MagicMock
 
@@ -9,7 +10,7 @@ from .webui_steps import webui_context
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/webui_commands.feature")
+scenarios(feature_path(__file__, "general", "webui_commands.feature"))
 
 
 @given("the WebUI is initialized")

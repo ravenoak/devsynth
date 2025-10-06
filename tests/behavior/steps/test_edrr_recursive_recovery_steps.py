@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
@@ -16,7 +17,7 @@ from devsynth.methodology.base import Phase
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/edrr_recursive_recovery.feature")
+scenarios(feature_path(__file__, "general", "edrr_recursive_recovery.feature"))
 
 
 class SimpleAgent:

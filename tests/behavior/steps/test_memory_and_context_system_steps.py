@@ -3,6 +3,7 @@
 ReqID: memory-and-context-system
 """
 
+from tests.behavior.feature_paths import feature_path
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,7 +19,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/memory_and_context_system.feature")
+scenarios(feature_path(__file__, "memory_and_context_system.feature"))
 
 
 @dataclass

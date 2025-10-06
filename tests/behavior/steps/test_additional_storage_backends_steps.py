@@ -4,6 +4,7 @@ Step definitions for Additional Storage Backends feature.
 This file implements step definitions for testing TinyDB, DuckDB, LMDB, and FAISS storage backends.
 """
 
+from tests.behavior.feature_paths import feature_path
 import os
 from unittest.mock import MagicMock, patch
 
@@ -30,7 +31,7 @@ pytestmark = [
 ]
 
 # Register the scenarios from the feature file
-scenarios("../features/general/additional_storage_backends.feature")
+scenarios(feature_path(__file__, "general", "additional_storage_backends.feature"))
 
 
 @pytest.fixture

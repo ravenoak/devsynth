@@ -13,12 +13,13 @@ from .cli_commands_steps import *  # noqa: F401,F403 - re-export CLI steps
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/validate_manifest.feature")
+scenarios(feature_path(__file__, "general", "validate_manifest.feature"))
 
 
 @given("a project with an invalid configuration file")
 def project_with_invalid_config(tmp_project_dir, command_context):
     """Create an invalid configuration file for testing."""
+from tests.behavior.feature_paths import feature_path
     config_path = os.path.join(tmp_project_dir, ".devsynth", "project.yaml")
     os.makedirs(os.path.dirname(config_path), exist_ok=True)
     with open(config_path, "w") as f:

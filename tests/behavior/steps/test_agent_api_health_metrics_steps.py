@@ -15,12 +15,13 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/agent_api_health_metrics.feature")
+scenarios(feature_path(__file__, "general", "agent_api_health_metrics.feature"))
 
 
 @pytest.fixture
 def api_context(monkeypatch):
     """Start the API with CLI commands mocked."""
+from tests.behavior.feature_paths import feature_path
     # Mock settings for authentication
     settings_stub = MagicMock()
     settings_stub.access_token = ""  # No authentication by default

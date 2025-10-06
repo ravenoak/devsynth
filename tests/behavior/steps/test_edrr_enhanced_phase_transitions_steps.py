@@ -26,14 +26,15 @@ from devsynth.methodology.base import Phase
 pytestmark = [pytest.mark.fast]
 
 # Register feature scenarios.
-scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
-scenarios("../features/general/edrr_coordinator.feature")
+scenarios(feature_path(__file__, "general", "edrr_enhanced_phase_transitions.feature"))
+scenarios(feature_path(__file__, "general", "edrr_coordinator.feature"))
 
 
 @pytest.fixture
 def context():
     """Fixture to provide a context object for storing test state between steps."""
 
+from tests.behavior.feature_paths import feature_path
     class Context:
 
         def __init__(self):
@@ -946,7 +947,7 @@ from unittest.mock import MagicMock, patch
 # noqa: F401,F403
 import pytest
 
-scenarios("../features/general/edrr_enhanced_phase_transitions.feature")
+scenarios(feature_path(__file__, "general", "edrr_enhanced_phase_transitions.feature"))
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.documentation.documentation_manager import (

@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import json
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from devsynth.testing.performance import (
 
 pytestmark = [pytest.mark.medium]
 
-scenarios("../features/performance_and_scalability_testing.feature")
+scenarios(feature_path(__file__, "performance_and_scalability_testing.feature"))
 
 
 @pytest.fixture

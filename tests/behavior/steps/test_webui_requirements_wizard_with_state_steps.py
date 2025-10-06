@@ -6,6 +6,7 @@ with WizardState integration, which allows users to capture requirements through
 multi-step wizard with proper state management.
 """
 
+from tests.behavior.feature_paths import feature_path
 import json
 import sys
 from types import ModuleType
@@ -19,7 +20,7 @@ pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
 
-scenarios("../features/webui/requirements_wizard_with_state.feature")
+scenarios(feature_path(__file__, "webui", "requirements_wizard_with_state.feature"))
 
 
 @pytest.fixture

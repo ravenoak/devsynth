@@ -17,8 +17,8 @@ from devsynth.consensus import build_consensus
 pytestmark = pytest.mark.fast
 
 # Import the feature files
-scenarios("../features/consensus_building.feature")
-scenarios("../features/general/consensus_building.feature")
+scenarios(feature_path(__file__, "consensus_building.feature"))
+scenarios(feature_path(__file__, "general", "consensus_building.feature"))
 
 
 # Define a fixture for the context
@@ -57,6 +57,7 @@ def create_mock_agent(name, expertise, experience_level=5):
 @given("a WSDE team with multiple agents")
 def wsde_team_with_multiple_agents(context):
     """Create a WSDE team with multiple agents."""
+from tests.behavior.feature_paths import feature_path
     context.team = WSDETeam(name="ConsensusTeam")
 
     # Create agents with different expertise areas

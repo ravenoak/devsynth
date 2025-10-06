@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import os
 import tempfile
 from pathlib import Path
@@ -8,7 +9,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/edrr_real_llm_integration.feature")
+scenarios(feature_path(__file__, "general", "edrr_real_llm_integration.feature"))
 
 from devsynth.adapters.provider_system import ProviderType, get_provider
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer

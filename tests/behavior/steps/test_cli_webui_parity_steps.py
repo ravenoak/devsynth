@@ -1,10 +1,11 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/cli_ui_parity.feature")
+scenarios(feature_path(__file__, "general", "cli_ui_parity.feature"))
 
 
 @pytest.fixture

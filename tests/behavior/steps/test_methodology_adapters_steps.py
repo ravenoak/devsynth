@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from typing import Any, Dict, List
 
 import pytest
@@ -11,7 +12,7 @@ from devsynth.methodology.sprint import SprintAdapter
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-scenarios("../features/general/methodology_adapters.feature")
+scenarios(feature_path(__file__, "general", "methodology_adapters.feature"))
 
 
 # Define a fixture for the context

@@ -2,6 +2,7 @@
 Step definitions for the simple addition feature.
 """
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
@@ -9,7 +10,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Load the scenarios from the feature file
-scenarios("../features/examples/simple_addition.feature")
+scenarios(feature_path(__file__, "examples", "simple_addition.feature"))
 
 
 @pytest.fixture

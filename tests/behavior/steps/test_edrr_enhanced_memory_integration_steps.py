@@ -10,13 +10,14 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 # Content from test_edrr_coordinator_steps.py inlined here
 """Step definitions for the EDRR Coordinator feature."""
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/edrr_coordinator.feature")
+scenarios(feature_path(__file__, "general", "edrr_coordinator.feature"))
 import json
 import os
 import tempfile
@@ -952,7 +953,7 @@ import logging
 import pytest
 
 # Import the scenarios from the feature file
-scenarios("../features/general/edrr_enhanced_memory_integration.feature")
+scenarios(feature_path(__file__, "general", "edrr_enhanced_memory_integration.feature"))
 
 # Import the necessary components
 from unittest.mock import MagicMock, patch

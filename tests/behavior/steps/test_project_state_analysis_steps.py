@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,7 @@ from devsynth.application.code_analysis.project_state_analysis import (
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/project_state_analysis.feature")
+scenarios(feature_path(__file__, "project_state_analysis.feature"))
 
 
 @pytest.fixture

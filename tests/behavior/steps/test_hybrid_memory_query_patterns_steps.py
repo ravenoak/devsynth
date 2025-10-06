@@ -20,7 +20,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/hybrid_memory_query_patterns.feature")
+scenarios(feature_path(__file__, "general", "hybrid_memory_query_patterns.feature"))
 
 
 @pytest.fixture
@@ -414,3 +414,4 @@ def track_status(context):
 @then("queries should indicate if results might include stale data")
 def stale_data_indicator(context):
     assert True
+from tests.behavior.feature_paths import feature_path

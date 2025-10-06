@@ -15,8 +15,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/edrr_enhanced_recursion.feature")
-scenarios("../features/general/edrr_coordinator.feature")
+scenarios(feature_path(__file__, "general", "edrr_enhanced_recursion.feature"))
+scenarios(feature_path(__file__, "general", "edrr_coordinator.feature"))
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -36,6 +36,7 @@ from devsynth.methodology.base import Phase
 def context():
     """Fixture to provide a context object for storing test state between steps."""
 
+from tests.behavior.feature_paths import feature_path
     class Context:
 
         def __init__(self):
@@ -949,7 +950,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Import the scenarios from the feature file
-scenarios("../features/general/edrr_enhanced_recursion.feature")
+scenarios(feature_path(__file__, "general", "edrr_enhanced_recursion.feature"))
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer

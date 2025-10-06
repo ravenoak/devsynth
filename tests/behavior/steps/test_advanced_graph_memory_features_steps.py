@@ -2,6 +2,7 @@
 Step definitions for advanced_graph_memory_features.feature
 """
 
+from tests.behavior.feature_paths import feature_path
 import os
 import tempfile
 from datetime import datetime, timedelta
@@ -25,7 +26,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 pytestmark = [pytest.mark.fast]
 
 # Register scenarios
-scenarios("../features/general/advanced_graph_memory_features.feature")
+scenarios(feature_path(__file__, "general", "advanced_graph_memory_features.feature"))
 
 
 @pytest.fixture

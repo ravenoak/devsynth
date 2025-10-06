@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,7 +13,7 @@ from devsynth.application.memory.memory_manager import MemoryManager
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-scenarios("../features/general/documentation_utility_functions.feature")
+scenarios(feature_path(__file__, "general", "documentation_utility_functions.feature"))
 
 
 # Define a fixture for the context

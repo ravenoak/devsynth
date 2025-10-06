@@ -8,7 +8,7 @@ pytestmark = [pytest.mark.fast]
 
 pytest.skip("Placeholder feature not implemented", allow_module_level=True)
 
-scenarios("../features/general/project_ingestion.feature")
+scenarios(feature_path(__file__, "general", "project_ingestion.feature"))
 
 
 @given("the project_ingestion feature context")
@@ -24,3 +24,4 @@ def when_execute():
 @then("the project_ingestion workflow completes")
 def then_complete():
     pass
+from tests.behavior.feature_paths import feature_path

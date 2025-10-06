@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import os
 from pathlib import Path
 from typing import Optional, Sequence
@@ -36,7 +37,7 @@ class DummyBridge(UXBridge):
         pass
 
 
-scenarios("../features/general/setup_wizard.feature")
+scenarios(feature_path(__file__, "general", "setup_wizard.feature"))
 
 
 @given("the DevSynth CLI is installed")

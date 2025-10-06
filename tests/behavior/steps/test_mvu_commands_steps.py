@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pathlib import Path
 from typing import List
@@ -54,7 +55,7 @@ def _app() -> Typer:
     return app
 
 
-scenarios("../features/mvu/commands.feature")
+scenarios(feature_path(__file__, "mvu", "commands.feature"))
 
 
 @given("the DevSynth CLI is installed")

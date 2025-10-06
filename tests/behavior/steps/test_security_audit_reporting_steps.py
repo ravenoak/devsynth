@@ -13,7 +13,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/security/security_audit_reporting.feature")
+scenarios(feature_path(__file__, "security", "security_audit_reporting.feature"))
 
 
 @pytest.fixture
@@ -78,3 +78,4 @@ def verify_report(context, filename: str):
 @then("the workflow should execute successfully")
 def workflow_succeeds(context):
     assert context.exit_code == 0
+from tests.behavior.feature_paths import feature_path

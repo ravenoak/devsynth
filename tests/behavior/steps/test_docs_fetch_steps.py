@@ -6,7 +6,7 @@ from pytest_bdd import given, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/docs_fetch.feature")
+scenarios(feature_path(__file__, "general", "docs_fetch.feature"))
 
 
 @pytest.fixture
@@ -27,3 +27,4 @@ def when_execute(docs_context):
 @then("the docs_fetch workflow completes")
 def then_complete(docs_context):
     assert docs_context.get("executed") is True
+from tests.behavior.feature_paths import feature_path

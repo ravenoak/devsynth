@@ -13,12 +13,13 @@ from .test_generation_steps import have_analyzed_project
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/code_generation.feature")
+scenarios(feature_path(__file__, "general", "code_generation.feature"))
 
 
 @pytest.fixture
 def command_context():
     """Context object shared between steps."""
+from tests.behavior.feature_paths import feature_path
     return {}
 
 

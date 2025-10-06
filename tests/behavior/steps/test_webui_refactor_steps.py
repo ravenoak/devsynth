@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
@@ -7,7 +8,7 @@ from .webui_steps import given_webui_initialized, webui_context
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-scenarios("../features/webui/refactor.feature")
+scenarios(feature_path(__file__, "webui", "refactor.feature"))
 
 
 @then("the refactor page should be displayed")

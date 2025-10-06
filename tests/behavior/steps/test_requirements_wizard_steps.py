@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import json
 from pathlib import Path
 from typing import Optional, Sequence
@@ -62,8 +63,8 @@ def _run_wizard(
         wizard.bridge.display_result("Cancelled")
 
 
-scenarios("../features/general/requirements_wizard.feature")
-scenarios("../features/requirements_wizard.feature")
+scenarios(feature_path(__file__, "general", "requirements_wizard.feature"))
+scenarios(feature_path(__file__, "requirements_wizard.feature"))
 
 
 @given("the DevSynth CLI is installed")

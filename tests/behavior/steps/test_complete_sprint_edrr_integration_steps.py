@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
@@ -12,7 +13,7 @@ from devsynth.methodology.sprint_adapter import (
 pytestmark = [pytest.mark.fast]
 
 # Load the feature file
-scenarios("../features/complete_sprint_edrr_integration.feature")
+scenarios(feature_path(__file__, "complete_sprint_edrr_integration.feature"))
 
 
 @pytest.fixture

@@ -14,7 +14,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/project_initialization.feature")
+scenarios(feature_path(__file__, "general", "project_initialization.feature"))
 
 
 @pytest.fixture
@@ -35,3 +35,4 @@ def when_execute(init_context):
 @then("the project_initialization workflow completes")
 def then_complete(init_context):
     assert init_context.get("executed") is True
+from tests.behavior.feature_paths import feature_path

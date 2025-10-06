@@ -6,6 +6,7 @@ feature file, which tests the functionality of the Memory Manager layer with
 specialized adapters and memory tagging with EDRR phases.
 """
 
+from tests.behavior.feature_paths import feature_path
 import ast
 import json
 from typing import Any, Dict, List, Optional
@@ -18,7 +19,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/memory_manager.feature")
+scenarios(feature_path(__file__, "general", "memory_manager.feature"))
 
 from devsynth.application.memory.adapters.graph_memory_adapter import GraphMemoryAdapter
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (

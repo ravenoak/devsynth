@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
@@ -7,7 +8,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/memory/memory_operations.feature")
+scenarios(feature_path(__file__, "memory", "memory_operations.feature"))
 
 
 @pytest.fixture

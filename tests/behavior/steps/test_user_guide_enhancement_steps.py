@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import os
 import re
 from pathlib import Path
@@ -9,7 +10,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-scenarios("../features/general/user_guide_enhancement.feature")
+scenarios(feature_path(__file__, "general", "user_guide_enhancement.feature"))
 
 
 # Define a fixture for the context

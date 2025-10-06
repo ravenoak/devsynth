@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
@@ -55,7 +56,7 @@ _ST_STREAMLIT = _install_streamlit_stub()
 pytest.importorskip("streamlit")
 
 # Register the feature scenarios to ensure step discovery
-scenarios("../features/general/webui_integration.feature")
+scenarios(feature_path(__file__, "general", "webui_integration.feature"))
 
 
 # Mock the WebUI and related components

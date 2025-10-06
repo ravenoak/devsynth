@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import json
 import os
 from pathlib import Path
@@ -15,8 +16,8 @@ from devsynth.config.unified_loader import UnifiedConfigLoader
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/interactive_init_wizard.feature")
-scenarios("../features/interactive_init_wizard.feature")
+scenarios(feature_path(__file__, "general", "interactive_init_wizard.feature"))
+scenarios(feature_path(__file__, "interactive_init_wizard.feature"))
 
 
 @given("the DevSynth CLI is installed")

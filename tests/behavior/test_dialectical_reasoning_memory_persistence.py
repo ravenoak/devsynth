@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import scenarios
 
@@ -6,4 +7,4 @@ from .steps.test_dialectical_reasoning_memory_persistence_steps import *  # noqa
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("features/general/dialectical_reasoning_memory_persistence.feature")
+scenarios(feature_path(__file__, "general", "dialectical_reasoning_memory_persistence.feature"))

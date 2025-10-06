@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 
 """Steps for the requirements management feature."""
@@ -15,7 +16,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/requirements_management.feature")
+scenarios(feature_path(__file__, "general", "requirements_management.feature"))
 
 
 @pytest.fixture

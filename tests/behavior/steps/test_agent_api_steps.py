@@ -15,13 +15,14 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/agent_api_interactions.feature")
+scenarios(feature_path(__file__, "general", "agent_api_interactions.feature"))
 
 
 @pytest.fixture
 def api_context(monkeypatch):
     """Start the API with CLI commands mocked."""
 
+from tests.behavior.feature_paths import feature_path
     cli_stub = ModuleType("devsynth.application.cli")
 
     def init_cmd(path=".", project_root=None, language=None, goals=None, *, bridge):

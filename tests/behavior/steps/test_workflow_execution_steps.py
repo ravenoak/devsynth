@@ -14,7 +14,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/workflow_execution.feature")
+scenarios(feature_path(__file__, "general", "workflow_execution.feature"))
 
 
 @pytest.fixture
@@ -35,3 +35,4 @@ def when_execute(workflow_context):
 @then("the workflow_execution workflow completes")
 def then_complete(workflow_context):
     assert workflow_context.get("executed") is True
+from tests.behavior.feature_paths import feature_path

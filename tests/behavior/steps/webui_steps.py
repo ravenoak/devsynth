@@ -1,5 +1,6 @@
 """Common WebUI step implementations using shared test utilities."""
 
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
@@ -7,7 +8,7 @@ from tests.fixtures.webui_test_utils import simulate_form_submission, webui_cont
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/webui.feature")
+scenarios(feature_path(__file__, "general", "webui.feature"))
 
 
 @given("the WebUI is initialized")

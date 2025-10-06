@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -18,7 +19,7 @@ from devsynth.domain.models.requirement import (
 pytestmark = [pytest.mark.fast]
 
 # Load the feature file
-scenarios("../features/dialectical_reasoning/requirement_to_edrr_link.feature")
+scenarios(feature_path(__file__, "dialectical_reasoning", "requirement_to_edrr_link.feature"))
 
 
 class DummyMemoryManager:

@@ -5,6 +5,7 @@ This module implements the step definitions for the WebUI Gather Wizard feature,
 which allows users to gather project resources through a multi-step wizard.
 """
 
+from tests.behavior.feature_paths import feature_path
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
@@ -16,7 +17,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-scenarios("../features/webui/gather_wizard.feature")
+scenarios(feature_path(__file__, "webui", "gather_wizard.feature"))
 
 
 @given("the WebUI is initialized")

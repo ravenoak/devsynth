@@ -14,7 +14,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/error_handling.feature")
+scenarios(feature_path(__file__, "general", "error_handling.feature"))
 
 
 @pytest.fixture
@@ -35,3 +35,4 @@ def when_execute(error_context):
 @then("the error_handling workflow completes")
 def then_complete(error_context):
     assert error_context.get("executed") is True
+from tests.behavior.feature_paths import feature_path

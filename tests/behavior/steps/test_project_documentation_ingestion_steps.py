@@ -17,7 +17,7 @@ from devsynth.domain.models.memory import MemoryType
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/project_documentation_ingestion.feature")
+scenarios(feature_path(__file__, "general", "project_documentation_ingestion.feature"))
 
 
 @pytest.fixture
@@ -81,3 +81,4 @@ def verify_docs(context):
         {"type": MemoryType.DOCUMENTATION}
     )
     assert len(results) > 0
+from tests.behavior.feature_paths import feature_path

@@ -8,8 +8,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/recursive_edrr_coordinator.feature")
-scenarios("../features/recursive_edrr_coordinator.feature")
+scenarios(feature_path(__file__, "general", "recursive_edrr_coordinator.feature"))
+scenarios(feature_path(__file__, "recursive_edrr_coordinator.feature"))
 
 # Import the necessary components
 
@@ -35,6 +35,7 @@ from devsynth.methodology.base import Phase
 def context():
     """Fixture to provide a context object for storing test state between steps."""
 
+from tests.behavior.feature_paths import feature_path
     class Context:
         def __init__(self):
             self.memory_manager = None

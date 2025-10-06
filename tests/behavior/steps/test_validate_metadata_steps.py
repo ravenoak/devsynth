@@ -8,7 +8,7 @@ pytestmark = [pytest.mark.fast]
 
 pytest.skip("Placeholder feature not implemented", allow_module_level=True)
 
-scenarios("../features/general/validate_metadata.feature")
+scenarios(feature_path(__file__, "general", "validate_metadata.feature"))
 
 
 @given("the validate_metadata feature context")
@@ -24,3 +24,4 @@ def when_execute():
 @then("the validate_metadata workflow completes")
 def then_complete():
     pass
+from tests.behavior.feature_paths import feature_path

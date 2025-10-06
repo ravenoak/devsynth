@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import os
 from unittest.mock import MagicMock, patch
 
@@ -8,7 +9,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-scenarios("../features/general/run_pipeline_command.feature")
+scenarios(feature_path(__file__, "general", "run_pipeline_command.feature"))
 
 
 # Fixtures for test isolation

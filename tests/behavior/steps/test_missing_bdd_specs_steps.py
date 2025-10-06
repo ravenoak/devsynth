@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from pathlib import Path
 
 import pytest
@@ -45,7 +46,7 @@ FEATURES = [
     "wsde_role_progression_memory.feature",
 ]
 for feature in FEATURES:
-    scenarios(f"../features/{feature}")
+    scenarios(feature_path(__file__, feature))
 
 SPEC_DIR = Path(__file__).parents[2] / "docs" / "specifications"
 

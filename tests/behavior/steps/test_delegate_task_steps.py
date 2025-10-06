@@ -14,13 +14,14 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/delegate_task.feature")
-scenarios("../features/multi_agent_task_delegation.feature")
+scenarios(feature_path(__file__, "general", "delegate_task.feature"))
+scenarios(feature_path(__file__, "multi_agent_task_delegation.feature"))
 
 
 class SimpleTeam(WSDETeam):
     """WSDE team with deterministic consensus and dialectical hooks."""
 
+from tests.behavior.feature_paths import feature_path
     def __init__(self) -> None:
         super().__init__(name="TestSimpleTeam")
         self.dialectical_called = False

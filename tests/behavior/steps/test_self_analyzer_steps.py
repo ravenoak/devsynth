@@ -11,6 +11,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, then, when
 
+from tests.behavior.feature_paths import feature_path
+
 from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
 from devsynth.domain.models.wsde_facade import WSDETeam
@@ -21,7 +23,7 @@ pytestmark = [pytest.mark.fast]
 
 # Import the feature file
 scenarios = pytest.importorskip("pytest_bdd").scenarios(
-    "../features/general/self_analyzer.feature"
+    feature_path(__file__, "general", "self_analyzer.feature")
 )
 
 

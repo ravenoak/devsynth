@@ -112,6 +112,10 @@ infinite loops.
 - Autoresearch feature scenarios add research artefacts through mocked
   connectors representing the external service, reload the adapter, and query
   provenance fields to confirm durability.
+- The traversal and persistence logic lives in
+  [`GraphMemoryAdapter`](../../src/devsynth/application/memory/adapters/graph_memory_adapter.py),
+  which manages RDF serialisation and Autoresearch provenance metadata updates
+  consumed by the CLI helpers.
 - Unit and integration tests execute without errors for all memory backends.
 
 ## Autoresearch Coordination Interfaces

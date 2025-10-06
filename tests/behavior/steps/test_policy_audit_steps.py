@@ -12,7 +12,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/security/policy_audit.feature")
+scenarios(feature_path(__file__, "security", "policy_audit.feature"))
 
 
 @pytest.fixture
@@ -28,6 +28,7 @@ def context():
 @given(parsers.parse('a config file "{filename}" containing "{content}"'))
 def config_file(tmp_path: Path, filename: str, content: str, context):
     """Create a configuration file with insecure content."""
+from tests.behavior.feature_paths import feature_path
     path = tmp_path / filename
     path.write_text(content)
     context.target = path
