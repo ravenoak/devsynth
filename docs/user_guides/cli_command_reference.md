@@ -523,6 +523,7 @@ poetry run devsynth run-tests [OPTIONS]
 | `--segment` | Run tests in batches |
 | `--segment-size INTEGER` | Number of tests per batch when segmenting (default: 50) |
 | `--maxfail INTEGER` | Exit after this many failures |
+| `--dry-run` | Preview the pytest command without executing tests |
 | `--feature TEXT` | Feature flags to set; repeatable; accept `name` or `name=false` (maps to `DEVSYNTH_FEATURE_<NAME>`) |
 | `--inventory` | Produce a JSON inventory of collected tests (written to `test_reports/test_inventory.json`) |
 | `-m`, `--marker TEXT` | Additional pytest marker expression to AND with speed filters (e.g., `requires_resource('lmstudio') and not slow`) |
@@ -531,11 +532,15 @@ Additional behavior:
 - In smoke mode, the CLI enforces no parallel execution by default (equivalent to passing `--no-parallel`) and disables xdist and third-party pytest plugins. Passing `--no-parallel` is redundant in smoke mode.
 - In smoke mode, a conservative per-test timeout is applied by default: `DEVSYNTH_TEST_TIMEOUT_SECONDS=30` (unless already set).
 - For explicit fast-only runs (non-smoke), a slightly looser default timeout is applied: `DEVSYNTH_TEST_TIMEOUT_SECONDS=30` (unless already set).
+- `--dry-run` performs test collection and prints the prepared pytest command, making it ideal for validating plugin wiring or marker filters without executing the suite.
 
 **Examples:**
 ```bash
 # Fast smoke run, fail on first error, no parallel
 poetry run devsynth run-tests --target unit-tests --speed fast --smoke --maxfail 1 --no-parallel
+
+# Smoke dry-run to verify plugin configuration
+poetry run devsynth run-tests --target unit-tests --speed fast --smoke --no-parallel --maxfail 1 --dry-run
 
 # Medium + slow, segmenting into batches of 25
 poetry run devsynth run-tests --target all-tests --speed medium --speed slow --segment --segment-size 25

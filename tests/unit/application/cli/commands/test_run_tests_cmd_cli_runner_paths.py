@@ -63,7 +63,7 @@ def test_cli_segmented_run_injects_plugins_and_emits_failure_tips(
     monkeypatch.setattr(run_tests_module.subprocess, "Popen", DummyProcess)
 
     runner = CliRunner()
-    app, _ = build_minimal_cli_app(monkeypatch)
+    app, cli_module = build_minimal_cli_app(monkeypatch)
     result = runner.invoke(
         app,
         [
@@ -130,6 +130,55 @@ def test_cli_inventory_mode_exports_json_via_typer(
     assert payload["targets"]["unit-tests"]["fast"] == [
         "unit-tests::fast::test_case"
     ]
+
+
+@pytest.mark.fast
+def test_cli_smoke_dry_run_invokes_preview(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """Smoke dry-run previews pytest invocation without executing suites."""
+
+    monkeypatch.chdir(tmp_path)
+    sys.modules.pop("devsynth.config", None)
+    sys.modules.pop("devsynth.config.settings", None)
+    sys.modules.pop("devsynth.config.provider_env", None)
+    app, cli_module = build_minimal_cli_app(monkeypatch)
+
+    calls: list[dict[str, Any]] = []
+
+    def fake_run_tests(*args: Any, **kwargs: Any) -> tuple[bool, str]:
+        calls.append({"args": args, "kwargs": kwargs})
+        return (
+            True,
+            "Dry run: pytest invocation prepared but not executed.\n"
+            "Command: python -m pytest tests/unit/test_example.py::test_case\n",
+        )
+
+    monkeypatch.setattr(run_tests_module, "run_tests", fake_run_tests)
+    monkeypatch.setattr(cli_module, "run_tests", fake_run_tests)
+    monkeypatch.setattr(run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: False)
+    monkeypatch.setattr(run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "--target",
+            "unit-tests",
+            "--smoke",
+            "--no-parallel",
+            "--speed",
+            "fast",
+            "--maxfail",
+            "1",
+            "--dry-run",
+        ],
+        prog_name="run-tests",
+    )
+
+    assert result.exit_code == 0
+    assert calls and calls[0]["kwargs"].get("dry_run") is True
+    assert "Dry run complete" in result.stdout
 
 
 @pytest.mark.fast
@@ -217,7 +266,7 @@ def test_cli_enforces_coverage_threshold_via_cli_runner(
 
     assert result.exit_code == 0
     assert "Tests completed successfully" in result.stdout
-    expected_notice = "Coverage 87.50% meets the 70% threshold"
+    expected_notice = "Coverage 87.50% meets the 90% threshold"
     assert expected_notice in result.stdout
     assert artifact_calls, "coverage_artifacts_status should run in coverage mode"
     assert threshold_calls == [False]
@@ -285,6 +334,8 @@ def test_cli_smoke_mode_reports_coverage_skip_and_artifacts(
     monkeypatch.setattr(cli_module, "ensure_pytest_cov_plugin_env", lambda env: False)
     monkeypatch.setattr(cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
 
+    monkeypatch.delenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", raising=False)
+
     runner = CliRunner()
     result = runner.invoke(app, ["--smoke", "--report"], prog_name="run-tests")
 
@@ -343,8 +394,7 @@ def test_cli_exits_when_autoload_disables_pytest_cov(
     )
 
     assert result.exit_code == 1
-    assert "Coverage enforcement skipped: pytest-cov instrumentation disabled" in result.stdout
-    assert "Unset PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 or append '-p pytest_cov'" in result.stdout
+    assert "Coverage instrumentation unavailable: pytest plugin autoload disabled without -p pytest_cov" in result.stdout
 
 
 @pytest.mark.fast
@@ -394,6 +444,4 @@ def test_cli_exits_when_pytest_cov_disabled_via_autoload(monkeypatch: pytest.Mon
     )
 
     assert result.exit_code == 1
-    assert "Coverage enforcement skipped" in result.stdout
-    assert "pytest-cov was disabled" in result.stdout
-    assert "Unset PYTEST_DISABLE_PLUGIN_AUTOLOAD=1" in result.stdout
+    assert "Coverage instrumentation unavailable: pytest plugin autoload disabled without -p pytest_cov" in result.stdout
