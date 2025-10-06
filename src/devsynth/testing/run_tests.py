@@ -23,6 +23,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Mapping, cast
 from unittest.mock import patch
+from uuid import uuid4
 
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.release import (
@@ -174,6 +175,124 @@ _RESOURCE_NAME_PATTERN = re.compile(
 _RESOURCE_CALL_PATTERN = re.compile(
     r"^requires_resource\((['\"])(?P<name>[^'\"]+)\1\)$"
 )
+
+
+def _generate_metadata_id(prefix: str) -> str:
+    """Return a unique identifier for execution metadata objects."""
+
+    return f"{prefix}-{uuid4().hex}"
+
+
+class SingleBatchRequest:
+    """Structured configuration for a single pytest batch execution."""
+
+    __slots__ = (
+        "node_ids",
+        "marker_expr",
+        "verbose",
+        "report",
+        "parallel",
+        "maxfail",
+        "keyword_filter",
+        "env",
+        "dry_run",
+    )
+
+    node_ids: tuple[str, ...]
+    marker_expr: str
+    verbose: bool
+    report: bool
+    parallel: bool
+    maxfail: int | None
+    keyword_filter: str | None
+    env: MutableMapping[str, str]
+    dry_run: bool
+
+    def __init__(
+        self,
+        *,
+        node_ids: Sequence[str],
+        marker_expr: str,
+        verbose: bool,
+        report: bool,
+        parallel: bool,
+        maxfail: int | None,
+        keyword_filter: str | None,
+        env: MutableMapping[str, str],
+        dry_run: bool = False,
+    ) -> None:
+        self.node_ids = tuple(node_ids)
+        self.marker_expr = marker_expr
+        self.verbose = verbose
+        self.report = report
+        self.parallel = parallel
+        self.maxfail = maxfail
+        self.keyword_filter = keyword_filter
+        self.env = env
+        self.dry_run = dry_run
+
+
+class SegmentedRunRequest:
+    """Structured configuration for segmented pytest execution."""
+
+    __slots__ = (
+        "target",
+        "speed_categories",
+        "marker_expr",
+        "node_ids",
+        "verbose",
+        "report",
+        "parallel",
+        "segment_size",
+        "maxfail",
+        "keyword_filter",
+        "env",
+        "dry_run",
+    )
+
+    target: str
+    speed_categories: tuple[str, ...]
+    marker_expr: str
+    node_ids: tuple[str, ...]
+    verbose: bool
+    report: bool
+    parallel: bool
+    segment_size: int
+    maxfail: int | None
+    keyword_filter: str | None
+    env: MutableMapping[str, str]
+    dry_run: bool
+
+    def __init__(
+        self,
+        *,
+        target: str,
+        speed_categories: Sequence[str],
+        marker_expr: str,
+        node_ids: Sequence[str],
+        verbose: bool,
+        report: bool,
+        parallel: bool,
+        segment_size: int,
+        maxfail: int | None,
+        keyword_filter: str | None,
+        env: MutableMapping[str, str],
+        dry_run: bool = False,
+    ) -> None:
+        if segment_size <= 0:
+            raise ValueError("segment_size must be a positive integer")
+        self.target = target
+        self.speed_categories = tuple(speed_categories)
+        self.marker_expr = marker_expr
+        self.node_ids = tuple(node_ids)
+        self.verbose = verbose
+        self.report = report
+        self.parallel = parallel
+        self.segment_size = segment_size
+        self.maxfail = maxfail
+        self.keyword_filter = keyword_filter
+        self.env = env
+        self.dry_run = dry_run
 
 
 def _reset_coverage_artifacts() -> None:
@@ -1187,11 +1306,11 @@ def run_tests(
     execution_metadata: dict[str, object]
     if segment and normalized_speeds and not marker_fallback:
         # Segmented execution
-        segmented_kwargs = dict(
+        segmented_request = SegmentedRunRequest(
             target=target,
-            speed_categories=normalized_speeds,
+            speed_categories=tuple(normalized_speeds),
             marker_expr=marker_expr,
-            node_ids=collected_node_ids,  # Pass collected node_ids
+            node_ids=tuple(collected_node_ids),
             verbose=verbose,
             report=report,
             parallel=parallel,
@@ -1199,14 +1318,13 @@ def run_tests(
             maxfail=maxfail,
             keyword_filter=effective_keyword_filter,
             env=env,
+            dry_run=dry_run,
         )
-        if dry_run:
-            segmented_kwargs["dry_run"] = True
-        success, output, execution_metadata = _run_segmented_tests(**segmented_kwargs)
+        success, output, execution_metadata = _run_segmented_tests(segmented_request)
     else:
         # Single execution
-        batch_kwargs = dict(
-            node_ids=collected_node_ids,  # Pass collected node_ids
+        batch_request = SingleBatchRequest(
+            node_ids=tuple(collected_node_ids),
             marker_expr=marker_expr,
             verbose=verbose,
             report=report,
@@ -1214,10 +1332,9 @@ def run_tests(
             maxfail=maxfail,
             keyword_filter=effective_keyword_filter,
             env=env,
+            dry_run=dry_run,
         )
-        if dry_run:
-            batch_kwargs["dry_run"] = True
-        success, output, execution_metadata = _run_single_test_batch(**batch_kwargs)
+        success, output, execution_metadata = _run_single_test_batch(batch_request)
         if not dry_run:
             _ensure_coverage_artifacts()
 
@@ -1242,74 +1359,60 @@ def run_tests(
 
 
 def _run_segmented_tests(
-    target: str,
-    speed_categories: list[str],
-    marker_expr: str,
-    node_ids: list[str],  # Changed from test_path: str
-    verbose: bool,
-    report: bool,
-    parallel: bool,
-    segment_size: int,
-    maxfail: int | None,
-    keyword_filter: str | None,
-    env: dict[str, str],
-    *,
-    dry_run: bool = False,
+    request: SegmentedRunRequest,
 ) -> tuple[bool, str, dict[str, object]]:
     """Run tests in segments to handle large test suites."""
-    all_outputs = []
+
+    node_ids = _sanitize_node_ids(list(request.node_ids))
+    all_outputs: list[str] = []
     segment_metadata: list[dict[str, object]] = []
     overall_success = True
 
-    # Sanitize node IDs
-    node_ids = _sanitize_node_ids(node_ids)
-
-    # Split into segments
     segments = [
-        node_ids[i : i + segment_size] for i in range(0, len(node_ids), segment_size)
+        node_ids[i : i + request.segment_size]
+        for i in range(0, len(node_ids), request.segment_size)
     ]
 
     logger.info(
         "Running %d tests in %d segments of size %d for target=%s",
         len(node_ids),
         len(segments),
-        segment_size,
-        target,
+        request.segment_size,
+        request.target,
     )
 
-    for i, segment_nodes in enumerate(segments):
+    for index, segment_nodes in enumerate(segments):
         if not segment_nodes:
             continue
 
         logger.info(
-            "Running segment %d/%d (%d tests)", i + 1, len(segments), len(segment_nodes)
+            "Running segment %d/%d (%d tests)",
+            index + 1,
+            len(segments),
+            len(segment_nodes),
         )
 
-        batch_kwargs = dict(
-            node_ids=segment_nodes,  # Pass collected node_ids
-            marker_expr=marker_expr,
-            verbose=verbose,
-            report=
-            report
-            and (i == len(segments) - 1),  # Only generate report on last segment
-            parallel=parallel,
-            maxfail=maxfail,
-            keyword_filter=keyword_filter,
-            env=env,
+        batch_request = SingleBatchRequest(
+            node_ids=tuple(segment_nodes),
+            marker_expr=request.marker_expr,
+            verbose=request.verbose,
+            report=request.report and (index == len(segments) - 1),
+            parallel=request.parallel,
+            maxfail=request.maxfail,
+            keyword_filter=request.keyword_filter,
+            env=request.env,
+            dry_run=request.dry_run,
         )
-        if dry_run:
-            batch_kwargs["dry_run"] = True
-        success, output, metadata = _run_single_test_batch(**batch_kwargs)
+        success, output, metadata = _run_single_test_batch(batch_request)
 
         all_outputs.append(output)
         segment_metadata.append(metadata)
         if not success:
             overall_success = False
-            if maxfail:
+            if request.maxfail:
                 break  # Stop on first failure if maxfail is set
 
-    # Ensure coverage artifacts are generated
-    if not dry_run:
+    if not request.dry_run:
         _ensure_coverage_artifacts()
 
     combined_metadata: dict[str, object]
@@ -1317,6 +1420,7 @@ def _run_segmented_tests(
         first_meta = segment_metadata[0]
         last_meta = segment_metadata[-1]
         combined_metadata = {
+            "metadata_id": _generate_metadata_id("segmented"),
             "commands": [meta.get("command") for meta in segment_metadata],
             "returncode": last_meta.get("returncode", 0),
             "started_at": first_meta.get("started_at"),
@@ -1326,6 +1430,7 @@ def _run_segmented_tests(
     else:
         now_iso = datetime.now(UTC).isoformat()
         combined_metadata = {
+            "metadata_id": _generate_metadata_id("segmented"),
             "commands": [],
             "returncode": -1,
             "started_at": now_iso,
@@ -1337,46 +1442,31 @@ def _run_segmented_tests(
 
 
 def _run_single_test_batch(
-    node_ids: list[str],  # Changed from test_path: str
-    marker_expr: str,
-    verbose: bool,
-    report: bool,
-    parallel: bool,
-    maxfail: int | None,
-    keyword_filter: str | None,
-    env: dict[str, str],
-    *,
-    dry_run: bool = False,
+    request: SingleBatchRequest,
 ) -> tuple[bool, str, dict[str, object]]:
     """Run a single batch of tests."""
+
     cmd = [sys.executable, "-m", "pytest"]
+    cmd.extend(list(request.node_ids))
+    cmd.extend(["-m", request.marker_expr])
 
-    # Add test node IDs
-    cmd.extend(node_ids)
-
-    # Add marker expression
-    cmd.extend(["-m", marker_expr])
-
-    coverage_args, coverage_enabled, coverage_issue = _resolve_coverage_configuration(env)
+    coverage_args, coverage_enabled, coverage_issue = _resolve_coverage_configuration(
+        request.env
+    )
     if coverage_enabled:
         cmd.extend(coverage_args)
 
-    # Add other options
-    if verbose:
+    if request.verbose:
         cmd.append("-v")
-    if parallel:
+    if request.parallel:
         cmd.extend(["-n", "auto"])
-    if maxfail:
-        cmd.extend(["--maxfail", str(maxfail)])
-    if keyword_filter:
-        cmd.extend(["-k", keyword_filter])
-    if report:
-        # HTML report is already handled by coverage
-        pass
+    if request.maxfail:
+        cmd.extend(["--maxfail", str(request.maxfail)])
+    if request.keyword_filter:
+        cmd.extend(["-k", request.keyword_filter])
 
-    # Disable plugin autoload in smoke mode
-    if env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1":
-        addopts = env.get("PYTEST_ADDOPTS", "")
+    if request.env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1":
+        addopts = request.env.get("PYTEST_ADDOPTS", "")
         tokens = _parse_pytest_addopts(addopts)
         additions: list[str] = []
         if coverage_enabled and not any(
@@ -1389,16 +1479,17 @@ def _run_single_test_batch(
             additions.append("-p pytest_bdd")
         if additions:
             normalized = addopts.strip()
-            env["PYTEST_ADDOPTS"] = f"{normalized} {' '.join(additions)}".strip()
+            request.env["PYTEST_ADDOPTS"] = f"{normalized} {' '.join(additions)}".strip()
 
     try:
         started_at = datetime.now(UTC)
         command_preview = shlex.join(cmd)
         logger.debug("Running command: %s", command_preview)
 
-        if dry_run:
+        if request.dry_run:
             completed_at = datetime.now(UTC)
             metadata: dict[str, object] = {
+                "metadata_id": _generate_metadata_id("batch"),
                 "command": cmd,
                 "returncode": 0,
                 "started_at": started_at.isoformat(),
@@ -1422,17 +1513,18 @@ def _run_single_test_batch(
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            env=env,
+            env=request.env,
         )
 
         output, _ = process.communicate()
         completed_at = datetime.now(UTC)
-        success = process.returncode in (0, 5)  # 0 = success, 5 = no tests collected
+        success = process.returncode in (0, 5)
 
         if not success:
             output += _failure_tips(process.returncode, cmd)
 
-        metadata: dict[str, object] = {
+        metadata = {
+            "metadata_id": _generate_metadata_id("batch"),
             "command": cmd,
             "returncode": process.returncode,
             "started_at": started_at.isoformat(),
@@ -1442,11 +1534,12 @@ def _run_single_test_batch(
         if coverage_issue:
             metadata["coverage_issue"] = coverage_issue
         return success, output, metadata
-    except Exception as e:
-        error_msg = f"Failed to run tests: {e}"
+    except Exception as exc:
+        error_msg = f"Failed to run tests: {exc}"
         logger.error(error_msg)
         now_iso = datetime.now(UTC).isoformat()
         return False, error_msg, {
+            "metadata_id": _generate_metadata_id("batch"),
             "command": cmd,
             "returncode": -1,
             "started_at": now_iso,

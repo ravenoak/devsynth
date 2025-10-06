@@ -6,7 +6,6 @@ import json
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
 
 import pytest
 
@@ -144,8 +143,17 @@ def test_run_tests_successful_single_batch(monkeypatch: pytest.MonkeyPatch) -> N
 
     monkeypatch.setattr(run_tests_module, "collect_tests_with_cache", fake_collect)
 
-    def fake_single_batch(**_: Any) -> tuple[bool, str, dict[str, object]]:
-        return True, "pytest ok", {"command": ["pytest"], "returncode": 0, "started_at": "s", "completed_at": "c"}
+    def fake_single_batch(
+        config: run_tests_module.SingleBatchRequest,
+    ) -> tuple[bool, str, dict[str, object]]:
+        assert list(config.node_ids)
+        return True, "pytest ok", {
+            "metadata_id": "batch-artifacts",
+            "command": ["pytest"],
+            "returncode": 0,
+            "started_at": "s",
+            "completed_at": "c",
+        }
 
     monkeypatch.setattr(run_tests_module, "_run_single_test_batch", fake_single_batch)
     monkeypatch.setattr(run_tests_module, "_ensure_coverage_artifacts", lambda: None)

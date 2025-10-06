@@ -725,14 +725,16 @@ def test_run_tests_generates_artifacts_for_normal_profile(
 
     popen_envs: list[dict[str, str]] = []
 
-    def fake_single_batch(*, env: dict[str, str], **_kwargs: object) -> tuple[bool, str]:
-        popen_envs.append(dict(env))
+    def fake_single_batch(
+        config: rt.SingleBatchRequest,
+    ) -> tuple[bool, str, dict[str, object]]:
+        popen_envs.append(dict(config.env))
         tmp_path.joinpath(".coverage").write_text("data")
         html_dir.mkdir(parents=True, exist_ok=True)
         (html_dir / "index.html").write_text("<html>ok</html>")
         coverage_json.parent.mkdir(parents=True, exist_ok=True)
         coverage_json.write_text(json.dumps({"totals": {"percent_covered": 98.7}}))
-        return True, "batch ok"
+        return True, "batch ok", {"metadata_id": "batch-cli-artifacts"}
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
 
@@ -778,14 +780,16 @@ def test_run_tests_generates_artifacts_with_autoload_disabled(
 
     captured_envs: list[dict[str, str]] = []
 
-    def fake_single_batch(*, env: dict[str, str], **_kwargs: object) -> tuple[bool, str]:
-        captured_envs.append(dict(env))
+    def fake_single_batch(
+        config: rt.SingleBatchRequest,
+    ) -> tuple[bool, str, dict[str, object]]:
+        captured_envs.append(dict(config.env))
         tmp_path.joinpath(".coverage").write_text("data")
         html_dir.mkdir(parents=True, exist_ok=True)
         (html_dir / "index.html").write_text("<html>smoke</html>")
         coverage_json.parent.mkdir(parents=True, exist_ok=True)
         coverage_json.write_text(json.dumps({"totals": {"percent_covered": 94.2}}))
-        return True, "smoke ok"
+        return True, "smoke ok", {"metadata_id": "batch-cli-smoke"}
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
 
