@@ -298,7 +298,6 @@ module = [
   "devsynth.agents.*",
   "devsynth.application.agents.*",
   "devsynth.application.cli._command_exports",
-  "devsynth.application.cli.__init__",
   "devsynth.application.cli.apispec",
   "devsynth.application.cli.autocomplete",
   "devsynth.application.cli.cli_commands",
@@ -327,7 +326,6 @@ module = [
   "devsynth.application.issues.*",
   "devsynth.application.knowledge_graph.*",
   "devsynth.application.llm.*",
-  "devsynth.application.memory.*",
   "devsynth.application.orchestration.*",
   "devsynth.application.performance.*",
   "devsynth.application.promises.*",
@@ -656,12 +654,12 @@ markers = [
     "resource_tinydb: derived marker for selecting TinyDB-gated tests (auto-added)",
     "resource_webui: derived marker for selecting WebUI-gated tests (auto-added)",
     "requires_llm_provider: mark test as requiring an LLM provider",
-    
+
     # Speed markers (exactly one required per test)
     "fast: mark test as fast (execution time < 1s)",
     "medium: mark test as medium speed (execution time between 1s and 5s)",
     "slow: mark test as slow (execution time > 5s)",
-    
+
     # Test type markers
     "unit: mark test as a unit test subset",
     "integration: mark test as an integration test",
@@ -669,14 +667,14 @@ markers = [
     "performance: mark test as a performance test",
     "property: mark property-based test (opt-in via DEVSYNTH_PROPERTY_TESTING)",
     "smoke: mark test as part of smoke profile (minimal plugins, no parallel)",
-    
+
     # Execution context markers
     "isolation: mark test as requiring isolation (should be run separately from other tests)",
     "gui: mark test as requiring GUI or optional UI extras (NiceGUI/DearPyGUI)",
     "docker: mark test as requiring Docker",
     "memory_intensive: mark test as using significant memory",
     "no_network: mark test as not performing network access",
-    
+
     # Functional area markers
     "apispec-generation: mark test as related to API specification generation",
     "code-analysis: mark test as related to code analysis functionality",
@@ -691,7 +689,7 @@ markers = [
     "test-metrics: mark test as related to test metrics functionality",
     "test_metrics: alias for test metrics functionality",
     "webapp-generation: mark test as related to web application generation",
-    
+
     # Special markers
     "allow_real_coverage_artifacts: opt-in to exercising real coverage artifact helpers during tests",
     "run_pipeline: mark test as related to pipeline execution",
