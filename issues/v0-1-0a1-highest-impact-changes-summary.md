@@ -1,13 +1,13 @@
 # v0.1.0a1 Highest Impact Changes Summary
 
-**Date**: 2025-10-06
-**Status**: blocked
+**Date**: 2025-10-06T16:28Z
+**Status**: blocked — awaiting hygiene PRs
 **Priority**: critical
 **Affected Area**: release
 
 ## Executive Summary
 
-**DevSynth regressed during the latest fast+medium rehearsal: pytest aborts before collecting any tests because `pytest_bdd` is registered twice, so the ≥90 % coverage gate cannot be reproduced until plugin wiring and collection hygiene are repaired.** Dialectical and Socratic review now prioritizes consolidating plugin configuration, restoring collection stability, and re-running the gates with fresh artifacts before maintainers tag the release.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:docs/release/v0.1.0a1_execution_plan.md†L1-L146】
+**Dialectical + Socratic review identifies four highest-impact blockers before v0.1.0a1 can tag: consolidate pytest plugin registration, repair behavior step hygiene, restore `_ProgressIndicatorBase`/memory Protocol stability, and regenerate strict mypy + fast/medium coverage evidence once smoke is green.** Until those items land, the archived 92.40 % manifest remains historical only.【F:docs/release/v0.1.0a1_execution_plan.md†L34-L152】【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
 
 ## Key Findings
 
@@ -18,10 +18,10 @@
 
 ### 🔧 Critical Follow-Ups
 1. **pytest plugin consolidation** – Eliminate duplicate `pytest_bdd` registrations so pytest can collect tests before any coverage reruns.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】
-2. **Collection hygiene remediation** – Relocate `pytestmark`, restore WebUI feature paths, re-export `_ProgressIndicatorBase`, and ensure integration suites import pytest so the suite imports cleanly.【d62a9a†L12-L33】【6cd789†L12-L28】【68488c†L1-L27】【e85f55†L1-L22】
-3. **EDRR coverage top-up** – After the suite runs again, raise `methodology/edrr/reasoning_loop.py` from 87.34 % to ≥90 % while preserving the ≥90 % aggregate (tracked in docs/tasks.md §29.5).【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】【F:docs/tasks.md†L326-L333】
-4. **UAT sign-off** – Capture stakeholder evidence and update release-finalization notes once smoke, typing, and coverage commands rerun successfully.【F:issues/release-finalization-uat.md†L13-L28】
-5. **Post-tag workflow reactivation** – Stage the follow-up PR that restores CI triggers immediately after tagging, per maintainer policy.【F:issues/re-enable-github-actions-triggers-post-v0-1-0a1.md†L1-L18】
+2. **Behavior hygiene remediation** – Relocate `pytestmark`, repair behavior step indentation, restore WebUI feature paths, and ensure integration suites import pytest so the suite collects cleanly.【d62a9a†L12-L33】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【6cd789†L12-L28】【e85f55†L1-L22】
+3. **Progress + memory stability** – Hoist `_ProgressIndicatorBase`, repair `MemoryStore` Protocol generics, and validate smoke mode prior to new coverage runs.【68488c†L1-L27】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
+4. **Gate evidence refresh** – After hygiene fixes land, rerun strict mypy plus fast+medium coverage to replace archived manifests, targeting ≥90 % coverage overall and ≥90 % for `methodology/edrr/reasoning_loop.py`.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】【F:docs/tasks.md†L365-L409】
+5. **UAT + post-tag readiness** – Capture stakeholder evidence and queue the post-tag GitHub Actions re-enable PR once new artifacts exist.【F:issues/release-finalization-uat.md†L13-L28】【F:issues/re-enable-github-actions-triggers-post-v0-1-0a1.md†L1-L18】
 
 ### 🎯 Quality Targets (Alpha)
 - **Coverage Threshold**: Maintain the ≥90 % fail-under and meet it prior to tagging.
@@ -37,7 +37,7 @@
 - **Antithesis**: Freeze the release until every RFC initiative lands.
   - *Pros*: Ensures long-term roadmap coverage.
   - *Cons*: Defers urgent hygiene fixes and delays the alpha indefinitely.【F:docs/analysis/critical_recommendations.md†L1-L74】
-- **Synthesis**: Consolidate plugin wiring, repair collection hygiene, regenerate fast+medium evidence, and only then resume EDRR uplift, UAT, and post-tag tasks.【F:docs/release/v0.1.0a1_execution_plan.md†L34-L78】
+- **Synthesis**: Consolidate plugin wiring, repair collection hygiene (including behavior step indentation), regenerate smoke/strict mypy/fast+medium evidence, and only then resume EDRR uplift, UAT, and post-tag tasks.【F:docs/release/v0.1.0a1_execution_plan.md†L34-L152】
 
 **Socratic Check**
 1. *What is the release-blocking problem?* – pytest aborts on duplicate plugin registration, and existing hygiene regressions (markers, missing imports, WebUI assets) still block collection and smoke.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【d62a9a†L12-L33】【6cd789†L12-L28】
@@ -53,8 +53,8 @@
 
 ### Immediate (Ready for Human Review)
 1. Consolidate pytest plugin registration and capture clean `pytest --collect-only -q` evidence before any other PR proceeds.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】
-2. Execute the collection hygiene sweep (markers, imports, WebUI assets, `_ProgressIndicatorBase`) and attach targeted transcripts to issues/test-collection-regressions-20251004.md.【d62a9a†L12-L33】【6cd789†L12-L28】【68488c†L1-L27】【F:issues/test-collection-regressions-20251004.md†L16-L33】
-3. Stage the fast+medium rerun plan (coverage + knowledge-graph capture) so PR-5 can execute immediately after hygiene fixes merge.【F:docs/release/v0.1.0a1_execution_plan.md†L70-L78】
+2. Execute the collection hygiene sweep (markers, imports, behavior step indentation, WebUI assets, `_ProgressIndicatorBase`) and attach targeted transcripts to issues/test-collection-regressions-20251004.md.【d62a9a†L12-L33】【6cd789†L12-L28】【68488c†L1-L27】【F:issues/test-collection-regressions-20251004.md†L16-L33】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】
+3. Stage the fast+medium rerun plan (coverage + knowledge-graph capture) so PR-5 can execute immediately after hygiene fixes merge, ensuring strict mypy and smoke runs are refreshed alongside coverage.【F:docs/release/v0.1.0a1_execution_plan.md†L70-L152】【F:docs/tasks.md†L365-L409】
 
 ### Short-Term (Next 1–2 Weeks)
 1. Deliver the EDRR reasoning-loop top-up to reach ≥90 % once the aggregate reruns, updating docs/tasks §29.5 accordingly.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】【F:docs/tasks.md†L326-L333】
@@ -78,10 +78,10 @@
 
 ## Conclusion
 
-**Release remains blocked until pytest plugin consolidation and collection hygiene repairs land; the refreshed execution plan tracks PR-0 through PR-6 to restore evidence and resume UAT preparations.**【F:docs/release/v0.1.0a1_execution_plan.md†L34-L78】
+**Release remains blocked until pytest plugin consolidation, behavior hygiene repairs, and progress/memory stability land; the refreshed execution plan tracks PR-0 through PR-6 to restore evidence and resume UAT preparations.**【F:docs/release/v0.1.0a1_execution_plan.md†L34-L152】
 
 ## History
-- 2025-10-06: Recorded pytest plugin regression and refreshed execution plan sequencing (PR-0 through PR-6) ahead of new gate reruns.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:docs/release/v0.1.0a1_execution_plan.md†L34-L78】
+- 2025-10-06: Recorded pytest plugin regression, behavior step indentation faults, and refreshed execution plan sequencing (PR-0 through PR-6) ahead of new gate reruns.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【F:docs/release/v0.1.0a1_execution_plan.md†L34-L152】
 - 2025-10-12: Fast+medium aggregate collected 1,047 tests, enforced the ≥90 % gate at 92.40 %, and published knowledge-graph IDs; captured the remaining `reasoning_loop` gap (87.34 %) for targeted follow-up before the final rerun.【F:artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/devsynth_run_tests_fast_medium_20251012T164512Z.txt†L1-L10】【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L52】
 - 2025-10-05: Reran maintainer automation; release prep now reaches `poetry build` after override fixes, strict typing publishes knowledge-graph IDs, and targeted reasoning-loop coverage snapshots guide the next uplift.【F:diagnostics/release_prep_2025-10-05T14-47-21Z.log†L1-L50】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L18】
 - 2025-10-02: Original dialectical review recorded 20.92 % coverage and warned against premature tagging; retained for context in issues/coverage-below-threshold.md and docs/plan.md history.【F:diagnostics/devsynth_run_tests_fast_medium_20251002T233820Z_summary.txt†L1-L6】【F:docs/plan.md†L140-L154】
