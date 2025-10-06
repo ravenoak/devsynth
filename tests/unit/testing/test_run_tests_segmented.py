@@ -155,32 +155,25 @@ def test_run_segmented_tests_stop_after_maxfail(monkeypatch: pytest.MonkeyPatch)
     seen_batches: list[list[str]] = []
 
     def fake_run_single_test_batch(
-        *,
-        node_ids: list[str],
-        marker_expr: str,
-        verbose: bool,
-        report: bool,
-        parallel: bool,
-        maxfail: int | None,
-        keyword_filter: str | None,
-        env: dict[str, str],
-    ) -> tuple[bool, str]:
+        config: rt.SingleBatchRequest,
+    ) -> tuple[bool, str, dict[str, object]]:
+        node_ids = list(config.node_ids)
         seen_batches.append(node_ids)
         if len(seen_batches) > 1:
             pytest.fail("maxfail should stop additional segments")
-        return False, "segment failed"
+        return False, "segment failed", {"metadata_id": "batch-stop-1"}
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single_test_batch)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
 
-    success, output = rt._run_segmented_tests(
+    request = rt.SegmentedRunRequest(
         target="unit-tests",
-        speed_categories=["fast"],
+        speed_categories=("fast",),
         marker_expr="fast and not memory_intensive",
-        node_ids=[
+        node_ids=(
             "tests/unit/test_alpha.py::test_one",
             "tests/unit/test_beta.py::test_two",
-        ],
+        ),
         verbose=False,
         report=False,
         parallel=False,
@@ -190,6 +183,9 @@ def test_run_segmented_tests_stop_after_maxfail(monkeypatch: pytest.MonkeyPatch)
         env={},
     )
 
+    success, output, metadata = rt._run_segmented_tests(request)
+
     assert seen_batches == [["tests/unit/test_alpha.py::test_one"]]
     assert success is False
     assert "segment failed" in output
+    assert metadata["segments"][0]["metadata_id"] == "batch-stop-1"

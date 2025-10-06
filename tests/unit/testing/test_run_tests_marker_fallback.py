@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -23,18 +22,19 @@ def test_run_tests_marker_fallback_skips_segmentation(monkeypatch: pytest.Monkey
 
     monkeypatch.setattr(rt, "collect_tests_with_cache", lambda *args, **kwargs: [])
 
-    segmented_calls: list[dict[str, Any]] = []
-    monkeypatch.setattr(
-        rt,
-        "_run_segmented_tests",
-        lambda **kwargs: segmented_calls.append(kwargs) or (True, "segment")
-    )
+    segmented_calls: list[rt.SegmentedRunRequest] = []
+
+    def fake_segmented(request: rt.SegmentedRunRequest) -> tuple[bool, str, dict[str, object]]:
+        segmented_calls.append(request)
+        return True, "segment", {"metadata_id": "seg-1"}
+
+    monkeypatch.setattr(rt, "_run_segmented_tests", fake_segmented)
 
     batch_calls: list[list[str]] = []
 
-    def fake_batch(**kwargs: Any) -> tuple[bool, str]:
-        batch_calls.append(kwargs.get("node_ids", []))
-        return True, "batch success"
+    def fake_batch(request: rt.SingleBatchRequest) -> tuple[bool, str, dict[str, object]]:
+        batch_calls.append(list(request.node_ids))
+        return True, "batch success", {"metadata_id": "batch-1"}
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_batch)
 

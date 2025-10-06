@@ -14,31 +14,34 @@ def test_run_segmented_tests_reports_only_last_segment(monkeypatch: pytest.Monke
     report_flags: list[bool] = []
 
     def fake_run_single_test_batch(
-        *,
-        node_ids: list[str],
-        marker_expr: str,
-        verbose: bool,
-        report: bool,
-        parallel: bool,
-        maxfail: int | None,
-        keyword_filter: str | None,
-        env: dict[str, str],
-    ) -> tuple[bool, str]:
-        report_flags.append(report)
-        return True, f"segment {len(report_flags)} ok ({len(node_ids)} tests)"
+        config: rt.SingleBatchRequest,
+    ) -> tuple[bool, str, dict[str, object]]:
+        node_ids = list(config.node_ids)
+        report_flags.append(config.report)
+        return (
+            True,
+            f"segment {len(report_flags)} ok ({len(node_ids)} tests)",
+            {
+                "metadata_id": f"batch-report-{len(report_flags)}",
+                "command": ["pytest"],
+                "returncode": 0,
+                "started_at": "start",
+                "completed_at": "end",
+            },
+        )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single_test_batch)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
 
-    success, output = rt._run_segmented_tests(
+    request = rt.SegmentedRunRequest(
         target="unit-tests",
-        speed_categories=["fast"],
+        speed_categories=("fast",),
         marker_expr="fast and not memory_intensive",
-        node_ids=[
+        node_ids=(
             "tests/unit/test_alpha.py::test_a",
             "tests/unit/test_beta.py::test_b",
             "tests/unit/test_gamma.py::test_c",
-        ],
+        ),
         verbose=False,
         report=True,
         parallel=True,
@@ -48,7 +51,10 @@ def test_run_segmented_tests_reports_only_last_segment(monkeypatch: pytest.Monke
         env={},
     )
 
+    success, output, metadata = rt._run_segmented_tests(request)
+
     assert success is True
     assert report_flags == [False, True]
     assert "segment 1 ok" in output
     assert "segment 2 ok" in output
+    assert metadata["segments"][-1]["metadata_id"].startswith("batch-report-")
