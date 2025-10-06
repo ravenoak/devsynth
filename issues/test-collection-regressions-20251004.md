@@ -36,8 +36,8 @@ Affected Area: tests
 - [ ] Move `pytest_plugins` declarations into the repository root `conftest.py` or convert to plugin registration helpers, then capture a clean `pytest --collect-only -q` transcript replacing the 2025-10-06 failure log.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】
 - [ ] Recreate or relocate the missing `.feature` files referenced by behavior suites; update loaders and traceability documents accordingly.
 - [ ] Guard optional backend tests with `pytest.importorskip` plus `requires_resource` flags so they skip cleanly without extras.
-- [ ] Sweep unit/domain suites to move `pytestmark` statements outside import contexts and rerun targeted `pytest -k nothing` checks to prove SyntaxErrors are gone.【d62a9a†L12-L33】
-- [ ] Add explicit `import pytest` lines (or remove unused `pytestmark`) in integration suites to prevent import-time NameErrors.【e85f55†L1-L22】
+- [x] Sweep unit/domain suites to move `pytestmark` statements outside import contexts and rerun targeted `pytest -k nothing` checks to prove SyntaxErrors are gone.【d62a9a†L12-L33】【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L45】【F:tests/unit/application/memory/test_chromadb_store.py†L1-L58】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L58】【F:logs/pytest_collect_only_20251006T043523Z.log†L1-L113】
+- [x] Add explicit `import pytest` lines (or remove unused `pytestmark`) in integration suites to prevent import-time NameErrors; audit confirmed affected modules now import pytest alongside relocated markers.【e85f55†L1-L22】【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L43】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L18】
 - [ ] Update `pytest_bdd.scenarios(...)` paths to reference `features/general/*.feature` and capture refreshed traceability manifests.【6cd789†L12-L28】
 - [ ] Re-run smoke and `--collect-only` commands, attaching new logs when failures cease.
 
@@ -45,6 +45,7 @@ Affected Area: tests
 - 2025-10-04: Smoke command still fails pending broader regression fixes; captured output in `logs/devsynth_run-tests_smoke_fast_20251004T201351Z.log`.
 - 2025-10-04: `poetry run pytest tests/unit/application/cli/test_long_running_progress.py tests/unit/memory/test_sync_manager_protocol_runtime.py -q` passes locally after restoring `_ProgressIndicatorBase` exports and SyncManager generics.
 - 2025-10-07: `poetry run pytest --collect-only -q` completes without duplicate `pytest_bdd` registration; see `logs/pytest_collect_only_20251007.log` for the full transcript (warnings highlight legacy suites missing speed markers).
+- 2025-10-06: Relocated stray `pytestmark` assignments below import blocks and confirmed `poetry run pytest -k nothing --collect-only` collects without SyntaxError/NameError; transcript archived at `logs/pytest_collect_only_20251006T043523Z.log`.【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L45】【F:tests/unit/application/memory/test_chromadb_store.py†L1-L58】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L58】【F:logs/pytest_collect_only_20251006T043523Z.log†L1-L113】
 
 ```
 $ poetry run pytest tests/unit/application/cli/test_long_running_progress.py tests/unit/memory/test_sync_manager_protocol_runtime.py -q

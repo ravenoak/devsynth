@@ -6,11 +6,12 @@ chromadb = pytest.importorskip(
     "chromadb", reason="ChromaDB optional backend is required for these tests"
 )
 
-pytestmark = [pytest.mark.requires_resource("chromadb"), pytest.mark.fast]
-
 from devsynth.application.memory.chromadb_store import ChromaDBStore
 from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+
+pytestmark = [pytest.mark.requires_resource("chromadb"), pytest.mark.fast]
 
 
 class _TestableChromaDBStore(ChromaDBStore):
