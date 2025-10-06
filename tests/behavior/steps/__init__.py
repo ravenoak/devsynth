@@ -6,8 +6,8 @@ can register every step definition.  The previous lazy-import approach caused
 explicitly in test files.  Importing everything eagerly keeps collection
 reliable without a noticeable performance impact.
 
-Pytest plugin exports now live in :mod:`tests.behavior.steps.pytest_plugins`
-and are loaded from :mod:`tests.conftest`, matching pytest 8's guidance for
+Pytest plugin exports now live in :mod:`tests.pytest_plugin_registry` and are
+loaded from :mod:`tests.conftest`, matching pytest 8's guidance for
 centralized plugin declarations.
 """
 

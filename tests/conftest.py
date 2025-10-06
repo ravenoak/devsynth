@@ -23,6 +23,8 @@ pytest_plugins = [
 
 from importlib import import_module
 
+from tests import pytest_plugin_registry as _pytest_plugin_registry
+
 
 def _load_additional_pytest_plugins(module_name: str) -> None:
     """Extend ``pytest_plugins`` with entries exported from helper modules."""
@@ -42,7 +44,7 @@ def _load_additional_pytest_plugins(module_name: str) -> None:
             pytest_plugins.append(target_name)
 
 _ADDITIONAL_PYTEST_PLUGIN_PROVIDERS = [
-    "tests.behavior.steps.pytest_plugins",
+    _pytest_plugin_registry.__name__,
 ]
 
 _PLUGIN_REDIRECTS = {
@@ -52,6 +54,7 @@ _PLUGIN_REDIRECTS = {
 for _provider in _ADDITIONAL_PYTEST_PLUGIN_PROVIDERS:
     _load_additional_pytest_plugins(_provider)
 del _provider
+del _pytest_plugin_registry
 
 import logging
 import os
