@@ -11,8 +11,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/wsde_voting_mechanisms.feature")
-scenarios("../features/wsde_voting_mechanisms_for_critical_decisions.feature")
+scenarios(feature_path(__file__, "general", "wsde_voting_mechanisms.feature"))
+scenarios(feature_path(__file__, "wsde_voting_mechanisms_for_critical_decisions.feature"))
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
@@ -26,6 +26,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 def context():
     """Fixture to provide a context object for sharing state between steps."""
 
+from tests.behavior.feature_paths import feature_path
     class Context:
         def __init__(self):
             self.team_coordinator = WSDETeamCoordinator()

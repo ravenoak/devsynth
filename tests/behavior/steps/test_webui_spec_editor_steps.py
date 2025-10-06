@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import scenarios, then, when
 
@@ -6,7 +7,7 @@ from .webui_steps import webui_context
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/webui_spec_editor.feature")
+scenarios(feature_path(__file__, "general", "webui_spec_editor.feature"))
 
 
 @when("I edit a specification file")

@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import scenarios
 
@@ -33,4 +34,4 @@ from .steps.test_cli_ux_enhancements_steps import (
 pytestmark = [pytest.mark.fast]
 
 # Load scenarios from the feature file
-scenarios("features/general/cli_ux_enhancements.feature")
+scenarios(feature_path(__file__, "general", "cli_ux_enhancements.feature"))

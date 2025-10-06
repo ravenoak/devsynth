@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import logging
 from datetime import datetime
 
@@ -22,7 +23,7 @@ pytestmark = pytest.mark.fast
 if not hasattr(lmdb_mod, "open"):
     pytest.skip("lmdb unavailable", allow_module_level=True)
 
-scenarios("../features/wsde/role_reassignment_shared_memory.feature")
+scenarios(feature_path(__file__, "wsde", "role_reassignment_shared_memory.feature"))
 
 
 class DummyAgent:

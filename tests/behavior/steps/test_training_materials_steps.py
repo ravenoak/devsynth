@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 
 pytest.skip(
@@ -12,7 +13,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-scenarios("../features/general/training_materials.feature")
+scenarios(feature_path(__file__, "general", "training_materials.feature"))
 
 
 # Define a fixture for the context

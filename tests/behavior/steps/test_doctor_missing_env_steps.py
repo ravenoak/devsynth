@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 
 """Step definitions for doctor_missing_env.feature."""
@@ -7,7 +8,7 @@ from pytest_bdd import given, scenarios, then
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/doctor_missing_env.feature")
+scenarios(feature_path(__file__, "general", "doctor_missing_env.feature"))
 
 
 @given("essential environment variables are missing")

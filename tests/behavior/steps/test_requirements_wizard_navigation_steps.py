@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import importlib
 import sys
 from types import ModuleType
@@ -12,7 +13,7 @@ from devsynth.interface.webui import WebUI
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/requirements_wizard_navigation.feature")
+scenarios(feature_path(__file__, "general", "requirements_wizard_navigation.feature"))
 
 
 class DummyForm:

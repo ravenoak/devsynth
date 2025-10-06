@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -21,7 +22,7 @@ def valid_devsynth_project(tmp_project_dir):
     return tmp_project_dir
 
 
-scenarios("../features/general/code_command.feature")
+scenarios(feature_path(__file__, "general", "code_command.feature"))
 
 
 @when('I run the command "devsynth code"')

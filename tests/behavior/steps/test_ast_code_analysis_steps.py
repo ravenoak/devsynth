@@ -5,6 +5,7 @@ This module implements the step definitions for the AST-based code analysis and 
 feature file, testing the integration between AST-based code analysis and the EDRR workflow.
 """
 
+from tests.behavior.feature_paths import feature_path
 import logging
 import uuid
 
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/ast_code_analysis.feature")
+scenarios(feature_path(__file__, "general", "ast_code_analysis.feature"))
 
 
 # Import the modules needed for the steps

@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import json
 import os
 import sys
@@ -40,10 +41,10 @@ class DummyBridge(UXBridge):
         pass
 
 
-scenarios("../features/general/interactive_flow_cli.feature")
-scenarios("../features/general/interactive_flow_webui.feature")
-scenarios("../features/interactive_requirements_flow_cli.feature")
-scenarios("../features/interactive_requirements_flow_webui.feature")
+scenarios(feature_path(__file__, "general", "interactive_flow_cli.feature"))
+scenarios(feature_path(__file__, "general", "interactive_flow_webui.feature"))
+scenarios(feature_path(__file__, "interactive_requirements_flow_cli.feature"))
+scenarios(feature_path(__file__, "interactive_requirements_flow_webui.feature"))
 
 
 @given("the DevSynth CLI is installed")

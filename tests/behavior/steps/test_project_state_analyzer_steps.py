@@ -11,6 +11,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, then, when
 
+from tests.behavior.feature_paths import feature_path
+
 from devsynth.application.code_analysis.project_state_analyzer import (
     ProjectStateAnalyzer,
 )
@@ -23,7 +25,7 @@ pytestmark = [pytest.mark.fast]
 
 # Import the feature file
 scenarios = pytest.importorskip("pytest_bdd").scenarios(
-    "../features/general/project_state_analyzer.feature"
+    feature_path(__file__, "general", "project_state_analyzer.feature")
 )
 
 

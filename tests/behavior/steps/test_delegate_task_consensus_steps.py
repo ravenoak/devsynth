@@ -11,8 +11,8 @@ from devsynth.domain.interfaces.agent import Agent
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/delegate_task_consensus.feature")
-scenarios("../features/delegating_tasks_with_consensus_voting.feature")
+scenarios(feature_path(__file__, "general", "delegate_task_consensus.feature"))
+scenarios(feature_path(__file__, "delegating_tasks_with_consensus_voting.feature"))
 
 
 @pytest.fixture
@@ -137,3 +137,4 @@ def dialectical_error_message(context):
     assert context.result is None
     assert context.error is not None
     assert "Dialectical reasoning failed" in context.error
+from tests.behavior.feature_paths import feature_path

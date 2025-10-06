@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import importlib
 import sys
 from types import ModuleType
@@ -9,7 +10,7 @@ from pytest_bdd import given, scenarios, then, when
 
 pytestmark = pytest.mark.fast
 
-scenarios("../features/agent_api_stub.feature")
+scenarios(feature_path(__file__, "agent_api_stub.feature"))
 
 
 @pytest.fixture

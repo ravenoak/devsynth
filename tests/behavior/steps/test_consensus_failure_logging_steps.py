@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import logging
 from datetime import datetime
 
@@ -10,7 +11,7 @@ from devsynth.logger import DevSynthLogger
 
 pytestmark = pytest.mark.fast
 
-scenarios("../features/wsde/consensus_failure_logging.feature")
+scenarios(feature_path(__file__, "wsde", "consensus_failure_logging.feature"))
 
 
 class DummyAgent:

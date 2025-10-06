@@ -8,7 +8,7 @@ from devsynth.exceptions import DevSynthError
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/exceptions_framework.feature")
+scenarios(feature_path(__file__, "exceptions_framework.feature"))
 
 
 @given("a component that raises a DevSynthError", target_fixture="component")
@@ -31,3 +31,4 @@ def when_handle(component):
 @then("I can catch the base class")
 def caught(handle):
     assert isinstance(handle, DevSynthError)
+from tests.behavior.feature_paths import feature_path

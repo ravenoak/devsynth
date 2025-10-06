@@ -3,6 +3,7 @@
 ReqID: FR-67
 """
 
+from tests.behavior.feature_paths import feature_path
 from __future__ import annotations
 
 import importlib
@@ -15,7 +16,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Load scenarios from the feature file
-scenarios("../features/general/cross_interface_consistency.feature")
+scenarios(feature_path(__file__, "general", "cross_interface_consistency.feature"))
 
 OUTPUT_FORMATTER_DOC = (
     Path(__file__).parents[3]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from devsynth.exceptions import ConfigurationError
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/configuration_loader.feature")
+scenarios(feature_path(__file__, "configuration_loader.feature"))
 
 
 @dataclass

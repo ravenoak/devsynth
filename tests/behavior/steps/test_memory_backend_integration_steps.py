@@ -5,6 +5,7 @@ This file implements the step definitions for the memory backend integration
 feature file, testing all available memory backends with the WSDE model.
 """
 
+from tests.behavior.feature_paths import feature_path
 import logging
 import os
 import time
@@ -38,7 +39,7 @@ pytestmark = [
 
 logger = logging.getLogger(__name__)
 
-scenarios("../features/general/memory_backend_integration.feature")
+scenarios(feature_path(__file__, "general", "memory_backend_integration.feature"))
 
 
 @pytest.fixture

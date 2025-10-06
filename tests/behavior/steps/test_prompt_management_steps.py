@@ -5,6 +5,7 @@ This file implements the step definitions for the prompt management feature file
 testing the DPSy-AI prompt management system.
 """
 
+from tests.behavior.feature_paths import feature_path
 import logging
 import random
 
@@ -18,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/prompt_management.feature")
-scenarios("../features/prompt_management_with_dpsy_ai.feature")
+scenarios(feature_path(__file__, "general", "prompt_management.feature"))
+scenarios(feature_path(__file__, "prompt_management_with_dpsy_ai.feature"))
 
 from devsynth.adapters.llm.mock_llm_adapter import MockLLMAdapter
 from devsynth.application.agents.unified_agent import UnifiedAgent

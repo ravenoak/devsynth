@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import scenarios
 
@@ -6,4 +7,4 @@ from .steps.test_uxbridge_shared_steps import *  # noqa: F401,F403
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("features/general/uxbridge_cli_webui.feature")
+scenarios(feature_path(__file__, "general", "uxbridge_cli_webui.feature"))

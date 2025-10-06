@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
@@ -8,7 +9,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/webui/analysis.feature")
+scenarios(feature_path(__file__, "webui", "analysis.feature"))
 
 
 @pytest.fixture

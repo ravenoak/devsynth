@@ -12,9 +12,9 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = pytest.mark.fast
 
-scenarios("../features/wsde_message_passing_and_peer_review.feature")
-scenarios("../features/wsde_peer_review_workflow.feature")
-scenarios("../features/general/wsde_message_passing_peer_review.feature")
+scenarios(feature_path(__file__, "wsde_message_passing_and_peer_review.feature"))
+scenarios(feature_path(__file__, "wsde_peer_review_workflow.feature"))
+scenarios(feature_path(__file__, "general", "wsde_message_passing_peer_review.feature"))
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
@@ -26,6 +26,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 def _normalise_message(message: Any) -> Dict[str, Any]:
     """Return a serialisable message dictionary from protocol objects."""
 
+from tests.behavior.feature_paths import feature_path
     if isinstance(message, dict):
         return {
             "id": message.get("id") or message.get("message_id"),

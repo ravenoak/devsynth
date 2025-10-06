@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
@@ -11,7 +12,7 @@ from rich.progress import Progress
 pytestmark = [pytest.mark.fast]
 
 # The scenarios function is called in the test file, so we don't need to call it here
-# scenarios("../features/general/cli_ux_enhancements.feature")
+# scenarios(feature_path(__file__, "general", "cli_ux_enhancements.feature"))
 
 
 # Mock the CLI bridge and related components

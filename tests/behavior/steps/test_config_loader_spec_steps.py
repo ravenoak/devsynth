@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
@@ -11,7 +12,7 @@ from devsynth.config.loader import (
 
 pytestmark = pytest.mark.fast
 
-scenarios("../features/config_loader_spec.feature")
+scenarios(feature_path(__file__, "config_loader_spec.feature"))
 
 
 @pytest.fixture

@@ -11,12 +11,13 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Register scenarios from the feature file
-scenarios("../features/general/test_generation.feature")
+scenarios(feature_path(__file__, "general", "test_generation.feature"))
 
 
 @given("I have a DevSynth project with analyzed requirements")
 def have_analyzed_project(tmp_project_dir, command_context):
     """Create a dummy project with a specs file."""
+from tests.behavior.feature_paths import feature_path
     specs_path = Path(tmp_project_dir) / "specs.md"
     specs_path.write_text("# Specifications\n- sample requirement")
     command_context["project_dir"] = tmp_project_dir

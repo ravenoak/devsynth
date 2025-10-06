@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import scenarios
 
@@ -44,7 +45,7 @@ from .steps.test_webui_integration_steps import (
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("features/general/webui_integration.feature")
+scenarios(feature_path(__file__, "general", "webui_integration.feature"))
 
 
 from pytest_bdd import given

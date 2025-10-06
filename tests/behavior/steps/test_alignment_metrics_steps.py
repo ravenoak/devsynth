@@ -6,12 +6,13 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/alignment_metrics_command.feature")
+scenarios(feature_path(__file__, "general", "alignment_metrics_command.feature"))
 
 
 @given("the DevSynth CLI is installed")
 def devsynth_cli_installed():
     """Assume the DevSynth CLI is available in the test environment."""
+from tests.behavior.feature_paths import feature_path
     return True
 
 

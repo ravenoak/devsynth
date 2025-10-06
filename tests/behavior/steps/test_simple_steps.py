@@ -14,13 +14,14 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-scenarios("../features/general/edrr_cycle.feature")
+scenarios(feature_path(__file__, "general", "edrr_cycle.feature"))
 
 
 @pytest.fixture
 def context() -> Generator[Dict[str, object], None, None]:
     """Create a context dictionary for sharing state between steps.
 
+from tests.behavior.feature_paths import feature_path
     This fixture uses a generator pattern to provide teardown functionality.
     """
     # Setup: Create an empty context dictionary

@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import patch
 
 import pytest
@@ -20,7 +21,7 @@ def valid_devsynth_project(tmp_path):
     return tmp_path
 
 
-scenarios("../features/general/invalid_config.feature")
+scenarios(feature_path(__file__, "general", "invalid_config.feature"))
 
 
 @given("the command context", target_fixture="command_context")

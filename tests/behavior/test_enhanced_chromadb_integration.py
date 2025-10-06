@@ -2,6 +2,7 @@
 Test runner for the Enhanced ChromaDB Integration feature.
 """
 
+from tests.behavior.feature_paths import feature_path
 import os
 
 import pytest
@@ -31,4 +32,4 @@ def test_enhanced_chromadb_scenarios_succeeds():
     """Test that enhanced chromadb scenarios succeeds.
 
     ReqID: N/A"""
-    scenarios("features/general/enhanced_chromadb_integration.feature")
+    scenarios(feature_path(__file__, "general", "enhanced_chromadb_integration.feature"))

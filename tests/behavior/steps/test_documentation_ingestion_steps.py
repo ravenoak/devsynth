@@ -2,6 +2,7 @@
 Step definitions for the Comprehensive Documentation Ingestion feature.
 """
 
+from tests.behavior.feature_paths import feature_path
 import json
 import os
 import tempfile
@@ -22,7 +23,7 @@ from devsynth.domain.models.memory import MemoryType
 pytestmark = [pytest.mark.fast]
 
 # Register scenarios
-scenarios("../features/general/documentation_ingestion.feature")
+scenarios(feature_path(__file__, "general", "documentation_ingestion.feature"))
 
 
 @pytest.fixture

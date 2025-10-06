@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import os
 import shutil
 import tempfile
@@ -11,7 +12,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/performance_testing.feature")
+scenarios(feature_path(__file__, "general", "performance_testing.feature"))
 
 
 @pytest.fixture

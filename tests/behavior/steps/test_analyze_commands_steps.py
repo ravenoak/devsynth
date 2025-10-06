@@ -2,6 +2,7 @@
 Step definitions for Analyze Commands feature.
 """
 
+from tests.behavior.feature_paths import feature_path
 import logging
 import os
 import sys
@@ -20,7 +21,7 @@ from devsynth.application.cli.commands.inspect_config_cmd import inspect_config_
 pytestmark = [pytest.mark.fast]
 
 # Register the scenarios
-scenarios("../features/general/analyze_commands.feature")
+scenarios(feature_path(__file__, "general", "analyze_commands.feature"))
 
 
 # Define fixtures and step definitions

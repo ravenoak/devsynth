@@ -10,6 +10,7 @@ handling repositories with no commits, and handling repositories with no test fi
 ReqID: TEST-METRICS-001
 """
 
+from tests.behavior.feature_paths import feature_path
 import os
 import shutil
 import sys
@@ -27,7 +28,7 @@ from devsynth.adapters.cli.typer_adapter import parse_args, run_cli, show_help
 pytestmark = [pytest.mark.fast]
 
 # Register the scenarios
-scenarios("../features/general/test_metrics.feature")
+scenarios(feature_path(__file__, "general", "test_metrics.feature"))
 
 
 # Define fixtures and step definitions

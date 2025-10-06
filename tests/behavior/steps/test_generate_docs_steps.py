@@ -21,6 +21,7 @@ pytestmark = [pytest.mark.fast]
 @pytest.fixture
 def docs_context(monkeypatch):
     """Provide a patched ``generate_docs_cmd`` for testing."""
+from tests.behavior.feature_paths import feature_path
     import devsynth.application.cli.commands.generate_docs_cmd as docs_module
 
     mock_cmd = MagicMock()
@@ -29,7 +30,7 @@ def docs_context(monkeypatch):
     return {"cmd": mock_cmd}
 
 
-scenarios("../features/general/generate_docs.feature")
+scenarios(feature_path(__file__, "general", "generate_docs.feature"))
 
 
 @given("the generate_docs feature context")

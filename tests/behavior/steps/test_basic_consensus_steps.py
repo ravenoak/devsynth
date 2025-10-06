@@ -3,6 +3,7 @@
 Issue: issues/consensus-building.md
 """
 
+from tests.behavior.feature_paths import feature_path
 from __future__ import annotations
 
 from typing import Any
@@ -15,7 +16,7 @@ from devsynth.consensus import build_consensus
 
 pytestmark = pytest.mark.fast
 
-scenarios("../features/consensus_building.feature")
+scenarios(feature_path(__file__, "consensus_building.feature"))
 
 
 @pytest.fixture

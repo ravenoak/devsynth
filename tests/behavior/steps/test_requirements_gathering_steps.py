@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import os
 import sys
 from collections.abc import Sequence
@@ -41,8 +42,8 @@ class DummyBridge(UXBridge):
     def display_result(self, message: str, *, highlight: bool = False) -> None:
         pass
 
-scenarios("../features/general/requirements_gathering.feature")
-scenarios("../features/interactive_requirements_gathering.feature")
+scenarios(feature_path(__file__, "general", "requirements_gathering.feature"))
+scenarios(feature_path(__file__, "interactive_requirements_gathering.feature"))
 
 
 @given("the DevSynth CLI is installed")

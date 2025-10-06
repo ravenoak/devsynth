@@ -14,7 +14,7 @@ from .cli_commands_steps import (  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/dbschema_generation.feature")
+scenarios(feature_path(__file__, "general", "dbschema_generation.feature"))
 
 
 @pytest.fixture
@@ -25,6 +25,7 @@ def dbschema_context():
 @given("the dbschema_generation feature context")
 def given_context(dbschema_context):
     """Prepare context for dbschema generation."""
+from tests.behavior.feature_paths import feature_path
     return dbschema_context
 
 

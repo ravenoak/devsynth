@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
@@ -12,7 +13,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/wsde/peer_review.feature")
+scenarios(feature_path(__file__, "wsde", "peer_review.feature"))
 
 
 @pytest.fixture

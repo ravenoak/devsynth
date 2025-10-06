@@ -6,6 +6,7 @@ feature file, which tests the functionality of storing, retrieving, and
 searching for information during the development process.
 """
 
+from tests.behavior.feature_paths import feature_path
 import json
 
 import pytest
@@ -16,7 +17,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/memory_context_system.feature")
+scenarios(feature_path(__file__, "general", "memory_context_system.feature"))
 
 from devsynth.domain.interfaces.memory import ContextManager, MemoryStore
 

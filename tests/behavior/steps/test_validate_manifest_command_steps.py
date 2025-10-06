@@ -17,12 +17,13 @@ pytestmark = [pytest.mark.fast]
 def missing_manifest(tmp_path: Path, command_context):
     """Provide a path to a nonexistent manifest file for error handling."""
 
+from tests.behavior.feature_paths import feature_path
     path = tmp_path / "missing.json"
     command_context["manifest_path"] = path
     return path
 
 
-scenarios("../features/general/validate_manifest_command.feature")
+scenarios(feature_path(__file__, "general", "validate_manifest_command.feature"))
 
 
 @then("the output should indicate the project configuration is valid")

@@ -5,6 +5,7 @@ This file implements the step definitions for the WSDE agent model refinement
 feature file, testing the non-hierarchical, context-driven agent collaboration.
 """
 
+from tests.behavior.feature_paths import feature_path
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,9 +19,9 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = pytest.mark.fast
 
-scenarios("../features/wsde_agent_model_refinement.feature")
-scenarios("../features/general/wsde_agent_model.feature")
-scenarios("../features/multi_agent_collaboration.feature")
+scenarios(feature_path(__file__, "wsde_agent_model_refinement.feature"))
+scenarios(feature_path(__file__, "general", "wsde_agent_model.feature"))
+scenarios(feature_path(__file__, "multi_agent_collaboration.feature"))
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent

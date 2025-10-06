@@ -15,13 +15,14 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = pytest.mark.fast
 
 
-scenarios("../features/webui_requirements_wizard_with_wizardstate.feature")
+scenarios(feature_path(__file__, "webui_requirements_wizard_with_wizardstate.feature"))
 
 
 @pytest.fixture
 def wizard_context(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
     """Provide a fully stubbed Streamlit environment for the wizard tests."""
 
+from tests.behavior.feature_paths import feature_path
     st = ModuleType("streamlit")
 
     class SessionState(dict):

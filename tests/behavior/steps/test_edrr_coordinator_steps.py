@@ -3,6 +3,7 @@
 ReqID: FR-40
 """
 
+from tests.behavior.feature_paths import feature_path
 from __future__ import annotations
 
 import pytest
@@ -11,8 +12,8 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/edrr_coordinator.feature")
-scenarios("../features/edrr_coordinator.feature")
+scenarios(feature_path(__file__, "general", "edrr_coordinator.feature"))
+scenarios(feature_path(__file__, "edrr_coordinator.feature"))
 import json
 import os
 import tempfile

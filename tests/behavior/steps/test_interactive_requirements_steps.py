@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import json
 import os
 
@@ -11,8 +12,8 @@ from devsynth.application.cli.requirements_wizard import requirements_wizard
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/interactive_requirements.feature")
-scenarios("../features/interactive_requirements_wizard.feature")
+scenarios(feature_path(__file__, "general", "interactive_requirements.feature"))
+scenarios(feature_path(__file__, "interactive_requirements_wizard.feature"))
 
 
 @given("the DevSynth CLI is installed")

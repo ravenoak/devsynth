@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 import importlib
 import sys
 from types import ModuleType
@@ -112,8 +113,8 @@ def webui_context(monkeypatch):
     return ctx
 
 
-scenarios("../features/general/webui_onboarding_flow.feature")
-scenarios("../features/webui_onboarding_flow.feature")
+scenarios(feature_path(__file__, "general", "webui_onboarding_flow.feature"))
+scenarios(feature_path(__file__, "webui_onboarding_flow.feature"))
 
 
 @given("the WebUI is initialized")

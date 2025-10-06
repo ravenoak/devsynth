@@ -8,7 +8,7 @@ from devsynth import feature_markers
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/feature_markers.feature")
+scenarios(feature_path(__file__, "feature_markers.feature"))
 
 
 @given("a documented feature", target_fixture="documented_feature")
@@ -26,3 +26,4 @@ def when_search_module(documented_feature):
 @then("I find a corresponding marker function")
 def found(search_module):
     assert callable(search_module)
+from tests.behavior.feature_paths import feature_path

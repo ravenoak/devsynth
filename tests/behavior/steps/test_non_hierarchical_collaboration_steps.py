@@ -5,6 +5,7 @@ This file implements the step definitions for the non-hierarchical collaboration
 feature file, testing the non-hierarchical collaboration capabilities of the WSDE model.
 """
 
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
@@ -19,8 +20,8 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-scenarios("../features/general/non_hierarchical_collaboration.feature")
-scenarios("../features/non_hierarchical_collaboration.feature")
+scenarios(feature_path(__file__, "general", "non_hierarchical_collaboration.feature"))
+scenarios(feature_path(__file__, "non_hierarchical_collaboration.feature"))
 
 
 # Define a fixture for the context

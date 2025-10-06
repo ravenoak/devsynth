@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from tests.behavior.feature_paths import feature_path
 import datetime
 from pathlib import Path
 from typing import Any
@@ -21,7 +22,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytestmark = pytest.mark.fast
 
-scenarios("../features/wsde_multi_agent.feature")
+scenarios(feature_path(__file__, "wsde_multi_agent.feature"))
 
 
 class _Context:

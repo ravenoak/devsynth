@@ -5,6 +5,7 @@ This file implements the step definitions for the enhanced dialectical reasoning
 feature file, testing the advanced dialectical reasoning capabilities of the WSDE model.
 """
 
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -15,7 +16,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/enhanced_dialectical_reasoning.feature")
+scenarios(feature_path(__file__, "general", "enhanced_dialectical_reasoning.feature"))
 
 from typing import Any, Dict, List
 

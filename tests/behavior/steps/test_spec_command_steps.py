@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from io import StringIO
 from unittest.mock import MagicMock
 
@@ -9,7 +10,7 @@ from devsynth.application.cli import cli_commands
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/spec_command.feature")
+scenarios(feature_path(__file__, "general", "spec_command.feature"))
 
 
 @given("the DevSynth CLI is installed")

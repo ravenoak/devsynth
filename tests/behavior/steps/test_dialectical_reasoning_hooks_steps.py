@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from uuid import uuid4
 
 import pytest
@@ -17,7 +18,7 @@ from devsynth.domain.models.requirement import RequirementChange
 
 
 pytestmark = pytest.mark.fast
-scenarios("../features/dialectical_reasoning.feature")
+scenarios(feature_path(__file__, "dialectical_reasoning.feature"))
 
 
 class _DummyNotification:

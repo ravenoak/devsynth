@@ -1,3 +1,4 @@
+from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,7 +12,7 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-scenarios("../features/general/multi_disciplinary_dialectical_reasoning.feature")
+scenarios(feature_path(__file__, "general", "multi_disciplinary_dialectical_reasoning.feature"))
 
 
 # Define a fixture for the context

@@ -13,7 +13,7 @@ from .cli_commands_steps import *
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/config_enable_feature.feature")
+scenarios(feature_path(__file__, "general", "config_enable_feature.feature"))
 
 
 @pytest.fixture
@@ -62,3 +62,4 @@ def feature_enabled(context):
         monkeypatch._cwd = context.orig_cwd  # ensure undo path exists
     else:
         os.chdir(context.orig_cwd)
+from tests.behavior.feature_paths import feature_path

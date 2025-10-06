@@ -6,7 +6,7 @@ from pytest_bdd import given, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("../features/general/enhanced_chromadb_integration.feature")
+scenarios(feature_path(__file__, "general", "enhanced_chromadb_integration.feature"))
 
 
 @pytest.fixture
@@ -27,3 +27,4 @@ def when_execute(enhanced_chroma_context):
 @then("the enhanced_chromadb_integration workflow completes")
 def then_complete(enhanced_chroma_context):
     assert enhanced_chroma_context.get("executed") is True
+from tests.behavior.feature_paths import feature_path
