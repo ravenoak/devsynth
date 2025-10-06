@@ -6,6 +6,7 @@ Status: Execution in progress; install loop closed (2025-09-09); property marker
 
 Executive summary
 - Goal: Reach and sustain >90% coverage with a well‑functioning, reliable test suite across unit, integration, behavior, and property tests for the 0.1.0a1 release, with strict marker discipline and resource gating.
+- 2025-10-06 regression: Fast+medium rehearsal now aborts before collection because pytest-bdd registers twice via nested `pytest_plugins`; the execution plan adds PR-0 to consolidate plugin wiring before other hygiene fixes proceed.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:docs/release/v0.1.0a1_execution_plan.md†L34-L78】
 - Hand-off: The `v0.1.0a1` tag will be created on GitHub by human maintainers after User Acceptance Testing; LLM agents prepare the repository for tagging.
 - Current state (evidence):
 - Latest fast+medium aggregate (2025-10-12) executed 1,047 tests, wrote HTML/JSON coverage artifacts, and recorded knowledge-graph IDs, clearing the ≥90 % gate. The manifest highlights `src/devsynth/methodology/edrr/reasoning_loop.py` at 87.34 %, so we scheduled a follow-up to top off those branches before the next UAT rerun, keeping the focused fast-only trace (68.89 %) as a coverage map for new tests.【F:artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/devsynth_run_tests_fast_medium_20251012T164512Z.txt†L1-L10】【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L52】【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L18】

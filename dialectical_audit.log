@@ -1,6 +1,7 @@
 {
   "questions": [
-    "2025-10-05 audit logged new collection blockers (pytestmark SyntaxError, missing WebUI features, `_ProgressIndicatorBase` alias timing, missing pytest imports); remediation sequenced via PR-0 through PR-5 in docs/release/v0.1.0a1_execution_plan.md."
+    "2025-10-05 audit logged new collection blockers (pytestmark SyntaxError, missing WebUI features, `_ProgressIndicatorBase` alias timing, missing pytest imports); remediation sequenced via PR-0 through PR-5 in docs/release/v0.1.0a1_execution_plan.md.",
+    "2025-10-06 follow-up recorded pytest-bdd duplicate registration halting fast+medium rehearsals; execution plan updated with PR-0 to consolidate plugin wiring before hygiene, coverage, and UAT reruns."
   ],
   "resolved": [
     "Feature 'Review and Reprioritize Open Issues' addressed through release-blocker audit (2025-09-09).",
