@@ -2,14 +2,14 @@
 
 **Status**: Open
 **Priority**: Critical
-**Assessment Date**: 2025-10-06T16:28Z
+**Assessment Date**: 2025-10-06T22:00Z
 **Target Release**: v0.1.0a1
 
 ## Executive Summary
 
 **RELEASE STATUS: 🔴 BLOCKED**
 
-Strict typing and coverage evidence now include a fresh 2025-10-05 strict run that published knowledge-graph IDs (`QualityGate=c54c967d-6a97-4c68-a7df-237a609fd53e`, `TestRun=3ec7408d-1201-4456-8104-ee1b504342cc`, `ReleaseEvidence={9f4bf6fc-4826-4ff6-8aa2-24c5e6396b37,e3208765-a9f9-4293-9a1d-bbd3726552af}`). Maintainer automation now clears the earlier duplication in `[[tool.mypy.overrides]]`, but `task release:prep` and the fast+medium rehearsal abort on behavior step indentation regressions, duplicate `pytest_bdd` registration, and the `MemoryStore` Protocol TypeError. Until plugin consolidation, behavior hygiene repairs, and progress/memory fixes land, the team cannot regenerate coverage artifacts or deliver a green smoke log for the hand-off package.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】 The updated execution plan (PR-0 → PR-6) sequences these fixes ahead of UAT sign-off.【F:docs/release/v0.1.0a1_execution_plan.md†L34-L152】
+Strict typing and coverage evidence include the archived 92.40 % fast+medium manifest, but the 2025-10-06 21:22 UTC strict mypy rerun regressed on the `devsynth.testing.run_tests` segmentation helpers, emitting negative knowledge-graph updates (`QualityGate b2bd60e7-30cd-4b84-8e3d-4dfed0817ee3`, `TestRun 71326ec2-aa95-49dd-a600-f3672d728982`). Maintainer automation still clears the Taskfile parser, yet `task release:prep`, smoke, and fast+medium rehearsals abort on behavior step indentation regressions and the `MemoryStore` Protocol TypeError, so fresh coverage/typing artifacts remain unavailable until the strict typing fix, hygiene repairs, and runtime guardrails land.【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】【F:diagnostics/typing/mypy_strict_20251127T000000Z.log†L1-L40】【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】 The updated execution plan (PR-0 → PR-7) sequences these fixes ahead of UAT sign-off.【F:docs/release/v0.1.0a1_execution_plan.md†L41-L87】
 
 ## Dialectical Analysis
 
@@ -28,11 +28,11 @@ Strict typing and coverage evidence now include a fresh 2025-10-05 strict run th
 
 ### ✅ Passing
 - **Coverage Gate**: Fast+medium aggregate recorded 92.40 % (2,601/2,815 statements) with manifest, SHA-256 digests, and knowledge-graph identifiers archived under `artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/`.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
-- **Strict Typing (2025-10-05 rerun)**: `poetry run task mypy:strict` succeeded with zero errors, produced refreshed manifests, and published knowledge-graph nodes `QualityGate=c54c967d-6a97-4c68-a7df-237a609fd53e`, `TestRun=3ec7408d-1201-4456-8104-ee1b504342cc`, and `ReleaseEvidence={9f4bf6fc-4826-4ff6-8aa2-24c5e6396b37,e3208765-a9f9-4293-9a1d-bbd3726552af}` for audit traceability.【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】【F:diagnostics/mypy_strict_src_devsynth_20251005T035143Z.txt†L1-L1】【F:diagnostics/mypy_strict_application_memory_20251005T035144Z.txt†L1-L1】
 
 ### 🔴 Failing
 - **Maintainer Automation**: `task release:prep` now reaches `poetry build` before failing on the indentation error in `tests/behavior/steps/test_agent_api_health_metrics_steps.py`, while `task mypy:strict` completes; release prep remains blocked until that test is repaired.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】
 - **Smoke Verification**: `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` times out during collection fallback, then fails on the `MemoryStore` Protocol generics error, preventing coverage artifacts and behavior verification.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
+- **Strict Typing (2025-10-06 regression)**: `poetry run task mypy:strict` now fails on `devsynth.testing.run_tests` segmentation helpers, publishing negative knowledge-graph updates (`QualityGate b2bd60e7-30cd-4b84-8e3d-4dfed0817ee3`, `TestRun 71326ec2-aa95-49dd-a600-f3672d728982`). Fixing the helpers and regenerating manifests is required before tagging.【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】【F:diagnostics/typing/mypy_strict_20251127T000000Z.log†L1-L40】
 
 ### ⚠️ Attention Required
 - **EDRR Coverage Delta**: `methodology/edrr/reasoning_loop.py` sits at 87.34 % in the latest manifest; a fast-only snapshot on 2025-10-05 recorded 68.89 %, underscoring the need for additional simulations before the final rerun.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L25】
@@ -42,18 +42,21 @@ Strict typing and coverage evidence now include a fresh 2025-10-05 strict run th
 
 1. **Maintainer Automation Failure — CRITICAL** – `task release:prep` now finishes both `poetry build` targets but still aborts on behavior step indentation regressions and duplicate `pytest_bdd` registration, leaving the maintainer checklist blocked until plugin consolidation and hygiene repairs land.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】
 2. **Memory Protocol TypeError — CRITICAL** – Smoke mode still imports the broken `MemoryStore` Protocol definition, causing collection to abort and leaving coverage artifacts empty.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
-3. **Evidence Freshness — HIGH** – Coverage and typing artifacts are from earlier runs; once the above fixes land we must regenerate them and close the remaining EDRR coverage gap to maintain ≥90 %.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】
+3. **Evidence Freshness — HIGH** – Coverage and typing artifacts are from earlier runs, and the latest strict mypy invocation now fails; once the above fixes land we must regenerate them and close the remaining EDRR coverage gap to maintain ≥90 %.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】
 4. **Test Hygiene Regressions — CRITICAL** – Repository-wide marker injection, behavior step indentation drift, duplicate plugin registration, and optional backend guards still block collection before smoke or coverage can rerun.【d62a9a†L12-L33】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【6cd789†L12-L28】【68488c†L1-L27】【e85f55†L1-L22】
 
 ## Recommended Action Plan
 
 | Phase | Objective | Key Actions | Owner | Evidence |
 |-------|-----------|-------------|-------|----------|
-| **PR-0** | Restore plugin manager stability | Hoist nested `pytest_plugins`, capture clean `pytest --collect-only -q` transcript, ensure workflows remain dispatch-only. | Tooling | 【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:docs/release/v0.1.0a1_execution_plan.md†L34-L78】 |
+| **PR-0** | Restore plugin manager stability | Hoist nested `pytest_plugins`, capture clean `pytest --collect-only -q` transcript, ensure workflows remain dispatch-only. | Tooling | 【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:docs/release/v0.1.0a1_execution_plan.md†L41-L50】 |
 | **PR-1** | Repair collection hygiene | Fix behavior step indentation, restore WebUI feature paths, add missing pytest imports, and rerun behavior collection transcripts. | QA | 【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【F:issues/test-collection-regressions-20251004.md†L16-L33】 |
-| **PR-3** | Fix memory & progress foundations | Repair `MemoryStore` Protocol generics, hoist `_ProgressIndicatorBase`, and re-run smoke log. | Runtime | 【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】【68488c†L1-L27】 |
-| **PR-4/PR-5** | Refresh gates & coverage | Guard optional backends, regenerate strict mypy + fast+medium coverage, raise `methodology/edrr/reasoning_loop.py` to ≥90 %, and update docs/issues. | QA/Documentation | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:docs/release/v0.1.0a1_execution_plan.md†L88-L152】 |
-| **PR-6** | Compile UAT bundle & post-tag plan | Capture passing UAT table, update issues/docs, queue CI re-enable PR. | Release | 【F:issues/release-finalization-uat.md†L19-L64】【F:issues/re-enable-github-actions-triggers-post-v0-1-0a1.md†L1-L18】 |
+| **PR-2** | Resolve strict typing regression | Patch `devsynth.testing.run_tests` segmentation helpers, add unit coverage, and capture passing strict mypy manifests with refreshed knowledge-graph IDs. | Tooling/QA | 【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】【F:diagnostics/typing/mypy_strict_20251127T000000Z.log†L1-L40】 |
+| **PR-3** | Realign behavior assets | Update `pytest_bdd.scenarios(...)` paths, regenerate traceability manifests, and archive clean behavior collection transcripts. | QA | 【F:issues/test-collection-regressions-20251004.md†L16-L33】【F:docs/release/v0.1.0a1_execution_plan.md†L50-L87】 |
+| **PR-4** | Fix memory & progress foundations | Repair `MemoryStore` Protocol generics, hoist `_ProgressIndicatorBase`, and re-run smoke log. | Runtime | 【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】【68488c†L1-L27】 |
+| **PR-5** | Harden optional backend guardrails | Ensure resource-dependent suites skip cleanly under pytest 8+, documenting toggles in plan/tasks. | Platform | 【F:issues/test-collection-regressions-20251004.md†L16-L33】【F:docs/release/v0.1.0a1_execution_plan.md†L50-L87】 |
+| **PR-6** | Refresh gates & documentation | Regenerate strict mypy + fast+medium coverage artifacts, lift `methodology/edrr/reasoning_loop.py` to ≥90 %, and synchronize docs/issues. | QA/Documentation | 【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:docs/release/v0.1.0a1_execution_plan.md†L68-L87】 |
+| **PR-7** | Compile UAT bundle & post-tag plan | Capture passing UAT table, update issues/docs, queue CI re-enable PR. | Release | 【F:issues/release-finalization-uat.md†L19-L64】【F:issues/re-enable-github-actions-triggers-post-v0-1-0a1.md†L1-L18】 |
 
 ## Risk Assessment
 
@@ -73,10 +76,10 @@ Mitigations: follow the PR sequencing above, capture fresh diagnostics after eac
 
 ## Next Steps
 
-1. Deliver PR-A (Taskfile fix + guard) and rerun blocked task targets.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】
-2. Execute PR-1/PR-3 to repair behavior step indentation and the memory Protocol regression, then revalidate smoke.【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
-3. After smoke is green, regenerate strict mypy/coverage artifacts (PR-4/PR-5) and resolve the EDRR delta.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:docs/release/v0.1.0a1_execution_plan.md†L88-L152】
-4. Compile the refreshed UAT bundle and queue the post-tag workflow PR (PR-6).【F:issues/release-finalization-uat.md†L19-L64】【F:docs/release/v0.1.0a1_execution_plan.md†L118-L152】【F:issues/re-enable-github-actions-triggers-post-v0-1-0a1.md†L1-L18】
+1. Deliver PR-1 to repair behavior step indentation, missing imports, and scenario paths so `pytest --collect-only` completes cleanly again.【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【F:issues/test-collection-regressions-20251004.md†L16-L33】
+2. Execute PR-2 alongside PR-3/PR-4 to fix the strict typing segmentation helpers, regenerate behavior manifests, and patch the `MemoryStore` Protocol regression, then capture fresh strict mypy and smoke transcripts.【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】【F:diagnostics/typing/mypy_strict_20251127T000000Z.log†L1-L40】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
+3. Land PR-5 to harden optional backend guardrails so pytest 8+ skips gracefully, then run PR-6 to regenerate coverage/typing artifacts (closing the EDRR delta) once smoke and strict mypy pass.【F:issues/test-collection-regressions-20251004.md†L16-L33】【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:docs/release/v0.1.0a1_execution_plan.md†L68-L87】
+4. Compile the refreshed UAT bundle and queue the post-tag workflow PR (PR-7) after documenting the new evidence across issues/docs.【F:issues/release-finalization-uat.md†L19-L64】【F:docs/release/v0.1.0a1_execution_plan.md†L68-L87】【F:issues/re-enable-github-actions-triggers-post-v0-1-0a1.md†L1-L18】
 
 ---
 
