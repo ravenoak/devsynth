@@ -77,6 +77,31 @@ def test_reasoning_loop_retry_clamps_backoff_and_respects_budget(monkeypatch):
 
 
 @pytest.mark.fast
+def test_reasoning_loop_logs_retry_exhaustion(monkeypatch, caplog):
+    """Exhausting retries logs telemetry and returns no results."""
+
+    def always_transient(*_args, **_kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+
+    caplog.set_level("DEBUG", rl.logger.logger.name)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "telemetry"},
+        critic_agent=None,
+        retry_attempts=0,
+    )
+
+    assert results == []
+    assert any(
+        "Giving up after retries due to transient errors" in record.message
+        for record in caplog.records
+    )
+
+
+@pytest.mark.fast
 def test_reasoning_loop_records_consensus_failure_via_coordinator(monkeypatch):
     """ConsensusError stops the loop and notifies the coordinator.
 
