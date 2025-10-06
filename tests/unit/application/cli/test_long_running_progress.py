@@ -38,6 +38,18 @@ def test_progress_indicator_base_alias_is_exported() -> None:
     assert issubclass(long_running_progress.LongRunningProgressIndicator, base)
 
 
+@pytest.mark.fast
+def test_progress_indicator_base_alias_import_statement_works() -> None:
+    """Direct ``from module import`` access to the alias succeeds."""
+
+    from devsynth.application.cli.long_running_progress import (
+        _ProgressIndicatorBase as imported_base,
+    )
+
+    assert imported_base is long_running_progress.ProgressIndicator
+    assert issubclass(long_running_progress.LongRunningProgressIndicator, imported_base)
+
+
 class FakeClock:
     """Deterministic clock returning monotonically increasing floats."""
 

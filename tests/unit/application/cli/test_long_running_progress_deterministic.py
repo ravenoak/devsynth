@@ -191,6 +191,18 @@ def test_progress_indicator_base_alias_stays_exported() -> None:
     assert issubclass(long_running_progress.LongRunningProgressIndicator, base)
 
 
+@pytest.mark.fast
+def test_progress_indicator_base_alias_direct_import_succeeds() -> None:
+    """Importing the alias via ``from module import`` succeeds under stubs."""
+
+    from devsynth.application.cli.long_running_progress import (
+        _ProgressIndicatorBase as imported_base,
+    )
+
+    assert imported_base is long_running_progress.ProgressIndicator
+    assert issubclass(long_running_progress.LongRunningProgressIndicator, imported_base)
+
+
 class CountingClock:
     """Generator-backed clock based on ``itertools.count``."""
 
