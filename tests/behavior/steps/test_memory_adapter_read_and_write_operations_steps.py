@@ -3,8 +3,9 @@
 ReqID: memory-adapter-read-and-write-operations
 """
 
-from tests.behavior.feature_paths import feature_path
 from __future__ import annotations
+
+from tests.behavior.feature_paths import feature_path
 
 from dataclasses import dataclass, field
 from typing import Any, List

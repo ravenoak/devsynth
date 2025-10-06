@@ -33,6 +33,7 @@ Affected Area: tests
 - 2025-10-06 19:04 UTC: Captured `pytest --collect-only -q` after consolidating plugin exports; duplicate-registration errors are resolved but behavior steps still fail on indentation/`feature_path` bugs (52 collection errors remain).【F:logs/pytest_collect_only_20251006T190420Z.log†L1-L84】
 - 2025-10-06 20:51 UTC: Targeted Agent API collections reproduced the indentation failures triggered by importing `feature_path` inside fixtures; both suites abort during module parsing.【F:diagnostics/testing/pytest_collect_agent_api_interactions_before_fix_20251006T205032Z.txt†L2-L61】【F:diagnostics/testing/pytest_collect_agent_api_health_metrics_before_fix_20251006T205115Z.txt†L2-L61】
 - 2025-10-06 20:52 UTC: Hoisted the imports and restored a dedicated health-metrics aggregator so the scoped `scenarios(...)` calls resolve correctly; the `--collect-only` runs now enumerate all BDD-generated tests without error.【F:diagnostics/testing/pytest_collect_agent_api_interactions_after_fix_20251006T205132Z.txt†L1-L30】【F:diagnostics/testing/pytest_collect_agent_api_health_metrics_after_fix_20251006T205142Z.txt†L1-L25】
+- 2025-10-06 21:02 UTC: Targeted `pytest --collect-only` run for the memory adapter steps fails because `tests/behavior/test_memory_adapter_read_and_write_operations.py` is missing; captured transcript at `diagnostics/pytest-collect-memory-adapter.log`.
 
 ## Next Actions
 - [ ] Restore `_ProgressIndicatorBase` exports (likely `devsynth.application.cli.long_running_progress`) and ensure tests import helpers from supported modules.
