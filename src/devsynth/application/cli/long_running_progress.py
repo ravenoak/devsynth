@@ -72,6 +72,9 @@ else:
     _ProgressIndicatorBase = ProgressIndicator
 
 
+__all__ = ["LongRunningProgressIndicator", "_ProgressIndicatorBase"]
+
+
 logger = DevSynthLogger(__name__)
 
 T = TypeVar("T")
