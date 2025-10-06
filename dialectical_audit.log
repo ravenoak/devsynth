@@ -1,7 +1,8 @@
 {
   "questions": [
     "2025-10-05 audit logged new collection blockers (pytestmark SyntaxError, missing WebUI features, `_ProgressIndicatorBase` alias timing, missing pytest imports); remediation sequenced via PR-0 through PR-5 in docs/release/v0.1.0a1_execution_plan.md.",
-    "2025-10-06 follow-up recorded pytest-bdd duplicate registration halting fast+medium rehearsals; execution plan updated with PR-0 to consolidate plugin wiring before hygiene, coverage, and UAT reruns."
+    "2025-10-06 follow-up recorded pytest-bdd duplicate registration halting fast+medium rehearsals; execution plan updated with PR-0 to consolidate plugin wiring before hygiene, coverage, and UAT reruns.",
+    "2025-10-06T15:59Z synthesis: strict typing stays green but fast+medium aggregate and release prep both fail on behavior-step indentation/`feature_path` regressions; remediation logged in docs/tasks §13.1.10 with diagnostics captured under diagnostics/mypy_strict_manifest_20251006T155640Z.json, diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log, and diagnostics/release_prep_20251006T150353Z.log."
   ],
   "resolved": [
     "Feature 'Review and Reprioritize Open Issues' addressed through release-blocker audit (2025-09-09).",
@@ -37,6 +38,6 @@
     "Documentation refreshed for 0.1.0a1: recorded strict mypy gate success and staged coverage remediation milestones (2025-10-04).",
     "Coverage gate synthesis recorded 92.40% fast+medium evidence with manifest+knowledge-graph IDs; docs/plan.md, docs/tasks.md, and issues synchronized for v0.1.0a1 (2025-10-12).",
     "v0.1.0a1 plan updated to prioritize Taskfile automation repair, memory Protocol fixes, and refreshed quality-gate evidence before UAT (2025-10-04).",
-    "2025-10-06T02:54:38Z synthesis: fast+medium gate recorded 92.40% with knowledge-graph IDs, and the remaining 87.34% reasoning_loop gap is now tracked via docs/tasks §13.3.1 and issues/release-finalization-uat.md for the final UAT rerun." 
+    "2025-10-06T02:54:38Z synthesis: fast+medium gate recorded 92.40% with knowledge-graph IDs, and the remaining 87.34% reasoning_loop gap is now tracked via docs/tasks §13.3.1 and issues/release-finalization-uat.md for the final UAT rerun."
   ]
 }
