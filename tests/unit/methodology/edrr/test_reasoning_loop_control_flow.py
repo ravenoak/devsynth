@@ -305,6 +305,51 @@ def test_reasoning_loop_records_dialectical_sequences_for_coordinator(monkeypatc
 
 
 @pytest.mark.fast
+def test_reasoning_loop_fallbacks_for_invalid_phase_and_next_phase(monkeypatch, caplog):
+    """Unknown phases rely on deterministic fallbacks for coordinator logging."""
+
+    payloads = [
+        {"status": "in_progress", "phase": "mystery", "next_phase": "???"},
+        {"status": "in_progress", "phase": "mystery", "next_phase": "???"},
+        {"status": "completed", "phase": "mystery", "next_phase": "???"},
+    ]
+
+    call_index = {"value": 0}
+
+    def scripted(*_args, **_kwargs):
+        index = call_index["value"]
+        call_index["value"] += 1
+        return dict(payloads[index])
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: scripted)
+
+    coordinator = CoordinatorRecorder()
+
+    caplog.set_level("INFO", rl.logger.logger.name)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "fallback"},
+        critic_agent=None,
+        coordinator=coordinator,
+        phase=rl.Phase.EXPAND,
+        max_iterations=5,
+    )
+
+    assert [record[0] for record in coordinator.records] == [
+        "expand",
+        "differentiate",
+        "refine",
+    ]
+    assert [result["status"] for result in results] == [
+        payload["status"] for payload in payloads
+    ]
+    assert any(
+        message.startswith("Dialectical reasoning iteration") for message in caplog.messages
+    )
+
+
+@pytest.mark.fast
 def test_reasoning_loop_honors_total_time_budget(monkeypatch):
     """The loop exits early when the total time budget is exhausted before an iteration.
 

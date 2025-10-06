@@ -121,3 +121,11 @@ def test_reasoning_loop_raises_for_non_mapping_results(monkeypatch):
 
     with pytest.raises(TypeError, match="must return a mapping payload"):
         rl.reasoning_loop(NullWSDETeam(), {"solution": "seed"}, None)
+
+
+@pytest.mark.fast
+def test_reasoning_loop_rejects_non_mapping_task_payload() -> None:
+    """Invalid task inputs surface the ensure_dialectical_task TypeError."""
+
+    with pytest.raises(TypeError, match="Unsupported task payload type"):
+        rl.reasoning_loop(NullWSDETeam(), "not-a-task", None)

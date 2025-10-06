@@ -66,30 +66,35 @@ without exceeding the budget.【F:tests/unit/methodology/edrr/test_reasoning_loo
 New unit regressions exercise the remaining defensive branches:
 `test_reasoning_loop_clamps_retry_when_budget_consumed` covers the
 recursion-guard fallback that skips retries once the remaining budget is
-consumed, `test_reasoning_loop_rejects_non_mapping_task_payload` verifies that
-non-mapping tasks raise a deterministic `TypeError`, and
-`test_reasoning_loop_logs_retry_exhaustion_telemetry` captures the debug
-telemetry emitted when retry attempts are exhausted.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L340-L441】
-The property suite now proxies through
-`_import_apply_dialectical_reasoning`, aligning with the production accessor so
-that randomized runs observe the same branch wiring as the unit harness.【F:tests/property/test_reasoning_loop_properties.py†L25-L287】
+consumed, `test_reasoning_loop_logs_retry_exhaustion` asserts that exhausting
+the retry budget emits the debug telemetry we rely on for diagnostics, and
+`test_reasoning_loop_fallbacks_for_invalid_phase_and_next_phase` proves that
+coordinator logging falls back to the deterministic transition map when the
+payload supplies unrecognized phase hints.【F:tests/unit/methodology/edrr/test_reasoning_loop_invariants.py†L340-L441】【F:tests/unit/methodology/edrr/test_reasoning_loop_retry.py†L80-L101】【F:tests/unit/methodology/edrr/test_reasoning_loop_control_flow.py†L307-L349】
+The input guards now surface deterministic errors through
+`test_reasoning_loop_rejects_non_mapping_results` and
+`test_reasoning_loop_rejects_non_mapping_task_payload`, covering both result
+and task validation paths.【F:tests/unit/methodology/edrr/test_reasoning_loop_safeguards.py†L113-L131】 The property suite
+continues to proxy through `_import_apply_dialectical_reasoning`, aligning with
+the production accessor so that randomized runs observe the same branch wiring
+as the unit harness.【F:tests/property/test_reasoning_loop_properties.py†L25-L287】
 
 ## Coverage and Test Evidence (2025-10-04)
 
 | Metric | Before (2025-10-12 fast+medium aggregate) | After (2025-10-04 focused invariants run) |
 | --- | --- | --- |
-| `src/devsynth/methodology/edrr/reasoning_loop.py` | 87.34 % (69/79 lines) | 56.67 % (51/90 lines) |
+| `src/devsynth/methodology/edrr/reasoning_loop.py` | 87.34 % (69/79 lines) | 68.89 % (62/90 lines) |
 
 - **Full-suite baseline:** The archived fast+medium aggregate remains at 87.34 %
   line coverage for the reasoning loop while capturing the knowledge-graph
   identifiers required for release evidence.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L31】
-- **Focused invariants sweep:** Running the unit/property harness with
-  `DEVSYNTH_PROPERTY_TESTING=1` refreshes
-  `test_reports/run-tests/coverage.json` for the reasoning loop alone. The
-  narrower profile lands at 56.67 % line coverage because it only exercises the
-  invariants suite, but it records the retry guard, telemetry, and input
-  validation branches added above.【F:test_reports/coverage_manifest_20251004T175208Z.json†L1-L16】 The reduced percentage reflects the limited scope of the focused sweep rather than a regression in the aggregate evidence.
-- **Execution command:** `DEVSYNTH_PROPERTY_TESTING=1 PYTHONPATH=src poetry run pytest tests/unit/methodology/edrr/test_reasoning_loop_invariants.py tests/property/test_reasoning_loop_properties.py --cov=devsynth.methodology.edrr.reasoning_loop --cov-report=term --cov-report=json:test_reports/run-tests/coverage.json -o console_output_style=classic --cov-fail-under=0` persists the refreshed manifest for future traceability.【F:test_reports/coverage_manifest_20251004T175208Z.json†L1-L8】
+- **Focused invariants sweep:** Running the fast-only harness with the new
+  retry, coordinator logging, and type-guard tests produces 68.89 % line
+  coverage for `reasoning_loop.py`, exercising the backoff clamp, fallback
+  transitions, and `TypeError` guards captured above.【F:artifacts/reasoning_loop_fast_focus.json†L1-L20】 The scope remains narrower
+  than the aggregate fast+medium gate, so the percentage reflects the focused
+  profile rather than a regression.
+- **Execution command:** `PYTHONPATH=src poetry run pytest tests/unit/methodology/edrr -k reasoning_loop -m fast --cov=devsynth.methodology.edrr.reasoning_loop --cov-report=term --cov-report=json:artifacts/reasoning_loop_fast_focus.json --cov-fail-under=0` persists the refreshed JSON snapshot for future traceability.【567b7b†L1-L40】
 
 ## Traceability
 
