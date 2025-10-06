@@ -8,6 +8,7 @@ Affected Area: tests
 ## Reproduction
 - `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1`
 - `poetry run pytest --collect-only -q`
+- `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 --dry-run`
 
 ## Exit Codes
 - `devsynth run-tests`: 1 (collection failure)
@@ -40,7 +41,7 @@ Affected Area: tests
 - [x] Sweep unit/domain suites to move `pytestmark` statements outside import contexts and rerun targeted `pytest -k nothing` checks to prove SyntaxErrors are gone.【d62a9a†L12-L33】【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L45】【F:tests/unit/application/memory/test_chromadb_store.py†L1-L58】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L58】【F:logs/pytest_collect_only_20251006T043523Z.log†L1-L113】
 - [x] Add explicit `import pytest` lines (or remove unused `pytestmark`) in integration suites to prevent import-time NameErrors; audit confirmed affected modules now import pytest alongside relocated markers.【e85f55†L1-L22】【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L43】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L18】
 - [ ] Update `pytest_bdd.scenarios(...)` paths to reference `features/general/*.feature` and capture refreshed traceability manifests.【6cd789†L12-L28】
-- [ ] Re-run smoke and `--collect-only` commands, attaching new logs when failures cease.
+- [ ] Re-run smoke, the smoke dry-run preview, and `--collect-only` commands, attaching new `diagnostics/` transcripts when failures cease.
 
 ## Resolution Evidence
 - 2025-10-07: Plugin hoist landed; `pytest --collect-only -q` collects without duplicate registration, and the developer guide now documents the root-scope requirement in the new “Pytest plugin discipline” subsection.【F:logs/pytest_collect_only_20251007.log†L1-L40】【F:docs/developer_guides/test_execution_strategy.md†L161-L164】

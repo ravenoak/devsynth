@@ -46,7 +46,7 @@ tasks:
   tests:collect:
     desc: Run quick sanity collection and capture output under diagnostics/
     cmds:
-      - bash -lc 'mkdir -p diagnostics; poetry run pytest --collect-only -q | tee diagnostics/pytest_collect.txt; exit ${PIPESTATUS[0]}'
+      - bash -lc 'mkdir -p diagnostics; TS=$(date -u +%Y%m%dT%H%M%SZ); OUT="diagnostics/pytest_collect_${TS}.txt"; CMD="poetry run pytest --collect-only -q"; $CMD | tee "$OUT"; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "$CMD" --exit-code $EXIT --artifacts "$OUT" --notes "pytest collection regression"; exit $EXIT'
 
   # Testing tasks
   test:
@@ -107,6 +107,11 @@ tasks:
     desc: Run behavior tests in smoke mode (disables xdist and third-party plugins)
     cmds:
       - bash -lc 'mkdir -p diagnostics; PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 poetry run devsynth run-tests --target behavior-tests --speed=fast --no-parallel --smoke --maxfail=1 | tee diagnostics/behavior_fast_smoke.txt; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "devsynth run-tests behavior-fast-smoke" --exit-code $EXIT --artifacts "diagnostics/behavior_fast_smoke.txt" --notes "behavior smoke fast"; exit $EXIT'
+
+  tests:smoke-dry-run:
+    desc: Preview smoke defaults without executing tests (diagnostics transcript)
+    cmds:
+      - bash -lc 'mkdir -p diagnostics; TS=$(date -u +%Y%m%dT%H%M%SZ); OUT="diagnostics/devsynth_run_tests_smoke_dry_run_${TS}.txt"; CMD="poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1 --dry-run"; $CMD | tee "$OUT"; EXIT=${PIPESTATUS[0]}; poetry run python scripts/append_exec_log.py --command "$CMD" --exit-code $EXIT --artifacts "$OUT" --notes "smoke dry-run regression"; exit $EXIT'
 
   doctor:lmstudio:
     desc: Quick LM Studio readiness check (respects DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE and LM_STUDIO_ENDPOINT)

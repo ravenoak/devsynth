@@ -142,6 +142,9 @@ def test_cli_smoke_dry_run_invokes_preview(
     sys.modules.pop("devsynth.config", None)
     sys.modules.pop("devsynth.config.settings", None)
     sys.modules.pop("devsynth.config.provider_env", None)
+    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+    monkeypatch.delenv("DEVSYNTH_TEST_TIMEOUT_SECONDS", raising=False)
     app, cli_module = build_minimal_cli_app(monkeypatch)
 
     calls: list[dict[str, Any]] = []
@@ -167,8 +170,6 @@ def test_cli_smoke_dry_run_invokes_preview(
             "unit-tests",
             "--smoke",
             "--no-parallel",
-            "--speed",
-            "fast",
             "--maxfail",
             "1",
             "--dry-run",
@@ -178,7 +179,17 @@ def test_cli_smoke_dry_run_invokes_preview(
 
     assert result.exit_code == 0
     assert calls and calls[0]["kwargs"].get("dry_run") is True
+    args = calls[0]["args"]
+    # Target, speed categories, verbose, report, parallel, segment, segment_size, maxfail
+    assert args[0] == "unit-tests"
+    assert args[1] == ["fast"], "Smoke dry-run should default to fast speed"
+    assert args[4] is False, "Smoke mode forces parallel=False even in dry-run"
     assert "Dry run complete" in result.stdout
+    assert "Smoke dry-run enabled" in result.stdout
+    assert os.environ["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] == "1"
+    addopts = os.environ.get("PYTEST_ADDOPTS", "")
+    assert "-p no:xdist" in addopts
+    assert "--cov-fail-under=0" in addopts
 
 
 @pytest.mark.fast
