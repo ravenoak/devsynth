@@ -19,8 +19,17 @@ Best Practices:
 - Use a ubiquitous language that all stakeholders can understand
 """
 
+import os
+
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
+
+
+if os.environ.get("DEVSYNTH_ENABLE_BEHAVIOR_TEMPLATE", "0") != "1":
+    pytest.skip(
+        "Template file for documentation only; set DEVSYNTH_ENABLE_BEHAVIOR_TEMPLATE=1 to execute.",
+        allow_module_level=True,
+    )
 
 # Import the feature file
 # Adjust the path to match your feature file location

@@ -9,6 +9,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+pytestmark = [pytest.mark.fast]
+
 sys.modules.setdefault("jsonschema", SimpleNamespace())
 sys.modules.setdefault("toml", SimpleNamespace(load=lambda *args, **kwargs: {}))
 sys.modules.setdefault("yaml", SimpleNamespace(safe_load=lambda *args, **kwargs: {}))
@@ -54,10 +56,6 @@ sys.modules.setdefault("rich.text", SimpleNamespace(Text=_RichStub))
 from devsynth.application.cli import long_running_progress
 from devsynth.application.edrr.coordinator.core import EDRRCoordinator
 from devsynth.domain.models.wsde_facade import WSDETeam
-
-
-
-pytestmark = [pytest.mark.fast]
 
 
 class _DummyConsole:

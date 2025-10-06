@@ -24,6 +24,9 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.methodology.base import Phase
 
 
+pytestmark = [pytest.mark.slow]
+
+
 class ExpertAgent(UnifiedAgent):
     """Agent with specific expertise for testing."""
 
@@ -103,7 +106,6 @@ def test_wsde_edrr_integration_end_to_end_succeeds(coordinator):
 
     ReqID: N/A"""
 
-pytestmark = [pytest.mark.slow]
     task = {
         "description": "Create a Python function to calculate Fibonacci numbers",
         "language": "python",

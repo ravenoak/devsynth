@@ -29,6 +29,9 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
+pytestmark = [pytest.mark.slow]
+
+
 @pytest.mark.parametrize(
     "provider_resource",
     [
@@ -48,7 +51,6 @@ def test_edrr_cycle_with_real_llm_has_expected(tmp_path, provider_resource):
 
     ReqID: N/A"""
 
-pytestmark = [pytest.mark.slow]
     tinydb_adapter = TinyDBMemoryAdapter()
     graph_adapter = GraphMemoryAdapter(base_path=str(tmp_path / "graph_memory"))
     memory_manager = MemoryManager(

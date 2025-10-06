@@ -6,4 +6,4 @@ from .steps.test_agent_api_steps import *  # noqa: F401,F403
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("general/agent_api_interactions.feature")
+scenarios("features/agent_api_interactions.feature")

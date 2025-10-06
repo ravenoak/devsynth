@@ -697,6 +697,9 @@ markers = [
     "run_pipeline: mark test as related to pipeline execution",
     "security-audit: mark test as related to security audit functionality",
     "cli: mark test as part of the CLI verification suite",
+    "asyncio: mark test as using pytest-asyncio integration",
+    "anyio: mark test as using anyio test harness",
+    "reqid(tag): annotate tests with a requirements identifier tag",
 ]
 
 # Configure asyncio mode for pytest-asyncio

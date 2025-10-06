@@ -33,4 +33,4 @@ from .steps.test_cli_ux_enhancements_steps import (
 pytestmark = [pytest.mark.fast]
 
 # Load scenarios from the feature file
-scenarios("general/cli_ux_enhancements.feature")
+scenarios("features/general/cli_ux_enhancements.feature")

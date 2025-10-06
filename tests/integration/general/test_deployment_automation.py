@@ -1,4 +1,3 @@
-pytestmark = [pytest.mark.slow]
 """Tests for deployment automation scripts.
 
 This suite verifies that deployment scripts exist, images can be published,
@@ -6,7 +5,11 @@ and rollback instructions are documented.
 """
 
 from pathlib import Path
+
 import pytest
+
+
+pytestmark = [pytest.mark.slow]
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS_DIR = ROOT / "scripts/deployment"

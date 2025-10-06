@@ -15,6 +15,9 @@ from .webui_steps import webui_context
 # These steps exercise both CLI and WebUI flows for requirements gathering
 
 
+pytestmark = pytest.mark.fast
+
+
 class DummyBridge(UXBridge):
     def __init__(self, answers: Sequence[str]):
         self.answers = list(answers)
@@ -37,10 +40,6 @@ class DummyBridge(UXBridge):
 
     def display_result(self, message: str, *, highlight: bool = False) -> None:
         pass
-
-
-
-pytestmark = pytest.mark.fast
 
 scenarios("../features/general/requirements_gathering.feature")
 scenarios("../features/interactive_requirements_gathering.feature")

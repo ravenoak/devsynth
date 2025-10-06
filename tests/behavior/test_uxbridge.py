@@ -6,4 +6,4 @@ from .steps.test_uxbridge_steps import *  # noqa: F401,F403
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("general/uxbridge.feature")
+scenarios("features/general/uxbridge.feature")

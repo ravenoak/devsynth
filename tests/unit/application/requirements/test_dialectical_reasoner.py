@@ -4,8 +4,6 @@ import pytest
 
 from devsynth.application.collaboration.exceptions import ConsensusError
 from devsynth.application.requirements.dialectical_reasoner import (
-
-pytestmark = [pytest.mark.fast]
     DialecticalReasonerService,
 )
 from devsynth.application.requirements.models import EDRRPhase
@@ -22,6 +20,9 @@ from devsynth.domain.models.requirement import (
     RequirementChange,
 )
 from devsynth.domain.models.wsde_facade import WSDETeam
+
+
+pytestmark = [pytest.mark.fast]
 
 
 class DummyNotification:

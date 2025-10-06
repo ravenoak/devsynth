@@ -5,11 +5,15 @@ import time
 import types
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Protocol, TypeVar
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+
+
+pytestmark = pytest.mark.requires_resource("duckdb")
+
 
 pytest.importorskip("duckdb")
 if os.environ.get("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE", "true").lower() == "false":
@@ -31,7 +35,10 @@ interfaces_pkg = sys.modules.setdefault(
 )
 memory_stub = types.ModuleType("devsynth.domain.interfaces.memory")
 
-class _MemoryStore:
+MemorySearchResponse = list[Any]
+
+
+class _MemoryStore(Protocol):
     def store(self, item): ...
 
     def retrieve(self, item_id): ...
@@ -49,7 +56,10 @@ class _MemoryStore:
     def is_transaction_active(self, transaction_id): ...
 
 
-class _VectorStore:
+_VectorT = TypeVar("_VectorT")
+
+
+class _VectorStore(Protocol[_VectorT]):
     def store_vector(self, vector): ...
 
     def retrieve_vector(self, vector_id): ...
@@ -61,7 +71,7 @@ class _VectorStore:
     def get_collection_stats(self): ...
 
 
-class _ContextManager:
+class _ContextManager(Protocol):
     def add_to_context(self, key, value): ...
 
     def get_from_context(self, key): ...
@@ -71,9 +81,21 @@ class _ContextManager:
     def clear_context(self): ...
 
 
+class _SupportsTransactions(Protocol):
+    def begin_transaction(self): ...
+
+    def commit_transaction(self, transaction_id): ...
+
+    def rollback_transaction(self, transaction_id): ...
+
+    def is_transaction_active(self, transaction_id): ...
+
+
 memory_stub.MemoryStore = _MemoryStore  # type: ignore[attr-defined]
 memory_stub.VectorStore = _VectorStore  # type: ignore[attr-defined]
 memory_stub.ContextManager = _ContextManager  # type: ignore[attr-defined]
+memory_stub.SupportsTransactions = _SupportsTransactions  # type: ignore[attr-defined]
+memory_stub.MemorySearchResponse = MemorySearchResponse  # type: ignore[attr-defined]
 sys.modules["devsynth.domain.interfaces.memory"] = memory_stub
 setattr(interfaces_pkg, "memory", memory_stub)
 
@@ -83,9 +105,6 @@ from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
-
-
-pytestmark = pytest.mark.requires_resource("duckdb")
 
 
 class TestDuckDBStoreHNSW:
