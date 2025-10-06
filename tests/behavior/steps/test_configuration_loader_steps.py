@@ -14,7 +14,7 @@ from devsynth.exceptions import ConfigurationError
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "configuration_loader.feature"))
+scenarios(feature_path(__file__, "general", "configuration_loader.feature"))
 
 
 @dataclass

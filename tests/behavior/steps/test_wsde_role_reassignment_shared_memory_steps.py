@@ -25,7 +25,7 @@ from devsynth.application.memory.memory_manager import MemoryManager
 if not hasattr(lmdb_mod, "open"):
     pytest.skip("lmdb unavailable", allow_module_level=True)
 
-scenarios(feature_path(__file__, "wsde", "role_reassignment_shared_memory.feature"))
+scenarios(feature_path(__file__, "general", "role_reassignment_shared_memory.feature"))
 
 
 class DummyAgent:

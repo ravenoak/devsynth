@@ -25,7 +25,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 pytestmark = pytest.mark.fast
 
-scenarios(feature_path(__file__, "wsde_multi_agent.feature"))
+scenarios(feature_path(__file__, "general", "wsde_multi_agent.feature"))
 
 
 class _Context:

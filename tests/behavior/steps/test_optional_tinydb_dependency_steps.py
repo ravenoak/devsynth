@@ -10,7 +10,7 @@ from pytest_bdd import given, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "memory", "optional_tinydb_dependency.feature"))
+scenarios(feature_path(__file__, "general", "optional_tinydb_dependency.feature"))
 
 
 @pytest.fixture

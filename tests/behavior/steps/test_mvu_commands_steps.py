@@ -56,7 +56,7 @@ def _app() -> Typer:
     return app
 
 
-scenarios(feature_path(__file__, "mvu", "commands.feature"))
+scenarios(feature_path(__file__, "general", "commands.feature"))
 
 
 @given("the DevSynth CLI is installed")

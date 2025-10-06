@@ -11,6 +11,7 @@ pytestmark = [pytest.mark.fast]
 feature_file = os.path.join(
     os.path.dirname(__file__),
     "features",
+    "general",
     "dialectical_audit_gating.feature",
 )
 

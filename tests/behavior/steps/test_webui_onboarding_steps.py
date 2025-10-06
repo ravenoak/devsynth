@@ -115,7 +115,6 @@ def webui_context(monkeypatch):
 
 
 scenarios(feature_path(__file__, "general", "webui_onboarding_flow.feature"))
-scenarios(feature_path(__file__, "webui_onboarding_flow.feature"))
 
 
 @given("the WebUI is initialized")

@@ -11,7 +11,7 @@ from pytest_bdd import given, scenarios, then, when
 
 pytestmark = pytest.mark.fast
 
-scenarios(feature_path(__file__, "agent_api_stub.feature"))
+scenarios(feature_path(__file__, "general", "agent_api_stub.feature"))
 
 
 @pytest.fixture

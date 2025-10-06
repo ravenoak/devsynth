@@ -10,7 +10,7 @@ from devsynth import feature_markers
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "feature_markers.feature"))
+scenarios(feature_path(__file__, "general", "feature_markers.feature"))
 
 
 @given("a documented feature", target_fixture="documented_feature")

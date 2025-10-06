@@ -22,7 +22,7 @@ from devsynth.domain.models.requirement import RequirementChange
 
 
 pytestmark = pytest.mark.fast
-scenarios(feature_path(__file__, "dialectical_reasoning.feature"))
+scenarios(feature_path(__file__, "general", "dialectical_reasoning.feature"))
 
 class _DummyNotification:
     def notify_change_proposed(self, payload):

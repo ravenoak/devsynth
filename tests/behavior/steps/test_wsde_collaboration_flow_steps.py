@@ -12,7 +12,7 @@ from devsynth.methodology.base import Phase
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "wsde", "collaboration_flow.feature"))
+scenarios(feature_path(__file__, "general", "collaboration_flow.feature"))
 
 
 @pytest.fixture

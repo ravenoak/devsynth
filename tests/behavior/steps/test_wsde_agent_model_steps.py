@@ -21,9 +21,9 @@ pytestmark = pytest.mark.fast
 
 
 
-scenarios(feature_path(__file__, "wsde_agent_model_refinement.feature"))
+scenarios(feature_path(__file__, "general", "wsde_agent_model_refinement.feature"))
 scenarios(feature_path(__file__, "general", "wsde_agent_model.feature"))
-scenarios(feature_path(__file__, "multi_agent_collaboration.feature"))
+scenarios(feature_path(__file__, "general", "multi_agent_collaboration.feature"))
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent

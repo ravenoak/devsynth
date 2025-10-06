@@ -44,8 +44,8 @@ class DummyBridge(UXBridge):
 
 scenarios(feature_path(__file__, "general", "interactive_flow_cli.feature"))
 scenarios(feature_path(__file__, "general", "interactive_flow_webui.feature"))
-scenarios(feature_path(__file__, "interactive_requirements_flow_cli.feature"))
-scenarios(feature_path(__file__, "interactive_requirements_flow_webui.feature"))
+scenarios(feature_path(__file__, "general", "interactive_requirements_flow_cli.feature"))
+scenarios(feature_path(__file__, "general", "interactive_requirements_flow_webui.feature"))
 
 
 @given("the DevSynth CLI is installed")

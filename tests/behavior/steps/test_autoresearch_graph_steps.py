@@ -22,7 +22,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
 
-scenarios(feature_path(__file__, "advanced_graph_memory_features.feature"))
+scenarios(feature_path(__file__, "general", "advanced_graph_memory_features.feature"))
 
 
 class _Context:

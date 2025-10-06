@@ -7,6 +7,8 @@ import pytest
 import yaml
 from pytest_bdd import given, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
+
 from devsynth.application.requirements.wizard import requirements_wizard
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.utils.logging import configure_logging
@@ -31,10 +33,8 @@ class DummyBridge(UXBridge):
         pass
 
 
-scenarios(str(Path(__file__).with_name("logging_and_priority.feature")))
-scenarios(
-    str(Path(__file__).parents[1] / "features" / "requirements_wizard_logging.feature")
-)
+scenarios(feature_path(__file__, "general", "logging_and_priority.feature"))
+scenarios(feature_path(__file__, "general", "requirements_wizard_logging.feature"))
 
 
 @given("logging is configured for the requirements wizard")

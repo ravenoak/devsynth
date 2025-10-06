@@ -950,7 +950,6 @@ from unittest.mock import MagicMock, patch
 # noqa: F401,F403
 import pytest
 
-scenarios(feature_path(__file__, "general", "edrr_enhanced_phase_transitions.feature"))
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.documentation.documentation_manager import (

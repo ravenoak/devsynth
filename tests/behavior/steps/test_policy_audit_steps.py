@@ -14,7 +14,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "security", "policy_audit.feature"))
+scenarios(feature_path(__file__, "general", "policy_audit.feature"))
 
 
 @pytest.fixture

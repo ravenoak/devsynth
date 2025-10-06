@@ -9,7 +9,7 @@ from .webui_steps import given_webui_initialized, webui_context
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-scenarios(feature_path(__file__, "webui", "serve.feature"))
+scenarios(feature_path(__file__, "general", "serve.feature"))
 
 
 @then("the Serve page should be displayed")

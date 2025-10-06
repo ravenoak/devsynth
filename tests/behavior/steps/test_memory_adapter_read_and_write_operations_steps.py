@@ -19,7 +19,7 @@ from devsynth.memory.layered_cache import DictCacheLayer, MultiLayeredMemory
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "memory_adapter_read_and_write_operations.feature"))
+scenarios(feature_path(__file__, "general", "memory_adapter_read_and_write_operations.feature"))
 
 
 @dataclass

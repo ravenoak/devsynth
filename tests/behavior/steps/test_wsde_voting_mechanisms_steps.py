@@ -15,7 +15,7 @@ pytestmark = [pytest.mark.fast]
 
 
 scenarios(feature_path(__file__, "general", "wsde_voting_mechanisms.feature"))
-scenarios(feature_path(__file__, "wsde_voting_mechanisms_for_critical_decisions.feature"))
+scenarios(feature_path(__file__, "general", "wsde_voting_mechanisms_for_critical_decisions.feature"))
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent

@@ -22,7 +22,7 @@ pytestmark = [pytest.mark.fast]
 
 
 
-scenarios(feature_path(__file__, "webui", "command.feature"))
+scenarios(feature_path(__file__, "general", "command.feature"))
 
 # Reuse existing step definitions
 from .cli_commands_steps import (

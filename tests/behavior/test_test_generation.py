@@ -11,7 +11,7 @@ from devsynth.application.agents.test import TestAgent
 pytestmark = [pytest.mark.fast]
 
 FEATURE_FILE = (
-    Path(__file__).parent / "features" / "test_generation" / "multi_module.feature"
+    Path(__file__).parent / "features" / "general" / "test_generation_multi_module.feature"
 )
 scenarios(FEATURE_FILE)
 

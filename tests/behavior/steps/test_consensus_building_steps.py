@@ -19,7 +19,6 @@ from devsynth.consensus import build_consensus
 pytestmark = pytest.mark.fast
 
 # Import the feature files
-scenarios(feature_path(__file__, "consensus_building.feature"))
 scenarios(feature_path(__file__, "general", "consensus_building.feature"))
 
 

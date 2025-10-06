@@ -18,7 +18,6 @@ from devsynth.config.unified_loader import UnifiedConfigLoader
 pytestmark = [pytest.mark.fast]
 
 scenarios(feature_path(__file__, "general", "interactive_init_wizard.feature"))
-scenarios(feature_path(__file__, "interactive_init_wizard.feature"))
 
 
 @given("the DevSynth CLI is installed")

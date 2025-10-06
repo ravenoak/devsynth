@@ -11,7 +11,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 pytestmark = [pytest.mark.fast]
 
 # Load the scenarios from the feature file
-scenarios(feature_path(__file__, "examples", "simple_addition.feature"))
+scenarios(feature_path(__file__, "general", "simple_addition.feature"))
 
 
 @pytest.fixture
