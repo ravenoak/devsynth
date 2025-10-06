@@ -1,8 +1,16 @@
 name: Minimal CI (Post-release Enablement)
 
 on:
+  push:
+    branches:
+      - main
+      - 'release/*'
+  pull_request:
+    branches:
+      - main
+      - 'release/*'
   workflow_dispatch:
-  # TODO: Re-enable push/pull_request triggers after tagging v0.1.0-alpha.1 (docs/tasks.md item 10.1)
+  # Restored push/pull_request triggers after v0.1.0a1 tagging
 # This workflow is intentionally minimal and disabled for push/PR triggers.
 # It is meant to be enabled manually post-release via workflow_dispatch or schedule.
 

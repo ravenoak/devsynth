@@ -1,0 +1,49 @@
+{
+  "bundle_id": "uat-20251006T030807Z",
+  "created_at": "2025-10-06T03:08:07Z",
+  "release": "0.1.0a1",
+  "artifacts": {
+    "smoke_log": {
+      "path": "smoke/devsynth_run-tests_smoke_fast_20251004T201351Z.log",
+      "sha256": "7630731bd130d19fcf536ff5e9092462da7a0522a1fbb2ab7e3ce290551e0651",
+      "command": "poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1"
+    },
+    "coverage_manifest": {
+      "path": "coverage/coverage_manifest_20251012T164512Z.json",
+      "sha256": "12eefaa2a6d1832351abdb18789e6f378b3ef2d12fec4c47290eac8c1133a026",
+      "knowledge_graph": {
+        "quality_gate_id": "QG-20251012-FASTMED",
+        "test_run_id": "TR-20251012-FASTMED",
+        "release_evidence_id": "RE-20251012-FASTMED"
+      }
+    },
+    "typing_log": {
+      "path": "typing/mypy_strict_20251005T035128Z.log",
+      "sha256": "6129206c8d885fa350b10346014c776f526aae8585cd33df28bebb88e2893804",
+      "knowledge_graph": {
+        "quality_gate_id": "c54c967d-6a97-4c68-a7df-237a609fd53e",
+        "test_run_id": "3ec7408d-1201-4456-8104-ee1b504342cc",
+        "release_evidence": [
+          "9f4bf6fc-4826-4ff6-8aa2-24c5e6396b37",
+          "e3208765-a9f9-4293-9a1d-bbd3726552af"
+        ]
+      },
+      "companion_manifests": [
+        {
+          "path": "typing/mypy_strict_src_devsynth_20251005T035143Z.txt",
+          "sha256": "ccd6d8de29e270a45b3c2b0dd054af0cd9a6d09ce2b2de7877115a066568d6a0"
+        },
+        {
+          "path": "typing/mypy_strict_application_memory_20251005T035144Z.txt",
+          "sha256": "02a88e044e14b966c27f6c162bdcba751601b93ba0a212fa2151bd889d9688ef"
+        }
+      ]
+    },
+    "readiness_issue_snapshot": {
+      "path": "readiness/release-readiness-assessment-v0-1-0a1.md",
+      "sha256": "d4257e070f75580fcd1c8f013fd134d184d8b3dadd9a6db56b1611ae082859e5",
+      "source": "issues/release-readiness-assessment-v0-1-0a1.md",
+      "captured_at": "2025-10-06T03:08:07Z"
+    }
+  }
+}

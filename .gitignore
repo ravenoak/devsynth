@@ -12,6 +12,7 @@ logs/
 !logs/
 logs/**
 !logs/**/*.log
+!artifacts/**/*.log
 devsynth.log
 
 # DevSynth specific

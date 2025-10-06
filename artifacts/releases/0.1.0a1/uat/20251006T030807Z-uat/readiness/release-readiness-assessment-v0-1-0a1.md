@@ -9,7 +9,7 @@
 
 **RELEASE STATUS: 🔴 BLOCKED**
 
-Strict typing and coverage evidence now include a fresh 2025-10-05 strict run that published knowledge-graph IDs (`QualityGate=c54c967d-6a97-4c68-a7df-237a609fd53e`, `TestRun=3ec7408d-1201-4456-8104-ee1b504342cc`, `ReleaseEvidence={9f4bf6fc-4826-4ff6-8aa2-24c5e6396b37,e3208765-a9f9-4293-9a1d-bbd3726552af}`), but maintainer automation still stops early: `task release:prep` now reaches `poetry build` before failing on duplicate `overrides` keys, and smoke mode continues to halt on the `MemoryStore` Protocol generics regression. Until the pyproject duplication and memory typing fix land, the team cannot regenerate coverage artifacts or deliver a green smoke log for the hand-off package.【F:diagnostics/release_prep_20251005T035109Z.log†L1-L25】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】 The updated execution plan (PR-A → PR-E) sequences these fixes ahead of UAT sign-off.【F:docs/release/v0.1.0a1_execution_plan.md†L1-L128】 The UAT bundle is now archived at `artifacts/releases/0.1.0a1/uat/20251006T030807Z-uat/`, and the post-tag CI re-enable branch is staged so maintainers can merge immediately after tagging.【F:artifacts/releases/0.1.0a1/uat/20251006T030807Z-uat/README.md†L1-L14】【F:.github/workflows/ci.yml†L1-L17】
+Strict typing and coverage evidence now include a fresh 2025-10-05 strict run that published knowledge-graph IDs (`QualityGate=c54c967d-6a97-4c68-a7df-237a609fd53e`, `TestRun=3ec7408d-1201-4456-8104-ee1b504342cc`, `ReleaseEvidence={9f4bf6fc-4826-4ff6-8aa2-24c5e6396b37,e3208765-a9f9-4293-9a1d-bbd3726552af}`), but maintainer automation still stops early: `task release:prep` now reaches `poetry build` before failing on duplicate `overrides` keys, and smoke mode continues to halt on the `MemoryStore` Protocol generics regression. Until the pyproject duplication and memory typing fix land, the team cannot regenerate coverage artifacts or deliver a green smoke log for the hand-off package.【F:diagnostics/release_prep_20251005T035109Z.log†L1-L25】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】 The updated execution plan (PR-A → PR-E) sequences these fixes ahead of UAT sign-off.【F:docs/release/v0.1.0a1_execution_plan.md†L1-L128】
 
 ## Dialectical Analysis
 
@@ -36,7 +36,7 @@ Strict typing and coverage evidence now include a fresh 2025-10-05 strict run th
 
 ### ⚠️ Attention Required
 - **EDRR Coverage Delta**: `methodology/edrr/reasoning_loop.py` sits at 87.34 % in the latest manifest; a fast-only snapshot on 2025-10-05 recorded 68.89 %, underscoring the need for additional simulations before the final rerun.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L25】
-- **UAT Evidence Bundle**: ✅ Archived at `artifacts/releases/0.1.0a1/uat/20251006T030807Z-uat/` with smoke, coverage, typing, and readiness artifacts cross-referenced in the finalization issue.【F:artifacts/releases/0.1.0a1/uat/20251006T030807Z-uat/README.md†L1-L14】【F:issues/release-finalization-uat.md†L9-L64】
+- **UAT Evidence Bundle**: Stakeholder approvals are conditional until release prep, smoke, and strict typing runs are re-executed successfully.【F:issues/release-finalization-uat.md†L19-L64】
 
 ## Critical Issues
 
@@ -82,7 +82,7 @@ Mitigations: follow the PR sequencing above, capture fresh diagnostics after eac
 1. Deliver PR-A (Taskfile fix + guard) and rerun blocked task targets.【F:diagnostics/release_prep_20251005T035109Z.log†L1-L25】【F:diagnostics/mypy_strict_20251005T035128Z.log†L1-L20】
 2. Execute PR-B to repair the memory Protocol regression and revalidate smoke.【F:logs/devsynth_run-tests_smoke_fast_20251004T183142Z.log†L7-L55】
 3. After smoke is green, regenerate strict mypy/coverage artifacts (PR-C/PR-D) and resolve the EDRR delta.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】
-4. ✅ Completed – UAT bundle archived under `artifacts/releases/0.1.0a1/uat/20251006T030807Z-uat/` and workflow triggers restored in the staged post-tag branch (PR-E).【F:artifacts/releases/0.1.0a1/uat/20251006T030807Z-uat/README.md†L1-L14】【F:.github/workflows/ci.yml†L1-L17】【F:issues/release-finalization-uat.md†L9-L64】
+4. Compile the refreshed UAT bundle and queue the post-tag workflow PR (PR-E).【F:issues/release-finalization-uat.md†L19-L64】【F:docs/release/v0.1.0a1_execution_plan.md†L88-L128】【F:issues/re-enable-github-actions-triggers-post-v0-1-0a1.md†L1-L18】
 
 ---
 
