@@ -43,6 +43,7 @@ Affected Area: tests
 - [ ] Re-run smoke and `--collect-only` commands, attaching new logs when failures cease.
 
 ## Resolution Evidence
+- 2025-10-07: Plugin hoist landed; `pytest --collect-only -q` collects without duplicate registration, and the developer guide now documents the root-scope requirement in the new “Pytest plugin discipline” subsection.【F:logs/pytest_collect_only_20251007.log†L1-L40】【F:docs/developer_guides/test_execution_strategy.md†L161-L164】
 - 2025-10-04: Smoke command still fails pending broader regression fixes; captured output in `logs/devsynth_run-tests_smoke_fast_20251004T201351Z.log`.
 - 2025-10-04: `poetry run pytest tests/unit/application/cli/test_long_running_progress.py tests/unit/memory/test_sync_manager_protocol_runtime.py -q` passes locally after restoring `_ProgressIndicatorBase` exports and SyncManager generics.
 - 2025-10-06 19:04 UTC: `poetry run pytest --collect-only -q` completes without duplicate `pytest_bdd` registration; see `logs/pytest_collect_only_20251006T190420Z.log` for the full transcript (warnings highlight legacy suites missing speed markers).

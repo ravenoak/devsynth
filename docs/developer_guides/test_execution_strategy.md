@@ -158,6 +158,10 @@ Or automatically using the `categorize_tests.py` script.
 3. **Run related tests**: After making changes, run tests related to the changed code
 4. **Run all tests before committing**: Use `devsynth run-pipeline` to run all tests before committing
 
+### Pytest plugin discipline
+
+Pytest 8 rejects duplicate plugin registrations, so keep all `pytest_plugins` exports in repository-root scope (for example, the top-level `conftest.py`) instead of scattering them across nested packages. When nested modules re-exported `pytest_bdd`, collection aborted with `ValueError: Plugin already registered` during fast+medium rehearsals.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】 After hoisting the exports, both `pytest --collect-only -q` and the deselected safety net `pytest -k nothing --collect-only` finish cleanly, and their transcripts now act as regression commands for verifying plugin stability.【F:logs/pytest_collect_only_20251007.log†L1-L40】【F:logs/pytest_collect_only_20251006T043523Z.log†L1-L24】
+
 ## Troubleshooting
 
 ### Common Issues
