@@ -5,8 +5,6 @@ import pytest
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.documentation.documentation_manager import (
-
-pytestmark = [pytest.mark.slow]
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
@@ -14,6 +12,9 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
+
+
+pytestmark = [pytest.mark.slow]
 
 
 class ExpertAgent:

@@ -4,13 +4,14 @@ from datetime import datetime
 import pytest
 
 from devsynth.application.collaboration.collaborative_wsde_team import (
-
-pytestmark = [pytest.mark.slow]
     CollaborativeWSDETeam,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem
+
+
+pytestmark = [pytest.mark.slow]
 
 
 class DummyAgent:
@@ -93,3 +94,4 @@ def test_consensus_syncs_across_stores():
         types = [item.metadata.get("type") for item in store.items.values()]
         assert "CONSENSUS_DECISION" in types
         assert "CONSENSUS_SUMMARY" in types
+pytestmark = [pytest.mark.slow]

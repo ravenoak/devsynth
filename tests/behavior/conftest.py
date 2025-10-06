@@ -9,6 +9,8 @@ import pytest
 # Individual tests may override by removing or changing markers at the function level.
 pytestmark = [pytest.mark.gui]
 
+_REQID_PREFIX = "reqid-"
+
 
 @pytest.fixture(autouse=True)
 def enforce_offline_provider(monkeypatch: pytest.MonkeyPatch):
@@ -95,3 +97,24 @@ def enforce_offline_provider(monkeypatch: pytest.MonkeyPatch):
         yield
         # Context stack will exit and remove patches
         return
+
+
+def pytest_bdd_apply_tag(tag: str, function):  # type: ignore[override]
+    """Handle requirement ID tags emitted from feature files.
+
+    BDD scenarios often declare ``@reqid-...`` tags. Pytest warns about unknown
+    markers when ``pytest-bdd`` forwards those tags verbatim. Translating them
+    into a structured ``reqid`` marker preserves the identifier while keeping
+    the smoke suite quiet.
+    """
+
+    if tag.startswith(_REQID_PREFIX):
+        marker = pytest.mark.reqid(tag)
+        if hasattr(function, "add_marker"):
+            function.add_marker(marker)
+        else:  # pragma: no branch - fallback for scenario functions
+            existing = list(getattr(function, "pytestmark", []))
+            existing.append(marker)
+            function.pytestmark = existing  # type: ignore[attr-defined]
+        return True
+    return None

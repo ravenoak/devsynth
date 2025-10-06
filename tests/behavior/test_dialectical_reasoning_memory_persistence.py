@@ -6,4 +6,4 @@ from .steps.test_dialectical_reasoning_memory_persistence_steps import *  # noqa
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("general/dialectical_reasoning_memory_persistence.feature")
+scenarios("features/general/dialectical_reasoning_memory_persistence.feature")

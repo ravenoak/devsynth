@@ -32,6 +32,9 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import IngestionError, ManifestError
 
 
+pytestmark = [pytest.mark.slow]
+
+
 def _require_resource(resource: str) -> None:
     """Skip when an optional backend resource is explicitly disabled."""
 
@@ -136,8 +139,6 @@ class TestIngestionMetrics:
 
     ReqID: N/A"""
 
-
-pytestmark = [pytest.mark.slow]
     def test_metrics_initialization_succeeds(self):
         """Test initialization of IngestionMetrics.
 

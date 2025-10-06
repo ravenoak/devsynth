@@ -35,6 +35,9 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
+pytestmark = [pytest.mark.slow]
+
+
 def test_agent_type_expert_exists():
     """Ensure the EXPERT enum is defined."""
     assert AgentType.EXPERT.value == "expert"
@@ -156,7 +159,6 @@ def test_code_analysis_in_edrr_workflow_succeeds(code_analysis_coordinator):
 
     ReqID: N/A"""
 
-pytestmark = [pytest.mark.slow]
     task = {
         "analyze_code": """
 def calculate_sum(a, b):

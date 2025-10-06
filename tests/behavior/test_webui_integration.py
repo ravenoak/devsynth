@@ -44,7 +44,7 @@ from .steps.test_webui_integration_steps import (
 
 pytestmark = [pytest.mark.fast]
 
-scenarios("general/webui_integration.feature")
+scenarios("features/general/webui_integration.feature")
 
 
 from pytest_bdd import given
