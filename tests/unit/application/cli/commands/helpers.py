@@ -14,7 +14,9 @@ import sys
 from types import ModuleType
 from typing import Any
 
+import click
 import pytest
+import typer.main as typer_main
 from typer import Typer
 
 SEGMENTATION_FAILURE_TIPS = (
@@ -27,6 +29,15 @@ SEGMENTATION_FAILURE_TIPS = (
 
 def load_run_tests_cli_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
     """Load ``run_tests_cmd`` with minimal registry stubs to avoid heavy deps."""
+
+    original_get_click_type = typer_main.get_click_type
+
+    def _patched_get_click_type(*, annotation, parameter_info):  # type: ignore[override]
+        if annotation is object:
+            return click.STRING
+        return original_get_click_type(annotation=annotation, parameter_info=parameter_info)
+
+    monkeypatch.setattr(typer_main, "get_click_type", _patched_get_click_type)
 
     alignment_module = ModuleType("alignment_metrics_cmd")
 
@@ -71,6 +82,46 @@ def load_run_tests_cli_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
         sys.modules,
         "devsynth.application.cli.registry",
         registry_module,
+    )
+
+    provider_env_module = ModuleType("provider_env")
+
+    class _ProviderEnv:
+        def __init__(self, values: dict[str, str] | None = None) -> None:
+            self._values = dict(values or {})
+
+        @classmethod
+        def from_env(cls) -> "_ProviderEnv":
+            return cls()
+
+        def with_test_defaults(self) -> "_ProviderEnv":
+            return self
+
+        def apply_to_env(self) -> None:
+            return None
+
+    provider_env_module.ProviderEnv = _ProviderEnv  # type: ignore[attr-defined]
+
+    config_package = ModuleType("devsynth.config")
+    config_package.provider_env = provider_env_module  # type: ignore[attr-defined]
+    config_package.get_settings = lambda: {}  # type: ignore[attr-defined]
+    config_package.get_project_config = lambda *args, **kwargs: None  # type: ignore[attr-defined]
+    config_package.config_key_autocomplete = (  # type: ignore[attr-defined]
+        lambda *_args, **_kwargs: []
+    )
+    settings_module = ModuleType("settings")
+    settings_module.get_settings = lambda: {}  # type: ignore[attr-defined]
+    settings_module.ensure_path_exists = lambda path: str(path)  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "devsynth.config", config_package)
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.config.provider_env",
+        provider_env_module,
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "devsynth.config.settings",
+        settings_module,
     )
 
     for module_name in [

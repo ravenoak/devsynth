@@ -183,6 +183,11 @@ def run_tests_cmd(
     maxfail: int | None = typer.Option(
         None, "--maxfail", help="Exit after this many failures"
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Preview the pytest command without executing tests",
+    ),
     features: list[str] | None = typer.Option(
         None,
         "--feature",
@@ -347,14 +352,19 @@ def run_tests_cmd(
         detail = coverage_skip_reason_initial or (
             "pytest-cov instrumentation is required for coverage enforcement."
         )
-        ux_bridge.print(
-            f"[red]Coverage instrumentation unavailable: {detail}[/red]"
-        )
-        if (
-            coverage_skip_reason_initial == PYTEST_COV_PLUGIN_MISSING_MESSAGE
-            or not smoke
-        ):
-            raise typer.Exit(code=1)
+        if dry_run:
+            ux_bridge.print(
+                f"[yellow]Dry run: coverage instrumentation unavailable: {detail}[/yellow]"
+            )
+        else:
+            ux_bridge.print(
+                f"[red]Coverage instrumentation unavailable: {detail}[/red]"
+            )
+            if (
+                coverage_skip_reason_initial == PYTEST_COV_PLUGIN_MISSING_MESSAGE
+                or not smoke
+            ):
+                raise typer.Exit(code=1)
 
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
     # to catch stalls while avoiding flakiness on slower machines.
@@ -381,10 +391,19 @@ def run_tests_cmd(
         segment_size,
         maxfail,
         extra_marker=marker,
+        dry_run=dry_run,
     )
 
     if output:
         ux_bridge.print(output)
+
+    if dry_run:
+        if success:
+            ux_bridge.print(
+                "[yellow]Dry run complete — no tests executed. Rerun without --dry-run to execute suites.[/yellow]"
+            )
+            return
+        raise typer.Exit(code=1)
 
     if success:
         ux_bridge.print("[green]Tests completed successfully[/green]")

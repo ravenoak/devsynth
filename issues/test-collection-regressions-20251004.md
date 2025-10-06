@@ -29,11 +29,12 @@ Affected Area: tests
 - Integration modules such as `test_deployment_automation.py` declare `pytestmark` without importing pytest, triggering `NameError` at import time.【e85f55†L1-L22】
 - WebUI BDD suites still load `general/*.feature` rather than `features/general/*.feature`, producing `FileNotFoundError` for assets that exist under the features directory.【6cd789†L12-L28】
 - 2025-10-06: Fast+medium rehearsal aborts before collection because pytest registers `pytest_bdd` twice when nested `pytest_plugins` exports load the plugin in both interface-level and root-level contexts.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】
+- 2025-10-06: Captured `pytest --collect-only -q` after consolidating plugin exports; duplicate-registration errors are resolved but behavior steps still fail on indentation/`feature_path` bugs (52 collection errors remain).【F:logs/pytest_collect_only_20251006T182215Z.log†L6590-L6643】
 
 ## Next Actions
 - [ ] Restore `_ProgressIndicatorBase` exports (likely `devsynth.application.cli.long_running_progress`) and ensure tests import helpers from supported modules.
 - [x] Rework `MemoryStore` and related Protocol definitions to use proper `TypeVar` generics; add unit tests to prove runtime + mypy compatibility.
-- [ ] Move `pytest_plugins` declarations into the repository root `conftest.py` or convert to plugin registration helpers, then capture a clean `pytest --collect-only -q` transcript replacing the 2025-10-06 failure log.【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】
+- [ ] Move `pytest_plugins` declarations into the repository root `conftest.py` or convert to plugin registration helpers, then capture a clean `pytest --collect-only -q` transcript replacing the 2025-10-06 failure log (progress: logs/pytest_collect_only_20251006T182215Z.log recorded without duplicate plugin errors).【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:logs/pytest_collect_only_20251006T182215Z.log†L6590-L6643】
 - [ ] Recreate or relocate the missing `.feature` files referenced by behavior suites; update loaders and traceability documents accordingly.
 - [ ] Guard optional backend tests with `pytest.importorskip` plus `requires_resource` flags so they skip cleanly without extras.
 - [x] Sweep unit/domain suites to move `pytestmark` statements outside import contexts and rerun targeted `pytest -k nothing` checks to prove SyntaxErrors are gone.【d62a9a†L12-L33】【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L45】【F:tests/unit/application/memory/test_chromadb_store.py†L1-L58】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L58】【F:logs/pytest_collect_only_20251006T043523Z.log†L1-L113】

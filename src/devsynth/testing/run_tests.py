@@ -1038,6 +1038,8 @@ def run_tests(
     extra_marker: str | None = None,
     keyword_filter: str | None = None,
     env: dict[str, str] | None = None,
+    *,
+    dry_run: bool = False,
 ) -> tuple[bool, str]:
     """Run tests using pytest with DevSynth-compatible options.
 
@@ -1060,8 +1062,11 @@ def run_tests(
     if env is None:
         env = os.environ.copy()
 
-    # Reset coverage artifacts
-    _reset_coverage_artifacts()
+    if dry_run:
+        logger.info("Dry run requested; skipping coverage artifact cleanup")
+    else:
+        # Reset coverage artifacts
+        _reset_coverage_artifacts()
 
     # Ensure coverage plugins are available
     ensure_pytest_cov_plugin_env(env)
@@ -1182,7 +1187,7 @@ def run_tests(
     execution_metadata: dict[str, object]
     if segment and normalized_speeds and not marker_fallback:
         # Segmented execution
-        success, output, execution_metadata = _run_segmented_tests(
+        segmented_kwargs = dict(
             target=target,
             speed_categories=normalized_speeds,
             marker_expr=marker_expr,
@@ -1195,9 +1200,12 @@ def run_tests(
             keyword_filter=effective_keyword_filter,
             env=env,
         )
+        if dry_run:
+            segmented_kwargs["dry_run"] = True
+        success, output, execution_metadata = _run_segmented_tests(**segmented_kwargs)
     else:
         # Single execution
-        success, output, execution_metadata = _run_single_test_batch(
+        batch_kwargs = dict(
             node_ids=collected_node_ids,  # Pass collected node_ids
             marker_expr=marker_expr,
             verbose=verbose,
@@ -1207,10 +1215,17 @@ def run_tests(
             keyword_filter=effective_keyword_filter,
             env=env,
         )
-        _ensure_coverage_artifacts()
+        if dry_run:
+            batch_kwargs["dry_run"] = True
+        success, output, execution_metadata = _run_single_test_batch(**batch_kwargs)
+        if not dry_run:
+            _ensure_coverage_artifacts()
 
     if marker_fallback:
         output = "Marker fallback executed.\n" + output
+
+    if dry_run:
+        return success, output
 
     publication_message = _maybe_publish_coverage_evidence(
         report=report,
@@ -1238,6 +1253,8 @@ def _run_segmented_tests(
     maxfail: int | None,
     keyword_filter: str | None,
     env: dict[str, str],
+    *,
+    dry_run: bool = False,
 ) -> tuple[bool, str, dict[str, object]]:
     """Run tests in segments to handle large test suites."""
     all_outputs = []
@@ -1268,7 +1285,7 @@ def _run_segmented_tests(
             "Running segment %d/%d (%d tests)", i + 1, len(segments), len(segment_nodes)
         )
 
-        success, output, metadata = _run_single_test_batch(
+        batch_kwargs = dict(
             node_ids=segment_nodes,  # Pass collected node_ids
             marker_expr=marker_expr,
             verbose=verbose,
@@ -1280,6 +1297,9 @@ def _run_segmented_tests(
             keyword_filter=keyword_filter,
             env=env,
         )
+        if dry_run:
+            batch_kwargs["dry_run"] = True
+        success, output, metadata = _run_single_test_batch(**batch_kwargs)
 
         all_outputs.append(output)
         segment_metadata.append(metadata)
@@ -1289,7 +1309,8 @@ def _run_segmented_tests(
                 break  # Stop on first failure if maxfail is set
 
     # Ensure coverage artifacts are generated
-    _ensure_coverage_artifacts()
+    if not dry_run:
+        _ensure_coverage_artifacts()
 
     combined_metadata: dict[str, object]
     if segment_metadata:
@@ -1324,6 +1345,8 @@ def _run_single_test_batch(
     maxfail: int | None,
     keyword_filter: str | None,
     env: dict[str, str],
+    *,
+    dry_run: bool = False,
 ) -> tuple[bool, str, dict[str, object]]:
     """Run a single batch of tests."""
     cmd = [sys.executable, "-m", "pytest"]
@@ -1370,7 +1393,29 @@ def _run_single_test_batch(
 
     try:
         started_at = datetime.now(UTC)
-        logger.debug("Running command: %s", " ".join(cmd))
+        command_preview = shlex.join(cmd)
+        logger.debug("Running command: %s", command_preview)
+
+        if dry_run:
+            completed_at = datetime.now(UTC)
+            metadata: dict[str, object] = {
+                "command": cmd,
+                "returncode": 0,
+                "started_at": started_at.isoformat(),
+                "completed_at": completed_at.isoformat(),
+                "coverage_enabled": coverage_enabled,
+                "dry_run": True,
+            }
+            if coverage_issue:
+                metadata["coverage_issue"] = coverage_issue
+            lines = [
+                "Dry run: pytest invocation prepared but not executed.",
+                f"Command: {command_preview}",
+            ]
+            if coverage_issue:
+                lines.append(f"Coverage instrumentation note: {coverage_issue}")
+            return True, "\n".join(lines) + "\n", metadata
+
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
