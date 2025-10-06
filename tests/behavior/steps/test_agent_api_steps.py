@@ -7,6 +7,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from tests.behavior.feature_paths import feature_path
+
 pytest.importorskip("fastapi")
 pytest.importorskip("fastapi.testclient")
 from fastapi.testclient import TestClient
@@ -22,7 +24,6 @@ scenarios(feature_path(__file__, "general", "agent_api_interactions.feature"))
 def api_context(monkeypatch):
     """Start the API with CLI commands mocked."""
 
-from tests.behavior.feature_paths import feature_path
     cli_stub = ModuleType("devsynth.application.cli")
 
     def init_cmd(path=".", project_root=None, language=None, goals=None, *, bridge):
