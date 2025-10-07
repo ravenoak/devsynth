@@ -35,7 +35,7 @@ Strict typing and coverage evidence include the archived 92.40 % fast+medium m
 - **Strict Typing (2025-10-06 regression)**: `poetry run task mypy:strict` now fails on `devsynth.testing.run_tests` segmentation helpers, publishing negative knowledge-graph updates (`QualityGate b2bd60e7-30cd-4b84-8e3d-4dfed0817ee3`, `TestRun 71326ec2-aa95-49dd-a600-f3672d728982`). Fixing the helpers and regenerating manifests is required before tagging.【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】【F:diagnostics/typing/mypy_strict_20251127T000000Z.log†L1-L40】
 
 ### ⚠️ Attention Required
-- **EDRR Coverage Delta**: `methodology/edrr/reasoning_loop.py` sits at 87.34 % in the latest manifest; a fast-only snapshot on 2025-10-05 recorded 68.89 %, underscoring the need for additional simulations before the final rerun.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L25】
+- **EDRR Coverage Delta**: `methodology/edrr/reasoning_loop.py` now reaches 100 % in the targeted fast-only matrix sweep while the fast+medium manifest still reflects the earlier 87.34 % snapshot; we will rerun the aggregate after the pending hygiene fixes land.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:tests/unit/methodology/edrr/test_reasoning_loop_branch_completeness.py†L31-L518】【2c757f†L1-L19】
 - **UAT Evidence Bundle**: Stakeholder approvals are conditional until release prep, smoke, and strict typing runs are re-executed successfully.【F:issues/release-finalization-uat.md†L19-L64】
 
 ## Critical Issues
