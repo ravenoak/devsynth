@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 import devsynth.testing.run_tests as rt
+from .run_tests_test_utils import build_batch_metadata
 
 
 def _noop(*_args: Any, **_kwargs: Any) -> None:
@@ -43,10 +44,10 @@ def test_run_tests_merges_fast_and_medium_collections(
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         recorded["node_ids"] = list(config.node_ids)
         recorded["marker_expr"] = config.marker_expr
-        return True, "ok", {"metadata_id": "batch-speed-1"}
+        return True, "ok", build_batch_metadata("batch-speed-1")
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
     monkeypatch.setenv("DEVSYNTH_RESOURCE_WEBUI_AVAILABLE", "true")
@@ -91,8 +92,8 @@ def test_run_tests_defaults_to_fast_and_medium_when_unspecified(
         return []
 
     monkeypatch.setattr(rt, "collect_tests_with_cache", fake_collect)
-    def fake_batch(config: rt.SingleBatchRequest) -> tuple[bool, str, dict[str, object]]:
-        return True, config.marker_expr, {"metadata_id": "batch-speed-2"}
+    def fake_batch(config: rt.SingleBatchRequest) -> rt.BatchExecutionResult:
+        return True, config.marker_expr, build_batch_metadata("batch-speed-2")
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_batch)
     monkeypatch.setenv("DEVSYNTH_RESOURCE_WEBUI_AVAILABLE", "true")
@@ -125,9 +126,9 @@ def test_run_tests_excludes_gui_by_default(monkeypatch: pytest.MonkeyPatch) -> N
 
     captured: dict[str, Any] = {}
 
-    def fake_batch(config: rt.SingleBatchRequest) -> tuple[bool, str, dict[str, object]]:
+    def fake_batch(config: rt.SingleBatchRequest) -> rt.BatchExecutionResult:
         captured["marker_expr"] = config.marker_expr
-        return True, "", {"metadata_id": "batch-speed-3"}
+        return True, "", build_batch_metadata("batch-speed-3")
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_batch)
     monkeypatch.delenv("DEVSYNTH_RESOURCE_WEBUI_AVAILABLE", raising=False)
@@ -159,9 +160,9 @@ def test_run_tests_allows_gui_when_requested(monkeypatch: pytest.MonkeyPatch) ->
 
     captured: dict[str, Any] = {}
 
-    def fake_batch(config: rt.SingleBatchRequest) -> tuple[bool, str, dict[str, object]]:
+    def fake_batch(config: rt.SingleBatchRequest) -> rt.BatchExecutionResult:
         captured["marker_expr"] = config.marker_expr
-        return True, "", {"metadata_id": "batch-speed-4"}
+        return True, "", build_batch_metadata("batch-speed-4")
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_batch)
     monkeypatch.delenv("DEVSYNTH_RESOURCE_WEBUI_AVAILABLE", raising=False)

@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import devsynth.testing.run_tests as rt
+from .run_tests_test_utils import build_batch_metadata
 
 
 @pytest.mark.fast
@@ -18,12 +19,12 @@ def test_run_segmented_tests_single_speed(monkeypatch):
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         segment_outputs.append(" ".join(config.node_ids))
         return (
             True,
             f"Batch output for: {list(config.node_ids)[0][:20]}...",
-            {"metadata_id": "batch-helper-1", "command": ["pytest"], "returncode": 0},
+            build_batch_metadata("batch-helper-1", command=["pytest"], returncode=0),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
@@ -65,9 +66,9 @@ def test_run_segmented_tests_multiple_speeds(monkeypatch):
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         node_text = "|".join(config.node_ids)
-        return True, f"Batch for {node_text}", {"metadata_id": node_text}
+        return True, f"Batch for {node_text}", build_batch_metadata(node_text)
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
@@ -132,12 +133,14 @@ def test_run_segmented_tests_failure_with_maxfail(monkeypatch):
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            return False, "First segment failed", {"metadata_id": "batch-fail-1"}
-        return True, "Should not be called", {"metadata_id": "batch-fail-2"}
+            return False, "First segment failed", build_batch_metadata(
+                "batch-fail-1", returncode=1
+            )
+        return True, "Should not be called", build_batch_metadata("batch-fail-2")
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
@@ -182,21 +185,19 @@ def test_run_segmented_tests_dry_run_batches_use_typed_requests(
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         assert_type(config, rt.SingleBatchRequest)
         captured_batches.append(config)
         assert config.dry_run is True
         return (
             True,
             f"Dry-run batch for {list(config.node_ids)}",
-            {
-                "metadata_id": f"batch-dry-{len(captured_batches)}",
-                "command": ["pytest"],
-                "returncode": 0,
-                "started_at": "start",
-                "completed_at": "end",
-                "dry_run": True,
-            },
+            build_batch_metadata(
+                f"batch-dry-{len(captured_batches)}",
+                command=["pytest"],
+                returncode=0,
+                dry_run=True,
+            ),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)

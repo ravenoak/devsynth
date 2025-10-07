@@ -10,6 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 import devsynth.testing.run_tests as run_tests_module
+from .run_tests_test_utils import build_batch_metadata
 
 
 @pytest.fixture
@@ -145,15 +146,11 @@ def test_run_tests_successful_single_batch(monkeypatch: pytest.MonkeyPatch) -> N
 
     def fake_single_batch(
         config: run_tests_module.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> run_tests_module.BatchExecutionResult:
         assert list(config.node_ids)
-        return True, "pytest ok", {
-            "metadata_id": "batch-artifacts",
-            "command": ["pytest"],
-            "returncode": 0,
-            "started_at": "s",
-            "completed_at": "c",
-        }
+        return True, "pytest ok", build_batch_metadata(
+            "batch-artifacts", command=["pytest"], returncode=0
+        )
 
     monkeypatch.setattr(run_tests_module, "_run_single_test_batch", fake_single_batch)
     monkeypatch.setattr(run_tests_module, "_ensure_coverage_artifacts", lambda: None)

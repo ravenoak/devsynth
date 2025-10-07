@@ -17,6 +17,7 @@ from types import SimpleNamespace
 import pytest
 
 import devsynth.testing.run_tests as rt
+from .run_tests_test_utils import build_batch_metadata
 
 
 @pytest.fixture(autouse=True)
@@ -727,14 +728,14 @@ def test_run_tests_generates_artifacts_for_normal_profile(
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         popen_envs.append(dict(config.env))
         tmp_path.joinpath(".coverage").write_text("data")
         html_dir.mkdir(parents=True, exist_ok=True)
         (html_dir / "index.html").write_text("<html>ok</html>")
         coverage_json.parent.mkdir(parents=True, exist_ok=True)
         coverage_json.write_text(json.dumps({"totals": {"percent_covered": 98.7}}))
-        return True, "batch ok", {"metadata_id": "batch-cli-artifacts"}
+        return True, "batch ok", build_batch_metadata("batch-cli-artifacts")
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
 
@@ -782,14 +783,14 @@ def test_run_tests_generates_artifacts_with_autoload_disabled(
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         captured_envs.append(dict(config.env))
         tmp_path.joinpath(".coverage").write_text("data")
         html_dir.mkdir(parents=True, exist_ok=True)
         (html_dir / "index.html").write_text("<html>smoke</html>")
         coverage_json.parent.mkdir(parents=True, exist_ok=True)
         coverage_json.write_text(json.dumps({"totals": {"percent_covered": 94.2}}))
-        return True, "smoke ok", {"metadata_id": "batch-cli-smoke"}
+        return True, "smoke ok", build_batch_metadata("batch-cli-smoke")
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
 

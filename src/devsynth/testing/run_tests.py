@@ -21,7 +21,7 @@ import sys
 from collections.abc import MutableMapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping, cast
+from typing import Any, Mapping, NotRequired, Protocol, TypedDict, cast
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -183,6 +183,61 @@ def _generate_metadata_id(prefix: str) -> str:
     return f"{prefix}-{uuid4().hex}"
 
 
+class BatchExecutionMetadata(TypedDict):
+    """Metadata describing a single pytest batch execution."""
+
+    metadata_id: str
+    command: list[str]
+    returncode: int
+    started_at: str
+    completed_at: str
+    coverage_enabled: bool
+    coverage_issue: NotRequired[str]
+    dry_run: NotRequired[bool]
+
+
+class SegmentedRunMetadata(TypedDict):
+    """Aggregated metadata describing a segmented pytest execution."""
+
+    metadata_id: str
+    commands: list[list[str]]
+    returncode: int
+    started_at: str | None
+    completed_at: str | None
+    segments: list[BatchExecutionMetadata]
+
+
+class BatchExecutionRequest(Protocol):
+    """Structural type describing the inputs for a pytest batch run."""
+
+    node_ids: tuple[str, ...]
+    marker_expr: str
+    verbose: bool
+    report: bool
+    parallel: bool
+    maxfail: int | None
+    keyword_filter: str | None
+    env: MutableMapping[str, str]
+    dry_run: bool
+
+
+class SegmentedRunConfiguration(Protocol):
+    """Structural type describing a segmented pytest execution plan."""
+
+    target: str
+    speed_categories: tuple[str, ...]
+    marker_expr: str
+    node_ids: tuple[str, ...]
+    verbose: bool
+    report: bool
+    parallel: bool
+    segment_size: int
+    maxfail: int | None
+    keyword_filter: str | None
+    env: MutableMapping[str, str]
+    dry_run: bool
+
+
 class SingleBatchRequest:
     """Structured configuration for a single pytest batch execution."""
 
@@ -293,6 +348,11 @@ class SegmentedRunRequest:
         self.keyword_filter = keyword_filter
         self.env = env
         self.dry_run = dry_run
+
+
+ExecutionMetadata = BatchExecutionMetadata | SegmentedRunMetadata
+BatchExecutionResult = tuple[bool, str, BatchExecutionMetadata]
+SegmentedRunResult = tuple[bool, str, SegmentedRunMetadata]
 
 
 def _reset_coverage_artifacts() -> None:
@@ -676,7 +736,7 @@ def _maybe_publish_coverage_evidence(
     report: bool,
     success: bool,
     marker_fallback: bool,
-    execution_metadata: dict[str, object],
+    execution_metadata: ExecutionMetadata,
     normalized_speeds: list[str],
     collected_node_ids: list[str],
 ) -> str | None:
@@ -1308,7 +1368,7 @@ def run_tests(
         marker_fallback = True
         collected_node_ids = [TARGET_PATHS[target]]
 
-    execution_metadata: dict[str, object]
+    execution_metadata: ExecutionMetadata
     if segment and normalized_speeds and not marker_fallback:
         # Segmented execution
         segmented_request = SegmentedRunRequest(
@@ -1364,13 +1424,13 @@ def run_tests(
 
 
 def _run_segmented_tests(
-    request: SegmentedRunRequest, /
-) -> tuple[bool, str, dict[str, object]]:
+    request: SegmentedRunConfiguration, /
+) -> SegmentedRunResult:
     """Run tests in segments to handle large test suites."""
 
     node_ids = _sanitize_node_ids(list(request.node_ids))
     all_outputs: list[str] = []
-    segment_metadata: list[dict[str, object]] = []
+    segment_metadata: list[BatchExecutionMetadata] = []
     overall_success = True
 
     segments = [
@@ -1420,16 +1480,17 @@ def _run_segmented_tests(
     if not request.dry_run:
         _ensure_coverage_artifacts()
 
-    combined_metadata: dict[str, object]
+    combined_metadata: SegmentedRunMetadata
     if segment_metadata:
         first_meta = segment_metadata[0]
         last_meta = segment_metadata[-1]
+        commands = [list(meta["command"]) for meta in segment_metadata]
         combined_metadata = {
             "metadata_id": _generate_metadata_id("segmented"),
-            "commands": [meta.get("command") for meta in segment_metadata],
-            "returncode": last_meta.get("returncode", 0),
-            "started_at": first_meta.get("started_at"),
-            "completed_at": last_meta.get("completed_at"),
+            "commands": commands,
+            "returncode": last_meta["returncode"],
+            "started_at": first_meta["started_at"],
+            "completed_at": last_meta["completed_at"],
             "segments": segment_metadata,
         }
     else:
@@ -1447,8 +1508,8 @@ def _run_segmented_tests(
 
 
 def _run_single_test_batch(
-    request: SingleBatchRequest, /
-) -> tuple[bool, str, dict[str, object]]:
+    request: BatchExecutionRequest, /
+) -> BatchExecutionResult:
     """Run a single batch of tests."""
 
     cmd = [sys.executable, "-m", "pytest"]
@@ -1493,9 +1554,9 @@ def _run_single_test_batch(
 
         if request.dry_run:
             completed_at = datetime.now(UTC)
-            metadata: dict[str, object] = {
+            dry_run_metadata: BatchExecutionMetadata = {
                 "metadata_id": _generate_metadata_id("batch"),
-                "command": cmd,
+                "command": list(cmd),
                 "returncode": 0,
                 "started_at": started_at.isoformat(),
                 "completed_at": completed_at.isoformat(),
@@ -1503,7 +1564,7 @@ def _run_single_test_batch(
                 "dry_run": True,
             }
             if coverage_issue:
-                metadata["coverage_issue"] = coverage_issue
+                dry_run_metadata["coverage_issue"] = coverage_issue
             logger.info("Dry run preview (no execution): %s", command_preview)
             lines = [
                 "Dry run: pytest invocation prepared but not executed.",
@@ -1511,7 +1572,7 @@ def _run_single_test_batch(
             ]
             if coverage_issue:
                 lines.append(f"Coverage instrumentation note: {coverage_issue}")
-            return True, "\n".join(lines) + "\n", metadata
+            return True, "\n".join(lines) + "\n", dry_run_metadata
 
         process = subprocess.Popen(
             cmd,
@@ -1528,10 +1589,10 @@ def _run_single_test_batch(
         if not success:
             output += _failure_tips(process.returncode, cmd)
 
-        metadata = {
+        metadata: BatchExecutionMetadata = {
             "metadata_id": _generate_metadata_id("batch"),
-            "command": cmd,
-            "returncode": process.returncode,
+            "command": list(cmd),
+            "returncode": int(process.returncode or 0),
             "started_at": started_at.isoformat(),
             "completed_at": completed_at.isoformat(),
             "coverage_enabled": coverage_enabled,
@@ -1545,10 +1606,11 @@ def _run_single_test_batch(
         now_iso = datetime.now(UTC).isoformat()
         return False, error_msg, {
             "metadata_id": _generate_metadata_id("batch"),
-            "command": cmd,
+            "command": list(cmd),
             "returncode": -1,
             "started_at": now_iso,
             "completed_at": now_iso,
+            "coverage_enabled": False,
         }
 
 if __name__ == "__main__":
