@@ -6,6 +6,7 @@ from collections.abc import Iterator
 import pytest
 
 from devsynth.testing import run_tests as run_tests_module
+from .run_tests_test_utils import build_batch_metadata
 
 
 @pytest.mark.fast
@@ -35,7 +36,7 @@ def test_run_tests_segmented_failure_surfaces_remediation(monkeypatch: pytest.Mo
 
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> run_tests_module.BatchExecutionResult:
         node_ids = list(config.node_ids)
         batches.append(node_ids)
         cmd = ["python", "-m", "pytest", *node_ids]
@@ -43,13 +44,11 @@ def test_run_tests_segmented_failure_surfaces_remediation(monkeypatch: pytest.Mo
         return (
             False,
             f"segment-{len(batches)} failed\n{tips}",
-            {
-                "metadata_id": f"batch-failure-{len(batches)}",
-                "command": cmd,
-                "returncode": 2 + len(batches),
-                "started_at": "start",
-                "completed_at": "end",
-            },
+            build_batch_metadata(
+                f"batch-failure-{len(batches)}",
+                command=cmd,
+                returncode=2 + len(batches),
+            ),
         )
 
     monkeypatch.setattr(run_tests_module, "_run_single_test_batch", fake_run_single)
@@ -79,11 +78,11 @@ def test_run_tests_segmented_failure_surfaces_remediation(monkeypatch: pytest.Mo
 def test__run_segmented_tests_aggregates_outputs(monkeypatch: pytest.MonkeyPatch) -> None:
     """Segment helper preserves order and troubleshooting tips across batches."""
 
-    outputs = [
+    outputs: list[run_tests_module.BatchExecutionResult] = [
         (
             True,
             "segment-1 passed",
-            {"metadata_id": "batch-1", "command": ["pytest"], "returncode": 0},
+            build_batch_metadata("batch-1", command=["pytest"], returncode=0),
         ),
         (
             False,
@@ -91,20 +90,14 @@ def test__run_segmented_tests_aggregates_outputs(monkeypatch: pytest.MonkeyPatch
             + run_tests_module._failure_tips(
                 3, ["python", "-m", "pytest", "tests/unit/test_gamma.py::test_three"]
             ),
-            {
-                "metadata_id": "batch-2",
-                "command": ["pytest"],
-                "returncode": 3,
-                "started_at": "start",
-                "completed_at": "end",
-            },
+            build_batch_metadata("batch-2", command=["pytest"], returncode=3),
         ),
     ]
-    call_iter: Iterator[tuple[bool, str, dict[str, object]]] = iter(outputs)
+    call_iter: Iterator[run_tests_module.BatchExecutionResult] = iter(outputs)
 
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> run_tests_module.BatchExecutionResult:
         return next(call_iter)
 
     ensure_calls: list[None] = []
@@ -171,19 +164,15 @@ def test_segmented_runs_reinject_plugins_without_clobbering_addopts(
 
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> run_tests_module.BatchExecutionResult:
         snapshots.append(config.env.get("PYTEST_ADDOPTS", ""))
         node_ids_local = list(config.node_ids)
         return (
             True,
             f"segment for {node_ids_local[0]}",
-            {
-                "metadata_id": f"batch-smoke-{node_ids_local[0]}",
-                "command": ["pytest"],
-                "returncode": 0,
-                "started_at": "start",
-                "completed_at": "end",
-            },
+            build_batch_metadata(
+                f"batch-smoke-{node_ids_local[0]}", command=["pytest"], returncode=0
+            ),
         )
 
     monkeypatch.setattr(run_tests_module, "_run_single_test_batch", fake_run_single)

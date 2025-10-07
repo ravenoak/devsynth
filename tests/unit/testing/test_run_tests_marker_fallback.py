@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 import devsynth.testing.run_tests as rt
+from .run_tests_test_utils import build_batch_metadata, build_segment_metadata
 
 
 @pytest.mark.fast
@@ -24,17 +25,17 @@ def test_run_tests_marker_fallback_skips_segmentation(monkeypatch: pytest.Monkey
 
     segmented_calls: list[rt.SegmentedRunRequest] = []
 
-    def fake_segmented(request: rt.SegmentedRunRequest) -> tuple[bool, str, dict[str, object]]:
+    def fake_segmented(request: rt.SegmentedRunRequest) -> rt.SegmentedRunResult:
         segmented_calls.append(request)
-        return True, "segment", {"metadata_id": "seg-1"}
+        return True, "segment", build_segment_metadata("seg-1")
 
     monkeypatch.setattr(rt, "_run_segmented_tests", fake_segmented)
 
     batch_calls: list[list[str]] = []
 
-    def fake_batch(request: rt.SingleBatchRequest) -> tuple[bool, str, dict[str, object]]:
+    def fake_batch(request: rt.SingleBatchRequest) -> rt.BatchExecutionResult:
         batch_calls.append(list(request.node_ids))
-        return True, "batch success", {"metadata_id": "batch-1"}
+        return True, "batch success", build_batch_metadata("batch-1")
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_batch)
 

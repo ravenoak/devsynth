@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 import devsynth.testing.run_tests as rt
+from .run_tests_test_utils import build_batch_metadata
 
 
 @pytest.mark.fast
@@ -15,19 +16,15 @@ def test_run_segmented_tests_reports_only_last_segment(monkeypatch: pytest.Monke
 
     def fake_run_single_test_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         node_ids = list(config.node_ids)
         report_flags.append(config.report)
         return (
             True,
             f"segment {len(report_flags)} ok ({len(node_ids)} tests)",
-            {
-                "metadata_id": f"batch-report-{len(report_flags)}",
-                "command": ["pytest"],
-                "returncode": 0,
-                "started_at": "start",
-                "completed_at": "end",
-            },
+            build_batch_metadata(
+                f"batch-report-{len(report_flags)}", command=["pytest"], returncode=0
+            ),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single_test_batch)

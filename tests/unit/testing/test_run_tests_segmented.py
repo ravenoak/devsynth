@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from devsynth.testing.run_tests import run_tests
+from .run_tests_test_utils import build_batch_metadata
 
 
 @pytest.mark.fast
@@ -156,12 +157,14 @@ def test_run_segmented_tests_stop_after_maxfail(monkeypatch: pytest.MonkeyPatch)
 
     def fake_run_single_test_batch(
         config: rt.SingleBatchRequest,
-    ) -> tuple[bool, str, dict[str, object]]:
+    ) -> rt.BatchExecutionResult:
         node_ids = list(config.node_ids)
         seen_batches.append(node_ids)
         if len(seen_batches) > 1:
             pytest.fail("maxfail should stop additional segments")
-        return False, "segment failed", {"metadata_id": "batch-stop-1"}
+        return False, "segment failed", build_batch_metadata(
+            "batch-stop-1", returncode=1
+        )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single_test_batch)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
