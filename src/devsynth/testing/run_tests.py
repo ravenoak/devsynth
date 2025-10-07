@@ -624,7 +624,11 @@ def _resolve_coverage_configuration(
     """Build pytest coverage arguments based on plugin availability."""
 
     coverage_enabled, coverage_issue = pytest_cov_support_status(env)
-    if not coverage_enabled:
+    autoload_blocked = (
+        not coverage_enabled
+        and coverage_issue == PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE
+    )
+    if not coverage_enabled and not autoload_blocked:
         return [], coverage_enabled, coverage_issue
 
     coverage_arguments = [
@@ -633,7 +637,8 @@ def _resolve_coverage_configuration(
         f"--cov-report=html:{COVERAGE_HTML_DIR}",
         "--cov-append",
     ]
-    return coverage_arguments, coverage_enabled, coverage_issue
+    effective_enabled = coverage_enabled or autoload_blocked
+    return coverage_arguments, effective_enabled, coverage_issue
 
 
 def coverage_artifacts_status() -> tuple[bool, str | None]:
@@ -1359,7 +1364,7 @@ def run_tests(
 
 
 def _run_segmented_tests(
-    request: SegmentedRunRequest,
+    request: SegmentedRunRequest, /
 ) -> tuple[bool, str, dict[str, object]]:
     """Run tests in segments to handle large test suites."""
 
@@ -1442,7 +1447,7 @@ def _run_segmented_tests(
 
 
 def _run_single_test_batch(
-    request: SingleBatchRequest,
+    request: SingleBatchRequest, /
 ) -> tuple[bool, str, dict[str, object]]:
     """Run a single batch of tests."""
 
