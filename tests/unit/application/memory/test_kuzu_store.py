@@ -1,13 +1,31 @@
+"""Unit tests for the Kuzu-backed memory store fixtures."""
+
+from __future__ import annotations
+
 import shutil
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from devsynth.application.memory.kuzu_store import KuzuStore
+from tests.fixtures.resources import (
+    backend_import_reason,
+    skip_if_missing_backend,
+    skip_module_if_backend_disabled,
+)
+
+skip_module_if_backend_disabled("kuzu")
+
+KuzuStore = pytest.importorskip(
+    "devsynth.application.memory.kuzu_store",
+    reason=backend_import_reason("kuzu"),
+).KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
-pytestmark = pytest.mark.requires_resource("kuzu")
+pytestmark = [
+    pytest.mark.requires_resource("kuzu"),
+    *skip_if_missing_backend("kuzu", include_requires_resource=False),
+]
 
 
 @pytest.fixture(autouse=True)

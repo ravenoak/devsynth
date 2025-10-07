@@ -6,16 +6,29 @@ import uuid
 
 import pytest
 
-from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
+from tests.fixtures.resources import (
+    backend_import_reason,
+    skip_if_missing_backend,
+    skip_module_if_backend_disabled,
+)
+
+skip_module_if_backend_disabled("kuzu")
 
 pytest.importorskip(
     "kuzu",
     reason=backend_import_reason("kuzu"),
 )
 
-from devsynth.adapters import kuzu_memory_store
-from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
-from devsynth.application.memory.kuzu_store import KuzuStore
+kuzu_memory_store = pytest.importorskip(
+    "devsynth.adapters.kuzu_memory_store",
+    reason=backend_import_reason("kuzu"),
+)
+KuzuMemoryStore = kuzu_memory_store.KuzuMemoryStore
+
+KuzuStore = pytest.importorskip(
+    "devsynth.application.memory.kuzu_store",
+    reason=backend_import_reason("kuzu"),
+).KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 
