@@ -78,7 +78,17 @@ class _ProgressIndicatorProtocol(Protocol):
 if TYPE_CHECKING:
     _ProgressIndicatorBase: TypeAlias = _ProgressIndicatorProtocol
 else:
-    _ProgressIndicatorBase = ProgressIndicator
+    # ``importlib.reload`` re-executes this module in place. Preserve any existing
+    # runtime alias that already subclasses ``ProgressIndicator`` so code relying
+    # on ``from module import _ProgressIndicatorBase`` continues to observe the
+    # same base type between reloads.
+    _existing_base = globals().get("_ProgressIndicatorBase")
+    if isinstance(_existing_base, type) and issubclass(
+        _existing_base, ProgressIndicator
+    ):
+        _ProgressIndicatorBase = cast(type[ProgressIndicator], _existing_base)
+    else:
+        _ProgressIndicatorBase = ProgressIndicator
 
 
 __all__ = [
