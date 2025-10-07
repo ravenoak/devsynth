@@ -24,6 +24,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+
+pytestmark = [pytest.mark.medium]
+
 # Import the components being tested
 # from devsynth.module.path import ComponentA
 # from devsynth.module.path import ComponentB

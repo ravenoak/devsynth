@@ -30,9 +30,9 @@ from devsynth.domain.models.task import Task, TaskStatus
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
-pytestmark = [pytest.mark.slow]
 
 
+@pytest.mark.slow
 def test_agent_type_expert_exists():
     """Ensure the EXPERT enum is defined."""
     assert AgentType.EXPERT.value == "expert"
@@ -181,6 +181,7 @@ def wsde_team_with_code_analysis(tmp_path_factory):
         yield wsde_team
 
 
+@pytest.mark.slow
 def test_code_analysis_in_wsde_team_succeeds(wsde_team_with_code_analysis):
     """Test that code analysis can be performed by a WSDE team.
 
@@ -203,6 +204,7 @@ def calculate_sum(a, b):
     assert 0 <= quality_metrics <= 1
 
 
+@pytest.mark.slow
 def test_code_transformation_in_wsde_team_succeeds(wsde_team_with_code_analysis):
     """Test that code transformation can be performed by a WSDE team.
 
@@ -235,6 +237,7 @@ def main():
     assert "z = 15" not in transformed.transformed_code
 
 
+@pytest.mark.slow
 def test_code_review_collaboration_in_wsde_team_succeeds(wsde_team_with_code_analysis):
     """Test that code analysis agents can collaborate in a WSDE team.
 
@@ -272,6 +275,7 @@ def main():
     assert "z = 15" not in transformed.transformed_code
 
 
+@pytest.mark.slow
 def test_code_refinement_in_wsde_team_succeeds(wsde_team_with_code_analysis):
     """Test that code refinement can be performed by a WSDE team.
 

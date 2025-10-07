@@ -15,7 +15,6 @@ from tests.fixtures.resources import (
 )
 
 
-pytestmark = [pytest.mark.slow]
 
 
 class DummyAgent:

@@ -1,3 +1,9 @@
+"""Validation for WSDE consensus summary helpers."""
+
+from __future__ import annotations
+
+from typing import Any
+
 import pytest
 
 from devsynth.application.collaboration.dto import (
@@ -10,16 +16,15 @@ from devsynth.application.collaboration.wsde_team_consensus import (
 )
 
 
-pytestmark = [pytest.mark.fast]
-
-
 class DummyTeam(ConsensusBuildingMixin):
+    """Minimal consensus mixin harness for summary validation."""
 
-    def __init__(self):
-        self.tracked_decisions = {}
+    def __init__(self) -> None:
+        self.tracked_decisions: dict[str, Any] = {}
 
 
-def test_summarize_voting_result_tie():
+@pytest.mark.fast
+def test_summarize_voting_result_tie() -> None:
     mixin = DummyTeam()
     result = {
         "status": "completed",
@@ -31,14 +36,16 @@ def test_summarize_voting_result_tie():
     assert "favour of a" in summary.lower()
 
 
-def test_summarize_voting_result_winner():
+@pytest.mark.fast
+def test_summarize_voting_result_winner() -> None:
     mixin = DummyTeam()
     result = {"status": "completed", "result": "B", "vote_counts": {"B": 3}}
     summary = mixin.summarize_voting_result(result)
     assert summary == "Option 'B' selected with 3 votes."
 
 
-def test_summarize_consensus_result_methods():
+@pytest.mark.fast
+def test_summarize_consensus_result_methods() -> None:
     mixin = DummyTeam()
     synthesis_outcome = ConsensusOutcome(
         consensus_id="c1",
@@ -61,6 +68,7 @@ def test_summarize_consensus_result_methods():
     )
 
 
+@pytest.mark.fast
 def test_consensus_outcome_round_trip_orders_conflicts() -> None:
     mixin = DummyTeam()
     payload = {

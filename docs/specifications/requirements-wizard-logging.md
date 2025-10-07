@@ -47,9 +47,8 @@ errors.
 ## Traceability
 
 - **Behavior coverage** –
-  [`tests/behavior/features/requirements_wizard_logging.feature`](../../tests/behavior/features/requirements_wizard_logging.feature),
-  [`tests/behavior/features/general/requirements_wizard_logging.feature`](../../tests/behavior/features/general/requirements_wizard_logging.feature),
-  and [`tests/behavior/requirements_wizard/logging_and_priority.feature`](../../tests/behavior/requirements_wizard/logging_and_priority.feature)
+  [`tests/behavior/requirements_wizard/features/general/requirements_wizard_logging.feature`](../../tests/behavior/requirements_wizard/features/general/requirements_wizard_logging.feature)
+  and [`tests/behavior/requirements_wizard/features/general/logging_and_priority.feature`](../../tests/behavior/requirements_wizard/features/general/logging_and_priority.feature)
   confirm step logging, JSON payloads, and configuration synchronization.
 - **Unit coverage** –
   [`tests/unit/application/requirements/test_wizard.py`](../../tests/unit/application/requirements/test_wizard.py)

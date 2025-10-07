@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+import pytest
+
 from rich.console import Console
 from rich.table import Table
 
@@ -19,8 +21,7 @@ from ..utils import (
     _validate_file_path,
 )
 from .spec_cmd import spec_cmd
-
-
+@pytest.mark.fast
 def test_cmd(
     spec_file: str = "specs.md",
     *,

@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytestmark = [pytest.mark.slow]
 
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
@@ -129,6 +128,7 @@ def coordinator():
     )
 
 
+@pytest.mark.slow
 def test_full_cycle_auto_transition_dynamic_roles_succeeds(coordinator):
     """Test that full cycle auto transition dynamic roles succeeds.
 
@@ -150,6 +150,7 @@ def test_full_cycle_auto_transition_dynamic_roles_succeeds(coordinator):
     ]
 
 
+@pytest.mark.slow
 def test_micro_cycle_results_aggregated_succeeds(coordinator):
     """Ensure micro cycles spawn and results are aggregated.
 

@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytestmark = [pytest.mark.slow]
 
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
@@ -92,6 +91,7 @@ def coordinator():
     )
 
 
+@pytest.mark.slow
 def test_micro_tasks_context_spawns_cycles_succeeds(coordinator):
     """Test that micro tasks context spawns cycles succeeds.
 
@@ -103,6 +103,7 @@ def test_micro_tasks_context_spawns_cycles_succeeds(coordinator):
     assert len(results["micro_cycle_results"]) == 2
 
 
+@pytest.mark.slow
 def test_nested_micro_tasks_create_recursive_cycles_succeeds(coordinator):
     """Test that nested micro tasks create recursive cycles succeeds.
 

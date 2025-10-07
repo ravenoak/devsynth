@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytestmark = [pytest.mark.slow]
 
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
@@ -84,6 +83,7 @@ def coordinator():
     )
 
 
+@pytest.mark.slow
 def test_voting_and_peer_review_succeeds(coordinator):
     """Test that voting and peer review succeeds.
 

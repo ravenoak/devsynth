@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytestmark = [pytest.mark.slow]
 
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
@@ -74,6 +73,7 @@ class SimpleAgent:
         return {"result": self.name}
 
 
+@pytest.mark.slow
 def test_role_rotation_succeeds():
     """Test that role rotation succeeds.
 
@@ -88,6 +88,7 @@ def test_role_rotation_succeeds():
     assert first_primus != second_primus
 
 
+@pytest.mark.slow
 def test_consensus_vote_with_non_unanimous_votes_succeeds():
     """Test that consensus vote with non unanimous votes succeeds.
 
@@ -107,6 +108,7 @@ def test_consensus_vote_with_non_unanimous_votes_succeeds():
     assert "consensus" in result["result"]
 
 
+@pytest.mark.slow
 def test_agent_adapter_multi_agent_workflow_succeeds():
     """Test that agent adapter multi agent workflow succeeds.
 

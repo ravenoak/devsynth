@@ -11,7 +11,6 @@ from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem
 
 
-pytestmark = [pytest.mark.slow]
 
 
 class DummyAgent:
@@ -83,6 +82,7 @@ class DemoTeam(CollaborativeWSDETeam):
         return "because we agree"
 
 
+@pytest.mark.slow
 def test_consensus_syncs_across_stores():
     memory_manager = MemoryManager(adapters={"s1": SimpleStore(), "s2": SimpleStore()})
     team = DemoTeam(memory_manager)
@@ -94,4 +94,3 @@ def test_consensus_syncs_across_stores():
         types = [item.metadata.get("type") for item in store.items.values()]
         assert "CONSENSUS_DECISION" in types
         assert "CONSENSUS_SUMMARY" in types
-pytestmark = [pytest.mark.slow]

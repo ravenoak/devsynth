@@ -1,4 +1,5 @@
 import os
+import os
 import sys
 
 import pytest
@@ -8,6 +9,9 @@ sys.path.insert(
 )
 
 from calculator import Calculator
+
+
+pytestmark = [pytest.mark.fast]
 
 
 def test_add():

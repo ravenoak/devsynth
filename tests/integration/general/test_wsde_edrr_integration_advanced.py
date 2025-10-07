@@ -25,7 +25,6 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.methodology.base import Phase
 
 
-pytestmark = [pytest.mark.slow]
 
 
 class ExpertAgent(UnifiedAgent):
@@ -106,6 +105,7 @@ def enhanced_coordinator():
     return coordinator
 
 
+@pytest.mark.slow
 def test_phase_specific_role_assignment_has_expected(enhanced_coordinator):
     """Test that roles are assigned based on the current EDRR phase.
 
@@ -148,6 +148,7 @@ def test_phase_specific_role_assignment_has_expected(enhanced_coordinator):
     )
 
 
+@pytest.mark.slow
 def test_quality_based_phase_transitions_has_expected(enhanced_coordinator):
     """Test that phase transitions are based on quality metrics from the WSDE team.
 
@@ -174,6 +175,7 @@ def test_quality_based_phase_transitions_has_expected(enhanced_coordinator):
         assert enhanced_coordinator.current_phase in {Phase.EXPAND, Phase.DIFFERENTIATE}
 
 
+@pytest.mark.slow
 def test_micro_cycle_implementation_succeeds(enhanced_coordinator):
     """Test the micro-cycle implementation with the WSDE team.
 
@@ -197,6 +199,7 @@ def test_micro_cycle_implementation_succeeds(enhanced_coordinator):
     enhanced_coordinator._execute_micro_cycle = original_execute_micro_cycle
 
 
+@pytest.mark.slow
 def test_error_handling_and_recovery_raises_error(enhanced_coordinator):
     """Test error handling and recovery in WSDE-EDRR integration.
 
@@ -221,6 +224,7 @@ def test_error_handling_and_recovery_raises_error(enhanced_coordinator):
         enhanced_coordinator.wsde_team._team.process = original_process
 
 
+@pytest.mark.slow
 def test_performance_metrics_and_traceability_succeeds(enhanced_coordinator):
     """Test performance metrics and traceability in WSDE-EDRR integration.
 
@@ -238,6 +242,7 @@ def test_performance_metrics_and_traceability_succeeds(enhanced_coordinator):
     assert metrics is not None
 
 
+@pytest.mark.slow
 def test_memory_sync_hook_handles_wsde_events():
     """Verify memory sync hooks are invoked during updates."""
 

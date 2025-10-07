@@ -15,7 +15,6 @@ from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
-pytestmark = [pytest.mark.slow]
 
 
 class SimpleStore(InMemoryStore):
@@ -32,6 +31,7 @@ class SimpleStore(InMemoryStore):
         return False
 
 
+@pytest.mark.slow
 def test_store_and_retrieve_solution_by_phase_succeeds(tmp_path):
     """Test that store and retrieve solution by phase succeeds.
 
@@ -51,6 +51,7 @@ def test_store_and_retrieve_solution_by_phase_succeeds(tmp_path):
     assert results[0].metadata.get("edrr_phase") == "Expand"
 
 
+@pytest.mark.slow
 def test_cross_store_sync_and_peer_review_workflow(tmp_path):
     """Verify cross-store synchronization and peer-review persistence."""
     primary = SimpleStore()
@@ -122,6 +123,7 @@ def test_cross_store_sync_and_peer_review_workflow(tmp_path):
 
 @pytest.mark.requires_resource("lmdb")
 @pytest.mark.requires_resource("faiss")
+@pytest.mark.slow
 def test_sync_manager_coordinated_backends(tmp_path, monkeypatch):
     """Ensure SyncManager synchronizes LMDB, FAISS and Kuzu stores."""
 

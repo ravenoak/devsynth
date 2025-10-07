@@ -5,6 +5,7 @@ from pytest_bdd import scenarios
 
 feature_file = os.path.join(
     os.path.dirname(__file__),
+    "requirements_wizard",
     "features",
     "general",
     "requirements_wizard_logging.feature",

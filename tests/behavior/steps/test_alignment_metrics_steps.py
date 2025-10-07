@@ -1,14 +1,28 @@
 """Steps for the alignment metrics command feature."""
+from __future__ import annotations
+
+import pytest
+from pytest_bdd import given, parsers, scenario, then, when
 
 from tests.behavior.feature_paths import feature_path
-import pytest
-from pytest_bdd import given, parsers, scenarios, then, when
 
 
+@scenario(
+    feature_path(__file__, "general", "alignment_metrics_command.feature"),
+    "Collect metrics successfully",
+)
+@pytest.mark.fast
+def test_collect_metrics_successfully() -> None:
+    """BDD scenario for a successful metrics collection."""
 
-pytestmark = [pytest.mark.fast]
 
-scenarios(feature_path(__file__, "general", "alignment_metrics_command.feature"))
+@scenario(
+    feature_path(__file__, "general", "alignment_metrics_command.feature"),
+    "Handle failure during metrics collection",
+)
+@pytest.mark.fast
+def test_handle_failure_during_metrics_collection() -> None:
+    """BDD scenario for handling a metrics collection failure."""
 
 
 @given("the DevSynth CLI is installed")

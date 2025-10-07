@@ -9,7 +9,6 @@ import pytest
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import ProgressIndicator
 
-pytestmark = [pytest.mark.slow]
 
 
 class DummyForm:
@@ -74,6 +73,7 @@ def parity_env(monkeypatch):
     return cli_module, webui.WebUI()
 
 
+@pytest.mark.slow
 def test_init_invocations_match_succeeds(parity_env):
     """Test that init invocations match succeeds.
 
@@ -96,6 +96,7 @@ def test_init_invocations_match_succeeds(parity_env):
     assert args_cli == args_web
 
 
+@pytest.mark.slow
 def test_display_result_sanitization_succeeds(parity_env, monkeypatch):
     """Ensure CLI and WebUI bridges sanitize output consistently.
 
@@ -159,6 +160,7 @@ def test_display_result_sanitization_succeeds(parity_env, monkeypatch):
     assert out_cli_str == out_web_str
 
 
+@pytest.mark.slow
 def test_progress_indicator_parity_succeeds(parity_env, monkeypatch):
     """Ensure CLI and WebUI bridges can create progress indicators with the same interface.
 

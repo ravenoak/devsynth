@@ -14,7 +14,6 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
-pytestmark = [pytest.mark.slow]
 
 
 class ExpertAgent:
@@ -51,6 +50,7 @@ def coordinator():
     )
 
 
+@pytest.mark.slow
 def test_dynamic_role_assignment_across_phases_succeeds(coordinator):
     """Test that dynamic role assignment across phases succeeds.
 

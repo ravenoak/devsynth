@@ -2,7 +2,6 @@ import sys
 import types
 import pytest
 
-pytestmark = [pytest.mark.slow]
 
 openai_mod = types.ModuleType("openai")
 setattr(openai_mod, "OpenAI", object)
@@ -31,6 +30,7 @@ class SimpleMockLLM:
 from devsynth.methodology.base import Phase
 
 
+@pytest.mark.slow
 def test_edrr_cycle_with_mock_llm_succeeds(tmp_path):
     """Test that edrr cycle with mock llm succeeds.
 
