@@ -1,11 +1,7 @@
 """
-Test script for cross-interface consistency.
-
-This script implements the step definitions for the cross-interface consistency feature file.
-"""
+"""Test script for cross-interface consistency."""
 
 import importlib
-import os
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
@@ -19,20 +15,12 @@ from pytest_bdd import given, scenarios, then, when
 # Import step definitions implemented for FR-67
 from .steps.test_cross_interface_consistency_steps import *  # noqa: F401,F403
 
-# Get the absolute path to the feature file
-feature_file = os.path.join(
-    os.path.dirname(__file__),
-    "features",
-    "general",
-    "cross_interface_consistency.feature",
-)
-
-# Load the scenarios from the feature file
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(feature_file)
+# Load the scenarios from the canonical behavior asset path.
+scenarios(feature_path(__file__, "general", "cross_interface_consistency.feature"))
 
 from devsynth.interface.agentapi import APIBridge
 

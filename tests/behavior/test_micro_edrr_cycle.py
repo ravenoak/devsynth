@@ -1,10 +1,5 @@
-"""
-Test script for the Micro EDRR Cycle feature.
+"""Test script for the Micro EDRR Cycle feature."""
 
-This script implements the step definitions for the micro_edrr_cycle.feature file.
-"""
-
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -21,16 +16,13 @@ from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
+from tests.behavior.feature_paths import feature_path
+
 
 pytestmark = [pytest.mark.fast]
 
-# Get the absolute path to the feature file
-feature_file = os.path.join(
-    os.path.dirname(__file__), "features", "general", "micro_edrr_cycle.feature"
-)
-
-# Load the scenarios from the feature file
-scenarios(feature_file)
+# Load the scenarios from the canonical behavior asset path.
+scenarios(feature_path(__file__, "general", "micro_edrr_cycle.feature"))
 
 
 @pytest.fixture

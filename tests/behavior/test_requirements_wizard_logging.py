@@ -1,14 +1,10 @@
-import os
-
 import pytest
 from pytest_bdd import scenarios
 
-feature_file = os.path.join(
-    os.path.dirname(__file__),
-    "requirements_wizard",
-    "features",
-    "general",
-    "requirements_wizard_logging.feature",
+from tests.behavior.feature_paths import feature_path
+
+feature_file = feature_path(
+    __file__, "general", "requirements_wizard_logging.feature"
 )
 
 # Resource gating if applicable (CLI/UI)
