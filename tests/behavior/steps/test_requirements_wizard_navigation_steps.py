@@ -15,7 +15,16 @@ from devsynth.interface.webui import WebUI
 
 
 
-scenarios(feature_path(__file__, "general", "requirements_wizard_navigation.feature"))
+scenarios(
+    feature_path(
+        __file__,
+        "..",
+        "requirements_wizard",
+        "features",
+        "general",
+        "requirements_wizard_navigation.feature",
+    )
+)
 
 
 class DummyForm:

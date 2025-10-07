@@ -11,6 +11,7 @@ pytestmark = [pytest.mark.fast]
 # Get the absolute path to the feature file
 feature_file = os.path.join(
     os.path.dirname(__file__),
+    "requirements_wizard",
     "features",
     "general",
     "requirements_wizard_navigation.feature",

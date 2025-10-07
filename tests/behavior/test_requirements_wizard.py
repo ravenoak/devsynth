@@ -10,7 +10,11 @@ pytestmark = [pytest.mark.fast]
 
 # Get the absolute path to the feature file
 feature_file = os.path.join(
-    os.path.dirname(__file__), "features", "general", "requirements_wizard.feature"
+    os.path.dirname(__file__),
+    "requirements_wizard",
+    "features",
+    "general",
+    "requirements_wizard.feature",
 )
 
 # Load the scenarios from the feature file
