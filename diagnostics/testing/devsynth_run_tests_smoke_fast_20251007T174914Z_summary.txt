@@ -1,0 +1,4 @@
+Summary for `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` executed 2025-10-07T17:49Z (UTC):
+- Outcome: ❌ Test collection aborted; pytest never advanced past the collector and the CLI exited with the "Test collection failed" banner.
+- Evidence: Raw console transcript stored at logs/devsynth_run-tests_smoke_fast_20251007T174914Z.log.
+- Notes: Knowledge-graph publication and coverage hints were not emitted because the run terminated during collection, so no tests executed and no artifacts were produced.
