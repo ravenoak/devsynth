@@ -651,3 +651,81 @@ def test_simulation_timeline_tracks_history_and_alias_renames() -> None:
 
     # Clock ticks capture deterministic ETA calculations for checkpoints.
     assert clock.history  # clock invoked throughout simulation
+
+
+@pytest.mark.fast
+def test_simulation_timeline_remains_deterministic_after_reload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Reloading the module preserves deterministic simulation outputs."""
+
+    def build_events() -> List[Dict[str, object]]:
+        return [
+            {
+                "action": "update",
+                "advance": 5,
+                "status": "Booting",
+                "description": "alpha <task>",
+            },
+            {
+                "action": "add_subtask",
+                "description": "stage &1",
+                "alias": "stage-one",
+                "total": 40,
+                "status": "Queued",
+            },
+            {
+                "action": "add_subtask",
+                "description": _Explosive(),
+                "alias": "volatile",
+                "total": 60,
+            },
+            {"action": "tick", "times": 2},
+            {
+                "action": "update_subtask",
+                "alias": "stage-one",
+                "advance": 20,
+                "status": "Working",
+            },
+            {
+                "action": "update_subtask",
+                "alias": "volatile",
+                "advance": 15,
+                "description": "volatile <1>",
+            },
+            {"action": "tick", "times": 1},
+            {"action": "complete_subtask", "alias": "stage-one"},
+            {"action": "update", "advance": 35, "status": "Finalizing"},
+            {"action": "complete"},
+        ]
+
+    monkeypatch.setattr(long_running_progress, "Progress", FakeProgress)
+
+    first_clock = FakeClock(start=2.0, default_step=1.5)
+    first_result = long_running_progress.simulate_progress_timeline(
+        build_events(),
+        description="Reload simulation",
+        total=120,
+        console=DummyConsole(),
+        clock=first_clock,
+    )
+
+    reloaded_module = importlib.reload(long_running_progress)
+    monkeypatch.setattr(reloaded_module, "Progress", FakeProgress)
+
+    second_clock = FakeClock(start=2.0, default_step=1.5)
+    second_result = reloaded_module.simulate_progress_timeline(
+        build_events(),
+        description="Reload simulation",
+        total=120,
+        console=DummyConsole(),
+        clock=second_clock,
+    )
+
+    assert reloaded_module._ProgressIndicatorBase is reloaded_module.ProgressIndicator
+    assert second_result["transcript"] == first_result["transcript"]
+    assert second_result["summary"] == first_result["summary"]
+    assert second_result["history"] == first_result["history"]
+    assert second_result["checkpoints"] == first_result["checkpoints"]
+    assert second_result["subtasks"] == first_result["subtasks"]
+    assert second_result["console_messages"] == first_result["console_messages"]
