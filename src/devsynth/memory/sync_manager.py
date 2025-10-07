@@ -1,15 +1,13 @@
 """Coordinate multiple memory stores with simple transaction semantics."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Generic, Protocol, TypeVar, runtime_checkable
+from typing import Generic, Protocol, TypeAlias, TypeVar, runtime_checkable
 
 
 ValueT = TypeVar("ValueT")
-Snapshot = Mapping[str, ValueT]
+Snapshot: TypeAlias = Mapping[str, ValueT]
 
 
 @runtime_checkable
@@ -38,12 +36,26 @@ class SyncManager(Generic[ValueT]):
     """Synchronise items across multiple memory stores."""
 
     stores: Mapping[str, MemoryStore[ValueT]] = field(default_factory=dict)
+    required_stores: frozenset[str] = field(
+        default_factory=lambda: frozenset({"tinydb"})
+    )
+    optional_stores: frozenset[str] = field(
+        default_factory=lambda: frozenset({"duckdb", "lmdb", "kuzu"})
+    )
 
     def __post_init__(self) -> None:
-        required = {"tinydb", "duckdb", "lmdb", "kuzu"}
-        missing = required - set(self.stores)
+        configured = frozenset(self.stores)
+        missing = self.required_stores - configured
         if missing:
             raise ValueError(f"Missing stores: {', '.join(sorted(missing))}")
+
+        allowed = self.required_stores | self.optional_stores
+        unexpected = configured - allowed
+        if unexpected:
+            raise ValueError(
+                "Unexpected stores configured: "
+                f"{', '.join(sorted(unexpected))}"
+            )
 
     def write(self, key: str, value: ValueT) -> None:
         """Write ``value`` under ``key`` to all configured stores."""

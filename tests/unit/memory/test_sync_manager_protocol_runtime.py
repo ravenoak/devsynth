@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from devsynth.memory.sync_manager import MemoryStore, SyncManager
+from devsynth.memory.sync_manager import MemoryStore, SyncManager, ValueT
 
 
 @dataclass(slots=True)
@@ -42,6 +42,10 @@ def build_manager(*, failing_key: str | None = None) -> SyncManager[int]:
     return SyncManager(stores)
 
 
+def build_minimal_manager() -> SyncManager[int]:
+    return SyncManager({"tinydb": IntStore()})
+
+
 @pytest.mark.fast
 def test_sync_manager_import_and_construction_succeeds() -> None:
     """Reloading the module and constructing a manager never raises ``TypeError``."""
@@ -58,11 +62,40 @@ def test_sync_manager_import_and_construction_succeeds() -> None:
 
 
 @pytest.mark.fast
+def test_sync_manager_accepts_optional_backends() -> None:
+    """Optional backends may be omitted without failing validation."""
+
+    manager = build_minimal_manager()
+
+    assert isinstance(manager, SyncManager)
+    assert set(manager.stores) == {"tinydb"}
+
+
+@pytest.mark.fast
+def test_sync_manager_still_requires_primary_backend() -> None:
+    """Validation still fails when required stores are absent."""
+
+    with pytest.raises(ValueError):
+        SyncManager({})
+
+
+@pytest.mark.fast
+def test_sync_manager_rejects_unknown_backend_names() -> None:
+    """Unexpected backend names remain guarded."""
+
+    with pytest.raises(ValueError):
+        SyncManager({"unknown": IntStore()})
+
+
+@pytest.mark.fast
 def test_stub_store_matches_protocol_runtime() -> None:
     """The stub satisfies :class:`MemoryStore` at runtime and sync persists values."""
 
     store = IntStore()
     assert isinstance(store, MemoryStore)
+    typed_protocol = MemoryStore[int]
+    assert getattr(typed_protocol, "__origin__", None) is MemoryStore
+    assert getattr(typed_protocol, "__args__", ()) == (int,)
 
     manager = build_manager()
     with manager.transaction():
@@ -71,6 +104,15 @@ def test_stub_store_matches_protocol_runtime() -> None:
     for backend in manager.stores.values():
         assert backend.read("answer") == 42
         assert backend.restores == 0
+
+
+@pytest.mark.fast
+def test_memory_store_parameters_are_runtime_typevars() -> None:
+    """The protocol preserves its declared ``TypeVar`` at runtime."""
+
+    parameters = getattr(MemoryStore, "__parameters__", ())
+
+    assert parameters == (ValueT,)
 
 
 @pytest.mark.fast
