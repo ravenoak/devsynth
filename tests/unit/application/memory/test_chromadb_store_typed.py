@@ -10,9 +10,11 @@ from typing import Any, Protocol, TypeVar
 
 import pytest
 
+from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
+
 
 pytestmark = [
-    pytest.mark.requires_resource("chromadb"),
+    *skip_if_missing_backend("chromadb"),
 ]
 
 
@@ -88,8 +90,11 @@ setattr(interfaces_pkg, "memory", memory_stub)
 
 sys.modules.pop("devsynth.application.memory.chromadb_store", None)
 
-import devsynth.application.memory.chromadb_store as chromadb_module
-from devsynth.application.memory.chromadb_store import ChromaDBStore
+chromadb_module = pytest.importorskip(
+    "devsynth.application.memory.chromadb_store",
+    reason=backend_import_reason("chromadb"),
+)
+ChromaDBStore = chromadb_module.ChromaDBStore
 from devsynth.application.memory.dto import MemoryRecord
 from devsynth.application.memory.metadata_serialization import (
     from_serializable,

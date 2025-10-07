@@ -266,8 +266,10 @@ def test_cross_store_sync_with_chromadb_if_available(tmp_path, monkeypatch):
         reason=backend_import_reason("chromadb"),
     )
 
-    # Import inside test to avoid import-time failures when extra missing
-    from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
+    ChromaDBMemoryStore = pytest.importorskip(
+        "devsynth.adapters.chromadb_memory_store",
+        reason=backend_import_reason("chromadb"),
+    ).ChromaDBMemoryStore
 
     # Ensure isolation in tests and no file logging noise
     monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))

@@ -7,7 +7,9 @@ fixture usage, environment flags, and Poetry commands.
 
 ## Fixtures and helpers
 
-`tests/fixtures/resources.py` exposes the following utilities:
+`tests/fixtures/resources.py` exposes the following utilities (each helper relies on
+`importlib.util.find_spec` so missing modules surface as clean skips instead of
+`ImportError`s during collection):
 
 - `skip_if_missing_backend(resource, *, extras=None, import_names=None)` – returns
   markers (including `requires_resource(resource)`) that skip tests when the
@@ -35,6 +37,10 @@ chromadb = pytest.importorskip(
     reason=backend_import_reason("chromadb"),
 )
 ```
+
+Always prefer `pytest.importorskip` for optional imports—including the internal
+DevSynth adapters—so the module either loads successfully or exits early with
+the same resource-aware skip message emitted by the fixtures above.
 
 For parametrized smoke tests:
 

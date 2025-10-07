@@ -1,19 +1,34 @@
 import pytest
-from chromadb.utils import embedding_functions
 
-from devsynth.adapters.kuzu_memory_store import KuzuMemoryStore
-from devsynth.application.memory.chromadb_store import ChromaDBStore
-from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
 
 
 pytestmark = [
-    pytest.mark.requires_resource("chromadb"),
-    pytest.mark.requires_resource("kuzu"),
+    *skip_if_missing_backend("chromadb"),
+    *skip_if_missing_backend("kuzu"),
 ]
+
+
+embedding_functions = pytest.importorskip(
+    "chromadb.utils.embedding_functions",
+    reason=backend_import_reason("chromadb"),
+)
+KuzuMemoryStore = pytest.importorskip(
+    "devsynth.adapters.kuzu_memory_store",
+    reason=backend_import_reason("kuzu"),
+).KuzuMemoryStore
+KuzuStore = pytest.importorskip(
+    "devsynth.application.memory.kuzu_store",
+    reason=backend_import_reason("kuzu"),
+).KuzuStore
+ChromaDBStore = pytest.importorskip(
+    "devsynth.application.memory.chromadb_store",
+    reason=backend_import_reason("chromadb"),
+).ChromaDBStore
 
 
 @pytest.fixture
