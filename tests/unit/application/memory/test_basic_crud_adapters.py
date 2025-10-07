@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import importlib
 from datetime import datetime
 from typing import NamedTuple
 
 import pytest
 
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-from tests.fixtures.resources import resource_flag_enabled
+from tests.fixtures.resources import backend_import_reason, resource_flag_enabled
 
 
 class StoreCase(NamedTuple):
@@ -68,10 +67,10 @@ STORE_CASES = [
 def _load_store_class(case: StoreCase):
     """Import the requested store class, skipping if it is unavailable."""
 
-    try:
-        module = importlib.import_module(case.module)
-    except Exception as exc:  # pragma: no cover - dependency guard
-        pytest.skip(f"{case.class_name} backend not available: {exc}")
+    module = pytest.importorskip(
+        case.module,
+        reason=backend_import_reason(case.resource),
+    )
     try:
         return getattr(module, case.class_name)
     except AttributeError as exc:  # pragma: no cover - defensive guard

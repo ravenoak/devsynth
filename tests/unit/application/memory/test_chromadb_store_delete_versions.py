@@ -10,13 +10,21 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from devsynth.application.memory.chromadb_store import ChromaDBStore
+from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
+
+
+pytestmark = [*skip_if_missing_backend("chromadb")]
+
+
+ChromaDBStore = pytest.importorskip(
+    "devsynth.application.memory.chromadb_store",
+    reason=backend_import_reason("chromadb"),
+).ChromaDBStore
 from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem
 
 
 @pytest.mark.medium
-@pytest.mark.requires_resource("chromadb")
 def test_delete_also_removes_versions(tmp_path):
     # Arrange: create store in a mode where we can inject mocks
     store = ChromaDBStore(str(tmp_path))

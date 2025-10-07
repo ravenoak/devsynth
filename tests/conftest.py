@@ -21,7 +21,9 @@ pytest_plugins = [
     "pytester",
 ]
 
+import importlib.util
 from importlib import import_module
+from importlib.machinery import ModuleSpec
 
 from tests import pytest_plugin_registry as _pytest_plugin_registry
 
@@ -743,118 +745,104 @@ def is_webui_available() -> bool:
     }
 
 
+def _safe_find_spec(name: str) -> ModuleSpec | None:
+    """Return the module spec for ``name`` when available."""
+
+    try:  # pragma: no cover - importlib behaviours differ across environments
+        spec = importlib.util.find_spec(name)
+    except (ImportError, AttributeError, ValueError):
+        return None
+    return spec
+
+
+def _spec_is_importable(spec: ModuleSpec | None) -> bool:
+    """Return ``True`` when ``spec`` represents an importable module."""
+
+    if spec is None:
+        return False
+    loader = getattr(spec, "loader", None)
+    submodule_locations = getattr(spec, "submodule_search_locations", ()) or ()
+    if loader is None and not submodule_locations:
+        return False
+    if getattr(spec, "has_location", True) is False and not submodule_locations:
+        return False
+    origin = getattr(spec, "origin", None)
+    if origin in {None, "namespace"} and not submodule_locations:
+        return False
+    return True
+
+
 def is_chromadb_available() -> bool:
     """Check if the chromadb package is installed."""
-    # Check environment variable override first
     if os.environ.get("DEVSYNTH_FORCE_CHROMADB_AVAILABLE", "false").lower() == "true":
         return True
 
-    # Check if chromadb is installed
-    try:  # pragma: no cover - simple import check
-        import chromadb  # noqa: F401
-
+    spec = _safe_find_spec("chromadb")
+    if _spec_is_importable(spec):
         return True
-    except ImportError:
-        # Print a clear error message
-        print(
-            "\n\033[91mWARNING: chromadb package is not installed but is required for memory integration tests.\033[0m"
-        )
-        print(
-            "\033[93mTo install chromadb, run: poetry install --extras chromadb\033[0m"
-        )
-        print(
-            "\033[93mOr to install all memory dependencies: poetry install --extras memory\033[0m"
-        )
-        print(
-            "\033[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false\033[0m\n"
-        )
 
-        # Check if we're running in CI environment
-        if os.environ.get("CI", "false").lower() == "true":
-            # In CI, we want to fail rather than skip
-            return True
+    print(
+        "\n\033[91mWARNING: chromadb package is not installed but is required for memory integration tests.\033[0m"
+    )
+    print(
+        "\033[93mTo install chromadb, run: poetry install --extras chromadb\033[0m"
+    )
+    print(
+        "\033[93mOr to install all memory dependencies: poetry install --extras memory\033[0m"
+    )
+    print(
+        "\033[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false\033[0m\n"
+    )
 
-        # For local development, respect the resource availability flag
-        if (
-            os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower()
-            == "false"
-        ):
-            return False
+    if os.environ.get("CI", "false").lower() == "true":
+        return True
 
-        # Default behavior: return False to skip tests requiring chromadb
+    if os.environ.get("DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE", "true").lower() == "false":
         return False
+
+    return False
 
 
 def is_tinydb_available() -> bool:
     """Check if the tinydb package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_TINYDB_AVAILABLE", "true").lower() == "false":
         return False
-    try:  # pragma: no cover - simple import check
-        import tinydb  # type: ignore  # noqa: F401
-
-        return True
-    except Exception:
-        return False
+    return _spec_is_importable(_safe_find_spec("tinydb"))
 
 
 def is_duckdb_available() -> bool:
     """Check if the duckdb package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE", "true").lower() == "false":
         return False
-    try:  # pragma: no cover - simple import check
-        import duckdb  # type: ignore  # noqa: F401
-
-        return True
-    except Exception:
-        return False
+    return _spec_is_importable(_safe_find_spec("duckdb"))
 
 
 def is_faiss_available() -> bool:
     """Check if the faiss package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_FAISS_AVAILABLE", "true").lower() == "false":
         return False
-    try:  # pragma: no cover - simple import check
-        import faiss  # noqa: F401
-
-        return True
-    except Exception:
-        return False
+    return _spec_is_importable(_safe_find_spec("faiss"))
 
 
 def is_kuzu_available() -> bool:
     """Check if the kuzu package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_KUZU_AVAILABLE", "true").lower() == "false":
         return False
-    try:  # pragma: no cover - simple import check
-        import kuzu  # noqa: F401
-
-        return True
-    except Exception:
-        return False
+    return _spec_is_importable(_safe_find_spec("kuzu"))
 
 
 def is_lmdb_available() -> bool:
     """Check if the lmdb package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_LMDB_AVAILABLE", "true").lower() == "false":
         return False
-    try:  # pragma: no cover - simple import check
-        import lmdb  # noqa: F401
-
-        return True
-    except Exception:
-        return False
+    return _spec_is_importable(_safe_find_spec("lmdb"))
 
 
 def is_rdflib_available() -> bool:
     """Check if the rdflib package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE", "true").lower() == "false":
         return False
-    try:  # pragma: no cover - simple import check
-        import rdflib  # noqa: F401
-
-        return True
-    except Exception:
-        return False
+    return _spec_is_importable(_safe_find_spec("rdflib"))
 
 
 def is_openai_available() -> bool:
