@@ -2,6 +2,7 @@
 
 ## Gate Status Snapshot
 - Fast+medium aggregate remains at 92.40 % (2,601/2,815 statements) with artifacts archived under `20251012T164512Z-fast-medium/` and knowledge-graph nodes `QualityGate=QG-20251012-FASTMED`, `TestRun=TR-20251012-FASTMED`, `ReleaseEvidence=RE-20251012-FASTMED`.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】【F:artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/devsynth_run_tests_fast_medium_20251012T164512Z.txt†L1-L9】
+- 2025-10-07 18:54 UTC fallback sweep (`TestRun=TR-20251007-FASTMED-FALLBACK`) timed out twice at 300 s during collection and was manually interrupted without producing new coverage manifests; diagnostic transcripts captured the repeated timeouts and interruption context.【F:diagnostics/devsynth_run_tests_fast_medium_20251007T185404Z.log†L1-L5】【F:test_reports/run-tests/run-tests_fast_medium_20251007T185404Z.log†L1-L5】
 - Targeted hot-spot rerun for `methodology/edrr/reasoning_loop.py` (2025-10-05 fast profile) captured 68.89 % coverage to guide the final uplift before the aggregate rerun.【F:artifacts/releases/0.1.0a1/fast-medium/20251015T000000Z-fast-medium/reasoning_loop_fast.json†L1-L25】
 
 ## Ownership & Module Deltas

@@ -1,11 +1,11 @@
 {
   "markers": {
-    "fast": 1808,
+    "fast": 1809,
     "no_network": 15,
     "medium": 1579,
     "parametrize": 71,
     "slow": 134,
-    "requires_resource": 74,
+    "requires_resource": 75,
     "integration": 4,
     "gui": 1,
     "cli": 1,
