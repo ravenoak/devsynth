@@ -5,16 +5,20 @@ from datetime import datetime
 
 import pytest
 
+from tests.fixtures.resources import (
+    backend_import_reason,
+    skip_if_missing_backend,
+    skip_module_if_backend_disabled,
+)
+
+skip_module_if_backend_disabled("lmdb")
+pytest.importorskip("lmdb", reason=backend_import_reason("lmdb"))
+
+pytestmark = skip_if_missing_backend("lmdb")
+
 from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
-pytest.importorskip("lmdb")
-if os.environ.get("DEVSYNTH_RESOURCE_LMDB_AVAILABLE", "true").lower() == "false":
-    pytest.skip("LMDB resource not available", allow_module_level=True)
-
-
-pytestmark = pytest.mark.requires_resource("lmdb")
 
 
 class TestLMDBStore:

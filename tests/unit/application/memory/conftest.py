@@ -2,16 +2,22 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
 import sys
 import uuid
 from collections import defaultdict
 from collections.abc import Mapping, MutableMapping, Sequence
-from types import ModuleType
+from math import sqrt
+from types import ModuleType, SimpleNamespace
 from typing import Any, TYPE_CHECKING, Callable, TypeVar, cast
 
-import numpy as np
+_NUMPY_SPEC = importlib.util.find_spec("numpy")
+if _NUMPY_SPEC is not None:  # pragma: no branch - deterministic path selection
+    import numpy as np  # type: ignore[import-not-found]
+else:
+    np = None  # type: ignore[assignment]
 
 import pytest
 
@@ -63,6 +69,115 @@ def _install_stub(module_name: str, factory: Callable[[], T_Module]) -> T_Module
     sys.modules[module_name] = module
     return module
 
+
+if np is None:
+
+    def _build_numpy_stub() -> ModuleType:
+        module = ModuleType("numpy")
+
+        class _Array(list):
+            def __init__(self, values: Sequence[object] | object) -> None:
+                normalized = _normalize(values)
+                if not isinstance(normalized, list):
+                    normalized = [normalized]
+                super().__init__(normalized)
+
+            @property
+            def shape(self) -> tuple[int, ...]:
+                return _shape(self)
+
+            @property
+            def size(self) -> int:
+                dims = self.shape
+                if not dims:
+                    return 0
+                total = 1
+                for dim in dims:
+                    total *= dim
+                return total
+
+        def _normalize(value: Sequence[object] | object) -> list[object] | object:
+            if isinstance(value, _Array):
+                return list(value)
+            if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+                return [_normalize(item) for item in value]
+            try:
+                return float(value)  # type: ignore[arg-type]
+            except Exception:
+                return value
+
+        def _shape(value: Sequence[object] | object) -> tuple[int, ...]:
+            if isinstance(value, _Array):
+                return _shape(list(value))
+            if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+                if not value:
+                    return (0,)
+                inner = _shape(value[0])
+                return (len(value),) + inner
+            return ()
+
+        def _flatten(value: Sequence[object] | object) -> list[float]:
+            if isinstance(value, _Array):
+                return _flatten(list(value))
+            if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+                items: list[float] = []
+                for item in value:
+                    items.extend(_flatten(item))
+                return items
+            try:
+                return [float(value)]
+            except Exception:
+                return [0.0]
+
+        def array(values: Sequence[object] | object, dtype: object | None = None) -> _Array:
+            return _Array(values)
+
+        def _zeros(shape: Sequence[int] | int) -> list[object]:
+            if isinstance(shape, int):
+                shape = (shape,)
+            shape_tuple = tuple(int(dim) for dim in shape)
+            if not shape_tuple:
+                return [0.0]
+            if len(shape_tuple) == 1:
+                return [0.0 for _ in range(max(shape_tuple[0], 0))]
+            length = max(shape_tuple[0], 0)
+            return [_zeros(shape_tuple[1:]) for _ in range(length)]
+
+        def zeros(shape: Sequence[int] | int, dtype: object | None = None) -> _Array:
+            return _Array(_zeros(shape))
+
+        def dot(a: Sequence[object] | object, b: Sequence[object] | object) -> float:
+            seq_a = _flatten(a)
+            seq_b = _flatten(b)
+            return sum(x * y for x, y in zip(seq_a, seq_b))
+
+        def allclose(
+            a: Sequence[object] | object,
+            b: Sequence[object] | object,
+            *,
+            atol: float = 1e-8,
+        ) -> bool:
+            seq_a = _flatten(a)
+            seq_b = _flatten(b)
+            if len(seq_a) != len(seq_b):
+                return False
+            return all(abs(x - y) <= atol for x, y in zip(seq_a, seq_b))
+
+        def norm(value: Sequence[object] | object) -> float:
+            return sqrt(sum(component * component for component in _flatten(value)))
+
+        module.array = array  # type: ignore[attr-defined]
+        module.asarray = array  # type: ignore[attr-defined]
+        module.zeros = zeros  # type: ignore[attr-defined]
+        module.dot = dot  # type: ignore[attr-defined]
+        module.allclose = allclose  # type: ignore[attr-defined]
+        module.float32 = float  # type: ignore[attr-defined]
+        module.int64 = int  # type: ignore[attr-defined]
+        module.ndarray = _Array  # type: ignore[attr-defined]
+        module.linalg = SimpleNamespace(norm=norm)  # type: ignore[attr-defined]
+        return module
+
+    np = _install_stub("numpy", _build_numpy_stub)
 
 class MemoryRecordFactory(Protocol):
     def __call__(

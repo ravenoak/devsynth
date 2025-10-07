@@ -44,6 +44,10 @@ OPTIONAL_BACKEND_REQUIREMENTS: dict[str, BackendRequirement] = {
         "extras": ("memory", "tests"),
         "imports": ("lmdb",),
     },
+    "vector": {
+        "extras": ("memory", "tests"),
+        "imports": ("numpy",),
+    },
     "tinydb": {
         "extras": ("memory", "tests"),
         "imports": ("tinydb",),

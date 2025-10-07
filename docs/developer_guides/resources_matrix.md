@@ -62,6 +62,7 @@ Minimal formatting for clarity; NAME refers to the placeholder in DEVSYNTH_RESOU
     - DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true (NAME=TINYDB)
     - DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE=true (NAME=DUCKDB)
     - DEVSYNTH_RESOURCE_LMDB_AVAILABLE=true (NAME=LMDB)
+    - DEVSYNTH_RESOURCE_VECTOR_AVAILABLE=true (NAME=VECTOR)
     - DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true (NAME=KUZU)
     - DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true (NAME=FAISS)
     - DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true (NAME=CHROMADB)
@@ -97,6 +98,11 @@ Minimal formatting for clarity; NAME refers to the placeholder in DEVSYNTH_RESOU
   poetry install --with dev --extras memory
   export DEVSYNTH_RESOURCE_TINYDB_AVAILABLE=true
   poetry run devsynth run-tests --speed=fast
+
+- Run vector adapter smoke tests (numpy-backed):
+  poetry install --with dev --extras memory
+  export DEVSYNTH_RESOURCE_VECTOR_AVAILABLE=true
+  poetry run devsynth run-tests --tests tests/unit/application/memory/test_vector_memory_adapter_extra.py --speed=medium
 
 - Exercise ChromaDB paths:
   poetry install --with dev --extras chromadb
