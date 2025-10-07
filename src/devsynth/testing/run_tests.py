@@ -19,9 +19,10 @@ import shutil
 import subprocess
 import sys
 from collections.abc import MutableMapping, Sequence
+from dataclasses import dataclass as _dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping, NotRequired, Protocol, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Mapping, NotRequired, TypedDict, cast, dataclass_transform
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -207,52 +208,26 @@ class SegmentedRunMetadata(TypedDict):
     segments: list[BatchExecutionMetadata]
 
 
-class BatchExecutionRequest(Protocol):
-    """Structural type describing the inputs for a pytest batch run."""
+if TYPE_CHECKING:
+    from typing import Callable, TypeVar
 
-    node_ids: tuple[str, ...]
-    marker_expr: str
-    verbose: bool
-    report: bool
-    parallel: bool
-    maxfail: int | None
-    keyword_filter: str | None
-    env: MutableMapping[str, str]
-    dry_run: bool
+    _RequestT = TypeVar("_RequestT")
 
+    @dataclass_transform()
+    def _slots_dataclass(*args: Any, **kwargs: Any) -> Callable[[type[_RequestT]], type[_RequestT]]:
+        """Typed wrapper that strips unsupported keywords during type checking."""
 
-class SegmentedRunConfiguration(Protocol):
-    """Structural type describing a segmented pytest execution plan."""
+        kwargs.pop("slots", None)
+        return _dataclass(*args, **kwargs)
 
-    target: str
-    speed_categories: tuple[str, ...]
-    marker_expr: str
-    node_ids: tuple[str, ...]
-    verbose: bool
-    report: bool
-    parallel: bool
-    segment_size: int
-    maxfail: int | None
-    keyword_filter: str | None
-    env: MutableMapping[str, str]
-    dry_run: bool
+else:
+    _slots_dataclass = _dataclass
 
 
+@_slots_dataclass(frozen=True, slots=True)
 class SingleBatchRequest:
     """Structured configuration for a single pytest batch execution."""
 
-    __slots__ = (
-        "node_ids",
-        "marker_expr",
-        "verbose",
-        "report",
-        "parallel",
-        "maxfail",
-        "keyword_filter",
-        "env",
-        "dry_run",
-    )
-
     node_ids: tuple[str, ...]
     marker_expr: str
     verbose: bool
@@ -261,49 +236,15 @@ class SingleBatchRequest:
     maxfail: int | None
     keyword_filter: str | None
     env: MutableMapping[str, str]
-    dry_run: bool
+    dry_run: bool = False
 
-    def __init__(
-        self,
-        *,
-        node_ids: Sequence[str],
-        marker_expr: str,
-        verbose: bool,
-        report: bool,
-        parallel: bool,
-        maxfail: int | None,
-        keyword_filter: str | None,
-        env: MutableMapping[str, str],
-        dry_run: bool = False,
-    ) -> None:
-        self.node_ids = tuple(node_ids)
-        self.marker_expr = marker_expr
-        self.verbose = verbose
-        self.report = report
-        self.parallel = parallel
-        self.maxfail = maxfail
-        self.keyword_filter = keyword_filter
-        self.env = env
-        self.dry_run = dry_run
+    def __post_init__(self) -> None:  # pragma: no cover - simple data normalization
+        object.__setattr__(self, "node_ids", tuple(self.node_ids))
 
 
+@_slots_dataclass(frozen=True, slots=True)
 class SegmentedRunRequest:
     """Structured configuration for segmented pytest execution."""
-
-    __slots__ = (
-        "target",
-        "speed_categories",
-        "marker_expr",
-        "node_ids",
-        "verbose",
-        "report",
-        "parallel",
-        "segment_size",
-        "maxfail",
-        "keyword_filter",
-        "env",
-        "dry_run",
-    )
 
     target: str
     speed_categories: tuple[str, ...]
@@ -316,38 +257,13 @@ class SegmentedRunRequest:
     maxfail: int | None
     keyword_filter: str | None
     env: MutableMapping[str, str]
-    dry_run: bool
+    dry_run: bool = False
 
-    def __init__(
-        self,
-        *,
-        target: str,
-        speed_categories: Sequence[str],
-        marker_expr: str,
-        node_ids: Sequence[str],
-        verbose: bool,
-        report: bool,
-        parallel: bool,
-        segment_size: int,
-        maxfail: int | None,
-        keyword_filter: str | None,
-        env: MutableMapping[str, str],
-        dry_run: bool = False,
-    ) -> None:
-        if segment_size <= 0:
+    def __post_init__(self) -> None:
+        if self.segment_size <= 0:
             raise ValueError("segment_size must be a positive integer")
-        self.target = target
-        self.speed_categories = tuple(speed_categories)
-        self.marker_expr = marker_expr
-        self.node_ids = tuple(node_ids)
-        self.verbose = verbose
-        self.report = report
-        self.parallel = parallel
-        self.segment_size = segment_size
-        self.maxfail = maxfail
-        self.keyword_filter = keyword_filter
-        self.env = env
-        self.dry_run = dry_run
+        object.__setattr__(self, "speed_categories", tuple(self.speed_categories))
+        object.__setattr__(self, "node_ids", tuple(self.node_ids))
 
 
 ExecutionMetadata = BatchExecutionMetadata | SegmentedRunMetadata
@@ -1423,9 +1339,7 @@ def run_tests(
     return success, output
 
 
-def _run_segmented_tests(
-    request: SegmentedRunConfiguration, /
-) -> SegmentedRunResult:
+def _run_segmented_tests(request: SegmentedRunRequest) -> SegmentedRunResult:
     """Run tests in segments to handle large test suites."""
 
     node_ids = _sanitize_node_ids(list(request.node_ids))
@@ -1468,10 +1382,10 @@ def _run_segmented_tests(
             env=request.env,
             dry_run=request.dry_run,
         )
-        success, output, metadata = _run_single_test_batch(batch_request)
+        success, output, batch_metadata = _run_single_test_batch(batch_request)
 
         all_outputs.append(output)
-        segment_metadata.append(metadata)
+        segment_metadata.append(batch_metadata)
         if not success:
             overall_success = False
             if request.maxfail:
@@ -1507,9 +1421,7 @@ def _run_segmented_tests(
     return overall_success, "\n".join(all_outputs), combined_metadata
 
 
-def _run_single_test_batch(
-    request: BatchExecutionRequest, /
-) -> BatchExecutionResult:
+def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
     """Run a single batch of tests."""
 
     cmd = [sys.executable, "-m", "pytest"]
