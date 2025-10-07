@@ -1,6 +1,13 @@
 import pytest
 
-from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
+from tests.fixtures.resources import (
+    backend_import_reason,
+    skip_if_missing_backend,
+    skip_module_if_backend_disabled,
+)
+
+
+skip_module_if_backend_disabled("chromadb")
 
 pytest.importorskip(
     "chromadb",

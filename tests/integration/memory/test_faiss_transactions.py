@@ -1,6 +1,12 @@
 import pytest
 
-from tests.fixtures.resources import skip_if_missing_backend
+from tests.fixtures.resources import (
+    skip_if_missing_backend,
+    skip_module_if_backend_disabled,
+)
+
+
+skip_module_if_backend_disabled("faiss")
 
 FAISSStore = pytest.importorskip(
     "devsynth.application.memory.faiss_store",
