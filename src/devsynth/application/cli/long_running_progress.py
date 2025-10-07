@@ -10,7 +10,7 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import ExitStack
 from datetime import datetime, timedelta
-from typing import Any, TYPE_CHECKING, TypeVar, cast
+from typing import Any, TYPE_CHECKING, Protocol, TypeVar, cast
 
 from rich.console import Console
 from rich.progress import (
@@ -36,43 +36,48 @@ from devsynth.application.cli.models import (
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
+class _ProgressIndicatorProtocol(Protocol):
+    def update(
+        self,
+        *,
+        advance: float = 1,
+        description: str | None = None,
+        status: str | None = None,
+    ) -> None:
+        ...
+
+    def complete(self) -> None:
+        ...
+
+    def add_subtask(
+        self, description: str, total: int = 100, status: str = "Starting..."
+    ) -> str:
+        ...
+
+    def update_subtask(
+        self,
+        task_id: str,
+        advance: float = 1,
+        description: str | None = None,
+        status: str | None = None,
+    ) -> None:
+        ...
+
+    def complete_subtask(self, task_id: str) -> None:
+        ...
+
+
 if TYPE_CHECKING:
-    from typing import Protocol
-
-    class _ProgressIndicatorBase(Protocol):
-        def update(
-            self,
-            *,
-            advance: float = 1,
-            description: str | None = None,
-            status: str | None = None,
-        ) -> None:
-            ...
-
-        def complete(self) -> None:
-            ...
-
-        def add_subtask(
-            self, description: str, total: int = 100, status: str = "Starting..."
-        ) -> str:
-            ...
-
-        def update_subtask(
-            self,
-            task_id: str,
-            advance: float = 1,
-            description: str | None = None,
-            status: str | None = None,
-        ) -> None:
-            ...
-
-        def complete_subtask(self, task_id: str) -> None:
-            ...
+    _ProgressIndicatorBase = _ProgressIndicatorProtocol
 else:
     _ProgressIndicatorBase = ProgressIndicator
 
 
-__all__ = ["LongRunningProgressIndicator", "_ProgressIndicatorBase"]
+__all__ = [
+    "LongRunningProgressIndicator",
+    "_ProgressIndicatorBase",
+    "_ProgressIndicatorProtocol",
+]
 
 
 logger = DevSynthLogger(__name__)

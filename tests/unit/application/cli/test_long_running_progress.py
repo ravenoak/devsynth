@@ -50,6 +50,28 @@ def test_progress_indicator_base_alias_import_statement_works() -> None:
     assert issubclass(long_running_progress.LongRunningProgressIndicator, imported_base)
 
 
+@pytest.mark.fast
+def test_progress_indicator_protocol_alias_import_statement_works() -> None:
+    """Importing the protocol helper remains stable for type hint users."""
+
+    from devsynth.application.cli.long_running_progress import (
+        _ProgressIndicatorProtocol as imported_protocol,
+    )
+
+    assert imported_protocol is long_running_progress._ProgressIndicatorProtocol
+
+
+@pytest.mark.fast
+def test_progress_indicator_aliases_listed_in_all() -> None:
+    """Module exports remain discoverable via ``__all__``."""
+
+    exported = set(long_running_progress.__all__)
+
+    assert "_ProgressIndicatorBase" in exported
+    assert "_ProgressIndicatorProtocol" in exported
+    assert "LongRunningProgressIndicator" in exported
+
+
 class FakeClock:
     """Deterministic clock returning monotonically increasing floats."""
 
