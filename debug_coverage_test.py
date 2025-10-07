@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Debug script to understand coverage measurement issues."""
 
-import sys
 import os
+import sys
+
+import pytest
 
 # Add src to path
 sys.path.insert(0, 'src')
@@ -11,6 +13,7 @@ sys.path.insert(0, 'src')
 from devsynth.utils.logging import DevSynthLogger, get_logger, setup_logging
 from devsynth.utils.serialization import dumps_deterministic, loads, dump_to_file, load_from_file
 
+@pytest.mark.fast
 def test_logging_functions():
     """Test all logging functions to see if they execute."""
     print("=== Testing Logging Functions ===")
@@ -54,8 +57,7 @@ def test_logging_functions():
     # Test with invalid types (line 48)
     test_logger.warning("test with invalid", exc_info="invalid")
     print("Invalid exc_info test completed")
-
-
+@pytest.mark.fast
 def test_serialization_functions():
     """Test all serialization functions to see if they execute."""
     print("\n=== Testing Serialization Functions ===")

@@ -3,7 +3,6 @@ import pytest
 from devsynth.application.collaboration.peer_review import run_peer_review
 from devsynth.domain.models.wsde_facade import WSDETeam
 
-pytestmark = [pytest.mark.slow]
 
 
 class DummyAgent:
@@ -20,6 +19,7 @@ def wsde_team():
     return team
 
 
+@pytest.mark.slow
 def test_run_peer_review_workflow(wsde_team):
     author = wsde_team.agents[0]
     reviewers = wsde_team.agents[1:]

@@ -5,9 +5,9 @@ from devsynth.application.sprint.retrospective import SPRINT_RETROSPECTIVE_PHASE
 from devsynth.methodology.base import Phase
 from devsynth.methodology.sprint import SprintAdapter
 
-pytestmark = [pytest.mark.slow]
 
 
+@pytest.mark.slow
 def test_requirements_analysis_updates_sprint_plan():
     """SprintAdapter aligns planning with requirement analysis results."""
     adapter = SprintAdapter({"settings": {"sprintDuration": 1}})
@@ -34,12 +34,14 @@ def test_requirements_analysis_updates_sprint_plan():
     assert adapter.metrics["actual_scope"][0] == ["feature"]
 
 
+@pytest.mark.slow
 def test_sprint_ceremonies_mapped_to_edrr_phases():
     """Sprint ceremonies align with their corresponding EDRR phases."""
     assert SPRINT_PLANNING_PHASE == Phase.EXPAND.value
     assert SPRINT_RETROSPECTIVE_PHASE == Phase.RETROSPECT.value
 
 
+@pytest.mark.slow
 def test_retrospective_evaluation_logged():
     """Retrospective evaluations are captured in sprint metrics."""
     adapter = SprintAdapter({"settings": {"sprintDuration": 1}})

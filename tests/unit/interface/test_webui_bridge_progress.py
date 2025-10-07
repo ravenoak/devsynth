@@ -1,5 +1,4 @@
 """Behavioral tests for WebUI progress tracking utilities."""
-
 from __future__ import annotations
 
 import importlib
@@ -9,9 +8,6 @@ import pytest
 from devsynth.exceptions import DevSynthError
 from devsynth.interface import webui_bridge
 from tests.fixtures.fake_streamlit import FakeSessionState
-
-pytestmark = [pytest.mark.fast]
-
 
 class _SanitizeSpy:
     """Callable spy that tracks sanitize invocations and supports failures."""
@@ -305,8 +301,7 @@ def test_wizard_step_bounds_and_session_state_validation(
         "devsynth.interface.wizard_state_manager"
     )
     assert isinstance(manager, wizard_state_manager.WizardStateManager)
-
-
+@pytest.mark.fast
 def test_require_streamlit_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """``_require_streamlit`` raises ``DevSynthError`` when import fails.
 
@@ -324,8 +319,7 @@ def test_require_streamlit_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     with pytest.raises(DevSynthError):
         webui_bridge._require_streamlit()
     assert seen == ["streamlit"]
-
-
+@pytest.mark.fast
 def test_adjust_wizard_step_edges() -> None:
     """Edge cases clamp wizard step navigation within valid bounds.
 
@@ -343,8 +337,7 @@ def test_adjust_wizard_step_edges() -> None:
     assert adjust(0, direction="back", total=3) == 0
     assert adjust(1, direction="next", total=2.5) == 0
     assert adjust(1, direction="stay", total=2) == 1
-
-
+@pytest.mark.fast
 def test_nested_subtask_default_status_cycle(sanitize_spy: _SanitizeSpy) -> None:
     """Nested subtasks update status text according to default progress thresholds.
 
@@ -390,8 +383,7 @@ def test_nested_subtask_default_status_cycle(sanitize_spy: _SanitizeSpy) -> None
         "Finalizing...",
         "Complete",
     ]
-
-
+@pytest.mark.fast
 def test_webui_bridge_display_result_routes_and_sanitizes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -445,8 +437,7 @@ def test_webui_bridge_display_result_routes_and_sanitizes(
     assert "<" not in sanitized_text
     assert "script" in sanitized_text
     assert recorder.calls[0][1] is bridge.messages[0]
-
-
+@pytest.mark.fast
 def test_webui_bridge_session_access_wrappers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -479,8 +470,7 @@ def test_webui_bridge_session_access_wrappers(
 
     assert webui_bridge.WebUIBridge.set_session_value(sentinel_session, "answer", 42)
     assert seen["set"] == [(sentinel_session, "answer", 42)]
-
-
+@pytest.mark.fast
 def test_webui_bridge_prompt_aliases_and_progress(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -509,8 +499,7 @@ def test_webui_bridge_prompt_aliases_and_progress(
 
     progress = bridge.create_progress("task", total=5)
     assert isinstance(progress, webui_bridge.WebUIProgressIndicator)
-
-
+@pytest.mark.fast
 def test_normalize_wizard_step_varied_inputs() -> None:
     """``normalize_wizard_step`` coerces diverse inputs into clamped indices.
 

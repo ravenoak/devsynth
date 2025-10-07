@@ -24,7 +24,7 @@ See [Requirements Wizard Logging feature](../features/requirements_wizard_loggin
 
 ## What proofs confirm the solution?
 
-- BDD scenarios in [`tests/behavior/features/requirements_wizard_logging.feature`](../../tests/behavior/features/requirements_wizard_logging.feature) and [`tests/behavior/requirements_wizard/logging_and_priority.feature`](../../tests/behavior/requirements_wizard/logging_and_priority.feature) exercise structured logging and priority persistence end to end.
+- BDD scenarios in [`tests/behavior/requirements_wizard/features/general/requirements_wizard_logging.feature`](../../tests/behavior/requirements_wizard/features/general/requirements_wizard_logging.feature) and [`tests/behavior/requirements_wizard/features/general/logging_and_priority.feature`](../../tests/behavior/requirements_wizard/features/general/logging_and_priority.feature) exercise structured logging and priority persistence end to end.
 - Unit tests in [`tests/unit/application/requirements/test_wizard.py`](../../tests/unit/application/requirements/test_wizard.py) assert that `wizard_step` entries are recorded and that `requirements_save_failed` captures `exc_info`.
 - Additional persistence checks in [`tests/unit/application/requirements/test_interactions.py`](../../tests/unit/application/requirements/test_interactions.py) confirm the saved JSON mirrors logged selections.
 - WebUI logging parity is maintained via [`docs/implementation/webui_rendering_invariants.md`](../implementation/webui_rendering_invariants.md).

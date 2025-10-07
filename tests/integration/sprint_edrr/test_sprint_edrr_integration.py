@@ -6,7 +6,6 @@ import pytest
 from devsynth.agents.wsde_team_coordinator import WSDETeamCoordinatorAgent
 from devsynth.application.cli.sprint_cmd import sprint_planning_cmd
 
-pytestmark = [pytest.mark.slow]
 
 
 class DummyTeam:
@@ -19,6 +18,7 @@ class DummyTeam:
         self.recorded = summary
 
 
+@pytest.mark.slow
 def test_sprint_planning_cmd_maps_requirements(tmp_path):
     """Sprint planning command maps requirement results to a plan."""
     data = {
@@ -36,6 +36,7 @@ def test_sprint_planning_cmd_maps_requirements(tmp_path):
     assert plan["success_criteria"] == ["crit1"]
 
 
+@pytest.mark.slow
 def test_wsde_team_coordinator_aggregates_retrospective():
     """Coordinator aggregates notes and records summary."""
     team = DummyTeam()

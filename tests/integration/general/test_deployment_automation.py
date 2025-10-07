@@ -9,13 +9,13 @@ from pathlib import Path
 import pytest
 
 
-pytestmark = [pytest.mark.slow]
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS_DIR = ROOT / "scripts/deployment"
 RUNBOOKS_DIR = ROOT / "docs/deployment/runbooks"
 
 
+@pytest.mark.slow
 def test_bootstrap_script_exists_and_builds_images():
     script = SCRIPTS_DIR / "bootstrap.sh"
     assert script.exists()
@@ -23,6 +23,7 @@ def test_bootstrap_script_exists_and_builds_images():
     assert "docker compose build" in content
 
 
+@pytest.mark.slow
 def test_health_check_script_exists_and_contains_curl():
     script = SCRIPTS_DIR / "health_check.sh"
     assert script.exists()
@@ -30,6 +31,7 @@ def test_health_check_script_exists_and_contains_curl():
     assert "curl" in content
 
 
+@pytest.mark.slow
 def test_publish_image_script_exists_and_pushes():
     script = SCRIPTS_DIR / "publish_image.sh"
     assert script.exists()
@@ -37,6 +39,7 @@ def test_publish_image_script_exists_and_pushes():
     assert "docker compose push" in content
 
 
+@pytest.mark.slow
 def test_docker_compose_defines_image_for_devsynth():
     compose_file = ROOT / "docker-compose.yml"
     assert compose_file.exists()
@@ -44,6 +47,7 @@ def test_docker_compose_defines_image_for_devsynth():
     assert "image: ghcr.io/devsynth/devsynth" in text
 
 
+@pytest.mark.slow
 def test_rollback_runbook_mentions_scripts():
     runbook = RUNBOOKS_DIR / "rollback.md"
     assert runbook.exists()
@@ -53,6 +57,7 @@ def test_rollback_runbook_mentions_scripts():
     assert "health_check.sh" in text
 
 
+@pytest.mark.slow
 def test_rollback_script_exists_and_redeploys():
     script = SCRIPTS_DIR / "rollback.sh"
     assert script.exists()

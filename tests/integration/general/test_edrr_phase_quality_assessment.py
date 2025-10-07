@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytestmark = [pytest.mark.slow]
 
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
@@ -96,6 +95,7 @@ def coordinator():
     )
 
 
+@pytest.mark.slow
 def test_phase_quality_markers_are_recorded(coordinator):
     """Each phase records quality metrics and completion status.
 

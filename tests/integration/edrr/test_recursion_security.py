@@ -4,7 +4,6 @@ import pytest
 
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 
-pytestmark = [pytest.mark.slow]
 
 
 def _build_coord(config):
@@ -19,6 +18,7 @@ def _build_coord(config):
     )
 
 
+@pytest.mark.slow
 def test_recursion_threshold_sanitization():
     """Ensure recursion thresholds fall back to safe defaults. ReqID: FR-40"""
     bad_config = {

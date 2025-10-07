@@ -1,6 +1,11 @@
+"""Unit tests covering WSDE memory synchronization hooks."""
+
+from __future__ import annotations
+
 import json
 import logging
 from datetime import datetime
+from typing import Any
 
 import pytest
 
@@ -12,20 +17,21 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.interfaces.memory import MemoryStore
 
 
-pytestmark = [pytest.mark.fast]
-
-
 class DummyAgent:
-    def __init__(self, name: str):
+    """Simple agent stub used for consensus tests."""
+
+    def __init__(self, name: str) -> None:
         self.name = name
         self.metadata = {"expertise": ["general"]}
 
 
 class DummyTeam(ConsensusBuildingMixin):
-    def __init__(self, memory_manager: MemoryManager):
+    """Consensus mixin harness configured with in-memory stores."""
+
+    def __init__(self, memory_manager: MemoryManager) -> None:
         self.agents = [DummyAgent("a1"), DummyAgent("a2")]
         self.memory_manager = memory_manager
-        self.tracked_decisions = {}
+        self.tracked_decisions: dict[str, Any] = {}
         self.logger = logging.getLogger("dummy")
         now = datetime.now().isoformat()
         self.messages = {
@@ -53,11 +59,11 @@ class DummyTeam(ConsensusBuildingMixin):
             ],
         }
 
-    def get_messages(self, agent=None, filters=None):
+    def get_messages(self, agent: str | None = None, filters: Any | None = None):
         return self.messages.get(agent, [])
 
     def _generate_agent_opinions(self, task):  # pragma: no cover - not used in tests
-        pass
+        return []
 
     def _identify_conflicts(self, task):
         return []
@@ -69,14 +75,16 @@ class DummyTeam(ConsensusBuildingMixin):
         return "because we agree"
 
     def send_message(self, *args, **kwargs):  # pragma: no cover - not used
-        pass
+        return None
 
 
 @pytest.fixture
-def memory_manager():
+def memory_manager() -> MemoryManager:
+    """Provide a memory manager backed by simple in-memory stores."""
+
     class SimpleStore(MemoryStore):
-        def __init__(self):
-            self.items = {}
+        def __init__(self) -> None:
+            self.items: dict[str, Any] = {}
 
         def store(self, item):
             if not item.id:
@@ -108,7 +116,10 @@ def memory_manager():
     return MemoryManager(adapters={"tinydb": SimpleStore(), "graph": SimpleStore()})
 
 
-def test_build_consensus_stores_decision_and_summary(memory_manager):
+@pytest.mark.fast
+def test_build_consensus_stores_decision_and_summary(
+    memory_manager: MemoryManager,
+) -> None:
     team = DummyTeam(memory_manager)
     task = {"id": "t1", "title": "Test"}
     team.build_consensus(task)
@@ -130,7 +141,10 @@ def test_build_consensus_stores_decision_and_summary(memory_manager):
                 assert list(summary.keys()) == ["decision_id", "summary"]
 
 
-def test_summarize_voting_result_persists_summary(memory_manager):
+@pytest.mark.fast
+def test_summarize_voting_result_persists_summary(
+    memory_manager: MemoryManager,
+) -> None:
     team = DummyTeam(memory_manager)
     voting_result = {
         "status": "completed",

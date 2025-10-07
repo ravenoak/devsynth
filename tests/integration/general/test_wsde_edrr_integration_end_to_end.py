@@ -24,7 +24,6 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.methodology.base import Phase
 
 
-pytestmark = [pytest.mark.slow]
 
 
 class ExpertAgent(UnifiedAgent):
@@ -101,6 +100,7 @@ def coordinator():
     )
 
 
+@pytest.mark.slow
 def test_wsde_edrr_integration_end_to_end_succeeds(coordinator):
     """Test the complete integration between WSDE and EDRR.
 
@@ -146,6 +146,7 @@ def test_wsde_edrr_integration_end_to_end_succeeds(coordinator):
     assert "phases" in report
 
 
+@pytest.mark.slow
 def test_multi_agent_collaboration_with_memory_succeeds(coordinator):
     """Test multi-agent collaboration with memory system.
 
@@ -172,6 +173,7 @@ def test_multi_agent_collaboration_with_memory_succeeds(coordinator):
     coordinator.memory_manager.retrieve_with_edrr_phase.assert_called()
 
 
+@pytest.mark.slow
 def test_dialectical_reasoning_in_full_workflow_succeeds(coordinator):
     """Test dialectical reasoning in a full workflow.
 
@@ -211,6 +213,7 @@ def test_dialectical_reasoning_in_full_workflow_succeeds(coordinator):
     )
 
 
+@pytest.mark.slow
 def test_peer_review_integration_in_edrr_workflow_succeeds(coordinator):
     """Test the integration of peer review in the EDRR workflow.
 
@@ -284,6 +287,7 @@ def test_peer_review_integration_in_edrr_workflow_succeeds(coordinator):
             mock_flush.assert_called()
 
 
+@pytest.mark.slow
 def test_retrospective_phase_synchronizes_memory(coordinator):
     """Ensure retrospective phase flushes memory updates."""
 
@@ -301,6 +305,7 @@ def test_retrospective_phase_synchronizes_memory(coordinator):
         mock_flush.assert_called()
 
 
+@pytest.mark.slow
 def test_memory_sync_hook_captures_events_during_team_sync():
     """Ensure memory synchronization hooks capture memory updates."""
 

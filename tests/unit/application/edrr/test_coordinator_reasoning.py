@@ -1,5 +1,6 @@
-import logging
-from unittest.mock import MagicMock, patch
+"""Unit tests for the EDRR coordinator's reasoning flow."""
+
+from __future__ import annotations
 
 import logging
 from unittest.mock import MagicMock, patch
@@ -17,11 +18,8 @@ from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 
 
-pytestmark = [pytest.mark.fast]
-
-
 @pytest.fixture
-def coordinator():
+def coordinator() -> EDRRCoordinator:
     mm = MagicMock(spec=MemoryManager)
     wsde_team = MagicMock()
     coord = EDRRCoordinator(
@@ -36,7 +34,8 @@ def coordinator():
     return coord
 
 
-def test_apply_dialectical_reasoning_success(coordinator):
+@pytest.mark.fast
+def test_apply_dialectical_reasoning_success(coordinator: EDRRCoordinator) -> None:
     """ReqID: N/A"""
 
     final = {"status": "completed", "synthesis": "done"}
@@ -54,7 +53,10 @@ def test_apply_dialectical_reasoning_success(coordinator):
     assert result["synthesis"]["content"] == "done"
 
 
-def test_apply_dialectical_reasoning_consensus_failure(coordinator, caplog):
+@pytest.mark.fast
+def test_apply_dialectical_reasoning_consensus_failure(
+    coordinator: EDRRCoordinator, caplog: pytest.LogCaptureFixture
+) -> None:
     """ReqID: N/A"""
 
     with patch(

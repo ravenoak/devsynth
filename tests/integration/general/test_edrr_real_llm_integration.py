@@ -29,7 +29,6 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
-pytestmark = [pytest.mark.slow]
 
 
 @pytest.mark.parametrize(
@@ -39,6 +38,7 @@ pytestmark = [pytest.mark.slow]
         pytest.param("lmstudio", marks=pytest.mark.requires_resource("lmstudio")),
     ],
 )
+@pytest.mark.slow
 def test_edrr_cycle_with_real_llm_has_expected(tmp_path, provider_resource):
     """Test EDRR cycle with a real LLM provider and verify memory integration.
 
@@ -125,6 +125,7 @@ def test_edrr_cycle_with_real_llm_has_expected(tmp_path, provider_resource):
         pytest.param("lmstudio", marks=pytest.mark.requires_resource("lmstudio")),
     ],
 )
+@pytest.mark.slow
 def test_edrr_cycle_with_real_project_succeeds(tmp_path, provider_resource):
     """Test EDRR cycle with a real LLM provider on a more complex project.
 

@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytestmark = [pytest.mark.slow]
 
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
@@ -94,6 +93,7 @@ def coordinator(tmp_path):
     return coord
 
 
+@pytest.mark.slow
 def test_manifest_dependencies_enforced_succeeds(coordinator):
     """Test that manifest dependencies enforced succeeds.
 

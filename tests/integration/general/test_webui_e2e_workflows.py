@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytestmark = [pytest.mark.slow]
 
 """
 This test file implements integration tests for end-to-end workflows in the WebUI,
@@ -211,6 +210,7 @@ def webui_env(monkeypatch):
     return webui.WebUI(), st, cli_stub
 
 
+@pytest.mark.slow
 def test_analysis_to_synthesis_workflow_succeeds(webui_env):
     """Test a workflow from analysis to synthesis.
 
@@ -256,6 +256,7 @@ def test_analysis_to_synthesis_workflow_succeeds(webui_env):
     assert st.success.called
 
 
+@pytest.mark.slow
 def test_config_to_analysis_workflow_succeeds(webui_env):
     """Test a workflow from configuration to analysis.
 
@@ -295,6 +296,7 @@ def test_config_to_analysis_workflow_succeeds(webui_env):
     assert cli.inspect_code_cmd.called
 
 
+@pytest.mark.slow
 def test_complete_e2e_workflow_succeeds(webui_env):
     """Test a complete end-to-end workflow through multiple pages.
 
@@ -382,6 +384,7 @@ def test_complete_e2e_workflow_succeeds(webui_env):
     assert cli.run_pipeline_cmd.called
 
 
+@pytest.mark.slow
 def test_error_handling_in_workflow_succeeds(webui_env):
     """Test error handling during a workflow.
 
@@ -448,6 +451,7 @@ def test_error_handling_in_workflow_succeeds(webui_env):
     assert not st.error.called
 
 
+@pytest.mark.slow
 def test_state_preservation_in_workflow_succeeds(webui_env):
     """Test state preservation during navigation between pages.
 

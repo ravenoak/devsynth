@@ -32,7 +32,6 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import IngestionError, ManifestError
 
 
-pytestmark = [pytest.mark.slow]
 
 
 def _require_resource(resource: str) -> None:
@@ -97,6 +96,7 @@ def create_project_structure(temp_project_dir):
 
 @patch("devsynth.application.cli.ingest_cmd.validate_manifest")
 @patch("devsynth.application.cli.ingest_cmd.Ingestion")
+@pytest.mark.slow
 def test_ingest_cmd_non_interactive_priority_persists(
     mock_ingestion,
     mock_validate,
@@ -123,6 +123,7 @@ def test_ingest_cmd_non_interactive_priority_persists(
 
 
 @patch("devsynth.application.cli.commands.ingest_cmd._ingest_cmd")
+@pytest.mark.slow
 def test_cli_ingest_respects_env_non_interactive(mock_ingest, monkeypatch):
     """CLI wrapper defaults to non-interactive from environment. ReqID: N/A"""
 
@@ -139,6 +140,7 @@ class TestIngestionMetrics:
 
     ReqID: N/A"""
 
+    @pytest.mark.slow
     def test_metrics_initialization_succeeds(self):
         """Test initialization of IngestionMetrics.
 
@@ -154,6 +156,7 @@ class TestIngestionMetrics:
         for status in ArtifactStatus:
             assert metrics.artifacts_by_status[status] == 0
 
+    @pytest.mark.slow
     def test_phase_timing_has_expected(self):
         """Test phase timing in IngestionMetrics.
 
@@ -172,6 +175,7 @@ class TestIngestionMetrics:
         assert metrics.current_phase == IngestionPhase.REFINE
         assert metrics.phase_durations[IngestionPhase.DIFFERENTIATE] > 0
 
+    @pytest.mark.slow
     def test_complete_metrics_succeeds(self):
         """Test completing metrics collection.
 
@@ -184,6 +188,7 @@ class TestIngestionMetrics:
         assert metrics.end_time is not None
         assert metrics.phase_durations[IngestionPhase.EXPAND] > 0
 
+    @pytest.mark.slow
     def test_get_summary_succeeds(self):
         """Test getting a summary of metrics.
 
@@ -223,6 +228,7 @@ class TestIngestion:
 
     ReqID: N/A"""
 
+    @pytest.mark.slow
     def test_initialization_succeeds(self, temp_project_dir, create_manifest_file):
         """Test initialization of the Ingestion class.
 
@@ -237,6 +243,7 @@ class TestIngestion:
         assert isinstance(ingestion.artifacts, dict)
         assert ingestion.project_structure is None
 
+    @pytest.mark.slow
     def test_initialization_with_nonexistent_project_root_succeeds(self):
         """Test initialization with a non-existent project root.
 
@@ -244,6 +251,7 @@ class TestIngestion:
         with pytest.raises(IngestionError):
             Ingestion("/nonexistent/path")
 
+    @pytest.mark.slow
     def test_load_manifest_succeeds(
         self, temp_project_dir, create_manifest_file, basic_manifest_data
     ):
@@ -256,6 +264,7 @@ class TestIngestion:
         assert ingestion.manifest_data == basic_manifest_data
         assert ingestion.project_structure == ProjectStructureType.STANDARD
 
+    @pytest.mark.slow
     def test_load_manifest_file_not_found_succeeds(self, temp_project_dir):
         """Test loading a non-existent manifest file.
 
@@ -264,6 +273,7 @@ class TestIngestion:
         with pytest.raises(ManifestError):
             ingestion.load_manifest()
 
+    @pytest.mark.slow
     def test_load_manifest_invalid_yaml_is_valid(self, temp_project_dir):
         """Test loading an invalid YAML manifest file.
 
@@ -275,6 +285,7 @@ class TestIngestion:
         with pytest.raises(ManifestError):
             ingestion.load_manifest()
 
+    @pytest.mark.slow
     def test_load_manifest_missing_required_fields_succeeds(self, temp_project_dir):
         """Test loading a manifest file with missing required fields.
 
@@ -287,6 +298,7 @@ class TestIngestion:
             ingestion.load_manifest()
 
     @patch("devsynth.domain.models.project.ProjectModel")
+    @pytest.mark.slow
     def test_run_ingestion_succeeds(
         self,
         mock_project_model,
@@ -327,6 +339,7 @@ class TestIngestion:
         mock_instance.build_model.assert_called_once()
 
     @patch("devsynth.domain.models.project.ProjectModel")
+    @pytest.mark.slow
     def test_run_ingestion_with_error_raises_error(
         self, mock_project_model, temp_project_dir, create_manifest_file
     ):
@@ -343,6 +356,7 @@ class TestIngestion:
         assert result["metrics"]["errors"] == 2
 
     @patch("devsynth.domain.models.project.ProjectModel")
+    @pytest.mark.slow
     def test_expand_phase_has_expected(
         self, mock_project_model, temp_project_dir, create_manifest_file
     ):
@@ -378,6 +392,7 @@ class TestIngestion:
         mock_project_model.assert_called_once()
         mock_instance.build_model.assert_called_once()
 
+    @pytest.mark.slow
     def test_differentiate_phase_has_expected(
         self, temp_project_dir, create_manifest_file
     ):
@@ -398,6 +413,7 @@ class TestIngestion:
         ingestion.metrics.end_phase()
         assert ingestion.metrics.phase_durations[IngestionPhase.DIFFERENTIATE] > 0
 
+    @pytest.mark.slow
     def test_refine_phase_has_expected(self, temp_project_dir, create_manifest_file):
         """Test the Refine phase of the ingestion process.
 
@@ -416,6 +432,7 @@ class TestIngestion:
         ingestion.metrics.end_phase()
         assert ingestion.metrics.phase_durations[IngestionPhase.REFINE] > 0
 
+    @pytest.mark.slow
     def test_retrospect_phase_has_expected(
         self, temp_project_dir, create_manifest_file
     ):
@@ -436,6 +453,7 @@ class TestIngestion:
         ingestion.metrics.end_phase()
         assert ingestion.metrics.phase_durations[IngestionPhase.RETROSPECT] > 0
 
+    @pytest.mark.slow
     def test_evaluate_ingestion_process_succeeds(
         self, temp_project_dir, create_manifest_file
     ):
@@ -459,6 +477,7 @@ class TestIngestion:
         assert "phase_percentages" in evaluation
         assert "overall_assessment" in evaluation
 
+    @pytest.mark.slow
     def test_identify_improvement_areas_succeeds(
         self, temp_project_dir, create_manifest_file
     ):
@@ -473,6 +492,7 @@ class TestIngestion:
         assert len(improvements) > 0
         assert any(imp["area"] == "Testing" for imp in improvements)
 
+    @pytest.mark.slow
     def test_generate_recommendations_succeeds(
         self, temp_project_dir, create_manifest_file
     ):
@@ -489,6 +509,7 @@ class TestIngestion:
 
     @patch("builtins.open", new_callable=MagicMock)
     @patch("json.dump")
+    @pytest.mark.slow
     def test_save_refined_data_succeeds(
         self, mock_json_dump, mock_open, temp_project_dir, create_manifest_file
     ):
@@ -508,6 +529,7 @@ class TestIngestion:
         assert mock_json_dump.call_count == 2
 
     @patch("builtins.open", new_callable=MagicMock)
+    @pytest.mark.slow
     def test_generate_markdown_summary_succeeds(
         self, mock_open, temp_project_dir, create_manifest_file
     ):
@@ -537,6 +559,7 @@ class TestIngestion:
         assert file_handle.write.call_count > 10
 
     @patch("devsynth.domain.models.project.ProjectModel")
+    @pytest.mark.slow
     def test_full_pipeline_functions_has_expected(
         self,
         mock_project_model,
@@ -581,6 +604,7 @@ class TestIngestion:
 @pytest.mark.requires_resource("faiss")
 @pytest.mark.requires_resource("kuzu")
 @pytest.mark.requires_resource("chromadb")
+@pytest.mark.slow
 def test_sync_manager_persistence_across_backends(tmp_path, monkeypatch):
     """Sync manager persists across backends. ReqID: N/A"""
     for resource in ("lmdb", "faiss", "kuzu", "chromadb"):
@@ -637,6 +661,7 @@ def test_sync_manager_persistence_across_backends(tmp_path, monkeypatch):
     kuzu_store.cleanup()
 
 
+@pytest.mark.slow
 def test_kuzu_fallback_to_chromadb(tmp_path, monkeypatch):
     """Fallback to ChromaDB when Kuzu unavailable. ReqID: N/A"""
     monkeypatch.setenv("ENABLE_CHROMADB", "1")

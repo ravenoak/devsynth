@@ -15,7 +15,6 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
-pytestmark = [pytest.mark.slow]
 
 
 class SimpleAgent:
@@ -80,6 +79,7 @@ def coordinator(wsde_team):
     )
 
 
+@pytest.mark.slow
 def test_full_cycle_rotating_primus_succeeds(coordinator, wsde_team):
     """Test that full cycle rotating primus succeeds.
 
