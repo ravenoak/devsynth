@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import List
+from typing import Iterable, List
 
 import pytest
+
+from tests.fixtures import resources as resource_helpers
 
 try:  # Python 3.11 fallback when running in older virtualenvs locally
     import tomllib
@@ -29,6 +31,39 @@ _DERIVED_MARKER_PREFIXES = {"resource_"}
 _AD_HOC_MARKERS = {"asyncio", "anyio"}
 
 test_times: dict[str, float] = {}
+
+
+def _iter_resource_markers(item: pytest.Item) -> Iterable[str]:
+    """Yield resource names declared via ``@pytest.mark.requires_resource``."""
+
+    for mark in item.iter_markers(name="requires_resource"):
+        resource: str | None = None
+        if mark.args:
+            candidate = mark.args[0]
+            if isinstance(candidate, str):
+                resource = candidate
+        elif "resource" in mark.kwargs:
+            candidate = mark.kwargs.get("resource")
+            if isinstance(candidate, str):
+                resource = candidate
+        if resource:
+            yield resource
+
+
+def _ensure_resource_skip_markers(item: pytest.Item) -> None:
+    """Attach skip markers for unavailable optional backends."""
+
+    seen: set[str] = set()
+    for resource in _iter_resource_markers(item):
+        if resource in seen:
+            continue
+        seen.add(resource)
+        markers = resource_helpers.skip_if_missing_backend(
+            resource,
+            include_requires_resource=False,
+        )
+        for mark in markers:
+            item.add_marker(mark)
 
 
 def _load_declared_markers() -> dict[str, str]:
@@ -210,6 +245,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item
             reason=f"Test speed doesn't match --speed={speed}"
         )
     for item in items:
+        _ensure_resource_skip_markers(item)
         speed_markers = [
             name for name in ("fast", "medium", "slow") if item.get_closest_marker(name)
         ]
