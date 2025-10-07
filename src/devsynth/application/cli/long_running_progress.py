@@ -10,7 +10,7 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import ExitStack
 from datetime import datetime, timedelta
-from typing import Any, TYPE_CHECKING, Protocol, TypeVar, cast
+from typing import Any, TYPE_CHECKING, Protocol, TypeAlias, TypeVar, cast
 
 from rich.console import Console
 from rich.progress import (
@@ -39,9 +39,10 @@ from devsynth.logging_setup import DevSynthLogger
 # ``_ProgressIndicatorBase`` must be available before defining classes that inherit
 # from it so ``from module import _ProgressIndicatorBase`` succeeds even when
 # other modules import this file during runtime initialisation (e.g. deterministic
-# progress tests that reload the module). Assign the runtime base immediately and
-# refine the alias for type-checkers after the protocol definition below.
-_ProgressIndicatorBase = ProgressIndicator
+# progress tests that reload the module). Declare the protocol first so type
+# checkers know the intended interface, then provide a `TypeAlias` for static
+# analysis while the runtime alias continues to reference the concrete
+# implementation.
 
 
 class _ProgressIndicatorProtocol(Protocol):
@@ -74,9 +75,10 @@ class _ProgressIndicatorProtocol(Protocol):
     def complete_subtask(self, task_id: str) -> None:
         ...
 
-
 if TYPE_CHECKING:
-    _ProgressIndicatorBase = _ProgressIndicatorProtocol
+    _ProgressIndicatorBase: TypeAlias = _ProgressIndicatorProtocol
+else:
+    _ProgressIndicatorBase = ProgressIndicator
 
 
 __all__ = [
