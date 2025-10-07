@@ -4,6 +4,8 @@ Issue: issues/Finalize-dialectical-reasoning.md ReqID: DRL-001
 """
 
 import importlib
+import sys
+import types
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -344,3 +346,49 @@ def test_reasoning_loop_invokes_dialectical_hooks(
         else:
             recorded_value = recorded_synthesis
         assert recorded_value == syntheses[idx]
+
+
+@pytest.mark.property
+@pytest.mark.fast
+@given(seed=st.integers(min_value=0, max_value=2**10 - 1))
+@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+def test_reasoning_loop_deterministic_seed_paths(monkeypatch, seed):
+    """Both random and numpy random modules receive the deterministic seed."""
+
+    fake_random = types.ModuleType("random")
+    random_seed_calls = []
+
+    def capture_random_seed(value):
+        random_seed_calls.append(value)
+
+    fake_random.seed = capture_random_seed  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "random", fake_random)
+
+    fake_numpy = types.ModuleType("numpy")
+    fake_numpy_random = types.ModuleType("numpy.random")
+    numpy_seed_calls = []
+
+    def capture_numpy_seed(value):
+        numpy_seed_calls.append(value)
+
+    fake_numpy_random.seed = capture_numpy_seed  # type: ignore[attr-defined]
+    fake_numpy.random = fake_numpy_random  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "numpy", fake_numpy)
+    monkeypatch.setitem(sys.modules, "numpy.random", fake_numpy_random)
+
+    def fake_apply(team, task, critic, memory):
+        return {"status": "completed"}
+
+    monkeypatch.setattr(
+        reasoning_loop_module,
+        "_import_apply_dialectical_reasoning",
+        lambda: fake_apply,
+    )
+
+    results = reasoning_loop_module.reasoning_loop(
+        MagicMock(), {"solution": "initial"}, MagicMock(), deterministic_seed=seed
+    )
+
+    assert results == [{"status": "completed"}]
+    assert random_seed_calls == [seed]
+    assert numpy_seed_calls == [seed]
