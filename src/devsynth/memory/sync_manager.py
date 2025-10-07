@@ -3,15 +3,15 @@
 from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Generic, Protocol, TypeAlias, TypeVar, runtime_checkable
+from typing import Generic, Protocol, TypeVar, runtime_checkable
 
 
 ValueT = TypeVar("ValueT")
-Snapshot: TypeAlias = Mapping[str, ValueT]
+Snapshot = Mapping[str, ValueT]
 
 
 @runtime_checkable
-class MemoryStore(Protocol[ValueT]):
+class MemoryStore(Protocol, Generic[ValueT]):
     """Protocol for simple key-value stores.
 
     Stores used with :class:`SyncManager` must implement read/write helpers and
