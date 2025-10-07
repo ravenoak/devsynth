@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import assert_type
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -166,6 +167,69 @@ def test_run_segmented_tests_failure_with_maxfail(monkeypatch):
     assert "First segment failed" in output
     assert call_count == 1  # Should stop after first failure
     assert metadata["segments"][0]["metadata_id"] == "batch-fail-1"
+
+
+@pytest.mark.fast
+def test_run_segmented_tests_dry_run_batches_use_typed_requests(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ReqID: RUN-TESTS-SEG-5 — dry-run segments propagate typed requests."""
+
+    ensure_calls: list[None] = []
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: ensure_calls.append(None))
+
+    captured_batches: list[rt.SingleBatchRequest] = []
+
+    def fake_single_batch(
+        config: rt.SingleBatchRequest,
+    ) -> tuple[bool, str, dict[str, object]]:
+        assert_type(config, rt.SingleBatchRequest)
+        captured_batches.append(config)
+        assert config.dry_run is True
+        return (
+            True,
+            f"Dry-run batch for {list(config.node_ids)}",
+            {
+                "metadata_id": f"batch-dry-{len(captured_batches)}",
+                "command": ["pytest"],
+                "returncode": 0,
+                "started_at": "start",
+                "completed_at": "end",
+                "dry_run": True,
+            },
+        )
+
+    monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
+
+    env: dict[str, str] = {}
+    request = rt.SegmentedRunRequest(
+        target="unit-tests",
+        speed_categories=("fast",),
+        marker_expr="fast and not memory_intensive",
+        node_ids=(
+            "test1.py::test_a",
+            "test2.py::test_b",
+            "test3.py::test_c",
+        ),
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment_size=2,
+        maxfail=None,
+        keyword_filter=None,
+        env=env,
+        dry_run=True,
+    )
+
+    assert_type(request, rt.SegmentedRunRequest)
+
+    success, output, metadata = rt._run_segmented_tests(request)
+
+    assert success is True
+    assert "Dry-run batch" in output
+    assert ensure_calls == []
+    assert captured_batches and all(batch.dry_run for batch in captured_batches)
+    assert len(metadata["segments"]) == 2
 
 
 @pytest.mark.fast
