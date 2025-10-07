@@ -36,6 +36,14 @@ from devsynth.application.cli.models import (
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
+# ``_ProgressIndicatorBase`` must be available before defining classes that inherit
+# from it so ``from module import _ProgressIndicatorBase`` succeeds even when
+# other modules import this file during runtime initialisation (e.g. deterministic
+# progress tests that reload the module). Assign the runtime base immediately and
+# refine the alias for type-checkers after the protocol definition below.
+_ProgressIndicatorBase = ProgressIndicator
+
+
 class _ProgressIndicatorProtocol(Protocol):
     def update(
         self,
@@ -69,8 +77,6 @@ class _ProgressIndicatorProtocol(Protocol):
 
 if TYPE_CHECKING:
     _ProgressIndicatorBase = _ProgressIndicatorProtocol
-else:
-    _ProgressIndicatorBase = ProgressIndicator
 
 
 __all__ = [
@@ -100,6 +106,8 @@ def _console_for_bridge(bridge: UXBridge) -> Console:
     console = getattr(bridge, "console", None)
     if isinstance(console, Console):
         return console
+    if console is not None and hasattr(console, "print"):
+        return cast(Console, console)
     return Console()
 
 
@@ -154,8 +162,8 @@ class LongRunningProgressIndicator(_ProgressIndicatorBase):
             total=total,
             status="Starting...",
             start_time=time.time(),
-            checkpoints=self._checkpoints,
-            history=self._history,
+            checkpoints=tuple(self._checkpoints),
+            history=tuple(self._history),
         )
 
         # Store subtasks with their IDs
@@ -211,7 +219,7 @@ class LongRunningProgressIndicator(_ProgressIndicatorBase):
                     time=current_time, status=status, completed=task.completed
                 )
                 self._history.append(entry)
-                update_kwargs["history"] = list(self._history)
+                update_kwargs["history"] = tuple(self._history)
 
         # Calculate adaptive refresh rate based on progress
         if task.total > 0:
@@ -256,7 +264,7 @@ class LongRunningProgressIndicator(_ProgressIndicatorBase):
                         )
                         self._checkpoints.append(checkpoint)
                         self._progress.update(
-                            self._task, checkpoints=list(self._checkpoints)
+                            self._task, checkpoints=tuple(self._checkpoints)
                         )
 
             self._last_update_time = current_time
@@ -398,9 +406,19 @@ class LongRunningProgressIndicator(_ProgressIndicatorBase):
 
         # Complete the main task
         main_task = self._progress.tasks[self._task]
+        final_total = float(main_task.total)
+        if final_total < 100.0:
+            final_total = 100.0
         self._progress.update(
-            self._task, completed=main_task.total, status="Complete"
+            self._task,
+            completed=final_total,
+            total=final_total,
+            status="Complete",
         )
+        try:
+            main_task.total = final_total
+        except AttributeError:
+            pass
 
         # Calculate and display final statistics
         task = self._progress.tasks[self._task]

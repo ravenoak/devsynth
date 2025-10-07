@@ -211,6 +211,15 @@ class ProgressHistoryEntry:
     status: str
     completed: float
 
+    def __getitem__(self, key: str) -> float | str:
+        if key == "time":
+            return self.time
+        if key == "status":
+            return self.status
+        if key == "completed":
+            return self.completed
+        raise KeyError(key)
+
 
 @dataclass(frozen=True, slots=True)
 class ProgressCheckpoint:
@@ -219,6 +228,15 @@ class ProgressCheckpoint:
     time: float
     progress: float
     eta: float
+
+    def __getitem__(self, key: str) -> float:
+        if key == "time":
+            return self.time
+        if key == "progress":
+            return self.progress
+        if key == "eta":
+            return self.eta
+        raise KeyError(key)
 
 
 @dataclass(frozen=True, slots=True)
@@ -237,13 +255,58 @@ class ProgressSnapshot:
     remaining: float | None = None
     remaining_str: str | None = None
 
+    def _mapping(self) -> Mapping[str, object]:
+        return MappingProxyType(
+            {
+                "description": self.description,
+                "progress": self.progress,
+                "elapsed": self.elapsed,
+                "elapsed_str": self.elapsed_str,
+                "subtasks": self.subtasks,
+                "history": self.history,
+                "checkpoints": self.checkpoints,
+                "eta": self.eta,
+                "eta_str": self.eta_str,
+                "remaining": self.remaining,
+                "remaining_str": self.remaining_str,
+            }
+        )
 
-@dataclass(slots=True)
+    def __getitem__(self, key: str) -> object:
+        mapping = self._mapping()
+        if key not in mapping:
+            raise KeyError(key)
+        return mapping[key]
+
+    def __contains__(self, key: object) -> bool:
+        if not isinstance(key, str):
+            return False
+        value = self._mapping().get(key)
+        return value is not None
+
+
+@dataclass(slots=True, eq=False)
 class SubtaskState:
     """Runtime information tracked for each subtask."""
 
     task_id: int
     total: float
+
+    def __hash__(self) -> int:
+        return hash(self.task_id)
+
+    def __eq__(self, other: object) -> bool:  # pragma: no cover - simple comparison
+        if isinstance(other, SubtaskState):
+            return (self.task_id, self.total) == (other.task_id, other.total)
+        if isinstance(other, int):
+            return self.task_id == other
+        return NotImplemented
+
+    def __int__(self) -> int:
+        return self.task_id
+
+    def __index__(self) -> int:
+        return self.task_id
 
 
 @dataclass(frozen=True, slots=True)

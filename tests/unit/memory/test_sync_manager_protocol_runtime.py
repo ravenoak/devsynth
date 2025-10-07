@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import importlib
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from typing import TypeVar, get_args, get_origin
 
 import pytest
 
-from devsynth.memory.sync_manager import MemoryStore, SyncManager, ValueT
+from devsynth.memory.sync_manager import MemoryStore, Snapshot, SyncManager, ValueT
 
 
 @dataclass(slots=True)
@@ -113,6 +115,27 @@ def test_memory_store_parameters_are_runtime_typevars() -> None:
     parameters = getattr(MemoryStore, "__parameters__", ())
 
     assert parameters == (ValueT,)
+
+
+@pytest.mark.fast
+def test_value_typevar_identity_is_preserved() -> None:
+    """``ValueT`` remains a :func:`TypeVar` object at runtime."""
+
+    assert isinstance(ValueT, TypeVar)
+    assert ValueT.__name__ == "ValueT"
+
+
+@pytest.mark.fast
+def test_sync_manager_and_snapshot_share_runtime_typevar() -> None:
+    """Generic helpers reuse the same ``TypeVar`` instance at runtime."""
+
+    manager_parameters = getattr(SyncManager, "__parameters__", ())
+    snapshot_origin = get_origin(Snapshot)
+    snapshot_args = get_args(Snapshot)
+
+    assert manager_parameters == (ValueT,)
+    assert snapshot_origin is Mapping
+    assert snapshot_args == (str, ValueT)
 
 
 @pytest.mark.fast
