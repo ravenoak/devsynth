@@ -1,0 +1,77 @@
+2025-10-07 15:27:26,505 - devsynth.application.utils.token_tracker - INFO - Tiktoken is available for accurate token counting
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+
+[91mWARNING: chromadb package is not installed but is required for memory integration tests.[0m
+[93mTo install chromadb, run: poetry install --extras chromadb[0m
+[93mOr to install all memory dependencies: poetry install --extras memory[0m
+[93mTo skip these tests, set DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=false[0m
+
+[info] property marker advisories (informational) in tests/property:
+ - /workspace/devsynth/tests/property/test_enhanced_graph_memory_adapter.py::test_traverse_graph_depth_bound: missing @pytest.mark.property
+ - /workspace/devsynth/tests/property/test_enhanced_graph_memory_adapter.py::test_research_provenance_persists: missing @pytest.mark.property
+[info] verify_test_markers: files=1264, cache_hits=0, cache_misses=1264, issues=0, speed_violations=0, property_violations=2

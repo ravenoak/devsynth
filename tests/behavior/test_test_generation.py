@@ -1,18 +1,16 @@
 """End-to-end tests for TestAgent integration test generation."""
 
-from pathlib import Path
-
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.agents.test import TestAgent
 
+from tests.behavior.feature_paths import feature_path
+
 
 pytestmark = [pytest.mark.fast]
 
-FEATURE_FILE = (
-    Path(__file__).parent / "features" / "general" / "test_generation_multi_module.feature"
-)
+FEATURE_FILE = feature_path(__file__, "general", "test_generation_multi_module.feature")
 scenarios(FEATURE_FILE)
 
 

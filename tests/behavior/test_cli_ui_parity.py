@@ -1,19 +1,14 @@
 import pytest
-import os
-
 from pytest_bdd import scenarios
 
 # Import step definitions to register them
 from .steps.test_cli_webui_parity_steps import *  # noqa: F401,F403
 
+from tests.behavior.feature_paths import feature_path
+
 
 pytestmark = [pytest.mark.fast]
 
-feature_file = os.path.join(
-    os.path.dirname(__file__),
-    "features",
-    "general",
-    "cli_ui_parity.feature",
-)
+feature_file = feature_path(__file__, "general", "cli_ui_parity.feature")
 
 scenarios(feature_file)

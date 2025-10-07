@@ -1,7 +1,5 @@
 """Test file for extended cross-interface consistency BDD tests."""
 
-import os
-
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
@@ -10,18 +8,15 @@ from tests.behavior.steps.test_cross_interface_consistency_extended_steps import
     cross_interface_context,
 )
 
+from tests.behavior.feature_paths import feature_path
+
 
 pytestmark = [pytest.mark.fast]
 
-# Register the scenarios from the feature file
-# Use absolute path to the feature file
-feature_path = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "features",
-    "general",
-    "cross_interface_consistency_extended.feature",
+# Register the scenarios from the feature file using canonical asset paths.
+scenarios(
+    feature_path(__file__, "general", "cross_interface_consistency_extended.feature")
 )
-scenarios(feature_path)
 
 
 # Define step definitions directly in this file

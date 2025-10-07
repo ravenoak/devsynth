@@ -1,16 +1,13 @@
 """Behavior tests for the run-tests command."""
 
-import os
-
 import pytest
 from pytest_bdd import scenarios
 
 # Ensure BDD step definitions are loaded
 from tests.behavior.steps import test_run_tests_steps  # noqa: F401
+from tests.behavior.feature_paths import feature_path
 
-FEATURE_FILE = os.path.join(
-    os.path.dirname(__file__), "features", "general", "run_tests.feature"
-)
+FEATURE_FILE = feature_path(__file__, "general", "run_tests.feature")
 
 
 pytestmark = [

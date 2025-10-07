@@ -1,9 +1,9 @@
-import os
 import tempfile
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
@@ -23,14 +23,8 @@ except ImportError:
     from devsynth.application.memory.memory_manager import MemoryManager
     from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-# Use absolute path for feature file
-feature_file_path = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "features",
-    "general",
-    "memory_adapter_integration.feature",
-)
-scenarios(feature_file_path)
+# Use canonical behavior asset paths for the feature file
+scenarios(feature_path(__file__, "general", "memory_adapter_integration.feature"))
 
 
 @pytest.fixture

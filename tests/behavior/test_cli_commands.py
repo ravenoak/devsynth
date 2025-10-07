@@ -1,8 +1,4 @@
-"""
-Test file for CLI Command Execution feature.
-"""
-
-import os
+"""Test file for CLI Command Execution feature."""
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -12,19 +8,13 @@ from .steps.test_delegate_task_steps import *
 from .steps.test_doctor_command_steps import *
 from .steps.test_edrr_cycle_steps import *
 
+from tests.behavior.feature_paths import feature_path
+
 # Define feature file paths
-FEATURE_FILE = os.path.join(
-    os.path.dirname(__file__), "features", "general", "cli_commands.feature"
-)
-EDRR_FEATURE = os.path.join(
-    os.path.dirname(__file__), "features", "general", "edrr_cycle.feature"
-)
-DELEGATE_FEATURE = os.path.join(
-    os.path.dirname(__file__), "features", "general", "delegate_task.feature"
-)
-DOCTOR_FEATURE = os.path.join(
-    os.path.dirname(__file__), "features", "general", "doctor_command.feature"
-)
+FEATURE_FILE = feature_path(__file__, "general", "cli_commands.feature")
+EDRR_FEATURE = feature_path(__file__, "general", "edrr_cycle.feature")
+DELEGATE_FEATURE = feature_path(__file__, "general", "delegate_task.feature")
+DOCTOR_FEATURE = feature_path(__file__, "general", "doctor_command.feature")
 
 # Mark all tests as requiring CLI resource
 
