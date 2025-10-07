@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import sys
 from importlib.machinery import ModuleSpec
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -224,19 +225,35 @@ def skip_if_missing_backend(
     for name in resolved_imports:
         spec = _safe_find_spec(name)
         if not _spec_is_importable(spec):
+            module = sys.modules.get(name)
+            if module is not None and getattr(module, "__spec__", None) is None:
+                continue
             mark = _importorskip_with_reason(
                 name, import_reason=import_reason, skip_reason=skip_reason
             )
             if mark is not None:
                 markers.append(mark)
-            else:
-                markers.append(pytest.mark.skip(reason=skip_reason))
-            return markers
+                return markers
+            # Import succeeded; continue checking any remaining modules.
 
     if not is_resource_available(resource):
         markers.append(pytest.mark.skip(reason=skip_reason))
 
     return markers
+
+
+def skip_module_if_backend_disabled(resource: str) -> None:
+    """Skip module import when an optional backend is explicitly disabled."""
+
+    env_name = f"DEVSYNTH_RESOURCE_{resource.upper()}_AVAILABLE"
+    if os.environ.get(env_name, "true").strip().lower() == "false":
+        pytest.skip(
+            reason=(
+                f"Optional backend '{resource}' disabled via {env_name}=false. "
+                "Enable the flag once dependencies are installed."
+            ),
+            allow_module_level=True,
+        )
 
 
 def backend_param(
