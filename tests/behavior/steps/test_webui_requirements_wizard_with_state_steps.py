@@ -21,7 +21,16 @@ pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
 
-scenarios(feature_path(__file__, "general", "requirements_wizard_with_state.feature"))
+scenarios(
+    feature_path(
+        __file__,
+        "..",
+        "requirements_wizard",
+        "features",
+        "general",
+        "requirements_wizard_with_state.feature",
+    )
+)
 
 
 @pytest.fixture

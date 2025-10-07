@@ -64,7 +64,16 @@ def _run_wizard(
         wizard.bridge.display_result("Cancelled")
 
 
-scenarios(feature_path(__file__, "general", "requirements_wizard.feature"))
+scenarios(
+    feature_path(
+        __file__,
+        "..",
+        "requirements_wizard",
+        "features",
+        "general",
+        "requirements_wizard.feature",
+    )
+)
 
 
 @given("the DevSynth CLI is installed")
