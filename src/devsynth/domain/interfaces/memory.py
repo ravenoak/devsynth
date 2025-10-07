@@ -14,17 +14,43 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Mapping
-from typing import Any, Protocol, TypeAlias, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, TypeVar, Union
 
-from ...application.memory.dto import (
-    GroupedMemoryResults,
-    MemoryMetadata,
-    MemoryMetadataValue,
-    MemoryQueryResults,
-    MemoryRecord,
-    VectorStoreStats,
-)
+if TYPE_CHECKING:  # pragma: no cover - imports for static analysis only
+    from ...application.memory.dto import (
+        GroupedMemoryResults as _GroupedMemoryResults,
+        MemoryMetadata as _MemoryMetadata,
+        MemoryMetadataValue as _MemoryMetadataValue,
+        MemoryQueryResults as _MemoryQueryResults,
+        MemoryRecord as _MemoryRecord,
+        VectorStoreStats as _VectorStoreStats,
+    )
+else:  # pragma: no cover - runtime fallbacks avoid optional dependency imports
+    _GroupedMemoryResults = Mapping[str, Any]
+    _MemoryMetadata = Mapping[str, Any]
+    _MemoryMetadataValue = Any
+    _MemoryQueryResults = Mapping[str, Any]
+    _MemoryRecord = Any
+    _VectorStoreStats = Mapping[str, Any]
 from ...domain.models.memory import MemoryItem, MemoryVector
+
+MemoryMetadata: TypeAlias = _MemoryMetadata
+"""Normalized metadata mapping carried alongside memory artefacts."""
+
+MemoryMetadataValue: TypeAlias = _MemoryMetadataValue
+"""Supported value types for metadata attached to memory artefacts."""
+
+MemoryQueryResults: TypeAlias = _MemoryQueryResults
+"""Results returned by querying a single memory store."""
+
+GroupedMemoryResults: TypeAlias = _GroupedMemoryResults
+"""Aggregated search responses combining multiple query results."""
+
+MemoryRecord: TypeAlias = _MemoryRecord
+"""Normalized memory record returned from store-agnostic search APIs."""
+
+VectorStoreStats: TypeAlias = _VectorStoreStats
+"""Normalized statistics returned by vector-backed adapters."""
 
 MemoryMetadataMapping: TypeAlias = Mapping[str, MemoryMetadataValue]
 """Structural alias capturing the metadata mapping contract for backends."""
