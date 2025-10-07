@@ -838,6 +838,14 @@ def is_lmdb_available() -> bool:
     return _spec_is_importable(_safe_find_spec("lmdb"))
 
 
+def is_vector_available() -> bool:
+    """Check if numpy is available for vector-backed tests."""
+
+    if os.environ.get("DEVSYNTH_RESOURCE_VECTOR_AVAILABLE", "true").lower() == "false":
+        return False
+    return _spec_is_importable(_safe_find_spec("numpy"))
+
+
 def is_rdflib_available() -> bool:
     """Check if the rdflib package is installed."""
     if os.environ.get("DEVSYNTH_RESOURCE_RDFLIB_AVAILABLE", "true").lower() == "false":
@@ -922,6 +930,7 @@ def is_resource_available(resource: str) -> bool:
         "faiss": is_faiss_available,
         "kuzu": is_kuzu_available,
         "lmdb": is_lmdb_available,
+        "vector": is_vector_available,
         "rdflib": is_rdflib_available,
         "memory": is_memory_available,
         "test_resource": is_test_resource_available,
