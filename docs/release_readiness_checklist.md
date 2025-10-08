@@ -33,3 +33,6 @@ Execution Matrix (to be run by maintainers)
 Notes
 - Keep GitHub Actions disabled until 0.1.0a1 tag (see docs/plan.md). Post-tag, enable low-throughput CI lanes as described.
 - Prefer smoke mode and segmentation to reduce plugin interactions and stabilize long runs.
+- Extras live in `[project.optional-dependencies]`; verify the latest
+  `diagnostics/poetry_check_<timestamp>.log` shows clean resolution for the
+  `docs`, `tests`, and release bundles before distributing artifacts.【F:pyproject.toml†L47-L116】【F:diagnostics/poetry_check_20251008T032324Z.log†L1-L3】

@@ -1,10 +1,4 @@
 [tool.poetry]
-name = "devsynth"
-version = "0.1.0a1"
-description = "DevSynth project"
-authors = ["DevSynth Team"]
-license = "MIT"
-readme = "README.md"
 packages = [{include = "devsynth", from = "src"}]
 # Explicitly control packaged files for sdist/wheel hygiene
 include = [
@@ -20,14 +14,25 @@ exclude = [
     "test_reports/**",
     "docs/archived/**",
 ]
+
+[project]
+name = "devsynth"
+version = "0.1.0a1"
+description = "DevSynth project"
+readme = "README.md"
+license = "MIT"
+authors = [{name = "DevSynth Team"}]
+requires-python = ">=3.12,<3.13"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
-    "Operating System :: OS Independent"
+    "Operating System :: OS Independent",
+]
+dynamic = [
+    "dependencies",
 ]
 
 [tool.poetry.dependencies]
@@ -134,7 +139,7 @@ mkdocs-typer2 = "*"
 mkdocs-literate-nav = "*"
 mkdocs-section-index = "*"
 
-[tool.poetry.extras]
+[project.optional-dependencies]
 # docs: build the project documentation
 # minimal: baseline runtime requirements without heavy optional dependencies
 # retrieval: enables vector retrieval support via kuzu and faiss
@@ -162,18 +167,42 @@ minimal = [
     "pyyaml",
     "requests",
 ]
-
-retrieval = ["kuzu", "faiss-cpu"]
-chromadb = ["chromadb", "tiktoken"]
+retrieval = [
+    'kuzu; platform_system == "Linux" and platform_machine == "x86_64"',
+    'faiss-cpu; platform_system != "Darwin" or platform_machine == "arm64"',
+]
+chromadb = [
+    'chromadb; platform_system != "Darwin" or platform_machine == "arm64"',
+    "tiktoken",
+]
 lmstudio = ["lmstudio"]
-memory = ["tinydb", "duckdb", "lmdb", "kuzu", "faiss-cpu", "chromadb", "numpy"]
+memory = [
+    "tinydb",
+    "duckdb",
+    "lmdb",
+    'kuzu; platform_system == "Linux" and platform_machine == "x86_64"',
+    'faiss-cpu; platform_system != "Darwin" or platform_machine == "arm64"',
+    'chromadb; platform_system != "Darwin" or platform_machine == "arm64"',
+    "numpy",
+]
 llm = ["tiktoken", "httpx"]
 offline = ["transformers"]
-api = ["fastapi", "prometheus-client"]
+api = [
+    "fastapi>=0.116.2,<0.117",
+    "prometheus-client",
+]
 webui = ["streamlit"]
 webui_nicegui = ["nicegui"]
 gui = ["dearpygui"]
-tests = ["fastapi", "httpx", "tinydb", "duckdb", "lmdb", "astor", "pytest-rerunfailures"]
+tests = [
+    "fastapi>=0.116.2,<0.117",
+    "httpx",
+    "tinydb",
+    "duckdb",
+    "lmdb",
+    "astor",
+    "pytest-rerunfailures",
+]
 dev = [
     "responses",
     "pytest",
