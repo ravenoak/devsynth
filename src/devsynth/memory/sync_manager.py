@@ -84,3 +84,6 @@ class SyncManager(Generic[ValueT]):
             for name, snap in snapshots.items():
                 self.stores[name].restore(snap)
             raise
+
+
+__all__ = ["MemoryStore", "SyncManager", "ValueT", "Snapshot"]

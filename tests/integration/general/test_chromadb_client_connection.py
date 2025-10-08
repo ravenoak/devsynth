@@ -4,6 +4,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from tests.fixtures.resources import skip_module_if_backend_disabled
+
+skip_module_if_backend_disabled("chromadb")
+
 sys.modules.setdefault(
     "chromadb",
     types.SimpleNamespace(
@@ -14,6 +18,9 @@ sys.modules.setdefault(
 )
 
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
+
+
+pytestmark = [pytest.mark.requires_resource("chromadb")]
 
 
 @pytest.mark.medium

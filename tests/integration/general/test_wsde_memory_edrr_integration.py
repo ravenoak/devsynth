@@ -2,6 +2,13 @@ import sys
 
 import pytest
 
+from tests.conftest import is_resource_available
+from tests.fixtures.resources import (
+    OPTIONAL_BACKEND_REQUIREMENTS,
+    backend_skip_reason,
+    skip_module_if_backend_disabled,
+)
+
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.agents.wsde_memory_integration import WSDEMemoryIntegration
 from devsynth.application.collaboration.peer_review import PeerReview
@@ -13,6 +20,16 @@ from devsynth.application.memory.context_manager import (
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
+
+
+def _require_backend(resource: str) -> None:
+    skip_module_if_backend_disabled(resource)
+    extras = tuple(OPTIONAL_BACKEND_REQUIREMENTS[resource]["extras"])
+    if not is_resource_available(resource):
+        pytest.skip(
+            backend_skip_reason(resource, extras),
+            allow_module_level=False,
+        )
 
 
 
@@ -123,9 +140,14 @@ def test_cross_store_sync_and_peer_review_workflow(tmp_path):
 
 @pytest.mark.requires_resource("lmdb")
 @pytest.mark.requires_resource("faiss")
+@pytest.mark.requires_resource("kuzu")
+@pytest.mark.requires_resource("chromadb")
 @pytest.mark.slow
 def test_sync_manager_coordinated_backends(tmp_path, monkeypatch):
     """Ensure SyncManager synchronizes LMDB, FAISS and Kuzu stores."""
+
+    for backend in ("lmdb", "faiss", "kuzu", "chromadb"):
+        _require_backend(backend)
 
     LMDBStore = pytest.importorskip("devsynth.application.memory.lmdb_store").LMDBStore
     FAISSStore = pytest.importorskip(

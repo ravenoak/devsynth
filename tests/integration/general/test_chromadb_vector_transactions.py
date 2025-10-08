@@ -1,6 +1,27 @@
 import pytest
 
-pytest.importorskip("chromadb.api")
+from tests.conftest import is_resource_available
+from tests.fixtures.resources import (
+    OPTIONAL_BACKEND_REQUIREMENTS,
+    backend_import_reason,
+    backend_skip_reason,
+    skip_module_if_backend_disabled,
+)
+
+skip_module_if_backend_disabled("chromadb")
+
+_CHROMA_EXTRAS = tuple(OPTIONAL_BACKEND_REQUIREMENTS["chromadb"]["extras"])
+
+pytest.importorskip(
+    "chromadb.api",
+    reason=backend_import_reason("chromadb", _CHROMA_EXTRAS),
+)
+
+if not is_resource_available("chromadb"):
+    pytest.skip(
+        backend_skip_reason("chromadb", _CHROMA_EXTRAS),
+        allow_module_level=True,
+    )
 
 from devsynth.application.memory.adapters.chromadb_vector_adapter import (
     ChromaDBVectorAdapter,

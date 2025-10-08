@@ -7,9 +7,32 @@ from unittest.mock import patch
 
 import pytest
 
+from tests.conftest import is_resource_available
+from tests.fixtures.resources import (
+    OPTIONAL_BACKEND_REQUIREMENTS,
+    backend_import_reason,
+    backend_skip_reason,
+    skip_module_if_backend_disabled,
+)
+
+skip_module_if_backend_disabled("kuzu")
+
+_KUZU_EXTRAS = tuple(OPTIONAL_BACKEND_REQUIREMENTS["kuzu"]["extras"])
+
+pytest.importorskip("kuzu", reason=backend_import_reason("kuzu", _KUZU_EXTRAS))
+
+if not is_resource_available("kuzu"):
+    pytest.skip(
+        backend_skip_reason("kuzu", _KUZU_EXTRAS),
+        allow_module_level=True,
+    )
+
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+
+pytestmark = [pytest.mark.requires_resource("kuzu")]
 
 
 @pytest.mark.medium

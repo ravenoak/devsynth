@@ -1,7 +1,47 @@
 import pytest
 
-pytest.importorskip("faiss")
-pytest.importorskip("lmdb")
+from tests.conftest import is_resource_available
+from tests.fixtures.resources import (
+    OPTIONAL_BACKEND_REQUIREMENTS,
+    backend_import_reason,
+    backend_skip_reason,
+    skip_module_if_backend_disabled,
+)
+
+for _resource in ("faiss", "lmdb", "kuzu", "chromadb"):
+    skip_module_if_backend_disabled(_resource)
+
+_FAISS_EXTRAS = tuple(OPTIONAL_BACKEND_REQUIREMENTS["faiss"]["extras"])
+_LMDB_EXTRAS = tuple(OPTIONAL_BACKEND_REQUIREMENTS["lmdb"]["extras"])
+_KUZU_EXTRAS = tuple(OPTIONAL_BACKEND_REQUIREMENTS["kuzu"]["extras"])
+_CHROMA_EXTRAS = tuple(OPTIONAL_BACKEND_REQUIREMENTS["chromadb"]["extras"])
+
+pytest.importorskip("faiss", reason=backend_import_reason("faiss", _FAISS_EXTRAS))
+pytest.importorskip("lmdb", reason=backend_import_reason("lmdb", _LMDB_EXTRAS))
+
+if not is_resource_available("faiss"):
+    pytest.skip(
+        backend_skip_reason("faiss", _FAISS_EXTRAS),
+        allow_module_level=True,
+    )
+
+if not is_resource_available("lmdb"):
+    pytest.skip(
+        backend_skip_reason("lmdb", _LMDB_EXTRAS),
+        allow_module_level=True,
+    )
+
+if not is_resource_available("kuzu"):
+    pytest.skip(
+        backend_skip_reason("kuzu", _KUZU_EXTRAS),
+        allow_module_level=True,
+    )
+
+if not is_resource_available("chromadb"):
+    pytest.skip(
+        backend_skip_reason("chromadb", _CHROMA_EXTRAS),
+        allow_module_level=True,
+    )
 
 from devsynth.adapters.memory.sync_manager import MultiStoreSyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
@@ -11,6 +51,7 @@ pytestmark = [
     pytest.mark.requires_resource("lmdb"),
     pytest.mark.requires_resource("faiss"),
     pytest.mark.requires_resource("kuzu"),
+    pytest.mark.requires_resource("chromadb"),
 ]
 
 
