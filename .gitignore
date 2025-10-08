@@ -64,7 +64,9 @@ traceability.json
 
 # Test and report files
 # Keep reports out of VCS, but allow curated diagnostics artifacts via .gitkeep and specific curated file(s).
-test_reports/
+test_reports/*
+!test_reports/
+!test_reports/test_markers_report.json
 # Allow committing specific small artifacts inside diagnostics/; default ignore remains.
 diagnostics/*
 !diagnostics/
@@ -73,7 +75,8 @@ diagnostics/**
 !diagnostics/**/*.txt
 !diagnostics/.gitkeep
 !diagnostics/README.md
-!diagnostics/provider_system_coverage_20250921.json
+-!diagnostics/provider_system_coverage_20250921.json
+!diagnostics/test_markers_report_20251008T052410Z.json
 !diagnostics/poetry_install_mandatory-bootstrap_attempt1_20250921T150047Z.log
 !diagnostics/post_install_check_20250921T150333Z.log
 .test_categorization_progress.json
