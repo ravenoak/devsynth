@@ -2,17 +2,37 @@
 
 from __future__ import annotations
 
-import types
+import importlib
+import sys
+from types import ModuleType
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
-from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 from devsynth.domain.models.wsde_facade import WSDETeam
 from tests.behavior.feature_paths import feature_path
 
 
 pytestmark = [pytest.mark.fast]
+
+
+def _module_stub(name: str, **attributes: object) -> ModuleType:
+    """Return a module-like namespace populated with the provided attributes."""
+
+    module = ModuleType(name)
+    for attribute, value in attributes.items():
+        setattr(module, attribute, value)
+    return module
+
+
+def _load_coordinator() -> "AgentCoordinatorImpl":
+    """Import and return a fresh ``AgentCoordinatorImpl`` instance."""
+
+    module_name = "devsynth.application.collaboration.coordinator"
+    module = importlib.import_module(module_name)
+    sys.modules.setdefault(module_name, module)
+    coordinator_cls = getattr(module, "AgentCoordinatorImpl")
+    return coordinator_cls({"features": {"wsde_collaboration": True}})
 
 scenarios(feature_path(__file__, "general", "delegate_task.feature"))
 scenarios(feature_path(__file__, "general", "multi_agent_task_delegation.feature"))
@@ -47,8 +67,10 @@ class SimpleAgent:
         self.agent_type = agent_type
         self.expertise = expertise or []
         self.current_role = None
-        self.config = types.SimpleNamespace(
-            name=name, parameters={"expertise": self.expertise}
+        self.config = _module_stub(
+            f"{name}_config",
+            name=name,
+            parameters={"expertise": self.expertise},
         )
 
         def process(inputs):
@@ -70,9 +92,7 @@ class SimpleAgent:
 def context():
     class Context:
         def __init__(self) -> None:
-            self.coordinator = AgentCoordinatorImpl(
-                {"features": {"wsde_collaboration": True}}
-            )
+            self.coordinator = _load_coordinator()
             self.coordinator.team = SimpleTeam()
             self.agents: list[SimpleAgent] = []
             self.result = None

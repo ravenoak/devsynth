@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import importlib
+import sys
+from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
 
 from tests.behavior.feature_paths import feature_path
+
+
+pytestmark = [pytest.mark.fast]
 
 pytest.importorskip("fastapi")
 pytest.importorskip("fastapi.testclient")
@@ -16,7 +21,13 @@ from fastapi.testclient import TestClient
 from pytest_bdd import given, parsers, scenarios, then, when
 
 
-pytestmark = [pytest.mark.fast]
+def _module_stub(name: str, **attributes: object) -> ModuleType:
+    """Return a ModuleType populated with the provided attributes."""
+
+    module = ModuleType(name)
+    for attribute, value in attributes.items():
+        setattr(module, attribute, value)
+    return module
 
 scenarios(feature_path(__file__, "general", "agent_api_health_metrics.feature"))
 
@@ -27,7 +38,11 @@ def api_context(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
 
     settings_stub = MagicMock()
     settings_stub.access_token = ""
-    monkeypatch.setattr("devsynth.api.settings", settings_stub)
+    settings_module = _module_stub(
+        "devsynth.api.settings",
+        settings=settings_stub,
+    )
+    monkeypatch.setitem(sys.modules, "devsynth.api.settings", settings_module)
 
     import devsynth.interface.agentapi_enhanced as agentapi
 

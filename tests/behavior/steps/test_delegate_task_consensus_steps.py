@@ -1,17 +1,47 @@
 """Step definitions for delegate_task_consensus.feature."""
 
-from tests.behavior.feature_paths import feature_path
+from __future__ import annotations
+
+import importlib
+import sys
+from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
-from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
-from devsynth.domain.interfaces.agent import Agent
-
+from tests.behavior.feature_paths import feature_path
 
 
 pytestmark = [pytest.mark.fast]
+
+
+def _module_stub(name: str, **attributes: object) -> ModuleType:
+    """Return a module-like namespace populated with the provided attributes."""
+
+    module = ModuleType(name)
+    for attribute, value in attributes.items():
+        setattr(module, attribute, value)
+    return module
+
+
+def _load_coordinator() -> object:
+    """Return a fresh WSDETeamCoordinator instance."""
+
+    module_name = "devsynth.adapters.agents.agent_adapter"
+    module = importlib.import_module(module_name)
+    sys.modules.setdefault(module_name, module)
+    coordinator_cls = getattr(module, "WSDETeamCoordinator")
+    return coordinator_cls()
+
+
+def _agent_interface() -> type:
+    """Return the Agent protocol for use in mocks."""
+
+    module_name = "devsynth.domain.interfaces.agent"
+    module = importlib.import_module(module_name)
+    sys.modules.setdefault(module_name, module)
+    return getattr(module, "Agent")
 
 scenarios(feature_path(__file__, "general", "delegate_task_consensus.feature"))
 scenarios(feature_path(__file__, "general", "delegating_tasks_with_consensus_voting.feature"))
@@ -19,24 +49,24 @@ scenarios(feature_path(__file__, "general", "delegating_tasks_with_consensus_vot
 
 @pytest.fixture
 def context():
-    class Context:
-        def __init__(self):
-            self.coordinator = WSDETeamCoordinator()
-            self.agents = []
-            self.task = None
-            self.result = None
-            self.error = None
-            self.no_solutions = False
-            self.dialectical_error = False
-
-    return Context()
+    return _module_stub(
+        "delegate_task_consensus_context",
+        coordinator=_load_coordinator(),
+        agents=[],
+        task=None,
+        result=None,
+        error=None,
+        no_solutions=False,
+        dialectical_error=False,
+    )
 
 
 @given("a coordinator with agents capable of voting")
 def setup_voting_team(context):
     agent_names = ["agent1", "agent2", "agent3"]
+    agent_protocol = _agent_interface()
     for name in agent_names:
-        agent = MagicMock(spec=Agent)
+        agent = MagicMock(spec=agent_protocol)
         agent.name = name
         agent.agent_type = "vote"
         agent.process.return_value = {"solution": f"solution from {name}"}
@@ -47,8 +77,9 @@ def setup_voting_team(context):
 @given("a coordinator with agents unable to propose solutions")
 def setup_agents_no_solution(context):
     agent_names = ["agent1", "agent2"]
+    agent_protocol = _agent_interface()
     for name in agent_names:
-        agent = MagicMock(spec=Agent)
+        agent = MagicMock(spec=agent_protocol)
         agent.name = name
         agent.agent_type = "vote"
         agent.process.return_value = {"solution": None}

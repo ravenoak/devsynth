@@ -21,14 +21,23 @@ pytest.importorskip("fastapi.testclient")
 from fastapi.testclient import TestClient
 
 
+def _module_stub(name: str, **attributes: object) -> ModuleType:
+    """Return a ModuleType populated with the provided attributes."""
+
+    module = ModuleType(name)
+    for attribute, value in attributes.items():
+        setattr(module, attribute, value)
+    return module
+
+
 scenarios(feature_path(__file__, "general", "agent_api_interactions.feature"))
 
 
 @pytest.fixture
-def api_context(monkeypatch):
+def api_context(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
     """Start the API with CLI commands mocked."""
 
-    cli_stub = ModuleType("devsynth.application.cli")
+    cli_stub = _module_stub("devsynth.application.cli")
 
     def init_cmd(path=".", project_root=None, language=None, goals=None, *, bridge):
         bridge.display_result("init")
@@ -59,10 +68,9 @@ def api_context(monkeypatch):
     cli_stub.code_cmd = MagicMock(side_effect=code_cmd)
     monkeypatch.setitem(sys.modules, "devsynth.application.cli", cli_stub)
 
-    # Mock doctor_cmd
-    doctor_stub = ModuleType("devsynth.application.cli.commands.doctor_cmd")
+    doctor_stub = _module_stub("devsynth.application.cli.commands.doctor_cmd")
 
-    def doctor_cmd(path=".", fix=False, *, bridge):
+    def doctor_cmd(path=".", fix: bool = False, *, bridge):
         bridge.display_result(f"doctor:{path}:{fix}")
 
     doctor_stub.doctor_cmd = MagicMock(side_effect=doctor_cmd)
@@ -70,10 +78,9 @@ def api_context(monkeypatch):
         sys.modules, "devsynth.application.cli.commands.doctor_cmd", doctor_stub
     )
 
-    # Mock edrr_cycle_cmd
-    edrr_stub = ModuleType("devsynth.application.cli.commands.edrr_cycle_cmd")
+    edrr_stub = _module_stub("devsynth.application.cli.commands.edrr_cycle_cmd")
 
-    def edrr_cycle_cmd(prompt, context=None, max_iterations=3, *, bridge):
+    def edrr_cycle_cmd(prompt, context=None, max_iterations: int = 3, *, bridge):
         bridge.display_result(f"edrr:{prompt}")
 
     edrr_stub.edrr_cycle_cmd = MagicMock(side_effect=edrr_cycle_cmd)

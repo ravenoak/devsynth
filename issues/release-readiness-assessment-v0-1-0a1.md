@@ -13,6 +13,8 @@ Strict typing and coverage evidence include the archived 92.40 % fast+medium m
 
 2025-10-07 follow-up: The strict typing gate now passes (`QualityGate 12962331-435c-4ea1-a9e8-6cb216aaa2e0`, `TestRun 601cf47f-dd69-4735-81bc-a98920782908`, evidence `7f3884aa-a565-4b5b-9bba-cb4aca86b168`, `5d01a7b1-25d3-417c-b6d8-42e7b6a1747e`) with transcripts archived at `diagnostics/mypy_strict_src_devsynth_20251007T213702Z.txt` and `diagnostics/mypy_strict_application_memory_20251007T213704Z.txt`. Coverage/smoke regressions remain, but typing evidence is current.【F:diagnostics/mypy_strict_src_devsynth_20251007T213702Z.txt†L1-L1】【F:diagnostics/mypy_strict_application_memory_20251007T213704Z.txt†L1-L9】【a207ef†L1-L18】
 
+2025-10-08 follow-up: The behavior hygiene checkpoint is now green—`poetry run pytest --collect-only -q` followed by the targeted behavior-step collector completes without import or indentation failures, enumerating 5,235 total tests and 739 behavior-step tests in the refreshed transcript `diagnostics/pytest_collect_only_20251008_051340.log`. Optional backend guardrails remain open.【F:diagnostics/pytest_collect_only_20251008_051340.log†L5634-L5650】【F:diagnostics/pytest_collect_only_20251008_051340.log†L6397-L6406】
+
 ## Dialectical Analysis
 
 - **Thesis**: With ≥90 % coverage recorded and strict typing previously green, the release could proceed with minimal work.
@@ -30,6 +32,7 @@ Strict typing and coverage evidence include the archived 92.40 % fast+medium m
 
 ### ✅ Passing
 - **Coverage Gate**: Fast+medium aggregate recorded 92.40 % (2,601/2,815 statements) with manifest, SHA-256 digests, and knowledge-graph identifiers archived under `artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/`.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L56】
+- **Hygiene Checkpoint**: Suite-wide and behavior-step collectors run cleanly after restoring behavior imports and scenario loaders; see `diagnostics/pytest_collect_only_20251008_051340.log` for the latest transcript.【F:diagnostics/pytest_collect_only_20251008_051340.log†L5634-L5650】【F:diagnostics/pytest_collect_only_20251008_051340.log†L6397-L6406】
 
 ### 🔴 Failing
 - **Maintainer Automation**: `task release:prep` now reaches `poetry build` before failing on the indentation error in `tests/behavior/steps/test_agent_api_health_metrics_steps.py`, while `task mypy:strict` completes; release prep remains blocked until that test is repaired.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】
@@ -45,7 +48,7 @@ Strict typing and coverage evidence include the archived 92.40 % fast+medium m
 1. **Maintainer Automation Failure — CRITICAL** – `task release:prep` now finishes both `poetry build` targets but still aborts on behavior step indentation regressions even after the plugin consolidation fix, leaving the maintainer checklist blocked until hygiene repairs land.【F:diagnostics/release_prep_20251006T150353Z.log†L1-L41】【F:logs/pytest_collect_only_20251007.log†L1-L40】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】
 2. **Behavior Asset Gap — CRITICAL** – Smoke mode now fails when `pytest_bdd` cannot load `requirements_wizard/features/general/logging_and_priority.feature`, so behavior evidence remains blocked despite the memory Protocol fix.【F:logs/devsynth_run-tests_smoke_fast_20251006T235606Z.log†L1-L9】【64c195†L1-L36】
 3. **Evidence Freshness — HIGH** – Coverage and typing artifacts are from earlier runs, and the latest strict mypy invocation now fails; once the above fixes land we must regenerate them and close the remaining EDRR coverage gap to maintain ≥90 %.【F:test_reports/coverage_manifest_20251012T164512Z.json†L1-L51】【F:diagnostics/mypy_strict_20251006T212233Z.log†L1-L32】
-4. **Test Hygiene Regressions — CRITICAL** – Repository-wide marker injection, behavior step indentation drift, and optional backend guards still block collection before smoke or coverage can rerun, despite plugin duplication being resolved.【d62a9a†L12-L33】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251006T155925Z.log†L1-L25】【6cd789†L12-L28】【68488c†L1-L27】【e85f55†L1-L22】【F:logs/pytest_collect_only_20251007.log†L1-L40】
+4. **Optional Backend Guardrails — HIGH** – Behavior step indentation and marker regressions are resolved (see the 2025-10-08 hygiene transcript), but Chromadb/Faiss/Kuzu suites still need resource guards before the smoke profile can pass without extras.【F:diagnostics/pytest_collect_only_20251008_051340.log†L5634-L5650】【F:issues/test-collection-regressions-20251004.md†L16-L33】【68488c†L1-L27】
 
 ## Recommended Action Plan
 
