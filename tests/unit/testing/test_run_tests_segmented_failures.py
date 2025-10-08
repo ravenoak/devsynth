@@ -37,6 +37,7 @@ def test_run_tests_segmented_failure_surfaces_remediation(monkeypatch: pytest.Mo
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
     ) -> run_tests_module.BatchExecutionResult:
+        assert isinstance(config, run_tests_module.SingleBatchRequest)
         node_ids = list(config.node_ids)
         batches.append(node_ids)
         cmd = ["python", "-m", "pytest", *node_ids]
@@ -98,6 +99,7 @@ def test__run_segmented_tests_aggregates_outputs(monkeypatch: pytest.MonkeyPatch
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
     ) -> run_tests_module.BatchExecutionResult:
+        assert isinstance(config, run_tests_module.SingleBatchRequest)
         return next(call_iter)
 
     ensure_calls: list[None] = []
@@ -165,6 +167,7 @@ def test_segmented_runs_reinject_plugins_without_clobbering_addopts(
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
     ) -> run_tests_module.BatchExecutionResult:
+        assert isinstance(config, run_tests_module.SingleBatchRequest)
         snapshots.append(config.env.get("PYTEST_ADDOPTS", ""))
         node_ids_local = list(config.node_ids)
         return (
@@ -193,3 +196,55 @@ def test_segmented_runs_reinject_plugins_without_clobbering_addopts(
     assert os.environ["PYTEST_ADDOPTS"] == "-k smoke"
     expected_suffix = "-k smoke -p pytest_cov -p pytest_bdd.plugin"
     assert snapshots == [expected_suffix, expected_suffix]
+
+
+@pytest.mark.fast
+def test_run_tests_single_batch_uses_request_object(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Single-batch runs provide typed requests to the execution helper."""
+
+    monkeypatch.setattr(run_tests_module, "_reset_coverage_artifacts", lambda: None)
+    monkeypatch.setattr(run_tests_module, "_ensure_coverage_artifacts", lambda: None)
+    monkeypatch.setattr(run_tests_module, "pytest_cov_support_status", lambda env: (True, None))
+    monkeypatch.setattr(run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: True)
+    monkeypatch.setattr(run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: True)
+    monkeypatch.setattr(
+        run_tests_module,
+        "_maybe_publish_coverage_evidence",
+        lambda **_kwargs: "",
+    )
+
+    collected = ["tests/unit/test_delta.py::test_single"]
+    monkeypatch.setattr(
+        run_tests_module,
+        "collect_tests_with_cache",
+        lambda *_args, **_kwargs: list(collected),
+    )
+
+    captured_requests: list[run_tests_module.SingleBatchRequest] = []
+
+    def fake_run_single(
+        config: run_tests_module.SingleBatchRequest,
+    ) -> run_tests_module.BatchExecutionResult:
+        assert isinstance(config, run_tests_module.SingleBatchRequest)
+        captured_requests.append(config)
+        return True, "batch ok", build_batch_metadata("batch-single")
+
+    monkeypatch.setattr(run_tests_module, "_run_single_test_batch", fake_run_single)
+
+    success, output = run_tests_module.run_tests(
+        target="unit-tests",
+        speed_categories=["fast"],
+        verbose=False,
+        report=False,
+        parallel=False,
+        segment=False,
+    )
+
+    assert success is True
+    assert output == "batch ok"
+    assert len(captured_requests) == 1
+    request = captured_requests[0]
+    assert request.node_ids == tuple(collected)
+    assert request.marker_expr == "not memory_intensive and fast and not gui"
+    assert request.parallel is False
+    assert request.report is False
