@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import types
-from typing import List, Union
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.collaboration.coordinator import AgentCoordinatorImpl
 from devsynth.domain.models.wsde_facade import WSDETeam
-
+from tests.behavior.feature_paths import feature_path
 
 
 pytestmark = [pytest.mark.fast]
@@ -43,7 +41,7 @@ class SimpleAgent:
     """Minimal agent implementation used for behavior tests."""
 
     def __init__(
-        self, name: str, agent_type: str, expertise: List[str] | None = None
+        self, name: str, agent_type: str, expertise: list[str] | None = None
     ) -> None:
         self.name = name
         self.agent_type = agent_type
@@ -64,7 +62,7 @@ class SimpleAgent:
     def initialize(self, config) -> None:  # noqa: D401 - part of Agent protocol
         self.config = config
 
-    def get_capabilities(self) -> List[str]:
+    def get_capabilities(self) -> list[str]:
         return self.expertise
 
 
@@ -76,10 +74,10 @@ def context():
                 {"features": {"wsde_collaboration": True}}
             )
             self.coordinator.team = SimpleTeam()
-            self.agents: List[SimpleAgent] = []
+            self.agents: list[SimpleAgent] = []
             self.result = None
             self.task = None
-            self.critic: Union[SimpleAgent, None] = None
+            self.critic: SimpleAgent | None = None
 
     return Context()
 

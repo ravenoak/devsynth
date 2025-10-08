@@ -1,16 +1,17 @@
-"""Steps for cross-interface consistency feature.
+"""Steps for the cross-interface consistency feature.
 
 ReqID: FR-67
 """
 
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import importlib
 from pathlib import Path
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
+
+from tests.behavior.feature_paths import feature_path
 
 
 
