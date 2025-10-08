@@ -6,13 +6,15 @@ ReqID: FR-67
 from __future__ import annotations
 
 import importlib
+import sys
 from pathlib import Path
+from types import ModuleType
+from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.behavior.feature_paths import feature_path
-
 
 
 pytestmark = [pytest.mark.fast]
@@ -31,9 +33,39 @@ OUTPUT_FORMATTER_DOC = (
 # creating an import cycle.
 
 
+def _module_stub(name: str, missing: str) -> ModuleType:
+    """Return a stub module with helpful mocks for missing attributes."""
+
+    module = ModuleType(name)
+    setattr(
+        module,
+        missing,
+        MagicMock(side_effect=RuntimeError(f"Missing helper '{missing}' in {name}")),
+    )
+    return module
+
+
+def _import_feature_module(missing: str) -> ModuleType:
+    """Import the helper module, guarding against missing dependencies."""
+
+    module_name = "tests.behavior.test_cross_interface_consistency"
+    module = sys.modules.get(module_name)
+    if module is not None:
+        return module
+    try:
+        module = importlib.import_module(module_name)
+    except ModuleNotFoundError as exc:  # pragma: no cover - defensive guard
+        stub = _module_stub(module_name, missing)
+        sys.modules[module_name] = stub
+        raise
+    return module
+
+
 def _impl(name: str):
-    mod = importlib.import_module("tests.behavior.test_cross_interface_consistency")
-    return getattr(mod, name)
+    module = _import_feature_module(name)
+    if not hasattr(module, name):
+        raise AttributeError(f"{module.__name__} does not define '{name}'")
+    return getattr(module, name)
 
 
 @given("the CLI, WebUI, and Agent API are initialized")
