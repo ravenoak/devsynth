@@ -9,7 +9,7 @@ tags:
   - "release-preparation"
 status: "active"
 author: "DevSynth Team"
-last_reviewed: "2025-10-06"
+last_reviewed: "2025-10-08"
 source: "Derived from docs/plan.md (Test Readiness and Coverage Improvement Plan)"
 ---
 
@@ -155,7 +155,7 @@ Instructions: Check off each task when completed. Subtasks are enumerated for cl
 12.3 [x] Provide a "coverage-only" profile or documented command to standardize local coverage runs.
 
 13. Acceptance Criteria Validation
-13.1 [ ] All unit, integration, and behavior tests pass locally using documented commands (smoke is green; remaining gap is the fast+medium coverage gate; see §19.3). The 2025-10-06 21:23–21:46 UTC reruns of `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` and `--speed=fast --speed=medium --report --no-parallel` still hang during collection without producing coverage artifacts or knowledge-graph IDs—new diagnostics capture the stuck pytest collectors and manual interruptions, reinforcing the open blockers tracked in issues/test-collection-regressions-20251004.md and issues/run-tests-fast-medium-collection-errors.md.【F:diagnostics/testing/devsynth_run_tests_smoke_fast_20251127T001200Z_summary.txt†L1-L11】【F:diagnostics/testing/devsynth_run_tests_fast_medium_20251127T002200Z_summary.txt†L1-L11】
+13.1 [ ] All unit, integration, and behavior tests pass locally using documented commands (smoke is green; remaining gap is the fast+medium coverage gate; see §19.3). The repaired cross-interface consistency fixture keeps strict mypy green, yet the 2025-10-08 reruns of `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` (including the smoke-marker fallback) and `--speed=fast --speed=medium --report --no-parallel` still exceed the 300 s collection guardrail and require manual interruption, so no fresh coverage artifacts or knowledge-graph banners materialize (`TestRun=TR-20251008-SMOKE-TIMEOUT`, `TestRun=TR-20251008-FASTMED-TIMEOUT`). The new diagnostics capture the stalled collectors, reinforcing the blockers tracked in issues/test-collection-regressions-20251004.md and issues/run-tests-fast-medium-collection-errors.md.【F:diagnostics/devsynth_run_tests_smoke_fast_20251007T235025Z.log†L1-L14】【F:diagnostics/devsynth_run_tests_smoke_fast_20251008T001105Z.log†L1-L14】【F:diagnostics/devsynth_run_tests_fast_medium_20251008T002537Z.log†L1-L3】
 13.1.1 [x] Resolve FastAPI/Starlette TestClient MRO failure by pinning Starlette to a compatible release or applying upstream patches, then rerun `poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1` and attach the passing log (Issue: [run-tests-smoke-fast-fastapi-starlette-mro.md](../issues/run-tests-smoke-fast-fastapi-starlette-mro.md)). Evidence: `logs/run-tests-smoke-fast-20250921T160631Z.log` and regenerated coverage artifacts.【F:logs/run-tests-smoke-fast-20250921T160631Z.log†L33-L40】
 13.1.2 [x] Restore `_ProgressIndicatorBase` exports and related CLI progress scaffolding so long-running progress tests import without NameError (Issue: [test-collection-regressions-20251004.md](../issues/test-collection-regressions-20251004.md)).【F:src/devsynth/application/cli/long_running_progress.py†L1-L127】【F:diagnostics/testing/unit_long_running_progress_20251007T0550Z.log†L1-L28】
 13.1.3 [ ] Correct `devsynth.memory.sync_manager` Protocol generics so memory suites import under both runtime and mypy strict modes (Issue: [test-collection-regressions-20251004.md](../issues/test-collection-regressions-20251004.md)).【9ecea8†L41-L84】

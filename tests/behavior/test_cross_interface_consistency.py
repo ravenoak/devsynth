@@ -1,4 +1,3 @@
-"""
 """Test script for cross-interface consistency."""
 
 import importlib
