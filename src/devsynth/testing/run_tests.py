@@ -1342,12 +1342,12 @@ def run_tests(
 def _run_segmented_tests(request: SegmentedRunRequest) -> SegmentedRunResult:
     """Run tests in segments to handle large test suites."""
 
-    node_ids = _sanitize_node_ids(list(request.node_ids))
+    node_ids: list[str] = _sanitize_node_ids(list(request.node_ids))
     all_outputs: list[str] = []
     segment_metadata: list[BatchExecutionMetadata] = []
     overall_success = True
 
-    segments = [
+    segments: list[list[str]] = [
         node_ids[i : i + request.segment_size]
         for i in range(0, len(node_ids), request.segment_size)
     ]
