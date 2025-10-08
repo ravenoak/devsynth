@@ -1,6 +1,6 @@
 {
   "markers": {
-    "fast": 1809,
+    "fast": 1814,
     "no_network": 15,
     "medium": 1579,
     "parametrize": 71,
@@ -15,14 +15,14 @@
     "integtest": 1,
     "asyncio": 25,
     "skipif": 3,
-    "property": 31,
+    "property": 32,
     "anyio": 3,
-    "unit": 7,
+    "unit": 11,
     "smoke": 4,
     "skip": 2,
     "allow_real_coverage_artifacts": 2
   },
-  "files_scanned": 1264,
+  "files_scanned": 1265,
   "files_with_issues": 0,
   "undocumented_markers": []
 }
