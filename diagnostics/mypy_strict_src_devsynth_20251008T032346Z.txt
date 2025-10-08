@@ -1,0 +1,2 @@
+src/devsynth/testing/run_tests.py:266: error: Name "__post_init__" already defined on line 262  [no-redef]
+Found 1 error in 1 file (checked 431 source files)
