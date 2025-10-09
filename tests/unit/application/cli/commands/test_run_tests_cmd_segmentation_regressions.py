@@ -22,7 +22,9 @@ def _build_batch_output(label: str, error: Exception) -> str:
 
 
 @pytest.mark.fast
-def test_segmented_cli_failure_emits_tips_and_reinjection(monkeypatch, tmp_path) -> None:
+def test_segmented_cli_failure_emits_tips_and_reinjection(
+    monkeypatch, tmp_path
+) -> None:
     """Segmented runs surface remediation tips and reinjection notices once."""
 
     monkeypatch.chdir(tmp_path)
@@ -138,12 +140,8 @@ def test_segmented_cli_failure_repeats_banner_per_batch_and_aggregate(
     monkeypatch.setattr(
         cli_module, "_coverage_instrumentation_status", lambda: (True, None)
     )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
-    )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
-    )
+    monkeypatch.setattr(cli_module, "ensure_pytest_cov_plugin_env", lambda env: False)
+    monkeypatch.setattr(cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
 
     runner = CliRunner()
     result = runner.invoke(

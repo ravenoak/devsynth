@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import devsynth.testing.run_tests as rt
+
 from .run_tests_test_utils import build_batch_metadata
 
 
@@ -137,8 +138,10 @@ def test_run_segmented_tests_failure_with_maxfail(monkeypatch):
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            return False, "First segment failed", build_batch_metadata(
-                "batch-fail-1", returncode=1
+            return (
+                False,
+                "First segment failed",
+                build_batch_metadata("batch-fail-1", returncode=1),
             )
         return True, "Should not be called", build_batch_metadata("batch-fail-2")
 
@@ -179,7 +182,9 @@ def test_run_segmented_tests_dry_run_batches_use_typed_requests(
     """ReqID: RUN-TESTS-SEG-5 — dry-run segments propagate typed requests."""
 
     ensure_calls: list[None] = []
-    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: ensure_calls.append(None))
+    monkeypatch.setattr(
+        rt, "_ensure_coverage_artifacts", lambda: ensure_calls.append(None)
+    )
 
     captured_batches: list[rt.SingleBatchRequest] = []
 

@@ -7,8 +7,6 @@ import pytest
 
 import devsynth.testing.run_tests as rt
 
-
-
 pytestmark = pytest.mark.fast
 
 
@@ -29,7 +27,10 @@ pytestmark = pytest.mark.fast
         ),
         (
             rt.ensure_pytest_bdd_plugin_env,
-            {"PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTEST_ADDOPTS": "-p no:pytest_bdd -s"},
+            {
+                "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+                "PYTEST_ADDOPTS": "-p no:pytest_bdd -s",
+            },
             False,
             "-p no:pytest_bdd -s",
         ),

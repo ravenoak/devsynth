@@ -134,7 +134,10 @@ def test_compare_with_manifest_returns_differences():
     }
     structure = cast(
         ProjectStructureReport,
-        {"directories": {"source": ["src", "lib"], "tests": [], "docs": []}, "files": []},
+        {
+            "directories": {"source": ["src", "lib"], "tests": [], "docs": []},
+            "files": [],
+        },
     )
 
     differences = compare_with_manifest(manifest, structure)

@@ -17,7 +17,11 @@ class StubBridge:
         self.messages: list[tuple[str, str | None]] = []
 
     def display_result(
-        self, message: str, *, highlight: bool | None = None, message_type: str | None = None
+        self,
+        message: str,
+        *,
+        highlight: bool | None = None,
+        message_type: str | None = None,
     ) -> None:
         self.messages.append((message, message_type))
 
@@ -88,7 +92,11 @@ def test_cli_completion_reports_generation_errors(monkeypatch) -> None:
     result = runner.invoke(app, ["completion"])
 
     assert result.exit_code == 0
-    assert any("Failed to generate completion script" in msg for msg, kind in bridge.messages if kind == "error")
+    assert any(
+        "Failed to generate completion script" in msg
+        for msg, kind in bridge.messages
+        if kind == "error"
+    )
 
 
 @pytest.mark.medium
@@ -109,4 +117,8 @@ def test_cli_completion_reports_install_errors(monkeypatch) -> None:
     result = runner.invoke(app, ["completion", "--shell", "bash", "--install"])
 
     assert result.exit_code == 0
-    assert any("Failed to install completion script" in msg for msg, kind in bridge.messages if kind == "error")
+    assert any(
+        "Failed to install completion script" in msg
+        for msg, kind in bridge.messages
+        if kind == "error"
+    )

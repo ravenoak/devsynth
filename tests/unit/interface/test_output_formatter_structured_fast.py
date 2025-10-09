@@ -16,7 +16,6 @@ from rich.text import Text
 
 from devsynth.interface.output_formatter import OutputFormat, OutputFormatter
 
-
 pytestmark = pytest.mark.fast
 
 

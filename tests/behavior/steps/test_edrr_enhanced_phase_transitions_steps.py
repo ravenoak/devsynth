@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import json
 import os
 import tempfile
@@ -13,8 +12,6 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.documentation.documentation_manager import (
-
-
     DocumentationManager,
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinator
@@ -24,8 +21,7 @@ from devsynth.application.requirements.prompt_manager import PromptManager
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

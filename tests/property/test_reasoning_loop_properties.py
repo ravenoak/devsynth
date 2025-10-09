@@ -103,7 +103,9 @@ def _normalized_phase_strings(phase: Phase) -> list[str]:
 
 @st.composite
 def dialectical_result_payloads(draw):
-    base_phase = draw(st.sampled_from([Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE]))
+    base_phase = draw(
+        st.sampled_from([Phase.EXPAND, Phase.DIFFERENTIATE, Phase.REFINE])
+    )
     phase_value = draw(
         st.one_of(
             st.sampled_from(_normalized_phase_strings(base_phase)),
@@ -234,7 +236,10 @@ def test_reasoning_loop_phase_transitions(monkeypatch, payloads):
 
     for idx, (phase, _payload) in enumerate(recorded_calls):
         raw_payload = payloads[idx]
-        if isinstance(raw_payload, DialecticalSequence) and normalized_sequence_phases[idx] is not None:
+        if (
+            isinstance(raw_payload, DialecticalSequence)
+            and normalized_sequence_phases[idx] is not None
+        ):
             assert phase == normalized_sequence_phases[idx]
 
         fallback_phase = fallback_expectations.get(idx)

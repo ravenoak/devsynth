@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 import pytest
 
 from devsynth.adapters.memory.memory_adapter import MemoryStoreError
+
 from .conftest import (
     ProtocolCompliantContextManager,
     ProtocolCompliantMemoryStore,
@@ -57,7 +58,9 @@ def memory_adapter_module(monkeypatch: pytest.MonkeyPatch, tmp_path):
     )
 
     monkeypatch.setattr(module, "get_settings", lambda: settings)
-    monkeypatch.setattr(module, "ensure_path_exists", lambda path, create=True: str(path))
+    monkeypatch.setattr(
+        module, "ensure_path_exists", lambda path, create=True: str(path)
+    )
 
     return module, settings
 
@@ -81,7 +84,9 @@ def test_chromadb_disabled_falls_back_to_memory(memory_adapter_module) -> None:
 
 
 @pytest.mark.fast
-def test_chromadb_enabled_uses_adapter_and_store(memory_adapter_module, monkeypatch) -> None:
+def test_chromadb_enabled_uses_adapter_and_store(
+    memory_adapter_module, monkeypatch
+) -> None:
     """ChromaDB configuration wires vector store and persistence. ReqID: MEM-ADAPTER-2"""
 
     module, settings = memory_adapter_module
@@ -95,7 +100,9 @@ def test_chromadb_enabled_uses_adapter_and_store(memory_adapter_module, monkeypa
     store_module = types.ModuleType("devsynth.application.memory.chromadb_store")
 
     class _StubChromaDBStore:  # pragma: no cover - exercised via adapter
-        def __init__(self, persist_directory: str, host: str, port: int, collection_name: str):
+        def __init__(
+            self, persist_directory: str, host: str, port: int, collection_name: str
+        ):
             store_instances.append(
                 {
                     "persist_directory": persist_directory,
@@ -111,7 +118,9 @@ def test_chromadb_enabled_uses_adapter_and_store(memory_adapter_module, monkeypa
     adapter_module = types.ModuleType("devsynth.adapters.memory.chroma_db_adapter")
 
     class _StubChromaDBAdapter:
-        def __init__(self, persist_directory: str, collection_name: str, host: str, port: int) -> None:
+        def __init__(
+            self, persist_directory: str, collection_name: str, host: str, port: int
+        ) -> None:
             adapter_instances.append(
                 {
                     "persist_directory": persist_directory,
@@ -123,8 +132,12 @@ def test_chromadb_enabled_uses_adapter_and_store(memory_adapter_module, monkeypa
 
     adapter_module.ChromaDBAdapter = _StubChromaDBAdapter
 
-    monkeypatch.setitem(sys.modules, "devsynth.application.memory.chromadb_store", store_module)
-    monkeypatch.setitem(sys.modules, "devsynth.adapters.memory.chroma_db_adapter", adapter_module)
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.memory.chromadb_store", store_module
+    )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.adapters.memory.chroma_db_adapter", adapter_module
+    )
 
     config = {
         "memory_store_type": "chromadb",
@@ -138,20 +151,28 @@ def test_chromadb_enabled_uses_adapter_and_store(memory_adapter_module, monkeypa
     adapter = module.MemorySystemAdapter(config=config, create_paths=False)
 
     assert isinstance(adapter.memory_store, _StubChromaDBStore)
-    assert adapter.vector_store and isinstance(adapter.vector_store, _StubChromaDBAdapter)
+    assert adapter.vector_store and isinstance(
+        adapter.vector_store, _StubChromaDBAdapter
+    )
     assert store_instances[0]["collection_name"] == "unit-collection"
     assert adapter_instances[0]["persist_directory"] == settings.memory_file_path
 
 
 @pytest.mark.fast
-def test_initialize_memory_system_various_backends(memory_adapter_module, monkeypatch, tmp_path) -> None:
+def test_initialize_memory_system_various_backends(
+    memory_adapter_module, monkeypatch, tmp_path
+) -> None:
     """File, document, and vector backends initialize expected components. ReqID: MEM-ADAPTER-5"""
 
     module, _settings = memory_adapter_module
 
     class DummyJSONFileStore(ProtocolCompliantMemoryStore):
         def __init__(
-            self, path: str, *, encryption_enabled: bool = False, encryption_key: str | None = None
+            self,
+            path: str,
+            *,
+            encryption_enabled: bool = False,
+            encryption_key: str | None = None,
         ) -> None:
             super().__init__()
             self.path = path
@@ -159,7 +180,9 @@ def test_initialize_memory_system_various_backends(memory_adapter_module, monkey
             self.encryption_key = encryption_key
 
     class DummyPersistentContextManager(ProtocolCompliantContextManager):
-        def __init__(self, path: str, *, max_context_size: int, expiration_days: int) -> None:
+        def __init__(
+            self, path: str, *, max_context_size: int, expiration_days: int
+        ) -> None:
             super().__init__()
             self.path = path
             self.max_context_size = max_context_size
@@ -192,7 +215,9 @@ def test_initialize_memory_system_various_backends(memory_adapter_module, monkey
             self.path = path
 
     monkeypatch.setattr(module, "JSONFileStore", DummyJSONFileStore)
-    monkeypatch.setattr(module, "PersistentContextManager", DummyPersistentContextManager)
+    monkeypatch.setattr(
+        module, "PersistentContextManager", DummyPersistentContextManager
+    )
     monkeypatch.setattr(module, "InMemoryStore", DummyInMemoryStore)
     monkeypatch.setattr(module, "SimpleContextManager", DummySimpleContextManager)
     monkeypatch.setattr(module, "TinyDBStore", DummyTinyDBStore)
@@ -241,7 +266,9 @@ def test_initialize_memory_system_various_backends(memory_adapter_module, monkey
         "memory_file_path": str(tmp_path / "rdflib"),
         "vector_store_enabled": True,
     }
-    rdflib_adapter = module.MemorySystemAdapter(config=rdflib_config, create_paths=False)
+    rdflib_adapter = module.MemorySystemAdapter(
+        config=rdflib_config, create_paths=False
+    )
     assert isinstance(rdflib_adapter.memory_store, DummyRDFLibStore)
     assert rdflib_adapter.vector_store is rdflib_adapter.memory_store
 
@@ -254,17 +281,23 @@ def test_initialize_memory_system_various_backends(memory_adapter_module, monkey
 
 
 @pytest.mark.fast
-def test_kuzu_initialization_and_fallback(memory_adapter_module, monkeypatch, tmp_path) -> None:
+def test_kuzu_initialization_and_fallback(
+    memory_adapter_module, monkeypatch, tmp_path
+) -> None:
     """Kuzu initializes normally and falls back to ChromaDB when flagged. ReqID: MEM-ADAPTER-6"""
 
     module, settings = memory_adapter_module
 
     class DummyPersistentContextManager(ProtocolCompliantContextManager):
-        def __init__(self, path: str, *, max_context_size: int, expiration_days: int) -> None:
+        def __init__(
+            self, path: str, *, max_context_size: int, expiration_days: int
+        ) -> None:
             super().__init__()
             self.path = path
 
-    monkeypatch.setattr(module, "PersistentContextManager", DummyPersistentContextManager)
+    monkeypatch.setattr(
+        module, "PersistentContextManager", DummyPersistentContextManager
+    )
 
     class DummyVectorStore(ProtocolCompliantVectorStore):
         def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -286,7 +319,9 @@ def test_kuzu_initialization_and_fallback(memory_adapter_module, monkeypatch, tm
         "vector_store_enabled": True,
         "provider_type": "azure",
     }
-    normal_adapter = module.MemorySystemAdapter(config=normal_config, create_paths=False)
+    normal_adapter = module.MemorySystemAdapter(
+        config=normal_config, create_paths=False
+    )
     assert isinstance(normal_adapter.memory_store, DummyKuzuStore)
     assert normal_adapter.vector_store is normal_adapter.memory_store.vector
 
@@ -298,7 +333,9 @@ def test_kuzu_initialization_and_fallback(memory_adapter_module, monkeypatch, tm
     monkeypatch.setattr(module, "KuzuMemoryStore", FallbackKuzuStore)
 
     chroma_store_module = types.ModuleType("devsynth.application.memory.chromadb_store")
-    chroma_adapter_module = types.ModuleType("devsynth.adapters.memory.chroma_db_adapter")
+    chroma_adapter_module = types.ModuleType(
+        "devsynth.adapters.memory.chroma_db_adapter"
+    )
 
     class StubChromaDBStore(ProtocolCompliantMemoryStore):
         def __init__(
@@ -332,8 +369,12 @@ def test_kuzu_initialization_and_fallback(memory_adapter_module, monkeypatch, tm
 
     chroma_store_module.ChromaDBStore = StubChromaDBStore
     chroma_adapter_module.ChromaDBAdapter = StubChromaDBAdapter
-    monkeypatch.setitem(sys.modules, "devsynth.application.memory.chromadb_store", chroma_store_module)
-    monkeypatch.setitem(sys.modules, "devsynth.adapters.memory.chroma_db_adapter", chroma_adapter_module)
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.memory.chromadb_store", chroma_store_module
+    )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.adapters.memory.chroma_db_adapter", chroma_adapter_module
+    )
 
     fallback_config = {
         "memory_store_type": "kuzu",
@@ -344,13 +385,17 @@ def test_kuzu_initialization_and_fallback(memory_adapter_module, monkeypatch, tm
         "chromadb_host": "localhost",
         "chromadb_port": 9010,
     }
-    fallback_adapter = module.MemorySystemAdapter(config=fallback_config, create_paths=False)
+    fallback_adapter = module.MemorySystemAdapter(
+        config=fallback_config, create_paths=False
+    )
     assert isinstance(fallback_adapter.memory_store, StubChromaDBStore)
     assert isinstance(fallback_adapter.vector_store, StubChromaDBAdapter)
 
 
 @pytest.mark.fast
-def test_lmdb_missing_falls_back_to_memory(memory_adapter_module, monkeypatch, tmp_path) -> None:
+def test_lmdb_missing_falls_back_to_memory(
+    memory_adapter_module, monkeypatch, tmp_path
+) -> None:
     """LMDB absence triggers an in-memory fallback. ReqID: MEM-ADAPTER-7"""
 
     module, _settings = memory_adapter_module
@@ -369,7 +414,10 @@ def test_lmdb_missing_falls_back_to_memory(memory_adapter_module, monkeypatch, t
     monkeypatch.setattr(module, "SimpleContextManager", DummySimpleContextManager)
 
     adapter = module.MemorySystemAdapter(
-        config={"memory_store_type": "lmdb", "memory_file_path": str(tmp_path / "lmdb")},
+        config={
+            "memory_store_type": "lmdb",
+            "memory_file_path": str(tmp_path / "lmdb"),
+        },
         create_paths=False,
     )
     assert isinstance(adapter.memory_store, DummyInMemoryStore)
@@ -377,7 +425,9 @@ def test_lmdb_missing_falls_back_to_memory(memory_adapter_module, monkeypatch, t
 
 
 @pytest.mark.fast
-def test_initialize_memory_system_branches_execution(memory_adapter_module, monkeypatch, tmp_path) -> None:
+def test_initialize_memory_system_branches_execution(
+    memory_adapter_module, monkeypatch, tmp_path
+) -> None:
     """Directly exercise initialization branches for broad coverage. ReqID: MEM-ADAPTER-8"""
 
     module, _settings = memory_adapter_module
@@ -393,7 +443,11 @@ def test_initialize_memory_system_branches_execution(memory_adapter_module, monk
 
     class DummyJSONFileStore(ProtocolCompliantMemoryStore):
         def __init__(
-            self, path: str, *, encryption_enabled: bool = False, encryption_key: str | None = None
+            self,
+            path: str,
+            *,
+            encryption_enabled: bool = False,
+            encryption_key: str | None = None,
         ) -> None:
             super().__init__()
             self.path = path
@@ -401,7 +455,9 @@ def test_initialize_memory_system_branches_execution(memory_adapter_module, monk
             self.encryption_key = encryption_key
 
     class DummyPersistentContextManager(ProtocolCompliantContextManager):
-        def __init__(self, path: str, *, max_context_size: int, expiration_days: int) -> None:
+        def __init__(
+            self, path: str, *, max_context_size: int, expiration_days: int
+        ) -> None:
             super().__init__()
             self.path = path
 
@@ -412,6 +468,7 @@ def test_initialize_memory_system_branches_execution(memory_adapter_module, monk
         def __init__(self, path: str) -> None:
             super().__init__()
             self.path = path
+
         def flush(self) -> None:
             pass
 
@@ -441,14 +498,18 @@ def test_initialize_memory_system_branches_execution(memory_adapter_module, monk
     monkeypatch.setattr(module, "InMemoryStore", DummyInMemoryStore)
     monkeypatch.setattr(module, "SimpleContextManager", DummySimpleContextManager)
     monkeypatch.setattr(module, "JSONFileStore", DummyJSONFileStore)
-    monkeypatch.setattr(module, "PersistentContextManager", DummyPersistentContextManager)
+    monkeypatch.setattr(
+        module, "PersistentContextManager", DummyPersistentContextManager
+    )
     monkeypatch.setattr(module, "TinyDBStore", DummyTinyDBStore)
     monkeypatch.setattr(module, "DuckDBStore", DummyDuckDBStore)
     monkeypatch.setattr(module, "FAISSStore", DummyFAISSStore)
     monkeypatch.setattr(module, "RDFLibStore", DummyRDFLibStore)
     monkeypatch.setattr(module, "KuzuMemoryStore", DummyKuzuStore)
 
-    adapter = module.MemorySystemAdapter(config={"memory_store_type": "memory"}, create_paths=False)
+    adapter = module.MemorySystemAdapter(
+        config={"memory_store_type": "memory"}, create_paths=False
+    )
 
     adapter.storage_type = "file"
     adapter.memory_path = str(tmp_path / "file.json")
@@ -466,22 +527,42 @@ def test_initialize_memory_system_branches_execution(memory_adapter_module, monk
     adapter.enable_chromadb = True
     adapter.vector_store_enabled = True
     chroma_store_module = types.ModuleType("devsynth.application.memory.chromadb_store")
-    chroma_adapter_module = types.ModuleType("devsynth.adapters.memory.chroma_db_adapter")
+    chroma_adapter_module = types.ModuleType(
+        "devsynth.adapters.memory.chroma_db_adapter"
+    )
 
     class StubChromaDBStore:
-        def __init__(self, path: str, *, host: str | None = None, port: int | None = None, collection_name: str | None = None) -> None:
+        def __init__(
+            self,
+            path: str,
+            *,
+            host: str | None = None,
+            port: int | None = None,
+            collection_name: str | None = None,
+        ) -> None:
             self.path = path
             self.collection_name = collection_name
 
     class StubChromaDBAdapter:
-        def __init__(self, *, persist_directory: str, collection_name: str, host: str | None = None, port: int | None = None) -> None:
+        def __init__(
+            self,
+            *,
+            persist_directory: str,
+            collection_name: str,
+            host: str | None = None,
+            port: int | None = None,
+        ) -> None:
             self.persist_directory = persist_directory
             self.collection_name = collection_name
 
     chroma_store_module.ChromaDBStore = StubChromaDBStore
     chroma_adapter_module.ChromaDBAdapter = StubChromaDBAdapter
-    monkeypatch.setitem(sys.modules, "devsynth.application.memory.chromadb_store", chroma_store_module)
-    monkeypatch.setitem(sys.modules, "devsynth.adapters.memory.chroma_db_adapter", chroma_adapter_module)
+    monkeypatch.setitem(
+        sys.modules, "devsynth.application.memory.chromadb_store", chroma_store_module
+    )
+    monkeypatch.setitem(
+        sys.modules, "devsynth.adapters.memory.chroma_db_adapter", chroma_adapter_module
+    )
 
     adapter.chromadb_collection_name = "coverage"
     adapter.chromadb_host = "localhost"
@@ -541,6 +622,7 @@ def test_initialize_memory_system_branches_execution(memory_adapter_module, monk
     adapter._initialize_memory_system(create_paths=False)
     assert isinstance(adapter.memory_store, DummyInMemoryStore)
     assert isinstance(adapter.context_manager, DummySimpleContextManager)
+
 
 class _CacheAwareStore:
     def __init__(self) -> None:
@@ -667,7 +749,11 @@ def test_cache_and_transaction_workflow(memory_adapter_module, monkeypatch) -> N
     assert adapter.search({"tag": "demo"}) == [{"tag": "demo"}]
     assert adapter.retrieve("item-1") == {"id": "item-1"}
     assert adapter.get_all() == [{"id": "item-1"}]
-    assert adapter.get_token_usage() == {"memory_tokens": 7, "context_tokens": 3, "total_tokens": 10}
+    assert adapter.get_token_usage() == {
+        "memory_tokens": 7,
+        "context_tokens": 3,
+        "total_tokens": 10,
+    }
 
     adapter.flush()
     assert store.flushed is True
@@ -692,7 +778,8 @@ def test_cache_and_transaction_workflow(memory_adapter_module, monkeypatch) -> N
 
     with pytest.raises(MemoryStoreError):
         adapter.execute_in_transaction(
-            [failing_operation], fallback_operations=[lambda: fallback_called.append("fallback")]
+            [failing_operation],
+            fallback_operations=[lambda: fallback_called.append("fallback")],
         )
     assert fallback_called == ["fallback"]
 

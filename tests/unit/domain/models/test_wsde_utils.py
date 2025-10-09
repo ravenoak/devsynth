@@ -3,10 +3,6 @@ import sys
 from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import sys
-from types import ModuleType, SimpleNamespace
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 from devsynth.domain.models.wsde_utils import (
@@ -17,7 +13,6 @@ from devsynth.domain.models.wsde_utils import (
     request_peer_review,
     send_message,
 )
-
 
 pytestmark = [pytest.mark.fast]
 

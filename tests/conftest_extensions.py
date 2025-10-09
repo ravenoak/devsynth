@@ -75,10 +75,7 @@ def _load_declared_markers() -> dict[str, str]:
     except Exception:
         return {}
     markers_section = (
-        data.get("tool", {})
-        .get("pytest", {})
-        .get("ini_options", {})
-        .get("markers", [])
+        data.get("tool", {}).get("pytest", {}).get("ini_options", {}).get("markers", [])
     )
     declared: dict[str, str] = {}
     for entry in markers_section or []:
@@ -235,7 +232,9 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item]) -> None:
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: List[pytest.Item]
+) -> None:
     """Validate test speed markers and apply filtering."""
 
     speed = config.getoption("--speed")
@@ -268,7 +267,9 @@ def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item
                 continue
             if marker_name in _SAFE_RUNTIME_MARKERS:
                 continue
-            if any(marker_name.startswith(prefix) for prefix in _DERIVED_MARKER_PREFIXES):
+            if any(
+                marker_name.startswith(prefix) for prefix in _DERIVED_MARKER_PREFIXES
+            ):
                 continue
             if marker_name in _AD_HOC_MARKERS:
                 _warn_on_legacy_marker(item, marker_name)

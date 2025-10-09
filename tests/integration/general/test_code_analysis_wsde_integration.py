@@ -30,8 +30,6 @@ from devsynth.domain.models.task import Task, TaskStatus
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
-
-
 @pytest.mark.slow
 def test_agent_type_expert_exists():
     """Ensure the EXPERT enum is defined."""

@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 from unittest.mock import patch
 
 import pytest
@@ -6,8 +5,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import build_app
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

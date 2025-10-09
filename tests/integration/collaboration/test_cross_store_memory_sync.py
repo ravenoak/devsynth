@@ -11,8 +11,6 @@ from devsynth.domain.interfaces.memory import MemoryStore
 from devsynth.domain.models.memory import MemoryItem
 
 
-
-
 class DummyAgent:
     def __init__(self, name: str):
         self.name = name

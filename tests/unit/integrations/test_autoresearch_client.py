@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 from collections import defaultdict
+
 import httpx
 import pytest
 
-from devsynth.integrations.autoresearch_client import (
-    AutoresearchClient,
-    CONNECTORS_ENABLED_ENV,
-)
 from devsynth.integrations.a2a import AutoresearchA2AConnector
+from devsynth.integrations.autoresearch_client import (
+    CONNECTORS_ENABLED_ENV,
+    AutoresearchClient,
+)
 from devsynth.integrations.mcp import AutoresearchMCPConnector
 
 pytestmark = pytest.mark.fast
@@ -94,9 +95,7 @@ def test_handshake_and_query_success() -> None:
             FakeResponse({"pending": 0}),
             FakeResponse({"pending": 1}),
         ],
-        ("POST", f"{base}query"): [
-            FakeResponse({"records": [{"trace_id": "t-1"}]})
-        ],
+        ("POST", f"{base}query"): [FakeResponse({"records": [{"trace_id": "t-1"}]})],
     }
     mcp_client = FakeHTTPClient(mcp_responses)
     a2a_client = FakeHTTPClient(a2a_responses)
@@ -111,9 +110,7 @@ def test_handshake_and_query_success() -> None:
     assert handshake["capabilities"]["tools"] == ["sparql"]
     assert handshake["channel"]["metrics"]["pending"] == 0
 
-    updates = client.fetch_trace_updates(
-        "SELECT * WHERE { ?s ?p ?o } LIMIT 1"
-    )
+    updates = client.fetch_trace_updates("SELECT * WHERE { ?s ?p ?o } LIMIT 1")
 
     assert updates["results"]["session_id"] == "session-123"
     assert updates["results"]["records"] == [{"trace_id": "t-1"}]
@@ -127,8 +124,12 @@ def test_handshake_disabled_by_flag(monkeypatch: pytest.MonkeyPatch) -> None:
     """When connectors are disabled the client never calls the network."""
 
     base = _base_url()
-    mcp_client = FakeHTTPClient({("GET", f"{base}health"): [FakeResponse({"status": "ok"})]})
-    a2a_client = FakeHTTPClient({("GET", f"{base}health"): [FakeResponse({"status": "ok"})]})
+    mcp_client = FakeHTTPClient(
+        {("GET", f"{base}health"): [FakeResponse({"status": "ok"})]}
+    )
+    a2a_client = FakeHTTPClient(
+        {("GET", f"{base}health"): [FakeResponse({"status": "ok"})]}
+    )
     monkeypatch.delenv(CONNECTORS_ENABLED_ENV, raising=False)
     client = AutoresearchClient(
         AutoresearchMCPConnector(base_url=base, http_client=mcp_client),
@@ -175,7 +176,11 @@ def test_query_failure_falls_back(caplog: pytest.LogCaptureFixture) -> None:
     assert client.handshake("session-err")
 
     caplog.set_level("INFO")
-    updates = client.fetch_trace_updates("SELECT * WHERE { ?s ?p ?o }", session_id="session-err")
+    updates = client.fetch_trace_updates(
+        "SELECT * WHERE { ?s ?p ?o }", session_id="session-err"
+    )
 
     assert updates == {}
-    assert any("Autoresearch query failed" in record.message for record in caplog.records)
+    assert any(
+        "Autoresearch query failed" in record.message for record in caplog.records
+    )

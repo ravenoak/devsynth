@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-import pytest
-
 import devsynth.methodology.edrr.reasoning_loop as reasoning_loop_module
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.exceptions import ConsensusError

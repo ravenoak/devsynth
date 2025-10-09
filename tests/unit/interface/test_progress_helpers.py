@@ -2,20 +2,24 @@
 
 from __future__ import annotations
 
-import pytest
-
 import sys
 from types import SimpleNamespace
 
+import pytest
+
 
 class _FakePasswordHasher:
-    def __init__(self, *args: object, **kwargs: object) -> None:  # pragma: no cover - simple stub
+    def __init__(
+        self, *args: object, **kwargs: object
+    ) -> None:  # pragma: no cover - simple stub
         pass
 
     def hash(self, password: str) -> str:  # pragma: no cover - simple stub
         return password
 
-    def verify(self, stored_hash: str, password: str) -> bool:  # pragma: no cover - simple stub
+    def verify(
+        self, stored_hash: str, password: str
+    ) -> bool:  # pragma: no cover - simple stub
         return stored_hash == password
 
 
@@ -74,7 +78,9 @@ def test_dummy_progress_supports_nested_protocol() -> None:
     subtask_id = indicator.add_subtask("child", status=PROGRESS_STATUS_VALUES[0])
     nested_id = indicator.add_nested_subtask(subtask_id, "nested")
     indicator.update_subtask(subtask_id, status=PROGRESS_STATUS_VALUES[1])
-    indicator.update_nested_subtask(subtask_id, nested_id, status=PROGRESS_STATUS_VALUES[2])
+    indicator.update_nested_subtask(
+        subtask_id, nested_id, status=PROGRESS_STATUS_VALUES[2]
+    )
     indicator.complete_nested_subtask(subtask_id, nested_id)
     indicator.complete_subtask(subtask_id)
     indicator.complete()

@@ -35,7 +35,7 @@ def test_load_raises_for_missing_file(tmp_path: Path) -> None:
 def test_load_raises_for_invalid_json(tmp_path: Path) -> None:
     """Invalid JSON content is surfaced via the storage error."""
 
-    (tmp_path / "prompt_variants.json").write_text("{" , encoding="utf-8")
+    (tmp_path / "prompt_variants.json").write_text("{", encoding="utf-8")
 
     with pytest.raises(PromptVariantStorageError):
         load_prompt_variants(tmp_path)

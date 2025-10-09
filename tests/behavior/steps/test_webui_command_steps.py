@@ -2,7 +2,6 @@
 Step definitions for WebUI Command Execution feature.
 """
 
-from tests.behavior.feature_paths import feature_path
 import os
 import sys
 from unittest.mock import ANY, MagicMock, patch
@@ -10,16 +9,16 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
 # Import the CLI modules
 from typer.testing import CliRunner
+
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.cli_commands import webui_cmd
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Register the feature scenarios
-
 
 
 scenarios(feature_path(__file__, "general", "command.feature"))

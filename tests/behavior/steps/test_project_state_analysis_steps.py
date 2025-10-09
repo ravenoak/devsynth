@@ -1,16 +1,12 @@
-from tests.behavior.feature_paths import feature_path
 from pathlib import Path
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.code_analysis.project_state_analysis import (
-
-
     analyze_project_state,
 )
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

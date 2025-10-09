@@ -9,8 +9,8 @@ from unittest.mock import patch
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from devsynth.application.cli._command_exports import COMMAND_ATTRIBUTE_NAMES
 from devsynth.api import app
+from devsynth.application.cli._command_exports import COMMAND_ATTRIBUTE_NAMES
 from devsynth.interface import agentapi as agentapi_module
 from devsynth.interface.agentapi import (
     code_endpoint,
@@ -91,7 +91,8 @@ def mock_cli_commands():
     missing = required.difference(COMMAND_ATTRIBUTE_NAMES)
     if missing:  # pragma: no cover - defensive
         raise AssertionError(
-            "CLI command exports missing expected attributes: " + ", ".join(sorted(missing))
+            "CLI command exports missing expected attributes: "
+            + ", ".join(sorted(missing))
         )
     with (
         patch("devsynth.application.cli.init_cmd") as mock_init,
@@ -181,7 +182,9 @@ def test_metrics_endpoint_requires_authentication_succeeds(client, clean_state):
     assert success.status_code == 200
     metrics_lines = tuple(filter(None, success.text.splitlines()))
     metrics_payload = MetricsResponse(metrics=metrics_lines)
-    assert any(line.startswith("api_uptime_seconds") for line in metrics_payload.metrics)
+    assert any(
+        line.startswith("api_uptime_seconds") for line in metrics_payload.metrics
+    )
     assert any(
         line.startswith('endpoint_requests{endpoint="health"}')
         for line in metrics_payload.metrics
@@ -213,9 +216,7 @@ def test_init_endpoint_initializes_project_succeeds(mock_cli_commands, clean_sta
 
 
 @pytest.mark.medium
-def test_gather_endpoint_collects_requirements_succeeds(
-    mock_cli_commands, clean_state
-):
+def test_gather_endpoint_collects_requirements_succeeds(mock_cli_commands, clean_state):
     """Test that the gather endpoint collects requirements.
 
     ReqID: N/A"""
@@ -402,9 +403,7 @@ def test_enhanced_rate_limit_state_tracks_buckets(enhanced_api):
 
     detail = exc.value.detail
     assert detail["error"] == "Rate limit exceeded"
-    assert tuple(detail.get("suggestions", ())) == (
-        "Wait before retrying the request",
-    )
+    assert tuple(detail.get("suggestions", ())) == ("Wait before retrying the request",)
 
 
 @pytest.mark.fast

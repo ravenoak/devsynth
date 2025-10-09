@@ -51,7 +51,7 @@ if _property_tests_enabled():
         pass
 
 
-def pytest_ignore_collect(path, config):  # type: ignore[override]
+def pytest_ignore_collect(collection_path, config):  # type: ignore[override]
     """Prevent collection of this directory when property tests are disabled.
 
     Using pytest_ignore_collect at the directory-level (via this conftest.py)

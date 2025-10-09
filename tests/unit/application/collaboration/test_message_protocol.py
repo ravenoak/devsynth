@@ -18,7 +18,9 @@ if "argon2" not in sys.modules:
     sys.modules["argon2.exceptions"] = exceptions_stub
 
     class _PasswordHasher:  # pragma: no cover - test shim
-        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401 - minimal stub
+        def __init__(
+            self, *args: object, **kwargs: object
+        ) -> None:  # noqa: D401 - minimal stub
             """Stub password hasher for tests without argon2 dependency."""
 
         def hash(self, password: str) -> str:
@@ -35,11 +37,15 @@ if "argon2" not in sys.modules:
 if "jsonschema" not in sys.modules:
     jsonschema_stub = types.ModuleType("jsonschema")
 
-    def _validate(instance: object, schema: object, *args: object, **kwargs: object) -> bool:
+    def _validate(
+        instance: object, schema: object, *args: object, **kwargs: object
+    ) -> bool:
         return True
 
     class _DraftValidator:  # pragma: no cover - shim
-        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401 - stub
+        def __init__(
+            self, *args: object, **kwargs: object
+        ) -> None:  # noqa: D401 - stub
             """Minimal validator stub."""
 
         def validate(self, instance: object, schema: object) -> bool:
@@ -82,7 +88,9 @@ if "pydantic" not in sys.modules:
     pydantic_stub = types.ModuleType("pydantic")
 
     class _BaseModel:  # pragma: no cover - shim
-        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401 - stub
+        def __init__(
+            self, *args: object, **kwargs: object
+        ) -> None:  # noqa: D401 - stub
             """Minimal pydantic-like base model."""
 
             if args:
@@ -111,7 +119,9 @@ if "pydantic" not in sys.modules:
     pydantic_stub.field_validator = _field_validator
     dataclasses_stub = types.ModuleType("pydantic.dataclasses")
 
-    def _dataclass(cls: type | None = None, **kwargs: object):  # pragma: no cover - shim
+    def _dataclass(
+        cls: type | None = None, **kwargs: object
+    ):  # pragma: no cover - shim
         def decorator(target: type) -> type:
             return target
 
@@ -131,7 +141,9 @@ if "pydantic_settings" not in sys.modules:
     class _BaseSettings:  # pragma: no cover - shim
         model_config: dict[str, object] = {}
 
-        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401 - stub
+        def __init__(
+            self, *args: object, **kwargs: object
+        ) -> None:  # noqa: D401 - stub
             """Minimal settings base class."""
 
     class _SettingsConfigDict(dict):
@@ -146,7 +158,9 @@ if "devsynth.application.memory.memory_manager" not in sys.modules:
     memory_manager_stub = types.ModuleType("devsynth.application.memory.memory_manager")
 
     class _MemoryManager:  # pragma: no cover - shim
-        def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: D401 - stub
+        def __init__(
+            self, *args: object, **kwargs: object
+        ) -> None:  # noqa: D401 - stub
             self.adapters: dict[str, object] = {}
 
         def update_item(self, *args: object, **kwargs: object) -> None:
@@ -179,10 +193,14 @@ if "devsynth.config.settings" not in sys.modules:
 
 if "devsynth.config" not in sys.modules:
     config_stub = types.ModuleType("devsynth.config")
-    config_stub.get_settings = lambda: types.SimpleNamespace(wsde_settings={}, memory_store_type="memory")
+    config_stub.get_settings = lambda: types.SimpleNamespace(
+        wsde_settings={}, memory_store_type="memory"
+    )
     config_stub.get_llm_settings = lambda: {}
     config_stub.load_dotenv = lambda *args, **kwargs: None
-    config_stub._settings = types.SimpleNamespace(wsde_settings={}, memory_store_type="memory")
+    config_stub._settings = types.SimpleNamespace(
+        wsde_settings={}, memory_store_type="memory"
+    )
     sys.modules["devsynth.config"] = config_stub
 
 
@@ -190,9 +208,9 @@ from devsynth.application.collaboration.dto import (
     AgentPayload,
     MemorySyncPort,
     MessageFilter,
+    TaskDescriptor,
     ensure_collaboration_payload,
     ensure_message_filter,
-    TaskDescriptor,
 )
 from devsynth.application.collaboration.message_protocol import (
     Message,
@@ -270,7 +288,12 @@ def test_dto_round_trip_and_deterministic_serialization(tmp_path: Path) -> None:
         attributes={"b": 2, "a": 1},
         payload=["checkpoint", "complete"],
     )
-    metadata = MemorySyncPort(adapter="tinydb", channel="primary", priority="medium", options={"retention": "long"})
+    metadata = MemorySyncPort(
+        adapter="tinydb",
+        channel="primary",
+        priority="medium",
+        options={"retention": "long"},
+    )
 
     proto.send_message(
         sender="analyst",

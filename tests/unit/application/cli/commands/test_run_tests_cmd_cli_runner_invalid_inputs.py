@@ -143,7 +143,9 @@ def _cli_dependency_stubs(monkeypatch: pytest.MonkeyPatch) -> None:
     tinydb_module.TinyDB = object  # type: ignore[attr-defined]
 
     monkeypatch.setitem(sys.modules, "devsynth.config", config_pkg)
-    monkeypatch.setitem(sys.modules, "devsynth.config.provider_env", provider_env_module)
+    monkeypatch.setitem(
+        sys.modules, "devsynth.config.provider_env", provider_env_module
+    )
     monkeypatch.setitem(sys.modules, "yaml", yaml_module)
     monkeypatch.setitem(sys.modules, "argon2", argon2_module)
     monkeypatch.setitem(sys.modules, "argon2.exceptions", argon2_exceptions)
@@ -173,8 +175,14 @@ def _load_run_tests_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
     module_name = "devsynth.application.cli.commands.run_tests_cmd"
     module_path = repo_root / "src/devsynth/application/cli/commands/run_tests_cmd.py"
 
-    _ensure_package(monkeypatch, "devsynth.application", repo_root / "src/devsynth/application")
-    _ensure_package(monkeypatch, "devsynth.application.cli", repo_root / "src/devsynth/application/cli")
+    _ensure_package(
+        monkeypatch, "devsynth.application", repo_root / "src/devsynth/application"
+    )
+    _ensure_package(
+        monkeypatch,
+        "devsynth.application.cli",
+        repo_root / "src/devsynth/application/cli",
+    )
     _ensure_package(
         monkeypatch,
         "devsynth.application.cli.commands",
@@ -313,9 +321,7 @@ def test_cli_runner_inventory_handles_collection_errors(
     payload = json.loads(inventory_path.read_text())
 
     assert payload["targets"]["integration-tests"]["medium"] == []
-    assert payload["targets"]["unit-tests"]["fast"] == [
-        "unit-tests::fast::test_case"
-    ]
+    assert payload["targets"]["unit-tests"]["fast"] == ["unit-tests::fast::test_case"]
 
 
 @pytest.mark.fast
@@ -390,20 +396,14 @@ def test_cli_runner_maxfail_option_propagates_to_runner(
     monkeypatch.setattr(
         cli_module, "_coverage_instrumentation_status", lambda: (True, None)
     )
-    monkeypatch.setattr(
-        cli_module, "coverage_artifacts_status", lambda: (True, None)
-    )
+    monkeypatch.setattr(cli_module, "coverage_artifacts_status", lambda: (True, None))
     monkeypatch.setattr(
         cli_module,
         "enforce_coverage_threshold",
         lambda exit_on_failure=False: 95.0,
     )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
-    )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
-    )
+    monkeypatch.setattr(cli_module, "ensure_pytest_cov_plugin_env", lambda env: False)
+    monkeypatch.setattr(cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
 
     runner = CliRunner()
     result = runner.invoke(

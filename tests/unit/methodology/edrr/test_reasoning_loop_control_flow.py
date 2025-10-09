@@ -110,7 +110,9 @@ def test_reasoning_loop_stops_retry_when_total_budget_exhausted(monkeypatch):
         call_counter["count"] += 1
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: always_transient
+    )
 
     monotonic_values = iter([0.0, 0.05, 0.2])
 
@@ -274,7 +276,9 @@ def test_reasoning_loop_records_dialectical_sequences_for_coordinator(monkeypatc
         sequences.append(sequence)
         return sequence
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: scripted_sequences)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: scripted_sequences
+    )
 
     coordinator = CoordinatorRecorder()
 
@@ -294,8 +298,13 @@ def test_reasoning_loop_records_dialectical_sequences_for_coordinator(monkeypatc
         "refine",
     ]
     assert all(isinstance(record[1], dict) for record in coordinator.records)
-    assert all(record[1] is not sequence for record, sequence in zip(coordinator.records, sequences))
-    assert [record[1]["phase"] for record in coordinator.records] == [phase for phase, *_ in phases]
+    assert all(
+        record[1] is not sequence
+        for record, sequence in zip(coordinator.records, sequences)
+    )
+    assert [record[1]["phase"] for record in coordinator.records] == [
+        phase for phase, *_ in phases
+    ]
     assert [record[1].get("next_phase") for record in coordinator.records] == [
         next_phase for _, next_phase, *_ in phases
     ]
@@ -345,7 +354,8 @@ def test_reasoning_loop_fallbacks_for_invalid_phase_and_next_phase(monkeypatch, 
         payload["status"] for payload in payloads
     ]
     assert any(
-        message.startswith("Dialectical reasoning iteration") for message in caplog.messages
+        message.startswith("Dialectical reasoning iteration")
+        for message in caplog.messages
     )
 
 

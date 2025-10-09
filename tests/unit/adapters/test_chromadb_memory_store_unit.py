@@ -33,7 +33,9 @@ class _FakeCollection:
                 "embedding": embedding,
             }
 
-    def get(self, ids: Iterable[str] | None = None, include: Iterable[str] | None = None) -> Dict[str, Any]:
+    def get(
+        self, ids: Iterable[str] | None = None, include: Iterable[str] | None = None
+    ) -> Dict[str, Any]:
         if ids:
             docs: List[str] = []
             metas: List[Dict[str, Any]] = []
@@ -53,7 +55,9 @@ class _FakeCollection:
         ids_list = list(self.records.keys())
         return {"documents": docs, "metadatas": metas, "ids": ids_list}
 
-    def query(self, query_embeddings: Iterable[List[float]], n_results: int) -> Dict[str, Any]:
+    def query(
+        self, query_embeddings: Iterable[List[float]], n_results: int
+    ) -> Dict[str, Any]:
         docs: List[str] = []
         metas: List[Dict[str, Any]] = []
         ids: List[str] = []
@@ -101,7 +105,9 @@ class _FakeEmbeddingFunction:
 
 
 @pytest.fixture
-def chromadb_store_factory(monkeypatch: pytest.MonkeyPatch, tmp_path) -> tuple[Any, Any]:
+def chromadb_store_factory(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> tuple[Any, Any]:
     """Provide a factory for ChromaDBMemoryStore backed by fake dependencies."""
 
     fake_main = types.ModuleType("chromadb")
@@ -179,7 +185,9 @@ def test_transaction_commit_and_delete(chromadb_store_factory) -> None:
 
 
 @pytest.mark.fast
-def test_provider_fallback_uses_default_embedder(chromadb_store_factory, monkeypatch) -> None:
+def test_provider_fallback_uses_default_embedder(
+    chromadb_store_factory, monkeypatch
+) -> None:
     """Fallback to the default embedder when provider results are empty. ReqID: CHROMADB-UNIT-2"""
 
     module, factory = chromadb_store_factory
@@ -201,7 +209,9 @@ def test_provider_fallback_uses_default_embedder(chromadb_store_factory, monkeyp
 
 
 @pytest.mark.fast
-def test_store_raises_after_retries(monkeypatch: pytest.MonkeyPatch, chromadb_store_factory) -> None:
+def test_store_raises_after_retries(
+    monkeypatch: pytest.MonkeyPatch, chromadb_store_factory
+) -> None:
     """store surfaces RuntimeError after exhausting retries. ReqID: CHROMADB-UNIT-3"""
 
     module, factory = chromadb_store_factory

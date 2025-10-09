@@ -35,7 +35,9 @@ def load_run_tests_cli_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
     def _patched_get_click_type(*, annotation, parameter_info):  # type: ignore[override]
         if annotation is object:
             return click.STRING
-        return original_get_click_type(annotation=annotation, parameter_info=parameter_info)
+        return original_get_click_type(
+            annotation=annotation, parameter_info=parameter_info
+        )
 
     monkeypatch.setattr(typer_main, "get_click_type", _patched_get_click_type)
 

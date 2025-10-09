@@ -10,7 +10,6 @@ from devsynth.application.documentation.documentation_fetcher import (
 )
 from devsynth.application.documentation.models import DownloadManifest
 
-
 pytestmark = pytest.mark.fast
 
 

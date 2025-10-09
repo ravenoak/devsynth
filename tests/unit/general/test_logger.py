@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import pytest
-
 import importlib
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+import pytest
 from _pytest.logging import LogCaptureHandler
 
 import devsynth.logger as ds_logger

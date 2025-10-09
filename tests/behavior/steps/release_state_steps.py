@@ -17,7 +17,6 @@ RELEASE_PATH = REPO_ROOT / "docs" / "release" / "0.1.0-alpha.1.md"
 AUDIT_LOG_PATH = REPO_ROOT / "dialectical_audit.log"
 
 
-
 def _read_release_document(path: Path) -> tuple[dict[str, Any], list[str]]:
     """Return the YAML front matter and body lines for ``path``."""
 

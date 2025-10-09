@@ -11,9 +11,9 @@ from devsynth.application.code_analysis.transformers import (
     ClassExtractionRequest,
     DocstringSpec,
     MethodConversionPlan,
+    apply_docstring_spec,
     build_class_from_functions,
     build_method_from_function,
-    apply_docstring_spec,
 )
 
 
@@ -57,7 +57,9 @@ def test_build_method_from_function_respects_method_type() -> None:
     helper_function = function_module.body[0]
     assert isinstance(helper_function, ast.FunctionDef)
 
-    class_plan = MethodConversionPlan(function_name="helper", class_name="Worker", method_type="class")
+    class_plan = MethodConversionPlan(
+        function_name="helper", class_name="Worker", method_type="class"
+    )
     class_method = build_method_from_function(helper_function, class_plan).node
     assert class_method.args.args[0].arg == "cls"
     assert any(
@@ -65,7 +67,9 @@ def test_build_method_from_function_respects_method_type() -> None:
         for decorator in class_method.decorator_list
     )
 
-    static_plan = MethodConversionPlan(function_name="helper", class_name="Worker", method_type="static")
+    static_plan = MethodConversionPlan(
+        function_name="helper", class_name="Worker", method_type="static"
+    )
     static_method = build_method_from_function(helper_function, static_plan).node
     assert not static_method.args.args or static_method.args.args[0].arg != "self"
     assert any(

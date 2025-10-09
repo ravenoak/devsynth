@@ -1,8 +1,9 @@
 """Tests for the methodology EDRR coordinator."""
 
+import pytest
+
 from devsynth.exceptions import ConsensusError
 from devsynth.methodology.edrr import EDRRCoordinator
-import pytest
 
 pytestmark = [pytest.mark.fast]
 

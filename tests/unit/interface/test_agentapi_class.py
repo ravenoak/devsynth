@@ -14,8 +14,8 @@ from devsynth.interface.agentapi_models import (
     GatherRequest,
     InitRequest,
     PriorityLevel,
-    SynthesizeRequest,
     SynthesisTarget,
+    SynthesizeRequest,
     TestSpecRequest,
     WorkflowResponse,
 )
@@ -228,7 +228,9 @@ def test_edrr_cycle_succeeds(monkeypatch, clean_state):
         prompt="test prompt", context="test context", max_iterations=5
     )
     response = api.edrr_cycle(
-        prompt=request.prompt, context=request.context, max_iterations=request.max_iterations
+        prompt=request.prompt,
+        context=request.context,
+        max_iterations=request.max_iterations,
     )
     assert isinstance(response, WorkflowResponse)
     assert response.messages == ("edrr:test prompt:test context:5",)
@@ -251,6 +253,4 @@ def test_agentapi_request_models_reject_invalid_payloads():
         SynthesizeRequest.model_validate({"target": "unsupported"})
 
     with pytest.raises(ValidationError):
-        EDRRCycleRequest.model_validate(
-            {"prompt": "", "max_iterations": 0}
-        )
+        EDRRCycleRequest.model_validate({"prompt": "", "max_iterations": 0})

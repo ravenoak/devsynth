@@ -14,7 +14,6 @@ from devsynth.application.collaboration.wsde_team_extended import CollaborativeW
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 
-
 pytestmark = [pytest.mark.medium]
 
 
@@ -98,7 +97,9 @@ def test_mark_and_detail_decision_updates_tracking():
     team.decision_documentation[decision_id] = {"summary": "Initial"}
 
     team.mark_decision_implemented(decision_id)
-    assert team.implemented_decisions[decision_id]["implementation_status"] == "completed"
+    assert (
+        team.implemented_decisions[decision_id]["implementation_status"] == "completed"
+    )
     assert (
         team.decision_tracking[decision_id]["metadata"]["implementation_status"]
         == "completed"

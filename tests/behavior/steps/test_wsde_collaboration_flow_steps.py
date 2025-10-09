@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,8 +6,7 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.application.collaboration.WSDE import WSDE
 from devsynth.domain.wsde.workflow import progress_roles
 from devsynth.methodology.base import Phase
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

@@ -6,9 +6,9 @@ from devsynth.application.agents.base import BaseAgent
 from devsynth.application.collaboration.collaborative_wsde_team import (
     CollaborativeWSDETeam,
 )
-from devsynth.application.collaboration.structures import SubtaskSpec
 from devsynth.application.collaboration.dto import AgentOpinionRecord, ConsensusOutcome
 from devsynth.application.collaboration.exceptions import PeerReviewConsensusError
+from devsynth.application.collaboration.structures import SubtaskSpec
 
 
 @pytest.fixture
@@ -197,9 +197,7 @@ class TestCollaborativeWSDETeamTaskManagement:
             consensus_id="cid-2",
             task_id="tid-2",
             method="majority_opinion",
-            agent_opinions=(
-                AgentOpinionRecord(agent_id="alpha", opinion="approve"),
-            ),
+            agent_opinions=(AgentOpinionRecord(agent_id="alpha", opinion="approve"),),
             majority_opinion="approve",
         )
 
@@ -341,7 +339,9 @@ class TestCollaborativeWSDETeamTaskManagement:
         ]
         assignments = team.delegate_subtasks(subtasks)
         assert len(assignments) == 3
-        assignment_dict = {result.subtask_id: result.assigned_to for result in assignments}
+        assignment_dict = {
+            result.subtask_id: result.assigned_to for result in assignments
+        }
         assert "subtask1" in assignment_dict
         assert "subtask2" in assignment_dict
         assert "subtask3" in assignment_dict

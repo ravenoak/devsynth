@@ -7,7 +7,6 @@ import pytest
 
 from devsynth.interface import webui
 
-
 pytestmark = [pytest.mark.requires_resource("webui"), pytest.mark.medium]
 
 

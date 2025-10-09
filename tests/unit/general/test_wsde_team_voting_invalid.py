@@ -1,5 +1,6 @@
-from devsynth.domain.models.wsde_facade import WSDETeam
 import pytest
+
+from devsynth.domain.models.wsde_facade import WSDETeam
 
 pytestmark = [pytest.mark.fast]
 

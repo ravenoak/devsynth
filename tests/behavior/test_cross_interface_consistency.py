@@ -11,10 +11,10 @@ pytest.importorskip("fastapi")
 pytest.importorskip("fastapi.testclient")
 from pytest_bdd import given, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
+
 # Import step definitions implemented for FR-67
 from .steps.test_cross_interface_consistency_steps import *  # noqa: F401,F403
-
-from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import sys
 from pathlib import Path
 
 import pytest
-
-import importlib.util
-import sys
 
 MODULE_PATH = (
     Path(__file__).resolve().parents[3]
@@ -114,7 +113,10 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
     assert connector_status["mode"] == "fixture"
     assert connector_status["provider"] == "local"
     assert connector_status["forced_local"] is False
-    assert "reasons" in connector_status and "not-configured" in connector_status["reasons"]
+    assert (
+        "reasons" in connector_status
+        and "not-configured" in connector_status["reasons"]
+    )
 
     expected = sign_payload(payload, secret="secret-value", key_id=f"env:{secret_env}")
     assert expected.digest == signature["digest"]
@@ -154,7 +156,9 @@ def test_mvuu_dashboard_cli_generates_signed_telemetry(
         "Planner",
         "Moderator",
     }
-    lead_payload = next(item for item in personas_payload if item["name"] == "Research Lead")
+    lead_payload = next(
+        item for item in personas_payload if item["name"] == "Research Lead"
+    )
     assert lead_payload["primary_role"] == "primus"
     assert "capabilities" in lead_payload and lead_payload["capabilities"]
     assert lead_payload.get("prompt_template")
@@ -204,7 +208,10 @@ def test_mvuu_dashboard_cli_uses_live_connectors(
         ) -> dict[str, object]:
             self.fetch_calls.append((sparql_query, session_id))
             return {
-                "results": {"records": [{"trace_id": "remote-1"}], "session_id": session_id},
+                "results": {
+                    "records": [{"trace_id": "remote-1"}],
+                    "session_id": session_id,
+                },
                 "metrics": {"pending": 0},
                 "extended_metadata": {
                     "socratic_checkpoints": [
@@ -255,16 +262,23 @@ def test_mvuu_dashboard_cli_uses_live_connectors(
     assert connector_status["mode"] == "live"
     assert connector_status["forced_local"] is False
     assert connector_status.get("reasons") in (None, [])
-    assert connector_status["handshake"]["session"]["session_id"] == telemetry["session_id"]
+    assert (
+        connector_status["handshake"]["session"]["session_id"]
+        == telemetry["session_id"]
+    )
     assert connector_status["query"]["results"]["records"] == [{"trace_id": "remote-1"}]
     assert telemetry["socratic_checkpoints"][0]["checkpoint_id"] == "remote-ck"
     assert telemetry["debate_logs"][0]["label"] == "Remote Debate"
-    assert telemetry["planner_graph_exports"][0]["graphviz_source"].startswith("digraph")
+    assert telemetry["planner_graph_exports"][0]["graphviz_source"].startswith(
+        "digraph"
+    )
 
     assert stub_client.handshake_calls
     assert stub_client.fetch_calls
 
-    streamlit_call = next((cmd, env) for cmd, env in captured if cmd[:2] == ["streamlit", "run"])
+    streamlit_call = next(
+        (cmd, env) for cmd, env in captured if cmd[:2] == ["streamlit", "run"]
+    )
     _, env = streamlit_call
     assert env["DEVSYNTH_EXTERNAL_RESEARCH_MODE"] == "live"
 
@@ -296,7 +310,9 @@ def test_mvuu_dashboard_cli_falls_back_on_connector_error(
             self.handshake_calls += 1
             raise RuntimeError("handshake failure")
 
-        def fetch_trace_updates(self, sparql_query: str, session_id: str | None = None) -> dict[str, object]:
+        def fetch_trace_updates(
+            self, sparql_query: str, session_id: str | None = None
+        ) -> dict[str, object]:
             self.fetch_calls += 1
             return {}
 
@@ -328,7 +344,9 @@ def test_mvuu_dashboard_cli_falls_back_on_connector_error(
     assert stub_client.handshake_calls == 1
     assert stub_client.fetch_calls == 0
 
-    streamlit_call = next((cmd, env) for cmd, env in captured if cmd[:2] == ["streamlit", "run"])
+    streamlit_call = next(
+        (cmd, env) for cmd, env in captured if cmd[:2] == ["streamlit", "run"]
+    )
     _, env = streamlit_call
     assert env["DEVSYNTH_EXTERNAL_RESEARCH_MODE"] == "fixture"
 
@@ -354,7 +372,9 @@ def test_mvuu_dashboard_cli_force_local_mode(
     def failing_builder(*, enabled: bool):  # type: ignore[no-untyped-def]
         raise AssertionError("builder should not be called when forced local")
 
-    monkeypatch.setattr(mvuu_dashboard_cmd, "_build_autoresearch_client", failing_builder)
+    monkeypatch.setattr(
+        mvuu_dashboard_cmd, "_build_autoresearch_client", failing_builder
+    )
 
     exit_code = mvuu_dashboard_cmd.mvuu_dashboard_cmd(
         [
@@ -374,7 +394,9 @@ def test_mvuu_dashboard_cli_force_local_mode(
     assert connector_status["forced_local"] is True
     assert "forced-local" in connector_status["reasons"]
 
-    streamlit_call = next((cmd, env) for cmd, env in captured if cmd[:2] == ["streamlit", "run"])
+    streamlit_call = next(
+        (cmd, env) for cmd, env in captured if cmd[:2] == ["streamlit", "run"]
+    )
     _, env = streamlit_call
     assert env["DEVSYNTH_EXTERNAL_RESEARCH_MODE"] == "fixture"
 

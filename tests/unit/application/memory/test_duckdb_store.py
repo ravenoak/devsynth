@@ -9,7 +9,6 @@ from typing import Any, Protocol, TypeVar
 import numpy as np
 import pytest
 
-
 pytestmark = pytest.mark.requires_resource("duckdb")
 
 
@@ -96,8 +95,8 @@ setattr(interfaces_pkg, "memory", memory_stub)
 
 sys.modules.pop("devsynth.application.memory.duckdb_store", None)
 
-from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.application.memory.dto import MemoryRecord, build_memory_record
+from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
@@ -206,9 +205,7 @@ class TestDuckDBStore:
         assert all(isinstance(record, MemoryRecord) for record in results)
         assert all(isinstance(record.metadata, dict) for record in results)
         assert len(results) == 2
-        assert all(
-            (record.metadata or {}).get("tag") == "test" for record in results
-        )
+        assert all((record.metadata or {}).get("tag") == "test" for record in results)
         results = store.search({"content": "Content 2"})
         assert isinstance(results, list)
         assert all(isinstance(record, MemoryRecord) for record in results)
@@ -305,9 +302,7 @@ class TestDuckDBStore:
         assert retrieved_vector.id == vector_id
         assert retrieved_vector.content == "Test vector content"
         assert len(retrieved_vector.item.embedding) == 5
-        assert np.allclose(
-            retrieved_vector.item.embedding, [0.1, 0.2, 0.3, 0.4, 0.5]
-        )
+        assert np.allclose(retrieved_vector.item.embedding, [0.1, 0.2, 0.3, 0.4, 0.5])
         assert retrieved_vector.metadata == {"key": "value"}
         assert isinstance(retrieved_vector.created_at, datetime)
 
@@ -414,7 +409,9 @@ class TestDuckDBStore:
                 return list(self._rows)
 
         first_responses = iter([_StubCursor([(0,)]), _StubCursor([]), _StubCursor([])])
-        store.conn.execute = lambda *args, **kwargs: next(first_responses, _StubCursor([]))
+        store.conn.execute = lambda *args, **kwargs: next(
+            first_responses, _StubCursor([])
+        )
 
         stats = store.get_collection_stats()
         assert stats["vector_count"] == 0
@@ -426,7 +423,9 @@ class TestDuckDBStore:
                 _StubCursor([]),
             ]
         )
-        store.conn.execute = lambda *args, **kwargs: next(second_responses, _StubCursor([]))
+        store.conn.execute = lambda *args, **kwargs: next(
+            second_responses, _StubCursor([])
+        )
 
         stats = store.get_collection_stats()
         assert stats["vector_count"] == 3

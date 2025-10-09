@@ -6,7 +6,6 @@ from tests.fixtures.resources import (
     skip_module_if_backend_disabled,
 )
 
-
 skip_module_if_backend_disabled("chromadb")
 
 pytest.importorskip(
@@ -19,7 +18,6 @@ MultiStoreSyncManager = pytest.importorskip(
     reason="Install the 'memory' Poetry extra to exercise the multi-store sync manager.",
 ).MultiStoreSyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-
 
 pytestmark = [
     *skip_if_missing_backend("chromadb"),

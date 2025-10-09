@@ -29,8 +29,6 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
-
-
 @pytest.mark.parametrize(
     "provider_resource",
     [

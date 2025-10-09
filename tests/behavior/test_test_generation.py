@@ -4,9 +4,7 @@ import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.agents.test import TestAgent
-
 from tests.behavior.feature_paths import feature_path
-
 
 pytestmark = [pytest.mark.fast]
 

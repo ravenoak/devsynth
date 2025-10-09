@@ -25,7 +25,6 @@ from tests.fixtures.resources import (
     backend_skip_reason,
 )
 
-
 pytestmark = [pytest.mark.integration]
 
 

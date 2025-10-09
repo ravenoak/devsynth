@@ -12,6 +12,7 @@ import pytest
 
 from tests.fixtures.streamlit_mocks import StreamlitModule, StreamlitStub
 
+
 def create_mock_streamlit() -> StreamlitModule:
     """Create a mock streamlit module with session state for testing."""
     st = StreamlitStub()

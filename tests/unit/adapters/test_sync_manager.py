@@ -1,6 +1,5 @@
 import asyncio
 import importlib.util
-import importlib.util
 import pathlib
 import sys
 import types
@@ -57,9 +56,7 @@ class InMemoryStore(MemoryStore):
     def retrieve(self, item_id: str) -> MemoryItem | None:
         return self.items.get(item_id)
 
-    def search(
-        self, query: Mapping[str, object] | Any
-    ) -> list[MemoryItem]:
+    def search(self, query: Mapping[str, object] | Any) -> list[MemoryItem]:
         return list(self.items.values())
 
     def delete(self, item_id: str) -> bool:

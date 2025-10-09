@@ -8,8 +8,8 @@ from typing import Any
 
 import pytest
 
-from devsynth.methodology.edrr.reasoning_loop import Phase
 from devsynth.methodology.edrr.contracts import NullWSDETeam
+from devsynth.methodology.edrr.reasoning_loop import Phase
 
 rl = importlib.import_module("devsynth.methodology.edrr.reasoning_loop")
 
@@ -44,7 +44,9 @@ def patch_reasoning_loop(
 ) -> None:
     """Patch reasoning loop internals to use deterministic callables."""
 
-    monkeypatch.setattr(rl, "_apply_dialectical_reasoning", fake_callable, raising=False)
+    monkeypatch.setattr(
+        rl, "_apply_dialectical_reasoning", fake_callable, raising=False
+    )
     monkeypatch.setattr(
         rl, "_import_apply_dialectical_reasoning", lambda: fake_callable
     )
@@ -117,7 +119,9 @@ def test_reasoning_loop_raises_for_non_mapping_results(monkeypatch):
     def invalid_apply(*_args, **_kwargs):
         return "unsupported"
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: invalid_apply)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: invalid_apply
+    )
 
     with pytest.raises(TypeError, match="must return a mapping payload"):
         rl.reasoning_loop(NullWSDETeam(), {"solution": "seed"}, None)

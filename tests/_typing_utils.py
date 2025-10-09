@@ -10,7 +10,7 @@ R = TypeVar("R")
 
 
 def ensure_typed_decorator(
-    decorator: Callable[[Callable[P, R]], Any]
+    decorator: Callable[[Callable[P, R]], Any],
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Wrap a decorator that would otherwise erase typing information."""
 

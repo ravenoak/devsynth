@@ -43,7 +43,9 @@ class _Boom:
 
 
 @pytest.mark.fast
-def test_rendering_simulation_records_summary_and_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_rendering_simulation_records_summary_and_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """simulate_progress_rendering mirrors CLI telemetry and sanitises errors."""
 
     stub = BehaviorStreamlitStub()
@@ -200,11 +202,19 @@ def test_rendering_simulation_handles_nested_summary_and_clock() -> None:
     assert any("00:01:10" in call for call in history_container.markdown_calls)
 
     assert checkpoint_container.markdown_calls[0] == "**Checkpoints**"
-    assert any("25%" in info and "ETA 00:04:10" in info for info in checkpoint_container.info_calls)
+    assert any(
+        "25%" in info and "ETA 00:04:10" in info
+        for info in checkpoint_container.info_calls
+    )
 
     assert len(subtask_containers) == 2
-    assert subtask_containers[0].markdown_calls[0] == "**stage &lt;alpha&gt;** — 75% complete"
-    assert any("Primed &lt;1&gt;" in call for call in subtask_containers[0].markdown_calls)
+    assert (
+        subtask_containers[0].markdown_calls[0]
+        == "**stage &lt;alpha&gt;** — 75% complete"
+    )
+    assert any(
+        "Primed &lt;1&gt;" in call for call in subtask_containers[0].markdown_calls
+    )
     assert any("ETA 00:04:10" in info for info in subtask_containers[0].info_calls)
     assert subtask_containers[1].markdown_calls[0] == "**stage beta** — 50% complete"
     assert any("25%" in call for call in subtask_containers[1].markdown_calls)
@@ -214,7 +224,9 @@ def test_rendering_simulation_handles_nested_summary_and_clock() -> None:
 
 
 @pytest.mark.fast
-def test_ui_progress_simulation_drives_eta_and_completion(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_ui_progress_simulation_drives_eta_and_completion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """WebUI._UIProgress under a stubbed Streamlit emits ETA and success messages."""
 
     stub = BehaviorStreamlitStub()
@@ -271,7 +283,9 @@ def test_webui_display_result_sanitises_error(monkeypatch: pytest.MonkeyPatch) -
 
 
 @pytest.mark.fast
-def test_webui_bridge_simulation_sanitises_nested_tasks(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_bridge_simulation_sanitises_nested_tasks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """WebUIProgressIndicator mirrors nested cascades with safe fallbacks."""
 
     clock = _LinearClock(start=0.0, step=3.0)
@@ -295,11 +309,13 @@ def test_webui_bridge_simulation_sanitises_nested_tasks(monkeypatch: pytest.Monk
     assert nested_state.description == "<nested subtask>"
     assert nested_state.status == "Complete"
 
-    assert webui_bridge.WebUIBridge.adjust_wizard_step(0, direction="back", total=2) == 0
-    assert webui_bridge.WebUIBridge.adjust_wizard_step(0, direction="next", total=2) == 1
     assert (
-        webui_bridge.WebUIBridge.normalize_wizard_step(" 3.7 ", total=5) == 3
+        webui_bridge.WebUIBridge.adjust_wizard_step(0, direction="back", total=2) == 0
     )
+    assert (
+        webui_bridge.WebUIBridge.adjust_wizard_step(0, direction="next", total=2) == 1
+    )
+    assert webui_bridge.WebUIBridge.normalize_wizard_step(" 3.7 ", total=5) == 3
     assert webui_bridge.WebUIBridge.normalize_wizard_step("oops", total=5) == 0
 
 
@@ -324,7 +340,9 @@ def test_webui_require_streamlit_cache(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.fast
-def test_webui_bridge_require_streamlit_guidance(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_bridge_require_streamlit_guidance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Bridge `_require_streamlit` surfaces install guidance on failure."""
 
     monkeypatch.setattr(webui_bridge, "st", None, raising=False)

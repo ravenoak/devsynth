@@ -6,8 +6,8 @@ from devsynth.application.collaboration.collaboration_memory_utils import (
     flush_memory_queue,
     restore_memory_queue,
 )
-from devsynth.application.collaboration.structures import MemoryQueueEntry
 from devsynth.application.collaboration.dto import MemorySyncPort
+from devsynth.application.collaboration.structures import MemoryQueueEntry
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 

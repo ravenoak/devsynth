@@ -1,5 +1,5 @@
-import yaml
 import pytest
+import yaml
 
 from devsynth.adapters.jira_adapter import JiraAdapter
 

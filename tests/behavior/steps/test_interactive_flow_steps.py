@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 import json
 import os
 import sys
@@ -10,10 +9,9 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.requirements.interactions import RequirementsCollector
 from devsynth.interface.ux_bridge import UXBridge
+from tests.behavior.feature_paths import feature_path
 
 from .webui_steps import webui_context
-
-
 
 pytestmark = [pytest.mark.fast]
 
@@ -44,8 +42,12 @@ class DummyBridge(UXBridge):
 
 scenarios(feature_path(__file__, "general", "interactive_flow_cli.feature"))
 scenarios(feature_path(__file__, "general", "interactive_flow_webui.feature"))
-scenarios(feature_path(__file__, "general", "interactive_requirements_flow_cli.feature"))
-scenarios(feature_path(__file__, "general", "interactive_requirements_flow_webui.feature"))
+scenarios(
+    feature_path(__file__, "general", "interactive_requirements_flow_cli.feature")
+)
+scenarios(
+    feature_path(__file__, "general", "interactive_requirements_flow_webui.feature")
+)
 
 
 @given("the DevSynth CLI is installed")

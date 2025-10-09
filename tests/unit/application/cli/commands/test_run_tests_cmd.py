@@ -454,7 +454,10 @@ def test_run_tests_cmd_exits_when_pytest_cov_missing(monkeypatch) -> None:
 
     monkeypatch.setattr(
         "devsynth.application.cli.commands.run_tests_cmd.pytest_cov_support_status",
-        lambda env=None: (False, run_tests_cmd_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE),
+        lambda env=None: (
+            False,
+            run_tests_cmd_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE,
+        ),
     )
 
     def _fail_run_tests(*args: object, **kwargs: object) -> tuple[bool, str]:
@@ -497,7 +500,10 @@ def test_run_tests_cmd_exits_when_autoload_blocks_pytest_cov(monkeypatch) -> Non
 
     monkeypatch.setattr(
         "devsynth.application.cli.commands.run_tests_cmd.pytest_cov_support_status",
-        lambda env=None: (False, run_tests_cmd_module.PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE),
+        lambda env=None: (
+            False,
+            run_tests_cmd_module.PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE,
+        ),
     )
 
     def _fail_run_tests(*args: object, **kwargs: object) -> tuple[bool, str]:

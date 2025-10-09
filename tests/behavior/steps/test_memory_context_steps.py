@@ -6,17 +6,16 @@ feature file, which tests the functionality of storing, retrieving, and
 searching for information during the development process.
 """
 
-from tests.behavior.feature_paths import feature_path
 import json
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-
 
 
 scenarios(feature_path(__file__, "general", "memory_context_system.feature"))

@@ -30,7 +30,6 @@ if not is_resource_available("chromadb"):
 from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
     pytest.mark.memory_intensive,

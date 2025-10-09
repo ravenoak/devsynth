@@ -6,7 +6,6 @@ from devsynth.methodology.base import Phase
 from devsynth.methodology.sprint import SprintAdapter
 
 
-
 @pytest.mark.slow
 def test_requirements_analysis_updates_sprint_plan():
     """SprintAdapter aligns planning with requirement analysis results."""

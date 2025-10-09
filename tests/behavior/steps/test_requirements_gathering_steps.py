@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 import os
 import sys
 from collections.abc import Sequence
@@ -10,15 +9,13 @@ import yaml
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.interface.ux_bridge import UXBridge
+from tests.behavior.feature_paths import feature_path
 
 from .webui_steps import webui_context
-
 
 pytestmark = pytest.mark.fast
 
 # These steps exercise both CLI and WebUI flows for requirements gathering
-
-
 
 
 class DummyBridge(UXBridge):
@@ -44,8 +41,11 @@ class DummyBridge(UXBridge):
     def display_result(self, message: str, *, highlight: bool = False) -> None:
         pass
 
+
 scenarios(feature_path(__file__, "general", "requirements_gathering.feature"))
-scenarios(feature_path(__file__, "general", "interactive_requirements_gathering.feature"))
+scenarios(
+    feature_path(__file__, "general", "interactive_requirements_gathering.feature")
+)
 
 
 @given("the DevSynth CLI is installed")

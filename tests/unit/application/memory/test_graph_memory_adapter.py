@@ -164,9 +164,7 @@ class TestGraphMemoryAdapter:
     def test_research_artifact_traversal_and_reload(self, temp_dir):
         """Research artefacts persist and participate in traversals."""
 
-        adapter = EnhancedGraphMemoryAdapter(
-            base_path=temp_dir, use_rdflib_store=True
-        )
+        adapter = EnhancedGraphMemoryAdapter(base_path=temp_dir, use_rdflib_store=True)
 
         item_one = MemoryItem(
             id="node1",
@@ -208,18 +206,14 @@ class TestGraphMemoryAdapter:
         without_research = adapter.traverse_graph(item_one.id, 2)
         assert without_research == {item_two.id}
 
-        with_research = adapter.traverse_graph(
-            item_one.id, 2, include_research=True
-        )
+        with_research = adapter.traverse_graph(item_one.id, 2, include_research=True)
         assert artifact_id in with_research
         assert item_two.id in with_research
 
         graph_file = Path(temp_dir) / "graph_memory.ttl"
         assert graph_file.exists()
 
-        reloaded = EnhancedGraphMemoryAdapter(
-            base_path=temp_dir, use_rdflib_store=True
-        )
+        reloaded = EnhancedGraphMemoryAdapter(base_path=temp_dir, use_rdflib_store=True)
         reloaded_traversal = reloaded.traverse_graph(
             item_one.id, 2, include_research=True
         )
@@ -268,9 +262,7 @@ class TestGraphMemoryAdapter:
     def test_ingest_helper_generates_hash_and_summary(self, temp_dir):
         """Helper returns deterministic digests and summary content."""
 
-        adapter = EnhancedGraphMemoryAdapter(
-            base_path=temp_dir, use_rdflib_store=True
-        )
+        adapter = EnhancedGraphMemoryAdapter(base_path=temp_dir, use_rdflib_store=True)
 
         artifact_path = Path(temp_dir) / "digest.txt"
         artifact_path.write_text("Important experimental log entry")

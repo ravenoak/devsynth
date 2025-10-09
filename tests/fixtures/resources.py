@@ -134,17 +134,13 @@ def backend_skip_reason(resource: str, extras: Sequence[str]) -> str:
     )
 
 
-def backend_import_reason(
-    resource: str, extras: Sequence[str] | None = None
-) -> str:
+def backend_import_reason(resource: str, extras: Sequence[str] | None = None) -> str:
     """Return a message for ``pytest.importorskip`` calls."""
 
     resolved_extras, _ = _resolve_backend_metadata(resource, extras=extras)
     commands = _format_install_commands(resolved_extras)
     if commands:
-        return (
-            f"Install {commands} to enable the optional '{resource}' backend tests."
-        )
+        return f"Install {commands} to enable the optional '{resource}' backend tests."
     return f"Optional backend '{resource}' dependencies are not installed."
 
 

@@ -49,7 +49,11 @@ def reloaded_webui(monkeypatch: pytest.MonkeyPatch) -> Iterator[Tuple[object, ob
             pass
 
         def format_message(
-            self, message: str, *, message_type: str | None = None, highlight: bool = False
+            self,
+            message: str,
+            *,
+            message_type: str | None = None,
+            highlight: bool = False,
         ) -> str:
             return message
 
@@ -98,7 +102,7 @@ def reloaded_webui(monkeypatch: pytest.MonkeyPatch) -> Iterator[Tuple[object, ob
 
 @pytest.mark.fast
 def test_webui_layout_breakpoints_toggle_between_modes(
-    reloaded_webui: Tuple[object, object]
+    reloaded_webui: Tuple[object, object],
 ) -> None:
     """Mobile, tablet, and desktop dashboards set distinct layout toggles."""
 
@@ -126,7 +130,7 @@ def test_webui_layout_breakpoints_toggle_between_modes(
 
 @pytest.mark.fast
 def test_webui_error_guidance_surfaces_suggestions_and_docs(
-    reloaded_webui: Tuple[object, object]
+    reloaded_webui: Tuple[object, object],
 ) -> None:
     """Error rendering includes guidance and documentation links for dashboard users."""
 
@@ -139,8 +143,9 @@ def test_webui_error_guidance_surfaces_suggestions_and_docs(
 
     markdown_calls = [call.args[0] for call in st.markdown.call_args_list]
     assert "**Suggestions:**" in markdown_calls
-    assert any(line.startswith("- Check that the file path is correct") for line in markdown_calls)
-    assert "**Documentation:**" in markdown_calls
     assert any(
-        line.startswith("- [File Handling Guide]" ) for line in markdown_calls
+        line.startswith("- Check that the file path is correct")
+        for line in markdown_calls
     )
+    assert "**Documentation:**" in markdown_calls
+    assert any(line.startswith("- [File Handling Guide]") for line in markdown_calls)

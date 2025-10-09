@@ -5,7 +5,6 @@ import types
 
 import pytest
 
-
 pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
 
 

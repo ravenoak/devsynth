@@ -1,8 +1,7 @@
 """Regression tests for retry logic with circuit breaker and condition hooks."""
 
-from unittest.mock import MagicMock
-
 from typing import Any, cast
+from unittest.mock import MagicMock
 
 import pytest
 

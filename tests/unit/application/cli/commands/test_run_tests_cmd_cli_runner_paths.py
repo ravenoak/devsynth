@@ -127,9 +127,7 @@ def test_cli_inventory_mode_exports_json_via_typer(
         "integration-tests",
         "behavior-tests",
     }
-    assert payload["targets"]["unit-tests"]["fast"] == [
-        "unit-tests::fast::test_case"
-    ]
+    assert payload["targets"]["unit-tests"]["fast"] == ["unit-tests::fast::test_case"]
 
 
 @pytest.mark.fast
@@ -159,8 +157,12 @@ def test_cli_smoke_dry_run_invokes_preview(
 
     monkeypatch.setattr(run_tests_module, "run_tests", fake_run_tests)
     monkeypatch.setattr(cli_module, "run_tests", fake_run_tests)
-    monkeypatch.setattr(run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: False)
-    monkeypatch.setattr(run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
+    monkeypatch.setattr(
+        run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: False
+    )
+    monkeypatch.setattr(
+        run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: False
+    )
 
     runner = CliRunner()
     result = runner.invoke(
@@ -210,12 +212,21 @@ def test_cli_enforces_coverage_threshold_via_cli_runner(
     for module_name, attr in [
         ("devsynth.application.cli.commands.edrr_cycle_cmd", "edrr_cycle_cmd"),
         ("devsynth.application.cli.commands.align_cmd", "align_cmd"),
-        ("devsynth.application.cli.commands.analyze_manifest_cmd", "analyze_manifest_cmd"),
+        (
+            "devsynth.application.cli.commands.analyze_manifest_cmd",
+            "analyze_manifest_cmd",
+        ),
         ("devsynth.application.cli.commands.generate_docs_cmd", "generate_docs_cmd"),
         ("devsynth.application.cli.commands.ingest_cmd", "ingest_cmd"),
         ("devsynth.application.cli.commands.doctor_cmd", "doctor_cmd"),
-        ("devsynth.application.cli.commands.validate_manifest_cmd", "validate_manifest_cmd"),
-        ("devsynth.application.cli.commands.validate_metadata_cmd", "validate_metadata_cmd"),
+        (
+            "devsynth.application.cli.commands.validate_manifest_cmd",
+            "validate_manifest_cmd",
+        ),
+        (
+            "devsynth.application.cli.commands.validate_metadata_cmd",
+            "validate_metadata_cmd",
+        ),
     ]:
         stub_module = ModuleType(module_name)
         setattr(stub_module, attr, lambda *args, **kwargs: None)
@@ -262,12 +273,8 @@ def test_cli_enforces_coverage_threshold_via_cli_runner(
         lambda bridge: emit_calls.append(bridge),
     )
 
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
-    )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
-    )
+    monkeypatch.setattr(cli_module, "ensure_pytest_cov_plugin_env", lambda env: False)
+    monkeypatch.setattr(cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
 
     result = runner.invoke(
         app,
@@ -302,12 +309,21 @@ def test_cli_smoke_mode_reports_coverage_skip_and_artifacts(
     for module_name, attr in [
         ("devsynth.application.cli.commands.edrr_cycle_cmd", "edrr_cycle_cmd"),
         ("devsynth.application.cli.commands.align_cmd", "align_cmd"),
-        ("devsynth.application.cli.commands.analyze_manifest_cmd", "analyze_manifest_cmd"),
+        (
+            "devsynth.application.cli.commands.analyze_manifest_cmd",
+            "analyze_manifest_cmd",
+        ),
         ("devsynth.application.cli.commands.generate_docs_cmd", "generate_docs_cmd"),
         ("devsynth.application.cli.commands.ingest_cmd", "ingest_cmd"),
         ("devsynth.application.cli.commands.doctor_cmd", "doctor_cmd"),
-        ("devsynth.application.cli.commands.validate_manifest_cmd", "validate_manifest_cmd"),
-        ("devsynth.application.cli.commands.validate_metadata_cmd", "validate_metadata_cmd"),
+        (
+            "devsynth.application.cli.commands.validate_manifest_cmd",
+            "validate_manifest_cmd",
+        ),
+        (
+            "devsynth.application.cli.commands.validate_metadata_cmd",
+            "validate_metadata_cmd",
+        ),
     ]:
         stub_module = ModuleType(module_name)
         setattr(stub_module, attr, lambda *args, **kwargs: None)
@@ -351,8 +367,10 @@ def test_cli_smoke_mode_reports_coverage_skip_and_artifacts(
     result = runner.invoke(app, ["--smoke", "--report"], prog_name="run-tests")
 
     assert result.exit_code == 0, result.stdout
-    assert "Coverage enforcement skipped in smoke mode" in result.stdout
-    assert "coverage data collected for diagnostics" in result.stdout
+
+    normalized_stdout = " ".join(result.stdout.split())
+    assert "Coverage enforcement skipped in smoke mode" in normalized_stdout
+    assert "coverage data collected for diagnostics" in normalized_stdout
     assert artifact_bridges, "Smoke mode should still emit artifact guidance"
 
     assert recorded_args, "run_tests should be invoked"
@@ -405,11 +423,18 @@ def test_cli_exits_when_autoload_disables_pytest_cov(
     )
 
     assert result.exit_code == 1
-    assert "Coverage instrumentation unavailable: pytest plugin autoload disabled without -p pytest_cov" in result.stdout
+
+    normalized_stdout = " ".join(result.stdout.split())
+    assert (
+        "Coverage instrumentation unavailable: pytest plugin autoload disabled without -p pytest_cov"
+        in normalized_stdout
+    )
 
 
 @pytest.mark.fast
-def test_cli_exits_when_pytest_cov_disabled_via_autoload(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_exits_when_pytest_cov_disabled_via_autoload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Typer run surfaces remediation tips when pytest-cov is disabled."""
 
     app, cli_module = build_minimal_cli_app(monkeypatch)
@@ -441,12 +466,8 @@ def test_cli_exits_when_pytest_cov_disabled_via_autoload(monkeypatch: pytest.Mon
         ),
     )
 
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
-    )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
-    )
+    monkeypatch.setattr(cli_module, "ensure_pytest_cov_plugin_env", lambda env: False)
+    monkeypatch.setattr(cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
 
     result = runner.invoke(
         app,
@@ -455,4 +476,9 @@ def test_cli_exits_when_pytest_cov_disabled_via_autoload(monkeypatch: pytest.Mon
     )
 
     assert result.exit_code == 1
-    assert "Coverage instrumentation unavailable: pytest plugin autoload disabled without -p pytest_cov" in result.stdout
+
+    normalized_stdout = " ".join(result.stdout.split())
+    assert (
+        "Coverage instrumentation unavailable: pytest plugin autoload disabled without -p pytest_cov"
+        in normalized_stdout
+    )

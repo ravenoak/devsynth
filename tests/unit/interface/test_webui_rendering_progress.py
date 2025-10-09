@@ -51,13 +51,19 @@ if importlib.util.find_spec("jsonschema") is None:
 if importlib.util.find_spec("toml") is None:
     toml_stub = types.ModuleType("toml")
 
-    def load(file: object, *args: object, **kwargs: object) -> dict[str, object]:  # pragma: no cover
+    def load(
+        file: object, *args: object, **kwargs: object
+    ) -> dict[str, object]:  # pragma: no cover
         return {}
 
-    def loads(text: str, *args: object, **kwargs: object) -> dict[str, object]:  # pragma: no cover
+    def loads(
+        text: str, *args: object, **kwargs: object
+    ) -> dict[str, object]:  # pragma: no cover
         return {}
 
-    def dump(data: object, file: object, *args: object, **kwargs: object) -> None:  # pragma: no cover
+    def dump(
+        data: object, file: object, *args: object, **kwargs: object
+    ) -> None:  # pragma: no cover
         return None
 
     def dumps(data: object, *args: object, **kwargs: object) -> str:  # pragma: no cover
@@ -72,10 +78,14 @@ if importlib.util.find_spec("toml") is None:
 if importlib.util.find_spec("yaml") is None:
     yaml_stub = types.ModuleType("yaml")
 
-    def safe_load(stream: object) -> dict[str, object] | list[object] | None:  # pragma: no cover
+    def safe_load(
+        stream: object,
+    ) -> dict[str, object] | list[object] | None:  # pragma: no cover
         return {}
 
-    def safe_dump(data: object, stream: object = None, *args: object, **kwargs: object) -> str | None:  # pragma: no cover
+    def safe_dump(
+        data: object, stream: object = None, *args: object, **kwargs: object
+    ) -> str | None:  # pragma: no cover
         if stream is None:
             return ""
         return None
@@ -87,10 +97,14 @@ if importlib.util.find_spec("yaml") is None:
 if importlib.util.find_spec("pydantic") is None:
     config_stub = types.ModuleType("devsynth.config")
 
-    def load_project_config(path: object | None = None) -> dict[str, object]:  # pragma: no cover
+    def load_project_config(
+        path: object | None = None,
+    ) -> dict[str, object]:  # pragma: no cover
         return {}
 
-    def save_config(config: object, path: object | None = None) -> None:  # pragma: no cover
+    def save_config(
+        config: object, path: object | None = None
+    ) -> None:  # pragma: no cover
         return None
 
     config_stub.load_project_config = load_project_config  # type: ignore[attr-defined]

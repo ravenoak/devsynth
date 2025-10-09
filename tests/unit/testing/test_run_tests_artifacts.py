@@ -10,6 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 import devsynth.testing.run_tests as run_tests_module
+
 from .run_tests_test_utils import build_batch_metadata
 
 
@@ -27,7 +28,9 @@ def coverage_paths(
 
 
 @pytest.mark.fast
-def test_reset_coverage_artifacts_removes_stale_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reset_coverage_artifacts_removes_stale_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Existing coverage outputs should be deleted prior to a new run."""
 
     monkeypatch.chdir(tmp_path)
@@ -57,7 +60,9 @@ def test_reset_coverage_artifacts_removes_stale_files(tmp_path: Path, monkeypatc
 
 
 @pytest.mark.fast
-def test_ensure_coverage_artifacts_generates_reports(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_ensure_coverage_artifacts_generates_reports(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Fragmented coverage data should consolidate into HTML and JSON reports."""
 
     monkeypatch.chdir(tmp_path)
@@ -98,13 +103,20 @@ def test_ensure_coverage_artifacts_generates_reports(tmp_path: Path, monkeypatch
         def json_report(self, outfile: str) -> None:
             Path(outfile).write_text(json.dumps({"totals": {"percent_covered": 99.0}}))
 
-    monkeypatch.setitem(sys.modules, "coverage", SimpleNamespace(Coverage=DummyCoverage))
+    monkeypatch.setitem(
+        sys.modules, "coverage", SimpleNamespace(Coverage=DummyCoverage)
+    )
 
     run_tests_module._ensure_coverage_artifacts()
 
     consolidated = tmp_path / ".coverage"
     assert consolidated.exists()
-    assert json.loads((tmp_path / "coverage.json").read_text())["totals"]["percent_covered"] == 99.0
+    assert (
+        json.loads((tmp_path / "coverage.json").read_text())["totals"][
+            "percent_covered"
+        ]
+        == 99.0
+    )
     assert (html_dir / "index.html").exists()
     assert (legacy_dir / "index.html").exists()
     assert not fragment_one.exists()
@@ -112,12 +124,18 @@ def test_ensure_coverage_artifacts_generates_reports(tmp_path: Path, monkeypatch
 
 
 @pytest.mark.fast
-def test_run_tests_fails_when_pytest_cov_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_tests_fails_when_pytest_cov_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Missing pytest-cov plugin should surface a coverage remediation message."""
 
     monkeypatch.setattr(run_tests_module, "_reset_coverage_artifacts", lambda: None)
-    monkeypatch.setattr(run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: None)
-    monkeypatch.setattr(run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: None)
+    monkeypatch.setattr(
+        run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: None
+    )
+    monkeypatch.setattr(
+        run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: None
+    )
     monkeypatch.setattr(
         run_tests_module,
         "pytest_cov_support_status",
@@ -135,11 +153,19 @@ def test_run_tests_successful_single_batch(monkeypatch: pytest.MonkeyPatch) -> N
     """Successful execution should include runner output and publication notice."""
 
     monkeypatch.setattr(run_tests_module, "_reset_coverage_artifacts", lambda: None)
-    monkeypatch.setattr(run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: None)
-    monkeypatch.setattr(run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: None)
-    monkeypatch.setattr(run_tests_module, "pytest_cov_support_status", lambda env: (True, None))
+    monkeypatch.setattr(
+        run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: None
+    )
+    monkeypatch.setattr(
+        run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: None
+    )
+    monkeypatch.setattr(
+        run_tests_module, "pytest_cov_support_status", lambda env: (True, None)
+    )
 
-    def fake_collect(target: str, speed: str | None, *, keyword_filter: str | None = None) -> list[str]:
+    def fake_collect(
+        target: str, speed: str | None, *, keyword_filter: str | None = None
+    ) -> list[str]:
         return [f"{target}::{speed or 'all'}::test_case"]
 
     monkeypatch.setattr(run_tests_module, "collect_tests_with_cache", fake_collect)
@@ -148,8 +174,10 @@ def test_run_tests_successful_single_batch(monkeypatch: pytest.MonkeyPatch) -> N
         config: run_tests_module.SingleBatchRequest,
     ) -> run_tests_module.BatchExecutionResult:
         assert list(config.node_ids)
-        return True, "pytest ok", build_batch_metadata(
-            "batch-artifacts", command=["pytest"], returncode=0
+        return (
+            True,
+            "pytest ok",
+            build_batch_metadata("batch-artifacts", command=["pytest"], returncode=0),
         )
 
     monkeypatch.setattr(run_tests_module, "_run_single_test_batch", fake_single_batch)
@@ -174,7 +202,7 @@ def test_run_tests_successful_single_batch(monkeypatch: pytest.MonkeyPatch) -> N
 
 @pytest.mark.fast
 def test_coverage_artifacts_status_handles_missing_json(
-    coverage_paths: tuple[Path, Path]
+    coverage_paths: tuple[Path, Path],
 ) -> None:
     """Missing JSON artifacts should surface a descriptive remediation message."""
 
@@ -189,7 +217,7 @@ def test_coverage_artifacts_status_handles_missing_json(
 
 @pytest.mark.fast
 def test_coverage_artifacts_status_rejects_invalid_json(
-    coverage_paths: tuple[Path, Path]
+    coverage_paths: tuple[Path, Path],
 ) -> None:
     """Invalid coverage JSON payloads should be rejected with context."""
 
@@ -206,7 +234,7 @@ def test_coverage_artifacts_status_rejects_invalid_json(
 
 @pytest.mark.fast
 def test_coverage_artifacts_status_detects_missing_html(
-    coverage_paths: tuple[Path, Path]
+    coverage_paths: tuple[Path, Path],
 ) -> None:
     """When the HTML report is absent the helper should flag the gap."""
 
@@ -221,7 +249,7 @@ def test_coverage_artifacts_status_detects_missing_html(
 
 @pytest.mark.fast
 def test_coverage_artifacts_status_detects_empty_html(
-    coverage_paths: tuple[Path, Path]
+    coverage_paths: tuple[Path, Path],
 ) -> None:
     """HTML reports that note missing data should trigger remediation."""
 

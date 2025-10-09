@@ -1,12 +1,10 @@
 """BDD steps for simple addition input validation."""
 
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.simple_addition import add
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

@@ -17,15 +17,20 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.prompts.prompt_manager import PromptManager
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
-
 from tests._typing_utils import ensure_typed_decorator
 
 
-def typed_given(*args: Any, **kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-    return ensure_typed_decorator(cast(Callable[[Callable[..., Any]], Any], given(*args, **kwargs)))
+def typed_given(
+    *args: Any, **kwargs: Any
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    return ensure_typed_decorator(
+        cast(Callable[[Callable[..., Any]], Any], given(*args, **kwargs))
+    )
 
 
-def typed_settings(*args: Any, **kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def typed_settings(
+    *args: Any, **kwargs: Any
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     return ensure_typed_decorator(
         cast(Callable[[Callable[..., Any]], Any], settings(*args, **kwargs))
     )

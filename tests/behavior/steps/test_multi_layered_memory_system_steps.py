@@ -6,18 +6,17 @@ and tiered cache strategy feature file, testing the memory organization and
 caching capabilities.
 """
 
-from tests.behavior.feature_paths import feature_path
 import time
 from typing import Any, Dict, List, Optional
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-
 
 
 scenarios(feature_path(__file__, "general", "multi_layered_memory_system.feature"))

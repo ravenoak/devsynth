@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.application.memory.retry import (
     DEFAULT_RETRY_CONFIG,
     NETWORK_RETRY_CONFIG,
@@ -19,7 +20,6 @@ from devsynth.application.memory.retry import (
     retry_with_backoff,
     with_retry,
 )
-from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 

@@ -1,12 +1,10 @@
 import pytest
 
+from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from tests.fixtures.resources import (
     backend_import_reason,
     skip_if_missing_backend,
 )
-
-from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-
 
 pytestmark = [
     *skip_if_missing_backend("chromadb"),

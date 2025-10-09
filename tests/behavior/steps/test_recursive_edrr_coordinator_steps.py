@@ -1,14 +1,13 @@
 """Step definitions for the Recursive EDRR Coordinator feature."""
 
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-
 
 
 scenarios(feature_path(__file__, "general", "recursive_edrr_coordinator.feature"))

@@ -11,7 +11,7 @@ from collections import defaultdict
 from collections.abc import Mapping, MutableMapping, Sequence
 from math import sqrt
 from types import ModuleType, SimpleNamespace
-from typing import Any, TYPE_CHECKING, Callable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
 
 _NUMPY_SPEC = importlib.util.find_spec("numpy")
 if _NUMPY_SPEC is not None:  # pragma: no branch - deterministic path selection
@@ -20,6 +20,7 @@ else:
     np = None  # type: ignore[assignment]
 
 import pytest
+from typing_extensions import Protocol
 
 from devsynth.application.memory.adapters._chromadb_protocols import (
     ChromaClientProtocol,
@@ -40,6 +41,7 @@ from devsynth.application.memory.adapters._tinydb_protocols import (
     TinyDBQueryLike,
     TinyDBTableLike,
 )
+from devsynth.application.memory.context_manager import ContextState, ContextValue
 from devsynth.application.memory.dto import (
     GroupedMemoryResults,
     MemoryMetadata,
@@ -49,11 +51,8 @@ from devsynth.application.memory.dto import (
     VectorStoreStats,
     build_memory_record,
 )
-from devsynth.application.memory.context_manager import ContextState, ContextValue
 from devsynth.application.memory.vector_protocol import EmbeddingVector
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from typing_extensions import Protocol
-
 
 T_Module = TypeVar("T_Module", bound=ModuleType)
 
@@ -129,7 +128,9 @@ if np is None:
             except Exception:
                 return [0.0]
 
-        def array(values: Sequence[object] | object, dtype: object | None = None) -> _Array:
+        def array(
+            values: Sequence[object] | object, dtype: object | None = None
+        ) -> _Array:
             return _Array(values)
 
         def _zeros(shape: Sequence[int] | int) -> list[object]:
@@ -179,24 +180,26 @@ if np is None:
 
     np = _install_stub("numpy", _build_numpy_stub)
 
+
 class MemoryRecordFactory(Protocol):
     def __call__(
         self,
-        payload: MemoryRecord
-        | MemoryItem
-        | MemoryVector
-        | Mapping[str, object]
-        | tuple[
-            MemoryRecord | MemoryItem | MemoryVector | Mapping[str, object],
-            float | int | None,
-        ]
-        | None,
+        payload: (
+            MemoryRecord
+            | MemoryItem
+            | MemoryVector
+            | Mapping[str, object]
+            | tuple[
+                MemoryRecord | MemoryItem | MemoryVector | Mapping[str, object],
+                float | int | None,
+            ]
+            | None
+        ),
         *,
         source: str | None = ...,
         similarity: float | None = ...,
         metadata: MemoryMetadata | None = ...,
-    ) -> MemoryRecord:
-        ...
+    ) -> MemoryRecord: ...
 
 
 def _build_tiktoken_stub() -> ModuleType:
@@ -254,7 +257,9 @@ def _build_chromadb_stub() -> ModuleType:
         ) -> ChromaGetResult | None:
             records = list(self._items.values())
             if ids is not None:
-                records = [self._items[item_id] for item_id in ids if item_id in self._items]
+                records = [
+                    self._items[item_id] for item_id in ids if item_id in self._items
+                ]
             if not records:
                 return None
 
@@ -268,7 +273,8 @@ def _build_chromadb_stub() -> ModuleType:
             }
             if include and "embeddings" in include:
                 result["embeddings"] = [
-                    cast(list[float], record.get("embeddings", [])) for record in records
+                    cast(list[float], record.get("embeddings", []))
+                    for record in records
                 ]
             return result
 
@@ -300,15 +306,21 @@ def _build_chromadb_stub() -> ModuleType:
 
             result: ChromaQueryResult = {
                 "ids": [ids for _ in query_embeddings],
-                "documents": [documents for _ in query_embeddings]
-                if "documents" in include
-                else [],
-                "metadatas": [metadatas for _ in query_embeddings]
-                if "metadatas" in include
-                else [],
-                "embeddings": [embeddings for _ in query_embeddings]
-                if "embeddings" in include
-                else [],
+                "documents": (
+                    [documents for _ in query_embeddings]
+                    if "documents" in include
+                    else []
+                ),
+                "metadatas": (
+                    [metadatas for _ in query_embeddings]
+                    if "metadatas" in include
+                    else []
+                ),
+                "embeddings": (
+                    [embeddings for _ in query_embeddings]
+                    if "embeddings" in include
+                    else []
+                ),
             }
             return result
 
@@ -481,12 +493,14 @@ def _build_duckdb_stub() -> ModuleType:
                     idx += 1
                     expected = (
                         json.loads(raw)
-                        if isinstance(raw, str) and raw.startswith("\"")
+                        if isinstance(raw, str) and raw.startswith('"')
                         else raw
                     )
                     filtered: list[dict[str, Any]] = []
                     for item in records:
-                        metadata = json.loads(item["metadata"]) if item["metadata"] else {}
+                        metadata = (
+                            json.loads(item["metadata"]) if item["metadata"] else {}
+                        )
                         if metadata.get(field) == expected:
                             filtered.append(item)
                     records = filtered
@@ -677,7 +691,9 @@ def _build_tinydb_stub() -> ModuleType:
             self.path = path
             self._storage = storage
             self._tables: dict[str, _TinyDBTable] = {"_default": _TinyDBTable()}
-            if callable(storage):  # pragma: no cover - storage initialization side effect
+            if callable(
+                storage
+            ):  # pragma: no cover - storage initialization side effect
                 try:
                     storage(path)
                 except TypeError:
@@ -693,9 +709,7 @@ def _build_tinydb_stub() -> ModuleType:
         def insert(self, item: Mapping[str, Any]) -> int:
             return self.table("_default").insert(item)
 
-        def upsert(
-            self, item: Mapping[str, Any], cond: TinyDBQueryLike
-        ) -> list[int]:
+        def upsert(self, item: Mapping[str, Any], cond: TinyDBQueryLike) -> list[int]:
             updated = self.table("_default").update(item, cond)
             if updated:
                 return updated
@@ -807,9 +821,13 @@ def _build_faiss_stub() -> ModuleType:
             for row in vectors:
                 self._vectors.append([float(x) for x in row])
 
-        def search(self, query: np.ndarray, top_k: int) -> tuple[np.ndarray, np.ndarray]:
+        def search(
+            self, query: np.ndarray, top_k: int
+        ) -> tuple[np.ndarray, np.ndarray]:
             if query.size == 0:
-                return np.zeros((1, 0), dtype=np.float32), np.zeros((1, 0), dtype=np.int64)
+                return np.zeros((1, 0), dtype=np.float32), np.zeros(
+                    (1, 0), dtype=np.int64
+                )
             query_vec = query[0]
             distances = [
                 float(np.linalg.norm(np.array(vec, dtype=np.float32) - query_vec))
@@ -885,8 +903,13 @@ def _reset_duckdb_stub_state() -> None:
     yield
     _DUCKDB_DATA.clear()
 
+
 if TYPE_CHECKING:  # pragma: no cover - imported for typing only
-    from devsynth.domain.interfaces.memory import ContextManager, MemoryStore, VectorStore
+    from devsynth.domain.interfaces.memory import (
+        ContextManager,
+        MemoryStore,
+        VectorStore,
+    )
 else:
 
     class MemoryStore(Protocol):
@@ -911,7 +934,9 @@ else:
     class VectorStore(Protocol):
         def store_vector(self, vector: MemoryVector) -> str: ...
 
-        def retrieve_vector(self, vector_id: str) -> MemoryVector | MemoryRecord | None: ...
+        def retrieve_vector(
+            self, vector_id: str
+        ) -> MemoryVector | MemoryRecord | None: ...
 
         def similarity_search(
             self, query_embedding: EmbeddingVector, top_k: int = 5
@@ -950,9 +975,7 @@ class ProtocolCompliantMemoryStore(MemoryStore):
     def retrieve(self, item_id: str) -> MemoryRecord | None:
         return self._records.get(item_id)
 
-    def search(
-        self, query: MemorySearchQuery | MemoryMetadata
-    ) -> list[MemoryRecord]:
+    def search(self, query: MemorySearchQuery | MemoryMetadata) -> list[MemoryRecord]:
         return list(self._records.values())
 
     def delete(self, item_id: str) -> bool:

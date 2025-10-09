@@ -4,7 +4,6 @@ Step definitions for Additional Storage Backends feature.
 This file implements step definitions for testing TinyDB, DuckDB, LMDB, and FAISS storage backends.
 """
 
-from tests.behavior.feature_paths import feature_path
 import os
 from unittest.mock import MagicMock, patch
 
@@ -16,10 +15,10 @@ from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.tinydb_store import TinyDBStore
 
-
 # Import the necessary modules
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.ports.memory_port import MemoryPort
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [
     pytest.mark.fast,
@@ -29,8 +28,6 @@ pytestmark = [
         reason="Skipping FAISS tests due to known issues with FAISS library"
     ),
 ]
-
-
 
 
 # Register the scenarios from the feature file
@@ -619,9 +616,7 @@ def check_collection_stats(request):
 
     # Verify that the stats are reasonable
     assert stats["vector_count"] >= 5, "Expected at least 5 vectors in collection"
-    assert (
-        stats["embedding_dimensions"] == 5
-    ), "Expected embedding dimension to be 5"
+    assert stats["embedding_dimensions"] == 5, "Expected embedding dimension to be 5"
 
 
 @when("I begin a transaction")

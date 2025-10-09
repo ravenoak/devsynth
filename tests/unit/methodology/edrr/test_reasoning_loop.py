@@ -7,12 +7,12 @@ from typing import Any
 import pytest
 
 import devsynth.methodology.edrr.reasoning_loop as rl
-from devsynth.methodology.edrr.reasoning_loop import Phase
 from devsynth.methodology.edrr.contracts import (
     CoordinatorRecorder,
     MemoryIntegrationLog,
     NullWSDETeam,
 )
+from devsynth.methodology.edrr.reasoning_loop import Phase
 
 
 @pytest.mark.fast

@@ -7,7 +7,6 @@ import pytest
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.webui_bridge import WebUIBridge
 
-
 pytestmark = [pytest.mark.fast, pytest.mark.usefixtures("force_webui_available")]
 
 

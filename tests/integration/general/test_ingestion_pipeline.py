@@ -32,8 +32,6 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import IngestionError, ManifestError
 
 
-
-
 def _require_resource(resource: str) -> None:
     """Skip when an optional backend resource is explicitly disabled."""
 

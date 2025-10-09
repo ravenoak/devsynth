@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 import builtins
 import importlib
 import sys
@@ -6,7 +5,7 @@ import sys
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

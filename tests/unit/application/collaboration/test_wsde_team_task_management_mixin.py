@@ -1,9 +1,9 @@
 import pytest
 
+from devsynth.application.collaboration.structures import SubtaskSpec
 from devsynth.application.collaboration.wsde_team_task_management import (
     TaskManagementMixin,
 )
-from devsynth.application.collaboration.structures import SubtaskSpec
 
 
 class DummyTeam(TaskManagementMixin):

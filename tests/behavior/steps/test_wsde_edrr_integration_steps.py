@@ -5,17 +5,16 @@ This file implements the step definitions for testing the integration between
 the WSDE agent model and the EDRR framework.
 """
 
-from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Import the scenarios from the feature file
-
 
 
 scenarios(feature_path(__file__, "general", "wsde_edrr_integration.feature"))

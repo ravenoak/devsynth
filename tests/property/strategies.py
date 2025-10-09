@@ -17,8 +17,8 @@ from hypothesis import strategies as st
 
 from devsynth.application.collaboration.dto import (
     AgentOpinionRecord,
-    ConsensusOutcome,
     ConflictRecord,
+    ConsensusOutcome,
     SynthesisArtifact,
 )
 from devsynth.application.memory.dto import MemoryRecord
@@ -112,7 +112,9 @@ def memory_record_strategy() -> st.SearchStrategy[MemoryRecord]:
         MemoryRecord,
         item=memory_item_strategy(),
         similarity=st.none()
-        | st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False),
+        | st.floats(
+            min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
+        ),
         source=st.none() | _bounded_text(1, 16),
         metadata=_metadata_strategy(),
     )
@@ -126,7 +128,9 @@ def _agent_opinion_record_strategy() -> st.SearchStrategy[AgentOpinionRecord]:
         rationale=_bounded_text(3, 120) | st.just(""),
         timestamp=st.none() | _timestamp_input_strategy(),
         weight=st.none()
-        | st.floats(min_value=0.5, max_value=1.0, allow_nan=False, allow_infinity=False),
+        | st.floats(
+            min_value=0.5, max_value=1.0, allow_nan=False, allow_infinity=False
+        ),
         metadata=_metadata_strategy(),
     )
 
@@ -143,7 +147,9 @@ def _conflict_record_strategy() -> st.SearchStrategy[ConflictRecord]:
         rationale_a=_bounded_text(3, 120) | st.just(""),
         rationale_b=_bounded_text(3, 120) | st.just(""),
         severity_label=st.sampled_from(["high", "medium"]),
-        severity_score=st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False),
+        severity_score=st.floats(
+            min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
+        ),
         metadata=_metadata_strategy(),
     )
 
@@ -152,7 +158,9 @@ def _synthesis_artifact_strategy() -> st.SearchStrategy[SynthesisArtifact]:
     key_points = st.lists(_bounded_text(3, 80), min_size=0, max_size=3).map(tuple)
     expertise_weights = st.dictionaries(
         keys=_bounded_text(1, 12),
-        values=st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False),
+        values=st.floats(
+            min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
+        ),
         max_size=3,
     )
     readability = st.fixed_dictionaries(
@@ -336,4 +344,6 @@ def consensus_outcome_payload_strategy() -> st.SearchStrategy[Any]:
     """Generate ConsensusOutcome instances or serialized dictionaries."""
 
     outcome_strategy = consensus_outcome_strategy()
-    return st.one_of(outcome_strategy, outcome_strategy.map(lambda outcome: outcome.to_dict()))
+    return st.one_of(
+        outcome_strategy, outcome_strategy.map(lambda outcome: outcome.to_dict())
+    )

@@ -5,7 +5,6 @@ import pytest
 from devsynth.application.edrr.coordinator import EDRRCoordinator
 
 
-
 def _build_coord(config):
     return EDRRCoordinator(
         memory_manager=MagicMock(),

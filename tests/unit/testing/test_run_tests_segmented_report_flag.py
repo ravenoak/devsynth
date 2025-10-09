@@ -5,11 +5,14 @@ from __future__ import annotations
 import pytest
 
 import devsynth.testing.run_tests as rt
+
 from .run_tests_test_utils import build_batch_metadata
 
 
 @pytest.mark.fast
-def test_run_segmented_tests_reports_only_last_segment(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_segmented_tests_reports_only_last_segment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Only the final segment should request coverage reports."""
 
     report_flags: list[bool] = []

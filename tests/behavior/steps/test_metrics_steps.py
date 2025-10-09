@@ -10,7 +10,6 @@ handling repositories with no commits, and handling repositories with no test fi
 ReqID: TEST-METRICS-001
 """
 
-from tests.behavior.feature_paths import feature_path
 import os
 import shutil
 import sys
@@ -21,13 +20,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
 # Import the CLI modules
 from devsynth.adapters.cli.typer_adapter import parse_args, run_cli, show_help
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
-
-
 
 
 # Register the scenarios

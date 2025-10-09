@@ -50,7 +50,10 @@ def test_record_round_trip_preserves_metadata() -> None:
     assert restored.item.id == "rec-1"
     assert restored.memory_type is MemoryType.CONTEXT
     assert restored.item.metadata["timestamp"] == nested_metadata["timestamp"]
-    assert restored.item.metadata["nested"]["entries"][0]["seen_at"] == nested_metadata["nested"]["entries"][0]["seen_at"]
+    assert (
+        restored.item.metadata["nested"]["entries"][0]["seen_at"]
+        == nested_metadata["nested"]["entries"][0]["seen_at"]
+    )
 
 
 @pytest.mark.fast
@@ -110,7 +113,9 @@ def test_query_results_from_rows_shapes_records() -> None:
         rows,
         total="2",
         latency_ms="3.5",
-        metadata=to_serializable({"batch": 1, "started_at": datetime(2024, 4, 5, 6, 7)}),
+        metadata=to_serializable(
+            {"batch": 1, "started_at": datetime(2024, 4, 5, 6, 7)}
+        ),
     )
 
     assert results["store"] == "primary"

@@ -5,9 +5,9 @@ from typing import cast
 
 import pytest
 
+from devsynth.application.memory.dto import MemoryRecord
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
-from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 

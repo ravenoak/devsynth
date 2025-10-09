@@ -1,12 +1,10 @@
 """Steps for the feature markers feature."""
 
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth import feature_markers
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

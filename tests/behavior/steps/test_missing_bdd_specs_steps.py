@@ -1,10 +1,9 @@
-from tests.behavior.feature_paths import feature_path
 from pathlib import Path
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then
 
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = pytest.mark.fast
 

@@ -9,7 +9,6 @@ import pytest
 
 from devsynth.consensus import build_consensus
 
-
 pytestmark = [pytest.mark.unit, pytest.mark.fast]
 
 

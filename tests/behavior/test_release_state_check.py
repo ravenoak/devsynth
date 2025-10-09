@@ -3,10 +3,8 @@
 import pytest
 from pytest_bdd import scenarios
 
-from tests.behavior.steps import release_state_steps  # noqa: F401
-
 from tests.behavior.feature_paths import feature_path
-
+from tests.behavior.steps import release_state_steps  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
 

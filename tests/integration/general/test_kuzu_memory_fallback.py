@@ -31,7 +31,6 @@ from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-
 pytestmark = [pytest.mark.requires_resource("kuzu")]
 
 

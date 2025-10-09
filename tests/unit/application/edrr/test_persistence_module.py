@@ -5,7 +5,6 @@ import pytest
 from devsynth.application.edrr.coordinator import PersistenceMixin
 from devsynth.methodology.base import Phase
 
-
 pytestmark = pytest.mark.fast
 
 

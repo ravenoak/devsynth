@@ -10,12 +10,14 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-from devsynth.application.collaboration.wsde_team_extended import CollaborativeWSDETeam
+
 from devsynth.application.collaboration.dto import (
     ConflictRecord,
     ConsensusOutcome,
     SynthesisArtifact,
 )
+from devsynth.application.collaboration.wsde_team_extended import CollaborativeWSDETeam
+
 
 class _StubAgent:
     """Minimal protocol for agent mocks used in collaboration tests."""
@@ -27,7 +29,9 @@ class _StubAgent:
     experience_level: int
     has_been_primus: bool
 
-    def process(self, inputs: dict[str, Any]) -> dict[str, Any]:  # pragma: no cover - protocol
+    def process(
+        self, inputs: dict[str, Any]
+    ) -> dict[str, Any]:  # pragma: no cover - protocol
         raise NotImplementedError
 
 
@@ -154,30 +158,28 @@ class TestCollaborativeWSDETeam:
             return []
 
         with patch.object(team, "get_messages", side_effect=mock_get_messages):
-                with patch.object(team, "_identify_conflicts", return_value=[]):
-                    consensus_result = team.build_consensus(task)
-                    assert isinstance(consensus_result, ConsensusOutcome)
-                    assert consensus_result.task_id == task["id"]
-                    assert consensus_result.method == "majority_opinion"
-                    assert len(consensus_result.agent_opinions) == 3
-                    assert consensus_result.majority_opinion is not None
-                    assert consensus_result.timestamp is not None
-                    assert consensus_result.conflicts_identified == 0
-                    assert tuple(consensus_result.participants) == (
-                        "Agent1",
-                        "Agent2",
-                        "Agent3",
-                    )
-                    opinion_ids = [
-                        record.agent_id for record in consensus_result.agent_opinions
-                    ]
-                    assert opinion_ids == sorted(opinion_ids)
-                    serialized = consensus_result.to_dict()
-                    assert serialized["dto_type"] == "ConsensusOutcome"
-                    assert serialized["agent_opinions"][0]["agent_id"] == "Agent1"
-                    assert "Next steps" in (
-                        consensus_result.stakeholder_explanation or ""
-                    )
+            with patch.object(team, "_identify_conflicts", return_value=[]):
+                consensus_result = team.build_consensus(task)
+                assert isinstance(consensus_result, ConsensusOutcome)
+                assert consensus_result.task_id == task["id"]
+                assert consensus_result.method == "majority_opinion"
+                assert len(consensus_result.agent_opinions) == 3
+                assert consensus_result.majority_opinion is not None
+                assert consensus_result.timestamp is not None
+                assert consensus_result.conflicts_identified == 0
+                assert tuple(consensus_result.participants) == (
+                    "Agent1",
+                    "Agent2",
+                    "Agent3",
+                )
+                opinion_ids = [
+                    record.agent_id for record in consensus_result.agent_opinions
+                ]
+                assert opinion_ids == sorted(opinion_ids)
+                serialized = consensus_result.to_dict()
+                assert serialized["dto_type"] == "ConsensusOutcome"
+                assert serialized["agent_opinions"][0]["agent_id"] == "Agent1"
+                assert "Next steps" in (consensus_result.stakeholder_explanation or "")
 
     @pytest.mark.medium
     def test_research_persona_assignments_emit_telemetry(
@@ -333,9 +335,7 @@ class TestCollaborativeWSDETeam:
                     consensus_result = team.build_consensus(task)
                     assert isinstance(consensus_result, ConsensusOutcome)
                     assert consensus_result.task_id == task["id"]
-                    assert (
-                        consensus_result.method == "conflict_resolution_synthesis"
-                    )
+                    assert consensus_result.method == "conflict_resolution_synthesis"
                     assert consensus_result.conflicts_identified == len(conflicts)
                     assert consensus_result.synthesis is not None
                     assert len(consensus_result.agent_opinions) == 3

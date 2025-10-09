@@ -201,9 +201,9 @@ class TestRequirementService(unittest.TestCase):
         self.assertEqual(approved_change.approved_by, "approver_user")
         self.assertIsNotNone(approved_change.approved_at)
         self.notification_service.notify_change_approved.assert_called_once()
-        approved_payload = (
-            self.notification_service.notify_change_approved.call_args[0][0]
-        )
+        approved_payload = self.notification_service.notify_change_approved.call_args[
+            0
+        ][0]
         assert approved_payload.change is approved_change
 
     @pytest.mark.fast
@@ -246,9 +246,9 @@ class TestRequirementService(unittest.TestCase):
             rejected_change.comments[0], "rejector_user: This change is not necessary"
         )
         self.notification_service.notify_change_rejected.assert_called_once()
-        rejected_payload = (
-            self.notification_service.notify_change_rejected.call_args[0][0]
-        )
+        rejected_payload = self.notification_service.notify_change_rejected.call_args[
+            0
+        ][0]
         assert rejected_payload.change is rejected_change
 
 

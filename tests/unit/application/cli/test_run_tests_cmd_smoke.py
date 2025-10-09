@@ -1,16 +1,14 @@
 """Smoke-mode behavior tests for run-tests CLI."""
 
 import os
-from unittest.mock import patch
-
 from typing import Any, Callable, cast
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
 
 from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.application.cli.commands import run_tests_cmd as module
-
 from tests._typing_utils import ensure_typed_decorator
 
 

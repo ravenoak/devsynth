@@ -8,7 +8,6 @@ from devsynth.application.memory.context_manager import (
 )
 from devsynth.application.memory.kuzu_store import KuzuStore
 
-
 pytestmark = [
     pytest.mark.memory_intensive,
     pytest.mark.isolation,

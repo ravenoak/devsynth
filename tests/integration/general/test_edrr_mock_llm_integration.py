@@ -1,7 +1,7 @@
 import sys
 import types
-import pytest
 
+import pytest
 
 openai_mod = types.ModuleType("openai")
 setattr(openai_mod, "OpenAI", object)

@@ -132,6 +132,7 @@ def test_execute_in_transaction_handles_failures(outcomes: list[bool]):
     operations: list[Callable[[], object]] = []
 
     for idx, should_succeed in enumerate(outcomes):
+
         def _operation(index: int = idx, ok: bool = should_succeed) -> object:
             operations_log.append(index)
             if not ok:
@@ -167,6 +168,8 @@ def test_execute_in_transaction_without_support_raises(ids: list[str]):
     operations = [lambda ident=ident: recorded.append(ident) for ident in ids]
 
     with pytest.raises(MemoryStoreError):
-        adapter.execute_in_transaction(operations, [lambda: recorded.append("fallback")])
+        adapter.execute_in_transaction(
+            operations, [lambda: recorded.append("fallback")]
+        )
 
     assert recorded == []

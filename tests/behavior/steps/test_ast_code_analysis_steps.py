@@ -5,20 +5,19 @@ This module implements the step definitions for the AST-based code analysis and 
 feature file, testing the integration between AST-based code analysis and the EDRR workflow.
 """
 
-from tests.behavior.feature_paths import feature_path
 import logging
 import uuid
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 logger = logging.getLogger(__name__)
 
 # Import the feature file
-
 
 
 scenarios(feature_path(__file__, "general", "ast_code_analysis.feature"))
@@ -639,8 +638,10 @@ def system_uses_ast_analysis_in_retrospect_phase(context):
     # Use the AST workflow integration to perform a retrospective
     refined = context.refined_code
     assert isinstance(refined, RefinementResult)
-    context.retrospective_result = context.ast_workflow_integration.retrospect_code_quality(
-        refined.refined_code, context.task_id
+    context.retrospective_result = (
+        context.ast_workflow_integration.retrospect_code_quality(
+            refined.refined_code, context.task_id
+        )
     )
 
     # Verify that a retrospective was performed

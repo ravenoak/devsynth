@@ -2,7 +2,6 @@
 Step definitions for the Comprehensive Documentation Ingestion feature.
 """
 
-from tests.behavior.feature_paths import feature_path
 import json
 import os
 import tempfile
@@ -12,17 +11,15 @@ from typing import Any, Dict, List
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
 # Import the necessary components
 from devsynth.application.documentation.documentation_ingestion_manager import (
     DocumentationIngestionManager,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
-
 
 
 # Register scenarios

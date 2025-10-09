@@ -52,22 +52,12 @@ class TestWSDEDialecticalReasoning:
             "general",
             "code",
         }
-        assert result["security"] == (
-            "Security issue: Missing authentication checks",
-        )
+        assert result["security"] == ("Security issue: Missing authentication checks",)
         assert "Performance issue: Inefficient algorithm used" in result["performance"]
-        assert result["code"] == (
-            "Performance issue: Inefficient algorithm used",
-        )
-        assert result["maintainability"] == (
-            "Maintainability issue: lacks modularity",
-        )
-        assert result["content"] == (
-            "Documentation content does not include examples",
-        )
-        assert result["usability"] == (
-            "Usability issue: Poor user interface design",
-        )
+        assert result["code"] == ("Performance issue: Inefficient algorithm used",)
+        assert result["maintainability"] == ("Maintainability issue: lacks modularity",)
+        assert result["content"] == ("Documentation content does not include examples",)
+        assert result["usability"] == ("Usability issue: Poor user interface design",)
         assert result["general"] == ("General issue: Needs improvement",)
 
     @pytest.mark.medium

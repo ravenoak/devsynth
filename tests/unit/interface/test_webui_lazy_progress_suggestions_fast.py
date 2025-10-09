@@ -78,7 +78,9 @@ class _HarnessStreamlit(DummyStreamlit):
         self.empty_slots: list[_ContainerRecorder] = []
         self.containers: list[_ContainerRecorder] = []
         self.container_entries: list[str] = []
-        self.components = SimpleNamespace(v1=SimpleNamespace(html=lambda *_, **__: None))
+        self.components = SimpleNamespace(
+            v1=SimpleNamespace(html=lambda *_, **__: None)
+        )
 
     def empty(self) -> _ContainerRecorder:
         label = f"empty[{len(self.empty_slots)}]"
@@ -117,18 +119,22 @@ def harness_streamlit(monkeypatch: pytest.MonkeyPatch) -> Iterator[_HarnessStrea
     monkeypatch.setattr(webui, "_STREAMLIT", None)
 
 
-def test_lazy_streamlit_proxy_imports_once(harness_streamlit: _HarnessStreamlit) -> None:
+def test_lazy_streamlit_proxy_imports_once(
+    harness_streamlit: _HarnessStreamlit,
+) -> None:
     """``_LazyStreamlit`` pulls attributes from the cached module exactly once."""
 
     webui.st.write("hello")
     assert harness_streamlit.import_requests == 1
     webui.st.success("done")
     assert harness_streamlit.import_requests == 1
-    assert harness_streamlit.writes == [( ("hello",), {} )]
+    assert harness_streamlit.writes == [(("hello",), {})]
     assert harness_streamlit.successes == ["done"]
 
 
-def test_missing_streamlit_surfaces_install_guidance(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_streamlit_surfaces_install_guidance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Import failures raise :class:`DevSynthError` with actionable guidance."""
 
     monkeypatch.setattr(webui, "_STREAMLIT", None)
@@ -158,10 +164,14 @@ def test_progress_indicator_emits_eta_and_sanitized_status(
     progress = webui.WebUI().create_progress("<b>Main Task</b>", total=100)
 
     status_container = harness_streamlit.empty_slots[0]
-    assert status_container.markdown_calls[0][0] == "**&lt;b&gt;Main Task&lt;/b&gt;** - 0%"
+    assert (
+        status_container.markdown_calls[0][0] == "**&lt;b&gt;Main Task&lt;/b&gt;** - 0%"
+    )
 
     progress.update(advance=40, description="<i>Phase</i>")
-    assert status_container.markdown_calls[-1][0] == "**&lt;i&gt;Phase&lt;/i&gt;** - 40%"
+    assert (
+        status_container.markdown_calls[-1][0] == "**&lt;i&gt;Phase&lt;/i&gt;** - 40%"
+    )
 
     time_container = harness_streamlit.empty_slots[1]
     assert any(call[0].startswith("ETA:") for call in time_container.info_calls)
@@ -172,10 +182,14 @@ def test_progress_indicator_emits_eta_and_sanitized_status(
 
     subtask_id = progress.add_subtask("<tag>Subtask</tag>", total=20)
     sub_container = harness_streamlit.containers[0]
-    assert sub_container.markdown_calls[0][0].startswith("&nbsp;&nbsp;&nbsp;&nbsp;**&lt;tag&gt;Subtask&lt;/tag&gt;** - 0%")
+    assert sub_container.markdown_calls[0][0].startswith(
+        "&nbsp;&nbsp;&nbsp;&nbsp;**&lt;tag&gt;Subtask&lt;/tag&gt;** - 0%"
+    )
 
     progress.update_subtask(subtask_id, advance=10, status="<u>half</u>")
-    assert any("&lt;u&gt;half&lt;/u&gt;" in call[0] for call in sub_container.markdown_calls)
+    assert any(
+        "&lt;u&gt;half&lt;/u&gt;" in call[0] for call in sub_container.markdown_calls
+    )
 
     progress.complete()
     assert harness_streamlit.progress_updates[-1] == 1.0
@@ -194,5 +208,8 @@ def test_permission_denied_error_renders_suggestions(
     assert harness_streamlit.errors == ["ERROR: Permission denied for &lt;config&gt;"]
     markdown_texts = [text for text, _ in harness_streamlit.markdown_calls]
     assert "**Suggestions:**" in markdown_texts
-    assert any("Check that you have the necessary permissions" in text for text in markdown_texts)
+    assert any(
+        "Check that you have the necessary permissions" in text
+        for text in markdown_texts
+    )
     assert any("[Permission Issues]" in text for text in markdown_texts)

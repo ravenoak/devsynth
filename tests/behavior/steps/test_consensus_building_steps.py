@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,11 +9,10 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.agents.base import BaseAgent
 from devsynth.application.agents.unified_agent import UnifiedAgent
+from devsynth.consensus import build_consensus
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDETeam
-from devsynth.consensus import build_consensus
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = pytest.mark.fast
 
@@ -139,9 +137,7 @@ def when_we_build_consensus(context):
     """Build consensus using the collected votes."""
 
     threshold = (
-        context.consensus_threshold
-        if context.consensus_threshold is not None
-        else 0.5
+        context.consensus_threshold if context.consensus_threshold is not None else 0.5
     )
     context.consensus_result = build_consensus(context.votes, threshold=threshold)
     context.decision_history.append(context.consensus_result)

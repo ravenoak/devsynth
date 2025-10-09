@@ -1,6 +1,5 @@
 """Steps for the validate manifest feature."""
 
-from tests.behavior.feature_paths import feature_path
 import os
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -8,13 +7,12 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 # Import CLI steps to satisfy feature background requirements
 from .cli_commands_steps import *  # noqa: F401,F403 - re-export CLI steps
 
 pytestmark = [pytest.mark.fast]
-
-
 
 
 scenarios(feature_path(__file__, "general", "validate_manifest.feature"))

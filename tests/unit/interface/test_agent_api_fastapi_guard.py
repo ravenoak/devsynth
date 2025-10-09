@@ -12,7 +12,6 @@ pytest.importorskip("fastapi.testclient")
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-
 pytestmark = pytest.mark.fast
 
 
@@ -21,7 +20,9 @@ def test_fastapi_testclient_guard_allows_minimal_request():
 
     app = FastAPI()
 
-    route = ensure_typed_decorator(cast(Callable[[Callable[..., Any]], Any], app.get("/ping")))
+    route = ensure_typed_decorator(
+        cast(Callable[[Callable[..., Any]], Any], app.get("/ping"))
+    )
 
     @route
     def ping() -> dict[str, str]:

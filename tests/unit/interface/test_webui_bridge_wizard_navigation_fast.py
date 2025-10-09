@@ -9,7 +9,6 @@ import pytest
 
 from devsynth.interface import webui_bridge
 
-
 pytestmark = pytest.mark.fast
 
 
@@ -46,7 +45,9 @@ def bridge_streamlit_stub(monkeypatch: pytest.MonkeyPatch) -> _StreamlitBridgeSt
     return stub
 
 
-def test_progress_indicator_nested_completion_and_sanitization(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_progress_indicator_nested_completion_and_sanitization(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     def fake_sanitize(text: str) -> str:
         if "danger" in text:
             raise ValueError("boom")
@@ -94,14 +95,14 @@ def test_wizard_navigation_and_display_fallback(
         lambda self, message, **_: webui_bridge.sanitize_output(message),
     )
 
-    assert webui_bridge.WebUIBridge.adjust_wizard_step(0, direction="next", total=3) == 1
     assert (
-        webui_bridge.WebUIBridge.adjust_wizard_step(2, direction="next", total=3)
-        == 2
+        webui_bridge.WebUIBridge.adjust_wizard_step(0, direction="next", total=3) == 1
     )
     assert (
-        webui_bridge.WebUIBridge.adjust_wizard_step("1", direction="back", total=0)
-        == 0
+        webui_bridge.WebUIBridge.adjust_wizard_step(2, direction="next", total=3) == 2
+    )
+    assert (
+        webui_bridge.WebUIBridge.adjust_wizard_step("1", direction="back", total=0) == 0
     )
     assert (
         webui_bridge.WebUIBridge.adjust_wizard_step(5, direction="sideways", total=2)
@@ -129,7 +130,9 @@ def test_default_status_thresholds() -> None:
     assert webui_bridge._default_status(1, 0) == "Complete"
 
 
-def test_progress_indicator_updates_and_completion(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_progress_indicator_updates_and_completion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         webui_bridge,
         "sanitize_output",

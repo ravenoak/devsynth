@@ -4,7 +4,6 @@ from devsynth.application.collaboration.peer_review import run_peer_review
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 
-
 class DummyAgent:
     def __init__(self, name):
         self.name = name

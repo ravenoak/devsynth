@@ -14,10 +14,10 @@ pytest.importorskip("numpy", reason=backend_import_reason("vector"))
 
 pytestmark = skip_if_missing_backend("vector")
 
+from devsynth.application.memory import vector_providers
 from devsynth.application.memory.adapters.vector_memory_adapter import (
     VectorMemoryAdapter,
 )
-from devsynth.application.memory import vector_providers
 from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryType, MemoryVector
 

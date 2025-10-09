@@ -1,19 +1,16 @@
 """BDD steps for ChromaDB integration tests."""
 
-from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 # Register CLI installation step used in feature backgrounds
 from .cli_commands_steps import check_workflow_success  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
-
-
-
 
 
 @given("the DevSynth CLI is installed")

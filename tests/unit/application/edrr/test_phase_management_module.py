@@ -10,7 +10,6 @@ from devsynth.application.edrr.coordinator import (
 )
 from devsynth.methodology.base import Phase
 
-
 pytestmark = pytest.mark.fast
 
 

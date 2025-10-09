@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-
 pytestmark = [pytest.mark.fast]
 
 
@@ -165,7 +164,9 @@ def webui_module(monkeypatch: pytest.MonkeyPatch):
     auth_stub.verify_password = MagicMock(return_value=True)
     monkeypatch.setitem(sys.modules, "devsynth.security", security_pkg)
     monkeypatch.setitem(sys.modules, "devsynth.security.validation", validation_stub)
-    monkeypatch.setitem(sys.modules, "devsynth.security.sanitization", sanitization_stub)
+    monkeypatch.setitem(
+        sys.modules, "devsynth.security.sanitization", sanitization_stub
+    )
     monkeypatch.setitem(sys.modules, "devsynth.security.authentication", auth_stub)
     security_pkg.validation = validation_stub
     security_pkg.sanitization = sanitization_stub
@@ -216,7 +217,9 @@ def webui_module(monkeypatch: pytest.MonkeyPatch):
     rich_syntax = ModuleType("rich.syntax")
 
     class _Syntax:
-        def __init__(self, code: str, lexer: str | None = None, **kwargs: object) -> None:
+        def __init__(
+            self, code: str, lexer: str | None = None, **kwargs: object
+        ) -> None:
             self.code = code
             self.lexer = lexer
             self.kwargs = kwargs

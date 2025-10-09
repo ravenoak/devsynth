@@ -9,6 +9,7 @@ import pytest
 
 from tests.fixtures.streamlit_mocks import StreamlitModule, StreamlitStub
 
+
 class MockSessionState(dict):
     """A mock session state that behaves like both a dictionary and an object with attributes."""
 

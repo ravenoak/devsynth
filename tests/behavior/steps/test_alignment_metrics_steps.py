@@ -9,7 +9,6 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.behavior.feature_paths import feature_path
 
-
 pytestmark = [pytest.mark.medium]
 
 scenarios(feature_path(__file__, "general", "alignment_metrics_command.feature"))
@@ -49,9 +48,7 @@ def metrics_fail(command_context: MutableMapping[str, object]) -> None:
 
 
 @when(parsers.parse('I run the command "{command}"'))
-def run_command(
-    command: str, command_context: MutableMapping[str, object]
-) -> None:
+def run_command(command: str, command_context: MutableMapping[str, object]) -> None:
     """Simulate running the alignment metrics CLI command."""
 
     command_context["command"] = command

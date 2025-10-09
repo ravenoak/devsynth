@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 from io import StringIO
 from unittest.mock import MagicMock
 
@@ -6,8 +5,7 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.cli import cli_commands
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

@@ -21,7 +21,6 @@ KuzuStore = pytest.importorskip(
 ).KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-
 pytestmark = [
     pytest.mark.requires_resource("kuzu"),
     *skip_if_missing_backend("kuzu", include_requires_resource=False),

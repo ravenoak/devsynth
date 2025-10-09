@@ -1,7 +1,7 @@
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [
     pytest.mark.fast,
@@ -10,8 +10,6 @@ pytestmark = [
 
 pytest.importorskip("chromadb")
 from devsynth.application.memory.chromadb_store import ChromaDBStore
-
-
 
 scenarios(feature_path(__file__, "general", "chromadb_store.feature"))
 

@@ -15,12 +15,12 @@ from devsynth.adapters.agents.agent_adapter import (
     AgentInitializationPayload,
     SimplifiedAgentFactory,
     WSDETeamCoordinator,
-    _UnifiedAgentFallback,
     _coerce_mapping,
     _coerce_str_sequence,
     _coerce_task_solutions,
-    _load_default_config,
     _import_agent,
+    _load_default_config,
+    _UnifiedAgentFallback,
 )
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.exceptions import ValidationError
@@ -69,7 +69,9 @@ class StubTeam:
     def assign_roles(self) -> None:  # pragma: no cover - hook unused in tests
         pass
 
-    def vote_on_critical_decision(self, task: MutableMapping[str, Any]) -> dict[str, Any]:
+    def vote_on_critical_decision(
+        self, task: MutableMapping[str, Any]
+    ) -> dict[str, Any]:
         return {"status": "critical", "result": task.get("prompt", "")}
 
     def select_primus_by_expertise(self, _task: MutableMapping[str, Any]) -> None:
@@ -247,12 +249,16 @@ def test_lookup_agent_class_caches_results(monkeypatch: pytest.MonkeyPatch) -> N
     resolved = factory._lookup_agent_class(AgentType.CODE.value)
     assert resolved is StubAgent
     # Cache should now return the resolved class without calling the monkeypatched helper
-    monkeypatch.setattr(agent_adapter, "_import_agent", lambda *args: _UnifiedAgentFallback)
+    monkeypatch.setattr(
+        agent_adapter, "_import_agent", lambda *args: _UnifiedAgentFallback
+    )
     assert factory._lookup_agent_class(AgentType.CODE.value) is StubAgent
 
 
 @pytest.mark.fast
-def test_delegate_task_handles_processing_failures(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_delegate_task_handles_processing_failures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Coordinator tolerates agent processing errors and builds fallback options."""
 
     class FlakyAgent(StubAgent):
@@ -318,7 +324,9 @@ def test_delegate_task_handles_critical_decisions() -> None:
     team.add_agent(agent_one)
     team.add_agent(agent_two)
 
-    result = coordinator.delegate_task({"type": "critical_decision", "is_critical": True})
+    result = coordinator.delegate_task(
+        {"type": "critical_decision", "is_critical": True}
+    )
 
     assert result["status"] == "critical"
 
@@ -474,7 +482,9 @@ def test_add_agent_creates_default_team(monkeypatch: pytest.MonkeyPatch) -> None
 
 
 @pytest.mark.fast
-def test_agent_adapter_process_task_multi_agent_path(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_agent_adapter_process_task_multi_agent_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """When collaboration is enabled, the adapter delegates to the coordinator."""
 
     adapter = AgentAdapter(config={"features": {"wsde_collaboration": True}})

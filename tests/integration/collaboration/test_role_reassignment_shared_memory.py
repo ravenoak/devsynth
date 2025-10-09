@@ -15,8 +15,6 @@ from tests.fixtures.resources import (
 )
 
 
-
-
 class DummyAgent:
     def __init__(self, name: str):
         self.name = name

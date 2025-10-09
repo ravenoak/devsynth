@@ -3,23 +3,21 @@
 from __future__ import annotations
 
 import html
-from typing import Any, Callable
 from types import ModuleType
+from typing import Any, Callable
 
 import pytest
 from pytest_bdd import given, parsers, then, when
 
-from devsynth.interface import webui_bridge
-
 import tests.fixtures.webui_test_utils as webui_test_utils_module
-from tests.fixtures.webui_test_utils import webui_context  # noqa: F401
-from tests.fixtures.webui_bridge_stub import install_streamlit_stub
+from devsynth.interface import webui_bridge
 from tests.fixtures.fake_streamlit import FakeStreamlit
+from tests.fixtures.webui_bridge_stub import install_streamlit_stub
+from tests.fixtures.webui_test_utils import webui_context  # noqa: F401
 
 pytestmark = [pytest.mark.gui, pytest.mark.medium]
 
 webui_test_utils_module.ModuleType = ModuleType
-
 
 
 @pytest.fixture
@@ -115,7 +113,9 @@ def _to_plain_text(value: Any) -> str:
 
 @given("the WebUI bridge is initialized")
 def initialize_bridge(
-    webui_context: dict[str, Any], streamlit_bridge_stub, monkeypatch: pytest.MonkeyPatch
+    webui_context: dict[str, Any],
+    streamlit_bridge_stub,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> dict[str, Any]:
     """Instantiate WebUI and WebUIBridge with the shared Streamlit stub."""
 

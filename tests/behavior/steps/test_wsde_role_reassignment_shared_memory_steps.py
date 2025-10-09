@@ -1,10 +1,10 @@
-from tests.behavior.feature_paths import feature_path
 import logging
 from datetime import datetime
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = pytest.mark.fast
 
@@ -19,8 +19,6 @@ from devsynth.application.memory.faiss_store import FAISSStore
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.memory_manager import MemoryManager
-
-
 
 if not hasattr(lmdb_mod, "open"):
     pytest.skip("lmdb unavailable", allow_module_level=True)

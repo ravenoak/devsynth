@@ -1,6 +1,5 @@
 """Steps for the code generation feature."""
 
-from tests.behavior.feature_paths import feature_path
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -8,10 +7,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
+
 from .cli_commands_steps import run_command
 from .test_generation_steps import have_analyzed_project
-
-
 
 pytestmark = [pytest.mark.fast]
 

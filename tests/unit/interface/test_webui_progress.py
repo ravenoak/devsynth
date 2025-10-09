@@ -9,7 +9,6 @@ import pytest
 
 from tests.unit.interface.test_webui_enhanced import _mock_streamlit
 
-
 COVERAGE_MODE = os.getenv("DEVSYNTH_WEBUI_COVERAGE") == "1"
 
 
@@ -154,9 +153,7 @@ def test_ui_progress_complete_cascades_subtasks(mock_streamlit, clean_state):
     progress = bridge.create_progress("Parent", total=10)
     subtask_id = progress.add_subtask("Child", total=5)
 
-    subtask_container = (
-        mock_streamlit.container.return_value.__enter__.return_value
-    )
+    subtask_container = mock_streamlit.container.return_value.__enter__.return_value
     subtask_container.success.reset_mock()
 
     progress.complete()

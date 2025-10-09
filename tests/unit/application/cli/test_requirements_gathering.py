@@ -1,6 +1,6 @@
 import logging
-import pytest
 
+import pytest
 from _pytest.logging import LogCaptureHandler
 
 from devsynth.application.cli import requirements_commands as rc

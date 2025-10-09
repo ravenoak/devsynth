@@ -1,11 +1,9 @@
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -6,8 +5,6 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.requirements.dialectical_reasoner import (
-
-
     DialecticalReasonerService,
 )
 from devsynth.domain.models.memory import MemoryType
@@ -16,8 +13,7 @@ from devsynth.domain.models.requirement import (
     Requirement,
     RequirementChange,
 )
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

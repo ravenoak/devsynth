@@ -34,7 +34,9 @@ class InMemoryStore:
 
 @pytest.fixture()
 def sync_manager() -> SyncManager:
-    stores = {name: InMemoryStore(name) for name in ("tinydb", "duckdb", "lmdb", "kuzu")}
+    stores = {
+        name: InMemoryStore(name) for name in ("tinydb", "duckdb", "lmdb", "kuzu")
+    }
     return SyncManager(stores)
 
 

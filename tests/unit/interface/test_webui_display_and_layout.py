@@ -11,7 +11,6 @@ import pytest
 
 from tests.fixtures.fake_streamlit import FakeStreamlit
 
-
 pytestmark = [pytest.mark.fast]
 
 COVERAGE_MODE = os.getenv("DEVSYNTH_WEBUI_COVERAGE") == "1"
@@ -272,7 +271,11 @@ def test_display_result_additional_headings(monkeypatch, webui_module) -> None:
     ui.display_result("### Deep Heading")
 
     assert fake_streamlit.subheader_calls == ["Secondary Title"]
-    bold_sections = [content for content, _ in fake_streamlit.markdown_calls if content.startswith("**")]
+    bold_sections = [
+        content
+        for content, _ in fake_streamlit.markdown_calls
+        if content.startswith("**")
+    ]
     assert bold_sections == ["**Deep Heading**"]
 
 
@@ -313,7 +316,9 @@ def test_error_helper_defaults(webui_module: tuple[Any, FakeStreamlit]) -> None:
     assert ui._get_documentation_links("mystery") == {}
 
 
-def test_render_traceback_uses_expander(webui_module: tuple[Any, FakeStreamlit]) -> None:
+def test_render_traceback_uses_expander(
+    webui_module: tuple[Any, FakeStreamlit],
+) -> None:
     """Traceback rendering writes to an expander block with Python highlighting."""
 
     webui, fake_streamlit = webui_module
@@ -332,7 +337,9 @@ def test_format_error_message(webui_module: tuple[Any, FakeStreamlit]) -> None:
     assert ui._format_error_message(ValueError("bad")) == "ValueError: bad"
 
 
-def test_ensure_router_caches_instance(monkeypatch: pytest.MonkeyPatch, webui_module) -> None:
+def test_ensure_router_caches_instance(
+    monkeypatch: pytest.MonkeyPatch, webui_module
+) -> None:
     """Router creation happens once and is memoised for future calls."""
 
     webui, _ = webui_module
@@ -396,7 +403,9 @@ def test_run_handles_page_config_error(
     fake_streamlit.set_page_config_exception = RuntimeError("boom")
     recorded: list[str] = []
 
-    monkeypatch.setattr(webui.WebUI, "display_result", lambda self, message: recorded.append(message))
+    monkeypatch.setattr(
+        webui.WebUI, "display_result", lambda self, message: recorded.append(message)
+    )
 
     webui.WebUI().run()
 
@@ -404,17 +413,22 @@ def test_run_handles_page_config_error(
     assert fake_streamlit.components_html_calls == []
 
 
-def test_run_handles_components_error(monkeypatch: pytest.MonkeyPatch, webui_module) -> None:
+def test_run_handles_components_error(
+    monkeypatch: pytest.MonkeyPatch, webui_module
+) -> None:
     """Component injection errors surface via ``display_result``."""
 
     webui, fake_streamlit = webui_module
+
     def raising_html(*_args, **_kwargs):
         raise RuntimeError("html")
 
     fake_streamlit.components.v1.html = raising_html
     recorded: list[str] = []
 
-    monkeypatch.setattr(webui.WebUI, "display_result", lambda self, message: recorded.append(message))
+    monkeypatch.setattr(
+        webui.WebUI, "display_result", lambda self, message: recorded.append(message)
+    )
 
     webui.WebUI().run()
 
@@ -457,7 +471,9 @@ def test_ui_progress_updates_emit_eta(
     assert any("ETA:" in call for call in time_placeholder.info_calls)
 
 
-def test_ui_progress_subtask_flow(monkeypatch: pytest.MonkeyPatch, webui_module) -> None:
+def test_ui_progress_subtask_flow(
+    monkeypatch: pytest.MonkeyPatch, webui_module
+) -> None:
     """Subtask helpers update containers and mark completion."""
 
     webui, fake_streamlit = webui_module
@@ -474,7 +490,9 @@ def test_ui_progress_subtask_flow(monkeypatch: pytest.MonkeyPatch, webui_module)
     assert bar.progress_calls[-1] == 0.0
 
     progress.update_subtask(subtask_id, advance=2, description="Step")
-    assert container.markdown_calls[-1] == "&nbsp;&nbsp;&nbsp;&nbsp;**safe::Step** - 50%"
+    assert (
+        container.markdown_calls[-1] == "&nbsp;&nbsp;&nbsp;&nbsp;**safe::Step** - 50%"
+    )
     assert bar.progress_calls[-1] == 0.5
 
     progress.complete_subtask(subtask_id)

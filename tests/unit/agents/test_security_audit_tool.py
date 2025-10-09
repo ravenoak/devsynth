@@ -2,6 +2,7 @@
 
 from types import ModuleType
 from unittest.mock import patch
+
 import pytest
 
 from devsynth.agents.tools import get_tool_registry, security_audit_tool

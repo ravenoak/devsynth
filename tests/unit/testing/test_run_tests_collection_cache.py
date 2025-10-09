@@ -1,5 +1,6 @@
-from devsynth.testing.run_tests import _sanitize_node_ids
 import pytest
+
+from devsynth.testing.run_tests import _sanitize_node_ids
 
 pytestmark = [pytest.mark.fast]
 

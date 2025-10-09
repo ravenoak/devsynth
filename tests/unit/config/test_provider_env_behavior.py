@@ -4,7 +4,6 @@ import pytest
 
 from devsynth.config.provider_env import ProviderEnv
 
-
 pytestmark = pytest.mark.fast
 
 

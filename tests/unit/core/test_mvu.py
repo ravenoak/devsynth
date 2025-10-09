@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
-
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
+
+import pytest
 
 from devsynth.core import mvu
 

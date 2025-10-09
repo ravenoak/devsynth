@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-
 import sys
 import types
+from datetime import datetime, timedelta
 from typing import Any, Protocol, TypeVar
 
 import pytest
 
 from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
-
 
 pytestmark = [
     *skip_if_missing_backend("chromadb"),

@@ -80,7 +80,9 @@ class _DummyMemoryStore:
 def _build_store(data: Dict[str, object]) -> _DummyMemoryStore:
     store = _DummyMemoryStore()
     for key, value in data.items():
-        store.store(MemoryItem(id=key, content=value, memory_type=MemoryType.SHORT_TERM))
+        store.store(
+            MemoryItem(id=key, content=value, memory_type=MemoryType.SHORT_TERM)
+        )
     return store
 
 
@@ -91,7 +93,10 @@ def _pending_updates(
     for item in source.search({}):
         candidate = target.retrieve(item.id)
         if candidate is None or candidate.content != item.content:
-            pending[item.id] = (item.content, None if candidate is None else candidate.content)
+            pending[item.id] = (
+                item.content,
+                None if candidate is None else candidate.content,
+            )
     return pending
 
 
@@ -99,7 +104,11 @@ def _pending_updates(
 def _store_states(draw: st.DrawFn) -> Tuple[Dict[str, int], Dict[str, int]]:
     keys = draw(
         st.lists(
-            st.text(min_size=1, max_size=6, alphabet=st.characters(min_codepoint=97, max_codepoint=122)),
+            st.text(
+                min_size=1,
+                max_size=6,
+                alphabet=st.characters(min_codepoint=97, max_codepoint=122),
+            ),
             min_size=1,
             max_size=5,
             unique=True,
@@ -124,7 +133,9 @@ def _store_states(draw: st.DrawFn) -> Tuple[Dict[str, int], Dict[str, int]]:
 @pytest.mark.medium
 @given(states=_store_states())
 @settings(max_examples=50)
-def test_synchronize_clears_pending_updates(states: Tuple[Dict[str, int], Dict[str, int]]) -> None:
+def test_synchronize_clears_pending_updates(
+    states: Tuple[Dict[str, int], Dict[str, int]],
+) -> None:
     """Invariant: synchronize(A, B) yields B == A and P_A = ∅.
 
     ReqID: SYNC-INV-01

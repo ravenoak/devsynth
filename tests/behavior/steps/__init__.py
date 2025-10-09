@@ -13,6 +13,7 @@ centralized plugin declarations.
 
 from __future__ import annotations
 
+
 # Provide no-op ``setUpModule`` and ``tearDownModule`` hooks so pytest does not
 # attempt to lazy-import these as modules via ``__getattr__`` on this package.
 def setUpModule() -> None:  # noqa: N802 - pytest expects this exact name

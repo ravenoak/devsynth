@@ -8,9 +8,8 @@ from typing import Iterable, Iterator, Sequence
 __all__ = ["PYTEST_PLUGINS", "iter_pytest_plugins"]
 
 # Core plugins explicitly required by the test suite.
-_CORE_PLUGINS: tuple[str, ...] = (
-    "pytest_bdd.plugin",
-)
+# pytest_bdd.plugin is auto-loaded by other plugins, so we don't need to register it here
+_CORE_PLUGINS: tuple[str, ...] = ()
 
 # Legacy helper modules that may still expose ``pytest_plugins`` declarations.
 # Loading them here lets us hoist their entries into the root registry without

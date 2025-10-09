@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock, patch
@@ -8,7 +7,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from rich.console import Console
 from rich.progress import Progress
 
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

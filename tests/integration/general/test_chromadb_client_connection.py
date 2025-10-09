@@ -19,7 +19,6 @@ sys.modules.setdefault(
 
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 
-
 pytestmark = [pytest.mark.requires_resource("chromadb")]
 
 

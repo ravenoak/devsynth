@@ -1,19 +1,17 @@
 """Steps for the validate metadata command feature."""
 
-from tests.behavior.feature_paths import feature_path
 from pathlib import Path
 
 import pytest
 from pytest_bdd import given, scenarios, then
 
+from tests.behavior.feature_paths import feature_path
 
 # Reuse generic CLI step implementations to share common steps.
 from .cli_commands_steps import *  # noqa: F401,F403
 from .test_analyze_commands_steps import check_error_message  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
-
-
 
 
 scenarios(feature_path(__file__, "general", "validate_metadata_command.feature"))

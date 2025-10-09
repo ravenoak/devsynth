@@ -12,7 +12,6 @@ from pytest_bdd import given, scenarios, then, when
 
 from tests.behavior.feature_paths import feature_path
 
-
 pytestmark = [pytest.mark.fast]
 
 
@@ -43,8 +42,11 @@ def _agent_interface() -> type:
     sys.modules.setdefault(module_name, module)
     return getattr(module, "Agent")
 
+
 scenarios(feature_path(__file__, "general", "delegate_task_consensus.feature"))
-scenarios(feature_path(__file__, "general", "delegating_tasks_with_consensus_voting.feature"))
+scenarios(
+    feature_path(__file__, "general", "delegating_tasks_with_consensus_voting.feature")
+)
 
 
 @pytest.fixture

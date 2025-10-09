@@ -7,7 +7,6 @@ import pytest
 from devsynth.application.promises import PromiseAgent
 from devsynth.application.promises.implementation import Promise
 
-
 pytestmark = pytest.mark.fast
 
 

@@ -79,7 +79,10 @@ def test_build_research_telemetry_payload_produces_timeline_snapshot() -> None:
 
     assert payload["version"] == "1.0"
     assert payload["session_id"] == "test-session"
-    assert [event["trace_id"] for event in payload["timeline"]] == ["DSY-0001", "DSY-0002"]
+    assert [event["trace_id"] for event in payload["timeline"]] == [
+        "DSY-0001",
+        "DSY-0002",
+    ]
     assert payload["provenance_filters"][0]["label"].startswith("Agent Persona")
     assert payload["integrity_badges"][0]["trace_id"] == "DSY-0001"
     assert payload["socratic_checkpoints"] == []

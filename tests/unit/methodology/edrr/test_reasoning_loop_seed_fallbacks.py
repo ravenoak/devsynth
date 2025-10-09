@@ -11,7 +11,9 @@ from devsynth.methodology.edrr.contracts import NullWSDETeam
 
 
 @pytest.mark.fast
-def test_reasoning_loop_handles_seed_failures_gracefully(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_handles_seed_failures_gracefully(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Deterministic seeding failures should not break the reasoning loop."""
 
     random_calls: list[int] = []
@@ -33,7 +35,9 @@ def test_reasoning_loop_handles_seed_failures_gracefully(monkeypatch: pytest.Mon
     def completes_once(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
         return {"status": "completed", "phase": "refine"}
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: completes_once)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: completes_once
+    )
 
     results = rl.reasoning_loop(
         wsde_team=NullWSDETeam(),
@@ -48,7 +52,9 @@ def test_reasoning_loop_handles_seed_failures_gracefully(monkeypatch: pytest.Mon
 
 
 @pytest.mark.fast
-def test_reasoning_loop_logs_retry_exhaustion(monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
+def test_reasoning_loop_logs_retry_exhaustion(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
     """Retry exhaustion should emit a debug log and stop the loop."""
 
     attempt_counter = {"value": 0}

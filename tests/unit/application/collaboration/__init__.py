@@ -1,9 +1,8 @@
 """Unit tests for collaboration application components."""
 
+import sys
 from dataclasses import dataclass as _dataclass
 from types import ModuleType
-
-import sys
 
 
 def _ensure_stub_module(name: str, module: ModuleType) -> None:
@@ -54,6 +53,7 @@ if "pydantic" not in sys.modules:
     pydantic_stub.ValidationError = _PydanticValidationError
     pydantic_stub.Field = _field
     pydantic_stub.field_validator = _field_validator
+
     class _FieldValidationInfo:  # pragma: no cover - stub
         pass
 

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
 import sys
 import types
+from collections.abc import AsyncIterator
 
 import pytest
 

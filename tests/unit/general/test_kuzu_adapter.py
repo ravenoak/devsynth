@@ -5,7 +5,6 @@ import pytest
 from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter
 from devsynth.domain.models.memory import MemoryVector
 
-
 pytestmark = pytest.mark.requires_resource("kuzu")
 
 

@@ -1,6 +1,7 @@
 """Verify that integration test scaffolds are written to disk."""
 
 from pathlib import Path
+
 import pytest
 
 from devsynth.application.agents.test import TestAgent

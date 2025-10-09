@@ -31,13 +31,13 @@ KuzuStore = pytest.importorskip(
 ).KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-
 pytestmark = [
     *skip_if_missing_backend("kuzu"),
     pytest.mark.fast,
 ]
 
 
+@pytest.mark.fast
 def test_kuzu_store_round_trip(tmp_path, monkeypatch):
     """Exercise :class:`KuzuStore` when the embedded backend is active. ReqID: N/A"""
 
@@ -67,6 +67,7 @@ def test_kuzu_store_round_trip(tmp_path, monkeypatch):
         store.close()
 
 
+@pytest.mark.fast
 def test_kuzu_memory_store_search_round_trip(tmp_path, monkeypatch):
     """Exercise :class:`KuzuMemoryStore` end-to-end with vector search. ReqID: N/A"""
 

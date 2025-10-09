@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import importlib
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 from typing import Any, Dict, List
 
 import pytest
@@ -188,7 +188,9 @@ def test_progress_timeline_rebinds_alias_on_multiple_description_updates() -> No
 
     transcript = [entry for entry in result["transcript"] if entry[0] != "tick"]
     alias_entries = [
-        entry for entry in transcript if entry[0] in {"add_subtask", "update_subtask", "complete_subtask"}
+        entry
+        for entry in transcript
+        if entry[0] in {"add_subtask", "update_subtask", "complete_subtask"}
     ]
     assert [entry[1]["alias"] for entry in alias_entries] == [
         "download",

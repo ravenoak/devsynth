@@ -6,7 +6,6 @@ from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
 
-
 pytestmark = [
     *skip_if_missing_backend("chromadb"),
     *skip_if_missing_backend("kuzu"),

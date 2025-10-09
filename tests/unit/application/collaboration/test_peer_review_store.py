@@ -34,11 +34,16 @@ _jsonschema_stub = SimpleNamespace(
 sys.modules.setdefault("jsonschema", _jsonschema_stub)
 sys.modules.setdefault("jsonschema.exceptions", _jsonschema_stub.exceptions)
 
-_toml_stub = SimpleNamespace(load=lambda *args, **kwargs: {}, dump=lambda *args, **kwargs: None)
+_toml_stub = SimpleNamespace(
+    load=lambda *args, **kwargs: {}, dump=lambda *args, **kwargs: None
+)
 sys.modules.setdefault("toml", _toml_stub)
 
-_yaml_stub = SimpleNamespace(safe_load=lambda *args, **kwargs: {}, dump=lambda *args, **kwargs: None)
+_yaml_stub = SimpleNamespace(
+    safe_load=lambda *args, **kwargs: {}, dump=lambda *args, **kwargs: None
+)
 sys.modules.setdefault("yaml", _yaml_stub)
+
 
 class _StubValidationError(Exception):
     """Minimal ValidationError replacement for tests."""
@@ -90,7 +95,9 @@ class _StubMemoryManager:
 
 
 _memory_manager_module.MemoryManager = _StubMemoryManager
-sys.modules.setdefault("devsynth.application.memory.memory_manager", _memory_manager_module)
+sys.modules.setdefault(
+    "devsynth.application.memory.memory_manager", _memory_manager_module
+)
 parent_memory_module = sys.modules.setdefault(
     "devsynth.application.memory", ModuleType("devsynth.application.memory")
 )
@@ -98,12 +105,6 @@ setattr(parent_memory_module, "memory_manager", _memory_manager_module)
 
 import pytest
 
-from devsynth.application.collaboration.peer_review import (
-    PeerReview,
-    ReviewDecision,
-    _PeerReviewRecordStorage,
-)
-from devsynth.application.collaboration.structures import ReviewCycleSpec
 from devsynth.application.collaboration.dto import (
     AgentOpinionRecord,
     ConsensusOutcome,
@@ -111,8 +112,16 @@ from devsynth.application.collaboration.dto import (
 )
 from devsynth.application.collaboration.exceptions import (
     ConsensusError as CollaborationConsensusError,
+)
+from devsynth.application.collaboration.exceptions import (
     PeerReviewConsensusError,
 )
+from devsynth.application.collaboration.peer_review import (
+    PeerReview,
+    ReviewDecision,
+    _PeerReviewRecordStorage,
+)
+from devsynth.application.collaboration.structures import ReviewCycleSpec
 
 
 class DummyMemoryManager:
@@ -267,9 +276,7 @@ def test_collect_reviews_wraps_consensus_error_with_serialized_outcome() -> None
         consensus_id="cid-collect",
         task_id="tid",
         method="majority_opinion",
-        agent_opinions=(
-            AgentOpinionRecord(agent_id="alpha", opinion="approve"),
-        ),
+        agent_opinions=(AgentOpinionRecord(agent_id="alpha", opinion="approve"),),
         majority_opinion="approve",
     )
 
@@ -284,12 +291,15 @@ def test_collect_reviews_wraps_consensus_error_with_serialized_outcome() -> None
 
     review.team = StubTeam()
 
-    with patch(
-        "devsynth.application.collaboration.collaboration_memory_utils.store_with_retry",
-        return_value="stored",
-    ), patch(
-        "devsynth.application.collaboration.peer_review.log_consensus_failure"
-    ) as mock_log:
+    with (
+        patch(
+            "devsynth.application.collaboration.collaboration_memory_utils.store_with_retry",
+            return_value="stored",
+        ),
+        patch(
+            "devsynth.application.collaboration.peer_review.log_consensus_failure"
+        ) as mock_log,
+    ):
         review.collect_reviews()
 
     mock_log.assert_called_once()

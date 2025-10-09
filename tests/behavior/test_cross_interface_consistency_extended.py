@@ -3,13 +3,12 @@
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
+
 # Import the fixture
 from tests.behavior.steps.test_cross_interface_consistency_extended_steps import (
     cross_interface_context,
 )
-
-from tests.behavior.feature_paths import feature_path
-
 
 pytestmark = [pytest.mark.fast]
 

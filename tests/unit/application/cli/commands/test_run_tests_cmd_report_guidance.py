@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from types import ModuleType
-import sys
 
 import pytest
 from typer.testing import CliRunner
@@ -69,9 +69,7 @@ def test_cli_report_flag_warns_when_directory_missing(
     monkeypatch.setattr(
         cli_module, "_coverage_instrumentation_status", lambda: (True, None)
     )
-    monkeypatch.setattr(
-        cli_module, "coverage_artifacts_status", lambda: (True, None)
-    )
+    monkeypatch.setattr(cli_module, "coverage_artifacts_status", lambda: (True, None))
     monkeypatch.setattr(
         cli_module,
         "enforce_coverage_threshold",
@@ -85,12 +83,8 @@ def test_cli_report_flag_warns_when_directory_missing(
         lambda bridge: emitted_bridges.append(bridge),
     )
 
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
-    )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
-    )
+    monkeypatch.setattr(cli_module, "ensure_pytest_cov_plugin_env", lambda env: False)
+    monkeypatch.setattr(cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
 
     result = runner.invoke(app, ["--report"], prog_name="run-tests")
 
@@ -159,12 +153,8 @@ def test_cli_segment_option_failure_surfaces_failure_tips(
     monkeypatch.setattr(
         cli_module, "_coverage_instrumentation_status", lambda: (True, None)
     )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_cov_plugin_env", lambda env: False
-    )
-    monkeypatch.setattr(
-        cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False
-    )
+    monkeypatch.setattr(cli_module, "ensure_pytest_cov_plugin_env", lambda env: False)
+    monkeypatch.setattr(cli_module, "ensure_pytest_bdd_plugin_env", lambda env: False)
 
     runner = CliRunner()
     result = runner.invoke(

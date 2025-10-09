@@ -62,7 +62,11 @@ def test_generate_comparative_analysis_identifies_best_solution(wsde_module_team
     task = {"id": "compare", "requirements": ["encryption"], "constraints": []}
 
     solutions = [
-        {"id": "sol-1", "content": "Implements encryption", "code": "def enc():\n    pass\n"},
+        {
+            "id": "sol-1",
+            "content": "Implements encryption",
+            "code": "def enc():\n    pass\n",
+        },
         {"id": "sol-2", "content": "No mention", "code": ""},
     ]
 

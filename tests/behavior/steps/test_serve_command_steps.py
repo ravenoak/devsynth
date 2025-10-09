@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 import os
 import socket
 from unittest.mock import MagicMock, patch
@@ -6,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

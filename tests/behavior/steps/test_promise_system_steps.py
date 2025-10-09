@@ -2,21 +2,21 @@
 Step definitions for the Promise System feature.
 """
 
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.promises import PromiseType
 from devsynth.application.promises.agent import PromiseAgent
 from devsynth.application.promises.broker import PromiseBroker, UnauthorizedAccessError
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
 scenarios(feature_path(__file__, "general", "promise_system.feature"))
-scenarios(feature_path(__file__, "general", "promise_system_capability_management.feature"))
+scenarios(
+    feature_path(__file__, "general", "promise_system_capability_management.feature")
+)
 
 
 # Define a fixture for the context

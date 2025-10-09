@@ -8,7 +8,6 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, then, when
 
-
 pytestmark = [pytest.mark.fast]
 
 
@@ -70,7 +69,9 @@ def webui_error_context(monkeypatch):
     sanitization_stub.sanitize_input = lambda text: text
     monkeypatch.setitem(sys.modules, "devsynth.security", security_pkg)
     monkeypatch.setitem(sys.modules, "devsynth.security.validation", validation_stub)
-    monkeypatch.setitem(sys.modules, "devsynth.security.sanitization", sanitization_stub)
+    monkeypatch.setitem(
+        sys.modules, "devsynth.security.sanitization", sanitization_stub
+    )
     security_pkg.validation = validation_stub
     security_pkg.sanitization = sanitization_stub
 
@@ -108,7 +109,9 @@ def then_webui_surfaces_guidance(webui_error_context):
 
     markdown_payloads = [call.args[0] for call in st.markdown.call_args_list]
     assert any("**Suggestions:**" in text for text in markdown_payloads)
-    assert any("Check that the file path is correct" in text for text in markdown_payloads)
+    assert any(
+        "Check that the file path is correct" in text for text in markdown_payloads
+    )
     assert any("**Documentation:**" in text for text in markdown_payloads)
     assert any("File Handling Guide" in text for text in markdown_payloads)
 

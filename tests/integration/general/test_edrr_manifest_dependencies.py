@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-
 argon2_mod = types.ModuleType("argon2")
 setattr(argon2_mod, "PasswordHasher", object)
 exceptions_mod = types.ModuleType("exceptions")

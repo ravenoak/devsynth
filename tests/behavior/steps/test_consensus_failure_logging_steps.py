@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 import logging
 from datetime import datetime
 
@@ -7,8 +6,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.collaboration.WSDE import WSDE
 from devsynth.logger import DevSynthLogger
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = pytest.mark.fast
 

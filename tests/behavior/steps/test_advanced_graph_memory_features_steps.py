@@ -2,7 +2,6 @@
 Step definitions for advanced_graph_memory_features.feature
 """
 
-from tests.behavior.feature_paths import feature_path
 import os
 import tempfile
 from datetime import datetime, timedelta
@@ -11,6 +10,7 @@ from typing import Any, Dict, List
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
@@ -24,8 +24,6 @@ from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-
-
 
 # Register scenarios
 scenarios(feature_path(__file__, "general", "advanced_graph_memory_features.feature"))

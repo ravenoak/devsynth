@@ -266,7 +266,9 @@ class TestMultiLayeredMemorySystem:
         for entry in semantic_items:
             assert isinstance(entry.metadata, dict)
             for value in entry.metadata.values():
-                assert isinstance(value, (str, int, float, bool, type(None), dict, list))
+                assert isinstance(
+                    value, (str, int, float, bool, type(None), dict, list)
+                )
 
     @pytest.mark.medium
     def test_get_items_by_layer_succeeds(self, memory_system, sample_memory_items):

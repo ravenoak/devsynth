@@ -1,21 +1,20 @@
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 pytest.importorskip("pytest_bdd")
 
 from pytest_bdd import given, parsers, scenarios, then, when
+
 from . import test_webui_integration_error_branches  # noqa: F401
-
-
 
 
 def _install_streamlit_stub() -> ModuleType:

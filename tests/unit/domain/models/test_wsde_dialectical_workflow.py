@@ -9,7 +9,6 @@ import pytest
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
 from devsynth.domain.models.wsde_dialectical_types import DialecticalTask
 from devsynth.domain.models.wsde_facade import WSDETeam
-
 from tests.helpers import DialecticalTaskFactory
 
 

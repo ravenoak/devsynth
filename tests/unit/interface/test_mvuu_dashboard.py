@@ -107,8 +107,16 @@ def test_render_research_overlays_snapshot() -> None:
 
     telemetry = {
         "provenance_filters": [
-            {"label": "Agent Persona: Analyst", "value": "Analyst", "dimension": "agent_persona"},
-            {"label": "Knowledge Graph: KG-42", "value": "KG-42", "dimension": "knowledge_graph"},
+            {
+                "label": "Agent Persona: Analyst",
+                "value": "Analyst",
+                "dimension": "agent_persona",
+            },
+            {
+                "label": "Knowledge Graph: KG-42",
+                "value": "KG-42",
+                "dimension": "knowledge_graph",
+            },
         ],
         "timeline": [
             {
@@ -228,7 +236,9 @@ def test_render_research_overlays_without_optional_sections() -> None:
 
 
 @pytest.mark.fast
-def test_render_dashboard_with_overlays_loads_telemetry(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_render_dashboard_with_overlays_loads_telemetry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Dashboards should render overlays when the flag is present."""
 
     data = {
@@ -243,7 +253,9 @@ def test_render_dashboard_with_overlays_loads_telemetry(monkeypatch: pytest.Monk
         session_id="session",
     )
     secret_env = "TEST_EXTERNAL_RESEARCH_SECRET"
-    signature = sign_payload(payload, secret="secret", key_id=f"env:{secret_env}").as_dict()
+    signature = sign_payload(
+        payload, secret="secret", key_id=f"env:{secret_env}"
+    ).as_dict()
     telemetry = payload | {"signature": signature}
 
     captured: dict[str, object] = {}
@@ -262,8 +274,12 @@ def test_render_dashboard_with_overlays_loads_telemetry(monkeypatch: pytest.Monk
     monkeypatch.setenv(mvuu_dashboard._SIGNATURE_POINTER_ENV, secret_env)
     monkeypatch.setenv(secret_env, "secret")
     monkeypatch.setattr(mvuu_dashboard, "_require_streamlit", lambda: mock_st)
-    monkeypatch.setattr(mvuu_dashboard, "load_research_telemetry", lambda path=None: telemetry)
-    monkeypatch.setattr(mvuu_dashboard, "render_research_telemetry_overlays", fake_render)
+    monkeypatch.setattr(
+        mvuu_dashboard, "load_research_telemetry", lambda path=None: telemetry
+    )
+    monkeypatch.setattr(
+        mvuu_dashboard, "render_research_telemetry_overlays", fake_render
+    )
 
     mvuu_dashboard.render_dashboard(data)
 
@@ -292,13 +308,17 @@ def test_signature_secret_falls_back_to_legacy(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.delenv(mvuu_dashboard._SIGNATURE_DEFAULT_ENV, raising=False)
     monkeypatch.setenv("DEVSYNTH_AUTORESEARCH_SECRET", "legacy-secret")
 
-    secret = mvuu_dashboard._resolve_signature_secret(mvuu_dashboard._SIGNATURE_DEFAULT_ENV)
+    secret = mvuu_dashboard._resolve_signature_secret(
+        mvuu_dashboard._SIGNATURE_DEFAULT_ENV
+    )
 
     assert secret == "legacy-secret"
 
 
 @pytest.mark.fast
-def test_resolve_telemetry_path_prefers_legacy(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_resolve_telemetry_path_prefers_legacy(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     default_path = tmp_path / "traceability_external_research.json"
     legacy_path = tmp_path / "traceability_autoresearch.json"
     legacy_path.write_text("{}", encoding="utf-8")

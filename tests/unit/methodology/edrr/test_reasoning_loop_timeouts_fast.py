@@ -25,7 +25,9 @@ def test_import_helper_exposes_typed_apply() -> None:
 
 
 @pytest.mark.fast
-def test_reasoning_loop_respects_total_budget_and_emits_debug(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_respects_total_budget_and_emits_debug(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """ReqID: EDRR-LOOP-Timeout-01 — Total budget stops iterations with telemetry."""
 
     clock = {"value": 0.0}
@@ -59,7 +61,9 @@ def test_reasoning_loop_respects_total_budget_and_emits_debug(monkeypatch: pytes
 
 
 @pytest.mark.fast
-def test_reasoning_loop_uses_fallback_after_invalid_phase(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_uses_fallback_after_invalid_phase(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """ReqID: EDRR-LOOP-Phase-02 — Invalid phases fall back to deterministic transitions."""
 
     payloads = [
@@ -91,7 +95,9 @@ def test_reasoning_loop_uses_fallback_after_invalid_phase(monkeypatch: pytest.Mo
 
 
 @pytest.mark.fast
-def test_reasoning_loop_stops_after_retry_exhaustion(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_stops_after_retry_exhaustion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """ReqID: EDRR-LOOP-Error-03 — Exhausted retries propagate stop conditions."""
 
     calls = {"count": 0}
@@ -161,7 +167,9 @@ def test_reasoning_loop_seeds_random_and_numpy(monkeypatch: pytest.MonkeyPatch) 
 
 
 @pytest.mark.fast
-def test_reasoning_loop_applies_synthesis_to_task(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_applies_synthesis_to_task(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """ReqID: EDRR-LOOP-Synthesis-05 — Synthesis payload updates the working task."""
 
     class TaskRecorder:
