@@ -1,9 +1,0 @@
-2025-10-06 21:23:21,144 - devsynth.testing.run_tests - INFO - Injected -p pytest_cov into PYTEST_ADDOPTS to preserve coverage instrumentation
-2025-10-06 21:23:21,144 - devsynth.testing.run_tests - INFO - Injected -p pytest_bdd.plugin into PYTEST_ADDOPTS to preserve pytest-bdd hooks
-2025-10-06 21:23:21,144 - devsynth.application.cli.commands.run_tests_cmd - INFO - CLI appended -p pytest_cov to PYTEST_ADDOPTS to enforce coverage instrumentation
--p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled
-2025-10-06 21:23:21,145 - devsynth.application.cli.commands.run_tests_cmd - INFO - CLI appended -p pytest_bdd.plugin to PYTEST_ADDOPTS to preserve pytest-bdd hooks
--p pytest_bdd.plugin appended to PYTEST_ADDOPTS because plugin autoloading is disabled
-2025-10-06 21:26:54,902 - devsynth.testing.run_tests - WARNING - Test collection failed:
-Test collection failed:
-Tests failed
