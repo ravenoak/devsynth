@@ -73,6 +73,7 @@ diagnostics/*
 diagnostics/**
 !diagnostics/**/*.log
 !diagnostics/**/*.txt
+!diagnostics/manual_qa_notes_*.md
 !diagnostics/.gitkeep
 !diagnostics/README.md
 -!diagnostics/provider_system_coverage_20250921.json
