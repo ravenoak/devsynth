@@ -216,15 +216,7 @@ tasks:
   tests:coverage:cli-run-tests:
     desc: Focused coverage sweep for devsynth run-tests CLI invariants
     cmds:
-      - bash -lc 'poetry run pytest -o addopts="" \
-          tests/unit/application/cli/commands/test_run_tests_cmd_cli_runner_paths.py \
-          tests/unit/application/cli/commands/test_run_tests_cmd_cli_runner_thresholds.py \
-          tests/unit/application/cli/commands/test_run_tests_cmd.py \
-          --cov=devsynth.application.cli.commands.run_tests_cmd \
-          --cov=devsynth.testing.run_tests \
-          --cov-report=term-missing \
-          --cov-fail-under=0'
-
+      - bash -lc 'poetry run pytest -o addopts="" tests/unit/application/cli/commands/test_run_tests_cmd_cli_runner_paths.py tests/unit/application/cli/commands/test_run_tests_cmd_cli_runner_thresholds.py tests/unit/application/cli/commands/test_run_tests_cmd.py --cov=devsynth.application.cli.commands.run_tests_cmd --cov=devsynth.testing.run_tests --cov-report=term-missing --cov-fail-under=0'
   test:coverage:
     desc: Run tests with coverage
     cmds:
