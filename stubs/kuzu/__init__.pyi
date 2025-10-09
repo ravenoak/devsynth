@@ -1,18 +1,12 @@
 from typing import Any, Iterable
 
-
 class Database:
     def __init__(self, path: str) -> None: ...
-
     def close(self) -> None: ...
-
 
 class Connection:
     def __init__(self, database: Database) -> None: ...
-
     def execute(self, query: str, parameters: Iterable[Any] | None = ...) -> Any: ...
-
     def close(self) -> None: ...
-
 
 __all__ = ["Database", "Connection"]

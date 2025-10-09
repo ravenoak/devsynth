@@ -4,15 +4,9 @@ from typing import Any, Sequence
 
 __all__ = ["Encoding", "get_encoding", "encoding_for_model"]
 
-
 class Encoding:
     def encode(self, text: str, *args: Any, **kwargs: Any) -> list[int]: ...
-
     def decode(self, tokens: Sequence[int], *args: Any, **kwargs: Any) -> str: ...
 
-
 def get_encoding(name: str) -> Encoding: ...
-
-
 def encoding_for_model(model_name: str) -> Encoding: ...
-

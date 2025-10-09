@@ -8,7 +8,6 @@ from .loader import ConfigModel
 
 ConfigT = TypeVar("ConfigT", bound=ConfigModel)
 
-
 @dataclass
 class UnifiedConfig(Generic[ConfigT]):
     config: ConfigT
@@ -22,10 +21,8 @@ class UnifiedConfig(Generic[ConfigT]):
     def set_kuzu_embedded(self, embedded: bool) -> None: ...
     def save(self) -> Path: ...
 
-
 class UnifiedConfigLoader:
     @staticmethod
     def load(path: str | Path | None = ...) -> UnifiedConfig[ConfigModel]: ...
-
     @staticmethod
     def save(config: UnifiedConfig[ConfigModel]) -> Path: ...

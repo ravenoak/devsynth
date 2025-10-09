@@ -14,4 +14,3 @@ class Session:
         headers: Mapping[str, str] | None = ...,
         timeout: Optional[float] = ...,
     ) -> Response: ...
-

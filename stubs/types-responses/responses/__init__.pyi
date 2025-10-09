@@ -14,20 +14,14 @@ HEAD: Any
 PATCH: Any
 OPTIONS: Any
 
-
 class BaseResponse: ...
-
-
 class Response(BaseResponse): ...
-
 
 class Request(Protocol):
     body: bytes | str | None
 
-
 class Call(Protocol):
     request: Request
-
 
 class RequestsMock:
     calls: list[Call]
@@ -58,17 +52,13 @@ class RequestsMock:
     def reset(self) -> None: ...
     def assert_call_count(self, url: str, count: int) -> None: ...
 
-
 def activate(
     func: Callable[P, R] | None = None,
     registry: RequestsMock | None = ...,
     assert_all_requests_are_fired: bool = ...,
     **kwargs: Any,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
-
-
 def requests_mock(**kwargs: Any) -> RequestsMock: ...
-
 
 __all__ = [
     "RequestsMock",
