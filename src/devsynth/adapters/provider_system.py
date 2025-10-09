@@ -502,6 +502,11 @@ class NullProvider(BaseProvider):
             f"Embeddings unavailable because provider is disabled: {self.reason}."
         )
 
+    async def aembed(self, *args, **kwargs):  # pragma: no cover - simple guard
+        raise ProviderError(
+            f"Embeddings unavailable because provider is disabled: {self.reason}."
+        )
+
 
 class StubProvider(BaseProvider):
     """Deterministic local stub for tests and offline development.

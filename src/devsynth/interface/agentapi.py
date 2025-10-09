@@ -12,10 +12,11 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Sequence, TypeVar, cast
+from typing import Any, Callable, Mapping, Sequence, TypeVar, assert_never, cast
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
+from typing_extensions import ParamSpec, TypedDict, Unpack
 
 from devsynth.interface.agentapi_models import (
     APIMetrics,
@@ -30,11 +31,11 @@ from devsynth.interface.agentapi_models import (
     ProgressSnapshot,
     ProgressStatus,
     SpecRequest,
+    SynthesisTarget,
     SynthesizeRequest,
     TestSpecRequest,
     WorkflowMetadata,
     WorkflowResponse,
-    SynthesisTarget,
 )
 from devsynth.interface.ux_bridge import (
     ProgressIndicator,
@@ -42,9 +43,6 @@ from devsynth.interface.ux_bridge import (
     sanitize_output,
 )
 from devsynth.logging_setup import DevSynthLogger
-
-from typing import assert_never
-from typing_extensions import ParamSpec, TypedDict, Unpack
 
 logger = DevSynthLogger(__name__)
 router = APIRouter()
@@ -533,9 +531,7 @@ class AgentAPI:
         gather_cmd(bridge=self.bridge)
         return self._collect_response()
 
-    def synthesize(
-        self, *, target: SynthesisTarget | None = None
-    ) -> WorkflowResponse:
+    def synthesize(self, *, target: SynthesisTarget | None = None) -> WorkflowResponse:
         from devsynth.application.cli import run_pipeline_cmd
 
         self._clear_messages()

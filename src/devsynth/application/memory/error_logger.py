@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime
-from dataclasses import dataclass
-from typing import Optional, TypedDict
-
 from collections.abc import Mapping
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional, TypedDict
 
 from ...logging_setup import DevSynthLogger
 from .dto import MemoryMetadataValue
@@ -150,7 +149,9 @@ class MemoryErrorLogger:
             ]
 
         if error_type is not None:
-            filtered = [record for record in filtered if record.error_type == error_type]
+            filtered = [
+                record for record in filtered if record.error_type == error_type
+            ]
 
         return sorted(filtered, key=lambda record: record.timestamp, reverse=True)[
             :limit
@@ -175,7 +176,9 @@ class MemoryErrorLogger:
         for record in self.errors:
             by_adapter[record.adapter_name] = by_adapter.get(record.adapter_name, 0) + 1
             by_operation[record.operation] = by_operation.get(record.operation, 0) + 1
-            by_error_type[record.error_type] = by_error_type.get(record.error_type, 0) + 1
+            by_error_type[record.error_type] = (
+                by_error_type.get(record.error_type, 0) + 1
+            )
 
         summary: ErrorSummary = {
             "total_errors": len(self.errors),

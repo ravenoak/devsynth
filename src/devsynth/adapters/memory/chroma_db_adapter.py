@@ -496,9 +496,7 @@ class ChromaDBAdapter(VectorStore[MemoryVector]):
             logger.info("Retrieved collection statistics: %s", stats)
             return stats
         except Exception as exc:
-            logger.error(
-                "Failed to get collection statistics from ChromaDB: %s", exc
-            )
+            logger.error("Failed to get collection statistics from ChromaDB: %s", exc)
             raise MemoryStoreError(
                 f"Failed to get collection statistics from ChromaDB: {exc}"
             )

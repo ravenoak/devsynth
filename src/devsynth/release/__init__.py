@@ -21,4 +21,3 @@ __all__ = [
     "publish_manifest",
     "write_manifest",
 ]
-

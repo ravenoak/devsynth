@@ -22,9 +22,10 @@ try:  # pragma: no cover - optional dependency
 except Exception:  # pragma: no cover - optional dependency
     np = None
 
+from devsynth.application.memory.dto import VectorStoreStats
+
 # Import settings module so ``ensure_path_exists`` can be monkeypatched
 from devsynth.config import settings as settings_module
-from devsynth.application.memory.dto import VectorStoreStats
 from devsynth.domain.interfaces.memory import VectorStore
 from devsynth.domain.models.memory import MemoryVector
 from devsynth.exceptions import MemoryStoreError

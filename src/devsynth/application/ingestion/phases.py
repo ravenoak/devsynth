@@ -6,7 +6,14 @@ from typing import Any, Dict
 
 from devsynth.exceptions import IngestionError
 
-from . import ArtifactStatus, ArtifactType, Ingestion, IngestionPhase, ProjectStructureType, logger
+from . import (
+    ArtifactStatus,
+    ArtifactType,
+    Ingestion,
+    IngestionPhase,
+    ProjectStructureType,
+    logger,
+)
 
 
 def run_expand_phase(ingestion: "Ingestion", dry_run: bool, verbose: bool) -> None:

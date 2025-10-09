@@ -12,9 +12,9 @@ from devsynth.exceptions import DevSynthError, ValidationError
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
-from .dto import ConsensusOutcome
 from ...domain.interfaces.agent import Agent, AgentCoordinator
 from ...domain.models.wsde_facade import WSDE, WSDETeam
+from .dto import ConsensusOutcome
 from .exceptions import (
     AgentExecutionError,
     CollaborationError,
@@ -51,9 +51,9 @@ class AgentCoordinatorImpl(AgentCoordinator):
         if isinstance(personas, str):
             personas = [part.strip() for part in personas.split(",") if part.strip()]
         if not personas:
-            env_value = os.getenv("DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS", "") or os.getenv(
-                "DEVSYNTH_AUTORESEARCH_PERSONAS", ""
-            )
+            env_value = os.getenv(
+                "DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS", ""
+            ) or os.getenv("DEVSYNTH_AUTORESEARCH_PERSONAS", "")
             if env_value:
                 personas = [
                     part.strip() for part in env_value.split(",") if part.strip()

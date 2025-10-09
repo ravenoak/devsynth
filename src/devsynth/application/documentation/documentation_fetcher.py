@@ -200,9 +200,7 @@ class PyPIDocumentationSource(DocumentationSource):
 
             description = data.get("info", {}).get("description", "")
             if isinstance(description, str) and description:
-                return self._parse_markdown_documentation(
-                    description, library, version
-                )
+                return self._parse_markdown_documentation(description, library, version)
 
             return []
         except Exception as exc:  # pragma: no cover - defensive logging
@@ -214,7 +212,9 @@ class PyPIDocumentationSource(DocumentationSource):
             )
             return []
 
-    def _extract_docstrings(self, library: str, version: str) -> list[DocumentationChunk]:
+    def _extract_docstrings(
+        self, library: str, version: str
+    ) -> list[DocumentationChunk]:
         """Extract docstrings from a Python package."""
         logger.info("Attempting to extract docstrings from %s %s", library, version)
 
@@ -337,7 +337,9 @@ class PyPIDocumentationSource(DocumentationSource):
                 title = sections[index + 2].strip()
                 content = sections[index + 3] if index + 3 < len(sections) else ""
 
-                if current_title and (level <= current_level or index + 3 >= len(sections)):
+                if current_title and (
+                    level <= current_level or index + 3 >= len(sections)
+                ):
                     if current_content.strip():
                         chunks.append(
                             DocumentationChunk(
@@ -595,7 +597,9 @@ class DocumentationFetcher:
                         if isinstance(item, Mapping)
                     ]
             except Exception:  # pragma: no cover - defensive logging
-                logger.warning("Failed to read cached documentation for %s %s", library, version)
+                logger.warning(
+                    "Failed to read cached documentation for %s %s", library, version
+                )
 
         if offline:
             raise ValueError(f"No cached documentation for {library} {version}")
@@ -606,9 +610,13 @@ class DocumentationFetcher:
                 if chunks:
                     try:
                         with open(cache_file, "w", encoding="utf-8") as cache_handle:
-                            json.dump([chunk.to_json() for chunk in chunks], cache_handle)
+                            json.dump(
+                                [chunk.to_json() for chunk in chunks], cache_handle
+                            )
                     except Exception:  # pragma: no cover - caching best-effort
-                        logger.debug("Failed to cache documentation for %s %s", library, version)
+                        logger.debug(
+                            "Failed to cache documentation for %s %s", library, version
+                        )
 
                     logger.info(
                         "Fetched %s documentation chunks for %s %s",

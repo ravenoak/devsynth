@@ -63,8 +63,7 @@ class TaskManagementMixin:
         self._track_subtask_progress(task_spec.id)
 
         if any(
-            context.subtask_progress.get(subtask.id, 0.0) < 0.5
-            for subtask in subtasks
+            context.subtask_progress.get(subtask.id, 0.0) < 0.5 for subtask in subtasks
         ):
             reassignments = self.reassign_subtasks_based_on_progress(subtasks)
             if reassignments:
@@ -145,9 +144,7 @@ class TaskManagementMixin:
             best_score = -1.0
 
             for agent in context.agents:
-                score = context._calculate_expertise_score(
-                    agent, subtask.to_payload()
-                )
+                score = context._calculate_expertise_score(agent, subtask.to_payload())
                 if score > best_score:
                     best_score = float(score)
                     best_agent = agent
@@ -217,7 +214,9 @@ class TaskManagementMixin:
                     elif progress > 0:
                         subtask.status = "in_progress"
                     else:
-                        subtask.status = "assigned" if subtask.assigned_to else "pending"
+                        subtask.status = (
+                            "assigned" if subtask.assigned_to else "pending"
+                        )
 
                     subtask.progress = progress
                     return
@@ -234,11 +233,7 @@ class TaskManagementMixin:
         low_progress_subtasks: List[SubtaskSpec] = []
         for subtask in subtasks:
             progress = context.subtask_progress.get(subtask.id, 0.0)
-            if (
-                progress < 0.3
-                and subtask.status != "completed"
-                and subtask.assigned_to
-            ):
+            if progress < 0.3 and subtask.status != "completed" and subtask.assigned_to:
                 low_progress_subtasks.append(subtask)
 
         priority_order = {"high": 0, "medium": 1, "low": 2}
@@ -261,9 +256,7 @@ class TaskManagementMixin:
                     continue
 
                 expertise_score = float(
-                    context._calculate_expertise_score(
-                        agent, subtask.to_payload()
-                    )
+                    context._calculate_expertise_score(agent, subtask.to_payload())
                 )
                 workload_factor = 1.0 - (
                     agent_workloads.get(agent.name, 0) / max(len(subtasks), 1)
@@ -372,9 +365,7 @@ class TaskManagementMixin:
             elif subtask.progress:
                 self.update_subtask_progress(subtask.id, subtask.progress)
 
-    def _collect_subtask_results(
-        self, task_id: str
-    ) -> List[Dict[str, Any]]:
+    def _collect_subtask_results(self, task_id: str) -> List[Dict[str, Any]]:
         """Collect results from completed subtasks."""
 
         context = cast(TaskManagementContext, self)

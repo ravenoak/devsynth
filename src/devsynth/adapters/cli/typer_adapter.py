@@ -1,9 +1,8 @@
 import importlib
+import os
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
-import os
 
 import click
 import typer
@@ -23,7 +22,9 @@ from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import register_dashboard_hook
 
 if os.environ.get("DEVSYNTH_CLI_MINIMAL") == "1":  # pragma: no cover - env shim
-    requirements_app = typer.Typer(help="Requirements commands disabled in minimal mode")
+    requirements_app = typer.Typer(
+        help="Requirements commands disabled in minimal mode"
+    )
     vcs_app = typer.Typer(help="VCS commands disabled in minimal mode")
     mvu_app = typer.Typer(help="MVUU commands disabled in minimal mode")
 else:

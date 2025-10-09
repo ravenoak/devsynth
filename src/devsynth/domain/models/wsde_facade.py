@@ -28,12 +28,12 @@ from devsynth.domain.models import (
     wsde_solution_analysis,
     wsde_voting,
 )
+from devsynth.domain.models.wsde_core import WSDE as CoreWSDE
 from devsynth.domain.models.wsde_core import (
-    WSDE as CoreWSDE,
     SolutionRecord,
     TaskPayload,
-    WSDETeam as CoreWSDETeam,
 )
+from devsynth.domain.models.wsde_core import WSDETeam as CoreWSDETeam
 from devsynth.domain.models.wsde_summarization import (
     summarize_consensus_result,
     summarize_voting_result,
@@ -154,9 +154,7 @@ def _coerce_pattern_record(
 
     mapping = cast(Mapping[str, Any], pattern)
 
-    name_raw = (
-        mapping.get("name") or mapping.get("pattern") or mapping.get("summary")
-    )
+    name_raw = mapping.get("name") or mapping.get("pattern") or mapping.get("summary")
     name = str(name_raw).strip() if name_raw else "Pattern"
     occurrences_raw = mapping.get("occurrences", mapping.get("count", 1))
     try:
@@ -226,10 +224,8 @@ def _create_comparison_matrix(
     """Build a comparison matrix using the canonical implementation."""
 
     idea_payload = [dict(idea) for idea in ideas]
-    matrix: dict[str, dict[str, float]] = (
-        wsde_decision_making.create_comparison_matrix(
-            _as_base_team(self), idea_payload, list(evaluation_criteria)
-        )
+    matrix: dict[str, dict[str, float]] = wsde_decision_making.create_comparison_matrix(
+        _as_base_team(self), idea_payload, list(evaluation_criteria)
     )
     return matrix
 
@@ -265,13 +261,11 @@ def _analyze_trade_offs(
     """Surface trade-off insights through the shared helper module."""
 
     option_payload = [dict(option) for option in evaluated_options]
-    trade_offs_payload: list[dict[str, Any]] = (
-        wsde_decision_making.analyze_trade_offs(
-            _as_base_team(self),
-            option_payload,
-            conflict_detection_threshold=conflict_detection_threshold,
-            identify_complementary_options=identify_complementary_options,
-        )
+    trade_offs_payload: list[dict[str, Any]] = wsde_decision_making.analyze_trade_offs(
+        _as_base_team(self),
+        option_payload,
+        conflict_detection_threshold=conflict_detection_threshold,
+        identify_complementary_options=identify_complementary_options,
     )
     return trade_offs_payload
 
@@ -353,13 +347,11 @@ def _optimize_implementation(
     """Optimise implementation plans by reusing the shared helper."""
 
     targets = list(optimization_targets or [])
-    optimized_plan: list[dict[str, Any]] = (
-        wsde_decision_making.optimize_implementation(
-            _as_base_team(self),
-            [dict(step) for step in plan],
-            targets,
-            code_analyzer=code_analyzer,
-        )
+    optimized_plan: list[dict[str, Any]] = wsde_decision_making.optimize_implementation(
+        _as_base_team(self),
+        [dict(step) for step in plan],
+        targets,
+        code_analyzer=code_analyzer,
     )
     return optimized_plan
 
@@ -382,8 +374,6 @@ def _perform_quality_assurance(
         code_analyzer=code_analyzer,
     )
     return qa_summary
-
-
 
 
 def _get_worker(self: "WSDETeam") -> SupportsTeamAgent | None:
@@ -420,8 +410,6 @@ def _get_agent(self: "WSDETeam", name: str) -> SupportsTeamAgent | None:
         if agent_name == name:
             return agent
     return None
-
-
 
 
 def _extract_learnings(
@@ -650,9 +638,7 @@ def _integrate_knowledge(
     normalised_learnings = [
         _coerce_learning_record(entry, metadata=metadata) for entry in learnings
     ]
-    normalised_patterns = [
-        _coerce_pattern_record(pattern) for pattern in patterns
-    ]
+    normalised_patterns = [_coerce_pattern_record(pattern) for pattern in patterns]
 
     summary_sections: list[str] = []
     if normalised_patterns:
@@ -838,8 +824,6 @@ def _can_provide_critique(
     return solution_domain.lower() in expertise_domains or "review" in expertise_domains
 
 
-
-
 def _simple_conduct_peer_review(
     self: WSDETeam,
     work_product: Mapping[str, Any] | Any,
@@ -887,7 +871,6 @@ def _simple_conduct_peer_review(
         except Exception:
             pass
     return result
-
 
 
 # ---------------------------------------------------------------------------
@@ -1026,9 +1009,7 @@ class TeamDialecticalMixin:
     apply_dialectical_reasoning = wsde_dialectical.apply_dialectical_reasoning
     _generate_antithesis = wsde_dialectical._generate_antithesis
     _generate_synthesis = wsde_dialectical._generate_synthesis
-    _categorize_critiques_by_domain = (
-        wsde_dialectical._categorize_critiques_by_domain
-    )
+    _categorize_critiques_by_domain = wsde_dialectical._categorize_critiques_by_domain
     _identify_domain_conflicts = wsde_dialectical._identify_domain_conflicts
     _prioritize_critiques = wsde_dialectical._prioritize_critiques
     _calculate_priority_score = wsde_dialectical._calculate_priority_score
@@ -1045,25 +1026,19 @@ class TeamDialecticalMixin:
     _resolve_content_improvement_conflict = (
         wsde_dialectical._resolve_content_improvement_conflict
     )
-    _check_code_standards_compliance = (
-        wsde_dialectical._check_code_standards_compliance
-    )
+    _check_code_standards_compliance = wsde_dialectical._check_code_standards_compliance
     _check_content_standards_compliance = (
         wsde_dialectical._check_content_standards_compliance
     )
     _check_pep8_compliance = wsde_dialectical._check_pep8_compliance
-    _check_security_best_practices = (
-        wsde_dialectical._check_security_best_practices
-    )
+    _check_security_best_practices = wsde_dialectical._check_security_best_practices
     _balance_performance_and_maintainability = (
         wsde_dialectical._balance_performance_and_maintainability
     )
     _balance_security_and_performance = (
         wsde_dialectical._balance_security_and_performance
     )
-    _balance_security_and_usability = (
-        wsde_dialectical._balance_security_and_usability
-    )
+    _balance_security_and_usability = wsde_dialectical._balance_security_and_usability
     _generate_detailed_synthesis_reasoning = (
         wsde_dialectical._generate_detailed_synthesis_reasoning
     )

@@ -5,14 +5,31 @@ from __future__ import annotations
 from collections import OrderedDict
 from dataclasses import dataclass, replace
 from datetime import datetime
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 
-from .dto import ConsensusOutcome, PeerReviewRecord, ReviewDecision, serialize_collaboration_dto
+from .dto import (
+    ConsensusOutcome,
+    PeerReviewRecord,
+    ReviewDecision,
+    serialize_collaboration_dto,
+)
 from .exceptions import ConsensusError, PeerReviewConsensusError
 from .message_protocol import MessageType
 from .structures import ReviewCycleSpec, ReviewCycleState
@@ -414,9 +431,7 @@ class PeerReview:
 
         return payload
 
-    def _build_review_decision(
-        self, reviewer: Any, raw_result: Any
-    ) -> ReviewDecision:
+    def _build_review_decision(self, reviewer: Any, raw_result: Any) -> ReviewDecision:
         """Construct a :class:`ReviewDecision` from reviewer feedback."""
 
         reviewer_id = self._reviewer_identifier(reviewer)
@@ -440,7 +455,9 @@ class PeerReview:
 
         payload = self._prepare_review_payload(raw_result)
 
-        decision_id = str(payload.get("decision_id") or f"{self.review_id}:{reviewer_id}")
+        decision_id = str(
+            payload.get("decision_id") or f"{self.review_id}:{reviewer_id}"
+        )
         approved_value = payload.get("approved")
         approved: Optional[bool]
         if isinstance(approved_value, bool) or approved_value is None:
@@ -470,8 +487,7 @@ class PeerReview:
         metadata_items = [
             (str(key), payload[key])
             for key in payload.keys()
-            if key
-            not in {"decision_id", "approved", "feedback", "notes", "score"}
+            if key not in {"decision_id", "approved", "feedback", "notes", "score"}
         ]
 
         metadata = OrderedDict(sorted(metadata_items, key=lambda item: item[0]))
@@ -485,9 +501,7 @@ class PeerReview:
             metadata=metadata,
         )
 
-    def _coerce_consensus_outcome(
-        self, result: Any
-    ) -> Optional[ConsensusOutcome]:
+    def _coerce_consensus_outcome(self, result: Any) -> Optional[ConsensusOutcome]:
         """Convert arbitrary consensus payloads into a DTO."""
 
         if not result:
@@ -530,7 +544,9 @@ class PeerReview:
             self.consensus_result = consensus.to_dict()
 
         summary_notes = "\n".join(
-            note for note in (decision.notes or "" for decision in decision_list) if note
+            note
+            for note in (decision.notes or "" for decision in decision_list)
+            if note
         )
 
         aggregate_metadata = OrderedDict(
@@ -854,7 +870,9 @@ class PeerReview:
                         wrapped,
                         extra={
                             "review_id": self.review_id,
-                            "consensus_id": getattr(wrapped.outcome, "consensus_id", None),
+                            "consensus_id": getattr(
+                                wrapped.outcome, "consensus_id", None
+                            ),
                         },
                     )
                     self.consensus_outcome = wrapped.outcome
@@ -951,7 +969,9 @@ class PeerReview:
 
             final_criteria: Dict[str, bool] = {}
             for criterion, votes in criteria_votes.items():
-                final_criteria[criterion] = sum(1 for vote in votes if vote) > len(votes) / 2
+                final_criteria[criterion] = (
+                    sum(1 for vote in votes if vote) > len(votes) / 2
+                )
 
             result["criteria_results"] = final_criteria
             result["all_criteria_passed"] = (

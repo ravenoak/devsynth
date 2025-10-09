@@ -117,11 +117,15 @@ class CommandTableData(Sequence[CommandTableRow]):
         return len(self.rows)
 
     @overload
-    def __getitem__(self, index: int) -> CommandTableRow:  # pragma: no cover - typing only
+    def __getitem__(
+        self, index: int
+    ) -> CommandTableRow:  # pragma: no cover - typing only
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> tuple[CommandTableRow, ...]:  # pragma: no cover - typing only
+    def __getitem__(
+        self, index: slice
+    ) -> tuple[CommandTableRow, ...]:  # pragma: no cover - typing only
         ...
 
     def __getitem__(
@@ -136,7 +140,11 @@ class CommandTableData(Sequence[CommandTableRow]):
         """Coerce raw mappings into a structured table sequence."""
 
         coerced = tuple(
-            row if isinstance(row, CommandTableRow) else CommandTableRow.from_mapping(row)
+            (
+                row
+                if isinstance(row, CommandTableRow)
+                else CommandTableRow.from_mapping(row)
+            )
             for row in rows
         )
         return cls(rows=coerced)
@@ -159,7 +167,9 @@ class CommandListData(Sequence[object]):
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> tuple[object, ...]:  # pragma: no cover - typing only
+    def __getitem__(
+        self, index: slice
+    ) -> tuple[object, ...]:  # pragma: no cover - typing only
         ...
 
     def __getitem__(self, index: int | slice) -> object | tuple[object, ...]:
@@ -185,7 +195,9 @@ class ManifestSummary:
         rows = [
             CommandTableRow({"Field": "Path", "Value": str(self.path)}),
             CommandTableRow({"Field": "Version", "Value": self.version or "Unknown"}),
-            CommandTableRow({"Field": "Valid", "Value": "Yes" if self.is_valid else "No"}),
+            CommandTableRow(
+                {"Field": "Valid", "Value": "Yes" if self.is_valid else "No"}
+            ),
         ]
         for key, value in self.metadata.items():
             rows.append(CommandTableRow({"Field": str(key), "Value": value}))
@@ -351,14 +363,11 @@ def coerce_subtask_spec(subtask: ProgressSubtaskLike) -> ProgressSubtaskSpec:
     if isinstance(subtask, ProgressSubtaskSpec):
         return subtask
     return ProgressSubtaskSpec.from_mapping(subtask)
+
+
 ProgressUpdate: TypeAlias = Callable[[float, str | None, str | None, str | None], None]
 TyperAutocomplete: TypeAlias = Callable[["Context", str], list[str]]
 CommandResultData: TypeAlias = (
-    str
-    | CommandTableRow
-    | CommandTableData
-    | CommandListData
-    | CommandDisplay
+    str | CommandTableRow | CommandTableData | CommandListData | CommandDisplay
 )
 """Supported input values for standardized command formatting."""
-

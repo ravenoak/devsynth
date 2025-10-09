@@ -6,7 +6,17 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Literal, Mapping, Optional, Protocol, Sequence, TypedDict, Union
+from typing import (
+    Any,
+    Dict,
+    Literal,
+    Mapping,
+    Optional,
+    Protocol,
+    Sequence,
+    TypedDict,
+    Union,
+)
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -147,19 +157,17 @@ class WizardBridge(Protocol):
         choices: Optional[Sequence[str]] = None,
         default: Optional[str] = None,
         show_default: bool = True,
-    ) -> str:
-        ...
+    ) -> str: ...
 
-    def confirm_choice(self, message: str, *, default: bool = False) -> bool:
-        ...
+    def confirm_choice(self, message: str, *, default: bool = False) -> bool: ...
 
     def display_result(
         self, message: str, *, highlight: bool = False, message_type: str | None = None
-    ) -> None:
-        ...
+    ) -> None: ...
 
-    def create_progress(self, description: str, *, total: int = 100) -> ProgressIndicator:
-        ...
+    def create_progress(
+        self, description: str, *, total: int = 100
+    ) -> ProgressIndicator: ...
 
 
 class SetupWizard:
@@ -372,9 +380,7 @@ class SetupWizard:
         """Execute the wizard steps and persist configuration."""
 
         auto_confirm_flag = (
-            _env_flag("DEVSYNTH_AUTO_CONFIRM")
-            if auto_confirm is None
-            else auto_confirm
+            _env_flag("DEVSYNTH_AUTO_CONFIRM") if auto_confirm is None else auto_confirm
         )
         feature_flags = _parse_features(features)
 
@@ -419,12 +425,12 @@ class SetupWizard:
         root_path = _ensure_path(root or os.environ.get("DEVSYNTH_INIT_ROOT"))
         language_value = language or os.environ.get("DEVSYNTH_INIT_LANGUAGE")
         structure_value = structure or os.environ.get("DEVSYNTH_INIT_STRUCTURE")
-        constraints_value: Path | str | None = (
-            constraints or os.environ.get("DEVSYNTH_INIT_CONSTRAINTS")
+        constraints_value: Path | str | None = constraints or os.environ.get(
+            "DEVSYNTH_INIT_CONSTRAINTS"
         )
         goals_value = goals or os.environ.get("DEVSYNTH_INIT_GOALS")
-        memory_backend_value = (
-            memory_backend or os.environ.get("DEVSYNTH_INIT_MEMORY_BACKEND")
+        memory_backend_value = memory_backend or os.environ.get(
+            "DEVSYNTH_INIT_MEMORY_BACKEND"
         )
         offline_mode_value = offline_mode
 
@@ -546,12 +552,9 @@ class SetupWizard:
             self.bridge.display_result(f"Constraints: {selections.constraints}")
         if selections.goals:
             self.bridge.display_result(f"Goals: {selections.goals}")
+        self.bridge.display_result(f"Memory Backend: {selections.memory_backend}")
         self.bridge.display_result(
-            f"Memory Backend: {selections.memory_backend}"
-        )
-        self.bridge.display_result(
-            "Offline Mode: "
-            f"{'Enabled' if selections.offline_mode else 'Disabled'}"
+            "Offline Mode: " f"{'Enabled' if selections.offline_mode else 'Disabled'}"
         )
 
         self.bridge.display_result("\nFeatures:")

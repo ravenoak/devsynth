@@ -22,7 +22,7 @@ logger = DevSynthLogger(__name__)
 T = TypeVar("T")
 
 
-def _require_streamlit():
+def _require_streamlit() -> Any:
     try:
         return importlib.import_module("streamlit")
     except ModuleNotFoundError as e:
@@ -38,7 +38,7 @@ def _require_streamlit():
 st: Any | None = None
 
 
-def _get_st():
+def _get_st() -> Any:
     return st if st is not None else _require_streamlit()
 
 
@@ -69,7 +69,7 @@ def set_session_value(key: str, value: Any) -> bool:
         True if the value was set successfully, False otherwise
     """
     s = _get_st()
-    success = _set_session_value(s.session_state, key, value)
+    success: bool = _set_session_value(s.session_state, key, value)
     if success:
         logger.debug(f"Set '{key}' in session state")
     return success
@@ -91,7 +91,7 @@ def with_state_management(prefix: str = "") -> Callable:
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Add state management functions to kwargs
             def prefixed_get(key: str, default: Any = None) -> Any:
                 full_key = f"{prefix}_{key}" if prefix else key
@@ -255,7 +255,8 @@ class WizardState(PageState):
         Returns:
             The current step number (1-based)
         """
-        return self.get("current_step", 1)
+        step = self.get("current_step", 1)
+        return step if isinstance(step, int) else 1
 
     def get_total_steps(self) -> int:
         """
@@ -264,7 +265,8 @@ class WizardState(PageState):
         Returns:
             The total number of steps
         """
-        return self.get("total_steps", 1)
+        steps = self.get("total_steps", 1)
+        return steps if isinstance(steps, int) else 1
 
     def is_completed(self) -> bool:
         """
@@ -273,7 +275,8 @@ class WizardState(PageState):
         Returns:
             True if the wizard is completed, False otherwise
         """
-        return self.get("completed", False)
+        completed = self.get("completed", False)
+        return completed if isinstance(completed, bool) else False
 
     def set_completed(self, completed: bool = True) -> bool:
         """

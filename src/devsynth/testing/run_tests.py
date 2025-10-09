@@ -22,7 +22,15 @@ from collections.abc import MutableMapping, Sequence
 from dataclasses import dataclass as _dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, NotRequired, TypedDict, cast, dataclass_transform
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Mapping,
+    NotRequired,
+    TypedDict,
+    cast,
+    dataclass_transform,
+)
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -170,9 +178,7 @@ TARGET_PATHS: dict[str, str] = {
 
 logger = DevSynthLogger(__name__)
 
-_RESOURCE_NAME_PATTERN = re.compile(
-    r"requires_resource\((['\"])(?P<name>[^'\"]+)\1\)"
-)
+_RESOURCE_NAME_PATTERN = re.compile(r"requires_resource\((['\"])(?P<name>[^'\"]+)\1\)")
 _RESOURCE_CALL_PATTERN = re.compile(
     r"^requires_resource\((['\"])(?P<name>[^'\"]+)\1\)$"
 )
@@ -214,7 +220,9 @@ if TYPE_CHECKING:
     _RequestT = TypeVar("_RequestT")
 
     @dataclass_transform()
-    def _slots_dataclass(*args: Any, **kwargs: Any) -> Callable[[type[_RequestT]], type[_RequestT]]:
+    def _slots_dataclass(
+        *args: Any, **kwargs: Any
+    ) -> Callable[[type[_RequestT]], type[_RequestT]]:
         """Typed wrapper that strips unsupported keywords during type checking."""
 
         kwargs.pop("slots", None)
@@ -514,6 +522,7 @@ def ensure_pytest_cov_plugin_env(env: MutableMapping[str, str]) -> bool:
     )
     return True
 
+
 def ensure_pytest_bdd_plugin_env(env: MutableMapping[str, str]) -> bool:
     """Ensure pytest-bdd loads when plugin autoloading is disabled."""
 
@@ -601,8 +610,7 @@ def _resolve_coverage_configuration(
 
     coverage_enabled, coverage_issue = pytest_cov_support_status(env)
     autoload_blocked = (
-        not coverage_enabled
-        and coverage_issue == PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE
+        not coverage_enabled and coverage_issue == PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE
     )
     if not coverage_enabled and not autoload_blocked:
         return [], coverage_enabled, coverage_issue
@@ -672,7 +680,9 @@ def _maybe_publish_coverage_evidence(
         logger.error("Unable to parse coverage JSON for graph ingestion: %s", exc)
         return f"[knowledge-graph] coverage ingestion failed: invalid JSON ({exc})"
 
-    totals = coverage_payload.get("totals") if isinstance(coverage_payload, dict) else None
+    totals = (
+        coverage_payload.get("totals") if isinstance(coverage_payload, dict) else None
+    )
     raw_percent = None
     if isinstance(totals, dict):
         raw_percent = totals.get("percent_covered")
@@ -693,7 +703,9 @@ def _maybe_publish_coverage_evidence(
 
     commands_raw = execution_metadata.get("commands")
     command_entries: list[object] = []
-    if isinstance(commands_raw, Sequence) and not isinstance(commands_raw, (str, bytes)):
+    if isinstance(commands_raw, Sequence) and not isinstance(
+        commands_raw, (str, bytes)
+    ):
         command_entries = list(commands_raw)
     elif commands_raw is not None:
         command_entries = [commands_raw]
@@ -742,7 +754,9 @@ def _maybe_publish_coverage_evidence(
         gate_status = "fail"
 
     checksum_builder = hashlib.sha256()
-    checksum_builder.update("|".join(sorted(normalized_speeds or ["all"])).encode("utf-8"))
+    checksum_builder.update(
+        "|".join(sorted(normalized_speeds or ["all"])).encode("utf-8")
+    )
     checksum_builder.update(str(coverage_percent).encode("utf-8"))
     checksum_builder.update(str(len(collected_node_ids)).encode("utf-8"))
     checksum_builder.update(str(exit_code).encode("utf-8"))
@@ -833,6 +847,7 @@ def _maybe_publish_coverage_evidence(
         f"Evidence [{evidence_summary}] via {publication.adapter_backend}; "
         f"coverage={coverage_percent:.2f}% threshold={DEFAULT_COVERAGE_THRESHOLD:.2f}%"
     )
+
 
 def enforce_coverage_threshold(
     coverage_file: Path | str = COVERAGE_JSON_PATH,
@@ -1448,16 +1463,20 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
         tokens = _parse_pytest_addopts(addopts)
         additions: list[str] = []
         if coverage_enabled and not any(
-            _addopts_has_plugin(tokens, alias) for alias in ("pytest_cov", "pytest_cov.plugin")
+            _addopts_has_plugin(tokens, alias)
+            for alias in ("pytest_cov", "pytest_cov.plugin")
         ):
             additions.append("-p pytest_cov")
         if not any(
-            _addopts_has_plugin(tokens, alias) for alias in ("pytest_bdd", "pytest_bdd.plugin")
+            _addopts_has_plugin(tokens, alias)
+            for alias in ("pytest_bdd", "pytest_bdd.plugin")
         ):
             additions.append("-p pytest_bdd")
         if additions:
             normalized = addopts.strip()
-            request.env["PYTEST_ADDOPTS"] = f"{normalized} {' '.join(additions)}".strip()
+            request.env["PYTEST_ADDOPTS"] = (
+                f"{normalized} {' '.join(additions)}".strip()
+            )
 
     try:
         started_at = datetime.now(UTC)
@@ -1516,14 +1535,19 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
         error_msg = f"Failed to run tests: {exc}"
         logger.error(error_msg)
         now_iso = datetime.now(UTC).isoformat()
-        return False, error_msg, {
-            "metadata_id": _generate_metadata_id("batch"),
-            "command": list(cmd),
-            "returncode": -1,
-            "started_at": now_iso,
-            "completed_at": now_iso,
-            "coverage_enabled": False,
-        }
+        return (
+            False,
+            error_msg,
+            {
+                "metadata_id": _generate_metadata_id("batch"),
+                "command": list(cmd),
+                "returncode": -1,
+                "started_at": now_iso,
+                "completed_at": now_iso,
+                "coverage_enabled": False,
+            },
+        )
+
 
 if __name__ == "__main__":
     # This block is for internal testing and coverage analysis.
@@ -1559,13 +1583,17 @@ if __name__ == "__main__":
 
     # Test success
     coverage_file.write_text(json.dumps({"totals": {"percent_covered": 95.0}}))
-    enforce_coverage_threshold(coverage_file, minimum_percent=90.0, exit_on_failure=False)
+    enforce_coverage_threshold(
+        coverage_file, minimum_percent=90.0, exit_on_failure=False
+    )
     print("    - Success case passed.")
 
     # Test failure
     coverage_file.write_text(json.dumps({"totals": {"percent_covered": 75.0}}))
     try:
-        enforce_coverage_threshold(coverage_file, minimum_percent=80.0, exit_on_failure=False)
+        enforce_coverage_threshold(
+            coverage_file, minimum_percent=80.0, exit_on_failure=False
+        )
     except RuntimeError as e:
         assert "below the required" in str(e)
         print("    - Failure case passed.")

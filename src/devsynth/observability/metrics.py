@@ -19,7 +19,6 @@ from typing import Dict, Optional, Tuple, cast
 
 from devsynth.metrics import CounterFactory, CounterProtocol
 
-
 try:  # pragma: no cover - import guard
     from prometheus_client import Counter as _PrometheusCounter
 except Exception:  # pragma: no cover - absent or broken client

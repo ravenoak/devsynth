@@ -17,7 +17,9 @@ from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 class SupportsProgress(Protocol):
     """Bridge protocol documenting the progress methods required."""
 
-    def create_progress(self, description: str, *, total: int = 100) -> ProgressIndicator:
+    def create_progress(
+        self, description: str, *, total: int = 100
+    ) -> ProgressIndicator:
         """Create and return a :class:`~devsynth.interface.ux_bridge.ProgressIndicator`."""
 
 

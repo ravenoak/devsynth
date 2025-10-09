@@ -17,14 +17,12 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, TypeVar, Union
 
 if TYPE_CHECKING:  # pragma: no cover - imports for static analysis only
-    from ...application.memory.dto import (
-        GroupedMemoryResults as _GroupedMemoryResults,
-        MemoryMetadata as _MemoryMetadata,
-        MemoryMetadataValue as _MemoryMetadataValue,
-        MemoryQueryResults as _MemoryQueryResults,
-        MemoryRecord as _MemoryRecord,
-        VectorStoreStats as _VectorStoreStats,
-    )
+    from ...application.memory.dto import GroupedMemoryResults as _GroupedMemoryResults
+    from ...application.memory.dto import MemoryMetadata as _MemoryMetadata
+    from ...application.memory.dto import MemoryMetadataValue as _MemoryMetadataValue
+    from ...application.memory.dto import MemoryQueryResults as _MemoryQueryResults
+    from ...application.memory.dto import MemoryRecord as _MemoryRecord
+    from ...application.memory.dto import VectorStoreStats as _VectorStoreStats
 else:  # pragma: no cover - runtime fallbacks avoid optional dependency imports
     _GroupedMemoryResults = Mapping[str, Any]
     _MemoryMetadata = Mapping[str, Any]
@@ -91,20 +89,16 @@ class TransactionalMemory(SupportsTransactions, Protocol):
     """ABC-style protocol for transactional memory backends."""
 
     @abstractmethod
-    def begin_transaction(self) -> str:
-        ...
+    def begin_transaction(self) -> str: ...
 
     @abstractmethod
-    def commit_transaction(self, transaction_id: str) -> bool:
-        ...
+    def commit_transaction(self, transaction_id: str) -> bool: ...
 
     @abstractmethod
-    def rollback_transaction(self, transaction_id: str) -> bool:
-        ...
+    def rollback_transaction(self, transaction_id: str) -> bool: ...
 
     @abstractmethod
-    def is_transaction_active(self, transaction_id: str) -> bool:
-        ...
+    def is_transaction_active(self, transaction_id: str) -> bool: ...
 
 
 class SupportsStats(Protocol[TStats_co]):
@@ -136,9 +130,7 @@ class MemoryBackend(Protocol[TRecord_co, TMetadata_contra]):
         """Delete an item from memory by identifier."""
 
 
-class MemoryStore(
-    MemoryBackend[MemoryItem | MemoryRecord, MemoryMetadata], Protocol
-):
+class MemoryStore(MemoryBackend[MemoryItem | MemoryRecord, MemoryMetadata], Protocol):
     """Backward compatible protocol for stores emitting items or records."""
 
 

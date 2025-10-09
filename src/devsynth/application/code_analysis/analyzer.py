@@ -6,7 +6,7 @@ import ast
 import inspect
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, TypedDict, NotRequired
+from typing import Any, Dict, List, NotRequired, Optional, Tuple, TypedDict
 
 from devsynth.domain.interfaces.code_analysis import (
     CodeAnalysisProvider,

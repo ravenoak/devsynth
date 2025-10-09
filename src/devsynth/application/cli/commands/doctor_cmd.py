@@ -24,8 +24,7 @@ class DoctorBridge(Protocol):
 
     def print(
         self, message: str, *, highlight: bool = False, message_type: str | None = None
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 @dataclass(slots=True)

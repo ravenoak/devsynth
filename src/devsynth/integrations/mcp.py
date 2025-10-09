@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import contextlib
 import os
+from dataclasses import dataclass, field
 from typing import Mapping, Protocol, runtime_checkable
 from urllib.parse import urljoin
 
@@ -48,7 +48,9 @@ class StubMCPConnector:
             "health endpoint in a future milestone."
         )
 
-    def ensure_session(self, session_id: str) -> Mapping[str, object]:  # pragma: no cover - stub
+    def ensure_session(
+        self, session_id: str
+    ) -> Mapping[str, object]:  # pragma: no cover - stub
         raise NotImplementedError(
             "MCP integration is not yet available. Autoresearch will expose the "
             "session negotiation flow in a future milestone."
@@ -84,7 +86,9 @@ class AutoresearchMCPConnector:
         if self.base_url:
             self.base_url = self.base_url.rstrip("/") + "/"
         if self.base_url and self.http_client is None:
-            self.http_client = httpx.Client(base_url=self.base_url, timeout=self.timeout)
+            self.http_client = httpx.Client(
+                base_url=self.base_url, timeout=self.timeout
+            )
             self._owns_client = True
 
     def check_health(self) -> Mapping[str, object]:
@@ -145,7 +149,9 @@ class AutoresearchMCPConnector:
             if method == "GET":
                 response = self.http_client.get(url, timeout=self.timeout)
             else:
-                response = self.http_client.post(url, json=payload, timeout=self.timeout)
+                response = self.http_client.post(
+                    url, json=payload, timeout=self.timeout
+                )
         except HTTP_ERROR as exc:
             self.logger.warning(
                 "Autoresearch MCP %s request failed; falling back to fixtures.",

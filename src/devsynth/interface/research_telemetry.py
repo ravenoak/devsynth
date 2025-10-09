@@ -13,7 +13,7 @@ import hmac
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Mapping, TypedDict, cast, NotRequired
+from typing import Any, Mapping, NotRequired, TypedDict, cast
 from uuid import uuid4
 
 from devsynth.integrations import A2AConnector, MCPConnector
@@ -451,7 +451,9 @@ class PlannerGraphExport:
             or mapping.get("graphviz_source")
             or mapping.get("source")
         )
-        data_candidate = mapping.get("data") or mapping.get("graph") or mapping.get("content")
+        data_candidate = (
+            mapping.get("data") or mapping.get("graph") or mapping.get("content")
+        )
         data: dict[str, Any] | None = None
         if isinstance(data_candidate, Mapping):
             data = _coerce_json_object(data_candidate)
@@ -493,21 +495,33 @@ class ExtendedMetadata:
             socratic_checkpoints=self.socratic_checkpoints + other.socratic_checkpoints,
             debate_logs=self.debate_logs + other.debate_logs,
             coalition_messages=self.coalition_messages + other.coalition_messages,
-            query_state_snapshots=self.query_state_snapshots + other.query_state_snapshots,
-            planner_graph_exports=self.planner_graph_exports + other.planner_graph_exports,
+            query_state_snapshots=self.query_state_snapshots
+            + other.query_state_snapshots,
+            planner_graph_exports=self.planner_graph_exports
+            + other.planner_graph_exports,
         )
 
     def to_payload(self) -> dict[str, list[dict[str, Any]]]:
         return {
-            "socratic_checkpoints": [item.to_payload() for item in self.socratic_checkpoints],
+            "socratic_checkpoints": [
+                item.to_payload() for item in self.socratic_checkpoints
+            ],
             "debate_logs": [item.to_payload() for item in self.debate_logs],
-            "coalition_messages": [item.to_payload() for item in self.coalition_messages],
-            "query_state_snapshots": [item.to_payload() for item in self.query_state_snapshots],
-            "planner_graph_exports": [item.to_payload() for item in self.planner_graph_exports],
+            "coalition_messages": [
+                item.to_payload() for item in self.coalition_messages
+            ],
+            "query_state_snapshots": [
+                item.to_payload() for item in self.query_state_snapshots
+            ],
+            "planner_graph_exports": [
+                item.to_payload() for item in self.planner_graph_exports
+            ],
         }
 
 
-def _extract_section(mapping: Mapping[str, Any], keys: tuple[str, ...]) -> list[Mapping[str, Any]]:
+def _extract_section(
+    mapping: Mapping[str, Any], keys: tuple[str, ...]
+) -> list[Mapping[str, Any]]:
     for key in keys:
         if key in mapping:
             return _normalize_metadata_sequence(mapping.get(key))
@@ -600,7 +614,9 @@ def _coerce_single_source(mapping: Mapping[str, Any]) -> ExtendedMetadata:
                     QueryStateSnapshot.from_mapping(item) for item in additional
                 )
             elif section_type in {"planner", "graph", "planning"}:
-                graphs.extend(PlannerGraphExport.from_mapping(item) for item in additional)
+                graphs.extend(
+                    PlannerGraphExport.from_mapping(item) for item in additional
+                )
 
     return ExtendedMetadata(
         socratic_checkpoints=tuple(checkpoints),
@@ -705,8 +721,12 @@ def build_research_telemetry_payload(
         if trace_id in metadata_keys and isinstance(entry, Mapping):
             continue
         entry = entry or {}
-        persona = entry.get("agent_persona") or entry.get("persona") or "General Researcher"
-        knowledge_refs = entry.get("knowledge_graph_refs") or entry.get("references") or []
+        persona = (
+            entry.get("agent_persona") or entry.get("persona") or "General Researcher"
+        )
+        knowledge_refs = (
+            entry.get("knowledge_graph_refs") or entry.get("references") or []
+        )
         if isinstance(knowledge_refs, dict):
             knowledge_refs = list(knowledge_refs.values())
         if not isinstance(knowledge_refs, list):  # pragma: no cover - guard
@@ -736,12 +756,16 @@ def build_research_telemetry_payload(
         for ref in normalized_refs:
             provenance_filters["knowledge_graph"].add(str(ref))
 
-        badge_basis = json.dumps({"trace_id": trace_id, "entry": entry}, sort_keys=True).encode("utf-8")
+        badge_basis = json.dumps(
+            {"trace_id": trace_id, "entry": entry}, sort_keys=True
+        ).encode("utf-8")
         badge_hash = hashlib.sha256(badge_basis).hexdigest()
         integrity_badges.append(
             IntegrityBadge(
                 trace_id=trace_id,
-                status=entry.get("integrity_status", "verified" if badge_hash else "unknown"),
+                status=entry.get(
+                    "integrity_status", "verified" if badge_hash else "unknown"
+                ),
                 evidence_hash=badge_hash,
                 notes=(
                     entry.get("integrity_notes")
@@ -771,7 +795,8 @@ def build_research_telemetry_payload(
         "generated_at": timestamp,
         "session_id": session,
         "timeline": [
-            row.to_payload() for row in sorted(timeline_rows, key=lambda item: item.timestamp)
+            row.to_payload()
+            for row in sorted(timeline_rows, key=lambda item: item.timestamp)
         ],
         "provenance_filters": [filter_.to_payload() for filter_ in filters_payload],
         "integrity_badges": [badge.to_payload() for badge in integrity_badges],

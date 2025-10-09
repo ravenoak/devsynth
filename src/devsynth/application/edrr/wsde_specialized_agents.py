@@ -100,7 +100,9 @@ class BaseWSDESpecialist(BaseAgent, DialecticalLoopMixin):
             if artifact_uri is None:
                 continue
 
-            supports = self._gather_links(graph_store, artifact_uri, to_identifier, DEVSYNTH.supports)
+            supports = self._gather_links(
+                graph_store, artifact_uri, to_identifier, DEVSYNTH.supports
+            )
             derived = self._gather_links(
                 graph_store, artifact_uri, to_identifier, DEVSYNTH.derivedFrom
             )
@@ -165,7 +167,9 @@ class ResearchLeadAgent(BaseWSDESpecialist):
         if not question:
             question = str(inputs.get("question") or "").strip()
         if not question:
-            raise ValueError("ResearchLeadAgent requires a task question for Socratic planning")
+            raise ValueError(
+                "ResearchLeadAgent requires a task question for Socratic planning"
+            )
 
         start_node = str(inputs.get("start_node") or "").strip()
         reachable: set[str] = set()
@@ -207,10 +211,14 @@ class CriticAgent(BaseWSDESpecialist):
         if not isinstance(plan, Mapping):
             raise ValueError("CriticAgent expects a plan produced by ResearchLeadAgent")
 
-        start_node = str(inputs.get("start_node") or plan.get("start_node") or "").strip()
+        start_node = str(
+            inputs.get("start_node") or plan.get("start_node") or ""
+        ).strip()
         baseline = set()
         if start_node:
-            baseline = graph.traverse_graph(start_node, max_depth=2, include_research=False)
+            baseline = graph.traverse_graph(
+                start_node, max_depth=2, include_research=False
+            )
 
         critiques: list[dict[str, object]] = []
         for entry in plan.get("provenance", []):
@@ -222,9 +230,11 @@ class CriticAgent(BaseWSDESpecialist):
                 {
                     "artifact": entry.get("artifact"),
                     "requires_follow_up": bool(missing_support or missing_derivation),
-                    "notes": "Evidence incomplete"
-                    if missing_support or missing_derivation
-                    else "Evidence sufficient",
+                    "notes": (
+                        "Evidence incomplete"
+                        if missing_support or missing_derivation
+                        else "Evidence sufficient"
+                    ),
                 }
             )
 
@@ -235,7 +245,15 @@ class CriticAgent(BaseWSDESpecialist):
             claim="Research plan validation",
             question="Do artefacts withstand dialectical critique?",
             verdict=verdict,
-            evidence=tuple(sorted({entry.get("artifact") for entry in plan.get("provenance", []) if entry.get("artifact")})),
+            evidence=tuple(
+                sorted(
+                    {
+                        entry.get("artifact")
+                        for entry in plan.get("provenance", [])
+                        if entry.get("artifact")
+                    }
+                )
+            ),
         )
 
         return {
@@ -259,9 +277,7 @@ class TestWriterAgent(BaseWSDESpecialist):
         critiques: Sequence[Mapping[str, object]]
         if isinstance(critiques_input, Sequence):
             critiques = tuple(
-                entry
-                for entry in critiques_input
-                if isinstance(entry, Mapping)
+                entry for entry in critiques_input if isinstance(entry, Mapping)
             )
         else:
             critiques = ()

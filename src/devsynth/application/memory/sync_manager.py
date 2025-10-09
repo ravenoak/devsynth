@@ -11,15 +11,14 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
-from types import TracebackType
 from threading import Lock
+from types import TracebackType
 from typing import TYPE_CHECKING, Protocol, TypedDict, cast
-
-from collections.abc import Iterable, Iterator, Mapping, Sequence
 
 try:  # pragma: no cover - optional dependencies
     from .lmdb_store import LMDBStore as LMDBStoreRuntime
@@ -28,6 +27,7 @@ except Exception:  # pragma: no cover - optional dependency
 
 from ...domain.models.memory import MemoryItem, MemoryVector
 from ...logging_setup import DevSynthLogger
+from .adapter_types import AdapterRegistry, MemoryAdapter, SupportsSearch
 from .dto import (
     GroupedMemoryResults,
     MemoryQueryResults,
@@ -35,14 +35,13 @@ from .dto import (
     MemoryRecordInput,
     build_memory_record,
 )
-from .adapter_types import AdapterRegistry, MemoryAdapter, SupportsSearch
-from .vector_protocol import VectorStoreProtocol
 from .tiered_cache import TieredCache
 from .transaction_context import AdapterSnapshot
+from .vector_protocol import VectorStoreProtocol
 
 if TYPE_CHECKING:
-    from .memory_manager import MemoryManager
     from .lmdb_store import LMDBStore as LMDBStoreType
+    from .memory_manager import MemoryManager
 else:
     LMDBStoreType = object
 
@@ -203,9 +202,7 @@ class SyncManager:
         self.memory_manager = memory_manager
         self._queue: list[QueuedUpdate] = []
         self._queue_lock = Lock()
-        self.cache: TieredCache[GroupedMemoryResults] = TieredCache(
-            max_size=cache_size
-        )
+        self.cache: TieredCache[GroupedMemoryResults] = TieredCache(max_size=cache_size)
         self.conflict_log: list[ConflictRecord] = []
         self.stats = SyncStats()
         self._async_tasks: list[asyncio.Task[None]] = []
@@ -299,9 +296,7 @@ class SyncManager:
             return label
         return default
 
-    def _build_record(
-        self, payload: MemoryRecordInput, *, source: str
-    ) -> MemoryRecord:
+    def _build_record(self, payload: MemoryRecordInput, *, source: str) -> MemoryRecord:
         """Coerce ``payload`` into a :class:`MemoryRecord` for ``source``.
 
         The helper wraps the :func:`build_memory_record` adapter to ensure
@@ -545,7 +540,9 @@ class SyncManager:
             if hasattr(target_adapter, "retrieve"):
                 existing_raw = target_adapter.retrieve(item.id)
                 if existing_raw is not None:
-                    existing_record = self._build_record(existing_raw, source=source_label)
+                    existing_record = self._build_record(
+                        existing_raw, source=source_label
+                    )
             if existing_record is not None and self._detect_conflict(
                 existing_record.item, item
             ):
@@ -648,9 +645,7 @@ class SyncManager:
 
         return results
 
-    def update_item(
-        self, store: str, item: MemoryItem | MemoryRecord
-    ) -> bool:
+    def update_item(self, store: str, item: MemoryItem | MemoryRecord) -> bool:
         """Update ``item`` in ``store`` and propagate to other adapters.
 
         Incoming payloads are normalized into :class:`MemoryRecord` entries so

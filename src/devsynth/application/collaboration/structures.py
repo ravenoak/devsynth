@@ -13,8 +13,8 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
-    Sequence,
     Protocol,
+    Sequence,
     Union,
     runtime_checkable,
 )
@@ -24,6 +24,7 @@ from devsynth.domain.models.memory import MemoryItem
 
 if TYPE_CHECKING:  # pragma: no cover - import for typing only
     from devsynth.application.memory.memory_manager import MemoryManager
+
     from .dto import ConsensusOutcome
 
 
@@ -178,7 +179,9 @@ class TaskSpec:
         title = data.pop("title", "Untitled task")
         description = data.pop("description", None)
         requirements_raw = data.pop("requirements", [])
-        requirements = list(requirements_raw) if isinstance(requirements_raw, Iterable) else []
+        requirements = (
+            list(requirements_raw) if isinstance(requirements_raw, Iterable) else []
+        )
         status = data.pop("status", "pending")
         priority = data.pop("priority", "medium")
         subtasks_raw = data.pop("subtasks", [])
@@ -277,16 +280,15 @@ class TaskManagementContext(Protocol):
         message_type: str,
         subject: str,
         content: Any,
-    ) -> Any:
-        ...
+    ) -> Any: ...
 
-    def get_messages(self, *args: Any, **kwargs: Any) -> Sequence[Mapping[str, Any]]:
-        ...
+    def get_messages(
+        self, *args: Any, **kwargs: Any
+    ) -> Sequence[Mapping[str, Any]]: ...
 
     def _calculate_expertise_score(
         self, agent: TaskAgentProtocol, task: Mapping[str, Any]
-    ) -> float:
-        ...
+    ) -> float: ...
 
 
 TaskInput = Union[TaskSpec, Mapping[str, Any]]

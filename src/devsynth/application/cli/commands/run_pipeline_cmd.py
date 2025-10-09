@@ -11,8 +11,8 @@ from devsynth.core import workflows
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 
-from ..utils import _check_services, _env_flag, _handle_error, _resolve_bridge
 from ..ingest_models import JSONValue, PipelineReport
+from ..utils import _check_services, _env_flag, _handle_error, _resolve_bridge
 
 
 def _parse_report(value: Optional[str]) -> Optional[PipelineReport]:

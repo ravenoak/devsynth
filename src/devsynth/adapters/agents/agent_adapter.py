@@ -10,7 +10,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from importlib import import_module
 from pathlib import Path
-from typing import Any, Callable, Final, Iterable, Mapping, MutableMapping, Sequence, TypedDict, cast
+from typing import (
+    Any,
+    Callable,
+    Final,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Sequence,
+    TypedDict,
+    cast,
+)
 
 from devsynth.exceptions import ValidationError
 from devsynth.logging_setup import DevSynthLogger
@@ -58,7 +68,9 @@ class AgentInitializationPayload:
     ) -> "AgentInitializationPayload":
         """Coerce loosely-typed config dictionaries into a structured payload."""
 
-        description = str(payload.get("description", f"Agent for {requested_type} tasks"))
+        description = str(
+            payload.get("description", f"Agent for {requested_type} tasks")
+        )
         capabilities = _coerce_str_sequence(payload.get("capabilities"))
         parameters = _coerce_mapping(payload.get("parameters"))
         agent_name = str(payload.get("name", f"{requested_type}_agent"))
@@ -175,7 +187,9 @@ def _load_default_config(config_path: Path) -> dict[str, Any]:
     return dict(cast(Mapping[str, Any], data))
 
 
-_DEFAULT_CONFIG_PATH: Final = Path(__file__).resolve().parents[3] / "config" / "default.yml"
+_DEFAULT_CONFIG_PATH: Final = (
+    Path(__file__).resolve().parents[3] / "config" / "default.yml"
+)
 _DEFAULT_CONFIG: Final[dict[str, Any]] = _load_default_config(_DEFAULT_CONFIG_PATH)
 
 

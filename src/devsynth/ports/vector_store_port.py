@@ -7,9 +7,9 @@ from typing import Any
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from ..application.memory.dto import VectorStoreStats
 from ..domain.interfaces.memory import VectorStore
 from ..domain.models.memory import MemoryVector
-from ..application.memory.dto import VectorStoreStats
 
 logger = DevSynthLogger(__name__)
 

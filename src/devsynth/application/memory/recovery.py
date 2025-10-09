@@ -10,7 +10,11 @@ import time
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, TypedDict, TypeVar, Union, cast
 
-from devsynth.application.memory.dto import MemoryMetadata, MemoryRecord, build_memory_record
+from devsynth.application.memory.dto import (
+    MemoryMetadata,
+    MemoryRecord,
+    build_memory_record,
+)
 from devsynth.domain.models.memory import MemoryItem, SerializedMemoryItem
 from devsynth.logging_setup import DevSynthLogger
 
@@ -124,10 +128,7 @@ class MemorySnapshot:
         self.store_id = store_id
         self.items: List[MemoryRecord] = []
         if items:
-            self.items = [
-                build_memory_record(item, source=store_id)
-                for item in items
-            ]
+            self.items = [build_memory_record(item, source=store_id) for item in items]
         self.metadata = (
             cast(MemoryMetadata, dict(metadata))
             if metadata

@@ -19,7 +19,6 @@ from ...domain.interfaces.memory import MemoryStore
 from ...domain.models.memory import MemoryItem, MemoryItemType, MemoryType
 from ...exceptions import CircuitBreakerOpenError, MemoryTransactionError
 from ...logging_setup import DevSynthLogger
-from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
 from .adapter_types import (
     AdapterRegistry,
     MemoryAdapter,
@@ -29,10 +28,12 @@ from .adapter_types import (
     SupportsSearch,
     SupportsStructuredQuery,
 )
+from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter
 from .vector_protocol import VectorStoreProtocol
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from .adapters.s3_memory_adapter import S3MemoryAdapter
+
 from .circuit_breaker import (
     CircuitBreaker,
     circuit_breaker_registry,
@@ -86,7 +87,9 @@ class EmbeddingProvider(Protocol):
 class SyncHook(Protocol):
     """Callable invoked after synchronization events."""
 
-    def __call__(self, item: MemoryItem | None, /) -> None:  # pragma: no cover - protocol
+    def __call__(
+        self, item: MemoryItem | None, /
+    ) -> None:  # pragma: no cover - protocol
         ...
 
 
@@ -275,9 +278,7 @@ class MemoryManager:
             if isinstance(item_type, MemoryType)
             else MemoryType.from_raw(item_type)
         )
-        search_meta: dict[str, MemoryMetadataValue] = (
-            dict(metadata) if metadata else {}
-        )
+        search_meta: dict[str, MemoryMetadataValue] = dict(metadata) if metadata else {}
         search_meta["edrr_phase"] = edrr_phase
 
         for adapter_name, adapter in self.adapters.items():
@@ -346,9 +347,7 @@ class MemoryManager:
                 )
             except Exception as e:
                 # Retrieve operation failed, log and continue to next adapter
-                logger.error(
-                    f"Failed to retrieve memory item from {adapter_name}: {e}"
-                )
+                logger.error(f"Failed to retrieve memory item from {adapter_name}: {e}")
                 errors[adapter_name] = str(e)
 
                 # Log to error logger
@@ -459,9 +458,7 @@ class MemoryManager:
             return []
 
         # Get all related items recursively
-        related_items = self._get_all_related_items(
-            item_id, graph_adapter
-        )
+        related_items = self._get_all_related_items(item_id, graph_adapter)
 
         # Add the original item
         all_items = [item] + related_items
@@ -611,7 +608,9 @@ class MemoryManager:
 
         return results
 
-    def query_by_metadata(self, metadata: Mapping[str, MemoryMetadataValue]) -> list[MemoryItem]:
+    def query_by_metadata(
+        self, metadata: Mapping[str, MemoryMetadataValue]
+    ) -> list[MemoryItem]:
         """
         Query memory items by metadata.
 
@@ -828,7 +827,9 @@ class MemoryManager:
         store_list = list(stores) if stores is not None else None
         return self.sync_manager.cross_store_query(query, store_list)
 
-    def begin_transaction(self, stores: Sequence[str]) -> AbstractContextManager[object]:
+    def begin_transaction(
+        self, stores: Sequence[str]
+    ) -> AbstractContextManager[object]:
         """
         Begin a multi-store transaction.
 

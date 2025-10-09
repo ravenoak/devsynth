@@ -22,7 +22,10 @@ class DocumentationManifest:
 
     def to_dict(self) -> dict[str, object]:
         """Serialise the manifest into a dictionary suitable for legacy APIs."""
-        payload: dict[str, object] = {"content": self.content, "metadata": dict(self.metadata)}
+        payload: dict[str, object] = {
+            "content": self.content,
+            "metadata": dict(self.metadata),
+        }
         if self.identifier is not None:
             payload["id"] = self.identifier
         return payload

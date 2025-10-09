@@ -186,7 +186,9 @@ class JiraAdapter:
             data = cast(JiraIssueCreateResponse, resp.json())
         except Exception as exc:  # pragma: no cover - unexpected response
             self.logger.error("Jira issue creation failed: %s", exc)
-            raise JiraHttpError("Jira issue creation returned an invalid response") from exc
+            raise JiraHttpError(
+                "Jira issue creation returned an invalid response"
+            ) from exc
         key = data.get("key")
         if not key:
             message = "Jira issue creation response was missing the issue key"
@@ -225,7 +227,9 @@ class JiraAdapter:
             self.logger.error(message)
             raise JiraTransitionNotFoundError(message)
         transition_id = self._find_transition_id(transitions, status, issue_key)
-        payload = JiraTransitionPayload(transition=JiraTransition(id=transition_id)).to_dict()
+        payload = JiraTransitionPayload(
+            transition=JiraTransition(id=transition_id)
+        ).to_dict()
         try:
             resp = self.http_client.post(
                 base,

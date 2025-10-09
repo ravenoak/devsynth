@@ -25,8 +25,7 @@ ToolResponse: TypeAlias = MutableJSONMapping
 class ToolCallable(Protocol):
     """Callable protocol for registered tools."""
 
-    def __call__(self, *args: object, **kwargs: object) -> ToolResponse:
-        ...
+    def __call__(self, *args: object, **kwargs: object) -> ToolResponse: ...
 
 
 @dataclass(frozen=True)

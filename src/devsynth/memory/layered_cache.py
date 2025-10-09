@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, Generic, Iterable, List, Protocol, TypeVar, runtime_checkable
 
-
 T_co = TypeVar("T_co", covariant=True)
 T = TypeVar("T")
 

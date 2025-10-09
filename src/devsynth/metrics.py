@@ -19,14 +19,12 @@ from typing import Callable, Dict, Optional, Protocol, Self, Sequence, cast
 class CounterProtocol(Protocol):
     """Subset of the Prometheus counter API used within DevSynth."""
 
-    def labels(self, *args: object, **kwargs: object) -> Self:
-        ...
+    def labels(self, *args: object, **kwargs: object) -> Self: ...
 
-    def inc(self, *args: object, **kwargs: object) -> None:
-        ...
+    def inc(self, *args: object, **kwargs: object) -> None: ...
 
-    def clear(self) -> None:
-        ...
+    def clear(self) -> None: ...
+
 
 # Attempt to import Prometheus metrics, falling back to no-op counters when the
 # optional dependency is unavailable.  This allows the core system and tests to
@@ -36,8 +34,7 @@ class CounterFactory(Protocol):
 
     def __call__(
         self, name: str, documentation: str, labelnames: Sequence[str]
-    ) -> CounterProtocol:
-        ...
+    ) -> CounterProtocol: ...
 
 
 class _NoOpCounter(CounterProtocol):

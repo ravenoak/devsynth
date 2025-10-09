@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional, Protocol
 
-from devsynth.exceptions import ConsensusError
 from devsynth.domain.models.wsde_dialectical import DialecticalSequence
+from devsynth.exceptions import ConsensusError
 from devsynth.logger import log_consensus_failure
 from devsynth.logging_setup import DevSynthLogger
 

@@ -11,7 +11,10 @@ from uuid import UUID, uuid4
 from devsynth.application.collaboration.exceptions import (
     ConsensusError as BaseConsensusError,
 )
-from devsynth.application.requirements.models import EDRRPhase, ImpactNotificationPayload
+from devsynth.application.requirements.models import (
+    EDRRPhase,
+    ImpactNotificationPayload,
+)
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.requirement import (
     ChatMessage,
@@ -239,9 +242,7 @@ class DialecticalReasonerService(DialecticalReasonerPort):
                 "Consensus not reached for change",  # pragma: no cover - log path
                 extra={"change_id": str(change.id), "event": "consensus_failed"},
             )
-            self._store_reasoning_in_memory(
-                reasoning, edrr_phase=EDRRPhase.RETROSPECT
-            )
+            self._store_reasoning_in_memory(reasoning, edrr_phase=EDRRPhase.RETROSPECT)
             raise ConsensusError("Consensus not reached")
 
         logger.info(
@@ -736,7 +737,9 @@ class DialecticalReasonerService(DialecticalReasonerPort):
         history: List[ChatHistoryEntry] = []
         for message in recent_messages:
             label = "User" if message.sender == session.user_id else "Assistant"
-            history.append(ChatHistoryEntry(speaker_label=label, content=message.content))
+            history.append(
+                ChatHistoryEntry(speaker_label=label, content=message.content)
+            )
         return history
 
     def _generate_welcome_message(self, reasoning: DialecticalReasoning) -> str:

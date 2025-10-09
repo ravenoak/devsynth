@@ -24,6 +24,7 @@ if not _MINIMAL_CLI:
     from .mvuu_dashboard_cmd import mvuu_dashboard_cmd
     from .reprioritize_issues_cmd import reprioritize_issues_cmd
     from .security_audit_cmd import security_audit_cmd
+
     # from .testing_cmd import testing_cmd  # Temporarily disabled - CLI foundation ready
 
     register("align", align_cmd)

@@ -217,13 +217,23 @@ class CollaborationTask:
         metadata["task_type"] = self.task_type
         metadata = _sorted_mapping(metadata.items())
 
-        summary = descriptor.summary if descriptor and descriptor.summary else self.description
-        description = (
-            descriptor.description if descriptor and descriptor.description else self.description
+        summary = (
+            descriptor.summary
+            if descriptor and descriptor.summary
+            else self.description
         )
-        status_value = descriptor.status if descriptor and descriptor.status else self.status.name
+        description = (
+            descriptor.description
+            if descriptor and descriptor.description
+            else self.description
+        )
+        status_value = (
+            descriptor.status if descriptor and descriptor.status else self.status.name
+        )
         assignee = (
-            descriptor.assignee if descriptor and descriptor.assignee else self.assigned_agent_id
+            descriptor.assignee
+            if descriptor and descriptor.assignee
+            else self.assigned_agent_id
         )
         tags = descriptor.tags if descriptor else ()
 
@@ -300,7 +310,11 @@ class CollaborationTask:
             priority=int(data.get("priority", 1)),
             descriptor=descriptor,
             id=data.get("id", str(uuid.uuid4())),
-            status=status_value if isinstance(status_value, TaskStatus) else TaskStatus.PENDING,
+            status=(
+                status_value
+                if isinstance(status_value, TaskStatus)
+                else TaskStatus.PENDING
+            ),
             assigned_agent_id=data.get("assigned_agent_id"),
             result=data.get("result"),
             created_at=created_at,

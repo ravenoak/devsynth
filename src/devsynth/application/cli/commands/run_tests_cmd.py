@@ -23,19 +23,20 @@ from devsynth.testing.run_tests import (
     COVERAGE_HTML_DIR,
     COVERAGE_JSON_PATH,
     DEFAULT_COVERAGE_THRESHOLD,
+    PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE,
+    PYTEST_COV_PLUGIN_MISSING_MESSAGE,
     collect_tests_with_cache,
     coverage_artifacts_status,
     enforce_coverage_threshold,
     ensure_pytest_bdd_plugin_env,
     ensure_pytest_cov_plugin_env,
-    PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE,
-    PYTEST_COV_PLUGIN_MISSING_MESSAGE,
     pytest_cov_support_status,
     run_tests,
 )
 
 logger = DevSynthLogger(__name__)
 DEFAULT_BRIDGE: UXBridge = CLIUXBridge()
+
 
 def _parse_feature_options(values: list[str]) -> dict[str, bool]:
     """Convert ``--feature`` options into a dictionary.
@@ -351,7 +352,9 @@ def run_tests_cmd(
         )
         ux_bridge.print(message)
 
-    coverage_enabled_initial, coverage_skip_reason_initial = _coverage_instrumentation_status()
+    coverage_enabled_initial, coverage_skip_reason_initial = (
+        _coverage_instrumentation_status()
+    )
     if not coverage_enabled_initial:
         detail = coverage_skip_reason_initial or (
             "pytest-cov instrumentation is required for coverage enforcement."

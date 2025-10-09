@@ -159,7 +159,9 @@ def restore_memory_queue(
                         ensure_memory_sync_port(item.metadata["sync_port"])
                     )
                 except Exception:
-                    logger.debug("Failed to serialize sync_port metadata", exc_info=True)
+                    logger.debug(
+                        "Failed to serialize sync_port metadata", exc_info=True
+                    )
             memory_manager.queue_update(store, item)
         except Exception:  # pragma: no cover - best effort
             logger.debug("Requeue failed", exc_info=True)

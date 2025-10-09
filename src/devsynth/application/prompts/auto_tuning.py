@@ -9,11 +9,12 @@ import hashlib
 import random
 import re
 from pathlib import Path
-from typing import Callable, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Optional
 
 if TYPE_CHECKING:
-    class DevSynthErrorBase(Exception):
-        ...
+
+    class DevSynthErrorBase(Exception): ...
+
 else:  # pragma: no cover - simple import branch
     from devsynth.exceptions import DevSynthError as DevSynthErrorBase
 
@@ -37,6 +38,8 @@ class PromptAutoTuningError(DevSynthErrorBase):
     """Error raised when prompt auto-tuning fails."""
 
     pass
+
+
 class PromptAutoTuner:
     """
     Auto-tuner for dynamically adjusting LLM prompts based on feedback.

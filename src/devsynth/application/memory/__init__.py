@@ -23,8 +23,12 @@ logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
 
 if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
-    from .adapters.graph_memory_adapter import GraphMemoryAdapter as GraphMemoryAdapterType
-    from .adapters.tinydb_memory_adapter import TinyDBMemoryAdapter as TinyDBMemoryAdapterType
+    from .adapters.graph_memory_adapter import (
+        GraphMemoryAdapter as GraphMemoryAdapterType,
+    )
+    from .adapters.tinydb_memory_adapter import (
+        TinyDBMemoryAdapter as TinyDBMemoryAdapterType,
+    )
     from .adapters.vector_memory_adapter import (
         VectorMemoryAdapter as VectorMemoryAdapterType,
     )

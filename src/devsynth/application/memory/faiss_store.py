@@ -248,9 +248,7 @@ class FAISSStore(VectorStore[MemoryRecord], SupportsTransactions):
         return True
 
     @contextmanager
-    def transaction(
-        self, transaction_id: str | None = None
-    ) -> Iterator[str]:
+    def transaction(self, transaction_id: str | None = None) -> Iterator[str]:
         """Context manager providing transactional semantics."""
 
         tx_id: str = self.begin_transaction(transaction_id)
@@ -278,7 +276,9 @@ class FAISSStore(VectorStore[MemoryRecord], SupportsTransactions):
 
         metadata_payload = self._deserialize_metadata(entry.get("metadata"))
         created_at = (
-            datetime.fromisoformat(entry["created_at"]) if entry.get("created_at") else None
+            datetime.fromisoformat(entry["created_at"])
+            if entry.get("created_at")
+            else None
         )
         vector = MemoryVector(
             id=vector_id,
@@ -582,9 +582,7 @@ class FAISSStore(VectorStore[MemoryRecord], SupportsTransactions):
             return stats
 
         except Exception as exc:
-            logger.error(
-                "Error getting collection statistics from FAISS: %s", exc
-            )
+            logger.error("Error getting collection statistics from FAISS: %s", exc)
             raise MemoryStoreError(f"Error getting collection statistics: {exc}")
 
     def get_all_vectors(self) -> list[MemoryVector]:
@@ -596,5 +594,5 @@ class FAISSStore(VectorStore[MemoryRecord], SupportsTransactions):
             if vec:
                 vectors.append(vec)
         return vectors
-    supports_transactions: bool = True
 
+    supports_transactions: bool = True

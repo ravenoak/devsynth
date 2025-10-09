@@ -133,7 +133,9 @@ def _resolve_graph_memory_path() -> Path:
     return default_dir / "graph_memory.ttl"
 
 
-def _load_graph_artifact_summary(graph_path: Path | None = None) -> list[dict[str, object]]:
+def _load_graph_artifact_summary(
+    graph_path: Path | None = None,
+) -> list[dict[str, object]]:
     path = graph_path or _resolve_graph_memory_path()
     if not path.exists():
         return []
@@ -193,7 +195,9 @@ def _call_streamlit(container: Any, method: str, *args, **kwargs) -> bool:
     return False
 
 
-def _render_socratic_checkpoints(container: Any, checkpoints: list[dict[str, Any]]) -> None:
+def _render_socratic_checkpoints(
+    container: Any, checkpoints: list[dict[str, Any]]
+) -> None:
     for checkpoint in checkpoints:
         title_parts = []
         checkpoint_id = checkpoint.get("checkpoint_id")
@@ -334,7 +338,9 @@ def render_research_telemetry_overlays(
     if signature_verified is True:
         sidebar.success("Autoresearch telemetry signature verified.")
     elif signature_verified is False:
-        message = signature_error or "Autoresearch telemetry signature validation failed."
+        message = (
+            signature_error or "Autoresearch telemetry signature validation failed."
+        )
         sidebar.error(message)
     elif signature_error:
         sidebar.warning(signature_error)
@@ -374,19 +380,27 @@ def render_research_telemetry_overlays(
     optional_sections: list[tuple[str, list[dict[str, Any]], Any]] = []
     socratic = telemetry.get("socratic_checkpoints") or []
     if socratic:
-        optional_sections.append(("Socratic Checkpoints", socratic, _render_socratic_checkpoints))
+        optional_sections.append(
+            ("Socratic Checkpoints", socratic, _render_socratic_checkpoints)
+        )
     debates = telemetry.get("debate_logs") or []
     if debates:
         optional_sections.append(("Debate Logs", debates, _render_debate_logs))
     coalition = telemetry.get("coalition_messages") or []
     if coalition:
-        optional_sections.append(("Coalition Messages", coalition, _render_coalition_messages))
+        optional_sections.append(
+            ("Coalition Messages", coalition, _render_coalition_messages)
+        )
     query_states = telemetry.get("query_state_snapshots") or []
     if query_states:
-        optional_sections.append(("QueryState Snapshots", query_states, _render_query_states))
+        optional_sections.append(
+            ("QueryState Snapshots", query_states, _render_query_states)
+        )
     planner_graphs = telemetry.get("planner_graph_exports") or []
     if planner_graphs:
-        optional_sections.append(("Planner Graph Exports", planner_graphs, _render_planner_graphs))
+        optional_sections.append(
+            ("Planner Graph Exports", planner_graphs, _render_planner_graphs)
+        )
 
     if optional_sections:
         tabs_fn = getattr(st, "tabs", None)
@@ -407,7 +421,9 @@ def render_research_telemetry_overlays(
             supports = ", ".join(entry["supports"]) or "n/a"
             derived = ", ".join(entry["derived_from"]) or "n/a"
             roles = ", ".join(entry["roles"]) or "n/a"
-            st.markdown(f"**{entry['artifact']}** — supports: {supports}; derived from: {derived}")
+            st.markdown(
+                f"**{entry['artifact']}** — supports: {supports}; derived from: {derived}"
+            )
             st.caption(f"Roles: {roles}")
 
 
@@ -461,11 +477,11 @@ def render_dashboard(data: dict) -> None:
                             f"environment '{signature_env}' is unset."
                         )
                     else:
-                        signature_error = "Autoresearch telemetry signature validation failed."
+                        signature_error = (
+                            "Autoresearch telemetry signature validation failed."
+                        )
             elif secret:
-                signature_error = (
-                    "Autoresearch signing secret is configured but telemetry lacks a signature."
-                )
+                signature_error = "Autoresearch signing secret is configured but telemetry lacks a signature."
 
             render_research_telemetry_overlays(
                 st,

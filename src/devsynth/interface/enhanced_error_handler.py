@@ -5,7 +5,7 @@ and suggestions, as well as improved formatting for error messages.
 """
 
 import sys
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from rich.console import Console
 from rich.panel import Panel
@@ -286,7 +286,9 @@ formatter.format_command_output(data, format_name="rich")
         super().__init__(console)
 
         # Combine the base error patterns with the additional ones
-        self.ERROR_PATTERNS = self.ERROR_PATTERNS + self.ADDITIONAL_ERROR_PATTERNS
+        self.ERROR_PATTERNS: List[Tuple[str, Union[ErrorSuggestion, ActionableErrorSuggestion]]] = (
+            self.ERROR_PATTERNS + self.ADDITIONAL_ERROR_PATTERNS
+        )
 
         logger.debug("Initialized ImprovedErrorHandler with additional error patterns")
 
@@ -304,7 +306,7 @@ formatter.format_command_output(data, format_name="rich")
         Returns:
             A list of suggestions
         """
-        suggestions = super()._find_suggestions(error_message)
+        suggestions: List[Union[ErrorSuggestion, ActionableErrorSuggestion]] = super()._find_suggestions(error_message)
 
         # Add context-specific suggestions based on the current state of the system
         try:

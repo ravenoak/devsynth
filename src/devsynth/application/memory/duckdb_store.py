@@ -10,12 +10,11 @@ import importlib
 import json
 import os
 import uuid
+from datetime import datetime
+from typing import Sequence, cast
 
 import numpy as np  # type: ignore[import-not-found]
 import tiktoken
-
-from datetime import datetime
-from typing import Sequence, cast
 
 from devsynth.core import feature_flags
 from devsynth.exceptions import (
@@ -39,7 +38,8 @@ from .dto import (
     VectorStoreStats,
     build_memory_record,
 )
-from .metadata_serialization import dumps as metadata_dumps, loads as metadata_loads
+from .metadata_serialization import dumps as metadata_dumps
+from .metadata_serialization import loads as metadata_loads
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -106,7 +106,9 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
         self.tokenizer: object | None = None
         if tiktoken is not None:
             try:
-                self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
+                self.tokenizer = tiktoken.get_encoding(
+                    "cl100k_base"
+                )  # OpenAI's encoding
             except Exception as e:
                 logger.warning(
                     f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
@@ -358,9 +360,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
                 original_error=e,
             )
 
-    def search(
-        self, query: MemorySearchQuery | MemoryMetadata
-    ) -> list[MemoryRecord]:
+    def search(self, query: MemorySearchQuery | MemoryMetadata) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
@@ -782,7 +782,8 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
                 records = [record for record, _ in vectors_with_distances[:top_k]]
 
                 logger.info(
-                    "Found %d similar vectors in DuckDB using Python fallback", len(records)
+                    "Found %d similar vectors in DuckDB using Python fallback",
+                    len(records),
                 )
 
             return records
@@ -911,9 +912,7 @@ class DuckDBStore(MemoryStore, VectorStore[MemoryVector]):
             return stats
 
         except Exception as exc:
-            logger.error(
-                "Error getting collection statistics from DuckDB: %s", exc
-            )
+            logger.error("Error getting collection statistics from DuckDB: %s", exc)
             raise MemoryStoreError(
                 "Error getting collection statistics",
                 store_type="duckdb",

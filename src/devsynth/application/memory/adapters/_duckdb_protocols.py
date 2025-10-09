@@ -9,11 +9,9 @@ from typing import Any, Protocol
 class DuckDBResultProtocol(Protocol):
     """Subset of DuckDB result interface used throughout the adapters."""
 
-    def fetchall(self) -> list[tuple[Any, ...]]:
-        ...
+    def fetchall(self) -> list[tuple[Any, ...]]: ...
 
-    def fetchone(self) -> tuple[Any, ...] | None:
-        ...
+    def fetchone(self) -> tuple[Any, ...] | None: ...
 
 
 class DuckDBConnectionProtocol(DuckDBResultProtocol, Protocol):
@@ -21,11 +19,9 @@ class DuckDBConnectionProtocol(DuckDBResultProtocol, Protocol):
 
     def execute(
         self, query: str, parameters: Sequence[Any] | None = ...
-    ) -> DuckDBResultProtocol:
-        ...
+    ) -> DuckDBResultProtocol: ...
 
-    def close(self) -> None:
-        ...
+    def close(self) -> None: ...
 
 
 class DuckDBModuleProtocol(Protocol):
@@ -35,8 +31,7 @@ class DuckDBModuleProtocol(Protocol):
         self,
         database: str | None = ...,
         read_only: bool | None = ...,
-    ) -> DuckDBConnectionProtocol:
-        ...
+    ) -> DuckDBConnectionProtocol: ...
 
 
 __all__ = [

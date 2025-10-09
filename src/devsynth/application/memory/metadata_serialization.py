@@ -99,10 +99,7 @@ def _decode_value(value: JSONValue) -> MemoryMetadataValue:
 def to_serializable(metadata: MemoryMetadata | None) -> dict[str, JSONValue]:
     if not metadata:
         return {}
-    return {
-        key: _encode_value(value)
-        for key, value in dict(metadata).items()
-    }
+    return {key: _encode_value(value) for key, value in dict(metadata).items()}
 
 
 def from_serializable(payload: Mapping[str, object] | None) -> MemoryMetadata:

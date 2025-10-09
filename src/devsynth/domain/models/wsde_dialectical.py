@@ -7,7 +7,8 @@ from collections import deque
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Sequence as TypingSequence
+from typing import Any
+from typing import Sequence as TypingSequence
 from uuid import uuid4
 
 # Import the base WSDETeam class for type hints
@@ -176,7 +177,9 @@ class ResolutionPlan:
             "id": self.plan_id,
             "timestamp": self.timestamp,
             "integrated_critiques": [c.message for c in self.integrated_critiques],
-            "integrated_critique_details": [c.to_dict() for c in self.integrated_critiques],
+            "integrated_critique_details": [
+                c.to_dict() for c in self.integrated_critiques
+            ],
             "rejected_critiques": [c.message for c in self.rejected_critiques],
             "rejected_critique_details": [c.to_dict() for c in self.rejected_critiques],
             "improvements": list(self.improvements),
@@ -184,7 +187,9 @@ class ResolutionPlan:
             "content": self.content,
             "code": self.code,
             "standards_compliance": dict(self.standards_compliance),
-            "resolved_conflicts": [dict(conflict) for conflict in self.resolved_conflicts],
+            "resolved_conflicts": [
+                dict(conflict) for conflict in self.resolved_conflicts
+            ],
             "domain_improvements": {
                 domain: list(improvements)
                 for domain, improvements in self.domain_improvements.items()
@@ -303,7 +308,9 @@ class DialecticalStep:
                 rejected_critiques=(),
                 improvements=(),
                 reasoning="",
-                content=resolution_payload if isinstance(resolution_payload, str) else None,
+                content=(
+                    resolution_payload if isinstance(resolution_payload, str) else None
+                ),
             )
 
         details = antithesis_payload.get("critique_details")
@@ -443,9 +450,7 @@ def _content_antithesis_components(content: str) -> AntithesisComponents:
     if "example" not in content.lower():
         critiques.append("No examples provided to illustrate concepts")
 
-    improvements.extend(
-        ["Add more detailed explanations", "Include concrete examples"]
-    )
+    improvements.extend(["Add more detailed explanations", "Include concrete examples"])
     alternatives.extend(
         [
             "Consider a more structured format with sections",
@@ -514,7 +519,7 @@ def _default_antithesis_components() -> AntithesisComponents:
 
 
 def _invert_domain_mapping(
-    domain_mapping: Mapping[str, TypingSequence[str]]
+    domain_mapping: Mapping[str, TypingSequence[str]],
 ) -> dict[str, tuple[str, ...]]:
     """Create a message-to-domain lookup preserving insertion order."""
 
@@ -781,9 +786,7 @@ def _generate_synthesis(
         code_result = improved_code
 
     rejected_messages = [
-        message
-        for message in antithesis.critiques
-        if message not in integrated_lookup
+        message for message in antithesis.critiques if message not in integrated_lookup
     ]
     rejected_critiques = [
         pop_or_create(message, len(critiques) + index)
@@ -792,7 +795,9 @@ def _generate_synthesis(
 
     standards_compliance: dict[str, Any] = {}
     if code_result:
-        standards_compliance["code"] = self._check_code_standards_compliance(code_result)
+        standards_compliance["code"] = self._check_code_standards_compliance(
+            code_result
+        )
     if content_result:
         standards_compliance["content"] = self._check_content_standards_compliance(
             content_result
@@ -803,11 +808,12 @@ def _generate_synthesis(
         domain1 = conflict["domain1"]
         domain2 = conflict["domain2"]
 
-        if (
-            (domain1 == "code" and domain2 == "performance")
-            or (domain1 == "performance" and domain2 == "code")
+        if (domain1 == "code" and domain2 == "performance") or (
+            domain1 == "performance" and domain2 == "code"
         ):
-            resolution = self._balance_performance_and_maintainability(code_result or "")
+            resolution = self._balance_performance_and_maintainability(
+                code_result or ""
+            )
             resolved_conflicts.append(
                 {
                     "domains": [domain1, domain2],
@@ -816,9 +822,8 @@ def _generate_synthesis(
                 }
             )
 
-        elif (
-            (domain1 == "security" and domain2 == "performance")
-            or (domain1 == "performance" and domain2 == "security")
+        elif (domain1 == "security" and domain2 == "performance") or (
+            domain1 == "performance" and domain2 == "security"
         ):
             resolution = self._balance_security_and_performance(code_result or "")
             resolved_conflicts.append(
@@ -829,9 +834,8 @@ def _generate_synthesis(
                 }
             )
 
-        elif (
-            (domain1 == "security" and domain2 == "usability")
-            or (domain1 == "usability" and domain2 == "security")
+        elif (domain1 == "security" and domain2 == "usability") or (
+            domain1 == "usability" and domain2 == "security"
         ):
             resolution = self._balance_security_and_usability(code_result or "")
             resolved_conflicts.append(
@@ -1042,9 +1046,7 @@ def _identify_domain_conflicts(
     return conflicts
 
 
-def _prioritize_critiques(
-    self: WSDETeam, critiques: TypingSequence[str]
-) -> list[str]:
+def _prioritize_critiques(self: WSDETeam, critiques: TypingSequence[str]) -> list[str]:
     """
     Prioritize critiques based on severity and relevance.
 

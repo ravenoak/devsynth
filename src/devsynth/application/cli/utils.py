@@ -147,7 +147,9 @@ def _check_services(bridge: Optional[UXBridge] = None) -> bool:
     return True
 
 
-def _coerce_error_payload(error: BridgeErrorPayload) -> Exception | dict[str, object] | str:
+def _coerce_error_payload(
+    error: BridgeErrorPayload,
+) -> Exception | dict[str, object] | str:
     if isinstance(error, Exception) or isinstance(error, str):
         return error
     if isinstance(error, BridgeErrorDetails):

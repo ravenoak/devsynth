@@ -174,9 +174,7 @@ def reasoning_loop(
             result_mapping = result
             append_result = dict(result)
         else:
-            raise TypeError(
-                "apply_dialectical_reasoning must return a mapping payload"
-            )
+            raise TypeError("apply_dialectical_reasoning must return a mapping payload")
 
         # Determine the effective phase for recording from result payload
         effective_phase = current_phase

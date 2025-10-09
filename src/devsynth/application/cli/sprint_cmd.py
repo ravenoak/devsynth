@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from __future__ import annotations
-
 """Sprint planning and retrospective CLI helpers."""
 
 import json
@@ -88,7 +86,9 @@ def sprint_planning_cmd(requirements: str) -> SprintPlan:
     )
 
 
-def sprint_retrospective_cmd(retrospective: str, sprint: int) -> SprintRetrospectiveSummary:
+def sprint_retrospective_cmd(
+    retrospective: str, sprint: int
+) -> SprintRetrospectiveSummary:
     """Summarize retrospective information for a sprint.
 
     Args:

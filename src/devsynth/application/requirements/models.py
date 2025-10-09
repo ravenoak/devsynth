@@ -9,9 +9,9 @@ from typing import Mapping, Sequence
 from uuid import UUID
 
 from devsynth.domain.models.requirement import (
+    ImpactAssessment,
     Requirement,
     RequirementChange,
-    ImpactAssessment,
     RequirementPriority,
     RequirementStatus,
     RequirementType,

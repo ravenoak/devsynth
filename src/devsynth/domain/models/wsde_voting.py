@@ -33,7 +33,9 @@ class VotingEngine:
 
     team: WSDETeam
 
-    def vote(self, task: TaskDict, rng: Optional[Random] = None) -> VotingTranscript | Dict[str, object]:
+    def vote(
+        self, task: TaskDict, rng: Optional[Random] = None
+    ) -> VotingTranscript | Dict[str, object]:
         if not self.team.agents:
             logger.warning("Cannot conduct vote: no agents in team")
             return {"status": "failed", "reason": "no_agents"}
@@ -47,11 +49,15 @@ class VotingEngine:
         try:
             method = VoteMethod(raw_method)
         except ValueError:
-            logger.warning("Unknown voting method '%s', defaulting to majority", raw_method)
+            logger.warning(
+                "Unknown voting method '%s', defaulting to majority", raw_method
+            )
             method = VoteMethod.MAJORITY
         votes, reasoning = self._collect_votes(options, rng_instance)
         vote_counts = _count_votes(options, votes)
-        record = self._apply_method(method, task, options, votes, vote_counts, rng_instance)
+        record = self._apply_method(
+            method, task, options, votes, vote_counts, rng_instance
+        )
 
         transcript = VotingTranscript(
             identifier=str(uuid4()),
@@ -67,7 +73,9 @@ class VotingEngine:
         self._record_history(task, transcript)
         return transcript
 
-    def consensus_vote(self, task: TaskDict, rng: Optional[Random] = None) -> Dict[str, object]:
+    def consensus_vote(
+        self, task: TaskDict, rng: Optional[Random] = None
+    ) -> Dict[str, object]:
         consensus_task: TaskDict = dict(task)
         consensus_task["voting_method"] = VoteMethod.MAJORITY.value
         result = self.vote(consensus_task, rng)
@@ -80,7 +88,9 @@ class VotingEngine:
             "vote_counts": result.record.vote_counts,
         }
 
-    def build_consensus(self, task: TaskDict, rng: Optional[Random] = None) -> ConsensusTranscript | Dict[str, object]:
+    def build_consensus(
+        self, task: TaskDict, rng: Optional[Random] = None
+    ) -> ConsensusTranscript | Dict[str, object]:
         if not self.team.agents:
             logger.warning("Cannot build consensus: no agents in team")
             return {"status": "failed", "reason": "no_agents"}
@@ -94,7 +104,8 @@ class VotingEngine:
         max_rounds = int(task.get("max_rounds", 3))
 
         initial_preferences = {
-            agent.name: self._initial_preferences(agent, options) for agent in self.team.agents
+            agent.name: self._initial_preferences(agent, options)
+            for agent in self.team.agents
         }
         current_preferences = {
             name: dict(prefs) for name, prefs in initial_preferences.items()
@@ -108,17 +119,25 @@ class VotingEngine:
         for round_number in range(1, max_rounds + 1):
             round_snapshot = ConsensusRound(
                 round_number=round_number,
-                preferences={name: dict(prefs) for name, prefs in current_preferences.items()},
+                preferences={
+                    name: dict(prefs) for name, prefs in current_preferences.items()
+                },
                 adjustments={},
                 discussions=(),
             )
             option_support = {
-                option: sum(prefs.get(option, 0.0) for prefs in current_preferences.values())
+                option: sum(
+                    prefs.get(option, 0.0) for prefs in current_preferences.values()
+                )
                 / len(self.team.agents)
                 for option in options
             }
             max_support = max(option_support.values())
-            leading = [option for option, support in option_support.items() if support == max_support]
+            leading = [
+                option
+                for option, support in option_support.items()
+                if support == max_support
+            ]
             if max_support >= threshold:
                 status = ConsensusStatus.COMPLETED
                 consensus_option = leading[0]
@@ -141,12 +160,18 @@ class VotingEngine:
 
         if status is ConsensusStatus.IN_PROGRESS:
             option_support = {
-                option: sum(prefs.get(option, 0.0) for prefs in current_preferences.values())
+                option: sum(
+                    prefs.get(option, 0.0) for prefs in current_preferences.values()
+                )
                 / len(self.team.agents)
                 for option in options
             }
             max_support = max(option_support.values())
-            leading = [option for option, support in option_support.items() if support == max_support]
+            leading = [
+                option
+                for option, support in option_support.items()
+                if support == max_support
+            ]
             consensus_option = leading[0]
             status = ConsensusStatus.PARTIAL
             explanation = (
@@ -159,7 +184,9 @@ class VotingEngine:
             result=consensus_option,
             explanation=explanation,
             rounds=rounds,
-            final_preferences={name: dict(prefs) for name, prefs in current_preferences.items()},
+            final_preferences={
+                name: dict(prefs) for name, prefs in current_preferences.items()
+            },
         )
 
         return ConsensusTranscript(
@@ -191,19 +218,14 @@ class VotingEngine:
         expertise = getattr(agent, "expertise", None) or []
         if expertise:
             scores = {
-                option: sum(
-                    1
-                    for topic in expertise
-                    if topic.lower() in option.lower()
-                )
+                option: sum(1 for topic in expertise if topic.lower() in option.lower())
                 for option in options
             }
             max_score = max(scores.values())
             best = [option for option, score in scores.items() if score == max_score]
             choice = rng.choice(best)
-            explanation = (
-                "Selected based on expertise in "
-                + ", ".join(topic for topic in expertise[:2])
+            explanation = "Selected based on expertise in " + ", ".join(
+                topic for topic in expertise[:2]
             )
         else:
             choice = rng.choice(list(options))
@@ -224,7 +246,9 @@ class VotingEngine:
         if method is VoteMethod.WEIGHTED:
             domain = str(task.get("domain", "general"))
             return self._apply_weighted(task, options, votes, domain, rng)
-        logger.warning("Unknown voting method: %s, falling back to majority", method.value)
+        logger.warning(
+            "Unknown voting method: %s, falling back to majority", method.value
+        )
         return self._apply_majority(task, options, vote_counts, rng)
 
     def _apply_majority(
@@ -235,7 +259,9 @@ class VotingEngine:
         rng: Random,
     ) -> VoteRecord:
         max_votes = max(vote_counts.values())
-        winners = [option for option, count in vote_counts.items() if count == max_votes]
+        winners = [
+            option for option, count in vote_counts.items() if count == max_votes
+        ]
         if len(winners) > 1:
             return self._handle_tie(task, winners, rng)
         winner = winners[0]
@@ -260,8 +286,12 @@ class VotingEngine:
         rng: Random,
     ) -> VoteRecord:
         rng_instance = rng if rng is not None else Random()
-        consensus = self.build_consensus({"id": task.get("id"), "options": list(tied_options)}, rng=rng_instance)
-        consensus_payload = consensus if isinstance(consensus, dict) else consensus.as_dict()
+        consensus = self.build_consensus(
+            {"id": task.get("id"), "options": list(tied_options)}, rng=rng_instance
+        )
+        consensus_payload = (
+            consensus if isinstance(consensus, dict) else consensus.as_dict()
+        )
         return VoteRecord(
             method=VoteMethod.MAJORITY,
             options=list(tied_options),
@@ -269,7 +299,11 @@ class VotingEngine:
             vote_counts={option: 0 for option in tied_options},
             status=VoteStatus.TIED,
             explanation="Vote tied; initiated consensus process.",
-            result={"tied": True, "tied_options": list(tied_options), "consensus_result": consensus_payload},
+            result={
+                "tied": True,
+                "tied_options": list(tied_options),
+                "consensus_result": consensus_payload,
+            },
         )
 
     def _apply_weighted(
@@ -282,11 +316,17 @@ class VotingEngine:
     ) -> VoteRecord:
         weights = self._weight_agents(domain)
         weighted_votes = {
-            option: sum(weights.get(agent, 1.0) for agent, choice in votes.items() if choice == option)
+            option: sum(
+                weights.get(agent, 1.0)
+                for agent, choice in votes.items()
+                if choice == option
+            )
             for option in options
         }
         max_weight = max(weighted_votes.values())
-        winners = [option for option, value in weighted_votes.items() if value == max_weight]
+        winners = [
+            option for option, value in weighted_votes.items() if value == max_weight
+        ]
         if len(winners) > 1:
             primus = self.team.get_primus()
             if primus and primus.name in votes and votes[primus.name] in winners:
@@ -303,14 +343,14 @@ class VotingEngine:
                 )
         else:
             winner = winners[0]
-            explanation = (
-                f"Option '{winner}' received the highest weighted vote score of {max_weight:.1f}."
-            )
+            explanation = f"Option '{winner}' received the highest weighted vote score of {max_weight:.1f}."
         return VoteRecord(
             method=VoteMethod.WEIGHTED,
             options=list(options),
             votes=votes,
-            vote_counts={option: int(weighted_votes[option]) for option in weighted_votes},
+            vote_counts={
+                option: int(weighted_votes[option]) for option in weighted_votes
+            },
             status=VoteStatus.COMPLETED,
             explanation=explanation,
             result={"winner": winner, "method": "weighted_vote"},
@@ -323,11 +363,17 @@ class VotingEngine:
         for agent in self.team.agents:
             expertise = getattr(agent, "expertise", None) or []
             base = 1.0
-            bonus = sum(1.0 for item in expertise if domain.lower() in item.lower() or item.lower() in domain.lower())
+            bonus = sum(
+                1.0
+                for item in expertise
+                if domain.lower() in item.lower() or item.lower() in domain.lower()
+            )
             weights[agent.name] = base + bonus
         return weights
 
-    def _initial_preferences(self, agent: SupportsTeamAgent, options: Sequence[str]) -> Dict[str, float]:
+    def _initial_preferences(
+        self, agent: SupportsTeamAgent, options: Sequence[str]
+    ) -> Dict[str, float]:
         expertise = getattr(agent, "expertise", None) or []
         if expertise:
             scores = {
@@ -346,7 +392,9 @@ class VotingEngine:
     ) -> Dict[str, Dict[str, float]]:
         adjustments: Dict[str, Dict[str, float]] = {}
         for agent_name, prefs in current_preferences.items():
-            others = [p for name, p in current_preferences.items() if name != agent_name]
+            others = [
+                p for name, p in current_preferences.items() if name != agent_name
+            ]
             if not others:
                 adjustments[agent_name] = dict(prefs)
                 continue
@@ -360,7 +408,9 @@ class VotingEngine:
                 for option in options
             }
             total = sum(adjusted.values()) or 1.0
-            adjustments[agent_name] = {option: value / total for option, value in adjusted.items()}
+            adjustments[agent_name] = {
+                option: value / total for option, value in adjusted.items()
+            }
         return adjustments
 
     def _record_history(self, task: TaskDict, transcript: VotingTranscript) -> None:
@@ -386,7 +436,10 @@ def _normalise_options(raw_options: Iterable[object]) -> list[str]:
 
 
 def _count_votes(options: Sequence[str], votes: Mapping[str, str]) -> Dict[str, int]:
-    return {option: sum(1 for vote in votes.values() if vote == option) for option in options}
+    return {
+        option: sum(1 for vote in votes.values() if vote == option)
+        for option in options
+    }
 
 
 def _engine(team: WSDETeam) -> VotingEngine:
@@ -447,7 +500,9 @@ def _apply_weighted_voting(
 ) -> Dict[str, object]:
     engine = _engine(self)
     options = voting_result.get("options", [])
-    options_list = [str(opt) for opt in options] if isinstance(options, Iterable) else []
+    options_list = (
+        [str(opt) for opt in options] if isinstance(options, Iterable) else []
+    )
     raw_votes = voting_result.get("votes", {})
     votes = (
         {str(agent): str(choice) for agent, choice in raw_votes.items()}
@@ -457,9 +512,7 @@ def _apply_weighted_voting(
     rng_instance = rng if rng is not None else Random()
     record = engine._apply_weighted(task, options_list, votes, domain, rng_instance)
     raw_winner = (
-        record.result
-        if isinstance(record.result, str)
-        else record.result.get("winner")
+        record.result if isinstance(record.result, str) else record.result.get("winner")
     )
     winner = str(raw_winner) if raw_winner is not None else ""
     return {
@@ -473,7 +526,9 @@ def _apply_weighted_voting(
     }
 
 
-def _record_voting_history(self: WSDETeam, task: TaskDict, voting_result: Dict[str, object]) -> None:
+def _record_voting_history(
+    self: WSDETeam, task: TaskDict, voting_result: Dict[str, object]
+) -> None:
     self.voting_history.append(
         {
             **voting_result,
@@ -486,7 +541,9 @@ def _record_voting_history(self: WSDETeam, task: TaskDict, voting_result: Dict[s
     )
 
 
-def consensus_vote(self: WSDETeam, task: TaskDict, rng: Optional[Random] = None) -> Dict[str, object]:
+def consensus_vote(
+    self: WSDETeam, task: TaskDict, rng: Optional[Random] = None
+) -> Dict[str, object]:
     return _engine(self).consensus_vote(task, rng)
 
 
@@ -506,4 +563,3 @@ __all__ = [
     "consensus_vote",
     "build_consensus",
 ]
-

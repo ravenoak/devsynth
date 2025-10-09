@@ -9,9 +9,9 @@ This implementation includes enhanced features:
 
 import json
 import os
+from collections.abc import Mapping
 from datetime import datetime
 from functools import wraps
-from collections.abc import Mapping
 from typing import Callable, ParamSpec, TypeVar
 
 from devsynth.application.memory.dto import (
@@ -187,10 +187,7 @@ class ChromaDBStore(MemoryStore):
                         if not isinstance(vid, str) or not isinstance(versions, list):
                             continue
                         sanitized: SerializedVersionHistory = [
-                            {
-                                str(key): value
-                                for key, value in entry.items()
-                            }
+                            {str(key): value for key, value in entry.items()}
                             for entry in versions
                             if isinstance(entry, dict)
                         ]
@@ -226,8 +223,7 @@ class ChromaDBStore(MemoryStore):
                                 if not isinstance(item_dict, dict):
                                     continue
                                 serialized_item: SerializedPayload = {
-                                    str(key): value
-                                    for key, value in item_dict.items()
+                                    str(key): value for key, value in item_dict.items()
                                 }
                                 record = self._record_from_serialized(
                                     serialized_item, fallback=True
@@ -235,13 +231,12 @@ class ChromaDBStore(MemoryStore):
                                 self._store[record.id] = serialized_item
                                 self._cache[record.id] = record
                             for vid, versions in data.get("versions", {}).items():
-                                if not isinstance(vid, str) or not isinstance(versions, list):
+                                if not isinstance(vid, str) or not isinstance(
+                                    versions, list
+                                ):
                                     continue
                                 sanitized_versions: SerializedVersionHistory = [
-                                    {
-                                        str(key): value
-                                        for key, value in entry.items()
-                                    }
+                                    {str(key): value for key, value in entry.items()}
                                     for entry in versions
                                     if isinstance(entry, dict)
                                 ]
@@ -314,7 +309,9 @@ class ChromaDBStore(MemoryStore):
     def _record_from_serialized(
         self, payload: Mapping[str, object], *, fallback: bool | None = None
     ) -> MemoryRecord:
-        return record_from_row(payload, default_source=self._resolve_source(fallback=fallback))
+        return record_from_row(
+            payload, default_source=self._resolve_source(fallback=fallback)
+        )
 
     def _serialize_memory_item(self, item: MemoryItem) -> SerializedPayload:
         """
@@ -350,9 +347,7 @@ class ChromaDBStore(MemoryStore):
         """
         raw_metadata = data.get("metadata")
         metadata = (
-            from_serializable(raw_metadata)
-            if isinstance(raw_metadata, Mapping)
-            else {}
+            from_serializable(raw_metadata) if isinstance(raw_metadata, Mapping) else {}
         )
 
         created_at_value = data.get("created_at")
@@ -362,7 +357,9 @@ class ChromaDBStore(MemoryStore):
                 created_at = datetime.fromisoformat(created_at_value)
             except ValueError:
                 logger.debug(
-                    "Invalid created_at value %s for item %s", created_at_value, data.get("id")
+                    "Invalid created_at value %s for item %s",
+                    created_at_value,
+                    data.get("id"),
                 )
 
         memory_type_value = data.get("memory_type")
@@ -454,8 +451,7 @@ class ChromaDBStore(MemoryStore):
                 serialized_copy = json.loads(json.dumps(serialized))
                 if isinstance(serialized_copy, dict):
                     fallback_payload: SerializedPayload = {
-                        str(key): value
-                        for key, value in serialized_copy.items()
+                        str(key): value for key, value in serialized_copy.items()
                     }
                     self._store[item.id] = fallback_payload
                 else:
@@ -499,8 +495,7 @@ class ChromaDBStore(MemoryStore):
                 serialized_copy = json.loads(json.dumps(serialized))
                 if isinstance(serialized_copy, dict):
                     fallback_payload = {
-                        str(key): value
-                        for key, value in serialized_copy.items()
+                        str(key): value for key, value in serialized_copy.items()
                     }
                     self._store[item.id] = fallback_payload
                 else:
@@ -535,8 +530,7 @@ class ChromaDBStore(MemoryStore):
                 serialized_copy = json.loads(json.dumps(serialized))
                 if isinstance(serialized_copy, dict):
                     fallback_payload: SerializedPayload = {
-                        str(key): value
-                        for key, value in serialized_copy.items()
+                        str(key): value for key, value in serialized_copy.items()
                     }
                     self._versions.setdefault(record.id, []).append(fallback_payload)
                 else:
@@ -754,9 +748,7 @@ class ChromaDBStore(MemoryStore):
             return None
 
     @_typed_retry_with_backoff(max_retries=3, retryable_exceptions=(Exception,))
-    def search(
-        self, query: MemorySearchQuery | MemoryMetadata
-    ) -> MemoryQueryResults:
+    def search(self, query: MemorySearchQuery | MemoryMetadata) -> MemoryQueryResults:
         """
         Search for items in memory matching the query.
 
@@ -825,7 +817,9 @@ class ChromaDBStore(MemoryStore):
         records = []
         metadatas = results.get("metadatas") or []
         if metadatas:
-            metadata_rows = metadatas[0] if isinstance(metadatas[0], list) else metadatas
+            metadata_rows = (
+                metadatas[0] if isinstance(metadatas[0], list) else metadatas
+            )
             for metadata in metadata_rows:
                 item_data = (
                     metadata.get("item_data") if isinstance(metadata, dict) else None
@@ -883,9 +877,7 @@ class ChromaDBStore(MemoryStore):
                 try:
                     payload = json.loads(item_data)
                 except Exception as je:
-                    logger.debug(
-                        "Skipping item with invalid item_data JSON: %s", je
-                    )
+                    logger.debug("Skipping item with invalid item_data JSON: %s", je)
                     continue
                 if not isinstance(payload, Mapping):
                     logger.debug("Skipping item with non-mapping payload")
@@ -1029,13 +1021,19 @@ class ChromaDBStore(MemoryStore):
             # Extract and deserialize all versions
             versions: list[MemoryItem] = []
             for metadata in result["metadatas"]:
-                item_data = metadata.get("item_data") if isinstance(metadata, dict) else None
+                item_data = (
+                    metadata.get("item_data") if isinstance(metadata, dict) else None
+                )
                 if not item_data:
-                    logger.debug("Skipping version without item_data for id %s", item_id)
+                    logger.debug(
+                        "Skipping version without item_data for id %s", item_id
+                    )
                     continue
                 payload = json.loads(item_data)
                 if not isinstance(payload, Mapping):
-                    logger.debug("Skipping version with non-mapping payload for id %s", item_id)
+                    logger.debug(
+                        "Skipping version with non-mapping payload for id %s", item_id
+                    )
                     continue
                 item = self._deserialize_memory_item(payload)
                 versions.append(item)

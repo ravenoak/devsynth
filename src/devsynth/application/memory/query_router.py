@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from ...logging_setup import DevSynthLogger
+from .adapter_types import AdapterRegistry, SupportsSearch
 from .dto import (
     GroupedMemoryResults,
     MemoryMetadata,
@@ -16,7 +17,6 @@ from .dto import (
     build_query_results,
     deduplicate_records,
 )
-from .adapter_types import AdapterRegistry, SupportsSearch
 from .vector_protocol import VectorStoreProtocol
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard
@@ -76,12 +76,16 @@ class QueryRouter:
     ) -> list[MemoryRecord]:
         """Query stores sequentially and concatenate unique records."""
 
-        cascade_order = list(order) if order is not None else [
-            "document",
-            "tinydb",
-            "vector",
-            "graph",
-        ]
+        cascade_order = (
+            list(order)
+            if order is not None
+            else [
+                "document",
+                "tinydb",
+                "vector",
+                "graph",
+            ]
+        )
         collected: list[MemoryRecord] = []
         for name in cascade_order:
             if name not in self.memory_manager.adapters:
@@ -113,7 +117,9 @@ class QueryRouter:
                 return [float(x) for x in candidate]
             if vector_dim is None:
                 return self.memory_manager._embed_text(str(record.content))
-            return self.memory_manager._embed_text(str(record.content), dimension=int(vector_dim))
+            return self.memory_manager._embed_text(
+                str(record.content), dimension=int(vector_dim)
+            )
 
         def _similarity(a: list[float], b: list[float]) -> float:
             import math

@@ -27,7 +27,9 @@ class MethodDefinition:
     node: FunctionDefNode
 
 
-def build_method_from_function(function: FunctionDefNode, plan: MethodConversionPlan) -> MethodDefinition:
+def build_method_from_function(
+    function: FunctionDefNode, plan: MethodConversionPlan
+) -> MethodDefinition:
     """Create a method definition from a top-level function and conversion plan."""
 
     method_node = ast.FunctionDef(
@@ -41,7 +43,10 @@ def build_method_from_function(function: FunctionDefNode, plan: MethodConversion
             kwarg=function.args.kwarg,
             defaults=list(function.args.defaults),
         ),
-        body=[ast.fix_missing_locations(ast.copy_location(stmt, stmt)) for stmt in function.body],
+        body=[
+            ast.fix_missing_locations(ast.copy_location(stmt, stmt))
+            for stmt in function.body
+        ],
         decorator_list=[],
         returns=function.returns,
         type_comment=function.type_comment,

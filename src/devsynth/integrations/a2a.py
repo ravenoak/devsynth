@@ -41,13 +41,17 @@ class StubA2AConnector:
 
     service_name: str = "Autoresearch A2A"
 
-    def prepare_channel(self, session_id: str) -> Mapping[str, object]:  # pragma: no cover - stub
+    def prepare_channel(
+        self, session_id: str
+    ) -> Mapping[str, object]:  # pragma: no cover - stub
         raise NotImplementedError(
             "A2A integration is not yet available. Autoresearch will expose the "
             "channel negotiation flow in a future milestone."
         )
 
-    def execute_query(self, session_id: str, sparql_query: str) -> Mapping[str, object]:  # pragma: no cover - stub
+    def execute_query(
+        self, session_id: str, sparql_query: str
+    ) -> Mapping[str, object]:  # pragma: no cover - stub
         raise NotImplementedError(
             "A2A integration is not yet available. Autoresearch will expose the "
             "query orchestration flow in a future milestone."
@@ -83,7 +87,9 @@ class AutoresearchA2AConnector:
         if self.base_url:
             self.base_url = self.base_url.rstrip("/") + "/"
         if self.base_url and self.http_client is None:
-            self.http_client = httpx.Client(base_url=self.base_url, timeout=self.timeout)
+            self.http_client = httpx.Client(
+                base_url=self.base_url, timeout=self.timeout
+            )
             self._owns_client = True
 
     def prepare_channel(self, session_id: str) -> Mapping[str, object]:
@@ -161,7 +167,9 @@ class AutoresearchA2AConnector:
             if method == "GET":
                 response = self.http_client.get(url, timeout=self.timeout)
             else:
-                response = self.http_client.post(url, json=payload, timeout=self.timeout)
+                response = self.http_client.post(
+                    url, json=payload, timeout=self.timeout
+                )
         except HTTP_ERROR as exc:
             self.logger.warning(
                 "Autoresearch A2A %s request failed; falling back to fixtures.",

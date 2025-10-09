@@ -10,12 +10,11 @@ delegating the heavy lifting to the manager.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Mapping, MutableMapping, Optional, Sequence
-
-import json
 
 from devsynth.domain.models.wsde_core import WSDETeam
 from devsynth.domain.models.wsde_typing import (
@@ -271,7 +270,9 @@ def score_agent_for_persona(
         lower_entry = entry.lower()
         for keyword in role_keywords:
             if keyword in lower_entry:
-                weight = 2 if keyword in ROLE_KEYWORDS.get(persona.primary_role, ()) else 1
+                weight = (
+                    2 if keyword in ROLE_KEYWORDS.get(persona.primary_role, ()) else 1
+                )
                 score += weight
         for keyword in task_keywords:
             if keyword in lower_entry or lower_entry in keyword:
@@ -287,8 +288,7 @@ def select_agent_for_persona(
     """Select the most suitable agent for ``persona`` given ``task``."""
 
     scored = [
-        (score_agent_for_persona(agent, persona, task), agent)
-        for agent in agents
+        (score_agent_for_persona(agent, persona, task), agent) for agent in agents
     ]
     scored = [item for item in scored if item[0] > 0]
     if not scored:
@@ -337,7 +337,7 @@ def _update_agent_role(agent: SupportsTeamAgent, role: RoleName) -> None:
 
 
 def _normalise_mapping(
-    mapping: Mapping[str | RoleName, SupportsTeamAgent | None]
+    mapping: Mapping[str | RoleName, SupportsTeamAgent | None],
 ) -> dict[RoleName, SupportsTeamAgent | None]:
     """Convert an arbitrary mapping into a ``RoleName`` keyed dictionary."""
 
@@ -388,7 +388,9 @@ class RoleAssignmentManager:
     def assign_for_phase(self, phase: Phase, task: TaskDict) -> RoleAssignments:
         """Assign roles tailored to a specific EDRR phase."""
 
-        logger.info("Assigning roles for phase %s in team %s", phase.name, self.team.name)
+        logger.info(
+            "Assigning roles for phase %s in team %s", phase.name, self.team.name
+        )
         return self._assign_roles_for_phase(phase, task)
 
     def rotate(self) -> RoleAssignments:
@@ -403,9 +405,13 @@ class RoleAssignmentManager:
             return self.team.roles
 
         ordered_agents: list[SupportsTeamAgent] = [
-            agent for role in RoleName.ordered() if (agent := self.team.roles[role]) is not None
+            agent
+            for role in RoleName.ordered()
+            if (agent := self.team.roles[role]) is not None
         ]
-        unassigned = [agent for agent in self.team.agents if agent not in ordered_agents]
+        unassigned = [
+            agent for agent in self.team.agents if agent not in ordered_agents
+        ]
         ordered_agents.extend(unassigned)
         if not ordered_agents:
             return self.team.roles
@@ -430,10 +436,16 @@ class RoleAssignmentManager:
             return None
 
         expertise_scores = {
-            getattr(agent, "name", str(id(agent))): self._calculate_expertise_score(agent, task)
+            getattr(agent, "name", str(id(agent))): self._calculate_expertise_score(
+                agent, task
+            )
             for agent in self.team.agents
         }
-        unused_agents = [agent for agent in self.team.agents if not getattr(agent, "has_been_primus", False)]
+        unused_agents = [
+            agent
+            for agent in self.team.agents
+            if not getattr(agent, "has_been_primus", False)
+        ]
         if not unused_agents:
             for agent in self.team.agents:
                 agent.has_been_primus = False
@@ -478,7 +490,9 @@ class RoleAssignmentManager:
             primus.has_been_primus = True
 
         phase_value = task.get("phase", Phase.EXPAND)
-        phase = phase_value if isinstance(phase_value, Phase) else Phase(str(phase_value))
+        phase = (
+            phase_value if isinstance(phase_value, Phase) else Phase(str(phase_value))
+        )
         return self._assign_roles_for_phase(phase, task)
 
     # ------------------------------------------------------------------
@@ -508,7 +522,9 @@ class RoleAssignmentManager:
     def _assign_roles_for_phase(self, phase: Phase, task: TaskDict) -> RoleAssignments:
         self._reset_roles()
         if not self.team.agents:
-            logger.warning("Cannot assign roles for phase %s: no agents in team", phase.name)
+            logger.warning(
+                "Cannot assign roles for phase %s: no agents in team", phase.name
+            )
             return self.team.roles
 
         primus = self.select_primus_by_expertise(task) or self.team.agents[0]
@@ -533,9 +549,9 @@ class RoleAssignmentManager:
 
         primus_candidates = sorted(
             self.team.agents,
-            key=lambda agent: expertise_profiles[getattr(agent, "name", str(id(agent)))][
-                RoleName.PRIMUS
-            ],
+            key=lambda agent: expertise_profiles[
+                getattr(agent, "name", str(id(agent)))
+            ][RoleName.PRIMUS],
             reverse=True,
         )
         if primus_candidates:
@@ -567,10 +583,17 @@ class RoleAssignmentManager:
         expertise = getattr(agent, "expertise", None) or []
         profile: dict[RoleName, int] = {}
         for role, keywords in ROLE_KEYWORDS.items():
-            profile[role] = sum(1 for keyword in keywords for item in expertise if keyword.lower() in item.lower())
+            profile[role] = sum(
+                1
+                for keyword in keywords
+                for item in expertise
+                if keyword.lower() in item.lower()
+            )
         return profile
 
-    def _calculate_expertise_score(self, agent: SupportsTeamAgent, task: TaskDict) -> int:
+    def _calculate_expertise_score(
+        self, agent: SupportsTeamAgent, task: TaskDict
+    ) -> int:
         expertise = getattr(agent, "expertise", None) or []
         if not expertise:
             return 0
@@ -578,7 +601,11 @@ class RoleAssignmentManager:
         score = 0
         for item in expertise:
             lower_item = item.lower()
-            score += sum(1 for keyword in keywords if keyword in lower_item or lower_item in keyword)
+            score += sum(
+                1
+                for keyword in keywords
+                if keyword in lower_item or lower_item in keyword
+            )
         return score
 
     def _calculate_phase_expertise(
@@ -589,7 +616,11 @@ class RoleAssignmentManager:
         phase_score = 0
         for item in expertise:
             lower_item = item.lower()
-            phase_score += sum(1 for keyword in phase_keywords if keyword in lower_item or lower_item in keyword)
+            phase_score += sum(
+                1
+                for keyword in phase_keywords
+                if keyword in lower_item or lower_item in keyword
+            )
         return base + (phase_score * 2)
 
 
@@ -626,12 +657,15 @@ def _manager(team: WSDETeam) -> RoleAssignmentManager:
 
 
 def assign_roles(
-    self: WSDETeam, role_mapping: Optional[Mapping[str | RoleName, SupportsTeamAgent]] = None
+    self: WSDETeam,
+    role_mapping: Optional[Mapping[str | RoleName, SupportsTeamAgent]] = None,
 ) -> RoleAssignments:
     return _manager(self).assign(role_mapping)
 
 
-def assign_roles_for_phase(self: WSDETeam, phase: Phase, task: TaskDict) -> RoleAssignments:
+def assign_roles_for_phase(
+    self: WSDETeam, phase: Phase, task: TaskDict
+) -> RoleAssignments:
     return _manager(self).assign_for_phase(phase, task)
 
 
@@ -657,17 +691,24 @@ def get_role_assignments(self: WSDETeam) -> dict[str, str]:
     return _manager(self).get_role_assignments()
 
 
-def _calculate_expertise_score(self: WSDETeam, agent: SupportsTeamAgent, task: TaskDict) -> int:
+def _calculate_expertise_score(
+    self: WSDETeam, agent: SupportsTeamAgent, task: TaskDict
+) -> int:
     return _manager(self)._calculate_expertise_score(agent, task)
 
 
 def _calculate_phase_expertise_score(
-    self: WSDETeam, agent: SupportsTeamAgent, task: TaskDict, phase_keywords: Sequence[str]
+    self: WSDETeam,
+    agent: SupportsTeamAgent,
+    task: TaskDict,
+    phase_keywords: Sequence[str],
 ) -> int:
     return _manager(self)._calculate_phase_expertise(agent, task, phase_keywords)
 
 
-def select_primus_by_expertise(self: WSDETeam, task: TaskDict) -> SupportsTeamAgent | None:
+def select_primus_by_expertise(
+    self: WSDETeam, task: TaskDict
+) -> SupportsTeamAgent | None:
     return _manager(self).select_primus_by_expertise(task)
 
 
@@ -675,7 +716,9 @@ def rotate_roles(self: WSDETeam) -> RoleAssignments:
     return _manager(self).rotate()
 
 
-def _assign_roles_for_edrr_phase(self: WSDETeam, phase: Phase, task: TaskDict) -> RoleAssignments:
+def _assign_roles_for_edrr_phase(
+    self: WSDETeam, phase: Phase, task: TaskDict
+) -> RoleAssignments:
     return _manager(self)._assign_roles_for_phase(phase, task)
 
 
@@ -700,4 +743,3 @@ __all__ = [
     "select_agent_for_persona",
     "persona_event",
 ]
-

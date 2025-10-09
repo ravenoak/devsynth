@@ -8,7 +8,19 @@ manipulations, enabling automated refactoring, optimization, and other code tran
 import ast
 import os
 import re
-from typing import Any, Callable, Dict, List, Optional, Set, Type, Union, TypedDict, NotRequired, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    NotRequired,
+    Optional,
+    Set,
+    Type,
+    TypedDict,
+    Union,
+    cast,
+)
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.domain.interfaces.code_analysis import (
@@ -363,7 +375,8 @@ class CodeTransformer(CodeTransformationProvider):
                     # Initialize the transformer with symbol usage if needed
                     if transform_name in ["unused_imports", "unused_variables"]:
                         transformer = cast(
-                            Callable[[Dict[str, int]], AstTransformer], transformer_class
+                            Callable[[Dict[str, int]], AstTransformer],
+                            transformer_class,
                         )(symbol_counter.symbol_usage)
                     else:
                         transformer = transformer_class()

@@ -20,9 +20,15 @@ import tiktoken
 
 if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
     import rdflib as rdflib_module
-    from rdflib import Graph as GraphType, Literal as LiteralType, Namespace as NamespaceType
-    from rdflib import RDF as RDFType, RDFS as RDFSSType, URIRef as URIRefType, XSD as XSDType
-    from rdflib.namespace import DC as DCType, FOAF as FOAFType
+    from rdflib import RDF as RDFType
+    from rdflib import RDFS as RDFSSType
+    from rdflib import XSD as XSDType
+    from rdflib import Graph as GraphType
+    from rdflib import Literal as LiteralType
+    from rdflib import Namespace as NamespaceType
+    from rdflib import URIRef as URIRefType
+    from rdflib.namespace import DC as DCType
+    from rdflib.namespace import FOAF as FOAFType
 else:  # pragma: no cover - runtime fallbacks when rdflib is absent
     GraphType = LiteralType = NamespaceType = URIRefType = object  # type: ignore[assignment]
     RDFType = RDFSSType = XSDType = object  # type: ignore[assignment]
@@ -41,9 +47,15 @@ FOAF: FOAFType | None = None
 
 try:  # pragma: no cover - optional dependency
     import rdflib as _rdflib
-    from rdflib import Graph as _Graph, Literal as _Literal, Namespace as _Namespace, URIRef as _URIRef
-    from rdflib import RDF as _RDF, RDFS as _RDFS, XSD as _XSD
-    from rdflib.namespace import DC as _DC, FOAF as _FOAF
+    from rdflib import RDF as _RDF
+    from rdflib import RDFS as _RDFS
+    from rdflib import XSD as _XSD
+    from rdflib import Graph as _Graph
+    from rdflib import Literal as _Literal
+    from rdflib import Namespace as _Namespace
+    from rdflib import URIRef as _URIRef
+    from rdflib.namespace import DC as _DC
+    from rdflib.namespace import FOAF as _FOAF
 
     _Namespace("test")
 except Exception:  # pragma: no cover - graceful fallback for tests
@@ -191,7 +203,9 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         self.tokenizer: object | None = None
         if tiktoken is not None:
             try:
-                self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
+                self.tokenizer = tiktoken.get_encoding(
+                    "cl100k_base"
+                )  # OpenAI's encoding
             except Exception as e:
                 logger.warning(
                     f"Failed to initialize tokenizer: {e}. Token counting will be approximate."
@@ -301,8 +315,16 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         # Add basic triples for the memory item
         self.graph.add((item_uri, self._rdf.type, self._memory_ns.MemoryItem))
         self.graph.add((item_uri, self._memory_ns.id, self._literal(item.id)))
-        self.graph.add((item_uri, self._memory_ns.content, self._literal(str(item.content))))
-        self.graph.add((item_uri, self._memory_ns.memoryType, self._literal(item.memory_type.value)))
+        self.graph.add(
+            (item_uri, self._memory_ns.content, self._literal(str(item.content)))
+        )
+        self.graph.add(
+            (
+                item_uri,
+                self._memory_ns.memoryType,
+                self._literal(item.memory_type.value),
+            )
+        )
         self.graph.add(
             (
                 item_uri,
@@ -382,18 +404,24 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         # Add basic triples for the memory vector
         self.graph.add((vector_uri, self._rdf.type, self._memory_ns.MemoryVector))
         self.graph.add((vector_uri, self._memory_ns.id, self._literal(vector.id)))
-        self.graph.add((vector_uri, self._memory_ns.content, self._literal(str(vector.content))))
+        self.graph.add(
+            (vector_uri, self._memory_ns.content, self._literal(str(vector.content)))
+        )
         self.graph.add(
             (
                 vector_uri,
                 self._memory_ns.createdAt,
-                self._literal(vector.created_at.isoformat(), datatype=self._xsd.dateTime),
+                self._literal(
+                    vector.created_at.isoformat(), datatype=self._xsd.dateTime
+                ),
             )
         )
 
         # Add embedding as a JSON string
         embedding_json = json.dumps(vector.embedding)
-        self.graph.add((vector_uri, self._memory_ns.embedding, self._literal(embedding_json)))
+        self.graph.add(
+            (vector_uri, self._memory_ns.embedding, self._literal(embedding_json))
+        )
 
         # Add metadata as triples
         if vector.metadata:
@@ -412,7 +440,9 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
                 else:
                     self.graph.add((metadata_uri, predicate, self._literal(str(value))))
 
-    def _triples_to_memory_vector(self, vector_uri: URIRefType) -> Optional[MemoryVector]:
+    def _triples_to_memory_vector(
+        self, vector_uri: URIRefType
+    ) -> Optional[MemoryVector]:
         """
         Convert RDF triples to a MemoryVector.
 
@@ -533,9 +563,7 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
                 original_error=e,
             )
 
-    def search(
-        self, query: MemorySearchQuery | MemoryMetadata
-    ) -> list[MemoryRecord]:
+    def search(self, query: MemorySearchQuery | MemoryMetadata) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
@@ -855,7 +883,11 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
             vector_uri = self._uri_ref(f"{self._memory_ns}vector/{vector_id}")
 
             # Check if the vector exists
-            if (vector_uri, self._rdf.type, self._memory_ns.MemoryVector) not in self.graph:
+            if (
+                vector_uri,
+                self._rdf.type,
+                self._memory_ns.MemoryVector,
+            ) not in self.graph:
                 logger.warning(f"Vector with ID {vector_id} not found for deletion")
                 return False
 
@@ -956,5 +988,5 @@ class RDFLibStore(MemoryStore, SupportsTransactions, VectorStore[MemoryVector]):
         except Exception as e:  # pragma: no cover - safe fallback
             logger.error(f"Failed to retrieve vectors: {e}")
         return vectors
-    supports_transactions: bool = True
 
+    supports_transactions: bool = True

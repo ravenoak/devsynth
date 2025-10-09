@@ -11,7 +11,9 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import get_logger
 
 
-def _render_bridge_error(error: BridgeErrorPayload) -> Exception | dict[str, object] | str:
+def _render_bridge_error(
+    error: BridgeErrorPayload,
+) -> Exception | dict[str, object] | str:
     if isinstance(error, Exception) or isinstance(error, str):
         return error
     if isinstance(error, BridgeErrorDetails):

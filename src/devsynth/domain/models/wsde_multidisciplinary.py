@@ -83,7 +83,9 @@ class MultidisciplinaryAnalysis:
             "timestamp": self.timestamp,
             "task_id": self.task_id,
             "thesis": dict(self.thesis),
-            "perspectives": [perspective.as_dict() for perspective in self.perspectives],
+            "perspectives": [
+                perspective.as_dict() for perspective in self.perspectives
+            ],
             "conflicts": [conflict.as_dict() for conflict in self.conflicts],
             "synthesis": self.synthesis.as_dict(),
             "evaluation": self.evaluation.as_dict(),
@@ -114,7 +116,9 @@ class MultidisciplinaryEngine:
             thesis_solution, task, disciplinary_agents, disciplinary_knowledge
         )
         conflicts = self._identify_conflicts(perspectives)
-        synthesis = self._generate_synthesis(thesis_solution, perspectives, conflicts, critic_agent)
+        synthesis = self._generate_synthesis(
+            thesis_solution, perspectives, conflicts, critic_agent
+        )
         evaluation = self._generate_evaluation(synthesis, perspectives, task)
 
         analysis = MultidisciplinaryAnalysis(
@@ -135,7 +139,9 @@ class MultidisciplinaryEngine:
             try:
                 memory_integration.store_dialectical_result(task, analysis.as_dict())
             except Exception:  # pragma: no cover - defensive
-                logger.exception("Failed to store dialectical result in memory integration")
+                logger.exception(
+                    "Failed to store dialectical result in memory integration"
+                )
 
         return analysis
 
@@ -149,7 +155,9 @@ class MultidisciplinaryEngine:
         disciplinary_agents: Sequence[SupportsTeamAgent],
         disciplinary_knowledge: Mapping[str, Mapping[str, Sequence[str]]],
     ) -> list[DisciplinaryPerspective]:
-        relevant_disciplines = self._infer_relevant_disciplines(task, disciplinary_knowledge)
+        relevant_disciplines = self._infer_relevant_disciplines(
+            task, disciplinary_knowledge
+        )
         relevant_disciplines.update(
             discipline
             for discipline in (
@@ -167,10 +175,14 @@ class MultidisciplinaryEngine:
                 agent=getattr(agent, "name", "unknown"),
                 discipline=discipline,
             )
-            for criterion in _normalise_str_sequence(knowledge.get("strengths_criteria")):
+            for criterion in _normalise_str_sequence(
+                knowledge.get("strengths_criteria")
+            ):
                 if _solution_addresses_item(solution, criterion):
                     perspective.strengths.append(f"Solution addresses {criterion}")
-            for criterion in _normalise_str_sequence(knowledge.get("weaknesses_criteria")):
+            for criterion in _normalise_str_sequence(
+                knowledge.get("weaknesses_criteria")
+            ):
                 if not _solution_addresses_item(solution, criterion):
                     perspective.weaknesses.append(
                         f"Solution does not adequately address {criterion}"
@@ -186,11 +198,17 @@ class MultidisciplinaryEngine:
             perspectives.append(perspective)
         return perspectives
 
-    def _identify_conflicts(self, perspectives: Sequence[DisciplinaryPerspective]) -> list[PerspectiveConflict]:
+    def _identify_conflicts(
+        self, perspectives: Sequence[DisciplinaryPerspective]
+    ) -> list[PerspectiveConflict]:
         conflicts: list[PerspectiveConflict] = []
         for perspective in perspectives:
             for weakness in perspective.weaknesses:
-                conflicts.append(PerspectiveConflict(discipline=perspective.discipline, issue=weakness))
+                conflicts.append(
+                    PerspectiveConflict(
+                        discipline=perspective.discipline, issue=weakness
+                    )
+                )
         return conflicts
 
     def _generate_synthesis(
@@ -208,7 +226,9 @@ class MultidisciplinaryEngine:
         critic_name = getattr(critic_agent, "name", "critic")
         summary = "Synthesised multi-disciplinary view incorporating all perspectives."
         if conflicts:
-            summary += f" Resolved {len(conflicts)} conflicts via collaborative planning."
+            summary += (
+                f" Resolved {len(conflicts)} conflicts via collaborative planning."
+            )
         return SynthesisResult(
             summary=summary,
             integration_steps=integration_steps,
@@ -232,7 +252,9 @@ class MultidisciplinaryEngine:
             for perspective in perspectives
         ]
         if task.get("success_metrics"):
-            observations.append("Task includes explicit success metrics that inform evaluation.")
+            observations.append(
+                "Task includes explicit success metrics that inform evaluation."
+            )
         observations.append(f"Synthesis Summary: {synthesis.summary}")
         return EvaluationResult(score=score, observations=observations)
 
@@ -279,21 +301,22 @@ class MultidisciplinaryEngine:
         expertise = getattr(agent, "expertise", None) or []
         return expertise[0] if expertise else "general"
 
+
 def _solution_addresses_item(solution: Mapping[str, object], criterion: str) -> bool:
-        criterion_lower = criterion.lower()
-        for value in solution.values():
-            if isinstance(value, str) and criterion_lower in value.lower():
+    criterion_lower = criterion.lower()
+    for value in solution.values():
+        if isinstance(value, str) and criterion_lower in value.lower():
+            return True
+        if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+            if any(
+                isinstance(item, str) and criterion_lower in item.lower()
+                for item in value
+            ):
                 return True
-            if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
-                if any(
-                    isinstance(item, str) and criterion_lower in item.lower()
-                    for item in value
-                ):
-                    return True
-            if isinstance(value, Mapping):
-                if _solution_addresses_item(value, criterion):
-                    return True
-        return False
+        if isinstance(value, Mapping):
+            if _solution_addresses_item(value, criterion):
+                return True
+    return False
 
 
 def _normalise_str_sequence(value: object) -> list[str]:
@@ -409,8 +432,9 @@ __all__ = [
     "_generate_multi_disciplinary_evaluation",
 ]
 
+
 @runtime_checkable
 class SupportsDialecticalMemory(Protocol):
-    def store_dialectical_result(self, task: TaskDict, result: Mapping[str, object]) -> None:
-        ...
-
+    def store_dialectical_result(
+        self, task: TaskDict, result: Mapping[str, object]
+    ) -> None: ...

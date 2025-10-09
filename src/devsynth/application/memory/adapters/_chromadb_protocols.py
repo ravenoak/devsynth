@@ -27,8 +27,7 @@ class ChromaQueryResult(TypedDict, total=False):
 class ChromaEmbeddingFunctionProtocol(Protocol):
     """Callable embedding function compatible with ChromaDB."""
 
-    def __call__(self, inputs: Sequence[str]) -> Sequence[Sequence[float]]:
-        ...
+    def __call__(self, inputs: Sequence[str]) -> Sequence[Sequence[float]]: ...
 
 
 class ChromaCollectionProtocol(Protocol):
@@ -36,8 +35,7 @@ class ChromaCollectionProtocol(Protocol):
 
     def get(
         self, ids: Sequence[str] | None = ..., include: Sequence[str] | None = ...
-    ) -> ChromaGetResult | None:
-        ...
+    ) -> ChromaGetResult | None: ...
 
     def add(
         self,
@@ -46,11 +44,9 @@ class ChromaCollectionProtocol(Protocol):
         embeddings: Sequence[Sequence[float]],
         metadatas: Sequence[Mapping[str, object]],
         documents: Sequence[object],
-    ) -> object:
-        ...
+    ) -> object: ...
 
-    def delete(self, *, ids: Sequence[str]) -> None:
-        ...
+    def delete(self, *, ids: Sequence[str]) -> None: ...
 
     def query(
         self,
@@ -58,8 +54,7 @@ class ChromaCollectionProtocol(Protocol):
         query_embeddings: Sequence[Sequence[float]],
         n_results: int,
         include: Sequence[str],
-    ) -> ChromaQueryResult | None:
-        ...
+    ) -> ChromaQueryResult | None: ...
 
 
 class ChromaClientProtocol(Protocol):
@@ -69,8 +64,7 @@ class ChromaClientProtocol(Protocol):
         self,
         name: str,
         embedding_function: ChromaEmbeddingFunctionProtocol | None = ...,
-    ) -> ChromaCollectionProtocol:
-        ...
+    ) -> ChromaCollectionProtocol: ...
 
 
 __all__ = [

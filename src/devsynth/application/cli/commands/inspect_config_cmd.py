@@ -14,6 +14,7 @@ from rich.table import Table
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
+
 from ..ingest_models import (
     ManifestModel,
     ProjectStructureDirectories,

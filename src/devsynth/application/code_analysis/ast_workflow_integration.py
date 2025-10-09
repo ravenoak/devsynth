@@ -11,7 +11,10 @@ from dataclasses import dataclass, field
 from typing import Any, Optional, Sequence
 
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
-from devsynth.application.code_analysis.ast_transformer import AstTransformer, DocstringSpec
+from devsynth.application.code_analysis.ast_transformer import (
+    AstTransformer,
+    DocstringSpec,
+)
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.logging_setup import DevSynthLogger
@@ -95,7 +98,9 @@ class RetrospectiveResult:
 
     code: str
     quality_metrics: EvaluationMetrics
-    improvement_suggestions: list[ImprovementRecommendation] = field(default_factory=list)
+    improvement_suggestions: list[ImprovementRecommendation] = field(
+        default_factory=list
+    )
     retrospective_id: str = ""
 
 
@@ -165,7 +170,9 @@ class AstWorkflowIntegration:
 
         logger.info("AST workflow integration initialized")
 
-    def expand_implementation_options(self, code: str, task_id: str) -> ImplementationOptions:
+    def expand_implementation_options(
+        self, code: str, task_id: str
+    ) -> ImplementationOptions:
         """
         Use AST analysis in the Expand phase to explore implementation options.
 

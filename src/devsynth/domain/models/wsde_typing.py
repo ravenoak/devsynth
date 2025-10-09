@@ -19,7 +19,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Callable, Dict, Iterable, List, MutableMapping, Protocol, Sequence, runtime_checkable
+from typing import (
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    MutableMapping,
+    Protocol,
+    Sequence,
+    runtime_checkable,
+)
 
 
 class VoteMethod(str, Enum):
@@ -106,7 +115,9 @@ class RoleAssignments:
         default_factory=lambda: {role: None for role in RoleName}
     )
 
-    def __getitem__(self, role: RoleName) -> SupportsTeamAgent | None:  # pragma: no cover - trivial
+    def __getitem__(
+        self, role: RoleName
+    ) -> SupportsTeamAgent | None:  # pragma: no cover - trivial
         return self.assignments[role]
 
     def __setitem__(self, role: RoleName, agent: SupportsTeamAgent | None) -> None:
@@ -119,7 +130,11 @@ class RoleAssignments:
 
         return self.assignments.get(role, default)
 
-    def items(self) -> Iterable[tuple[RoleName, SupportsTeamAgent | None]]:  # pragma: no cover - trivial
+    def items(
+        self,
+    ) -> Iterable[
+        tuple[RoleName, SupportsTeamAgent | None]
+    ]:  # pragma: no cover - trivial
         return self.assignments.items()
 
     def as_name_mapping(self) -> Dict[str, SupportsTeamAgent | None]:
@@ -239,4 +254,3 @@ class ConsensusTranscript:
 
 HookType = Callable[[TaskDict, List[Dict[str, object]]], None]
 """Type alias for dialectical hook callables."""
-

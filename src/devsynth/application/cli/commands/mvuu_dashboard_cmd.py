@@ -15,19 +15,22 @@ import sys
 from pathlib import Path
 from typing import Mapping, Sequence
 
-from devsynth.domain.models.wsde_roles import ResearchPersonaSpec, resolve_research_persona
+from devsynth.domain.models.wsde_roles import (
+    ResearchPersonaSpec,
+    resolve_research_persona,
+)
+from devsynth.integrations import (
+    AUTORESEARCH_API_BASE_ENV,
+    CONNECTORS_ENABLED_ENV,
+    AutoresearchA2AConnector,
+    AutoresearchClient,
+    AutoresearchMCPConnector,
+)
 from devsynth.interface.research_telemetry import (
     SignatureEnvelope,
     build_research_telemetry_payload,
     merge_extended_metadata_into_payload,
     sign_payload,
-)
-from devsynth.integrations import (
-    AUTORESEARCH_API_BASE_ENV,
-    AutoresearchA2AConnector,
-    AutoresearchClient,
-    AutoresearchMCPConnector,
-    CONNECTORS_ENABLED_ENV,
 )
 from devsynth.logger import DevSynthLogger, get_logger
 
@@ -268,11 +271,16 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
             if spec and spec.slug not in seen:
                 persona_specs.append(spec)
                 seen.add(spec.slug)
-    telemetry_path = args.telemetry_path or (repo_root / "traceability_external_research.json")
+    telemetry_path = args.telemetry_path or (
+        repo_root / "traceability_external_research.json"
+    )
     if overlays_enabled:
         connectors_flag = env.get(CONNECTORS_ENABLED_ENV, "")
         connectors_requested = bool(
-            (isinstance(connectors_flag, str) and connectors_flag.lower() in {"1", "true", "yes", "on"})
+            (
+                isinstance(connectors_flag, str)
+                and connectors_flag.lower() in {"1", "true", "yes", "on"}
+            )
             or env.get(AUTORESEARCH_API_BASE_ENV)
         )
         client: AutoresearchClient | None = None
@@ -297,7 +305,9 @@ def mvuu_dashboard_cmd(argv: list[str] | None = None) -> int:
         if client and not force_local:
             try:
                 telemetry = json.loads(telemetry_path.read_text(encoding="utf-8"))
-                connector_mode = telemetry.get("connector_status", {}).get("mode", "fixture")
+                connector_mode = telemetry.get("connector_status", {}).get(
+                    "mode", "fixture"
+                )
             except Exception:  # noqa: BLE001 - defensive read guard
                 connector_mode = "fixture"
         env["DEVSYNTH_EXTERNAL_RESEARCH_MODE"] = connector_mode

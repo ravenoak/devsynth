@@ -13,10 +13,18 @@ import time
 from pathlib import Path
 from typing import Annotated, Optional, Sequence, Union, cast
 
+import typer
 import yaml
 from rich.console import Console
-import typer
 
+from devsynth.application.cli.ingest_models import (
+    DifferentiationPhaseResult,
+    ExpandPhaseResult,
+    JSONValue,
+    ManifestModel,
+    RefinePhaseResult,
+    RetrospectPhaseResult,
+)
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.ingestion import Ingestion
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
@@ -32,14 +40,6 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.methodology.base import Phase
-from devsynth.application.cli.ingest_models import (
-    DifferentiationPhaseResult,
-    ExpandPhaseResult,
-    ManifestModel,
-    JSONValue,
-    RefinePhaseResult,
-    RetrospectPhaseResult,
-)
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
@@ -247,7 +247,9 @@ def validate_manifest(
         sys.path.append(
             str(Path(__file__).parent.parent.parent.parent.parent / "scripts")
         )
-        from validate_manifest import validate_manifest as validate_manifest_script  # type: ignore[import-not-found]
+        from validate_manifest import (
+            validate_manifest as validate_manifest_script,  # type: ignore[import-not-found]
+        )
 
         # Get the project root directory
         project_root = manifest_path.parent

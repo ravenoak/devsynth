@@ -45,6 +45,7 @@ logger = DevSynthLogger(__name__)
 # Create a router for the API endpoints
 router = APIRouter()
 
+
 @dataclass(slots=True)
 class RateLimiterState:
     """Track request timestamps for each client."""
@@ -188,20 +189,22 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(
         description="Error message",
-        example="Failed to initialize project: File not found",
+        json_schema_extra={"example": "Failed to initialize project: File not found"},
     )
     details: str | None = Field(
         default=None,
         description="Additional details about the error",
-        example="The specified path does not exist",
+        json_schema_extra={"example": "The specified path does not exist"},
     )
     suggestions: tuple[str, ...] | None = Field(
         default=None,
         description="Suggestions for resolving the error",
-        example=(
-            "Create the directory before initializing",
-            "Check the path and try again",
-        ),
+        json_schema_extra={
+            "example": (
+                "Create the directory before initializing",
+                "Check the path and try again",
+            )
+        },
     )
 
 
@@ -505,7 +508,9 @@ async def synthesize_endpoint(
         from devsynth.application.cli import run_pipeline_cmd
 
         run_pipeline_cmd(
-            target=synthesize_request.target.value if synthesize_request.target else None,
+            target=(
+                synthesize_request.target.value if synthesize_request.target else None
+            ),
             bridge=bridge,
         )
         messages = _store_messages(bridge.messages)
@@ -1044,9 +1049,7 @@ async def edrr_cycle_endpoint(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=_error_detail(
                     f"Invalid max_iterations: {edrr_cycle_request.max_iterations}",
-                    suggestions=(
-                        "Use a value between 1 and 10 for max_iterations",
-                    ),
+                    suggestions=("Use a value between 1 and 10 for max_iterations",),
                 ),
             )
 

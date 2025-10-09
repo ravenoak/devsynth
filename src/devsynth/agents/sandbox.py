@@ -25,7 +25,9 @@ class Sandbox(ContextDecorator):
             allow_shell: Whether to permit shell command execution.
         """
         self.allow_shell = allow_shell
-        self._original_open: Callable[..., Any] = cast(Callable[..., Any], builtins.open)
+        self._original_open: Callable[..., Any] = cast(
+            Callable[..., Any], builtins.open
+        )
         self._original_popen: Callable[..., subprocess.Popen[Any]] = cast(
             Callable[..., subprocess.Popen[Any]], subprocess.Popen
         )
@@ -44,9 +46,7 @@ class Sandbox(ContextDecorator):
             raise PermissionError("Access outside project directory is not allowed")
         return self._original_open(file, *args, **kwargs)
 
-    def _blocked_popen(
-        self, *args: Any, **kwargs: Any
-    ) -> subprocess.Popen[Any]:
+    def _blocked_popen(self, *args: Any, **kwargs: Any) -> subprocess.Popen[Any]:
         if not self.allow_shell:
             raise PermissionError("Shell commands are not permitted")
         return self._original_popen(*args, **kwargs)
@@ -80,9 +80,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def sandboxed(
-    func: Callable[P, T], *, allow_shell: bool = False
-) -> Callable[P, T]:
+def sandboxed(func: Callable[P, T], *, allow_shell: bool = False) -> Callable[P, T]:
     """Return ``func`` wrapped to execute inside a :class:`Sandbox`."""
 
     @wraps(func)
