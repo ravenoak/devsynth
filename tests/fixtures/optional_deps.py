@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import sys
 from collections.abc import Mapping
 from types import ModuleType
@@ -65,6 +66,7 @@ def _apply_optional_stubs():
             "dot": lambda a, b: 0.0,
             "zeros": lambda *a, **k: [],
             "ones": lambda *a, **k: [1],
+            "isscalar": lambda obj: not isinstance(obj, (list, tuple, set, dict)),
         },
         "rdflib": {
             "Graph": MagicMock,
@@ -81,6 +83,8 @@ def _apply_optional_stubs():
     }
 
     for name, attrs in modules.items():
+        if name == "numpy" and importlib.util.find_spec("numpy") is not None:
+            continue
         if name not in sys.modules:
             sys.modules[name] = _create_stub(name, attrs)
 
@@ -135,6 +139,7 @@ def stub_optional_deps(monkeypatch):
             "dot": lambda a, b: 0.0,
             "zeros": lambda *a, **k: [],
             "ones": lambda *a, **k: [1],
+            "isscalar": lambda obj: not isinstance(obj, (list, tuple, set, dict)),
         },
         "rdflib": {
             "Graph": MagicMock,
@@ -151,6 +156,8 @@ def stub_optional_deps(monkeypatch):
     }
 
     for name, attrs in modules.items():
+        if name == "numpy" and importlib.util.find_spec("numpy") is not None:
+            continue
         if name not in sys.modules:
             monkeypatch.setitem(sys.modules, name, _create_stub(name, attrs))
 
