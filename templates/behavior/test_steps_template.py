@@ -24,7 +24,6 @@ import os
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
 if os.environ.get("DEVSYNTH_ENABLE_BEHAVIOR_TEMPLATE", "0") != "1":
     pytest.skip(
         "Template file for documentation only; set DEVSYNTH_ENABLE_BEHAVIOR_TEMPLATE=1 to execute.",
