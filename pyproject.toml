@@ -451,27 +451,27 @@ ignore_errors = true
 
 # TODO(typing-interface-agentapi-models): Track strict restoration in
 # issues/restore-strict-typing-interface-agentapi-models.md.
-[[tool.mypy.overrides]]
-module = ["devsynth.interface.agentapi_models"]
-ignore_errors = true
+# [[tool.mypy.overrides]]
+# module = ["devsynth.interface.agentapi_models"]
+# ignore_errors = true
 
 # TODO(typing-interface-webui-state): Track strict restoration in
 # issues/restore-strict-typing-interface-webui-state.md.
-[[tool.mypy.overrides]]
-module = ["devsynth.interface.webui_state"]
-ignore_errors = true
+# [[tool.mypy.overrides]]
+# module = ["devsynth.interface.webui_state"]
+# ignore_errors = true
 
 # TODO(typing-interface-enhanced-error-handler): Track strict restoration in
 # issues/restore-strict-typing-interface-enhanced-error-handler.md.
-[[tool.mypy.overrides]]
-module = ["devsynth.interface.enhanced_error_handler"]
-ignore_errors = true
+# [[tool.mypy.overrides]]
+# module = ["devsynth.interface.enhanced_error_handler"]
+# ignore_errors = true
 
 # TODO(typing-interface-ux-bridge): Track strict restoration in
 # issues/restore-strict-typing-interface-ux-bridge.md.
-[[tool.mypy.overrides]]
-module = ["devsynth.interface.ux_bridge"]
-ignore_errors = true
+# [[tool.mypy.overrides]]
+# module = ["devsynth.interface.ux_bridge"]
+# ignore_errors = true
 
 # TODO(typing-interface-wizard-state-manager): Track strict restoration in
 # issues/restore-strict-typing-interface-wizard-state-manager.md.
@@ -487,9 +487,9 @@ ignore_errors = true
 
 # TODO(typing-interface-output-formatter): Track strict restoration in
 # issues/restore-strict-typing-interface-output-formatter.md.
-[[tool.mypy.overrides]]
-module = ["devsynth.interface.output_formatter"]
-ignore_errors = true
+# [[tool.mypy.overrides]]
+# module = ["devsynth.interface.output_formatter"]
+# ignore_errors = true
 
 # TODO(typing-interface-simple-run): Track strict restoration in
 # issues/restore-strict-typing-interface-simple-run.md.
@@ -645,6 +645,9 @@ features = {}
 # Run tests from the tests directory only to prevent template collection
 testpaths = ["tests"]
 norecursedirs = ["templates", ".hypothesis", ".pytest_cache", "__pycache__", ".git"]
+# Only collect test classes from files that are clearly test files
+python_classes = ["Test*", "*Suite"]
+python_files = ["test_*.py", "*_test.py", "test*.py"]
 
 # === Default Options ===
 # Optimized for fast feedback with selective execution
@@ -737,7 +740,6 @@ asyncio_mode = "strict"
 bdd_features_base_dir = "tests/behavior/features"
 
 # Load test categorization plugin
-python_files = ["test_*.py", "conftest.py", "conftest_extensions.py"]
 
 [build-system]
 requires = ["poetry-core"]
