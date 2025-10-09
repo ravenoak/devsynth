@@ -23,20 +23,20 @@ def _add_repo_root_to_path() -> None:
 def _render(names: Sequence[str]) -> str:
     """Return the generated module contents for ``names``."""
     header = (
-        "\"\"\"Auto-generated feature marker enumeration.\n\n"
+        '"""Auto-generated feature marker enumeration.\n\n'
         "Do not edit manually. Run ``poetry run python scripts/generate_feature_marker_enum.py``.\n"
-        "\"\"\"\n"
+        '"""\n'
     )
     lines = [
         header,
         "\nfrom __future__ import annotations\n\n",
         "from enum import StrEnum\n\n\n",
         "class FeatureMarker(StrEnum):\n",
-        "    \"\"\"Enumeration of feature marker names.\"\"\"\n\n",
+        '    """Enumeration of feature marker names."""\n\n',
     ]
     for name in names:
-        lines.append(f"    {name} = \"{name}\"\n")
-    lines.append("\n\n__all__ = [\"FeatureMarker\"]\n")
+        lines.append(f'    {name} = "{name}"\n')
+    lines.append('\n\n__all__ = ["FeatureMarker"]\n')
     return "".join(lines)
 
 
@@ -76,7 +76,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     content = _render(names) + "\n"
 
     if args.check:
-        current = args.output.read_text(encoding="utf-8") if args.output.exists() else ""
+        current = (
+            args.output.read_text(encoding="utf-8") if args.output.exists() else ""
+        )
         if current != content:
             print(
                 "feature_markers_enum.py is out of date. Run the generation script to update it.",

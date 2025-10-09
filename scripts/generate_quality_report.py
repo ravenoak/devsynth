@@ -11,13 +11,13 @@ Usage:
 Examples:
     # Generate basic quality report
     python scripts/generate_quality_report.py
-    
+
     # Generate with mutation testing
     python scripts/generate_quality_report.py --include-mutations
-    
+
     # Generate HTML dashboard
     python scripts/generate_quality_report.py --html test_reports/quality_dashboard.html
-    
+
     # Set quality thresholds
     python scripts/generate_quality_report.py --coverage-threshold 85 --mutation-threshold 70
 """
@@ -47,17 +47,27 @@ def get_coverage_metrics() -> Dict[str, Any]:
         if coverage_file.exists():
             with open(coverage_file) as f:
                 coverage_data = json.load(f)
-                
+
             return {
-                "line_coverage": coverage_data.get("totals", {}).get("percent_covered", 0),
-                "branch_coverage": coverage_data.get("totals", {}).get("percent_covered_display", 0),
-                "num_statements": coverage_data.get("totals", {}).get("num_statements", 0),
-                "missing_lines": coverage_data.get("totals", {}).get("missing_lines", 0),
-                "covered_lines": coverage_data.get("totals", {}).get("covered_lines", 0),
+                "line_coverage": coverage_data.get("totals", {}).get(
+                    "percent_covered", 0
+                ),
+                "branch_coverage": coverage_data.get("totals", {}).get(
+                    "percent_covered_display", 0
+                ),
+                "num_statements": coverage_data.get("totals", {}).get(
+                    "num_statements", 0
+                ),
+                "missing_lines": coverage_data.get("totals", {}).get(
+                    "missing_lines", 0
+                ),
+                "covered_lines": coverage_data.get("totals", {}).get(
+                    "covered_lines", 0
+                ),
             }
     except Exception as e:
         logger.warning(f"Failed to get coverage metrics: {e}")
-    
+
     return {
         "line_coverage": 0,
         "branch_coverage": 0,
@@ -75,45 +85,55 @@ def get_mutation_testing_metrics(include_mutations: bool = False) -> Dict[str, A
             "total_mutations": 0,
             "killed_mutations": 0,
             "survived_mutations": 0,
-            "skipped": True
+            "skipped": True,
         }
-    
+
     try:
         # Run mutation testing on a small subset for dashboard
-        result = subprocess.run([
-            sys.executable, "scripts/run_mutation_testing.py",
-            "--max-mutations", "25",
-            "--timeout", "10",
-            "src/devsynth/utils/",
-            "tests/unit/utils/"
-        ], capture_output=True, text=True, timeout=300)
-        
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/run_mutation_testing.py",
+                "--max-mutations",
+                "25",
+                "--timeout",
+                "10",
+                "src/devsynth/utils/",
+                "tests/unit/utils/",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+
         if result.returncode == 0:
             # Parse output for mutation score
-            output_lines = result.stdout.split('\n')
+            output_lines = result.stdout.split("\n")
             for line in output_lines:
                 if "Mutation score:" in line:
-                    score_str = line.split(":")[-1].strip().rstrip('%')
+                    score_str = line.split(":")[-1].strip().rstrip("%")
                     try:
                         mutation_score = float(score_str)
                         return {
                             "mutation_score": mutation_score,
                             "total_mutations": 25,  # Limited for dashboard
                             "killed_mutations": int(25 * mutation_score / 100),
-                            "survived_mutations": int(25 * (100 - mutation_score) / 100),
-                            "skipped": False
+                            "survived_mutations": int(
+                                25 * (100 - mutation_score) / 100
+                            ),
+                            "skipped": False,
                         }
                     except ValueError:
                         pass
     except Exception as e:
         logger.warning(f"Failed to run mutation testing: {e}")
-    
+
     return {
         "mutation_score": 0,
         "total_mutations": 0,
         "killed_mutations": 0,
         "survived_mutations": 0,
-        "skipped": False
+        "skipped": False,
     }
 
 
@@ -124,53 +144,53 @@ def get_property_test_metrics() -> Dict[str, Any]:
         property_dir = Path("tests/property")
         if property_dir.exists():
             property_files = list(property_dir.glob("test_*.py"))
-            
+
             total_property_tests = 0
             for file in property_files:
                 with open(file) as f:
                     content = f.read()
                     total_property_tests += content.count("@given(")
-            
+
             return {
                 "total_property_tests": total_property_tests,
                 "property_test_files": len(property_files),
-                "enabled": os.environ.get("DEVSYNTH_PROPERTY_TESTING", "0") == "1"
+                "enabled": os.environ.get("DEVSYNTH_PROPERTY_TESTING", "0") == "1",
             }
     except Exception as e:
         logger.warning(f"Failed to get property test metrics: {e}")
-    
-    return {
-        "total_property_tests": 0,
-        "property_test_files": 0,
-        "enabled": False
-    }
+
+    return {"total_property_tests": 0, "property_test_files": 0, "enabled": False}
 
 
 def get_test_organization_metrics() -> Dict[str, Any]:
     """Get test organization and marker metrics."""
     try:
-        result = subprocess.run([
-            sys.executable, "scripts/verify_test_markers.py", "--json"
-        ], capture_output=True, text=True)
-        
+        result = subprocess.run(
+            [sys.executable, "scripts/verify_test_markers.py", "--json"],
+            capture_output=True,
+            text=True,
+        )
+
         if result.returncode == 0:
             data = json.loads(result.stdout)
             return {
                 "total_tests": data.get("total_tests", 0),
                 "tests_with_speed_markers": data.get("tests_with_speed_markers", 0),
-                "tests_with_isolation_markers": data.get("tests_with_isolation_markers", 0),
+                "tests_with_isolation_markers": data.get(
+                    "tests_with_isolation_markers", 0
+                ),
                 "marker_compliance": data.get("marker_compliance_percentage", 0),
-                "issues_found": len(data.get("issues", []))
+                "issues_found": len(data.get("issues", [])),
             }
     except Exception as e:
         logger.warning(f"Failed to get test organization metrics: {e}")
-    
+
     return {
         "total_tests": 0,
         "tests_with_speed_markers": 0,
         "tests_with_isolation_markers": 0,
         "marker_compliance": 0,
-        "issues_found": 0
+        "issues_found": 0,
     }
 
 
@@ -185,12 +205,12 @@ def get_performance_metrics() -> Dict[str, Any]:
                 return benchmark_data.get("performance_summary", {})
     except Exception as e:
         logger.warning(f"Failed to get performance metrics: {e}")
-    
+
     return {
         "parallel_speedup": 0,
         "execution_time_seconds": 0,
         "efficiency": 0,
-        "worker_count": 0
+        "worker_count": 0,
     }
 
 
@@ -201,71 +221,90 @@ def calculate_overall_quality_score(metrics: Dict[str, Any]) -> float:
         "mutation": 0.25,
         "property": 0.15,
         "organization": 0.15,
-        "performance": 0.15
+        "performance": 0.15,
     }
-    
+
     # Coverage score (0-100)
     coverage_score = metrics["coverage"]["line_coverage"]
-    
+
     # Mutation score (0-100, or 0 if skipped)
     mutation_score = metrics["mutation"]["mutation_score"] or 0
-    
+
     # Property test score (based on presence and enablement)
     property_score = 0
     if metrics["property"]["total_property_tests"] > 0:
         property_score = 70 if metrics["property"]["enabled"] else 40
-    
+
     # Organization score (marker compliance)
     organization_score = metrics["organization"]["marker_compliance"]
-    
+
     # Performance score (based on parallel speedup)
     performance_speedup = metrics["performance"]["parallel_speedup"]
-    performance_score = min(100, performance_speedup * 20) if performance_speedup > 0 else 50
-    
+    performance_score = (
+        min(100, performance_speedup * 20) if performance_speedup > 0 else 50
+    )
+
     # Calculate weighted average
     overall_score = (
-        weights["coverage"] * coverage_score +
-        weights["mutation"] * mutation_score +
-        weights["property"] * property_score +
-        weights["organization"] * organization_score +
-        weights["performance"] * performance_score
+        weights["coverage"] * coverage_score
+        + weights["mutation"] * mutation_score
+        + weights["property"] * property_score
+        + weights["organization"] * organization_score
+        + weights["performance"] * performance_score
     )
-    
+
     return round(overall_score, 2)
 
 
 def generate_quality_recommendations(metrics: Dict[str, Any]) -> List[str]:
     """Generate actionable quality improvement recommendations."""
     recommendations = []
-    
+
     # Coverage recommendations
     coverage = metrics["coverage"]["line_coverage"]
     if coverage < 80:
-        recommendations.append(f"📈 Increase test coverage from {coverage:.1f}% to at least 80%")
+        recommendations.append(
+            f"📈 Increase test coverage from {coverage:.1f}% to at least 80%"
+        )
     elif coverage < 90:
-        recommendations.append(f"🎯 Excellent coverage at {coverage:.1f}% - consider targeting 90%")
-    
+        recommendations.append(
+            f"🎯 Excellent coverage at {coverage:.1f}% - consider targeting 90%"
+        )
+
     # Mutation testing recommendations
     if metrics["mutation"]["skipped"]:
-        recommendations.append("🧬 Enable mutation testing to assess test quality beyond coverage")
-    elif metrics["mutation"]["mutation_score"] and metrics["mutation"]["mutation_score"] < 70:
-        recommendations.append(f"🔬 Improve mutation score from {metrics['mutation']['mutation_score']:.1f}% to 70%+")
-    
+        recommendations.append(
+            "🧬 Enable mutation testing to assess test quality beyond coverage"
+        )
+    elif (
+        metrics["mutation"]["mutation_score"]
+        and metrics["mutation"]["mutation_score"] < 70
+    ):
+        recommendations.append(
+            f"🔬 Improve mutation score from {metrics['mutation']['mutation_score']:.1f}% to 70%+"
+        )
+
     # Property testing recommendations
     if metrics["property"]["total_property_tests"] == 0:
         recommendations.append("🎲 Add property-based tests for critical algorithms")
     elif not metrics["property"]["enabled"]:
-        recommendations.append("⚡ Enable property testing with DEVSYNTH_PROPERTY_TESTING=1")
-    
+        recommendations.append(
+            "⚡ Enable property testing with DEVSYNTH_PROPERTY_TESTING=1"
+        )
+
     # Organization recommendations
     if metrics["organization"]["marker_compliance"] < 95:
-        recommendations.append("🏷️ Improve test marker compliance for better organization")
-    
+        recommendations.append(
+            "🏷️ Improve test marker compliance for better organization"
+        )
+
     # Performance recommendations
     speedup = metrics["performance"]["parallel_speedup"]
     if speedup < 3:
-        recommendations.append("🚀 Optimize parallel test execution for better performance")
-    
+        recommendations.append(
+            "🚀 Optimize parallel test execution for better performance"
+        )
+
     return recommendations
 
 
@@ -367,8 +406,8 @@ def generate_html_dashboard(metrics: Dict[str, Any], output_file: str) -> None:
 </body>
 </html>
 """
-    
-    with open(output_file, 'w') as f:
+
+    with open(output_file, "w") as f:
         f.write(html_content)
 
 
@@ -377,61 +416,59 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Generate comprehensive quality metrics dashboard",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
+        epilog=__doc__,
     )
-    
+
     parser.add_argument(
-        '--output', '-o',
-        default='test_reports/quality_report.json',
-        help='Output file for JSON report'
+        "--output",
+        "-o",
+        default="test_reports/quality_report.json",
+        help="Output file for JSON report",
     )
-    
+
+    parser.add_argument("--html", help="Generate HTML dashboard at specified path")
+
     parser.add_argument(
-        '--html',
-        help='Generate HTML dashboard at specified path'
+        "--include-mutations",
+        action="store_true",
+        help="Include mutation testing metrics (slower)",
     )
-    
+
     parser.add_argument(
-        '--include-mutations',
-        action='store_true',
-        help='Include mutation testing metrics (slower)'
-    )
-    
-    parser.add_argument(
-        '--coverage-threshold',
+        "--coverage-threshold",
         type=float,
         default=80.0,
-        help='Coverage threshold for quality scoring'
+        help="Coverage threshold for quality scoring",
     )
-    
+
     parser.add_argument(
-        '--mutation-threshold',
+        "--mutation-threshold",
         type=float,
         default=70.0,
-        help='Mutation score threshold for quality scoring'
+        help="Mutation score threshold for quality scoring",
     )
-    
+
     args = parser.parse_args()
-    
+
     print("🧪 Generating Quality Metrics Dashboard...")
     print("=" * 60)
-    
+
     # Collect metrics from various sources
     print("📊 Collecting coverage metrics...")
     coverage_metrics = get_coverage_metrics()
-    
+
     print("🧬 Collecting mutation testing metrics...")
     mutation_metrics = get_mutation_testing_metrics(args.include_mutations)
-    
+
     print("🎲 Collecting property test metrics...")
     property_metrics = get_property_test_metrics()
-    
+
     print("🏷️ Collecting test organization metrics...")
     organization_metrics = get_test_organization_metrics()
-    
+
     print("🚀 Collecting performance metrics...")
     performance_metrics = get_performance_metrics()
-    
+
     # Combine all metrics
     all_metrics = {
         "timestamp": datetime.now().isoformat(),
@@ -441,48 +478,48 @@ def main() -> int:
         "organization": organization_metrics,
         "performance": performance_metrics,
     }
-    
+
     # Calculate overall quality score
     print("🎯 Calculating overall quality score...")
     overall_score = calculate_overall_quality_score(all_metrics)
     all_metrics["overall_score"] = overall_score
-    
+
     # Generate recommendations
     print("💡 Generating quality recommendations...")
     recommendations = generate_quality_recommendations(all_metrics)
     all_metrics["recommendations"] = recommendations
-    
+
     # Save JSON report
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
-    with open(args.output, 'w') as f:
+    with open(args.output, "w") as f:
         json.dump(all_metrics, f, indent=2)
-    
+
     # Generate HTML dashboard if requested
     if args.html:
         print(f"📄 Generating HTML dashboard: {args.html}")
         os.makedirs(os.path.dirname(args.html), exist_ok=True)
         generate_html_dashboard(all_metrics, args.html)
-    
+
     # Print summary
     print("\n" + "=" * 60)
     print("🎯 QUALITY DASHBOARD SUMMARY")
     print("=" * 60)
     print(f"Overall Quality Score: {overall_score:.1f}/100")
     print(f"Coverage: {coverage_metrics['line_coverage']:.1f}%")
-    if not mutation_metrics['skipped']:
+    if not mutation_metrics["skipped"]:
         print(f"Mutation Score: {mutation_metrics['mutation_score']:.1f}%")
     print(f"Property Tests: {property_metrics['total_property_tests']}")
     print(f"Test Organization: {organization_metrics['marker_compliance']:.1f}%")
     print(f"Parallel Speedup: {performance_metrics['parallel_speedup']:.1f}x")
-    
+
     print(f"\n📄 Report saved to: {args.output}")
     if args.html:
         print(f"📊 Dashboard saved to: {args.html}")
-    
+
     print("\n💡 Top Recommendations:")
     for i, rec in enumerate(recommendations[:3], 1):
         print(f"  {i}. {rec}")
-    
+
     return 0
 
 

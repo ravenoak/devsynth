@@ -82,7 +82,9 @@ class FakeStreamlit:
         return _ContainerContext(container)
 
     # Input widgets
-    def selectbox(self, message: str, options: list[str], index: int = 0, key: str | None = None):
+    def selectbox(
+        self, message: str, options: list[str], index: int = 0, key: str | None = None
+    ):
         choice = options[index if 0 <= index < len(options) else 0]
         if key is not None:
             self.selectbox_values[key] = choice

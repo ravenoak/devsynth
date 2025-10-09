@@ -11,6 +11,7 @@ from pathlib import Path
 class VerificationError(RuntimeError):
     """Raised when verification or repair steps fail."""
 
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CLI_TYPER_VERSION = "0.17.4"
 
@@ -78,9 +79,7 @@ def repair_devsynth_install() -> list[tuple[str, subprocess.CompletedProcess[str
     steps.append(
         (
             "devsynth-repair",
-            run_command(
-                ["poetry", "run", "pip", "install", "--force-reinstall", "."]
-            ),
+            run_command(["poetry", "run", "pip", "install", "--force-reinstall", "."]),
         )
     )
     if steps[-1][1].returncode == 0:
@@ -121,8 +120,7 @@ def ensure_devsynth_cli(venv_path: Path) -> None:
         reasons.append(f"devsynth executable not found at {devsynth_executable}")
     elif cli_proc and cli_proc.returncode != 0:
         reasons.append(
-            "'poetry run devsynth --help' exited with code "
-            f"{cli_proc.returncode}"
+            "'poetry run devsynth --help' exited with code " f"{cli_proc.returncode}"
         )
 
     if cli_proc and cli_proc.returncode != 0:

@@ -64,10 +64,7 @@ def load_configured_markers() -> dict[str, str]:
     except Exception:
         return {}
     markers_section = (
-        data.get("tool", {})
-        .get("pytest", {})
-        .get("ini_options", {})
-        .get("markers", [])
+        data.get("tool", {}).get("pytest", {}).get("ini_options", {}).get("markers", [])
     )
     configured: dict[str, str] = {}
     for entry in markers_section or []:
@@ -622,7 +619,9 @@ def _attempt_collection(path: pathlib.Path, text: str) -> list:
                 return issues
             # Treat any other top-level exec failure as a collection issue
             issues.append({"type": "collection_error", "message": str(e)})
-        except BaseException as e:  # Catch non-Exception BaseExceptions like pytest.Skipped
+        except (
+            BaseException
+        ) as e:  # Catch non-Exception BaseExceptions like pytest.Skipped
             if (
                 getattr(e, "__class__", None)
                 and getattr(e.__class__, "__name__", "") == "Skipped"
