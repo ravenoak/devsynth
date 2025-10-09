@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import logging
+import os
+import subprocess
+from pathlib import Path
 from typing import assert_type
 from unittest.mock import MagicMock, patch
 
@@ -63,7 +67,7 @@ def test_run_segmented_tests_single_speed(monkeypatch):
 
 @pytest.mark.fast
 def test_run_segmented_tests_multiple_speeds(monkeypatch):
-    """ReqID: RUN-TESTS-SEG-2 — _run_segmented_tests handles multiple speed categories."""
+    """ReqID: RUN-TESTS-SEG-2 — handles multiple speed categories."""
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
@@ -173,6 +177,229 @@ def test_run_segmented_tests_failure_with_maxfail(monkeypatch):
     assert "First segment failed" in output
     assert call_count == 1  # Should stop after first failure
     assert metadata["segments"][0]["metadata_id"] == "batch-fail-1"
+
+
+@pytest.mark.fast
+def test_collect_tests_with_cache_all_tests_decomposes_successfully(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """ReqID: RUN-TESTS-SEG-6 — all-tests decomposes into dependent targets on miss."""
+
+    cache_dir = tmp_path / ".cache"
+    monkeypatch.setattr(rt, "COLLECTION_CACHE_DIR", cache_dir)
+    monkeypatch.setattr(
+        rt, "TEST_COLLECTION_CACHE_FILE", cache_dir / "collection_cache.json"
+    )
+
+    tests_root = tmp_path / "tests"
+    unit_dir = tests_root / "unit"
+    integration_dir = tests_root / "integration"
+    behavior_dir = tests_root / "behavior"
+    for path in (unit_dir, integration_dir, behavior_dir):
+        path.mkdir(parents=True)
+        (path / "test_example.py").write_text(
+            "def test_ok():\n    pass\n", encoding="utf-8"
+        )
+
+    monkeypatch.setattr(
+        rt,
+        "TARGET_PATHS",
+        {
+            "unit-tests": str(unit_dir),
+            "integration-tests": str(integration_dir),
+            "behavior-tests": str(behavior_dir),
+            "all-tests": str(tests_root),
+        },
+    )
+
+    calls: list[str] = []
+
+    class DummyProcess:
+        def __init__(self, stdout: str) -> None:
+            self.stdout = stdout
+            self.stderr = ""
+            self.returncode = 0
+
+    mapping = {
+        str(unit_dir): "tests/unit/test_example.py::test_ok\n",
+        str(integration_dir): "tests/integration/test_example.py::test_ok\n",
+        str(behavior_dir): "tests/behavior/test_example.py::test_ok\n",
+    }
+
+    def fake_run(cmd, capture_output, text, timeout):  # type: ignore[no-untyped-def]
+        test_path = cmd[3]
+        calls.append(test_path)
+        stdout = mapping.get(test_path)
+        if stdout is None:
+            raise AssertionError(f"Unexpected test path {test_path}")
+        return DummyProcess(stdout)
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_run)
+    caplog.set_level(logging.INFO)
+
+    result = rt.collect_tests_with_cache("all-tests", "fast")
+
+    assert result == [
+        "tests/unit/test_example.py::test_ok",
+        "tests/integration/test_example.py::test_ok",
+        "tests/behavior/test_example.py::test_ok",
+    ]
+    assert calls == [str(unit_dir), str(integration_dir), str(behavior_dir)]
+    assert any(
+        getattr(record, "event", "") == "test_collection_cache_miss"
+        for record in caplog.records
+    )
+
+
+@pytest.mark.fast
+def test_collect_tests_with_cache_timeout_falls_back_to_direct_collection(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """ReqID: RUN-TESTS-SEG-7 — retries smaller batches before broad fallback."""
+
+    cache_dir = tmp_path / ".cache"
+    monkeypatch.setattr(rt, "COLLECTION_CACHE_DIR", cache_dir)
+    monkeypatch.setattr(
+        rt, "TEST_COLLECTION_CACHE_FILE", cache_dir / "collection_cache.json"
+    )
+
+    tests_root = tmp_path / "tests"
+    unit_dir = tests_root / "unit"
+    integration_dir = tests_root / "integration"
+    behavior_dir = tests_root / "behavior"
+    for path in (unit_dir, integration_dir, behavior_dir):
+        path.mkdir(parents=True)
+        (path / "test_example.py").write_text(
+            "def test_ok():\n    pass\n", encoding="utf-8"
+        )
+
+    monkeypatch.setattr(
+        rt,
+        "TARGET_PATHS",
+        {
+            "unit-tests": str(unit_dir),
+            "integration-tests": str(integration_dir),
+            "behavior-tests": str(behavior_dir),
+            "all-tests": str(tests_root),
+        },
+    )
+
+    calls: list[str] = []
+
+    class DummyProcess:
+        def __init__(self, stdout: str) -> None:
+            self.stdout = stdout
+            self.stderr = ""
+            self.returncode = 0
+
+    fallback_output = (
+        "tests/unit/test_example.py::test_ok\n"
+        "tests/integration/test_example.py::test_ok\n"
+        "tests/behavior/test_example.py::test_ok\n"
+    )
+
+    timeout_targets = {str(unit_dir), str(integration_dir), str(behavior_dir)}
+
+    def fake_run(cmd, capture_output, text, timeout):  # type: ignore[no-untyped-def]
+        test_path = cmd[3]
+        calls.append(test_path)
+        if test_path in timeout_targets:
+            raise subprocess.TimeoutExpired(cmd, timeout)
+        if test_path == str(tests_root):
+            return DummyProcess(fallback_output)
+        raise AssertionError(f"Unexpected test path {test_path}")
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_run)
+    caplog.set_level(logging.INFO)
+
+    result = rt.collect_tests_with_cache("all-tests", "fast")
+
+    assert result == [
+        "tests/unit/test_example.py::test_ok",
+        "tests/integration/test_example.py::test_ok",
+        "tests/behavior/test_example.py::test_ok",
+    ]
+    assert calls[-1] == str(tests_root)
+    assert any(
+        getattr(record, "event", "") == "test_collection_timeout_retry"
+        for record in caplog.records
+    )
+
+
+@pytest.mark.fast
+def test_collect_tests_with_cache_reuses_cache_and_preserves_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """ReqID: RUN-TESTS-SEG-8 — cache hits keep env stable without subprocess reruns."""
+
+    cache_dir = tmp_path / ".cache"
+    monkeypatch.setattr(rt, "COLLECTION_CACHE_DIR", cache_dir)
+    monkeypatch.setattr(
+        rt, "TEST_COLLECTION_CACHE_FILE", cache_dir / "collection_cache.json"
+    )
+
+    tests_root = tmp_path / "tests"
+    unit_dir = tests_root / "unit"
+    integration_dir = tests_root / "integration"
+    behavior_dir = tests_root / "behavior"
+    for path in (unit_dir, integration_dir, behavior_dir):
+        path.mkdir(parents=True)
+        (path / "test_example.py").write_text(
+            "def test_ok():\n    pass\n", encoding="utf-8"
+        )
+
+    monkeypatch.setattr(
+        rt,
+        "TARGET_PATHS",
+        {
+            "unit-tests": str(unit_dir),
+            "integration-tests": str(integration_dir),
+            "behavior-tests": str(behavior_dir),
+            "all-tests": str(tests_root),
+        },
+    )
+
+    class DummyProcess:
+        def __init__(self, stdout: str) -> None:
+            self.stdout = stdout
+            self.stderr = ""
+            self.returncode = 0
+
+    fallback_output = (
+        "tests/unit/test_example.py::test_ok\n"
+        "tests/integration/test_example.py::test_ok\n"
+        "tests/behavior/test_example.py::test_ok\n"
+    )
+
+    def fake_run(cmd, capture_output, text, timeout):  # type: ignore[no-untyped-def]
+        return DummyProcess(fallback_output)
+
+    monkeypatch.setattr(rt.subprocess, "run", fake_run)
+    caplog.set_level(logging.INFO)
+
+    first = rt.collect_tests_with_cache("all-tests", "fast")
+    assert first == [
+        "tests/unit/test_example.py::test_ok",
+        "tests/integration/test_example.py::test_ok",
+        "tests/behavior/test_example.py::test_ok",
+    ]
+
+    def fail_run(*args, **kwargs):  # type: ignore[no-untyped-def]
+        raise AssertionError("subprocess.run should not be called on cache hit")
+
+    monkeypatch.setattr(rt.subprocess, "run", fail_run)
+
+    monkeypatch.setenv("DEVSYNTH_TEST_COLLECTION_TIMEOUT_SECONDS", "123")
+    env_snapshot = dict(os.environ)
+
+    second = rt.collect_tests_with_cache("all-tests", "fast")
+    assert second == first
+    assert os.environ["DEVSYNTH_TEST_COLLECTION_TIMEOUT_SECONDS"] == "123"
+    assert dict(os.environ) == env_snapshot
+    assert any(
+        getattr(record, "event", "") == "test_collection_cache_hit"
+        for record in caplog.records
+    )
 
 
 @pytest.mark.fast

@@ -11,21 +11,19 @@ import hashlib
 import importlib.util
 import inspect
 import json
-import logging
 import os
 import re
 import shlex
 import shutil
 import subprocess
 import sys
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from dataclasses import dataclass as _dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Mapping,
     NotRequired,
     TypedDict,
     cast,
@@ -53,8 +51,8 @@ LEGACY_HTML_DIRS: tuple[Path, ...] = (Path("test_reports/htmlcov"),)
 PYTEST_COV_PLUGIN_MODULES: tuple[str, ...] = ("pytest_cov", "pytest_cov.plugin")
 PYTEST_COV_PLUGIN_MISSING_MESSAGE = (
     "pytest plugin 'pytest_cov' not found. Install pytest-cov with "
-    "`poetry add --group dev pytest-cov` or rerun `poetry install --with dev --extras tests` "
-    "to restore coverage instrumentation."
+    "`poetry add --group dev pytest-cov` or rerun "
+    "`poetry install --with dev --extras tests` to restore coverage instrumentation."
 )
 PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE = (
     "pytest plugin autoload disabled without '-p pytest_cov'. Unset "
@@ -99,7 +97,10 @@ def _collection_timeout_seconds() -> float:
 
     if parsed_value <= 0:
         logger.warning(
-            "DEVSYNTH_TEST_COLLECTION_TIMEOUT_SECONDS must be > 0; got %s. Using default %.1f",
+            (
+                "DEVSYNTH_TEST_COLLECTION_TIMEOUT_SECONDS must be > 0; got %s. "
+                "Using default %.1f"
+            ),
             raw_value,
             DEFAULT_COLLECTION_TIMEOUT_SECONDS,
         )
@@ -176,6 +177,12 @@ TARGET_PATHS: dict[str, str] = {
     "all-tests": "tests/",
 }
 
+ALL_TESTS_DEPENDENCIES: tuple[str, ...] = (
+    "unit-tests",
+    "integration-tests",
+    "behavior-tests",
+)
+
 logger = DevSynthLogger(__name__)
 
 _RESOURCE_NAME_PATTERN = re.compile(r"requires_resource\((['\"])(?P<name>[^'\"]+)\1\)")
@@ -215,7 +222,8 @@ class SegmentedRunMetadata(TypedDict):
 
 
 if TYPE_CHECKING:
-    from typing import Callable, TypeVar
+    from collections.abc import Callable
+    from typing import TypeVar
 
     _RequestT = TypeVar("_RequestT")
 
@@ -312,7 +320,7 @@ def _ensure_coverage_artifacts() -> None:
     """Generate coverage artifacts when real coverage data exists."""
 
     try:
-        from coverage import Coverage
+        from coverage import Coverage  # type: ignore[import-not-found]
     except Exception:
         logger.debug("coverage library unavailable; skipping artifact generation")
         return
@@ -517,7 +525,10 @@ def ensure_pytest_cov_plugin_env(env: MutableMapping[str, str]) -> bool:
     updated = f"{normalized} -p pytest_cov".strip()
     env["PYTEST_ADDOPTS"] = updated
     logger.info(
-        "Injected -p pytest_cov into PYTEST_ADDOPTS to preserve coverage instrumentation",
+        (
+            "Injected -p pytest_cov into PYTEST_ADDOPTS to preserve "
+            "coverage instrumentation"
+        ),
         extra={"pytest_addopts": updated},
     )
     return True
@@ -547,7 +558,10 @@ def ensure_pytest_bdd_plugin_env(env: MutableMapping[str, str]) -> bool:
     updated = f"{normalized} -p pytest_bdd.plugin".strip()
     env["PYTEST_ADDOPTS"] = updated
     logger.info(
-        "Injected -p pytest_bdd.plugin into PYTEST_ADDOPTS to preserve pytest-bdd hooks",
+        (
+            "Injected -p pytest_bdd.plugin into PYTEST_ADDOPTS to preserve "
+            "pytest-bdd hooks"
+        ),
         extra={"pytest_addopts": updated},
     )
     return True
@@ -578,17 +592,26 @@ def pytest_cov_support_status(
     if "--no-cov" in tokens:
         return (
             False,
-            "PYTEST_ADDOPTS contains --no-cov. Remove --no-cov to restore pytest-cov instrumentation.",
+            (
+                "PYTEST_ADDOPTS contains --no-cov. Remove --no-cov to restore "
+                "pytest-cov instrumentation."
+            ),
         )
     if _addopts_has_plugin(tokens, "no:cov"):
         return (
             False,
-            "PYTEST_ADDOPTS disables pytest-cov via -p no:cov. Remove '-p no:cov' to restore coverage instrumentation.",
+            (
+                "PYTEST_ADDOPTS disables pytest-cov via -p no:cov. Remove "
+                "'-p no:cov' to restore coverage instrumentation."
+            ),
         )
     if _addopts_has_plugin(tokens, "no:pytest_cov"):
         return (
             False,
-            "PYTEST_ADDOPTS disables pytest-cov via -p no:pytest_cov. Remove '-p no:pytest_cov' to restore coverage instrumentation.",
+            (
+                "PYTEST_ADDOPTS disables pytest-cov via -p no:pytest_cov. Remove "
+                "'-p no:pytest_cov' to restore coverage instrumentation."
+            ),
         )
 
     autoload_disabled = mapping.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
@@ -842,10 +865,12 @@ def _maybe_publish_coverage_evidence(
 
     return (
         "[knowledge-graph] coverage gate "
-        f"{publication.gate_status} → QualityGate {publication.quality_gate_id} ({gate_state}), "
+        f"{publication.gate_status} → QualityGate "
+        f"{publication.quality_gate_id} ({gate_state}), "
         f"TestRun {publication.test_run_id} ({test_run_state}), "
         f"Evidence [{evidence_summary}] via {publication.adapter_backend}; "
-        f"coverage={coverage_percent:.2f}% threshold={DEFAULT_COVERAGE_THRESHOLD:.2f}%"
+        f"coverage={coverage_percent:.2f}% "
+        f"threshold={DEFAULT_COVERAGE_THRESHOLD:.2f}%"
     )
 
 
@@ -894,7 +919,10 @@ def enforce_coverage_threshold(
         raise RuntimeError(message)
 
     if percent_value < minimum_percent:
-        message = f"Coverage {percent_value:.2f}% is below the required {minimum_percent:.2f}%"
+        message = (
+            f"Coverage {percent_value:.2f}% is below the required "
+            f"{minimum_percent:.2f}%"
+        )
         logger.error(message)
         if exit_on_failure:
             raise SystemExit(1)
@@ -976,11 +1004,152 @@ def _strip_resource_markers(marker_expr: str) -> str:
     return " ".join(cleaned_parts).strip()
 
 
+def _latest_mtime(root: str) -> float:
+    """Return the most recent mtime for Python sources under ``root``."""
+
+    latest = 0.0
+    for dirpath, _dirnames, filenames in os.walk(root):
+        for fn in filenames:
+            if fn.endswith(".py"):
+                try:
+                    mtime = os.path.getmtime(os.path.join(dirpath, fn))
+                except OSError:
+                    continue
+                if mtime > latest:
+                    latest = mtime
+    return latest
+
+
+def _log_collection_cache_event(
+    event: str,
+    *,
+    target: str,
+    speed_category: str | None,
+    cache_file: Path,
+    keyword_filter: str | None,
+    ttl_seconds: int,
+    reason: str | None = None,
+) -> None:
+    """Emit structured diagnostics for cache activity."""
+
+    message = f"test collection cache {event} for target=%s (%s)"
+    if reason:
+        message += f" — {reason}"
+    logger.info(
+        message,
+        target,
+        speed_category or "all",
+        extra={
+            "event": f"test_collection_cache_{event}",
+            "target": target,
+            "speed_category": speed_category or "all",
+            "cache_file": str(cache_file),
+            "keyword_filter": keyword_filter,
+            "cache_ttl_seconds": ttl_seconds,
+            "reason": reason,
+        },
+    )
+
+
+def _collect_via_pytest(
+    *,
+    target: str,
+    test_path: str,
+    category_expr: str,
+    normalized_filter: str | None,
+    timeout_seconds: float,
+) -> list[str]:
+    """Execute ``pytest --collect-only`` and return node identifiers."""
+
+    collect_cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        test_path,
+        "--collect-only",
+        "-q",
+        "-o",
+        "addopts=",
+        "-m",
+        category_expr,
+    ]
+
+    if normalized_filter:
+        collect_cmd.extend(["-k", normalized_filter])
+
+    result = subprocess.run(
+        collect_cmd,
+        capture_output=True,
+        text=True,
+        timeout=timeout_seconds,
+    )
+    if result.returncode != 0:
+        error_message = f"Test collection failed: {result.stderr}"
+        logger.warning(
+            error_message,
+            extra={
+                "event": "test_collection_failed",
+                "target": target,
+                "speed_category": category_expr,
+            },
+        )
+        raise RuntimeError(error_message)
+
+    node_ids: list[str] = []
+    for line in result.stdout.splitlines():
+        line = line.strip()
+        if line and "::" in line and not line.startswith("="):
+            node_ids.append(line)
+
+    return _sanitize_node_ids(node_ids)
+
+
+def _collect_dependent_targets(
+    *,
+    dependencies: Sequence[str],
+    speed_category: str | None,
+    keyword_filter: str | None,
+    timeout_seconds: float,
+) -> tuple[list[str], list[str]]:
+    """Collect tests for dependent targets and return (nodes, timeouts)."""
+
+    aggregated: list[str] = []
+    seen: set[str] = set()
+    timed_out: list[str] = []
+
+    for dependency in dependencies:
+        try:
+            nodes = collect_tests_with_cache(
+                dependency,
+                speed_category,
+                keyword_filter=keyword_filter,
+                _allow_all_target_decomposition=False,
+                _timeout_override=timeout_seconds,
+                _propagate_timeout=True,
+            )
+        except RuntimeError:
+            # Propagate runtime failures so callers can surface actionable tips.
+            raise
+        except subprocess.TimeoutExpired:
+            timed_out.append(dependency)
+            continue
+
+        for node in nodes:
+            if node not in seen:
+                seen.add(node)
+                aggregated.append(node)
+
+    return aggregated, timed_out
+
+
 def collect_tests_with_cache(
     target: str,
     speed_category: str | None = None,
     *,
     keyword_filter: str | None = None,
+    _allow_all_target_decomposition: bool = True,
+    _timeout_override: float | None = None,
+    _propagate_timeout: bool = False,
 ) -> list[str]:
     """Collect tests for the given target and speed category.
 
@@ -1000,20 +1169,6 @@ def collect_tests_with_cache(
     category_expr = marker_expr
     if speed_category:
         category_expr = f"{speed_category} and {marker_expr}"
-
-    def _latest_mtime(root: str) -> float:
-        latest = 0.0
-        for dirpath, _dirnames, filenames in os.walk(root):
-            for fn in filenames:
-                if fn.endswith(".py"):
-                    try:
-                        mtime = os.path.getmtime(os.path.join(dirpath, fn))
-                        if mtime > latest:
-                            latest = mtime
-                    except OSError:
-                        # Ignore transient filesystem errors
-                        continue
-        return latest
 
     normalized_filter = _normalize_keyword_filter(keyword_filter)
     latest_mtime = _latest_mtime(test_path)
@@ -1059,14 +1214,13 @@ def collect_tests_with_cache(
                 < COLLECTION_CACHE_TTL_SECONDS
                 and fingerprint_matches
             ):
-                logger.info(
-                    (
-                        "Using cached test collection for %s (%s) [TTL=%ss; "
-                        "fingerprint ok]"
-                    ),
-                    target,
-                    speed_category or "all",
-                    COLLECTION_CACHE_TTL_SECONDS,
+                _log_collection_cache_event(
+                    "hit",
+                    target=target,
+                    speed_category=speed_category,
+                    cache_file=cache_file,
+                    keyword_filter=normalized_filter,
+                    ttl_seconds=COLLECTION_CACHE_TTL_SECONDS,
                 )
                 return cast(list[str], cached_data["tests"])
         except (json.JSONDecodeError, KeyError, ValueError) as e:
@@ -1075,70 +1229,106 @@ def collect_tests_with_cache(
             pass
 
     COLLECTION_CACHE_DIR.mkdir(parents=True, exist_ok=True)  # Use Path method
+    collection_timeout = _timeout_override or _collection_timeout_seconds()
 
-    collect_cmd = [
-        sys.executable,
-        "-m",
-        "pytest",
-        test_path,
-        "--collect-only",
-        "-q",
-        "-o",
-        "addopts=",
-        "-m",
-        category_expr,
-    ]
+    dependencies: tuple[str, ...] = ()
+    if (
+        target == "all-tests"
+        and _allow_all_target_decomposition
+        and ALL_TESTS_DEPENDENCIES
+    ):
+        dependencies = ALL_TESTS_DEPENDENCIES
 
-    if normalized_filter:
-        collect_cmd.extend(["-k", normalized_filter])
+    node_ids: list[str] = []
+    dependency_timeouts: list[str] = []
 
-    collection_timeout = _collection_timeout_seconds()
-
-    try:
-        result = subprocess.run(
-            collect_cmd,
-            capture_output=True,
-            text=True,
-            timeout=collection_timeout,
+    if dependencies:
+        _log_collection_cache_event(
+            "miss",
+            target=target,
+            speed_category=speed_category,
+            cache_file=cache_file,
+            keyword_filter=normalized_filter,
+            ttl_seconds=COLLECTION_CACHE_TTL_SECONDS,
+            reason="decomposing all-tests into dependent targets",
         )
-        if result.returncode != 0:
-            error_message = f"Test collection failed: {result.stderr}"
-            logger.warning(error_message)
-            raise RuntimeError(error_message)
-
-        # Parse node IDs from output
-        node_ids = []
-        for line in result.stdout.splitlines():
-            line = line.strip()
-            if line and "::" in line and not line.startswith("="):
-                node_ids.append(line)
-
-        # Cache the results
-        cache_data = {
-            "timestamp": datetime.now().isoformat(),
-            "tests": node_ids,
-            "fingerprint": {
-                "latest_mtime": latest_mtime,
-                "category_expr": category_expr,
-                "test_path": test_path,
-                "keyword_filter": normalized_filter,
-            },
-        }
-        with open(cache_file, "w") as f:
-            json.dump(cache_data, f)
-
-        logger.debug(
-            "Collected %d tests for %s (%s) [cached for %ss]",
-            len(node_ids),
-            target,
-            speed_category or "all",
-            COLLECTION_CACHE_TTL_SECONDS,
+        node_ids, dependency_timeouts = _collect_dependent_targets(
+            dependencies=dependencies,
+            speed_category=speed_category,
+            keyword_filter=keyword_filter,
+            timeout_seconds=collection_timeout,
         )
-        return node_ids
+    else:
+        _log_collection_cache_event(
+            "miss",
+            target=target,
+            speed_category=speed_category,
+            cache_file=cache_file,
+            keyword_filter=normalized_filter,
+            ttl_seconds=COLLECTION_CACHE_TTL_SECONDS,
+            reason="collecting via pytest",
+        )
 
-    except (subprocess.TimeoutExpired, OSError) as e:
-        logger.warning("Test collection failed: %s", e)
-        return []
+    if not node_ids:
+        try:
+            node_ids = _collect_via_pytest(
+                target=target,
+                test_path=test_path,
+                category_expr=category_expr,
+                normalized_filter=normalized_filter,
+                timeout_seconds=collection_timeout,
+            )
+        except subprocess.TimeoutExpired as exc:
+            logger.warning(
+                "Test collection timeout for target=%s (%s); falling back to path",
+                target,
+                speed_category or "all",
+                extra={
+                    "event": "test_collection_timeout",
+                    "target": target,
+                    "speed_category": speed_category or "all",
+                    "keyword_filter": normalized_filter,
+                    "dependencies": list(dependencies),
+                },
+            )
+            if dependencies and dependency_timeouts:
+                logger.info(
+                    "Re-attempted dependent collections before timeout fallback",
+                    extra={
+                        "event": "test_collection_timeout_retry",
+                        "target": target,
+                        "timed_out_dependencies": dependency_timeouts,
+                        "keyword_filter": normalized_filter,
+                    },
+                )
+            if _propagate_timeout:
+                raise exc
+            return []
+        except OSError as exc:
+            logger.warning("Test collection failed: %s", exc)
+            return []
+
+    cache_data = {
+        "timestamp": datetime.now().isoformat(),
+        "tests": node_ids,
+        "fingerprint": {
+            "latest_mtime": latest_mtime,
+            "category_expr": category_expr,
+            "test_path": test_path,
+            "keyword_filter": normalized_filter,
+        },
+    }
+    with open(cache_file, "w") as f:
+        json.dump(cache_data, f)
+
+    logger.debug(
+        "Collected %d tests for %s (%s) [cached for %ss]",
+        len(node_ids),
+        target,
+        speed_category or "all",
+        COLLECTION_CACHE_TTL_SECONDS,
+    )
+    return node_ids
 
 
 def run_tests(
