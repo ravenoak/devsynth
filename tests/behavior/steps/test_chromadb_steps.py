@@ -17,12 +17,19 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 pytestmark = pytest.mark.requires_resource("chromadb")
 
 
-pytest.importorskip("chromadb")
-from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
-from devsynth.adapters.provider_system import embed, get_provider
-from devsynth.ports.memory_port import MemoryPort
+try:
+    chromadb = pytest.importorskip("chromadb")
+    from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
+    from devsynth.adapters.provider_system import embed, get_provider
+    from devsynth.ports.memory_port import MemoryPort
 
-
+    CHROMADB_AVAILABLE = True
+except ImportError:
+    CHROMADB_AVAILABLE = False
+    ChromaDBMemoryStore = None
+    embed = None
+    get_provider = None
+    MemoryPort = None
 
 
 @pytest.fixture

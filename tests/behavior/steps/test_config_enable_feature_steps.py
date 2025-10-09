@@ -1,6 +1,5 @@
 """Steps for the config_enable_feature.feature."""
 
-from tests.behavior.feature_paths import feature_path
 import os
 from pathlib import Path
 
@@ -8,10 +7,9 @@ import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.config.loader import ConfigModel, load_config, save_config
+from tests.behavior.feature_paths import feature_path
 
 from .cli_commands_steps import *
-
-
 
 pytestmark = [pytest.mark.fast]
 

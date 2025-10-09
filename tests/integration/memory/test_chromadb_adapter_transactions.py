@@ -6,7 +6,6 @@ from tests.fixtures.resources import (
     skip_module_if_backend_disabled,
 )
 
-
 skip_module_if_backend_disabled("chromadb")
 
 pytest.importorskip(
@@ -19,7 +18,6 @@ ChromaDBAdapter = pytest.importorskip(
     reason="Install the 'chromadb' or 'memory' extras to use the ChromaDB adapter.",
 ).ChromaDBAdapter
 from devsynth.domain.models.memory import MemoryVector
-
 
 pytestmark = [
     *skip_if_missing_backend("chromadb"),

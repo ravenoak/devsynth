@@ -26,7 +26,9 @@ def _noop_dataclass(cls=None, **_kwargs):
 
 
 sys.modules.setdefault("pydantic", SimpleNamespace(ValidationError=Exception))
-sys.modules.setdefault("pydantic.dataclasses", SimpleNamespace(dataclass=_noop_dataclass))
+sys.modules.setdefault(
+    "pydantic.dataclasses", SimpleNamespace(dataclass=_noop_dataclass)
+)
 
 
 class _RichStub:
@@ -154,7 +156,9 @@ class _RecordingProgress:
 
 
 @pytest.mark.requires_resource("cli")
-def test_long_running_progress_records_telemetry(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_long_running_progress_records_telemetry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Feature: long_running_progress.feature Scenario: Telemetry for CLI tasks."""
 
     clock = _TimeMachine()
@@ -255,7 +259,9 @@ def test_provider_factory_falls_back_to_stub_offline(
 
 
 class _MemoryManagerStub:
-    def register_sync_hook(self, hook):  # noqa: ANN001 - signature dictated by coordinator
+    def register_sync_hook(
+        self, hook
+    ):  # noqa: ANN001 - signature dictated by coordinator
         self.hook = hook
 
     def retrieve_historical_patterns(self):  # noqa: D401

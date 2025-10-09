@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 """
 This test file implements integration tests for end-to-end workflows in the WebUI,
 focusing on user journeys that span multiple pages.

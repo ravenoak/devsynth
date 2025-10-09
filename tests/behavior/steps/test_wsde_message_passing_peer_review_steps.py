@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 from typing import Any, Dict, Iterable
-
 from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = pytest.mark.fast
 
-scenarios(feature_path(__file__, "general", "wsde_message_passing_and_peer_review.feature"))
+scenarios(
+    feature_path(__file__, "general", "wsde_message_passing_and_peer_review.feature")
+)
 scenarios(feature_path(__file__, "general", "wsde_peer_review_workflow.feature"))
 scenarios(feature_path(__file__, "general", "wsde_message_passing_peer_review.feature"))
 
@@ -171,9 +171,7 @@ def message_fields(context):
 def stored_in_history(context):
     history = list(_iter_messages(context.team.get_messages()))
     assert any(m["id"] == context.last_message["id"] for m in history)
-    stored = next(
-        m for m in history if m["id"] == context.last_message["id"]
-    )
+    stored = next(m for m in history if m["id"] == context.last_message["id"])
     assert stored["sender"] == context.last_message["sender"]
     assert set(stored["recipients"]) == set(context.last_message["recipients"])
 
@@ -196,8 +194,7 @@ def all_receive(context):
         if name != context.last_message["sender"]:
             msgs = list(_iter_messages(context.team.get_messages(name)))
             assert any(
-                m["id"] == context.last_message["id"]
-                and name in m["recipients"]
+                m["id"] == context.last_message["id"] and name in m["recipients"]
                 for m in msgs
             )
 
@@ -273,7 +270,9 @@ def priority_order(context):
 
 @then("the message priority should be recorded in the communication history")
 def priority_recorded(context):
-    assert context.last_message["metadata"].get("priority") == context.last_priority_value
+    assert (
+        context.last_message["metadata"].get("priority") == context.last_priority_value
+    )
 
 
 @when(parsers.parse('agent "{sender}" sends a message with structured content:'))
@@ -355,7 +354,9 @@ def reviewers_assigned(context):
     reviewers = context.last_peer_review.reviewers
     assert reviewers
     for reviewer in reviewers:
-        assert reviewer.config.parameters.get("expertise"), "Reviewer must have expertise"
+        assert reviewer.config.parameters.get(
+            "expertise"
+        ), "Reviewer must have expertise"
 
 
 @then("each reviewer should receive a review request message")
@@ -365,8 +366,7 @@ def reviewers_received_request(context):
         msgs = list(_iter_messages(context.team.get_messages(name)))
         assert any(m["type"] == MessageType.REVIEW_REQUEST.value for m in msgs)
         assert any(
-            isinstance(m["content"], dict) and m["content"].get("work")
-            for m in msgs
+            isinstance(m["content"], dict) and m["content"].get("work") for m in msgs
         )
 
 

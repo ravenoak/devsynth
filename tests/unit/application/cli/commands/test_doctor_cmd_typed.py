@@ -31,7 +31,11 @@ def test_doctor_cmd_accepts_path_arguments(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", "token")
 
     monkeypatch.setattr(doctor_module, "_check_services", lambda *_: None)
-    monkeypatch.setattr(doctor_module, "load_config", lambda: types.SimpleNamespace(features={}, memory_store_type="memory"))
+    monkeypatch.setattr(
+        doctor_module,
+        "load_config",
+        lambda: types.SimpleNamespace(features={}, memory_store_type="memory"),
+    )
     monkeypatch.setattr(doctor_module, "_find_project_config", lambda _: Path("."))
     monkeypatch.setattr(doctor_module.shutil, "which", lambda _: "poetry")
     monkeypatch.setattr(doctor_module.importlib.util, "find_spec", lambda _: object())

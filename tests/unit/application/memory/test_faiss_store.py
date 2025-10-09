@@ -136,7 +136,10 @@ def test_similarity_search_and_stats_ignore_deleted_vectors(tmp_path) -> None:
 
     results = store.similarity_search(embeddings[0], top_k=5)
     result_ids = [record.id for record in results]
-    assert all(record.similarity is None or 0.0 <= record.similarity <= 1.0 for record in results)
+    assert all(
+        record.similarity is None or 0.0 <= record.similarity <= 1.0
+        for record in results
+    )
     assert ids[0] in result_ids
     assert ids[1] not in result_ids
 

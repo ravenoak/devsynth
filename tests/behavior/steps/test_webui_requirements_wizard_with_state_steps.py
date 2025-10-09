@@ -6,7 +6,6 @@ with WizardState integration, which allows users to capture requirements through
 multi-step wizard with proper state management.
 """
 
-from tests.behavior.feature_paths import feature_path
 import json
 import sys
 from types import ModuleType
@@ -15,7 +14,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

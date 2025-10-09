@@ -3,9 +3,10 @@
 import pytest
 from pytest_bdd import scenarios
 
+from tests.behavior.feature_paths import feature_path
+
 # Ensure BDD step definitions are loaded
 from tests.behavior.steps import test_run_tests_steps  # noqa: F401
-from tests.behavior.feature_paths import feature_path
 
 FEATURE_FILE = feature_path(__file__, "general", "run_tests.feature")
 

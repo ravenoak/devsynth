@@ -2,13 +2,6 @@ import sys
 
 import pytest
 
-from tests.conftest import is_resource_available
-from tests.fixtures.resources import (
-    OPTIONAL_BACKEND_REQUIREMENTS,
-    backend_skip_reason,
-    skip_module_if_backend_disabled,
-)
-
 from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.agents.wsde_memory_integration import WSDEMemoryIntegration
 from devsynth.application.collaboration.peer_review import PeerReview
@@ -20,6 +13,12 @@ from devsynth.application.memory.context_manager import (
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
+from tests.conftest import is_resource_available
+from tests.fixtures.resources import (
+    OPTIONAL_BACKEND_REQUIREMENTS,
+    backend_skip_reason,
+    skip_module_if_backend_disabled,
+)
 
 
 def _require_backend(resource: str) -> None:
@@ -30,8 +29,6 @@ def _require_backend(resource: str) -> None:
             backend_skip_reason(resource, extras),
             allow_module_level=False,
         )
-
-
 
 
 class SimpleStore(InMemoryStore):

@@ -5,19 +5,19 @@ import sys
 # mypy: ignore-errors
 
 import sys
-from typing import Any, TYPE_CHECKING, TypeAlias, cast
+from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
 import pytest
 
 from tests.fixtures.resources import skip_if_missing_backend
 
 if TYPE_CHECKING:
-    from devsynth.application.memory.faiss_store import FAISSStore as FAISSStoreClass
-    from devsynth.application.memory.kuzu_store import KuzuStore as KuzuStoreClass
-    from devsynth.application.memory.lmdb_store import LMDBStore as LMDBStoreClass
     from devsynth.adapters.kuzu_memory_store import (
         KuzuMemoryStore as KuzuMemoryStoreClass,
     )
+    from devsynth.application.memory.faiss_store import FAISSStore as FAISSStoreClass
+    from devsynth.application.memory.kuzu_store import KuzuStore as KuzuStoreClass
+    from devsynth.application.memory.lmdb_store import LMDBStore as LMDBStoreClass
 
     LMDBStore = LMDBStoreClass
     FAISSStore = FAISSStoreClass
@@ -68,7 +68,6 @@ from devsynth.application.memory.dto import MemoryRecord
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-
 
 pytestmark = [
     *skip_if_missing_backend("lmdb"),

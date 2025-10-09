@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import datetime
 from pathlib import Path
 from typing import Set
 
 import pytest
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
@@ -19,8 +19,6 @@ from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
 )
 from devsynth.application.memory.adapters.graph_memory_adapter import DEVSYNTH
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
-
 
 scenarios(feature_path(__file__, "general", "advanced_graph_memory_features.feature"))
 
@@ -114,7 +112,7 @@ def reload_adapter(context: _Context) -> None:
 
 
 @then(
-    "traversing from \"node1\" to depth 2 including research artifacts should contain the stored research artifact identifier"
+    'traversing from "node1" to depth 2 including research artifacts should contain the stored research artifact identifier'
 )
 def traversal_after_reload_contains_artifact(context: _Context) -> None:
     context.traversal_result = context.adapter.traverse_graph(

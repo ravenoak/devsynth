@@ -11,9 +11,8 @@ from unittest.mock import patch
 import pytest
 from freezegun import freeze_time
 
-from tests._typing_utils import typed_freeze_time
-
 import devsynth.testing.run_tests as rt
+from tests._typing_utils import typed_freeze_time
 
 
 @pytest.mark.fast

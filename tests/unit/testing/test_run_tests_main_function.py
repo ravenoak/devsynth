@@ -7,6 +7,7 @@ import os
 import pytest
 
 import devsynth.testing.run_tests as rt
+
 from .run_tests_test_utils import build_batch_metadata
 
 
@@ -70,8 +71,10 @@ def test_run_tests_single_execution_failure(monkeypatch):
     def fake_run_single(
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
-        return False, "Test failed\nFailure tips\n", build_batch_metadata(
-            "batch-failure", returncode=1
+        return (
+            False,
+            "Test failed\nFailure tips\n",
+            build_batch_metadata("batch-failure", returncode=1),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single)
@@ -121,8 +124,10 @@ def test_run_tests_segmented_execution(monkeypatch):
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
         segment_calls.append(list(config.node_ids))
-        return True, "Segment output\n", build_batch_metadata(
-            "batch-segment", command=["pytest"], returncode=0
+        return (
+            True,
+            "Segment output\n",
+            build_batch_metadata("batch-segment", command=["pytest"], returncode=0),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single)
@@ -152,7 +157,10 @@ def test_run_tests_segmented_execution(monkeypatch):
 
     assert success is True
     assert "Segment output" in output
-    assert segment_calls == [["test1.py::test_a", "test2.py::test_b"], ["test3.py::test_c"]]
+    assert segment_calls == [
+        ["test1.py::test_a", "test2.py::test_b"],
+        ["test3.py::test_c"],
+    ]
 
 
 @pytest.mark.fast
@@ -176,8 +184,12 @@ def test_run_tests_marker_expression_building(monkeypatch):
         ]
         captured_kwargs["keyword_filter"] = config.keyword_filter
         captured_kwargs["parallel"] = config.parallel
-        return True, "Tests passed\n", build_batch_metadata(
-            "batch-marker", command=list(captured_cmd), returncode=0
+        return (
+            True,
+            "Tests passed\n",
+            build_batch_metadata(
+                "batch-marker", command=list(captured_cmd), returncode=0
+            ),
         )
 
     # Mock the test collection to return some dummy node IDs
@@ -223,7 +235,11 @@ def test_run_tests_env_defaults(monkeypatch):
     ) -> rt.BatchExecutionResult:
         nonlocal captured_env
         captured_env = config.env
-        return True, "", build_batch_metadata("batch-env", command=["pytest"], returncode=0)
+        return (
+            True,
+            "",
+            build_batch_metadata("batch-env", command=["pytest"], returncode=0),
+        )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single)
     monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
@@ -301,8 +317,10 @@ def test_run_tests_exit_code_5_success(monkeypatch):
     def fake_run_single(
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
-        return True, "No tests collected\n", build_batch_metadata(
-            "batch-no-tests", command=["pytest"], returncode=5
+        return (
+            True,
+            "No tests collected\n",
+            build_batch_metadata("batch-no-tests", command=["pytest"], returncode=5),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single)
@@ -385,8 +403,10 @@ def test_run_tests_keyword_filter(monkeypatch):
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
         captured_kwargs["keyword_filter"] = config.keyword_filter
-        return True, "", build_batch_metadata(
-            "batch-keyword", command=["pytest"], returncode=0
+        return (
+            True,
+            "",
+            build_batch_metadata("batch-keyword", command=["pytest"], returncode=0),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single)
@@ -423,8 +443,10 @@ def test_run_tests_maxfail_option(monkeypatch):
     ) -> rt.BatchExecutionResult:
         captured_kwargs["maxfail"] = config.maxfail
         captured_kwargs["node_ids"] = list(config.node_ids)
-        return True, "", build_batch_metadata(
-            "batch-maxfail", command=["pytest"], returncode=0
+        return (
+            True,
+            "",
+            build_batch_metadata("batch-maxfail", command=["pytest"], returncode=0),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single)
@@ -456,8 +478,10 @@ def test_run_tests_smoke_mode_plugin_injection(monkeypatch):
     ) -> rt.BatchExecutionResult:
         nonlocal captured_env
         captured_env = config.env
-        return True, "", build_batch_metadata(
-            "batch-smoke", command=["pytest"], returncode=0
+        return (
+            True,
+            "",
+            build_batch_metadata("batch-smoke", command=["pytest"], returncode=0),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single)

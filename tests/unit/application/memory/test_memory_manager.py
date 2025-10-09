@@ -238,6 +238,7 @@ class TestRouteQuery:
         assert result["store"] == "stub"
         assert router.captured == {"phase": "EXPAND"}
 
+
 class TestMemoryManagerRetrieve:
     """Tests for the MemoryManagerRetrieve component.
 

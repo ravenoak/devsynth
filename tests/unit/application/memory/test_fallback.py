@@ -409,9 +409,7 @@ class TestFallbackStore:
     @pytest.mark.medium
     def test_get_all_items_primary_failure(self, primary_store, fallback_store):
         """Test getting all items when the primary store fails."""
-        primary_store.set_failure(
-            "get_all_items", ValueError("Primary store failed")
-        )
+        primary_store.set_failure("get_all_items", ValueError("Primary store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -427,12 +425,8 @@ class TestFallbackStore:
     @pytest.mark.medium
     def test_get_all_items_all_failures(self, primary_store, fallback_store):
         """Test getting all items when all stores fail."""
-        primary_store.set_failure(
-            "get_all_items", ValueError("Primary store failed")
-        )
-        fallback_store.set_failure(
-            "get_all_items", ValueError("Fallback store failed")
-        )
+        primary_store.set_failure("get_all_items", ValueError("Primary store failed"))
+        fallback_store.set_failure("get_all_items", ValueError("Fallback store failed"))
         store = FallbackStore(
             primary_store=primary_store, fallback_stores=[fallback_store]
         )
@@ -633,9 +627,7 @@ class TestFallbackStore:
         assert isinstance(restored_operation.item, MemoryItem)
         assert isinstance(restored_operation.item.metadata, dict)
         for value in restored_operation.item.metadata.values():
-            assert isinstance(
-                value, (str, int, float, bool, type(None), dict, list)
-            )
+            assert isinstance(value, (str, int, float, bool, type(None), dict, list))
 
 
 @pytest.mark.medium

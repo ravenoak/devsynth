@@ -19,7 +19,6 @@ if not os.environ.get("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"):
 from devsynth.adapters.provider_system import FallbackProvider
 from devsynth.adapters.provider_system import LMStudioProvider as PS_LMStudioProvider
 from devsynth.adapters.provider_system import OpenAIProvider, ProviderError
-from devsynth.application.llm.providers import LMStudioProvider
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
@@ -28,6 +27,7 @@ from devsynth.application.documentation.documentation_manager import (
 )
 from devsynth.application.edrr.coordinator import EDRRCoordinatorError
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
+from devsynth.application.llm.providers import LMStudioProvider
 from devsynth.application.memory.adapters.tinydb_memory_adapter import (
     TinyDBMemoryAdapter,
 )
@@ -37,7 +37,6 @@ from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
-
 
 pytestmark = [pytest.mark.requires_resource("lmstudio")]
 

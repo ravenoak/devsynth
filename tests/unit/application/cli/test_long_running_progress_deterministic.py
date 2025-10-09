@@ -171,7 +171,9 @@ MODULE_NAME = "devsynth.application.cli.long_running_progress"
 if MODULE_NAME in sys.modules:
     long_running_progress = sys.modules[MODULE_NAME]
 else:
-    spec = importlib.util.spec_from_file_location(MODULE_NAME, CLI_DIR / "long_running_progress.py")
+    spec = importlib.util.spec_from_file_location(
+        MODULE_NAME, CLI_DIR / "long_running_progress.py"
+    )
     assert spec and spec.loader  # pragma: no cover - import guard
     module = importlib.util.module_from_spec(spec)
     sys.modules[MODULE_NAME] = module
@@ -239,7 +241,9 @@ def fake_progress(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(long_running_progress, "Progress", FakeProgress)
 
 
-def _expected_eta(start_time: float, current_time: float, progress_fraction: float) -> float:
+def _expected_eta(
+    start_time: float, current_time: float, progress_fraction: float
+) -> float:
     elapsed = current_time - start_time
     return start_time + elapsed / progress_fraction
 
@@ -374,9 +378,7 @@ def test_subtask_flow_preserves_mappings_and_progress(
         )
     )
 
-    child_tasks: Dict[int, FakeTask] = indicator._progress.child_tasks(
-        indicator._task
-    )
+    child_tasks: Dict[int, FakeTask] = indicator._progress.child_tasks(indicator._task)
     assert set(child_tasks.keys()) == {renamed_id, indicator._subtasks[phase_two]}
 
 

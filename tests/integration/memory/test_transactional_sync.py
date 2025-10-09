@@ -2,12 +2,10 @@ import sys
 
 import pytest
 
-from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
-
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.application.memory.sync_manager import SyncManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
-
+from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
 
 pytestmark = [
     *skip_if_missing_backend("lmdb"),

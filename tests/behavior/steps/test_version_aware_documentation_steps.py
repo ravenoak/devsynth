@@ -2,7 +2,6 @@
 Step definitions for version-aware documentation feature tests.
 """
 
-from tests.behavior.feature_paths import feature_path
 import json
 import os
 import tempfile
@@ -16,8 +15,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from devsynth.application.documentation.ingestion import DocumentationIngestionManager
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

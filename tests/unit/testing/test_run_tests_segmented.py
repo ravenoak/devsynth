@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from devsynth.testing.run_tests import run_tests
+
 from .run_tests_test_utils import build_batch_metadata
 
 
@@ -148,7 +149,9 @@ def test_run_tests_segmented_honors_keyword_filter(monkeypatch, tmp_path):
 
 
 @pytest.mark.fast
-def test_run_segmented_tests_stop_after_maxfail(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_segmented_tests_stop_after_maxfail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """ReqID: RUN-TESTS-SEGMENTED-8 — Stop remaining batches when maxfail is set."""
 
     import devsynth.testing.run_tests as rt
@@ -162,8 +165,10 @@ def test_run_segmented_tests_stop_after_maxfail(monkeypatch: pytest.MonkeyPatch)
         seen_batches.append(node_ids)
         if len(seen_batches) > 1:
             pytest.fail("maxfail should stop additional segments")
-        return False, "segment failed", build_batch_metadata(
-            "batch-stop-1", returncode=1
+        return (
+            False,
+            "segment failed",
+            build_batch_metadata("batch-stop-1", returncode=1),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single_test_batch)

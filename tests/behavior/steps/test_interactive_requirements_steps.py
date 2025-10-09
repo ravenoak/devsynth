@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 import json
 import os
 
@@ -8,8 +7,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.cli.config import CLIConfig
 from devsynth.application.cli.requirements_wizard import requirements_wizard
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

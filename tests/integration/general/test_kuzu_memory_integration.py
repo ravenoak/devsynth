@@ -32,7 +32,6 @@ from devsynth.adapters.memory.memory_adapter import MemorySystemAdapter
 from devsynth.application.memory.kuzu_store import KuzuStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
-
 pytestmark = [pytest.mark.requires_resource("kuzu")]
 
 # These integration tests interact with multiple storage backends

@@ -7,11 +7,14 @@ from pathlib import Path
 import pytest
 
 import devsynth.testing.run_tests as rt
+
 from .run_tests_test_utils import build_batch_metadata, build_segment_metadata
 
 
 @pytest.mark.fast
-def test_run_tests_marker_fallback_skips_segmentation(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_run_tests_marker_fallback_skips_segmentation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """When no nodes match, run_tests should fall back without segmenting."""
 
     monkeypatch.chdir(tmp_path)

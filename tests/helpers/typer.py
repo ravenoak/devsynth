@@ -17,7 +17,12 @@ def _coerce_args(args: Iterable[str] | None) -> list[str]:
     return list(args)
 
 
-def invoke(app: Typer, args: Iterable[str] | None = None, *, env: Mapping[str, str] | None = None) -> Any:
+def invoke(
+    app: Typer,
+    args: Iterable[str] | None = None,
+    *,
+    env: Mapping[str, str] | None = None,
+) -> Any:
     """Invoke a Typer application using :class:`CliRunner`.
 
     Args:

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 import sys
 import types
+from dataclasses import asdict
 from typing import Mapping
 
 import pytest
@@ -66,7 +66,9 @@ def test_config_round_trip_preserves_defaults() -> None:
     raw = config.to_raw_config()
 
     rebuilt = MockLLMConfig.from_mapping(raw)
-    rebuilt_responses = {template.key: template.text for template in rebuilt.response_templates}
+    rebuilt_responses = {
+        template.key: template.text for template in rebuilt.response_templates
+    }
 
     assert rebuilt.default_response == config.default_response
     assert rebuilt_responses["code_review"].startswith("I've reviewed the code")
@@ -79,9 +81,7 @@ def test_generate_matches_custom_template() -> None:
 
     config = MockLLMConfig(
         default_response="fallback",
-        response_templates=(
-            MockResponseTemplate(key="special", text="special reply"),
-        ),
+        response_templates=(MockResponseTemplate(key="special", text="special reply"),),
     )
     adapter = MockLLMAdapter(config)
 
@@ -116,8 +116,12 @@ def test_config_from_mapping_coerces_sequences() -> None:
 
     config = MockLLMConfig.from_mapping(mapping)
 
-    response_map = {template.key: template.text for template in config.response_templates}
-    embedding_map = {template.key: list(template.vector) for template in config.embedding_templates}
+    response_map = {
+        template.key: template.text for template in config.response_templates
+    }
+    embedding_map = {
+        template.key: list(template.vector) for template in config.embedding_templates
+    }
 
     assert response_map == {"special": "handled"}
     assert embedding_map == {"special": [4.0, 5.0]}
@@ -138,7 +142,9 @@ def test_config_from_mapping_falls_back_to_defaults() -> None:
 def test_adapter_initialises_from_mapping() -> None:
     """Mapping input should hydrate the dataclass model and raw config."""
 
-    adapter = MockLLMAdapter({"responses": {"demo": "value"}, "embeddings": {"demo": [0]}})
+    adapter = MockLLMAdapter(
+        {"responses": {"demo": "value"}, "embeddings": {"demo": [0]}}
+    )
 
     assert adapter.config_model.default_response == DEFAULT_RESPONSE_TEXT
     assert adapter.responses["demo"] == "value"
@@ -148,7 +154,9 @@ def test_adapter_initialises_from_mapping() -> None:
 class ErroringMockAdapter(MockLLMAdapter):
     """Adapter that deliberately fails for streaming error propagation checks."""
 
-    def generate(self, prompt: str, parameters: Mapping[str, object] | None = None) -> str:
+    def generate(
+        self, prompt: str, parameters: Mapping[str, object] | None = None
+    ) -> str:
         raise RuntimeError("generate failed")
 
 

@@ -175,7 +175,9 @@ def test_get_command_examples_returns_expected_result() -> None:
     )
     if command_without_examples is not None:
         no_example_output = get_command_examples(command_without_examples)
-        assert "No examples available" in " ".join(str(item) for item in no_example_output)
+        assert "No examples available" in " ".join(
+            str(item) for item in no_example_output
+        )
 
     unknown_examples = get_command_examples("nonexistent")
     assert "Command not found" in str(unknown_examples[0])

@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 
 import pytest
 
+from devsynth.domain.models import wsde_multidisciplinary, wsde_roles, wsde_voting
 from devsynth.domain.models.wsde_core import WSDETeam
-from devsynth.domain.models import wsde_roles, wsde_voting, wsde_multidisciplinary
 
 
 @dataclass
@@ -26,12 +26,16 @@ def _bind_team(team: WSDETeam) -> WSDETeam:
 
     team.assign_roles = wsde_roles.assign_roles.__get__(team)
     team.dynamic_role_reassignment = wsde_roles.dynamic_role_reassignment.__get__(team)
-    team.select_primus_by_expertise = wsde_roles.select_primus_by_expertise.__get__(team)
+    team.select_primus_by_expertise = wsde_roles.select_primus_by_expertise.__get__(
+        team
+    )
     team.vote_on_critical_decision = wsde_voting.vote_on_critical_decision.__get__(team)
     team.consensus_vote = wsde_voting.consensus_vote.__get__(team)
     team.build_consensus = wsde_voting.build_consensus.__get__(team)
     team.apply_multi_disciplinary_dialectical_reasoning = (
-        wsde_multidisciplinary.apply_multi_disciplinary_dialectical_reasoning.__get__(team)
+        wsde_multidisciplinary.apply_multi_disciplinary_dialectical_reasoning.__get__(
+            team
+        )
     )
     return team
 
@@ -43,7 +47,11 @@ def test_weighted_voting_prefers_domain_expertise():
             name="test-team",
             agents=[
                 DummyAgent(name="generalist", expertise=["strategy"]),
-                DummyAgent(name="specialist", expertise=["data privacy", "security"], discipline="security"),
+                DummyAgent(
+                    name="specialist",
+                    expertise=["data privacy", "security"],
+                    discipline="security",
+                ),
                 DummyAgent(name="observer", expertise=[]),
             ],
         )
@@ -119,4 +127,7 @@ def test_multidisciplinary_analysis_structures_results():
     assert result["method"] == "multi_disciplinary_dialectical_reasoning"
     assert len(result["perspectives"]) == 2
     assert result["evaluation"]["score"] > 0
-    assert any("inclusive design" in rec for rec in result["perspectives"][0]["recommendations"])
+    assert any(
+        "inclusive design" in rec
+        for rec in result["perspectives"][0]["recommendations"]
+    )

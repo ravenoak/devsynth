@@ -83,7 +83,9 @@ def test_reasoning_loop_logs_retry_exhaustion(monkeypatch, caplog):
     def always_transient(*_args, **_kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: always_transient
+    )
 
     caplog.set_level("DEBUG", rl.logger.logger.name)
 

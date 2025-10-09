@@ -14,7 +14,6 @@ from devsynth.application.memory.rdflib_store import RDFLibStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 
-
 pytestmark = pytest.mark.requires_resource("rdflib")
 
 
@@ -232,9 +231,7 @@ class TestRDFLibStore:
         assert retrieved_vector.id == vector_id
         assert retrieved_vector.content == "Test vector content"
         assert len(retrieved_vector.item.embedding) == 5
-        assert np.allclose(
-            retrieved_vector.item.embedding, [0.1, 0.2, 0.3, 0.4, 0.5]
-        )
+        assert np.allclose(retrieved_vector.item.embedding, [0.1, 0.2, 0.3, 0.4, 0.5])
         assert retrieved_vector.metadata == {"key": "value"}
         assert isinstance(retrieved_vector.created_at, datetime)
 

@@ -8,8 +8,6 @@ from pathlib import Path
 
 import pytest
 
-
-
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS_DIR = ROOT / "scripts/deployment"
 RUNBOOKS_DIR = ROOT / "docs/deployment/runbooks"

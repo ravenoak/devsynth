@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import pytest
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
@@ -16,8 +16,6 @@ from pytest_bdd import given, parsers, scenarios, then, when
 """Step definitions for the EDRR Coordinator feature."""
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
-
-
 
 scenarios(feature_path(__file__, "general", "edrr_coordinator.feature"))
 import json

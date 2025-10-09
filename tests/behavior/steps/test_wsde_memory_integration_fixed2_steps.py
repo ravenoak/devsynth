@@ -5,15 +5,14 @@ This file implements the step definitions for the WSDE model and memory system i
 feature file, testing the integration between the WSDE model and the memory system.
 """
 
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-
 
 
 scenarios(feature_path(__file__, "general", "wsde_memory_integration.feature"))

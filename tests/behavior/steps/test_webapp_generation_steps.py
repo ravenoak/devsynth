@@ -1,9 +1,9 @@
 """Steps for the webapp generation feature."""
 
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 # Import the common CLI step so background steps are registered
 from .cli_commands_steps import (  # noqa: F401
@@ -12,7 +12,6 @@ from .cli_commands_steps import (  # noqa: F401
     run_command,
     valid_devsynth_project,
 )
-
 
 pytestmark = [pytest.mark.fast]
 

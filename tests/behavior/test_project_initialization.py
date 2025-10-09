@@ -3,12 +3,11 @@
 import pytest
 from pytest_bdd import scenarios
 
+from tests.behavior.feature_paths import feature_path
+
 # Import step definitions
 from .steps.cli_commands_steps import *
 from .steps.test_project_init_steps import *
-
-from tests.behavior.feature_paths import feature_path
-
 
 pytestmark = [pytest.mark.fast]
 

@@ -12,8 +12,8 @@ from hypothesis import strategies as st
 
 from devsynth.application.collaboration.dto import (
     AgentOpinionRecord,
-    ConsensusOutcome,
     ConflictRecord,
+    ConsensusOutcome,
     SynthesisArtifact,
 )
 from devsynth.domain.models.requirement import Requirement
@@ -122,7 +122,9 @@ def test_consensus_outcome_serialization_preserves_invariants(payload: Any) -> N
         assert "T" in outcome.timestamp
 
     # Agent opinions are converted to deterministic ordering.
-    assert all(isinstance(opinion, AgentOpinionRecord) for opinion in outcome.agent_opinions)
+    assert all(
+        isinstance(opinion, AgentOpinionRecord) for opinion in outcome.agent_opinions
+    )
     expected_opinion_order = tuple(
         sorted(
             outcome.agent_opinions,
@@ -165,11 +167,21 @@ def test_consensus_outcome_serialization_preserves_invariants(payload: Any) -> N
         assert outcome.majority_opinion is None
     else:
         assert outcome.synthesis is None
-        assert outcome.majority_opinion is None or isinstance(outcome.majority_opinion, str)
+        assert outcome.majority_opinion is None or isinstance(
+            outcome.majority_opinion, str
+        )
 
     # Serialized payload preserves ordering guarantees.
     round_trip = outcome.to_dict()
-    serialized_opinion_ids = [record["agent_id"] for record in round_trip["agent_opinions"]]
-    assert serialized_opinion_ids == [record.agent_id for record in outcome.agent_opinions]
-    serialized_conflict_ids = [record["conflict_id"] for record in round_trip["conflicts"]]
-    assert serialized_conflict_ids == [record.conflict_id for record in outcome.conflicts]
+    serialized_opinion_ids = [
+        record["agent_id"] for record in round_trip["agent_opinions"]
+    ]
+    assert serialized_opinion_ids == [
+        record.agent_id for record in outcome.agent_opinions
+    ]
+    serialized_conflict_ids = [
+        record["conflict_id"] for record in round_trip["conflicts"]
+    ]
+    assert serialized_conflict_ids == [
+        record.conflict_id for record in outcome.conflicts
+    ]

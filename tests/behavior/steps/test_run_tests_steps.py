@@ -120,7 +120,9 @@ def invoke_run_tests_feature(command_result: dict[str, str]) -> None:
     command_result["output"] = result.stdout + result.stderr
 
 
-@when('I invoke "devsynth run-tests --speed=fast --speed=medium --report --no-parallel"')
+@when(
+    'I invoke "devsynth run-tests --speed=fast --speed=medium --report --no-parallel"'
+)
 def invoke_run_tests_fast_medium(command_result: dict[str, str]) -> None:
     env = os.environ.copy()
     env.setdefault("DEVSYNTH_NO_FILE_LOGGING", "1")
@@ -192,7 +194,9 @@ def coverage_report_exists(path: str) -> None:
     assert report_path.stat().st_size > 0, f"Coverage report {path} is empty"
 
 
-@then(parsers.parse('the coverage report speeds should include "{speed1}" and "{speed2}"'))
+@then(
+    parsers.parse('the coverage report speeds should include "{speed1}" and "{speed2}"')
+)
 def coverage_report_includes_speeds(speed1: str, speed2: str) -> None:
     report_path = Path(_REPO_ROOT) / "test_reports" / "coverage.json"
     with report_path.open("r", encoding="utf-8") as handle:

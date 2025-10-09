@@ -6,7 +6,6 @@ import pytest
 
 from devsynth.application.llm.providers import LMStudioProvider
 
-
 pytestmark = pytest.mark.requires_resource("lmstudio")
 
 
@@ -19,6 +18,7 @@ def _import_provider():
     )
 
     return LMStudioProvider, LMStudioConnectionError, LMStudioModelError
+
 
 class TestLMStudioProvider:
     """Tests for the LMStudioProvider class.

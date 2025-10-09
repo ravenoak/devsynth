@@ -11,9 +11,10 @@ pytestmark = [
     pytest.mark.requires_resource("lmstudio"),
 ]
 
+from tests.behavior.feature_paths import feature_path
+
 # Import the step definitions
 from tests.behavior.steps.test_edrr_real_llm_integration_steps import *  # noqa: F401,F403
-from tests.behavior.feature_paths import feature_path
 
 # Import the scenarios from the canonical behavior asset path.
 scenarios(feature_path(__file__, "general", "edrr_real_llm_integration.feature"))

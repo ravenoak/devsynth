@@ -7,7 +7,6 @@ from types import ModuleType
 import pytest
 from pytest import MonkeyPatch
 
-
 pytestmark = [pytest.mark.requires_resource("webui")]
 
 

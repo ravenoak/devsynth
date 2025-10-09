@@ -16,8 +16,8 @@ pytest.importorskip("lmdb", reason=backend_import_reason("lmdb"))
 
 pytestmark = skip_if_missing_backend("lmdb")
 
-from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.application.memory.dto import MemoryRecord
+from devsynth.application.memory.lmdb_store import LMDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 
 

@@ -70,7 +70,12 @@ def test_inventory_handles_collection_errors(monkeypatch, tmp_path):
     assert p.exists()
     data = json.loads(p.read_text())
     # Ensure empty lists are used on exceptions
-    expected_targets = {"all-tests", "unit-tests", "integration-tests", "behavior-tests"}
+    expected_targets = {
+        "all-tests",
+        "unit-tests",
+        "integration-tests",
+        "behavior-tests",
+    }
     expected_speeds = {"fast", "medium", "slow"}
     assert set(data["targets"].keys()) == expected_targets
     for tgt, speeds in data["targets"].items():

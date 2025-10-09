@@ -21,7 +21,6 @@ from devsynth.domain.models.requirement import (
 )
 from devsynth.domain.models.wsde_facade import WSDETeam
 
-
 pytestmark = [pytest.mark.fast]
 
 

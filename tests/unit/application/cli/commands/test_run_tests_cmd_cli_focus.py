@@ -45,16 +45,22 @@ class RecordingBridge(UXBridge):
 
 
 @pytest.fixture
-def cli_app(monkeypatch: pytest.MonkeyPatch) -> tuple[ModuleType, Typer, RecordingBridge]:
+def cli_app(
+    monkeypatch: pytest.MonkeyPatch,
+) -> tuple[ModuleType, Typer, RecordingBridge]:
     """Load the CLI command with a stub bridge and patched coverage helpers."""
 
     app, module = build_minimal_cli_app(monkeypatch)
 
     bridge = RecordingBridge()
     monkeypatch.setattr(module, "bridge", bridge)
-    monkeypatch.setattr(module, "pytest_cov_support_status", lambda env=None: (True, None))
+    monkeypatch.setattr(
+        module, "pytest_cov_support_status", lambda env=None: (True, None)
+    )
     monkeypatch.setattr(module, "coverage_artifacts_status", lambda: (True, None))
-    monkeypatch.setattr(module, "enforce_coverage_threshold", lambda exit_on_failure=False: 97.0)
+    monkeypatch.setattr(
+        module, "enforce_coverage_threshold", lambda exit_on_failure=False: 97.0
+    )
     monkeypatch.setattr(module, "ensure_pytest_cov_plugin_env", lambda env: False)
     monkeypatch.setattr(module, "ensure_pytest_bdd_plugin_env", lambda env: False)
 
@@ -181,7 +187,9 @@ def test_cli_inventory_mode_exports_json(
     monkeypatch.setattr(
         module,
         "run_tests",
-        lambda *a, **k: (_ for _ in ()).throw(AssertionError("run_tests should not execute")),
+        lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("run_tests should not execute")
+        ),
     )
 
     monkeypatch.chdir(tmp_path)
@@ -192,7 +200,12 @@ def test_cli_inventory_mode_exports_json(
     inventory_path = tmp_path / "test_reports" / "test_inventory.json"
     assert inventory_path.exists()
     payload = json.loads(inventory_path.read_text())
-    assert set(payload["targets"]) == {"all-tests", "unit-tests", "integration-tests", "behavior-tests"}
+    assert set(payload["targets"]) == {
+        "all-tests",
+        "unit-tests",
+        "integration-tests",
+        "behavior-tests",
+    }
     assert calls  # ensure collection invoked
 
 

@@ -1,5 +1,4 @@
 import time
-
 from typing import Any, Callable, cast
 
 import pytest
@@ -10,7 +9,6 @@ from devsynth.fallback import (
     reset_prometheus_metrics,
     retry_with_exponential_backoff,
 )
-
 from tests._typing_utils import ensure_typed_decorator
 
 

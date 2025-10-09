@@ -4,7 +4,6 @@ Step definitions for the self_analyzer.feature file.
 This module contains the step definitions for the Self Analyzer behavior tests.
 """
 
-from tests.behavior.feature_paths import feature_path
 import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -12,13 +11,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, then, when
 
-
 from devsynth.application.code_analysis.self_analyzer import SelfAnalyzer
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

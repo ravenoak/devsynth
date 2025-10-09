@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-
-
 """Step definitions for the ``edrr_coordinator.feature`` file.
 
 This module previously contained minimal stub implementations that
@@ -11,10 +9,10 @@ importable, it now simply re-exports everything from
 ``test_edrr_coordinator_steps``.
 """
 
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

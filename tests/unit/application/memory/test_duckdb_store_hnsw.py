@@ -11,7 +11,6 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-
 pytestmark = pytest.mark.requires_resource("duckdb")
 
 
@@ -101,8 +100,8 @@ setattr(interfaces_pkg, "memory", memory_stub)
 
 sys.modules.pop("devsynth.application.memory.duckdb_store", None)
 
-from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.application.memory.dto import MemoryRecord
+from devsynth.application.memory.duckdb_store import DuckDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType, MemoryVector
 from devsynth.exceptions import MemoryStoreError
 

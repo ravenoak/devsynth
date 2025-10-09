@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import datetime
 from pathlib import Path
 from typing import Any
@@ -9,8 +8,6 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.application.edrr.wsde_specialized_agents import (
-
-
     CriticAgent,
     ResearchLeadAgent,
     TestWriterAgent,
@@ -21,7 +18,7 @@ from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
     ResearchArtifact,
 )
 from devsynth.domain.models.memory import MemoryItem, MemoryType
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = pytest.mark.fast
 
@@ -74,7 +71,7 @@ def graph_with_research_artifacts(context: _Context, tmp_path: Path) -> None:
     context.graph_adapter = adapter
 
 
-@when(parsers.parse("the specialist rotation runs from \"{start_node}\""))
+@when(parsers.parse('the specialist rotation runs from "{start_node}"'))
 def run_specialist_rotation_step(context: _Context, start_node: str) -> None:
     assert context.graph_adapter is not None, "Graph adapter not initialised"
     agents = [ResearchLeadAgent(), CriticAgent(), TestWriterAgent()]

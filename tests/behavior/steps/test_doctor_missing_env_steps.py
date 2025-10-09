@@ -1,14 +1,12 @@
-from tests.behavior.feature_paths import feature_path
 import pytest
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 """Step definitions for doctor_missing_env.feature."""
 
 from pytest_bdd import given, scenarios, then
-
-
 
 scenarios(feature_path(__file__, "general", "doctor_missing_env.feature"))
 

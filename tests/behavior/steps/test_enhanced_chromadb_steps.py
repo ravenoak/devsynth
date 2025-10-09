@@ -19,39 +19,49 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 pytestmark = pytest.mark.requires_resource("chromadb")
 
 
-pytest.importorskip("chromadb")
-from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
-from devsynth.adapters.provider_system import embed, get_provider
-from devsynth.ports.memory_port import MemoryPort
+try:
+    chromadb = pytest.importorskip("chromadb")
+    from devsynth.adapters.chromadb_memory_store import ChromaDBMemoryStore
+    from devsynth.adapters.provider_system import embed, get_provider
+    from devsynth.ports.memory_port import MemoryPort
 
+    CHROMADB_AVAILABLE = True
 
+    class MemoryStoreWithCache(ChromaDBMemoryStore):
+        """Extended ChromaDBMemoryStore with caching capabilities for testing."""
 
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.cache = {}
+            self.cache_hits = 0
+            self.disk_io_count = 0
 
-class MemoryStoreWithCache(ChromaDBMemoryStore):
-    """Extended ChromaDBMemoryStore with caching capabilities for testing."""
+        def retrieve(self, item_id: str) -> MemoryItem:
+            """Retrieve with caching for testing cache behavior."""
+            if item_id in self.cache:
+                self.cache_hits += 1
+                return self.cache[item_id]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.cache = {}
-        self.cache_hits = 0
-        self.disk_io_count = 0
+            # Track disk I/O operations
+            self.disk_io_count += 1
+            result = super().retrieve(item_id)
+            self.cache[item_id] = result
+            return result
 
-    def retrieve(self, item_id: str) -> MemoryItem:
-        """Retrieve with caching for testing cache behavior."""
-        if item_id in self.cache:
-            self.cache_hits += 1
-            return self.cache[item_id]
-
-        # Track disk I/O operations
-        self.disk_io_count += 1
-        result = super().retrieve(item_id)
-        self.cache[item_id] = result
-        return result
+except ImportError:
+    CHROMADB_AVAILABLE = False
+    ChromaDBMemoryStore = None
+    embed = None
+    get_provider = None
+    MemoryPort = None
+    MemoryStoreWithCache = None
 
 
 @pytest.fixture
 def memory_store_with_cache(temp_chromadb_path, llm_provider):
     """Create a ChromaDB memory store with caching for tests."""
+    if not CHROMADB_AVAILABLE:
+        pytest.skip("ChromaDB not available")
     store = MemoryStoreWithCache(
         persist_directory=temp_chromadb_path, use_provider_system=True
     )

@@ -6,7 +6,6 @@ import pytest
 
 from devsynth.application.prompts.auto_tuning import PromptVariant
 
-
 pytestmark = pytest.mark.fast
 
 

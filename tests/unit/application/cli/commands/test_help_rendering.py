@@ -37,7 +37,9 @@ def recording_console() -> RecordingConsole:
 
 
 @pytest.mark.medium
-def test_display_command_help_renders_panel(recording_console: RecordingConsole) -> None:
+def test_display_command_help_renders_panel(
+    recording_console: RecordingConsole,
+) -> None:
     """Command-specific help should render within a Rich panel."""
 
     command = next(iter(COMMANDS))
@@ -52,7 +54,9 @@ def test_display_command_help_renders_panel(recording_console: RecordingConsole)
 
 
 @pytest.mark.medium
-def test_display_all_commands_help_renders_panel(recording_console: RecordingConsole) -> None:
+def test_display_all_commands_help_renders_panel(
+    recording_console: RecordingConsole,
+) -> None:
     """The command overview should render a panel summary."""
 
     display_all_commands_help(recording_console)
@@ -65,7 +69,9 @@ def test_display_all_commands_help_renders_panel(recording_console: RecordingCon
 
 
 @pytest.mark.medium
-def test_display_command_table_renders_table(recording_console: RecordingConsole) -> None:
+def test_display_command_table_renders_table(
+    recording_console: RecordingConsole,
+) -> None:
     """Tables should be emitted as Rich Table instances for further styling."""
 
     display_command_table(None, recording_console)

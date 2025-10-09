@@ -92,7 +92,7 @@ def sanitized_webui(
 
 @pytest.mark.fast
 def test_webui_run_configures_dashboard_and_invokes_router(
-    streamlit_free_webui: Tuple[ModuleType, ModuleType, dict[str, MagicMock]]
+    streamlit_free_webui: Tuple[ModuleType, ModuleType, dict[str, MagicMock]],
 ) -> None:
     """ReqID: WEBUI-DASH-TOGGLE-01 — Layout toggles wire routing without Streamlit."""
 
@@ -105,7 +105,10 @@ def test_webui_run_configures_dashboard_and_invokes_router(
     assert ui._router.pages == navigation
     assert st.set_page_config.call_count == 1
     sidebar_css_calls = [call.args[0] for call in st.markdown.call_args_list]
-    assert any("sidebar-content" in payload and "30%" in payload for payload in sidebar_css_calls)
+    assert any(
+        "sidebar-content" in payload and "30%" in payload
+        for payload in sidebar_css_calls
+    )
     st.sidebar.radio.assert_called_once_with("Navigation", list(navigation), index=0)
 
 
@@ -146,8 +149,12 @@ def test_progress_updates_emit_telemetry_and_sanitize_checkpoints(
         "Stage <2>",
     ]
 
-    status_payloads = [call.args[0] for call in status_container.markdown.call_args_list]
-    assert any(payload.startswith("**safe::Download <file>") for payload in status_payloads)
+    status_payloads = [
+        call.args[0] for call in status_container.markdown.call_args_list
+    ]
+    assert any(
+        payload.startswith("**safe::Download <file>") for payload in status_payloads
+    )
     bar_updates = [call.args[0] for call in bar_container.progress.call_args_list]
     assert bar_updates[0] == 0.0
     assert pytest.approx(bar_updates[-1]) == 1.0

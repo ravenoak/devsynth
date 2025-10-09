@@ -55,7 +55,7 @@ except Exception:
 
 # Disable optional backends by default so tests don't try to import heavy
 # dependencies unless explicitly enabled.
-os.environ.setdefault("ENABLE_CHROMADB", "0")
+# os.environ.setdefault("ENABLE_CHROMADB", "0")
 
 # Provide lightweight stubs for optional network libraries used by plugins
 if "openai" not in sys.modules:
@@ -78,4 +78,3 @@ if "httpx" not in sys.modules:
     _httpx.BaseTransport = object
     _httpx.AsyncBaseTransport = object
     sys.modules["httpx"] = _httpx
-

@@ -9,7 +9,6 @@ from tests.fixtures.resources import (
     skip_module_if_backend_disabled,
 )
 
-
 skip_module_if_backend_disabled("chromadb")
 
 chromadb = pytest.importorskip(

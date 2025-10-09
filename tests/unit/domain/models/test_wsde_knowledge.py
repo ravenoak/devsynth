@@ -133,5 +133,8 @@ def test_generate_improvement_suggestions_deduplicates_entries(wsde_module_team)
 
     suggestions_by_text = {item["suggestion"]: item for item in suggestions}
     assert "Revisit learning: Encrypt data stores" in suggestions_by_text
-    assert suggestions_by_text["Revisit learning: Encrypt data stores"]["category"] == "build"
+    assert (
+        suggestions_by_text["Revisit learning: Encrypt data stores"]["category"]
+        == "build"
+    )
     assert "Resolve QA issue: Missing encryption test" in suggestions_by_text

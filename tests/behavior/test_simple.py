@@ -7,7 +7,6 @@ from pytest_bdd import given, scenarios, then, when
 
 from tests.behavior.feature_paths import feature_path
 
-
 pytestmark = [pytest.mark.fast]
 
 # Load the scenarios from the canonical behavior asset path.

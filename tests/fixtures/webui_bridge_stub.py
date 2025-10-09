@@ -30,9 +30,7 @@ def install_streamlit_stub(
 ) -> SupportsStreamlitLike:
     """Install ``stub`` as the Streamlit implementation for WebUI modules."""
 
-    from devsynth.interface import webui_bridge
-    from devsynth.interface import webui
-    from devsynth.interface import webui_state
+    from devsynth.interface import webui, webui_bridge, webui_state
 
     require_stub = _make_stub_factory(stub)
 

@@ -10,7 +10,6 @@ import pytest
 
 from tests.fixtures.streamlit_mocks import make_streamlit_mock
 
-
 pytestmark = [pytest.mark.fast, pytest.mark.usefixtures("force_webui_available")]
 
 
@@ -99,7 +98,9 @@ def test_normalize_step_logs_warning_on_invalid_value(
     module, _ = reloaded_webui_bridge
     warnings: list[str] = []
 
-    monkeypatch.setattr(module.logger, "warning", lambda message: warnings.append(message))
+    monkeypatch.setattr(
+        module.logger, "warning", lambda message: warnings.append(message)
+    )
 
     result = module.WebUIBridge.normalize_wizard_step("not-a-number", total=3)
 
@@ -115,7 +116,9 @@ def test_adjust_step_warns_on_invalid_direction(
     module, _ = reloaded_webui_bridge
     warnings: list[str] = []
 
-    monkeypatch.setattr(module.logger, "warning", lambda message: warnings.append(message))
+    monkeypatch.setattr(
+        module.logger, "warning", lambda message: warnings.append(message)
+    )
 
     step = module.WebUIBridge.adjust_wizard_step("bad", direction="sideways", total="0")
     assert step == 0

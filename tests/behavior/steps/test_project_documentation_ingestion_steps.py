@@ -1,6 +1,5 @@
 """Step definitions for project-based documentation ingestion."""
 
-from tests.behavior.feature_paths import feature_path
 import os
 import tempfile
 from pathlib import Path
@@ -10,14 +9,11 @@ import yaml
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.documentation.documentation_ingestion_manager import (
-
-
     DocumentationIngestionManager,
 )
 from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.memory import MemoryType
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

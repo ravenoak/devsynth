@@ -4,13 +4,10 @@ import pytest
 
 from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
 
-
 pytestmark = [*skip_if_missing_backend("chromadb"), pytest.mark.fast]
 
 
-chromadb = pytest.importorskip(
-    "chromadb", reason=backend_import_reason("chromadb")
-)
+chromadb = pytest.importorskip("chromadb", reason=backend_import_reason("chromadb"))
 ChromaDBStore = pytest.importorskip(
     "devsynth.application.memory.chromadb_store",
     reason=backend_import_reason("chromadb"),
@@ -35,6 +32,7 @@ class _TestableChromaDBStore(ChromaDBStore):
 
 def test_store_and_retrieve_with_fallback(monkeypatch, tmp_path):
     """Store and retrieve items using fallback storage. ReqID: N/A"""
+
     class FailingClient:
         def get_collection(self, name):  # pragma: no cover - forced failure
             raise RuntimeError("fail")

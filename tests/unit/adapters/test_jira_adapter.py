@@ -13,6 +13,7 @@ from devsynth.adapters.jira_adapter import (
     JiraTransitionNotFoundError,
 )
 
+
 @pytest.mark.fast
 def test_create_issue_payload_serialization() -> None:
     """Adapter posts dataclass-serialized payload matching Jira schema."""

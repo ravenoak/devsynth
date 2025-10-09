@@ -12,7 +12,6 @@ from pytest_bdd import given, scenarios, then, when
 from devsynth.domain.models.wsde_facade import WSDETeam
 from tests.behavior.feature_paths import feature_path
 
-
 pytestmark = [pytest.mark.fast]
 
 
@@ -33,6 +32,7 @@ def _load_coordinator() -> "AgentCoordinatorImpl":
     sys.modules.setdefault(module_name, module)
     coordinator_cls = getattr(module, "AgentCoordinatorImpl")
     return coordinator_cls({"features": {"wsde_collaboration": True}})
+
 
 scenarios(feature_path(__file__, "general", "delegate_task.feature"))
 scenarios(feature_path(__file__, "general", "multi_agent_task_delegation.feature"))

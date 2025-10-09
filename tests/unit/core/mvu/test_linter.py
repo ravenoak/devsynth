@@ -1,5 +1,6 @@
-from devsynth.core.mvu.linter import lint_commit_message
 import pytest
+
+from devsynth.core.mvu.linter import lint_commit_message
 
 pytestmark = [pytest.mark.fast]
 

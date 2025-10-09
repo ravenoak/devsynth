@@ -15,7 +15,7 @@ from devsynth.utils.logging import DevSynthLogger, get_logger, setup_logging
 @pytest.mark.fast
 def test_dev_synth_logger_exc_info_baseexception_direct():
     """Test DevSynthLogger with BaseException instance to hit lines 31-35.
-    
+
     ReqID: UT-UTILS-LOG-FINAL-01
     """
     logs = []
@@ -31,7 +31,7 @@ def test_dev_synth_logger_exc_info_baseexception_direct():
 
     # Create a BaseException instance directly
     exc = ValueError("direct exception")
-    
+
     # Test with BaseException instance - this should hit lines 31-35
     logger.error("msg with BaseException", exc_info=exc)
 
@@ -45,7 +45,7 @@ def test_dev_synth_logger_exc_info_baseexception_direct():
 @pytest.mark.fast
 def test_dev_synth_logger_exc_info_true_with_active_exception():
     """Test DevSynthLogger with exc_info=True while exception is active to hit lines 37-38.
-    
+
     ReqID: UT-UTILS-LOG-FINAL-02
     """
     logs = []
@@ -75,7 +75,7 @@ def test_dev_synth_logger_exc_info_true_with_active_exception():
 @pytest.mark.fast
 def test_dev_synth_logger_exc_info_none_and_false_explicit():
     """Test DevSynthLogger with explicit None and False to hit line 40.
-    
+
     ReqID: UT-UTILS-LOG-FINAL-03
     """
     logs = []
@@ -91,7 +91,7 @@ def test_dev_synth_logger_exc_info_none_and_false_explicit():
 
     # Test with explicit None - should hit line 40
     logger.info("msg with None", exc_info=None)
-    
+
     # Test with explicit False - should hit line 40
     logger.info("msg with False", exc_info=False)
 
@@ -104,7 +104,7 @@ def test_dev_synth_logger_exc_info_none_and_false_explicit():
 @pytest.mark.fast
 def test_dev_synth_logger_invalid_exc_info_to_hit_line_48():
     """Test DevSynthLogger with various invalid exc_info to hit line 48.
-    
+
     ReqID: UT-UTILS-LOG-FINAL-04
     """
     logs = []
@@ -142,12 +142,12 @@ def test_dev_synth_logger_invalid_exc_info_to_hit_line_48():
 @pytest.mark.fast
 def test_get_logger_function_direct_call():
     """Test get_logger function directly to ensure line 55 coverage.
-    
+
     ReqID: UT-UTILS-LOG-FINAL-05
     """
     # Direct call to get_logger - should hit line 55
     logger = get_logger("direct.test.logger")
-    
+
     assert isinstance(logger, DevSynthLogger)
     assert logger.logger.name == "direct.test.logger"
 
@@ -155,7 +155,7 @@ def test_get_logger_function_direct_call():
 @pytest.mark.fast
 def test_setup_logging_function_direct_calls(monkeypatch):
     """Test setup_logging function directly to ensure lines 60-61 coverage.
-    
+
     ReqID: UT-UTILS-LOG-FINAL-06
     """
     configure_calls = []
@@ -169,7 +169,7 @@ def test_setup_logging_function_direct_calls(monkeypatch):
 
     # Direct call to setup_logging - should hit lines 60-61
     logger = setup_logging("direct.setup.test", log_level="WARNING")
-    
+
     assert isinstance(logger, DevSynthLogger)
     assert logger.logger.name == "direct.setup.test"
     assert "WARNING" in configure_calls
@@ -178,7 +178,7 @@ def test_setup_logging_function_direct_calls(monkeypatch):
 @pytest.mark.fast
 def test_dev_synth_logger_with_kwargs():
     """Test DevSynthLogger with additional kwargs to ensure complete coverage.
-    
+
     ReqID: UT-UTILS-LOG-FINAL-07
     """
     logs = []

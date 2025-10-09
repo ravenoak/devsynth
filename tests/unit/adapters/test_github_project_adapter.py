@@ -12,12 +12,13 @@ from devsynth.adapters.github_project import (
     AddColumnVariables,
     GitHubProjectAdapter,
     GitHubProjectError,
+    GraphQLHTTPClient,
+    GraphQLHTTPResponse,
     GraphQLRequest,
     ProjectBoard,
     ProjectCard,
     ProjectColumn,
 )
-from devsynth.adapters.github_project import GraphQLHTTPClient, GraphQLHTTPResponse
 
 
 @dataclass
@@ -52,9 +53,7 @@ class StubHTTPClient(GraphQLHTTPClient):
         variables_raw = json["variables"]
         if not isinstance(query_raw, str) or not isinstance(variables_raw, Mapping):
             raise AssertionError("StubHTTPClient received invalid request payload")
-        self.captured.append(
-            GraphQLRequest(query=query_raw, variables=variables_raw)
-        )
+        self.captured.append(GraphQLRequest(query=query_raw, variables=variables_raw))
         try:
             return next(self._responses)
         except StopIteration as exc:  # pragma: no cover - defensive guard in tests
@@ -183,9 +182,7 @@ def test_fetch_and_mutations_with_stub_client() -> None:
             StubResponse(
                 {
                     "data": {
-                        "addProjectColumn": {
-                            "column": {"id": "col2", "name": "Done"}
-                        }
+                        "addProjectColumn": {"column": {"id": "col2", "name": "Done"}}
                     }
                 }
             ),
@@ -193,9 +190,7 @@ def test_fetch_and_mutations_with_stub_client() -> None:
                 {
                     "data": {
                         "addProjectCard": {
-                            "cardEdge": {
-                                "node": {"id": "card2", "note": "New task"}
-                            }
+                            "cardEdge": {"node": {"id": "card2", "note": "New task"}}
                         }
                     }
                 }

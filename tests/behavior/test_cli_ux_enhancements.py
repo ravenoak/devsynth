@@ -1,6 +1,7 @@
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import scenarios
+
+from tests.behavior.feature_paths import feature_path
 
 pytest.skip("Placeholder feature not implemented", allow_module_level=True)
 
@@ -29,7 +30,6 @@ from .steps.test_cli_ux_enhancements_steps import (
     select_completion,
     type_partial_command,
 )
-
 
 pytestmark = [pytest.mark.fast]
 

@@ -32,24 +32,24 @@ class TestRealWorldScenarios:
         self.test_dir = Path(tempfile.mkdtemp(prefix="devsynth_real_world_"))
         self.original_cwd = os.getcwd()
         os.chdir(self.test_dir)
-        
+
         # Set up offline environment
         os.environ["DEVSYNTH_PROVIDER"] = "stub"
         os.environ["DEVSYNTH_OFFLINE"] = "true"
-        
+
     def teardown_method(self):
         """Clean up test environment."""
         os.chdir(self.original_cwd)
         if self.test_dir.exists():
             shutil.rmtree(self.test_dir)
-            
+
         # Clean up environment
         for key in ["DEVSYNTH_PROVIDER", "DEVSYNTH_OFFLINE"]:
             os.environ.pop(key, None)
 
     def test_task_manager_cli_workflow(self):
         """Test Case 1: Complete task manager CLI application development.
-        
+
         Validates DevSynth's ability to create a functional CLI application
         with CRUD operations, data persistence, and user interaction.
         """
@@ -57,7 +57,7 @@ class TestRealWorldScenarios:
         project_dir = self.test_dir / "task_manager"
         project_dir.mkdir()
         os.chdir(project_dir)
-        
+
         # Mock user inputs for init wizard
         mock_inputs = [
             "Task Manager CLI",  # Project name
@@ -65,15 +65,15 @@ class TestRealWorldScenarios:
             "Python",  # Primary language
             "CLI Application",  # Project type
         ]
-        
-        with patch('builtins.input', side_effect=mock_inputs):
+
+        with patch("builtins.input", side_effect=mock_inputs):
             # This would normally call init_cmd, but we'll simulate the key outputs
             # since the actual implementation may require LLM providers
             self._create_mock_project_structure(project_dir)
-            
+
         # Validate project initialization
         assert (project_dir / ".devsynth" / "project.yaml").exists()
-        
+
         # Step 2: Requirements Definition
         requirements_content = """# Task Manager CLI Requirements
 
@@ -93,46 +93,48 @@ class TestRealWorldScenarios:
 - The system shall display helpful messages and error handling
 - The system shall validate user input and provide feedback
 """
-        
+
         requirements_file = project_dir / "requirements.md"
         requirements_file.write_text(requirements_content)
-        
+
         # Step 3: Simulate spec generation
         self._create_mock_specifications(project_dir, "task_manager")
-        
+
         # Step 4: Simulate test generation
         self._create_mock_tests(project_dir, "task_manager")
-        
+
         # Step 5: Simulate code generation
         self._create_mock_implementation(project_dir, "task_manager")
-        
+
         # Validation: Check that all expected artifacts exist
         expected_files = [
             "requirements.md",
-            "specs.md", 
+            "specs.md",
             "tests/test_task_manager.py",
             "src/task_manager/__init__.py",
             "src/task_manager/cli.py",
             "src/task_manager/models.py",
             "src/task_manager/storage.py",
         ]
-        
+
         for file_path in expected_files:
-            assert (project_dir / file_path).exists(), f"Missing expected file: {file_path}"
-            
+            assert (
+                project_dir / file_path
+            ).exists(), f"Missing expected file: {file_path}"
+
         # Validate content quality
         specs_content = (project_dir / "specs.md").read_text()
         assert "Task" in specs_content or "task" in specs_content.lower()
         assert "Architecture" in specs_content
         assert "Implementation" in specs_content
-        
+
         test_content = (project_dir / "tests/test_task_manager.py").read_text()
         assert "def test_" in test_content
         assert "task" in test_content.lower()
-        
+
     def test_finance_tracker_api_workflow(self):
         """Test Case 2: Complete finance tracker API development.
-        
+
         Validates DevSynth's ability to create a RESTful web API with
         database integration and authentication.
         """
@@ -140,18 +142,18 @@ class TestRealWorldScenarios:
         project_dir = self.test_dir / "finance_tracker"
         project_dir.mkdir()
         os.chdir(project_dir)
-        
+
         mock_inputs = [
             "Personal Finance Tracker API",
-            "RESTful API for tracking personal expenses and budgets", 
+            "RESTful API for tracking personal expenses and budgets",
             "Python",
             "Web API",
             "FastAPI",
         ]
-        
-        with patch('builtins.input', side_effect=mock_inputs):
+
+        with patch("builtins.input", side_effect=mock_inputs):
             self._create_mock_project_structure(project_dir)
-            
+
         # Step 2: Requirements with API focus
         requirements_content = """# Personal Finance Tracker API Requirements
 
@@ -172,54 +174,54 @@ class TestRealWorldScenarios:
 - The system shall require authentication for all endpoints
 - The system shall sanitize input data to prevent injection attacks
 """
-        
+
         (project_dir / "requirements.md").write_text(requirements_content)
-        
+
         # Simulate the full workflow
         self._create_mock_specifications(project_dir, "finance_api")
-        self._create_mock_tests(project_dir, "finance_api") 
+        self._create_mock_tests(project_dir, "finance_api")
         self._create_mock_implementation(project_dir, "finance_api")
-        
+
         # Validation: API-specific artifacts
         expected_api_files = [
             "src/finance_api/main.py",
-            "src/finance_api/models.py", 
+            "src/finance_api/models.py",
             "src/finance_api/routes.py",
             "src/finance_api/database.py",
             "tests/test_api_endpoints.py",
             "tests/test_models.py",
         ]
-        
+
         for file_path in expected_api_files:
             assert (project_dir / file_path).exists(), f"Missing API file: {file_path}"
-            
+
         # Validate API-specific content
         main_content = (project_dir / "src/finance_api/main.py").read_text()
         assert "FastAPI" in main_content or "fastapi" in main_content
         assert "app" in main_content.lower()
-        
+
     def test_file_organizer_gui_workflow(self):
         """Test Case 3: Complete file organizer desktop application.
-        
+
         Validates DevSynth's ability to create a desktop application with
         GUI interface and file system operations.
         """
-        # Step 1: Project Initialization  
+        # Step 1: Project Initialization
         project_dir = self.test_dir / "file_organizer"
         project_dir.mkdir()
         os.chdir(project_dir)
-        
+
         mock_inputs = [
             "Smart File Organizer",
             "Desktop utility for automatic file organization and duplicate detection",
-            "Python", 
+            "Python",
             "Desktop Application",
             "tkinter",
         ]
-        
-        with patch('builtins.input', side_effect=mock_inputs):
+
+        with patch("builtins.input", side_effect=mock_inputs):
             self._create_mock_project_structure(project_dir)
-            
+
         # Step 2: Requirements with GUI focus
         requirements_content = """# Smart File Organizer Requirements
 
@@ -240,36 +242,36 @@ class TestRealWorldScenarios:
 - The system shall organize documents by file type (PDF, DOC, TXT, etc.)
 - The system shall handle media files into appropriate directories
 """
-        
+
         (project_dir / "requirements.md").write_text(requirements_content)
-        
+
         # Simulate the full workflow
         self._create_mock_specifications(project_dir, "file_organizer")
         self._create_mock_tests(project_dir, "file_organizer")
         self._create_mock_implementation(project_dir, "file_organizer")
-        
+
         # Validation: GUI-specific artifacts
         expected_gui_files = [
             "src/file_organizer/main.py",
             "src/file_organizer/gui.py",
-            "src/file_organizer/organizer.py", 
+            "src/file_organizer/organizer.py",
             "src/file_organizer/config.py",
             "tests/test_organizer_logic.py",
             "tests/test_config_management.py",
         ]
-        
+
         for file_path in expected_gui_files:
             assert (project_dir / file_path).exists(), f"Missing GUI file: {file_path}"
-            
+
         # Validate GUI-specific content
         gui_content = (project_dir / "src/file_organizer/gui.py").read_text()
         assert "tkinter" in gui_content.lower() or "tk" in gui_content
-        
+
     def _create_mock_project_structure(self, project_dir: Path) -> None:
         """Create basic project structure that DevSynth init would generate."""
         devsynth_dir = project_dir / ".devsynth"
         devsynth_dir.mkdir(exist_ok=True)
-        
+
         # Create project.yaml
         project_config = """
 projectName: Test Project
@@ -284,11 +286,11 @@ resources:
     offline: true
 """
         (devsynth_dir / "project.yaml").write_text(project_config)
-        
+
         # Create basic directory structure
         for dir_name in ["src", "tests", "docs"]:
             (project_dir / dir_name).mkdir(exist_ok=True)
-            
+
     def _create_mock_specifications(self, project_dir: Path, app_type: str) -> None:
         """Create mock specifications that would be generated by DevSynth."""
         specs_content = f"""# {app_type.replace('_', ' ').title()} Specifications
@@ -312,12 +314,12 @@ resources:
 - Error condition testing for robustness
 """
         (project_dir / "specs.md").write_text(specs_content)
-        
+
     def _create_mock_tests(self, project_dir: Path, app_type: str) -> None:
         """Create mock test files that would be generated by DevSynth."""
         tests_dir = project_dir / "tests"
         tests_dir.mkdir(exist_ok=True)
-        
+
         test_content = f"""'''Tests for {app_type.replace('_', ' ').title()} application.
 
 Generated by DevSynth test generation workflow.
@@ -345,17 +347,19 @@ class Test{app_type.replace('_', '').title()}:
         # Mock implementation for testing  
         assert True  # Placeholder for actual test logic
 """
-        
+
         (tests_dir / f"test_{app_type}.py").write_text(test_content)
-        
+
     def _create_mock_implementation(self, project_dir: Path, app_type: str) -> None:
         """Create mock implementation files that would be generated by DevSynth."""
         src_dir = project_dir / "src" / app_type
         src_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create __init__.py
-        (src_dir / "__init__.py").write_text(f'"""{app_type.replace("_", " ").title()} application."""\n')
-        
+        (src_dir / "__init__.py").write_text(
+            f'"""{app_type.replace("_", " ").title()} application."""\n'
+        )
+
         # Create main module
         main_content = f"""'''{app_type.replace('_', ' ').title()} main module.
 
@@ -394,9 +398,9 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        
+
         (src_dir / "main.py").write_text(main_content)
-        
+
         # Create additional modules based on app type
         if app_type == "task_manager":
             self._create_task_manager_modules(src_dir)
@@ -404,7 +408,7 @@ if __name__ == "__main__":
             self._create_finance_api_modules(src_dir, project_dir)
         elif app_type == "file_organizer":
             self._create_file_organizer_modules(src_dir, project_dir)
-            
+
     def _create_task_manager_modules(self, src_dir: Path) -> None:
         """Create task manager specific modules."""
         # CLI module
@@ -435,7 +439,7 @@ if __name__ == "__main__":
     app()
 """
         (src_dir / "cli.py").write_text(cli_content)
-        
+
         # Models module
         models_content = """'''Task manager data models.'''
 
@@ -464,7 +468,7 @@ class Task:
             self.created_at = datetime.now()
 """
         (src_dir / "models.py").write_text(models_content)
-        
+
         # Storage module
         storage_content = """'''Task manager storage operations.'''
 
@@ -491,7 +495,7 @@ class TaskStorage:
         return []
 """
         (src_dir / "storage.py").write_text(storage_content)
-        
+
     def _create_finance_api_modules(self, src_dir: Path, project_dir: Path) -> None:
         """Create finance API specific modules."""
         # Main FastAPI app
@@ -524,7 +528,7 @@ async def get_balance(db: Session = Depends(get_db)):
     return {"balance": 0.0}
 """
         (src_dir / "main.py").write_text(main_content)
-        
+
         # Models module
         models_content = """'''Finance tracker data models.'''
 
@@ -560,7 +564,7 @@ class Transaction(TransactionCreate):
         from_attributes = True
 """
         (src_dir / "models.py").write_text(models_content)
-        
+
         # Database module
         database_content = """'''Finance tracker database operations.'''
 
@@ -586,7 +590,7 @@ def get_db() -> Session:
         db.close()
 """
         (src_dir / "database.py").write_text(database_content)
-        
+
         # Routes module
         routes_content = """'''Finance tracker API routes.'''
 
@@ -611,10 +615,10 @@ async def list_transactions(db: Session = Depends(get_db)):
     return []
 """
         (src_dir / "routes.py").write_text(routes_content)
-        
+
         # Create additional test files
         tests_dir = project_dir / "tests"
-        
+
         api_test_content = """'''API endpoint tests.'''
 
 import pytest
@@ -629,7 +633,7 @@ def test_list_transactions():
     assert True  # Placeholder
 """
         (tests_dir / "test_api_endpoints.py").write_text(api_test_content)
-        
+
         models_test_content = """'''Data model tests.'''
 
 import pytest
@@ -639,7 +643,7 @@ def test_transaction_model():
     assert True  # Placeholder
 """
         (tests_dir / "test_models.py").write_text(models_test_content)
-        
+
     def _create_file_organizer_modules(self, src_dir: Path, project_dir: Path) -> None:
         """Create file organizer specific modules."""
         # GUI module
@@ -698,7 +702,7 @@ class FileOrganizerGUI:
         self.root.mainloop()
 """
         (src_dir / "gui.py").write_text(gui_content)
-        
+
         # Organizer module
         organizer_content = """'''File organization logic.'''
 
@@ -757,7 +761,7 @@ class FileOrganizer:
                 shutil.move(str(file_path), str(target_path))
 """
         (src_dir / "organizer.py").write_text(organizer_content)
-        
+
         # Config module
         config_content = """'''File organizer configuration management.'''
 
@@ -798,10 +802,10 @@ class ConfigManager:
         }
 """
         (src_dir / "config.py").write_text(config_content)
-        
+
         # Create additional test files
         tests_dir = project_dir / "tests"
-        
+
         organizer_test_content = """'''File organizer logic tests.'''
 
 import pytest
@@ -816,7 +820,7 @@ def test_duplicate_detection():
     assert True  # Placeholder
 """
         (tests_dir / "test_organizer_logic.py").write_text(organizer_test_content)
-        
+
         config_test_content = """'''Configuration management tests.'''
 
 import pytest
@@ -829,7 +833,7 @@ def test_config_load_save():
 
     def test_edrr_methodology_validation(self):
         """Validate that generated applications properly implement EDRR methodology.
-        
+
         This test ensures that the development process follows the Expand,
         Differentiate, Refine, Retrospect approach correctly.
         """
@@ -837,9 +841,9 @@ def test_config_load_save():
         project_dir = self.test_dir / "edrr_validation"
         project_dir.mkdir()
         os.chdir(project_dir)
-        
+
         self._create_mock_project_structure(project_dir)
-        
+
         # Simple requirements for EDRR validation
         requirements_content = """# Simple Calculator Requirements
 
@@ -850,19 +854,19 @@ def test_config_load_save():
 - The system shall divide two numbers with zero-division protection
 """
         (project_dir / "requirements.md").write_text(requirements_content)
-        
+
         # Simulate EDRR phases
         self._simulate_expand_phase(project_dir)
-        self._simulate_differentiate_phase(project_dir) 
+        self._simulate_differentiate_phase(project_dir)
         self._simulate_refine_phase(project_dir)
         self._simulate_retrospect_phase(project_dir)
-        
+
         # Validate EDRR artifacts
         assert (project_dir / "edrr_expand.md").exists()
         assert (project_dir / "edrr_differentiate.md").exists()
         assert (project_dir / "edrr_refine.md").exists()
         assert (project_dir / "edrr_retrospect.md").exists()
-        
+
     def _simulate_expand_phase(self, project_dir: Path) -> None:
         """Simulate the Expand phase of EDRR."""
         expand_content = """# EDRR Expand Phase Results
@@ -880,7 +884,7 @@ def test_config_load_save():
 - User interface layer for interaction management
 """
         (project_dir / "edrr_expand.md").write_text(expand_content)
-        
+
     def _simulate_differentiate_phase(self, project_dir: Path) -> None:
         """Simulate the Differentiate phase of EDRR."""
         differentiate_content = """# EDRR Differentiate Phase Results
@@ -901,7 +905,7 @@ def test_config_load_save():
 - Include logging for debugging and audit trails
 """
         (project_dir / "edrr_differentiate.md").write_text(differentiate_content)
-        
+
     def _simulate_refine_phase(self, project_dir: Path) -> None:
         """Simulate the Refine phase of EDRR."""
         refine_content = """# EDRR Refine Phase Results
@@ -924,7 +928,7 @@ def test_config_load_save():
 - Included troubleshooting section for common issues
 """
         (project_dir / "edrr_refine.md").write_text(refine_content)
-        
+
     def _simulate_retrospect_phase(self, project_dir: Path) -> None:
         """Simulate the Retrospect phase of EDRR."""
         retrospect_content = """# EDRR Retrospect Phase Results
@@ -951,63 +955,64 @@ def test_config_load_save():
 
 
 @pytest.mark.medium
-@pytest.mark.integration  
+@pytest.mark.integration
 @pytest.mark.requires_resource("cli")
 class TestDevSynthWorkflowIntegration:
     """Integration tests for DevSynth CLI workflow commands."""
-    
+
     def test_init_command_creates_project_structure(self):
         """Test that devsynth init creates proper project structure."""
         with tempfile.TemporaryDirectory() as temp_dir:
             project_dir = Path(temp_dir) / "test_project"
             project_dir.mkdir()
-            
+
             # Change to project directory
             original_cwd = os.getcwd()
             try:
                 os.chdir(project_dir)
-                
+
                 # Mock the init command behavior
                 devsynth_dir = project_dir / ".devsynth"
                 devsynth_dir.mkdir()
-                
+
                 project_config = {
                     "projectName": "Test Project",
                     "version": "0.1.0",
                     "structure": {
                         "type": "standard",
                         "components": ["src", "tests", "docs"],
-                        "primaryLanguage": "Python"
-                    }
+                        "primaryLanguage": "Python",
+                    },
                 }
-                
+
                 import yaml
+
                 with open(devsynth_dir / "project.yaml", "w") as f:
                     yaml.dump(project_config, f)
-                    
+
                 # Validate structure
                 assert (project_dir / ".devsynth" / "project.yaml").exists()
-                
+
                 # Load and validate config content
                 with open(devsynth_dir / "project.yaml", "r") as f:
                     loaded_config = yaml.safe_load(f)
-                    
+
                 assert loaded_config["projectName"] == "Test Project"
                 assert loaded_config["structure"]["primaryLanguage"] == "Python"
-                
+
             finally:
                 os.chdir(original_cwd)
-                
+
     def test_workflow_artifact_generation(self):
         """Test that the workflow generates expected artifacts."""
         with tempfile.TemporaryDirectory() as temp_dir:
             project_dir = Path(temp_dir) / "artifact_test"
             project_dir.mkdir()
-            
+
             original_cwd = os.getcwd()
             try:
                 os.chdir(project_dir)
-                
+
                 # Create mock requirements
                 requirements_content = """# Test Requirements
                 
@@ -1017,10 +1022,10 @@ class TestDevSynthWorkflowIntegration:
 - The system shall provide output formatting
 """
                 (project_dir / "requirements.md").write_text(requirements_content)
-                
+
                 # Mock the artifact generation that would happen
                 # in the actual DevSynth workflow
-                
+
                 # Specs generation
                 specs_content = """# Technical Specifications
 
@@ -1035,11 +1040,11 @@ class TestDevSynthWorkflowIntegration:
 - Documentation with examples
 """
                 (project_dir / "specs.md").write_text(specs_content)
-                
+
                 # Test generation
                 tests_dir = project_dir / "tests"
                 tests_dir.mkdir()
-                
+
                 test_content = """'''Generated test suite.'''
 
 import pytest
@@ -1053,11 +1058,11 @@ def test_error_handling():
     assert True
 """
                 (tests_dir / "test_main.py").write_text(test_content)
-                
+
                 # Code generation
                 src_dir = project_dir / "src"
                 src_dir.mkdir()
-                
+
                 code_content = """'''Generated application code.'''
 
 def main():
@@ -1068,26 +1073,28 @@ if __name__ == "__main__":
     main()
 """
                 (src_dir / "main.py").write_text(code_content)
-                
+
                 # Validate all artifacts exist
                 expected_artifacts = [
                     "requirements.md",
-                    "specs.md", 
+                    "specs.md",
                     "tests/test_main.py",
-                    "src/main.py"
+                    "src/main.py",
                 ]
-                
+
                 for artifact in expected_artifacts:
-                    assert (project_dir / artifact).exists(), f"Missing artifact: {artifact}"
-                    
+                    assert (
+                        project_dir / artifact
+                    ).exists(), f"Missing artifact: {artifact}"
+
                 # Validate content quality
                 specs_text = (project_dir / "specs.md").read_text()
                 assert "Architecture" in specs_text
                 assert "Implementation" in specs_text
-                
+
                 test_text = (project_dir / "tests/test_main.py").read_text()
                 assert "def test_" in test_text
                 assert "pytest" in test_text
-                
+
             finally:
                 os.chdir(original_cwd)

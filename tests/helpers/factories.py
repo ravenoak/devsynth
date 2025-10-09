@@ -90,4 +90,3 @@ def build_dialectical_sequence(
         steps=(step,),
         status=status,
     )
-

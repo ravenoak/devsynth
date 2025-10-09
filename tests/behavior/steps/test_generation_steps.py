@@ -1,6 +1,5 @@
 """Steps for the test generation feature."""
 
-from tests.behavior.feature_paths import feature_path
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -8,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

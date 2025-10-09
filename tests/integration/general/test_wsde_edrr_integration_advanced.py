@@ -25,8 +25,6 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.methodology.base import Phase
 
 
-
-
 class ExpertAgent(UnifiedAgent):
     """Agent with specific expertise for testing."""
 

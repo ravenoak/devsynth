@@ -33,7 +33,7 @@ if "yaml" not in sys.modules:
 
 
 try:  # pragma: no cover - prefer real package if available
-    from devsynth.core.config_loader import CoreConfig, _MAX_JSON_DEPTH, load_config
+    from devsynth.core.config_loader import _MAX_JSON_DEPTH, CoreConfig, load_config
 except ModuleNotFoundError:  # pragma: no cover - fallback for minimal environments
     REPO_ROOT = Path(__file__).resolve().parents[3]
     MODULE_NAME = "devsynth.core.config_loader"
@@ -99,7 +99,9 @@ def test_load_config_supports_nested_json_resources(tmp_path: Path) -> None:
 
 
 @pytest.mark.fast
-def test_environment_override_preserves_resources(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_environment_override_preserves_resources(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Environment overrides should not mutate nested resources."""
 
     project_dir = tmp_path / "project"

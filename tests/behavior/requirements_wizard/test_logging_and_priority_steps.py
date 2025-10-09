@@ -7,12 +7,10 @@ import pytest
 import yaml
 from pytest_bdd import given, scenarios, then, when
 
-from tests.behavior.feature_paths import feature_path
-
 from devsynth.application.requirements.wizard import requirements_wizard
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.utils.logging import configure_logging
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

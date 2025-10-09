@@ -1,8 +1,7 @@
-from tests.behavior.feature_paths import feature_path
-import pytest
 from pathlib import Path
 from typing import List
 
+import pytest
 import typer
 from pytest_bdd import given, parsers, scenarios, then, when
 from typer import Typer
@@ -13,8 +12,7 @@ from devsynth.application.cli.commands.mvu_init_cmd import mvu_init_cmd
 from devsynth.application.cli.commands.mvu_lint_cmd import mvu_lint_cmd
 from devsynth.application.cli.commands.mvu_report_cmd import mvu_report_cmd
 from devsynth.application.cli.commands.mvu_rewrite_cmd import mvu_rewrite_cmd
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

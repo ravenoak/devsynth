@@ -123,9 +123,7 @@ class TestMixedBackendTransactions:
         assert store.stored_payloads[-1].metadata["version"] == "initial"
 
         rollback_entries = [
-            entry
-            for entry in context.operations
-            if entry["phase"] == "rollback"
+            entry for entry in context.operations if entry["phase"] == "rollback"
         ]
         assert rollback_entries
         for entry in rollback_entries:

@@ -1,12 +1,11 @@
 import pytest
 
+from devsynth.application.memory.dto import VectorStoreStats
 from devsynth.application.memory.vector_providers import (
     SimpleVectorStoreProviderFactory,
 )
-from devsynth.application.memory.dto import VectorStoreStats
 from devsynth.domain.interfaces.memory import MemoryVector, VectorStore
 from devsynth.exceptions import ValidationError
-
 
 pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
 
@@ -22,9 +21,7 @@ class StubStore(VectorStore[MemoryVector]):
     def retrieve_vector(self, vector_id: str) -> MemoryVector | None:
         return None
 
-    def similarity_search(
-        self, query_embedding, top_k: int = 5
-    ) -> list[MemoryVector]:
+    def similarity_search(self, query_embedding, top_k: int = 5) -> list[MemoryVector]:
         return []
 
     def delete_vector(self, vector_id: str) -> bool:

@@ -15,8 +15,6 @@ from devsynth.metrics import (
     reset_metrics,
 )
 
-
-
 pytestmark = pytest.mark.fast
 
 

@@ -6,7 +6,6 @@ feature file, which tests the functionality of the Memory Manager layer with
 specialized adapters and memory tagging with EDRR phases.
 """
 
-from tests.behavior.feature_paths import feature_path
 import ast
 import json
 from typing import Any, Dict, List, Optional
@@ -14,11 +13,11 @@ from typing import Any, Dict, List, Optional
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
-
 
 
 scenarios(feature_path(__file__, "general", "memory_manager.feature"))

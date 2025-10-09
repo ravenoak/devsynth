@@ -22,7 +22,6 @@ from devsynth.domain.models.requirement import (
     RequirementChange,
 )
 
-
 pytestmark = pytest.mark.fast
 
 
@@ -129,7 +128,9 @@ class _MemoryManagerStub:
         metadata,
     ) -> None:
         self.records.append(
-            _MemoryRecord(payload=payload, memory_type=memory_type, edrr_phase=edrr_phase)
+            _MemoryRecord(
+                payload=payload, memory_type=memory_type, edrr_phase=edrr_phase
+            )
         )
 
 

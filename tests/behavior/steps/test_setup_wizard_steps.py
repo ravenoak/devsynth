@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import os
 from pathlib import Path
 from typing import Optional, Sequence
@@ -10,8 +9,7 @@ import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.interface.ux_bridge import UXBridge
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

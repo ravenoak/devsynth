@@ -47,9 +47,7 @@ class DummySyncManager:
         if stores is None:
             return {name: list(records) for name, records in self._grouped.items()}
         return {
-            name: list(self._grouped[name])
-            for name in stores
-            if name in self._grouped
+            name: list(self._grouped[name]) for name in stores if name in self._grouped
         }
 
 

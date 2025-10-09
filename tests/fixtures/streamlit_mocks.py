@@ -6,6 +6,7 @@ from types import ModuleType
 from typing import Any, Literal, Protocol, cast
 from unittest.mock import MagicMock
 
+
 class DummyContext:
     """Simple context manager used for streamlit forms/spinners."""
 

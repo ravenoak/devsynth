@@ -10,7 +10,6 @@ import pytest
 
 from tests.fixtures.fake_streamlit import FakeStreamlit
 
-
 pytestmark = [pytest.mark.medium]
 
 

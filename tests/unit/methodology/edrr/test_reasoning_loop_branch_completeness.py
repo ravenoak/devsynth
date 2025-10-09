@@ -128,11 +128,15 @@ def test_reasoning_loop_budget_precheck(monkeypatch):
 
     called = {"value": 0}
 
-    def unexpected_call(*_args: Any, **_kwargs: Any) -> dict[str, Any]:  # pragma: no cover - guard
+    def unexpected_call(
+        *_args: Any, **_kwargs: Any
+    ) -> dict[str, Any]:  # pragma: no cover - guard
         called["value"] += 1
         return {"status": "completed"}
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: unexpected_call)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: unexpected_call
+    )
 
     results = rl.reasoning_loop(
         wsde_team=NullWSDETeam(),
@@ -480,8 +484,12 @@ def test_reasoning_loop_branch_matrix(monkeypatch):
 
         sleep_budget: list[float] = []
         patcher.setattr(rl.time, "monotonic", fake_monotonic)
-        patcher.setattr(rl.time, "sleep", lambda duration: sleep_budget.append(duration))
-        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: limited_retry)
+        patcher.setattr(
+            rl.time, "sleep", lambda duration: sleep_budget.append(duration)
+        )
+        patcher.setattr(
+            rl, "_import_apply_dialectical_reasoning", lambda: limited_retry
+        )
 
         results = rl.reasoning_loop(
             wsde_team=NullWSDETeam(),
@@ -644,7 +652,9 @@ def test_reasoning_loop_branch_matrix(monkeypatch):
                 return sequence_map
             return {"status": "completed", "phase": "refine"}
 
-        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: mapping_payload)
+        patcher.setattr(
+            rl, "_import_apply_dialectical_reasoning", lambda: mapping_payload
+        )
 
         results = rl.reasoning_loop(
             wsde_team=NullWSDETeam(),
@@ -671,7 +681,9 @@ def test_reasoning_loop_branch_matrix(monkeypatch):
                 }
             return {"status": "completed", "phase": "refine"}
 
-        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: invalid_next_phase)
+        patcher.setattr(
+            rl, "_import_apply_dialectical_reasoning", lambda: invalid_next_phase
+        )
 
         results = rl.reasoning_loop(
             wsde_team=NullWSDETeam(),

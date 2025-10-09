@@ -11,6 +11,7 @@ from devsynth.adapters.provider_system import (
     BaseProvider,
     FallbackProvider,
     LMStudioProvider,
+    NullProvider,
     OpenAIProvider,
     ProviderError,
     ProviderFactory,
@@ -20,7 +21,6 @@ from devsynth.adapters.provider_system import (
 
 # Do not use import-time gating; tests are fully mocked/offline by default.
 # Resource gating is applied only in truly live-provider tests.
-
 
 
 pytestmark = pytest.mark.fast
@@ -149,6 +149,61 @@ def test_acomplete_error_succeeds():
                 )
 
     asyncio.run(run_test())
+
+
+def test_null_provider_complete_raises_error():
+    """Test that NullProvider complete raises ProviderError."""
+    provider = NullProvider(reason="Test reason")
+    with pytest.raises(ProviderError) as exc_info:
+        provider.complete("test prompt")
+    assert "LLM provider is disabled: Test reason" in str(exc_info.value)
+
+
+def test_null_provider_acomplete_raises_error():
+    """Test that NullProvider acomplete raises ProviderError."""
+    provider = NullProvider(reason="Async test reason")
+
+    async def run_test():
+        with pytest.raises(ProviderError) as exc_info:
+            await provider.acomplete("test prompt")
+        assert "LLM provider is disabled: Async test reason" in str(exc_info.value)
+
+    asyncio.run(run_test())
+
+
+def test_null_provider_embed_raises_error():
+    """Test that NullProvider embed raises ProviderError."""
+    provider = NullProvider(reason="Embed test reason")
+    with pytest.raises(ProviderError) as exc_info:
+        provider.embed("test text")
+    assert (
+        "Embeddings unavailable because provider is disabled: Embed test reason"
+        in str(exc_info.value)
+    )
+
+
+def test_null_provider_aembed_raises_error():
+    """Test that NullProvider aembed raises ProviderError."""
+    provider = NullProvider(reason="Async embed test reason")
+
+    async def run_test():
+        with pytest.raises(ProviderError) as exc_info:
+            await provider.aembed("test text")
+        assert (
+            "Embeddings unavailable because provider is disabled: Async embed test reason"
+            in str(exc_info.value)
+        )
+
+    asyncio.run(run_test())
+
+
+def test_null_provider_initialization():
+    """Test NullProvider initialization with custom reason."""
+    provider = NullProvider(reason="Custom reason")
+    assert provider.reason == "Custom reason"
+
+    provider_default = NullProvider()
+    assert provider_default.reason == "Provider disabled"
 
 
 def test_provider_factory_create_provider_succeeds():
@@ -493,9 +548,9 @@ def test_openai_provider_acomplete_has_expected(monkeypatch):
 
         async def post(self, url, headers=None, json=None):  # noqa: ANN001 - stub
             calls.append({"url": url, "headers": headers, "json": json})
-            return _AsyncResponse({
-                "choices": [{"message": {"content": "Async test completion"}}]
-            })
+            return _AsyncResponse(
+                {"choices": [{"message": {"content": "Async test completion"}}]}
+            )
 
     class _HttpxStub:
         HTTPError = Exception
@@ -514,7 +569,10 @@ def test_openai_provider_acomplete_has_expected(monkeypatch):
         assert calls == [
             {
                 "url": "https://api.openai.com/v1/chat/completions",
-                "headers": {"Authorization": "Bearer test_key", "Content-Type": "application/json"},
+                "headers": {
+                    "Authorization": "Bearer test_key",
+                    "Content-Type": "application/json",
+                },
                 "json": {
                     "model": "gpt-4",
                     "messages": [

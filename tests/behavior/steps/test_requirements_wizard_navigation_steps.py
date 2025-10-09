@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 import importlib
 import sys
 from types import ModuleType
@@ -7,13 +6,12 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 pytest.importorskip("streamlit")
 from devsynth.interface.webui import WebUI
-
-
 
 scenarios(
     feature_path(

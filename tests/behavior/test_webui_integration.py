@@ -1,6 +1,7 @@
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import scenarios
+
+from tests.behavior.feature_paths import feature_path
 
 # Skip these high-level integration scenarios until fully implemented
 pytest.skip("Integration scenarios are unstable", allow_module_level=True)

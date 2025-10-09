@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-from collections import deque
 import sys
 import types
+from collections import deque
 from types import MethodType, SimpleNamespace
 from typing import Callable
 from unittest.mock import MagicMock
@@ -41,7 +41,9 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for minimal envs
 
     pydantic_stub.ValidationError = _ValidationError  # type: ignore[attr-defined]
 
-    def _Field(*args, default=None, **_kwargs):  # noqa: ANN001 - mimic pydantic signature
+    def _Field(
+        *args, default=None, **_kwargs
+    ):  # noqa: ANN001 - mimic pydantic signature
         return default
 
     class _FieldValidationInfo:  # noqa: D401 - simple placeholder
@@ -172,8 +174,8 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for minimal envs
     )
     sys.modules["requests"] = requests_stub
 
-from devsynth.adapters.provider_system import BaseProvider
 import devsynth.fallback as fallback_module
+from devsynth.adapters.provider_system import BaseProvider
 from devsynth.metrics import reset_metrics
 
 
@@ -252,7 +254,9 @@ async def async_retry_harness(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespac
 
     original_emit = provider._emit_retry_telemetry
 
-    def _record_telemetry(self: BaseProvider, exc: Exception, attempt: int, delay: float) -> None:
+    def _record_telemetry(
+        self: BaseProvider, exc: Exception, attempt: int, delay: float
+    ) -> None:
         telemetry_events.append(
             SimpleNamespace(exception=exc, attempt=attempt, delay=delay)
         )

@@ -15,7 +15,7 @@ from devsynth.utils.logging import DevSynthLogger, get_logger, setup_logging
 @pytest.mark.fast
 def test_dev_synth_logger_handles_tuple_exc_info():
     """Test DevSynthLogger with 3-tuple exc_info to cover line 42.
-    
+
     ReqID: UT-UTILS-LOG-COV-01
     """
     logs = []
@@ -50,7 +50,7 @@ def test_dev_synth_logger_handles_tuple_exc_info():
 @pytest.mark.fast
 def test_dev_synth_logger_handles_invalid_exc_info():
     """Test DevSynthLogger with invalid exc_info types to cover line 40.
-    
+
     ReqID: UT-UTILS-LOG-COV-02
     """
     logs = []
@@ -85,12 +85,12 @@ def test_dev_synth_logger_handles_invalid_exc_info():
 @pytest.mark.fast
 def test_get_logger_returns_correct_instance():
     """Test get_logger function directly to ensure line 55 coverage.
-    
+
     ReqID: UT-UTILS-LOG-COV-03
     """
     logger_name = "test.logger.name"
     logger = get_logger(logger_name)
-    
+
     assert isinstance(logger, DevSynthLogger)
     assert logger.logger.name == logger_name
 
@@ -98,7 +98,7 @@ def test_get_logger_returns_correct_instance():
 @pytest.mark.fast
 def test_setup_logging_with_different_log_levels(monkeypatch):
     """Test setup_logging function with various log levels to ensure lines 60-61 coverage.
-    
+
     ReqID: UT-UTILS-LOG-COV-04
     """
     called_with = []
@@ -132,7 +132,7 @@ def test_setup_logging_with_different_log_levels(monkeypatch):
 @pytest.mark.fast
 def test_dev_synth_logger_handles_false_exc_info():
     """Test DevSynthLogger with exc_info=False to ensure complete coverage.
-    
+
     ReqID: UT-UTILS-LOG-COV-05
     """
     logs = []
@@ -156,7 +156,7 @@ def test_dev_synth_logger_handles_false_exc_info():
 @pytest.mark.fast
 def test_dev_synth_logger_handles_none_exc_info():
     """Test DevSynthLogger with exc_info=None to ensure complete coverage.
-    
+
     ReqID: UT-UTILS-LOG-COV-06
     """
     logs = []

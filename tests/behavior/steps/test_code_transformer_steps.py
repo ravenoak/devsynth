@@ -4,7 +4,6 @@ Step definitions for the code_transformer.feature file.
 This module contains the step definitions for the Code Transformer behavior tests.
 """
 
-from tests.behavior.feature_paths import feature_path
 import os
 import tempfile
 from pathlib import Path
@@ -13,13 +12,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, then, when
 
-
 from devsynth.application.code_analysis.transformer import CodeTransformer
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

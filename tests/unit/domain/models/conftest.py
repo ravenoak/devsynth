@@ -33,7 +33,9 @@ class StubWSDEAgent:
     discipline: str | None = None
     id: str = field(default_factory=lambda: str(uuid4()))
 
-    def generate_ideas(self, task: dict[str, Any], max_ideas: int = 3) -> list[dict[str, Any]]:
+    def generate_ideas(
+        self, task: dict[str, Any], max_ideas: int = 3
+    ) -> list[dict[str, Any]]:
         """Return a predictable batch of ideas or raise a configured error."""
 
         if self.idea_error_factory is not None:

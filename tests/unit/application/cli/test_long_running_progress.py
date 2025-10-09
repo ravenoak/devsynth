@@ -370,9 +370,7 @@ def test_subtask_completion_rolls_up_and_freezes_summary(fake_clock: FakeClock) 
 
     main_task_after = indicator._progress.tasks[main_task_id]
     expected_rollup = (
-        remaining
-        * main_task.total
-        / (len(indicator._subtasks) * stage_one_task.total)
+        remaining * main_task.total / (len(indicator._subtasks) * stage_one_task.total)
     )
     assert main_task_after.completed == pytest.approx(
         before_completion + expected_rollup
@@ -623,9 +621,7 @@ def test_simulation_timeline_tracks_history_and_alias_renames() -> None:
     history = result["history"]
     history_statuses = [entry.status for entry in history]
     assert history_statuses == ["Queued", "Processing", "Finalizing"]
-    assert [entry.completed for entry in history] == pytest.approx(
-        [0.0, 51.0, 102.0]
-    )
+    assert [entry.completed for entry in history] == pytest.approx([0.0, 51.0, 102.0])
 
     checkpoints = result["checkpoints"]
     checkpoint_progress = [cp.progress for cp in checkpoints]

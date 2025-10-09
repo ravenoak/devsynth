@@ -1,6 +1,5 @@
 """BDD steps for the ``apispec`` command."""
 
-from tests.behavior.feature_paths import feature_path
 import importlib
 import os
 from unittest.mock import MagicMock
@@ -8,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

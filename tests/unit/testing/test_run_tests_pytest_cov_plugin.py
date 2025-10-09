@@ -120,7 +120,9 @@ def test_run_tests_aborts_when_pytest_cov_missing(
     monkeypatch.setattr(run_tests_module, "_pytest_cov_module_available", lambda: False)
 
     def _fail_collect(*args: object, **kwargs: object) -> list[str]:
-        raise AssertionError("collect_tests_with_cache should not run when pytest-cov is missing")
+        raise AssertionError(
+            "collect_tests_with_cache should not run when pytest-cov is missing"
+        )
 
     monkeypatch.setattr(run_tests_module, "collect_tests_with_cache", _fail_collect)
 

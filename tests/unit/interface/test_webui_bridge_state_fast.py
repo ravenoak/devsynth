@@ -7,7 +7,9 @@ from tests.helpers.dummies import DummySessionState, DummyStreamlit, DummyWizard
 
 
 @pytest.mark.fast
-def test_webui_bridge_get_wizard_manager_uses_session_state(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_bridge_get_wizard_manager_uses_session_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     dummy_streamlit = DummyStreamlit()
     monkeypatch.setattr(webui_bridge, "st", dummy_streamlit)
     monkeypatch.setattr(webui_bridge, "_require_streamlit", lambda: None)
@@ -31,7 +33,9 @@ def test_webui_bridge_get_wizard_manager_uses_session_state(monkeypatch: pytest.
 
     monkeypatch.setattr(webui_bridge.WebUIBridge, "create_wizard_manager", fake_create)
 
-    manager = bridge.get_wizard_manager("onboarding", steps=3, initial_state={"ready": True})
+    manager = bridge.get_wizard_manager(
+        "onboarding", steps=3, initial_state={"ready": True}
+    )
 
     assert isinstance(manager, DummyWizardManager)
     assert captured["session_state"] is dummy_streamlit.session_state
@@ -41,24 +45,32 @@ def test_webui_bridge_get_wizard_manager_uses_session_state(monkeypatch: pytest.
 
 
 @pytest.mark.fast
-def test_webui_bridge_create_wizard_manager_instantiates_stub(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_bridge_create_wizard_manager_instantiates_stub(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     import devsynth.interface.wizard_state_manager as wizard_state_module
 
     dummy_state = DummySessionState()
     recorded: dict[str, object] = {}
 
     class RecorderWizardManager(DummyWizardManager):
-        def __init__(self, session_state, wizard_name, steps, initial_state=None):  # noqa: ANN001 - interface
+        def __init__(
+            self, session_state, wizard_name, steps, initial_state=None
+        ):  # noqa: ANN001 - interface
             super().__init__(session_state, wizard_name, steps, initial_state)
             recorded["session_state"] = session_state
             recorded["wizard_name"] = wizard_name
             recorded["steps"] = steps
             recorded["initial_state"] = initial_state
 
-    monkeypatch.setattr(wizard_state_module, "WizardStateManager", RecorderWizardManager)
+    monkeypatch.setattr(
+        wizard_state_module, "WizardStateManager", RecorderWizardManager
+    )
 
     bridge = webui_bridge.WebUIBridge()
-    manager = bridge.create_wizard_manager(dummy_state, "alignment", steps=4, initial_state={"step": 1})
+    manager = bridge.create_wizard_manager(
+        dummy_state, "alignment", steps=4, initial_state={"step": 1}
+    )
 
     assert isinstance(manager, RecorderWizardManager)
     assert recorded == {
@@ -88,7 +100,9 @@ def test_webui_bridge_session_helpers_delegate(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(webui_bridge, "_get_session_value", fake_get)
     monkeypatch.setattr(webui_bridge, "_set_session_value", fake_set)
 
-    result = webui_bridge.WebUIBridge.get_session_value(sentinel_state, "existing", default="missing")
+    result = webui_bridge.WebUIBridge.get_session_value(
+        sentinel_state, "existing", default="missing"
+    )
     updated = webui_bridge.WebUIBridge.set_session_value(sentinel_state, "new", "data")
 
     assert result == "retrieved"

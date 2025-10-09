@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import json
 import os
 from pathlib import Path
@@ -12,8 +11,7 @@ import yaml
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.config.unified_loader import UnifiedConfigLoader
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

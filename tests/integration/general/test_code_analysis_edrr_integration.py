@@ -35,8 +35,6 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
 
 
-
-
 @pytest.mark.slow
 def test_agent_type_expert_exists():
     """Ensure the EXPERT enum is defined."""

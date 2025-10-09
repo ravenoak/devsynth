@@ -1,12 +1,9 @@
-from tests.behavior.feature_paths import feature_path
 from uuid import uuid4
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.application.requirements.dialectical_reasoner import (
-
-
     ConsensusError,
     DialecticalReasonerService,
 )
@@ -17,12 +14,11 @@ from devsynth.domain.interfaces.requirement import (
     RequirementRepositoryInterface,
 )
 from devsynth.domain.models.requirement import RequirementChange
-
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = pytest.mark.fast
 scenarios(feature_path(__file__, "general", "dialectical_reasoning.feature"))
+
 
 class _DummyNotification:
     def notify_change_proposed(self, payload):

@@ -74,6 +74,8 @@ pydantic_module.FieldValidationInfo = type(
     (object,),
     {"field_name": "", "data": {}},
 )  # type: ignore[attr-defined]
+
+
 def _field_validator(*_args, **_kwargs):  # type: ignore[override]
     def decorator(func):
         return func
@@ -346,7 +348,9 @@ def _time_generator(values: Iterable[float]) -> callable:
 
 
 @pytest.mark.fast
-def test_webui_require_streamlit_reports_install_guidance(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_require_streamlit_reports_install_guidance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Missing Streamlit surfaces actionable guidance."""
 
     monkeypatch.setattr(webui, "_STREAMLIT", None)
@@ -447,7 +451,9 @@ def test_webui_bridge_display_result_sanitizes_without_streamlit(
     assert method == expected_method
     rendered = getattr(message, "renderable", message)
     assert payload not in str(rendered)
-    assert payload not in str(getattr(bridge.messages[-1], "renderable", bridge.messages[-1]))
+    assert payload not in str(
+        getattr(bridge.messages[-1], "renderable", bridge.messages[-1])
+    )
 
 
 @pytest.mark.fast
@@ -535,18 +541,26 @@ def test_webui_ui_progress_eta_formats(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_wizard_helpers_clamp_malformed_inputs() -> None:
     """Wizard helpers coerce malformed navigation requests into range."""
 
-    next_step = webui_bridge.WebUIBridge.adjust_wizard_step("2", direction="next", total=0)
+    next_step = webui_bridge.WebUIBridge.adjust_wizard_step(
+        "2", direction="next", total=0
+    )
     assert next_step == 0
 
-    back_step = webui_bridge.WebUIBridge.adjust_wizard_step(0, direction="back", total=1)
+    back_step = webui_bridge.WebUIBridge.adjust_wizard_step(
+        0, direction="back", total=1
+    )
     assert back_step == 0
 
-    same_step = webui_bridge.WebUIBridge.adjust_wizard_step(5, direction="stay", total=3)
+    same_step = webui_bridge.WebUIBridge.adjust_wizard_step(
+        5, direction="stay", total=3
+    )
     assert same_step == 2
 
     normalized = webui_bridge.WebUIBridge.normalize_wizard_step(" 4.7 ", total=3)
     assert normalized == 2
 
-    normalized_invalid = webui_bridge.WebUIBridge.normalize_wizard_step("not-a-number", total=4)
+    normalized_invalid = webui_bridge.WebUIBridge.normalize_wizard_step(
+        "not-a-number", total=4
+    )
     assert normalized == 2
     assert normalized_invalid == 0

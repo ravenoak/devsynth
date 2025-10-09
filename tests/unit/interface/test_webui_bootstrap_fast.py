@@ -7,12 +7,16 @@ from tests.helpers.dummies import DummyStreamlit
 
 
 @pytest.mark.fast
-def test_webui_run_registers_router_and_hydrates_session(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_run_registers_router_and_hydrates_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     dummy_streamlit = DummyStreamlit()
     recorded: dict[str, object] = {}
 
     class DummyRouter:
-        def __init__(self, ui, pages) -> None:  # noqa: ANN001 - interface dictated by Router
+        def __init__(
+            self, ui, pages
+        ) -> None:  # noqa: ANN001 - interface dictated by Router
             recorded["ui"] = ui
             recorded["pages"] = dict(pages)
 
@@ -34,7 +38,9 @@ def test_webui_run_registers_router_and_hydrates_session(monkeypatch: pytest.Mon
 
 
 @pytest.mark.fast
-def test_webui_command_dispatch_invokes_cli_targets(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_command_dispatch_invokes_cli_targets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     dummy_streamlit = DummyStreamlit()
     monkeypatch.setattr(webui, "st", dummy_streamlit)
 
@@ -57,14 +63,18 @@ def test_webui_command_dispatch_invokes_cli_targets(monkeypatch: pytest.MonkeyPa
 
 
 @pytest.mark.fast
-def test_webui_command_dispatch_reports_value_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_webui_command_dispatch_reports_value_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     dummy_streamlit = DummyStreamlit()
     monkeypatch.setattr(webui, "st", dummy_streamlit)
 
     ui = webui.WebUI()
     captured: list[tuple[str, str | None]] = []
 
-    def capture(message: str, *, highlight: bool = False, message_type: str | None = None) -> None:
+    def capture(
+        message: str, *, highlight: bool = False, message_type: str | None = None
+    ) -> None:
         captured.append((message, message_type))
 
     monkeypatch.setattr(ui, "display_result", capture)
@@ -75,5 +85,9 @@ def test_webui_command_dispatch_reports_value_errors(monkeypatch: pytest.MonkeyP
     result = ui._handle_command_errors(failing_command, "Failed to execute")
 
     assert result is None
-    assert any("Invalid value" in message for message, category in captured if category == "error")
+    assert any(
+        "Invalid value" in message
+        for message, category in captured
+        if category == "error"
+    )
     assert any("Please check your input" in message for message, _ in captured)

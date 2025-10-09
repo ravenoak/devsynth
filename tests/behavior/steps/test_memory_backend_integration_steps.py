@@ -5,7 +5,6 @@ This file implements the step definitions for the memory backend integration
 feature file, testing all available memory backends with the WSDE model.
 """
 
-from tests.behavior.feature_paths import feature_path
 import logging
 import os
 import time
@@ -20,7 +19,7 @@ from devsynth.application.memory.memory_manager import MemoryManager
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.domain.models.wsde_facade import WSDETeam
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [
     pytest.mark.fast,
@@ -36,7 +35,6 @@ chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
 }
 if not chromadb_enabled:
     pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
-
 
 
 logger = logging.getLogger(__name__)

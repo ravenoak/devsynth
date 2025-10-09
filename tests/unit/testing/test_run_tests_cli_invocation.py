@@ -17,6 +17,7 @@ from types import SimpleNamespace
 import pytest
 
 import devsynth.testing.run_tests as rt
+
 from .run_tests_test_utils import build_batch_metadata
 
 
@@ -718,11 +719,17 @@ def test_run_tests_generates_artifacts_for_normal_profile(
     monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", "tests/unit")
     monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", "tests")
 
-    monkeypatch.setattr(rt, "collect_tests_with_cache", lambda *_: ["tests/unit/test_ok.py::test_one"])
+    monkeypatch.setattr(
+        rt, "collect_tests_with_cache", lambda *_: ["tests/unit/test_ok.py::test_one"]
+    )
 
     lifecycle: list[str] = []
-    monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: lifecycle.append("reset"))
-    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: lifecycle.append("ensure"))
+    monkeypatch.setattr(
+        rt, "_reset_coverage_artifacts", lambda: lifecycle.append("reset")
+    )
+    monkeypatch.setattr(
+        rt, "_ensure_coverage_artifacts", lambda: lifecycle.append("ensure")
+    )
 
     popen_envs: list[dict[str, str]] = []
 
@@ -774,7 +781,9 @@ def test_run_tests_generates_artifacts_with_autoload_disabled(
     monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", "tests/unit")
     monkeypatch.setitem(rt.TARGET_PATHS, "all-tests", "tests")
 
-    monkeypatch.setattr(rt, "collect_tests_with_cache", lambda *_: ["tests/unit/test_ok.py::test_one"])
+    monkeypatch.setattr(
+        rt, "collect_tests_with_cache", lambda *_: ["tests/unit/test_ok.py::test_one"]
+    )
 
     monkeypatch.setattr(rt, "_reset_coverage_artifacts", lambda: None)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)

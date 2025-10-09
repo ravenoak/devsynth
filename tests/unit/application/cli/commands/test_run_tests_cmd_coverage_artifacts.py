@@ -1,19 +1,17 @@
+import importlib
 import json
 import logging
 import os
 import runpy
+import sys
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from typing import Any, List
 
 import coverage
 import pytest
 from typer import Typer
 from typer.testing import CliRunner
-
-import importlib
-import sys
-from types import ModuleType
 
 from devsynth.testing import run_tests as run_tests_module
 
@@ -380,8 +378,12 @@ def test_fast_profile_generates_coverage_and_exits_successfully(
     assert (tmp_path / ".coverage").exists()
     assert (tmp_path / "test_reports" / "coverage.json").exists()
     assert (tmp_path / "htmlcov" / "index.html").exists()
-    assert popen_envs and all("-p pytest_cov" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
-    assert popen_envs and all("pytest_bdd" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs)
+    assert popen_envs and all(
+        "-p pytest_cov" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs
+    )
+    assert popen_envs and all(
+        "pytest_bdd" in env.get("PYTEST_ADDOPTS", "") for env in popen_envs
+    )
     assert combine_calls, "coverage fragments should be consolidated"
 
 

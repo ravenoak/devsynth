@@ -5,7 +5,6 @@ This file implements the step definitions for the non-hierarchical collaboration
 feature file, testing the non-hierarchical collaboration capabilities of the WSDE model.
 """
 
-from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,8 +14,7 @@ from devsynth.application.agents.base import BaseAgent
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDETeam
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

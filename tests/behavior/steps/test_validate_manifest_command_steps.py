@@ -1,20 +1,17 @@
 """Steps for the validate manifest command feature."""
 
-from tests.behavior.feature_paths import feature_path
-import pytest
 from pathlib import Path
 
+import pytest
 from pytest_bdd import given, scenarios, then
 
+from tests.behavior.feature_paths import feature_path
 
 # Reuse generic CLI step implementations so we don't duplicate behavior.
 from .cli_commands_steps import *  # noqa: F401,F403 - re-export CLI steps
 from .test_analyze_commands_steps import check_error_message  # noqa: F401
 
 pytestmark = [pytest.mark.fast]
-
-
-
 
 
 @given("no manifest file exists at the provided path")

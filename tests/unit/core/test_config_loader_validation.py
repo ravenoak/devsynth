@@ -26,17 +26,17 @@ if "yaml" not in sys.modules:
 try:  # pragma: no cover - prefer installed package
     from devsynth.core.config_loader import (
         _MAX_JSON_DEPTH,
+        CoreConfig,
         _coerce_core_config_data,
         _coerce_issue_provider_config,
         _coerce_json_object,
         _coerce_mvuu_config,
         _coerce_mvuu_issues,
         _is_directory_map,
-        _parse_env,
-        CoreConfig,
-        load_config,
         _load_toml,
         _load_yaml,
+        _parse_env,
+        load_config,
     )
 except ModuleNotFoundError:  # pragma: no cover - fallback for minimal environments
     REPO_ROOT = Path(__file__).resolve().parents[3]

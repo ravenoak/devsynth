@@ -241,13 +241,13 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 )
             )
 
-            def _mock_enforce_coverage_threshold(exit_on_failure: bool = False) -> float:
+            def _mock_enforce_coverage_threshold(
+                exit_on_failure: bool = False,
+            ) -> float:
                 if command_context.get("coverage_failure", False):
                     message = command_context.get(
                         "coverage_failure_message",
-                        (
-                            "Coverage {:.2f}% is below the {:.0f}% gate"
-                        ).format(
+                        ("Coverage {:.2f}% is below the {:.0f}% gate").format(
                             command_context.get("coverage_percent", 0.0),
                             DEFAULT_COVERAGE_THRESHOLD,
                         ),
@@ -297,9 +297,15 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
     failure_message = command_context.get("coverage_failure_message")
     if failure_message and failure_message not in command_context.get("output", ""):
         command_context["output"] = command_context.get("output", "") + failure_message
-    command_context["run_tests_call_captured"] = bool(command_context.get("run_tests_call"))
+    command_context["run_tests_call_captured"] = bool(
+        command_context.get("run_tests_call")
+    )
 
-    if not command_context.get("run_tests_call") and cli_args and cli_args[0] == "run-tests":
+    if (
+        not command_context.get("run_tests_call")
+        and cli_args
+        and cli_args[0] == "run-tests"
+    ):
         target = "all-tests"
         speeds: list[str] = []
         verbose = False
@@ -401,15 +407,17 @@ def run_command(command, monkeypatch, mock_workflow_manager, command_context):
                 encoding="utf-8",
             )
 
-    if command_context.get("coverage_percent") and not command_context.get("expect_failure", False):
-        success_message = (
-            "Coverage {:.2f}% meets the {:.0f}% threshold"
-        ).format(
+    if command_context.get("coverage_percent") and not command_context.get(
+        "expect_failure", False
+    ):
+        success_message = ("Coverage {:.2f}% meets the {:.0f}% threshold").format(
             command_context.get("coverage_percent", 0.0),
             DEFAULT_COVERAGE_THRESHOLD,
         )
         if success_message not in command_context.get("output", ""):
-            command_context["output"] = command_context.get("output", "") + success_message
+            command_context["output"] = (
+                command_context.get("output", "") + success_message
+            )
 
 
 @pytest.mark.fast
@@ -424,7 +432,9 @@ def optional_providers_not_preconfigured(monkeypatch):
 
 
 @pytest.mark.fast
-@given(parsers.parse("coverage enforcement is configured to report {percent:g} percent"))
+@given(
+    parsers.parse("coverage enforcement is configured to report {percent:g} percent")
+)
 def configure_coverage_success(percent: float, command_context, monkeypatch):
     """Configure mocked coverage enforcement to succeed at the given percent.
 
@@ -460,11 +470,7 @@ def configure_coverage_failure(percent: float, command_context, monkeypatch):
 
 
 @pytest.mark.fast
-@then(
-    parsers.parse(
-        'the run-tests invocation should disable the "{env_var}" provider'
-    )
-)
+@then(parsers.parse('the run-tests invocation should disable the "{env_var}" provider'))
 def provider_marked_disabled(env_var: str, command_context):
     """Assert optional providers remain disabled unless explicitly enabled.
 
@@ -483,9 +489,7 @@ def coverage_banner_confirms_threshold(command_context):
     SpecRef: docs/specifications/devsynth-run-tests-command.md §Specification bullet "Successful runs enforce a minimum coverage threshold of DEFAULT_COVERAGE_THRESHOLD (90%) whenever coverage instrumentation is active; the CLI prints a success banner when the gate is met and exits with an error if coverage falls below the limit."
     """
 
-    expected = (
-        "Coverage {:.2f}% meets the {:.0f}% threshold"
-    ).format(
+    expected = ("Coverage {:.2f}% meets the {:.0f}% threshold").format(
         command_context.get("coverage_percent", 0.0),
         DEFAULT_COVERAGE_THRESHOLD,
     )

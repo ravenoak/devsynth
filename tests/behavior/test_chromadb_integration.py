@@ -2,10 +2,11 @@
 Test runner for the ChromaDB Integration feature.
 """
 
-from tests.behavior.feature_paths import feature_path
 import os
 
 import pytest
+
+from tests.behavior.feature_paths import feature_path
 
 pytest.importorskip("chromadb")
 
@@ -17,7 +18,6 @@ chromadb_enabled = os.environ.get("ENABLE_CHROMADB", "false").lower() not in {
 if not chromadb_enabled:
     pytest.skip("ChromaDB feature not enabled", allow_module_level=True)
 from pytest_bdd import scenarios
-
 
 pytestmark = [
     pytest.mark.fast,

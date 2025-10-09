@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 import devsynth.testing.run_tests as rt
+
 from .run_tests_test_utils import build_batch_metadata
 
 
@@ -92,6 +93,7 @@ def test_run_tests_defaults_to_fast_and_medium_when_unspecified(
         return []
 
     monkeypatch.setattr(rt, "collect_tests_with_cache", fake_collect)
+
     def fake_batch(config: rt.SingleBatchRequest) -> rt.BatchExecutionResult:
         return True, config.marker_expr, build_batch_metadata("batch-speed-2")
 

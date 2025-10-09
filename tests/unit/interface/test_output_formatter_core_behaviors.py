@@ -8,7 +8,6 @@ from rich.text import Text
 
 from devsynth.interface.output_formatter import OutputFormatter
 
-
 pytestmark = pytest.mark.fast
 
 

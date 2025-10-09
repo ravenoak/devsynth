@@ -108,7 +108,9 @@ class DummyStreamlit:
     def info(self, message: str) -> None:
         self.infos.append(message)
 
-    def checkbox(self, label: str, *, value: bool = False, key: str | None = None) -> bool:
+    def checkbox(
+        self, label: str, *, value: bool = False, key: str | None = None
+    ) -> bool:
         key = key or label
         self.checkbox_defaults[key] = value
         return value

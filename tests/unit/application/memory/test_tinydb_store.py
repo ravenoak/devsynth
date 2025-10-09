@@ -8,7 +8,6 @@ from typing import Any, Protocol, TypeVar
 
 import pytest
 
-
 pytestmark = pytest.mark.requires_resource("tinydb")
 
 
@@ -87,8 +86,8 @@ setattr(interfaces_pkg, "memory", memory_stub)
 
 sys.modules.pop("devsynth.application.memory.tinydb_store", None)
 
-from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.application.memory.dto import MemoryRecord, build_memory_record
+from devsynth.application.memory.tinydb_store import TinyDBStore
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
 
@@ -196,9 +195,7 @@ class TestTinyDBStore:
         assert all(isinstance(record, MemoryRecord) for record in results)
         assert all(isinstance(record.metadata, dict) for record in results)
         assert len(results) == 2
-        assert all(
-            (record.metadata or {}).get("tag") == "test" for record in results
-        )
+        assert all((record.metadata or {}).get("tag") == "test" for record in results)
         results = store.search({"content": "Content 2"})
         assert isinstance(results, list)
         assert all(isinstance(record, MemoryRecord) for record in results)

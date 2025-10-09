@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 import json
 import os
 import tempfile
@@ -12,6 +11,7 @@ from typing import Dict, Tuple
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
@@ -951,8 +951,6 @@ from unittest.mock import MagicMock, patch
 # noqa: F401,F403
 import pytest
 
-# Import the scenarios from the feature file
-
 from devsynth.application.code_analysis.analyzer import CodeAnalyzer
 from devsynth.application.code_analysis.ast_transformer import AstTransformer
 from devsynth.application.documentation.documentation_manager import (
@@ -965,6 +963,10 @@ from devsynth.domain.models.wsde_facade import WSDETeam
 
 # Import the necessary components
 from devsynth.methodology.base import Phase
+
+# Import the scenarios from the feature file
+
+
 
 
 @pytest.fixture

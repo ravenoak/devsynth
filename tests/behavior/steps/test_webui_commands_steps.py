@@ -1,13 +1,12 @@
-from tests.behavior.feature_paths import feature_path
 import sys
 from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
+
 from .webui_steps import webui_context
-
-
 
 pytestmark = [pytest.mark.fast]
 

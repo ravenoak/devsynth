@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,8 +8,7 @@ from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.application.collaboration.peer_review import run_peer_review
 from devsynth.domain.models.agent import AgentConfig, AgentType
 from devsynth.domain.models.wsde_facade import WSDETeam
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

@@ -6,11 +6,14 @@ from collections.abc import Iterator
 import pytest
 
 from devsynth.testing import run_tests as run_tests_module
+
 from .run_tests_test_utils import build_batch_metadata
 
 
 @pytest.mark.fast
-def test_run_tests_segmented_failure_surfaces_remediation(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_tests_segmented_failure_surfaces_remediation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Segmented runs aggregate failure logs and remediation hints."""
 
     monkeypatch.setattr(run_tests_module, "_reset_coverage_artifacts", lambda: None)
@@ -76,7 +79,9 @@ def test_run_tests_segmented_failure_surfaces_remediation(monkeypatch: pytest.Mo
 
 
 @pytest.mark.fast
-def test__run_segmented_tests_aggregates_outputs(monkeypatch: pytest.MonkeyPatch) -> None:
+def test__run_segmented_tests_aggregates_outputs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Segment helper preserves order and troubleshooting tips across batches."""
 
     outputs: list[run_tests_module.BatchExecutionResult] = [
@@ -136,7 +141,9 @@ def test__run_segmented_tests_aggregates_outputs(monkeypatch: pytest.MonkeyPatch
     assert output.count("Pytest exited with code") == 1
     assert ensure_calls, "_ensure_coverage_artifacts should run after helper"
     assert isinstance(metadata.get("metadata_id"), str)
-    segment_ids = [segment.get("metadata_id") for segment in metadata.get("segments", [])]
+    segment_ids = [
+        segment.get("metadata_id") for segment in metadata.get("segments", [])
+    ]
     assert len(segment_ids) == len(set(segment_ids))
 
 
@@ -199,14 +206,22 @@ def test_segmented_runs_reinject_plugins_without_clobbering_addopts(
 
 
 @pytest.mark.fast
-def test_run_tests_single_batch_uses_request_object(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_tests_single_batch_uses_request_object(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Single-batch runs provide typed requests to the execution helper."""
 
     monkeypatch.setattr(run_tests_module, "_reset_coverage_artifacts", lambda: None)
     monkeypatch.setattr(run_tests_module, "_ensure_coverage_artifacts", lambda: None)
-    monkeypatch.setattr(run_tests_module, "pytest_cov_support_status", lambda env: (True, None))
-    monkeypatch.setattr(run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: True)
-    monkeypatch.setattr(run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: True)
+    monkeypatch.setattr(
+        run_tests_module, "pytest_cov_support_status", lambda env: (True, None)
+    )
+    monkeypatch.setattr(
+        run_tests_module, "ensure_pytest_cov_plugin_env", lambda env: True
+    )
+    monkeypatch.setattr(
+        run_tests_module, "ensure_pytest_bdd_plugin_env", lambda env: True
+    )
     monkeypatch.setattr(
         run_tests_module,
         "_maybe_publish_coverage_evidence",

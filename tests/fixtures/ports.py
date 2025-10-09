@@ -73,7 +73,6 @@ class _SimpleContextManager(ContextManager):
     def clear_context(self):
         self.ctx.clear()
 
-
     class _MockProviderFactory:
         def create_provider(self, provider_type: str, config=None):
             if MockLLMAdapter is None:

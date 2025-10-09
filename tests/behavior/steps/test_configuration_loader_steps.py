@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from tests.behavior.feature_paths import feature_path
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -9,8 +8,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.config.unified_loader import UnifiedConfig, UnifiedConfigLoader
 from devsynth.exceptions import ConfigurationError
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

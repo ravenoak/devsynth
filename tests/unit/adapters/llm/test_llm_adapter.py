@@ -44,7 +44,9 @@ def test_llm_provider_config_without_parameters_returns_none() -> None:
 
 
 @pytest.mark.fast
-def test_default_factory_delegates_to_global_registry(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_default_factory_delegates_to_global_registry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """The adapter resolves the application-level provider registry lazily."""
 
     sentinel_factory = MagicMock(spec=LLMProviderFactoryProtocol)
@@ -98,7 +100,9 @@ def test_create_provider_emits_typed_error_for_unknown_provider(
 def test_create_provider_maps_registered_message(mock_factory: MagicMock) -> None:
     """Gracefully translate alternative unknown-provider messages."""
 
-    mock_factory.create_provider.side_effect = ValueError("Provider is not registered anywhere")
+    mock_factory.create_provider.side_effect = ValueError(
+        "Provider is not registered anywhere"
+    )
     adapter = LLMBackendAdapter(factory=mock_factory)
 
     with pytest.raises(UnknownLLMProviderError):

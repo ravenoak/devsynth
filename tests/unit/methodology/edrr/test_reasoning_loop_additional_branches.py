@@ -16,7 +16,9 @@ from devsynth.methodology.edrr.reasoning_loop import Phase
 
 @pytest.mark.fast
 @pytest.mark.unit
-def test_reasoning_loop_seeds_random_and_numpy_modules(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_seeds_random_and_numpy_modules(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Deterministic seeding propagates to random and numpy random modules."""
 
     random_seed_calls: list[int] = []
@@ -69,15 +71,23 @@ def test_reasoning_loop_logs_backoff_and_retry_exhaustion(
         attempt_counter["count"] += 1
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: failing_apply)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: failing_apply
+    )
 
     sleep_intervals: list[float] = []
-    monkeypatch.setattr(rl.time, "sleep", lambda duration: sleep_intervals.append(duration))
+    monkeypatch.setattr(
+        rl.time, "sleep", lambda duration: sleep_intervals.append(duration)
+    )
 
     caplog.set_level("DEBUG", logger=rl.logger.logger.name)
 
     results = rl.reasoning_loop(
-        MagicMock(), {"solution": "initial"}, MagicMock(), retry_attempts=2, retry_backoff=0.1
+        MagicMock(),
+        {"solution": "initial"},
+        MagicMock(),
+        retry_attempts=2,
+        retry_backoff=0.1,
     )
 
     assert results == []
@@ -95,7 +105,9 @@ def test_reasoning_loop_logs_backoff_and_retry_exhaustion(
 
 @pytest.mark.fast
 @pytest.mark.unit
-def test_reasoning_loop_coordinator_records_each_phase(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reasoning_loop_coordinator_records_each_phase(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Coordinator receives phase-specific records for expand/differentiate/refine."""
 
     payloads = [
@@ -120,7 +132,9 @@ def test_reasoning_loop_coordinator_records_each_phase(monkeypatch: pytest.Monke
             self.calls.append((Phase.EXPAND, payload))
             return payload
 
-        def record_differentiate_results(self, payload: dict[str, Any]) -> dict[str, Any]:
+        def record_differentiate_results(
+            self, payload: dict[str, Any]
+        ) -> dict[str, Any]:
             self.calls.append((Phase.DIFFERENTIATE, payload))
             return payload
 
@@ -128,13 +142,21 @@ def test_reasoning_loop_coordinator_records_each_phase(monkeypatch: pytest.Monke
             self.calls.append((Phase.REFINE, payload))
             return payload
 
-        def record_consensus_failure(self, exc: Exception) -> None:  # pragma: no cover - unused
-            raise AssertionError("Consensus failure should not be recorded in this scenario")
+        def record_consensus_failure(
+            self, exc: Exception
+        ) -> None:  # pragma: no cover - unused
+            raise AssertionError(
+                "Consensus failure should not be recorded in this scenario"
+            )
 
     coordinator = RecordingCoordinator()
 
     results = rl.reasoning_loop(
-        MagicMock(), {"solution": "initial"}, MagicMock(), coordinator=coordinator, phase=Phase.EXPAND
+        MagicMock(),
+        {"solution": "initial"},
+        MagicMock(),
+        coordinator=coordinator,
+        phase=Phase.EXPAND,
     )
 
     assert len(results) == 3
@@ -157,9 +179,13 @@ def test_reasoning_loop_exits_when_total_budget_elapsed(
     monkeypatch.setattr(rl.time, "sleep", lambda _: None)
 
     def unexpected_apply(*args: Any, **kwargs: Any) -> dict[str, Any]:
-        raise AssertionError("apply_dialectical_reasoning should not be invoked when budget exhausted")
+        raise AssertionError(
+            "apply_dialectical_reasoning should not be invoked when budget exhausted"
+        )
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: unexpected_apply)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: unexpected_apply
+    )
 
     caplog.set_level("DEBUG", logger=rl.logger.logger.name)
 

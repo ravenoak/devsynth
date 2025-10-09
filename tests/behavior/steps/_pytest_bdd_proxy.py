@@ -1,24 +1,16 @@
-"""Proxy plugin to load pytest-bdd exactly once."""
+"""
+Proxy module for pytest-bdd plugin to avoid import issues.
 
-from __future__ import annotations
+This module serves as a proxy to ensure pytest-bdd plugin can be loaded
+without causing configuration errors during test discovery.
+"""
 
-from importlib import import_module
+# Re-export pytest-bdd plugin functionality
+try:
+    from pytest_bdd import plugin as pytest_bdd_plugin
+except ImportError:
+    # Fallback if pytest-bdd is not available
+    pytest_bdd_plugin = None
 
-import pytest
-
-_PLUGIN_NAME = "pytest_bdd.plugin"
-_PLUGIN_ENTRYPOINT = "pytest-bdd"
-
-
-def pytest_configure(config: pytest.Config) -> None:
-    """Ensure pytest-bdd is registered under a single canonical name."""
-
-    pluginmanager = config.pluginmanager
-
-    if pluginmanager.hasplugin(_PLUGIN_NAME) or pluginmanager.hasplugin(
-        _PLUGIN_ENTRYPOINT
-    ):
-        return
-
-    module = import_module(_PLUGIN_NAME)
-    pluginmanager.register(module, _PLUGIN_NAME)
+# Expose the plugin for pytest discovery
+pytest_plugins = ["pytest_bdd.plugin"] if pytest_bdd_plugin else []

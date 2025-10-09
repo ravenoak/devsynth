@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from devsynth.application.cli._command_exports import COMMAND_ATTRIBUTE_NAMES
 from devsynth.api import app
+from devsynth.application.cli._command_exports import COMMAND_ATTRIBUTE_NAMES
 from devsynth.interface.agentapi import (
     LATEST_MESSAGES,
     CodeRequest,
@@ -66,7 +66,8 @@ def mock_cli_commands():
     missing = required.difference(COMMAND_ATTRIBUTE_NAMES)
     if missing:  # pragma: no cover - defensive
         raise AssertionError(
-            "CLI command exports missing expected attributes: " + ", ".join(sorted(missing))
+            "CLI command exports missing expected attributes: "
+            + ", ".join(sorted(missing))
         )
     with (
         patch("devsynth.application.cli.init_cmd") as mock_init_cmd,

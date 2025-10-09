@@ -36,7 +36,9 @@ def stub_devsynth_config(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
 
 
 @pytest.fixture
-def coverage_stub_factory(monkeypatch: pytest.MonkeyPatch) -> Callable[..., SimpleNamespace]:
+def coverage_stub_factory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Callable[..., SimpleNamespace]:
     """Provide a factory that installs a fake ``coverage.Coverage`` implementation."""
 
     def factory(
@@ -90,4 +92,3 @@ def coverage_stub_factory(monkeypatch: pytest.MonkeyPatch) -> Callable[..., Simp
         )
 
     return factory
-

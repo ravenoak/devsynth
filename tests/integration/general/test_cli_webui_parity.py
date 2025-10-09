@@ -10,7 +10,6 @@ from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import ProgressIndicator
 
 
-
 class DummyForm:
 
     def __init__(self, submitted: bool = True) -> None:

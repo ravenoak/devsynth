@@ -5,7 +5,6 @@ This file implements the step definitions for the WSDE agent model refinement
 feature file, testing the non-hierarchical, context-driven agent collaboration.
 """
 
-from tests.behavior.feature_paths import feature_path
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,11 +13,11 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = pytest.mark.fast
 
 # Import the feature files
-
 
 
 scenarios(feature_path(__file__, "general", "wsde_agent_model_refinement.feature"))
@@ -28,14 +27,14 @@ scenarios(feature_path(__file__, "general", "multi_agent_collaboration.feature")
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent
 from devsynth.domain.models.agent import AgentConfig, AgentType
+
+# Import the modules needed for the steps
+from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.domain.models.wsde_roles import (
     ResearchPersonaSpec,
     resolve_research_persona,
 )
 from devsynth.interface.research_telemetry import build_research_telemetry_payload
-
-# Import the modules needed for the steps
-from devsynth.domain.models.wsde_facade import WSDETeam
 
 
 @pytest.fixture
@@ -80,7 +79,9 @@ def _load_autoresearch_prompt_templates() -> dict[str, dict[str, object]]:
 
 
 def _load_autoresearch_training_data() -> list[dict[str, object]]:
-    dataset_path = _repo_root() / "templates" / "prompts" / "autoresearch_persona_training.jsonl"
+    dataset_path = (
+        _repo_root() / "templates" / "prompts" / "autoresearch_persona_training.jsonl"
+    )
     assert dataset_path.exists(), "Autoresearch persona training data is missing"
     entries: list[dict[str, object]] = []
     with dataset_path.open(encoding="utf-8") as handle:
@@ -977,7 +978,10 @@ def research_lead_becomes_primus(context):
     assert lead_spec.primary_role.value == "primus"
     prompt_record = context.persona_prompts.get(lead_spec.slug, {})
     fallback_notes = [str(item) for item in prompt_record.get("fallback_behavior", [])]
-    assert any("primus" in note.lower() or "expertise" in note.lower() for note in fallback_notes)
+    assert any(
+        "primus" in note.lower() or "expertise" in note.lower()
+        for note in fallback_notes
+    )
 
 
 @then("persona transitions should be recorded for MVUU telemetry")
@@ -998,7 +1002,9 @@ def persona_transitions_recorded_for_mvuu(context):
     assert expected_personas.issubset(timeline_personas)
 
 
-@then("the persona prompt templates should define fallback behavior and success criteria")
+@then(
+    "the persona prompt templates should define fallback behavior and success criteria"
+)
 def persona_prompt_templates_define_expectations(context):
     """Verify prompt templates articulate fallbacks and outcomes."""
 

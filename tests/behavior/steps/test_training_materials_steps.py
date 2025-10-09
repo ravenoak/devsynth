@@ -1,6 +1,6 @@
-from tests.behavior.feature_paths import feature_path
 import pytest
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
@@ -11,8 +11,6 @@ pytest.skip(
 from typing import Any, Dict, List
 
 from pytest_bdd import given, parsers, scenarios, then, when
-
-
 
 # Import the feature file
 scenarios(feature_path(__file__, "general", "training_materials.feature"))

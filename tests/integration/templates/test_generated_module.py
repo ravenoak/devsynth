@@ -12,8 +12,10 @@ from pathlib import Path
 
 import pytest
 
-
-pytestmark = [pytest.mark.skip(reason="Template for generated module integration tests"), pytest.mark.medium]
+pytestmark = [
+    pytest.mark.skip(reason="Template for generated module integration tests"),
+    pytest.mark.medium,
+]
 
 
 def process_data(value: int, output_path: Path) -> Path:

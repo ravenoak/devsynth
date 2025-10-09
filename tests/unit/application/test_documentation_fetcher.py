@@ -120,6 +120,7 @@ def test_download_failure_returns_false_manifest() -> None:
     assert manifest.status_code == 404
     assert manifest.content == ""
 
+
 @pytest.mark.medium
 def test_mvu_smoke_coverage(tmp_path):
     """Exercise MVUU helpers to satisfy coverage requirements.

@@ -8,7 +8,6 @@ import pytest
 
 from devsynth.interface import webui
 
-
 pytestmark = pytest.mark.fast
 
 
@@ -63,7 +62,9 @@ class _ContainerContext:
     def __enter__(self) -> _StubSubtask:
         return self._subtask
 
-    def __exit__(self, exc_type, exc, tb) -> None:  # noqa: D401, ANN001 - pytest fixture pattern
+    def __exit__(
+        self, exc_type, exc, tb
+    ) -> None:  # noqa: D401, ANN001 - pytest fixture pattern
         return None
 
 
@@ -75,7 +76,9 @@ class _StubExpander:
     def __enter__(self) -> "_StubExpander":
         return self
 
-    def __exit__(self, exc_type, exc, tb) -> None:  # noqa: D401, ANN001 - pytest fixture pattern
+    def __exit__(
+        self, exc_type, exc, tb
+    ) -> None:  # noqa: D401, ANN001 - pytest fixture pattern
         return None
 
     def code(self, text: str, *, language: str | None = None) -> None:
@@ -193,7 +196,7 @@ class _StubStreamlit:
         self.markdown_messages.append((message, kwargs))
 
     def warning(self, message: str) -> None:
-            self.warning_messages.append(message)
+        self.warning_messages.append(message)
 
     def error(self, message: str) -> None:
         self.error_messages.append(message)
@@ -207,7 +210,12 @@ class _StubStreamlit:
     def selectbox(
         self, message: str, choices: list[str], *, index: int, key: str
     ) -> str:
-        record = {"message": message, "choices": list(choices), "index": index, "key": key}
+        record = {
+            "message": message,
+            "choices": list(choices),
+            "index": index,
+            "key": key,
+        }
         self.selectbox_calls.append(record)
         return record["choices"][index]
 
@@ -258,7 +266,10 @@ def test_progress_complete_cascades_with_sanitized_fallback(
 
     progress.complete()
 
-    assert progress._subtasks[subtask_id]["current"] == progress._subtasks[subtask_id]["total"]
+    assert (
+        progress._subtasks[subtask_id]["current"]
+        == progress._subtasks[subtask_id]["total"]
+    )
     assert streamlit_stub.write_messages == ["Completed: "]
     assert "<" not in streamlit_stub.write_messages[0]
 
@@ -267,7 +278,9 @@ def test_progress_complete_cascades_with_sanitized_fallback(
     assert subtask_stub.progress_updates[-1] == 1.0
 
     status_block = streamlit_stub.status_blocks[0]
-    markdown_messages = [text for action, text in status_block.calls if action == "markdown"]
+    markdown_messages = [
+        text for action, text in status_block.calls if action == "markdown"
+    ]
     assert markdown_messages
     assert all("<" not in text for text in markdown_messages)
 
@@ -328,14 +341,19 @@ def test_webui_layout_and_display_behaviors(
     )
 
     ui.display_result("SUCCESS All steps completed successfully")
-    assert streamlit_stub.success_messages[-1] == "SUCCESS All steps completed successfully"
+    assert (
+        streamlit_stub.success_messages[-1]
+        == "SUCCESS All steps completed successfully"
+    )
 
     ui.display_result("# Primary Heading")
     ui.display_result("## Secondary Heading")
     ui.display_result("### Final Heading")
     assert streamlit_stub.headers[-1] == "Primary Heading"
     assert streamlit_stub.subheaders[-1] == "Secondary Heading"
-    assert any("**Final Heading**" in msg for msg, _ in streamlit_stub.markdown_messages)
+    assert any(
+        "**Final Heading**" in msg for msg, _ in streamlit_stub.markdown_messages
+    )
 
     ui._render_traceback("Traceback details")
     assert streamlit_stub.code_blocks[-1]["text"] == "Traceback details"
@@ -388,7 +406,10 @@ def test_webui_layout_and_display_behaviors(
     assert streamlit_stub.success_messages[-1] == "Completed: Main Task"
     subtask_stub = streamlit_stub.subtasks[-1]
     assert subtask_stub.markdown_calls
-    assert all("&lt;i&gt;" in call or "&lt;" not in call for call in subtask_stub.markdown_calls)
+    assert all(
+        "&lt;i&gt;" in call or "&lt;" not in call
+        for call in subtask_stub.markdown_calls
+    )
 
 
 def test_ui_progress_status_transitions_and_eta(
@@ -506,7 +527,9 @@ def test_webui_run_configures_layout_and_router(
 
     streamlit_stub.session_state = _SessionState()
     monkeypatch.setattr(webui, "Router", _RouterStub)
-    monkeypatch.setattr(webui.WebUI, "navigation_items", lambda self: ("dashboard", "settings"))
+    monkeypatch.setattr(
+        webui.WebUI, "navigation_items", lambda self: ("dashboard", "settings")
+    )
 
     ui = webui.WebUI()
     ui.run()

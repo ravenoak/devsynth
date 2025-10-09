@@ -80,7 +80,9 @@ def test_apply_enhanced_dialectical_reasoning_requires_solution(wsde_team_factor
 
 
 @pytest.mark.fast
-def test_apply_enhanced_dialectical_reasoning_multi_combines_solutions(wsde_module_team):
+def test_apply_enhanced_dialectical_reasoning_multi_combines_solutions(
+    wsde_module_team,
+):
     """ReqID: WSDE-ENHANCED-07 — synthesizes multiple solutions into one narrative."""
 
     team, agents = wsde_module_team
@@ -114,7 +116,9 @@ def test_apply_enhanced_dialectical_reasoning_multi_combines_solutions(wsde_modu
 
 
 @pytest.mark.fast
-def test_apply_enhanced_dialectical_reasoning_multi_requires_solutions(wsde_module_team):
+def test_apply_enhanced_dialectical_reasoning_multi_requires_solutions(
+    wsde_module_team,
+):
     """ReqID: WSDE-ENHANCED-08 — reports an error when no candidate solutions exist."""
 
     team, agents = wsde_module_team

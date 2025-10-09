@@ -1,17 +1,13 @@
-from tests.behavior.feature_paths import feature_path
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 from devsynth.methodology.base import Phase
 from devsynth.methodology.sprint_adapter import (
-
-
     CEREMONY_PHASE_MAP,
     align_sprint_planning,
     align_sprint_review,
 )
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

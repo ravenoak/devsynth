@@ -3,12 +3,12 @@
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
+
 from .steps.cli_commands_steps import *
 from .steps.test_delegate_task_steps import *
 from .steps.test_doctor_command_steps import *
 from .steps.test_edrr_cycle_steps import *
-
-from tests.behavior.feature_paths import feature_path
 
 # Define feature file paths
 FEATURE_FILE = feature_path(__file__, "general", "cli_commands.feature")

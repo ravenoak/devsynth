@@ -4,7 +4,6 @@ Step definitions for the project_state_analyzer.feature file.
 This module contains the step definitions for the Project State Analyzer behavior tests.
 """
 
-from tests.behavior.feature_paths import feature_path
 import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -12,17 +11,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_bdd import given, parsers, then, when
 
-
 from devsynth.application.code_analysis.project_state_analyzer import (
-
-
     ProjectStateAnalyzer,
 )
 from devsynth.application.edrr.edrr_coordinator_enhanced import EnhancedEDRRCoordinator
 from devsynth.domain.models.wsde_facade import WSDETeam
 from devsynth.methodology.base import Phase
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

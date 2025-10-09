@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 
 import devsynth.testing.run_tests as rt
+
 from .run_tests_test_utils import build_batch_metadata, build_segment_metadata
 
 
@@ -18,7 +19,9 @@ def _collect_two_nodes(*_args: Any, **_kwargs: Any) -> list[str]:
 
 
 @pytest.mark.fast
-def test_run_tests_segmented_success_invokes_publish(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_tests_segmented_success_invokes_publish(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Successful segmented runs surface combined output and metadata."""
 
     monkeypatch.setattr(rt, "collect_tests_with_cache", _collect_two_nodes)
@@ -63,7 +66,9 @@ def test_run_tests_segmented_success_invokes_publish(monkeypatch: pytest.MonkeyP
 
 
 @pytest.mark.fast
-def test_run_tests_segmented_failure_skips_graph(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_tests_segmented_failure_skips_graph(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Failed segmented runs propagate failures without graph publication messages."""
 
     monkeypatch.setattr(rt, "collect_tests_with_cache", _collect_two_nodes)
@@ -104,7 +109,9 @@ def test_run_tests_segmented_failure_skips_graph(monkeypatch: pytest.MonkeyPatch
 
 
 @pytest.mark.fast
-def test_run_tests_segmented_reports_append_graph(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_run_tests_segmented_reports_append_graph(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """When graph publication succeeds the message is appended to stdout."""
 
     monkeypatch.setattr(rt, "collect_tests_with_cache", _collect_two_nodes)
@@ -137,4 +144,3 @@ def test_run_tests_segmented_reports_append_graph(monkeypatch: pytest.MonkeyPatc
 
     assert success is True
     assert output.endswith("[knowledge-graph] published run=abc123\n")
-

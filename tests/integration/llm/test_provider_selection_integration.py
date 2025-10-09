@@ -28,7 +28,6 @@ from devsynth.application.llm import providers as prov
 from devsynth.application.llm.openai_provider import OpenAIConnectionError
 from devsynth.application.llm.providers import OfflineProvider, ValidationError
 
-
 pytestmark = [pytest.mark.integration, pytest.mark.no_network]
 
 

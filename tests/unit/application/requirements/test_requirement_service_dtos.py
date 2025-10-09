@@ -1,5 +1,5 @@
-import uuid
 import sys
+import uuid
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
@@ -31,7 +31,8 @@ if "devsynth.ports.requirement_port" not in sys.modules:
 ROOT = Path(__file__).resolve().parents[4]
 
 models_spec = spec_from_file_location(
-    "devsynth.application.requirements.models", ROOT / "src/devsynth/application/requirements/models.py"
+    "devsynth.application.requirements.models",
+    ROOT / "src/devsynth/application/requirements/models.py",
 )
 requirement_models = module_from_spec(models_spec)
 assert models_spec.loader is not None
@@ -55,10 +56,10 @@ RequirementService = requirement_service_module.RequirementService
 from devsynth.domain.models.requirement import (
     ChangeType,
     Requirement,
+    RequirementChange,
     RequirementPriority,
     RequirementStatus,
     RequirementType,
-    RequirementChange,
 )
 
 
@@ -155,7 +156,9 @@ def test_update_requirement_uses_typed_dto_and_dialectical_hooks(
 
 
 @pytest.mark.fast
-def test_delete_requirement_emits_retrospect_phase(service: RequirementService, requirement: Requirement):
+def test_delete_requirement_emits_retrospect_phase(
+    service: RequirementService, requirement: Requirement
+):
     """Deleting a requirement notifies dialectical consumers with RETROSPECT phase."""
 
     deleted = service.delete_requirement(
@@ -167,7 +170,9 @@ def test_delete_requirement_emits_retrospect_phase(service: RequirementService, 
     assert deleted is True
 
     service.change_repository.save_change.assert_called_once()
-    saved_change: RequirementChange = service.change_repository.save_change.call_args.args[0]
+    saved_change: RequirementChange = (
+        service.change_repository.save_change.call_args.args[0]
+    )
     assert saved_change.change_type is ChangeType.REMOVE
     assert saved_change.previous_state is requirement
 

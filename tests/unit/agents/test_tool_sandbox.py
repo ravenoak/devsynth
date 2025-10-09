@@ -36,7 +36,6 @@ if "argon2" not in sys.modules:
 from devsynth.agents.sandbox import Sandbox
 from devsynth.agents.tools import ToolRegistry
 
-
 pytestmark = pytest.mark.fast
 
 
@@ -102,7 +101,9 @@ def test_sandbox_context_restores_hooks(tmp_path: Path) -> None:
     with Sandbox() as sandbox:
         forbidden_path = tmp_path / "forbidden.txt"
         with pytest.raises(PermissionError):
-            open(forbidden_path, "w", encoding="utf-8")  # noqa: A001 - deliberate builtin use
+            open(
+                forbidden_path, "w", encoding="utf-8"
+            )  # noqa: A001 - deliberate builtin use
         with pytest.raises(PermissionError):
             subprocess.run(["echo", "hi"], check=False)
 

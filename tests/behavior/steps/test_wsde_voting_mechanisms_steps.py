@@ -1,21 +1,24 @@
 """Step definitions for WSDE voting mechanisms."""
 
-from tests.behavior.feature_paths import feature_path
 import logging
 from unittest.mock import MagicMock
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
 # Import the feature file
 
 
-
 scenarios(feature_path(__file__, "general", "wsde_voting_mechanisms.feature"))
-scenarios(feature_path(__file__, "general", "wsde_voting_mechanisms_for_critical_decisions.feature"))
+scenarios(
+    feature_path(
+        __file__, "general", "wsde_voting_mechanisms_for_critical_decisions.feature"
+    )
+)
 
 from devsynth.adapters.agents.agent_adapter import WSDETeamCoordinator
 from devsynth.application.agents.unified_agent import UnifiedAgent

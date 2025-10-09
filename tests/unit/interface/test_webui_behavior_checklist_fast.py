@@ -41,7 +41,6 @@ from devsynth.exceptions import DevSynthError
 from devsynth.interface import webui, webui_bridge
 from devsynth.interface.output_formatter import OutputFormatter as _OutputFormatter
 
-
 pytestmark = [pytest.mark.fast]
 
 if not hasattr(webui_bridge, "OutputFormatter"):

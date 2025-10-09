@@ -14,7 +14,6 @@ from devsynth.application.memory.adapters.chromadb_vector_adapter import (
 )
 from devsynth.domain.models.memory import MemoryVector
 
-
 pytestmark = [
     pytest.mark.requires_resource("chromadb"),
     pytest.mark.memory_intensive,

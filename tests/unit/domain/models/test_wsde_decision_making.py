@@ -33,7 +33,9 @@ def test_evaluate_options_ranks_by_weighted_score():
 
 
 @pytest.mark.fast
-def test_generate_diverse_ideas_filters_similar_entries(wsde_team_factory, stub_agent_factory):
+def test_generate_diverse_ideas_filters_similar_entries(
+    wsde_team_factory, stub_agent_factory
+):
     """ReqID: WSDE-DECISION-05 — respects diversity threshold for idea pool."""
 
     agent_primary = stub_agent_factory(
@@ -83,13 +85,17 @@ def test_generate_diverse_ideas_filters_similar_entries(wsde_team_factory, stub_
 
 
 @pytest.mark.fast
-def test_generate_diverse_ideas_handles_agent_failures(wsde_team_factory, stub_agent_factory):
+def test_generate_diverse_ideas_handles_agent_failures(
+    wsde_team_factory, stub_agent_factory
+):
     """ReqID: WSDE-DECISION-06 — returns empty list when agents fail."""
 
     failing_agent = stub_agent_factory(
         "critic",
         expertise=["security"],
-        idea_batches=[[{"description": "Add rate limiting", "rationale": "Protect APIs"}]],
+        idea_batches=[
+            [{"description": "Add rate limiting", "rationale": "Protect APIs"}]
+        ],
         idea_error_factory=lambda: RuntimeError("agent offline"),
     )
 
@@ -119,7 +125,9 @@ def test_generate_diverse_ideas_limits_count(wsde_module_team):
 
 
 @pytest.mark.fast
-def test_generate_diverse_ideas_filters_duplicates_with_strict_threshold(wsde_module_team):
+def test_generate_diverse_ideas_filters_duplicates_with_strict_threshold(
+    wsde_module_team,
+):
     """ReqID: WSDE-DECISION-08 — removes near-identical ideas when threshold is strict."""
 
     team, _ = wsde_module_team

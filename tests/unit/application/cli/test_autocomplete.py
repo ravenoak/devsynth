@@ -162,7 +162,11 @@ def test_get_command_help_returns_expected_result():
     for example in module.COMMAND_EXAMPLES.get(command, []):
         assert example in help_text
     command_with_desc = next(
-        (cmd for cmd in module.COMMAND_DESCRIPTIONS if cmd not in module.COMMAND_EXAMPLES),
+        (
+            cmd
+            for cmd in module.COMMAND_DESCRIPTIONS
+            if cmd not in module.COMMAND_EXAMPLES
+        ),
         None,
     )
     if command_with_desc:
@@ -208,7 +212,9 @@ def test_generate_completion_script_installs_to_target(monkeypatch, tmp_path):
     expected = "# completion script"
     monkeypatch.setattr(module, "_load_click_command", lambda: object())
     monkeypatch.setattr(
-        module, "_build_shell_complete", lambda shell, command: _StubCompletion(expected)
+        module,
+        "_build_shell_complete",
+        lambda shell, command: _StubCompletion(expected),
     )
 
     target = tmp_path / "devsynth.zsh"
@@ -225,7 +231,9 @@ def test_generate_completion_script_uses_home_directory(monkeypatch, tmp_path):
     expected = "# bash completion"
     monkeypatch.setattr(module, "_load_click_command", lambda: object())
     monkeypatch.setattr(
-        module, "_build_shell_complete", lambda shell, command: _StubCompletion(expected)
+        module,
+        "_build_shell_complete",
+        lambda shell, command: _StubCompletion(expected),
     )
     monkeypatch.setattr(
         module.Path,
@@ -247,7 +255,9 @@ def test_generate_completion_script_returns_source(monkeypatch):
     expected = "# fish completion"
     monkeypatch.setattr(module, "_load_click_command", lambda: object())
     monkeypatch.setattr(
-        module, "_build_shell_complete", lambda shell, command: _StubCompletion(expected)
+        module,
+        "_build_shell_complete",
+        lambda shell, command: _StubCompletion(expected),
     )
 
     script = module.generate_completion_script("fish", install=False, path=None)

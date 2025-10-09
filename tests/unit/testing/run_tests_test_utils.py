@@ -50,7 +50,9 @@ def build_segment_metadata(
     """Create aggregated metadata for segmented executions."""
 
     actual_segments = segments or []
-    normalized_commands = commands or [list(meta["command"]) for meta in actual_segments]
+    normalized_commands = commands or [
+        list(meta["command"]) for meta in actual_segments
+    ]
     return {
         "metadata_id": metadata_id,
         "commands": normalized_commands,
@@ -59,4 +61,3 @@ def build_segment_metadata(
         "completed_at": completed_at or _DEFAULT_COMPLETED_AT,
         "segments": actual_segments,
     }
-

@@ -3,7 +3,11 @@
 import pytest
 
 from devsynth.domain.models import wsde_dialectical
-from devsynth.domain.models.wsde_dialectical import AntithesisDraft, Critique, ResolutionPlan
+from devsynth.domain.models.wsde_dialectical import (
+    AntithesisDraft,
+    Critique,
+    ResolutionPlan,
+)
 from devsynth.domain.models.wsde_facade import WSDETeam
 
 

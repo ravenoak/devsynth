@@ -1,4 +1,3 @@
-from tests.behavior.feature_paths import feature_path
 from typing import Any, Dict, List
 
 import pytest
@@ -7,8 +6,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from devsynth.methodology.adhoc import AdHocAdapter
 from devsynth.methodology.base import BaseMethodologyAdapter, Phase
 from devsynth.methodology.sprint import SprintAdapter
-
-
+from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 

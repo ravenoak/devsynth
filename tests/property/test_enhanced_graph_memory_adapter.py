@@ -12,8 +12,8 @@ from hypothesis import strategies as st
 
 from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
     DEVSYNTH,
-    RELATION,
     RDF,
+    RELATION,
     EnhancedGraphMemoryAdapter,
 )
 
@@ -34,7 +34,9 @@ def _make_adapter(tmp_path: Path) -> EnhancedGraphMemoryAdapter:
     include_research_node=st.booleans(),
 )
 @settings(max_examples=10, deadline=None)
-def test_traverse_graph_depth_bound(tmp_path, chain_length, max_depth, include_research_node):
+def test_traverse_graph_depth_bound(
+    tmp_path, chain_length, max_depth, include_research_node
+):
     adapter = _make_adapter(tmp_path)
     node_ids = [f"node{i}" for i in range(chain_length + 1)]
 
@@ -66,7 +68,9 @@ def test_traverse_graph_depth_bound(tmp_path, chain_length, max_depth, include_r
 
     if include_research_node and limit == chain_length:
         assert node_ids[-1] not in discovered_no_research
-    expected_without_research = reachable - ({node_ids[-1]} if include_research_node and limit == chain_length else set())
+    expected_without_research = reachable - (
+        {node_ids[-1]} if include_research_node and limit == chain_length else set()
+    )
 
     assert discovered_no_research == expected_without_research
     assert discovered_with_research == reachable
@@ -77,7 +81,11 @@ def test_traverse_graph_depth_bound(tmp_path, chain_length, max_depth, include_r
 
 @pytest.mark.medium
 @given(
-    content=st.text(alphabet=st.characters(min_codepoint=32, max_codepoint=126), min_size=1, max_size=40)
+    content=st.text(
+        alphabet=st.characters(min_codepoint=32, max_codepoint=126),
+        min_size=1,
+        max_size=40,
+    )
 )
 @settings(max_examples=5, deadline=None)
 def test_research_provenance_persists(tmp_path, content):

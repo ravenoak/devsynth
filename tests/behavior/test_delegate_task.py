@@ -5,7 +5,6 @@ from tests.behavior.feature_paths import feature_path
 
 from .steps.test_delegate_task_steps import *  # noqa: F401,F403
 
-
 pytestmark = [pytest.mark.fast]
 
 # Load the scenarios from the canonical behavior asset path.

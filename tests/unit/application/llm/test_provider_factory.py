@@ -1,5 +1,6 @@
-from devsynth.application.llm.provider_factory import factory
 import pytest
+
+from devsynth.application.llm.provider_factory import factory
 
 pytestmark = [pytest.mark.fast]
 
