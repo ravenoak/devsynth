@@ -142,3 +142,96 @@ def test_reasoning_loop_logs_consensus_failure_without_coordinator(monkeypatch, 
 
     assert results == []
     assert any("Consensus failure" in record.message for record in caplog.records)
+
+
+@pytest.mark.fast
+def test_reasoning_loop_retry_stops_when_budget_already_exhausted(monkeypatch):
+    """Retry loop exits early when the remaining budget reaches zero."""
+
+    call_counter = {"value": 0}
+
+    def always_transient(*_args, **_kwargs):
+        call_counter["value"] += 1
+        raise RuntimeError("budget exhausted")
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+
+    times = iter([0.0, 0.05, 0.2])
+    monotonic_history: list[float] = []
+
+    def fake_monotonic() -> float:
+        try:
+            value = next(times)
+        except StopIteration:
+            value = 0.2
+        monotonic_history.append(value)
+        return value
+
+    sleep_calls: list[float] = []
+
+    def fake_sleep(duration: float) -> None:
+        sleep_calls.append(duration)
+
+    monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(rl.time, "sleep", fake_sleep)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "budget-clamp"},
+        critic_agent=None,
+        retry_attempts=2,
+        retry_backoff=0.5,
+        max_total_seconds=0.1,
+    )
+
+    assert results == []
+    assert call_counter["value"] == 1
+    assert sleep_calls == []
+    assert monotonic_history == [0.0, 0.05, 0.2]
+
+
+@pytest.mark.fast
+def test_reasoning_loop_retry_stops_when_budget_already_exhausted(monkeypatch):
+    """Retry loop exits early when the remaining budget reaches zero."""
+
+    call_counter = {"value": 0}
+
+    def always_transient(*_args, **_kwargs):
+        call_counter["value"] += 1
+        raise RuntimeError("budget exhausted")
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+
+    times = iter([0.0, 0.0, 0.2])
+    monotonic_history: list[float] = []
+
+    def fake_monotonic() -> float:
+        try:
+            value = next(times)
+        except StopIteration:
+            value = 0.2
+        monotonic_history.append(value)
+        return value
+
+    sleep_calls: list[float] = []
+
+    def fake_sleep(duration: float) -> None:
+        sleep_calls.append(duration)
+
+    monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(rl.time, "sleep", fake_sleep)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "budget-clamp"},
+        critic_agent=None,
+        retry_attempts=2,
+        retry_backoff=0.5,
+        max_total_seconds=0.1,
+    )
+
+    assert results == []
+    assert call_counter["value"] == 1
+    assert sleep_calls == []
+    assert monotonic_history[:3] == [0.0, 0.0, 0.2]
+    assert len(monotonic_history) == 3

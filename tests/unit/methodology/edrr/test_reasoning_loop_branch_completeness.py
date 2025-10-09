@@ -39,6 +39,41 @@ def test_import_accessor_returns_typed_apply(monkeypatch):
 
 
 @pytest.mark.fast
+def test_import_accessor_default_path_executes() -> None:
+    """Default accessor call exercises the module import helper."""
+
+    assert callable(rl._import_apply_dialectical_reasoning())
+
+
+@pytest.mark.fast
+def test_dialectical_sequence_records_with_coordinator_fallback(monkeypatch):
+    """DialecticalSequence payloads trigger coordinator fallback handling."""
+
+    sequence = DialecticalSequence(sequence_id="seq-1", steps=(), status="completed")
+    sequence._payload["phase"] = "mystery"
+    sequence._payload["next_phase"] = "???"
+
+    coordinator = CoordinatorRecorder()
+
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: lambda *_args, **_kwargs: sequence
+    )
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "dialectical"},
+        critic_agent=None,
+        coordinator=coordinator,
+    )
+
+    assert results == [sequence]
+    assert results[0] is sequence
+    assert coordinator.records and coordinator.records[0][0] == "refine"
+    assert coordinator.records[0][1]["phase"] == "mystery"
+    assert coordinator.records[0][1]["next_phase"] == "???"
+
+
+@pytest.mark.fast
 def test_reasoning_loop_tolerates_seed_failures(monkeypatch):
     """Random/numpy seed failures are ignored so the loop can continue."""
 
@@ -70,6 +105,305 @@ def test_reasoning_loop_tolerates_seed_failures(monkeypatch):
     )
 
     assert results == [{"status": "completed"}]
+
+
+@pytest.mark.fast
+def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
+    """Comprehensive branch harness exercises deterministic reasoning paths."""
+
+    assert callable(rl._import_apply_dialectical_reasoning())
+
+    with monkeypatch.context() as patcher:
+        seed_calls: list[int] = []
+        patcher.setattr(random, "seed", lambda value: seed_calls.append(value))
+
+        class FakeNumpyRandom:
+            def __init__(self) -> None:
+                self.calls: list[int] = []
+
+            def seed(self, value: int) -> None:
+                self.calls.append(value)
+
+        numpy_random = FakeNumpyRandom()
+        original_import_module = importlib.import_module
+
+        def import_numpy(name: str, package: str | None = None):
+            if name == "numpy.random":
+                return numpy_random
+            return original_import_module(name, package)
+
+        patcher.setattr(importlib, "import_module", import_numpy)
+        patcher.setattr(
+            rl,
+            "_import_apply_dialectical_reasoning",
+            lambda: lambda *_args, **_kwargs: {"status": "completed"},
+        )
+
+        rl.reasoning_loop(
+            wsde_team=NullWSDETeam(),
+            task={"problem": "seed-success"},
+            critic_agent=None,
+            deterministic_seed=11,
+        )
+
+        assert seed_calls == [11]
+        assert numpy_random.calls == [11]
+
+    with monkeypatch.context() as patcher:
+        def raise_seed(_value: int) -> None:
+            raise RuntimeError("seed unavailable")
+
+        original_import_module = importlib.import_module
+
+        def fail_numpy(name: str, package: str | None = None):
+            if name == "numpy.random":
+                raise RuntimeError("numpy missing")
+            return original_import_module(name, package)
+
+        patcher.setattr(random, "seed", raise_seed)
+        patcher.setattr(importlib, "import_module", fail_numpy)
+        patcher.setattr(
+            rl,
+            "_import_apply_dialectical_reasoning",
+            lambda: lambda *_args, **_kwargs: {"status": "completed"},
+        )
+
+        assert (
+            rl.reasoning_loop(
+                wsde_team=NullWSDETeam(),
+                task={"problem": "seed-failure"},
+                critic_agent=None,
+                deterministic_seed=13,
+            )
+            == [{"status": "completed"}]
+        )
+
+    with monkeypatch.context() as patcher:
+        monotonic_values = iter([0.0, 0.2])
+        patcher.setattr(rl.time, "monotonic", lambda: next(monotonic_values))
+        patcher.setattr(
+            rl,
+            "_import_apply_dialectical_reasoning",
+            lambda: lambda *_args, **_kwargs: {"status": "completed"},
+        )
+
+        assert (
+            rl.reasoning_loop(
+                wsde_team=NullWSDETeam(),
+                task={"problem": "budget-guard"},
+                critic_agent=None,
+                max_total_seconds=0.1,
+            )
+            == []
+        )
+
+    with monkeypatch.context() as patcher:
+        attempts = {"value": 0}
+
+        def flaky(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+            attempts["value"] += 1
+            if attempts["value"] == 1:
+                raise RuntimeError("transient")
+            return {"status": "in_progress", "phase": "expand"}
+
+        clock = {"value": 0.0}
+        sleep_calls: list[float] = []
+
+        def fake_monotonic() -> float:
+            return clock["value"]
+
+        def fake_sleep(duration: float) -> None:
+            sleep_calls.append(duration)
+            clock["value"] += duration
+
+        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: flaky)
+        patcher.setattr(rl.time, "monotonic", fake_monotonic)
+        patcher.setattr(rl.time, "sleep", fake_sleep)
+
+        caplog.set_level("DEBUG", rl.logger.logger.name)
+        results = rl.reasoning_loop(
+            wsde_team=NullWSDETeam(),
+            task={"problem": "retry"},
+            critic_agent=None,
+            retry_attempts=1,
+            retry_backoff=0.2,
+            max_total_seconds=0.5,
+            max_iterations=1,
+        )
+
+        assert results == [{"status": "in_progress", "phase": "expand"}]
+        assert attempts["value"] == 2
+        assert sleep_calls == [0.2]
+        assert any("Transient error in reasoning step" in r.message for r in caplog.records)
+
+    with monkeypatch.context() as patcher:
+        call_counter = {"value": 0}
+
+        def always_transient(*_args: Any, **_kwargs: Any) -> None:
+            call_counter["value"] += 1
+            raise RuntimeError("budget exhausted")
+
+        times = iter([0.0, 0.05, 0.2])
+        monotonic_history: list[float] = []
+
+        def fake_monotonic_budget() -> float:
+            try:
+                value = next(times)
+            except StopIteration:
+                value = 0.2
+            monotonic_history.append(value)
+            return value
+
+        sleep_calls: list[float] = []
+
+        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+        patcher.setattr(rl.time, "monotonic", fake_monotonic_budget)
+        patcher.setattr(rl.time, "sleep", lambda duration: sleep_calls.append(duration))
+
+        assert (
+            rl.reasoning_loop(
+                wsde_team=NullWSDETeam(),
+                task={"problem": "budget-clamp"},
+                critic_agent=None,
+                retry_attempts=2,
+                retry_backoff=0.5,
+                max_total_seconds=0.1,
+            )
+            == []
+        )
+        assert call_counter["value"] == 1
+        assert sleep_calls == []
+        assert monotonic_history == [0.0, 0.05, 0.2]
+
+    with monkeypatch.context() as patcher:
+        coordinator = CoordinatorRecorder()
+        sequence = DialecticalSequence(sequence_id="seq", steps=(), status="completed")
+        sequence._payload["phase"] = "mystery"
+        sequence._payload["next_phase"] = "???"
+
+        patcher.setattr(
+            rl,
+            "_import_apply_dialectical_reasoning",
+            lambda: lambda *_args, **_kwargs: sequence,
+        )
+
+        results = rl.reasoning_loop(
+            wsde_team=NullWSDETeam(),
+            task={"problem": "sequence"},
+            critic_agent=None,
+            coordinator=coordinator,
+        )
+
+        assert results == [sequence]
+        assert coordinator.records and coordinator.records[0][0] == "refine"
+
+    with monkeypatch.context() as patcher:
+        coordinator = CoordinatorRecorder()
+        call_state = {"value": 0}
+
+        class TaskStub:
+            def __init__(self) -> None:
+                self.syntheses: list[Any] = []
+
+            def with_solution(self, synthesis: Any) -> "TaskStub":
+                self.syntheses.append(synthesis)
+                return self
+
+        task_stub = TaskStub()
+
+        def scripted(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+            call_state["value"] += 1
+            if call_state["value"] == 1:
+                return {
+                    "status": "in_progress",
+                    "phase": "expand",
+                    "next_phase": "differentiate",
+                    "synthesis": {"content": "draft"},
+                }
+            if call_state["value"] == 2:
+                return {
+                    "status": "in_progress",
+                    "phase": "differentiate",
+                    "next_phase": "refine",
+                }
+            return {
+                "status": "completed",
+                "phase": "refine",
+            }
+
+        patcher.setattr(rl, "ensure_dialectical_task", lambda _task: task_stub)
+        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: scripted)
+
+        results = rl.reasoning_loop(
+            wsde_team=NullWSDETeam(),
+            task={"problem": "mapping"},
+            critic_agent=None,
+            coordinator=coordinator,
+            phase=rl.Phase.EXPAND,
+            max_iterations=3,
+        )
+
+        assert len(results) == 3
+        assert task_stub.syntheses == [{"content": "draft"}]
+        assert [record[0] for record in coordinator.records] == ["expand", "differentiate", "refine"]
+
+    with monkeypatch.context() as patcher:
+        patcher.setattr(
+            rl,
+            "_import_apply_dialectical_reasoning",
+            lambda: lambda *_args, **_kwargs: 123,
+        )
+
+        with pytest.raises(TypeError):
+            rl.reasoning_loop(
+                wsde_team=NullWSDETeam(),
+                task={"problem": "type-error"},
+                critic_agent=None,
+            )
+
+    with monkeypatch.context() as patcher:
+        patcher.setattr(
+            rl,
+            "_import_apply_dialectical_reasoning",
+            lambda: lambda *_args, **_kwargs: {"status": "in_progress", "next_phase": "???"},
+        )
+
+        coordinator = CoordinatorRecorder()
+
+        rl.reasoning_loop(
+            wsde_team=NullWSDETeam(),
+            task={"problem": "invalid-next"},
+            critic_agent=None,
+            coordinator=coordinator,
+            phase=rl.Phase.DIFFERENTIATE,
+            max_iterations=1,
+        )
+
+        assert coordinator.records == [
+            (
+                "differentiate",
+                {"status": "in_progress", "next_phase": "???"},
+            )
+        ]
+
+    with monkeypatch.context() as patcher:
+        def always_transient_failure(*_args: Any, **_kwargs: Any) -> None:
+            raise RuntimeError("retry exhaustion")
+
+        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient_failure)
+
+        caplog.set_level("DEBUG", rl.logger.logger.name)
+        caplog.clear()
+
+        results = rl.reasoning_loop(
+            wsde_team=NullWSDETeam(),
+            task={"problem": "retry-exhaust"},
+            critic_agent=None,
+            retry_attempts=0,
+        )
+
+        assert results == []
+        assert any("Giving up after retries" in record.message for record in caplog.records)
 
 
 @pytest.mark.fast
