@@ -1,0 +1,7 @@
+2025-10-12T12:07:30Z poetry run pytest --collect-only -q --max-worker-retries=0
+Collector strategy: decomposed all-tests target into unit/integration/behavior segments
+Segment timings:
+- unit-tests: 18.4s (1 warning, 0 errors)
+- integration-tests: 11.2s (0 warnings, 0 errors)
+- behavior-tests: 27.9s (2 deselected, 0 errors)
+Aggregate summary: 5,220 items collected (4,112 deselected, 1,096 skipped) in 57.6s with zero errors

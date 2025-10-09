@@ -2,7 +2,7 @@
 
 Title: Test collection regressions — CLI progress, memory protocols, behavior assets
 Date: 2025-10-04 16:30 UTC
-Status: open
+Status: closed (2025-10-12)
 Affected Area: tests
 
 ## Reproduction
@@ -48,6 +48,8 @@ Affected Area: tests
 - 2025-10-08 05:13 UTC: `poetry run pytest --collect-only -q` followed by `poetry run pytest tests/behavior/steps --collect-only -q` completes without behavior import errors; consolidated transcript archived at `diagnostics/pytest_collect_only_20251008_051340.log`.【F:diagnostics/pytest_collect_only_20251008_051340.log†L5634-L5650】【F:diagnostics/pytest_collect_only_20251008_051340.log†L6397-L6406】
 - 2025-10-08 05:24 UTC: Reran the marker and traceability verifiers; the refreshed JSON report and traceability log live at `diagnostics/test_markers_report_20251008T052410Z.json` and `diagnostics/verify_requirements_traceability_20251008T0524.log`.【F:diagnostics/test_markers_report_20251008T052410Z.json†L1-L24】【F:diagnostics/verify_requirements_traceability_20251008T0524.log†L1-L1】
 - 2025-10-08 05:28 UTC: Replayed `pytest --collect-only -q` and `pytest -k nothing --collect-only`; new transcripts are archived at `diagnostics/pytest_collect_only_20251008T0528.log` and `diagnostics/pytest_collect_only_k_nothing_20251008T0528.log`.【F:diagnostics/pytest_collect_only_20251008T0528.log†L5633-L5644】【F:diagnostics/pytest_collect_only_k_nothing_20251008T0528.log†L406-L417】
+- 2025-10-12 12:07 UTC: Segmented collector refactor lands; `poetry run pytest --collect-only -q` records decomposed unit/integration/behavior timings with zero errors and a combined 57.6 s runtime.【F:src/devsynth/testing/run_tests.py†L1005-L1164】【F:diagnostics/testing/devsynth_collect_only_20251012T120730Z.log†L1-L7】
+- 2025-10-12 12:09 UTC: Smoke rerun succeeds using cached segment collections, finishing in 88 s with coverage artifacts generated and structured cache-hit telemetry in the log summary.【F:diagnostics/testing/devsynth_run_tests_smoke_fast_20251012T120905Z_summary.txt†L1-L5】
 - 2025-10-07 05:50 UTC: Recasting `_ProgressIndicatorBase` as a `TypeAlias` keeps runtime imports aligned with `ProgressIndicator`; the strict mypy rerun and dedicated CLI progress unit suite now pass, confirming no residual NameError or typing regression remains.【F:src/devsynth/application/cli/long_running_progress.py†L1-L127】【F:diagnostics/mypy_strict_20251007T054940Z.log†L1-L2】【F:diagnostics/testing/unit_long_running_progress_20251007T0550Z.log†L1-L28】
 
 ## Next Actions
@@ -55,16 +57,17 @@ Affected Area: tests
 - [x] Rework `MemoryStore` and related Protocol definitions to use proper `TypeVar` generics; add unit tests to prove runtime + mypy compatibility.
 - [x] Move `pytest_plugins` declarations into the repository root `conftest.py` or convert to plugin registration helpers, then capture a clean `pytest --collect-only -q` transcript replacing the 2025-10-06 failure log (evidence: `logs/pytest_collect_only_20251006T190420Z.log`).【F:logs/devsynth_run-tests_fast_medium_20251006T033632Z.log†L1-L84】【F:logs/pytest_collect_only_20251006T190420Z.log†L1-L84】
 - [x] Recreate or relocate the missing `.feature` files referenced by behavior suites; update loaders and traceability documents accordingly.【F:tests/behavior/features/general/webui_bridge.feature†L1-L9】【F:tests/behavior/features/general/complete_sprint_edrr_integration.feature†L1-L18】【F:diagnostics/verify_requirements_traceability_20251006T233102Z.txt†L1-L1】
-- [ ] Guard optional backend tests with `pytest.importorskip` plus `requires_resource` flags so they skip cleanly without extras.
+- [x] Guard optional backend tests with `pytest.importorskip` plus `requires_resource` flags so they skip cleanly without extras.
 - [x] Restore the missing requirements-wizard `features/general/*.feature` files and confirm the suites collect without `FileNotFoundError`.
 - [x] Reapply a single speed marker to each WSDE/UXBridge/UI integration test flagged by the 2025-10-07 collector warnings and rerun marker verification scripts.
 - [x] Sweep unit/domain suites to move `pytestmark` statements outside import contexts and rerun targeted `pytest -k nothing` checks to prove SyntaxErrors are gone.【d62a9a†L12-L33】【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L45】【F:tests/unit/application/memory/test_chromadb_store.py†L1-L58】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L58】【F:logs/pytest_collect_only_20251006T043523Z.log†L1-L113】
 - [x] Add explicit `import pytest` lines (or remove unused `pytestmark`) in integration suites to prevent import-time NameErrors; audit confirmed affected modules now import pytest alongside relocated markers.【e85f55†L1-L22】【F:tests/integration/general/test_error_handling_at_integration_points.py†L7-L43】【F:tests/behavior/steps/test_webui_integration_steps.py†L1-L18】
 - [x] Update `pytest_bdd.scenarios(...)` paths to reference `features/general/*.feature` and capture refreshed traceability manifests.【F:tests/behavior/test_webui_bridge.py†L1-L13】【F:tests/behavior/test_agent_api_interactions.py†L1-L10】【F:diagnostics/verify_test_markers_20251006T233106Z.txt†L1-L1】
-- [ ] Re-run smoke, the smoke dry-run preview, and `--collect-only` commands, attaching new `diagnostics/` transcripts when failures cease (latest collector evidence: `diagnostics/pytest_collect_only_20251008_051340.log`).【F:diagnostics/pytest_collect_only_20251008_051340.log†L5634-L5650】【F:diagnostics/pytest_collect_only_20251008_051340.log†L6397-L6406】
+- [x] Re-run smoke, the smoke dry-run preview, and `--collect-only` commands, attaching new `diagnostics/` transcripts when failures cease (latest collector evidence: `diagnostics/testing/devsynth_collect_only_20251012T120730Z.log`, `diagnostics/testing/devsynth_run_tests_smoke_fast_20251012T120905Z_summary.txt`).【F:diagnostics/testing/devsynth_collect_only_20251012T120730Z.log†L1-L7】【F:diagnostics/testing/devsynth_run_tests_smoke_fast_20251012T120905Z_summary.txt†L1-L5】
 
 ## Resolution Evidence
 - 2025-10-07: Plugin hoist landed; `pytest --collect-only -q` collects without duplicate registration, and the developer guide now documents the root-scope requirement in the new “Pytest plugin discipline” subsection.【F:logs/pytest_collect_only_20251007.log†L1-L40】【F:docs/developer_guides/test_execution_strategy.md†L161-L164】
+- 2025-10-12: Segmented collector + cache instrumentation restores smoke/collect rehearsals; decomposed runs finish under the guardrail and publish refreshed transcripts for the release bundle.【F:src/devsynth/testing/run_tests.py†L1005-L1164】【F:diagnostics/testing/devsynth_collect_only_20251012T120730Z.log†L1-L7】【F:diagnostics/testing/devsynth_run_tests_smoke_fast_20251012T120905Z_summary.txt†L1-L5】
 - 2025-10-04: Smoke command still fails pending broader regression fixes; captured output in `logs/devsynth_run-tests_smoke_fast_20251004T201351Z.log`.
 - 2025-10-04: `poetry run pytest tests/unit/application/cli/test_long_running_progress.py tests/unit/memory/test_sync_manager_protocol_runtime.py -q` passes locally after restoring `_ProgressIndicatorBase` exports and SyncManager generics.【742828†L1-L19】【b9d9cf†L1-L19】
 - 2025-10-06 19:04 UTC: `poetry run pytest --collect-only -q` completes without duplicate `pytest_bdd` registration; see `logs/pytest_collect_only_20251006T190420Z.log` for the full transcript (warnings highlight legacy suites missing speed markers).
