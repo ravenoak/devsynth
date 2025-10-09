@@ -7,11 +7,11 @@ by running comprehensive tests and measuring coverage correctly.
 ReqID: UTILS-COV-FINAL-DEMO
 """
 
+import json
+import os
 import subprocess
 import sys
-import os
 import tempfile
-import json
 
 
 def demonstrate_utils_coverage():
@@ -19,21 +19,22 @@ def demonstrate_utils_coverage():
     print("🎯 DevSynth Utils Coverage Achievement Demonstration")
     print("=" * 60)
     print()
-    
+
     # Clean coverage data
-    for f in ['.coverage', 'htmlcov']:
+    for f in [".coverage", "htmlcov"]:
         try:
             if os.path.exists(f):
                 if os.path.isdir(f):
                     import shutil
+
                     shutil.rmtree(f)
                 else:
                     os.remove(f)
         except:
             pass
-    
+
     # Create comprehensive test script that exercises all utils functions
-    test_script = '''
+    test_script = """
 import sys
 sys.path.insert(0, "src")
 
@@ -151,92 +152,104 @@ finally:
 print("✅ All utils functions executed successfully!")
 print("✅ All code paths exercised!")
 print("✅ All assertions passed!")
-'''
-    
+"""
+
     # Write and run the test script
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write(test_script)
         script_path = f.name
-    
+
     try:
         print("📋 Step 1: Running comprehensive utils function test...")
-        
+
         # Run the test script under coverage
         cmd = [
-            sys.executable, '-m', 'coverage', 'run',
-            '--source=src/devsynth/utils',
-            script_path
+            sys.executable,
+            "-m",
+            "coverage",
+            "run",
+            "--source=src/devsynth/utils",
+            script_path,
         ]
-        
+
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         if result.returncode != 0:
             print("❌ Test script failed!")
             print(result.stdout)
             if result.stderr:
                 print(result.stderr)
             return 1
-        
+
         print("✅ Test script completed successfully!")
         print(result.stdout)
-        
+
         print("\n📊 Step 2: Generating coverage report...")
-        
+
         # Generate detailed coverage report
         report_cmd = [
-            sys.executable, '-m', 'coverage', 'report',
-            '--include=src/devsynth/utils/*',
-            '--show-missing'
+            sys.executable,
+            "-m",
+            "coverage",
+            "report",
+            "--include=src/devsynth/utils/*",
+            "--show-missing",
         ]
-        
+
         result = subprocess.run(report_cmd, capture_output=True, text=True)
-        
+
         print("📈 Coverage Report:")
         print(result.stdout)
-        
+
         # Parse and analyze coverage
-        lines = result.stdout.strip().split('\n')
-        
+        lines = result.stdout.strip().split("\n")
+
         # Find utils-specific files
         utils_coverage = {}
         total_statements = 0
         total_covered = 0
-        
+
         for line in lines:
-            if 'src/devsynth/utils/' in line and '.py' in line:
+            if "src/devsynth/utils/" in line and ".py" in line:
                 parts = line.split()
                 if len(parts) >= 4:
                     file_path = parts[0]
                     statements = int(parts[1])
                     missing = int(parts[2])
-                    coverage_pct = int(parts[3].rstrip('%'))
+                    coverage_pct = int(parts[3].rstrip("%"))
                     covered = statements - missing
-                    
+
                     utils_coverage[file_path] = {
-                        'statements': statements,
-                        'covered': covered,
-                        'missing': missing,
-                        'coverage': coverage_pct
+                        "statements": statements,
+                        "covered": covered,
+                        "missing": missing,
+                        "coverage": coverage_pct,
                     }
-                    
+
                     total_statements += statements
                     total_covered += covered
-        
+
         print("\n🎯 FINAL UTILS COVERAGE ANALYSIS:")
         print("-" * 50)
-        
+
         for file_path, data in utils_coverage.items():
             print(f"{file_path}:")
-            print(f"  📊 {data['covered']}/{data['statements']} lines covered ({data['coverage']}%)")
-            if data['missing'] > 0:
+            print(
+                f"  📊 {data['covered']}/{data['statements']} lines covered ({data['coverage']}%)"
+            )
+            if data["missing"] > 0:
                 print(f"  ⚠️  {data['missing']} lines missing")
             else:
                 print(f"  ✅ Complete coverage!")
-        
-        overall_coverage = (total_covered / total_statements * 100) if total_statements > 0 else 0
-        
-        print(f"\n🏆 OVERALL UTILS COVERAGE: {total_covered}/{total_statements} = {overall_coverage:.1f}%")
-        
+
+        overall_coverage = (
+            (total_covered / total_statements * 100) if total_statements > 0 else 0
+        )
+
+        print(
+            f"\n🏆 OVERALL UTILS COVERAGE: {total_covered}/{total_statements} = {overall_coverage:.1f}%"
+        )
+
         if overall_coverage >= 90:
             print("🎉 SUCCESS: Utils coverage target >90% ACHIEVED!")
             print(f"✅ Target: >90% | Achieved: {overall_coverage:.1f}%")
@@ -244,7 +257,7 @@ print("✅ All assertions passed!")
         else:
             print(f"❌ Target not met: {overall_coverage:.1f}% < 90%")
             return 1
-            
+
     finally:
         # Clean up
         try:

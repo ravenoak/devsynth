@@ -6,43 +6,51 @@ This script provides systematic archival of deprecated content with proper
 metadata preservation and reference updating.
 """
 
+import argparse
 import os
 import re
-import sys
 import shutil
+import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
-import argparse
-from datetime import datetime
+
 import yaml
 
 
-def create_archival_metadata(original_path: Path, reason: str, superseded_by: Optional[str] = None) -> Dict:
+def create_archival_metadata(
+    original_path: Path, reason: str, superseded_by: Optional[str] = None
+) -> Dict:
     """Create metadata for archived documents."""
     return {
-        'archived_date': datetime.now().strftime('%Y-%m-%d'),
-        'original_location': str(original_path),
-        'archival_reason': reason,
-        'superseded_by': superseded_by,
-        'archived_by': 'DevSynth Documentation Harmonization'
+        "archived_date": datetime.now().strftime("%Y-%m-%d"),
+        "original_location": str(original_path),
+        "archival_reason": reason,
+        "superseded_by": superseded_by,
+        "archived_by": "DevSynth Documentation Harmonization",
     }
 
 
-def archive_file(source_path: Path, archive_dir: Path, reason: str, superseded_by: Optional[str] = None) -> bool:
+def archive_file(
+    source_path: Path,
+    archive_dir: Path,
+    reason: str,
+    superseded_by: Optional[str] = None,
+) -> bool:
     """Archive a single file with proper metadata."""
     try:
         # Create archive directory if it doesn't exist
         archive_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Generate archived filename with timestamp
-        timestamp = datetime.now().strftime('%Y%m%d')
+        timestamp = datetime.now().strftime("%Y%m%d")
         archived_name = f"{source_path.stem}-{timestamp}{source_path.suffix}"
         archived_path = archive_dir / archived_name
-        
+
         # Read original content
-        with open(source_path, 'r', encoding='utf-8') as f:
+        with open(source_path, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         # Create archival header
         archival_metadata = create_archival_metadata(source_path, reason, superseded_by)
         archival_header = f"""# ARCHIVED DOCUMENT
@@ -56,14 +64,14 @@ def archive_file(source_path: Path, archive_dir: Path, reason: str, superseded_b
 ---
 
 """
-        
+
         # Write archived file with header
-        with open(archived_path, 'w', encoding='utf-8') as f:
+        with open(archived_path, "w", encoding="utf-8") as f:
             f.write(archival_header + content)
-        
+
         print(f"✅ Archived: {source_path} → {archived_path}")
         return True
-        
+
     except Exception as e:
         print(f"❌ Error archiving {source_path}: {e}")
         return False
@@ -72,34 +80,38 @@ def archive_file(source_path: Path, archive_dir: Path, reason: str, superseded_b
 def create_archive_index(archive_dir: Path) -> None:
     """Create an index of all archived files in a directory."""
     archived_files = []
-    
+
     for archived_file in archive_dir.glob("*.md"):
         if archived_file.name == "README.md":
             continue
-            
+
         # Extract metadata from archived file
         try:
-            with open(archived_file, 'r', encoding='utf-8') as f:
+            with open(archived_file, "r", encoding="utf-8") as f:
                 content = f.read()
-            
+
             # Extract archival metadata
-            original_match = re.search(r'\*\*Original Location\*\*:\s*(.+)', content)
-            date_match = re.search(r'\*\*Archived Date\*\*:\s*(.+)', content)
-            reason_match = re.search(r'\*\*Reason\*\*:\s*(.+)', content)
-            
-            archived_files.append({
-                'filename': archived_file.name,
-                'original_location': original_match.group(1) if original_match else 'Unknown',
-                'archived_date': date_match.group(1) if date_match else 'Unknown',
-                'reason': reason_match.group(1) if reason_match else 'Unknown'
-            })
-            
+            original_match = re.search(r"\*\*Original Location\*\*:\s*(.+)", content)
+            date_match = re.search(r"\*\*Archived Date\*\*:\s*(.+)", content)
+            reason_match = re.search(r"\*\*Reason\*\*:\s*(.+)", content)
+
+            archived_files.append(
+                {
+                    "filename": archived_file.name,
+                    "original_location": (
+                        original_match.group(1) if original_match else "Unknown"
+                    ),
+                    "archived_date": date_match.group(1) if date_match else "Unknown",
+                    "reason": reason_match.group(1) if reason_match else "Unknown",
+                }
+            )
+
         except Exception as e:
             print(f"Warning: Could not process {archived_file}: {e}")
-    
+
     # Sort by archived date
-    archived_files.sort(key=lambda x: x['archived_date'], reverse=True)
-    
+    archived_files.sort(key=lambda x: x["archived_date"], reverse=True)
+
     # Generate index content
     index_content = f"""# Archived Documents Index
 
@@ -113,10 +125,10 @@ This directory contains documents that have been systematically archived as part
 | Filename | Original Location | Archived Date | Reason |
 |----------|-------------------|---------------|---------|
 """
-    
+
     for file_info in archived_files:
         index_content += f"| {file_info['filename']} | {file_info['original_location']} | {file_info['archived_date']} | {file_info['reason']} |\n"
-    
+
     index_content += f"""
 
 ## Access Guidelines
@@ -130,32 +142,40 @@ This directory contains documents that have been systematically archived as part
 
 *This index is automatically generated by `scripts/archive_deprecated.py`*
 """
-    
+
     # Write index file
     index_path = archive_dir / "README.md"
-    with open(index_path, 'w', encoding='utf-8') as f:
+    with open(index_path, "w", encoding="utf-8") as f:
         f.write(index_content)
-    
+
     print(f"✅ Created archive index: {index_path}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Systematically archive deprecated documentation")
-    parser.add_argument("--source", required=True, help="Source file or directory to archive")
+    parser = argparse.ArgumentParser(
+        description="Systematically archive deprecated documentation"
+    )
+    parser.add_argument(
+        "--source", required=True, help="Source file or directory to archive"
+    )
     parser.add_argument("--archive-dir", required=True, help="Archive directory")
     parser.add_argument("--reason", required=True, help="Reason for archival")
     parser.add_argument("--superseded-by", help="Document that supersedes this one")
-    parser.add_argument("--update-index", action="store_true", help="Update archive index after archival")
-    
+    parser.add_argument(
+        "--update-index",
+        action="store_true",
+        help="Update archive index after archival",
+    )
+
     args = parser.parse_args()
-    
+
     source_path = Path(args.source)
     archive_dir = Path(args.archive_dir)
-    
+
     if not source_path.exists():
         print(f"Error: Source path '{source_path}' not found")
         sys.exit(1)
-    
+
     print("=" * 60)
     print("SYSTEMATIC ARCHIVAL PROCESS")
     print("=" * 60)
@@ -165,12 +185,14 @@ def main():
     if args.superseded_by:
         print(f"Superseded By: {args.superseded_by}")
     print()
-    
+
     success = False
-    
+
     if source_path.is_file():
         # Archive single file
-        success = archive_file(source_path, archive_dir, args.reason, args.superseded_by)
+        success = archive_file(
+            source_path, archive_dir, args.reason, args.superseded_by
+        )
         if success:
             # Remove original file
             source_path.unlink()
@@ -178,11 +200,11 @@ def main():
     else:
         print(f"Error: Directory archival not yet implemented")
         sys.exit(1)
-    
+
     # Update archive index if requested
     if args.update_index and success:
         create_archive_index(archive_dir)
-    
+
     print()
     print("=" * 60)
     if success:
@@ -190,7 +212,7 @@ def main():
     else:
         print("❌ ARCHIVAL FAILED")
     print("=" * 60)
-    
+
     sys.exit(0 if success else 1)
 
 

@@ -10,9 +10,9 @@ This script solves the coverage reporting issues by:
 ReqID: UTILS-COV-SOLUTION
 """
 
+import os
 import subprocess
 import sys
-import os
 import tempfile
 from pathlib import Path
 
@@ -23,52 +23,56 @@ def run_utils_coverage_test():
     print("=" * 50)
     print("Testing coverage for src/devsynth/utils/ modules")
     print()
-    
+
     # Step 1: Clean any existing coverage data
-    for pattern in ['.coverage*', 'htmlcov']:
+    for pattern in [".coverage*", "htmlcov"]:
         try:
             if os.path.exists(pattern):
                 if os.path.isdir(pattern):
                     import shutil
+
                     shutil.rmtree(pattern)
                 else:
                     os.remove(pattern)
         except:
             pass
-    
+
     # Step 2: Run pytest tests to ensure they all pass
     print("📋 Step 1: Running utils tests to ensure they pass...")
     test_cmd = [
-        sys.executable, '-m', 'pytest',
-        'tests/unit/utils/',
-        '-v',
-        '--tb=short',
-        '-x'  # Stop on first failure
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/unit/utils/",
+        "-v",
+        "--tb=short",
+        "-x",  # Stop on first failure
     ]
-    
+
     result = subprocess.run(test_cmd, capture_output=True, text=True)
-    
+
     if result.returncode != 0:
         print("❌ Tests failed! Cannot proceed with coverage measurement.")
         print(result.stdout)
         if result.stderr:
             print(result.stderr)
         return 1
-    
+
     # Count passed tests
     stdout = result.stdout
     if "passed" in stdout:
         import re
-        match = re.search(r'(\d+) passed', stdout)
+
+        match = re.search(r"(\d+) passed", stdout)
         if match:
             test_count = match.group(1)
             print(f"✅ All {test_count} tests passed!")
-    
+
     # Step 3: Run coverage measurement directly
     print("\n📊 Step 2: Measuring coverage for utils modules...")
-    
+
     # Create a comprehensive test script that imports and exercises all utils functions
-    test_script_content = '''
+    test_script_content = """
 import sys
 sys.path.insert(0, "src")
 
@@ -135,65 +139,72 @@ finally:
     os.unlink(temp_path)
 
 print("All utils functions executed successfully")
-'''
-    
+"""
+
     # Write test script to temporary file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write(test_script_content)
         test_script_path = f.name
-    
+
     try:
         # Run coverage on the test script
         coverage_cmd = [
-            sys.executable, '-m', 'coverage', 'run',
-            '--source=src/devsynth/utils',
-            test_script_path
+            sys.executable,
+            "-m",
+            "coverage",
+            "run",
+            "--source=src/devsynth/utils",
+            test_script_path,
         ]
-        
+
         result = subprocess.run(coverage_cmd, capture_output=True, text=True)
-        
+
         if result.returncode != 0:
             print("❌ Coverage measurement failed!")
             print(result.stdout)
             if result.stderr:
                 print(result.stderr)
             return 1
-        
+
         print("✅ Coverage measurement completed!")
         print(result.stdout)
-        
+
         # Generate coverage report
         report_cmd = [
-            sys.executable, '-m', 'coverage', 'report',
-            '--include=src/devsynth/utils/*',
-            '--show-missing'
+            sys.executable,
+            "-m",
+            "coverage",
+            "report",
+            "--include=src/devsynth/utils/*",
+            "--show-missing",
         ]
-        
+
         result = subprocess.run(report_cmd, capture_output=True, text=True)
-        
+
         print("\n📈 Coverage Report:")
         print(result.stdout)
-        
+
         # Parse coverage percentage
-        lines = result.stdout.strip().split('\n')
-        total_line = [line for line in lines if 'TOTAL' in line]
-        
+        lines = result.stdout.strip().split("\n")
+        total_line = [line for line in lines if "TOTAL" in line]
+
         if total_line:
             import re
-            match = re.search(r'(\d+)%', total_line[0])
+
+            match = re.search(r"(\d+)%", total_line[0])
             if match:
                 coverage_pct = int(match.group(1))
                 print(f"\n🎯 Final Utils Coverage: {coverage_pct}%")
-                
+
                 if coverage_pct >= 90:
                     print("🎉 SUCCESS: Utils coverage target >90% achieved!")
                     return 0
                 else:
                     print(f"⚠️  Coverage: {coverage_pct}% (target: >90%)")
                     return 1
-        
+
         return 0
-        
+
     finally:
         # Clean up test script
         try:
