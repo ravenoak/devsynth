@@ -1,13 +1,9 @@
 from typing import Any, Callable
 
-
 class CachingMiddleware:
     def __init__(self, storage_cls: type[Any]) -> None: ...
-
     def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
 
-
 def create_middleware(factory: Callable[..., Any]) -> Callable[..., Any]: ...
-
 
 __all__ = ["CachingMiddleware", "create_middleware"]

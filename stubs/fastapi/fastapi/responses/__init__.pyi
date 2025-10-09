@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Mapping, MutableMapping
 
-
 class Response:
     headers: MutableMapping[str, str]
 
     def __init__(self, content: Any = ..., *, media_type: str | None = ...) -> None: ...
-
 
 class JSONResponse(Response):
     def __init__(
@@ -19,7 +17,6 @@ class JSONResponse(Response):
         media_type: str | None = ...,
     ) -> None: ...
 
-
 class PlainTextResponse(Response):
     def __init__(
         self,
@@ -30,7 +27,4 @@ class PlainTextResponse(Response):
         media_type: str | None = ...,
     ) -> None: ...
 
-
-class StreamingResponse(Response):
-    ...
-
+class StreamingResponse(Response): ...

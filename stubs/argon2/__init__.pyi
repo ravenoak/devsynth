@@ -6,7 +6,6 @@ from .exceptions import VerifyMismatchError
 
 __all__ = ["PasswordHasher", "VerifyMismatchError"]
 
-
 class PasswordHasher:
     def __init__(
         self,
@@ -17,9 +16,5 @@ class PasswordHasher:
         hash_len: int = ...,
         salt_len: int = ...,
     ) -> None: ...
-
     def hash(self, password: str) -> str: ...
-
     def verify(self, hashed_password: str, password: str) -> bool: ...
-
-

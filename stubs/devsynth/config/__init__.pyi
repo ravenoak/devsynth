@@ -20,9 +20,7 @@ __all__ = [
 
 PROJECT_CONFIG: ConfigModel
 
-
 def get_project_config(path: Path | None = ...) -> ConfigModel: ...
-
 
 class ProjectUnifiedConfig(UnifiedConfig[ConfigModel]):
     config: ConfigModel
@@ -31,8 +29,6 @@ class ProjectUnifiedConfig(UnifiedConfig[ConfigModel]):
 
     @classmethod
     def load(cls, path: Path | None = ...) -> ProjectUnifiedConfig: ...
-
     def save(self) -> Path: ...
-
 
 def load_project_config(path: Path | None = ...) -> ProjectUnifiedConfig: ...

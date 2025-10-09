@@ -2,12 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-
 class Text:
     def __init__(self, text: str = ..., **kwargs: Any) -> None: ...
-
     def append(self, text: str, **kwargs: Any) -> None: ...
-
     @classmethod
     def from_markup(cls, markup: str, **kwargs: Any) -> Text: ...
-

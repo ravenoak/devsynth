@@ -1,11 +1,23 @@
 import enum
 import sys
 import types
-from _typeshed import DataclassInstance
-from builtins import type as Type  # alias to avoid name clashes with fields named "type"
+from builtins import (
+    type as Type,  # alias to avoid name clashes with fields named "type"
+)
 from collections.abc import Callable, Iterable, Mapping
 from types import GenericAlias
-from typing import Any, Final, Generic, Literal, Protocol, TypeVar, overload, type_check_only
+from typing import (
+    Any,
+    Final,
+    Generic,
+    Literal,
+    Protocol,
+    TypeVar,
+    overload,
+    type_check_only,
+)
+
+from _typeshed import DataclassInstance
 from typing_extensions import Never, TypeIs
 
 _T = TypeVar("_T")
@@ -66,11 +78,15 @@ if sys.version_info >= (3, 10):
 @overload
 def asdict(obj: DataclassInstance) -> dict[str, Any]: ...
 @overload
-def asdict(obj: DataclassInstance, *, dict_factory: Callable[[list[tuple[str, Any]]], _T]) -> _T: ...
+def asdict(
+    obj: DataclassInstance, *, dict_factory: Callable[[list[tuple[str, Any]]], _T]
+) -> _T: ...
 @overload
 def astuple(obj: DataclassInstance) -> tuple[Any, ...]: ...
 @overload
-def astuple(obj: DataclassInstance, *, tuple_factory: Callable[[list[Any]], _T]) -> _T: ...
+def astuple(
+    obj: DataclassInstance, *, tuple_factory: Callable[[list[Any]], _T]
+) -> _T: ...
 
 if sys.version_info >= (3, 11):
     @overload
@@ -200,7 +216,18 @@ class Field(Generic[_T]):
             "_field_type",
         )
     else:
-        __slots__ = ("name", "type", "default", "default_factory", "repr", "hash", "init", "compare", "metadata", "_field_type")
+        __slots__ = (
+            "name",
+            "type",
+            "default",
+            "default_factory",
+            "repr",
+            "hash",
+            "init",
+            "compare",
+            "metadata",
+            "_field_type",
+        )
     name: str
     type: Type[_T] | str | Any
     default: _T | Literal[_MISSING_TYPE.MISSING]
@@ -373,7 +400,9 @@ else:
         metadata: Mapping[Any, Any] | None = None,
     ) -> Any: ...
 
-def fields(class_or_instance: DataclassInstance | type[DataclassInstance]) -> tuple[Field[Any], ...]: ...
+def fields(
+    class_or_instance: DataclassInstance | type[DataclassInstance],
+) -> tuple[Field[Any], ...]: ...
 
 # HACK: `obj: Never` typing matches if object argument is using `Any` type.
 @overload
@@ -381,7 +410,9 @@ def is_dataclass(obj: Never) -> TypeIs[DataclassInstance | type[DataclassInstanc
 @overload
 def is_dataclass(obj: type) -> TypeIs[type[DataclassInstance]]: ...
 @overload
-def is_dataclass(obj: object) -> TypeIs[DataclassInstance | type[DataclassInstance]]: ...
+def is_dataclass(
+    obj: object,
+) -> TypeIs[DataclassInstance | type[DataclassInstance]]: ...
 
 class FrozenInstanceError(AttributeError): ...
 
@@ -390,9 +421,13 @@ class InitVar(Generic[_T]):
     type: Type[_T]
     def __init__(self, type: Type[_T]) -> None: ...
     @overload
-    def __class_getitem__(cls, type: Type[_T]) -> InitVar[_T]: ...  # pyright: ignore[reportInvalidTypeForm]
+    def __class_getitem__(
+        cls, type: Type[_T]
+    ) -> InitVar[_T]: ...  # pyright: ignore[reportInvalidTypeForm]
     @overload
-    def __class_getitem__(cls, type: Any) -> InitVar[Any]: ...  # pyright: ignore[reportInvalidTypeForm]
+    def __class_getitem__(
+        cls, type: Any
+    ) -> InitVar[Any]: ...  # pyright: ignore[reportInvalidTypeForm]
 
 if sys.version_info >= (3, 14):
     def make_dataclass(

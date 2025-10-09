@@ -1,28 +1,20 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, TypeVar, Generic
+from typing import Any, Generic, Iterable, TypeVar
 
 __all__ = ["DiGraph"]
 
 _NodeT = TypeVar("_NodeT")
 
-
 class DiGraph(Generic[_NodeT]):
     def __init__(self, **attr: Any) -> None: ...
-
     def add_node(self, node_for_adding: _NodeT, **attr: Any) -> None: ...
-
     def add_edge(self, u_of_edge: _NodeT, v_of_edge: _NodeT, **attr: Any) -> None: ...
-
     def has_edge(self, u_of_edge: _NodeT, v_of_edge: _NodeT) -> bool: ...
-
     def successors(self, node: _NodeT) -> Iterable[_NodeT]: ...
-
     def predecessors(self, node: _NodeT) -> Iterable[_NodeT]: ...
-
     def edges(
         self,
         data: bool = ...,
         default: Any = ...,
     ) -> Iterable[tuple[_NodeT, _NodeT] | tuple[_NodeT, _NodeT, Any]]: ...
-

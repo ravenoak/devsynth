@@ -14,7 +14,6 @@ __all__ = [
 _T = TypeVar("_T")
 _F = TypeVar("_F", bound=Callable[..., Any])
 
-
 def Field(
     default: Any = ...,
     *,
@@ -30,9 +29,7 @@ def Field(
     le: float | None = ...,
     lt: float | None = ...,
     pattern: str | None = ...,
-) -> Any:
-    ...
-
+) -> Any: ...
 
 class BaseModel:
     """Minimal stub of pydantic.BaseModel for type-checking."""
@@ -40,11 +37,8 @@ class BaseModel:
     model_config: Mapping[str, Any]
 
     def __init__(self, **data: Any) -> None: ...
-
     def model_dump(self, *args: Any, **kwargs: Any) -> Dict[str, Any]: ...
-
     def dict(self, *args: Any, **kwargs: Any) -> Dict[str, Any]: ...
-
 
 class FieldValidationInfo:
     """Validation context passed to field validators."""
@@ -53,22 +47,14 @@ class FieldValidationInfo:
     field_name: str | None
     config: Mapping[str, Any] | None
 
-
 class ValidationError(Exception):
     def errors(self) -> Sequence[Mapping[str, Any]]: ...
 
-
-def field_validator(*fields: str, **kwargs: Any) -> Callable[[ _F ], _F]:
-    ...
-
-
+def field_validator(*fields: str, **kwargs: Any) -> Callable[[_F], _F]: ...
 def conint(
     *,
     ge: int | None = ...,
     gt: int | None = ...,
     le: int | None = ...,
     lt: int | None = ...,
-) -> type[int]:
-    ...
-
-
+) -> type[int]: ...
