@@ -23,7 +23,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-
 pytestmark = [pytest.mark.fast]
 
 # Import the module being tested

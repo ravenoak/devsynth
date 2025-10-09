@@ -24,7 +24,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-
 pytestmark = [pytest.mark.medium]
 
 # Import the components being tested

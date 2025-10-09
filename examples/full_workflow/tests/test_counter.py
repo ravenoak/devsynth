@@ -9,7 +9,6 @@ sys.path.insert(
 
 from counter import Counter
 
-
 pytestmark = [pytest.mark.fast]
 
 
