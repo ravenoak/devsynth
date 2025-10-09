@@ -14,10 +14,10 @@ import os
 import sys
 import tempfile
 import uuid
+from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
-from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Iterator, Protocol, cast
 
 canonical_name = "devsynth.application.memory.kuzu_store"
@@ -35,6 +35,7 @@ if sys.modules.get(canonical_name) is None:
 
 if __spec__ is not None:
     __spec__.name = canonical_name
+
 
 class _TiktokenModule(Protocol):
     def get_encoding(self, name: str) -> object: ...
@@ -66,6 +67,7 @@ from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
 from devsynth.fallback import retry_with_exponential_backoff
 from devsynth.logging_setup import DevSynthLogger
+
 from .dto import MemoryRecord, build_memory_record
 
 logger = DevSynthLogger(__name__)
@@ -220,7 +222,9 @@ class KuzuStore(MemoryStore, SupportsTransactions):
     def commit_transaction(self, transaction_id: str) -> bool:
         """Commit a previously started transaction."""
         self._transactions.pop(transaction_id, None)
-        if not self._use_fallback and self.conn is not None:  # pragma: no cover - requires kuzu
+        if (
+            not self._use_fallback and self.conn is not None
+        ):  # pragma: no cover - requires kuzu
             try:
                 self.conn.execute("COMMIT")
             except Exception as exc:  # pragma: no cover - defensive
@@ -249,9 +253,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
     supports_transactions: bool = True
 
     @contextmanager
-    def transaction(
-        self, transaction_id: str | None = None
-    ) -> Iterator[str]:
+    def transaction(self, transaction_id: str | None = None) -> Iterator[str]:
         """Context manager that wraps begin/commit/rollback."""
         tx_id = self.begin_transaction(transaction_id)
         try:

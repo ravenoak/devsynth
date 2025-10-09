@@ -11,10 +11,10 @@ requirements that drive these reasoning utilities.
 """
 
 import re
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Tuple
-from collections.abc import Iterable, Mapping
 from uuid import uuid4
 
 # Import the base WSDETeam class for type hints

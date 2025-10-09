@@ -192,13 +192,15 @@ class StandardizedOutputFormatter:
 
     def format_table(
         self,
-        data: CommandTableData
-        | CommandTableRow
-        | Sequence[CommandTableRow]
-        | Mapping[str, object]
-        | Sequence[Mapping[str, object]]
-        | ManifestSummary
-        | object,
+        data: (
+            CommandTableData
+            | CommandTableRow
+            | Sequence[CommandTableRow]
+            | Mapping[str, object]
+            | Sequence[Mapping[str, object]]
+            | ManifestSummary
+            | object
+        ),
         output_style: CommandOutputStyle = CommandOutputStyle.STANDARD,
         title: str | None = None,
         subtitle: str | None = None,
@@ -294,9 +296,7 @@ class StandardizedOutputFormatter:
                     subtitle=subtitle,
                 )
         else:
-            logger.warning(
-                "Unsupported data type for table formatting: %s", type(data)
-            )
+            logger.warning("Unsupported data type for table formatting: %s", type(data))
             table.add_column("Data")
             table.add_row(str(data))
             return CommandDisplay(
@@ -516,14 +516,10 @@ class StandardizedOutputFormatter:
             for option in options_data:
                 default = option.get("default")
                 default_fragment = f" (default: {default})" if default else ""
-                help_text += (
-                    f"  {option.get_str('name')}: {option.get_str('description')}{default_fragment}\n"
-                )
+                help_text += f"  {option.get_str('name')}: {option.get_str('description')}{default_fragment}\n"
             help_text += "\nExamples:\n"
             for example in examples_data:
-                help_text += (
-                    f"  {example.get_str('description')}:\n  {example.get_str('command')}\n\n"
-                )
+                help_text += f"  {example.get_str('description')}:\n  {example.get_str('command')}\n\n"
             renderable: str | Text | Panel = help_text
         elif output_style == CommandOutputStyle.SIMPLE:
             # Simple styling (basic formatting)
@@ -537,9 +533,7 @@ class StandardizedOutputFormatter:
                 default = option.get("default")
                 default_fragment = f" (default: {default})" if default else ""
                 help_text.append(f"  {option.get_str('name')}: ", style="bold")
-                help_text.append(
-                    f"{option.get_str('description')}{default_fragment}\n"
-                )
+                help_text.append(f"{option.get_str('description')}{default_fragment}\n")
             help_text.append("\nExamples:\n", style="bold")
             for example in examples_data:
                 help_text.append(

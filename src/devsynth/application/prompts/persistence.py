@@ -8,7 +8,6 @@ from typing import Dict, List
 
 from .models import StoredPromptVariant
 
-
 PromptVariantsDocument = Dict[str, List[StoredPromptVariant]]
 
 
@@ -39,4 +38,3 @@ def save_prompt_variants(storage_dir: Path, data: PromptVariantsDocument) -> Non
             json.dump(data, file, indent=2)
     except OSError as exc:  # pragma: no cover - handled by caller logging
         raise PromptVariantStorageError(str(exc)) from exc
-

@@ -6,6 +6,7 @@ import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Iterator, MutableMapping, Optional, Sequence, TypedDict
+
 from typing_extensions import Literal
 
 
@@ -163,4 +164,3 @@ class PromptVariantCollection(MutableMapping[str, list[PromptVariant]]):
         """Return the total number of variants stored."""
 
         return sum(len(variants) for variants in self.variants_by_template.values())
-

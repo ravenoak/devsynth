@@ -5,7 +5,6 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Generic, Protocol, TypeVar, runtime_checkable
 
-
 ValueT = TypeVar("ValueT")
 Snapshot = Mapping[str, ValueT]
 
@@ -31,6 +30,7 @@ class MemoryStore(Protocol, Generic[ValueT]):
     def restore(self, snapshot: Snapshot) -> None:
         """Restore the store from a previous :meth:`snapshot` output."""
 
+
 @dataclass(slots=True)
 class SyncManager(Generic[ValueT]):
     """Synchronise items across multiple memory stores."""
@@ -53,8 +53,7 @@ class SyncManager(Generic[ValueT]):
         unexpected = configured - allowed
         if unexpected:
             raise ValueError(
-                "Unexpected stores configured: "
-                f"{', '.join(sorted(unexpected))}"
+                "Unexpected stores configured: " f"{', '.join(sorted(unexpected))}"
             )
 
     def write(self, key: str, value: ValueT) -> None:

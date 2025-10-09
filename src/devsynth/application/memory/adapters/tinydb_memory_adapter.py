@@ -44,7 +44,6 @@ from ._tinydb_protocols import (
 )
 from .storage_adapter import MemorySnapshot, StorageAdapter
 
-
 tinydb_module: ModuleType = importlib.import_module("tinydb")
 QueryFactory = cast(TinyDBQueryFactory, getattr(tinydb_module, "Query"))
 TinyDBConstructor = cast(TinyDBFactory, getattr(tinydb_module, "TinyDB"))

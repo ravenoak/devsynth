@@ -18,8 +18,7 @@ VectorArray: TypeAlias = "NDArray[Any]"
 
 
 class _SupportsNorm(Protocol):
-    def norm(self, __x: Sequence[float] | VectorArray) -> float:
-        ...
+    def norm(self, __x: Sequence[float] | VectorArray) -> float: ...
 
 
 class SupportsVectorOps(Protocol):
@@ -29,20 +28,18 @@ class SupportsVectorOps(Protocol):
 
     def array(
         self, __object: Sequence[float] | VectorArray, dtype: Any | None = ...
-    ) -> VectorArray:
-        ...
+    ) -> VectorArray: ...
 
-    def dot(self, __a: VectorArray, __b: VectorArray, /) -> float:
-        ...
+    def dot(self, __a: VectorArray, __b: VectorArray, /) -> float: ...
 
 
 np = cast(SupportsVectorOps, importlib.import_module("numpy"))
 
 from ....domain.models.memory import MemoryVector
-from ..dto import MemoryRecord, VectorStoreStats, build_memory_record
-from ..vector_protocol import VectorStoreProtocol
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
+from ..dto import MemoryRecord, VectorStoreStats, build_memory_record
+from ..vector_protocol import VectorStoreProtocol
 
 logger = DevSynthLogger(__name__)
 
@@ -196,7 +193,9 @@ class VectorMemoryAdapter(VectorStoreProtocol):
         dimensions = 0
         if self.embeddings:
             first = next(iter(self.embeddings.values()))
-            dimensions = len(first) if not hasattr(first, "shape") else int(first.shape[0])
+            dimensions = (
+                len(first) if not hasattr(first, "shape") else int(first.shape[0])
+            )
 
         return {
             "vector_count": len(self.vectors),

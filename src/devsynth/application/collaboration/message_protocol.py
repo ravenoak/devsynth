@@ -171,7 +171,10 @@ class MessageStore:
             return False
         if filters.recipient and filters.recipient not in message.recipients:
             return False
-        if filters.subject_contains and filters.subject_contains.lower() not in message.subject.lower():
+        if (
+            filters.subject_contains
+            and filters.subject_contains.lower() not in message.subject.lower()
+        ):
             return False
         if filters.since is not None and message.timestamp < filters.since:
             return False
@@ -184,8 +187,8 @@ from ...domain.models.memory import MemoryItem, MemoryType
 from ..memory.memory_manager import MemoryManager
 from .dto import (
     AgentPayload,
-    CollaborationPayloadInput,
     CollaborationDTO,
+    CollaborationPayloadInput,
     ConsensusOutcome,
     JSONValue,
     MemorySyncPort,
@@ -196,12 +199,11 @@ from .dto import (
     TaskDescriptor,
     deserialize_message_payload,
     ensure_collaboration_payload,
-    ensure_message_filter,
     ensure_memory_sync_port,
-    serialize_message_payload,
+    ensure_message_filter,
     serialize_memory_sync_port,
+    serialize_message_payload,
 )
-
 
 MESSAGE_TYPE_DEFAULTS: Dict[MessageType, Type[CollaborationDTO]] = {
     MessageType.TASK_ASSIGNMENT: TaskDescriptor,
@@ -255,7 +257,9 @@ class MessageProtocol:
         # High priority messages are inserted at the front of the history
         priority = None
         if message.metadata is not None:
-            priority = message.metadata.priority or message.metadata.options.get("priority")
+            priority = message.metadata.priority or message.metadata.options.get(
+                "priority"
+            )
         if priority == "high":
             self.history.insert(0, message)
         else:

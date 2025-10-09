@@ -246,9 +246,7 @@ class WSDETeam:
         self.dialectical_hooks.append(hook)
         self.logger.info(f"Registered dialectical hook in team {self.name}")
 
-    def requirement_evaluation_hook(
-        self, reasoning: Any, consensus: bool
-    ) -> None:
+    def requirement_evaluation_hook(self, reasoning: Any, consensus: bool) -> None:
         """Record requirement dialectical reasoning results.
 
         Args:
@@ -411,7 +409,9 @@ class WSDETeam:
 
         if filters:
             for key, value in filters.items():
-                filtered_messages = [m for m in filtered_messages if m.get(key) == value]
+                filtered_messages = [
+                    m for m in filtered_messages if m.get(key) == value
+                ]
 
         return filtered_messages
 

@@ -77,7 +77,9 @@ class SupportsPeerReview(Protocol):
     def collect_reviews(self) -> None:  # pragma: no cover - simple delegation
         ...
 
-    def aggregate_feedback(self) -> dict[str, Any]:  # pragma: no cover - simple delegation
+    def aggregate_feedback(
+        self,
+    ) -> dict[str, Any]:  # pragma: no cover - simple delegation
         ...
 
 

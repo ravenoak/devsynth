@@ -19,7 +19,7 @@ from devsynth.domain.models.wsde_roles import (
 from devsynth.domain.models.wsde_typing import RoleName
 from devsynth.logging_setup import DevSynthLogger
 
-from .dto import AgentOpinionRecord, ConsensusOutcome, ConflictRecord
+from .dto import AgentOpinionRecord, ConflictRecord, ConsensusOutcome
 
 logger = DevSynthLogger(__name__)
 
@@ -47,9 +47,9 @@ class CollaborativeWSDETeam(WSDETeam):
         self._active_persona_slugs: tuple[str, ...] = ()
         self._persona_events: list[dict[str, Any]] = []
 
-        env_personas = os.getenv("DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS", "") or os.getenv(
-            "DEVSYNTH_AUTORESEARCH_PERSONAS", ""
-        )
+        env_personas = os.getenv(
+            "DEVSYNTH_EXTERNAL_RESEARCH_PERSONAS", ""
+        ) or os.getenv("DEVSYNTH_AUTORESEARCH_PERSONAS", "")
         if env_personas:
             self.configure_research_personas(env_personas.split(","))
 
@@ -132,7 +132,9 @@ class CollaborativeWSDETeam(WSDETeam):
             }
         )
         logger.info(
-            "Research persona assignments for task %s: %s", task.get("id"), persona_summary
+            "Research persona assignments for task %s: %s",
+            task.get("id"),
+            persona_summary,
         )
 
     def collaborative_decision(self, task: Dict[str, Any]) -> Dict[str, Any]:
@@ -910,9 +912,7 @@ class CollaborativeWSDETeam(WSDETeam):
         task_id = task.get("id", str(uuid.uuid4()))
         base_outcome = super().build_consensus(task)
 
-        metadata_update = self._build_consensus_metadata(
-            task_id, task, base_outcome
-        )
+        metadata_update = self._build_consensus_metadata(task_id, task, base_outcome)
         merged_metadata = self._merge_metadata(base_outcome.metadata, metadata_update)
         enriched_outcome = replace(base_outcome, metadata=merged_metadata)
 
@@ -945,9 +945,7 @@ class CollaborativeWSDETeam(WSDETeam):
         except Exception:
             summary = ""
 
-        metadata_updates: Dict[str, Any] = OrderedDict(
-            (("summary", summary),)
-        )
+        metadata_updates: Dict[str, Any] = OrderedDict((("summary", summary),))
 
         memory_ref: Optional[str] = None
         manager = getattr(self, "memory_manager", None)
@@ -987,7 +985,9 @@ class CollaborativeWSDETeam(WSDETeam):
             agent_id = record.agent_id or f"agent_{index}"
             rationale = record.rationale or record.opinion or "No opinion provided"
             reasoning_entries.append((agent_id, rationale))
-        agent_reasoning = OrderedDict(sorted(reasoning_entries, key=lambda item: item[0]))
+        agent_reasoning = OrderedDict(
+            sorted(reasoning_entries, key=lambda item: item[0])
+        )
 
         key_concerns = tuple(
             f"Conflict between {conflict.agent_a or 'Unknown'} and {conflict.agent_b or 'Unknown'}"
@@ -1045,9 +1045,7 @@ class CollaborativeWSDETeam(WSDETeam):
             documentation_summary = "No conflicts needed resolution"
             lessons = ()
 
-        resolution_process = OrderedDict(
-            (("steps", tuple(steps)),)
-        )
+        resolution_process = OrderedDict((("steps", tuple(steps)),))
 
         documentation = OrderedDict(
             (
@@ -1075,7 +1073,9 @@ class CollaborativeWSDETeam(WSDETeam):
                             (
                                 "expertise_references",
                                 tuple(
-                                    f"Based on {record.agent_id}" for record in opinions if record.agent_id
+                                    f"Based on {record.agent_id}"
+                                    for record in opinions
+                                    if record.agent_id
                                 ),
                             ),
                             ("considerations", key_concerns),

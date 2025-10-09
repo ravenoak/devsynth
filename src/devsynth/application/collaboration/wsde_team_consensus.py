@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import re
 import uuid
-from datetime import datetime
 from collections.abc import Mapping as MappingABC
 from dataclasses import replace
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Sequence, Union
 
 from devsynth.application.edrr.edrr_phase_transitions import (
@@ -27,7 +27,6 @@ from devsynth.methodology.base import Phase
 
 if TYPE_CHECKING:  # pragma: no cover - for type hints only
     from devsynth.domain.models.wsde_facade import WSDETeam
-
 
 from .dto import (
     AgentOpinionRecord,
@@ -71,13 +70,17 @@ class ConsensusBuildingMixin:
             f"Building consensus for task {task['id']}: {task.get('title', 'Untitled')}"
         )
 
-        task_text = (task.get("description", "") or "") + " " + (task.get("title", "") or "")
+        task_text = (
+            (task.get("description", "") or "") + " " + (task.get("title", "") or "")
+        )
         keywords = set(re.findall(r"\b\w+\b", task_text.lower()))
 
         agent_opinions = self._collect_agent_opinion_records(task, keywords=keywords)
         if not agent_opinions:
             self._generate_agent_opinions(task)
-            agent_opinions = self._collect_agent_opinion_records(task, keywords=keywords)
+            agent_opinions = self._collect_agent_opinion_records(
+                task, keywords=keywords
+            )
 
         consensus_id = str(uuid.uuid4())
         conflicts = self._identify_conflicts(task, agent_opinions)
@@ -231,9 +234,7 @@ class ConsensusBuildingMixin:
 
         conflicts: List[ConflictRecord] = []
         opinion_map = {
-            record.agent_id: record
-            for record in opinions
-            if record.agent_id
+            record.agent_id: record for record in opinions if record.agent_id
         }
 
         agent_names = list(opinion_map.keys())
@@ -379,8 +380,10 @@ class ConsensusBuildingMixin:
         # Calculate expertise weights for each agent
         expertise_weights: Dict[str, float] = {}
         for agent in self.agents:
-            task_text = (task.get("description", "") or "") + " " + (
-                task.get("title", "") or ""
+            task_text = (
+                (task.get("description", "") or "")
+                + " "
+                + (task.get("title", "") or "")
             )
             keywords = set(re.findall(r"\b\w+\b", task_text.lower()))
             expertise_weights[agent.name] = self._calculate_expertise_weight(
@@ -889,9 +892,7 @@ class ConsensusBuildingMixin:
                 1 for record in opinions if record.opinion == majority_opinion
             )
             total_participants = len(opinions)
-            explanation += (
-                f"This decision was supported by {supporting_agents} out of {total_participants} team members. "
-            )
+            explanation += f"This decision was supported by {supporting_agents} out of {total_participants} team members. "
 
         # Add next steps
         explanation += "Next steps: Implement the decision and monitor outcomes. "
@@ -1103,13 +1104,9 @@ class ConsensusBuildingMixin:
                         else "Synthesis consensus reached."
                     )
                 elif "majority_opinion" in consensus_result:
-                    summary = (
-                        f"Majority opinion chosen: {consensus_result['majority_opinion']}"
-                    )
+                    summary = f"Majority opinion chosen: {consensus_result['majority_opinion']}"
                 else:
-                    summary = (
-                        f"Consensus result: {consensus_result.get('result', '')}"
-                    )
+                    summary = f"Consensus result: {consensus_result.get('result', '')}"
                 if method:
                     summary += f" (method: {method})"
                 return summary
@@ -1130,9 +1127,7 @@ class ConsensusBuildingMixin:
         elif consensus_result.synthesis is not None:
             summary = "Synthesis consensus reached."
         elif consensus_result.majority_opinion:
-            summary = (
-                f"Majority opinion chosen: {consensus_result.majority_opinion}"
-            )
+            summary = f"Majority opinion chosen: {consensus_result.majority_opinion}"
         else:
             summary = "Consensus result recorded."
 

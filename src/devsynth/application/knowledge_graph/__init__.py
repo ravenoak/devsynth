@@ -21,4 +21,3 @@ from .release_graph import (  # noqa: E402 - re-export convenience
     ReleaseGraphError,
     TestRunNode,
 )
-

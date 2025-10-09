@@ -238,9 +238,7 @@ class RequirementService:
         # Delete the requirement
         return self.requirement_repository.delete_requirement(requirement_id)
 
-    def approve_change(
-        self, change_id: UUID, user_id: str
-    ) -> RequirementChange | None:
+    def approve_change(self, change_id: UUID, user_id: str) -> RequirementChange | None:
         """
         Approve a requirement change.
 

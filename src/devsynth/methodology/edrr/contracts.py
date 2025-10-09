@@ -1,6 +1,7 @@
 """Shared protocols and helper dataclasses for EDRR orchestration."""
 
 from __future__ import annotations
+
 """Typed contracts shared across EDRR orchestration components."""
 
 from collections.abc import Callable, Mapping
@@ -46,9 +47,7 @@ class EDRRCoordinatorProtocol(Protocol):
     def record_expand_results(self, result: dict[str, Any]) -> dict[str, Any]:
         """Persist results produced during the Expand phase."""
 
-    def record_differentiate_results(
-        self, result: dict[str, Any]
-    ) -> dict[str, Any]:
+    def record_differentiate_results(self, result: dict[str, Any]) -> dict[str, Any]:
         """Persist results produced during the Differentiate phase."""
 
     def record_refine_results(self, result: dict[str, Any]) -> dict[str, Any]:
@@ -83,9 +82,7 @@ class CoordinatorRecorder:
         self.records.append(("expand", result))
         return result
 
-    def record_differentiate_results(
-        self, result: dict[str, Any]
-    ) -> dict[str, Any]:
+    def record_differentiate_results(self, result: dict[str, Any]) -> dict[str, Any]:
         self.records.append(("differentiate", result))
         return result
 

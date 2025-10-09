@@ -21,7 +21,7 @@ from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 # Tests expect `devsynth.application.cli.cli_commands.bridge` to exist.
 bridge: UXBridge = CLIUXBridge()
 
-from ._command_exports import COMMAND_ATTRIBUTE_TO_SLUG, COMMAND_ATTRIBUTE_NAMES
+from ._command_exports import COMMAND_ATTRIBUTE_NAMES, COMMAND_ATTRIBUTE_TO_SLUG
 from .commands import (
     config_cmds,
     diagnostics_cmds,
@@ -80,7 +80,9 @@ def create_progress(
         A :class:`~devsynth.interface.ux_bridge.ProgressIndicator` instance.
     """
 
-    active_bridge = bridge or cast(UXBridge | None, globals().get("bridge")) or CLIUXBridge()
+    active_bridge = (
+        bridge or cast(UXBridge | None, globals().get("bridge")) or CLIUXBridge()
+    )
     manager = ProgressManager(active_bridge)
     # Use a fixed task id since tests typically track a single progress bar
     return manager.create_progress("task", description, total=total)
@@ -92,15 +94,11 @@ def show_help(command: str | None = None) -> str:
     return get_command_help(command) if command else get_all_commands_help()
 
 
-align_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["align_cmd"]
-)
+align_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["align_cmd"])
 completion_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["completion_cmd"]
 )
-init_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["init_cmd"]
-)
+init_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["init_cmd"])
 run_tests_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["run_tests_cmd"]
 )
@@ -119,33 +117,21 @@ atomic_rewrite_cmd: CommandCallable = _registered_command(
 mvuu_dashboard_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["mvuu_dashboard_cmd"]
 )
-spec_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["spec_cmd"]
-)
-test_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["test_cmd"]
-)
-code_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["code_cmd"]
-)
+spec_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["spec_cmd"])
+test_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["test_cmd"])
+code_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["code_cmd"])
 ingest_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["ingest_cmd"]
 )
 webapp_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["webapp_cmd"]
 )
-serve_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["serve_cmd"]
-)
+serve_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["serve_cmd"])
 dbschema_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["dbschema_cmd"]
 )
-webui_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["webui_cmd"]
-)
-dpg_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["dpg_cmd"]
-)
+webui_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["webui_cmd"])
+dpg_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["dpg_cmd"])
 alignment_metrics_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["alignment_metrics_cmd"]
 )
@@ -155,9 +141,7 @@ test_metrics_cmd: CommandCallable = _registered_command(
 run_pipeline_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["run_pipeline_cmd"]
 )
-run_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["run_cmd"]
-)
+run_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["run_cmd"])
 gather_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["gather_cmd"]
 )
@@ -179,9 +163,7 @@ enable_feature_cmd: CommandCallable = _registered_command(
 doctor_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["doctor_cmd"]
 )
-check_cmd: CommandCallable = _registered_command(
-    COMMAND_ATTRIBUTE_TO_SLUG["check_cmd"]
-)
+check_cmd: CommandCallable = _registered_command(COMMAND_ATTRIBUTE_TO_SLUG["check_cmd"])
 generate_docs_cmd: CommandCallable = _registered_command(
     COMMAND_ATTRIBUTE_TO_SLUG["generate_docs_cmd"]
 )

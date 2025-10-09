@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, TypeVar, Union, cast
 
 import toml  # type: ignore[import-untyped]  # TODO(2025-12-20): Adopt typed tomllib or bundle stubs.
 import yaml
-from pydantic import Field, FieldValidationInfo
+from pydantic import Field, ValidationInfo
 from pydantic_settings import SettingsConfigDict
 
 if TYPE_CHECKING:
@@ -22,11 +22,14 @@ if TYPE_CHECKING:
         model_config: SettingsConfigDict
 
     def field_validator(*args: Any, **kwargs: Any) -> Callable[[F], F]: ...
-else:
-    from pydantic_settings import BaseSettings as _BaseSettings
-    from pydantic import field_validator as _field_validator
 
-    BaseSettings = _BaseSettings  # TODO(2025-12-20): Drop once upstream ships typed BaseSettings.
+else:
+    from pydantic import field_validator as _field_validator
+    from pydantic_settings import BaseSettings as _BaseSettings
+
+    BaseSettings = (
+        _BaseSettings  # TODO(2025-12-20): Drop once upstream ships typed BaseSettings.
+    )
     field_validator = _field_validator
 
 # Create a logger for this module
@@ -135,6 +138,7 @@ def load_dotenv(dotenv_path: Optional[str] = None) -> None:
                     logger.debug(f"Set environment variable: {key}")
             else:
                 logger.warning(f"Ignoring invalid line in .env: {line}")
+
 
 # TODO(2025-12-20): Extract typed config DTOs for resource and LLM overrides
 # so BaseSettings no longer needs runtime casting in validators.
@@ -414,7 +418,9 @@ class Settings(BaseSettings):
         mode="before",
     )
     def validate_security_bool(
-        cls, v: object, info: FieldValidationInfo
+        cls,
+        v: object,
+        info: ValidationInfo,
     ) -> bool:
         return _parse_bool_env(v, info.field_name)
 
@@ -427,12 +433,14 @@ class Settings(BaseSettings):
         mode="before",
     )
     def validate_bool_settings(
-        cls, v: object, info: FieldValidationInfo
+        cls,
+        v: object,
+        info: ValidationInfo,
     ) -> bool:
         return _parse_bool_env(v, info.field_name)
 
     @field_validator("provider_max_retries", "provider_failure_threshold", mode="after")
-    def validate_positive_int(cls, v: int, info: FieldValidationInfo) -> int:
+    def validate_positive_int(cls, v: int, info: ValidationInfo) -> int:
         if v < 0:
             logger.warning(
                 f"{info.field_name} must be a non-negative integer, got {v}. Using default value."
@@ -447,7 +455,7 @@ class Settings(BaseSettings):
         "provider_recovery_timeout",
         mode="after",
     )
-    def validate_positive_float(cls, v: float, info: FieldValidationInfo) -> float:
+    def validate_positive_float(cls, v: float, info: ValidationInfo) -> float:
         if v <= 0:
             logger.warning(
                 f"{info.field_name} must be a positive number, got {v}. Using default value."
@@ -457,7 +465,7 @@ class Settings(BaseSettings):
         return v
 
     @field_validator("provider_exponential_base", mode="after")
-    def validate_exponential_base(cls, v: float, info: FieldValidationInfo) -> float:
+    def validate_exponential_base(cls, v: float, info: ValidationInfo) -> float:
         if v <= 1.0:
             logger.warning(
                 f"{info.field_name} must be greater than 1.0, got {v}. Using default value."
@@ -467,7 +475,7 @@ class Settings(BaseSettings):
         return v
 
     @field_validator("provider_fallback_order", mode="after")
-    def validate_fallback_order(cls, v: str, info: FieldValidationInfo) -> str:
+    def validate_fallback_order(cls, v: str, info: ValidationInfo) -> str:
         providers = [provider for provider in v.split(",") if provider.strip()]
         valid_providers = ["openai", "lmstudio"]
         for provider in providers:
@@ -476,16 +484,16 @@ class Settings(BaseSettings):
                     f"Invalid provider in fallback order: {provider}. Valid providers are: {valid_providers}"
                 )
         if not providers:
-            logger.warning(
-                f"{info.field_name} must not be empty. Using default value."
-            )
+            logger.warning(f"{info.field_name} must not be empty. Using default value.")
             default_value = cls.model_fields[info.field_name].default
             return cast(str, default_value)
         return v
 
     @field_validator("memory_file_path", mode="before")
     def set_default_memory_path(
-        cls, v: Optional[str], info: FieldValidationInfo
+        cls,
+        v: Optional[str],
+        info: ValidationInfo,
     ) -> Optional[str]:
         """
         Set default memory path if not specified.
@@ -578,7 +586,9 @@ class Settings(BaseSettings):
 
     @field_validator("log_dir", mode="before")
     def set_default_log_dir(
-        cls, v: Optional[str], info: FieldValidationInfo
+        cls,
+        v: Optional[str],
+        info: ValidationInfo,
     ) -> Optional[str]:
         """
         Set default log directory if not specified.
@@ -672,7 +682,9 @@ class Settings(BaseSettings):
 
     @field_validator("project_dir", mode="before")
     def set_default_project_dir(
-        cls, v: Optional[str], info: FieldValidationInfo
+        cls,
+        v: Optional[str],
+        info: ValidationInfo,
     ) -> str:
         """
         Set default project directory if not specified.
@@ -697,15 +709,6 @@ class Settings(BaseSettings):
 
 # Global settings instance for singleton pattern
 _settings_instance: Optional[Settings] = None
-
-# Initialize settings for module-level access
-_settings: Settings = Settings()
-
-# Expose commonly used settings at module level
-kuzu_db_path = _settings.kuzu_db_path
-kuzu_embedded = _settings.kuzu_embedded
-# Backward-compatible constant for older imports
-KUZU_EMBEDDED = kuzu_embedded
 
 
 def get_settings(reload: bool = False, **kwargs: Any) -> Settings:
@@ -743,6 +746,16 @@ def get_settings(reload: bool = False, **kwargs: Any) -> Settings:
     KUZU_EMBEDDED = kuzu_embedded
 
     return _settings_instance
+
+
+# Initialize settings for module-level access
+_settings: Settings = get_settings()
+
+# Expose commonly used settings at module level
+kuzu_db_path = _settings.kuzu_db_path
+kuzu_embedded = _settings.kuzu_embedded
+# Backward-compatible constant for older imports
+KUZU_EMBEDDED = kuzu_embedded
 
 
 def ensure_path_exists(path: str, create: bool = True) -> str:

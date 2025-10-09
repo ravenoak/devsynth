@@ -203,7 +203,9 @@ class RequestContextFilter(logging.Filter):
         return True
 
 
-def set_request_context(request_id: str | None = None, phase: str | None = None) -> None:
+def set_request_context(
+    request_id: str | None = None, phase: str | None = None
+) -> None:
     """Set request context variables for logging."""
     if request_id is not None:
         request_id_var.set(request_id)
@@ -506,7 +508,9 @@ class DevSynthLogger:
         extra_param = kwargs.pop("extra", None)
 
         exc_info_value: (
-            tuple[type[BaseException] | None, BaseException | None, TracebackType | None]
+            tuple[
+                type[BaseException] | None, BaseException | None, TracebackType | None
+            ]
             | BaseException
             | bool
             | None
@@ -569,7 +573,9 @@ class DevSynthLogger:
         extra_dict: dict[str, Any] | None = None
         if extra_mapping is not None:
             extra_dict = {
-                key: value for key, value in extra_mapping.items() if key not in reserved
+                key: value
+                for key, value in extra_mapping.items()
+                if key not in reserved
             }
 
         if kwargs:

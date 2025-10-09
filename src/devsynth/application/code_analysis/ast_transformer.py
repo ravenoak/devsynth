@@ -28,7 +28,9 @@ try:
     HAS_ASTOR = True
     astor: Optional[ModuleType] = _astor
 except ImportError:  # pragma: no cover - exercised when astor is absent
-    logger.warning("astor library not found. Using fallback implementation for to_source.")
+    logger.warning(
+        "astor library not found. Using fallback implementation for to_source."
+    )
     HAS_ASTOR = False
     astor = None
 
@@ -80,7 +82,9 @@ class IdentifierRenamer(ast.NodeTransformer):
         self.new_name = new_name
         self.changed: bool = False
 
-    def visit_Name(self, node: ast.Name) -> ast.AST:  # noqa: N802 - required by ast.NodeTransformer
+    def visit_Name(
+        self, node: ast.Name
+    ) -> ast.AST:  # noqa: N802 - required by ast.NodeTransformer
         if node.id == self.old_name:
             self.changed = True
             return ast.copy_location(ast.Name(id=self.new_name, ctx=node.ctx), node)
@@ -119,8 +123,6 @@ class IdentifierRenamer(ast.NodeTransformer):
         return self.generic_visit(node)
 
 
-
-
 class UsedNameCollector(ast.NodeVisitor):
     """Collect names that are read from within an AST tree."""
 
@@ -146,7 +148,9 @@ class UnusedImportRemover(ast.NodeTransformer):
         node.names = filtered
         return node
 
-    def visit_ImportFrom(self, node: ast.ImportFrom) -> Union[ast.ImportFrom, None]:  # noqa: N802
+    def visit_ImportFrom(
+        self, node: ast.ImportFrom
+    ) -> Union[ast.ImportFrom, None]:  # noqa: N802
         filtered = [alias for alias in node.names if self._alias_used(alias)]
         if not filtered:
             return None
@@ -180,7 +184,9 @@ class RedundantAssignmentRemover(ast.NodeTransformer):
         node.body = self._prune_assignments(node.body)
         return node
 
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:  # noqa: N802
+    def visit_AsyncFunctionDef(
+        self, node: ast.AsyncFunctionDef
+    ) -> ast.AST:  # noqa: N802
         node = cast(ast.AsyncFunctionDef, self.generic_visit(node))
         node.body = self._prune_assignments(node.body)
         return node
@@ -236,11 +242,14 @@ class TypeHintAdder(ast.NodeTransformer):
             node.returns = ast.Name(id="None", ctx=ast.Load())
         return node
 
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:  # noqa: N802
+    def visit_AsyncFunctionDef(
+        self, node: ast.AsyncFunctionDef
+    ) -> ast.AST:  # noqa: N802
         node = cast(ast.AsyncFunctionDef, self.generic_visit(node))
         if node.returns is None:
             node.returns = ast.Name(id="None", ctx=ast.Load())
         return node
+
 
 def _single_name_target(node: ast.Assign) -> bool:
     return len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
@@ -261,7 +270,9 @@ def _to_joined_str(parts: Iterable[ast.AST]) -> List[ast.AST]:
             joined.append(ast.Constant(value=part.value))
         elif isinstance(part, ast.Name):
             joined.append(
-                ast.FormattedValue(value=ast.Name(id=part.id, ctx=ast.Load()), conversion=-1)
+                ast.FormattedValue(
+                    value=ast.Name(id=part.id, ctx=ast.Load()), conversion=-1
+                )
             )
         else:
             return []
@@ -286,16 +297,28 @@ class AstTransformer:
         end_line = request.end_line - 1
         lines = code.splitlines()
         if start_line < 0 or end_line >= len(lines) or start_line > end_line:
-            raise ValueError(f"Invalid line range: {request.start_line} to {request.end_line}")
+            raise ValueError(
+                f"Invalid line range: {request.start_line} to {request.end_line}"
+            )
 
         block_lines = lines[start_line : end_line + 1]
-        indentation = len(block_lines[0]) - len(block_lines[0].lstrip()) if block_lines else 0
-        dedented_block = [line[indentation:] if line.strip() else "" for line in block_lines]
+        indentation = (
+            len(block_lines[0]) - len(block_lines[0].lstrip()) if block_lines else 0
+        )
+        dedented_block = [
+            line[indentation:] if line.strip() else "" for line in block_lines
+        ]
 
         params = ", ".join(request.parameters)
         function_header = f"def {request.function_name}({params}):"
-        function_body = "\n".join("    " + line if line else "" for line in dedented_block)
-        function_code = f"{function_header}\n{function_body}" if function_body else f"{function_header}\n    pass"
+        function_body = "\n".join(
+            "    " + line if line else "" for line in dedented_block
+        )
+        function_code = (
+            f"{function_header}\n{function_body}"
+            if function_body
+            else f"{function_header}\n    pass"
+        )
 
         call_args = ", ".join(request.parameters)
         call_line = " " * indentation + f"{request.function_name}({call_args})"

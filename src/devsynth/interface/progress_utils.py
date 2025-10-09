@@ -18,8 +18,8 @@ from typing import (
     ParamSpec,
     Protocol,
     Sequence,
-    TypeVar,
     TypedDict,
+    TypeVar,
     Union,
     cast,
     overload,
@@ -161,7 +161,9 @@ class ProgressManager:
                     ...
 
                 @overload
-                def __getitem__(self, index: slice) -> List[ItemT]:  # pragma: no cover - typing
+                def __getitem__(
+                    self, index: slice
+                ) -> List[ItemT]:  # pragma: no cover - typing
                     ...
 
                 def __getitem__(
@@ -393,7 +395,9 @@ def progress_indicator(
         indicator.complete()
 
 
-def track_progress(bridge: UXBridge, items: List[ItemT], description: str) -> List[ItemT]:
+def track_progress(
+    bridge: UXBridge, items: List[ItemT], description: str
+) -> List[ItemT]:
     """Track progress through a list of items.
 
     Args:

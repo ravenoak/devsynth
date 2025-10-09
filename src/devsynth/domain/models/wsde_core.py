@@ -15,13 +15,13 @@ from datetime import datetime
 from typing import Any, Optional, TypedDict
 from uuid import uuid4
 
-from devsynth.logging_setup import DevSynthLogger
 from devsynth.domain.models.wsde_typing import (
     HookType,
     RoleAssignments,
     RoleName,
     SupportsTeamAgent,
 )
+from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 
@@ -124,7 +124,9 @@ class VotingHistoryLog:
 
         self._entries.append(value)
 
-    def extend(self, values: Iterable[VotingHistoryEntry]) -> None:  # pragma: no cover - trivial
+    def extend(
+        self, values: Iterable[VotingHistoryEntry]
+    ) -> None:  # pragma: no cover - trivial
         self._entries.extend(list(values))
 
     def __iter__(self) -> Iterator[VotingHistoryEntry]:  # pragma: no cover - trivial
@@ -133,7 +135,9 @@ class VotingHistoryLog:
     def __len__(self) -> int:  # pragma: no cover - trivial
         return len(self._entries)
 
-    def __getitem__(self, index: int) -> VotingHistoryEntry:  # pragma: no cover - trivial
+    def __getitem__(
+        self, index: int
+    ) -> VotingHistoryEntry:  # pragma: no cover - trivial
         return self._entries[index]
 
 
@@ -143,7 +147,9 @@ class AgentOpinionRegistry(MutableMapping[str, dict[str, str]]):
 
     _opinions: dict[str, dict[str, str]] = field(default_factory=dict)
 
-    def __getitem__(self, agent_name: str) -> dict[str, str]:  # pragma: no cover - trivial
+    def __getitem__(
+        self, agent_name: str
+    ) -> dict[str, str]:  # pragma: no cover - trivial
         return self._opinions[agent_name]
 
     def __setitem__(
@@ -259,9 +265,10 @@ class WSDETeam:
         self, agent: SupportsTeamAgent, option_id: str, opinion: str
     ) -> None:
         """Record an agent's opinion on a decision option."""
-        agent_name: str = str(getattr(
-            getattr(agent, "config", None), "name", None
-        ) or getattr(agent, "name", "Agent"))
+        agent_name: str = str(
+            getattr(getattr(agent, "config", None), "name", None)
+            or getattr(agent, "name", "Agent")
+        )
         self.agent_opinions.record(agent_name, option_id, opinion)
 
     def register_dialectical_hook(self, hook: HookType) -> None:

@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any
 from devsynth.exceptions import DevSynthError
 from devsynth.interface.state_access import (
     SessionStateMapping,
-    get_session_value as _get_session_value,
-    set_session_value as _set_session_value,
 )
+from devsynth.interface.state_access import get_session_value as _get_session_value
+from devsynth.interface.state_access import set_session_value as _set_session_value
 from devsynth.logging_setup import DevSynthLogger
 
 from .shared_bridge import SharedBridgeMixin
@@ -173,9 +173,7 @@ class WebUIProgressIndicator(ProgressIndicator):
             return
 
         if description is not None:
-            subtask.description = _safe_text(
-                description, fallback=subtask.description
-            )
+            subtask.description = _safe_text(description, fallback=subtask.description)
 
         subtask.current += advance
         if status is not None:

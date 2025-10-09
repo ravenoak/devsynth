@@ -73,4 +73,3 @@ __all__ = [
     "COMMAND_ATTRIBUTE_NAMES",
     "COMMAND_SLUGS",
 ]
-

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import datetime
-import importlib
 import hashlib
+import importlib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -15,7 +15,7 @@ from devsynth.exceptions import MemoryItemNotFoundError, MemoryStoreError
 
 from ....domain.models.memory import MemoryItem, MemoryType
 from ....logging_setup import DevSynthLogger
-from .graph_memory_adapter import GraphMemoryAdapter, MEMORY
+from .graph_memory_adapter import MEMORY, GraphMemoryAdapter
 
 rdflib: ModuleType | None
 namespace_module: ModuleType | None
@@ -247,7 +247,9 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
         artifact_uri = self._resolve_node_uri(artifact_id)
         if artifact_uri is None:
-            raise MemoryItemNotFoundError(f"Artifact {artifact_id} was not found in the graph")
+            raise MemoryItemNotFoundError(
+                f"Artifact {artifact_id} was not found in the graph"
+            )
 
         return {
             "supports": self._collect_identifier_set(artifact_uri, DEVSYNTH.supports),
@@ -336,9 +338,7 @@ class EnhancedGraphMemoryAdapter(GraphMemoryAdapter):
 
     @staticmethod
     def _sanitize_node_id(node_id: str) -> str:
-        return "node_" + "".join(
-            char if char.isalnum() else "_" for char in node_id
-        )
+        return "node_" + "".join(char if char.isalnum() else "_" for char in node_id)
 
     def _uri_to_identifier(self, uri: URIRef) -> str | None:
         value = str(uri)

@@ -1146,4 +1146,3 @@ class ProjectStateAnalyzer:
             )
 
         return recommendations
-

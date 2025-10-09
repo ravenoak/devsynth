@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Mapping, MutableMapping
 from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable, Optional, Protocol, TypeAlias, cast
-
-from collections.abc import Mapping, MutableMapping
 
 from devsynth.application.memory.dto import (
     GroupedMemoryResults,
@@ -23,6 +22,7 @@ from devsynth.domain.interfaces.memory import (
 )
 from devsynth.domain.models.memory import MemoryItem
 from devsynth.logging_setup import DevSynthLogger
+
 
 class FallbackMemoryStore(MemoryStore, SupportsTransactions, Protocol):
     def get_all_items(self) -> list[MemoryItem]:  # pragma: no cover - protocol
@@ -185,7 +185,11 @@ class FallbackStore(MemoryStore, SupportsTransactions):
             ]
             store_name = query_result.get("store")
             result: MemoryQueryResults = {
-                "store": store_name if store_name is not None else self._resolve_store_name(store),
+                "store": (
+                    store_name
+                    if store_name is not None
+                    else self._resolve_store_name(store)
+                ),
                 "records": normalized_records,
             }
             if "total" in query_result:

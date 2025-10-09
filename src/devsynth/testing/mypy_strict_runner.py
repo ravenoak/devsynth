@@ -189,8 +189,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             suffix = " (new)" if bool(created) else ""
             evidence_parts.append(f"{evidence_id}{suffix}")
         evidence_summary = ", ".join(evidence_parts) or "none"
-        test_run_state = "new" if bool(publication.created.get("test_run")) else "updated"
-        gate_state = "new" if bool(publication.created.get("quality_gate")) else "updated"
+        test_run_state = (
+            "new" if bool(publication.created.get("test_run")) else "updated"
+        )
+        gate_state = (
+            "new" if bool(publication.created.get("quality_gate")) else "updated"
+        )
         print(
             "[knowledge-graph] typing gate "
             f"{publication.gate_status} → QualityGate {publication.quality_gate_id} ({gate_state}), "
@@ -203,4 +207,3 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 if __name__ == "__main__":  # pragma: no cover - manual execution tool
     sys.exit(main())
-

@@ -10,7 +10,7 @@ from __future__ import annotations
 import html
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any, Literal, Protocol, TypedDict, TypeAlias, runtime_checkable
+from typing import Any, Literal, Protocol, TypeAlias, TypedDict, runtime_checkable
 
 from devsynth.security.validation import parse_bool_env
 
@@ -20,7 +20,7 @@ try:  # pragma: no cover - import guarded for optional deps
     from devsynth.security.sanitization import sanitize_input
 except ImportError:  # pragma: no cover - graceful degradation
 
-    def sanitize_input(text: str) -> str:  # type: ignore[override]
+    def sanitize_input(text: str) -> str:
         """Fallback sanitizer used when security helpers are unavailable."""
         return text
 
@@ -32,7 +32,7 @@ def sanitize_output(text: str) -> str:
     projects can disable all sanitization/escaping in trusted contexts.
     """
 
-    sanitized = sanitize_input(text)
+    sanitized: str = sanitize_input(text)
     if not parse_bool_env("DEVSYNTH_SANITIZATION_ENABLED", True):
         return sanitized
     return html.escape(sanitized)
@@ -78,8 +78,7 @@ class SupportsSubtasks(Protocol):
         description: str,
         total: int = 100,
         status: str = "Starting...",
-    ) -> str:
-        ...
+    ) -> str: ...
 
     def update_subtask(
         self,
@@ -87,11 +86,9 @@ class SupportsSubtasks(Protocol):
         advance: float = 1,
         description: str | None = None,
         status: str | None = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
-    def complete_subtask(self, task_id: str) -> None:
-        ...
+    def complete_subtask(self, task_id: str) -> None: ...
 
 
 @runtime_checkable
@@ -104,8 +101,7 @@ class SupportsNestedSubtasks(SupportsSubtasks, Protocol):
         description: str,
         total: int = 100,
         status: str = "Starting...",
-    ) -> str:
-        ...
+    ) -> str: ...
 
     def update_nested_subtask(
         self,
@@ -114,11 +110,9 @@ class SupportsNestedSubtasks(SupportsSubtasks, Protocol):
         advance: float = 1,
         description: str | None = None,
         status: str | None = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
-    def complete_nested_subtask(self, parent_id: str, task_id: str) -> None:
-        ...
+    def complete_nested_subtask(self, parent_id: str, task_id: str) -> None: ...
 
 
 class ProgressIndicator(ABC):
@@ -128,7 +122,7 @@ class ProgressIndicator(ABC):
         return self
 
     def __exit__(
-        self, exc_type, exc, tb
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, tb: Any
     ) -> None:  # pragma: no cover - simple passthrough
         self.complete()
 

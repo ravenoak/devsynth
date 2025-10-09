@@ -17,6 +17,7 @@ logger = DevSynthLogger(__name__)
 
 if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
     from devsynth.adapters.memory.kuzu_adapter import KuzuAdapter as KuzuAdapterType
+
     from .s3_memory_adapter import S3MemoryAdapter as S3MemoryAdapterType
 else:  # pragma: no cover - runtime fallback when optional adapters missing
     KuzuAdapterType = StorageAdapter  # type: ignore[assignment]

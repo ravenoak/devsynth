@@ -9,7 +9,11 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
-from devsynth.application.cli.models import CommandListData, CommandTableData, CommandTableRow
+from devsynth.application.cli.models import (
+    CommandListData,
+    CommandTableData,
+    CommandTableRow,
+)
 
 from .autocomplete import COMMAND_DESCRIPTIONS, COMMAND_EXAMPLES, COMMANDS
 
@@ -27,7 +31,9 @@ def _command_details(command: str) -> tuple[str, tuple[str, ...]]:
 def _build_command_rows(commands: Sequence[str] | None) -> CommandTableData:
     """Create table rows describing ``commands``."""
 
-    selected = sorted(COMMAND_DESCRIPTIONS.keys()) if commands is None else list(commands)
+    selected = (
+        sorted(COMMAND_DESCRIPTIONS.keys()) if commands is None else list(commands)
+    )
     rows = []
     for command in selected:
         description, examples = _command_details(command)
@@ -97,7 +103,9 @@ def get_all_commands_help() -> str:
         description = COMMAND_DESCRIPTIONS.get(command, "No description available")
         help_text += f"{command:15} {description}\n"
 
-    help_text += "\nUse 'devsynth <command> --help' for more information about a command."
+    help_text += (
+        "\nUse 'devsynth <command> --help' for more information about a command."
+    )
     return help_text
 
 
@@ -208,7 +216,11 @@ def display_command_examples(command: str, console: Console) -> None:
     examples = get_command_examples(command)
 
     first_example = examples[0]
-    if len(examples) == 1 and isinstance(first_example, str) and "Command not found" in first_example:
+    if (
+        len(examples) == 1
+        and isinstance(first_example, str)
+        and "Command not found" in first_example
+    ):
         console.print(f"[yellow]{first_example}[/yellow]")
         return
 

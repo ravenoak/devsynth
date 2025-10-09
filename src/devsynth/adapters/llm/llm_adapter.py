@@ -74,9 +74,7 @@ class LLMBackendAdapter:
         except Exception as exc:
             message = getattr(exc, "message", str(exc)).lower()
             if "unknown provider" in message or "provider is not registered" in message:
-                raise UnknownLLMProviderError(
-                    config.provider_type, cause=exc
-                ) from exc
+                raise UnknownLLMProviderError(config.provider_type, cause=exc) from exc
             raise
 
     def register_provider_type(

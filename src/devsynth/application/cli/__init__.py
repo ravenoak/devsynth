@@ -85,11 +85,15 @@ def _register_commands() -> None:
 def __getattr__(name: str) -> object:
     """Lazily expose CLI command callables when requested."""
 
-    if name in {
-        "config_app",
-        "inspect_code_cmd",
-        "ingest_cmd",
-    } or name in COMMAND_ATTRIBUTE_NAMES:
+    if (
+        name
+        in {
+            "config_app",
+            "inspect_code_cmd",
+            "ingest_cmd",
+        }
+        or name in COMMAND_ATTRIBUTE_NAMES
+    ):
         _register_commands()
         if name in globals() and globals()[name] is not None:
             return globals()[name]

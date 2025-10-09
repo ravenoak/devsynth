@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, TypedDict, cast
 
 from devsynth.application.code_analysis.analyzer import (
-    CodeAnalyzer,
     ClassInfo,
+    CodeAnalyzer,
     FunctionInfo,
     ImportInfo,
     SymbolReference,
@@ -264,7 +264,9 @@ class SelfAnalyzer:
             "improvement_opportunities": improvement_opportunities,
         }
 
-    def _analyze_architecture(self, code_analysis: CodeAnalysis) -> ArchitectureInsights:
+    def _analyze_architecture(
+        self, code_analysis: CodeAnalysis
+    ) -> ArchitectureInsights:
         """
         Analyze the architecture of the codebase.
 
@@ -791,7 +793,9 @@ class SelfAnalyzer:
             "total_functions": total_functions,
         }
 
-    def _analyze_test_coverage(self, code_analysis: CodeAnalysis) -> TestCoverageInsights:
+    def _analyze_test_coverage(
+        self, code_analysis: CodeAnalysis
+    ) -> TestCoverageInsights:
         """
         Analyze the test coverage of the codebase.
 
@@ -804,7 +808,9 @@ class SelfAnalyzer:
         logger.info("Analyzing test coverage")
 
         # Get all symbols from the codebase
-        all_symbols = cast(Dict[str, List[SymbolReference]], code_analysis.get_symbols())
+        all_symbols = cast(
+            Dict[str, List[SymbolReference]], code_analysis.get_symbols()
+        )
 
         # Find test directories and files
         tested_symbols: Set[str] = set()

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from collections.abc import Mapping as MappingABC, Sequence as SequenceABC
+from collections.abc import Mapping as MappingABC
+from collections.abc import Sequence as SequenceABC
 from dataclasses import MISSING, dataclass, field, fields
 from datetime import datetime
 from enum import Enum
@@ -12,9 +13,9 @@ from typing import (
     Callable,
     ClassVar,
     Dict,
+    ItemsView,
     Iterable,
     Iterator,
-    ItemsView,
     KeysView,
     List,
     Mapping,
@@ -32,7 +33,6 @@ from typing import (
     get_origin,
     runtime_checkable,
 )
-
 
 __all__ = [
     "AgentPayload",
@@ -108,19 +108,25 @@ def _serialize_value(value: Any) -> JSONValue:
         return value.isoformat()
     if isinstance(value, MappingABC):
         return _ordered_mapping((str(k), _serialize_value(v)) for k, v in value.items())
-    if isinstance(value, SequenceABC) and not isinstance(value, (str, bytes, bytearray)):
+    if isinstance(value, SequenceABC) and not isinstance(
+        value, (str, bytes, bytearray)
+    ):
         return [_serialize_value(v) for v in value]
     return cast(JSONValue, value)
 
 
 def _normalize_mapping(value: MappingABC[str, Any]) -> Dict[str, JSONValue]:
-    return _ordered_mapping((str(k), _deserialize_arbitrary(v)) for k, v in value.items())
+    return _ordered_mapping(
+        (str(k), _deserialize_arbitrary(v)) for k, v in value.items()
+    )
 
 
 def _deserialize_arbitrary(value: Any) -> JSONValue:
     if isinstance(value, MappingABC):
         return _normalize_mapping(value)
-    if isinstance(value, SequenceABC) and not isinstance(value, (str, bytes, bytearray)):
+    if isinstance(value, SequenceABC) and not isinstance(
+        value, (str, bytes, bytearray)
+    ):
         return [_deserialize_arbitrary(v) for v in value]
     return cast(JSONValue, value)
 
@@ -212,7 +218,9 @@ class BaseDTO:
     @classmethod
     def from_dict(cls: Type[T], data: Mapping[str, Any]) -> T:
         if not isinstance(data, MappingABC):
-            raise TypeError(f"Expected mapping for {cls.__name__}, received {type(data)!r}")
+            raise TypeError(
+                f"Expected mapping for {cls.__name__}, received {type(data)!r}"
+            )
 
         prepared: Dict[str, Any] = {}
         for key, value in data.items():
@@ -339,14 +347,19 @@ class ConsensusOutcome(BaseDTO):
         conflicts = tuple(
             sorted(
                 self.conflicts,
-                key=lambda conflict: (conflict.conflict_id or "", conflict.agent_a or ""),
+                key=lambda conflict: (
+                    conflict.conflict_id or "",
+                    conflict.agent_a or "",
+                ),
             )
         )
         object.__setattr__(self, "conflicts", conflicts)
 
         if not self.participants and opinions:
             participants = tuple(
-                OrderedDict((record.agent_id, None) for record in opinions if record.agent_id)
+                OrderedDict(
+                    (record.agent_id, None) for record in opinions if record.agent_id
+                )
             )
             object.__setattr__(self, "participants", participants)
         else:
@@ -354,7 +367,9 @@ class ConsensusOutcome(BaseDTO):
                 self,
                 "participants",
                 tuple(
-                    OrderedDict((participant, None) for participant in self.participants)
+                    OrderedDict(
+                        (participant, None) for participant in self.participants
+                    )
                 ),
             )
 
@@ -546,7 +561,9 @@ def serialize_message_payload(payload: MessagePayload) -> JSONValue:
         return payload.to_dict()
     if isinstance(payload, MappingABC):
         return _normalize_mapping(payload)
-    if isinstance(payload, SequenceABC) and not isinstance(payload, (str, bytes, bytearray)):
+    if isinstance(payload, SequenceABC) and not isinstance(
+        payload, (str, bytes, bytearray)
+    ):
         return [_serialize_value(item) for item in payload]
     return cast(JSONValue, payload)
 
@@ -605,7 +622,9 @@ def ensure_collaboration_payload(
             dto_default.from_dict({"payload": content}),
         )
 
-    if isinstance(content, SequenceABC) and not isinstance(content, (str, bytes, bytearray)):
+    if isinstance(content, SequenceABC) and not isinstance(
+        content, (str, bytes, bytearray)
+    ):
         dto_default = cast(Type[BaseDTO], default)
         return cast(
             CollaborationDTO,
@@ -622,7 +641,7 @@ def ensure_collaboration_payload(
 
 
 def ensure_memory_sync_port(
-    metadata: Optional[Union[MemorySyncPort, Mapping[str, JSONValue]]]
+    metadata: Optional[Union[MemorySyncPort, Mapping[str, JSONValue]]],
 ) -> Optional[MemorySyncPort]:
     if metadata is None:
         return None
@@ -640,7 +659,9 @@ def ensure_memory_sync_port(
             for key, value in nested_options.items():
                 base.setdefault(key, value)
         options = _normalize_mapping(base) if base else {}
-        return MemorySyncPort(adapter=adapter, channel=channel, priority=priority, options=options)
+        return MemorySyncPort(
+            adapter=adapter, channel=channel, priority=priority, options=options
+        )
     raise TypeError("Metadata must be MemorySyncPort or mapping type")
 
 
@@ -673,5 +694,3 @@ def ensure_message_filter(
         except Exception as exc:  # pragma: no cover - defensive
             raise TypeError("Invalid mapping for MessageFilter") from exc
     raise TypeError(f"Unsupported filter specification: {type(filters)!r}")
-
-

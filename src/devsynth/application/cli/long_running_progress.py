@@ -10,7 +10,7 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import ExitStack
 from datetime import datetime, timedelta
-from typing import Any, TYPE_CHECKING, Protocol, TypeAlias, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, TypeVar, cast
 
 from rich.console import Console
 from rich.progress import (
@@ -24,7 +24,6 @@ from rich.progress import (
 )
 
 from devsynth.application.cli.models import (
-    coerce_subtask_spec,
     ProgressCheckpoint,
     ProgressHistoryEntry,
     ProgressSnapshot,
@@ -32,6 +31,7 @@ from devsynth.application.cli.models import (
     ProgressSubtaskSpec,
     ProgressUpdate,
     SubtaskState,
+    coerce_subtask_spec,
 )
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 from devsynth.logging_setup import DevSynthLogger
@@ -52,16 +52,13 @@ class _ProgressIndicatorProtocol(Protocol):
         advance: float = 1,
         description: str | None = None,
         status: str | None = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
-    def complete(self) -> None:
-        ...
+    def complete(self) -> None: ...
 
     def add_subtask(
         self, description: str, total: int = 100, status: str = "Starting..."
-    ) -> str:
-        ...
+    ) -> str: ...
 
     def update_subtask(
         self,
@@ -69,11 +66,10 @@ class _ProgressIndicatorProtocol(Protocol):
         advance: float = 1,
         description: str | None = None,
         status: str | None = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
-    def complete_subtask(self, task_id: str) -> None:
-        ...
+    def complete_subtask(self, task_id: str) -> None: ...
+
 
 if TYPE_CHECKING:
     _ProgressIndicatorBase: TypeAlias = _ProgressIndicatorProtocol
@@ -371,7 +367,9 @@ class LongRunningProgressIndicator(_ProgressIndicatorBase):
                 proportion = advance / subtask.total
 
                 # Calculate the equivalent advance for the main task
-                main_advance = proportion * main_task.total / max(len(self._subtasks), 1)
+                main_advance = (
+                    proportion * main_task.total / max(len(self._subtasks), 1)
+                )
 
                 # Update the main task
                 self.update(advance=main_advance)
@@ -565,7 +563,9 @@ def simulate_progress_timeline(
                 alias = str(alias_raw) or description_text
                 subtask_total = int(_as_float(event.get("total", 100)) or 100)
                 status_obj = event.get("status")
-                status_text = status_obj if isinstance(status_obj, str) else "Starting..."
+                status_text = (
+                    status_obj if isinstance(status_obj, str) else "Starting..."
+                )
                 created = indicator.add_subtask(
                     description_text,
                     total=subtask_total,

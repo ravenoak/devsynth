@@ -5,13 +5,17 @@ TinyDB implementation of MemoryStore.
 import json
 import os
 import uuid
-from datetime import datetime
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 
 import tiktoken
 from tinydb import Query, TinyDB  # type: ignore[import-not-found]
 from tinydb.middlewares import CachingMiddleware  # type: ignore[import-not-found]
-from tinydb.storages import JSONStorage, Storage, touch  # type: ignore[import-not-found]
+from tinydb.storages import (  # type: ignore[import-not-found]
+    JSONStorage,
+    Storage,
+    touch,
+)
 
 from devsynth.exceptions import (
     DevSynthError,
@@ -75,7 +79,9 @@ def _deserialize_table(payload: object) -> dict[str, dict[str, object]]:
             raise TypeError("TinyDB table keys must be strings")
         if not isinstance(value, Mapping):
             raise TypeError("TinyDB table rows must be mappings")
-        normalized[key] = {str(inner_key): inner_value for inner_key, inner_value in value.items()}
+        normalized[key] = {
+            str(inner_key): inner_value for inner_key, inner_value in value.items()
+        }
     return normalized
 
 
@@ -348,9 +354,7 @@ class TinyDBStore(MemoryStore):
                 original_error=e,
             )
 
-    def search(
-        self, query: MemorySearchQuery | MemoryMetadata
-    ) -> list[MemoryRecord]:
+    def search(self, query: MemorySearchQuery | MemoryMetadata) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
@@ -495,5 +499,5 @@ class TinyDBStore(MemoryStore):
             # Close the database
             self.db.close()
             logger.info(f"Closed TinyDB database at {self.db_file}")
-    supports_transactions: bool = False
 
+    supports_transactions: bool = False

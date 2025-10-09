@@ -21,9 +21,10 @@ import sys
 from collections.abc import Callable
 from typing import Any, cast
 
+from typer import Typer as TyperApp
+
 from devsynth.application.code_analysis.repo_analyzer import RepoAnalyzer
 from devsynth.logger import setup_logging
-from typer import Typer as TyperApp
 
 logger = setup_logging(__name__)
 

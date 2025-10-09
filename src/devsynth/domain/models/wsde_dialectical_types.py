@@ -77,7 +77,7 @@ class DialecticalTask(Mapping[str, Any]):
 
 
 def ensure_dialectical_task(
-    task: DialecticalTask | Mapping[str, Any]
+    task: DialecticalTask | Mapping[str, Any],
 ) -> DialecticalTask:
     if isinstance(task, DialecticalTask):
         return task
@@ -160,4 +160,3 @@ def apply_dialectical_reasoning(
 
 
 _legacy.WSDETeam.apply_dialectical_reasoning = apply_dialectical_reasoning
-

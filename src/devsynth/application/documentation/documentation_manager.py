@@ -458,7 +458,9 @@ class DocumentationManager:
         if results:
             # Get related functions from the documentation
             related = results[0].get("related", [])
-            version = results[0].get("version") if isinstance(results[0], dict) else None
+            version = (
+                results[0].get("version") if isinstance(results[0], dict) else None
+            )
 
             # Get documentation for each related function
             for rel_func in related:

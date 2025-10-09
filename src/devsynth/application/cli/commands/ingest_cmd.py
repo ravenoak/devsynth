@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import os
 import datetime
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -11,13 +11,12 @@ from typing import Dict, List, Optional
 import typer
 from typer.models import OptionInfo
 
-from devsynth.interface.ux_bridge import UXBridge
-from devsynth.logging_setup import DevSynthLogger
-
 from devsynth.application.memory.adapters.enhanced_graph_memory_adapter import (
     EnhancedGraphMemoryAdapter,
 )
 from devsynth.exceptions import MemoryItemNotFoundError
+from devsynth.interface.ux_bridge import UXBridge
+from devsynth.logging_setup import DevSynthLogger
 
 from ..ingest_cmd import ingest_cmd as _ingest_cmd
 from ..registry import register
@@ -106,7 +105,9 @@ def ingest_cmd(
     resolved_bridge = _resolve_bridge(bridge if isinstance(bridge, UXBridge) else None)
 
     manifest_path = manifest_path or (
-        Path(os.environ["DEVSYNTH_MANIFEST_PATH"]) if os.environ.get("DEVSYNTH_MANIFEST_PATH") else None
+        Path(os.environ["DEVSYNTH_MANIFEST_PATH"])
+        if os.environ.get("DEVSYNTH_MANIFEST_PATH")
+        else None
     )
 
     env_dry_run = _env_flag("DEVSYNTH_INGEST_DRY_RUN")
@@ -219,9 +220,7 @@ def ingest_cmd(
                     ),
                     param_name="verify_research_hash",
                 )
-            logger.info(
-                "Verified research artefact %s (hash %s)", file_path, computed
-            )
+            logger.info("Verified research artefact %s (hash %s)", file_path, computed)
 
     options = IngestCLIOptions(
         manifest_path=manifest_path,

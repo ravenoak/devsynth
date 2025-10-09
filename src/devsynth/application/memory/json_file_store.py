@@ -436,9 +436,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 transaction.changes.append(
                     _TransactionChange(
                         operation="store",
-                        record=build_memory_record(
-                            deepcopy(item), source=STORE_LABEL
-                        ),
+                        record=build_memory_record(deepcopy(item), source=STORE_LABEL),
                     )
                 )
 
@@ -530,9 +528,7 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
                 original_error=e,
             ) from e
 
-    def search(
-        self, query: MemorySearchQuery | MemoryMetadata
-    ) -> list[MemoryRecord]:
+    def search(self, query: MemorySearchQuery | MemoryMetadata) -> list[MemoryRecord]:
         """
         Search for items in memory matching the query.
 
@@ -582,9 +578,9 @@ class JSONFileStore(MemoryStore, SupportsTransactions):
 
             # Update token count (rough estimate)
             if records:
-                self.token_count += sum(
-                    len(str(record.item)) for record in records
-                ) // 4
+                self.token_count += (
+                    sum(len(str(record.item)) for record in records) // 4
+                )
 
             logger.debug(f"Found {len(records)} matching memory items", query=query)
             return records

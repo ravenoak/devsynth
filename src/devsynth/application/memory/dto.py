@@ -17,10 +17,10 @@ them through these DTOs so downstream serialization remains predictable.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from collections.abc import Iterable, Mapping, MutableMapping, Sequence
-from typing import TYPE_CHECKING, TypedDict, TypeAlias, cast
+from typing import TYPE_CHECKING, TypeAlias, TypedDict, cast
 
 from typing_extensions import NotRequired
 
@@ -235,7 +235,9 @@ def _coerce_similarity(*values: object) -> float | None:
     return None
 
 
-def _coerce_memory_type(value: object, fallback: MemoryType = MemoryType.CONTEXT) -> MemoryType:
+def _coerce_memory_type(
+    value: object, fallback: MemoryType = MemoryType.CONTEXT
+) -> MemoryType:
     try:
         return MemoryType.from_raw(value)
     except ValueError:
@@ -248,7 +250,9 @@ def _memory_item_from_vector(vector: MemoryVector) -> MemoryItem:
         for key, value in (vector.metadata or {}).items()
     }
     raw_type = vector_metadata.get("memory_type")
-    memory_type = _coerce_memory_type(raw_type) if raw_type is not None else MemoryType.CONTEXT
+    memory_type = (
+        _coerce_memory_type(raw_type) if raw_type is not None else MemoryType.CONTEXT
+    )
     vector_metadata["memory_type"] = memory_type.value
     vector_metadata.setdefault("embedding", list(vector.embedding))
     return MemoryItem(
@@ -260,7 +264,9 @@ def _memory_item_from_vector(vector: MemoryVector) -> MemoryItem:
     )
 
 
-def _memory_item_from_mapping(payload: LegacyRecordMapping) -> tuple[MemoryItem, MemoryMetadata | None]:
+def _memory_item_from_mapping(
+    payload: LegacyRecordMapping,
+) -> tuple[MemoryItem, MemoryMetadata | None]:
     if "item" in payload and isinstance(payload["item"], MemoryItem):
         item = payload["item"]
         return item, item.metadata
@@ -344,7 +350,9 @@ def build_memory_record(
 
 def build_query_results(
     store: str,
-    payload: MemoryQueryResults | Sequence[MemoryRecordInput] | MemoryRecordInput | None,
+    payload: (
+        MemoryQueryResults | Sequence[MemoryRecordInput] | MemoryRecordInput | None
+    ),
     *,
     metadata: MemoryMetadata | None = None,
 ) -> MemoryQueryResults:
@@ -354,8 +362,7 @@ def build_query_results(
         store_name = payload.get("store", store)
         records_iter = payload.get("records", [])
         records = [
-            build_memory_record(record, source=store_name)
-            for record in records_iter
+            build_memory_record(record, source=store_name) for record in records_iter
         ]
         combined_metadata = _normalize_metadata(payload.get("metadata"), metadata)
         normalized: MemoryQueryResults = {"store": store_name, "records": records}
@@ -370,7 +377,9 @@ def build_query_results(
     normalized_records: list[MemoryRecord]
     if payload is None:
         normalized_records = []
-    elif isinstance(payload, Sequence) and not isinstance(payload, (str, bytes, bytearray)):
+    elif isinstance(payload, Sequence) and not isinstance(
+        payload, (str, bytes, bytearray)
+    ):
         normalized_records = [
             build_memory_record(item, source=store) for item in payload
         ]
@@ -394,9 +403,12 @@ def deduplicate_records(records: Iterable[MemoryRecord]) -> list[MemoryRecord]:
         if current is None:
             best_by_id[identifier] = record
             continue
-        current_score = current.similarity if current.similarity is not None else float("-inf")
-        new_score = record.similarity if record.similarity is not None else float("-inf")
+        current_score = (
+            current.similarity if current.similarity is not None else float("-inf")
+        )
+        new_score = (
+            record.similarity if record.similarity is not None else float("-inf")
+        )
         if new_score > current_score:
             best_by_id[identifier] = record
     return list(best_by_id.values())
-

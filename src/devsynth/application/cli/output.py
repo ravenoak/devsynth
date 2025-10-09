@@ -13,7 +13,6 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 
-
 from devsynth.application.cli.models import (
     CommandListData,
     CommandTableData,
@@ -254,16 +253,16 @@ def print_table(
         console.print("[yellow]No data to display[/yellow]")
         return
 
-    selected_columns = list(columns) if columns is not None else list(table_data[0].keys())
+    selected_columns = (
+        list(columns) if columns is not None else list(table_data[0].keys())
+    )
 
     table = Table(title=title)
     for column in selected_columns:
         table.add_column(column)
 
     for row in table_data:
-        table.add_row(
-            *[str(row.get(column, "")) for column in selected_columns]
-        )
+        table.add_row(*[str(row.get(column, "")) for column in selected_columns])
 
     console.print(table)
 
@@ -278,7 +277,11 @@ def print_list(
     if console is None:
         console = Console()
 
-    list_data = items if isinstance(items, CommandListData) else CommandListData.from_iterable(tuple(items))
+    list_data = (
+        items
+        if isinstance(items, CommandListData)
+        else CommandListData.from_iterable(tuple(items))
+    )
     if not list_data:
         console.print("[yellow]No items to display[/yellow]")
         return

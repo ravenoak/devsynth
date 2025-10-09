@@ -74,6 +74,7 @@ class LMDBEnvironmentProtocol(Protocol):
 
     def close(self) -> None: ...
 
+
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
 
@@ -137,7 +138,9 @@ class LMDBStore(MemoryStore, SupportsTransactions):
         self.tokenizer: object | None = None
         if tiktoken is not None:
             try:
-                self.tokenizer = tiktoken.get_encoding("cl100k_base")  # OpenAI's encoding
+                self.tokenizer = tiktoken.get_encoding(
+                    "cl100k_base"
+                )  # OpenAI's encoding
             except Exception as exc:
                 logger.warning(
                     "Failed to initialize tokenizer: %s. "
@@ -346,7 +349,9 @@ class LMDBStore(MemoryStore, SupportsTransactions):
                 str(key): LMDBStore._normalize_metadata_value(inner)
                 for key, inner in value.items()
             }
-        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        if isinstance(value, Sequence) and not isinstance(
+            value, (str, bytes, bytearray)
+        ):
             return [LMDBStore._normalize_metadata_value(inner) for inner in value]
         raise TypeError(f"Unsupported metadata value: {value!r}")
 
@@ -591,9 +596,7 @@ class LMDBStore(MemoryStore, SupportsTransactions):
                     item = self.retrieve_in_transaction(txn, item_id)
                     if item:
                         items.append(
-                            build_memory_record(
-                                item, source=self.__class__.__name__
-                            )
+                            build_memory_record(item, source=self.__class__.__name__)
                         )
 
             # Update token count
@@ -696,5 +699,5 @@ class LMDBStore(MemoryStore, SupportsTransactions):
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Failed to fetch all items: %s", exc)
         return items
-    supports_transactions: bool = True
 
+    supports_transactions: bool = True

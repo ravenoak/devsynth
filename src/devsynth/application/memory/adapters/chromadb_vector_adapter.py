@@ -37,10 +37,10 @@ except Exception as e:  # pragma: no cover - if chromadb is missing the tests sk
     ) from e
 
 from ....domain.models.memory import MemoryVector
+from ....logging_setup import DevSynthLogger
 from ..dto import MemoryMetadata, MemoryRecord, VectorStoreStats, build_memory_record
 from ..metadata_serialization import from_serializable, to_serializable
 from ..vector_protocol import VectorStoreProtocol
-from ....logging_setup import DevSynthLogger
 from ._chromadb_protocols import (
     ChromaClientProtocol,
     ChromaCollectionProtocol,
@@ -83,8 +83,8 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
             settings = Settings(anonymized_telemetry=False)
             self.client = EphemeralClientFactory(settings)
 
-        self.collection: ChromaCollectionProtocol = self.client.get_or_create_collection(
-            collection_name
+        self.collection: ChromaCollectionProtocol = (
+            self.client.get_or_create_collection(collection_name)
         )
         logger.info(
             "ChromaDB Vector Adapter initialized with collection '%s'",
@@ -130,7 +130,9 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
                 self.collection.add(
                     ids=[vec.id],
                     embeddings=[vec.embedding],
-                    metadatas=[to_serializable(cast(MemoryMetadata | None, vec.metadata))],
+                    metadatas=[
+                        to_serializable(cast(MemoryMetadata | None, vec.metadata))
+                    ],
                     documents=[vec.content],
                 )
             self.vectors = snapshot
@@ -192,9 +194,12 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
         Returns:
             The retrieved vector, or None if not found
         """
-        result = self.collection.get(
-            ids=[vector_id], include=["embeddings", "metadatas", "documents"]
-        ) or {}
+        result = (
+            self.collection.get(
+                ids=[vector_id], include=["embeddings", "metadatas", "documents"]
+            )
+            or {}
+        )
         if result and result.get("ids"):
             metadatas = result.get("metadatas") or []
             metadata_payload = metadatas[0] if metadatas else {}
@@ -226,11 +231,14 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
         Returns:
             A list of similar memory vectors
         """
-        results = self.collection.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k,
-            include=["embeddings", "metadatas", "documents"],
-        ) or {}
+        results = (
+            self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k,
+                include=["embeddings", "metadatas", "documents"],
+            )
+            or {}
+        )
 
         if not results or not results.get("ids") or not results["ids"][0]:
             return []
@@ -306,7 +314,9 @@ class ChromaDBVectorAdapter(VectorStoreProtocol):
         if self.vectors:
             return list(self.vectors.values())
 
-        result = self.collection.get(include=["embeddings", "metadatas", "documents"]) or {}
+        result = (
+            self.collection.get(include=["embeddings", "metadatas", "documents"]) or {}
+        )
         vectors: list[MemoryVector] = []
         ids = result.get("ids") or []
         documents = result.get("documents") or [None]

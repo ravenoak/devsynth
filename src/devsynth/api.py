@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import uuid
-
 from collections.abc import Awaitable, Callable, Sequence
+from typing import Protocol, TypedDict, TypeVar, cast
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import Response
-from typing import Protocol, TypedDict, TypeVar, cast
 
 from devsynth.interface.agentapi import router as agent_router
 
@@ -33,8 +32,10 @@ HistogramFactory = Callable[[str, str, Sequence[str]], HistogramMetric]
 try:  # pragma: no cover - import guarded for optional dependency
     from prometheus_client import (
         CONTENT_TYPE_LATEST,
-        Counter as _PrometheusCounter,
-        Histogram as _PrometheusHistogram,
+    )
+    from prometheus_client import Counter as _PrometheusCounter
+    from prometheus_client import Histogram as _PrometheusHistogram
+    from prometheus_client import (
         generate_latest,
     )
 
@@ -108,9 +109,7 @@ AsyncEndpoint = TypeVar("AsyncEndpoint", bound=Callable[..., Awaitable[object]])
 app.include_router(agent_router, prefix="/api")
 
 
-http_middleware = cast(
-    Callable[[AsyncEndpoint], AsyncEndpoint], app.middleware("http")
-)
+http_middleware = cast(Callable[[AsyncEndpoint], AsyncEndpoint], app.middleware("http"))
 
 
 @http_middleware

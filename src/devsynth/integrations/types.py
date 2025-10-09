@@ -10,7 +10,9 @@ JsonMapping = Mapping[str, object]
 class HTTPClientProtocol(Protocol):
     """Protocol describing the minimal HTTP client surface used by connectors."""
 
-    def get(self, url: str, *, timeout: float | None = None) -> Any:  # pragma: no cover - protocol
+    def get(
+        self, url: str, *, timeout: float | None = None
+    ) -> Any:  # pragma: no cover - protocol
         """Issue a GET request."""
 
     def post(

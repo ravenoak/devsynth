@@ -22,15 +22,19 @@ from devsynth.exceptions import MemoryStoreError
 
 from ....domain.interfaces.memory import MemoryStore, VectorStore
 from ....domain.models.memory import MemoryItem, MemoryType, MemoryVector
-from ..dto import MemoryRecord, build_memory_record
 from ....exceptions import MemoryTransactionError
 from ....logging_setup import DevSynthLogger
+from ..dto import MemoryRecord, build_memory_record
 from ..rdflib_store import RDFLibStore
 
 if TYPE_CHECKING:  # pragma: no cover - imported for static analysis only
     import rdflib as rdflib_module
-    from rdflib import Graph as GraphType, Literal as LiteralType, Namespace as NamespaceType, URIRef as URIRefType
-    from rdflib.namespace import DC as DCType, FOAF as FOAFType
+    from rdflib import Graph as GraphType
+    from rdflib import Literal as LiteralType
+    from rdflib import Namespace as NamespaceType
+    from rdflib import URIRef as URIRefType
+    from rdflib.namespace import DC as DCType
+    from rdflib.namespace import FOAF as FOAFType
 else:  # pragma: no cover - runtime fallbacks when rdflib is absent
     GraphType = LiteralType = NamespaceType = URIRefType = object  # type: ignore[assignment]
     DCType = FOAFType = object  # type: ignore[assignment]
@@ -718,9 +722,7 @@ class GraphMemoryAdapter(MemoryStore):
 
                 if match:
                     logger.debug(f"Item {item.id} matches the query")
-                    results.append(
-                        build_memory_record(item, source=self.backend_type)
-                    )
+                    results.append(build_memory_record(item, source=self.backend_type))
 
             logger.info(
                 f"Found {len(results)} matching memory records in Graph Memory Adapter"
@@ -878,7 +880,9 @@ class GraphMemoryAdapter(MemoryStore):
                     continue
 
                 for predicate in predicates:
-                    for _, _, neighbor in self.graph.triples((current, predicate, None)):
+                    for _, _, neighbor in self.graph.triples(
+                        (current, predicate, None)
+                    ):
                         if neighbor in visited:
                             continue
 

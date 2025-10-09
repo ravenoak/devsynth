@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import ExitStack
-from typing import Any, Protocol, TypedDict, TypeAlias
+from typing import Any, Protocol, TypeAlias, TypedDict
 
 from devsynth.interface.streamlit_contracts import StreamlitModule
 from devsynth.interface.ux_bridge import sanitize_output
@@ -69,9 +69,7 @@ def simulate_progress_rendering(
             (
                 "summary",
                 {
-                    "description": sanitize_output(
-                        str(summary.get("description", ""))
-                    ),
+                    "description": sanitize_output(str(summary.get("description", ""))),
                 },
             )
         )

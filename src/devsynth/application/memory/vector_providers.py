@@ -68,7 +68,9 @@ factory = SimpleVectorStoreProviderFactory()
 
 def _register_default_providers() -> None:
     try:
-        from .adapters.vector_memory_adapter import VectorMemoryAdapter as _VectorMemoryAdapter
+        from .adapters.vector_memory_adapter import (
+            VectorMemoryAdapter as _VectorMemoryAdapter,
+        )
     except ImportError:
         logger.debug(
             "VectorMemoryAdapter unavailable; skipping default provider registration",

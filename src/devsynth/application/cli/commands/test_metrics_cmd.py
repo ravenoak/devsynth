@@ -10,7 +10,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import pytest
-
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -21,6 +20,8 @@ from devsynth.logging_setup import DevSynthLogger
 
 logger = DevSynthLogger(__name__)
 bridge: UXBridge = CLIUXBridge()
+
+
 @pytest.mark.medium
 def test_metrics_cmd(
     days: int = 30,

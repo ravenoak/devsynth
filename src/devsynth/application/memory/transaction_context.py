@@ -17,8 +17,8 @@ from typing import Literal, Protocol, TypedDict, runtime_checkable
 from ...domain.models.memory import MemoryItem
 from ...exceptions import MemoryTransactionError
 from ...logging_setup import DevSynthLogger
-from .dto import MemoryRecord, MemoryRecordInput, build_memory_record
 from .adapter_types import MemoryAdapter
+from .dto import MemoryRecord, MemoryRecordInput, build_memory_record
 
 logger = DevSynthLogger(__name__)
 
@@ -27,13 +27,19 @@ logger = DevSynthLogger(__name__)
 class SupportsTransactionalStore(Protocol):
     """Protocol for adapters that expose transaction primitives."""
 
-    def begin_transaction(self, transaction_id: str) -> None:  # pragma: no cover - protocol
+    def begin_transaction(
+        self, transaction_id: str
+    ) -> None:  # pragma: no cover - protocol
         ...
 
-    def commit_transaction(self, transaction_id: str) -> None:  # pragma: no cover - protocol
+    def commit_transaction(
+        self, transaction_id: str
+    ) -> None:  # pragma: no cover - protocol
         ...
 
-    def rollback_transaction(self, transaction_id: str) -> None:  # pragma: no cover - protocol
+    def rollback_transaction(
+        self, transaction_id: str
+    ) -> None:  # pragma: no cover - protocol
         ...
 
 
@@ -338,7 +344,9 @@ class TransactionContext:
                         adapter.store(record.item)
                 self._record_operation(label, "rollback", snapshot["records"].values())
             except Exception as e:
-                error_msg = f"Failed to restore snapshot for {adapter.__class__.__name__}: {e}"
+                error_msg = (
+                    f"Failed to restore snapshot for {adapter.__class__.__name__}: {e}"
+                )
                 logger.error(error_msg)
                 rollback_errors.append(error_msg)
 
@@ -357,9 +365,7 @@ class TransactionContext:
             return label
         return adapter.__class__.__name__
 
-    def _ensure_record(
-        self, payload: MemoryRecordInput, store: str
-    ) -> MemoryRecord:
+    def _ensure_record(self, payload: MemoryRecordInput, store: str) -> MemoryRecord:
         """Normalize ``payload`` into a :class:`MemoryRecord`."""
 
         record = build_memory_record(payload, source=store)
@@ -399,5 +405,9 @@ class TransactionContext:
         """Append a normalized entry to the operation log."""
 
         normalized = [self._ensure_record(record, store) for record in records]
-        entry: OperationLogEntry = {"store": store, "phase": phase, "records": normalized}
+        entry: OperationLogEntry = {
+            "store": store,
+            "phase": phase,
+            "records": normalized,
+        }
         self.operations.append(entry)

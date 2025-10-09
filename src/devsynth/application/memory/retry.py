@@ -16,13 +16,16 @@ from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
 from typing import Protocol, Type, TypeAlias, TypeVar, cast
 
+
 # ``prometheus_client`` is an optional dependency. Import it lazily and
 # degrade to no-op metrics when unavailable so that memory logic remains
 # functional in lightweight environments.
 class CounterAPI(Protocol):
     """Protocol describing the subset of Prometheus counter behaviour we use."""
 
-    def labels(self, *args: object, **kwargs: object) -> "CounterAPI":  # pragma: no cover - protocol
+    def labels(
+        self, *args: object, **kwargs: object
+    ) -> "CounterAPI":  # pragma: no cover - protocol
         ...
 
     def inc(self, amount: float = 1.0) -> None:  # pragma: no cover - protocol
@@ -80,6 +83,7 @@ def _create_counter(
     prometheus_counter_cls: type[object] | None
     try:  # pragma: no cover - import guarded for optional dependency
         from prometheus_client import Counter as PrometheusCounter
+
         prometheus_counter_cls = PrometheusCounter
     except Exception:  # pragma: no cover - fallback for minimal environments
         prometheus_counter_cls = None
@@ -103,11 +107,7 @@ from devsynth.application.memory.dto import (
 from devsynth.logging_setup import DevSynthLogger
 
 MemoryRetryResult: TypeAlias = (
-    MemoryRecord
-    | list[MemoryRecord]
-    | MemoryQueryResults
-    | GroupedMemoryResults
-    | None
+    MemoryRecord | list[MemoryRecord] | MemoryQueryResults | GroupedMemoryResults | None
 )
 
 """Result types commonly emitted by retryable memory callables."""
@@ -116,7 +116,9 @@ MemoryRetryResult: TypeAlias = (
 class ConditionCallback(Protocol):
     """Callable signature used to determine whether a retry should proceed."""
 
-    def __call__(self, error: Exception, attempt: int) -> bool:  # pragma: no cover - protocol
+    def __call__(
+        self, error: Exception, attempt: int
+    ) -> bool:  # pragma: no cover - protocol
         ...
 
 
@@ -134,6 +136,7 @@ class RetryCondition(Protocol):
 
     def __call__(self, error: Exception) -> bool:  # pragma: no cover - protocol
         ...
+
 
 __all__ = [
     "RetryError",
@@ -246,9 +249,7 @@ def retry_with_backoff(
     logger: logging.Logger | None = None,
     condition_callbacks: Sequence[ConditionCallback] | None = None,
     retry_conditions: (
-        Sequence[RetryCondition | str]
-        | Mapping[str, RetryCondition | str]
-        | None
+        Sequence[RetryCondition | str] | Mapping[str, RetryCondition | str] | None
     ) = None,
     track_metrics: bool = True,
     circuit_breaker_name: str | None = None,
@@ -528,9 +529,7 @@ def retry_operation(
     logger: logging.Logger | None = None,
     condition_callbacks: Sequence[ConditionCallback] | None = None,
     retry_conditions: (
-        Sequence[RetryCondition | str]
-        | Mapping[str, RetryCondition | str]
-        | None
+        Sequence[RetryCondition | str] | Mapping[str, RetryCondition | str] | None
     ) = None,
     track_metrics: bool = True,
     circuit_breaker_name: str | None = None,
@@ -572,9 +571,7 @@ class RetryConfig:
         exceptions_to_retry: Sequence[Type[Exception]] | None = None,
         condition_callbacks: Sequence[ConditionCallback] | None = None,
         retry_conditions: (
-            Sequence[RetryCondition | str]
-            | Mapping[str, RetryCondition | str]
-            | None
+            Sequence[RetryCondition | str] | Mapping[str, RetryCondition | str] | None
         ) = None,
         circuit_breaker_name: str | None = None,
         circuit_breaker_failure_threshold: int = 3,

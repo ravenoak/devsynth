@@ -9,6 +9,7 @@ from ..domain.interfaces.agent import Agent, AgentCoordinator, AgentFactory
 
 logger = DevSynthLogger(__name__)
 
+
 class AgentPort:
     """Port for the agent system."""
 

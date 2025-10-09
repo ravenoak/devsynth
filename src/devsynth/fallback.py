@@ -7,8 +7,7 @@ import random
 import threading
 import time
 from collections.abc import Callable, Mapping, Sequence
-from typing import TypedDict, TypeVar
-from typing import ParamSpec
+from typing import ParamSpec, TypedDict, TypeVar
 
 from .exceptions import DevSynthError
 from .logging_setup import DevSynthLogger
@@ -47,11 +46,15 @@ RetryConditionSpec = RetryConditionFunc | str | type[BaseException]
 RetryConditions = Sequence[RetryConditionSpec] | Mapping[str, RetryConditionSpec]
 
 ConditionCallbackFunc = Callable[[Exception, int], bool]
-ConditionCallbacks = Sequence[ConditionCallbackFunc] | Mapping[str, ConditionCallbackFunc]
+ConditionCallbacks = (
+    Sequence[ConditionCallbackFunc] | Mapping[str, ConditionCallbackFunc]
+)
 
 FallbackConditionFunc = Callable[[Exception], bool]
 FallbackConditionSpec = FallbackConditionFunc | str
-FallbackConditions = Sequence[FallbackConditionSpec] | Mapping[str, FallbackConditionSpec]
+FallbackConditions = (
+    Sequence[FallbackConditionSpec] | Mapping[str, FallbackConditionSpec]
+)
 
 
 class RetryPolicy(TypedDict, total=False):
@@ -97,7 +100,9 @@ def _status_code_predicate(code: int) -> Callable[[ResultT], bool]:
     return _matches_status
 
 
-def _predicate_from_spec(value: Callable[[ResultT], bool] | int) -> Callable[[ResultT], bool]:
+def _predicate_from_spec(
+    value: Callable[[ResultT], bool] | int,
+) -> Callable[[ResultT], bool]:
     if isinstance(value, int):
         return _status_code_predicate(value)
     return value
@@ -977,9 +982,7 @@ class CircuitBreaker:
         self.test_calls_remaining = 0
         self.logger.info("Circuit breaker reset to initial state")
 
-    def _safe_hook(
-        self, hook: Callable[[str], None] | None, func_name: str
-    ) -> None:
+    def _safe_hook(self, hook: Callable[[str], None] | None, func_name: str) -> None:
         """Execute a hook safely without propagating errors."""
         if hook is None:
             return

@@ -404,6 +404,4 @@ except ImportError:  # pragma: no cover - optional dependency
 def config_key_autocomplete(ctx: "typer.Context", incomplete: str) -> list[str]:
     """Autocomplete configuration keys for Typer CLI."""
     _ = ctx  # Typer passes context for future expansion
-    return [
-        key for key in ConfigModel.__annotations__ if key.startswith(incomplete)
-    ]
+    return [key for key in ConfigModel.__annotations__ if key.startswith(incomplete)]

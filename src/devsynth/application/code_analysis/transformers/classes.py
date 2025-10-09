@@ -27,7 +27,9 @@ class GeneratedClass:
     methods: tuple[FunctionDefNode, ...]
 
 
-def build_class_from_functions(request: ClassExtractionRequest, functions: Sequence[FunctionDefNode]) -> GeneratedClass:
+def build_class_from_functions(
+    request: ClassExtractionRequest, functions: Sequence[FunctionDefNode]
+) -> GeneratedClass:
     """Construct a class definition from the extracted function nodes."""
 
     class_body: StatementList = []
@@ -72,7 +74,9 @@ class FunctionToClassExtractor(ast.NodeTransformer):
             new_body.append(self.visit(statement))
         self.missing_functions = sorted(requested)
         if self.extracted_functions:
-            generated_class = build_class_from_functions(self.request, self.extracted_functions)
+            generated_class = build_class_from_functions(
+                self.request, self.extracted_functions
+            )
             new_body.append(generated_class.node)
         node.body = new_body
         return node

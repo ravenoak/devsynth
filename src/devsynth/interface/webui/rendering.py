@@ -13,7 +13,6 @@ from devsynth.config import load_project_config, save_config
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.progress_utils import run_with_progress
 from devsynth.interface.ux_bridge import sanitize_output
-from devsynth.interface.webui.rendering_simulation import simulate_progress_rendering
 from devsynth.interface.webui.commands import (
     CommandHandlingMixin,
     SetupWizard,
@@ -30,49 +29,6 @@ except ImportError:  # pragma: no cover - optional dependency
 
 
 logger = DevSynthLogger(__name__)
-
-
-def simulate_progress_rendering(
-    pages: "ProjectSetupPages",
-    summary: Mapping[str, Any],
-    *,
-    container: Any | None = None,
-    errors: Sequence[object] | None = None,
-    clock: Callable[[], float] | None = None,
-) -> dict[str, Any]:
-    """Render a deterministic progress summary without a Streamlit runtime."""
-
-    events: list[tuple[str, Mapping[str, Any]]] = []
-
-    with ExitStack() as stack:
-        if clock is not None:
-            original_time = time.time
-
-            def _restore_time() -> None:
-                time.time = original_time
-
-            stack.callback(_restore_time)
-            time.time = clock
-
-        pages._render_progress_summary(summary, container=container)
-        events.append(
-            (
-                "summary",
-                {
-                    "description": sanitize_output(
-                        str(summary.get("description", ""))
-                    ),
-                },
-            )
-        )
-
-        if errors:
-            for raw in errors:
-                message = sanitize_output(str(raw))
-                pages.display_result(message, message_type="error", highlight=False)
-                events.append(("error", {"message": message}))
-
-    return {"events": tuple(events), "streamlit": pages.streamlit}
 
 
 class ProjectSetupPages(CommandHandlingMixin):
@@ -1638,7 +1594,6 @@ class PageRenderer(
 
 
 __all__ = [
-    "simulate_progress_rendering",
     "PageRenderer",
     "ProjectSetupPages",
     "LifecyclePages",

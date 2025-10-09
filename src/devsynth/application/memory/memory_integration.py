@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Mapping, Optional, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, Mapping, Optional, cast
 
-from devsynth.application.memory.dto import MemoryMetadata, MemoryRecord, build_memory_record
+from devsynth.application.memory.dto import (
+    MemoryMetadata,
+    MemoryRecord,
+    build_memory_record,
+)
 from devsynth.exceptions import MemoryError, MemoryItemNotFoundError, MemoryStoreError
 
 from ...domain.interfaces.memory import MemorySearchResponse, MemoryStore, VectorStore

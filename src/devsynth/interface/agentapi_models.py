@@ -122,7 +122,7 @@ class EDRRCycleRequest(BaseModel):
 
     prompt: str = Field(..., min_length=1)
     context: str | None = Field(default=None, min_length=1)
-    max_iterations: conint(ge=1, le=50) = 3
+    max_iterations: int = Field(3, ge=1, le=50)
 
 
 class WorkflowResponse(BaseModel):
@@ -178,4 +178,3 @@ class HealthResponse(BaseModel):
     status: str = Field(..., min_length=1)
     uptime: float = Field(..., ge=0)
     additional_info: Mapping[str, str] | None = None
-

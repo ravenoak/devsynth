@@ -58,12 +58,16 @@ class DocstringAdder(ast.NodeTransformer):
         return self.generic_visit(node)
 
 
-def apply_docstring_spec(tree: ModuleNode, spec: DocstringSpec) -> DocstringMutationResult:
+def apply_docstring_spec(
+    tree: ModuleNode, spec: DocstringSpec
+) -> DocstringMutationResult:
     """Apply a docstring insertion specification to a module."""
 
     transformer = DocstringAdder(spec)
     mutated = transformer.visit(tree)
-    return DocstringMutationResult(tree=cast(ModuleNode, mutated), target_found=transformer.target_found)
+    return DocstringMutationResult(
+        tree=cast(ModuleNode, mutated), target_found=transformer.target_found
+    )
 
 
 def _is_docstring_expr(node: ast.Expr) -> bool:

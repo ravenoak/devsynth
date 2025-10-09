@@ -39,9 +39,7 @@ class InMemoryStore(MemoryStore):
         """Retrieve an item from memory by ID."""
         return self.items.get(item_id)
 
-    def search(
-        self, query: MemorySearchQuery | MemoryMetadata
-    ) -> list[MemoryItem]:
+    def search(self, query: MemorySearchQuery | MemoryMetadata) -> list[MemoryItem]:
         """Search for items in memory matching the query."""
         result = []
         for item in self.items.values():
@@ -144,10 +142,14 @@ ContextState: TypeAlias = dict[str, ContextValue]
 class StructuredContextManager(ContextManager, Protocol):
     """Typed extension of :class:`ContextManager` without ``Any`` usage."""
 
-    def add_to_context(self, key: str, value: ContextValue) -> None:  # pragma: no cover - protocol
+    def add_to_context(
+        self, key: str, value: ContextValue
+    ) -> None:  # pragma: no cover - protocol
         ...
 
-    def get_from_context(self, key: str) -> ContextValue | None:  # pragma: no cover - protocol
+    def get_from_context(
+        self, key: str
+    ) -> ContextValue | None:  # pragma: no cover - protocol
         ...
 
     def get_full_context(self) -> ContextState:  # pragma: no cover - protocol

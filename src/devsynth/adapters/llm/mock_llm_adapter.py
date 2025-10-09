@@ -1,50 +1,46 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import AsyncIterator, Mapping, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING, AsyncIterator, Mapping, Sequence
 
 from devsynth.logging_setup import DevSynthLogger
 
 if TYPE_CHECKING:  # pragma: no cover - used only for static typing support
+
     class BaseLLMProvider:
         """Typed subset of the runtime BaseLLMProvider for mypy."""
 
         config: dict[str, object]
 
-        def __init__(self, config: Mapping[str, object] | None = None) -> None:
-            ...
+        def __init__(self, config: Mapping[str, object] | None = None) -> None: ...
 
         def generate(
             self, prompt: str, parameters: Mapping[str, object] | None = None
-        ) -> str:
-            ...
+        ) -> str: ...
 
         def generate_with_context(
             self,
             prompt: str,
             context: list[dict[str, str]],
             parameters: Mapping[str, object] | None = None,
-        ) -> str:
-            ...
+        ) -> str: ...
 
-        def get_embedding(self, text: str) -> list[float]:
-            ...
+        def get_embedding(self, text: str) -> list[float]: ...
 
     class StreamingLLMProvider:
         """Streaming interface subset for typing."""
 
         async def generate_stream(
             self, prompt: str, parameters: Mapping[str, object] | None = None
-        ) -> AsyncIterator[str]:
-            ...
+        ) -> AsyncIterator[str]: ...
 
         async def generate_with_context_stream(
             self,
             prompt: str,
             context: list[dict[str, str]],
             parameters: Mapping[str, object] | None = None,
-        ) -> AsyncIterator[str]:
-            ...
+        ) -> AsyncIterator[str]: ...
+
 else:
     from devsynth.application.llm.providers import BaseLLMProvider
     from devsynth.domain.interfaces.llm import StreamingLLMProvider
@@ -57,7 +53,9 @@ DEFAULT_RESPONSE_TEXT = "This is a mock response from the MockLLMAdapter."
 DEFAULT_EMBEDDING_VALUES: Sequence[float] = (0.1, 0.2, 0.3, 0.4, 0.5)
 
 
-def _default_response_templates() -> Sequence["MockResponseTemplate"]:  # pragma: no cover - deterministic default data
+def _default_response_templates() -> (
+    Sequence["MockResponseTemplate"]
+):  # pragma: no cover - deterministic default data
     return (
         MockResponseTemplate(key="default", text=DEFAULT_RESPONSE_TEXT),
         MockResponseTemplate(
@@ -77,7 +75,9 @@ def _default_response_templates() -> Sequence["MockResponseTemplate"]:  # pragma
     )
 
 
-def _default_embedding_templates() -> Sequence["MockEmbeddingTemplate"]:  # pragma: no cover - deterministic default data
+def _default_embedding_templates() -> (
+    Sequence["MockEmbeddingTemplate"]
+):  # pragma: no cover - deterministic default data
     return (MockEmbeddingTemplate(key="default", vector=DEFAULT_EMBEDDING_VALUES),)
 
 
@@ -134,7 +134,11 @@ class MockLLMConfig:
     )
 
     @classmethod
-    def from_mapping(cls, mapping: Mapping[str, object]) -> "MockLLMConfig":  # pragma: no cover - configuration parsing exercised indirectly
+    def from_mapping(
+        cls, mapping: Mapping[str, object]
+    ) -> (
+        "MockLLMConfig"
+    ):  # pragma: no cover - configuration parsing exercised indirectly
         """Build a configuration from a mapping while preserving defaults."""
 
         default_response = str(mapping.get("default_response", DEFAULT_RESPONSE_TEXT))
@@ -150,11 +154,15 @@ class MockLLMConfig:
         embedding_templates: list[MockEmbeddingTemplate] = []
         if isinstance(embedding_items, Mapping):
             for key, value in embedding_items.items():
-                if isinstance(key, str) and isinstance(value, Sequence) and not isinstance(
-                    value, (str, bytes)
+                if (
+                    isinstance(key, str)
+                    and isinstance(value, Sequence)
+                    and not isinstance(value, (str, bytes))
                 ):
                     embedding_templates.append(
-                        MockEmbeddingTemplate(key=key, vector=_coerce_float_sequence(value))
+                        MockEmbeddingTemplate(
+                            key=key, vector=_coerce_float_sequence(value)
+                        )
                     )
 
         default_embedding_values = mapping.get("default_embedding")
@@ -191,15 +199,22 @@ class MockLLMConfig:
             embedding_templates=resolved_embeddings,
         )
 
-    def to_raw_config(self) -> dict[str, object]:  # pragma: no cover - convenience helper for BaseLLMProvider compatibility
+    def to_raw_config(
+        self,
+    ) -> dict[
+        str, object
+    ]:  # pragma: no cover - convenience helper for BaseLLMProvider compatibility
         """Expose a dict representation for compatibility with :class:`BaseLLMProvider`."""
 
         raw: dict[str, object] = {
             "default_response": self.default_response,
-            "responses": {template.key: template.text for template in self.response_templates},
+            "responses": {
+                template.key: template.text for template in self.response_templates
+            },
             "default_embedding": list(self.default_embedding),
             "embeddings": {
-                template.key: list(template.vector) for template in self.embedding_templates
+                template.key: list(template.vector)
+                for template in self.embedding_templates
             },
         }
         return raw
@@ -220,11 +235,14 @@ class MockLLMAdapter(BaseLLMProvider, StreamingLLMProvider):
             resolved_config = MockLLMConfig.from_mapping(mapping)
             raw_config = dict(mapping)
 
-        super().__init__(raw_config if isinstance(raw_config, dict) else dict(raw_config))
+        super().__init__(
+            raw_config if isinstance(raw_config, dict) else dict(raw_config)
+        )
 
         self.config_model: MockLLMConfig = resolved_config
         self.responses: dict[str, str] = {
-            template.key: template.text for template in resolved_config.response_templates
+            template.key: template.text
+            for template in resolved_config.response_templates
         }
         self.default_response: str = resolved_config.default_response
         self.embeddings: dict[str, list[float]] = {

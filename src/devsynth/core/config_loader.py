@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Mapping, NotRequired, Optional, Protocol, TypeGuard, TypedDict, cast
+from typing import Mapping, NotRequired, Optional, Protocol, TypedDict, TypeGuard, cast
 
 try:  # pragma: no cover - optional dependency
     import yaml
@@ -22,6 +22,7 @@ try:  # pragma: no cover - optional dependency
     import toml as _toml_module
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     _toml_module = None  # type: ignore[assignment]
+
 
 class TyperContextProtocol(Protocol):
     """Subset of the Typer context API used for autocompletion."""
@@ -94,13 +95,17 @@ class CoreConfig:
 
     def __post_init__(self) -> None:
         if self.directories is not None and not _is_directory_map(self.directories):
-            raise ValueError("directories must be a mapping of string keys to lists of strings")
+            raise ValueError(
+                "directories must be a mapping of string keys to lists of strings"
+            )
         if self.features is not None and not _is_feature_flags(self.features):
             raise ValueError("features must map string keys to boolean flags")
         if self.resources is not None:
             normalized = _coerce_json_object(self.resources)
             if normalized is None:
-                raise ValueError("resources must be a JSON-compatible mapping with bounded depth")
+                raise ValueError(
+                    "resources must be a JSON-compatible mapping with bounded depth"
+                )
             self.resources = normalized
         if self.mvuu is not None:
             normalized_mvuu = _coerce_mvuu_config(self.mvuu)
@@ -116,11 +121,11 @@ class CoreConfig:
                 "docs": ["docs"],
             }
         )
-        features: FeatureFlags = dict(self.features) if self.features is not None else {}
+        features: FeatureFlags = (
+            dict(self.features) if self.features is not None else {}
+        )
         resources: JsonObject = (
-            _clone_json_object(self.resources)
-            if self.resources is not None
-            else {}
+            _clone_json_object(self.resources) if self.resources is not None else {}
         )
         mvuu: MVUUConfig = dict(self.mvuu) if self.mvuu is not None else {}
         return {
@@ -149,7 +154,9 @@ def _load_toml_mapping(path: Path) -> Mapping[str, object]:
     if tomllib is not None:
         with path.open("rb") as handle:
             return tomllib.load(handle)
-    raise RuntimeError("TOML parsing requires the 'toml' package or Python 3.11+'s tomllib")
+    raise RuntimeError(
+        "TOML parsing requires the 'toml' package or Python 3.11+'s tomllib"
+    )
 
 
 def _dump_toml_mapping(data: Mapping[str, object], handle) -> None:
@@ -227,15 +234,16 @@ def _clone_json_value(
 
 
 def _clone_json_object(
-    value: Mapping[str, JsonValue], *, _depth: int = 0, _max_depth: int = _MAX_JSON_DEPTH
+    value: Mapping[str, JsonValue],
+    *,
+    _depth: int = 0,
+    _max_depth: int = _MAX_JSON_DEPTH,
 ) -> JsonObject:
     if _depth > _max_depth:
         raise ValueError("JSON object exceeds maximum supported depth")
     result: JsonObject = {}
     for key, item in value.items():
-        result[key] = _clone_json_value(
-            item, _depth=_depth + 1, _max_depth=_max_depth
-        )
+        result[key] = _clone_json_value(item, _depth=_depth + 1, _max_depth=_max_depth)
     return result
 
 
@@ -331,7 +339,14 @@ def _coerce_core_config_data(raw: Mapping[str, object]) -> CoreConfigData:
 
 def _parse_env(cfg: CoreConfig) -> CoreConfigData:
     overrides: CoreConfigData = {}
-    for field in ("project_root", "structure", "language", "goals", "constraints", "priority"):
+    for field in (
+        "project_root",
+        "structure",
+        "language",
+        "goals",
+        "constraints",
+        "priority",
+    ):
         env_key = f"{_ENV_PREFIX}{field.upper()}"
         value = os.environ.get(env_key)
         if value is not None:

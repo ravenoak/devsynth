@@ -117,7 +117,8 @@ class OutputFormatter:
         text_str = str(text)
 
         # Delegate to the global sanitizer (respects DEVSYNTH_SANITIZATION_ENABLED)
-        return global_sanitize_output(text_str)
+        sanitized: str = global_sanitize_output(text_str)
+        return sanitized
 
     def detect_message_type(self, message: str) -> str:
         """Detect the type of message based on its content.
@@ -254,7 +255,7 @@ class OutputFormatter:
         return "\n".join(result)
 
     def format_list(
-        self, items: list, title: Optional[str] = None, bullet: str = "•"
+        self, items: List[Any], title: Optional[str] = None, bullet: str = "•"
     ) -> str:
         """Format a list of items.
 
@@ -279,7 +280,7 @@ class OutputFormatter:
         return "\n".join(result)
 
     def format_structured(
-        self, data: Any, output_format: OutputFormat = None, title: Optional[str] = None
+        self, data: Any, output_format: Optional[OutputFormat] = None, title: Optional[str] = None
     ) -> Union[str, Panel, Table, Syntax]:
         """Format data in a structured format (JSON, YAML, etc.).
 
@@ -302,7 +303,7 @@ class OutputFormatter:
             return json_str
 
         elif output_format == OutputFormat.YAML:
-            yaml_str = yaml.dump(
+            yaml_str = yaml.safe_dump(
                 data, indent=self.indent, sort_keys=True, default_flow_style=False
             )
             if self.console:
@@ -471,7 +472,7 @@ class OutputFormatter:
             return Table(title=title or "Empty List")
 
         # Get all unique keys from all dictionaries
-        all_keys = set()
+        all_keys: set[str] = set()
         for item in data:
             all_keys.update(item.keys())
 
@@ -541,7 +542,7 @@ class OutputFormatter:
             return Panel(text, title=title, border_style="blue")
 
     def set_format_options(
-        self, indent: int = None, spacing: int = None, line_width: int = None
+        self, indent: Optional[int] = None, spacing: Optional[int] = None, line_width: Optional[int] = None
     ) -> None:
         """Set formatting options.
 
@@ -558,7 +559,7 @@ class OutputFormatter:
             self.line_width = line_width
 
     def format_command_output(
-        self, data: Any, format_name: str = None, title: Optional[str] = None
+        self, data: Any, format_name: Optional[str] = None, title: Optional[str] = None
     ) -> Union[str, Panel, Table, Syntax]:
         """Format command output in the specified format.
 
