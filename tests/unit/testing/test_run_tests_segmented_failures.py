@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 from collections.abc import Iterator
 
+from typing import assert_type
+
 import pytest
 
 from devsynth.testing import run_tests as run_tests_module
@@ -40,7 +42,7 @@ def test_run_tests_segmented_failure_surfaces_remediation(
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
     ) -> run_tests_module.BatchExecutionResult:
-        assert isinstance(config, run_tests_module.SingleBatchRequest)
+        assert_type(config, run_tests_module.SingleBatchRequest)
         node_ids = list(config.node_ids)
         batches.append(node_ids)
         cmd = ["python", "-m", "pytest", *node_ids]
@@ -88,7 +90,11 @@ def test__run_segmented_tests_aggregates_outputs(
         (
             True,
             "segment-1 passed",
-            build_batch_metadata("batch-1", command=["pytest"], returncode=0),
+            build_batch_metadata(
+                "batch-1",
+                command=["python", "segment-1", "tests/unit/test_alpha.py::test_one"],
+                returncode=0,
+            ),
         ),
         (
             False,
@@ -96,7 +102,11 @@ def test__run_segmented_tests_aggregates_outputs(
             + run_tests_module._failure_tips(
                 3, ["python", "-m", "pytest", "tests/unit/test_gamma.py::test_three"]
             ),
-            build_batch_metadata("batch-2", command=["pytest"], returncode=3),
+            build_batch_metadata(
+                "batch-2",
+                command=["python", "segment-2", "tests/unit/test_gamma.py::test_three"],
+                returncode=3,
+            ),
         ),
     ]
     call_iter: Iterator[run_tests_module.BatchExecutionResult] = iter(outputs)
@@ -104,7 +114,7 @@ def test__run_segmented_tests_aggregates_outputs(
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
     ) -> run_tests_module.BatchExecutionResult:
-        assert isinstance(config, run_tests_module.SingleBatchRequest)
+        assert_type(config, run_tests_module.SingleBatchRequest)
         return next(call_iter)
 
     ensure_calls: list[None] = []
@@ -140,11 +150,19 @@ def test__run_segmented_tests_aggregates_outputs(
     assert "segment-2 failed" in output
     assert output.count("Pytest exited with code") == 1
     assert ensure_calls, "_ensure_coverage_artifacts should run after helper"
-    assert isinstance(metadata.get("metadata_id"), str)
-    segment_ids = [
-        segment.get("metadata_id") for segment in metadata.get("segments", [])
+    assert_type(metadata, run_tests_module.SegmentedRunMetadata)
+    assert metadata["metadata_id"].startswith("segmented-")
+    assert metadata["commands"] == [
+        ["python", "segment-1", "tests/unit/test_alpha.py::test_one"],
+        ["python", "segment-2", "tests/unit/test_gamma.py::test_three"],
     ]
-    assert len(segment_ids) == len(set(segment_ids))
+    assert [segment["metadata_id"] for segment in metadata["segments"]] == [
+        "batch-1",
+        "batch-2",
+    ]
+    for segment, command in zip(metadata["segments"], metadata["commands"], strict=True):
+        assert_type(segment, run_tests_module.BatchExecutionMetadata)
+        assert list(segment["command"]) == command
 
 
 @pytest.mark.fast
@@ -174,7 +192,7 @@ def test_segmented_runs_reinject_plugins_without_clobbering_addopts(
     def fake_run_single(
         config: run_tests_module.SingleBatchRequest,
     ) -> run_tests_module.BatchExecutionResult:
-        assert isinstance(config, run_tests_module.SingleBatchRequest)
+        assert_type(config, run_tests_module.SingleBatchRequest)
         snapshots.append(config.env.get("PYTEST_ADDOPTS", ""))
         node_ids_local = list(config.node_ids)
         return (

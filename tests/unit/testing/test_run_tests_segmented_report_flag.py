@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import assert_type
+
 import pytest
 
 import devsynth.testing.run_tests as rt
@@ -16,17 +18,27 @@ def test_run_segmented_tests_reports_only_last_segment(
     """Only the final segment should request coverage reports."""
 
     report_flags: list[bool] = []
+    call_index = 0
 
     def fake_run_single_test_batch(
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
+        nonlocal call_index
+        assert_type(config, rt.SingleBatchRequest)
         node_ids = list(config.node_ids)
+        call_index += 1
         report_flags.append(config.report)
+        command = [
+            f"python-report-{call_index}",
+            *config.node_ids,
+        ]
         return (
             True,
             f"segment {len(report_flags)} ok ({len(node_ids)} tests)",
             build_batch_metadata(
-                f"batch-report-{len(report_flags)}", command=["pytest"], returncode=0
+                f"batch-report-{len(report_flags)}",
+                command=command,
+                returncode=0,
             ),
         )
 
@@ -57,4 +69,18 @@ def test_run_segmented_tests_reports_only_last_segment(
     assert report_flags == [False, True]
     assert "segment 1 ok" in output
     assert "segment 2 ok" in output
+    assert_type(metadata, rt.SegmentedRunMetadata)
+    assert metadata["metadata_id"].startswith("segmented-")
+    assert metadata["commands"] == [
+        [
+            "python-report-1",
+            "tests/unit/test_alpha.py::test_a",
+            "tests/unit/test_beta.py::test_b",
+        ],
+        [
+            "python-report-2",
+            "tests/unit/test_gamma.py::test_c",
+        ],
+    ]
     assert metadata["segments"][-1]["metadata_id"].startswith("batch-report-")
+    assert list(metadata["segments"][-1]["command"]) == metadata["commands"][-1]

@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+from typing import assert_type
 
 from devsynth.testing.run_tests import run_tests
 
@@ -161,14 +162,20 @@ def test_run_segmented_tests_stop_after_maxfail(
     def fake_run_single_test_batch(
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
+        assert_type(config, rt.SingleBatchRequest)
         node_ids = list(config.node_ids)
         seen_batches.append(node_ids)
         if len(seen_batches) > 1:
             pytest.fail("maxfail should stop additional segments")
+        command = ["python-stop", *node_ids]
         return (
             False,
             "segment failed",
-            build_batch_metadata("batch-stop-1", returncode=1),
+            build_batch_metadata(
+                "batch-stop-1",
+                command=command,
+                returncode=1,
+            ),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_run_single_test_batch)
@@ -196,4 +203,8 @@ def test_run_segmented_tests_stop_after_maxfail(
     assert seen_batches == [["tests/unit/test_alpha.py::test_one"]]
     assert success is False
     assert "segment failed" in output
+    assert_type(metadata, rt.SegmentedRunMetadata)
+    assert metadata["metadata_id"].startswith("segmented-")
+    assert metadata["commands"] == [["python-stop", "tests/unit/test_alpha.py::test_one"]]
     assert metadata["segments"][0]["metadata_id"] == "batch-stop-1"
+    assert list(metadata["segments"][0]["command"]) == metadata["commands"][0]
