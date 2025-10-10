@@ -1,0 +1,18 @@
+src/devsynth/interface/agentapi_models.py:51: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:62: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:72: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:81: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:89: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:95: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:101: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:108: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:114: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:121: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:129: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:136: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:145: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:166: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:174: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/testing/run_tests.py:323: error: Unused "type: ignore" comment  [unused-ignore]
+Found 16 errors in 2 files (checked 431 source files)
+[knowledge-graph] typing gate fail → QualityGate 14a9d603-5ed6-4c10-b0cf-72b9fb618a26 (new), TestRun 20191ade-2cca-4cf6-b1a8-bbaede16a12b (new), Evidence [0249cdd0-85eb-4b8c-9083-4850d1b6a1d2 (new), e8e35afd-3a62-430a-b3d8-ae841735d318 (new)] via networkx; errors=0

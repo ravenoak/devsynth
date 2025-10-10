@@ -1,0 +1,434 @@
+===================================================== test session starts ======================================================
+platform linux -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /workspace/devsynth
+configfile: pytest.ini
+plugins: Faker-37.11.0, html-4.1.1, mock-3.15.1, asyncio-1.2.0, benchmark-5.1.0, anyio-4.11.0, metadata-3.1.1, bdd-8.1.0, rerunfailures-16.0.1, langsmith-0.4.33, hypothesis-6.140.3, cov-7.0.0, xdist-3.8.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 16 items
+
+tests/unit/interface/test_api_endpoints.py FF.............F                                                              [100%]
+
+=========================================================== FAILURES ===========================================================
+____________________________________ test_health_endpoint_requires_authentication_succeeds _____________________________________
+
+client = <starlette.testclient.TestClient object at 0x7f28a4b80410>, clean_state = None
+
+    @pytest.mark.medium
+    def test_health_endpoint_requires_authentication_succeeds(client, clean_state):
+        """Test that the health endpoint requires authentication.
+    
+        ReqID: N/A"""
+        response = client.get("/health")
+        assert response.status_code == 401
+    
+        response = client.get("/health", headers={"Authorization": "Bearer invalid_token"})
+        assert response.status_code == 401
+    
+        success = client.get("/health", headers={"Authorization": "Bearer test_token"})
+        assert success.status_code == 200
+>       payload = HealthResponse.model_validate(success.json())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for HealthResponse
+E       uptime
+E         Field required [type=missing, input_value={'status': 'ok'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.12/v/missing
+
+/workspace/devsynth/tests/unit/interface/test_api_endpoints.py:164: ValidationError
+---------------------------------------------------- Captured stdout setup -----------------------------------------------------
+2025-10-10 14:56:45,355 - tests.deterministic_seed - INFO - Deterministic test seed set to 1337
+------------------------------------------------------ Captured log setup ------------------------------------------------------
+INFO     tests.deterministic_seed:determinism.py:78 Deterministic test seed set to 1337
+----------------------------------------------------- Captured stdout call -----------------------------------------------------
+2025-10-10 14:56:45,448 - httpx - INFO - HTTP Request: GET http://testserver/health "HTTP/1.1 401 Unauthorized"
+2025-10-10 14:56:45,453 - httpx - INFO - HTTP Request: GET http://testserver/health "HTTP/1.1 401 Unauthorized"
+2025-10-10 14:56:45,457 - httpx - INFO - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+------------------------------------------------------ Captured log call -------------------------------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/health "HTTP/1.1 401 Unauthorized"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/health "HTTP/1.1 401 Unauthorized"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+--------------------------------------------------- Captured stdout teardown ---------------------------------------------------
+Cleaning up test artifact: /workspace/devsynth/logs
+Cleaning up test artifact: /workspace/devsynth/.devsynth
+Cleaning up test artifact: /root/.devsynth
+____________________________________ test_metrics_endpoint_requires_authentication_succeeds ____________________________________
+
+client = <starlette.testclient.TestClient object at 0x7f28a4b954c0>, clean_state = None
+
+    @pytest.mark.medium
+    def test_metrics_endpoint_requires_authentication_succeeds(client, clean_state):
+        """Test that the metrics endpoint requires authentication.
+    
+        ReqID: N/A"""
+        response = client.get("/metrics")
+        assert response.status_code == 401
+    
+        response = client.get("/metrics", headers={"Authorization": "Bearer invalid_token"})
+        assert response.status_code == 401
+    
+        success = client.get("/metrics", headers={"Authorization": "Bearer test_token"})
+        assert success.status_code == 200
+        metrics_lines = tuple(filter(None, success.text.splitlines()))
+        metrics_payload = MetricsResponse(metrics=metrics_lines)
+>       assert any(
+            line.startswith("api_uptime_seconds") for line in metrics_payload.metrics
+        )
+E       assert False
+E        +  where False = any(<generator object test_metrics_endpoint_requires_authentication_succeeds.<locals>.<genexpr> at 0x7f28a47353c0>)
+
+/workspace/devsynth/tests/unit/interface/test_api_endpoints.py:185: AssertionError
+----------------------------------------------------- Captured stdout call -----------------------------------------------------
+2025-10-10 14:56:45,552 - httpx - INFO - HTTP Request: GET http://testserver/metrics "HTTP/1.1 401 Unauthorized"
+2025-10-10 14:56:45,560 - httpx - INFO - HTTP Request: GET http://testserver/metrics "HTTP/1.1 401 Unauthorized"
+2025-10-10 14:56:45,565 - httpx - INFO - HTTP Request: GET http://testserver/metrics "HTTP/1.1 200 OK"
+----------------------------------------------------- Captured stderr call -----------------------------------------------------
+--- Logging error ---
+Traceback (most recent call last):
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/handlers.py", line 73, in emit
+    if self.shouldRollover(record):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/handlers.py", line 191, in shouldRollover
+    self.stream = self._open()
+                  ^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/__init__.py", line 1263, in _open
+    return open_func(self.baseFilename, self.mode,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/devsynth/logs/devsynth.log'
+Call stack:
+  File "/workspace/devsynth/.venv/bin/pytest", line 8, in <module>
+    sys.exit(console_main())
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 201, in console_main
+    code = main()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 175, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 336, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 289, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 343, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 367, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 117, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 136, in runtestprotocol
+    reports.append(call_and_report(item, "call", log))
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 245, in call_and_report
+    call = CallInfo.from_call(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 344, in from_call
+    result: TResult | None = func()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 246, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 178, in pytest_runtest_call
+    item.runtest()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/python.py", line 1671, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/python.py", line 157, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+  File "/workspace/devsynth/tests/unit/interface/test_api_endpoints.py", line 175, in test_metrics_endpoint_requires_authentication_succeeds
+    response = client.get("/metrics")
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 465, in get
+    return super().get(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1053, in get
+    return self.request(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 437, in request
+    return super().request(
+  File "/workspace/devsynth/tests/fixtures/networking.py", line 91, in guard_httpx_request
+    return _orig_client_request(self, method, url, *args, **kwargs)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1025, in _send_single_request
+    logger.info(
+Message: 'HTTP Request: %s %s "%s %d %s"'
+Arguments: ('GET', URL('http://testserver/metrics'), 'HTTP/1.1', 401, 'Unauthorized')
+--- Logging error ---
+Traceback (most recent call last):
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/handlers.py", line 73, in emit
+    if self.shouldRollover(record):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/handlers.py", line 191, in shouldRollover
+    self.stream = self._open()
+                  ^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/__init__.py", line 1263, in _open
+    return open_func(self.baseFilename, self.mode,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/devsynth/logs/devsynth.log'
+Call stack:
+  File "/workspace/devsynth/.venv/bin/pytest", line 8, in <module>
+    sys.exit(console_main())
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 201, in console_main
+    code = main()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 175, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 336, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 289, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 343, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 367, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 117, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 136, in runtestprotocol
+    reports.append(call_and_report(item, "call", log))
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 245, in call_and_report
+    call = CallInfo.from_call(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 344, in from_call
+    result: TResult | None = func()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 246, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 178, in pytest_runtest_call
+    item.runtest()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/python.py", line 1671, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/python.py", line 157, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+  File "/workspace/devsynth/tests/unit/interface/test_api_endpoints.py", line 178, in test_metrics_endpoint_requires_authentication_succeeds
+    response = client.get("/metrics", headers={"Authorization": "Bearer invalid_token"})
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 465, in get
+    return super().get(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1053, in get
+    return self.request(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 437, in request
+    return super().request(
+  File "/workspace/devsynth/tests/fixtures/networking.py", line 91, in guard_httpx_request
+    return _orig_client_request(self, method, url, *args, **kwargs)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1025, in _send_single_request
+    logger.info(
+Message: 'HTTP Request: %s %s "%s %d %s"'
+Arguments: ('GET', URL('http://testserver/metrics'), 'HTTP/1.1', 401, 'Unauthorized')
+--- Logging error ---
+Traceback (most recent call last):
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/handlers.py", line 73, in emit
+    if self.shouldRollover(record):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/handlers.py", line 191, in shouldRollover
+    self.stream = self._open()
+                  ^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.12.10/lib/python3.12/logging/__init__.py", line 1263, in _open
+    return open_func(self.baseFilename, self.mode,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/devsynth/logs/devsynth.log'
+Call stack:
+  File "/workspace/devsynth/.venv/bin/pytest", line 8, in <module>
+    sys.exit(console_main())
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 201, in console_main
+    code = main()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 175, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 336, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 289, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 343, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/main.py", line 367, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 117, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 136, in runtestprotocol
+    reports.append(call_and_report(item, "call", log))
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 245, in call_and_report
+    call = CallInfo.from_call(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 344, in from_call
+    result: TResult | None = func()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 246, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/runner.py", line 178, in pytest_runtest_call
+    item.runtest()
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/python.py", line 1671, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/python.py", line 157, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+  File "/workspace/devsynth/tests/unit/interface/test_api_endpoints.py", line 181, in test_metrics_endpoint_requires_authentication_succeeds
+    success = client.get("/metrics", headers={"Authorization": "Bearer test_token"})
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 465, in get
+    return super().get(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1053, in get
+    return self.request(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/starlette/testclient.py", line 437, in request
+    return super().request(
+  File "/workspace/devsynth/tests/fixtures/networking.py", line 91, in guard_httpx_request
+    return _orig_client_request(self, method, url, *args, **kwargs)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/workspace/devsynth/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1025, in _send_single_request
+    logger.info(
+Message: 'HTTP Request: %s %s "%s %d %s"'
+Arguments: ('GET', URL('http://testserver/metrics'), 'HTTP/1.1', 200, 'OK')
+------------------------------------------------------ Captured log call -------------------------------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/metrics "HTTP/1.1 401 Unauthorized"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/metrics "HTTP/1.1 401 Unauthorized"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/metrics "HTTP/1.1 200 OK"
+_______________________________________ test_enhanced_init_endpoint_returns_typed_error ________________________________________
+
+enhanced_api = <module 'devsynth.interface.agentapi_enhanced' from '/workspace/devsynth/src/devsynth/interface/agentapi_enhanced.py'>
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-0/test_enhanced_init_endpoint_re0')
+
+    @pytest.mark.fast
+    def test_enhanced_init_endpoint_returns_typed_error(enhanced_api, tmp_path):
+        """Initialization failures surface typed error payloads.",
+    
+        ReqID: N/A"""
+    
+        request = SimpleNamespace(client=SimpleNamespace(host="9.9.9.9"))
+        init_request = InitRequest(path=str(tmp_path / "does-not-exist"))
+    
+>       with pytest.raises(enhanced_api.HTTPException) as exc:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'fastapi.exceptions.HTTPException'>
+
+/workspace/devsynth/tests/unit/interface/test_api_endpoints.py:436: Failed
+======================================================= warnings summary =======================================================
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.fixtures.optional_deps
+    self.import_plugin(import_spec)
+
+tests/unit/interface/test_api_endpoints.py::test_enhanced_init_endpoint_returns_typed_error
+  /workspace/devsynth/tests/unit/interface/test_api_endpoints.py:437: RuntimeWarning: coroutine 'init_endpoint' was never awaited
+    enhanced_api.init_endpoint(request, init_request, token=None)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================= Test Categorization Summary ==================================================
+Test Type Distribution:
+  Unit Tests: 16
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 16
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+===================================================== Top 10 Slowest Tests =====================================================
+1. tests/unit/interface/test_api_endpoints.py::test_health_endpoint_requires_authentication_succeeds: 0.27s
+2. tests/unit/interface/test_api_endpoints.py::test_enhanced_rate_limit_state_tracks_buckets: 0.05s
+3. tests/unit/interface/test_api_endpoints.py::test_metrics_endpoint_requires_authentication_succeeds: 0.03s
+4. tests/unit/interface/test_api_endpoints.py::test_enhanced_init_endpoint_returns_typed_error: 0.01s
+5. tests/unit/interface/test_api_endpoints.py::test_endpoints_handle_errors_properly_raises_error: 0.01s
+6. tests/unit/interface/test_api_endpoints.py::test_test_endpoint_generates_tests_from_spec_succeeds: 0.01s
+7. tests/unit/interface/test_api_endpoints.py::test_init_endpoint_initializes_project_succeeds: 0.01s
+8. tests/unit/interface/test_api_endpoints.py::test_gather_endpoint_collects_requirements_succeeds: 0.01s
+9. tests/unit/interface/test_api_endpoints.py::test_spec_endpoint_generates_specifications_succeeds: 0.01s
+10. tests/unit/interface/test_api_endpoints.py::test_synthesize_endpoint_runs_pipeline_succeeds: 0.01s
+=================================================== short test summary info ====================================================
+FAILED tests/unit/interface/test_api_endpoints.py::test_health_endpoint_requires_authentication_succeeds - pydantic_core._pyd...
+FAILED tests/unit/interface/test_api_endpoints.py::test_metrics_endpoint_requires_authentication_succeeds - assert False
+FAILED tests/unit/interface/test_api_endpoints.py::test_enhanced_init_endpoint_returns_typed_error - Failed: DID NOT RAISE <c...
+=========================================== 3 failed, 13 passed, 3 warnings in 1.47s ===========================================
