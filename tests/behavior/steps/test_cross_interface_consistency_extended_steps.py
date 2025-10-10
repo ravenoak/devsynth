@@ -1,5 +1,7 @@
 """Steps for extended cross-interface consistency testing."""
 
+from __future__ import annotations
+
 import importlib
 import sys
 from types import ModuleType
