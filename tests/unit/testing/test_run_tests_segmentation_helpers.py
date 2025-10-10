@@ -21,15 +21,27 @@ def test_run_segmented_tests_single_speed(monkeypatch):
     """ReqID: RUN-TESTS-SEG-1 — _run_segmented_tests handles single speed category."""
 
     segment_outputs: list[str] = []
+    call_index = 0
 
     def fake_single_batch(
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
+        nonlocal call_index
+        assert_type(config, rt.SingleBatchRequest)
+        call_index += 1
         segment_outputs.append(" ".join(config.node_ids))
+        command = [
+            f"python-segment-{call_index}",
+            *config.node_ids,
+        ]
         return (
             True,
             f"Batch output for: {list(config.node_ids)[0][:20]}...",
-            build_batch_metadata("batch-helper-1", command=["pytest"], returncode=0),
+            build_batch_metadata(
+                f"batch-helper-{call_index}",
+                command=command,
+                returncode=0,
+            ),
         )
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
@@ -58,22 +70,54 @@ def test_run_segmented_tests_single_speed(monkeypatch):
 
     assert success is True
     assert "Batch output for:" in output
-    assert metadata["commands"]
+    assert_type(metadata, rt.SegmentedRunMetadata)
+    assert metadata["metadata_id"].startswith("segmented-")
     assert segment_outputs == [
         "test1.py::test_a test2.py::test_b",
         "test3.py::test_c test4.py::test_d",
     ]
+    assert metadata["commands"] == [
+        [
+            "python-segment-1",
+            "test1.py::test_a",
+            "test2.py::test_b",
+        ],
+        [
+            "python-segment-2",
+            "test3.py::test_c",
+            "test4.py::test_d",
+        ],
+    ]
+    assert [segment["metadata_id"] for segment in metadata["segments"]] == [
+        "batch-helper-1",
+        "batch-helper-2",
+    ]
+    for segment, command in zip(metadata["segments"], metadata["commands"], strict=True):
+        assert_type(segment, rt.BatchExecutionMetadata)
+        assert list(segment["command"]) == list(command)
+    assert metadata["started_at"] == metadata["segments"][0]["started_at"]
+    assert metadata["completed_at"] == metadata["segments"][-1]["completed_at"]
 
 
 @pytest.mark.fast
 def test_run_segmented_tests_multiple_speeds(monkeypatch):
     """ReqID: RUN-TESTS-SEG-2 — handles multiple speed categories."""
 
+    call_index = 0
+
     def fake_single_batch(
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
+        nonlocal call_index
+        assert_type(config, rt.SingleBatchRequest)
+        call_index += 1
         node_text = "|".join(config.node_ids)
-        return True, f"Batch for {node_text}", build_batch_metadata(node_text)
+        command = [f"python-multi-{call_index}", *config.node_ids]
+        metadata = build_batch_metadata(
+            node_text,
+            command=command,
+        )
+        return True, f"Batch for {node_text}", metadata
 
     monkeypatch.setattr(rt, "_run_single_test_batch", fake_single_batch)
     monkeypatch.setattr(rt, "_ensure_coverage_artifacts", lambda: None)
@@ -97,10 +141,19 @@ def test_run_segmented_tests_multiple_speeds(monkeypatch):
     assert success is True
     assert "test1.py::test_fast" in output
     assert "test2.py::test_medium" in output
-    assert {segment["metadata_id"] for segment in metadata["segments"]} == {
+    assert_type(metadata, rt.SegmentedRunMetadata)
+    assert metadata["metadata_id"].startswith("segmented-")
+    assert metadata["commands"] == [
+        ["python-multi-1", "test1.py::test_fast"],
+        ["python-multi-2", "test2.py::test_medium"],
+    ]
+    assert [segment["metadata_id"] for segment in metadata["segments"]] == [
         "test1.py::test_fast",
         "test2.py::test_medium",
-    }
+    ]
+    for segment, command in zip(metadata["segments"], metadata["commands"], strict=True):
+        assert_type(segment, rt.BatchExecutionMetadata)
+        assert list(segment["command"]) == list(command)
 
 
 @pytest.mark.fast
@@ -127,7 +180,13 @@ def test_run_segmented_tests_no_tests_found(monkeypatch):
 
     assert success is True
     assert output == ""
+    assert_type(metadata, rt.SegmentedRunMetadata)
+    assert metadata["metadata_id"].startswith("segmented-")
     assert metadata["segments"] == []
+    assert metadata["commands"] == []
+    assert metadata["returncode"] == -1
+    assert isinstance(metadata["started_at"], str)
+    assert isinstance(metadata["completed_at"], str)
 
 
 @pytest.mark.fast
@@ -140,12 +199,21 @@ def test_run_segmented_tests_failure_with_maxfail(monkeypatch):
         config: rt.SingleBatchRequest,
     ) -> rt.BatchExecutionResult:
         nonlocal call_count
+        assert_type(config, rt.SingleBatchRequest)
         call_count += 1
         if call_count == 1:
+            command = [
+                "python-segment-maxfail",
+                *config.node_ids,
+            ]
             return (
                 False,
                 "First segment failed",
-                build_batch_metadata("batch-fail-1", returncode=1),
+                build_batch_metadata(
+                    "batch-fail-1",
+                    command=command,
+                    returncode=1,
+                ),
             )
         return True, "Should not be called", build_batch_metadata("batch-fail-2")
 
@@ -176,7 +244,17 @@ def test_run_segmented_tests_failure_with_maxfail(monkeypatch):
     assert success is False
     assert "First segment failed" in output
     assert call_count == 1  # Should stop after first failure
+    assert_type(metadata, rt.SegmentedRunMetadata)
+    assert metadata["metadata_id"].startswith("segmented-")
+    assert metadata["commands"] == [
+        [
+            "python-segment-maxfail",
+            "test1.py::test_a",
+            "test2.py::test_b",
+        ]
+    ]
     assert metadata["segments"][0]["metadata_id"] == "batch-fail-1"
+    assert list(metadata["segments"][0]["command"]) == metadata["commands"][0]
 
 
 @pytest.mark.fast
@@ -421,12 +499,17 @@ def test_run_segmented_tests_dry_run_batches_use_typed_requests(
         assert_type(config, rt.SingleBatchRequest)
         captured_batches.append(config)
         assert config.dry_run is True
+        command = [
+            "python-dry",
+            str(len(captured_batches)),
+            *config.node_ids,
+        ]
         return (
             True,
             f"Dry-run batch for {list(config.node_ids)}",
             build_batch_metadata(
                 f"batch-dry-{len(captured_batches)}",
-                command=["pytest"],
+                command=command,
                 returncode=0,
                 dry_run=True,
             ),
@@ -462,7 +545,26 @@ def test_run_segmented_tests_dry_run_batches_use_typed_requests(
     assert "Dry-run batch" in output
     assert ensure_calls == []
     assert captured_batches and all(batch.dry_run for batch in captured_batches)
+    assert_type(metadata, rt.SegmentedRunMetadata)
+    assert metadata["metadata_id"].startswith("segmented-")
     assert len(metadata["segments"]) == 2
+    assert metadata["commands"] == [
+        [
+            "python-dry",
+            "1",
+            "test1.py::test_a",
+            "test2.py::test_b",
+        ],
+        [
+            "python-dry",
+            "2",
+            "test3.py::test_c",
+        ],
+    ]
+    for segment, command in zip(metadata["segments"], metadata["commands"], strict=True):
+        assert_type(segment, rt.BatchExecutionMetadata)
+        assert list(segment["command"]) == command
+        assert segment["dry_run"] is True
 
 
 @pytest.mark.fast
