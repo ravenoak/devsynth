@@ -7,8 +7,9 @@ It ensures consistent state persistence and error handling across all WebUI page
 
 import importlib
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, assert_type
 
 from devsynth.exceptions import DevSynthError
 from devsynth.interface.state_access import get_session_value as _get_session_value
@@ -75,7 +76,7 @@ def set_session_value(key: str, value: Any) -> bool:
     return success
 
 
-def with_state_management(prefix: str = "") -> Callable:
+def with_state_management(prefix: str = "") -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to add state management to a WebUI page or component.
 
@@ -89,7 +90,7 @@ def with_state_management(prefix: str = "") -> Callable:
         Decorated function with state management
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Add state management functions to kwargs
@@ -119,7 +120,7 @@ class PageState(Generic[T]):
     different pages, with proper error handling and logging.
     """
 
-    def __init__(self, page_name: str, initial_state: Optional[Dict[str, Any]] = None):
+    def __init__(self, page_name: str, initial_state: dict[str, Any] | None = None):
         """
         Initialize the page state.
 
@@ -218,7 +219,7 @@ class PageState(Generic[T]):
         self._initialize_state()
 
 
-class WizardState(PageState):
+class WizardState(PageState[Any]):
     """
     Specialized state management for wizards with multiple steps.
 
@@ -230,7 +231,7 @@ class WizardState(PageState):
         self,
         wizard_name: str,
         steps: int,
-        initial_state: Optional[Dict[str, Any]] = None,
+        initial_state: dict[str, Any] | None = None,
     ):
         """
         Initialize the wizard state.
@@ -373,3 +374,8 @@ class WizardState(PageState):
                 f"Failed to set {self.page_name} to step {normalized_step}/{total}"
             )
         return success
+
+
+if TYPE_CHECKING:
+    _page_state: PageState[Any] = PageState("example", {"key": "value"})
+    assert_type(_page_state.initial_state, dict[str, Any])

@@ -9,7 +9,7 @@ from __future__ import annotations
 import inspect
 import re
 import traceback
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, assert_type
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -27,8 +27,8 @@ class ErrorSuggestion:
     def __init__(
         self,
         suggestion: str,
-        documentation_link: Optional[str] = None,
-        command_example: Optional[str] = None,
+        documentation_link: str | None = None,
+        command_example: str | None = None,
     ):
         """Initialize an error suggestion.
 
@@ -139,7 +139,7 @@ class EnhancedErrorHandler:
         ),
     ]
 
-    def __init__(self, console: Optional[Console] = None):
+    def __init__(self, console: Console | None = None):
         """Initialize the enhanced error handler.
 
         Args:
@@ -148,8 +148,8 @@ class EnhancedErrorHandler:
         self.console = console
 
     def format_error(
-        self, error: Union[Exception, Dict[str, Any], str]
-    ) -> Union[str, Text, Panel]:
+        self, error: Exception | dict[str, Any] | str
+    ) -> str | Text | Panel:
         """Format an error with actionable suggestions and documentation links.
 
         Args:
@@ -187,7 +187,7 @@ class EnhancedErrorHandler:
                 error_message, error_type, error_traceback, suggestions
             )
 
-    def _find_suggestions(self, error_message: str) -> List[ErrorSuggestion]:
+    def _find_suggestions(self, error_message: str) -> list[ErrorSuggestion]:
         """Find suggestions for an error message.
 
         Args:
@@ -196,7 +196,7 @@ class EnhancedErrorHandler:
         Returns:
             A list of suggestions
         """
-        suggestions = []
+        suggestions: list[ErrorSuggestion] = []
         for pattern, suggestion in self.ERROR_PATTERNS:
             if re.search(pattern, error_message):
                 suggestions.append(suggestion)
@@ -218,7 +218,7 @@ class EnhancedErrorHandler:
         error_message: str,
         error_type: str,
         error_traceback: str,
-        suggestions: List[ErrorSuggestion],
+        suggestions: list[ErrorSuggestion],
     ) -> Panel:
         """Format an error with Rich formatting.
 
@@ -264,7 +264,7 @@ class EnhancedErrorHandler:
         error_message: str,
         error_type: str,
         error_traceback: str,
-        suggestions: List[ErrorSuggestion],
+        suggestions: list[ErrorSuggestion],
     ) -> str:
         """Format an error as plain text.
 
@@ -293,3 +293,8 @@ class EnhancedErrorHandler:
 
 
 __all__ = ["EnhancedErrorHandler", "ErrorSuggestion"]
+
+
+if TYPE_CHECKING:
+    _handler = EnhancedErrorHandler()
+    assert_type(_handler._find_suggestions("sample"), list[ErrorSuggestion])
