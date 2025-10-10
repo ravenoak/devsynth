@@ -9,9 +9,10 @@ the FastAPI handlers and service layer.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import datetime
 from enum import Enum
-from typing import Dict, Mapping, Tuple
+from typing import TYPE_CHECKING, assert_type
 
 from pydantic import BaseModel, Field, conint
 
@@ -65,7 +66,7 @@ class WorkflowMetadata(BaseModel):
 
     started_at: datetime | None = None
     duration_ms: float | None = Field(default=None, ge=0)
-    progress: Tuple[ProgressSnapshot, ...] = Field(default_factory=tuple)
+    progress: tuple[ProgressSnapshot, ...] = Field(default_factory=tuple)
 
 
 class InitRequest(BaseModel):
@@ -128,7 +129,7 @@ class EDRRCycleRequest(BaseModel):
 class WorkflowResponse(BaseModel):
     __test__ = False
 
-    messages: Tuple[str, ...] = Field(default_factory=tuple)
+    messages: tuple[str, ...] = Field(default_factory=tuple)
     metadata: WorkflowMetadata | None = None
 
 
@@ -138,7 +139,7 @@ class EndpointMetrics(BaseModel):
     __test__ = False
 
     count: int = 0
-    latencies: Tuple[float, ...] = Field(default_factory=tuple)
+    latencies: tuple[float, ...] = Field(default_factory=tuple)
 
 
 class APIMetrics(BaseModel):
@@ -149,8 +150,8 @@ class APIMetrics(BaseModel):
     start_time: float = Field(..., ge=0)
     request_count: int = Field(0, ge=0)
     error_count: int = Field(0, ge=0)
-    endpoint_counts: Dict[str, int] = Field(default_factory=dict)
-    endpoint_latency: Dict[str, Tuple[float, ...]] = Field(default_factory=dict)
+    endpoint_counts: dict[str, int] = Field(default_factory=dict)
+    endpoint_latency: dict[str, tuple[float, ...]] = Field(default_factory=dict)
 
     def record_latency(self, endpoint: str, latency: float) -> None:
         """Store a latency measurement for an endpoint."""
@@ -167,7 +168,7 @@ class MetricsResponse(BaseModel):
 
     __test__ = False
 
-    metrics: Tuple[str, ...]
+    metrics: tuple[str, ...]
 
 
 class HealthResponse(BaseModel):
@@ -178,3 +179,9 @@ class HealthResponse(BaseModel):
     status: str = Field(..., min_length=1)
     uptime: float = Field(..., ge=0)
     additional_info: Mapping[str, str] | None = None
+
+
+if TYPE_CHECKING:
+    _metrics = APIMetrics(start_time=0.0)
+    assert_type(_metrics.endpoint_counts, dict[str, int])
+    assert_type(_metrics.endpoint_latency, dict[str, tuple[float, ...]])

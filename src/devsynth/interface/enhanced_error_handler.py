@@ -5,7 +5,9 @@ and suggestions, as well as improved formatting for error messages.
 """
 
 import sys
-from typing import Any, Dict, List, Optional, Tuple, Union
+from collections.abc import Sequence
+from io import StringIO
+from typing import TYPE_CHECKING, Any, assert_type, cast
 
 from rich.console import Console
 from rich.panel import Panel
@@ -29,11 +31,11 @@ class ActionableErrorSuggestion(ErrorSuggestion):
     def __init__(
         self,
         suggestion: str,
-        documentation_link: Optional[str] = None,
-        command_example: Optional[str] = None,
-        actionable_steps: Optional[List[str]] = None,
-        code_example: Optional[str] = None,
-        related_errors: Optional[List[str]] = None,
+        documentation_link: str | None = None,
+        command_example: str | None = None,
+        actionable_steps: Sequence[str] | None = None,
+        code_example: str | None = None,
+        related_errors: Sequence[str] | None = None,
     ):
         """Initialize the actionable error suggestion.
 
@@ -46,9 +48,9 @@ class ActionableErrorSuggestion(ErrorSuggestion):
             related_errors: Optional list of related errors
         """
         super().__init__(suggestion, documentation_link, command_example)
-        self.actionable_steps = actionable_steps or []
+        self.actionable_steps: list[str] = list(actionable_steps or [])
         self.code_example = code_example
-        self.related_errors = related_errors or []
+        self.related_errors: list[str] = list(related_errors or [])
 
     def __str__(self) -> str:
         """Return a string representation of the suggestion."""
@@ -80,7 +82,7 @@ class ImprovedErrorHandler(EnhancedErrorHandler):
     """Improved error handler with more specific error patterns and suggestions."""
 
     # Additional error patterns and their suggestions
-    ADDITIONAL_ERROR_PATTERNS = [
+    ADDITIONAL_ERROR_PATTERNS: list[tuple[str, ActionableErrorSuggestion]] = [
         # Memory integration errors
         (
             r"(?i)cross-store\s+(?:memory|synchronization|integration)",
@@ -277,7 +279,7 @@ formatter.format_command_output(data, format_name="rich")
         ),
     ]
 
-    def __init__(self, console: Optional[Console] = None):
+    def __init__(self, console: Console | None = None):
         """Initialize the improved error handler.
 
         Args:
@@ -286,15 +288,20 @@ formatter.format_command_output(data, format_name="rich")
         super().__init__(console)
 
         # Combine the base error patterns with the additional ones
-        self.ERROR_PATTERNS: List[Tuple[str, Union[ErrorSuggestion, ActionableErrorSuggestion]]] = (
-            self.ERROR_PATTERNS + self.ADDITIONAL_ERROR_PATTERNS
+        base_patterns = cast(
+            list[tuple[str, ErrorSuggestion | ActionableErrorSuggestion]],
+            list(EnhancedErrorHandler.ERROR_PATTERNS),
         )
+        self.ERROR_PATTERNS = [
+            *base_patterns,
+            *self.ADDITIONAL_ERROR_PATTERNS,
+        ]
 
         logger.debug("Initialized ImprovedErrorHandler with additional error patterns")
 
     def _find_suggestions(
         self, error_message: str
-    ) -> List[Union[ErrorSuggestion, ActionableErrorSuggestion]]:
+    ) -> list[ErrorSuggestion | ActionableErrorSuggestion]:
         """Find suggestions for an error message.
 
         This method overrides the base method to provide more specific suggestions
@@ -306,7 +313,9 @@ formatter.format_command_output(data, format_name="rich")
         Returns:
             A list of suggestions
         """
-        suggestions: List[Union[ErrorSuggestion, ActionableErrorSuggestion]] = super()._find_suggestions(error_message)
+        suggestions: list[
+            ErrorSuggestion | ActionableErrorSuggestion
+        ] = super()._find_suggestions(error_message)
 
         # Add context-specific suggestions based on the current state of the system
         try:
@@ -365,7 +374,7 @@ formatter.format_command_output(data, format_name="rich")
         error_message: str,
         error_type: str,
         error_traceback: str,
-        suggestions: List[Union[ErrorSuggestion, ActionableErrorSuggestion]],
+        suggestions: list[ErrorSuggestion | ActionableErrorSuggestion],
     ) -> Panel:
         """Format an error with Rich formatting.
 
@@ -447,6 +456,12 @@ formatter.format_command_output(data, format_name="rich")
                     # Format basic suggestion
                     suggestion_table.add_row(str(suggestion))
 
+        def render_to_string(renderable: object) -> str:
+            buffer = StringIO()
+            capture_console = Console(file=buffer)
+            capture_console.print(renderable)
+            return buffer.getvalue()
+
         # Combine the tables into a panel
         content = Text()
         content.append(
@@ -454,26 +469,17 @@ formatter.format_command_output(data, format_name="rich")
         )
 
         # Add the error table
-        from rich.console import Console
-
-        console = Console(file=None)
-        with console.capture() as capture:
-            console.print(error_table)
-        content.append(capture.get())
+        content.append(render_to_string(error_table))
 
         # Add the traceback if available
         if error_traceback:
             content.append("\nTraceback:\n", style="bold red")
-            with console.capture() as capture:
-                console.print(syntax)
-            content.append(capture.get())
+            content.append(render_to_string(syntax))
 
         # Add the suggestion table if available
         if suggestions:
             content.append("\nSuggestions:\n", style="bold green")
-            with console.capture() as capture:
-                console.print(suggestion_table)
-            content.append(capture.get())
+            content.append(render_to_string(suggestion_table))
 
         # Create the panel
         return Panel(
@@ -484,8 +490,8 @@ formatter.format_command_output(data, format_name="rich")
         )
 
     def format_error(
-        self, error: Union[Exception, Dict[str, Any], str]
-    ) -> Union[str, Text, Panel]:
+        self, error: Exception | dict[str, Any] | str
+    ) -> str | Text | Panel:
         """Format an error with actionable suggestions and documentation links.
 
         This method overrides the base method to provide more detailed error formatting.
@@ -501,7 +507,6 @@ formatter.format_command_output(data, format_name="rich")
 
         # Add additional context if available
         if isinstance(formatted_error, Panel):
-            # Add a footer with additional help information
             footer = Text()
             footer.append("\nFor more help, run: ", style="dim")
             footer.append("devsynth doctor", style="bold blue")
@@ -511,19 +516,20 @@ formatter.format_command_output(data, format_name="rich")
                 style="bold blue",
             )
 
-            # Create a new panel with the footer
-            new_panel = Panel(
-                formatted_error.renderable,
-                title=formatted_error.title,
+            return Panel(
+                formatted_error,
                 subtitle=footer,
-                border_style=formatted_error.border_style,
-                expand=formatted_error.expand,
             )
-
-            return new_panel
 
         return formatted_error
 
 
 # Create a singleton instance for easy access
 improved_error_handler = ImprovedErrorHandler()
+
+
+if TYPE_CHECKING:
+    assert_type(
+        improved_error_handler._find_suggestions("sample"),
+        list[ErrorSuggestion | ActionableErrorSuggestion],
+    )

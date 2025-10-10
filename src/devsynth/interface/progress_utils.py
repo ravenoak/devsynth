@@ -9,18 +9,15 @@ from __future__ import annotations
 import functools
 import time
 from contextlib import contextmanager
+from collections.abc import Callable, Sequence
 from typing import (
+    TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
     ParamSpec,
     Protocol,
-    Sequence,
     TypedDict,
     TypeVar,
-    Union,
+    assert_type,
     cast,
     overload,
 )
@@ -63,10 +60,10 @@ class ProgressManager:
             bridge: The UXBridge instance to use for creating progress indicators
         """
         self.bridge = bridge
-        self.active_indicators: Dict[str, ProgressIndicator] = {}
+        self.active_indicators: dict[str, ProgressIndicator] = {}
 
     def create(
-        self, description: str, total: int = 100, key: Optional[str] = None
+        self, description: str, total: int = 100, key: str | None = None
     ) -> ProgressIndicator:
         """Create a progress indicator.
 
@@ -86,7 +83,7 @@ class ProgressManager:
 
         return indicator
 
-    def get(self, key: str) -> Optional[ProgressIndicator]:
+    def get(self, key: str) -> ProgressIndicator | None:
         """Get a progress indicator by key.
 
         Args:
@@ -115,7 +112,7 @@ class ProgressManager:
 
     @contextmanager
     def progress(
-        self, description: str, total: int = 100, key: Optional[str] = None
+        self, description: str, total: int = 100, key: str | None = None
     ) -> ProgressIndicator:
         """Context manager for progress indicators.
 
@@ -136,8 +133,8 @@ class ProgressManager:
                 del self.active_indicators[key]
 
     def track(
-        self, items: List[ItemT], description: str, key: Optional[str] = None
-    ) -> List[ItemT]:
+        self, items: list[ItemT], description: str, key: str | None = None
+    ) -> list[ItemT]:
         """Track progress through a list of items.
 
         Args:
@@ -155,7 +152,7 @@ class ProgressManager:
         with self.progress(description, total, key) as indicator:
             # Return the original list, but with a side effect of updating the progress
             # indicator each time an item is accessed
-            class TrackedList(List[ItemT]):
+            class TrackedList(list[ItemT]):
                 @overload
                 def __getitem__(self, index: int) -> ItemT:  # pragma: no cover - typing
                     ...
@@ -163,18 +160,18 @@ class ProgressManager:
                 @overload
                 def __getitem__(
                     self, index: slice
-                ) -> List[ItemT]:  # pragma: no cover - typing
+                ) -> list[ItemT]:  # pragma: no cover - typing
                     ...
 
                 def __getitem__(
                     self, index: int | slice
-                ) -> ItemT | List[ItemT]:  # pragma: no cover - typing helper
+                ) -> ItemT | list[ItemT]:  # pragma: no cover - typing helper
                     if isinstance(index, slice):
                         start, stop, step = index.indices(len(self))
                         count = len(range(start, stop, step))
                         indicator.update(advance=count)
                         result = super().__getitem__(index)
-                        return cast(List[ItemT], result)
+                        return cast(list[ItemT], result)
 
                     indicator.update(advance=1)
                     result = super().__getitem__(index)
@@ -183,7 +180,7 @@ class ProgressManager:
             return TrackedList(items)
 
     def with_progress(
-        self, description: str, total: int = 100, key: Optional[str] = None
+        self, description: str, total: int = 100, key: str | None = None
     ) -> Callable[[ProgressCallable[P, T]], Callable[P, T]]:
         """Decorator for functions that should show progress.
 
@@ -223,7 +220,7 @@ class ProgressTracker:
     def __init__(
         self,
         indicator: ProgressIndicator,
-        total: Optional[int] = None,
+        total: int | None = None,
         update_interval: float = 0.1,
         auto_complete: bool = True,
     ):
@@ -306,7 +303,7 @@ class StepProgress:
     """
 
     def __init__(
-        self, bridge: UXBridge, steps: List[str], *, description: Optional[str] = None
+        self, bridge: UXBridge, steps: list[str], *, description: str | None = None
     ) -> None:
         self._steps = steps
         self._index = 0
@@ -314,7 +311,7 @@ class StepProgress:
             description or steps[0], total=len(steps)
         )
 
-    def advance(self, status: Optional[str] = None) -> None:
+    def advance(self, status: str | None = None) -> None:
         """Advance to the next step.
 
         Args:
@@ -346,7 +343,7 @@ class StepProgress:
 
 
 def step_progress(
-    bridge: UXBridge, steps: List[str], *, description: Optional[str] = None
+    bridge: UXBridge, steps: list[str], *, description: str | None = None
 ) -> StepProgress:
     """Create a :class:`StepProgress` helper.
 
@@ -396,8 +393,8 @@ def progress_indicator(
 
 
 def track_progress(
-    bridge: UXBridge, items: List[ItemT], description: str
-) -> List[ItemT]:
+    bridge: UXBridge, items: list[ItemT], description: str
+) -> list[ItemT]:
     """Track progress through a list of items.
 
     Args:
@@ -434,7 +431,7 @@ def run_with_progress(
     task_fn: Callable[[], T],
     bridge: UXBridge,
     total: int = 100,
-    subtasks: Optional[Sequence[SubtaskSpec]] = None,
+    subtasks: Sequence[SubtaskSpec] | None = None,
 ) -> T:
     """Run a task while displaying a progress indicator.
 
@@ -460,3 +457,9 @@ def run_with_progress(
         return task_fn()
     finally:
         progress.complete()
+
+
+if TYPE_CHECKING:
+    _bridge = cast(UXBridge, object())
+    _manager = ProgressManager(_bridge)
+    assert_type(_manager.active_indicators, dict[str, ProgressIndicator])
