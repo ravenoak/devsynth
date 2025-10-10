@@ -6,12 +6,17 @@ from types import ModuleType
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_bdd import given, parsers, then, when
+from pytest_bdd import given, parsers, scenarios, then, when
 
 from devsynth.interface.cli import CLIUXBridge
+from tests.behavior.feature_paths import feature_path
 
-# Import the necessary components
-from devsynth.interface.ux_bridge import UXBridge
+pytestmark = [pytest.mark.fast]
+
+scenarios(
+    feature_path(__file__, "general", "cross_interface_consistency_extended.feature")
+)
+scenarios(feature_path(__file__, "extended_cross_interface_consistency.feature"))
 
 
 class DummyForm:

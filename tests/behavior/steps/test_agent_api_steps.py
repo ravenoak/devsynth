@@ -8,6 +8,7 @@ from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
+from fastapi.testclient import TestClient
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.behavior.feature_paths import feature_path
@@ -16,8 +17,6 @@ pytestmark = [pytest.mark.fast]
 
 pytest.importorskip("fastapi")
 pytest.importorskip("fastapi.testclient")
-
-from fastapi.testclient import TestClient
 
 
 def _module_stub(name: str, **attributes: object) -> ModuleType:
