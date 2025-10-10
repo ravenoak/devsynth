@@ -51,5 +51,6 @@
       "2025-10-06T02:54:38Z synthesis: fast+medium gate recorded 92.40% with knowledge-graph IDs, and the remaining 87.34% reasoning_loop gap is now tracked via docs/tasks §13.3.1 and issues/release-finalization-uat.md for the final UAT rerun.",
       "2025-10-06T16:28Z synthesis: confirmed PR-0→PR-6 roadmap (plugin consolidation, hygiene repairs, progress/memory fixes, gate reruns, UAT/post-tag) captured in docs/release/v0.1.0a1_execution_plan.md, docs/plan.md, docs/tasks.md, and release readiness issues to guide pre-tag execution.",
       "2025-10-07T01:07Z synthesis: documented plugin consolidation success, refreshed release plan/docs/issues with remaining strict mypy, smoke, and behavior blockers, and revalidated the multi-PR sequencing for parallel execution ahead of gate reruns."
+      "2025-10-?? remediation: normalized PEP 508 strings so Poetry 2.2.1 stops emitting `Could not parse version constraint: <empty>`; optional extras now require >=0, transformers extras replaced `<empty>` `optax` pins, and the lock content hash reflects the new metadata after a `poetry lock` attempt was interrupted at ~603s once solver progress stalled (chunk 43d75d)."
   ]
 }
