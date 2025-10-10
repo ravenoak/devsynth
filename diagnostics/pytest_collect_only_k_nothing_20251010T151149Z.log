@@ -1,0 +1,90 @@
+===================================================== test session starts ======================================================
+platform linux -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /workspace/devsynth
+configfile: pytest.ini
+plugins: bdd-8.1.0, hypothesis-6.140.3, rerunfailures-16.0.1, html-4.1.1, cov-7.0.0, anyio-4.11.0, mock-3.15.1, metadata-3.1.1, asyncio-1.2.0, benchmark-5.1.0, xdist-3.8.0, Faker-37.11.0, langsmith-0.4.33
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 5419 items / 2 errors / 5419 deselected / 30 skipped / 0 selected
+
+============================================================ ERRORS ============================================================
+______________________________ ERROR collecting tests/unit/adapters/test_onnx_runtime_adapter.py _______________________________
+ImportError while importing test module '/workspace/devsynth/tests/unit/adapters/test_onnx_runtime_adapter.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/root/.pyenv/versions/3.12.10/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/adapters/test_onnx_runtime_adapter.py:12: in <module>
+    from devsynth.adapters.onnx_runtime_adapter import ONNXRuntimeAdapter
+src/devsynth/adapters/onnx_runtime_adapter.py:5: in <module>
+    import onnxruntime as ort
+E   ModuleNotFoundError: No module named 'onnxruntime'
+________________________________ ERROR collecting tests/unit/interface/webui/test_rendering.py _________________________________
+ImportError while importing test module '/workspace/devsynth/tests/unit/interface/webui/test_rendering.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/root/.pyenv/versions/3.12.10/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/interface/webui/test_rendering.py:10: in <module>
+    from devsynth.interface.webui.rendering import (
+E   ImportError: cannot import name 'LifecyclePages' from 'devsynth.interface.webui.rendering' (unknown location)
+======================================================= warnings summary =======================================================
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.fixtures.optional_deps
+    self.import_plugin(import_spec)
+
+src/devsynth/application/edrr/wsde_specialized_agents.py:267
+  /workspace/devsynth/src/devsynth/application/edrr/wsde_specialized_agents.py:267: PytestCollectionWarning: cannot collect test class 'TestWriterAgent' because it has a __init__ constructor (from: tests/behavior/steps/test_wsde_multi_agent_steps.py)
+    class TestWriterAgent(BaseWSDESpecialist):
+
+tests/unit/adapters/test_chromadb_memory_store.py:19
+  /workspace/devsynth/tests/unit/adapters/test_chromadb_memory_store.py:19: PytestDeprecationWarning: 
+  Module 'devsynth.adapters.chromadb_memory_store' was found, but when imported by pytest it raised:
+      ImportError("ChromaDBMemoryStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras.")
+  In pytest 9.1 this warning will become an error by default.
+  You can fix the underlying problem, or alternatively overwrite this behavior and silence this warning by passing exc_type=ImportError explicitly.
+  See https://docs.pytest.org/en/stable/deprecations.html#pytest-importorskip-default-behavior-regarding-importerror
+    chromadb_memory_store = pytest.importorskip(
+
+.venv/lib/python3.12/site-packages/vbuild/__init__.py:33
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/vbuild/__init__.py:33: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    hasLess = bool(pkgutil.find_loader("lesscpy"))
+
+.venv/lib/python3.12/site-packages/vbuild/__init__.py:34
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/vbuild/__init__.py:34: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    hasSass = bool(pkgutil.find_loader("scss"))
+
+.venv/lib/python3.12/site-packages/vbuild/__init__.py:35
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/vbuild/__init__.py:35: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    hasClosure = bool(pkgutil.find_loader("closure"))
+
+scripts/analyze_test_dependencies.py:41
+  /workspace/devsynth/scripts/analyze_test_dependencies.py:41: PytestCollectionWarning: cannot collect test class 'TestDependencyAnalyzer' because it has a __init__ constructor (from: tests/unit/scripts/test_analyze_test_dependencies.py)
+    class TestDependencyAnalyzer(ast.NodeVisitor):
+
+scripts/analyze_test_dependencies.py:162
+  /workspace/devsynth/scripts/analyze_test_dependencies.py:162: PytestCollectionWarning: cannot collect test class 'TestFileAnalyzer' because it has a __init__ constructor (from: tests/unit/scripts/test_analyze_test_dependencies.py)
+    class TestFileAnalyzer:
+
+scripts/benchmark_test_execution.py:34
+  /workspace/devsynth/scripts/benchmark_test_execution.py:34: PytestCollectionWarning: cannot collect test class 'TestExecutionBenchmark' because it has a __init__ constructor (from: tests/unit/scripts/test_benchmark_test_execution.py)
+    class TestExecutionBenchmark:
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================= Test Categorization Summary ==================================================
+Test Type Distribution:
+  Unit Tests: 9
+  Integration Tests: 14
+  Behavior Tests: 7
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 30
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+=================================================== short test summary info ====================================================
+ERROR tests/unit/adapters/test_onnx_runtime_adapter.py
+ERROR tests/unit/interface/webui/test_rendering.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+=================================== no tests collected (5419 deselected), 2 errors in 10.03s ===================================
