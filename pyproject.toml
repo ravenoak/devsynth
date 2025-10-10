@@ -146,86 +146,86 @@ mkdocs-section-index = "*"
 # chromadb: use chromadb as the vector store
 # gui: install Dear PyGui for a desktop GUI
 docs = [
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocstrings-python",
-    "mkdocs-gen-files",
-    "mkdocs-include-markdown-plugin",
-    "mkdocs-typer2",
-    "mkdocs-literate-nav",
-    "mkdocs-section-index",
-    "hypothesis",
+    "mkdocs>=0",
+    "mkdocs-material>=0",
+    "mkdocstrings-python>=0",
+    "mkdocs-gen-files>=0",
+    "mkdocs-include-markdown-plugin>=0",
+    "mkdocs-typer2>=0",
+    "mkdocs-literate-nav>=0",
+    "mkdocs-section-index>=0",
+    "hypothesis>=0",
 ]
 minimal = [
-    "typer",
-    "rich",
-    "pydantic",
-    "pydantic-settings",
-    "langgraph",
-    "networkx",
-    "toml",
-    "pyyaml",
-    "requests",
+    "typer>=0",
+    "rich>=0",
+    "pydantic>=0",
+    "pydantic-settings>=0",
+    "langgraph>=0",
+    "networkx>=0",
+    "toml>=0",
+    "pyyaml>=0",
+    "requests>=0",
 ]
 retrieval = [
-    'kuzu; platform_system == "Linux" and platform_machine == "x86_64"',
-    'faiss-cpu; platform_system != "Darwin" or platform_machine == "arm64"',
+    "kuzu>=0; platform_system == \"Linux\" and platform_machine == \"x86_64\"",
+    "faiss-cpu>=0; platform_system != \"Darwin\" or platform_machine == \"arm64\"",
 ]
 chromadb = [
-    'chromadb; platform_system != "Darwin" or platform_machine == "arm64"',
-    "tiktoken",
+    "chromadb>=0; platform_system != \"Darwin\" or platform_machine == \"arm64\"",
+    "tiktoken>=0",
 ]
-lmstudio = ["lmstudio"]
+lmstudio = ["lmstudio>=0"]
 memory = [
-    "tinydb",
-    "duckdb",
-    "lmdb",
-    'kuzu; platform_system == "Linux" and platform_machine == "x86_64"',
-    'faiss-cpu; platform_system != "Darwin" or platform_machine == "arm64"',
-    'chromadb; platform_system != "Darwin" or platform_machine == "arm64"',
-    "numpy",
+    "tinydb>=0",
+    "duckdb>=0",
+    "lmdb>=0",
+    "kuzu>=0; platform_system == \"Linux\" and platform_machine == \"x86_64\"",
+    "faiss-cpu>=0; platform_system != \"Darwin\" or platform_machine == \"arm64\"",
+    "chromadb>=0; platform_system != \"Darwin\" or platform_machine == \"arm64\"",
+    "numpy>=0",
 ]
-llm = ["tiktoken", "httpx"]
-offline = ["transformers"]
+llm = ["tiktoken>=0", "httpx>=0"]
+offline = ["transformers>=0"]
 api = [
     "fastapi>=0.116.2,<0.117",
-    "prometheus-client",
+    "prometheus-client>=0",
 ]
-webui = ["streamlit"]
-webui_nicegui = ["nicegui"]
-gui = ["dearpygui"]
+webui = ["streamlit>=0"]
+webui_nicegui = ["nicegui>=0"]
+gui = ["dearpygui>=0"]
 tests = [
     "fastapi>=0.116.2,<0.117",
-    "httpx",
-    "tinydb",
-    "duckdb",
-    "lmdb",
-    "astor",
-    "pytest-rerunfailures",
+    "httpx>=0",
+    "tinydb>=0",
+    "duckdb>=0",
+    "lmdb>=0",
+    "astor>=0",
+    "pytest-rerunfailures>=0",
 ]
 dev = [
-    "responses",
-    "pytest",
-    "pytest-bdd",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-xdist",
-    "black",
-    "isort",
-    "pre-commit",
-    "psutil",
-    "mypy",
-    "pydantic-settings",
-    "toml",
-    "pyyaml",
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocstrings-python",
-    "mkdocs-gen-files",
-    "mkdocs-include-markdown-plugin",
-    "mkdocs-typer2",
-    "mkdocs-literate-nav",
-    "mkdocs-section-index",
+    "responses>=0",
+    "pytest>=0",
+    "pytest-bdd>=0",
+    "pytest-cov>=0",
+    "pytest-mock>=0",
+    "pytest-xdist>=0",
+    "black>=0",
+    "isort>=0",
+    "pre-commit>=0",
+    "psutil>=0",
+    "mypy>=0",
+    "pydantic-settings>=0",
+    "toml>=0",
+    "pyyaml>=0",
+    "mkdocs>=0",
+    "mkdocs-material>=0",
+    "mkdocstrings-python>=0",
+    "mkdocs-gen-files>=0",
+    "mkdocs-include-markdown-plugin>=0",
+    "mkdocs-typer2>=0",
+    "mkdocs-literate-nav>=0",
+    "mkdocs-section-index>=0",
 ]
 
 [tool.poetry.scripts]
