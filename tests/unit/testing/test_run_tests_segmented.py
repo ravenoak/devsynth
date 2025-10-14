@@ -1,7 +1,7 @@
 from types import SimpleNamespace
+from typing import assert_type
 
 import pytest
-from typing import assert_type
 
 from devsynth.testing.run_tests import run_tests
 
@@ -205,6 +205,8 @@ def test_run_segmented_tests_stop_after_maxfail(
     assert "segment failed" in output
     assert_type(metadata, rt.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
-    assert metadata["commands"] == [["python-stop", "tests/unit/test_alpha.py::test_one"]]
+    assert metadata["commands"] == [
+        ["python-stop", "tests/unit/test_alpha.py::test_one"]
+    ]
     assert metadata["segments"][0]["metadata_id"] == "batch-stop-1"
     assert list(metadata["segments"][0]["command"]) == metadata["commands"][0]

@@ -154,7 +154,9 @@ def test_reasoning_loop_retry_stops_when_budget_already_exhausted(monkeypatch):
         call_counter["value"] += 1
         raise RuntimeError("budget exhausted")
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: always_transient
+    )
 
     times = iter([0.0, 0.05, 0.2])
     monotonic_history: list[float] = []
@@ -200,7 +202,9 @@ def test_reasoning_loop_retry_stops_when_budget_already_exhausted(monkeypatch):
         call_counter["value"] += 1
         raise RuntimeError("budget exhausted")
 
-    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: always_transient
+    )
 
     times = iter([0.0, 0.0, 0.2])
     monotonic_history: list[float] = []

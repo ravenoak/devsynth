@@ -320,7 +320,7 @@ def _ensure_coverage_artifacts() -> None:
     """Generate coverage artifacts when real coverage data exists."""
 
     try:
-        from coverage import Coverage  # type: ignore[import-not-found]
+        from coverage import Coverage
     except Exception:
         logger.debug("coverage library unavailable; skipping artifact generation")
         return

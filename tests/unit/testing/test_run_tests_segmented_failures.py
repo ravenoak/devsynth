@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterator
-
 from typing import assert_type
 
 import pytest
@@ -160,7 +159,9 @@ def test__run_segmented_tests_aggregates_outputs(
         "batch-1",
         "batch-2",
     ]
-    for segment, command in zip(metadata["segments"], metadata["commands"], strict=True):
+    for segment, command in zip(
+        metadata["segments"], metadata["commands"], strict=True
+    ):
         assert_type(segment, run_tests_module.BatchExecutionMetadata)
         assert list(segment["command"]) == command
 

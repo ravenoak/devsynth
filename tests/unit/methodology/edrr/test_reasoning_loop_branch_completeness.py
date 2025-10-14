@@ -56,7 +56,9 @@ def test_dialectical_sequence_records_with_coordinator_fallback(monkeypatch):
     coordinator = CoordinatorRecorder()
 
     monkeypatch.setattr(
-        rl, "_import_apply_dialectical_reasoning", lambda: lambda *_args, **_kwargs: sequence
+        rl,
+        "_import_apply_dialectical_reasoning",
+        lambda: lambda *_args, **_kwargs: sequence,
     )
 
     results = rl.reasoning_loop(
@@ -150,6 +152,7 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
         assert numpy_random.calls == [11]
 
     with monkeypatch.context() as patcher:
+
         def raise_seed(_value: int) -> None:
             raise RuntimeError("seed unavailable")
 
@@ -168,15 +171,12 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
             lambda: lambda *_args, **_kwargs: {"status": "completed"},
         )
 
-        assert (
-            rl.reasoning_loop(
-                wsde_team=NullWSDETeam(),
-                task={"problem": "seed-failure"},
-                critic_agent=None,
-                deterministic_seed=13,
-            )
-            == [{"status": "completed"}]
-        )
+        assert rl.reasoning_loop(
+            wsde_team=NullWSDETeam(),
+            task={"problem": "seed-failure"},
+            critic_agent=None,
+            deterministic_seed=13,
+        ) == [{"status": "completed"}]
 
     with monkeypatch.context() as patcher:
         monotonic_values = iter([0.0, 0.2])
@@ -234,7 +234,9 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
         assert results == [{"status": "in_progress", "phase": "expand"}]
         assert attempts["value"] == 2
         assert sleep_calls == [0.2]
-        assert any("Transient error in reasoning step" in r.message for r in caplog.records)
+        assert any(
+            "Transient error in reasoning step" in r.message for r in caplog.records
+        )
 
     with monkeypatch.context() as patcher:
         call_counter = {"value": 0}
@@ -256,7 +258,9 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
 
         sleep_calls: list[float] = []
 
-        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient)
+        patcher.setattr(
+            rl, "_import_apply_dialectical_reasoning", lambda: always_transient
+        )
         patcher.setattr(rl.time, "monotonic", fake_monotonic_budget)
         patcher.setattr(rl.time, "sleep", lambda duration: sleep_calls.append(duration))
 
@@ -345,7 +349,11 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
 
         assert len(results) == 3
         assert task_stub.syntheses == [{"content": "draft"}]
-        assert [record[0] for record in coordinator.records] == ["expand", "differentiate", "refine"]
+        assert [record[0] for record in coordinator.records] == [
+            "expand",
+            "differentiate",
+            "refine",
+        ]
 
     with monkeypatch.context() as patcher:
         patcher.setattr(
@@ -365,7 +373,10 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
         patcher.setattr(
             rl,
             "_import_apply_dialectical_reasoning",
-            lambda: lambda *_args, **_kwargs: {"status": "in_progress", "next_phase": "???"},
+            lambda: lambda *_args, **_kwargs: {
+                "status": "in_progress",
+                "next_phase": "???",
+            },
         )
 
         coordinator = CoordinatorRecorder()
@@ -387,10 +398,13 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
         ]
 
     with monkeypatch.context() as patcher:
+
         def always_transient_failure(*_args: Any, **_kwargs: Any) -> None:
             raise RuntimeError("retry exhaustion")
 
-        patcher.setattr(rl, "_import_apply_dialectical_reasoning", lambda: always_transient_failure)
+        patcher.setattr(
+            rl, "_import_apply_dialectical_reasoning", lambda: always_transient_failure
+        )
 
         caplog.set_level("DEBUG", rl.logger.logger.name)
         caplog.clear()
@@ -403,7 +417,9 @@ def test_reasoning_loop_branch_trace_complete(monkeypatch, caplog):
         )
 
         assert results == []
-        assert any("Giving up after retries" in record.message for record in caplog.records)
+        assert any(
+            "Giving up after retries" in record.message for record in caplog.records
+        )
 
 
 @pytest.mark.fast
