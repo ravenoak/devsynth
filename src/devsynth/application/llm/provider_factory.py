@@ -14,15 +14,10 @@ from .providers import (
     ValidationError,
 )
 
-lmstudio_requested = os.getenv(
-    "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
-).lower() in {"1", "true", "yes"}
-if lmstudio_requested:  # pragma: no cover - optional dependency
-    try:
-        from .lmstudio_provider import LMStudioProvider
-    except ImportError:  # pragma: no cover - fallback path
-        LMStudioProvider = None
-else:  # pragma: no cover - optional dependency
+# Try to import LM Studio provider if available
+try:
+    from .lmstudio_provider import LMStudioProvider
+except ImportError:  # pragma: no cover - optional dependency
     LMStudioProvider = None
 
 

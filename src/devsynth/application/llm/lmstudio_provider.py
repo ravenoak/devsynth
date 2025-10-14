@@ -194,43 +194,66 @@ class LMStudioProvider(BaseLLMProvider):
             self.call_timeout = (
                 float(timeout_env)
                 if timeout_env is not None
-                else float(self.config.get("call_timeout", 10))
+                else float(self.config.get("call_timeout", 30))  # Increased default timeout
             )
         except (TypeError, ValueError):
-            self.call_timeout = 10.0
+            self.call_timeout = 30.0  # Increased default timeout
         self.token_tracker = TokenTracker()
 
         # Auto-select model if not specified
         auto_select = self.config.get("auto_select_model")
         specified_model = self.config.get("model")
 
+        # Try specified model first, fallback to auto-selection if it fails
+        model_selected = False
+
         if specified_model:
-            self.model = specified_model
-            logger.info(f"Using specified model: {self.model}")
-        elif auto_select:
+            try:
+                # Test if the specified model is available
+                available_models = self.list_available_models()
+                if any(model["id"] == specified_model for model in available_models):
+                    self.model = specified_model
+                    logger.info(f"Using specified model: {self.model}")
+                    model_selected = True
+                else:
+                    logger.warning(f"Specified model '{specified_model}' not available, falling back to auto-selection")
+            except (LMStudioConnectionError, Exception) as e:
+                logger.warning(f"Could not verify specified model '{specified_model}': {e}, falling back to auto-selection")
+
+        if not model_selected and auto_select:
+            # Try to use a known working model if auto-selection fails
             try:
                 available_models = self.list_available_models()
                 if available_models:
-                    self.model = available_models[0]["id"]
-                    logger.info(f"Auto-selected model: {self.model}")
+                    # Look for a Qwen model first, then any available model
+                    for model in available_models:
+                        model_id = model["id"]
+                        if "qwen" in model_id.lower():
+                            self.model = model_id
+                            logger.info(f"Auto-selected Qwen model: {self.model}")
+                            break
+                    else:
+                        # Use first available model if no Qwen model found
+                        self.model = available_models[0]["id"]
+                        logger.info(f"Auto-selected model: {self.model}")
                 else:
-                    self.model = "local_model"
+                    self.model = "qwen/qwen3-4b-2507"  # Fallback to known working model
                     logger.warning(
-                        "No models available from LM Studio. Using default: local_model"
+                        f"No models available from LM Studio. Using fallback: {self.model}"
                     )
             except LMStudioConnectionError as e:
-                self.model = "local_model"
+                self.model = "qwen/qwen3-4b-2507"  # Fallback to known working model
                 logger.warning(
-                    f"Could not connect to LM Studio: {str(e)}. Using default: local_model"
+                    f"Could not connect to LM Studio: {str(e)}. Using fallback: {self.model}"
                 )
         else:
-            self.model = "local_model"
-            logger.info("Using default model: local_model")
+            self.model = "qwen/qwen3-4b-2507"  # Use known working model as default
+            logger.info(f"Using default model: {self.model}")
 
     def health_check(self) -> bool:
         """Lightweight health check to the LM Studio endpoint.
 
-        Performs a GET to /v1/models via lmstudio.sync_api. If DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
+        Performs a GET to /api/v0/models via HTTP request. If DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE
         is true but the endpoint is unreachable, tests may skip quickly with a clear reason.
         The total time spent in retries is bounded (<= 5 seconds).
         """
@@ -252,7 +275,7 @@ class LMStudioProvider(BaseLLMProvider):
         while total <= max_total_seconds and attempt < max(1, self.max_retries):
             attempt += 1
             try:
-                # Use the proxy's sync_api which backs the GET /v1/models call in lmstudio
+                # Use HTTP request to /api/v0/models endpoint
                 try:
                     self._lmstudio.sync_api.configure_default_client(self.api_host)
                 except Exception as cfg_err:  # noqa: BLE001
@@ -261,7 +284,11 @@ class LMStudioProvider(BaseLLMProvider):
                         "LM Studio health_check configure_default_client failed (ignored): %s",
                         cfg_err,
                     )
-                models = self._lmstudio.sync_api.list_downloaded_models("llm")
+                # Use native API for health check
+                import requests
+                response = requests.get(f"{self.api_base}/api/v0/models", timeout=10)
+                models_data = response.json()
+                models = [m for m in models_data.get("data", []) if m.get("type") == "llm"]
                 _ = len(models)
                 return True
             except Exception as e:  # noqa: BLE001
@@ -326,9 +353,24 @@ class LMStudioProvider(BaseLLMProvider):
             LMStudioConnectionError: If there's an issue connecting to LM Studio
         """
         try:
-            models = self._lmstudio.sync_api.list_downloaded_models("llm")
-            logger.info(f"Found {len(models)} models from LM Studio")
-            return [{"id": m.model_key, "name": m.display_name} for m in models]
+            # Use the native LM Studio API instead of the OpenAI-compatible one
+            import requests
+            response = requests.get(f"{self.api_base}/api/v0/models", timeout=30)
+            response.raise_for_status()
+
+            models_data = response.json()
+            models = models_data.get("data", [])
+
+            # Filter for LLM models only and format correctly
+            llm_models = [
+                {"id": m["id"], "name": f"{m.get('publisher', 'Unknown')}/{m['id']}"}
+                for m in models
+                if m.get("type") == "llm"
+            ]
+
+            logger.info(f"Found {len(llm_models)} LLM models from LM Studio")
+            return llm_models
+
         except Exception as e:  # noqa: BLE001
             error_msg = f"Failed to connect to LM Studio: {str(e)}"
             logger.error(error_msg)
