@@ -1,8 +1,0 @@
-err:  invalid keys in command
-file: /workspace/devsynth/Taskfile.yml:557:9
-  555 | [1m[30m    [0m[33mdesc[0m[1m[30m:[0m[1m[30m [0m[36mExecute the Maintainer Must-Run Sequence end-to-end with evidence capture (docs/tasks.md §23)[0m[1m[30m[0m
-  556 | [1m[30m    [0m[33mcmds[0m[1m[30m:[0m[1m[30m[0m
-> 557 | [1m[30m      [0m[1m[30m- [0m[36mecho "[Maintainer] Step 1: Install with full extras"[0m[1m[30m[0m
-      |         ^
-  558 | [1m[30m      [0m[1m[30m- [0m[36mbash -lc 'poetry install --with dev --extras "tests retrieval chromadb api llm memory lmstudio"; EXIT=$?; poetry run python scripts/append_exec_log.py --command "poetry install --with dev --extras \"tests retrieval chromadb api llm memory lmstudio\"" --exit-code $EXIT --artifacts "" --notes "maintainer step 1"; exit $EXIT'[0m[1m[30m[0m
-  559 | [1m[30m      [0m[1m[30m- [0m[36mecho "[Maintainer] Step 2: Collect and verify markers"[0m[1m[30m[0m

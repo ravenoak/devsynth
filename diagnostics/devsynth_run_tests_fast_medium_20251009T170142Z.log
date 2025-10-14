@@ -1,6 +1,0 @@
-astor library not found. Using fallback implementation for to_source.
-2025-10-09 17:01:51,698 - devsynth.testing.run_tests - INFO - test collection cache miss for target=all-tests (fast) — decomposing all-tests into dependent targets
-2025-10-09 17:01:51,710 - devsynth.testing.run_tests - INFO - test collection cache miss for target=unit-tests (fast) — collecting via pytest
-2025-10-09 17:02:09,050 - devsynth.testing.run_tests - WARNING - Test collection failed: 
-Test collection failed:
-Tests failed

@@ -1,5 +1,0 @@
-$ poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel
-2025-10-07 18:36:48,587 - devsynth.testing.run_tests - WARNING - Test collection failed: Command '['/workspace/devsynth/.venv/bin/python', '-m', 'pytest', 'tests/', '--collect-only', '-q', '-o', 'addopts=', '-m', 'fast and not memory_intensive']' timed out after 300.0 seconds
-2025-10-07 18:41:48,694 - devsynth.testing.run_tests - WARNING - Test collection failed: Command '['/workspace/devsynth/.venv/bin/python', '-m', 'pytest', 'tests/', '--collect-only', '-q', '-o', 'addopts=', '-m', 'medium and not memory_intensive']' timed out after 300.0 seconds
-2025-10-07 18:41:48,695 - devsynth.testing.run_tests - INFO - marker fallback triggered for target=all-tests (speeds=fast,medium)
-^C (manual interrupt after extended runtime with fallback suite still in progress)
