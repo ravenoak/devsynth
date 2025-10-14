@@ -92,7 +92,9 @@ def test_run_segmented_tests_single_speed(monkeypatch):
         "batch-helper-1",
         "batch-helper-2",
     ]
-    for segment, command in zip(metadata["segments"], metadata["commands"], strict=True):
+    for segment, command in zip(
+        metadata["segments"], metadata["commands"], strict=True
+    ):
         assert_type(segment, rt.BatchExecutionMetadata)
         assert list(segment["command"]) == list(command)
     assert metadata["started_at"] == metadata["segments"][0]["started_at"]
@@ -151,7 +153,9 @@ def test_run_segmented_tests_multiple_speeds(monkeypatch):
         "test1.py::test_fast",
         "test2.py::test_medium",
     ]
-    for segment, command in zip(metadata["segments"], metadata["commands"], strict=True):
+    for segment, command in zip(
+        metadata["segments"], metadata["commands"], strict=True
+    ):
         assert_type(segment, rt.BatchExecutionMetadata)
         assert list(segment["command"]) == list(command)
 
@@ -561,7 +565,9 @@ def test_run_segmented_tests_dry_run_batches_use_typed_requests(
             "test3.py::test_c",
         ],
     ]
-    for segment, command in zip(metadata["segments"], metadata["commands"], strict=True):
+    for segment, command in zip(
+        metadata["segments"], metadata["commands"], strict=True
+    ):
         assert_type(segment, rt.BatchExecutionMetadata)
         assert list(segment["command"]) == command
         assert segment["dry_run"] is True

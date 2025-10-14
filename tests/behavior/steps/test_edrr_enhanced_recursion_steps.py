@@ -967,8 +967,6 @@ from devsynth.methodology.base import Phase
 # Import the scenarios from the feature file
 
 
-
-
 @pytest.fixture
 def context():
     """Fixture to provide a context object for storing test state between steps."""
