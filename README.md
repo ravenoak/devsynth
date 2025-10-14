@@ -7,9 +7,9 @@ tags:
   - "overview"
   - "documentation"
   - "readme"
-status: "draft"
+status: "published"
 author: "DevSynth Team"
-last_reviewed: "2025-08-08"
+last_reviewed: "2025-10-13"
 ---
 
 > Special note: LLMs have synthesized this project, with minimal manual editing, using a dialectical HITL methodology.
