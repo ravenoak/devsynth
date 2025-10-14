@@ -76,7 +76,9 @@ def set_session_value(key: str, value: Any) -> bool:
     return success
 
 
-def with_state_management(prefix: str = "") -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def with_state_management(
+    prefix: str = "",
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to add state management to a WebUI page or component.
 

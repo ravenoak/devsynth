@@ -48,7 +48,7 @@ class ProgressStatus(str, Enum):
     COMPLETE = "Complete"
 
 
-class ProgressSnapshot(BaseModel):
+class ProgressSnapshot(BaseModel):  # type: ignore[misc]
     """Structured representation of a progress indicator update."""
 
     __test__ = False
@@ -59,7 +59,7 @@ class ProgressSnapshot(BaseModel):
     status: ProgressStatus = Field(default=ProgressStatus.STARTING)
 
 
-class WorkflowMetadata(BaseModel):
+class WorkflowMetadata(BaseModel):  # type: ignore[misc]
     """Optional metadata returned with workflow responses."""
 
     __test__ = False
@@ -69,7 +69,7 @@ class WorkflowMetadata(BaseModel):
     progress: tuple[ProgressSnapshot, ...] = Field(default_factory=tuple)
 
 
-class InitRequest(BaseModel):
+class InitRequest(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     path: str = Field(".", min_length=1)
@@ -78,7 +78,7 @@ class InitRequest(BaseModel):
     goals: str | None = Field(default=None, min_length=1)
 
 
-class GatherRequest(BaseModel):
+class GatherRequest(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     goals: str = Field(..., min_length=1)
@@ -86,39 +86,39 @@ class GatherRequest(BaseModel):
     priority: PriorityLevel = PriorityLevel.MEDIUM
 
 
-class SynthesizeRequest(BaseModel):
+class SynthesizeRequest(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     target: SynthesisTarget
 
 
-class SpecRequest(BaseModel):
+class SpecRequest(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     requirements_file: str = Field("requirements.md", min_length=1)
 
 
-class TestSpecRequest(BaseModel):
+class TestSpecRequest(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     spec_file: str = Field(..., min_length=1)
     output_dir: str | None = Field(default=None, min_length=1)
 
 
-class CodeRequest(BaseModel):
+class CodeRequest(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     output_dir: str | None = Field(default=None, min_length=1)
 
 
-class DoctorRequest(BaseModel):
+class DoctorRequest(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     path: str = Field(".", min_length=1)
     fix: bool = False
 
 
-class EDRRCycleRequest(BaseModel):
+class EDRRCycleRequest(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     prompt: str = Field(..., min_length=1)
@@ -126,14 +126,14 @@ class EDRRCycleRequest(BaseModel):
     max_iterations: int = Field(3, ge=1, le=50)
 
 
-class WorkflowResponse(BaseModel):
+class WorkflowResponse(BaseModel):  # type: ignore[misc]
     __test__ = False
 
     messages: tuple[str, ...] = Field(default_factory=tuple)
     metadata: WorkflowMetadata | None = None
 
 
-class EndpointMetrics(BaseModel):
+class EndpointMetrics(BaseModel):  # type: ignore[misc]
     """Metrics collected for a single API endpoint."""
 
     __test__ = False
@@ -142,7 +142,7 @@ class EndpointMetrics(BaseModel):
     latencies: tuple[float, ...] = Field(default_factory=tuple)
 
 
-class APIMetrics(BaseModel):
+class APIMetrics(BaseModel):  # type: ignore[misc]
     """Aggregated metrics exposed by the Agent API."""
 
     __test__ = False
@@ -163,7 +163,7 @@ class APIMetrics(BaseModel):
         self.endpoint_latency[endpoint] = tuple(latencies)
 
 
-class MetricsResponse(BaseModel):
+class MetricsResponse(BaseModel):  # type: ignore[misc]
     """Prometheus-style metrics payload."""
 
     __test__ = False
@@ -171,7 +171,7 @@ class MetricsResponse(BaseModel):
     metrics: tuple[str, ...]
 
 
-class HealthResponse(BaseModel):
+class HealthResponse(BaseModel):  # type: ignore[misc]
     """Simple health-check payload."""
 
     __test__ = False

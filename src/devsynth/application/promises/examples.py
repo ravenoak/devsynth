@@ -5,6 +5,7 @@ This module provides concrete examples of how to use the Promise System
 for capability declaration, discovery, and fulfillment between agents.
 """
 
+import logging
 import time
 from typing import Any, Dict, List, Optional
 

@@ -280,7 +280,10 @@ class OutputFormatter:
         return "\n".join(result)
 
     def format_structured(
-        self, data: Any, output_format: Optional[OutputFormat] = None, title: Optional[str] = None
+        self,
+        data: Any,
+        output_format: Optional[OutputFormat] = None,
+        title: Optional[str] = None,
     ) -> Union[str, Panel, Table, Syntax]:
         """Format data in a structured format (JSON, YAML, etc.).
 
@@ -542,7 +545,10 @@ class OutputFormatter:
             return Panel(text, title=title, border_style="blue")
 
     def set_format_options(
-        self, indent: Optional[int] = None, spacing: Optional[int] = None, line_width: Optional[int] = None
+        self,
+        indent: Optional[int] = None,
+        spacing: Optional[int] = None,
+        line_width: Optional[int] = None,
     ) -> None:
         """Set formatting options.
 

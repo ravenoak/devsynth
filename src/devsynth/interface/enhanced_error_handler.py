@@ -313,9 +313,9 @@ formatter.format_command_output(data, format_name="rich")
         Returns:
             A list of suggestions
         """
-        suggestions: list[
-            ErrorSuggestion | ActionableErrorSuggestion
-        ] = super()._find_suggestions(error_message)
+        suggestions: list[ErrorSuggestion | ActionableErrorSuggestion] = (
+            super()._find_suggestions(error_message)
+        )
 
         # Add context-specific suggestions based on the current state of the system
         try:
