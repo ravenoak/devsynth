@@ -1,2 +1,0 @@
-$ poetry run mypy --strict src/devsynth
-Success: no issues found in 431 source files
