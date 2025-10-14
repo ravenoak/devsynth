@@ -35,12 +35,24 @@ memory:
 
 # LLM provider configuration
 llm:
-  default_provider: stub  # Use stub provider by default in development
+  default_provider: lmstudio  # Use LM Studio provider in development for testing
   providers:
     openai:
       enabled: false  # Disabled by default, set OPENAI_API_KEY to enable
       temperature: 0.8  # More creative in development
       max_tokens: 2048  # Smaller context to save tokens during development
+    lmstudio:
+      enabled: false  # Disabled by default, enable with DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=true
+      api_base: http://127.0.0.1:1234
+      model: null  # Auto-select first available model
+      max_tokens: 2048  # Smaller context for development
+      temperature: 0.8  # More creative in development
+      timeout: 30  # Shorter timeout for development
+      auto_select_model: true
+      max_retries: 2  # Fewer retries in development
+      failure_threshold: 2
+      recovery_timeout: 30
+      call_timeout: 5.0
 
 # Security settings
 security:
