@@ -46,7 +46,7 @@ class OrchestrationService:
         self._llm_factory.create_provider(
             "lmstudio",
             {
-                "api_base": "http://localhost:1234/v1",
+                "api_base": "http://localhost:1234",
                 "model": "local_model",
                 "max_tokens": 2048,
             },
@@ -56,7 +56,7 @@ class OrchestrationService:
         llm_port.set_default_provider(
             "lmstudio",
             {
-                "api_base": "http://localhost:1234/v1",
+                "api_base": "http://localhost:1234",
                 "model": "local_model",
                 "max_tokens": 2048,
             },

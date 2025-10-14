@@ -168,7 +168,7 @@ class Settings(BaseSettings):
                 "DEVSYNTH_LLM_PROVIDER", "lmstudio"
             ),
             "llm_api_base": lambda s: os.environ.get(
-                "DEVSYNTH_LLM_API_BASE", "http://localhost:1234/v1"
+                "DEVSYNTH_LLM_API_BASE", "http://localhost:1234"
             ),
             "llm_model": lambda s: os.environ.get(
                 "DEVSYNTH_LLM_MODEL", "gpt-3.5-turbo"

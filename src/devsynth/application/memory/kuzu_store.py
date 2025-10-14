@@ -19,6 +19,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from typing import TYPE_CHECKING, Iterator, Protocol, cast
+from types import ModuleType
 
 canonical_name = "devsynth.application.memory.kuzu_store"
 # Ensure the module is registered under its canonical name even when loaded

@@ -1068,7 +1068,7 @@ class LMStudioProvider(BaseProvider):
             # Use a very small connect timeout to avoid test hangs; allow a
             # slightly larger read timeout
             # Ping a lightweight endpoint to verify availability
-            health_url = f"{self.endpoint}/v1/models"
+            health_url = f"{self.endpoint}/api/v0/models"
             requests.get(
                 health_url,
                 timeout=(0.2, 1.0),

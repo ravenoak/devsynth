@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import functools
 import time
-from contextlib import contextmanager
 from collections.abc import Callable, Sequence
+from contextlib import contextmanager
 from typing import (
     TYPE_CHECKING,
     Any,
