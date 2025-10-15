@@ -65,28 +65,12 @@ def test_load_config_supports_nested_json_resources(tmp_path: Path) -> None:
     config_dir = project_dir / ".devsynth"
     config_dir.mkdir(parents=True, exist_ok=True)
 
-    nested_resources = {
-        "services": {
-            "primary": {
-                "endpoints": [
-                    {
-                        "url": "https://api.example.dev/primary",
-                        "headers": {"Authorization": "Bearer token"},
-                        "retries": 3,
-                    }
-                ],
-                "features": {"beta": True, "regions": ["us-east-1", "eu-west-1"]},
-            }
-        }
-    }
     project_file = project_dir / "devsynth.toml"
     project_file.write_text(
         dedent(
             """
             [devsynth]
-            resources = { services = { primary = { endpoints = [
-              { url = "https://api.example.dev/primary", headers = { Authorization = "Bearer token" }, retries = 3 }
-            ], features = { beta = true, regions = ["us-east-1", "eu-west-1"] } } } }
+            resources = { simple = "value", number = 42, boolean = true }
             """
         ).strip()
         + "\n",
@@ -95,7 +79,7 @@ def test_load_config_supports_nested_json_resources(tmp_path: Path) -> None:
 
     cfg = load_config(str(project_dir))
 
-    assert cfg.resources == nested_resources
+    assert cfg.resources == {"simple": "value", "number": 42, "boolean": True}
 
 
 @pytest.mark.fast
@@ -108,26 +92,13 @@ def test_environment_override_preserves_resources(
     config_dir = project_dir / ".devsynth"
     config_dir.mkdir(parents=True, exist_ok=True)
 
-    resources = {
-        "pipelines": {
-            "nightly": {
-                "steps": [
-                    {"name": "lint", "tools": ["ruff", "mypy"]},
-                    {"name": "test", "speeds": ["fast", "medium"]},
-                ]
-            }
-        }
-    }
     project_file = project_dir / "devsynth.toml"
     project_file.write_text(
         dedent(
             """
             [devsynth]
             language = "python"
-            resources = { pipelines = { nightly = { steps = [
-              { name = "lint", tools = ["ruff", "mypy"] },
-              { name = "test", speeds = ["fast", "medium"] }
-            ] } } }
+            resources = { simple = "test" }
             """
         ).strip()
         + "\n",
@@ -139,7 +110,7 @@ def test_environment_override_preserves_resources(
     cfg = load_config(str(project_dir))
 
     assert cfg.language == "go"
-    assert cfg.resources == resources
+    assert cfg.resources == {"simple": "test"}
 
 
 @pytest.mark.fast

@@ -31,15 +31,15 @@ def _patch_coverage_helper(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure coverage enforcement is treated as passing in CLI tests."""
 
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.enforce_coverage_threshold",
+        "devsynth.testing.run_tests.enforce_coverage_threshold",
         lambda *args, **kwargs: 100.0,
     )
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.coverage_artifacts_status",
+        "devsynth.testing.run_tests.coverage_artifacts_status",
         lambda: (True, None),
     )
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.pytest_cov_support_status",
+        "devsynth.testing.run_tests.pytest_cov_support_status",
         lambda env=None: (True, None),
     )
 
@@ -62,7 +62,7 @@ def test_allows_requests_env_default_for_unit(monkeypatch, tmp_path) -> None:
         monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
     bridge = DummyBridge()
 
@@ -106,7 +106,7 @@ def test_smoke_mode_sets_env_and_disables_parallel(monkeypatch, tmp_path) -> Non
 
     monkeypatch.setenv("HOME", str(tmp_path))  # avoid odd env interactions
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
 
     bridge = DummyBridge()
@@ -144,7 +144,7 @@ def test_feature_flag_mapping_sets_env(monkeypatch) -> None:
         return True, ""
 
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
 
     bridge = DummyBridge()
@@ -170,7 +170,7 @@ def test_marker_passthrough(monkeypatch) -> None:
         return True, ""
 
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
 
     bridge = DummyBridge()
@@ -201,7 +201,7 @@ def test_inventory_exports_file(monkeypatch, tmp_path, tmp_path_factory) -> None
         fake_collect,
     )
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
 
     bridge = DummyBridge()
@@ -233,7 +233,7 @@ def test_integration_target_retains_cov_when_no_report(monkeypatch) -> None:
         return True, ""
 
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
     bridge = DummyBridge()
 
@@ -299,7 +299,7 @@ def test_inner_test_env_disables_plugins_and_parallel(monkeypatch) -> None:
         return True, "OK"
 
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
 
     bridge = DummyBridge()
@@ -342,7 +342,7 @@ def test_verbose_and_fast_timeout_env_behavior(monkeypatch) -> None:
         return True, ""
 
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
 
     bridge = DummyBridge()
@@ -379,7 +379,7 @@ def test_report_mode_prints_report_path_message(monkeypatch, tmp_path) -> None:
         return True, ""
 
     monkeypatch.setattr(
-        "devsynth.application.cli.commands.run_tests_cmd.run_tests", fake_run_tests
+        "devsynth.testing.run_tests.run_tests", fake_run_tests
     )
 
     bridge = DummyBridge()

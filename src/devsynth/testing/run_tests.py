@@ -7,6 +7,12 @@ intended for use by helper scripts such as ``scripts/manual_cli_testing.py``.
 
 from __future__ import annotations
 
+import sys
+
+# Load sitecustomize early for Python 3.12+ compatibility patches
+if sys.version_info >= (3, 12):
+    import sitecustomize  # noqa: F401
+
 import hashlib
 import importlib.util
 import inspect
@@ -251,7 +257,7 @@ class SingleBatchRequest:
     parallel: bool
     maxfail: int | None
     keyword_filter: str | None
-    env: MutableMapping[str, str]
+    env: dict[str, str]
     dry_run: bool = False
 
     def __post_init__(self) -> None:  # pragma: no cover - simple data normalization
@@ -272,7 +278,7 @@ class SegmentedRunRequest:
     segment_size: int
     maxfail: int | None
     keyword_filter: str | None
-    env: MutableMapping[str, str]
+    env: dict[str, str]
     dry_run: bool = False
 
     def __post_init__(self) -> None:
@@ -1062,7 +1068,9 @@ def _collect_via_pytest(
     """Execute ``pytest --collect-only`` and return node identifiers."""
 
     collect_cmd = [
-        sys.executable,
+        "poetry",
+        "run",
+        "python",
         "-m",
         "pytest",
         test_path,
@@ -1085,11 +1093,15 @@ def _collect_via_pytest(
     )
     if result.returncode != 0:
         error_message = f"Test collection failed: {result.stderr}"
+        # Log more details for debugging
         logger.warning(
             error_message,
             extra={
                 "event": "test_collection_failed",
                 "target": target,
+                "returncode": result.returncode,
+                "stdout": result.stdout[:500] if result.stdout else None,  # First 500 chars
+                "stderr": result.stderr[:500] if result.stderr else None,  # First 500 chars
                 "speed_category": category_expr,
             },
         )
@@ -1648,6 +1660,12 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
     if request.keyword_filter:
         cmd.extend(["-k", request.keyword_filter])
 
+    # Ensure sitecustomize is loaded for Python 3.12+ compatibility
+    src_path = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    current_pythonpath = request.env.get("PYTHONPATH", "")
+    if src_path not in current_pythonpath:
+        request.env["PYTHONPATH"] = f"{src_path}:{current_pythonpath}"
+
     if request.env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1":
         addopts = request.env.get("PYTEST_ADDOPTS", "")
         tokens = _parse_pytest_addopts(addopts)
@@ -1695,12 +1713,19 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
                 lines.append(f"Coverage instrumentation note: {coverage_issue}")
             return True, "\n".join(lines) + "\n", dry_run_metadata
 
+        # Ensure PYTHONPATH is set for subprocess to load sitecustomize
+        env = request.env.copy()
+        src_path = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+        current_pythonpath = env.get("PYTHONPATH", "")
+        if src_path not in current_pythonpath:
+            env["PYTHONPATH"] = f"{src_path}:{current_pythonpath}"
+
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            env=request.env,
+            env=env,
         )
 
         output, _ = process.communicate()
