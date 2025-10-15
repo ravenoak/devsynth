@@ -1,6 +1,12 @@
 # DevSynth Production Configuration
 # Overrides for production environment - SECURITY HARDENED
 
+# Application settings
+application:
+  name: DevSynth-Production
+  version: 0.1.0
+  description: AI-driven development platform (Production)
+
 # Logging configuration
 logging:
   level: WARNING  # Only log warnings and errors in production
@@ -18,7 +24,7 @@ memory:
       collection_name: devsynth-prod
       distance_function: cosine
       host: ${DEVSYNTH_CHROMADB_HOST:-localhost}
-      port: ${DEVSYNTH_CHROMADB_PORT:-8000}
+      port: 8000
     kuzu:
       persist_directory: /data/devsynth/kuzu
     faiss:
@@ -52,6 +58,7 @@ agents:
 
 # EDRR framework configuration
 edrr:
+  enabled: true
   phase_transition:
     auto: true
     timeout: 1200  # Longer timeout for production
@@ -102,5 +109,6 @@ features:
   test_generation: false
   documentation_generation: false
   experimental_features: false  # Disable experimental features in production
+  prompt_auto_tuning: false
   automatic_phase_transitions: true
   collaboration_notifications: false

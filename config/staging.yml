@@ -1,6 +1,12 @@
 # DevSynth Staging Configuration
 # Overrides for staging environment - PRE-PRODUCTION TESTING
 
+# Application settings
+application:
+  name: DevSynth-Staging
+  version: 0.1.0
+  description: AI-driven development platform (Staging)
+
 # Logging configuration
 logging:
   level: INFO  # More verbose than production, less than development
@@ -48,6 +54,7 @@ agents:
 
 # EDRR framework configuration
 edrr:
+  enabled: true
   phase_transition:
     auto: true
     timeout: 900  # Between production and development
@@ -96,6 +103,7 @@ features:
   code_generation: false
   test_generation: false
   documentation_generation: false
-  experimental_features: ${DEVSYNTH_ENABLE_EXPERIMENTAL:-false}  # Configurable in staging
+  experimental_features: false  # More conservative than development, configurable via env
+  prompt_auto_tuning: false
   automatic_phase_transitions: true
   collaboration_notifications: false
