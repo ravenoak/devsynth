@@ -5,6 +5,12 @@ This module provides fixtures for ensuring all tests are hermetic (isolated from
 and don't pollute the developer's environment, file system, or depend on external services.
 """
 
+import sys
+
+# Load sitecustomize early for Python 3.12+ compatibility patches
+if sys.version_info >= (3, 12):
+    import sitecustomize  # noqa: F401
+
 pytest_plugins = [
     "tests.conftest_extensions",
     "tests.fixtures.backends",

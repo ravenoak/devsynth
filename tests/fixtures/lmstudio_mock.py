@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+import sys
+
+# Load sitecustomize early for Python 3.12+ compatibility patches
+if sys.version_info >= (3, 12):
+    import sitecustomize  # noqa: F401
+
 import json
 import os
 from collections.abc import AsyncIterator, Callable, Generator

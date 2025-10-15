@@ -11,14 +11,20 @@ from __future__ import annotations
 
 import os
 import shlex
+import sys
 
 import typer
+
+# Ensure sitecustomize is loaded for Python 3.12+ compatibility patches
+if sys.version_info >= (3, 12):
+    import sitecustomize  # noqa: F401
 
 from devsynth.config.provider_env import ProviderEnv
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.observability.metrics import increment_counter
+# Import run_tests functions with explicit assignment to ensure they're available
 from devsynth.testing.run_tests import (
     COVERAGE_HTML_DIR,
     COVERAGE_JSON_PATH,
@@ -33,6 +39,9 @@ from devsynth.testing.run_tests import (
     pytest_cov_support_status,
     run_tests,
 )
+
+# Ensure imported functions are accessible in the module namespace
+# The import above should make these available, but we verify they're accessible
 
 logger = DevSynthLogger(__name__)
 DEFAULT_BRIDGE: UXBridge = CLIUXBridge()
@@ -157,6 +166,12 @@ def run_tests_cmd(
         "--target",
         help="Test target to run",
     ),
+    # Set PYTHONPATH to ensure sitecustomize is loaded early for Python 3.12+ compatibility
+    _pythonpath: str | None = typer.Option(
+        None,
+        hidden=True,
+        help="Internal option to set PYTHONPATH for sitecustomize loading",
+    ),
     speeds: list[str] | None = typer.Option(
         None,
         "--speed",
@@ -217,6 +232,12 @@ def run_tests_cmd(
     ``docs/analysis/run_tests_workflow.md``.
     """
 
+    # Set PYTHONPATH to ensure sitecustomize is loaded for Python 3.12+ compatibility
+    src_path = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    current_pythonpath = os.environ.get("PYTHONPATH", "")
+    if src_path not in current_pythonpath:
+        os.environ["PYTHONPATH"] = f"{src_path}:{current_pythonpath}"
+
     if isinstance(bridge, UXBridge):
         ux_bridge = bridge
     else:
@@ -225,8 +246,20 @@ def run_tests_cmd(
     # Typer guarantees booleans for "inventory", but tests may invoke this
     # function directly. Normalize parameters defensively for that scenario.
     inventory = bool(inventory)
-    normalized_speed_inputs = list(speeds or [])
-    normalized_feature_inputs = list(features or [])
+
+    # Handle Typer OptionInfo objects that may be passed during testing
+    def extract_option_value(option_obj):
+        """Extract the actual value from a Typer OptionInfo object or return the object itself."""
+        if hasattr(option_obj, 'default'):
+            return option_obj.default
+        return option_obj
+
+    # Extract actual values from OptionInfo objects
+    actual_speeds = extract_option_value(speeds) if hasattr(speeds, 'default') else speeds
+    actual_features = extract_option_value(features) if hasattr(features, 'default') else features
+
+    normalized_speed_inputs = list(actual_speeds or [])
+    normalized_feature_inputs = list(actual_features or [])
 
     _configure_optional_providers()
 
