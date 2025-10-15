@@ -1,0 +1,4 @@
+src/devsynth/application/cli/commands/webui_cmd.py:23: error: Unused "type: ignore" comment  [unused-ignore]
+src/devsynth/interface/webui/__init__.py:9: error: Module "devsynth.interface.webui" has no attribute "WebUI"  [attr-defined]
+src/devsynth/interface/webui/__init__.py:9: error: Module "devsynth.interface.webui" has no attribute "run"  [attr-defined]
+Found 3 errors in 2 files (checked 433 source files)
