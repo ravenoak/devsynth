@@ -54,6 +54,24 @@ class AnthropicModelError(DevSynthError):
     """Exception raised for errors returned by Anthropic's API."""
 
 
+class AnthropicAuthenticationError(DevSynthError):
+    """Exception raised when Anthropic authentication fails."""
+
+    pass
+
+
+class AnthropicConfigurationError(DevSynthError):
+    """Exception raised when Anthropic configuration is invalid."""
+
+    pass
+
+
+class AnthropicTokenLimitError(DevSynthError):
+    """Exception raised when Anthropic token limit is exceeded."""
+
+    pass
+
+
 class AnthropicProvider(BaseLLMProvider):
     """Anthropic LLM provider implementation."""
 
@@ -69,13 +87,112 @@ class AnthropicProvider(BaseLLMProvider):
         self.embedding_model = self.config.get("embedding_model", "claude-3-embed")
 
         if not self.api_key:
-            raise AnthropicConnectionError("Anthropic API key is required")
+            raise AnthropicAuthenticationError("Anthropic API key is required")
+
+        # Validate configuration parameters
+        self._validate_configuration()
 
         self.headers = {
             "Content-Type": "application/json",
             "x-api-key": self.api_key,
             "anthropic-version": "2023-06-01",
         }
+
+        # Initialize resilience patterns
+        self.max_retries = self.config.get("max_retries", 3)
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=self.config.get("failure_threshold", 3),
+            recovery_timeout=self.config.get("recovery_timeout", 60),
+        )
+
+        # Initialize token tracker
+        self.token_tracker = TokenTracker()
+
+    def _validate_configuration(self) -> None:
+        """Validate Anthropic provider configuration parameters."""
+        # Parameter range validation
+        if not 0.0 <= self.temperature <= 2.0:
+            raise AnthropicConfigurationError(
+                f"Anthropic temperature must be between 0.0 and 2.0, got {self.temperature}"
+            )
+
+        if self.max_tokens <= 0:
+            raise AnthropicConfigurationError(
+                f"Anthropic max_tokens must be positive, got {self.max_tokens}"
+            )
+
+        if self.timeout <= 0:
+            raise AnthropicConfigurationError(
+                f"Anthropic timeout must be positive, got {self.timeout}"
+            )
+
+        if self.max_retries < 0:
+            raise AnthropicConfigurationError(
+                f"Anthropic max_retries must be non-negative, got {self.max_retries}"
+            )
+
+    def _validate_runtime_parameters(self, parameters: Dict[str, Any]) -> None:
+        """Validate runtime parameters for API calls."""
+        # Validate temperature if provided
+        if "temperature" in parameters:
+            temp = parameters["temperature"]
+            if not isinstance(temp, (int, float)) or not 0.0 <= temp <= 2.0:
+                raise AnthropicConfigurationError(
+                    f"Anthropic temperature must be a number between 0.0 and 2.0, got {temp}"
+                )
+
+        # Validate max_tokens if provided
+        if "max_tokens" in parameters:
+            max_tokens = parameters["max_tokens"]
+            if not isinstance(max_tokens, int) or max_tokens <= 0:
+                raise AnthropicConfigurationError(
+                    f"Anthropic max_tokens must be a positive integer, got {max_tokens}"
+                )
+
+        # Validate top_p if provided
+        if "top_p" in parameters:
+            top_p = parameters["top_p"]
+            if top_p is not None and (not isinstance(top_p, (int, float)) or not 0.0 <= top_p <= 1.0):
+                raise AnthropicConfigurationError(
+                    f"Anthropic top_p must be a number between 0.0 and 1.0, got {top_p}"
+                )
+
+    def _should_retry(self, exc: Exception) -> bool:
+        """Return ``True`` if the exception should trigger a retry."""
+        # Don't retry on client errors (4xx) except rate limits (429)
+        if hasattr(exc, 'response') and exc.response is not None:
+            status_code = exc.response.status_code
+            if 400 <= status_code < 500 and status_code != 429:
+                return False
+        return True
+
+    def _on_retry(self, exc: Exception, attempt: int, delay: float) -> None:
+        """Emit telemetry when a retry occurs."""
+        logger.warning(
+            "Retrying AnthropicProvider due to %s (attempt %d, delay %.2fs)",
+            exc,
+            attempt,
+            delay,
+        )
+        inc_provider("retry")
+
+    def _execute_with_resilience(self, func, *args, **kwargs):
+        """Execute a function with retry and circuit breaker protection."""
+
+        @retry_with_exponential_backoff(
+            max_retries=self.max_retries,
+            should_retry=self._should_retry,
+            on_retry=self._on_retry,
+        )
+        def _wrapped():
+            # Execute in a worker with a strict timeout to avoid hangs
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    self.circuit_breaker.call, func, *args, **kwargs
+                )
+                return future.result(timeout=self.timeout)
+
+        return _wrapped()
 
     def _post(self, endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{self.api_base}{endpoint}"
@@ -97,6 +214,12 @@ class AnthropicProvider(BaseLLMProvider):
     def generate(self, prompt: str, parameters: Dict[str, Any] | None = None) -> str:
         """Generate text from a prompt using Anthropic."""
 
+        # Ensure the prompt doesn't exceed token limits
+        self.token_tracker.ensure_token_limit(prompt, self.max_tokens)
+
+        # Validate runtime parameters
+        self._validate_runtime_parameters(parameters or {})
+
         params = {
             "model": self.model,
             "max_tokens": self.max_tokens,
@@ -112,13 +235,25 @@ class AnthropicProvider(BaseLLMProvider):
             "messages": [{"role": "user", "content": prompt}],
         }
 
-        data = self._post("/v1/messages", payload)
+        def _api_call():
+            data = self._post("/v1/messages", payload)
 
-        if "content" in data and isinstance(data["content"], list):
-            return "".join(part.get("text", "") for part in data["content"])
-        if "completion" in data:
-            return data["completion"]
-        raise AnthropicModelError("Invalid response from Anthropic")
+            if "content" in data and isinstance(data["content"], list):
+                return "".join(part.get("text", "") for part in data["content"])
+            if "completion" in data:
+                return data["completion"]
+            raise AnthropicModelError("Invalid response from Anthropic")
+
+        try:
+            return self._execute_with_resilience(_api_call)
+        except AnthropicTokenLimitError:
+            raise  # Re-raise token limit errors as-is
+        except AnthropicConnectionError:
+            raise  # Re-raise connection errors as-is
+        except Exception as e:
+            error_msg = f"Anthropic API error: {str(e)}. Check your API key and model configuration."
+            logger.error(error_msg)
+            raise AnthropicConnectionError(error_msg)
 
     def generate_with_context(
         self,
@@ -294,6 +429,13 @@ if lmstudio_requested:  # pragma: no cover - optional dependency
         logger.warning("LMStudioProvider not available: %s", exc)
 else:  # pragma: no cover - optional dependency
     LMStudioProvider = None
+
+# Try to import OpenRouter provider if available
+try:
+    from .openrouter_provider import OpenRouterProvider
+except ImportError as exc:  # pragma: no cover - optional dependency
+    OpenRouterProvider = None
+    logger.warning("OpenRouterProvider not available: %s", exc)
 # Avoid importing provider modules at import time to keep this module inert.
 # Only import within factory callables to prevent side effects during test collection.
 from . import offline_provider as _offline_provider
@@ -356,3 +498,6 @@ factory.register_provider_type(
 factory.register_provider_type(
     "offline", lambda cfg: _offline_provider.OfflineProvider(cfg)
 )
+if OpenRouterProvider is not None:
+    # Keep direct reference for optional provider; requires explicit opt-in via API key
+    factory.register_provider_type("openrouter", lambda cfg: OpenRouterProvider(cfg))

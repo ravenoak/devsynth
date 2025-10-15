@@ -27,7 +27,7 @@ class ProviderFactory(SimpleLLMProviderFactory):
     Safe-by-default: prefer offline/local providers for implicit selection.
     """
 
-    _order = ("offline", "local", "openai", "anthropic", "lmstudio")
+    _order = ("offline", "local", "openai", "anthropic", "lmstudio", "openrouter")
 
     def create_provider(
         self,

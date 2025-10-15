@@ -127,6 +127,24 @@ class LMStudioModelError(DevSynthError):
     pass
 
 
+class LMStudioAuthenticationError(DevSynthError):
+    """Exception raised when LM Studio authentication fails."""
+
+    pass
+
+
+class LMStudioConfigurationError(DevSynthError):
+    """Exception raised when LM Studio configuration is invalid."""
+
+    pass
+
+
+class LMStudioTokenLimitError(DevSynthError):
+    """Exception raised when LM Studio token limit is exceeded."""
+
+    pass
+
+
 class LMStudioProvider(BaseLLMProvider):
     """LM Studio LLM provider implementation.
 
@@ -156,6 +174,7 @@ class LMStudioProvider(BaseLLMProvider):
         self.api_base = self.config.get("api_base") or endpoint_default
         self.max_tokens = self.config.get("max_tokens")
         self.temperature = self.config.get("temperature")
+        self.timeout = self.config.get("timeout") or 60
         parsed = urlparse(self.api_base)
         self.api_host = parsed.netloc or parsed.path.split("/")[0]
         # Use module-level proxy to allow tests to patch lmstudio.llm
@@ -199,6 +218,32 @@ class LMStudioProvider(BaseLLMProvider):
         except (TypeError, ValueError):
             self.call_timeout = 30.0  # Increased default timeout
         self.token_tracker = TokenTracker()
+
+        # Validate configuration parameters
+        self._validate_configuration()
+
+    def _validate_configuration(self) -> None:
+        """Validate LM Studio provider configuration parameters."""
+        # Parameter range validation
+        if self.temperature is not None and not 0.0 <= self.temperature <= 2.0:
+            raise LMStudioConfigurationError(
+                f"LM Studio temperature must be between 0.0 and 2.0, got {self.temperature}"
+            )
+
+        if self.max_tokens is not None and self.max_tokens <= 0:
+            raise LMStudioConfigurationError(
+                f"LM Studio max_tokens must be positive, got {self.max_tokens}"
+            )
+
+        if self.timeout is not None and self.timeout <= 0:
+            raise LMStudioConfigurationError(
+                f"LM Studio timeout must be positive, got {self.timeout}"
+            )
+
+        if self.max_retries < 0:
+            raise LMStudioConfigurationError(
+                f"LM Studio max_retries must be non-negative, got {self.max_retries}"
+            )
 
         # Auto-select model if not specified
         auto_select = self.config.get("auto_select_model")
@@ -439,8 +484,12 @@ class LMStudioProvider(BaseLLMProvider):
             raise LMStudioModelError("Invalid response from LM Studio")
         except LMStudioModelError:
             raise
+        except LMStudioTokenLimitError:
+            raise  # Re-raise token limit errors as-is
+        except LMStudioConnectionError:
+            raise  # Re-raise connection errors as-is
         except Exception as e:  # noqa: BLE001
-            error_msg = f"Failed to connect to LM Studio: {str(e)}"
+            error_msg = f"LM Studio API error: {str(e)}. Check that LM Studio is running and accessible."
             logger.error(error_msg)
             raise LMStudioConnectionError(error_msg)
 
