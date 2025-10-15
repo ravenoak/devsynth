@@ -1,19 +1,19 @@
 {
   "run_type": "typing",
   "release_tag": "unknown",
-  "source_command": "/workspace/devsynth/.venv/bin/python -m mypy --strict src/devsynth",
+  "source_command": "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/bin/python -m mypy --strict src/devsynth",
   "artifacts": [
     {
       "artifact_type": "mypy_log",
-      "path": "diagnostics/mypy_strict_src_devsynth_20251010T145625Z.txt",
-      "checksum": "3abcaec82edc52226f7c8279a3659e12130f2d234a05044a8f329e50ca178557",
-      "collected_at": "2025-10-10T14:56:25.024330+00:00"
+      "path": "diagnostics/mypy_strict_src_devsynth_20251015T185642Z.txt",
+      "checksum": "228419d0ae27c967ce58dc2427e8e28fa862737d523178273f5317189016cc0e",
+      "collected_at": "2025-10-15T18:56:42.588745+00:00"
     },
     {
       "artifact_type": "mypy_inventory",
-      "path": "diagnostics/mypy_strict_inventory_20251010T145625Z.md",
-      "checksum": "8aa3fcd81f96ebee6748c0bea210a7b290822514843aedf1c2682326f2cc7ab9",
-      "collected_at": "2025-10-10T14:56:25.024330+00:00"
+      "path": "diagnostics/mypy_strict_inventory_20251015T185642Z.md",
+      "checksum": "25a6439fa18b7af6e6facb92382951bd0424bae101cd977517a8e758fad3d0db",
+      "collected_at": "2025-10-15T18:56:42.588745+00:00"
     }
   ],
   "test_run": {
@@ -21,9 +21,9 @@
     "coverage_percent": null,
     "tests_collected": null,
     "exit_code": 1,
-    "started_at": "2025-10-10T14:56:15.684568+00:00",
-    "completed_at": "2025-10-10T14:56:25.024330+00:00",
-    "run_checksum": "f5b0c3975c9cca126006a6e9e062e51bdfde317c4f682bed7cb56a818903bc36",
+    "started_at": "2025-10-15T18:56:32.916400+00:00",
+    "completed_at": "2025-10-15T18:56:42.588745+00:00",
+    "run_checksum": "0d045c5b24cea2834ded8df07297ea3bb2005f138db22960207e38d2e4b70cd1",
     "metadata": {
       "error_count": 0
     }
@@ -32,7 +32,7 @@
     "gate_name": "typing",
     "threshold": 0.0,
     "status": "fail",
-    "evaluated_at": "2025-10-10T14:56:25.024330+00:00",
+    "evaluated_at": "2025-10-15T18:56:42.588745+00:00",
     "metadata": {
       "error_count": 0
     }

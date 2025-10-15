@@ -1,0 +1,3 @@
+src/devsynth/testing/run_tests.py:1593: error: Argument "env" to "SingleBatchRequest" has incompatible type "MutableMapping[str, str]"; expected "dict[str, str]"  [arg-type]
+src/devsynth/application/cli/commands/webui_cmd.py:21: error: Module "devsynth.interface.webui" has no attribute "run"  [attr-defined]
+Found 2 errors in 2 files (checked 433 source files)
