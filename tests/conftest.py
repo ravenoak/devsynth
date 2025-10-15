@@ -1186,8 +1186,22 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Property testing disabled"))
 
 
-# Extracted to tests/fixtures/resources.py
-from tests.fixtures.resources import is_property_testing_enabled
+# Moved from tests/fixtures/resources.py to avoid circular import
+def is_property_testing_enabled() -> bool:
+    """Return True if property-based tests should run."""
+
+    flag = os.environ.get("DEVSYNTH_PROPERTY_TESTING")
+    if flag is not None:
+        return flag.strip().lower() in {"1", "true", "yes"}
+
+    cfg_path = Path(__file__).resolve().parent / "config" / "default.yml"
+    try:
+        import yaml
+        with open(cfg_path, "r") as f:  # type: ignore[call-arg]
+            data: dict[str, Any] = yaml.safe_load(f) or {}
+        return bool(data.get("formalVerification", {}).get("propertyTesting", False))
+    except Exception:
+        return False
 
 
 def pytest_runtest_setup(item: pytest.Item) -> None:

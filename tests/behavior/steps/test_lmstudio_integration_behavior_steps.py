@@ -20,7 +20,7 @@ from devsynth.config.settings import get_settings
 from devsynth.config import get_llm_settings
 
 # Load scenarios from the feature file
-scenarios('/tmp/devsynth_lmstudio_test/lmstudio_integration_behavior.feature')
+scenarios('../features/lmstudio_integration.feature')
 
 
 @given('DevSynth is properly installed and configured')

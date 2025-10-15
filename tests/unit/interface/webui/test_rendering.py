@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from devsynth.interface.webui.rendering import (
+from devsynth.interface.webui import (
     LifecyclePages,
     OperationsPages,
     PageRenderer,
