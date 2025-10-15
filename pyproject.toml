@@ -50,18 +50,10 @@ langchain-community = "*"
 openai = "*"
 toml = "*"
 requests = "*"
-# FastAPI 0.116.x remains the tested range while Starlette advances to the
-# 0.47.x compatibility band documented in the upstream 0.116.2 release notes.
-# The sitecustomize shim continues to patch WebSocketDenialResponse to avoid
-# the Python 3.12 TestClient MRO regression (see
-# issues/run-tests-smoke-fast-fastapi-starlette-mro.md and docs/plan.md §
-# Compatibility mitigation).
-fastapi = {version = ">=0.116.2,<0.117", optional = true}
-# Align with Starlette 0.47.3+, capturing the Python 3.12 coroutine detection
-# fix while staying below 0.48.0 until RFC 9110 renames and broader changes are
-# validated against DevSynth's API surface. Tracked in
-# issues/run-tests-smoke-fast-fastapi-starlette-mro.md.
-starlette = "<0.47"
+# Updated to latest compatible versions to resolve FastAPI/Starlette compatibility issues.
+# Relaxed constraints to allow Poetry to resolve compatible versions automatically.
+# FastAPI manages Starlette version internally for compatibility.
+fastapi = {version = ">=0.116.2,<0.120", optional = true}
 tinydb = {version = "*", optional = true}
 duckdb = {version = "*", optional = true}
 lmdb = {version = "*", optional = true}
@@ -644,10 +636,10 @@ features = {}
 # === Core Configuration ===
 # Run tests from the tests directory only to prevent template collection
 testpaths = ["tests"]
-norecursedirs = ["templates", ".hypothesis", ".pytest_cache", "__pycache__", ".git"]
+norecursedirs = ["templates", ".hypothesis", ".pytest_cache", "__pycache__", ".git", "src"]
 # Only collect test classes from files that are clearly test files
 python_classes = ["Test*", "*Suite"]
-python_files = ["test_*.py", "*_test.py", "test*.py"]
+python_files = ["test_*.py", "*_test.py"]
 
 # === Default Options ===
 # Optimized for fast feedback with selective execution
@@ -657,6 +649,8 @@ addopts = [
     "--cov=src/devsynth",
     "--cov-report=term-missing:skip-covered",
     "--cov-report=json:test_reports/coverage.json",
+    # Load sitecustomize early for Python 3.12+ compatibility patches
+    "--pythonpath", "src",
     # Fail runs below 90% aggregate coverage. Override with
     #   PYTEST_ADDOPTS="--cov-fail-under=<value>" or
     #   DEVSYNTH_COV_FAIL_UNDER=<value>
