@@ -6,7 +6,7 @@ all UXBridge implementations based on configuration settings.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type, cast
 
 from devsynth.config import ProjectUnifiedConfig
 from devsynth.interface.ux_bridge import UXBridge
@@ -71,10 +71,23 @@ def get_default_bridge(config: Optional[ProjectUnifiedConfig] = None) -> UXBridg
         "uxbridge_webui", False
     ):
         try:
-            from devsynth.interface.webui import WebUI
+            import sys
+            from pathlib import Path
+            import importlib.util
+
+            # Load the webui.py module directly
+            webui_path = Path(__file__).parent / "webui.py"
+            spec = importlib.util.spec_from_file_location("devsynth.interface.webui_module", webui_path)
+            if spec and spec.loader:
+                webui_module = importlib.util.module_from_spec(spec)
+                sys.modules["devsynth.interface.webui_module"] = webui_module
+                spec.loader.exec_module(webui_module)
+                WebUI = webui_module.WebUI
+            else:
+                raise ImportError("Could not load webui module")
 
             logger.debug("Using WebUI as default UXBridge implementation")
-            return apply_uxbridge_settings(WebUI, config)
+            return apply_uxbridge_settings(cast(Type[UXBridge], WebUI), config)
         except ImportError:
             logger.warning(
                 "WebUI requested but Streamlit not available, falling back to CLI"
