@@ -44,6 +44,24 @@ class OpenAIModelError(DevSynthError):
     pass
 
 
+class OpenAIAuthenticationError(DevSynthError):
+    """Exception raised when OpenAI authentication fails."""
+
+    pass
+
+
+class OpenAIConfigurationError(DevSynthError):
+    """Exception raised when OpenAI configuration is invalid."""
+
+    pass
+
+
+class OpenAITokenLimitError(DevSynthError):
+    """Exception raised when OpenAI token limit is exceeded."""
+
+    pass
+
+
 class OpenAIProvider(StreamingLLMProvider):
     """OpenAI LLM provider implementation."""
 
@@ -67,12 +85,13 @@ class OpenAIProvider(StreamingLLMProvider):
         # Initialize with default settings, overridden by provided config
         self.config = {**default_settings, **(config or {})}
 
-        # Set instance variables from config
-        self.api_key = self.config.get("openai_api_key")
-        self.model = self.config.get("openai_model") or "gpt-3.5-turbo"
+        # Set instance variables from config using standardized parameter names
+        self.api_key = self.config.get("api_key") or self.config.get("openai_api_key")  # Support both old and new names
+        self.model = self.config.get("model") or self.config.get("openai_model") or "gpt-3.5-turbo"
         self.max_tokens = self.config.get("max_tokens") or 1024
         self.temperature = self.config.get("temperature") or 0.7
-        self.api_base = self.config.get("api_base")
+        self.api_base = self.config.get("base_url") or self.config.get("api_base")  # Support both old and new names
+        self.timeout = self.config.get("timeout") or 60
         self.max_retries = self.config.get("max_retries", 3)
         self.circuit_breaker = CircuitBreaker(
             failure_threshold=self.config.get("failure_threshold", 3),
@@ -99,9 +118,12 @@ class OpenAIProvider(StreamingLLMProvider):
 
         # Require API key explicitly for this provider; tests enforce clear error
         if not self.api_key:
-            raise OpenAIConnectionError(
-                "OpenAI API key is required. Set OPENAI_API_KEY or provide 'openai_api_key' in config."
+            raise OpenAIAuthenticationError(
+                "OpenAI API key is required. Set OPENAI_API_KEY or provide 'api_key' in config."
             )
+
+        # Validate configuration parameters
+        self._validate_configuration()
 
         # Respect offline/test modes via request-time behavior only. We still
         # construct clients so unit tests can patch constructors without making
@@ -109,6 +131,55 @@ class OpenAIProvider(StreamingLLMProvider):
         self._init_client()
 
         logger.info(f"Initialized OpenAI provider with model: {self.model}")
+
+    def _validate_configuration(self) -> None:
+        """Validate OpenAI provider configuration parameters."""
+        # Parameter range validation
+        if not 0.0 <= self.temperature <= 2.0:
+            raise OpenAIConfigurationError(
+                f"OpenAI temperature must be between 0.0 and 2.0, got {self.temperature}"
+            )
+
+        if self.max_tokens <= 0:
+            raise OpenAIConfigurationError(
+                f"OpenAI max_tokens must be positive, got {self.max_tokens}"
+            )
+
+        if self.timeout <= 0:
+            raise OpenAIConfigurationError(
+                f"OpenAI timeout must be positive, got {self.timeout}"
+            )
+
+        if self.max_retries < 0:
+            raise OpenAIConfigurationError(
+                f"OpenAI max_retries must be non-negative, got {self.max_retries}"
+            )
+
+    def _validate_runtime_parameters(self, parameters: Dict[str, Any]) -> None:
+        """Validate runtime parameters for API calls."""
+        # Validate temperature if provided
+        if "temperature" in parameters:
+            temp = parameters["temperature"]
+            if not isinstance(temp, (int, float)) or not 0.0 <= temp <= 2.0:
+                raise OpenAIConfigurationError(
+                    f"OpenAI temperature must be a number between 0.0 and 2.0, got {temp}"
+                )
+
+        # Validate max_tokens if provided
+        if "max_tokens" in parameters:
+            max_tokens = parameters["max_tokens"]
+            if not isinstance(max_tokens, int) or max_tokens <= 0:
+                raise OpenAIConfigurationError(
+                    f"OpenAI max_tokens must be a positive integer, got {max_tokens}"
+                )
+
+        # Validate top_p if provided
+        if "top_p" in parameters:
+            top_p = parameters["top_p"]
+            if top_p is not None and (not isinstance(top_p, (int, float)) or not 0.0 <= top_p <= 1.0):
+                raise OpenAIConfigurationError(
+                    f"OpenAI top_p must be a number between 0.0 and 1.0, got {top_p}"
+                )
 
     def _init_client(self):
         """Initialize the OpenAI client."""
@@ -239,6 +310,9 @@ class OpenAIProvider(StreamingLLMProvider):
         # Ensure the prompt doesn't exceed token limits
         self.token_tracker.ensure_token_limit(prompt, self.max_tokens)
 
+        # Validate runtime parameters
+        self._validate_runtime_parameters(parameters or {})
+
         # Merge default parameters with provided parameters
         params = {
             "temperature": self.temperature,
@@ -264,8 +338,12 @@ class OpenAIProvider(StreamingLLMProvider):
             return content
         except OpenAIModelError:
             raise
+        except OpenAITokenLimitError:
+            raise  # Re-raise token limit errors as-is
+        except OpenAIConnectionError:
+            raise  # Re-raise connection errors as-is
         except Exception as e:
-            error_msg = f"OpenAI API error: {str(e)}"
+            error_msg = f"OpenAI API error: {str(e)}. Check your API key and model configuration."
             logger.error(error_msg)
             raise OpenAIConnectionError(error_msg)
 
@@ -321,8 +399,12 @@ class OpenAIProvider(StreamingLLMProvider):
             return content
         except OpenAIModelError:
             raise
+        except OpenAITokenLimitError:
+            raise  # Re-raise token limit errors as-is
+        except OpenAIConnectionError:
+            raise  # Re-raise connection errors as-is
         except Exception as e:
-            error_msg = f"OpenAI API error: {str(e)}"
+            error_msg = f"OpenAI API error: {str(e)}. Check your API key and model configuration."
             logger.error(error_msg)
             raise OpenAIConnectionError(error_msg)
 
@@ -345,6 +427,9 @@ class OpenAIProvider(StreamingLLMProvider):
         """
         # Ensure the prompt doesn't exceed token limits
         self.token_tracker.ensure_token_limit(prompt, self.max_tokens)
+
+        # Validate runtime parameters
+        self._validate_runtime_parameters(parameters or {})
 
         # Merge default parameters with provided parameters
         params = {
@@ -480,7 +565,11 @@ class OpenAIProvider(StreamingLLMProvider):
                 input=text,
             )
             return response.data[0].embedding
+        except OpenAITokenLimitError:
+            raise  # Re-raise token limit errors as-is
+        except OpenAIConnectionError:
+            raise  # Re-raise connection errors as-is
         except Exception as e:
-            error_msg = f"OpenAI API error: {str(e)}"
+            error_msg = f"OpenAI API error: {str(e)}. Check your API key and model configuration."
             logger.error(error_msg)
             raise OpenAIConnectionError(error_msg)
