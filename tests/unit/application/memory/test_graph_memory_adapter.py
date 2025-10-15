@@ -169,7 +169,7 @@ class TestGraphMemoryAdapter:
         item_one = MemoryItem(
             id="node1",
             content="Baseline requirement",
-            memory_type=MemoryType.REQUIREMENT,
+            memory_type=MemoryType.DOCUMENTATION,
             metadata={},
         )
         item_two = MemoryItem(

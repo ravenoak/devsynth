@@ -130,11 +130,8 @@ class TestMemorySystemAdapter:
         ReqID: N/A"""
         with patch("duckdb.connect") as mock_connect:
             # Use MagicMock with spec to ensure it has the same interface as the real DuckDB connection
-            if duckdb is not None:
-                mock_conn = MagicMock(spec=duckdb.DuckDBPyConnection)
-            else:
-                # Fallback if duckdb is not available
-                mock_conn = MagicMock()
+            from devsynth.application.memory.adapters._duckdb_protocols import DuckDBConnectionProtocol
+            mock_conn = MagicMock(spec=DuckDBConnectionProtocol)
             mock_conn.execute.return_value = None
             mock_connect.return_value = mock_conn
             original_init_schema = DuckDBStore._initialize_schema

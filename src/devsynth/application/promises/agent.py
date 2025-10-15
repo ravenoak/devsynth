@@ -11,7 +11,7 @@ import threading
 import time
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Callable, Dict, List, Optional, PromiseType, Set, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
 
 from devsynth.exceptions import DevSynthError
 
@@ -22,6 +22,7 @@ from .broker import (
     UnauthorizedAccessError,
 )
 from .implementation import Promise
+from .interface import PromiseType
 
 # Setup logger
 logger = logging.getLogger(__name__)

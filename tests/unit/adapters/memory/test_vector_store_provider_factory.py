@@ -10,7 +10,7 @@ from devsynth.exceptions import ValidationError
 pytestmark = [pytest.mark.memory_intensive, pytest.mark.isolation]
 
 
-class StubStore(VectorStore[MemoryVector]):
+class _StubStore(VectorStore[MemoryVector]):
 
     def __init__(self, **config):
         self.config = config
@@ -37,9 +37,9 @@ def test_register_and_create_succeeds():
 
     ReqID: N/A"""
     factory = SimpleVectorStoreProviderFactory()
-    factory.register_provider_type("stub", StubStore)
+    factory.register_provider_type("stub", _StubStore)
     provider = factory.create_provider("stub", {"foo": "bar"})
-    assert isinstance(provider, StubStore)
+    assert isinstance(provider, _StubStore)
     assert provider.config["foo"] == "bar"
 
 

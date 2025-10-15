@@ -18,12 +18,7 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
-class PromiseState(Enum):
-    """Enum representing the possible states of a Promise."""
-
-    PENDING = auto()
-    FULFILLED = auto()
-    REJECTED = auto()
+from .interface import PromiseState
 
 
 class PromiseError(DevSynthError):

@@ -617,7 +617,7 @@ def test_openai_provider_embed_has_expected(mock_post):
 )
 @patch("requests.get")
 @patch("requests.post")
-def test_lmstudio_provider_complete_has_expected(mock_post, mock_get, mock_tls):
+def test_lmstudio_provider_complete_has_expected(mock_post, mock_get, mock_tls1, mock_tls2):
     """Test the complete method of LMStudioProvider.
 
     ReqID: N/A"""
@@ -724,8 +724,11 @@ def test_provider_factory_injected_config_selects_provider():
             "devsynth.adapters.provider_system.TLSConfig.as_requests_kwargs",
             return_value={},
         ),
+        patch("devsynth.adapters.provider_system.get_settings") as mock_get_settings,
+        patch.dict("os.environ", {"DEVSYNTH_OFFLINE": ""}),  # Ensure not in offline mode
     ):
         mock_get.return_value.status_code = 200
+        mock_get_settings.return_value = type('Settings', (), {})()
         provider = ProviderFactory.create_provider("openai", config=custom_config)
         assert isinstance(provider, OpenAIProvider)
         provider = ProviderFactory.create_provider("lmstudio", config=custom_config)

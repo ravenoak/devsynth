@@ -30,9 +30,9 @@ canonical_name = "devsynth.application.memory.kuzu_store"
 # here avoids ``ModuleNotFoundError: ... None in sys.modules`` when the test
 # framework attempts another import after such a reload.
 if sys.modules.get(canonical_name) is None:
-    sys.modules[canonical_name] = sys.modules.get(
-        __name__, sys.modules.setdefault(__name__, sys.modules[__name__])
-    )
+    # When loaded via importlib, __name__ should be set to the spec name
+    # which should match the canonical name
+    sys.modules[canonical_name] = sys.modules.get(__name__, None)
 
 if __spec__ is not None:
     __spec__.name = canonical_name
