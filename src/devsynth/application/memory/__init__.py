@@ -17,6 +17,7 @@ from .memory_manager import MemoryManager
 from .multi_layered_memory import MultiLayeredMemorySystem
 from .persistent_context_manager import PersistentContextManager
 from .search_patterns import SearchPatterns
+from .vector_providers import factory as vector_store_factory
 
 logger = DevSynthLogger(__name__)
 
@@ -86,3 +87,5 @@ if VectorMemoryAdapter is not None:
 
 if TinyDBMemoryAdapter is not None:
     __all__.append("TinyDBMemoryAdapter")
+
+__all__.append("vector_store_factory")

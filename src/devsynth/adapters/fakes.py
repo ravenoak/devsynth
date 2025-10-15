@@ -41,7 +41,7 @@ class FakeMemoryStore(MemoryStore):
         self._next_id += 1
         return nid
 
-    def store(self, item: MemoryItem) -> str:
+    def store(self, item: MemoryItem, transaction_id: str | None = None) -> str:
         item_id = item.id or self._gen_id()
         if self._active_tx:
             self._tx_buffers.setdefault(self._active_tx, []).append(

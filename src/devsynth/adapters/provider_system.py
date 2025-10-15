@@ -45,6 +45,7 @@ class ProviderType(Enum):
     OPENAI = "openai"
     LMSTUDIO = "lmstudio"
     ANTHROPIC = "anthropic"
+    OPENROUTER = "openrouter"
     STUB = "stub"
 
 
@@ -123,6 +124,13 @@ def get_provider_config() -> dict[str, Any]:
                 "LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234"
             ),
             "model": get_env_or_default("LM_STUDIO_MODEL", "default"),
+        },
+        "openrouter": {
+            "api_key": get_env_or_default("OPENROUTER_API_KEY"),
+            "model": get_env_or_default("OPENROUTER_MODEL"),
+            "base_url": get_env_or_default(
+                "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"
+            ),
         },
         "retry": {
             "max_retries": getattr(settings, "provider_max_retries", 3),
@@ -318,6 +326,28 @@ class ProviderFactory:
                     "Anthropic provider is not supported in "
                     "adapters.provider_system; use application.llm.providers "
                     "or configure OpenAI/LM Studio."
+                )
+            elif pt == ProviderType.OPENROUTER.value:
+                api_key = os.environ.get("OPENROUTER_API_KEY")
+                if not api_key:
+                    if explicit_request:
+                        logger.error(
+                            "OpenRouter API key is missing for explicitly "
+                            "requested OpenRouter provider"
+                        )
+                        raise ProviderError(
+                            "OpenRouter API key is required for OpenRouter provider"
+                        )
+                    return _safe_provider(
+                        "No OPENROUTER_API_KEY; falling back to safe default"
+                    )
+                logger.info("Using OpenRouter provider")
+                return OpenRouterProvider(
+                    api_key=api_key,
+                    base_url=config["openrouter"]["base_url"],
+                    model=config["openrouter"].get("model"),
+                    tls_config=tls_conf,
+                    retry_config=retry_config or config.get("retry"),
                 )
             elif pt == ProviderType.STUB.value:
                 logger.info("Using Stub provider (deterministic, offline)")
@@ -1069,11 +1099,10 @@ class LMStudioProvider(BaseProvider):
             # slightly larger read timeout
             # Ping a lightweight endpoint to verify availability
             health_url = f"{self.endpoint}/api/v0/models"
-            requests.get(
-                health_url,
-                timeout=(0.2, 1.0),
-                **self.tls_config.as_requests_kwargs(),
-            )
+            # Get TLS config kwargs but override timeout for this specific check
+            tls_kwargs = self.tls_config.as_requests_kwargs()
+            tls_kwargs["timeout"] = (0.2, 1.0)  # Override timeout for health check
+            requests.get(health_url, **tls_kwargs)
         except Exception as exc:
             raise ProviderError(
                 "LM Studio endpoint is not reachable; provider disabled. "
@@ -1497,6 +1526,481 @@ class LMStudioProvider(BaseProvider):
             msg = (
                 f"LM Studio endpoint {self.endpoint} is unreachable. "
                 "Ensure the server is running."
+            )
+            logger.error("%s: %s", msg, e)
+            raise ProviderError(msg) from e
+
+
+class OpenRouterProvider(BaseProvider):
+    """OpenRouter API provider implementation."""
+
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://openrouter.ai/api/v1",
+        model: str | None = None,
+        tls_config: TLSConfig | None = None,
+        retry_config: dict[str, Any] | None = None,
+    ):
+        """
+        Initialize OpenRouter provider.
+
+        Args:
+            api_key: OpenRouter API key
+            base_url: Base URL for OpenRouter API
+            model: Model name (optional, defaults to free-tier)
+        """
+        if requests is None:
+            # Avoid import-time hard dependency when [llm] extra is not installed
+            raise ProviderError(
+                "The 'requests' package is required for OpenRouter provider. "
+                "Install the 'devsynth[llm]' extra or set "
+                "DEVSYNTH_SAFE_DEFAULT_PROVIDER=stub."
+            )
+        super().__init__(
+            tls_config=tls_config,
+            retry_config=retry_config,
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+        )
+        self.api_key = api_key
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        self.headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+            "HTTP-Referer": "https://devsynth.dev",
+            "X-Title": "DevSynth AI Platform",
+        }
+
+        if retry_config is not None:
+            self.retry_config = retry_config
+
+    def _should_retry(self, exc: Exception) -> bool:
+        """Return ``True`` if the exception should trigger a retry."""
+        status = getattr(exc.response, "status_code", None)
+        if status is None:
+            status = getattr(exc, "status_code", None)
+        if status is not None and 400 <= int(status) < 500 and int(status) != 429:
+            return False
+        return True
+
+    def _get_retry_config(self):
+        """Get the retry configuration for OpenRouter API calls."""
+        return {
+            "max_retries": self.retry_config["max_retries"],
+            "initial_delay": self.retry_config["initial_delay"],
+            "exponential_base": self.retry_config["exponential_base"],
+            "max_delay": self.retry_config["max_delay"],
+            "jitter": self.retry_config["jitter"],
+            "track_metrics": self.retry_config.get("track_metrics", True),
+            "conditions": self.retry_config.get("conditions"),
+        }
+
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: str | None = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+        *,
+        parameters: dict[str, Any] | None = None,
+    ) -> str:
+        """
+        Generate a completion using OpenRouter API.
+
+        Args:
+            prompt: User prompt
+            system_prompt: Optional system prompt
+            temperature: Sampling temperature (0.0 to 1.0)
+            max_tokens: Maximum number of tokens to generate
+
+        Returns:
+            str: Generated completion
+
+        Raises:
+            ProviderError: If API call fails
+        """
+
+        # Define the actual API call function
+        if parameters:
+            temperature = parameters.get("temperature", temperature)
+            max_tokens = parameters.get("max_tokens", max_tokens)
+            top_p = parameters.get("top_p")
+
+            if not 0 <= temperature <= 2:
+                raise ProviderError("temperature must be between 0 and 2")
+            if max_tokens <= 0:
+                raise ProviderError("max_tokens must be positive")
+            if top_p is not None and not 0 <= top_p <= 1:
+                raise ProviderError("top_p must be between 0 and 1")
+
+        def _api_call():
+            url = f"{self.base_url}/chat/completions"
+
+            if parameters and "messages" in parameters:
+                messages = list(parameters["messages"])
+            else:
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model or "google/gemini-flash-1.5",  # Default to free tier
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            if parameters:
+                extra = {
+                    k: v
+                    for k, v in parameters.items()
+                    if k not in {"temperature", "max_tokens", "messages"}
+                }
+                payload.update(extra)
+
+            kwargs = self.tls_config.as_requests_kwargs()
+            timeout = kwargs.pop("timeout")
+            response = requests.post(
+                url,
+                headers=self.headers,
+                json=payload,
+                timeout=timeout,
+                **kwargs,
+            )
+            response.raise_for_status()
+            response_data = response.json()
+
+            if "choices" in response_data and len(response_data["choices"]) > 0:
+                choice = response_data["choices"][0]
+                if isinstance(choice, dict):
+                    if "message" in choice and "content" in choice["message"]:
+                        return choice["message"]["content"]
+                    if "text" in choice:
+                        return choice["text"]
+            raise ProviderError(f"Invalid OpenRouter response format: {response_data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+            return retry_with_exponential_backoff(
+                max_retries=retry_config["max_retries"],
+                initial_delay=retry_config["initial_delay"],
+                exponential_base=retry_config["exponential_base"],
+                max_delay=retry_config["max_delay"],
+                jitter=retry_config["jitter"],
+                retry_conditions=retry_config.get("conditions"),
+                track_metrics=retry_config.get("track_metrics", True),
+                should_retry=self._should_retry,
+                retryable_exceptions=(requests.exceptions.RequestException,),
+                on_retry=self._emit_retry_telemetry,
+            )(_api_call)()
+        except requests.exceptions.RequestException as e:
+            msg = (
+                f"OpenRouter API is unreachable. "
+                "Check your API key and internet connection."
+            )
+            logger.error("%s: %s", msg, e)
+            raise ProviderError(msg) from e
+
+    async def acomplete(
+        self,
+        prompt: str,
+        system_prompt: str | None = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+        *,
+        parameters: dict[str, Any] | None = None,
+    ) -> str:
+        """Asynchronously generate a completion using OpenRouter."""
+        if httpx is None:
+            raise ProviderError(
+                "The 'httpx' package is required for async OpenRouter operations. "
+                "Install 'devsynth[llm]' or use synchronous methods."
+            )
+        # Define the actual API call function
+        if parameters:
+            temperature = parameters.get("temperature", temperature)
+            max_tokens = parameters.get("max_tokens", max_tokens)
+            top_p = parameters.get("top_p")
+
+            if not 0 <= temperature <= 2:
+                raise ProviderError("temperature must be between 0 and 2")
+            if max_tokens <= 0:
+                raise ProviderError("max_tokens must be positive")
+            if top_p is not None and not 0 <= top_p <= 1:
+                raise ProviderError("top_p must be between 0 and 1")
+
+        async def _api_call():
+            url = f"{self.base_url}/chat/completions"
+
+            if parameters and "messages" in parameters:
+                messages = list(parameters["messages"])
+            else:
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model or "google/gemini-flash-1.5",  # Default to free tier
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            if parameters:
+                extra = {
+                    k: v
+                    for k, v in parameters.items()
+                    if k not in {"temperature", "max_tokens", "messages"}
+                }
+                payload.update(extra)
+
+            async with httpx.AsyncClient(
+                **self.tls_config.as_requests_kwargs()
+            ) as client:
+                response = await client.post(url, headers=self.headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+
+            if "choices" in data and len(data["choices"]) > 0:
+                choice = data["choices"][0]
+                if isinstance(choice, dict):
+                    if "message" in choice and "content" in choice["message"]:
+                        return choice["message"]["content"]
+                    if "text" in choice:
+                        return choice["text"]
+            raise ProviderError(f"Invalid OpenRouter response format: {data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+
+            # Since we can't easily decorate async functions with retry,
+            # we'll just implement a simple retry loop here
+            max_retries = retry_config["max_retries"]
+            initial_delay = retry_config["initial_delay"]
+            exponential_base = retry_config["exponential_base"]
+            max_delay = retry_config["max_delay"]
+            jitter = retry_config["jitter"]
+
+            retry_count = 0
+            last_exception = None
+
+            while retry_count <= max_retries:
+                try:
+                    return await _api_call()
+                except httpx.HTTPError as e:
+                    last_exception = e
+                    retry_count += 1
+
+                    if retry_count > max_retries:
+                        break
+
+                    # Calculate delay with exponential backoff
+                    delay = min(
+                        initial_delay * (exponential_base ** (retry_count - 1)),
+                        max_delay,
+                    )
+
+                    # Add jitter if enabled
+                    if jitter:
+                        import random
+
+                        delay = delay * (0.5 + random.random())
+
+                    # Wait before retrying
+                    self._emit_retry_telemetry(e, retry_count, delay)
+                    await asyncio.sleep(delay)
+
+            # If we've exhausted all retries, raise the last exception
+            msg = (
+                f"OpenRouter API is unreachable after "
+                f"{max_retries} retries: {last_exception}"
+            )
+            logger.error(msg)
+            raise ProviderError(msg)
+
+        except httpx.HTTPError as e:
+            msg = (
+                f"OpenRouter API is unreachable. "
+                "Check your API key and internet connection."
+            )
+            logger.error("%s: %s", msg, e)
+            raise ProviderError(msg) from e
+
+    def complete_with_context(
+        self,
+        prompt: str,
+        context: list[dict[str, str]],
+        *,
+        parameters: dict[str, Any] | None = None,
+    ) -> str:
+        """Generate a completion using chat ``context``."""
+        messages = list(context) + [{"role": "user", "content": prompt}]
+
+        system_msg = None
+        if messages and messages[0].get("role") == "system":
+            system_msg = messages.pop(0)["content"]
+
+        return self.complete(
+            prompt,
+            system_prompt=system_msg,
+            parameters={**(parameters or {}), "messages": messages},
+        )
+
+    def embed(self, text: str | list[str]) -> list[list[float]]:
+        """
+        Generate embeddings using the OpenRouter API.
+
+        Args:
+            text: Input text or list of texts
+
+        Returns:
+            List[List[float]]: Embeddings
+
+        Raises:
+            ProviderError: If API call fails
+        """
+
+        # Define the actual API call function
+        def _api_call():
+            url = f"{self.base_url}/embeddings"
+
+            if isinstance(text, str):
+                text_list = [text]
+            else:
+                text_list = text
+
+            payload = {
+                "model": "text-embedding-ada-002",  # Use OpenAI-compatible embedding model
+                "input": text_list,
+            }
+
+            kwargs = self.tls_config.as_requests_kwargs()
+            timeout = kwargs.pop("timeout")
+            response = requests.post(
+                url,
+                headers=self.headers,
+                json=payload,
+                timeout=timeout,
+                **kwargs,
+            )
+            response.raise_for_status()
+            response_data = response.json()
+
+            if "data" in response_data and len(response_data["data"]) > 0:
+                return [item["embedding"] for item in response_data["data"]]
+            raise ProviderError(
+                f"Invalid OpenRouter embedding response format: {response_data}"
+            )
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+            return retry_with_exponential_backoff(
+                max_retries=retry_config["max_retries"],
+                initial_delay=retry_config["initial_delay"],
+                exponential_base=retry_config["exponential_base"],
+                max_delay=retry_config["max_delay"],
+                jitter=retry_config["jitter"],
+                retry_conditions=retry_config.get("conditions"),
+                track_metrics=retry_config.get("track_metrics", True),
+                should_retry=self._should_retry,
+                retryable_exceptions=(requests.exceptions.RequestException,),
+                on_retry=self._emit_retry_telemetry,
+            )(_api_call)()
+        except requests.exceptions.RequestException as e:
+            msg = (
+                f"OpenRouter API is unreachable. "
+                "Check your API key and internet connection."
+            )
+            logger.error("%s: %s", msg, e)
+            raise ProviderError(msg) from e
+
+    async def aembed(self, text: str | list[str]) -> list[list[float]]:
+        """Asynchronously generate embeddings using the OpenRouter API."""
+
+        # Define the actual API call function
+        async def _api_call():
+            url = f"{self.base_url}/embeddings"
+
+            if isinstance(text, str):
+                text_list = [text]
+            else:
+                text_list = text
+
+            payload = {
+                "model": "text-embedding-ada-002",  # Use OpenAI-compatible embedding model
+                "input": text_list,
+            }
+
+            async with httpx.AsyncClient(
+                **self.tls_config.as_requests_kwargs()
+            ) as client:
+                response = await client.post(url, headers=self.headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+
+            if "data" in data and len(data["data"]) > 0:
+                return [item["embedding"] for item in data["data"]]
+            raise ProviderError(f"Invalid OpenRouter embedding response format: {data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+
+            # Since we can't easily decorate async functions with retry,
+            # we'll just implement a simple retry loop here
+            max_retries = retry_config["max_retries"]
+            initial_delay = retry_config["initial_delay"]
+            exponential_base = retry_config["exponential_base"]
+            max_delay = retry_config["max_delay"]
+            jitter = retry_config["jitter"]
+
+            retry_count = 0
+            last_exception = None
+
+            while retry_count <= max_retries:
+                try:
+                    return await _api_call()
+                except httpx.HTTPError as e:
+                    last_exception = e
+                    retry_count += 1
+
+                    if retry_count > max_retries:
+                        break
+
+                    # Calculate delay with exponential backoff
+                    delay = min(
+                        initial_delay * (exponential_base ** (retry_count - 1)),
+                        max_delay,
+                    )
+
+                    # Add jitter if enabled
+                    if jitter:
+                        import random
+
+                        delay = delay * (0.5 + random.random())
+
+                    # Wait before retrying
+                    self._emit_retry_telemetry(e, retry_count, delay)
+                    await asyncio.sleep(delay)
+
+            # If we've exhausted all retries, raise the last exception
+            msg = (
+                f"OpenRouter API is unreachable after "
+                f"{max_retries} retries: {last_exception}"
+            )
+            logger.error(msg)
+            raise ProviderError(msg)
+
+        except httpx.HTTPError as e:
+            msg = (
+                f"OpenRouter API is unreachable. "
+                "Check your API key and internet connection."
             )
             logger.error("%s: %s", msg, e)
             raise ProviderError(msg) from e

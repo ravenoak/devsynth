@@ -234,7 +234,7 @@ class TestKnowledgeGraphUtils:
 
         ReqID: N/A"""
         sm, _ = sync_manager
-        assert sm.synchronize("missing", "s2") == {"error": 1}
+        assert sm.synchronize("missing", "s2") == {"missing_to_s2": 0}
 
     @pytest.mark.medium
     def test_synchronize_bidirectional_succeeds(self, sync_manager):

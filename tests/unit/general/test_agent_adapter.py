@@ -13,4 +13,5 @@ def test_register_agent_type_succeeds():
     class Dummy: ...
 
     factory.register_agent_type("dummy", Dummy)
-    assert "dummy" in factory.agent_types
+    assert "dummy" in factory._custom_agents
+    assert factory._custom_agents["dummy"] is Dummy

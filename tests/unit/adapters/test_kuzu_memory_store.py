@@ -20,6 +20,29 @@ KUZU_ADAPTER_PATH = ROOT / "src/devsynth/adapters/kuzu_memory_store.py"
 def KuzuMemoryStoreClass(monkeypatch):
     """Load ``KuzuMemoryStore`` and its dependencies from source."""
     monkeypatch.setenv("DEVSYNTH_KUZU_EMBEDDED", "true")
+
+    # Mock settings module with all required attributes - must be done before any imports
+    fake_settings = ModuleType("devsynth.config.settings")
+
+    # Create a proper settings object
+    class FakeSettings:
+        def __init__(self):
+            self.kuzu_db_path = None
+            self.kuzu_embedded = True
+
+    fake_settings.get_settings = lambda reload=False, **kwargs: FakeSettings()
+    fake_settings.ensure_path_exists = lambda path, create=True: path
+    fake_settings.kuzu_embedded = True
+    fake_settings.DEFAULT_KUZU_EMBEDDED = True
+    fake_settings.get_llm_settings = lambda reload=False, **kwargs: {}
+
+    # Set the module in sys.modules before importing anything that might use it
+    monkeypatch.setitem(sys.modules, "devsynth.config.settings", fake_settings)
+
+    # Also set it in the parent namespace to be safe
+    import devsynth.config
+    devsynth.config.settings = fake_settings
+
     fake_pkg = ModuleType("devsynth.application.memory")
     fake_pkg.__path__ = [str(KUZU_STORE_PATH.parent)]
     monkeypatch.setitem(sys.modules, "devsynth.application.memory", fake_pkg)

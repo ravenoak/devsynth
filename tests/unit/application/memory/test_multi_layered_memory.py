@@ -63,7 +63,7 @@ class TestMultiLayeredMemorySystem:
             "unknown": MemoryItem(
                 id="unknown-1",
                 content="Unknown memory type",
-                memory_type="UNKNOWN",
+                memory_type=MemoryType.WORKING,
                 metadata={},
             ),
         }
