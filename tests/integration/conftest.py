@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import pytest
 
-import tests.fixtures.optional_deps as _optional_deps  # noqa: F401
+from tests.fixtures import optional_deps
 
 _SPEED_MARKER_NAMES = {"fast", "medium", "slow"}
 
@@ -67,6 +67,8 @@ def pytest_collection_modifyitems(
 
 
 @pytest.fixture(autouse=True)
-def _stub_external_services(stub_optional_deps):
+def _stub_external_services():
     """Automatically stub optional external dependencies for integration tests."""
+    # Apply optional dependency stubs
+    optional_deps._apply_optional_stubs()
     return None

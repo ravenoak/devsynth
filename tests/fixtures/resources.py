@@ -17,7 +17,14 @@ from typing import Any, Iterable, Mapping, Sequence
 
 import pytest
 
-from tests.conftest import is_resource_available
+# Import is_resource_available from conftest to avoid circular import issues
+try:
+    from tests.conftest import is_resource_available
+except ImportError:
+    # Fallback for when conftest isn't fully loaded yet
+    def is_resource_available(resource: str) -> bool:
+        """Fallback implementation when conftest isn't available."""
+        return False
 
 try:  # pragma: no cover - optional dependency
     import yaml  # type: ignore
@@ -61,24 +68,6 @@ OPTIONAL_BACKEND_REQUIREMENTS: dict[str, BackendRequirement] = {
         "imports": ("rdflib",),
     },
 }
-
-
-def is_property_testing_enabled() -> bool:
-    """Return True if property-based tests should run."""
-
-    flag = os.environ.get("DEVSYNTH_PROPERTY_TESTING")
-    if flag is not None:
-        return flag.strip().lower() in {"1", "true", "yes"}
-
-    cfg_path = Path(__file__).resolve().parents[2] / "config" / "default.yml"
-    if yaml is None:
-        return False
-    try:
-        with open(cfg_path, "r") as f:  # type: ignore[call-arg]
-            data: dict[str, Any] = yaml.safe_load(f) or {}
-        return bool(data.get("formalVerification", {}).get("propertyTesting", False))
-    except Exception:
-        return False
 
 
 def resource_flag_enabled(resource: str) -> bool:
