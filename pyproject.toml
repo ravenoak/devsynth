@@ -22,7 +22,7 @@ description = "DevSynth project"
 readme = "README.md"
 license = "MIT"
 authors = [{name = "DevSynth Team"}]
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<3.15"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -36,7 +36,7 @@ dynamic = [
 ]
 
 [tool.poetry.dependencies]
-python = "<3.13,>=3.12"
+python = "<3.15,>=3.12"
 typer = "^0.17.4"
 rich = "*"
 pydantic = "*"
@@ -50,10 +50,9 @@ langchain-community = "*"
 openai = "*"
 toml = "*"
 requests = "*"
-# Updated to latest compatible versions to resolve FastAPI/Starlette compatibility issues.
-# Relaxed constraints to allow Poetry to resolve compatible versions automatically.
-# FastAPI manages Starlette version internally for compatibility.
-fastapi = {version = ">=0.116.2,<0.120", optional = true}
+# Pin FastAPI and Starlette to compatible versions to resolve MRO issues
+fastapi = {version = "^0.115.0", optional = true}
+starlette = {version = "^0.37.0", optional = true}
 tinydb = {version = "*", optional = true}
 duckdb = {version = "*", optional = true}
 lmdb = {version = "*", optional = true}
@@ -180,14 +179,16 @@ memory = [
 llm = ["tiktoken>=0", "httpx>=0"]
 offline = ["transformers>=0"]
 api = [
-    "fastapi>=0.116.2,<0.117",
+    "fastapi>=0.115.0,<0.116.0",
+    "starlette>=0.37.0,<0.38.0",
     "prometheus-client>=0",
 ]
 webui = ["streamlit>=0"]
 webui_nicegui = ["nicegui>=0"]
 gui = ["dearpygui>=0"]
 tests = [
-    "fastapi>=0.116.2,<0.117",
+    "fastapi>=0.115.0,<0.116.0",
+    "starlette>=0.37.0,<0.38.0",
     "httpx>=0",
     "tinydb>=0",
     "duckdb>=0",
