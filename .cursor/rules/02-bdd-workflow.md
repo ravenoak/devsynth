@@ -13,13 +13,102 @@ alwaysApply: false
 
 **Strict workflow (non-negotiable):**
 
-1. Draft specification in `docs/specifications/`
-2. Write failing BDD feature in `tests/behavior/features/`
-3. Implement step definitions in `tests/behavior/steps/`
-4. Write production code in `src/devsynth/`
-5. Verify tests pass
+1. **Draft specification** in `docs/specifications/` answering Socratic questions
+2. **Write failing BDD feature** in `tests/behavior/features/`
+3. **Implement step definitions** in `tests/behavior/steps/`
+4. **Write production code** in `src/devsynth/`
+5. **Verify tests pass** and update documentation
 
 **Never write code before specification and failing feature exist.**
+
+### Workflow Example: Adding CLI Command
+
+**1. Specification Phase:**
+```markdown
+<!-- docs/specifications/cli-offline-mode.md -->
+# CLI Offline Mode Specification
+
+## Problem Statement
+Users need to run DevSynth agents without internet connectivity for air-gapped environments and offline development scenarios.
+
+## Solution Overview
+Add `--offline` flag that disables network-dependent features and uses local transformers for LLM inference.
+
+### Dialectical Analysis
+**Thesis**: Always use cloud APIs for maximum capability
+**Antithesis**: Air-gapped environments cannot access cloud APIs
+**Synthesis**: Detect network availability and provide offline fallback
+```
+
+**2. Feature File:**
+```gherkin
+# tests/behavior/features/cli_offline_mode.feature
+@feature_cli_offline
+@fast
+Feature: CLI Offline Mode
+  As a developer in air-gapped environments
+  I want to run DevSynth with --offline flag
+  So that I can work without internet connectivity
+
+  Background:
+    Given DevSynth is installed
+    And local transformers model is available
+
+  @smoke
+  Scenario: Offline mode disables network features
+    Given I have internet connectivity
+    When I run "devsynth agent run --offline"
+    Then network requests should be disabled
+    And local transformers should be used for inference
+```
+
+**3. Step Definitions:**
+```python
+# tests/behavior/steps/cli_offline_steps.py
+from pytest_bdd import given, when, then, scenarios
+
+scenarios('../features/cli_offline_mode.feature')
+
+@given("DevSynth is installed")
+def devsynth_installed():
+    """Verify DevSynth CLI is available."""
+    # Implementation
+
+@given("local transformers model is available")
+def local_model_available():
+    """Ensure transformers library and model are available."""
+    # Implementation
+
+@when('I run "devsynth agent run --offline"')
+def run_offline_command():
+    """Execute CLI command with offline flag."""
+    # Implementation
+
+@then("network requests should be disabled")
+def verify_network_disabled():
+    """Verify no network calls are made."""
+    # Implementation
+
+@then("local transformers should be used for inference")
+def verify_local_inference():
+    """Verify local model is used instead of API."""
+    # Implementation
+```
+
+**4. Implementation:**
+```python
+# src/devsynth/cli/commands/agent_cmd.py
+@app.command()
+def run(
+    offline: bool = typer.Option(False, "--offline", help="Run in offline mode")
+):
+    """Run agent with optional offline mode."""
+    if offline:
+        # Disable network features
+        # Configure local transformers
+        pass
+    # Implementation
+```
 
 ## Socratic Checklist
 
@@ -167,15 +256,53 @@ def then_result(context, expected):
 
 ## Running BDD Tests
 
+**BDD Testing Philosophy:**
+
+**Thesis**: Behavior-Driven Development ensures alignment between business requirements and implementation through executable specifications.
+
+**Antithesis**: Poorly written BDD tests can become maintenance burdens and fail to provide clear business value.
+
+**Synthesis**: Well-structured BDD with proper step definitions, clear scenarios, and regular maintenance provides living documentation that validates business requirements.
+
+### BDD Test Commands
+
 ```bash
-# All behavior tests
+# All behavior tests (within Poetry environment)
 poetry run pytest tests/behavior/
 
-# Specific feature
+# Specific feature file
 poetry run pytest tests/behavior/features/<feature>.feature
 
-# By tag
+# By BDD tags
 poetry run pytest tests/behavior/ -m "smoke"
+poetry run pytest tests/behavior/ -m "feature_<feature_name>"
+
+# With verbose output for debugging
+poetry run pytest tests/behavior/ -v -s
+
+# Generate BDD report
+poetry run pytest tests/behavior/ --bdd-report
+```
+
+### BDD Environment Setup
+
+**Required Dependencies:**
+```bash
+# Ensure BDD extras are installed
+poetry install --with dev --extras "tests"
+
+# Verify BDD tools available
+poetry run python -c "import pytest_bdd; print('pytest-bdd OK')"
+poetry run python -c "import behave; print('behave OK')"  # If using behave
+```
+
+**Feature File Validation:**
+```bash
+# Check feature file syntax
+poetry run python -m pytest_bdd.check tests/behavior/features/
+
+# Generate step definition stubs
+poetry run python scripts/generate_step_stubs.py tests/behavior/features/
 ```
 
 ## BDD Anti-Patterns

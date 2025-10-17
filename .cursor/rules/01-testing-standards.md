@@ -27,16 +27,52 @@ tests/
 **Every test function must have exactly one speed marker:**
 
 ```python
-@pytest.mark.fast      # < 1s
-@pytest.mark.medium    # 1s-5s
-@pytest.mark.slow      # > 5s
+@pytest.mark.fast      # < 1s - unit tests, simple validations
+@pytest.mark.medium    # 1s-5s - integration tests, moderate computation
+@pytest.mark.slow      # > 5s - end-to-end tests, heavy computation, external APIs
 ```
 
 **Never use module-level `pytestmark` for speed categories.**
 
+### Speed Marker Examples
+
+```python
+# Fast: Simple unit test
+@pytest.mark.fast
+def test_memory_item_creation():
+    """Test basic MemoryItem instantiation."""
+    item = MemoryItem(content="test", metadata={})
+    assert item.content == "test"
+
+# Medium: Integration test with file I/O
+@pytest.mark.medium
+def test_config_file_loading(tmp_path):
+    """Test configuration file parsing."""
+    config_file = tmp_path / "config.yml"
+    config_file.write_text("key: value")
+    config = load_config(config_file)
+    assert config["key"] == "value"
+
+# Slow: End-to-end test with external service
+@pytest.mark.slow
+@pytest.mark.requires_resource("openai")
+def test_agent_conversation():
+    """Test full agent conversation workflow."""
+    agent = ConversationAgent()
+    response = agent.process("Hello, how are you?")
+    assert len(response) > 0
+```
+
 ### Validation
 ```bash
+# Check all tests have speed markers
+poetry run python scripts/verify_test_markers.py
+
+# Check only changed files
 poetry run python scripts/verify_test_markers.py --changed
+
+# Pre-commit hook will fail if markers are missing
+poetry run pre-commit run --files test_file.py
 ```
 
 ## Unit Test Pattern
@@ -163,19 +199,72 @@ def test_with_mock():
 
 ## Running Tests
 
+**Test Execution Philosophy:**
+
+**Thesis**: Comprehensive testing ensures code reliability and maintains development velocity through early issue detection.
+
+**Antithesis**: Over-testing or slow test suites can hinder development speed and create maintenance burden.
+
+**Synthesis**: Balanced testing strategy with speed markers, resource flags, and parallel execution ensures both reliability and development efficiency.
+
+### Test Commands
+
+**Primary Test Runner (Recommended):**
 ```bash
-# Preferred: via CLI wrapper
+# Run tests by speed category (preferred)
 poetry run devsynth run-tests --speed=fast
+poetry run devsynth run-tests --speed=medium
+poetry run devsynth run-tests --speed=slow
 
-# Smoke test
-poetry run devsynth run-tests --smoke --speed=fast --no-parallel
+# Smoke test (fastest sanity check)
+poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
 
-# With report
+# With HTML coverage report
 poetry run devsynth run-tests --report
 
-# Direct pytest
+# Run specific test markers
+poetry run devsynth run-tests --speed=fast -m "unit and not gui"
+```
+
+**Direct Pytest (Advanced Usage):**
+```bash
+# Run specific test directories
 poetry run pytest tests/unit/
+poetry run pytest tests/integration/
+poetry run pytest tests/behavior/
+
+# Run by markers
 poetry run pytest -m "fast and not gui"
+poetry run pytest -m "requires_resource and chromadb"
+
+# Run with custom options
+poetry run pytest --tb=short --strict-markers
+```
+
+### Test Environment Setup
+
+**Required Environment Variables:**
+```bash
+# Enable optional test resources
+export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+export DEVSYNTH_RESOURCE_OPENAI_AVAILABLE=true
+export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
+
+# Enable property testing (opt-in)
+export DEVSYNTH_PROPERTY_TESTING=true
+
+# Configure test parallelism
+export PYTEST_XDIST_WORKER_COUNT=4
+```
+
+**Virtual Environment Verification:**
+```bash
+# Ensure tests run in Poetry environment
+poetry run which python  # Should show .venv/bin/python
+poetry run which pytest  # Should show .venv/bin/pytest
+
+# Check available test extras
+poetry run pytest --markers | grep "requires_resource"
 ```
 
 ## Test Documentation
