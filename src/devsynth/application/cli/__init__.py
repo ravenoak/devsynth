@@ -109,4 +109,4 @@ __all__ = [
 ] + list(COMMAND_ATTRIBUTE_NAMES)
 
 
-_register_commands()
+# _register_commands()  # Deferred until first attribute access

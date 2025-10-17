@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from devsynth.config import get_llm_settings
+# Import get_llm_settings lazily to avoid import issues during testing
 from devsynth.core.config_loader import load_config
 from devsynth.logging_setup import DevSynthLogger
 
@@ -21,6 +21,7 @@ def get_llm_provider(config: Dict[str, Any] | None = None):
     cfg = config or load_config().as_dict()
     offline = cfg.get("offline_mode", False)
 
+    from devsynth.config.settings import get_llm_settings
     llm_cfg = get_llm_settings()
     if "offline_provider" in cfg:
         llm_cfg["offline_provider"] = cfg["offline_provider"]

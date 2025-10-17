@@ -2,6 +2,7 @@
 Token tracking and optimization utilities for LLM interactions.
 """
 
+import os
 import re
 from typing import Dict, List, Optional, Union
 
@@ -27,6 +28,9 @@ except ImportError:
 _TEST_MODE = False
 _TEST_TOKEN_COUNTS = {}
 
+# Detect if we're in a test environment
+_IN_TEST_ENV = os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1"
+
 
 class TokenTracker:
     """Utility for tracking and optimizing token usage in LLM interactions."""
@@ -41,7 +45,7 @@ class TokenTracker:
         self._encoding = None
 
         # Initialize the tokenizer if tiktoken is available
-        if TIKTOKEN_AVAILABLE:
+        if TIKTOKEN_AVAILABLE and not _IN_TEST_ENV:
             try:
                 self._encoding = tiktoken.encoding_for_model(model)
             except KeyError:
@@ -53,6 +57,12 @@ class TokenTracker:
                     "Falling back to approximate token counting"
                 )
                 self._encoding = None
+        elif TIKTOKEN_AVAILABLE and _IN_TEST_ENV:
+            logger.warning(
+                f"Skipping tiktoken initialization in test environment for model '{model}'. "
+                "Falling back to approximate token counting"
+            )
+            self._encoding = None
 
     def count_tokens(self, text: str) -> int:
         """Count the number of tokens in a text.

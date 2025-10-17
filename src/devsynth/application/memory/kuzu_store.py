@@ -61,8 +61,12 @@ except Exception:  # pragma: no cover - optional dependency
 else:
     tiktoken = cast("_TiktokenModule", _tiktoken)
 
-# Import the settings module so tests can monkeypatch ``ensure_path_exists``
-from devsynth.config import settings as settings_module
+# Import get_settings so tests can access configuration
+from devsynth.config.settings import get_settings, ensure_path_exists
+
+# Import config module for default settings and constants
+from devsynth import config as settings_module
+from devsynth.config.settings import kuzu_embedded
 from devsynth.domain.interfaces.memory import MemoryStore, SupportsTransactions
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError
@@ -84,7 +88,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         # overrides that may have been applied after module import.  Rely on
         # the settings object rather than module-level constants so changes are
         # consistently respected.
-        settings = settings_module.get_settings(reload=True)
+        settings = get_settings(reload=True)
 
         # ``ensure_path_exists`` handles path redirection and optional
         # directory creation based on the test environment.  Use the returned
@@ -97,7 +101,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
             or getattr(settings, "kuzu_db_path", settings_module.kuzu_db_path)
             or os.path.join(os.getcwd(), ".devsynth", "kuzu_store")
         )
-        base_path = os.path.abspath(settings_module.ensure_path_exists(base_directory))
+        base_path = os.path.abspath(ensure_path_exists(base_directory))
         try:
             os.makedirs(base_path, exist_ok=True)
             self.file_path = base_path
@@ -131,7 +135,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         # environment variable overrides that may have been applied after the
         # module was imported.
         raw_embedded = (
-            getattr(settings, "kuzu_embedded", settings_module.kuzu_embedded)
+            getattr(settings, "kuzu_embedded", kuzu_embedded)
             if use_embedded is None
             else use_embedded
         )
@@ -151,7 +155,7 @@ class KuzuStore(MemoryStore, SupportsTransactions):
         self._use_fallback = kuzu_mod is None or not self.use_embedded
         if not self._use_fallback:
             try:
-                settings_module.ensure_path_exists(self.file_path)
+                ensure_path_exists(self.file_path)
                 self.db = cast(_KuzuDatabase, kuzu_mod.Database(self.db_path))
                 self.conn = cast(_KuzuConnection, kuzu_mod.Connection(self.db))
                 if self.conn is not None:

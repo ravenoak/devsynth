@@ -5,7 +5,7 @@ from typing import Any, AsyncGenerator, Dict, List
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
-from ...config.settings import get_llm_settings
+# Import get_llm_settings lazily to avoid import issues during testing
 from ...domain.interfaces.llm import StreamingLLMProvider
 from ..utils.token_tracker import TokenTracker
 
@@ -21,6 +21,7 @@ class LocalProvider(StreamingLLMProvider):
     """Simplified local provider used when offline_mode is enabled."""
 
     def __init__(self, config: Dict[str, Any] | None = None) -> None:
+        from ...config.settings import get_llm_settings
         default_settings = get_llm_settings()
         self.config = {**default_settings, **(config or {})}
 

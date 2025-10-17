@@ -13,8 +13,13 @@ from rich.panel import Panel
 from rich.table import Table
 from typer import completion as typer_completion
 
-from devsynth.application.cli import config_app
 from devsynth.application.cli.registry import COMMAND_REGISTRY
+
+# Ensure CLI commands are registered before using the registry
+import devsynth.application.cli
+# Trigger command registration by accessing a command that will call __getattr__
+_ = devsynth.application.cli.run_tests_cmd
+# config_app will be imported just before use
 from devsynth.core.config_loader import load_config
 from devsynth.interface.cli import DEVSYNTH_THEME, CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge, sanitize_output
@@ -69,45 +74,6 @@ def inspect_config_cmd(
 ) -> None:
     COMMAND_REGISTRY["inspect-config"](path=path, update=update, prune=prune)
 
-
-def completion_cmd(
-    shell: str | None = None,
-    install: bool = False,
-    path: Path | None = None,
-    *,
-    bridge: CLIUXBridge | None = None,
-) -> None:
-    """Generate or install shell completion scripts."""
-
-    bridge = bridge or CLIUXBridge()
-    progress = bridge.create_progress("Generating completion script", total=2)
-
-    shell_name = shell or "bash"
-    prog_name = "devsynth"
-    complete_var = f"_{prog_name}_COMPLETE".replace("-", "_").upper()
-    script = typer_completion.get_completion_script(
-        prog_name=prog_name,
-        complete_var=complete_var,
-        shell=shell_name,  # nosec B604: shell arg specifies completion target
-    )
-    progress.update(status="script generated", advance=1)
-
-    if install:
-        if path is None:
-            _, target_path = typer_completion.install(
-                shell=shell_name,
-                prog_name=prog_name,
-                complete_var=complete_var,  # nosec B604: shell arg specifies completion target
-            )
-        else:
-            target_path = path
-            target_path.write_text(script)
-        bridge.show_completion(str(target_path))
-    else:
-        bridge.show_completion(script)
-
-    progress.update(status="done", advance=1)
-    progress.complete()
 
 
 def _patch_typer_types() -> None:
@@ -352,6 +318,9 @@ def build_app() -> typer.Typer:
     app.add_typer(requirements_app, name="requirements")
     app.add_typer(mvu_app, name="mvu")
     app.add_typer(vcs_app, name="vcs", help="Git / VCS utilities")
+
+    # Import config_app just before use to ensure lazy loading
+    from devsynth.application.cli import config_app
     app.add_typer(config_app, name="config", help="Manage configuration settings")
 
     @app.command(
