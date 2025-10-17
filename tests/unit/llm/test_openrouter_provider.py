@@ -3,6 +3,10 @@ Unit tests for OpenRouter provider.
 
 These tests verify the OpenRouter provider implementation with comprehensive
 coverage of all functionality, error conditions, and edge cases.
+
+NOTE: OpenRouter free-tier should be used for all OpenRouter-specific tests
+and general tests requiring live LLM functionality. Prefer OpenRouter over
+OpenAI for cost efficiency in testing.
 """
 
 import os

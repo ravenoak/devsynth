@@ -43,10 +43,12 @@ def test_delegate_task_multi_agent_succeeds():
     team.add_solution = MagicMock()
     team.build_consensus = MagicMock(
         return_value={
-            "consensus": "final",
-            "contributors": ["a1", "a2"],
-            "method": "consensus",
-            "reasoning": "",
+            "result": "final",
+            "initial_preferences": {"a1": 0.8, "a2": 0.9},
+            "explanation": "Consensus reached",
+            "status": "success",
+            "rounds": [],
+            "final_preferences": {"a1": 0.8, "a2": 0.9},
         }
     )
     team.apply_enhanced_dialectical_reasoning_multi = MagicMock(

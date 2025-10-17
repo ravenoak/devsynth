@@ -116,7 +116,7 @@ def test_cache_ttl_expired_triggers_subprocess_and_refresh(tmp_path, monkeypatch
             self.returncode = returncode
             self.stderr = stderr
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):
         calls["count"] += 1
         lines = [f"{t1}::test_beta"]
         return FakeProc("\n".join(lines), 0, "")

@@ -3,10 +3,23 @@ import types
 import pytest
 
 pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
-pytest.skip("requires FastAPI test client", allow_module_level=True)
+
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
+
+# Defer fastapi.testclient import to avoid MRO issues during collection
+# Import will be done lazily when actually needed by tests
+TestClient = None
+
+def _get_testclient():
+    """Lazily import TestClient to avoid MRO issues during collection."""
+    global TestClient
+    if TestClient is None:
+        try:
+            from fastapi.testclient import TestClient
+        except TypeError:
+            # Fallback for MRO compatibility issues
+            from starlette.testclient import TestClient
+    return TestClient
 
 from devsynth import api
 
@@ -27,7 +40,7 @@ def test_health_endpoint_accepts_valid_token(monkeypatch):
 
     ReqID: FR-74"""
     monkeypatch.setattr(api, "settings", types.SimpleNamespace(access_token="s3cr3t"))
-    client = TestClient(api.app)
+    client = _get_testclient()(api.app)
     response = client.get("/health", headers={"Authorization": "Bearer s3cr3t"})
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

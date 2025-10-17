@@ -1,12 +1,25 @@
 import pytest
 
 pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
-pytest.skip("requires FastAPI test client", allow_module_level=True)
+
 from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
+
+# Defer fastapi.testclient import to avoid MRO issues during collection
+# Import will be done lazily when actually needed by tests
+TestClient = None
+
+def _get_testclient():
+    """Lazily import TestClient to avoid MRO issues during collection."""
+    global TestClient
+    if TestClient is None:
+        try:
+            from fastapi.testclient import TestClient
+        except TypeError:
+            # Fallback for MRO compatibility issues
+            from starlette.testclient import TestClient
+    return TestClient
 
 from devsynth.api import app
 from devsynth.application.cli._command_exports import COMMAND_ATTRIBUTE_NAMES
@@ -47,7 +60,7 @@ def mock_settings():
 @pytest.fixture
 def client(mock_settings):
     """Test client for the API."""
-    return TestClient(app)
+    return _get_testclient()(app)
 
 
 @pytest.fixture

@@ -14,9 +14,22 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
 pytest.importorskip("streamlit")
-from fastapi.testclient import TestClient
+
+# Defer fastapi.testclient import to avoid MRO issues during collection
+# Import will be done lazily when actually needed by tests
+TestClient = None
+
+def _get_testclient():
+    """Lazily import TestClient to avoid MRO issues during collection."""
+    global TestClient
+    if TestClient is None:
+        try:
+            from fastapi.testclient import TestClient
+        except TypeError:
+            # Fallback for MRO compatibility issues
+            from starlette.testclient import TestClient
+    return TestClient
 
 from devsynth.interface.agentapi import WorkflowResponse
 from devsynth.interface.agentapi import app as agentapi_app
@@ -81,7 +94,7 @@ class TestCLIWebUIAgentAPIPipeline:
     @pytest.fixture
     def api_client(self):
         """Create a test client for the AgentAPI."""
-        return TestClient(agentapi_app)
+        return _get_testclient()(agentapi_app)
 
     @pytest.fixture
     def cli_bridge(self):

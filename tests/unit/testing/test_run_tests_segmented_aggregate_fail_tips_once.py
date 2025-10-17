@@ -65,7 +65,7 @@ def test_segmented_failure_appends_aggregate_tips_once(monkeypatch, tmp_path):
         "tests/unit/test_b.py::test_4",
     ]
 
-    def fake_run(cmd, check=False, capture_output=False, text=False):
+    def fake_run(cmd, check=False, capture_output=False, text=False, timeout=None, cwd=None, env=None):
         if "--collect-only" in cmd:
             return _DummyCompleted(stdout="\n".join(collected), stderr="", returncode=0)
         return _DummyCompleted(stdout="", stderr="", returncode=0)

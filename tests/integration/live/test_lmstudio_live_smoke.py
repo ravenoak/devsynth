@@ -13,20 +13,26 @@ from typing import Any, Dict
 
 import pytest
 
+from devsynth.testing.llm_test_timeouts import TEST_TIMEOUTS
+
 requires_lmstudio = pytest.mark.requires_resource("lmstudio")
 
 
-@pytest.mark.medium
+@pytest.mark.slow  # Changed from medium due to measured 5.6s response time
 @requires_lmstudio
 def test_lmstudio_models_ping_live_smoke():
-    """Ping LM Studio /v1/models with a very short timeout and minimal schema checks."""
+    """Ping LM Studio /v1/models.
+
+    Note: Runs on shared host with LM Studio. Conservative timeout
+    accounts for system load. Measured baseline: 3-6s.
+    """
     import httpx
 
     endpoint = os.environ.get("LM_STUDIO_ENDPOINT", "http://127.0.0.1:1234")
     # Allow override of path prefix
     url = endpoint.rstrip("/") + "/v1/models"
 
-    with httpx.Client(timeout=3.0) as client:
+    with httpx.Client(timeout=TEST_TIMEOUTS.lmstudio_health) as client:
         resp = client.get(url)
         assert (
             resp.status_code == 200

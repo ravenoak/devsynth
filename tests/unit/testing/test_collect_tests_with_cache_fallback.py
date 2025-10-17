@@ -33,7 +33,7 @@ def test_collect_uses_cached_and_prunes_when_collection_empty(monkeypatch, tmp_p
 
     # Mock subprocess.run to return empty stdout for both initial and fallback
     # collection invocations
-    def fake_run(cmd, check=False, capture_output=False, text=False):
+    def fake_run(cmd, check=False, capture_output=False, text=False, timeout=None, cwd=None, env=None):
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr(rt.subprocess, "run", fake_run)

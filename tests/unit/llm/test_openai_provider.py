@@ -3,6 +3,10 @@ Unit tests for OpenAI provider.
 
 These tests verify the OpenAI provider implementation with comprehensive
 coverage of all functionality, error conditions, and edge cases.
+
+NOTE: Use only cheap, inexpensive OpenAI models (e.g., gpt-3.5-turbo, gpt-4o-mini)
+and only when absolutely necessary for testing core functionality. Prefer OpenRouter
+free-tier for general LLM testing to minimize costs.
 """
 
 import os

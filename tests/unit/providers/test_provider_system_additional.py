@@ -37,10 +37,11 @@ def resume_coverage():
 def provider_module(monkeypatch: pytest.MonkeyPatch):
     """Reload provider system with deterministic settings and clean cache."""
 
-    import devsynth.adapters.provider_system as provider_system
+    import sys
+    from types import ModuleType
 
-    module = importlib.reload(provider_system)
-
+    # Create a mock settings module to avoid circular import issues during reload
+    mock_settings = ModuleType('devsynth.config.settings')
     settings = SimpleNamespace(
         tls_verify=True,
         tls_cert_file=None,
@@ -60,14 +61,56 @@ def provider_module(monkeypatch: pytest.MonkeyPatch):
         provider_recovery_timeout=1.0,
     )
 
-    monkeypatch.setattr(module, "get_settings", lambda *_, **__: settings)
-    if hasattr(module.get_provider_config, "cache_clear"):
-        module.get_provider_config.cache_clear()
+    def mock_get_settings(*_, **__):
+        return settings
 
-    yield module
+    mock_settings.get_settings = mock_get_settings
 
-    if hasattr(module.get_provider_config, "cache_clear"):
-        module.get_provider_config.cache_clear()
+    # Replace the settings module in sys.modules before reload
+    original_settings = sys.modules.get('devsynth.config.settings')
+    sys.modules['devsynth.config.settings'] = mock_settings
+
+    try:
+        import devsynth.adapters.provider_system as provider_system
+
+        # Clear any existing caches after module import
+        if hasattr(provider_system.get_provider_config, "cache_clear"):
+            provider_system.get_provider_config.cache_clear()
+
+        # Mock get_provider_config directly in the module to return the desired config
+        def mock_get_provider_config():
+            return {
+                'default_provider': 'openai',
+                'openai': {'api_key': None, 'model': 'gpt-4', 'base_url': 'https://api.openai.com/v1'},
+                'lmstudio': {'endpoint': 'http://127.0.0.1:1234', 'model': 'default'},
+                'openrouter': {'api_key': None, 'model': None, 'base_url': 'https://openrouter.ai/api/v1'},
+                'retry': {
+                    'max_retries': 1,
+                    'initial_delay': 0.1,
+                    'exponential_base': 2.0,
+                    'max_delay': 1.0,
+                    'jitter': False,
+                    'track_metrics': True,
+                    'conditions': []
+                },
+                'fallback': {'enabled': True, 'order': ['stub']},
+                'circuit_breaker': {'enabled': False, 'failure_threshold': 1, 'recovery_timeout': 1.0}
+            }
+
+        monkeypatch.setattr(provider_system, "get_provider_config", mock_get_provider_config)
+
+        yield provider_system
+
+        # Clean up caches
+        if hasattr(provider_system.get_provider_config, "cache_clear"):
+            provider_system.get_provider_config.cache_clear()
+    finally:
+        # Don't restore the original settings module here - keep the mock active for the test
+        pass
+
+    # Restore original settings module after test completes
+    if original_settings is not None:
+        sys.modules['devsynth.config.settings'] = original_settings
 
 
 def test_offline_mode_uses_safe_provider(provider_module, monkeypatch):
@@ -131,7 +174,7 @@ def test_retry_decorator_uses_provider_config(monkeypatch, provider_module):
 
         return decorator
 
-    monkeypatch.setattr(module, "retry_with_exponential_backoff", fake_retry)
+    monkeypatch.setattr("devsynth.adapters.provider_system.retry_with_exponential_backoff", fake_retry)
 
     base = module.BaseProvider()
     decorator = base.get_retry_decorator()

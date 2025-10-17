@@ -42,7 +42,7 @@ def test_prunes_nonexistent_paths_and_uses_cache(tmp_path, monkeypatch):
     # Monkeypatch TTL to be huge so cache would be used if fingerprint matches
     monkeypatch.setenv("DEVSYNTH_COLLECTION_CACHE_TTL_SECONDS", "999999")
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         """Return the cached node ids without invoking pytest."""
 
         assert "--collect-only" in cmd, cmd

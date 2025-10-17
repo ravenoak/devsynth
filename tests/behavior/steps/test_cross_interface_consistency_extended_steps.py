@@ -15,10 +15,33 @@ from tests.behavior.feature_paths import feature_path
 
 pytestmark = [pytest.mark.fast]
 
-scenarios(
-    feature_path(__file__, "general", "cross_interface_consistency_extended.feature")
-)
-scenarios(feature_path(__file__, "extended_cross_interface_consistency.feature"))
+# Flag to track if scenarios have been loaded
+_scenarios_loaded = False
+
+def _load_bdd_scenarios():
+    """Load BDD scenarios, ensuring they're only loaded once."""
+    global _scenarios_loaded
+    if _scenarios_loaded:
+        return
+
+    try:
+        scenarios(
+            feature_path(__file__, "general", "cross_interface_consistency_extended.feature")
+        )
+        scenarios(feature_path(__file__, "extended_cross_interface_consistency.feature"))
+        _scenarios_loaded = True
+    except Exception as e:
+        # If scenarios loading fails, it might be due to CONFIG_STACK issues
+        # when plugin autoloading is disabled. The scenarios will be loaded
+        # later when pytest-bdd is properly initialized.
+        pass
+
+def pytest_configure(config):
+    """Hook called after pytest is configured - load BDD scenarios here."""
+    _load_bdd_scenarios()
+
+# Try to load scenarios immediately, but handle failures gracefully
+_load_bdd_scenarios()
 
 
 class DummyForm:

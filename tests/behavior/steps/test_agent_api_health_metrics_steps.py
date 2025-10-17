@@ -14,10 +14,23 @@ from tests.behavior.feature_paths import feature_path
 pytestmark = [pytest.mark.fast]
 
 pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
 
-from fastapi.testclient import TestClient
+# Defer fastapi.testclient import to avoid MRO issues during collection
+# Import will be done lazily when actually needed by tests
+TestClient = None
 from pytest_bdd import given, parsers, scenarios, then, when
+
+
+def _get_testclient():
+    """Lazily import TestClient to avoid MRO issues during collection."""
+    global TestClient
+    if TestClient is None:
+        try:
+            from fastapi.testclient import TestClient
+        except TypeError:
+            # Fallback for MRO compatibility issues
+            from starlette.testclient import TestClient
+    return TestClient
 
 
 def _module_stub(name: str, **attributes: object) -> ModuleType:
@@ -27,7 +40,6 @@ def _module_stub(name: str, **attributes: object) -> ModuleType:
     for attribute, value in attributes.items():
         setattr(module, attribute, value)
     return module
-
 
 scenarios(feature_path(__file__, "general", "agent_api_health_metrics.feature"))
 
@@ -48,7 +60,7 @@ def api_context(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
 
     importlib.reload(agentapi)
 
-    client = TestClient(agentapi.app)
+    client = _get_testclient()(agentapi.app)
     return {
         "client": client,
         "settings": settings_stub,
@@ -84,7 +96,7 @@ def get_health(api_context: dict[str, object]) -> None:
     """Send a GET request to the health endpoint."""
 
     client = api_context["client"]
-    assert isinstance(client, TestClient)
+    assert isinstance(client, _get_testclient())
     api_context["last_response"] = client.get("/health")
 
 
@@ -94,7 +106,7 @@ def get_health_with_valid_token(api_context: dict[str, object]) -> None:
 
     client = api_context["client"]
     settings = api_context["settings"]
-    assert isinstance(client, TestClient)
+    assert isinstance(client, _get_testclient())
     assert isinstance(settings, MagicMock)
     api_context["last_response"] = client.get(
         "/health",
@@ -107,7 +119,7 @@ def get_health_with_invalid_token(api_context: dict[str, object]) -> None:
     """Send a GET request to the health endpoint with an invalid token."""
 
     client = api_context["client"]
-    assert isinstance(client, TestClient)
+    assert isinstance(client, _get_testclient())
     api_context["last_response"] = client.get(
         "/health", headers={"Authorization": "Bearer invalid_token"}
     )
@@ -118,7 +130,7 @@ def get_metrics(api_context: dict[str, object]) -> None:
     """Send a GET request to the metrics endpoint."""
 
     client = api_context["client"]
-    assert isinstance(client, TestClient)
+    assert isinstance(client, _get_testclient())
     api_context["last_response"] = client.get("/metrics")
 
 
@@ -128,7 +140,7 @@ def get_metrics_with_valid_token(api_context: dict[str, object]) -> None:
 
     client = api_context["client"]
     settings = api_context["settings"]
-    assert isinstance(client, TestClient)
+    assert isinstance(client, _get_testclient())
     assert isinstance(settings, MagicMock)
     api_context["last_response"] = client.get(
         "/metrics",
@@ -141,7 +153,7 @@ def get_metrics_with_invalid_token(api_context: dict[str, object]) -> None:
     """Send a GET request to the metrics endpoint with an invalid token."""
 
     client = api_context["client"]
-    assert isinstance(client, TestClient)
+    assert isinstance(client, _get_testclient())
     api_context["last_response"] = client.get(
         "/metrics", headers={"Authorization": "Bearer invalid_token"}
     )
