@@ -58,18 +58,58 @@ poetry run python scripts/verify_security_policy.py
 poetry run python scripts/policy_audit.py
 ```
 
-### Automated Scans
+### Automated Security Scans
+
+**Security Scanning Philosophy:**
+
+**Thesis**: Automated security scanning provides continuous protection against vulnerabilities and ensures compliance with security policies.
+
+**Antithesis**: Over-reliance on automated tools without human oversight can miss context-specific security issues and create false confidence.
+
+**Synthesis**: Balanced security approach combining automated scanning with human review, dialectical analysis, and continuous monitoring ensures comprehensive protection.
+
+### Security Scan Commands
 
 ```bash
-# Bandit static analysis
+# Static analysis with Bandit
 poetry run bandit -r src/devsynth
 
-# Safety dependency scan
+# Dependency vulnerability scan with Safety
 poetry run safety check
 
-# Combined audit with report
+# Comprehensive security audit
 DEVSYNTH_PRE_DEPLOY_APPROVED=true \
 poetry run python scripts/security_audit.py --report security_audit.json
+
+# Check for secrets in code
+poetry run python scripts/policy_audit.py --secrets
+
+# Verify security policy compliance
+poetry run python scripts/verify_security_policy.py
+```
+
+### Security Environment Setup
+
+**Required Security Flags:**
+```bash
+# Enable security features for testing
+export DEVSYNTH_AUTHENTICATION_ENABLED=true
+export DEVSYNTH_AUTHORIZATION_ENABLED=true
+export DEVSYNTH_SANITIZATION_ENABLED=true
+export DEVSYNTH_ENCRYPTION_AT_REST=true
+export DEVSYNTH_ENCRYPTION_IN_TRANSIT=true
+export DEVSYNTH_TLS_VERIFY=true
+
+# Set secure access token (never commit)
+export DEVSYNTH_ACCESS_TOKEN="<secure-token>"
+```
+
+**Security Tool Verification:**
+```bash
+# Verify security tools are available
+poetry run which bandit
+poetry run which safety
+poetry run python -c "import devsynth.security.encryption; print('Security module OK')"
 ```
 
 ## Dialectical Audit Policy

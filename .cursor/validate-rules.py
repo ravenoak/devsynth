@@ -103,8 +103,8 @@ def validate_poetry_configuration() -> Dict[str, Any]:
                 )
                 results["status"] = "warning"
 
-            # Check for key extras
-            extras = config.get("tool", {}).get("poetry", {}).get("extras", {})
+            # Check for key extras (in project.optional-dependencies)
+            extras = config.get("project", {}).get("optional-dependencies", {})
             expected_extras = ["tests", "retrieval", "chromadb", "api", "minimal"]
             for extra in expected_extras:
                 if extra in extras:

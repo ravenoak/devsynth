@@ -52,6 +52,11 @@ Applied based on file patterns (globs):
   - PR workflow and templates
   - Issue management
 
+- **07-cursor-rules-management.md** (`.cursor/**/*`, `**/*.md`)
+  - Cursor IDE rules management and validation
+  - Rule development workflow
+  - Troubleshooting and maintenance
+
 ## How Cursor Uses These Rules
 
 Cursor IDE's AI features (Agent, Inline Edit, Chat) use these rules as persistent context:
@@ -81,33 +86,66 @@ The original single-file format has been backed up to `.cursor/rules.legacy` and
 
 ## Multi-Disciplined Approach
 
-These rules embody DevSynth's commitment to:
+DevSynth's rules implement a rigorous multi-disciplined framework that integrates philosophy, methodology, and engineering practice:
 
-### Dialectical Reasoning
-Every significant change considers:
-- **Thesis**: Initial approach
-- **Antithesis**: Challenges and alternatives
-- **Synthesis**: Resolved solution
+### Dialectical Reasoning (Hegelian)
+Every significant decision follows the dialectic:
+- **Thesis**: Initial hypothesis or approach
+- **Antithesis**: Critical examination, challenges, and counter-arguments
+- **Synthesis**: Resolved solution that transcends and includes both
 
-### Socratic Method
-Every feature answers:
-1. **What is the problem?**
-2. **What proofs confirm the solution?**
+**Applied throughout development:**
+```markdown
+## Dialectical Analysis for New Feature
 
-### Systems Thinking
-Rules interconnect to form a cohesive development system:
-- Specifications → Tests → Code → Documentation
-- Security → Audit → Compliance → Deployment
-- Style → Quality → Maintainability → Collaboration
+**Thesis**: Build monolithic CLI for simplicity
+**Antithesis**: Monoliths become unmaintainable at scale
+**Synthesis**: Modular CLI with plugin architecture for extensibility
+```
 
-### Holistic Perspective
-Considers the entire development lifecycle:
-- Planning (specifications)
-- Development (BDD workflow)
-- Quality (testing, code style)
-- Security (compliance, audits)
-- Collaboration (commits, PRs)
-- Maintenance (documentation)
+### Socratic Method (Classical Philosophy)
+Every feature specification answers the Socratic triad:
+1. **What is the problem?** (Clear problem definition)
+2. **What proofs confirm the solution?** (Evidence-based validation)
+3. **What are the implications?** (Holistic impact assessment)
+
+### Systems Thinking (General Systems Theory)
+Rules form an interconnected ecosystem where changes propagate through the system:
+- **Specifications** drive **BDD tests** which validate **implementation**
+- **Security policies** integrate with **audit processes** ensuring **compliance**
+- **Code style** standards enable **quality assurance** supporting **maintainability**
+
+### Holistic Perspective (Gestalt Psychology)
+Considers the entire development ecosystem simultaneously:
+- **Planning**: Specification-first approach with dialectical analysis
+- **Development**: BDD workflow with TDD integration
+- **Quality**: Multi-layered testing (unit → integration → behavior)
+- **Security**: Defense-in-depth with audit and compliance
+- **Collaboration**: Conventional commits with PR workflow
+- **Maintenance**: Documentation with traceability and validation
+
+### Pragmatic Engineering (Deweyan Instrumentalism)
+Rules serve practical purposes while remaining adaptable:
+- **Instrumental**: Each rule solves real development problems
+- **Experimental**: Rules evolve based on observed outcomes
+- **Contextual**: Applied differently based on situation (fast unit tests vs. slow integration tests)
+- **Consequential**: Success measured by development velocity and product quality
+
+### Integration Across Disciplines
+
+**Philosophy → Methodology → Practice:**
+- Dialectical reasoning enables robust decision-making
+- Socratic method ensures problem clarity
+- Systems thinking prevents unintended consequences
+- Holistic perspective maintains ecosystem health
+- Pragmatic engineering delivers working software
+
+**Quality Gates with Multi-Disciplinary Validation:**
+1. **Philosophical**: Socratic checklist completed
+2. **Methodological**: BDD scenarios pass
+3. **Technical**: All quality checks pass (lint, type, test)
+4. **Security**: Audit log resolved
+5. **Collaborative**: PR approved with conventional commits
 
 ## Workflow Integration
 
@@ -178,6 +216,38 @@ For questions about these rules or suggested improvements:
 ## Version
 
 Rules version: 0.1.0-alpha.1
-Last updated: 2025-10-08
+Last updated: 2025-10-16
 Maintained by: DevSynth Team
+
+## Critical Evaluation Summary
+
+**Multi-Disciplined Enhancement (2025-10-16):**
+
+This ruleset has been critically evaluated using dialectical and Socratic reasoning, resulting in comprehensive enhancements:
+
+### Dialectical Analysis Applied
+- **Thesis**: Original rules were functional but lacked depth in multi-disciplined integration
+- **Antithesis**: Rules needed stronger philosophical foundation and practical guidance
+- **Synthesis**: Enhanced ruleset integrating philosophy, methodology, and engineering practice
+
+### Key Enhancements
+1. **Philosophy Integration**: Explicit multi-disciplined approach with Hegelian dialectic, Socratic method, systems thinking
+2. **Practical Guidance**: Concrete examples, workflow guidance, and troubleshooting
+3. **Environment Management**: Dedicated Poetry/virtual environment rule with comprehensive setup
+4. **Quality Assurance**: Automated validation with fixed Poetry extras checking
+5. **Documentation**: Enhanced metadata, examples, and cross-references
+
+### Validation Framework
+- Automated rule validation via `validate-rules.py`
+- Comprehensive project structure verification
+- Poetry configuration alignment checking
+- Real-time feedback for rule compliance
+
+### Holistic Coverage
+- **Planning**: Specification-first BDD workflow
+- **Development**: Multi-layered testing with speed markers
+- **Quality**: Code style, type hints, comprehensive testing
+- **Security**: Defense-in-depth with dialectical audit
+- **Collaboration**: Conventional commits with PR workflow
+- **Maintenance**: Documentation with traceability
 
