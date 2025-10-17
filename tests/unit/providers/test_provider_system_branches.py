@@ -252,12 +252,50 @@ def _retry_config(**overrides):
 def _enable_real_providers(monkeypatch: pytest.MonkeyPatch):
     """Load a fresh provider_system module with real provider classes."""
 
-    monkeypatch.setenv("DEVSYNTH_TEST_ALLOW_PROVIDERS", "true")
-    module = importlib.reload(provider_system)
+    import sys
+    from types import SimpleNamespace, ModuleType
 
-    if hasattr(module.get_provider_config, "cache_clear"):
-        module.get_provider_config.cache_clear()
-    return module
+    # Create a mock settings module to avoid circular import issues during reload
+    mock_settings = ModuleType('devsynth.config.settings')
+    settings = SimpleNamespace(
+        tls_verify=True,
+        tls_cert_file=None,
+        tls_key_file=None,
+        tls_ca_file=None,
+        provider_max_retries=1,
+        provider_initial_delay=0.1,
+        provider_exponential_base=2.0,
+        provider_max_delay=1.0,
+        provider_jitter=False,
+        provider_retry_metrics=True,
+        provider_retry_conditions="",
+        provider_fallback_enabled=True,
+        provider_fallback_order="stub",
+        provider_circuit_breaker_enabled=False,
+        provider_failure_threshold=1,
+        provider_recovery_timeout=1.0,
+    )
+
+    def mock_get_settings(*_, **__):
+        return settings
+
+    mock_settings.get_settings = mock_get_settings
+
+    # Replace the settings module in sys.modules before reload
+    original_settings = sys.modules.get('devsynth.config.settings')
+    sys.modules['devsynth.config.settings'] = mock_settings
+
+    try:
+        monkeypatch.setenv("DEVSYNTH_TEST_ALLOW_PROVIDERS", "true")
+        module = importlib.reload(provider_system)
+
+        if hasattr(module.get_provider_config, "cache_clear"):
+            module.get_provider_config.cache_clear()
+        return module
+    finally:
+        # Restore original settings module
+        if original_settings is not None:
+            sys.modules['devsynth.config.settings'] = original_settings
 
 
 def test_fallback_provider_uses_next_provider_on_failure():

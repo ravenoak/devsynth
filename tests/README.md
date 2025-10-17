@@ -2,6 +2,39 @@
 
 This directory contains tests for the DevSynth project, organized into different types. Always run test and lint commands through `poetry run` to ensure the correct environment is used, and include the requirement ID in each test's docstring (e.g., `ReqID: FR-09`) for traceability:
 
+## API Key and Testing Constraints
+
+### LLM Provider Testing Requirements
+
+**Anthropic API**: Currently waiting on valid API key for testing. Tests requiring Anthropic API are expected to fail until key is available.
+
+**OpenAI API**: Valid API keys available. Use only cheap, inexpensive models (e.g., gpt-3.5-turbo, gpt-4o-mini) and only when absolutely necessary for testing core functionality.
+
+**OpenRouter API**: Valid API keys available with free-tier access. Use OpenRouter free-tier for:
+- All OpenRouter-specific tests
+- General tests requiring live LLM functionality
+- Prefer OpenRouter over OpenAI for cost efficiency
+
+**LM Studio**: Tests run on same host as application tests. Resources are limited - use large timeouts (60+ seconds) and consider resource constraints when designing tests.
+
+### Environment Variables for LLM Testing
+
+Set the following environment variables for LLM provider testing:
+
+```bash
+# OpenRouter (preferred for testing)
+export OPENROUTER_API_KEY="your-openrouter-key"
+export OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
+
+# OpenAI (use sparingly, only cheap models)
+export OPENAI_API_KEY="your-openai-key"
+export OPENAI_BASE_URL="https://api.openai.com/v1"
+
+# LM Studio (local testing)
+export LM_STUDIO_ENDPOINT="http://127.0.0.1:1234"
+export DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE="true"
+```
+
 - **Unit Tests**: Tests for individual components in isolation (`tests/unit/`)
 - **Integration Tests**: Tests for interactions between components (`tests/integration/`)
 - **Behavior Tests**: Tests for user-facing features using BDD (`tests/behavior/`)

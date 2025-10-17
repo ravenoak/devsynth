@@ -39,7 +39,7 @@ def test_keyword_marker_executes_matching_node_ids(monkeypatch, tmp_path: Path) 
         ]
     )
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         # Simulate the '--collect-only' run
         return DummyCompleted(stdout=collect_stdout, returncode=0)
 

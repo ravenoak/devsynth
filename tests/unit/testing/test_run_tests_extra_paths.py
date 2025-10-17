@@ -32,7 +32,7 @@ def test_collect_fallback_on_behavior_speed_no_tests(tmp_path, monkeypatch):
             self.returncode = returncode
             self.stderr = stderr
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         calls["invocations"].append(cmd)
         # First invocation is the preliminary check (with same category_expr)
         if len(calls["invocations"]) == 1:
@@ -111,7 +111,7 @@ def test_run_tests_lmstudio_extra_marker_keyword_early_success(tmp_path, monkeyp
             self.returncode = returncode
             self.stderr = stderr
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         # Simulate collect-only returning nothing for '-k lmstudio'
         return FakeCompleted(stdout="")
 

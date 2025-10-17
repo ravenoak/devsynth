@@ -33,23 +33,41 @@ def test_atomic_rewrite_enabled_dry_run_succeeds(monkeypatch, tmp_path):
     app = build_app()
 
     # Enable the feature flag via monkeypatch
-    import devsynth.core.feature_flags as ff
+    from devsynth.application.cli.commands import atomic_rewrite_cmd
 
-    monkeypatch.setattr(ff, "is_enabled", lambda name: name == "atomic_rewrite")
+    monkeypatch.setattr(atomic_rewrite_cmd, "is_enabled", lambda name: name == "atomic_rewrite")
 
-    # Create a temporary git repo structure minimally; we will monkeypatch rewrite to avoid real git
-    from devsynth.core.mvu import atomic_rewrite as ar
+    # Mock the git import to avoid needing a real git repository
+    import devsynth.core.mvu.atomic_rewrite as ar
+    import importlib
 
     class DummyRepo:
         def __init__(self, wd):
             self.working_dir = str(wd)
 
-    monkeypatch.setattr(
-        ar, "rewrite_history", lambda p, b, dry_run=False: DummyRepo(tmp_path)
-    )
+    def mock_rewrite_history(target_path, branch_name, dry_run=False):
+        return DummyRepo(target_path)
+
+    # Mock the importlib.import_module call for 'git'
+    original_import = importlib.import_module
+
+    def mock_import(name):
+        if name == "git":
+            # Create a mock git module with a Repo class
+            import types
+            git_mock = types.ModuleType("git")
+            git_mock.Repo = lambda path: DummyRepo(path)
+            return git_mock
+        return original_import(name)
+
+    monkeypatch.setattr("importlib.import_module", mock_import)
+    monkeypatch.setattr(ar, "rewrite_history", mock_rewrite_history)
 
     result = runner.invoke(
         app, ["atomic-rewrite", "--path", str(tmp_path), "--dry-run"]
     )
+    print(f"Exit code: {result.exit_code}")
+    print(f"Output: {result.output}")
+    print(f"Exception: {result.exception}")
     assert result.exit_code == 0
     assert "dry run" in result.output.lower()

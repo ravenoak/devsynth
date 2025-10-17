@@ -8,9 +8,21 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
-pytest.skip("requires FastAPI test client", allow_module_level=True)
-from fastapi.testclient import TestClient
+
+# Defer fastapi.testclient import to avoid MRO issues during collection
+# Import will be done lazily when actually needed by tests
+TestClient = None
+
+def _get_testclient():
+    """Lazily import TestClient to avoid MRO issues during collection."""
+    global TestClient
+    if TestClient is None:
+        try:
+            from fastapi.testclient import TestClient
+        except TypeError:
+            # Fallback for MRO compatibility issues
+            from starlette.testclient import TestClient
+    return TestClient
 
 
 def _setup_with_auth(monkeypatch, access_token="test_token"):
@@ -29,7 +41,7 @@ def _setup_with_auth(monkeypatch, access_token="test_token"):
 
     importlib.reload(agentapi)
     return {
-        "client": TestClient(agentapi.app),
+        "client": _get_testclient()(agentapi.app),
         "cli": cli_stub,
         "settings": settings_stub,
     }

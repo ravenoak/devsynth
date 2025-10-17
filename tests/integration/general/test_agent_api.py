@@ -1,14 +1,26 @@
 import pytest
 
 pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
 
 import importlib
 import sys
 from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock
 
-from fastapi.testclient import TestClient
+# Defer fastapi.testclient import to avoid MRO issues during collection
+# Import will be done lazily when actually needed by tests
+TestClient = None
+
+def _get_testclient():
+    """Lazily import TestClient to avoid MRO issues during collection."""
+    global TestClient
+    if TestClient is None:
+        try:
+            from fastapi.testclient import TestClient
+        except TypeError:
+            # Fallback for MRO compatibility issues
+            from starlette.testclient import TestClient
+    return TestClient
 
 
 def _setup(monkeypatch):
@@ -94,7 +106,7 @@ def test_init_route_succeeds(monkeypatch):
 
     ReqID: N/A"""
     setup = _setup(monkeypatch)
-    client = TestClient(setup["agentapi"].app)
+    client = _get_testclient()(setup["agentapi"].app)
     resp = client.post("/init", json={"path": "proj"})
     assert resp.status_code == 200
     assert resp.json() == {"messages": ["init"]}
@@ -107,7 +119,7 @@ def test_gather_route_succeeds(monkeypatch):
 
     ReqID: N/A"""
     setup = _setup(monkeypatch)
-    client = TestClient(setup["agentapi"].app)
+    client = _get_testclient()(setup["agentapi"].app)
     resp = client.post(
         "/gather", json={"goals": "g1", "constraints": "c1", "priority": "high"}
     )
@@ -122,7 +134,7 @@ def test_synthesize_and_status_succeeds(monkeypatch):
 
     ReqID: N/A"""
     setup = _setup(monkeypatch)
-    client = TestClient(setup["agentapi"].app)
+    client = _get_testclient()(setup["agentapi"].app)
     resp = client.post("/synthesize", json={"target": "unit"})
     assert resp.json() == {"messages": ["run:unit"]}
     status = client.get("/status")
@@ -136,7 +148,7 @@ def test_spec_route_succeeds(monkeypatch):
 
     ReqID: N/A"""
     setup = _setup(monkeypatch)
-    client = TestClient(setup["agentapi"].app)
+    client = _get_testclient()(setup["agentapi"].app)
     resp = client.post("/spec", json={"requirements_file": "custom_reqs.md"})
     assert resp.status_code == 200
     assert resp.json() == {"messages": ["spec:custom_reqs.md"]}
@@ -151,7 +163,7 @@ def test_test_route_succeeds(monkeypatch):
 
     ReqID: N/A"""
     setup = _setup(monkeypatch)
-    client = TestClient(setup["agentapi"].app)
+    client = _get_testclient()(setup["agentapi"].app)
     resp = client.post(
         "/test", json={"spec_file": "custom_specs.md", "output_dir": "tests"}
     )
@@ -166,7 +178,7 @@ def test_code_route_succeeds(monkeypatch):
 
     ReqID: N/A"""
     setup = _setup(monkeypatch)
-    client = TestClient(setup["agentapi"].app)
+    client = _get_testclient()(setup["agentapi"].app)
     resp = client.post("/code", json={"output_dir": "src"})
     assert resp.status_code == 200
     assert resp.json() == {"messages": ["code"]}
@@ -179,7 +191,7 @@ def test_doctor_route_succeeds(monkeypatch):
 
     ReqID: N/A"""
     setup = _setup(monkeypatch)
-    client = TestClient(setup["agentapi"].app)
+    client = _get_testclient()(setup["agentapi"].app)
     resp = client.post("/doctor", json={"path": "project", "fix": True})
     assert resp.status_code == 200
     assert resp.json() == {"messages": ["doctor:project:True"]}
@@ -192,7 +204,7 @@ def test_edrr_cycle_route_succeeds(monkeypatch):
 
     ReqID: N/A"""
     setup = _setup(monkeypatch)
-    client = TestClient(setup["agentapi"].app)
+    client = _get_testclient()(setup["agentapi"].app)
     resp = client.post(
         "/edrr-cycle", json={"prompt": "Improve code", "max_iterations": 5}
     )
@@ -208,7 +220,7 @@ def test_enhanced_metrics_endpoint_reports_requests(monkeypatch):
     ReqID: N/A"""
 
     enhanced = _setup_enhanced(monkeypatch)
-    client = TestClient(enhanced.app)
+    client = _get_testclient()(enhanced.app)
     headers = {"Authorization": "Bearer test_token"}
 
     first = client.get("/health", headers=headers)
@@ -231,7 +243,7 @@ def test_enhanced_rate_limit_returns_structured_error(monkeypatch):
     enhanced = _setup_enhanced(monkeypatch)
     state = enhanced.get_state()
     state.rate_limiter.limit = 1
-    client = TestClient(enhanced.app)
+    client = _get_testclient()(enhanced.app)
     headers = {"Authorization": "Bearer test_token"}
 
     assert client.get("/health", headers=headers).status_code == 200
@@ -249,7 +261,7 @@ def test_enhanced_init_error_payload(monkeypatch, tmp_path):
     ReqID: N/A"""
 
     enhanced = _setup_enhanced(monkeypatch)
-    client = TestClient(enhanced.app)
+    client = _get_testclient()(enhanced.app)
     headers = {"Authorization": "Bearer test_token"}
 
     response = client.post(

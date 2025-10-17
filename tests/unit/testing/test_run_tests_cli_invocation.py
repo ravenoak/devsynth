@@ -147,6 +147,9 @@ def test_cli_segment_batches_follow_segment_size(
         check: bool = False,
         capture_output: bool = True,
         text: bool = True,
+        timeout: float | None = None,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
     ) -> SimpleNamespace:
         assert "--collect-only" in cmd
         return SimpleNamespace(stdout="\n".join(node_ids), stderr="", returncode=0)
@@ -216,6 +219,9 @@ def test_cli_segment_failure_emits_aggregate_tips(
         check: bool = False,
         capture_output: bool = True,
         text: bool = True,
+        timeout: float | None = None,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
     ) -> SimpleNamespace:
         return SimpleNamespace(stdout="\n".join(node_ids), stderr="", returncode=0)
 
@@ -314,6 +320,9 @@ def test_cli_keyword_filter_handles_resource_marker(
         check: bool = False,
         capture_output: bool = True,
         text: bool = True,
+        timeout: float | None = None,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
     ) -> SimpleNamespace:
         collect_commands.append(cmd)
         return SimpleNamespace(
@@ -380,6 +389,9 @@ def test_cli_marker_filters_merge_extra_marker(
         check: bool = False,
         capture_output: bool = True,
         text: bool = True,
+        timeout: float | None = None,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
     ) -> SimpleNamespace:
         collect_invocations.append(cmd)
         return SimpleNamespace(
@@ -450,6 +462,9 @@ def test_cli_report_mode_adds_html_argument(
         check: bool = False,
         capture_output: bool = True,
         text: bool = True,
+        timeout: float | None = None,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
     ) -> SimpleNamespace:
         return SimpleNamespace(
             stdout=f"{test_file.name}::test_report\n", stderr="", returncode=0
@@ -602,6 +617,9 @@ def test_cli_env_passthrough_and_coverage_lifecycle(
         check: bool = False,
         capture_output: bool = True,
         text: bool = True,
+        timeout: float | None = None,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
     ) -> SimpleNamespace:
         return SimpleNamespace(
             stdout=f"{test_file}::test_env_marker\n", stderr="", returncode=0
@@ -674,6 +692,9 @@ def test_cli_keyword_filter_returns_success_when_no_matches(
         check: bool = False,
         capture_output: bool = True,
         text: bool = True,
+        timeout: float | None = None,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
     ) -> SimpleNamespace:
         collect_commands.append(cmd)
         return SimpleNamespace(stdout="", stderr="", returncode=0)

@@ -3,7 +3,8 @@ Feature: Requirements Wizard Logging
   I want detailed logs for the requirements wizard
   So that interactions can be audited and debugged
 
-  Scenario: Logs capture wizard steps
-    Given the DevSynth CLI is installed
-    When I run the requirements wizard with logging enabled
-    Then log entries for each wizard step should be persisted
+  Scenario: Log entries and configuration capture the chosen priority
+    Given logging is configured for the requirements wizard
+    When I run the requirements wizard with priority "high"
+    Then the log should include the priority "high"
+    And the configuration file should record priority "high"

@@ -31,7 +31,6 @@ class DummyBridge(UXBridge):
         pass
 
 
-scenarios(feature_path(__file__, "general", "logging_and_priority.feature"))
 scenarios(feature_path(__file__, "general", "requirements_wizard_logging.feature"))
 
 

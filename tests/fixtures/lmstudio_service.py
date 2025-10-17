@@ -27,11 +27,12 @@ if TYPE_CHECKING:
     from fastapi.responses import JSONResponse, StreamingResponse
     from fastapi.testclient import TestClient
 else:
-    _IMPORTORSKIP("fastapi")
-    _IMPORTORSKIP("fastapi.testclient")
-    from fastapi import FastAPI
-    from fastapi.responses import JSONResponse, StreamingResponse
-    from fastapi.testclient import TestClient
+    # Defer FastAPI imports to avoid MRO issues during test collection
+    # These will only be imported when actually needed by tests
+    FastAPI = None
+    JSONResponse = None
+    StreamingResponse = None
+    TestClient = None
 
 
 class _ChatDelta(TypedDict, total=False):
@@ -92,6 +93,12 @@ def lmstudio_service(
 
     lmstudio = cast(LMStudioModule, _IMPORTORSKIP("lmstudio"))
 
+    # Lazy import FastAPI classes to avoid MRO issues during collection
+    if FastAPI is None:
+        from fastapi import FastAPI
+        from fastapi.responses import JSONResponse, StreamingResponse
+        from fastapi.testclient import TestClient
+
     app = FastAPI()
     server = LMStudioMockServer(base_url="")
 
@@ -132,6 +139,10 @@ def lmstudio_service(
     app.get("/v1/models")(list_models)
     app.post("/v1/chat/completions")(chat_completions)
     app.post("/v1/embeddings")(embeddings)
+
+    # Lazy import TestClient to avoid MRO issues during collection
+    if TestClient is None:
+        from fastapi.testclient import TestClient
 
     client = TestClient(app)
     server.base_url = str(client.base_url)

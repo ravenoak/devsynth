@@ -8,7 +8,22 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
+
+# Defer fastapi.testclient import to avoid MRO issues during collection
+# Import will be done lazily when actually needed by tests
+TestClient = None
+
+def _get_testclient():
+    """Lazily import TestClient to avoid MRO issues during collection."""
+    global TestClient
+    if TestClient is None:
+        try:
+            from fastapi.testclient import TestClient
+        except TypeError:
+            # Fallback for MRO compatibility issues
+            from starlette.testclient import TestClient
+    return TestClient
+
 from pytest_bdd import given, scenarios, then, when
 
 from tests.behavior.feature_paths import feature_path
@@ -275,11 +290,9 @@ def invoke_api_command(cross_interface_context, command):
     # Mock the API request
     try:
         # Simulate API call
-        from fastapi.testclient import TestClient
-
         from devsynth.interface.agentapi import app
 
-        client = TestClient(app)
+        client = _get_testclient()(app)
         response = client.post(endpoint_map[command], json=params)
         cross_interface_context["results"]["api"] = response.json()
     except Exception as e:
@@ -358,11 +371,9 @@ def invoke_api_command_invalid(cross_interface_context, command):
     # Mock the API request
     try:
         # Simulate API call
-        from fastapi.testclient import TestClient
-
         from devsynth.interface.agentapi import app
 
-        client = TestClient(app)
+        client = _get_testclient()(app)
         response = client.post(endpoint_map[command], json=params)
         cross_interface_context["results"]["api"] = response.json()
     except Exception as e:

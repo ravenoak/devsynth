@@ -17,7 +17,7 @@ def test_segmented_aggregate_tips_command_includes_maxfail(monkeypatch) -> None:
 
     collected_ids = "tests/unit/sample_test.py::test_a\n"
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         # collection phase returns one node id (ensures one batch)
         return SimpleNamespace(returncode=0, stdout=collected_ids, stderr="")
 

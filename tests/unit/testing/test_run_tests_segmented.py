@@ -25,7 +25,7 @@ def test_run_tests_segmented_batches_execute(monkeypatch):
     import devsynth.testing.run_tests as rt
 
     # Fake subprocess.run to return our collected node ids
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         # Ensure --collect-only was requested for the marker-based collection
         assert "--collect-only" in cmd and "-q" in cmd
         return SimpleNamespace(returncode=0, stdout=collected_ids, stderr="")
@@ -95,7 +95,7 @@ def test_run_tests_segmented_honors_keyword_filter(monkeypatch, tmp_path):
             self.stderr = ""
             self.returncode = 0
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):
         collect_calls.append(cmd[:])
         assert "-k" in cmd, "keyword filter should be applied during collection"
         return FakeCollectProc(

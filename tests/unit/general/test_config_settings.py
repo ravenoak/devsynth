@@ -27,7 +27,7 @@ class TestConfigSettings:
             settings = get_settings()
             assert settings["memory_store_type"] == "memory"
             assert settings["llm_provider"] == "lmstudio"
-            assert settings["llm_api_base"] == "http://localhost:1234/v1"
+            assert settings["llm_api_base"] == "http://localhost:1234"
             assert settings["llm_temperature"] == 0.7
 
     def test_get_settings_from_environment_variables_succeeds(self):

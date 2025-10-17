@@ -33,7 +33,7 @@ def test_collect_tests_with_cache_prunes_nonexistent_and_caches(tmp_path, monkey
 
     stdout = f"{missing}\n{existing}\n"
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         return SimpleNamespace(returncode=0, stdout=stdout, stderr="")
 
     monkeypatch.setattr(rt.subprocess, "run", fake_run)

@@ -307,7 +307,7 @@ def test_collect_unknown_target_uses_all_tests_path(monkeypatch, tmp_path):
 
     observed: list[list[str]] = []
 
-    def fake_run(cmd, check=False, capture_output=False, text=False):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=False, text=False, timeout=None, cwd=None, env=None):  # noqa: ANN001
         observed.append(cmd[:])
         return SimpleNamespace(
             stdout="test_sample.py::test_ok\n",
@@ -398,7 +398,7 @@ def test_run_tests_segment_appends_aggregation_tips(
             self.stderr = ""
             self.returncode = 0
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         assert "--collect-only" in cmd
         stdout = "\n".join(["test_one.py::test_one", "test_two.py::test_two"])
         return CollectProc(stdout)

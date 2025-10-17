@@ -9,12 +9,12 @@ from devsynth.adapters.cli.typer_adapter import (
     _format_cli_error,
     _warn_if_features_disabled,
     build_app,
-    completion_cmd,
     parse_args,
     run_cli,
     show_help,
 )
 from devsynth.application.cli import config_app
+from devsynth.application.cli.commands.completion_cmd import completion_cmd
 from devsynth.application.cli.requirements_commands import requirements_app
 
 

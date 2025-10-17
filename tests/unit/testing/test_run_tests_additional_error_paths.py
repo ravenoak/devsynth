@@ -88,7 +88,7 @@ def test_run_tests_segment_merges_extra_marker(
 
     node_ids = "test_demo.py::test_ok\n"
 
-    def fake_run(cmd, check=False, capture_output=True, text=True):  # noqa: ANN001
+    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
         assert "--collect-only" in cmd
         marker_index = len(cmd) - 1 - cmd[::-1].index("-m")
         expr = cmd[marker_index + 1]

@@ -8,7 +8,6 @@ from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi.testclient import TestClient
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.behavior.feature_paths import feature_path
@@ -16,7 +15,21 @@ from tests.behavior.feature_paths import feature_path
 pytestmark = [pytest.mark.fast]
 
 pytest.importorskip("fastapi")
-pytest.importorskip("fastapi.testclient")
+
+# Defer fastapi.testclient import to avoid MRO issues during collection
+# Import will be done lazily when actually needed by tests
+TestClient = None
+
+def _get_testclient():
+    """Lazily import TestClient to avoid MRO issues during collection."""
+    global TestClient
+    if TestClient is None:
+        try:
+            from fastapi.testclient import TestClient
+        except TypeError:
+            # Fallback for MRO compatibility issues
+            from starlette.testclient import TestClient
+    return TestClient
 
 
 def _module_stub(name: str, **attributes: object) -> ModuleType:
@@ -89,7 +102,7 @@ def api_context(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
     import devsynth.interface.agentapi as agentapi
 
     importlib.reload(agentapi)
-    client = TestClient(agentapi.app)
+    client = _get_testclient()(agentapi.app)
     return {
         "client": client,
         "cli": cli_stub,
