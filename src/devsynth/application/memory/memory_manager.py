@@ -538,7 +538,13 @@ class MemoryManager:
 
             try:
                 # Use the circuit breaker to protect the store operation
-                return circuit.execute(adapter.store, memory_item)
+                # Check if adapter supports MemoryStore protocol (has store method)
+                if hasattr(adapter, 'store'):
+                    return circuit.execute(adapter.store, memory_item)
+                else:
+                    # Skip vector adapters for MemoryItem storage
+                    logger.debug(f"Skipping vector adapter {adapter_name} for MemoryItem storage")
+                    continue
             except CircuitBreakerOpenError as e:
                 # Circuit is open, log and continue to next adapter
                 logger.warning(

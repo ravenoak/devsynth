@@ -21,7 +21,7 @@ from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import inc_provider
 
-from ...config.settings import get_llm_settings
+# Import get_llm_settings lazily to avoid import issues during testing
 from ...domain.interfaces.llm import LLMProvider, StreamingLLMProvider
 from ..utils.token_tracker import TokenLimitExceededError, TokenTracker
 
@@ -60,6 +60,7 @@ class OpenRouterProvider(StreamingLLMProvider):
             OpenRouterConnectionError: If no API key is provided or available in environment
         """
         # Get default settings from configuration
+        from ...config.settings import get_llm_settings
         default_settings = get_llm_settings()
 
         # Initialize with default settings, overridden by provided config

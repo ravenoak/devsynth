@@ -1,16 +1,20 @@
+import concurrent.futures
 import inspect
 import os
 from typing import Any, Dict, List, Optional
 
 import httpx
 
-from devsynth.config import get_llm_settings
+# Import get_llm_settings lazily to avoid import issues during testing
 from devsynth.core.config_loader import load_config
 
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
 from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
+from ...fallback import CircuitBreaker, retry_with_exponential_backoff
+from ...application.utils.token_tracker import TokenTracker
+from ...metrics import inc_provider
 
 logger = DevSynthLogger(__name__)
 from devsynth.exceptions import DevSynthError
@@ -84,6 +88,7 @@ class AnthropicProvider(BaseLLMProvider):
         self.temperature = self.config.get("temperature", 0.7)
         self.api_base = self.config.get("api_base", "https://api.anthropic.com")
         self.timeout = self.config.get("timeout", 60)
+        self.max_retries = self.config.get("max_retries", 3)
         self.embedding_model = self.config.get("embedding_model", "claude-3-embed")
 
         if not self.api_key:
@@ -380,6 +385,7 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
     if not allow_providers:
         offline = True
 
+    from devsynth.config import get_llm_settings
     llm_cfg = get_llm_settings()
     if "offline_provider" in cfg:
         llm_cfg["offline_provider"] = cfg["offline_provider"]

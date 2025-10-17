@@ -14,7 +14,7 @@ from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import inc_provider
 
-from ...config import get_llm_settings
+# Import get_llm_settings lazily to avoid import issues during testing
 from ..utils.token_tracker import TokenLimitExceededError, TokenTracker
 from .providers import BaseLLMProvider
 
@@ -163,6 +163,7 @@ class LMStudioProvider(BaseLLMProvider):
                 - auto_select_model: Whether to automatically select a model (default: from config)
         """
         # Get default settings from configuration
+        from ...config.settings import get_llm_settings
         default_settings = get_llm_settings()
 
         # Initialize with default settings, overridden by provided config
@@ -310,8 +311,8 @@ class LMStudioProvider(BaseLLMProvider):
         if not resource_enabled:
             return False
 
-        # Compute bounded retries/delay to stay under 5s total
-        max_total_seconds = 5.0
+        # Compute bounded retries/delay to stay under 10s total (conservative for shared host)
+        max_total_seconds = 10.0
         # Default to at most 3 retries with small backoff, but cap by max_total_seconds using call_timeout as base
         attempt = 0
         delay = min(0.5, self.call_timeout / 4)
@@ -329,9 +330,9 @@ class LMStudioProvider(BaseLLMProvider):
                         "LM Studio health_check configure_default_client failed (ignored): %s",
                         cfg_err,
                     )
-                # Use native API for health check
+                # Use native API for health check (5s timeout for quick health checks)
                 import requests
-                response = requests.get(f"{self.api_base}/api/v0/models", timeout=10)
+                response = requests.get(f"{self.api_base}/api/v0/models", timeout=5)
                 models_data = response.json()
                 models = [m for m in models_data.get("data", []) if m.get("type") == "llm"]
                 _ = len(models)

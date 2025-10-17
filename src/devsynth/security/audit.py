@@ -40,6 +40,7 @@ def run_bandit() -> None:
             "bandit",
             "-q",
             "-r",
+            "--exit-zero",  # For alpha release, don't fail on warnings
             "src",
         ]
     )

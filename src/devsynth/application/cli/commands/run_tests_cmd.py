@@ -31,9 +31,11 @@ from devsynth.testing.run_tests import (
     DEFAULT_COVERAGE_THRESHOLD,
     PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE,
     PYTEST_COV_PLUGIN_MISSING_MESSAGE,
+    _coverage_threshold,
     collect_tests_with_cache,
     coverage_artifacts_status,
     enforce_coverage_threshold,
+    ensure_pytest_asyncio_plugin_env,
     ensure_pytest_bdd_plugin_env,
     ensure_pytest_cov_plugin_env,
     pytest_cov_support_status,
@@ -247,16 +249,9 @@ def run_tests_cmd(
     # function directly. Normalize parameters defensively for that scenario.
     inventory = bool(inventory)
 
-    # Handle Typer OptionInfo objects that may be passed during testing
-    def extract_option_value(option_obj):
-        """Extract the actual value from a Typer OptionInfo object or return the object itself."""
-        if hasattr(option_obj, 'default'):
-            return option_obj.default
-        return option_obj
-
     # Extract actual values from OptionInfo objects
-    actual_speeds = extract_option_value(speeds) if hasattr(speeds, 'default') else speeds
-    actual_features = extract_option_value(features) if hasattr(features, 'default') else features
+    actual_speeds = speeds.default if speeds is not None and hasattr(speeds, 'default') else speeds
+    actual_features = features.default if features is not None and hasattr(features, 'default') else features
 
     normalized_speed_inputs = list(actual_speeds or [])
     normalized_feature_inputs = list(actual_features or [])
@@ -339,13 +334,26 @@ def run_tests_cmd(
 
     # Smoke mode: minimize plugin surface and disable xdist
     if smoke:
+        os.environ["DEVSYNTH_SMOKE_MODE"] = "1"  # Set smoke mode flag
         os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
         addopts_value = os.environ.get("PYTEST_ADDOPTS", "")
         if not addopts_value.strip():
             addopts_value = "-p no:xdist"
         tokens = _parse_pytest_addopts(addopts_value)
-        if not any(token.startswith("--cov-fail-under") for token in tokens):
-            addopts_value = f"{addopts_value.strip()} --cov-fail-under=0".strip()
+
+        # Remove coverage options when plugin autoloading is disabled
+        # since --cov won't work without pytest-cov plugin
+        filtered_tokens = []
+        for token in tokens:
+            if token.startswith(("--cov", "--cov-report", "--cov-fail-under")):
+                continue  # Skip coverage options
+            filtered_tokens.append(token)
+
+        # Rebuild addopts without coverage options
+        addopts_value = " ".join(filtered_tokens)
+
+        # Don't add --cov-fail-under=0 since coverage is disabled in smoke mode
+        # This prevents pytest from complaining about unrecognized arguments
         os.environ["PYTEST_ADDOPTS"] = addopts_value.strip()
         no_parallel = True
         # In smoke mode, default to fast tests when no explicit speeds are provided.
@@ -368,8 +376,16 @@ def run_tests_cmd(
         os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist " + existing_addopts).strip()
         no_parallel = True
 
-    coverage_plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
-    bdd_plugin_injected = ensure_pytest_bdd_plugin_env(os.environ)
+    # Skip coverage injection in smoke mode
+    if smoke:
+        coverage_plugin_injected = False
+        bdd_plugin_injected = False  # Skip BDD plugin injection in smoke mode
+        asyncio_plugin_injected = False  # Skip asyncio plugin injection in smoke mode
+    else:
+        coverage_plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
+        bdd_plugin_injected = ensure_pytest_bdd_plugin_env(os.environ)
+        asyncio_plugin_injected = ensure_pytest_asyncio_plugin_env(os.environ)
+
     if coverage_plugin_injected:
         message = "[cyan]-p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
         logger.info(
@@ -381,6 +397,13 @@ def run_tests_cmd(
         message = "[cyan]-p pytest_bdd.plugin appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
         logger.info(
             "CLI appended -p pytest_bdd.plugin to PYTEST_ADDOPTS to preserve pytest-bdd hooks",
+            extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
+        )
+        ux_bridge.print(message)
+    if asyncio_plugin_injected:
+        message = "[cyan]-p pytest_asyncio appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
+        logger.info(
+            "CLI appended -p pytest_asyncio to PYTEST_ADDOPTS to preserve async test support",
             extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
         )
         ux_bridge.print(message)
@@ -480,7 +503,7 @@ def run_tests_cmd(
             ux_bridge.print(
                 "[yellow]Coverage enforcement skipped in smoke mode"
                 f"{suffix}. Run fast+medium profiles before enforcing the "
-                f"{DEFAULT_COVERAGE_THRESHOLD:.0f}% gate.[/yellow]"
+                f"{_coverage_threshold():.0f}% gate.[/yellow]"
             )
 
             if coverage_enabled:
@@ -525,8 +548,8 @@ def run_tests_cmd(
             else:
                 ux_bridge.print(
                     (
-                        "[green]Coverage {:.2f}% meets the {:.0f}% threshold[/green]"
-                    ).format(coverage_percent, DEFAULT_COVERAGE_THRESHOLD)
+                    "[green]Coverage {:.2f}% meets the {:.0f}% threshold[/green]"
+                ).format(coverage_percent, _coverage_threshold())
                 )
                 _emit_coverage_artifact_messages(ux_bridge)
     else:

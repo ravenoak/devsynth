@@ -10,7 +10,7 @@ from .routing import Router
 
 # Import WebUI class from the main webui module, but handle import errors gracefully
 try:
-    from .webui import WebUI
+    from devsynth.interface.webui import WebUI  # type: ignore
 except ImportError:
     # WebUI class might not be available if Streamlit is not installed
     WebUI = None

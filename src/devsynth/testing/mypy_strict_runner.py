@@ -4,20 +4,70 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
+import os
 import re
 import subprocess
 import sys
 from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Mapping, Optional, Sequence, TYPE_CHECKING
 
-from devsynth.release import (
-    compute_file_checksum,
-    get_release_tag,
-    publish_manifest,
-    write_manifest,
-)
+if TYPE_CHECKING:
+    from devsynth.release import publish_manifest as _publish_manifest_type
+else:
+    # Handle circular import by making publish_manifest optional
+    publish_manifest: Optional[Any] = None
+
+try:
+    from devsynth.release import (
+        publish_manifest,
+    )
+except ImportError:
+    # publish_manifest remains None on import failure
+    pass
+
+
+def compute_file_checksum(path: Path) -> str:
+    """Return the SHA-256 checksum for ``path`` contents."""
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(8192), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def get_release_tag(default: str = "unknown") -> str:
+    """Determine the active release tag.
+
+    The helper first honours ``DEVSYNTH_RELEASE_TAG`` for operator overrides and
+    falls back to the Poetry project version recorded in ``pyproject.toml``.
+    """
+    # Check environment variable override
+    env_tag = os.environ.get("DEVSYNTH_RELEASE_TAG")
+    if env_tag:
+        return str(env_tag)
+
+    # Fall back to pyproject.toml version
+    try:
+        import tomllib
+        pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
+        if pyproject_path.exists():
+            with pyproject_path.open("rb") as f:
+                data = tomllib.load(f)
+                version = data.get("project", {}).get("version", default)
+                return str(version) if version is not None else default
+    except (ImportError, FileNotFoundError, tomllib.TOMLDecodeError):
+        pass
+
+    return default
+
+
+def write_manifest(path: Path, manifest: Mapping[str, Any]) -> None:
+    """Write ``manifest`` to ``path`` with pretty JSON formatting."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(manifest, indent=2) + "\n")
 
 
 def _coerce_sequence(value: object) -> Sequence[object]:
@@ -178,29 +228,35 @@ def main(argv: Sequence[str] | None = None) -> int:
     write_manifest(manifest_path, manifest)
     write_manifest(latest_manifest_path, manifest)
 
-    try:
-        publication = publish_manifest(manifest)
-    except Exception as exc:
-        print(f"[knowledge-graph] typing ingestion failed: {exc}", file=sys.stderr)
-    else:
-        evidence_created = _coerce_sequence(publication.created.get("release_evidence"))
-        evidence_parts = []
-        for evidence_id, created in zip(publication.evidence_ids, evidence_created):
-            suffix = " (new)" if bool(created) else ""
-            evidence_parts.append(f"{evidence_id}{suffix}")
-        evidence_summary = ", ".join(evidence_parts) or "none"
-        test_run_state = (
-            "new" if bool(publication.created.get("test_run")) else "updated"
-        )
-        gate_state = (
-            "new" if bool(publication.created.get("quality_gate")) else "updated"
-        )
-        print(
-            "[knowledge-graph] typing gate "
-            f"{publication.gate_status} → QualityGate {publication.quality_gate_id} ({gate_state}), "
-            f"TestRun {publication.test_run_id} ({test_run_state}), Evidence [{evidence_summary}] via "
-            f"{publication.adapter_backend}; errors={error_count}"
-        )
+    # Handle publication logic with proper None checking
+    publication_success = False
+    if publish_manifest is not None:
+        try:
+            publication = publish_manifest(manifest)
+            evidence_created = _coerce_sequence(publication.created.get("release_evidence"))
+            evidence_parts = []
+            for evidence_id, created in zip(publication.evidence_ids, evidence_created):
+                suffix = " (new)" if bool(created) else ""
+                evidence_parts.append(f"{evidence_id}{suffix}")
+            evidence_summary = ", ".join(evidence_parts) or "none"
+            test_run_state = (
+                "new" if bool(publication.created.get("test_run")) else "updated"
+            )
+            gate_state = (
+                "new" if bool(publication.created.get("quality_gate")) else "updated"
+            )
+            print(
+                "[knowledge-graph] typing gate "
+                f"{publication.gate_status} → QualityGate {publication.quality_gate_id} ({gate_state}), "
+                f"TestRun {publication.test_run_id} ({test_run_state}), Evidence [{evidence_summary}] via "
+                f"{publication.adapter_backend}; errors={error_count}"
+            )
+            publication_success = True
+        except Exception as exc:
+            print(f"[knowledge-graph] typing ingestion failed: {exc}", file=sys.stderr)
+
+    if not publication_success:
+        print(f"[knowledge-graph] typing manifest created but knowledge graph unavailable (circular import); errors={error_count}", file=sys.stderr)
 
     return process.returncode
 
