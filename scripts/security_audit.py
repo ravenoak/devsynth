@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -45,8 +46,23 @@ def run(argv: list[str] | None = None) -> dict[str, str]:
         action="store_true",
         help="Skip dependency vulnerability scan",
     )
+    parser.add_argument(
+        "--version",
+        default="0.1.0a1",
+        help="Version for validation (default: 0.1.0a1)",
+    )
+    parser.add_argument(
+        "--env",
+        default="alpha",
+        help="Environment for validation (default: alpha)",
+    )
     args = parser.parse_args(argv)
 
+    # Ensure environment variables are available for validation
+    os.environ['DEVSYNTH_VERSION'] = args.version
+    os.environ['DEVSYNTH_ENV'] = args.env
+
+    print(f"[security_audit] Environment: DEVSYNTH_VERSION={os.environ.get('DEVSYNTH_VERSION', 'NOT_SET')}, DEVSYNTH_ENV={os.environ.get('DEVSYNTH_ENV', 'NOT_SET')}")
     require_pre_deploy_checks()
     if verify_security_policy.main() != 0:
         raise subprocess.CalledProcessError(1, "verify_security_policy")

@@ -1,0 +1,2 @@
+src/devsynth/interface/uxbridge_config.py:74: error: Module "devsynth.interface.webui" has no attribute "WebUI"  [attr-defined]
+Found 1 error in 1 file (checked 433 source files)

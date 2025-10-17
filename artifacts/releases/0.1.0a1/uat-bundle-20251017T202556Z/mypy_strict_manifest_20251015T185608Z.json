@@ -1,0 +1,40 @@
+{
+  "run_type": "typing",
+  "release_tag": "unknown",
+  "source_command": "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/bin/python -m mypy --strict src/devsynth",
+  "artifacts": [
+    {
+      "artifact_type": "mypy_log",
+      "path": "diagnostics/mypy_strict_src_devsynth_20251015T185608Z.txt",
+      "checksum": "5c68348124881fa545cd1ad53bd1677b4251f7b4e780034ea5384f5cde4f2bb6",
+      "collected_at": "2025-10-15T18:56:08.255203+00:00"
+    },
+    {
+      "artifact_type": "mypy_inventory",
+      "path": "diagnostics/mypy_strict_inventory_20251015T185608Z.md",
+      "checksum": "a9490807b1b56063ae79bad4c925b2fbc658e5bdb92c0e82af352f723fe5eb5f",
+      "collected_at": "2025-10-15T18:56:08.255203+00:00"
+    }
+  ],
+  "test_run": {
+    "profile": "typing-strict",
+    "coverage_percent": null,
+    "tests_collected": null,
+    "exit_code": 1,
+    "started_at": "2025-10-15T18:55:58.758397+00:00",
+    "completed_at": "2025-10-15T18:56:08.255203+00:00",
+    "run_checksum": "1a168a4bb47268a9f583be84c13cb5d6c6b07e7dad05cf63e5611c4c3ea15434",
+    "metadata": {
+      "error_count": 0
+    }
+  },
+  "quality_gate": {
+    "gate_name": "typing",
+    "threshold": 0.0,
+    "status": "fail",
+    "evaluated_at": "2025-10-15T18:56:08.255203+00:00",
+    "metadata": {
+      "error_count": 0
+    }
+  }
+}

@@ -1,0 +1,312 @@
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/conftest_extensions.py:158: PytestUnknownMarkWarning: Unknown pytest.mark.flaky - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+  pytest.mark.flaky(reruns=retries, reruns_delay=delay)
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/conftest.py:960: PytestUnknownMarkWarning: Unknown pytest.mark.resource_lmdb - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+  item.add_marker(getattr(pytest.mark, f"resource_{resource}"))
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/conftest.py:960: PytestUnknownMarkWarning: Unknown pytest.mark.resource_kuzu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+  item.add_marker(getattr(pytest.mark, f"resource_{resource}"))
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/conftest.py:960: PytestUnknownMarkWarning: Unknown pytest.mark.resource_faiss - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+  item.add_marker(getattr(pytest.mark, f"resource_{resource}"))
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/conftest.py:960: PytestUnknownMarkWarning: Unknown pytest.mark.resource_chromadb - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+  item.add_marker(getattr(pytest.mark, f"resource_{resource}"))
+....................................................................F
+=================================== FAILURES ===================================
+_______________ test_openai_provider_complete_retry_has_expected _______________
+
+self = <devsynth.adapters.provider_system.OpenAIProvider object at 0x123e33a40>
+prompt = 'Test prompt', system_prompt = None, temperature = 0.7
+max_tokens = 2000
+
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """
+        Generate a completion using OpenAI API.
+
+        Args:
+            prompt: User prompt
+            system_prompt: Optional system prompt
+            temperature: Sampling temperature (0.0 to 1.0)
+            max_tokens: Maximum number of tokens to generate
+
+        Returns:
+            str: Generated completion
+
+        Raises:
+            ProviderError: If API call fails
+        """
+
+        # Define the actual API call function
+        if parameters:
+            temperature = parameters.get("temperature", temperature)
+            max_tokens = parameters.get("max_tokens", max_tokens)
+            top_p = parameters.get("top_p")
+            frequency_penalty = parameters.get("frequency_penalty")
+            presence_penalty = parameters.get("presence_penalty")
+
+            if not 0 <= temperature <= 2:
+                raise ProviderError("temperature must be between 0 and 2")
+            if max_tokens <= 0:
+                raise ProviderError("max_tokens must be positive")
+            if top_p is not None and not 0 <= top_p <= 1:
+                raise ProviderError("top_p must be between 0 and 1")
+
+        def _api_call():
+            url = f"{self.base_url}/chat/completions"
+
+            if parameters and "messages" in parameters:
+                messages = list(parameters["messages"])
+            else:
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            if parameters:
+                extra = {
+                    k: v
+                    for k, v in parameters.items()
+                    if k not in {"temperature", "max_tokens"}
+                }
+                payload.update(extra)
+
+            response = requests.post(
+                url,
+                headers=self.headers,
+                json=payload,
+                **self.tls_config.as_requests_kwargs(),
+            )
+            response.raise_for_status()
+            response_data = response.json()
+
+            if "choices" in response_data and len(response_data["choices"]) > 0:
+                return response_data["choices"][0]["message"]["content"]
+            else:
+                raise ProviderError(f"Invalid response format: {response_data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+>           return retry_with_exponential_backoff(
+                max_retries=retry_config["max_retries"],
+                initial_delay=retry_config["initial_delay"],
+                exponential_base=retry_config["exponential_base"],
+                max_delay=retry_config["max_delay"],
+                jitter=retry_config["jitter"],
+                retry_conditions=retry_config.get("conditions"),
+                track_metrics=retry_config.get("track_metrics", True),
+                should_retry=self._should_retry,
+                retryable_exceptions=(requests.exceptions.RequestException,),
+                on_retry=self._emit_retry_telemetry,
+            )(_api_call)()
+
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/src/devsynth/adapters/provider_system.py:696:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/src/devsynth/adapters/provider_system.py:685: in _api_call
+    response.raise_for_status()
+/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1139: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1143: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='mock.raise_for_status' id='4897296304'>, args = ()
+kwargs = {}, effect = HTTPError('429 Client Error')
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               requests.exceptions.HTTPError: 429 Client Error
+
+/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1198: HTTPError
+
+During handling of the above exception, another exception occurred:
+
+mock_post = <MagicMock name='post' id='4897326144'>
+
+    @patch("requests.post")
+    @pytest.mark.medium
+    def test_openai_provider_complete_retry_has_expected(mock_post):
+        """Test retry mechanism in the complete method of OpenAIProvider.
+
+        ReqID: FR-89"""
+
+        def mock_decorator(*args, **kwargs):
+
+            def wrapper(func):
+                return func
+
+            return wrapper
+
+        with patch(
+            "devsynth.adapters.provider_system.retry_with_exponential_backoff",
+            side_effect=mock_decorator,
+        ) as mock_retry:
+            error_response = MagicMock()
+            error_response.status_code = 429
+            error_response.json.return_value = {"error": {"message": "Rate limit exceeded"}}
+            error_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+                "429 Client Error"
+            )
+            success_response = MagicMock()
+            success_response.status_code = 200
+            success_response.json.return_value = {
+                "choices": [{"message": {"content": "Test completion"}}]
+            }
+            mock_post.side_effect = [error_response, success_response]
+            provider = OpenAIProvider(api_key="test_key", model="gpt-4")
+            with pytest.raises(ProviderError):
+>               provider.complete("Test prompt")
+
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/unit/adapters/test_provider_system.py:418:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <devsynth.adapters.provider_system.OpenAIProvider object at 0x123e33a40>
+prompt = 'Test prompt', system_prompt = None, temperature = 0.7
+max_tokens = 2000
+
+    def complete(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+        *,
+        parameters: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """
+        Generate a completion using OpenAI API.
+
+        Args:
+            prompt: User prompt
+            system_prompt: Optional system prompt
+            temperature: Sampling temperature (0.0 to 1.0)
+            max_tokens: Maximum number of tokens to generate
+
+        Returns:
+            str: Generated completion
+
+        Raises:
+            ProviderError: If API call fails
+        """
+
+        # Define the actual API call function
+        if parameters:
+            temperature = parameters.get("temperature", temperature)
+            max_tokens = parameters.get("max_tokens", max_tokens)
+            top_p = parameters.get("top_p")
+            frequency_penalty = parameters.get("frequency_penalty")
+            presence_penalty = parameters.get("presence_penalty")
+
+            if not 0 <= temperature <= 2:
+                raise ProviderError("temperature must be between 0 and 2")
+            if max_tokens <= 0:
+                raise ProviderError("max_tokens must be positive")
+            if top_p is not None and not 0 <= top_p <= 1:
+                raise ProviderError("top_p must be between 0 and 1")
+
+        def _api_call():
+            url = f"{self.base_url}/chat/completions"
+
+            if parameters and "messages" in parameters:
+                messages = list(parameters["messages"])
+            else:
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            if parameters:
+                extra = {
+                    k: v
+                    for k, v in parameters.items()
+                    if k not in {"temperature", "max_tokens"}
+                }
+                payload.update(extra)
+
+            response = requests.post(
+                url,
+                headers=self.headers,
+                json=payload,
+                **self.tls_config.as_requests_kwargs(),
+            )
+            response.raise_for_status()
+            response_data = response.json()
+
+            if "choices" in response_data and len(response_data["choices"]) > 0:
+                return response_data["choices"][0]["message"]["content"]
+            else:
+                raise ProviderError(f"Invalid response format: {response_data}")
+
+        # Use retry with exponential backoff
+        try:
+            retry_config = self._get_retry_config()
+            return retry_with_exponential_backoff(
+                max_retries=retry_config["max_retries"],
+                initial_delay=retry_config["initial_delay"],
+                exponential_base=retry_config["exponential_base"],
+                max_delay=retry_config["max_delay"],
+                jitter=retry_config["jitter"],
+                retry_conditions=retry_config.get("conditions"),
+                track_metrics=retry_config.get("track_metrics", True),
+                should_retry=self._should_retry,
+                retryable_exceptions=(requests.exceptions.RequestException,),
+                on_retry=self._emit_retry_telemetry,
+            )(_api_call)()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"OpenAI API error: {e}")
+>           raise ProviderError(f"OpenAI API error: {e}")
+E           devsynth.adapters.provider_system.ProviderError: OpenAI API error: 429 Client Error
+
+/Users/ravenoak/Projects/github.com/ravenoak/devsynth/src/devsynth/adapters/provider_system.py:710: ProviderError
+------------------------------ Captured log call -------------------------------
+ERROR    devsynth.adapters.provider_system:logging_setup.py:550 OpenAI API error: 429 Client Error
+========================= Test Categorization Summary ==========================
+Test Type Distribution:
+  Unit Tests: 73
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 72
+  Medium Tests (1-5s): 1
+  Slow Tests (> 5s): 0
+============================= Top 10 Slowest Tests =============================
+1. tests/unit/adapters/providers/test_fallback.py::test_retry_with_exponential_backoff_failure_raises_error: 1.07s
+2. tests/unit/adapters/providers/test_fallback.py::test_retry_with_exponential_backoff_success_succeeds: 0.71s
+3. tests/unit/adapters/cli/test_typer_adapter.py::test_build_app_returns_expected_result: 0.28s
+4. tests/unit/adapters/test_kuzu_memory_store.py::test_store_failure_raises_memory_store_error: 0.24s
+5. tests/unit/adapters/test_kuzu_memory_store.py::test_delete_returns_false_on_error: 0.14s
+6. tests/unit/adapters/issues/test_mvu_enrichment.py::test_get_by_trace_id_enriches: 0.14s
+7. tests/unit/adapters/test_provider_system.py::test_openai_provider_complete_retry_has_expected: 0.13s
+8. tests/unit/adapters/test_kuzu_memory_store.py::test_create_ephemeral_embedded: 0.12s
+9. tests/unit/adapters/test_kuzu_memory_store.py::test_create_ephemeral_fallback: 0.12s
+10. tests/unit/adapters/memory/test_memory_adapter.py::TestMemorySystemAdapter::test_init_with_rdflib_storage_succeeds: 0.08s
+=========================== short test summary info ============================
+FAILED tests/unit/adapters/test_provider_system.py::test_openai_provider_complete_retry_has_expected
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 68 passed, 4 skipped, 24 deselected in 5.09s

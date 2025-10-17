@@ -1,0 +1,2 @@
+Knowledge-graph evidence extraction:
+- No knowledge-graph banners found in coverage log

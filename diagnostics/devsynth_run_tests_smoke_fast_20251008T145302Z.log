@@ -1,8 +1,0 @@
-2025-10-08 14:53:16,864 - devsynth.testing.run_tests - INFO - Injected -p pytest_cov into PYTEST_ADDOPTS to preserve coverage instrumentation
-2025-10-08 14:53:16,865 - devsynth.testing.run_tests - INFO - Injected -p pytest_bdd.plugin into PYTEST_ADDOPTS to preserve pytest-bdd hooks
-2025-10-08 14:53:16,868 - devsynth.application.cli.commands.run_tests_cmd - INFO - CLI appended -p pytest_cov to PYTEST_ADDOPTS to enforce coverage instrumentation
--p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled
-2025-10-08 14:53:16,870 - devsynth.application.cli.commands.run_tests_cmd - INFO - CLI appended -p pytest_bdd.plugin to PYTEST_ADDOPTS to preserve pytest-bdd hooks
--p pytest_bdd.plugin appended to PYTEST_ADDOPTS because plugin autoloading is disabled
-2025-10-08 14:58:16,964 - devsynth.testing.run_tests - WARNING - Test collection failed: Command '['/workspace/devsynth/.venv/bin/python', '-m', 'pytest', 'tests/', '--collect-only', '-q', '-o', 'addopts=', '-m', 'fast and not memory_intensive']' timed out after 300.0 seconds
-2025-10-08 14:58:16,966 - devsynth.testing.run_tests - INFO - marker fallback triggered for target=all-tests (speeds=fast)

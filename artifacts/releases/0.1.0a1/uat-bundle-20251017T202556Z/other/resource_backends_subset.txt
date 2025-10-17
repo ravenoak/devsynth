@@ -1,0 +1,15 @@
+DevSynth Runtime Evidence — Resource Subsets: Backends (chromadb/faiss/kuzu etc.)
+Date: 2025-09-03 13:08 (local)
+Command examples:
+  export DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE=true
+  export DEVSYNTH_RESOURCE_FAISS_AVAILABLE=true
+  export DEVSYNTH_RESOURCE_KUZU_AVAILABLE=true
+  poetry run pytest -q -m "requires_resource('chromadb') or requires_resource('faiss') or requires_resource('kuzu')"
+
+Result summary (maintainer run):
+- Collected: backend-specific tests
+- Outcome: PASS (0 failed); skips occurred if corresponding flags or extras not installed
+
+Notes:
+- Minimal temporary store fixtures created by tests; verified teardown
+- See docs/developer_guides/testing.md for enabling extras

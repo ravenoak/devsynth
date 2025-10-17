@@ -1,0 +1,388 @@
+Per-file coverage percentages (generated from utils_coverage.json)
+Percent  Missing  File
+  0.00%      626  src/devsynth/application/collaboration/wsde_team_extended.py
+  0.00%      579  src/devsynth/domain/models/wsde_knowledge.py
+  0.00%      421  src/devsynth/interface/agentapi.py
+  0.00%      420  src/devsynth/application/memory/chromadb_store.py
+  0.00%      409  src/devsynth/application/collaboration/peer_review.py
+  0.00%      409  src/devsynth/interface/agentapi_enhanced.py
+  0.00%      407  src/devsynth/application/collaboration/wsde_team_consensus.py
+  0.00%      328  src/devsynth/application/memory/adapters/enhanced_graph_memory_adapter.py
+  0.00%      308  src/devsynth/application/memory/fallback.py
+  0.00%      307  src/devsynth/interface/webui.py
+  0.00%      286  src/devsynth/adapters/memory/memory_adapter.py
+  0.00%      280  src/devsynth/adapters/chromadb_memory_store.py
+  0.00%      261  src/devsynth/application/memory/duckdb_store.py
+  0.00%      255  src/devsynth/application/memory/faiss_store.py
+  0.00%      242  src/devsynth/application/cli/setup_wizard.py
+  0.00%      241  src/devsynth/adapters/kuzu_memory_store.py
+  0.00%      227  src/devsynth/application/agents/wsde_memory_integration.py
+  0.00%      224  src/devsynth/adapters/cli/typer_adapter.py
+  0.00%      219  src/devsynth/application/code_analysis/transformer.py
+  0.00%      217  src/devsynth/application/edrr/coordinator_core.py
+  0.00%      215  src/devsynth/application/promises/agent.py
+  0.00%      213  src/devsynth/interface/webui_bridge.py
+  0.00%      210  src/devsynth/application/memory/kuzu_store.py
+  0.00%      202  src/devsynth/application/memory/recovery.py
+  0.00%      201  src/devsynth/application/collaboration/wsde_team_task_management.py
+  0.00%      200  src/devsynth/application/promises/interface.py
+  0.00%      200  src/devsynth/domain/models/wsde_context_driven_leadership.py
+  0.00%      198  src/devsynth/application/llm/lmstudio_provider.py
+  0.00%      193  src/devsynth/adapters/memory/chroma_db_adapter.py
+  0.00%      189  src/devsynth/feature_markers.py
+  0.00%      183  src/devsynth/application/documentation/ingestion.py
+  0.00%      180  src/devsynth/application/agents/unified_agent.py
+  0.00%      178  src/devsynth/application/code_analysis/ast_workflow_integration.py
+  0.00%      174  src/devsynth/application/promises/implementation.py
+  0.00%      172  src/devsynth/application/cli/command_output_formatter.py
+  0.00%      167  src/devsynth/domain/interfaces/requirement.py
+  0.00%      157  src/devsynth/application/memory/tinydb_store.py
+  0.00%      156  src/devsynth/application/cli/long_running_progress.py
+  0.00%      143  src/devsynth/adapters/agents/agent_adapter.py
+  0.00%      142  src/devsynth/application/memory/knowledge_graph_utils.py
+  0.00%      138  src/devsynth/application/agents/agent_memory_integration.py
+  0.00%      134  src/devsynth/interface/webui_state.py
+  0.00%      133  src/devsynth/application/collaboration/collaborative_wsde_team.py
+  0.00%      127  src/devsynth/application/promises/broker.py
+  0.00%      125  src/devsynth/application/collaboration/coordinator.py
+  0.00%      116  src/devsynth/application/collaboration/message_protocol.py
+  0.00%      114  src/devsynth/application/ingestion/phases.py
+  0.00%      114  src/devsynth/application/memory/adapters/chromadb_vector_adapter.py
+  0.00%      111  src/devsynth/interface/command_output.py
+  0.00%      108  src/devsynth/application/promises/examples.py
+  0.00%      101  src/devsynth/application/cli/help.py
+  0.00%       98  src/devsynth/adapters/fakes.py
+  0.00%       96  src/devsynth/application/memory/memory_integration.py
+  0.00%       95  src/devsynth/interface/nicegui_webui.py
+  0.00%       95  src/devsynth/interface/wizard_state_manager.py
+  0.00%       92  src/devsynth/application/cli/apispec.py
+  0.00%       91  src/devsynth/adapters/requirements/memory_repository.py
+  0.00%       90  src/devsynth/domain/models/wsde_code_improvements.py
+  0.00%       88  src/devsynth/application/agents/test.py
+  0.00%       83  src/devsynth/application/cli/output.py
+  0.00%       81  src/devsynth/application/agents/base.py
+  0.00%       76  src/devsynth/agents/tools.py
+  0.00%       61  src/devsynth/application/cli/cli_commands.py
+  0.00%       57  src/devsynth/agents/base_agent_graph.py
+  0.00%       56  src/devsynth/application/cli/autocomplete.py
+  0.00%       56  src/devsynth/application/requirements/interactions.py
+  0.00%       55  src/devsynth/application/requirements/wizard.py
+  0.00%       53  src/devsynth/adapters/requirements/cli_chat.py
+  0.00%       50  src/devsynth/interface/state_access.py
+  0.00%       49  src/devsynth/application/orchestration/edrr_coordinator.py
+  0.00%       46  src/devsynth/application/cli/sprint_cmd.py
+  0.00%       46  src/devsynth/memory/layered_cache.py
+  0.00%       43  src/devsynth/application/agents/multi_language_code.py
+  0.00%       39  src/devsynth/api.py
+  0.00%       39  src/devsynth/memory/sync_manager.py
+  0.00%       38  src/devsynth/adapters/github_project.py
+  0.00%       38  src/devsynth/adapters/jira_adapter.py
+  0.00%       38  src/devsynth/application/performance/__init__.py
+  0.00%       37  src/devsynth/adapters/requirements/console_notification.py
+  0.00%       36  src/devsynth/agents/sandbox.py
+  0.00%       36  src/devsynth/application/llm/provider_factory.py
+  0.00%       36  src/devsynth/cli.py
+  0.00%       35  src/devsynth/interface/mvuu_dashboard.py
+  0.00%       32  src/devsynth/testing/performance.py
+  0.00%       31  src/devsynth/domain/models/task.py
+  0.00%       31  src/devsynth/interface/uxbridge_config.py
+  0.00%       30  src/devsynth/methodology/wsde_edrr_coordinator.py
+  0.00%       29  src/devsynth/application/agents/critic.py
+  0.00%       29  src/devsynth/application/cli/progress.py
+  0.00%       27  src/devsynth/application/agents/refactor.py
+  0.00%       27  src/devsynth/consensus.py
+  0.00%       26  src/devsynth/application/agents/validation.py
+  0.00%       26  src/devsynth/application/collaboration/WSDE.py
+  0.00%       24  src/devsynth/agents/test_generator.py
+  0.00%       24  src/devsynth/agents/wsde_team_coordinator.py
+  0.00%       24  src/devsynth/domain/models/wsde_security_checks.py
+  0.00%       22  src/devsynth/adapters/issues/github_adapter.py
+  0.00%       22  src/devsynth/adapters/providers/provider_factory.py
+  0.00%       22  src/devsynth/application/collaboration/wsde_team_collaborative.py
+  0.00%       22  src/devsynth/testing/generation.py
+  0.00%       21  src/devsynth/application/agents/diagram.py
+  0.00%       21  src/devsynth/application/agents/documentation.py
+  0.00%       21  src/devsynth/application/agents/planner.py
+  0.00%       21  src/devsynth/domain/wsde/workflow.py
+  0.00%       20  src/devsynth/adapters/issues/jira_adapter.py
+  0.00%       20  src/devsynth/application/agents/code.py
+  0.00%       17  src/devsynth/application/memory/vector_providers.py
+  0.00%       17  src/devsynth/interface/simple_run.py
+  0.00%       16  src/devsynth/application/agents/__init__.py
+  0.00%       16  src/devsynth/application/agents/specification.py
+  0.00%       15  src/devsynth/adapters/onnx_runtime_adapter.py
+  0.00%       15  src/devsynth/application/orchestration/dialectical_reasoner.py
+  0.00%       14  src/devsynth/application/utils/extras.py
+  0.00%       13  src/devsynth/adapters/llm/llm_adapter.py
+  0.00%       13  src/devsynth/ports/memory_store.py
+  0.00%       12  src/devsynth/application/cli/errors.py
+  0.00%       10  src/devsynth/interface/webui_setup.py
+  0.00%        9  src/devsynth/agents/graph_state.py
+  0.00%        5  src/devsynth/application/promises/__init__.py
+  0.00%        5  src/devsynth/application/sprint/planning.py
+  0.00%        3  src/devsynth/adapters/cli/__init__.py
+  0.00%        3  src/devsynth/adapters/issues/__init__.py
+  0.00%        3  src/devsynth/memory/__init__.py
+  0.00%        2  src/devsynth/adapters/agents/__init__.py
+  0.00%        2  src/devsynth/application/cli/requirements_wizard.py
+  0.00%        2  src/devsynth/application/documentation/documentation_ingestion_manager.py
+  0.00%        2  src/devsynth/application/edrr/sprint_planning.py
+  0.00%        2  src/devsynth/application/edrr/sprint_retrospective.py
+  0.00%        2  src/devsynth/core/ux_bridge.py
+  0.00%        2  src/devsynth/domain/models/wsde.py
+  0.00%        2  src/devsynth/domain/wsde/__init__.py
+  0.00%        2  src/devsynth/domain/wsde_team.py
+  4.72%      444  src/devsynth/application/collaboration/collaboration_memory_utils.py
+  6.05%      388  src/devsynth/domain/models/wsde_decision_making.py
+  6.83%      150  src/devsynth/domain/models/wsde_solution_analysis.py
+  6.90%      135  src/devsynth/application/cli/commands/dbschema_cmd.py
+  7.84%       47  src/devsynth/adapters/memory/sync_manager.py
+  8.40%     1145  src/devsynth/application/edrr/coordinator/core.py
+  8.79%      446  src/devsynth/application/memory/adapters/graph_memory_adapter.py
+  9.58%      434  src/devsynth/application/requirements/dialectical_reasoner.py
+  9.94%      145  src/devsynth/application/cli/commands/test_metrics_cmd.py
+ 10.05%      179  src/devsynth/application/cli/commands/alignment_metrics_cmd.py
+ 10.42%       43  src/devsynth/domain/models/wsde_summarization.py
+ 10.89%      180  src/devsynth/application/cli/commands/run_tests_cmd.py
+ 11.02%      105  src/devsynth/application/cli/commands/inspect_code_cmd.py
+ 11.06%      410  src/devsynth/application/memory/sync_manager.py
+ 11.11%       72  src/devsynth/interface/dpg_ui.py
+ 11.18%      135  src/devsynth/application/cli/commands/inspect_config_cmd.py
+ 11.39%      319  src/devsynth/testing/run_tests.py
+ 12.02%      600  src/devsynth/adapters/provider_system.py
+ 12.34%      405  src/devsynth/fallback.py
+ 12.61%      298  src/devsynth/domain/models/project.py
+ 12.67%      131  src/devsynth/application/cli/commands/validate_manifest_cmd.py
+ 12.68%      248  src/devsynth/application/memory/json_file_store.py
+ 12.71%      261  src/devsynth/application/memory/rdflib_store.py
+ 12.76%      212  src/devsynth/application/cli/ingest_cmd.py
+ 12.82%      136  src/devsynth/application/cli/commands/validate_metadata_cmd.py
+ 13.27%       85  src/devsynth/application/memory/query_router.py
+ 13.51%      128  src/devsynth/application/cli/commands/completion_cmd.py
+ 13.55%      217  src/devsynth/domain/models/wsde_enhanced_dialectical.py
+ 13.59%      337  src/devsynth/application/edrr/edrr_phase_transitions.py
+ 13.89%       93  src/devsynth/application/memory/transaction_context.py
+ 14.02%      141  src/devsynth/application/documentation/documentation_manager.py
+ 14.29%       72  src/devsynth/application/cli/commands/generate_docs_cmd.py
+ 14.40%      214  src/devsynth/application/memory/lmdb_store.py
+ 14.71%       87  src/devsynth/application/edrr/coordinator/phase_management.py
+ 14.74%      133  src/devsynth/application/documentation/documentation_repository.py
+ 14.89%      240  src/devsynth/application/prompts/auto_tuning.py
+ 14.92%      154  src/devsynth/application/llm/openai_provider.py
+ 15.07%       62  src/devsynth/application/cli/commands/webapp_cmd.py
+ 15.17%      302  src/devsynth/application/collaboration/agent_collaboration.py
+ 15.28%      183  src/devsynth/application/edrr/edrr_coordinator_enhanced.py
+ 15.65%      442  src/devsynth/application/ingestion/__init__.py
+ 15.97%      100  src/devsynth/application/prompts/prompt_efficacy.py
+ 16.03%      288  src/devsynth/application/memory/memory_manager.py
+ 17.01%      200  src/devsynth/application/documentation/documentation_fetcher.py
+ 17.20%       77  src/devsynth/methodology/edrr/reasoning_loop.py
+ 17.31%       43  src/devsynth/application/cli/commands/spec_cmd.py
+ 17.35%      181  src/devsynth/domain/models/wsde_voting.py
+ 17.42%      218  src/devsynth/interface/cli.py
+ 17.56%      108  src/devsynth/interface/dpg_bridge.py
+ 18.02%       91  src/devsynth/application/orchestration/refactor_workflow.py
+ 18.18%       63  src/devsynth/application/cli/commands/init_cmd.py
+ 18.25%      309  src/devsynth/application/cli/requirements_commands.py
+ 18.75%      130  src/devsynth/application/edrr/manifest_parser.py
+ 19.44%      116  src/devsynth/application/cli/commands/align_cmd.py
+ 19.54%       70  src/devsynth/application/documentation/version_monitor.py
+ 19.65%      184  src/devsynth/domain/models/wsde_roles.py
+ 19.83%       97  src/devsynth/application/cli/commands/doctor_cmd.py
+ 19.85%      525  src/devsynth/domain/models/wsde_dialectical.py
+ 20.00%      120  src/devsynth/application/prompts/prompt_manager.py
+ 20.00%       80  src/devsynth/application/memory/persistent_context_manager.py
+ 21.43%       66  src/devsynth/application/prompts/prompt_reflection.py
+ 21.57%       80  src/devsynth/application/memory/multi_layered_memory.py
+ 22.06%      325  src/devsynth/application/code_analysis/project_state_analyzer.py
+ 22.09%      201  src/devsynth/interface/output_formatter.py
+ 22.45%       38  src/devsynth/application/cli/commands/test_cmd.py
+ 22.54%       55  src/devsynth/application/requirements/requirement_service.py
+ 22.67%       58  src/devsynth/methodology/adhoc.py
+ 22.83%       71  src/devsynth/application/cli/commands/vcs_chunk_commit_cmd.py
+ 22.94%      252  src/devsynth/application/code_analysis/self_analyzer.py
+ 23.08%       50  src/devsynth/core/mvu/linter.py
+ 23.73%      135  src/devsynth/methodology/sprint.py
+ 24.00%       19  src/devsynth/application/issues/reprioritize.py
+ 24.28%      184  src/devsynth/application/code_analysis/analyzer.py
+ 24.44%      170  src/devsynth/application/memory/adapters/tinydb_memory_adapter.py
+ 24.55%       83  src/devsynth/application/cli/commands/vcs_fix_rebase_pr_cmd.py
+ 25.24%       77  src/devsynth/interface/enhanced_error_handler.py
+ 25.34%      277  src/devsynth/application/code_analysis/ast_transformer.py
+ 25.84%      132  src/devsynth/application/memory/retry.py
+ 27.19%       83  src/devsynth/application/orchestration/workflow.py
+ 27.50%       58  src/devsynth/application/cli/utils.py
+ 27.73%      185  src/devsynth/adapters/orchestration/langgraph_adapter.py
+ 28.33%       43  src/devsynth/application/cli/commands/config_cmd.py
+ 28.57%       60  src/devsynth/application/cli/commands/edrr_cycle_cmd.py
+ 28.87%       69  src/devsynth/application/memory/adapters/vector_memory_adapter.py
+ 28.93%       86  src/devsynth/adapters/memory/kuzu_adapter.py
+ 29.20%       97  src/devsynth/application/llm/providers.py
+ 29.27%       29  src/devsynth/application/cli/commands/run_pipeline_cmd.py
+ 29.55%       31  src/devsynth/adapters/llm/mock_llm_adapter.py
+ 29.69%       45  src/devsynth/core/mvu/api.py
+ 29.79%       33  src/devsynth/application/llm/offline_provider.py
+ 29.82%       40  src/devsynth/core/values.py
+ 30.00%       28  src/devsynth/application/edrr/coordinator/persistence.py
+ 30.30%       46  src/devsynth/domain/models/wsde_dialectical_types.py
+ 30.67%       52  src/devsynth/core/workflows.py
+ 31.34%       92  src/devsynth/interface/progress_utils.py
+ 31.89%      126  src/devsynth/domain/models/wsde_base.py
+ 32.35%       23  src/devsynth/security/validation.py
+ 32.46%       77  src/devsynth/domain/models/wsde_utils.py
+ 32.65%       33  src/devsynth/application/cli/commands/security_audit_cmd.py
+ 33.33%       52  src/devsynth/application/memory/context_manager.py
+ 33.33%       40  src/devsynth/application/code_analysis/repo_analyzer.py
+ 33.33%       18  src/devsynth/application/cli/commands/code_cmd.py
+ 33.86%      125  src/devsynth/domain/models/wsde_multidisciplinary.py
+ 34.25%       48  src/devsynth/interface/error_handler.py
+ 34.38%       21  src/devsynth/application/cli/commands/refactor_cmd.py
+ 34.38%       21  src/devsynth/core/mvu/storage.py
+ 34.55%       36  src/devsynth/application/utils/token_tracker.py
+ 35.00%       13  src/devsynth/methodology/sprint_adapter.py
+ 35.29%       22  src/devsynth/security/audit.py
+ 35.29%       11  src/devsynth/application/cli/commands/mvuu_dashboard_cmd.py
+ 35.51%      296  src/devsynth/domain/models/wsde_facade.py
+ 35.71%       18  src/devsynth/core/mvu/parser.py
+ 35.71%        9  src/devsynth/security/authorization.py
+ 35.94%       41  src/devsynth/logger.py
+ 36.05%       55  src/devsynth/application/memory/circuit_breaker.py
+ 36.36%       28  src/devsynth/application/memory/tiered_cache.py
+ 36.36%       21  src/devsynth/core/mvu/validator.py
+ 36.36%       21  src/devsynth/observability/metrics.py
+ 36.51%       40  src/devsynth/application/memory/adapters/s3_memory_adapter.py
+ 38.10%       39  src/devsynth/application/memory/error_logger.py
+ 38.10%       26  src/devsynth/ports/llm_port.py
+ 38.24%       21  src/devsynth/methodology/kanban.py
+ 39.39%       20  src/devsynth/core/mvu/report.py
+ 39.47%       23  src/devsynth/application/llm/local_provider.py
+ 40.00%       12  src/devsynth/utils/serialization.py
+ 40.95%       62  src/devsynth/config/__init__.py
+ 42.11%       11  src/devsynth/core/mvu/atomic_rewrite.py
+ 42.64%      148  src/devsynth/logging_setup.py
+ 42.86%       16  src/devsynth/agents/critique_agent.py
+ 43.75%        9  src/devsynth/application/cli/commands/inspect_cmd.py
+ 44.12%       19  src/devsynth/methodology/edrr/coordinator.py
+ 44.35%       64  src/devsynth/metrics.py
+ 44.44%       15  src/devsynth/security/encryption.py
+ 45.45%       18  src/devsynth/ports/memory_port.py
+ 45.61%       31  src/devsynth/domain/models/code_analysis.py
+ 46.15%       14  src/devsynth/__init__.py
+ 46.15%       14  src/devsynth/methodology/milestone.py
+ 46.43%       15  src/devsynth/security/tls.py
+ 46.67%        8  src/devsynth/application/cli/commands/dpg_cmd.py
+ 46.88%       17  src/devsynth/agents/multi_agent_coordinator.py
+ 47.06%        9  src/devsynth/application/cli/commands/mvu_lint_cmd.py
+ 47.50%       21  src/devsynth/config/provider_env.py
+ 47.83%       24  src/devsynth/config/unified_loader.py
+ 48.89%       23  src/devsynth/application/prompts/prompt_template.py
+ 49.52%      106  src/devsynth/exceptions.py
+ 50.00%       11  src/devsynth/application/edrr/templates.py
+ 51.83%      158  src/devsynth/config/settings.py
+ 51.83%       79  src/devsynth/config/loader.py
+ 51.85%       13  src/devsynth/ports/orchestration_port.py
+ 52.90%       65  src/devsynth/domain/models/wsde_core.py
+ 52.94%        8  src/devsynth/application/llm/__init__.py
+ 53.33%        7  src/devsynth/application/cli/commands/mvu_exec_cmd.py
+ 54.90%       23  src/devsynth/application/cli/commands/ingest_cmd.py
+ 55.00%        9  src/devsynth/application/cli/commands/mvu_init_cmd.py
+ 55.56%       32  src/devsynth/methodology/base.py
+ 55.56%        8  src/devsynth/application/cli/commands/atomic_rewrite_cmd.py
+ 55.56%        4  src/devsynth/application/edrr/wsde_team_proxy.py
+ 55.56%        4  src/devsynth/security/review.py
+ 57.14%        3  src/devsynth/application/sprint/retrospective.py
+ 58.33%        5  src/devsynth/application/cli/commands/serve_cmd.py
+ 58.82%        7  src/devsynth/interface/shared_bridge.py
+ 58.82%        7  src/devsynth/ports/agent_port.py
+ 60.00%        4  src/devsynth/application/cli/commands/mvu_report_cmd.py
+ 60.00%        2  src/devsynth/simple_addition.py
+ 60.38%       21  src/devsynth/application/documentation/models.py
+ 61.54%        5  src/devsynth/application/cli/commands/mvu_rewrite_cmd.py
+ 61.54%        5  src/devsynth/methodology/edrr/__init__.py
+ 62.07%       11  src/devsynth/application/collaboration/exceptions.py
+ 62.50%        6  src/devsynth/application/cli/commands/gather_cmd.py
+ 62.50%        3  src/devsynth/application/code_analysis/project_state_analysis.py
+ 63.64%        4  src/devsynth/application/cli/commands/reprioritize_issues_cmd.py
+ 63.64%        4  src/devsynth/application/cli/commands/webui_cmd.py
+ 64.29%        5  src/devsynth/application/memory/search_patterns.py
+ 65.00%        7  src/devsynth/ports/cli_port.py
+ 65.00%        7  src/devsynth/ports/vector_store_port.py
+ 66.36%       37  src/devsynth/domain/interfaces/code_analysis.py
+ 66.67%        5  src/devsynth/core/feature_flags.py
+ 66.67%        5  src/devsynth/ports/onnx_port.py
+ 66.67%        4  src/devsynth/methodology/__init__.py
+ 68.18%        7  src/devsynth/application/memory/adapters/storage_adapter.py
+ 68.75%        5  src/devsynth/security/sanitization.py
+ 69.00%       31  src/devsynth/core/config_loader.py
+ 70.18%       34  src/devsynth/ports/requirement_port.py
+ 70.77%       19  src/devsynth/domain/interfaces/memory.py
+ 70.91%       16  src/devsynth/methodology/edrr/contracts.py
+ 73.91%       12  src/devsynth/domain/models/workflow.py
+ 75.68%        9  src/devsynth/interface/ux_bridge.py
+ 75.86%        7  src/devsynth/domain/interfaces/orchestration.py
+ 76.67%        7  src/devsynth/application/cli/mvu_commands.py
+ 76.67%        7  src/devsynth/domain/interfaces/agent.py
+ 76.67%        7  src/devsynth/domain/interfaces/llm.py
+ 77.27%        5  src/devsynth/core/mvu/models.py
+ 78.57%       18  src/devsynth/domain/models/memory.py
+ 81.48%        5  src/devsynth/utils/logging.py
+ 84.62%        2  src/devsynth/application/cli/vcs_commands.py
+ 85.71%        1  src/devsynth/application/cli/commands/diagnostics_cmds.py
+ 87.50%        1  src/devsynth/application/cli/commands/analyze_manifest_cmd.py
+ 88.89%        1  src/devsynth/security/deployment.py
+ 89.74%        4  src/devsynth/domain/models/agent.py
+ 91.58%        8  src/devsynth/domain/models/wsde_typing.py
+ 92.66%        8  src/devsynth/domain/models/requirement.py
+100.00%        0  src/devsynth/__main__.py
+100.00%        0  src/devsynth/adapters/__init__.py
+100.00%        0  src/devsynth/adapters/llm/__init__.py
+100.00%        0  src/devsynth/adapters/memory/__init__.py
+100.00%        0  src/devsynth/adapters/orchestration/__init__.py
+100.00%        0  src/devsynth/adapters/providers/__init__.py
+100.00%        0  src/devsynth/adapters/requirements/__init__.py
+100.00%        0  src/devsynth/agents/__init__.py
+100.00%        0  src/devsynth/application/__init__.py
+100.00%        0  src/devsynth/application/cli/__init__.py
+100.00%        0  src/devsynth/application/cli/_command_exports.py
+100.00%        0  src/devsynth/application/cli/commands/__init__.py
+100.00%        0  src/devsynth/application/cli/commands/config_cmds.py
+100.00%        0  src/devsynth/application/cli/commands/documentation_cmds.py
+100.00%        0  src/devsynth/application/cli/commands/extra_cmds.py
+100.00%        0  src/devsynth/application/cli/commands/generation_cmds.py
+100.00%        0  src/devsynth/application/cli/commands/interface_cmds.py
+100.00%        0  src/devsynth/application/cli/commands/metrics_cmds.py
+100.00%        0  src/devsynth/application/cli/commands/pipeline_cmds.py
+100.00%        0  src/devsynth/application/cli/commands/validation_cmds.py
+100.00%        0  src/devsynth/application/cli/config.py
+100.00%        0  src/devsynth/application/cli/registry.py
+100.00%        0  src/devsynth/application/code_analysis/__init__.py
+100.00%        0  src/devsynth/application/collaboration/__init__.py
+100.00%        0  src/devsynth/application/documentation/__init__.py
+100.00%        0  src/devsynth/application/edrr/__init__.py
+100.00%        0  src/devsynth/application/edrr/coordinator/__init__.py
+100.00%        0  src/devsynth/application/issues/__init__.py
+100.00%        0  src/devsynth/application/memory/__init__.py
+100.00%        0  src/devsynth/application/memory/adapters/__init__.py
+100.00%        0  src/devsynth/application/orchestration/__init__.py
+100.00%        0  src/devsynth/application/prompts/__init__.py
+100.00%        0  src/devsynth/application/requirements/__init__.py
+100.00%        0  src/devsynth/application/requirements/prompt_manager.py
+100.00%        0  src/devsynth/application/sprint/__init__.py
+100.00%        0  src/devsynth/application/utils/__init__.py
+100.00%        0  src/devsynth/application/utils/project_utils.py
+100.00%        0  src/devsynth/core/__init__.py
+100.00%        0  src/devsynth/core/mvu/__init__.py
+100.00%        0  src/devsynth/core/mvu/schema.py
+100.00%        0  src/devsynth/domain/__init__.py
+100.00%        0  src/devsynth/domain/interfaces/__init__.py
+100.00%        0  src/devsynth/domain/interfaces/cli.py
+100.00%        0  src/devsynth/domain/interfaces/onnx.py
+100.00%        0  src/devsynth/domain/models/__init__.py
+100.00%        0  src/devsynth/interface/__init__.py
+100.00%        0  src/devsynth/observability/__init__.py
+100.00%        0  src/devsynth/ports/__init__.py
+100.00%        0  src/devsynth/security/__init__.py
+100.00%        0  src/devsynth/security/authentication.py
+100.00%        0  src/devsynth/testing/__init__.py
+100.00%        0  src/devsynth/testing/prompts.py
+100.00%        0  src/devsynth/utils/__init__.py

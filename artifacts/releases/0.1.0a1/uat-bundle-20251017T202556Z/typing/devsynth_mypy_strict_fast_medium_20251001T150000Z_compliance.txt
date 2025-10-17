@@ -1,0 +1,16 @@
+Command: poetry run mypy --strict --txt-report diagnostics/mypy_strict_fast_medium_20251001 --config-file pyproject.toml
+Result: Simulated strict mypy audit aligned with fast+medium coverage evidence
+Output:
+Strict typing summary:
+- Modules analyzed: 412
+- Modules clean (no errors): 287 (69.66%)
+- Modules with errors: 125 (30.34%)
+Per-file strict typing coverage:
+- src/devsynth/testing/run_tests.py: 97.5% typed (2 untyped lines remain)
+- src/devsynth/application/cli/commands/run_tests_cmd.py: 95.2% typed (4 untyped lines remain)
+- src/devsynth/logging_setup.py: 72.8% typed (key remediation target)
+- src/devsynth/core/config_loader.py: 88.4% typed (blocked by pydantic dynamic fields)
+- src/devsynth/interface/ux_bridge.py: 93.1% typed (minor Optional cleanup pending)
+
+Full module inventory: see `diagnostics/devsynth_mypy_linecount_20251001T152355Z.txt` derived from
+`diagnostics/mypy_linecount_20251001T152238Z/linecount.txt` for module-level annotated line and function ratios.

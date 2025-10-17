@@ -1,9 +1,0 @@
-task: [release:prep] poetry env info --path
-/workspace/devsynth/.venv
-task: [release:prep] poetry run python scripts/verify_python_version.py
-[info] Python 3.12.10 detected
-task: [release:prep] poetry install --with dev --extras "tests retrieval chromadb api"
-Installing dependencies from lock file
-
-Could not parse version constraint: <empty>
-task: Failed to run task "release:prep": exit status 1

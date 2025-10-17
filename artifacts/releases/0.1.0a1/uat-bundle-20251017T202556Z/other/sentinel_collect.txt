@@ -1,0 +1,7 @@
+Command: pytest -q tests/test_speed_dummy.py --collect-only -q
+Outcome: Collected 1 test
+Raw output excerpt:
+
+tests/test_speed_dummy.py: 1
+
+Note: Run aborted by coverage fail-under from pytest.ini on subsequent phase; collection evidence above confirms sentinel is discovered. Date: 2025-09-03 08:42 local.

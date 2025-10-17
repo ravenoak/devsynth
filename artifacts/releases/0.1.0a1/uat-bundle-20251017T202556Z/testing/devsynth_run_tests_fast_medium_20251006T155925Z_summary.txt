@@ -1,0 +1,9 @@
+Summary for poetry run devsynth run-tests --speed=fast --speed=medium --no-parallel --report (2025-10-06T15:59:25Z)
+Outcome: Collection failure (52 errors)
+Dominant failure modes:
+- IndentationError injected into multiple behavior step modules (e.g., test_agent_api_steps.py line 26).
+- SyntaxError for misplaced __future__ import in test_cross_interface_consistency_steps.py.
+- NameError for undeclared feature_path sentinel across behavior step suites.
+Artifacts:
+- test_reports/devsynth_run_tests_fast_medium_20251006T155925Z.log
+- logs/devsynth.log (warning banner at 2025-10-06T15:59:25Z)

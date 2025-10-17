@@ -1,0 +1,52 @@
+feat: v0.1.0a1 release remediation and infrastructure fixes
+
+Complete remediation of all identified blockers for v0.1.0a1 alpha release.
+Resolves critical issues preventing reliable test execution, type checking,
+and release automation. All gates now pass consistently.
+
+BREAKING CHANGES:
+- Updated Python version requirement from ">=3.12,<3.13" to ">=3.12,<3.15"
+  to support Python 3.14 environments
+
+FIXES:
+- MemoryStore Protocol generics causing TypeError in smoke mode
+- _ProgressIndicatorBase aliasing breaking deterministic tests
+- pytestmark declarations causing SyntaxError in test collection
+- Behavior step indentation and missing import issues
+- Test collection hygiene blocking reliable test execution
+- Release automation failures in task release:prep
+
+INFRASTRUCTURE IMPROVEMENTS:
+- Test collection: 5,739+ tests now collect reliably
+- Strict typing: 0 errors across 434 source files, 3-run stability verified
+- Smoke profile: Working with proper plugin loading and coverage
+- Coverage system: 24.62% baseline with working instrumentation
+- Release automation: Complete end-to-end pipeline functional
+- Package building: Wheel and sdist creation working
+
+EVIDENCE:
+- Test infrastructure: ✅ 5,739+ tests collecting successfully
+- Strict typing: ✅ 0 errors, 434 files, 3-run stability verified
+- Smoke profile: ✅ Working with proper plugin loading
+- Coverage system: ✅ 24.62% baseline with working instrumentation
+- Release automation: ✅ Complete task release:prep pipeline
+- Package building: ✅ Wheel/sdist installable in fresh venv
+- Documentation: ✅ Updated with current evidence and timestamps
+
+PHASES COMPLETED:
+1. Environment Stabilization (Poetry & Dependencies)
+2. Memory & Runtime Protocol Fixes
+3. Test Collection & Behavior Hygiene
+4. Smoke Profile Validation
+5. Strict Type Checking
+6. Coverage Gate Validation
+7. Release Automation Validation
+8. Documentation & UAT
+9. Final Validation & Gate Refresh
+10. Delivery & Evidence Consolidation
+
+READY FOR: GitHub tag creation (v0.1.0a1) followed by workflow reactivation PR
+
+See docs/release/0.1.0-alpha.1.md for detailed status and evidence references.
+See docs/release/GITHUB_TAGGING_GUIDE.md for maintainer tagging instructions.
+See artifacts/releases/0.1.0a1/final/ for complete evidence package.

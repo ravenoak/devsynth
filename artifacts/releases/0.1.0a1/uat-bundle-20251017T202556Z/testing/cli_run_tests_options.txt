@@ -1,0 +1,14 @@
+Runtime evidence: run of CLI option parsing tests
+Date: 2025-09-03 10:52 (local)
+Command: pytest -q -o addopts="" tests/unit/application/cli/test_run_tests_cmd_options.py
+
+Results:
+- 3 passed, 6 warnings in ~0.83s
+- Tests:
+  * test_feature_flags_set_environment
+  * test_no_parallel_flag_is_passed_to_runner
+  * test_segment_options_are_propagated
+
+Notes:
+- Used -o addopts="" to bypass repository-level coverage gating for this focused run.
+- Warnings are from environment/site-packages and unrelated to the tested CLI behavior.

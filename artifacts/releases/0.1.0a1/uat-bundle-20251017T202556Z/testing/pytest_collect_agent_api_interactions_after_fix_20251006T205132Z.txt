@@ -1,0 +1,30 @@
+tests/behavior/test_agent_api_interactions.py::test_invoke_core_workflows_via_http_endpoints
+tests/behavior/test_agent_api_interactions.py::test_generate_specifications_via_http_endpoint
+tests/behavior/test_agent_api_interactions.py::test_generate_tests_via_http_endpoint
+tests/behavior/test_agent_api_interactions.py::test_generate_code_via_http_endpoint
+tests/behavior/test_agent_api_interactions.py::test_run_diagnostics_via_http_endpoint
+tests/behavior/test_agent_api_interactions.py::test_run_edrr_cycle_via_http_endpoint
+tests/behavior/test_agent_api_interactions.py::test_scenario_1_name
+tests/behavior/test_agent_api_interactions.py::test_scenario_2_name
+tests/behavior/test_agent_api_interactions.py::test_parameterized_scenario_name[value1-result1]
+tests/behavior/test_agent_api_interactions.py::test_parameterized_scenario_name[value2-result2]
+tests/behavior/test_agent_api_interactions.py::test_parameterized_scenario_name[value3-result3]
+
+======================================================= warnings summary =======================================================
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137
+.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/pydantic_core/core_schema.py:4137: DeprecationWarning: `FieldValidationInfo` is deprecated, use `ValidationInfo` instead.
+    warnings.warn(msg, DeprecationWarning, stacklevel=1)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================= Test Categorization Summary ==================================================
+Test Type Distribution:
+  Unit Tests: 0
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 0
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+11 tests collected in 0.05s

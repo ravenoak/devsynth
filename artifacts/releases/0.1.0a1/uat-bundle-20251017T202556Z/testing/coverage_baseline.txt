@@ -1,0 +1,60 @@
+Wed Sep  3 11:11:58 PDT 2025: Running baseline coverage (fast sanity) with pytest --maxfail=1 --cov...
+See .output.txt for full logs
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_navigation_prompts.py::test_navigate_to_requirements_page' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_navigation_prompts.py::test_submit_onboarding_information_when_prompted' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_navigation_prompts.py::test_navigate_to_analysis_page' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_navigation_prompts.py::test_navigate_to_synthesis_page' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_navigation_prompts.py::test_navigate_to_config_page' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_onboarding_flow.py::test_open_onboarding_page' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_onboarding_flow.py::test_submit_onboarding_form_via_webui' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_edit_and_regenerate_a_specification_file' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_open_requirements_page' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_submit_onboarding_form' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_update_configuration_value' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_run_an_edrr_cycle' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_check_project_alignment' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_collect_alignment_metrics' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_inspect_project_configuration' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_validate_the_project_manifest' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_validate_documentation_metadata' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_analyze_test_metrics' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_generate_documentation_from_the_webui' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_ingest_a_project_via_the_webui' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor.py::test_generate_an_api_specification' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor_extended.py::test_load_an_existing_specification_file' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor_extended.py::test_handle_nonexistent_specification_file' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/pytest_bdd/scenario.py:296: PytestWarning: Test 'tests/behavior/test_webui_spec_editor_extended.py::test_edit_and_save_without_regenerating' lacks exactly one speed marker; please add @pytest.mark.fast|medium|slow at function level
+  def scenario_wrapper(request: FixtureRequest, _pytest_bdd_example: dict[str, str]) -> Any:
+LINE LIMIT EXCEEDEDUnit fast baseline run (subset) at Wed Sep  3 11:13:39 PDT 2025
+1 failed, 41 passed, 14 skipped, 18 deselected in ~9s (see .output.txt for full logs if needed)
+Wed Sep  3 11:17:19 PDT 2025: Unit subset after fixes -> 1 failed, 70 passed, 14 skipped, 18 deselected. See .output.txt for details. HTML coverage dir: 20250902_093714
+20250903_111234
+lmstudio_fast_subset_stdout.txt
+quality
+test_inventory.json
+test_markers_report.json
+Finalized baseline evidence: unit subset after fixes -> 1 failed (provider_system embed error test), 70 passed, 14 skipped, 18 deselected. Next: fix provider_system embed error handling and regenerate unit HTML coverage. Timestamp: Wed Sep  3 11:18:07 PDT 2025

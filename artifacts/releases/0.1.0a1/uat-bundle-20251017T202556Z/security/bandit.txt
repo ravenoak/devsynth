@@ -1,0 +1,1853 @@
+Run started:2025-09-03 18:44:22.547207
+
+Test results:
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/__init__.py:52:4
+51	        return module
+52	    except Exception:
+53	        pass
+54
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/__init__.py:73:8
+72	            importlib.import_module(module)
+73	        except Exception:  # pragma: no cover - ignore if unavailable
+74	            pass
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/adapters/chromadb_memory_store.py:257:8
+256	            self.close()
+257	        except Exception:  # pragma: no cover - defensive
+258	            pass
+259
+
+--------------------------------------------------
+>> Issue: [B604:any_other_function_with_shell_equals_true] Function call with shell=True parameter identified, possible security issue.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b604_any_other_function_with_shell_equals_true.html
+   Location: src/devsynth/adapters/cli/typer_adapter.py:78:13
+77	    script = typer_completion.get_completion_script(
+78	        prog_name=prog_name, complete_var=complete_var, shell=shell_name
+79	    )
+80	    progress.update(status="script generated", advance=1)
+81
+
+--------------------------------------------------
+>> Issue: [B604:any_other_function_with_shell_equals_true] Function call with shell=True parameter identified, possible security issue.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b604_any_other_function_with_shell_equals_true.html
+   Location: src/devsynth/adapters/cli/typer_adapter.py:85:29
+84	            _, target_path = typer_completion.install(
+85	                shell=shell_name, prog_name=prog_name, complete_var=complete_var
+86	            )
+87	        else:
+88	            target_path = path
+
+--------------------------------------------------
+>> Issue: [B604:any_other_function_with_shell_equals_true] Function call with shell=True parameter identified, possible security issue.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b604_any_other_function_with_shell_equals_true.html
+   Location: src/devsynth/adapters/cli/typer_adapter.py:291:8
+290	    ) -> None:
+291	        completion_cmd(shell=shell, install=install, path=path)
+292
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/adapters/cli/typer_adapter.py:350:16
+349	                    configure_logging(log_level=chosen_level)
+350	                except Exception:
+351	                    # Do not crash CLI due to logging issues
+352	                    pass
+353
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/adapters/cli/typer_adapter.py:382:8
+381	            app._add_completion()  # type: ignore[attr-defined]
+382	        except Exception:
+383	            pass
+384	    return app
+
+--------------------------------------------------
+>> Issue: [B113:request_without_timeout] Call to requests without timeout
+   Severity: Medium   Confidence: Low
+   CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
+   Location: src/devsynth/adapters/github_project.py:30:19
+29	        """Execute a GraphQL query against the GitHub API."""
+30	        response = requests.post(
+31	            self._endpoint,
+32	            json={"query": query, "variables": variables},
+33	            headers=self._headers,
+34	        )
+35	        response.raise_for_status()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/adapters/memory/sync_manager.py:97:12
+96	                cls.__abstractmethods__ = frozenset()
+97	            except Exception:
+98	                pass
+99
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/adapters/memory/sync_manager.py:200:16
+199	                    close()
+200	                except Exception:
+201	                    pass
+202	        # The Kuzu memory store uses a custom cleanup helper
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/adapters/memory/sync_manager.py:206:12
+205	                self.kuzu.cleanup()
+206	            except Exception:
+207	                pass
+
+--------------------------------------------------
+>> Issue: [B403:blacklist] Consider possible security implications associated with pickle module.
+   Severity: Low   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b403-import-pickle
+   Location: src/devsynth/adapters/orchestration/langgraph_adapter.py:7:0
+6	import os
+7	import pickle
+8	from dataclasses import asdict, dataclass, field
+
+--------------------------------------------------
+>> Issue: [B301:blacklist] Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue.
+   Severity: Medium   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b301-pickle
+   Location: src/devsynth/adapters/orchestration/langgraph_adapter.py:128:23
+127	            with open(path, "rb") as f:
+128	                return pickle.load(f)
+129	        return None
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/adapters/orchestration/langgraph_adapter.py:265:16
+264	                    )
+265	                except Exception:
+266	                    pass
+267
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/adapters/orchestration/langgraph_adapter.py:293:24
+292	                            )
+293	                        except Exception:
+294	                            pass
+295	                    return state
+
+--------------------------------------------------
+>> Issue: [B301:blacklist] Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue.
+   Severity: Medium   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b301-pickle
+   Location: src/devsynth/adapters/orchestration/langgraph_adapter.py:460:15
+459	            data = data.encode("utf-8")
+460	        return pickle.loads(data)
+461
+
+--------------------------------------------------
+>> Issue: [B403:blacklist] Consider possible security implications associated with pickle module.
+   Severity: Low   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b403-import-pickle
+   Location: src/devsynth/adapters/orchestration/langgraph_adapter.py:483:12
+482	        if "pytest" in sys.modules:
+483	            import pickle
+484
+
+--------------------------------------------------
+>> Issue: [B113:request_without_timeout] Call to requests without timeout
+   Severity: Medium   Confidence: Low
+   CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
+   Location: src/devsynth/adapters/provider_system.py:679:23
+678
+679	            response = requests.post(
+680	                url,
+681	                headers=self.headers,
+682	                json=payload,
+683	                **self.tls_config.as_requests_kwargs(),
+684	            )
+685	            response.raise_for_status()
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/adapters/provider_system.py:811:47
+810
+811	                        delay = delay * (0.5 + random.random())
+812
+
+--------------------------------------------------
+>> Issue: [B113:request_without_timeout] Call to requests without timeout
+   Severity: Medium   Confidence: Low
+   CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
+   Location: src/devsynth/adapters/provider_system.py:877:23
+876
+877	            response = requests.post(
+878	                url,
+879	                headers=self.headers,
+880	                json=payload,
+881	                **self.tls_config.as_requests_kwargs(),
+882	            )
+883	            response.raise_for_status()
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/adapters/provider_system.py:979:47
+978
+979	                        delay = delay * (0.5 + random.random())
+980
+
+--------------------------------------------------
+>> Issue: [B113:request_without_timeout] Call to requests without timeout
+   Severity: Medium   Confidence: Low
+   CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
+   Location: src/devsynth/adapters/provider_system.py:1132:23
+1131
+1132	            response = requests.post(
+1133	                url,
+1134	                headers=self.headers,
+1135	                json=payload,
+1136	                **self.tls_config.as_requests_kwargs(),
+1137	            )
+1138	            response.raise_for_status()
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/adapters/provider_system.py:1275:47
+1274
+1275	                        delay = delay * (0.5 + random.random())
+1276
+
+--------------------------------------------------
+>> Issue: [B113:request_without_timeout] Call to requests without timeout
+   Severity: Medium   Confidence: Low
+   CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b113_request_without_timeout.html
+   Location: src/devsynth/adapters/provider_system.py:1342:23
+1341
+1342	            response = requests.post(
+1343	                url,
+1344	                headers=self.headers,
+1345	                json=payload,
+1346	                **self.tls_config.as_requests_kwargs(),
+1347	            )
+1348	            response.raise_for_status()
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/adapters/provider_system.py:1440:47
+1439
+1440	                        delay = delay * (0.5 + random.random())
+1441
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/agents/sandbox.py:6:0
+5	import builtins
+6	import subprocess
+7	from contextlib import ContextDecorator
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/application/agents/test.py:5:0
+4	import re
+5	import subprocess
+6	import sys
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/agents/test.py:127:17
+126
+127	        result = subprocess.run(
+128	            [sys.executable, "-m", "pytest", "-q"],
+129	            cwd=str(directory),
+130	            env=env,
+131	            capture_output=True,
+132	            text=True,
+133	        )
+134	        output = result.stdout + result.stderr
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: src/devsynth/application/agents/wsde_memory_integration.py:189:24
+188	                                break
+189	                        except Exception:
+190	                            continue
+191	                for item in items:
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/application/cli/commands/completion_cmd.py:9:0
+8	import shutil
+9	import subprocess
+10	import sys
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/application/cli/commands/completion_cmd.py:90:25
+89	            try:
+90	                result = subprocess.run(
+91	                    ["brew", "--prefix"], capture_output=True, text=True, check=False
+92	                )
+93	                if result.returncode == 0:
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/cli/commands/completion_cmd.py:90:25
+89	            try:
+90	                result = subprocess.run(
+91	                    ["brew", "--prefix"], capture_output=True, text=True, check=False
+92	                )
+93	                if result.returncode == 0:
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b101_assert_used.html
+   Location: src/devsynth/application/cli/commands/doctor_cmd.py:155:8
+154	        module = importlib.util.module_from_spec(spec)  # type: ignore
+155	        assert spec and spec.loader
+156	        spec.loader.exec_module(module)  # type: ignore
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/application/cli/commands/mvu_exec_cmd.py:7:0
+6
+7	import subprocess
+8	from typing import List, Optional
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/cli/commands/mvu_exec_cmd.py:30:16
+29	    logger.debug("Executing MVU command: %s", command)
+30	    completed = subprocess.run(command, capture_output=True, text=True)
+31	    output = (completed.stdout or "") + (completed.stderr or "")
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/application/cli/commands/mvuu_dashboard_cmd.py:11:0
+10	import argparse
+11	import subprocess
+12	import sys
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/application/cli/commands/mvuu_dashboard_cmd.py:41:4
+40	    trace_path = repo_root / "traceability.json"
+41	    subprocess.run(
+42	        ["devsynth", "mvu", "report", "--output", str(trace_path)],
+43	        check=False,
+44	    )
+45	    script_path = repo_root / "interface" / "mvuu_dashboard.py"
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/cli/commands/mvuu_dashboard_cmd.py:41:4
+40	    trace_path = repo_root / "traceability.json"
+41	    subprocess.run(
+42	        ["devsynth", "mvu", "report", "--output", str(trace_path)],
+43	        check=False,
+44	    )
+45	    script_path = repo_root / "interface" / "mvuu_dashboard.py"
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/application/cli/commands/mvuu_dashboard_cmd.py:46:4
+45	    script_path = repo_root / "interface" / "mvuu_dashboard.py"
+46	    subprocess.run(["streamlit", "run", str(script_path)], check=False)
+47	    return 0
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/cli/commands/mvuu_dashboard_cmd.py:46:4
+45	    script_path = repo_root / "interface" / "mvuu_dashboard.py"
+46	    subprocess.run(["streamlit", "run", str(script_path)], check=False)
+47	    return 0
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/cli/commands/run_tests_cmd.py:168:4
+167	        )
+168	    except Exception:
+169	        # Never let observability failures interfere with CLI behavior
+170	        pass
+171
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/application/cli/commands/security_audit_cmd.py:12:0
+11	import re
+12	import subprocess
+13	from typing import Optional
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/application/cli/commands/security_audit_cmd.py:54:8
+53	    try:
+54	        subprocess.check_call(
+55	            [
+56	                "dependency-check",
+57	                "--project",
+58	                "DevSynth",
+59	                "--format",
+60	                "JSON",
+61	                "--out",
+62	                "owasp_report",
+63	            ]
+64	        )
+65	    except FileNotFoundError as exc:  # pragma: no cover - external tool
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/cli/commands/security_audit_cmd.py:54:8
+53	    try:
+54	        subprocess.check_call(
+55	            [
+56	                "dependency-check",
+57	                "--project",
+58	                "DevSynth",
+59	                "--format",
+60	                "JSON",
+61	                "--out",
+62	                "owasp_report",
+63	            ]
+64	        )
+65	    except FileNotFoundError as exc:  # pragma: no cover - external tool
+
+--------------------------------------------------
+>> Issue: [B104:hardcoded_bind_all_interfaces] Possible binding to all interfaces.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-605 (https://cwe.mitre.org/data/definitions/605.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b104_hardcoded_bind_all_interfaces.html
+   Location: src/devsynth/application/cli/commands/serve_cmd.py:14:16
+13	def serve_cmd(
+14	    host: str = "0.0.0.0",
+15	    port: int = 8000,
+16	    *,
+17	    bridge: Optional[UXBridge] = None,
+18	) -> None:
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/application/cli/commands/test_metrics_cmd.py:8:0
+7
+8	import subprocess
+9	from datetime import datetime
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/cli/commands/test_metrics_cmd.py:152:17
+151	        # Run the git command
+152	        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+153	        output = result.stdout
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/agent_collaboration.py:277:16
+276	                    self.memory_manager.flush_updates()
+277	                except Exception:
+278	                    pass
+279	                logger.info(f"Stored team {team_id} in memory")
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/collaboration/collaboration_memory_utils.py:913:55
+912	                base_wait_time = 0.1 * (2**retries)
+913	                jitter = 0.1 * base_wait_time * (0.5 - random.random())  # +/- 5% jitter
+914	                wait_time = max(0.1, base_wait_time + jitter)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/collaborative_wsde_team.py:197:8
+196	            flush_memory_queue(self.memory_manager)
+197	        except Exception:
+198	            pass
+199	        return item.id
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/collaborative_wsde_team.py:397:12
+396	                self.dynamic_role_reassignment(task)
+397	            except Exception:
+398	                pass
+399	        primus = self.get_primus()
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: src/devsynth/application/collaboration/message_protocol.py:103:12
+102	                messages[msg.message_id] = msg
+103	            except Exception:
+104	                continue
+105	        return messages
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/message_protocol.py:212:20
+211	                        self.memory_manager.flush_updates()
+212	                    except Exception:
+213	                        pass
+214	            except Exception:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/message_protocol.py:214:12
+213	                        pass
+214	            except Exception:
+215	                pass
+216	        return message
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/wsde_team_consensus.py:650:24
+649	                            self.memory_manager.adapters["faiss"].store_vector(vector)
+650	                        except Exception:
+651	                            pass
+652	                    try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/wsde_team_consensus.py:654:20
+653	                        self.memory_manager.flush_updates()
+654	                    except Exception:
+655	                        pass
+656	            except Exception:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/wsde_team_consensus.py:656:12
+655	                        pass
+656	            except Exception:
+657	                pass
+658
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/wsde_team_consensus.py:1006:16
+1005	                    self.memory_manager.flush_updates()
+1006	                except Exception:
+1007	                    pass
+1008	        except Exception:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/collaboration/wsde_team_consensus.py:1008:8
+1007	                    pass
+1008	        except Exception:
+1009	            pass
+1010
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/collaboration/wsde_team_extended.py:551:32
+550	                base_score = 0.5 + (expertise_relevance * 0.1)
+551	                random_factor = random.uniform(-0.2, 0.2)
+552	                score = max(0.1, min(0.9, base_score + random_factor))
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/collaboration/wsde_team_extended.py:580:28
+579	            base_contribution = expertise_relevance * 10
+580	            random_factor = random.uniform(-5, 5)
+581	            contribution = max(0, base_contribution + random_factor)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/collaboration/wsde_team_extended.py:601:28
+600	            base_contribution = expertise_relevance * 10
+601	            random_factor = random.uniform(-5, 5)
+602	            contribution = max(0, base_contribution + random_factor)
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/application/documentation/documentation_fetcher.py:12:0
+11	import shutil
+12	import subprocess
+13	import tempfile
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/application/documentation/documentation_fetcher.py:199:12
+198	            # Create virtual environment
+199	            subprocess.run(["python", "-m", "venv", venv_dir], check=True)
+200
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/documentation/documentation_fetcher.py:199:12
+198	            # Create virtual environment
+199	            subprocess.run(["python", "-m", "venv", venv_dir], check=True)
+200
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/documentation/documentation_fetcher.py:207:12
+206	            )
+207	            subprocess.run([pip_path, "install", f"{library}=={version}"], check=True)
+208
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/application/documentation/documentation_fetcher.py:224:21
+223	            # Run the script
+224	            result = subprocess.run(
+225	                [python_path, script_path], capture_output=True, text=True, check=False
+226	            )
+227
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: src/devsynth/application/edrr/edrr_phase_transitions.py:560:12
+559	                    core_value_scores[value_name] = min(1.0, 0.5 + (0.1 * mentions))
+560	            except Exception as e:
+561	                # Skip this value if there's an error
+562	                continue
+563
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/llm/openai_provider.py:151:8
+150	            _ = OpenAI(**client_kwargs)  # type: ignore[misc]
+151	        except Exception:
+152	            pass
+153	        try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/llm/openai_provider.py:159:8
+158	            )
+159	        except Exception:
+160	            pass
+161
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/memory/kuzu_store.py:151:12
+150	                return len(self.tokenizer.encode(text))
+151	            except Exception:  # pragma: no cover - defensive
+152	                pass
+153	        return len(text) // 4
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/memory/kuzu_store.py:191:12
+190	                self.conn.execute("BEGIN TRANSACTION")
+191	            except Exception:
+192	                pass
+193	        self._transactions[tx_id] = snapshot or {}
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/memory/kuzu_store.py:202:12
+201	                self.conn.execute("COMMIT")
+202	            except Exception:
+203	                pass
+204	        return True
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/memory/kuzu_store.py:215:12
+214	                self.conn.execute("ROLLBACK")
+215	            except Exception:
+216	                pass
+217	        return True
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/memory/kuzu_store.py:442:16
+441	                    self.conn.execute("COMMIT")
+442	                except Exception:
+443	                    pass
+444	                if hasattr(self.conn, "close"):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/memory/kuzu_store.py:447:20
+446	                        self.conn.close()
+447	                    except Exception:
+448	                        pass
+449	            if getattr(self, "db", None) and hasattr(self.db, "close"):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/memory/kuzu_store.py:452:16
+451	                    self.db.close()
+452	                except Exception:
+453	                    pass
+454	        except Exception as exc:  # pragma: no cover - defensive
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/application/memory/kuzu_store.py:460:8
+459	            self.close()
+460	        except Exception:
+461	            pass
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: src/devsynth/application/memory/memory_manager.py:649:20
+648	                            maybe_add(it)
+649	                    except Exception:
+650	                        continue
+651	                elif hasattr(adapter, "search"):
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: src/devsynth/application/memory/memory_manager.py:656:20
+655	                            maybe_add(it)
+656	                    except Exception:
+657	                        continue
+658
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/memory/retry.py:367:40
+366	                        # Add random jitter between 0% and 25%
+367	                        jitter_amount = random.uniform(0, 0.25 * actual_backoff)
+368	                        actual_backoff += jitter_amount
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:221:17
+220	            # Otherwise, select the best variant most of the time
+221	            elif random.random() > self.exploration_rate:
+222	                # Sort by performance score (descending)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:229:27
+228	                # Occasionally select a random variant for exploration
+229	                selected = random.choice(variants)
+230	        elif self.selection_strategy == "exploration":
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:236:23
+235	            normalized_weights = [w / total_weight for w in weights]
+236	            selected = random.choices(variants, weights=normalized_weights, k=1)[0]
+237	        else:  # "random"
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:238:23
+237	        else:  # "random"
+238	            selected = random.choice(variants)
+239
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:357:52
+356	        # This helps the test pass by incorporating patterns that get higher scores
+357	        if "Focus on: security" not in template and random.random() < 0.7:
+358	            if "Focus on:" in template:
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:365:59
+364
+365	        if "detailed feedback" not in template.lower() and random.random() < 0.5:
+366	            template += "\n\nPlease provide detailed feedback."
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:377:24
+376	        # Apply 1-2 random mutations
+377	        num_mutations = random.randint(1, 2)
+378	        for _ in range(num_mutations):
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:379:28
+378	        for _ in range(num_mutations):
+379	            mutation_func = random.choice(mutations)
+380	            template = mutation_func(template)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:406:19
+405	                # Choose randomly between the two parents for this section
+406	                if random.random() < 0.5:
+407	                    new_sections.append(sections1[i])
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:442:17
+441
+442	        detail = random.choice(details)
+443
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:446:21
+445	        lines = template.split("\n")
+446	        insert_pos = random.randint(1, max(1, len(lines) - 1))
+447	        lines.insert(insert_pos, detail)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:473:20
+472	        # Select a random tone
+473	        tone_name = random.choice(list(tones.keys()))
+474	        tone_words = tones[tone_name]
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:493:50
+492	            if word in template:
+493	                template = template.replace(word, random.choice(tone_words))
+494	                replaced = True
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:498:24
+497	        if not replaced:
+498	            tone_word = random.choice(tone_words)
+499	            if template.startswith("This"):
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:515:21
+514	            # If the template hasn't changed, force a change by adding a tone prefix
+515	            prefix = random.choice(
+516	                [
+517	                    "In a " + tone_name + " tone: ",
+518	                    "Speaking " + tone_name + "ly: ",
+519	                    "[" + tone_name.capitalize() + " tone] ",
+520	                ]
+521	            )
+522	            template = prefix + template
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:550:15
+549	            # 5% chance to add emphasis to a word
+550	            if random.random() < 0.05:
+551	                # Choose an emphasis style
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:552:33
+551	                # Choose an emphasis style
+552	                emphasis_style = random.choice(["**", "_", "UPPERCASE"])
+553
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:578:18
+577	            # Select a random important word
+578	            idx = random.choice(important_indices)
+579
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/application/prompts/auto_tuning.py:581:29
+580	            # Choose an emphasis style
+581	            emphasis_style = random.choice(["**", "_", "UPPERCASE"])
+582
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/core/mvu/api.py:5:0
+4
+5	import subprocess
+6	from datetime import datetime
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/core/mvu/api.py:56:11
+55	    """
+56	    revs = subprocess.check_output(["git", "rev-list", ref], text=True)
+57	    for commit in revs.strip().splitlines():
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/core/mvu/api.py:56:11
+55	    """
+56	    revs = subprocess.check_output(["git", "rev-list", ref], text=True)
+57	    for commit in revs.strip().splitlines():
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: src/devsynth/core/mvu/api.py:61:8
+60	            mvuu = parse_commit_message(message)
+61	        except Exception:
+62	            continue
+63	        if enrich:
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/core/mvu/api.py:113:11
+112	    """
+113	    revs = subprocess.check_output(
+114	        [
+115	            "git",
+116	            "log",
+117	            "--since",
+118	            start.isoformat(),
+119	            "--until",
+120	            end.isoformat(),
+121	            "--format=%H",
+122	            ref,
+123	        ],
+124	        text=True,
+125	    )
+126	    commits = revs.strip().splitlines()
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/core/mvu/api.py:113:11
+112	    """
+113	    revs = subprocess.check_output(
+114	        [
+115	            "git",
+116	            "log",
+117	            "--since",
+118	            start.isoformat(),
+119	            "--until",
+120	            end.isoformat(),
+121	            "--format=%H",
+122	            ref,
+123	        ],
+124	        text=True,
+125	    )
+126	    commits = revs.strip().splitlines()
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b112_try_except_continue.html
+   Location: src/devsynth/core/mvu/api.py:132:8
+131	            mvuu = parse_commit_message(message)
+132	        except Exception:
+133	            continue
+134	        if enrich:
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/core/mvu/linter.py:8:0
+7	import re
+8	import subprocess
+9	import sys
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/core/mvu/linter.py:68:8
+67	    hashes = (
+68	        subprocess.check_output(["git", "rev-list", rev_range], text=True)
+69	        .strip()
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/core/mvu/linter.py:68:8
+67	    hashes = (
+68	        subprocess.check_output(["git", "rev-list", rev_range], text=True)
+69	        .strip()
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/core/mvu/linter.py:73:18
+72	    for commit_hash in reversed(hashes):
+73	        message = subprocess.check_output(
+74	            ["git", "log", "-1", "--pretty=%B", commit_hash], text=True
+75	        )
+76	        commit_errors = lint_commit_message(message)
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/core/mvu/linter.py:73:18
+72	    for commit_hash in reversed(hashes):
+73	        message = subprocess.check_output(
+74	            ["git", "log", "-1", "--pretty=%B", commit_hash], text=True
+75	        )
+76	        commit_errors = lint_commit_message(message)
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/core/mvu/storage.py:6:0
+5	import json
+6	import subprocess
+7	from typing import Optional
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/core/mvu/storage.py:20:11
+19	    """Return the commit message for a given commit hash."""
+20	    return subprocess.check_output(
+21	        ["git", "log", "-1", "--pretty=%B", commit], text=True
+22	    )
+23
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/core/mvu/storage.py:20:11
+19	    """Return the commit message for a given commit hash."""
+20	    return subprocess.check_output(
+21	        ["git", "log", "-1", "--pretty=%B", commit], text=True
+22	    )
+23
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/core/mvu/storage.py:45:15
+44	    try:
+45	        note = subprocess.check_output(
+46	            ["git", "notes", "show", commit], text=True
+47	        ).strip()
+48	    except subprocess.CalledProcessError:
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/core/mvu/storage.py:45:15
+44	    try:
+45	        note = subprocess.check_output(
+46	            ["git", "notes", "show", commit], text=True
+47	        ).strip()
+48	    except subprocess.CalledProcessError:
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/core/mvu/storage.py:59:4
+58	    json_data = json.dumps(mvuu.as_dict(), indent=2)
+59	    subprocess.check_call(["git", "notes", "add", "-f", "-m", json_data, commit])
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/core/mvu/storage.py:59:4
+58	    json_data = json.dumps(mvuu.as_dict(), indent=2)
+59	    subprocess.check_call(["git", "notes", "add", "-f", "-m", json_data, commit])
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/domain/models/wsde_facade.py:259:8
+258	            mem.flush_updates()
+259	        except Exception:
+260	            pass
+261	    return result
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/domain/models/wsde_facade.py:281:4
+280	        notified = True
+281	    except Exception:
+282	        pass
+283	    finally:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/domain/models/wsde_facade.py:289:16
+288	                    notify(None)
+289	                except Exception:
+290	                    pass
+291
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/fallback.py:352:66
+351	                                max_delay,
+352	                                delay * exponential_base * (0.5 + random.random()),
+353	                            )
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/fallback.py:383:66
+382	                                max_delay,
+383	                                delay * exponential_base * (0.5 + random.random()),
+384	                            )
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random
+   Location: src/devsynth/fallback.py:524:62
+523	                            max_delay,
+524	                            delay * exponential_base * (0.5 + random.random()),
+525	                        )
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/interface/mvuu_dashboard.py:7:0
+6	import json
+7	import subprocess
+8	from pathlib import Path
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/interface/mvuu_dashboard.py:47:4
+46	    """
+47	    subprocess.run(
+48	        ["devsynth", "mvu", "report", "--output", str(path)],
+49	        check=True,
+50	    )
+51	    with path.open("r", encoding="utf-8") as f:
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/interface/mvuu_dashboard.py:47:4
+46	    """
+47	    subprocess.run(
+48	        ["devsynth", "mvu", "report", "--output", str(path)],
+49	        check=True,
+50	    )
+51	    with path.open("r", encoding="utf-8") as f:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/interface/nicegui_webui.py:106:12
+105	                ui.notify(formatted, type=message_type or "info")
+106	            except Exception:
+107	                # Fallback to message buffer if UI notification fails
+108	                pass
+109	        self.messages.append(str(formatted))
+
+--------------------------------------------------
+>> Issue: [B104:hardcoded_bind_all_interfaces] Possible binding to all interfaces.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-605 (https://cwe.mitre.org/data/definitions/605.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b104_hardcoded_bind_all_interfaces.html
+   Location: src/devsynth/interface/webui.py:2109:41
+2108	        with st.form("serve"):
+2109	            host = st.text_input("Host", "0.0.0.0")
+2110	            port = st.number_input("Port", value=8000)
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/interface/webui_bridge.py:71:12
+70	                self._description = sanitize_output(desc_str)
+71	            except Exception:
+72	                # Fallback for objects that can't be safely converted to string
+73	                pass
+74
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/interface/webui_bridge.py:150:12
+149	                self._subtasks[task_id]["description"] = sanitize_output(desc_str)
+150	            except Exception:
+151	                # Fallback for objects that can't be safely converted to string
+152	                pass
+153
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/interface/webui_bridge.py:249:12
+248	                )
+249	            except Exception:
+250	                # Fallback for objects that can't be safely converted to string
+251	                pass
+252
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/interface/wizard_state_manager.py:277:12
+276	                delattr(self.session_state, key)
+277	            except Exception:
+278	                # session_state may be a dict that doesn't support attribute access
+279	                pass
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/methodology/edrr/coordinator.py:46:8
+45	            self.memory_manager.flush_updates()
+46	        except Exception:
+47	            pass
+48
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/methodology/edrr/reasoning_loop.py:59:8
+58	            random.seed(deterministic_seed)
+59	        except Exception:
+60	            pass
+61	        try:  # numpy is optional; seed if available
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/methodology/edrr/reasoning_loop.py:65:8
+64	            np.random.seed(deterministic_seed)  # type: ignore[attr-defined]
+65	        except Exception:
+66	            pass
+67
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/methodology/edrr/reasoning_loop.py:145:12
+144	                effective_phase = Phase(result_phase_value.lower())
+145	            except Exception:
+146	                # Ignore unknown phases and keep current_phase
+147	                pass
+148
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/metrics.py:171:8
+170	            _dashboard_hook(event)
+171	        except Exception:  # pragma: no cover - hooks should not break metrics
+172	            pass
+173
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/security/audit.py:13:0
+12	import os
+13	import subprocess
+14	import tempfile
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/security/audit.py:36:4
+35	    """Execute Bandit static analysis."""
+36	    subprocess.check_call(
+37	        [
+38	            "poetry",
+39	            "run",
+40	            "bandit",
+41	            "-q",
+42	            "-r",
+43	            "src",
+44	        ]
+45	    )
+46
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/security/audit.py:36:4
+35	    """Execute Bandit static analysis."""
+36	    subprocess.check_call(
+37	        [
+38	            "poetry",
+39	            "run",
+40	            "bandit",
+41	            "-q",
+42	            "-r",
+43	            "src",
+44	        ]
+45	    )
+46
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/security/audit.py:52:8
+51	    try:
+52	        subprocess.check_call(
+53	            [
+54	                "poetry",
+55	                "export",
+56	                "--without-hashes",
+57	                "-f",
+58	                "requirements.txt",
+59	                "--output",
+60	                req_file.name,
+61	            ]
+62	        )
+63	        subprocess.check_call(
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/security/audit.py:52:8
+51	    try:
+52	        subprocess.check_call(
+53	            [
+54	                "poetry",
+55	                "export",
+56	                "--without-hashes",
+57	                "-f",
+58	                "requirements.txt",
+59	                "--output",
+60	                req_file.name,
+61	            ]
+62	        )
+63	        subprocess.check_call(
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b607_start_process_with_partial_path.html
+   Location: src/devsynth/security/audit.py:63:8
+62	        )
+63	        subprocess.check_call(
+64	            [
+65	                "poetry",
+66	                "run",
+67	                "safety",
+68	                "check",
+69	                "--file",
+70	                req_file.name,
+71	                "--full-report",
+72	            ]
+73	        )
+74	    finally:
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/security/audit.py:63:8
+62	        )
+63	        subprocess.check_call(
+64	            [
+65	                "poetry",
+66	                "run",
+67	                "safety",
+68	                "check",
+69	                "--file",
+70	                req_file.name,
+71	                "--full-report",
+72	            ]
+73	        )
+74	    finally:
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/devsynth/testing/run_tests.py:14:0
+13	import re
+14	import subprocess
+15	import sys
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/testing/run_tests.py:166:23
+165	        ]
+166	        check_result = subprocess.run(
+167	            check_cmd, check=False, capture_output=True, text=True
+168	        )
+169	        if "no tests ran" in check_result.stdout or not check_result.stdout.strip():
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/testing/run_tests.py:182:25
+181	    try:
+182	        collect_result = subprocess.run(
+183	            collect_cmd, check=False, capture_output=True, text=True
+184	        )
+185	        if collect_result.returncode not in (0, 5):
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b110_try_except_pass.html
+   Location: src/devsynth/testing/run_tests.py:301:8
+300	                keyword_expr = "lmstudio"
+301	        except Exception:
+302	            pass
+303
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/testing/run_tests.py:318:29
+317	            collect_cmd += ["-k", keyword_expr]
+318	            collect_result = subprocess.run(
+319	                collect_cmd, check=False, capture_output=True, text=True
+320	            )
+321	            node_ids = [
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/testing/run_tests.py:331:26
+330	            try:
+331	                process = subprocess.Popen(
+332	                    run_cmd,
+333	                    stdout=subprocess.PIPE,
+334	                    stderr=subprocess.PIPE,
+335	                    text=True,
+336	                    env=env,
+337	                )
+338	                stdout, stderr = process.communicate()
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/testing/run_tests.py:360:26
+359	            try:
+360	                process = subprocess.Popen(
+361	                    cmd,
+362	                    stdout=subprocess.PIPE,
+363	                    stderr=subprocess.PIPE,
+364	                    text=True,
+365	                    env=env,
+366	                )
+367	                stdout, stderr = process.communicate()
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/testing/run_tests.py:399:23
+398	            collect_cmd += ["-k", keyword_expr]
+399	        check_result = subprocess.run(
+400	            collect_cmd, check=False, capture_output=True, text=True
+401	        )
+402	        node_ids = [
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/testing/run_tests.py:428:32
+427	                batch_cmd = base_cmd + batch + report_options
+428	                batch_process = subprocess.Popen(
+429	                    batch_cmd,
+430	                    stdout=subprocess.PIPE,
+431	                    stderr=subprocess.PIPE,
+432	                    text=True,
+433	                    env=env,
+434	                )
+435	                batch_stdout, batch_stderr = batch_process.communicate()
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.8.6/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/devsynth/testing/run_tests.py:452:22
+451	            run_cmd = base_cmd + node_ids + report_options
+452	            process = subprocess.Popen(
+453	                run_cmd,
+454	                stdout=subprocess.PIPE,
+455	                stderr=subprocess.PIPE,
+456	                text=True,
+457	                env=env,
+458	            )
+459	            stdout, stderr = process.communicate()
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 80492
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 145
+		Medium: 12
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 8
+		Medium: 2
+		High: 147
+Files skipped (0):

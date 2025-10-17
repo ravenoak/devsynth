@@ -1,2 +1,0 @@
-[post-install] poetry virtualenv: /workspace/devsynth/.venv
-[post-install] devsynth CLI is available via 'poetry run devsynth --help'

@@ -1,3 +1,0 @@
-HTML coverage report for run 20251001T234102Z-fast-medium is not committed because repository policy forbids binary artifacts.
-Regenerate locally by replaying the documented commands in diagnostics/devsynth_run_tests_fast_medium_20251001T234102Z.txt
-and inspecting the resulting htmlcov/ directory before packaging.

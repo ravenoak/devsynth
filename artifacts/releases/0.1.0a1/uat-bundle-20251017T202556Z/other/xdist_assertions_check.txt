@@ -1,0 +1,17 @@
+Date: 2025-09-03 14:20 local
+Subject: Task 45 — Investigate xdist assertion issues and smoke mode plugin disablement
+
+Summary
+- Verified implementation in src/devsynth/application/cli/commands/run_tests_cmd.py:
+  * Smoke mode sets PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 (line ~227).
+  * Smoke mode disables xdist and coverage plugins via PYTEST_ADDOPTS "-p no:xdist -p no:cov" (line ~229).
+  * Smoke mode forces no_parallel=True and defaults to fast when speeds unspecified.
+- Unit tests referenced in repository for smoke env behavior (tests/unit/application/cli/test_run_tests_cmd.py) already assert PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 per docs/tasks.md item 46.
+- Cross-referenced issues/Resolve-pytest-xdist-assertion-errors.md; no additional xdist assertions reproducible in smoke path per historical notes; remaining hang issues addressed under Task 44 separately.
+
+Conclusion
+- Smoke mode correctly disables problematic plugins and xdist by environment flags. This mitigates pytest-xdist internal assertion errors during smoke/fast runs.
+
+How to Validate (manual)
+- Run: poetry run devsynth run-tests --smoke --target unit-tests --speed fast --no-parallel --maxfail=1
+- Inspect environment during run (printenv via wrapper) to confirm PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 and PYTEST_ADDOPTS includes -p no:xdist.

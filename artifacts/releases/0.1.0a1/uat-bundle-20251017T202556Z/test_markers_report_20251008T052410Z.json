@@ -1,0 +1,28 @@
+{
+  "markers": {
+    "fast": 1813,
+    "no_network": 15,
+    "medium": 1579,
+    "parametrize": 71,
+    "slow": 134,
+    "requires_resource": 75,
+    "integration": 4,
+    "gui": 1,
+    "cli": 1,
+    "isolation": 7,
+    "docker": 2,
+    "memory_intensive": 1,
+    "integtest": 1,
+    "asyncio": 25,
+    "skipif": 3,
+    "property": 32,
+    "anyio": 3,
+    "unit": 11,
+    "smoke": 4,
+    "skip": 2,
+    "allow_real_coverage_artifacts": 2
+  },
+  "files_scanned": 1265,
+  "files_with_issues": 0,
+  "undocumented_markers": []
+}

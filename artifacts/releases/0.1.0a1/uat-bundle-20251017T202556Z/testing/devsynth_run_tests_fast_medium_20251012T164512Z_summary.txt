@@ -1,0 +1,13 @@
+DevSynth Coverage Gate — Fast+Medium Aggregate (2025-10-12 16:45:12 UTC)
+Command: poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel
+Knowledge Graph IDs: QualityGate=QG-20251012-FASTMED, TestRun=TR-20251012-FASTMED, ReleaseEvidence=RE-20251012-FASTMED
+Line Coverage: 92.40% (2,601/2,815 statements covered, 214 missing)
+Key module improvements:
+- src/devsynth/application/cli/commands/run_tests_cmd.py — 93.07% (188/202)
+- src/devsynth/testing/run_tests.py — 91.48% (322/352)
+- src/devsynth/application/cli/long_running_progress.py — 91.97% (229/249)
+- src/devsynth/interface/webui_bridge.py — 90.24% (185/205)
+- src/devsynth/interface/webui.py — 94.30% (993/1,053)
+- src/devsynth/adapters/provider_system.py — 91.11% (615/675)
+- src/devsynth/methodology/edrr/reasoning_loop.py — 87.34% (69/79)
+Artifacts archived under artifacts/releases/0.1.0a1/fast-medium/20251012T164512Z-fast-medium/

@@ -1,0 +1,5 @@
+src/devsynth/testing/run_tests.py:187: error: Argument 1 has incompatible type "type[SingleBatchRequest]"; expected "type[Never]"  [arg-type]
+src/devsynth/testing/run_tests.py:188: error: Cannot instantiate type "type[Never]"  [misc]
+src/devsynth/testing/run_tests.py:202: error: Argument 1 has incompatible type "type[SegmentedRunRequest]"; expected "type[Never]"  [arg-type]
+src/devsynth/testing/run_tests.py:203: error: Cannot instantiate type "type[Never]"  [misc]
+Found 4 errors in 1 file (checked 431 source files)

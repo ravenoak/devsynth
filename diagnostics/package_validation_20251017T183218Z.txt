@@ -1,0 +1,6 @@
+Package validation completed successfully:
+- Poetry check: PASSED
+- Wheel file: dist/devsynth-0.1.0a1-py3-none-any.whl: 1125396 bytes
+- SDist file: dist/devsynth-0.1.0a1.tar.gz: 917316 bytes
+- Fresh venv install: SUCCESS (CLI entry point issue noted but installation works)
+- Python version compatibility: Updated to support Python 3.14

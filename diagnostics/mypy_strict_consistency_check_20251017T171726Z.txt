@@ -1,0 +1,5 @@
+MyPy strict consistency check summary:
+- All 3 consecutive runs completed successfully (exit code 0)
+- No intermittent errors detected
+- Strict typing is stable and reproducible
+- Evidence files archived as mypy_run1/2/3_*.txt in /tmp

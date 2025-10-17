@@ -1,0 +1,14 @@
+Evidence: Pre-commit configured to enforce flake8 on changed files.
+
+Instructions to reproduce locally:
+1) Install hooks: pre-commit install
+2) Update to latest hook revs: pre-commit autoupdate (optional)
+3) Run flake8 on staged/changed files at commit time automatically.
+4) To validate across the repo for a baseline report:
+   pre-commit run --all-files | tee diagnostics/flake8_precommit_enabled_run.txt
+
+Hook details (from .pre-commit-config.yaml):
+- repo: https://github.com/pycqa/flake8, rev: 7.1.1, id: flake8
+- args: ["--config=pyproject.toml"] to ensure pyproject flake8 settings are honored
+
+Project flake8 config lives in pyproject.toml under [tool.flake8].

@@ -1,0 +1,19 @@
+DevSynth Runtime Evidence — Full Profile Coverage Run
+Date: 2025-09-30 17:01 (UTC)
+Environment:
+- PYTHONPATH=src
+- DEVSYNTH_NO_FILE_LOGGING=1
+- DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE=false
+- pytest/pytest-cov/pytest-bdd/click/typer installed via `poetry run pip install`
+Command:
+  PYTHONPATH=src poetry run python -m pytest \
+    --collect-only -q
+
+Result summary (current attempt):
+- `devsynth.testing.run_tests` invoked via Poetry after installing Typer dependencies, pytest, pytest-cov, pytest-bdd, and
+  backend libraries. The run progressed past CLI bootstrapping using `DEVSYNTH_CLI_MINIMAL=1` to avoid optional command imports.
+- Pytest collection still reported 232 errors because numerous integration suites require optional services and registered
+  pytest markers that remain unavailable in this minimal environment (OpenAI, LM Studio, MVUU dashboard, etc.).
+- Coverage artifacts were not generated; the gate remains blocked until the optional backends and CLI specifications are
+  provisioned so collection can complete without marker/dependency failures.
+- Diagnostic log: `diagnostics/devsynth_run_tests_fast_medium_20250930T170112Z.txt` (fast+medium retry with dependency captures).
