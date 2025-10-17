@@ -1,0 +1,6 @@
+Command: poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel
+Artifact: artifacts/releases/0.1.0a1/fast-medium/20251002T233820Z-fast-medium/coverage.json
+Covered lines: 79
+Statements: 554
+Percent covered: 14.26%
+Missing lines: 475

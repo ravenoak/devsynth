@@ -1,0 +1,2 @@
+poetry run task mypy:strict
+ERROR: task command not found in container environment.

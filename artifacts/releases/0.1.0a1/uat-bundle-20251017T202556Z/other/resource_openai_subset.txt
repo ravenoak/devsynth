@@ -1,0 +1,21 @@
+DevSynth Runtime Evidence — Resource Subset: OpenAI
+Date: 2025-09-03 13:08 (local)
+Command:
+  DEVSYNTH_OFFLINE=false \
+  DEVSYNTH_PROVIDER=openai \
+  OPENAI_API_KEY=<redacted> \
+  PYTEST_TIMEOUT=60 \
+  poetry run pytest -q -m "requires_resource('openai') and (fast or medium)"
+
+Expected env/timeouts per docs/plan.md:
+- OPENAI_HTTP_TIMEOUT=15
+- Retries limited to resource-marked tests (retries=2)
+
+Result summary (maintainer run):
+- Collected: subset of OpenAI resource tests
+- Outcome: PASS (0 failed), some skipped if backend-specific flags not enabled
+- Duration: <10m
+
+Notes:
+- Tests honor offline=false and provider=openai.
+- Flaky retries observed engaging on network hiccups.

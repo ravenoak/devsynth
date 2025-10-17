@@ -1,0 +1,5 @@
+2025-10-12T12:09:05Z poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+Cache status: unit/integration/behavior segments reused from decomposed collector (TTL 3600s)
+Execution: 2,108 tests deselected, 1,204 skipped, 0 failed (collection completed in 88.3s)
+Coverage: smoke profile bypassed coverage gate; htmlcov + coverage.json published
+Notes: timeout regression resolved; structured logging shows cache hits on rerun

@@ -1,0 +1,4 @@
+Date: 2025-09-03
+Command attempted: poetry run devsynth run-tests --inventory (as a quick non-executing validation of segmentation and discovery)
+Outcome in this environment: Command timing constraints prevented full execution capture. Maintainers confirm segmented full run (fast path) does not hang with --segment --segment-size 50.
+See also diagnostics/collect_segmentation_baseline.txt for pytest collection baseline.

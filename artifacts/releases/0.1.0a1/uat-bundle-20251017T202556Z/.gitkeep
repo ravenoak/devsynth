@@ -1,0 +1,2 @@
+# Diagnostics artifacts folder
+# Retention policy: keep latest per task/run; large or dated files may be pruned by maintainers.

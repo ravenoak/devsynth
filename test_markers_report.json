@@ -1,11 +1,11 @@
 {
   "markers": {
-    "fast": 1813,
+    "fast": 2000,
     "no_network": 15,
-    "medium": 1579,
-    "parametrize": 71,
-    "slow": 134,
-    "requires_resource": 75,
+    "medium": 1617,
+    "parametrize": 85,
+    "slow": 222,
+    "requires_resource": 77,
     "integration": 4,
     "gui": 1,
     "cli": 1,
@@ -18,11 +18,12 @@
     "property": 32,
     "anyio": 3,
     "unit": 11,
+    "xfail": 5,
     "smoke": 4,
-    "skip": 2,
+    "skip": 5,
     "allow_real_coverage_artifacts": 2
   },
-  "files_scanned": 1265,
+  "files_scanned": 1296,
   "files_with_issues": 0,
   "undocumented_markers": []
 }

@@ -1,3 +1,0 @@
-Script started on 2025-09-11 04:04:29+00:00 [COMMAND="poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel" TERM="xterm" COLUMNS="128" LINES="-1"]
-^C
-Script done on 2025-09-11 04:04:54+00:00 [COMMAND_EXIT_CODE="130"]

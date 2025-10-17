@@ -1,0 +1,57 @@
+Total files with issues: 374
+collection_error: 373
+speed_marker_violation: 1
+syntax_error: 0
+other: 0
+
+Sample (first 50):
+- /private/var/folders/v6/d7415y8j3kd_v6rrr7r403y00000gn/T/pytest-of-ravenoak/pytest-6/test_verify_test_markers_colle0/test_bad.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/__init__.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/requirements_wizard/test_logging_and_priority_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/mvu_command_execution_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_additional_storage_backends_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_advanced_graph_memory_features_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_agent_api_health_metrics_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_agent_api_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_alignment_metrics_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_analyze_commands_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_api_stub_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_apispec_generation_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_ast_code_analysis_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_bump_version_script_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_chromadb_integration_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_chromadb_store_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_cli_webui_parity_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_code_command_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_code_generation_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_code_transformer_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_config_enable_feature_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_consensus_building_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_consensus_failure_logging_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_cross_interface_consistency_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_dbschema_generation_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_delegate_task_consensus_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_delegate_task_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_docs_fetch_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_doctor_command_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_doctor_missing_env_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_doctor_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_documentation_ingestion_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_documentation_utility_functions_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_edrr_coordinator_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_edrr_cycle_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_edrr_enhanced_phase_transitions_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_edrr_enhanced_recursion_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_edrr_real_llm_integration_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_edrr_recursive_recovery_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_enhanced_chromadb_integration_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_enhanced_dialectical_reasoning_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_environment_variables_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_error_handling_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_exceptions_framework_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_feature_markers_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_generate_docs_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_generation_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_hybrid_memory_query_patterns_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_ingest_command_steps.py :: {'collection_error'}
+- /Users/ravenoak/Projects/github.com/ravenoak/devsynth/tests/behavior/steps/test_inspect_code_command_steps.py :: {'collection_error'}

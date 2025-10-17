@@ -1,0 +1,106 @@
+src/devsynth/interface/agentapi.py:49: error: Returning Any from function declared to return "None"  [no-any-return]
+src/devsynth/interface/agentapi.py:61: error: Unexpected keyword argument "description" for "FastAPI"  [call-arg]
+src/devsynth/interface/agentapi.py:70: error: Class cannot subclass "UXBridge" (has type "Any")  [misc]
+src/devsynth/interface/agentapi.py:112: error: Class cannot subclass "ProgressIndicator" (has type "Any")  [misc]
+stubs/fastapi/fastapi/__init__.pyi:45: note: "FastAPI" defined here
+src/devsynth/interface/agentapi.py:61: error: Unexpected keyword argument "version" for "FastAPI"  [call-arg]
+src/devsynth/interface/agentapi.py:61: error: Unexpected keyword argument "docs_url" for "FastAPI"  [call-arg]
+src/devsynth/interface/agentapi.py:61: error: Unexpected keyword argument "redoc_url" for "FastAPI"  [call-arg]
+src/devsynth/interface/agentapi.py:219: error: Unsupported operand types for >= ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:219: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:219: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:221: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:221: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:221: error: Unsupported operand types for * ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:221: note: Right operand is of type "float | str"
+src/devsynth/interface/agentapi.py:223: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:223: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:223: error: Unsupported operand types for * ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:223: note: Right operand is of type "float | str"
+src/devsynth/interface/agentapi.py:225: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:225: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:225: error: Unsupported operand types for * ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:225: note: Right operand is of type "float | str"
+src/devsynth/interface/agentapi.py:227: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:227: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:227: error: Unsupported operand types for * ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:227: note: Right operand is of type "float | str"
+src/devsynth/interface/agentapi.py:232: error: Unsupported operand types for + ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:232: note: Left operand is of type "float | str"
+src/devsynth/interface/agentapi.py:294: error: Unsupported operand types for >= ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:294: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:294: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:298: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:298: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:298: error: Unsupported operand types for * ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:298: note: Right operand is of type "float | str"
+src/devsynth/interface/agentapi.py:302: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:302: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:302: error: Unsupported operand types for * ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:302: note: Right operand is of type "float | str"
+src/devsynth/interface/agentapi.py:306: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:306: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:306: error: Unsupported operand types for * ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:306: note: Right operand is of type "float | str"
+src/devsynth/interface/agentapi.py:310: error: Unsupported operand types for >= ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:310: note: Both left and right operands are unions
+src/devsynth/interface/agentapi.py:310: error: Unsupported operand types for * ("float" and "str")  [operator]
+src/devsynth/interface/agentapi.py:310: note: Right operand is of type "float | str"
+src/devsynth/interface/agentapi.py:319: error: Unsupported operand types for + ("str" and "float")  [operator]
+src/devsynth/interface/agentapi.py:319: note: Left operand is of type "float | str"
+src/devsynth/interface/agentapi.py:358: error: "Request" has no attribute "client"  [attr-defined]
+src/devsynth/interface/agentapi.py:374: error: "_StatusModule" has no attribute "HTTP_429_TOO_MANY_REQUESTS"  [attr-defined]
+src/devsynth/interface/agentapi.py:497: error: "APIRouter" has no attribute "post"  [attr-defined]
+src/devsynth/interface/agentapi.py:497: error: Untyped decorator makes function "init_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:524: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:529: error: "APIRouter" has no attribute "post"  [attr-defined]
+src/devsynth/interface/agentapi.py:529: error: Untyped decorator makes function "gather_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:551: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:556: error: "APIRouter" has no attribute "post"  [attr-defined]
+src/devsynth/interface/agentapi.py:556: error: Untyped decorator makes function "synthesize_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:591: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:596: error: "APIRouter" has no attribute "post"  [attr-defined]
+src/devsynth/interface/agentapi.py:596: error: Untyped decorator makes function "spec_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:617: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:622: error: "APIRouter" has no attribute "post"  [attr-defined]
+src/devsynth/interface/agentapi.py:622: error: Untyped decorator makes function "test_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:645: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:654: error: "APIRouter" has no attribute "post"  [attr-defined]
+src/devsynth/interface/agentapi.py:654: error: Untyped decorator makes function "code_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:670: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:675: error: "APIRouter" has no attribute "post"  [attr-defined]
+src/devsynth/interface/agentapi.py:675: error: Untyped decorator makes function "doctor_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:691: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:696: error: "APIRouter" has no attribute "post"  [attr-defined]
+src/devsynth/interface/agentapi.py:696: error: Untyped decorator makes function "edrr_cycle_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:724: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:729: error: "APIRouter" has no attribute "get"  [attr-defined]
+src/devsynth/interface/agentapi.py:729: error: Untyped decorator makes function "status_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:735: error: "APIRouter" has no attribute "get"  [attr-defined]
+src/devsynth/interface/agentapi.py:735: error: Untyped decorator makes function "health_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:777: error: "APIRouter" has no attribute "get"  [attr-defined]
+src/devsynth/interface/agentapi.py:777: error: Untyped decorator makes function "metrics_endpoint" untyped  [misc]
+src/devsynth/interface/agentapi.py:868: error: Statement is unreachable  [unreachable]
+src/devsynth/interface/agentapi.py:872: error: Unexpected keyword argument "status_code" for "JSONResponse"  [call-arg]
+stubs/fastapi/fastapi/responses/__init__.pyi:9: note: "JSONResponse" defined here
+src/devsynth/interface/agentapi.py:874: error: Unexpected keyword argument "status_code" for "JSONResponse"  [call-arg]
+src/devsynth/interface/agentapi.py:864: error: "FastAPI" has no attribute "exception_handler"  [attr-defined]
+src/devsynth/interface/agentapi.py:864: error: Untyped decorator makes function "http_exception_handler" untyped  [misc]
+src/devsynth/interface/agentapi.py:882: error: Unexpected keyword argument "status_code" for "JSONResponse"  [call-arg]
+src/devsynth/interface/agentapi.py:883: error: "_StatusModule" has no attribute "HTTP_500_INTERNAL_SERVER_ERROR"  [attr-defined]
+src/devsynth/interface/agentapi.py:877: error: "FastAPI" has no attribute "exception_handler"  [attr-defined]
+src/devsynth/interface/agentapi.py:877: error: Untyped decorator makes function "general_exception_handler" untyped  [misc]
+src/devsynth/application/requirements/requirement_service.py:84: error: Returning Any from function declared to return "list[Any]"  [no-any-return]
+src/devsynth/application/requirements/requirement_service.py:236: error: Returning Any from function declared to return "bool"  [no-any-return]
+src/devsynth/application/requirements/requirement_service.py:325: error: Returning Any from function declared to return "list[Any]"  [no-any-return]
+src/devsynth/application/requirements/dialectical_reasoner.py:38: error: Class cannot subclass "BaseConsensusError" (has type "Any")  [misc]
+src/devsynth/application/requirements/dialectical_reasoner.py:45: error: Class cannot subclass "DialecticalReasonerPort" (has type "Any")  [misc]
+src/devsynth/application/requirements/dialectical_reasoner.py:494: error: Returning Any from function declared to return "str"  [no-any-return]
+src/devsynth/application/requirements/dialectical_reasoner.py:507: error: Returning Any from function declared to return "str"  [no-any-return]
+src/devsynth/application/requirements/dialectical_reasoner.py:528: error: Need type annotation for "current_argument" (hint: "current_argument: dict[<type>, <type>] = ...")  [var-annotated]
+src/devsynth/application/requirements/dialectical_reasoner.py:587: error: Argument 1 to "_pos_rank" has incompatible type "Any | None"; expected "str"  [arg-type]
+src/devsynth/application/requirements/dialectical_reasoner.py:609: error: Returning Any from function declared to return "str"  [no-any-return]
+src/devsynth/application/requirements/dialectical_reasoner.py:667: error: Returning Any from function declared to return "str"  [no-any-return]
+src/devsynth/application/requirements/dialectical_reasoner.py:693: error: Returning Any from function declared to return "str"  [no-any-return]
+src/devsynth/application/requirements/dialectical_reasoner.py:849: error: Returning Any from function declared to return "str"  [no-any-return]
+Found 83 errors in 3 files (checked 8 source files)

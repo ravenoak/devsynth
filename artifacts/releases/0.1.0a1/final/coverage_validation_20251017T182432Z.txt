@@ -1,0 +1,8 @@
+Coverage validation summary:
+- Overall coverage: 24.62% (12,027/48,847 statements)
+- Excluded lines: 2,656
+- src/devsynth modules analyzed: 428
+- Modules ≥90% coverage: 82
+- Modules <50% coverage: 268
+- Meets ≥90% threshold: ❌ NO (24.62% < 90%)
+- Note: Fast+medium run achieved lower coverage than expected; full test suite needed for 90% target

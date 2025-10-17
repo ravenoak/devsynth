@@ -1,0 +1,2 @@
+src/devsynth/testing/mypy_strict_runner.py:250: error: Statement is unreachable  [unreachable]
+Found 1 error in 1 file (checked 433 source files)

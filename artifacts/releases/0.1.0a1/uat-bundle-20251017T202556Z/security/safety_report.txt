@@ -1,0 +1,76 @@
++==============================================================================+
+
+                               /$$$$$$            /$$
+                              /$$__  $$          | $$
+           /$$$$$$$  /$$$$$$ | $$  \__//$$$$$$  /$$$$$$   /$$   /$$
+          /$$_____/ |____  $$| $$$$   /$$__  $$|_  $$_/  | $$  | $$
+         |  $$$$$$   /$$$$$$$| $$_/  | $$$$$$$$  | $$    | $$  | $$
+          \____  $$ /$$__  $$| $$    | $$_____/  | $$ /$$| $$  | $$
+          /$$$$$$$/|  $$$$$$$| $$    |  $$$$$$$  |  $$$$/|  $$$$$$$
+         |_______/  \_______/|__/     \_______/   \___/   \____  $$
+                                                          /$$  | $$
+                                                         |  $$$$$$/
+  by safetycli.com                                        \______/
+
++==============================================================================+
+
+ [1mREPORT[0m
+
+  Safety [1mv3.2.3[0m is scanning for [1mVulnerabilities[0m[1m...[0m
+[1m  Scanning dependencies[0m in your [1menvironment:[0m
+
+  -> /opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versio
+  ns/3.12/lib/python3.12/lib-dynload
+  -> /opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versio
+  ns/3.12/lib/python312.zip
+  -> /Users/ravenoak/Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-
+  py3.12/lib/python3.12/site-packages/setuptools/_vendor
+  -> /opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versio
+  ns/3.12/lib/python3.12
+  -> /Users/ravenoak/Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-
+  py3.12/lib/python3.12/site-packages
+  -> /Users/ravenoak/Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-
+  py3.12/bin
+  -> /Users/ravenoak/Projects/github.com/ravenoak/devsynth/src
+
+  Using [1mopen-source vulnerability database[0m
+[1m  Found and scanned 270 packages[0m
+  Timestamp [1m2025-09-03 15:13:16[0m
+[1m  1[0m[1m vulnerability reported[0m
+[1m  0[0m[1m vulnerabilities ignored[0m
+
++==============================================================================+
+ [1mVULNERABILITIES REPORTED[0m
++==============================================================================+
+
+[31m-> Vulnerability found in starlette version 0.46.2[0m
+[1m   Vulnerability ID: [0m78279
+[1m   Affected spec: [0m<0.47.2
+[1m   ADVISORY: [0mStarlette is a lightweight ASGI (Asynchronous Server
+   Gateway Interface) framework/toolkit, designed for building async web
+   services in Python. In versions 0.47.1 and below, when parsing a multi-
+   part form with large files (greater than the default max spool size)
+   starlette will block the main thread to roll the file over to disk. This
+   blocks the event thread which means the application can't accept new
+   connections. The UploadFile code has a minor bug where instead of just
+   checking for self._in_memory, the logic should also check if the
+   additional bytes will cause a rollover. The vulnerability is fixed in
+   version 0.47.2.
+[1m   CVE-2025-54121[0m
+[1m   For more information about this vulnerability, visit
+   [0mhttps://data.safetycli.com/v/78279/97c[0m
+   To ignore this vulnerability, use PyUp vulnerability id 78279 in safety’s
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
++==============================================================================+
+   [32m[1mREMEDIATIONS[0m
+
+  1 vulnerability was reported in 1 package. For detailed remediation & fix
+  recommendations, upgrade to a commercial license.
+
++==============================================================================+
+
+ Scan was completed. 1 vulnerability was reported.
+
++==============================================================================+[0m

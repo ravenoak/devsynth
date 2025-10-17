@@ -1,5 +1,0 @@
-DevSynth 0.1.0a1 smoke + fast-medium diagnostics (2025-10-08T00:30Z)
-- diagnostics/mypy_strict_20251007T234231Z.log (QualityGate=QG-20251008-MYPY, TestRun=TR-20251008-MYPY)
-- diagnostics/devsynth_run_tests_smoke_fast_20251007T235025Z.log (TestRun=TR-20251008-SMOKE-TIMEOUT; collection exceeded 300 s guardrail)
-- diagnostics/devsynth_run_tests_smoke_fast_20251008T001105Z.log (marker smoke fallback run; manual interrupt after timeout)
-- diagnostics/devsynth_run_tests_fast_medium_20251008T002537Z.log (TestRun=TR-20251008-FASTMED-TIMEOUT; collection exceeded 300 s guardrail)

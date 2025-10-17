@@ -1,6 +1,0 @@
-htmlcov-20251012T164512Z-fast-medium.zip.base64
-  description: Base64-encoded zip archive of the HTML coverage report (decode to htmlcov-20251012T164512Z-fast-medium.zip before use)
-  sha256 (decoded zip): 2c4401a25bde6877054abbbac7a6e372dabceadd4fa7329d90b1765ffcbafcaf
-  decode_instructions: base64 -d htmlcov-20251012T164512Z-fast-medium.zip.base64 > htmlcov-20251012T164512Z-fast-medium.zip
-  contents:
-    - htmlcov-20251012T164512Z-fast-medium/index.html

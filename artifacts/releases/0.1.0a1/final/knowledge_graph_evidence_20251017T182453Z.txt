@@ -1,0 +1,4 @@
+Knowledge-graph evidence extraction:
+- No knowledge-graph banners found in coverage log
+- This may be expected as coverage (24.62%) is below 90% threshold
+- Knowledge-graph publishing requires ≥90% coverage gate to pass

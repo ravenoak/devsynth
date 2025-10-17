@@ -1,0 +1,23 @@
+....                                                                     [100%]
+=============================== warnings summary ===============================
+../../../../Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/_pytest/config/__init__.py:1474
+  /Users/ravenoak/Library/Caches/pypoetry/virtualenvs/devsynth-Z2bYGKTY-py3.12/lib/python3.12/site-packages/_pytest/config/__init__.py:1474: PytestConfigWarning: Unknown config option: anyio_backend
+
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= Test Categorization Summary ==========================
+Test Type Distribution:
+  Unit Tests: 4
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 4
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+============================= Top 10 Slowest Tests =============================
+1. tests/unit/application/llm/test_offline_provider.py::TestOfflineProvider::test_generate_prefixes_with_offline: 0.30s
+2. tests/unit/methodology/edrr/test_reasoning_loop.py::test_reasoning_loop_completes_with_deterministic_seed: 0.00s
+3. tests/unit/application/llm/test_offline_provider.py::TestOfflineProvider::test_generate_with_context_concatenates: 0.00s
+4. tests/unit/application/llm/test_offline_provider.py::TestOfflineProvider::test_get_embedding_is_deterministic: 0.00s

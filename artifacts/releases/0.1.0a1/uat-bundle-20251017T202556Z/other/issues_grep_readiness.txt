@@ -1,0 +1,659 @@
+issues/prompt-management-with-dpsy-ai.md:5:Dependencies: Phase-2-completion.md, docs/specifications/prompt-management-with-dpsy-ai.md, tests/behavior/features/prompt_management_with_dpsy_ai.feature
+issues/prompt-management-with-dpsy-ai.md:14:- Add or update BDD tests in `tests/behavior/features/prompt_management_with_dpsy_ai.feature`.
+issues/prompt-management-with-dpsy-ai.md:22:- BDD Feature: tests/behavior/features/prompt_management_with_dpsy_ai.feature
+issues/restore-strict-typing-core-mvu.md:6:Modules under `devsynth.core.mvu.*` disable `disallow_untyped_defs`, `check_untyped_defs`, and `ignore_missing_imports` in `pyproject.toml`, limiting type coverage.
+issues/Complete-memory-system-integration.md:6:Dependencies: docs/specifications/complete-memory-system-integration.md, tests/behavior/features/complete_memory_system_integration.feature
+issues/Complete-memory-system-integration.md:17:- Expand integration tests covering persistence and retrieval
+issues/Complete-memory-system-integration.md:23:- Create appropriate tests to validate behavior.
+issues/Complete-memory-system-integration.md:33:- BDD Feature: tests/behavior/features/complete_memory_system_integration.feature
+issues/Complete-memory-system-integration.md:36:- [tests/integration](../tests/integration)
+issues/run-pipeline-command.md:5:Dependencies: docs/specifications/run-pipeline-command.md, tests/behavior/features/run_pipeline_command.feature
+issues/run-pipeline-command.md:14:- Add or update BDD tests in `tests/behavior/features/run_pipeline_command.feature`.
+issues/run-pipeline-command.md:22:- BDD Feature: tests/behavior/features/run_pipeline_command.feature
+issues/wsde-model-and-memory-system-integration.md:5:Dependencies: Phase-2-completion.md, docs/specifications/wsde-model-and-memory-system-integration.md, tests/behavior/features/wsde_model_and_memory_system_integration.feature
+issues/wsde-model-and-memory-system-integration.md:14:- Add or update BDD tests in `tests/behavior/features/wsde_model_and_memory_system_integration.feature`.
+issues/wsde-model-and-memory-system-integration.md:22:- BDD Feature: tests/behavior/features/wsde_model_and_memory_system_integration.feature
+issues/requirement-analysis.md:5:Dependencies: Phase-1-completion.md, docs/specifications/requirement-analysis.md, tests/behavior/features/requirement_analysis.feature
+issues/requirement-analysis.md:14:- Add or update BDD tests in `tests/behavior/features/requirement_analysis.feature`.
+issues/requirement-analysis.md:22:- BDD Feature: tests/behavior/features/requirement_analysis.feature
+issues/advanced-graph-memory-features.md:5:Dependencies: docs/specifications/advanced-graph-memory-features.md, tests/behavior/features/advanced_graph_memory_features.feature
+issues/advanced-graph-memory-features.md:14:- Add or update BDD tests in `tests/behavior/features/advanced_graph_memory_features.feature`.
+issues/advanced-graph-memory-features.md:22:- BDD Feature: tests/behavior/features/advanced_graph_memory_features.feature
+issues/agent-api-health-and-metrics.md:5:Dependencies: Phase-3-completion.md, docs/specifications/agent-api-health-and-metrics.md, tests/behavior/features/agent_api_health_and_metrics.feature
+issues/agent-api-health-and-metrics.md:23:- BDD Feature: tests/behavior/features/agent_api_health_and_metrics.feature
+issues/edrr-integration-with-real-llm-providers.md:5:Dependencies: docs/specifications/edrr-integration-with-real-llm-providers.md, tests/behavior/features/edrr_integration_with_real_llm_providers.feature
+issues/edrr-integration-with-real-llm-providers.md:14:- Add or update BDD tests in `tests/behavior/features/edrr_integration_with_real_llm_providers.feature`.
+issues/edrr-integration-with-real-llm-providers.md:22:- BDD Feature: tests/behavior/features/edrr_integration_with_real_llm_providers.feature
+issues/release-readiness-v0-1-0-alpha-1.md:1:# Release readiness for v0.1.0-alpha.1
+issues/release-readiness-v0-1-0-alpha-1.md:6:- devsynth-run-tests-hangs.md
+issues/release-readiness-v0-1-0-alpha-1.md:10:Prerequisites for the first alpha release remain incomplete. The development environment lacks an enforced virtualenv, release automation via `task` is unavailable, and slow tests and marker verification scripts fail or time out. These gaps block tagging `v0.1.0-alpha.1`.
+issues/release-readiness-v0-1-0-alpha-1.md:15:- Fix failing slow tests or mark benchmarks as optional to keep the suite green.
+issues/release-readiness-v0-1-0-alpha-1.md:21:- 2025-08-21: Established a Poetry virtual environment and installed development extras; `poetry env info --path` now reports the expected path. Attempted `poetry run devsynth run-tests --speed=fast`, but the command stalled after an `LMStudioProvider` warning, and `scripts/verify_test_markers.py` still runs slowly and was halted after ~150 files.
+issues/release-readiness-v0-1-0-alpha-1.md:22:- 2025-08-21: Re-ran release checklist; environment provisioning and `pip check` succeeded, but fast tests failed (missing `tests/test_speed_dummy.py`). Medium and slow test runs halted after `LMStudioProvider` warnings. `verify_test_markers.py` was interrupted, deployment tests failed coverage, `task release:prep` ended early, and `verify_release_state` reported missing tag `v0.1.0-alpha.1`.
+issues/release-readiness-v0-1-0-alpha-1.md:24:- 2025-08-22: Re-ran release checklist; `pip check` passed, `devsynth run-tests` for all speeds aborted with missing `LMStudioProvider`, `verify_test_markers.py` halted after collection error, deployment tests failed coverage, and `task release:prep` failed with a `TinyDBMemoryAdapter` TypeError.
+issues/release-readiness-v0-1-0-alpha-1.md:26:- 2025-08-23: Attempted full release checklist and environment provisioning via `scripts/install_dev.sh`; `pre-commit` failed in the `devsynth-align` hook due to missing dependencies and a circular import in `apply_dialectical_reasoning`, leaving release readiness blocked.
+issues/release-readiness-v0-1-0-alpha-1.md:27:- 2025-08-23: `poetry install --with dev --extras "tests retrieval chromadb api"` succeeded. `poetry run devsynth run-tests --speed=fast` failed at `test_wsde_edrr_simulation.py::test_simulation_converges`. `tests/verify_test_organization.py` reported missing `tests/test_speed_dummy.py`, and `scripts/verify_test_markers.py` found no test files.
+issues/release-readiness-v0-1-0-alpha-1.md:28:- 2025-08-23: Added sentinel test and seeded `run_simulation` for deterministic convergence; `poetry run devsynth run-tests --speed=fast` and all verification scripts now succeed.
+issues/release-readiness-v0-1-0-alpha-1.md:29:- 2025-08-23: Latest audit shows `task` command missing; `poetry run devsynth run-tests --speed fast` and direct `pytest -m fast` hang without output, blocking test verification. `scripts/verify_test_markers.py` completes after processing 752 files (~40s).
+issues/release-readiness-v0-1-0-alpha-1.md:30:- 2025-08-23: Re-ran environment setup. `scripts/install_dev.sh` installed go-task v3.44.1, and `poetry install --with dev --extras "tests retrieval chromadb api"` completed. `task --version` reports 3.44.1 and `poetry run devsynth --help` displays CLI options, but `poetry run devsynth run-tests --speed=fast` exits with `ModuleNotFoundError: No module named 'devsynth'`.
+issues/release-readiness-v0-1-0-alpha-1.md:31:- 2025-08-23: Confirmed editable install fixes `ModuleNotFoundError`; `poetry env info --path` and `task --version` succeed, `poetry run devsynth run-tests --speed=fast` passes, while `task release:prep` fails at `test_handle_errors_during_code_inspection`.
+issues/project-ingestion.md:5:Dependencies: docs/specifications/project-ingestion.md, tests/behavior/features/project_ingestion.feature
+issues/project-ingestion.md:14:- Add or update BDD tests in `tests/behavior/features/project_ingestion.feature`.
+issues/project-ingestion.md:22:- BDD Feature: tests/behavior/features/project_ingestion.feature
+issues/serve-command.md:5:Dependencies: docs/specifications/serve-command.md, tests/behavior/features/serve_command.feature
+issues/serve-command.md:14:- Add or update BDD tests in `tests/behavior/features/serve_command.feature`.
+issues/serve-command.md:22:- BDD Feature: tests/behavior/features/serve_command.feature
+issues/webui-doctor.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-doctor.md, tests/behavior/features/webui_doctor.feature
+issues/webui-doctor.md:14:- Add or update BDD tests in `tests/behavior/features/webui_doctor.feature`.
+issues/webui-doctor.md:22:- BDD Feature: tests/behavior/features/webui_doctor.feature
+issues/wsde-agent-model-refinement.md:5:Dependencies: Phase-2-completion.md, docs/specifications/wsde-agent-model-refinement.md, tests/behavior/features/wsde_agent_model_refinement.feature
+issues/wsde-agent-model-refinement.md:14:- Add or update BDD tests in `tests/behavior/features/wsde_agent_model_refinement.feature`.
+issues/wsde-agent-model-refinement.md:22:- BDD Feature: tests/behavior/features/wsde_agent_model_refinement.feature
+issues/wsde-peer-review-workflow.md:5:Dependencies: Phase-2-completion.md, docs/specifications/wsde-peer-review-workflow.md, tests/behavior/features/wsde_peer_review_workflow.feature
+issues/wsde-peer-review-workflow.md:14:- Add or update BDD tests in `tests/behavior/features/wsde_peer_review_workflow.feature`.
+issues/wsde-peer-review-workflow.md:22:- BDD Feature: tests/behavior/features/wsde_peer_review_workflow.feature
+issues/interactive-requirements-flow-cli.md:5:Dependencies: docs/specifications/interactive-requirements-flow-cli.md, tests/behavior/features/interactive_requirements_flow_cli.feature
+issues/interactive-requirements-flow-cli.md:14:- Add or update BDD tests in `tests/behavior/features/interactive_requirements_flow_cli.feature`.
+issues/interactive-requirements-flow-cli.md:22:- BDD Feature: tests/behavior/features/interactive_requirements_flow_cli.feature
+issues/multi-agent-task-delegation.md:5:Dependencies: Phase-2-completion.md, docs/specifications/multi-agent-task-delegation.md, tests/behavior/features/multi_agent_task_delegation.feature
+issues/multi-agent-task-delegation.md:14:- Add or update BDD tests in `tests/behavior/features/multi_agent_task_delegation.feature`.
+issues/multi-agent-task-delegation.md:22:- BDD Feature: tests/behavior/features/multi_agent_task_delegation.feature
+issues/project-documentation-ingestion.md:5:Dependencies: docs/specifications/project-documentation-ingestion.md, docs/specifications/comprehensive-documentation-ingestion.md, tests/behavior/features/project_documentation_ingestion.feature, tests/behavior/features/comprehensive_documentation_ingestion.feature
+issues/project-documentation-ingestion.md:11:- tests/behavior/features/project_documentation_ingestion/project_documentation_ingestion.feature
+issues/project-documentation-ingestion.md:13:- tests/behavior/features/comprehensive_documentation_ingestion.feature
+issues/project-documentation-ingestion.md:18:- Create appropriate tests to validate behavior.
+issues/project-documentation-ingestion.md:28:- BDD Feature: tests/behavior/features/project_documentation_ingestion.feature
+issues/project-documentation-ingestion.md:29:- BDD Feature: tests/behavior/features/comprehensive_documentation_ingestion.feature
+issues/kuzu-memory-integration.md:5:Dependencies: docs/specifications/kuzu-memory-integration.md, tests/behavior/features/kuzu_memory_integration.feature
+issues/kuzu-memory-integration.md:14:- Add or update BDD tests in `tests/behavior/features/kuzu_memory_integration.feature`.
+issues/kuzu-memory-integration.md:22:- BDD Feature: tests/behavior/features/kuzu_memory_integration.feature
+issues/webui-integration.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-integration.md, tests/behavior/features/webui_integration.feature
+issues/webui-integration.md:14:- Add or update BDD tests in `tests/behavior/features/webui_integration.feature`.
+issues/webui-integration.md:22:- BDD Feature: tests/behavior/features/webui_integration.feature
+issues/methodology-adapters-integration.md:5:Dependencies: docs/specifications/methodology-adapters-integration.md, tests/behavior/features/methodology_adapters_integration.feature
+issues/methodology-adapters-integration.md:14:- Add or update BDD tests in `tests/behavior/features/methodology_adapters_integration.feature`.
+issues/methodology-adapters-integration.md:22:- BDD Feature: tests/behavior/features/methodology_adapters_integration.feature
+issues/delegating-tasks-with-consensus-voting.md:5:Dependencies: Phase-2-completion.md, docs/specifications/delegating-tasks-with-consensus-voting.md, tests/behavior/features/delegating_tasks_with_consensus_voting.feature
+issues/delegating-tasks-with-consensus-voting.md:14:- Add or update BDD tests in `tests/behavior/features/delegating_tasks_with_consensus_voting.feature`.
+issues/delegating-tasks-with-consensus-voting.md:22:- BDD Feature: tests/behavior/features/delegating_tasks_with_consensus_voting.feature
+issues/webui-onboarding-flow.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-onboarding-flow.md, tests/behavior/features/webui_onboarding_flow.feature
+issues/webui-onboarding-flow.md:14:- Add or update BDD tests in `tests/behavior/features/webui_onboarding_flow.feature`.
+issues/webui-onboarding-flow.md:22:- BDD Feature: tests/behavior/features/webui_onboarding_flow.feature
+issues/restore-strict-typing-testing.md:6:Modules under `devsynth.testing.*` use `ignore_errors=true` in `pyproject.toml`, so tests are unchecked by mypy.
+issues/cli-command-execution.md:5:Dependencies: docs/specifications/cli-command-execution.md, tests/behavior/features/cli_command_execution.feature
+issues/cli-command-execution.md:14:- Add or update BDD tests in `tests/behavior/features/cli_command_execution.feature`.
+issues/cli-command-execution.md:22:- BDD Feature: tests/behavior/features/cli_command_execution.feature
+issues/validate-metadata-command.md:5:Dependencies: docs/specifications/validate-metadata-command.md, tests/behavior/features/validate_metadata_command.feature
+issues/validate-metadata-command.md:14:- Add or update BDD tests in `tests/behavior/features/validate_metadata_command.feature`.
+issues/validate-metadata-command.md:22:- BDD Feature: tests/behavior/features/validate_metadata_command.feature
+issues/wsde-voting-mechanisms-for-critical-decisions.md:5:Dependencies: Phase-2-completion.md, docs/specifications/wsde-voting-mechanisms-for-critical-decisions.md, tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature
+issues/wsde-voting-mechanisms-for-critical-decisions.md:14:- Add or update BDD tests in `tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature`.
+issues/wsde-voting-mechanisms-for-critical-decisions.md:22:- BDD Feature: tests/behavior/features/wsde_voting_mechanisms_for_critical_decisions.feature
+issues/error-handling.md:5:Dependencies: docs/specifications/error-handling.md, tests/behavior/features/error_handling.feature
+issues/error-handling.md:14:- Add or update BDD tests in `tests/behavior/features/error_handling.feature`.
+issues/error-handling.md:22:- BDD Feature: tests/behavior/features/error_handling.feature
+issues/webui-docs-generation-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-docs-generation-page.md, tests/behavior/features/webui_docs_generation_page.feature
+issues/webui-docs-generation-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_docs_generation_page.feature`.
+issues/webui-docs-generation-page.md:22:- BDD Feature: tests/behavior/features/webui_docs_generation_page.feature
+issues/webui-webapp-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-webapp-page.md, tests/behavior/features/webui_webapp_page.feature
+issues/webui-webapp-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_webapp_page.feature`.
+issues/webui-webapp-page.md:22:- BDD Feature: tests/behavior/features/webui_webapp_page.feature
+issues/Finalize-dialectical-reasoning.md:6:Dependencies: Phase-2-completion.md, docs/specifications/finalize-dialectical-reasoning.md, tests/behavior/features/finalize_dialectical_reasoning.feature
+issues/Finalize-dialectical-reasoning.md:17:- Expand unit tests for reasoning modules
+issues/Finalize-dialectical-reasoning.md:22:- Create appropriate tests to validate behavior.
+issues/Finalize-dialectical-reasoning.md:27:- [x] Behavior tests confirm reasoning results persist to memory ([2b3f12f7](../commit/2b3f12f7)).
+issues/Finalize-dialectical-reasoning.md:35:- BDD Feature: tests/behavior/features/finalize_dialectical_reasoning.feature
+issues/agent-api-stub-usage.md:5:Dependencies: docs/specifications/agent-api-stub-usage.md, tests/behavior/features/agent_api_stub_usage.feature
+issues/agent-api-stub-usage.md:14:- Add or update BDD tests in `tests/behavior/features/agent_api_stub_usage.feature`.
+issues/agent-api-stub-usage.md:22:- BDD Feature: tests/behavior/features/agent_api_stub_usage.feature
+issues/multi-agent-collaboration.md:5:Dependencies: Phase-2-completion.md, docs/specifications/multi-agent-collaboration.md, tests/behavior/features/multi_agent_collaboration.feature
+issues/multi-agent-collaboration.md:14:- Add or update BDD tests in `tests/behavior/features/multi_agent_collaboration.feature`.
+issues/multi-agent-collaboration.md:22:- BDD Feature: tests/behavior/features/multi_agent_collaboration.feature
+issues/webui-requirements-wizard-with-wizardstate.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-requirements-wizard-with-wizardstate.md, tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature
+issues/webui-requirements-wizard-with-wizardstate.md:14:- Add or update BDD tests in `tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature`.
+issues/webui-requirements-wizard-with-wizardstate.md:22:- BDD Feature: tests/behavior/features/webui_requirements_wizard_with_wizardstate.feature
+issues/hybrid-memory-query-patterns-and-synchronization.md:5:Dependencies: docs/specifications/hybrid-memory-query-patterns-and-synchronization.md, tests/behavior/features/hybrid_memory_query_patterns_and_synchronization.feature
+issues/hybrid-memory-query-patterns-and-synchronization.md:14:- Add or update BDD tests in `tests/behavior/features/hybrid_memory_query_patterns_and_synchronization.feature`.
+issues/hybrid-memory-query-patterns-and-synchronization.md:22:- BDD Feature: tests/behavior/features/hybrid_memory_query_patterns_and_synchronization.feature
+issues/webui-navigation-and-prompts.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-navigation-and-prompts.md, tests/behavior/features/webui_navigation_and_prompts.feature
+issues/webui-navigation-and-prompts.md:14:- Add or update BDD tests in `tests/behavior/features/webui_navigation_and_prompts.feature`.
+issues/webui-navigation-and-prompts.md:22:- BDD Feature: tests/behavior/features/webui_navigation_and_prompts.feature
+issues/agent-api-interactions.md:5:Dependencies: docs/specifications/agent-api-interactions.md, tests/behavior/features/agent_api_interactions.feature
+issues/agent-api-interactions.md:14:- Add or update BDD tests in `tests/behavior/features/agent_api_interactions.feature`.
+issues/agent-api-interactions.md:22:- BDD Feature: tests/behavior/features/agent_api_interactions.feature
+issues/ingest-command.md:5:Dependencies: docs/specifications/ingest-command.md, tests/behavior/features/ingest_command.feature
+issues/ingest-command.md:14:- Add or update BDD tests in `tests/behavior/features/ingest_command.feature`.
+issues/ingest-command.md:22:- BDD Feature: tests/behavior/features/ingest_command.feature
+issues/uxbridge-interface.md:5:Dependencies: Phase-1-completion.md, docs/specifications/uxbridge-interface.md, tests/behavior/features/uxbridge_interface.feature
+issues/uxbridge-interface.md:14:- Add or update BDD tests in `tests/behavior/features/uxbridge_interface.feature`.
+issues/uxbridge-interface.md:22:- BDD Feature: tests/behavior/features/uxbridge_interface.feature
+issues/webui-test-metrics-page.md:5:Dependencies: Phase-3-completion.md, docs/specifications/webui-test-metrics-page.md, tests/behavior/features/webui_test_metrics_page.feature
+issues/webui-test-metrics-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_test_metrics_page.feature`.
+issues/webui-test-metrics-page.md:22:- BDD Feature: tests/behavior/features/webui_test_metrics_page.feature
+issues/memory-manager-and-adapters.md:5:Dependencies: docs/specifications/memory-manager-and-adapters.md, tests/behavior/features/memory_manager_and_adapters.feature
+issues/memory-manager-and-adapters.md:14:- Add or update BDD tests in `tests/behavior/features/memory_manager_and_adapters.feature`.
+issues/memory-manager-and-adapters.md:22:- BDD Feature: tests/behavior/features/memory_manager_and_adapters.feature
+issues/user-authentication.md:5:Dependencies: Phase-3-completion.md, docs/specifications/user-authentication.md, tests/behavior/features/user_authentication.feature
+issues/user-authentication.md:14:- Add or update BDD tests in `tests/behavior/features/user_authentication.feature`.
+issues/user-authentication.md:22:- BDD Feature: tests/behavior/features/user_authentication.feature
+issues/project-initialization.md:5:Dependencies: docs/specifications/project-initialization.md, tests/behavior/features/project_initialization.feature
+issues/project-initialization.md:14:- Add or update BDD tests in `tests/behavior/features/project_initialization.feature`.
+issues/project-initialization.md:22:- BDD Feature: tests/behavior/features/project_initialization.feature
+issues/multi-layered-memory-system.md:5:Dependencies: docs/specifications/multi-layered-memory-system.md, docs/specifications/multi-layered-memory-system-and-tiered-cache-strategy.md, tests/behavior/features/multi_layered_memory_system.feature, tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature
+issues/multi-layered-memory-system.md:14:- Add or update BDD tests in `tests/behavior/features/multi_layered_memory_system.feature`.
+issues/multi-layered-memory-system.md:19:- 2025-02-26: integrated tiered cache into memory adapter and added property tests.
+issues/multi-layered-memory-system.md:26:- BDD Feature: tests/behavior/features/multi_layered_memory_system.feature
+issues/multi-layered-memory-system.md:27:- BDD Feature: tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature
+issues/documentation-fetch-and-cache.md:5:Dependencies: docs/specifications/documentation-fetch-and-cache.md, tests/behavior/features/documentation_fetch_and_cache.feature
+issues/documentation-fetch-and-cache.md:14:- Add or update BDD tests in `tests/behavior/features/documentation_fetch_and_cache.feature`.
+issues/documentation-fetch-and-cache.md:22:- BDD Feature: tests/behavior/features/documentation_fetch_and_cache.feature
+issues/extended-cross-interface-consistency.md:5:Dependencies: docs/specifications/extended-cross-interface-consistency.md, tests/behavior/features/extended_cross_interface_consistency.feature
+issues/extended-cross-interface-consistency.md:14:- Add or update BDD tests in `tests/behavior/features/extended_cross_interface_consistency.feature`.
+issues/extended-cross-interface-consistency.md:22:- BDD Feature: tests/behavior/features/extended_cross_interface_consistency.feature
+issues/api-specification-generation.md:5:Dependencies: docs/specifications/api-specification-generation.md, tests/behavior/features/api_specification_generation.feature
+issues/api-specification-generation.md:22:- BDD Feature: tests/behavior/features/api_specification_generation.feature
+issues/project-state-analysis.md:5:Dependencies: Phase-1-completion.md, tests/behavior/features/general/project_state_analyzer.feature, docs/specifications/project-state-analysis.md, tests/behavior/features/project_state_analysis.feature
+issues/project-state-analysis.md:14:- Add or update BDD tests in `tests/behavior/features/general/project_state_analyzer.feature`.
+issues/project-state-analysis.md:20:- 2025-08-20: Verified baseline tests; verify_test_markers script requires optimization.
+issues/project-state-analysis.md:24:- BDD Feature: tests/behavior/features/project_state_analysis.feature
+issues/Expand-test-generation-capabilities.md:6:Dependencies: docs/specifications/expand-test-generation-capabilities.md, tests/behavior/features/expand_test_generation_capabilities.feature
+issues/Expand-test-generation-capabilities.md:13:Automated unit test generation works but integration coverage is lacking.
+issues/Expand-test-generation-capabilities.md:17:- Document recommended review workflow for generated tests
+issues/Expand-test-generation-capabilities.md:22:- Create appropriate tests to validate behavior.
+issues/Expand-test-generation-capabilities.md:29:- 2025-08-19: Speed marker normalization remains unresolved; `verify_test_markers.py` reports misaligned markers in `tests/behavior/steps` (e.g., `test_agent_api_steps.py`).
+issues/Expand-test-generation-capabilities.md:30:- Further expansion depends on [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md).
+issues/Expand-test-generation-capabilities.md:34:- BDD Feature: tests/behavior/features/expand_test_generation_capabilities.feature
+issues/Expand-test-generation-capabilities.md:37:- Related: [LM Studio mock service for deterministic tests](archived/LM-Studio-mock-service-for-deterministic-tests.md)
+issues/README.md:5:- When a non‑green run occurs (tests or guardrails), create or update an issue markdown file under issues/ with:
+issues/README.md:20:Affected Area: `tests|guardrails|provider|docs|infra`
+issues/webui-gather-wizard.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-gather-wizard.md, tests/behavior/features/webui_gather_wizard.feature
+issues/webui-gather-wizard.md:14:- Add or update BDD tests in `tests/behavior/features/webui_gather_wizard.feature`.
+issues/webui-gather-wizard.md:22:- BDD Feature: tests/behavior/features/webui_gather_wizard.feature
+issues/webui-apispec-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-apispec-page.md, tests/behavior/features/webui_apispec_page.feature
+issues/webui-apispec-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_apispec_page.feature`.
+issues/webui-apispec-page.md:22:- BDD Feature: tests/behavior/features/webui_apispec_page.feature
+issues/training-materials-for-tdd-bdd-edrr-integration.md:5:Dependencies: docs/specifications/training-materials-for-tdd-bdd-edrr-integration.md, tests/behavior/features/training_materials_for_tdd_bdd_edrr_integration.feature
+issues/training-materials-for-tdd-bdd-edrr-integration.md:14:- Add or update BDD tests in `tests/behavior/features/training_materials_for_tdd_bdd_edrr_integration.feature`.
+issues/training-materials-for-tdd-bdd-edrr-integration.md:22:- BDD Feature: tests/behavior/features/training_materials_for_tdd_bdd_edrr_integration.feature
+issues/recursive-edrr-coordinator.md:5:Dependencies: Phase-2-completion.md, docs/specifications/recursive-edrr-coordinator.md, tests/behavior/features/recursive_edrr_coordinator.feature
+issues/recursive-edrr-coordinator.md:14:- Add or update BDD tests in `tests/behavior/features/recursive_edrr_coordinator.feature`.
+issues/recursive-edrr-coordinator.md:22:- BDD Feature: tests/behavior/features/recursive_edrr_coordinator.feature
+issues/webui-inspect-config-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-inspect-config-page.md, tests/behavior/features/webui_inspect_config_page.feature
+issues/webui-inspect-config-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_inspect_config_page.feature`.
+issues/webui-inspect-config-page.md:22:- BDD Feature: tests/behavior/features/webui_inspect_config_page.feature
+issues/enhanced-edrr-recursion-handling.md:5:Dependencies: docs/specifications/enhanced-edrr-recursion-handling.md, tests/behavior/features/enhanced_edrr_recursion_handling.feature
+issues/enhanced-edrr-recursion-handling.md:14:- Add or update BDD tests in `tests/behavior/features/enhanced_edrr_recursion_handling.feature`.
+issues/enhanced-edrr-recursion-handling.md:22:- BDD Feature: tests/behavior/features/enhanced_edrr_recursion_handling.feature
+issues/interactive-requirements-flow-webui.md:5:Dependencies: Phase-1-completion.md, docs/specifications/interactive-requirements-flow-webui.md, tests/behavior/features/interactive_requirements_flow_webui.feature
+issues/interactive-requirements-flow-webui.md:14:- Add or update BDD tests in `tests/behavior/features/interactive_requirements_flow_webui.feature`.
+issues/interactive-requirements-flow-webui.md:22:- BDD Feature: tests/behavior/features/interactive_requirements_flow_webui.feature
+issues/memory-adapter-integration.md:5:Dependencies: docs/specifications/memory-adapter-integration.md, tests/behavior/features/memory_adapter_integration.feature,
+issues/memory-adapter-integration.md:6:docs/specifications/memory-adapter-read-and-write-operations.md, tests/behavior/features/memory_adapter_read_and_write_operations.feature
+issues/memory-adapter-integration.md:15:- Add or update BDD tests in `tests/behavior/features/memory_adapter_integration.feature` and `memory_adapter_read_and_write_operations.feature`.
+issues/memory-adapter-integration.md:24:- BDD Feature: tests/behavior/features/memory_adapter_integration.feature
+issues/memory-adapter-integration.md:26:- BDD Feature: tests/behavior/features/memory_adapter_read_and_write_operations.feature
+issues/Improve-deployment-automation.md:6:Dependencies: docs/specifications/improve-deployment-automation.md, tests/behavior/features/improve_deployment_automation.feature
+issues/Improve-deployment-automation.md:17:- Provide rollback instructions and test coverage
+issues/Improve-deployment-automation.md:18:- Enforce non-root execution and strict `.env` permissions in deployment scripts with smoke tests
+issues/Improve-deployment-automation.md:23:- Create appropriate tests to validate behavior.
+issues/Improve-deployment-automation.md:33:- BDD Feature: tests/behavior/features/improve_deployment_automation.feature
+issues/code-command.md:5:Dependencies: docs/specifications/code-command.md, tests/behavior/features/code_command.feature
+issues/code-command.md:14:- Add or update BDD tests in `tests/behavior/features/code_command.feature`.
+issues/code-command.md:22:- BDD Feature: tests/behavior/features/code_command.feature
+issues/code-generation.md:5:Dependencies: Phase-1-completion.md, docs/specifications/code-generation.md, tests/behavior/features/code_generation.feature
+issues/code-generation.md:14:- Add or update BDD tests in `tests/behavior/features/code_generation.feature`.
+issues/code-generation.md:22:- BDD Feature: tests/behavior/features/code_generation.feature
+issues/inspect-code-command.md:5:Dependencies: docs/specifications/inspect-code-command.md, tests/behavior/features/inspect_code_command.feature
+issues/inspect-code-command.md:14:- Add or update BDD tests in `tests/behavior/features/inspect_code_command.feature`.
+issues/inspect-code-command.md:22:- BDD Feature: tests/behavior/features/inspect_code_command.feature
+issues/test-metrics.md:5:Dependencies: Phase-3-completion.md, docs/specifications/test-metrics.md, tests/behavior/features/test_metrics.feature
+issues/test-metrics.md:14:- Add or update BDD tests in `tests/behavior/features/test_metrics.feature`.
+issues/test-metrics.md:22:- BDD Feature: tests/behavior/features/test_metrics.feature
+issues/promise-system-capability-management.md:5:Dependencies: Phase-2-completion.md, docs/specifications/promise-system-capability-management.md, tests/behavior/features/promise_system_capability_management.feature
+issues/promise-system-capability-management.md:14:- Add or update BDD tests in `tests/behavior/features/promise_system_capability_management.feature`.
+issues/promise-system-capability-management.md:22:- BDD Feature: tests/behavior/features/promise_system_capability_management.feature
+issues/webui-synthesis-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-synthesis-page.md, tests/behavior/features/webui_synthesis_page.feature
+issues/webui-synthesis-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_synthesis_page.feature`.
+issues/webui-synthesis-page.md:22:- BDD Feature: tests/behavior/features/webui_synthesis_page.feature
+issues/reqid_traceability_gap.md:25:- Historical tests lack ReqID annotations; no enforcement existed previously.
+issues/reqid_traceability_gap.md:28:- Iterate through tests/ by priority (unit > integration > behavior), adding succinct ReqID tags to function docstrings.
+issues/enhanced-chromadb-integration.md:5:Dependencies: docs/specifications/enhanced-chromadb-integration.md, tests/behavior/features/enhanced_chromadb_integration.feature
+issues/enhanced-chromadb-integration.md:14:- Add or update BDD tests in `tests/behavior/features/enhanced_chromadb_integration.feature`.
+issues/enhanced-chromadb-integration.md:22:- BDD Feature: tests/behavior/features/enhanced_chromadb_integration.feature
+issues/workflow-execution.md:5:Dependencies: docs/specifications/workflow-execution.md, tests/behavior/features/workflow_execution.feature
+issues/workflow-execution.md:14:- Add or update BDD tests in `tests/behavior/features/workflow_execution.feature`.
+issues/workflow-execution.md:22:- BDD Feature: tests/behavior/features/workflow_execution.feature
+issues/webui-dbschema-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-dbschema-page.md, tests/behavior/features/webui_dbschema_page.feature
+issues/webui-dbschema-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_dbschema_page.feature`.
+issues/webui-dbschema-page.md:22:- BDD Feature: tests/behavior/features/webui_dbschema_page.feature
+issues/code-transformation.md:5:Dependencies: docs/specifications/code-transformation.md, tests/behavior/features/code_transformation.feature
+issues/code-transformation.md:14:- Add or update BDD tests in `tests/behavior/features/code_transformation.feature`.
+issues/code-transformation.md:22:- BDD Feature: tests/behavior/features/code_transformation.feature
+issues/requirements-wizard.md:5:Dependencies: docs/specifications/requirements-wizard.md, tests/behavior/features/requirements_wizard.feature
+issues/requirements-wizard.md:14:- Add or update BDD tests in `tests/behavior/features/requirements_wizard.feature`.
+issues/requirements-wizard.md:22:- BDD Feature: tests/behavior/features/requirements_wizard.feature
+issues/Enhance-retry-mechanism.md:6:Dependencies: docs/specifications/enhance-retry-mechanism.md, tests/behavior/features/enhance_retry_mechanism.feature
+issues/Enhance-retry-mechanism.md:17:- Write regression tests for failure scenarios
+issues/Enhance-retry-mechanism.md:22:- Create appropriate tests to validate behavior.
+issues/Enhance-retry-mechanism.md:32:- BDD Feature: tests/behavior/features/enhance_retry_mechanism.feature
+issues/chromadb-integration.md:5:Dependencies: docs/specifications/chromadb-integration.md, tests/behavior/features/chromadb_integration.feature
+issues/chromadb-integration.md:14:- Add or update BDD tests in `tests/behavior/features/chromadb_integration.feature`.
+issues/chromadb-integration.md:22:- BDD Feature: tests/behavior/features/chromadb_integration.feature
+issues/dashboard.md:7:| [Release readiness for v0.1.0-alpha.1](release-readiness-v0-1-0-alpha-1.md) | in progress | high |
+issues/dashboard.md:8:| [DevSynth run-tests hangs](devsynth-run-tests-hangs.md) | blocked | high |
+issues/environment-variables-integration.md:5:Dependencies: docs/specifications/environment-variables-integration.md, tests/behavior/features/environment_variables_integration.feature
+issues/environment-variables-integration.md:14:- Add or update BDD tests in `tests/behavior/features/environment_variables_integration.feature`.
+issues/environment-variables-integration.md:22:- BDD Feature: tests/behavior/features/environment_variables_integration.feature
+issues/refactor-command.md:5:Dependencies: docs/specifications/refactor-command.md, tests/behavior/features/refactor_command.feature
+issues/refactor-command.md:14:- Add or update BDD tests in `tests/behavior/features/refactor_command.feature`.
+issues/refactor-command.md:22:- BDD Feature: tests/behavior/features/refactor_command.feature
+issues/configuration-loader.md:5:Dependencies: docs/specifications/configuration-loader.md, tests/behavior/features/configuration_loader.feature
+issues/configuration-loader.md:14:- Add or update BDD tests in `tests/behavior/features/configuration_loader.feature`.
+issues/configuration-loader.md:22:- BDD Feature: tests/behavior/features/configuration_loader.feature
+issues/webui-diagnostics-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-diagnostics-page.md, tests/behavior/features/webui_diagnostics_page.feature
+issues/webui-diagnostics-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_diagnostics_page.feature`.
+issues/webui-diagnostics-page.md:22:- BDD Feature: tests/behavior/features/webui_diagnostics_page.feature
+issues/Resolve-pytest-xdist-assertion-errors.md:5:Dependencies: docs/specifications/resolve-pytest-xdist-assertion-errors.md, tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature
+issues/Resolve-pytest-xdist-assertion-errors.md:8:Resolve pytest-xdist assertion errors is not yet implemented, limiting DevSynth's capabilities. Running `devsynth run-tests` across speed categories triggers internal pytest-xdist assertion errors, preventing full suite completion.
+issues/Resolve-pytest-xdist-assertion-errors.md:12:- Ensure `devsynth run-tests` completes without internal assertion errors across fast, medium, and slow categories.
+issues/Resolve-pytest-xdist-assertion-errors.md:15:- Create appropriate tests to validate behavior.
+issues/Resolve-pytest-xdist-assertion-errors.md:20:- Attempted `devsynth run-tests --speed=fast`; after initial output the process hung and required manual interruption, indicating ongoing runner issues.
+issues/Resolve-pytest-xdist-assertion-errors.md:22:- 2025-08-16: `poetry run devsynth run-tests --speed=fast` completed with 36 passed and 19 skipped tests, no xdist assertion errors observed; medium and slow categories remain unverified.
+issues/Resolve-pytest-xdist-assertion-errors.md:23:- 2025-08-18: Re-running `poetry run devsynth run-tests --speed=fast` stalled during the CLI import sequence and required manual interruption; medium and slow categories remain unverified.
+issues/Resolve-pytest-xdist-assertion-errors.md:24:- 2025-08-18: `poetry run devsynth run-tests --speed=fast` now fails at `test_execute_a_shell_command_through_mvu` due to the missing `mvu exec` subcommand. No pytest-xdist assertion errors observed. `--speed=medium` produced no output before hanging, and `--speed=slow` reported no tests. Coverage resets from `reset_coverage` appear to prevent collector issues.
+issues/Resolve-pytest-xdist-assertion-errors.md:25:- 2025-02-14: `poetry run pytest -n auto --dist load` exposed a coverage collector assertion; updated test fixtures to reset coverage state between runs.
+issues/Resolve-pytest-xdist-assertion-errors.md:26:- 2025-08-18: Added skip for missing MkDocs Material plugin so `poetry run devsynth run-tests --speed=fast` succeeds with 104 passed and 20 skipped tests. Attempts to run `--speed=medium` and `--speed=slow` launched extensive BDD suites and were aborted without pytest-xdist assertion errors.
+issues/Resolve-pytest-xdist-assertion-errors.md:27:- 2025-08-19: Corrected missing CLI stub in `test_agent_api_steps` and verified MVU subcommands; `poetry run devsynth run-tests --speed=medium` and `--speed=slow` now complete without hanging.
+issues/Resolve-pytest-xdist-assertion-errors.md:28:- 2025-08-20: Added registrations for metrics and validation CLI commands. `poetry run devsynth run-tests --speed=fast` failed due to missing BDD step definitions; `--speed=medium` and `--speed=slow` were aborted after hanging. No pytest-xdist assertion errors observed.
+issues/Resolve-pytest-xdist-assertion-errors.md:33:- BDD Feature: tests/behavior/features/resolve_pytest_xdist_assertion_errors.feature
+issues/Resolve-pytest-xdist-assertion-errors.md:34:- Analysis: docs/analysis/coverage_reset_proof.md
+issues/webui-specification-editor-extended.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-specification-editor-extended.md, tests/behavior/features/webui_specification_editor_extended.feature
+issues/webui-specification-editor-extended.md:14:- Add or update BDD tests in `tests/behavior/features/webui_specification_editor_extended.feature`.
+issues/webui-specification-editor-extended.md:22:- BDD Feature: tests/behavior/features/webui_specification_editor_extended.feature
+issues/devsynth-run-tests-hangs.md:1:# DevSynth run-tests hangs
+issues/devsynth-run-tests-hangs.md:8:Executing `poetry run devsynth run-tests --speed fast` or `pytest -m fast` hangs without producing output, preventing validation of the test suite. This blocks the release process and undermines confidence in automated testing.
+issues/devsynth-run-tests-hangs.md:11:- Reproduce the hang with `devsynth run-tests` and `pytest` to capture diagnostics.
+issues/devsynth-run-tests-hangs.md:13:- Investigate subprocess usage in `run_tests` for blocking behavior.
+issues/devsynth-run-tests-hangs.md:14:- Add regression tests to confirm `devsynth run-tests` completes and reports results.
+issues/devsynth-run-tests-hangs.md:15:- Update documentation on running tests once the issue is resolved.
+issues/devsynth-run-tests-hangs.md:19:- 2025-08-23: Initial report—commands hang on fresh environment; `scripts/verify_test_markers.py` completes, indicating tests exist but runner stalls.
+issues/devsynth-run-tests-hangs.md:20:- 2025-08-23: After reinstalling the environment, `scripts/install_dev.sh` installed go-task v3.44.1 and `poetry install --with dev --extras "tests retrieval chromadb api"` ran. `task --version` shows 3.44.1 and `poetry run devsynth --help` displays CLI options, but `poetry run devsynth run-tests --speed=fast` exits immediately with `ModuleNotFoundError: No module named 'devsynth'`.
+issues/devsynth-run-tests-hangs.md:22:- 2025-08-23: Installed missing Typer dependency via `pipx runpip devsynth install typer`; `devsynth --help` now fails with `ModuleNotFoundError: No module named 'jsonschema'`, leaving `devsynth run-tests` unusable.
+issues/devsynth-run-tests-hangs.md:25:- issues/release-readiness-v0-1-0-alpha-1.md
+issues/requirements-management.md:5:Dependencies: docs/specifications/requirements-management.md, tests/behavior/features/requirements_management.feature
+issues/requirements-management.md:14:- Add or update BDD tests in `tests/behavior/features/requirements_management.feature`.
+issues/requirements-management.md:22:- BDD Feature: tests/behavior/features/requirements_management.feature
+issues/documentation-utility-functions.md:5:Dependencies: docs/specifications/documentation-utility-functions.md, tests/behavior/features/documentation_utility_functions.feature
+issues/documentation-utility-functions.md:14:- Add or update BDD tests in `tests/behavior/features/documentation_utility_functions.feature`.
+issues/documentation-utility-functions.md:22:- BDD Feature: tests/behavior/features/documentation_utility_functions.feature
+issues/user-guide-enhancement.md:5:Dependencies: docs/specifications/user-guide-enhancement.md, tests/behavior/features/user_guide_enhancement.feature
+issues/user-guide-enhancement.md:14:- Add or update BDD tests in `tests/behavior/features/user_guide_enhancement.feature`.
+issues/user-guide-enhancement.md:22:- BDD Feature: tests/behavior/features/user_guide_enhancement.feature
+issues/epics/README.md:3:This document consolidates related issues into epics with clear dependencies and milestones to support the 0.1.0a1 readiness goals. It aligns with
+issues/epics/README.md:11:- Each epic lists: objective, scope, dependencies, deliverables, milestone, and links to specs/tests
+issues/epics/README.md:13:- Traceability: link specs under docs/specifications and tests under tests/* when applicable
+issues/epics/README.md:18:Objective: Finalize WSDE/EDRR workflow logic and integrate Sprint-EDRR, ensuring consensus phases align with EDRR transitions and BDD coverage.
+issues/epics/README.md:30:- tests/behavior/ (EDRR/WSDE related features and steps)
+issues/epics/README.md:47:- Cross-store sync integration tests (persistence, retrieval)
+issues/epics/README.md:52:- tests/integration/ and tests/behavior/ memory scenarios
+issues/epics/README.md:56:- Expanded integration tests for persistence/retrieval/sync
+issues/epics/README.md:69:- Friendly messaging for missing extras/backends (baseline complete; extend tests)
+issues/epics/README.md:77:- tests/behavior/features/*cross_interface* and related unit/integration tests
+issues/epics/README.md:83:Milestone: 0.1.0a1 (tests may continue into 0.1.0a2)
+issues/mvu-command-execution.md:5:Dependencies: docs/specifications/mvu-command-execution.md, tests/behavior/features/mvu/command_execution.feature, tests/behavior/features/mvu_command_execution.feature
+issues/mvu-command-execution.md:14:- Add or update BDD tests in `tests/behavior/features/mvu/command_execution.feature`.
+issues/mvu-command-execution.md:23:- BDD Feature: tests/behavior/features/mvu_command_execution.feature
+issues/archived/wsde-edrr-simulation-divergence.md:8:The `tests/unit/scripts/test_wsde_edrr_simulation.py::test_simulation_converges` fast test fails because the simulated agent opinions do not reach consensus within 200 iterations.
+issues/archived/wsde-edrr-simulation-divergence.md:16:- 2025-08-23: Detected failure during `poetry run devsynth run-tests --speed=fast`.
+issues/archived/wsde-edrr-simulation-divergence.md:20:- tests/unit/scripts/test_wsde_edrr_simulation.py
+issues/archived/Integration-and-performance-work.md:9:- [x] Improve CI stability and coverage.
+issues/archived/Fix-failing-test-tests-unit-interface-test-output-sanitization-py-test-function.md:1:# Issue 135: Fix failing test tests/unit/interface/test_output_sanitization.py::test_function
+issues/archived/Fix-failing-test-tests-unit-interface-test-output-sanitization-py-test-function.md:10:- [tests/unit/interface/test_output_sanitization.py](../../tests/unit/interface/test_output_sanitization.py)
+issues/archived/Requirements-wizard-failures.md:4:Behaviour and integration tests for the requirements wizard (`tests/integration/general/test_requirements_gathering.py` and related behaviour step files) fail due to logging errors and incorrect persistence of the priority value. Update `DevSynthLogger` to handle `exc_info` correctly and verify the gather and wizard flows write expected configuration.
+issues/archived/Requirements-wizard-failures.md:8:- `tests/integration/general/test_requirements_gathering.py` passes.
+issues/archived/validate-manifest.md:5:Dependencies: docs/specifications/validate-manifest.md, tests/behavior/features/validate_manifest.feature
+issues/archived/comprehensive-documentation-ingestion.md:5:Dependencies: docs/specifications/comprehensive-documentation-ingestion.md, tests/behavior/features/comprehensive_documentation_ingestion.feature
+issues/archived/comprehensive-documentation-ingestion.md:16:- Add or update BDD tests in `tests/behavior/features/comprehensive_documentation_ingestion.feature`.
+issues/archived/comprehensive-documentation-ingestion.md:24:- BDD Feature: tests/behavior/features/comprehensive_documentation_ingestion.feature
+issues/archived/devsynth-run-tests-lacks-maxfail-option.md:1:# Issue 122: devsynth run-tests lacks --maxfail option
+issues/archived/devsynth-run-tests-lacks-maxfail-option.md:5:Attempting to limit test failures with `--maxfail` results in an error because the DevSynth CLI doesn't accept this option. Without a way to stop early, the `devsynth run-tests` command can run longer than expected during quick feedback loops.
+issues/archived/devsynth-run-tests-lacks-maxfail-option.md:8:1. Execute `poetry run devsynth run-tests --speed=fast --maxfail=1`.
+issues/archived/devsynth-run-tests-lacks-maxfail-option.md:12:Expose a `--maxfail` flag on `devsynth run-tests` that forwards to `pytest` to allow early termination after a specified number of failures.
+issues/archived/devsynth-run-tests-lacks-maxfail-option.md:15:- Reproduced the error when passing `--maxfail=1` to `devsynth run-tests`.
+issues/archived/devsynth-run-tests-lacks-maxfail-option.md:16:- Added `--maxfail` option to `devsynth run-tests` and updated docs and tests ([977908f5](../commit/977908f5)).
+issues/archived/Investigate-xdist-worker-timeouts.md:7:Running `poetry run devsynth run-tests` occasionally hangs with xdist workers timing out, especially during marker verification.
+issues/archived/multi-layered-memory-system-and-tiered-cache-strategy.md:5:Dependencies: docs/specifications/multi-layered-memory-system-and-tiered-cache-strategy.md, tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature
+issues/archived/multi-layered-memory-system-and-tiered-cache-strategy.md:16:- Add or update BDD tests in `tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature`.
+issues/archived/multi-layered-memory-system-and-tiered-cache-strategy.md:24:- BDD Feature: tests/behavior/features/multi_layered_memory_system_and_tiered_cache_strategy.feature
+issues/archived/WSDE-collaboration-test-failures.md:5:- [`tests/integration/general/test_wsde_edrr_component_interactions.py`](../../tests/integration/general/test_wsde_edrr_component_interactions.py)
+issues/archived/WSDE-collaboration-test-failures.md:6:- [`tests/integration/general/test_wsde_edrr_integration_advanced.py`](../../tests/integration/general/test_wsde_edrr_integration_advanced.py)
+issues/archived/WSDE-collaboration-test-failures.md:7:- [`tests/integration/general/test_wsde_edrr_integration_end_to_end.py`](../../tests/integration/general/test_wsde_edrr_integration_end_to_end.py)
+issues/archived/WSDE-collaboration-test-failures.md:9:These failures indicated unfinished collaboration workflows and memory synchronisation. Investigate component interactions and finalise the workflow logic so these tests pass.
+issues/archived/WSDE-collaboration-test-failures.md:12:- 2025-02-19: tests still hung after memory flush; workflow logic incomplete.
+issues/archived/WSDE-collaboration-test-failures.md:16:- Speed markers were present, yet running [`tests/integration/general/test_wsde_edrr_component_interactions.py`](../../tests/integration/general/test_wsde_edrr_component_interactions.py) hung in collaboration memory utilities, indicating workflow logic remained incomplete ([Finalize WSDE/EDRR workflow logic](../Finalize-WSDE-EDRR-workflow-logic.md)).
+issues/archived/Fix-failing-test-tests-unit-interface-test-api-advanced-py-test-edge-cases-succeeds.md:1:# Issue 131: Fix failing test tests/unit/interface/test_api_advanced.py::test_edge_cases_succeeds
+issues/archived/Fix-failing-test-tests-unit-interface-test-api-advanced-py-test-edge-cases-succeeds.md:10:- [tests/unit/interface/test_api_advanced.py](../../tests/unit/interface/test_api_advanced.py)
+issues/archived/verify-test-markers-script.md:8:The `scripts/verify_test_markers.py` guard fails for several test modules, reporting unrecognized markers when parameterized tests increase the collected count. This indicates inconsistent or missing speed markers and blocks the verification pipeline.
+issues/archived/verify-test-markers-script.md:13:- Adjust `scripts/verify_test_markers.py` to account for parameterized tests or update affected tests.
+issues/archived/verify-test-markers-script.md:14:- Add persistent caching and an incremental `--changed` option to focus on modified tests.
+issues/archived/verify-test-markers-script.md:20:- 2025-08-20: Updated `verify_test_markers.py` to de-duplicate parametrized tests and
+issues/archived/verify-test-markers-script.md:28:Run incremental verification for changed tests only:
+issues/archived/virtualenv-configuration.md:16:- 2025-08-20: Identified missing virtualenv after failing to run `devsynth` tests.
+issues/archived/Fix-failing-test-tests-unit-interface-test-ux-bridge-py-test-function.md:1:# Issue 136: Fix failing test tests/unit/interface/test_ux_bridge.py::test_function
+issues/archived/Fix-failing-test-tests-unit-interface-test-ux-bridge-py-test-function.md:10:- [tests/unit/interface/test_ux_bridge.py](../../tests/unit/interface/test_ux_bridge.py)
+issues/archived/Dialectical-audit-reports-missing-WebUI-Diagnostics-Page.md:10:The dialectical audit lists "WebUI Diagnostics Page" as referenced in docs or tests but not in code. However, the WebUI implementation includes a `diagnostics_page` view. The audit may be misconfigured or missing detection logic.
+issues/archived/Dialectical-audit-reports-missing-WebUI-Diagnostics-Page.md:14:2. Observe the entry: "Feature 'WebUI Diagnostics Page' is referenced in docs or tests but not in code."
+issues/archived/Document-API-reference-generation-feature.md:10:Behavior tests cover an "API Reference Documentation Generation" feature, but no user-facing documentation explains how to generate API reference docs.
+issues/archived/Document-API-reference-generation-feature.md:13:1. Review `tests/behavior/features/general/generate_docs.feature`.
+issues/archived/Document-API-reference-generation-feature.md:21:- Confirmed presence of behavior tests for API reference documentation generation without corresponding documentation.
+issues/archived/Fix-failing-test-tests-unit-interface-test-api-endpoints-py-test-status-endpoint-returns-messages-returns-expected-result.md:1:# Issue 133: Fix failing test tests/unit/interface/test_api_endpoints.py::test_status_endpoint_returns_messages_returns_expected_result
+issues/archived/Fix-failing-test-tests-unit-interface-test-api-endpoints-py-test-status-endpoint-returns-messages-returns-expected-result.md:10:- [tests/unit/interface/test_api_endpoints.py](../../tests/unit/interface/test_api_endpoints.py)
+issues/archived/run-tests-from-the-cli.md:1:# Issue 158: Run tests from the CLI
+issues/archived/run-tests-from-the-cli.md:5:Dependencies: devsynth-run-tests-command.md, docs/specifications/run-tests-from-the-cli.md, tests/behavior/features/run_tests_from_the_cli.feature
+issues/archived/run-tests-from-the-cli.md:8:Run tests from the CLI is not yet implemented, limiting DevSynth's capabilities.
+issues/archived/run-tests-from-the-cli.md:12:- Review `docs/specifications/run-tests-from-the-cli.md` for requirements.
+issues/archived/run-tests-from-the-cli.md:14:- Add or update BDD tests in `tests/behavior/features/run_tests_from_the_cli.feature`.
+issues/archived/run-tests-from-the-cli.md:19:- 2025-08-21: closed as duplicate of [devsynth run-tests command](devsynth-run-tests-command.md).
+issues/archived/run-tests-from-the-cli.md:22:- Superseded by: devsynth-run-tests-command.md
+issues/archived/run-tests-from-the-cli.md:23:- Specification: docs/specifications/run-tests-from-the-cli.md
+issues/archived/run-tests-from-the-cli.md:24:- BDD Feature: tests/behavior/features/run_tests_from_the_cli.feature
+issues/archived/Fix-failing-test-tests-unit-interface-test-api-advanced-py-test-parameter-validation-is-valid.md:1:# Issue 132: Fix failing test tests/unit/interface/test_api_advanced.py::test_parameter_validation_is_valid
+issues/archived/Fix-failing-test-tests-unit-interface-test-api-advanced-py-test-parameter-validation-is-valid.md:10:- [tests/unit/interface/test_api_advanced.py](../../tests/unit/interface/test_api_advanced.py)
+issues/archived/Fix-failing-test-tests-unit-interface-test-webui-setup-py-test-function.md:1:# Issue 142: Fix failing test tests/unit/interface/test_webui_setup.py::test_function
+issues/archived/Fix-failing-test-tests-unit-interface-test-webui-setup-py-test-function.md:10:- [tests/unit/interface/test_webui_setup.py](../../tests/unit/interface/test_webui_setup.py)
+issues/archived/Investigate-slow-test-imports.md:8:- Audited tests for heavy optional dependencies.
+issues/archived/Investigate-slow-test-imports.md:9:- Guarded `faiss` import in `tests/unit/application/memory/test_faiss_store.py` with `pytest.importorskip`.
+issues/archived/Investigate-slow-test-imports.md:10:- Verified quick test startup with `poetry run devsynth run-tests --speed=fast`.
+issues/archived/Investigate-slow-test-imports.md:13:- `poetry run devsynth run-tests --speed=fast`
+issues/archived/Investigate-slow-test-imports.md:14:- `poetry run pytest tests/unit --maxfail=1 -q`
+issues/archived/Fix-failing-test-tests-unit-interface-test-cli-components-py-test-cliprogressindicator-update-succeeds.md:1:# Issue 134: Fix failing test tests/unit/interface/test_cli_components.py::test_cliprogressindicator_update_succeeds
+issues/archived/Fix-failing-test-tests-unit-interface-test-cli-components-py-test-cliprogressindicator-update-succeeds.md:10:- [tests/unit/interface/test_cli_components.py](../../tests/unit/interface/test_cli_components.py)
+issues/archived/Fix-failing-test-tests-behavior-steps-test-code-generation-steps-py-tests-passed.md:1:# Issue 137: Fix failing test tests/behavior/steps/test_code_generation_steps.py::tests_passed
+issues/archived/Fix-failing-test-tests-behavior-steps-test-code-generation-steps-py-tests-passed.md:7:Dependencies: [tests/behavior/steps/test_code_generation_steps.py](../tests/behavior/steps/test_code_generation_steps.py)
+issues/archived/Fix-failing-test-tests-behavior-steps-test-code-generation-steps-py-tests-passed.md:10:The test `tests/behavior/steps/test_code_generation_steps.py::tests_passed` fails with `AttributeError: 'NoneType' object has no attribute 'execute_command'`. Investigate and resolve the failure.
+issues/archived/Fix-failing-test-tests-behavior-steps-test-code-generation-steps-py-tests-passed.md:13:1. Run `poetry run pytest tests/behavior/steps/test_code_generation_steps.py::tests_passed`
+issues/archived/Fix-failing-test-tests-behavior-steps-test-code-generation-steps-py-tests-passed.md:23:- [tests/behavior/steps/test_code_generation_steps.py](../tests/behavior/steps/test_code_generation_steps.py)
+issues/archived/Fix-failing-test-tests-unit-interface-test-bridge-conformance-py-test-bridge-implements-methods-succeeds-make-dpg.md:1:# Issue 139: Fix failing test tests/unit/interface/test_bridge_conformance.py::test_bridge_implements_methods_succeeds[_make_dpg]
+issues/archived/Fix-failing-test-tests-unit-interface-test-bridge-conformance-py-test-bridge-implements-methods-succeeds-make-dpg.md:10:- [tests/unit/interface/test_bridge_conformance.py](../../tests/unit/interface/test_bridge_conformance.py)
+issues/archived/reprioritize-open-issues.md:5:Dependencies: docs/specifications/reprioritize-open-issues.md, tests/behavior/features/reprioritize_open_issues.feature
+issues/archived/Multiple-test-failures-and-suite-termination.md:4:Running the full pytest suite (`pytest tests/unit tests/integration tests/behavior tests/performance tests/property`) shows numerous early failures and the process terminates with `Killed` before completion, suggesting resource exhaustion.
+issues/archived/Multiple-test-failures-and-suite-termination.md:7:- [`tests/unit/adapters/memory/test_memory_adapter.py`](../tests/unit/adapters/memory/test_memory_adapter.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:8:- [`tests/unit/adapters/memory/test_memory_adapter_factory.py`](../tests/unit/adapters/memory/test_memory_adapter_factory.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:9:- [`tests/unit/adapters/providers/test_provider_factory.py`](../tests/unit/adapters/providers/test_provider_factory.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:10:- [`tests/unit/adapters/test_chromadb_vector_adapter.py`](../tests/unit/adapters/test_chromadb_vector_adapter.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:11:- [`tests/unit/adapters/test_provider_system.py`](../tests/unit/adapters/test_provider_system.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:12:- [`tests/unit/agents/test_alignment_metrics_tool.py`](../tests/unit/agents/test_alignment_metrics_tool.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:13:- [`tests/unit/application/cli/test_config_validation.py`](../tests/unit/application/cli/test_config_validation.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:14:- [`tests/unit/application/cli/test_doctor_cmd.py`](../tests/unit/application/cli/test_doctor_cmd.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:15:- [`tests/unit/application/cli/test_init_cmd.py`](../tests/unit/application/cli/test_init_cmd.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:16:- [`tests/unit/application/cli/test_metrics_commands.py`](../tests/unit/application/cli/test_metrics_commands.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:17:- [`tests/unit/application/cli/test_serve_cmd.py`](../tests/unit/application/cli/test_serve_cmd.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:18:- [`tests/unit/application/cli/test_setup_wizard.py`](../tests/unit/application/cli/test_setup_wizard.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:19:- [`tests/unit/application/code_analysis/test_repo_analyzer.py`](../tests/unit/application/code_analysis/test_repo_analyzer.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:20:- [`tests/unit/application/code_analysis/test_transformer.py`](../tests/unit/application/code_analysis/test_transformer.py)
+issues/archived/Multiple-test-failures-and-suite-termination.md:22:Investigate these failing tests and determine why the suite is being killed mid-run.
+issues/archived/Multiple-test-failures-and-suite-termination.md:27:- High-memory modules such as [`tests/unit/adapters/test_provider_system.py`](../tests/unit/adapters/test_provider_system.py) are gated with `@pytest.mark.memory_intensive`, and associated tests include proper speed markers ([b8bf0c0f](../commit/b8bf0c0f)).
+issues/archived/Multiple-test-failures-and-suite-termination.md:28:- Internal xdist assertion errors encountered during `devsynth run-tests` are tracked in [Issue 131](131.md).
+issues/archived/Integrate-dialectical-audit-into-CI.md:5:Dependencies: Phase-2-completion.md, docs/specifications/integrate-dialectical-audit-into-ci.md, tests/behavior/features/integrate_dialectical_audit_into_ci.feature
+issues/archived/Integrate-dialectical-audit-into-CI.md:16:- Create appropriate tests to validate behavior.
+issues/archived/Integrate-dialectical-audit-into-CI.md:26:- BDD Feature: tests/behavior/features/integrate_dialectical_audit_into_ci.feature
+issues/archived/Resolve-remaining-dialectical-audit-questions.md:94:- Run tests from the CLI
+issues/archived/Resolve-remaining-dialectical-audit-questions.md:146:- devsynth run-tests command
+issues/archived/Fix-failing-test-tests-unit-interface-test-webui-cli-imports-py-test-function.md:1:# Issue 140: Fix failing test tests/unit/interface/test_webui_cli_imports.py::test_webui_import_without_cli_commands_succeeds
+issues/archived/Fix-failing-test-tests-unit-interface-test-webui-cli-imports-py-test-function.md:8:- Confirmed test passes after running `poetry run devsynth run-tests --speed=fast`.
+issues/archived/Fix-failing-test-tests-unit-interface-test-webui-cli-imports-py-test-function.md:12:- [tests/unit/interface/test_webui_cli_imports.py](../../tests/unit/interface/test_webui_cli_imports.py)
+issues/archived/Refine-environment-provisioning-to-skip-heavy-GPU-packages.md:12:- The environment provisioning script installs the `tests`, `retrieval`, `chromadb`, and `api` extras only.
+issues/archived/Resolve-medium-test-suite-xdist-KeyError.md:8:- `poetry run devsynth run-tests --speed=medium` raised KeyError `<WorkerController gw2>` with 889 failing tests and 104 errors.
+issues/archived/Resolve-medium-test-suite-xdist-KeyError.md:9:- 2025-02-14: `poetry run pytest -n auto --dist load` reproduced the failure; investigation identified leaked coverage collectors causing worker shutdowns.
+issues/archived/Resolve-medium-test-suite-xdist-KeyError.md:10:- Patched `tests/conftest.py` to clean coverage state and integrate global-state reset. Medium suite now passes under xdist.
+issues/archived/Resolve-medium-test-suite-xdist-KeyError.md:14:- [scripts/run_tests.sh](../../scripts/run_tests.sh)
+issues/archived/additional-storage-backends.md:5:Dependencies: docs/specifications/additional-storage-backends.md, tests/behavior/features/additional_storage_backends.feature
+issues/archived/additional-storage-backends.md:23:- BDD Feature: tests/behavior/features/additional_storage_backends.feature
+issues/archived/dialectical-audit-reports-undocumented-features.md:10:The latest dialectical audit found numerous features referenced in tests or documentation without corresponding documentation or code. See `dialectical_audit.log` for the full list of open questions.
+issues/archived/dialectical-audit-reports-undocumented-features.md:17:Review each question in the audit log and update documentation, tests, or code accordingly. Split this issue if needed to track individual features.
+issues/archived/Fix-failing-test-tests-unit-interface-test-api-advanced-py-test-all-endpoints-authentication-succeeds.md:1:# Issue 130: Fix failing test tests/unit/interface/test_api_advanced.py::test_all_endpoints_authentication_succeeds
+issues/archived/Fix-failing-test-tests-unit-interface-test-api-advanced-py-test-all-endpoints-authentication-succeeds.md:10:- [tests/unit/interface/test_api_advanced.py](../../tests/unit/interface/test_api_advanced.py)
+issues/archived/Normalize-and-verify-test-markers.md:4:The test suite must ensure each test file contains exactly one speed marker (`fast`, `medium`, or `slow`). Some tests lacked markers or requirement IDs, preventing consistent categorization.
+issues/archived/Normalize-and-verify-test-markers.md:7:- 2025-08-20: Added missing speed markers and requirement IDs for prompt auto-tuning and EDRR coordinator tests; verification scripts report no outstanding marker issues.
+issues/archived/Fix-test-organization-for-test-generation-feature.md:5:- Misnamed feature file `tests/behavior/features/test_generation.feature` no longer exists; the test now resides at `tests/behavior/features/general/test_generation.feature`.
+issues/archived/Fix-test-organization-for-test-generation-feature.md:9:- [tests/behavior/features/general/test_generation.feature](../../tests/behavior/features/general/test_generation.feature)
+issues/archived/Kuzu-memory-integration-errors.md:8:Tests affected include [`tests/integration/general/test_kuzu_memory_integration.py`](../tests/integration/general/test_kuzu_memory_integration.py) and unit adapter tests. Fix the configuration lookup and ensure ephemeral stores initialise correctly.
+issues/archived/Kuzu-memory-integration-errors.md:11:- [`tests/integration/general/test_kuzu_memory_integration.py`](../tests/integration/general/test_kuzu_memory_integration.py) now passes.
+issues/archived/performance-and-scalability-testing.md:5:Dependencies: Phase 3 completion, docs/specifications/performance-and-scalability-testing.md, tests/behavior/features/performance_and_scalability_testing.feature
+issues/archived/performance-and-scalability-testing.md:14:- Add or update BDD tests in `tests/behavior/features/performance_and_scalability_testing.feature`.
+issues/archived/performance-and-scalability-testing.md:22:- BDD Feature: tests/behavior/features/performance_and_scalability_testing.feature
+issues/archived/validate-metadata.md:5:Dependencies: docs/specifications/validate-metadata.md, tests/behavior/features/validate_metadata.feature
+issues/archived/Failing-unit-tests-after-environment-setup.md:1:# Issue 120: Failing unit tests after environment setup
+issues/archived/Failing-unit-tests-after-environment-setup.md:11:failing tests, particularly in the code analysis pipeline.
+issues/archived/Failing-unit-tests-after-environment-setup.md:19:- `devsynth run-tests --speed=fast` reports two failures in `tests/unit/general/test_provider_logging.py` due to missing `lmstudio`.
+issues/archived/Failing-unit-tests-after-environment-setup.md:20:- `tests/behavior/test_simple_standalone.py` raises `FileNotFoundError` for required sample files.
+issues/archived/Failing-unit-tests-after-environment-setup.md:23:- Latest `devsynth run-tests --speed=fast` run produced five errors, including a failure in `tests/behavior/requirements_wizard/test_logging_and_priority_steps.py`.
+issues/archived/Failing-unit-tests-after-environment-setup.md:24:- Current fast test run reports a single failure in `tests/unit/interface/test_nicegui_bridge.py::test_session_storage_roundtrip` due to missing session initialization.
+issues/archived/Failing-unit-tests-after-environment-setup.md:25:- After running the environment provisioning script, `devsynth run-tests --speed=fast` still fails: `tests/unit/interface/test_nicegui_bridge.py::test_session_storage_roundtrip` raises `RuntimeError: app.storage.user can only be used with page builder functions`.
+issues/archived/Failing-unit-tests-after-environment-setup.md:26:- Resolved by adding fallback session storage to `NiceGUIBridge`; `devsynth run-tests --speed=fast` now passes.
+issues/archived/reprioritize-open-issues-2.md:5:Dependencies: docs/specifications/reprioritize-open-issues.md, tests/behavior/features/reprioritize_open_issues.feature
+issues/archived/reprioritize-open-issues-2.md:21:- BDD Feature: tests/behavior/features/reprioritize_open_issues.feature
+issues/archived/Fix-failing-test-tests-unit-interface-test-webui-progress-time-py-test-function.md:1:# Issue 141: Fix failing test tests/unit/interface/test_webui_progress_time.py::test_function
+issues/archived/Fix-failing-test-tests-unit-interface-test-webui-progress-time-py-test-function.md:10:- [tests/unit/interface/test_webui_progress_time.py](../../tests/unit/interface/test_webui_progress_time.py)
+issues/archived/devsynth-run-tests-command.md:1:# devsynth run-tests command
+issues/archived/devsynth-run-tests-command.md:5:Dependencies: docs/specifications/devsynth-run-tests-command.md, tests/behavior/features/devsynth_run_tests_command.feature
+issues/archived/devsynth-run-tests-command.md:8:devsynth run-tests command is not yet implemented, limiting DevSynth's capabilities.
+issues/archived/devsynth-run-tests-command.md:12:- Review `docs/specifications/devsynth-run-tests-command.md` for requirements.
+issues/archived/devsynth-run-tests-command.md:14:- Add or update BDD tests in `tests/behavior/features/devsynth_run_tests_command.feature`.
+issues/archived/devsynth-run-tests-command.md:19:- 2025-08-21: After activating the virtualenv, running `poetry run devsynth run-tests --speed=fast` emitted an `LMStudioProvider` missing warning and stalled, indicating the command and optional dependency handling remain incomplete.
+issues/archived/devsynth-run-tests-command.md:20:- 2025-08-21: consolidated duplicate [Run tests from the CLI](archived/run-tests-from-the-cli.md) ticket.
+issues/archived/devsynth-run-tests-command.md:23:- Specification: docs/specifications/devsynth-run-tests-command.md
+issues/archived/devsynth-run-tests-command.md:24:- BDD Feature: tests/behavior/features/devsynth_run_tests_command.feature
+issues/archived/CLI-ingestion-remains-interactive.md:5:The documentation ingestion workflow still requires user prompts, blocking automation and hermetic tests. Provide non-interactive flags and sensible defaults so projects can be ingested via the CLI without manual input.
+issues/archived/LM-Studio-mock-service-for-deterministic-tests.md:1:# Issue 146: LM Studio mock service for deterministic tests
+issues/archived/LM-Studio-mock-service-for-deterministic-tests.md:7:Tests referencing the LM Studio provider currently rely on the optional `lmstudio` package and a running LM Studio server. When these are absent, warnings are emitted and some integration tests cannot run, reducing confidence in related code paths.
+issues/archived/LM-Studio-mock-service-for-deterministic-tests.md:11:2. Run `poetry run pytest tests/integration/general/test_lmstudio_provider.py`.
+issues/archived/LM-Studio-mock-service-for-deterministic-tests.md:15:Create a lightweight mock or HTTP stub of the LM Studio API so tests can exercise provider logic without requiring the real service. When the real service is available, keep resource markers so those tests can run against it.
+issues/archived/LM-Studio-mock-service-for-deterministic-tests.md:19:- Running `tests/integration/general/test_lmstudio_provider.py` with `lmstudio` absent skips all tests and triggers coverage failure (`FAIL Required test coverage of 8% not reached`).
+issues/archived/LM-Studio-mock-service-for-deterministic-tests.md:21:- Implemented a streaming LM Studio mock and updated integration tests to use it. Coverage checks now pass without requiring LM Studio.
+issues/database-schema-generation.md:5:Dependencies: docs/specifications/database-schema-generation.md, tests/behavior/features/database_schema_generation.feature
+issues/database-schema-generation.md:14:- Add or update BDD tests in `tests/behavior/features/database_schema_generation.feature`.
+issues/database-schema-generation.md:22:- BDD Feature: tests/behavior/features/database_schema_generation.feature
+issues/version-aware-documentation-management.md:5:Dependencies: docs/specifications/version-aware-documentation-management.md, tests/behavior/features/version_aware_documentation_management.feature
+issues/version-aware-documentation-management.md:14:- Add or update BDD tests in `tests/behavior/features/version_aware_documentation_management.feature`.
+issues/version-aware-documentation-management.md:22:- BDD Feature: tests/behavior/features/version_aware_documentation_management.feature
+issues/Finalize-WSDE-EDRR-workflow-logic.md:6:Dependencies: Phase-2-completion.md, docs/specifications/finalize-wsde-edrr-workflow-logic.md, tests/behavior/features/finalize_wsde_edrr_workflow_logic.feature
+issues/Finalize-WSDE-EDRR-workflow-logic.md:13:Integration tests for WSDE and EDRR now hang within collaboration memory utilities after the initial cases, indicating that the workflow logic is incomplete.
+issues/Finalize-WSDE-EDRR-workflow-logic.md:18:- Ensure [`tests/integration/general/test_wsde_edrr_component_interactions.py`](../tests/integration/general/test_wsde_edrr_component_interactions.py) and related suites run to completion.
+issues/Finalize-WSDE-EDRR-workflow-logic.md:25:- Create appropriate tests to validate behavior.
+issues/Finalize-WSDE-EDRR-workflow-logic.md:29:- 2025-02-19: collaboration tests still hang; workflow updates pending.
+issues/Finalize-WSDE-EDRR-workflow-logic.md:35:- BDD Feature: tests/behavior/features/finalize_wsde_edrr_workflow_logic.feature
+issues/webui-command-execution.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-command-execution.md, tests/behavior/features/webui_command_execution.feature
+issues/webui-command-execution.md:14:- Add or update BDD tests in `tests/behavior/features/webui_command_execution.feature`.
+issues/webui-command-execution.md:22:- BDD Feature: tests/behavior/features/webui_command_execution.feature
+issues/validate-manifest-command.md:5:Dependencies: docs/specifications/validate-manifest-command.md, tests/behavior/features/validate_manifest_command.feature
+issues/validate-manifest-command.md:14:- Add or update BDD tests in `tests/behavior/features/validate_manifest_command.feature`.
+issues/validate-manifest-command.md:22:- BDD Feature: tests/behavior/features/validate_manifest_command.feature
+issues/invalid-configuration-handling.md:5:Dependencies: docs/specifications/invalid-configuration-handling.md, tests/behavior/features/invalid_configuration_handling.feature
+issues/invalid-configuration-handling.md:14:- Add or update BDD tests in `tests/behavior/features/invalid_configuration_handling.feature`.
+issues/invalid-configuration-handling.md:22:- BDD Feature: tests/behavior/features/invalid_configuration_handling.feature
+issues/streamlit-webui-navigation.md:5:Dependencies: Phase-1-completion.md, docs/specifications/streamlit-webui-navigation.md, tests/behavior/features/streamlit_webui_navigation.feature
+issues/streamlit-webui-navigation.md:14:- Add or update BDD tests in `tests/behavior/features/streamlit_webui_navigation.feature`.
+issues/streamlit-webui-navigation.md:22:- BDD Feature: tests/behavior/features/streamlit_webui_navigation.feature
+issues/webui-validate-manifest-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-validate-manifest-page.md, tests/behavior/features/webui_validate_manifest_page.feature
+issues/webui-validate-manifest-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_validate_manifest_page.feature`.
+issues/webui-validate-manifest-page.md:22:- BDD Feature: tests/behavior/features/webui_validate_manifest_page.feature
+issues/inspect-commands.md:5:Dependencies: docs/specifications/inspect-commands.md, tests/behavior/features/inspect_commands.feature
+issues/inspect-commands.md:14:- Add or update BDD tests in `tests/behavior/features/inspect_commands.feature`.
+issues/inspect-commands.md:22:- BDD Feature: tests/behavior/features/inspect_commands.feature
+issues/dialectical-audit-documentation.md:8:The dialectical audit reports multiple features with tests but lacking documentation, and some features referenced in docs or tests are absent in code. This gap impedes traceability and release readiness.
+issues/dialectical-audit-documentation.md:12:- Cross-check code to ensure features referenced in docs or tests are implemented or remove stale references.
+issues/consensus-building.md:5:Dependencies: Phase-2-completion.md, docs/specifications/consensus-building.md, tests/behavior/features/consensus_building.feature
+issues/consensus-building.md:14:- Add or update BDD tests in `tests/behavior/features/consensus_building.feature`.
+issues/consensus-building.md:22:- BDD Feature: tests/behavior/features/consensus_building.feature
+issues/requirements-wizard-navigation.md:5:Dependencies: Phase-1-completion.md, docs/specifications/requirements-wizard-navigation.md, tests/behavior/features/requirements_wizard_navigation.feature
+issues/requirements-wizard-navigation.md:14:- Add or update BDD tests in `tests/behavior/features/requirements_wizard_navigation.feature`.
+issues/requirements-wizard-navigation.md:22:- BDD Feature: tests/behavior/features/requirements_wizard_navigation.feature
+issues/wsde-message-passing-and-peer-review.md:5:Dependencies: Phase-2-completion.md, docs/specifications/wsde-message-passing-and-peer-review.md, tests/behavior/features/wsde_message_passing_and_peer_review.feature
+issues/wsde-message-passing-and-peer-review.md:14:- Add or update BDD tests in `tests/behavior/features/wsde_message_passing_and_peer_review.feature`.
+issues/wsde-message-passing-and-peer-review.md:22:- BDD Feature: tests/behavior/features/wsde_message_passing_and_peer_review.feature
+issues/multi-disciplinary-dialectical-reasoning.md:5:Dependencies: Phase-2-completion.md, docs/specifications/multi-disciplinary-dialectical-reasoning.md, tests/behavior/features/dialectical_reasoning/multi_disciplinary_dialectical_reasoning.feature, tests/behavior/features/multi_disciplinary_dialectical_reasoning.feature
+issues/multi-disciplinary-dialectical-reasoning.md:14:- Add or update BDD tests in `tests/behavior/features/dialectical_reasoning/multi_disciplinary_dialectical_reasoning.feature`.
+issues/multi-disciplinary-dialectical-reasoning.md:24:- BDD Feature: tests/behavior/features/multi_disciplinary_dialectical_reasoning.feature
+issues/memory-backend-integration.md:5:Dependencies: docs/specifications/memory-backend-integration.md, tests/behavior/features/memory_backend_integration.feature
+issues/memory-backend-integration.md:14:- Add or update BDD tests in `tests/behavior/features/memory_backend_integration.feature`.
+issues/memory-backend-integration.md:20:  store-specific tests.
+issues/memory-backend-integration.md:24:- BDD Feature: tests/behavior/features/memory_backend_integration.feature
+issues/setup-wizard.md:5:Dependencies: docs/specifications/setup-wizard.md, tests/behavior/features/setup_wizard.feature
+issues/setup-wizard.md:14:- Add or update BDD tests in `tests/behavior/features/setup_wizard.feature`.
+issues/setup-wizard.md:22:- BDD Feature: tests/behavior/features/setup_wizard.feature
+issues/spec-command.md:5:Dependencies: docs/specifications/spec-command.md, tests/behavior/features/spec_command.feature
+issues/spec-command.md:14:- Add or update BDD tests in `tests/behavior/features/spec_command.feature`.
+issues/spec-command.md:22:- BDD Feature: tests/behavior/features/spec_command.feature
+issues/webui-validate-metadata-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-validate-metadata-page.md, tests/behavior/features/webui_validate_metadata_page.feature
+issues/webui-validate-metadata-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_validate_metadata_page.feature`.
+issues/webui-validate-metadata-page.md:22:- BDD Feature: tests/behavior/features/webui_validate_metadata_page.feature
+issues/webui-specification-editor.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-specification-editor.md, tests/behavior/features/webui_specification_editor.feature
+issues/webui-specification-editor.md:14:- Add or update BDD tests in `tests/behavior/features/webui_specification_editor.feature`.
+issues/webui-specification-editor.md:22:- BDD Feature: tests/behavior/features/webui_specification_editor.feature
+issues/interactive-init-wizard.md:5:Dependencies: docs/specifications/interactive-init-wizard.md, tests/behavior/features/interactive_init_wizard.feature
+issues/interactive-init-wizard.md:14:- Add or update BDD tests in `tests/behavior/features/interactive_init_wizard.feature`.
+issues/interactive-init-wizard.md:22:- BDD Feature: tests/behavior/features/interactive_init_wizard.feature
+issues/ast-based-code-analysis-and-transformation.md:5:Dependencies: Phase-1-completion.md, docs/specifications/ast-based-code-analysis-and-transformation.md, tests/behavior/features/ast_based_code_analysis_and_transformation.feature
+issues/ast-based-code-analysis-and-transformation.md:14:- Add or update BDD tests in `tests/behavior/features/ast_based_code_analysis_and_transformation.feature`.
+issues/ast-based-code-analysis-and-transformation.md:22:- BDD Feature: tests/behavior/features/ast_based_code_analysis_and_transformation.feature
+issues/roadmap_mapping.md:6:  - Related references: issues/devsynth-run-tests-hangs.md (A6–A7 cache/selector hardening). Status: addressed in 1.8; keep monitoring. Deferral: none.
+issues/roadmap_mapping.md:10:  - OpenAI/LM Studio opt-in gating: covered by tests and env defaults. Any provider credential issues should be tracked under a new issue if observed.
+issues/roadmap_mapping.md:18:  - Testing guide specifics (D2): This iteration updates coverage commands and resource flags sections. Remaining consolidation tasks may defer minor doc consistency cleanups to 0.1.0a2.
+issues/memory-and-context-system.md:5:Dependencies: docs/specifications/memory-and-context-system.md, tests/behavior/features/memory_and_context_system.feature
+issues/memory-and-context-system.md:14:- Add or update BDD tests in `tests/behavior/features/memory_and_context_system.feature`.
+issues/memory-and-context-system.md:22:- BDD Feature: tests/behavior/features/memory_and_context_system.feature
+issues/triage/unit_suite_triage.md:12:  - poetry run pytest -q tests/unit
+issues/triage/unit_suite_triage.md:16:- poetry run pytest -q tests/unit
+issues/triage/unit_suite_triage.md:24:  - Repro: poetry run pytest -q tests/unit/application/requirements -k failing_test
+issues/triage/unit_suite_triage.md:28:  - Repro: poetry run pytest -q tests/unit/application/orchestration
+issues/triage/unit_suite_triage.md:32:  - Repro: poetry run pytest -q tests/unit/application/memory
+issues/triage/unit_suite_triage.md:36:  - Repro: poetry run pytest -q tests/unit/adapters/llm
+issues/triage/unit_suite_triage.md:46:- Proposed fix and tests (TDD)
+issues/triage/unit_suite_triage.md:58:- Keep deterministic seeds configured via tests/conftest.py where relevant.
+issues/triage/unit_adapters_llm.md:7:TBD — Collect failures from tests/unit/adapters/llm.
+issues/triage/unit_adapters_llm.md:19:Given LLM adapter unit tests
+issues/triage/unit_adapters_llm.md:21:Then all tests avoid network calls and pass deterministically.
+issues/triage/unit_application_requirements.md:7:TBD — Collect failures from tests/unit/application/requirements.
+issues/triage/unit_application_requirements.md:16:- Tests: Add/adjust unit tests ensuring determinism; seed via fixture.
+issues/triage/unit_application_requirements.md:19:Given the unit tests for requirements processing
+issues/triage/unit_application_requirements.md:21:Then all previously failing tests pass and reasoning outputs are deterministic across runs.
+issues/triage/bdd_edrr_coordinator.md:10:poetry run pytest -q tests/behavior -k edrr_coordinator
+issues/triage/unit_application_orchestration.md:7:TBD — Collect failures from tests/unit/application/orchestration.
+issues/triage/unit_application_orchestration.md:16:- Tests: Add tests for thresholds, tie-breaking, and failure recovery hooks.
+issues/triage/unit_application_orchestration.md:19:Given orchestration unit tests
+issues/triage/unit_application_orchestration.md:21:Then thresholds, tie-breaks, and recovery hooks behave deterministically and all tests pass.
+issues/triage/integration_memory_sync.md:10:poetry run pytest -q tests/integration/memory -k sync
+issues/triage/integration_memory_sync.md:19:- Tests: Expand cross-store sync coverage with deterministic datasets.
+issues/triage/integration_memory_sync.md:22:Given the integration memory sync tests
+issues/triage/unit_application_memory.md:7:TBD — Collect failures from tests/unit/application/memory.
+issues/triage/unit_application_memory.md:19:Given memory unit tests
+issues/triage/unit_application_memory.md:21:Then tests skip or pass with helpful messages; transaction handling remains correct.
+issues/triage/bdd_requirements_reasoning.md:10:poetry run pytest -q tests/behavior -k requirements
+issues/triage/bdd_requirements_reasoning.md:15:Then outcomes (thesis/antithesis/synthesis) are deterministic and tests pass.
+issues/triage/integration_suite_triage.md:12:  - poetry run pytest -q tests/integration
+issues/triage/integration_suite_triage.md:16:  - poetry run pytest -q tests/integration
+issues/triage/integration_suite_triage.md:22:  - Repro: poetry run pytest -q tests/integration/memory -k sync
+issues/triage/integration_suite_triage.md:26:  - Repro: poetry run pytest -q tests/integration/providers
+issues/triage/integration_suite_triage.md:30:  - Repro: poetry run pytest -q tests/integration/orchestration
+issues/triage/integration_suite_triage.md:41:- Ensure provider tests use deterministic local stubs; no live network.
+issues/triage/integration_suite_triage.md:43:- Align with docs/roadmap/release_plan.md and tests/fixtures seeding.
+issues/triage/integration_orchestration.md:10:poetry run pytest -q tests/integration/orchestration
+issues/triage/integration_orchestration.md:13:Given orchestration integration tests
+issues/triage/behavior_suite_triage.md:12:  - poetry run pytest -q tests/behavior
+issues/triage/behavior_suite_triage.md:16:  - poetry run pytest -q tests/behavior
+issues/triage/behavior_suite_triage.md:21:  - Feature files: tests/behavior/features/edrr_coordinator.feature, ...
+issues/triage/behavior_suite_triage.md:22:  - Repro: poetry run pytest -q tests/behavior -k edrr_coordinator
+issues/triage/behavior_suite_triage.md:25:  - Features: tests/behavior/features/requirements/*.feature
+issues/triage/behavior_suite_triage.md:26:  - Repro: poetry run pytest -q tests/behavior -k requirements
+issues/triage/behavior_suite_triage.md:29:  - Features: tests/behavior/features/general/*.feature
+issues/triage/behavior_suite_triage.md:30:  - Repro: poetry run pytest -q tests/behavior -k orchestration
+issues/triage/bdd_collaboration_orchestration.md:10:poetry run pytest -q tests/behavior -k orchestration
+issues/triage/bdd_collaboration_orchestration.md:15:Then retries and error handling behavior match the specifications and tests pass.
+issues/triage/integration_providers.md:10:poetry run pytest -q tests/integration/providers
+issues/triage/integration_providers.md:17:Given provider integration tests
+issues/triage/integration_providers.md:19:Then provider init short-circuits safely and tests pass using local stubs.
+issues/Complete-Sprint-EDRR-integration.md:6:Dependencies: Finalize-WSDE-EDRR-workflow-logic.md, docs/specifications/complete-sprint-edrr-integration.md, tests/behavior/features/complete_sprint_edrr_integration.feature
+issues/Complete-Sprint-EDRR-integration.md:13:Sprint adapters map ceremonies to EDRR phases but workflow coverage is incomplete.
+issues/Complete-Sprint-EDRR-integration.md:17:- Document integration steps and add tests
+issues/Complete-Sprint-EDRR-integration.md:22:- Create appropriate tests to validate behavior.
+issues/Complete-Sprint-EDRR-integration.md:32:- BDD Feature: tests/behavior/features/complete_sprint_edrr_integration.feature
+issues/webui-serve-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-serve-page.md, tests/behavior/features/webui_serve_page.feature
+issues/webui-serve-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_serve_page.feature`.
+issues/webui-serve-page.md:22:- BDD Feature: tests/behavior/features/webui_serve_page.feature
+issues/webui-ingestion-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-ingestion-page.md, tests/behavior/features/webui_ingestion_page.feature
+issues/webui-ingestion-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_ingestion_page.feature`.
+issues/webui-ingestion-page.md:22:- BDD Feature: tests/behavior/features/webui_ingestion_page.feature
+issues/webui-configuration-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-configuration-page.md, tests/behavior/features/webui_configuration_page.feature
+issues/webui-configuration-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_configuration_page.feature`.
+issues/webui-configuration-page.md:22:- BDD Feature: tests/behavior/features/webui_configuration_page.feature
+issues/edrr-coordinator.md:5:Dependencies: Phase-2-completion.md, docs/specifications/edrr-coordinator.md, tests/behavior/features/edrr_coordinator.feature
+issues/edrr-coordinator.md:14:- Add or update BDD tests in `tests/behavior/features/edrr_coordinator.feature`.
+issues/edrr-coordinator.md:22:- BDD Feature: tests/behavior/features/edrr_coordinator.feature
+issues/micro-edrr-cycle.md:5:Dependencies: docs/specifications/micro-edrr-cycle.md, tests/behavior/features/micro_edrr_cycle.feature
+issues/micro-edrr-cycle.md:14:- Add or update BDD tests in `tests/behavior/features/micro_edrr_cycle.feature`.
+issues/micro-edrr-cycle.md:22:- BDD Feature: tests/behavior/features/micro_edrr_cycle.feature
+issues/requirements-gathering-wizard.md:5:Dependencies: docs/specifications/requirements-gathering-wizard.md, tests/behavior/features/requirements_gathering_wizard.feature
+issues/requirements-gathering-wizard.md:14:- Add or update BDD tests in `tests/behavior/features/requirements_gathering_wizard.feature`.
+issues/requirements-gathering-wizard.md:22:- BDD Feature: tests/behavior/features/requirements_gathering_wizard.feature
+issues/Critical-recommendations-follow-up.md:6:Dependencies: docs/specifications/critical-recommendations-follow-up.md, tests/behavior/features/critical_recommendations_follow_up.feature
+issues/Critical-recommendations-follow-up.md:21:- Create appropriate tests to validate behavior.
+issues/Critical-recommendations-follow-up.md:26:- [x] Implemented phase transition helpers and recovery hooks with unit tests ([21c6da3a](../commit/21c6da3a)).
+issues/Critical-recommendations-follow-up.md:27:- [x] Linked WSDE team consensus with EDRR phase transitions and added cross-store memory sync integration tests ([797e9976](../commit/797e9976)).
+issues/Critical-recommendations-follow-up.md:28:- [x] Added coordinator helpers for recovery hooks and threshold overrides with recursive recovery tests.
+issues/Critical-recommendations-follow-up.md:35:- BDD Feature: tests/behavior/features/critical_recommendations_follow_up.feature
+issues/shared-uxbridge-across-cli-and-webui.md:5:Dependencies: Phase-1-completion.md, docs/specifications/shared-uxbridge-across-cli-and-webui.md, tests/behavior/features/shared_uxbridge_across_cli_and_webui.feature
+issues/shared-uxbridge-across-cli-and-webui.md:14:- Add or update BDD tests in `tests/behavior/features/shared_uxbridge_across_cli_and_webui.feature`.
+issues/shared-uxbridge-across-cli-and-webui.md:22:- BDD Feature: tests/behavior/features/shared_uxbridge_across_cli_and_webui.feature
+issues/webui-analysis-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-analysis-page.md, tests/behavior/features/webui_analysis_page.feature
+issues/webui-analysis-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_analysis_page.feature`.
+issues/webui-analysis-page.md:22:- BDD Feature: tests/behavior/features/webui_analysis_page.feature
+issues/interactive-requirements-wizard.md:5:Dependencies: docs/specifications/interactive-requirements-wizard.md, tests/behavior/features/interactive_requirements_wizard.feature
+issues/interactive-requirements-wizard.md:14:- Add or update BDD tests in `tests/behavior/features/interactive_requirements_wizard.feature`.
+issues/interactive-requirements-wizard.md:22:- BDD Feature: tests/behavior/features/interactive_requirements_wizard.feature
+issues/self-analysis.md:5:Dependencies: Phase-1-completion.md, docs/specifications/self-analysis.md, tests/behavior/features/self_analysis.feature
+issues/self-analysis.md:14:- Add or update BDD tests in `tests/behavior/features/self_analysis.feature`.
+issues/self-analysis.md:22:- BDD Feature: tests/behavior/features/self_analysis.feature
+issues/webui-refactor-page.md:5:Dependencies: Phase-1-completion.md, docs/specifications/webui-refactor-page.md, tests/behavior/features/webui_refactor_page.feature
+issues/webui-refactor-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_refactor_page.feature`.
+issues/webui-refactor-page.md:22:- BDD Feature: tests/behavior/features/webui_refactor_page.feature
+issues/webui/nicegui_migration_evaluation.md:12:- Inventory current streamlit-dependent modules and behavior tests.
+issues/code-analysis.md:5:Dependencies: Phase-1-completion.md, docs/specifications/code-analysis.md, tests/behavior/features/code_analysis.feature
+issues/code-analysis.md:14:- Add or update BDD tests in `tests/behavior/features/code_analysis.feature`.
+issues/code-analysis.md:22:- BDD Feature: tests/behavior/features/code_analysis.feature
+issues/enable-optional-features.md:5:Dependencies: docs/specifications/enable-optional-features.md, tests/behavior/features/enable_optional_features.feature
+issues/enable-optional-features.md:14:- Add or update BDD tests in `tests/behavior/features/enable_optional_features.feature`.
+issues/enable-optional-features.md:22:- BDD Feature: tests/behavior/features/enable_optional_features.feature
+issues/alignment-metrics-command.md:5:Dependencies: Phase-3-completion.md, docs/specifications/alignment-metrics-command.md, tests/behavior/features/alignment_metrics_command.feature
+issues/alignment-metrics-command.md:14:- Add or update BDD tests in `tests/behavior/features/alignment_metrics_command.feature`.
+issues/alignment-metrics-command.md:22:- BDD Feature: tests/behavior/features/alignment_metrics_command.feature
+issues/enhanced-edrr-memory-integration.md:5:Dependencies: docs/specifications/enhanced-edrr-memory-integration.md, tests/behavior/features/enhanced_edrr_memory_integration.feature
+issues/enhanced-edrr-memory-integration.md:14:- Add or update BDD tests in `tests/behavior/features/enhanced_edrr_memory_integration.feature`.
+issues/enhanced-edrr-memory-integration.md:22:- BDD Feature: tests/behavior/features/enhanced_edrr_memory_integration.feature
+issues/cross-interface-consistency.md:5:Dependencies: docs/specifications/cross-interface-consistency.md, tests/behavior/features/cross_interface_consistency.feature
+issues/cross-interface-consistency.md:14:- Add or update BDD tests in `tests/behavior/features/cross_interface_consistency.feature`.
+issues/cross-interface-consistency.md:22:- BDD Feature: tests/behavior/features/cross_interface_consistency.feature
+issues/guardrails_fail_2025-09-02.md:19:  - Black/isort drift on several scripts and tests.
+issues/enhanced-edrr-phase-transitions.md:5:Dependencies: docs/specifications/enhanced-edrr-phase-transitions.md, tests/behavior/features/enhanced_edrr_phase_transitions.feature
+issues/enhanced-edrr-phase-transitions.md:14:- Add or update BDD tests in `tests/behavior/features/enhanced_edrr_phase_transitions.feature`.
+issues/enhanced-edrr-phase-transitions.md:22:- BDD Feature: tests/behavior/features/enhanced_edrr_phase_transitions.feature
+issues/web-application-generation.md:5:Dependencies: Phase-1-completion.md, docs/specifications/web-application-generation.md, tests/behavior/features/web_application_generation.feature
+issues/web-application-generation.md:14:- Add or update BDD tests in `tests/behavior/features/web_application_generation.feature`.
+issues/web-application-generation.md:22:- BDD Feature: tests/behavior/features/web_application_generation.feature
+issues/cli-ui-parity.md:5:Dependencies: docs/specifications/cli-ui-parity.md, tests/behavior/features/cli_ui_parity.feature,
+issues/cli-ui-parity.md:6:docs/specifications/cli-ux-enhancements.md, tests/behavior/features/cli_ux_enhancements.feature
+issues/cli-ui-parity.md:15:- Add or update BDD tests in `tests/behavior/features/cli_ui_parity.feature` and `cli_ux_enhancements.feature`.
+issues/cli-ui-parity.md:24:- BDD Feature: tests/behavior/features/cli_ui_parity.feature
+issues/cli-ui-parity.md:26:- BDD Feature: tests/behavior/features/cli_ux_enhancements.feature
+issues/edrr-cycle-command.md:5:Dependencies: docs/specifications/edrr-cycle-command.md, tests/behavior/features/edrr_cycle_command.feature
+issues/edrr-cycle-command.md:14:- Add or update BDD tests in `tests/behavior/features/edrr_cycle_command.feature`.
+issues/edrr-cycle-command.md:22:- BDD Feature: tests/behavior/features/edrr_cycle_command.feature
+issues/requirements-wizard-logging.md:5:Dependencies: docs/specifications/requirements-wizard-logging.md, tests/behavior/features/requirements_wizard_logging.feature
+issues/requirements-wizard-logging.md:14:- Add or update BDD tests in `tests/behavior/features/requirements_wizard_logging.feature`.
+issues/requirements-wizard-logging.md:22:- BDD Feature: tests/behavior/features/requirements_wizard_logging.feature
+issues/non-hierarchical-collaboration.md:5:Dependencies: Phase-2-completion.md, docs/specifications/non-hierarchical-collaboration.md, tests/behavior/features/non_hierarchical_collaboration.feature
+issues/non-hierarchical-collaboration.md:14:- Add or update BDD tests in `tests/behavior/features/non_hierarchical_collaboration.feature`.
+issues/non-hierarchical-collaboration.md:22:- BDD Feature: tests/behavior/features/non_hierarchical_collaboration.feature
+issues/webui-alignment-metrics-page.md:5:Dependencies: Phase-3-completion.md, docs/specifications/webui-alignment-metrics-page.md, tests/behavior/features/webui_alignment_metrics_page.feature
+issues/webui-alignment-metrics-page.md:14:- Add or update BDD tests in `tests/behavior/features/webui_alignment_metrics_page.feature`.
+issues/webui-alignment-metrics-page.md:22:- BDD Feature: tests/behavior/features/webui_alignment_metrics_page.feature

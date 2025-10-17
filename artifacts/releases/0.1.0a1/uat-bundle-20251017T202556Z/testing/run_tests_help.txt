@@ -1,0 +1,32 @@
+
+ Usage: devsynth run-tests [OPTIONS]
+
+ Run DevSynth test suites.
+
+ For workflow and performance details see
+ ``docs/analysis/run_tests_workflow.md``.
+
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --target                TEXT     Test target to run [default: all-tests]     │
+│ --speed                 TEXT     Speed categories to run (can be used        │
+│                                  multiple times)                             │
+│ --report                         Generate HTML report                        │
+│ --verbose                        Show verbose output                         │
+│ --no-parallel                    Disable parallel test execution             │
+│ --smoke                          Run in smoke mode: disable xdist and        │
+│                                  third-party pytest plugins for stability    │
+│ --segment                        Run tests in smaller batches                │
+│ --segment-size          INTEGER  Number of tests per batch when segmenting   │
+│                                  [default: 50]                               │
+│ --maxfail               INTEGER  Exit after this many failures               │
+│                                  [default: None]                             │
+│ --feature               TEXT     Feature flags to enable/disable (format:    │
+│                                  name or name=false)                         │
+│ --inventory                      Export test inventory to                    │
+│                                  test_reports/test_inventory.json and exit   │
+│ --marker        -m      TEXT     Additional pytest marker expression to AND  │
+│                                  with speed filters (e.g.,                   │
+│                                  requires_resource('lmstudio'))              │
+│                                  [default: None]                             │
+│ --help          -h               Show this message and exit.                 │
+╰──────────────────────────────────────────────────────────────────────────────╯

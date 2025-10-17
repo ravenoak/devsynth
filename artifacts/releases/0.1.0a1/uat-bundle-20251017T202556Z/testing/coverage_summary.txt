@@ -1,0 +1,55 @@
+# 2024-10-18: Targeted fast/medium suites enhanced; fast+medium aggregate could not be regenerated because the
+# devsynth CLI entry point is unavailable in this environment (ModuleNotFoundError for `devsynth`). Manual unit,
+# property, and behavior tests now exercise the highlighted modules pending a full coverage sweep.
+Rank  %Cov   Missing  File
+--------------------------
+   1    0.0      1054  src/devsynth/interface/webui.py
+   2    0.0       626  src/devsynth/application/collaboration/wsde_team_extended.py
+   3    0.0       528  src/devsynth/domain/models/wsde_knowledge.py
+   4    0.0       421  src/devsynth/interface/agentapi.py
+   5    0.0       420  src/devsynth/application/memory/chromadb_store.py
+   6    0.0       413  src/devsynth/domain/models/wsde_decision_making.py
+   7    0.0       409  src/devsynth/application/collaboration/peer_review.py
+   8    0.0       409  src/devsynth/interface/agentapi_enhanced.py
+   9    0.0       407  src/devsynth/application/collaboration/wsde_team_consensus.py
+  10    0.0       329  src/devsynth/application/memory/adapters/enhanced_graph_memory_adapter.py
+  11    0.0       308  src/devsynth/application/memory/fallback.py
+  12    0.0       286  src/devsynth/adapters/memory/memory_adapter.py
+  13    0.0       280  src/devsynth/adapters/chromadb_memory_store.py
+  14    0.0       261  src/devsynth/application/memory/duckdb_store.py
+  15    0.0       255  src/devsynth/application/memory/faiss_store.py
+  16    0.0       250  src/devsynth/domain/models/wsde_enhanced_dialectical.py
+  17    0.0       234  src/devsynth/adapters/kuzu_memory_store.py
+  18    0.0       227  src/devsynth/application/agents/wsde_memory_integration.py
+  19    0.0       217  src/devsynth/application/edrr/coordinator_core.py
+  20    0.0       215  src/devsynth/application/code_analysis/transformer.py
+  21    0.0       214  src/devsynth/application/promises/agent.py
+  22    0.0       210  src/devsynth/application/memory/kuzu_store.py
+  23    0.0       205  src/devsynth/interface/webui_bridge.py
+  24    0.0       202  src/devsynth/application/memory/recovery.py
+  25    0.0       201  src/devsynth/application/collaboration/wsde_team_task_management.py
+  26    0.0       200  src/devsynth/application/promises/interface.py
+  27    0.0       200  src/devsynth/domain/models/wsde_context_driven_leadership.py
+  28    0.0       198  src/devsynth/application/llm/lmstudio_provider.py
+  29    0.0       192  src/devsynth/adapters/memory/chroma_db_adapter.py
+  30    0.0       189  src/devsynth/feature_markers.py
+  31    0.0       185  src/devsynth/application/cli/setup_wizard.py
+  32    0.0       181  src/devsynth/application/documentation/ingestion.py
+  33    0.0       180  src/devsynth/application/agents/unified_agent.py
+  34    0.0       174  src/devsynth/application/promises/implementation.py
+  35    0.0       172  src/devsynth/application/cli/command_output_formatter.py
+  36    0.0       167  src/devsynth/domain/interfaces/requirement.py
+  37    0.0       161  src/devsynth/domain/models/wsde_solution_analysis.py
+  38    0.0       157  src/devsynth/application/memory/tinydb_store.py
+  39    0.0       156  src/devsynth/application/cli/long_running_progress.py
+  40    0.0       142  src/devsynth/application/memory/knowledge_graph_utils.py
+  41    0.0       138  src/devsynth/application/agents/agent_memory_integration.py
+  42    0.0       134  src/devsynth/interface/webui_state.py
+  43    0.0       133  src/devsynth/application/collaboration/collaborative_wsde_team.py
+  44    0.0       131  src/devsynth/adapters/agents/agent_adapter.py
+  45    0.0       127  src/devsynth/application/promises/broker.py
+  46    0.0       125  src/devsynth/application/collaboration/coordinator.py
+  47    0.0       121  src/devsynth/application/code_analysis/ast_workflow_integration.py
+  48    0.0       116  src/devsynth/application/collaboration/message_protocol.py
+  49    0.0       114  src/devsynth/application/ingestion/phases.py
+  50    0.0       114  src/devsynth/application/memory/adapters/chromadb_vector_adapter.py

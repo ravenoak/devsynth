@@ -1,0 +1,32 @@
+===================================================== test session starts ======================================================
+platform linux -- Python 3.12.10, pytest-8.4.1, pluggy-1.6.0
+rootdir: /workspace/devsynth
+configfile: pytest.ini
+plugins: anyio-4.11.0
+collected 5 items
+
+tests/unit/general/test_test_first_metrics.py .....                                                                      [100%]
+
+======================================================= warnings summary =======================================================
+tests/conftest.py:1030
+  /workspace/devsynth/tests/conftest.py:1030: PytestUnknownMarkWarning: Unknown pytest.mark.isolation - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    item.add_marker(pytest.mark.isolation)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================= Test Categorization Summary ==================================================
+Test Type Distribution:
+  Unit Tests: 5
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 5
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+===================================================== Top 10 Slowest Tests =====================================================
+1. tests/unit/general/test_test_first_metrics.py::TestTestFirstMetrics::test_analyze_commit_succeeds: 0.18s
+2. tests/unit/general/test_test_first_metrics.py::TestTestFirstMetrics::test_main_succeeds: 0.01s
+3. tests/unit/general/test_test_first_metrics.py::TestTestFirstMetrics::test_generate_metrics_report_succeeds: 0.01s
+4. tests/unit/general/test_test_first_metrics.py::TestTestFirstMetrics::test_get_commit_history_succeeds: 0.00s
+5. tests/unit/general/test_test_first_metrics.py::TestTestFirstMetrics::test_calculate_metrics_succeeds: 0.00s
+================================================= 5 passed, 1 warning in 0.27s =================================================

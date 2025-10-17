@@ -1,3 +1,0 @@
-DevSynth 0.1.0a1 release prep archive (2025-10-07T18:54Z)
-- devsynth-0.1.0a1-py3-none-any.whl (staged during release rehearsal; binary omitted from repo per policy)
-- devsynth-0.1.0a1.tar.gz (staged during release rehearsal; binary omitted from repo per policy)

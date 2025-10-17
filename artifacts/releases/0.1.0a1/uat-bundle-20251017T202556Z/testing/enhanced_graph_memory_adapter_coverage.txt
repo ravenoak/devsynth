@@ -1,0 +1,5 @@
+ERROR: usage: pytest [options] [file_or_dir] [file_or_dir] [...]
+pytest: error: unrecognized arguments: --cov=devsynth.application.memory.adapters.enhanced_graph_memory_adapter --cov-report=term --cov-report=term-missing --cov-fail-under=0
+  inifile: /workspace/devsynth/pytest.ini
+  rootdir: /workspace/devsynth
+

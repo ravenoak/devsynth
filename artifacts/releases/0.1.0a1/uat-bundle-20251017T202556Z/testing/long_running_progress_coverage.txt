@@ -1,0 +1,4 @@
+ImportError while loading conftest '/workspace/devsynth/tests/unit/application/cli/conftest.py'.
+tests/unit/application/cli/conftest.py:6: in <module>
+    from rich.console import Console
+E   ModuleNotFoundError: No module named 'rich'

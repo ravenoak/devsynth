@@ -1,0 +1,2 @@
+Python location: /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/bin/python
+Poetry env path: /Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv

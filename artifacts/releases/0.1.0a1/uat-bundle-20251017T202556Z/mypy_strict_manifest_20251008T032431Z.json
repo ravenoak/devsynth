@@ -1,0 +1,40 @@
+{
+  "run_type": "typing",
+  "release_tag": "0.1.0a1",
+  "source_command": "/workspace/devsynth/.venv/bin/python -m mypy --strict src/devsynth",
+  "artifacts": [
+    {
+      "artifact_type": "mypy_log",
+      "path": "diagnostics/mypy_strict_src_devsynth_20251008T032431Z.txt",
+      "checksum": "ccd6d8de29e270a45b3c2b0dd054af0cd9a6d09ce2b2de7877115a066568d6a0",
+      "collected_at": "2025-10-08T03:24:31.350789+00:00"
+    },
+    {
+      "artifact_type": "mypy_inventory",
+      "path": "diagnostics/mypy_strict_inventory_20251008T032431Z.md",
+      "checksum": "9d66987eb6ad03754ea6da354e9e4c24daf237b50fb296e06a61a168e6245e4d",
+      "collected_at": "2025-10-08T03:24:31.350789+00:00"
+    }
+  ],
+  "test_run": {
+    "profile": "typing-strict",
+    "coverage_percent": null,
+    "tests_collected": null,
+    "exit_code": 0,
+    "started_at": "2025-10-08T03:24:27.799575+00:00",
+    "completed_at": "2025-10-08T03:24:31.350789+00:00",
+    "run_checksum": "747d6f44f3a83b54f8f173e2e77570f5839e014c736f131e2f2a5d4c3adc6c58",
+    "metadata": {
+      "error_count": 0
+    }
+  },
+  "quality_gate": {
+    "gate_name": "typing",
+    "threshold": 0.0,
+    "status": "pass",
+    "evaluated_at": "2025-10-08T03:24:31.350789+00:00",
+    "metadata": {
+      "error_count": 0
+    }
+  }
+}

@@ -1,0 +1,151 @@
+ M .cursor/rules/00-project-core.md
+ M .cursor/rules/01-testing-standards.md
+ M .cursor/rules/02-bdd-workflow.md
+ M .cursor/rules/03-security-compliance.md
+ M .cursor/rules/README.md
+ M .cursor/validate-rules.py
+ M CHANGELOG.md
+ M Taskfile.yml
+ M config/lmstudio.yml
+ M conftest.py
+ M diagnostics/exec_log.txt
+ M diagnostics/mypy_strict_manifest_latest.json
+ M diagnostics/release_prep_verify_markers.txt
+ M dialectical_audit.log
+ M docs/release/0.1.0-alpha.1.md
+ M docs/testing/optional_services.md
+ M poetry.lock
+ M pyproject.toml
+ M scripts/dialectical_audit.py
+ M scripts/security_audit.py
+ M scripts/verify_minimal_install.py
+ M scripts/verify_release_state.py
+ M src/devsynth/adapters/cli/typer_adapter.py
+ M src/devsynth/application/cli/__init__.py
+ M src/devsynth/application/cli/commands/completion_cmd.py
+ M src/devsynth/application/cli/commands/doctor_cmd.py
+ M src/devsynth/application/cli/commands/run_tests_cmd.py
+ M src/devsynth/application/cli/long_running_progress.py
+ M src/devsynth/application/llm/lmstudio_provider.py
+ M src/devsynth/application/llm/providers.py
+ M src/devsynth/application/memory/kuzu_store.py
+ M src/devsynth/application/memory/memory_manager.py
+ M src/devsynth/application/utils/token_tracker.py
+ M src/devsynth/interface/webui/__init__.py
+ M src/devsynth/security/audit.py
+ M src/devsynth/security/validation.py
+ M src/devsynth/testing/mypy_strict_runner.py
+ M src/devsynth/testing/run_tests.py
+ M test_markers_report.json
+ D test_reports/chromadb_coverage.txt
+ D test_reports/coverage_manifest_20251004T175208Z.json
+ D test_reports/coverage_manifest_20251005T185929Z-fast-medium.json
+ D test_reports/coverage_manifest_20251005T194733Z-fast-medium.json
+ D test_reports/coverage_manifest_20251009T170142Z-fast-medium.json
+ D test_reports/coverage_manifest_20251012T164512Z.json
+ D test_reports/coverage_manifest_latest.json
+ D test_reports/devsynth_help_failure.log
+ D test_reports/release_state_check_bdd.log
+ D test_reports/run-tests/coverage.json
+ D test_reports/run-tests/run-tests_fast_medium_20251007T185404Z.log
+ D test_reports/test_first_metrics.log
+ M test_reports/test_markers_report.json
+ D test_reports/webui_interface_coverage.txt
+ M tests/README.md
+ M tests/behavior/feature_paths.py
+ M tests/behavior/features/general/requirements_wizard_logging.feature
+ M tests/behavior/requirements_wizard/test_logging_and_priority_steps.py
+ M tests/behavior/steps/test_agent_api_health_metrics_steps.py
+ M tests/behavior/steps/test_agent_api_steps.py
+ M tests/behavior/steps/test_cross_interface_consistency_extended_steps.py
+ M tests/behavior/steps/test_cross_interface_consistency_steps.py
+ M tests/behavior/test_cross_interface_consistency.py
+ M tests/fixtures/lmstudio_mock.py
+ M tests/fixtures/lmstudio_service.py
+ M tests/integration/general/test_agent_api.py
+ M tests/integration/general/test_agent_api_security.py
+ M tests/integration/general/test_agentapi_routes.py
+ M tests/integration/general/test_cli_webui_agentapi_pipeline.py
+ M tests/integration/general/test_lmstudio_integration_regression.py
+ M tests/integration/live/test_lmstudio_live_smoke.py
+ M tests/unit/adapters/cli/test_typer_adapter.py
+ M tests/unit/adapters/providers/test_provider_factory.py
+ M tests/unit/application/cli/commands/test_completion_cmd_errors.py
+ M tests/unit/general/test_agent_adapter_delegate.py
+ M tests/unit/general/test_agent_collaboration.py
+ M tests/unit/general/test_anthropic_provider_unit.py
+ M tests/unit/general/test_api.py
+ M tests/unit/general/test_api_health.py
+ M tests/unit/general/test_atomic_rewrite_cli.py
+ M tests/unit/general/test_backend_resource_flags.py
+ M tests/unit/general/test_config_settings.py
+ M tests/unit/general/test_dpg_flag.py
+ M tests/unit/general/test_ingestion_type_hints.py
+ M tests/unit/general/test_kuzu_store_fallback.py
+ M tests/unit/general/test_unit_cli_commands.py
+ M tests/unit/interface/test_agent_api_fastapi_guard.py
+ M tests/unit/interface/test_agentapi_enhanced.py
+ M tests/unit/interface/test_api_advanced.py
+ M tests/unit/interface/test_api_endpoints.py
+ M tests/unit/llm/test_openai_provider.py
+ M tests/unit/llm/test_openrouter_provider.py
+ M tests/unit/testing/test_collect_cache_sanitize.py
+ M tests/unit/testing/test_collect_tests_cache_invalidation.py
+ M tests/unit/testing/test_collect_tests_cache_ttl.py
+ M tests/unit/testing/test_collect_tests_with_cache_additional_paths.py
+ M tests/unit/testing/test_collect_tests_with_cache_fallback.py
+ M tests/unit/testing/test_run_tests.py
+ M tests/unit/testing/test_run_tests_additional_coverage.py
+ M tests/unit/testing/test_run_tests_additional_error_paths.py
+ M tests/unit/testing/test_run_tests_cache_prune_and_tips.py
+ M tests/unit/testing/test_run_tests_cache_pruning.py
+ M tests/unit/testing/test_run_tests_cli_helpers_focus.py
+ M tests/unit/testing/test_run_tests_cli_invocation.py
+ M tests/unit/testing/test_run_tests_extra_paths.py
+ M tests/unit/testing/test_run_tests_keyword_exec.py
+ M tests/unit/testing/test_run_tests_module.py
+ M tests/unit/testing/test_run_tests_report.py
+ M tests/unit/testing/test_run_tests_segmentation.py
+ M tests/unit/testing/test_run_tests_segmented.py
+ M tests/unit/testing/test_run_tests_segmented_aggregate_fail_tips_once.py
+ M tests/unit/testing/test_run_tests_segmented_aggregate_maxfail.py
+ M tests/unit/testing/test_run_tests_segmented_failure_paths.py
+?? .cursor/rules/07-cursor-rules-management.md
+?? .cursor/rules/07-poetry-environment.md
+?? artifacts/releases/0.1.0a1/evidence/
+?? artifacts/releases/0.1.0a1/final/
+?? artifacts/releases/0.1.0a1/uat-bundle-20251017T202556Z/
+?? diagnostics/coverage_validation_20251017T182432Z.txt
+?? diagnostics/env_info_20251017T164628Z.txt
+?? diagnostics/env_info_20251017T164629Z.txt
+?? diagnostics/git_status_pre_commit_20251017T203327Z.txt
+?? diagnostics/install_dev_remediation_20251017T164606Z.log
+?? diagnostics/knowledge_graph_evidence_20251017T182438Z.txt
+?? diagnostics/knowledge_graph_evidence_20251017T182453Z.txt
+?? diagnostics/mypy_strict_application_memory_20251015T233349Z.txt
+?? diagnostics/mypy_strict_application_memory_20251016T005218Z.txt
+?? diagnostics/mypy_strict_application_memory_20251016T231537Z.txt
+?? diagnostics/mypy_strict_consistency_check_20251017T171726Z.txt
+?? diagnostics/mypy_strict_full_20251017T171154Z.txt
+?? diagnostics/mypy_strict_src_devsynth_20251015T233247Z.txt
+?? diagnostics/mypy_strict_src_devsynth_20251015T233308Z.txt
+?? diagnostics/mypy_strict_src_devsynth_20251015T233349Z.txt
+?? diagnostics/mypy_strict_src_devsynth_20251016T005218Z.txt
+?? diagnostics/mypy_strict_src_devsynth_20251016T231537Z.txt
+?? diagnostics/package_validation_20251017T182913Z.txt
+?? diagnostics/package_validation_20251017T182915Z.txt
+?? diagnostics/package_validation_20251017T183218Z.txt
+?? diagnostics/poetry_check_remediation_20251017T164556Z.log
+?? diagnostics/poetry_install_success_20251017T164600Z.log
+?? diagnostics/pytest_collect_deselected_20251017T170044Z.log
+?? diagnostics/pytest_collect_full_20251017T165610Z.log
+?? diagnostics/smoke_validation_20251017T171143Z.txt
+?? diagnostics/task_release_prep_full_20251017T182509Z.log
+?? docs/developer_guides/poetry-virtual-environment-guide.md
+?? docs/release/0.1.0a1-known-limitations.md
+?? docs/release/GITHUB_TAGGING_GUIDE.md
+?? src/devsynth/testing/llm_test_timeouts.py
+?? tests/behavior/steps/pytest_plugins.py
+?? tests/integration/llm/test_lmstudio_timing_baseline.py
+?? tests/unit/application/cli/test_progress_aliasing.py
+?? tests/unit/memory/test_sync_manager_protocol.py
