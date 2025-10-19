@@ -45,8 +45,9 @@ import importlib.util
 import os
 import sys
 import time
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional
+from typing import Dict, List, Optional
 
 import pytest
 
@@ -204,7 +205,7 @@ def _restore_env_and_cwd_between_tests() -> Iterator[None]:
     fixture guarantees restoration even if monkeypatch isn't used.
     """
     # Snapshot environment and cwd
-    env_before: Dict[str, str] = dict(os.environ)
+    env_before: dict[str, str] = dict(os.environ)
     cwd_before = os.getcwd()
     try:
         yield
@@ -242,8 +243,8 @@ _setup_pytest_bdd()
 
 
 # Collection optimization to improve performance
-_collection_cache: Optional[Dict[str, List[str]]] = None
-_cache_timestamp: Optional[float] = None
+_collection_cache: dict[str, list[str]] | None = None
+_cache_timestamp: float | None = None
 _CACHE_TTL = 300  # 5 minutes
 
 
@@ -268,7 +269,7 @@ def _get_cache_key(config: pytest.Config) -> str:
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: List[pytest.Item]
+    config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Optimize test collection by deferring expensive marker evaluation.
 
