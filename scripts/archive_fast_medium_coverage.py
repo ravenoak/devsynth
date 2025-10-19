@@ -100,7 +100,7 @@ def _run_and_tee(cmd: list[str], log_path: Path) -> tuple[int, str]:
     return returncode, "".join(output_lines)
 
 
-def _find_manifest(ts: str) -> tuple[Optional[Path], Path]:
+def _find_manifest(ts: str) -> tuple[Path | None, Path]:
     exact = TEST_REPORTS / f"coverage_manifest_{ts}.json"
     latest = TEST_REPORTS / "coverage_manifest_latest.json"
     return (exact if exact.exists() else None), latest
@@ -130,7 +130,7 @@ def _zip_htmlcov(to_path: Path) -> str:
     return _sha256(to_path)
 
 
-def archive_fast_medium(cycle: Optional[str] = None, min_percent: float = 90.0) -> int:
+def archive_fast_medium(cycle: str | None = None, min_percent: float = 90.0) -> int:
     ts = _utc_ts()
     # Step 1: run tests and tee log
     log_path = DIAGNOSTICS / f"devsynth_run_tests_fast_medium_{ts}.log"
@@ -154,7 +154,9 @@ def archive_fast_medium(cycle: Optional[str] = None, min_percent: float = 90.0) 
         raise SystemExit(rc)
 
     # Step 2: check banner indicator
-    banner_ok = "coverage gate" in output and "QualityGate" in output and "coverage=" in output
+    banner_ok = (
+        "coverage gate" in output and "QualityGate" in output and "coverage=" in output
+    )
     if not banner_ok:
         # Not fatal per se, but per requirements we should stop and debug
         raise RuntimeError(
@@ -171,12 +173,7 @@ def archive_fast_medium(cycle: Optional[str] = None, min_percent: float = 90.0) 
     release_tag = cycle or _get_release_tag()
     profile = "fast-medium"
     dest_root = (
-        REPO_ROOT
-        / "artifacts"
-        / "releases"
-        / release_tag
-        / profile
-        / f"{ts}-{profile}"
+        REPO_ROOT / "artifacts" / "releases" / release_tag / profile / f"{ts}-{profile}"
     )
     dest_root.mkdir(parents=True, exist_ok=True)
 
@@ -203,18 +200,38 @@ def archive_fast_medium(cycle: Optional[str] = None, min_percent: float = 90.0) 
         "profile": profile,
         "coverage_percent": percent,
         "artifacts": [
-            {"path": str((dest_root / log_path.name).relative_to(REPO_ROOT)), "type": "cli_log"},
-            {"path": str((dest_root / "coverage.json").relative_to(REPO_ROOT)), "type": "coverage_json"},
-            {"path": str((dest_root / "coverage.xml").relative_to(REPO_ROOT)), "type": "coverage_xml", "optional": True},
-            {"path": str(tar_path.relative_to(REPO_ROOT)), "type": "coverage_html_targz", "sha256": html_sha256},
+            {
+                "path": str((dest_root / log_path.name).relative_to(REPO_ROOT)),
+                "type": "cli_log",
+            },
+            {
+                "path": str((dest_root / "coverage.json").relative_to(REPO_ROOT)),
+                "type": "coverage_json",
+            },
+            {
+                "path": str((dest_root / "coverage.xml").relative_to(REPO_ROOT)),
+                "type": "coverage_xml",
+                "optional": True,
+            },
+            {
+                "path": str(tar_path.relative_to(REPO_ROOT)),
+                "type": "coverage_html_targz",
+                "sha256": html_sha256,
+            },
         ],
     }
     if exact_manifest is not None:
-        archive_manifest["manifest_exact"] = str((dest_root / exact_manifest.name).relative_to(REPO_ROOT))
+        archive_manifest["manifest_exact"] = str(
+            (dest_root / exact_manifest.name).relative_to(REPO_ROOT)
+        )
     if latest_manifest.exists():
-        archive_manifest["manifest_latest"] = str((dest_root / latest_manifest.name).relative_to(REPO_ROOT))
+        archive_manifest["manifest_latest"] = str(
+            (dest_root / latest_manifest.name).relative_to(REPO_ROOT)
+        )
 
-    (dest_root / "archive_manifest.json").write_text(json.dumps(archive_manifest, indent=2))
+    (dest_root / "archive_manifest.json").write_text(
+        json.dumps(archive_manifest, indent=2)
+    )
 
     # Echo final status for operator
     print(
