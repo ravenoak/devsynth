@@ -1,4 +1,4 @@
-Test collection failed: 
+Test collection failed:
 collect_tests_with_cache called for target: all-tests, speed_category: fast
 success=False
-Test collection failed: 
+Test collection failed:
