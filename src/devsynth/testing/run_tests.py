@@ -801,6 +801,54 @@ def coverage_artifacts_status() -> tuple[bool, str | None]:
     return True, None
 
 
+def _archive_coverage_artifacts(*, release_tag: str, profile: str, timestamp: str, publication_message: str | None, execution_metadata: ExecutionMetadata) -> None:
+    """Copy coverage artifacts into artifacts/releases/<tag>/<profile>/<timestamp>-<profile>/.
+
+    Minimal archival to satisfy release documentation: copy coverage.json, htmlcov snapshot,
+    and a small CLI log capturing the command and knowledge-graph banner.
+    """
+    try:
+        dest_root = Path("artifacts") / "releases" / release_tag / profile / f"{timestamp}-{profile}"
+        dest_root.mkdir(parents=True, exist_ok=True)
+        # Copy JSON coverage
+        try:
+            shutil.copy2(COVERAGE_JSON_PATH, dest_root / "coverage.json")
+        except Exception as exc:
+            logger.warning("Archival: failed to copy coverage.json: %s", exc)
+        # Copy HTML coverage directory as htmlcov-<timestamp>-<profile>
+        html_dest = dest_root / f"htmlcov-{timestamp}-{profile}"
+        try:
+            if html_dest.exists():
+                shutil.rmtree(html_dest)
+            shutil.copytree(COVERAGE_HTML_DIR, html_dest)
+        except Exception as exc:
+            logger.warning("Archival: failed to copy HTML coverage directory: %s", exc)
+        # Write a small log with the source command and banner message
+        try:
+            cmd_entries = execution_metadata.get("commands") or []
+            if not cmd_entries:
+                primary = execution_metadata.get("command")
+                cmd_entries = [primary] if primary else []
+            command_strs: list[str] = []
+            for entry in cmd_entries:
+                if isinstance(entry, str):
+                    command_strs.append(entry)
+                elif isinstance(entry, Sequence) and not isinstance(entry, (str, bytes)):
+                    command_strs.append(" ".join(str(p) for p in entry))
+                elif entry is not None:
+                    command_strs.append(str(entry))
+            log_text = []
+            if command_strs:
+                log_text.append("Command(s):\n" + "\n".join(command_strs))
+            if publication_message:
+                log_text.append("\n" + publication_message)
+            (dest_root / f"devsynth_run_tests_{profile}.log").write_text("\n".join(log_text) or "")
+        except Exception as exc:
+            logger.warning("Archival: failed to write CLI log: %s", exc)
+    except Exception:
+        logger.debug("Archival step encountered an error", exc_info=True)
+
+
 def _maybe_publish_coverage_evidence(
     *,
     report: bool,
@@ -986,7 +1034,7 @@ def _maybe_publish_coverage_evidence(
     test_run_state = "new" if bool(publication.created.get("test_run")) else "updated"
     gate_state = "new" if bool(publication.created.get("quality_gate")) else "updated"
 
-    return (
+    publication_message = (
         "[knowledge-graph] coverage gate "
         f"{publication.gate_status} → QualityGate "
         f"{publication.quality_gate_id} ({gate_state}), "
@@ -995,6 +1043,20 @@ def _maybe_publish_coverage_evidence(
         f"coverage={coverage_percent:.2f}% "
         f"threshold={_coverage_threshold():.2f}%"
     )
+
+    # Archive artifacts under artifacts/releases/<tag>/<profile>/<timestamp>-<profile>/
+    try:
+        _archive_coverage_artifacts(
+            release_tag=release_tag,
+            profile=profile,
+            timestamp=timestamp,
+            publication_message=publication_message,
+            execution_metadata=execution_metadata,
+        )
+    except Exception:
+        logger.debug("Archival step failed", exc_info=True)
+
+    return publication_message
 
 
 def enforce_coverage_threshold(

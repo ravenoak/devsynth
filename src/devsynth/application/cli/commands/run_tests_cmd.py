@@ -332,29 +332,26 @@ def run_tests_cmd(
         ux_bridge.print("[green]Test inventory exported to[/green] " + str(out_path))
         return
 
-    # Smoke mode: minimize plugin surface and disable xdist
+    # Smoke mode: minimize plugin surface and disable xdist, but still generate coverage artifacts
     if smoke:
         os.environ["DEVSYNTH_SMOKE_MODE"] = "1"  # Set smoke mode flag
         os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
-        addopts_value = os.environ.get("PYTEST_ADDOPTS", "")
-        if not addopts_value.strip():
-            addopts_value = "-p no:xdist"
-        tokens = _parse_pytest_addopts(addopts_value)
-
-        # Remove coverage options when plugin autoloading is disabled
-        # since --cov won't work without pytest-cov plugin
-        filtered_tokens = []
-        for token in tokens:
-            if token.startswith(("--cov", "--cov-report", "--cov-fail-under")):
-                continue  # Skip coverage options
-            filtered_tokens.append(token)
-
-        # Rebuild addopts without coverage options
-        addopts_value = " ".join(filtered_tokens)
-
-        # Don't add --cov-fail-under=0 since coverage is disabled in smoke mode
-        # This prevents pytest from complaining about unrecognized arguments
-        os.environ["PYTEST_ADDOPTS"] = addopts_value.strip()
+        addopts_value = os.environ.get("PYTEST_ADDOPTS", "").strip()
+        tokens = _parse_pytest_addopts(addopts_value) if addopts_value else []
+        # Ensure xdist is disabled
+        if "-p" not in tokens or "no:xdist" not in " ".join(tokens):
+            addopts_value = ("-p no:xdist " + addopts_value).strip()
+        # When plugin autoloading is disabled, explicitly load pytest-cov so coverage artifacts can be produced
+        if os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1" and not _addopts_has_plugin(tokens, "pytest_cov"):
+            addopts_value = ("-p pytest_cov " + addopts_value).strip()
+            tokens = _parse_pytest_addopts(addopts_value)
+        # Ensure the coverage gate doesn't fail smoke runs while still producing artifacts
+        if "--cov-fail-under" not in addopts_value:
+            addopts_value = (addopts_value + " --cov-fail-under=0").strip()
+        # Ensure pytest-asyncio operates in auto mode to avoid async test failures with newer versions
+        if "--asyncio-mode" not in addopts_value:
+            addopts_value = (addopts_value + " --asyncio-mode=auto").strip()
+        os.environ["PYTEST_ADDOPTS"] = addopts_value
         no_parallel = True
         # In smoke mode, default to fast tests when no explicit speeds are provided.
         if not normalized_speeds:
@@ -376,15 +373,16 @@ def run_tests_cmd(
         os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist " + existing_addopts).strip()
         no_parallel = True
 
-    # Skip coverage injection in smoke mode
+    # Even in smoke mode, inject essential plugins explicitly when autoload is disabled
+    coverage_plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
+    bdd_plugin_injected = ensure_pytest_bdd_plugin_env(os.environ)
+    asyncio_plugin_injected = ensure_pytest_asyncio_plugin_env(os.environ)
+
+    # In smoke mode, force the coverage gate to be non-fatal while preserving artifact generation
     if smoke:
-        coverage_plugin_injected = False
-        bdd_plugin_injected = False  # Skip BDD plugin injection in smoke mode
-        asyncio_plugin_injected = False  # Skip asyncio plugin injection in smoke mode
-    else:
-        coverage_plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
-        bdd_plugin_injected = ensure_pytest_bdd_plugin_env(os.environ)
-        asyncio_plugin_injected = ensure_pytest_asyncio_plugin_env(os.environ)
+        existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
+        if "--cov-fail-under" not in existing_addopts:
+            os.environ["PYTEST_ADDOPTS"] = (existing_addopts + " --cov-fail-under=0").strip()
 
     if coverage_plugin_injected:
         message = "[cyan]-p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
