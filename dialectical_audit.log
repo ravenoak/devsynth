@@ -140,8 +140,7 @@
     "Feature 'Webui pseudocode' is referenced in docs or tests but not in code.",
     "Feature 'Webui spec' is referenced in docs or tests but not in code.",
     "Feature 'Wsde interaction specification' is referenced in docs or tests but not in code.",
-    "Feature 'Wsde role progression memory' is referenced in docs or tests but not in code.",
-    "Remediation completed: v0.1.0a1 Release Remediation Completed - 2025-10-17T20:22:58Z"
+    "Feature 'Wsde role progression memory' is referenced in docs or tests but not in code."
   ],
   "resolved": []
 }

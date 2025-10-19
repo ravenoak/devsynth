@@ -1,0 +1,22 @@
+OPENAI_API_KEY is not set for the OpenAI provider.
+Use &#x27;devsynth config&#x27; or edit your project.yaml to update settings.
+Missing environment variables: OPENAI_API_KEY, ANTHROPIC_API_KEY
+default: Environment variable OPENAI_API_KEY referenced in llm.providers.openai.api_key is not set
+default: Environment variable OPENROUTER_API_KEY referenced in llm.providers.openrouter.api_key is not set
+staging: Environment variable DEVSYNTH_LLM_PROVIDER referenced in llm.default_provider is not set
+staging: Environment variable DEVSYNTH_OPENAI_MODEL referenced in llm.providers.openai.model is not set
+staging: Environment variable DEVSYNTH_OPENAI_API_KEY referenced in llm.providers.openai.api_key is not set
+staging: Environment variable DEVSYNTH_ENABLE_ANTHROPIC referenced in llm.providers.anthropic.enabled is not set
+staging: Environment variable DEVSYNTH_ANTHROPIC_MODEL referenced in llm.providers.anthropic.model is not set
+staging: Environment variable DEVSYNTH_ANTHROPIC_API_KEY referenced in llm.providers.anthropic.api_key is not set
+production: Environment variable DEVSYNTH_CHROMADB_HOST referenced in memory.stores.chromadb.host is not set
+production: Environment variable DEVSYNTH_LLM_PROVIDER referenced in llm.default_provider is not set
+production: Environment variable DEVSYNTH_OPENAI_MODEL referenced in llm.providers.openai.model is not set
+production: Environment variable DEVSYNTH_OPENAI_API_KEY referenced in llm.providers.openai.api_key is not set
+production: Environment variable DEVSYNTH_ENABLE_ANTHROPIC referenced in llm.providers.anthropic.enabled is not set
+production: Environment variable DEVSYNTH_ANTHROPIC_MODEL referenced in llm.providers.anthropic.model is not set
+production: Environment variable DEVSYNTH_ANTHROPIC_API_KEY referenced in llm.providers.anthropic.api_key is not set
+production: Environment variable DEVSYNTH_ENABLE_IP_ALLOWLIST referenced in security.ip_allowlist.enabled is not set
+production: Environment variable DEVSYNTH_ALLOWED_IPS referenced in security.ip_allowlist.allowed_ips is not set
+production: Environment variable DEVSYNTH_MAX_WORKERS referenced in performance.concurrency.max_workers is not set
+Configuration issues detected. Run &#x27;devsynth init&#x27; to generate defaults.
