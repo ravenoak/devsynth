@@ -580,7 +580,7 @@ class MutationTester:
 </head>
 <body>
     <h1>Mutation Testing Report</h1>
-    
+
     <div class="summary">
         <h2>Summary</h2>
         <p><strong>Target:</strong> {report.target_path}</p>
@@ -591,7 +591,7 @@ class MutationTester:
         <p><strong>Mutation Score:</strong> {report.mutation_score:.2%}</p>
         <p><strong>Execution Time:</strong> {report.execution_time:.2f} seconds</p>
     </div>
-    
+
     <h2>Mutation Type Breakdown</h2>
     <table>
         <tr><th>Type</th><th>Total</th><th>Killed</th><th>Score</th></tr>
@@ -609,7 +609,7 @@ class MutationTester:
 
         html_content += """
     </table>
-    
+
     <h2>File Breakdown</h2>
     <table>
         <tr><th>File</th><th>Total</th><th>Killed</th><th>Score</th></tr>
@@ -627,7 +627,7 @@ class MutationTester:
 
         html_content += """
     </table>
-    
+
     <h2>Survived Mutations (Need Attention)</h2>
 """
 

@@ -1648,7 +1648,8 @@ class OpenRouterProvider(BaseProvider):
                 messages.append({"role": "user", "content": prompt})
 
             payload = {
-                "model": self.model or "google/gemini-flash-1.5",  # Default to free tier
+                "model": self.model
+                or "google/gemini-flash-1.5",  # Default to free tier
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
@@ -1745,7 +1746,8 @@ class OpenRouterProvider(BaseProvider):
                 messages.append({"role": "user", "content": prompt})
 
             payload = {
-                "model": self.model or "google/gemini-flash-1.5",  # Default to free tier
+                "model": self.model
+                or "google/gemini-flash-1.5",  # Default to free tier
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,

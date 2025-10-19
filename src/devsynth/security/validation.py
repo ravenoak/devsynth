@@ -99,6 +99,7 @@ def require_pre_deploy_checks() -> None:
     # Also check pyproject.toml version as fallback
     try:
         import tomllib
+
         pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
         if pyproject_path.exists():
             with pyproject_path.open("rb") as f:
@@ -115,7 +116,9 @@ def require_pre_deploy_checks() -> None:
     # For alpha releases, make this check informational
     if is_alpha_release or is_dev_env:
         if not parse_bool_env("DEVSYNTH_PRE_DEPLOY_APPROVED", False):
-            print("[security] Pre-deploy policy checks not approved, but allowing for alpha release")
+            print(
+                "[security] Pre-deploy policy checks not approved, but allowing for alpha release"
+            )
             return
 
     if not parse_bool_env("DEVSYNTH_PRE_DEPLOY_APPROVED", False):

@@ -81,17 +81,26 @@ class OpenAIProvider(StreamingLLMProvider):
         """
         # Get default settings from configuration
         from ...config.settings import get_llm_settings
+
         default_settings = get_llm_settings()
 
         # Initialize with default settings, overridden by provided config
         self.config = {**default_settings, **(config or {})}
 
         # Set instance variables from config using standardized parameter names
-        self.api_key = self.config.get("api_key") or self.config.get("openai_api_key")  # Support both old and new names
-        self.model = self.config.get("model") or self.config.get("openai_model") or "gpt-3.5-turbo"
+        self.api_key = self.config.get("api_key") or self.config.get(
+            "openai_api_key"
+        )  # Support both old and new names
+        self.model = (
+            self.config.get("model")
+            or self.config.get("openai_model")
+            or "gpt-3.5-turbo"
+        )
         self.max_tokens = self.config.get("max_tokens") or 1024
         self.temperature = self.config.get("temperature") or 0.7
-        self.api_base = self.config.get("base_url") or self.config.get("api_base")  # Support both old and new names
+        self.api_base = self.config.get("base_url") or self.config.get(
+            "api_base"
+        )  # Support both old and new names
         self.timeout = self.config.get("timeout") or 60
         self.max_retries = self.config.get("max_retries", 3)
         self.circuit_breaker = CircuitBreaker(
@@ -177,7 +186,9 @@ class OpenAIProvider(StreamingLLMProvider):
         # Validate top_p if provided
         if "top_p" in parameters:
             top_p = parameters["top_p"]
-            if top_p is not None and (not isinstance(top_p, (int, float)) or not 0.0 <= top_p <= 1.0):
+            if top_p is not None and (
+                not isinstance(top_p, (int, float)) or not 0.0 <= top_p <= 1.0
+            ):
                 raise OpenAIConfigurationError(
                     f"OpenAI top_p must be a number between 0.0 and 1.0, got {top_p}"
                 )

@@ -18,8 +18,8 @@ from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
-from typing import TYPE_CHECKING, Iterator, Protocol, cast
 from types import ModuleType
+from typing import TYPE_CHECKING, Iterator, Protocol, cast
 
 canonical_name = "devsynth.application.memory.kuzu_store"
 # Ensure the module is registered under its canonical name even when loaded
@@ -61,12 +61,11 @@ except Exception:  # pragma: no cover - optional dependency
 else:
     tiktoken = cast("_TiktokenModule", _tiktoken)
 
-# Import get_settings so tests can access configuration
-from devsynth.config.settings import get_settings, ensure_path_exists
-
 # Import config module for default settings and constants
 from devsynth import config as settings_module
-from devsynth.config.settings import kuzu_embedded
+
+# Import get_settings so tests can access configuration
+from devsynth.config.settings import ensure_path_exists, get_settings, kuzu_embedded
 from devsynth.domain.interfaces.memory import MemoryStore, SupportsTransactions
 from devsynth.domain.models.memory import MemoryItem, MemoryType
 from devsynth.exceptions import MemoryStoreError

@@ -165,7 +165,9 @@ def run_tests_cmd(
         "--target",
         help="Test target to run",
     ),
-    # Set PYTHONPATH to ensure sitecustomize is loaded early for Python 3.12+ compatibility
+    # Set PYTHONPATH to ensure sitecustomize is loaded early for Python
+    # 3.12+
+    # compatibility
     _pythonpath: str | None = typer.Option(
         None,
         hidden=True,
@@ -231,7 +233,8 @@ def run_tests_cmd(
     ``docs/analysis/run_tests_workflow.md``.
     """
 
-    # Set PYTHONPATH to ensure sitecustomize is loaded for Python 3.12+ compatibility
+    # Set PYTHONPATH to ensure sitecustomize is loaded for Python 3.12+
+    # compatibility
     src_path = os.path.join(os.path.dirname(__file__), "..", "..", "..")
     current_pythonpath = os.environ.get("PYTHONPATH", "")
     if src_path not in current_pythonpath:
@@ -335,7 +338,8 @@ def run_tests_cmd(
         ux_bridge.print("[green]Test inventory exported to[/green] " + str(out_path))
         return
 
-    # Smoke mode: minimize plugin surface and disable xdist, but still generate coverage artifacts
+    # Smoke mode: minimize plugin surface and disable xdist, but still
+    # generate coverage artifacts
     if smoke:
         os.environ["DEVSYNTH_SMOKE_MODE"] = "1"  # Set smoke mode flag
         os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
@@ -344,16 +348,19 @@ def run_tests_cmd(
         # Ensure xdist is disabled
         if "-p" not in tokens or "no:xdist" not in " ".join(tokens):
             addopts_value = ("-p no:xdist " + addopts_value).strip()
-        # When plugin autoloading is disabled, explicitly load pytest-cov so coverage artifacts can be produced
+        # When plugin autoloading is disabled, explicitly load pytest-cov so
+        # coverage artifacts can be produced
         if os.environ.get(
             "PYTEST_DISABLE_PLUGIN_AUTOLOAD"
         ) == "1" and not _addopts_has_plugin(tokens, "pytest_cov"):
             addopts_value = ("-p pytest_cov " + addopts_value).strip()
             tokens = _parse_pytest_addopts(addopts_value)
-        # Ensure the coverage gate doesn't fail smoke runs while still producing artifacts
+        # Ensure the coverage gate doesn't fail smoke runs while still
+        # producing artifacts
         if "--cov-fail-under" not in addopts_value:
             addopts_value = (addopts_value + " --cov-fail-under=0").strip()
-        # Ensure pytest-asyncio operates in auto mode to avoid async test failures with newer versions
+        # Ensure pytest-asyncio operates in auto mode to avoid async test
+        # failures with newer versions
         if "--asyncio-mode" not in addopts_value:
             addopts_value = (addopts_value + " --asyncio-mode=auto").strip()
         os.environ["PYTEST_ADDOPTS"] = addopts_value
@@ -365,7 +372,10 @@ def run_tests_cmd(
         os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "30")
         if dry_run:
             ux_bridge.print(
-                "[cyan]Smoke dry-run enabled — previewing fast lane with plugins disabled and xdist off.[/cyan]"
+                (
+                    "[cyan]Smoke dry-run enabled — previewing fast lane with "
+                    "plugins disabled and xdist off.[/cyan]"
+                )
             )
 
     # Optimize inner subprocess validation runs used by tests: disable plugins
@@ -378,12 +388,14 @@ def run_tests_cmd(
         os.environ["PYTEST_ADDOPTS"] = ("-p no:xdist " + existing_addopts).strip()
         no_parallel = True
 
-    # Even in smoke mode, inject essential plugins explicitly when autoload is disabled
+    # Even in smoke mode, inject essential plugins explicitly when autoload is
+    # disabled
     coverage_plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
     bdd_plugin_injected = ensure_pytest_bdd_plugin_env(os.environ)
     asyncio_plugin_injected = ensure_pytest_asyncio_plugin_env(os.environ)
 
-    # In smoke mode, force the coverage gate to be non-fatal while preserving artifact generation
+    # In smoke mode, force the coverage gate to be non-fatal while preserving
+    # artifact generation
     if smoke:
         existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
         if "--cov-fail-under" not in existing_addopts:
@@ -392,23 +404,41 @@ def run_tests_cmd(
             ).strip()
 
     if coverage_plugin_injected:
-        message = "[cyan]-p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
+        message = (
+            "[cyan]-p pytest_cov appended to PYTEST_ADDOPTS "
+            "because plugin autoloading is disabled[/cyan]"
+        )
         logger.info(
-            "CLI appended -p pytest_cov to PYTEST_ADDOPTS to enforce coverage instrumentation",
+            (
+                "CLI appended -p pytest_cov to PYTEST_ADDOPTS to enforce "
+                "coverage instrumentation"
+            ),
             extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
         )
         ux_bridge.print(message)
     if bdd_plugin_injected:
-        message = "[cyan]-p pytest_bdd.plugin appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
+        message = (
+            "[cyan]-p pytest_bdd.plugin appended to PYTEST_ADDOPTS "
+            "because plugin autoloading is disabled[/cyan]"
+        )
         logger.info(
-            "CLI appended -p pytest_bdd.plugin to PYTEST_ADDOPTS to preserve pytest-bdd hooks",
+            (
+                "CLI appended -p pytest_bdd.plugin to PYTEST_ADDOPTS to "
+                "preserve pytest-bdd hooks"
+            ),
             extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
         )
         ux_bridge.print(message)
     if asyncio_plugin_injected:
-        message = "[cyan]-p pytest_asyncio appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
+        message = (
+            "[cyan]-p pytest_asyncio appended to PYTEST_ADDOPTS "
+            "because plugin autoloading is disabled[/cyan]"
+        )
         logger.info(
-            "CLI appended -p pytest_asyncio to PYTEST_ADDOPTS to preserve async test support",
+            (
+                "CLI appended -p pytest_asyncio to PYTEST_ADDOPTS to preserve "
+                "async test support"
+            ),
             extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},
         )
         ux_bridge.print(message)
@@ -422,7 +452,10 @@ def run_tests_cmd(
         )
         if dry_run:
             ux_bridge.print(
-                f"[yellow]Dry run: coverage instrumentation unavailable: {detail}[/yellow]"
+                (
+                    "[yellow]Dry run: coverage instrumentation unavailable: "
+                    f"{detail}[/yellow]"
+                )
             )
         else:
             ux_bridge.print(
@@ -468,7 +501,10 @@ def run_tests_cmd(
     if dry_run:
         if success:
             ux_bridge.print(
-                "[yellow]Dry run complete — no tests executed. Rerun without --dry-run to execute suites.[/yellow]"
+                (
+                    "[yellow]Dry run complete — no tests executed. Rerun "
+                    "without --dry-run to execute suites.[/yellow]"
+                )
             )
             return
         raise typer.Exit(code=1)

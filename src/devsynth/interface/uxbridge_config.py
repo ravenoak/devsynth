@@ -71,13 +71,15 @@ def get_default_bridge(config: Optional[ProjectUnifiedConfig] = None) -> UXBridg
         "uxbridge_webui", False
     ):
         try:
+            import importlib.util
             import sys
             from pathlib import Path
-            import importlib.util
 
             # Load the webui.py module directly
             webui_path = Path(__file__).parent / "webui.py"
-            spec = importlib.util.spec_from_file_location("devsynth.interface.webui_module", webui_path)
+            spec = importlib.util.spec_from_file_location(
+                "devsynth.interface.webui_module", webui_path
+            )
             if spec and spec.loader:
                 webui_module = importlib.util.module_from_spec(spec)
                 sys.modules["devsynth.interface.webui_module"] = webui_module

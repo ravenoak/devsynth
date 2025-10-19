@@ -22,6 +22,7 @@ def get_llm_provider(config: Dict[str, Any] | None = None):
     offline = cfg.get("offline_mode", False)
 
     from devsynth.config.settings import get_llm_settings
+
     llm_cfg = get_llm_settings()
     if "offline_provider" in cfg:
         llm_cfg["offline_provider"] = cfg["offline_provider"]

@@ -11,9 +11,9 @@ from devsynth.core.config_loader import load_config
 # Create a logger for this module
 from devsynth.logging_setup import DevSynthLogger
 
+from ...application.utils.token_tracker import TokenTracker
 from ...domain.interfaces.llm import LLMProvider, LLMProviderFactory
 from ...fallback import CircuitBreaker, retry_with_exponential_backoff
-from ...application.utils.token_tracker import TokenTracker
 from ...metrics import inc_provider
 
 logger = DevSynthLogger(__name__)
@@ -157,7 +157,9 @@ class AnthropicProvider(BaseLLMProvider):
         # Validate top_p if provided
         if "top_p" in parameters:
             top_p = parameters["top_p"]
-            if top_p is not None and (not isinstance(top_p, (int, float)) or not 0.0 <= top_p <= 1.0):
+            if top_p is not None and (
+                not isinstance(top_p, (int, float)) or not 0.0 <= top_p <= 1.0
+            ):
                 raise AnthropicConfigurationError(
                     f"Anthropic top_p must be a number between 0.0 and 1.0, got {top_p}"
                 )
@@ -165,7 +167,7 @@ class AnthropicProvider(BaseLLMProvider):
     def _should_retry(self, exc: Exception) -> bool:
         """Return ``True`` if the exception should trigger a retry."""
         # Don't retry on client errors (4xx) except rate limits (429)
-        if hasattr(exc, 'response') and exc.response is not None:
+        if hasattr(exc, "response") and exc.response is not None:
             status_code = exc.response.status_code
             if 400 <= status_code < 500 and status_code != 429:
                 return False
@@ -386,6 +388,7 @@ def get_llm_provider(config: Dict[str, Any] | None = None) -> LLMProvider:
         offline = True
 
     from devsynth.config import get_llm_settings
+
     llm_cfg = get_llm_settings()
     if "offline_provider" in cfg:
         llm_cfg["offline_provider"] = cfg["offline_provider"]

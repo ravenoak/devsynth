@@ -4,7 +4,13 @@ Web UI module for DevSynth.
 This module provides web interface components for DevSynth.
 """
 
-from .rendering import LifecyclePages, OperationsPages, PageRenderer, ProjectSetupPages, SupportPages
+from .rendering import (
+    LifecyclePages,
+    OperationsPages,
+    PageRenderer,
+    ProjectSetupPages,
+    SupportPages,
+)
 from .rendering_simulation import simulate_progress_rendering
 from .routing import Router
 
