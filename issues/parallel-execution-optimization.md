@@ -1,9 +1,9 @@
 # Parallel Test Execution Optimization
 
-**Issue Type**: Performance Enhancement  
-**Priority**: Medium  
-**Effort**: Medium  
-**Created**: 2025-01-17  
+**Issue Type**: Performance Enhancement
+**Priority**: Medium
+**Effort**: Medium
+**Created**: 2025-01-17
 
 ## Problem Statement
 
@@ -63,7 +63,7 @@ def isolated_temp_dir(tmp_path_factory):
     worker_id = getattr(pytest.current_request.config, "workerinput", {}).get("workerid", "master")
     return tmp_path_factory.mktemp(f"test_worker_{worker_id}")
 
-@pytest.fixture  
+@pytest.fixture
 def isolated_port_pool():
     """Provide non-conflicting port ranges per worker."""
     worker_id = get_worker_id()
@@ -93,12 +93,12 @@ class TestScheduler:
         if has_marker(test_item, "isolation"):
             return TestCategory.SEQUENTIAL
         elif uses_heavy_resources(test_item):
-            return TestCategory.RESOURCE_INTENSIVE  
+            return TestCategory.RESOURCE_INTENSIVE
         elif is_cpu_bound(test_item):
             return TestCategory.CPU_BOUND
         else:
             return TestCategory.PARALLEL_SAFE
-    
+
     def create_execution_plan(self, tests: List[TestItem]) -> ExecutionPlan:
         """Create optimal execution plan for available workers."""
         pass
@@ -206,7 +206,7 @@ class ParallelExecutionMetrics:
 ## Risk Mitigation
 
 ### Risk: Test Failures Due to Parallel Conflicts
-**Mitigation**: 
+**Mitigation**:
 - Comprehensive isolation testing before marker removal
 - Gradual rollout with rollback capability
 - Automated conflict detection tools
@@ -245,6 +245,6 @@ class ParallelExecutionMetrics:
 
 ---
 
-**Assignee**: TBD  
-**Milestone**: Testing Infrastructure v2.0  
+**Assignee**: TBD
+**Milestone**: Testing Infrastructure v2.0
 **Labels**: performance, testing, parallel-execution, optimization

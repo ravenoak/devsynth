@@ -1,9 +1,9 @@
 # Enhanced Resource Management for Testing
 
-**Issue Type**: Technical Improvement  
-**Priority**: Low-Medium  
-**Effort**: Medium  
-**Created**: 2025-01-17  
+**Issue Type**: Technical Improvement
+**Priority**: Low-Medium
+**Effort**: Medium
+**Created**: 2025-01-17
 
 ## Problem Statement
 
@@ -19,7 +19,7 @@ Current test resource management has several areas for improvement:
 ### Resource Variables
 ```bash
 DEVSYNTH_RESOURCE_ANTHROPIC_AVAILABLE
-DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE  
+DEVSYNTH_RESOURCE_CHROMADB_AVAILABLE
 DEVSYNTH_RESOURCE_CLI_AVAILABLE
 DEVSYNTH_RESOURCE_CODEBASE_AVAILABLE
 DEVSYNTH_RESOURCE_DUCKDB_AVAILABLE
@@ -38,7 +38,7 @@ DEVSYNTH_RESOURCE_WEBUI_AVAILABLE
 ### Resource Checking Functions
 Each resource has its own `is_*_available()` function with similar patterns but slight variations in:
 - Error handling approaches
-- Fallback behaviors  
+- Fallback behaviors
 - Import checking strategies
 - Environment variable precedence
 
@@ -46,7 +46,7 @@ Each resource has its own `is_*_available()` function with similar patterns but 
 ```python
 # Current approach - verbose and error-prone
 @pytest.mark.requires_resource("chromadb")
-@pytest.mark.requires_resource("openai") 
+@pytest.mark.requires_resource("openai")
 @pytest.mark.requires_resource("lmstudio")
 def test_complex_integration():
     pass
@@ -66,10 +66,10 @@ class ResourceDefinition:
     check_method: Callable[[], bool]
     install_hint: str
     dependencies: List[str] = field(default_factory=list)
-    
+
 class ResourceRegistry:
     """Centralized registry of all test resources."""
-    
+
     def register_resource(self, resource: ResourceDefinition) -> None
     def get_resource(self, name: str) -> ResourceDefinition
     def check_availability(self, name: str) -> ResourceStatus
@@ -96,15 +96,15 @@ profiles:
   minimal:
     description: "Basic functionality only"
     resources: [cli, codebase]
-    
+
   standard:
     description: "Standard development setup"
     resources: [cli, codebase, tinydb, openai]
-    
+
   full:
     description: "All optional resources enabled"
     resources: [all]
-    
+
   ci:
     description: "CI/CD environment"
     resources: [cli, codebase, tinydb]
@@ -224,19 +224,19 @@ Alternative resources that could satisfy this test:
 class ResourceRegistry:
     _instance: Optional['ResourceRegistry'] = None
     _resources: Dict[str, ResourceDefinition] = {}
-    
+
     @classmethod
     def instance(cls) -> 'ResourceRegistry':
         if cls._instance is None:
             cls._instance = cls()
             cls._instance._load_default_resources()
         return cls._instance
-    
+
     def check_resource_group(self, group: str) -> List[str]:
         """Return available resources in a group."""
         resources = self.get_resources_by_category(group)
         return [r.name for r in resources if self.check_availability(r.name)]
-    
+
     def resolve_alternatives(self, alternatives: List[List[str]]) -> Optional[List[str]]:
         """Find first available alternative combination."""
         for alternative in alternatives:
@@ -253,7 +253,7 @@ class ResourceProfile:
     description: str
     included_resources: List[str]
     excluded_resources: List[str] = field(default_factory=list)
-    
+
     def is_resource_enabled(self, resource: str) -> bool:
         if resource in self.excluded_resources:
             return False
@@ -315,6 +315,6 @@ class ResourceProfileManager:
 
 ---
 
-**Assignee**: TBD  
-**Milestone**: Testing Infrastructure v2.0  
+**Assignee**: TBD
+**Milestone**: Testing Infrastructure v2.0
 **Labels**: enhancement, testing, resources, developer-experience

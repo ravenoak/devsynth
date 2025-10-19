@@ -1,8 +1,8 @@
 # Instrument test artifacts into the knowledge graph
 
 Status: IN REVIEW
-Priority: High  
-Owner: Release Engineering – Priya Desai  
+Priority: High
+Owner: Release Engineering – Priya Desai
 Created: 2025-10-03
 
 ## Context
@@ -25,11 +25,11 @@ Fast+medium rehearsals (e.g., 2025-10-02) now produce refreshed coverage JSON/HT
 
 ## Dialectical reasoning snapshot
 
-* **Thesis**: Manual documentation links are sufficient for auditors.  
-* **Antithesis**: Manual links are error-prone and prevent agents from reasoning over release evidence.  
+* **Thesis**: Manual documentation links are sufficient for auditors.
+* **Antithesis**: Manual links are error-prone and prevent agents from reasoning over release evidence.
 * **Synthesis**: Automate ingestion through adapters while preserving human-readable manifests, enabling both agent automation and manual audit trails.【F:docs/developer_guides/memory_integration_guide.md†L110-L134】
 
 ## Dependencies
 
-- `issues/knowledge-graph-schema-extension-alpha.md` (schema changes)  
+- `issues/knowledge-graph-schema-extension-alpha.md` (schema changes)
 - `issues/wsde-release-role-mapping.md` (role accountability)

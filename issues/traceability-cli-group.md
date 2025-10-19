@@ -25,4 +25,3 @@ Traceability checks are spread across scripts: `verify_requirements_traceability
 - `scripts/verify_requirements_traceability.py`
 - `scripts/verify_reqid_references.py`
 - `scripts/verify_docstring_reqids.py`
-
