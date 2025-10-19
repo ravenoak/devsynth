@@ -76,9 +76,9 @@ def test_process_specific_task(my_agent):
         "task_type": "specific_task",
         "data": "test data"
     }
-    
+
     result = my_agent.process(inputs)
-    
+
     assert "output" in result
     assert result["agent"] == my_agent.name
     # Add more assertions specific to the expected behavior

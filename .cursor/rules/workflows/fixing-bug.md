@@ -68,19 +68,19 @@ from devsynth.application.<module> import <Class>
 @pytest.mark.fast
 def test_<bug_scenario>_should_not_fail():
     """ReqID: BUG-XXX - Test demonstrating the bug.
-    
+
     Bug: <Brief description of bug>
-    
+
     This test currently fails because <reason>.
     After fix, it should pass.
     """
     # Arrange - Setup that triggers bug
     instance = <Class>()
     problematic_input = <whatever triggers bug>
-    
+
     # Act - Perform action that fails
     result = instance.method(problematic_input)
-    
+
     # Assert - What should happen (currently fails)
     assert result is not None  # This fails before fix
     assert result == expected_value
@@ -130,24 +130,24 @@ Location: `src/devsynth/<module>/<file>.py`
 ```python
 def method(self, input_data: str) -> str:
     """Process input data.
-    
+
     Args:
         input_data: Input to process
-        
+
     Returns:
         Processed result
-        
+
     Raises:
         ValueError: If input is invalid
     """
     # FIX: Handle edge case that caused bug #XXX
     if not input_data:
         raise ValueError("Input cannot be empty")
-    
+
     # FIX: Add validation that was missing
     if not self._is_valid(input_data):
         raise ValueError(f"Invalid input: {input_data}")
-    
+
     # Original logic (possibly with adjustments)
     result = self._process(input_data)
     return result
@@ -184,7 +184,7 @@ def test_<bug>_with_edge_case_a():
     # Test edge case
     pass
 
-@pytest.mark.fast  
+@pytest.mark.fast
 def test_<bug>_with_edge_case_b():
     """ReqID: BUG-XXX - Verify fix handles edge case B."""
     # Test another edge case
@@ -414,4 +414,3 @@ Consider adding integration test to prevent regression.
 See examples:
 - `tests/unit/application/memory/` - Memory system bug fixes
 - `docs/rationales/test_fixes.md` - Documented significant fixes
-

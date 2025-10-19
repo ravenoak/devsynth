@@ -545,4 +545,3 @@ GitHub Actions runs:
 - Unit + integration tests (comprehensive)
 - Typing + lint (quality)
 - Marker verification (enforcement)
-

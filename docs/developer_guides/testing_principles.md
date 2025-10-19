@@ -25,7 +25,7 @@ This document establishes the fundamental principles that guide testing practice
 
 **Application**:
 - Focus on mutation testing scores over line coverage
-- Prioritize property-based tests for critical algorithms  
+- Prioritize property-based tests for critical algorithms
 - Measure real bug detection rates, not just pass/fail status
 - Use coverage as a guide, not a goal
 
@@ -38,15 +38,15 @@ def test_user_creation_coverage():
     assert user.id is not None  # Trivial assertion
     assert user.created_at is not None  # Another trivial assertion
 
-# Better: Lower coverage, high value  
+# Better: Lower coverage, high value
 @given(st.text(), st.integers())
 def test_user_creation_properties(name, age):
     """Property: User creation should handle all valid inputs."""
     assume(len(name.strip()) > 0)  # Precondition
     assume(0 <= age <= 150)       # Reasonable age range
-    
+
     user = User(name.strip(), age)
-    
+
     # Properties that should always hold
     assert user.name == name.strip()
     assert user.age == age
@@ -71,23 +71,23 @@ class TestDependencyAnalyzer:
     def requires_isolation(self, test_function) -> Tuple[bool, str]:
         """Determine if test requires isolation and why."""
         reasons = []
-        
+
         if self.modifies_global_state(test_function):
             reasons.append("modifies global state")
-        
+
         if self.accesses_shared_resources(test_function):
             reasons.append("accesses shared resources")
-        
+
         if self.has_side_effects(test_function):
             reasons.append("has persistent side effects")
-        
+
         return len(reasons) > 0, "; ".join(reasons)
 
 # Apply isolation only when justified
 @pytest.mark.isolation  # Only if analyzer confirms necessity
 def test_global_config_modification():
     """Test global configuration changes.
-    
+
     Isolation required: modifies global state that affects other tests.
     """
     pass
@@ -95,7 +95,7 @@ def test_global_config_modification():
 # Prefer parallel-safe patterns
 def test_user_operations(isolated_database):
     """Test user operations with isolated database.
-    
+
     No isolation marker needed: uses fixture-provided isolation.
     """
     pass
@@ -117,14 +117,14 @@ def test_user_operations(isolated_database):
 def test_workflow_step_validation():
     """Unit test: Validate single workflow step behavior."""
     step = WorkflowStep("test_step")
-    
+
     # Test isolated behavior
     assert step.name == "test_step"
     assert step.is_valid()
     assert step.can_execute()
 ```
 
-#### Integration Tests  
+#### Integration Tests
 - **Purpose**: Validate component interactions and system behavior
 - **Scope**: Multiple components working together
 - **Dependencies**: Real dependencies within system boundaries
@@ -137,13 +137,13 @@ def test_workflow_engine_coordination():
     """Integration test: Validate workflow engine coordinates steps correctly."""
     engine = WorkflowEngine()
     workflow = engine.create_workflow("integration_test")
-    
+
     # Test real component interactions
     workflow.add_step("step1")
     workflow.add_step("step2")
-    
+
     result = engine.execute(workflow)
-    
+
     assert result.success
     assert len(result.completed_steps) == 2
 ```
@@ -185,7 +185,7 @@ Feature: Complete Project Lifecycle
 # Resource availability (boolean)
 DEVSYNTH_RESOURCE_<NAME>_AVAILABLE=true|false
 
-# Feature toggles (boolean)  
+# Feature toggles (boolean)
 DEVSYNTH_<FEATURE>_ENABLED=true|false
 
 # Numeric thresholds
@@ -212,7 +212,7 @@ DEVSYNTH_<RESOURCE>_PATH=<absolute_path>
 ```bash
 # Replace multiple scripts with unified interface
 devsynth test run --target=unit --speed=fast
-devsynth test coverage --threshold=80 --format=html  
+devsynth test coverage --threshold=80 --format=html
 devsynth test validate --markers --requirements
 devsynth test collect --cache --refresh
 devsynth test analyze --dependencies --performance
@@ -235,18 +235,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Test Quality Gates
         run: |
           # Coverage quality (not just percentage)
           poetry run devsynth test coverage --quality-check
-          
+
           # Mutation testing score
           poetry run devsynth test mutate --threshold=70
-          
+
           # Property test validation
           poetry run devsynth test properties --validate
-          
+
           # Performance regression check
           poetry run devsynth test performance --regression-check
 ```
@@ -266,7 +266,7 @@ jobs:
 {
   "mutation_score": {
     "critical_modules": 80,
-    "core_modules": 70, 
+    "core_modules": 70,
     "application_modules": 60,
     "minimum": 50
   },
@@ -314,7 +314,7 @@ def valid_user():
     """Provide a valid user for testing."""
     return User(name="test_user", email="test@example.com")
 
-@pytest.fixture  
+@pytest.fixture
 def isolated_database():
     """Provide an isolated database instance."""
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -347,7 +347,7 @@ def test_database_connection_with_invalid_url_raises_connection_error():
     with pytest.raises(ConnectionError):
         Database("invalid://url").connect()
 
-# Poor: Generic error testing  
+# Poor: Generic error testing
 def test_workflow_errors():
     """Test that workflow raises errors."""
     with pytest.raises(Exception):  # Too generic
@@ -362,7 +362,7 @@ def test_workflow_errors():
 def test_large_dataset_processing_performance(benchmark, large_dataset):
     """Test that large dataset processing completes within acceptable time."""
     processor = DataProcessor()
-    
+
     # Benchmark with specific expectations
     result = benchmark.pedantic(
         processor.process,
@@ -370,7 +370,7 @@ def test_large_dataset_processing_performance(benchmark, large_dataset):
         iterations=5,
         rounds=3
     )
-    
+
     # Specific performance requirement
     assert result.stats.mean < 2.0, f"Processing too slow: {result.stats.mean:.3f}s"
 
@@ -414,11 +414,11 @@ def test_user_service_brittle():
     mock_db.find.return_value = None
     mock_db.save.return_value = True
     mock_db.commit.return_value = None
-    
+
     # Test becomes coupled to implementation details
     service = UserService(mock_db)
     service.create_user("test")
-    
+
     # Brittle assertions about call order and arguments
     mock_db.find.assert_called_once_with("test")
     mock_db.save.assert_called_once()
@@ -428,10 +428,10 @@ def test_user_service_brittle():
 def test_user_service_behavior(user_repository):
     """Test user service behavior with real repository."""
     service = UserService(user_repository)
-    
+
     # Focus on behavior, not implementation
     user = service.create_user("test")
-    
+
     assert user.name == "test"
     assert service.find_user("test") == user
 ```
@@ -443,7 +443,7 @@ def test_user_service_behavior(user_repository):
 def test_getter_methods_for_coverage():
     """Test all getter methods to increase coverage."""
     user = User("test")
-    
+
     # These tests add coverage but no value
     assert user.get_name() == "test"
     assert user.get_id() is not None
@@ -455,11 +455,11 @@ def test_user_immutability():
     """Test that user objects maintain immutability."""
     user = User("test")
     original_name = user.name
-    
+
     # Attempt to modify (should not work)
     with pytest.raises(AttributeError):
         user.name = "modified"
-    
+
     # Verify immutability maintained
     assert user.name == original_name
 ```
@@ -469,7 +469,7 @@ def test_user_immutability():
 ### From Current to Simplified Configuration
 
 1. **Phase 1**: Update `pytest.ini` with consolidated settings
-2. **Phase 2**: Move complex logic from `conftest.py` to focused modules  
+2. **Phase 2**: Move complex logic from `conftest.py` to focused modules
 3. **Phase 3**: Replace script collection with unified CLI
 4. **Phase 4**: Implement quality metrics beyond coverage
 

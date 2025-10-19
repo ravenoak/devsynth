@@ -29,4 +29,3 @@ devsynth mvu rewrite --path PATH_TO_REPO --branch-name atomic
 Use `--dry-run` to preview the operation without creating commits.
 
 The rewritten history is placed on the branch specified by `--branch-name`.
-

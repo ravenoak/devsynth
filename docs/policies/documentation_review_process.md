@@ -70,7 +70,7 @@ Before submitting documentation for review:
    ```bash
    # Verify code examples
    python scripts/verify_code_examples.py docs/path/to/document.md
-   
+
    # Validate links
    python scripts/validate_links.py docs/path/to/document.md
    ```

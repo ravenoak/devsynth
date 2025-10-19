@@ -306,7 +306,7 @@ The DevSynth CI system enforces hermetic testing by:
 
 When adding new tests:
 
-1. Review existing fixtures in `tests/conftest.py` 
+1. Review existing fixtures in `tests/conftest.py`
 2. Use appropriate isolation techniques based on this guide
 3. Ensure tests pass when run in any order or repeated multiple times
 4. Add new fixtures to `conftest.py` if needed for common isolation patterns

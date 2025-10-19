@@ -217,10 +217,10 @@ Functions defined inside other functions, or code placed outside of functions, c
 # Example of structural issue
 def test_outer_function():
     # Test code here
-    
+
     def inner_function():  # Function defined inside another function
         # More test code
-    
+
     # Code continues
 ```
 
@@ -232,7 +232,7 @@ Restructure the code to have a clean, logical structure with properly defined fu
 # Fixed example
 def inner_function():  # Moved outside
     # Function code
-    
+
 def test_outer_function():
     # Test code here
     inner_function()  # Call the function instead of defining it inside

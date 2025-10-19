@@ -319,9 +319,9 @@ When adding speed markers to tests, follow these best practices to ensure they a
    @pytest.mark.medium
    def test_function():  # Correct - no blank lines
        pass
-   
+
    @pytest.mark.medium
-   
+
    def test_function():  # Incorrect - blank line between marker and function
        pass
    ```
@@ -336,7 +336,7 @@ When adding speed markers to tests, follow these best practices to ensure they a
 4. **Import pytest at the top of the file**:
    ```python
    import pytest  # Required for markers to work
-   
+
    @pytest.mark.medium
    def test_function():
        pass
@@ -347,7 +347,7 @@ When adding speed markers to tests, follow these best practices to ensure they a
    @pytest.mark.fast    # Correct
    @pytest.mark.medium  # Correct
    @pytest.mark.slow    # Correct
-   
+
    @pytest.mark.speed("fast")  # Incorrect format
    ```
 

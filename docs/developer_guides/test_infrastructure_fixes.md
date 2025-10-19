@@ -31,7 +31,7 @@ These fixes have improved the reliability and performance of the test infrastruc
 
 **Problem**: The cache in common_test_collector.py was not updating when new markers were added to test files, leading to stale test categorization data.
 
-**Solution**: 
+**Solution**:
 - Added file modification time tracking to the cache mechanism
 - Modified the `check_test_has_marker` function to record file modification times
 - Updated the `get_tests_with_markers` function to check if files have been modified since the cache was created

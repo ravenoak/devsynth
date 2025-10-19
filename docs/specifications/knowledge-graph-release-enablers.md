@@ -1,6 +1,6 @@
 # Knowledge Graph Release Enablers for 0.1.0a1
 
-Status: draft  
+Status: draft
 Last Updated: 2025-10-03
 
 ## Overview
@@ -29,9 +29,9 @@ This specification translates the RFC guidance on knowledge graph alignment into
 
 **Acceptance criteria**
 
-1. Updating the schema in both the NetworkX and Kuzu adapters does not break existing ingestion of documentation or requirements nodes (validated by executing the current rehearsal ingestion script).  
-2. Creating a `ReleaseEvidence` node and linking it to `TestRun` and `QualityGate` instances succeeds in both adapters without additional configuration.  
-3. The adapters expose helper methods `create_release_evidence(...)`, `create_test_run(...)`, and `record_quality_gate(...)` that wrap these operations for WSDE agents.  
+1. Updating the schema in both the NetworkX and Kuzu adapters does not break existing ingestion of documentation or requirements nodes (validated by executing the current rehearsal ingestion script).
+2. Creating a `ReleaseEvidence` node and linking it to `TestRun` and `QualityGate` instances succeeds in both adapters without additional configuration.
+3. The adapters expose helper methods `create_release_evidence(...)`, `create_test_run(...)`, and `record_quality_gate(...)` that wrap these operations for WSDE agents.
 4. Downstream utilities can query `MATCH (g:QualityGate {gate_name: "coverage"})-[:HAS_EVIDENCE]->(e:ReleaseEvidence)` (or the NetworkX equivalent) and retrieve the latest artifacts.
 
 ## Enabler B: Instrumentation hooks for test artifacts
@@ -47,8 +47,8 @@ This specification translates the RFC guidance on knowledge graph alignment into
 
 **Acceptance criteria**
 
-* Fast+medium rehearsal executed via `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` results in a new `TestRun` node with linked coverage evidence and an updated `coverage` `QualityGate` status.  
-* Running `poetry run task mypy:strict` with zero or more errors creates or updates the `typing` `QualityGate` node with appropriate status and evidence references.  
+* Fast+medium rehearsal executed via `poetry run devsynth run-tests --speed=fast --speed=medium --report --no-parallel` results in a new `TestRun` node with linked coverage evidence and an updated `coverage` `QualityGate` status.
+* Running `poetry run task mypy:strict` with zero or more errors creates or updates the `typing` `QualityGate` node with appropriate status and evidence references.
 * WSDE agents can query `QualityGate` nodes to determine whether the release is ready without parsing filesystem artifacts manually.
 
 Implementation tracking: `issues/test-artifact-kg-ingestion.md`.
@@ -67,8 +67,8 @@ Implementation tracking: `issues/test-artifact-kg-ingestion.md`.
 
 **Acceptance criteria**
 
-1. Each role has at least one associated checklist item in `issues/wsde-release-role-mapping.md`, referencing the relevant instrumentation or schema tasks.  
-2. Release rehearsal retros capture which role executed each responsibility, keeping multi-agent collaboration auditable.  
+1. Each role has at least one associated checklist item in `issues/wsde-release-role-mapping.md`, referencing the relevant instrumentation or schema tasks.
+2. Release rehearsal retros capture which role executed each responsibility, keeping multi-agent collaboration auditable.
 3. Updates to `docs/release/0.1.0-alpha.1.md` explicitly cite gate status changes and knowledge graph evidence, aligning with the Evaluator responsibilities.
 
 ## Deferred backlog

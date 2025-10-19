@@ -60,17 +60,17 @@ from devsynth.interface.ux_bridge import UXBridge, sanitize_output
 
 class TestUXBridge:
     """Tests for the UXBridge abstract base class."""
-    
+
     def test_sanitize_output(self):
         """Test that sanitize_output properly escapes HTML."""
         # Test with HTML content
         html = "<script>alert('XSS')</script>"
         sanitized = sanitize_output(html)
         assert sanitized == "&lt;script&gt;alert('XSS')&lt;/script&gt;"
-        
+
         # Test with None
         assert sanitize_output(None) == ""
-        
+
         # Test with non-string
         assert sanitize_output(123) == "123"
 ```
@@ -101,21 +101,21 @@ def test_display_result_parity():
     """Test that CLI and WebUI display results consistently."""
     cli_bridge = CLIUXBridge()
     webui_bridge = WebUI()
-    
+
     # Mock the output methods
     cli_output = []
     webui_output = []
-    
+
     with patch("rich.console.Console.print", lambda self, msg, **kwargs: cli_output.append(str(msg))):
         with patch("streamlit.write", lambda msg, **kwargs: webui_output.append(str(msg))):
             # Test with simple message
             cli_bridge.display_result("Test message")
             webui_bridge.display_result("Test message")
-            
+
             # Test with HTML content
             cli_bridge.display_result("<script>alert('XSS')</script>")
             webui_bridge.display_result("<script>alert('XSS')</script>")
-    
+
     # Verify that both bridges produce the same output
     assert cli_output == webui_output
 ```
@@ -300,14 +300,14 @@ def test_openai_provider_generate():
         mock_response = MagicMock()
         mock_response.choices[0].message.content = "Generated text"
         mock_create.return_value = mock_response
-        
+
         # Create the provider and generate text
         provider = OpenAIProvider(api_key="test_key")
         result = provider.generate("Test prompt")
-        
+
         # Verify the result
         assert result == "Generated text"
-        
+
         # Verify the API was called with the expected arguments
         mock_create.assert_called_once()
         args, kwargs = mock_create.call_args

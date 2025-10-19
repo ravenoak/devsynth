@@ -68,10 +68,10 @@ def process_count(count_str):
         count = int(count_str)
     except ValueError:
         raise ValidationError("Count must be an integer")
-    
+
     if count < 1 or count > 100:
         raise ValidationError("Count must be between 1 and 100")
-    
+
     return count
 
 # BAD: No validation
@@ -166,11 +166,11 @@ from pathlib import Path
 def read_file(base_dir, filename):
     # Ensure the filename doesn't contain path traversal
     safe_path = Path(base_dir) / Path(filename).name  # Only use the filename part
-    
+
     # Verify the path is within the allowed directory
     if not safe_path.resolve().is_relative_to(Path(base_dir).resolve()):
         raise SecurityError("Invalid file path")
-    
+
     with open(safe_path, 'r') as f:
         return f.read()
 
@@ -231,13 +231,13 @@ Write specific tests for security properties:
 def test_password_hashing():
     password = "secure_password"
     hashed = hash_password(password)
-    
+
     # Test that hashing is not reversible
     assert password not in hashed
-    
+
     # Test that verification works
     assert verify_password(hashed, password)
-    
+
     # Test that wrong passwords fail
     assert not verify_password(hashed, "wrong_password")
 ```

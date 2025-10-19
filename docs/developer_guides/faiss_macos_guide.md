@@ -128,19 +128,19 @@ import numpy as np
 try:
     import faiss
     print("FAISS imported successfully")
-    
+
     # Create a simple index
     dimension = 128
     index = faiss.IndexFlatL2(dimension)
-    
+
     # Add some vectors
     vectors = np.random.random((100, dimension)).astype(np.float32)
     index.add(vectors)
-    
+
     # Search
     query = np.random.random((1, dimension)).astype(np.float32)
     distances, indices = index.search(query, 5)
-    
+
     print("FAISS search successful")
     print(f"Found indices: {indices}")
 except Exception as e:

@@ -238,7 +238,7 @@ Tests should mock external dependencies to avoid network calls and other slow op
 def test_function_with_mocked_dependency(mocker):
     # Mock the dependency
     mocker.patch('module.dependency', return_value='mocked_result')
-    
+
     # Test implementation
     assert function_under_test() == 'expected_result'
 ```

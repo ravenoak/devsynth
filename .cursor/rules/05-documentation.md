@@ -261,4 +261,3 @@ Configuration in `mkdocs.yml`:
 - Plugin: gen-files
 - Plugin: include-markdown
 - Plugin: typer2
-

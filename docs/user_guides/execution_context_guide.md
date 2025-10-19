@@ -1,8 +1,8 @@
 # DevSynth Execution Context Guide
 
-**Author**: DevSynth Team  
-**Date**: 2024-09-24  
-**Version**: v0.1.0a1  
+**Author**: DevSynth Team
+**Date**: 2024-09-24
+**Version**: v0.1.0a1
 **Status**: Critical for Alpha Release
 
 ## Overview
@@ -13,7 +13,7 @@ This guide explains how to properly execute DevSynth commands in different conte
 
 ### Method 1: Poetry-Based Execution (RECOMMENDED)
 
-**Use Case**: Development, testing, and alpha evaluation  
+**Use Case**: Development, testing, and alpha evaluation
 **Requirement**: Must be executed from within the DevSynth project directory
 
 ```bash
@@ -41,7 +41,7 @@ poetry run devsynth run-pipeline
 
 ### Method 2: Direct Virtual Environment Execution
 
-**Use Case**: When you need to run DevSynth from any directory  
+**Use Case**: When you need to run DevSynth from any directory
 **Requirement**: Know the path to DevSynth's virtual environment
 
 ```bash
@@ -67,7 +67,7 @@ $DEVSYNTH_VENV/bin/devsynth init
 
 ### Method 3: pipx Installation (POST-ALPHA)
 
-**Use Case**: Global system installation for end users  
+**Use Case**: Global system installation for end users
 **Status**: Not fully functional for v0.1.0a1 due to dependency issues
 
 ```bash
@@ -149,7 +149,7 @@ The automated test framework handles this correctly by:
    # Create your test project directory
    mkdir ~/my_devsynth_test
    cd ~/my_devsynth_test
-   
+
    # Initialize from DevSynth directory
    cd /path/to/devsynth
    poetry run devsynth init
@@ -160,7 +160,7 @@ The automated test framework handles this correctly by:
    ```bash
    # Always run DevSynth commands from the DevSynth project directory
    cd /path/to/devsynth
-   
+
    # But work on your project files in your project directory
    # Edit requirements.md in your project directory
    # Then generate specs:

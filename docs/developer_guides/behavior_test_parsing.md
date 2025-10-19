@@ -85,11 +85,11 @@ The `collect_behavior_tests` function in `common_test_collector.py` has been upd
 def collect_behavior_tests(directory: str, use_cache: bool = True) -> List[str]:
     """
     Collect behavior tests from a directory.
-    
+
     Args:
         directory: Directory to collect tests from
         use_cache: Whether to use cached results
-        
+
     Returns:
         List of test paths
     """
@@ -97,15 +97,15 @@ def collect_behavior_tests(directory: str, use_cache: bool = True) -> List[str]:
     try:
         # Import the enhanced Gherkin parser
         from enhanced_gherkin_parser import parse_feature_directory, generate_test_paths
-        
+
         # Parse all feature files in the directory
         features = parse_feature_directory(directory)
-        
+
         # Generate test paths for all scenarios and examples
         test_paths = generate_test_paths(features)
-        
+
         return test_paths
-    
+
     except ImportError:
         # Fall back to the original implementation if the enhanced parser is not available
         # ...

@@ -57,11 +57,11 @@ def process_items(
     config: Optional[Dict[str, str]] = None
 ) -> List[str]:
     """Process items with optional configuration.
-    
+
     Args:
         items: List of items to process
         config: Optional configuration dictionary
-        
+
     Returns:
         Processed items list
     """
@@ -82,20 +82,20 @@ poetry run mypy src tests --config-file pyproject.toml
 ```python
 def calculate_score(data: Dict[str, float], threshold: float = 0.5) -> float:
     """Calculate weighted score from data dictionary.
-    
+
     Uses threshold to filter low-confidence values before
     computing the weighted average.
-    
+
     Args:
         data: Dictionary mapping keys to numeric values
         threshold: Minimum confidence threshold (default: 0.5)
-        
+
     Returns:
         Weighted average score as float
-        
+
     Raises:
         ValueError: If data is empty or threshold invalid
-        
+
     Example:
         >>> calculate_score({"a": 0.8, "b": 0.3}, threshold=0.5)
         0.8
@@ -142,11 +142,11 @@ DEFAULT_TIMEOUT = 30
 # Classes
 class MemorySystem:
     """Memory management system."""
-    
+
     def __init__(self):
         self._cache = {}  # Protected
         self.__internal_state = None  # Private
-    
+
     def store_item(self, item: MemoryItem) -> str:
         """Store memory item."""
         pass
@@ -237,22 +237,22 @@ logger = get_logger(__name__)
 
 class MemoryStore:
     """In-memory storage for memory items.
-    
+
     Provides CRUD operations with automatic ID generation
     and thread-safe access.
     """
-    
+
     def __init__(self) -> None:
         """Initialize empty memory store."""
         self._items: Dict[str, MemoryItem] = {}
         self._lock = threading.Lock()
-    
+
     def store(self, item: MemoryItem) -> str:
         """Store memory item and return ID.
-        
+
         Args:
             item: Memory item to store
-            
+
         Returns:
             Generated item ID
         """
@@ -279,4 +279,3 @@ try:
 except:  # Too broad
     pass  # Silent failure
 ```
-

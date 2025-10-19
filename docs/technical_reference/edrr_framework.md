@@ -200,7 +200,7 @@ def progress_to_phase(self, phase):
     # Collect metrics for the current phase before transitioning
     if self.current_phase:
         metrics = self.phase_metrics.collect_metrics(
-            self.current_phase, 
+            self.current_phase,
             self.results.get(self.current_phase, {})
         )
         self.phase_metrics.store_metrics(self.current_phase, metrics)

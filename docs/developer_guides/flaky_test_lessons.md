@@ -40,7 +40,7 @@ session_state.__getattr__.side_effect = Exception("Test error")  # Will fail
 class ExceptionSessionState:
     def __getattr__(self, name):
         raise Exception("Test error")
-    
+
     def __getitem__(self, key):
         raise Exception("Test error")
 
@@ -69,10 +69,10 @@ def temp_dir() -> Generator[str, None, None]:
     """Create a temporary directory for test resources."""
     # Setup: Create a temporary directory
     temp_dir = tempfile.mkdtemp()
-    
+
     # Yield the directory path to the test
     yield temp_dir
-    
+
     # Teardown: Remove the temporary directory and all its contents
     if os.path.exists(temp_dir):
         shutil.rmtree(temp_dir)
@@ -97,11 +97,11 @@ def temp_dir() -> Generator[str, None, None]:
 def clean_state():
     """Set up clean state for tests."""
     # Store any global state that might be modified during tests
-    
+
     # Reset any module-level state before test
-    
+
     yield
-    
+
     # Clean up state after test
     # Reset any module-level state that might have been modified
 ```

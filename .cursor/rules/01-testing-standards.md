@@ -94,10 +94,10 @@ class TestMyClass:
         """Test method with valid input."""
         # Arrange
         input_data = "valid"
-        
+
         # Act
         result = my_instance.method(input_data)
-        
+
         # Assert
         assert result == expected_value
 ```
@@ -278,4 +278,3 @@ poetry run pytest --markers | grep "requires_resource"
 Available in `templates/`:
 - `templates/unit/test_template.py`
 - `templates/integration/integration_test_template.py`
-

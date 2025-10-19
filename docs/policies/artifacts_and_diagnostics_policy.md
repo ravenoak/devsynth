@@ -24,4 +24,3 @@ Retention
 
 Governance
 - Changes to this policy require PR review. Update READMEs under both directories accordingly.
-

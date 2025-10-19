@@ -127,7 +127,7 @@ Feature: <Feature Name>
     Given a system with "<config>"
     When I perform action with "<input>"
     Then the result should be "<expected>"
-    
+
     Examples:
       | config  | input    | expected  |
       | default | value1   | result1   |
@@ -215,10 +215,10 @@ class Test<Class>:
         """ReqID: FR-01 - Feature works with valid input."""
         # Arrange
         input_data = "valid"
-        
+
         # Act
         result = instance.method(input_data)
-        
+
         # Assert
         assert result == expected_value
 
@@ -227,7 +227,7 @@ class Test<Class>:
         """ReqID: FR-02 - Feature raises error for invalid input."""
         # Arrange
         invalid_input = None
-        
+
         # Act & Assert
         with pytest.raises(ValueError):
             instance.method(invalid_input)
@@ -261,42 +261,42 @@ class <FeatureName>Error(DevSynthError):
 
 class <Class>:
     """<Brief class description>.
-    
+
     Implements <feature> functionality following <relevant policy>.
-    
+
     Attributes:
         config: Configuration dictionary
-        
+
     Example:
         >>> instance = <Class>(config={"key": "value"})
         >>> result = instance.method("input")
     """
-    
+
     def __init__(self, config: Optional[dict] = None) -> None:
         """Initialize <Class>.
-        
+
         Args:
             config: Optional configuration dictionary
         """
         self.config = config or {}
         logger.info(f"Initialized <Class> with config: {self.config}")
-    
+
     def method(self, input_data: str) -> str:
         """Perform primary operation.
-        
+
         Args:
             input_data: Input to process
-            
+
         Returns:
             Processed result
-            
+
         Raises:
             <FeatureName>Error: If operation fails
             ValueError: If input invalid
         """
         if not input_data:
             raise ValueError("Input cannot be empty")
-        
+
         try:
             result = self._process(input_data)
             logger.debug(f"Processed {input_data} -> {result}")
@@ -304,7 +304,7 @@ class <Class>:
         except Exception as e:
             logger.error(f"Failed to process {input_data}: {e}")
             raise <FeatureName>Error(f"Processing failed: {e}") from e
-    
+
     def _process(self, data: str) -> str:
         """Internal processing logic."""
         # Implementation
@@ -474,4 +474,3 @@ See completed examples in:
 - `examples/full_workflow/` - Complete feature workflow
 - `tests/behavior/features/memory_crud.feature` - CRUD feature
 - `docs/specifications/memory_crud.md` - Corresponding spec
-

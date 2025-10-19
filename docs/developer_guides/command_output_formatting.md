@@ -187,11 +187,11 @@ class MyCommand(UXBridge):
         super().__init__()
         # Set the console for the command_output utility
         command_output.set_console(self.console)
-        
+
     def display_result(self, message: str, *, highlight: bool = False, message_type: str = None) -> None:
         """Override the display_result method to use CommandOutput."""
         command_output.display_message(message, message_type, highlight)
-        
+
     def handle_error(self, error: Exception) -> None:
         """Override the handle_error method to use CommandOutput."""
         command_output.display_error(error)
