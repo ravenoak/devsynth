@@ -56,7 +56,7 @@ def streamlit_router_stub(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setitem(sys.modules, "streamlit", st)
 
     class RouterStub:
-        instances: list["RouterStub"] = []
+        instances: list[RouterStub] = []
 
         def __init__(self, *args, **kwargs) -> None:
             self.init_args = args

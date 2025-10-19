@@ -994,7 +994,7 @@ class TestDevSynthWorkflowIntegration:
                 assert (project_dir / ".devsynth" / "project.yaml").exists()
 
                 # Load and validate config content
-                with open(devsynth_dir / "project.yaml", "r") as f:
+                with open(devsynth_dir / "project.yaml") as f:
                     loaded_config = yaml.safe_load(f)
 
                 assert loaded_config["projectName"] == "Test Project"

@@ -13,7 +13,8 @@ import os
 import sys
 from importlib.machinery import ModuleSpec
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any
+from collections.abc import Iterable, Mapping, Sequence
 
 import pytest
 

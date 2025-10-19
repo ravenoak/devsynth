@@ -11,7 +11,7 @@ class MockMemoryStore:
     """Mock implementation of MemoryStore for testing."""
 
     def __init__(self):
-        self._data: Dict[str, Any] = {}
+        self._data: dict[str, Any] = {}
 
     def write(self, key: str, value: Any) -> None:
         """Mock write implementation."""
@@ -23,11 +23,11 @@ class MockMemoryStore:
             raise KeyError(key)
         return self._data[key]
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """Mock snapshot implementation."""
         return self._data.copy()
 
-    def restore(self, snapshot: Dict[str, Any]) -> None:
+    def restore(self, snapshot: dict[str, Any]) -> None:
         """Mock restore implementation."""
         self._data = snapshot.copy()
 
