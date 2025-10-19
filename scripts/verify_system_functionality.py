@@ -42,7 +42,9 @@ class SystemVerifier:
         # 5. LLM provider verification
         self.verify_llm_providers()
 
-        print(f"✅ Verification complete! {len(self.verifications_passed)} passed, {len(self.verifications_failed)} failed.")
+        print(
+            f"✅ Verification complete! {len(self.verifications_passed)} passed, {len(self.verifications_failed)} failed."
+        )
 
         if self.verifications_failed:
             print("\n❌ Failed verifications:")
@@ -104,7 +106,9 @@ class SystemVerifier:
         print("🛡️  Verifying error handling...")
 
         # Test error scenarios
-        if self.run_test_subset("tests/unit/general/test_exceptions.py", "Error scenarios"):
+        if self.run_test_subset(
+            "tests/unit/general/test_exceptions.py", "Error scenarios"
+        ):
             self.verifications_passed.append("Error scenarios")
         else:
             self.verifications_failed.append("Error scenarios")
@@ -130,7 +134,7 @@ class SystemVerifier:
                 capture_output=True,
                 text=True,
                 cwd=self.project_root,
-                timeout=60  # 60 second timeout
+                timeout=60,  # 60 second timeout
             )
 
             if result.returncode == 0:
@@ -150,20 +154,24 @@ class SystemVerifier:
         """Check which LLM providers are available."""
         try:
             result = subprocess.run(
-                ["python", "-c", """
+                [
+                    "python",
+                    "-c",
+                    """
 from tests.conftest import is_resource_available
 providers = ['anthropic', 'openai', 'openrouter', 'lmstudio']
 available = [p for p in providers if is_resource_available(p)]
 print(','.join(available) if available else 'none')
-                """],
+                """,
+                ],
                 capture_output=True,
                 text=True,
-                cwd=self.project_root
+                cwd=self.project_root,
             )
 
             if result.returncode == 0:
-                available = result.stdout.strip().split(',')
-                return [p for p in available if p != 'none' and p]
+                available = result.stdout.strip().split(",")
+                return [p for p in available if p != "none" and p]
             return []
         except Exception:
             return []
@@ -173,7 +181,10 @@ print(','.join(available) if available else 'none')
         try:
             # Try to import and create a basic provider instance
             result = subprocess.run(
-                ["python", "-c", f"""
+                [
+                    "python",
+                    "-c",
+                    f"""
 try:
     if '{provider}' == 'openai':
         from devsynth.application.llm.openai_provider import OpenAIProvider
@@ -190,14 +201,15 @@ try:
     print('success')
 except Exception as e:
     print(f'error: {e}')
-                """],
+                """,
+                ],
                 capture_output=True,
                 text=True,
                 cwd=self.project_root,
-                timeout=10
+                timeout=10,
             )
 
-            return result.returncode == 0 and 'success' in result.stdout
+            return result.returncode == 0 and "success" in result.stdout
         except Exception:
             return False
 
@@ -232,7 +244,7 @@ except Exception as e:
 
         # Save report
         report_path = self.project_root / "system_verification_report.md"
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             f.write(report)
 
         print(f"📄 Report saved to {report_path}")

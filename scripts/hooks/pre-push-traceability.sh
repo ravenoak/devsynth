@@ -6,4 +6,3 @@ cd "$repo_root"
 
 poetry run pytest
 poetry run python scripts/update_traceability.py
-

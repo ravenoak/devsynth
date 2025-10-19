@@ -50,7 +50,9 @@ class TestEnhancer:
         # 5. Enhance test documentation
         self.enhance_test_documentation()
 
-        print(f"✅ Enhancement complete! {len(self.improvements_made)} improvements made.")
+        print(
+            f"✅ Enhancement complete! {len(self.improvements_made)} improvements made."
+        )
 
     def fix_common_test_issues(self):
         """Fix common test issues like incorrect imports, missing markers, etc."""
@@ -75,7 +77,9 @@ class TestEnhancer:
 
             # Check for common import patterns that might be problematic
             if "from devsynth." in content and "import pytest" not in content:
-                print(f"⚠️  Test file {test_file} imports devsynth modules but doesn't import pytest")
+                print(
+                    f"⚠️  Test file {test_file} imports devsynth modules but doesn't import pytest"
+                )
                 # This might indicate a test file that doesn't use pytest properly
 
             # Check for circular import patterns
@@ -89,7 +93,7 @@ class TestEnhancer:
             ["python", "scripts/verify_test_markers.py"],
             capture_output=True,
             text=True,
-            cwd=self.project_root
+            cwd=self.project_root,
         )
 
         if result.returncode != 0:
@@ -107,10 +111,10 @@ class TestEnhancer:
             content = test_file.read_text()
 
             # Look for assertions that could be more specific
-            if re.search(r'assert.*==.*None', content):
+            if re.search(r"assert.*==.*None", content):
                 print(f"💡 Could improve None assertions in {test_file}")
 
-            if re.search(r'assert.*len\(.*\).*>\s*0', content):
+            if re.search(r"assert.*len\(.*\).*>\s*0", content):
                 print(f"💡 Could improve length assertions in {test_file}")
 
     def enhance_test_assertions(self):
@@ -150,9 +154,13 @@ class TestEnhancer:
 
         for test_file in test_files:
             # Check naming conventions
-            if not test_file.name.startswith("test_") and not test_file.name.startswith(("conftest", "__init__")):
+            if not test_file.name.startswith("test_") and not test_file.name.startswith(
+                ("conftest", "__init__")
+            ):
                 if "test" in test_file.name.lower():
-                    print(f"💡 Consider renaming {test_file.name} to follow test_ naming convention")
+                    print(
+                        f"💡 Consider renaming {test_file.name} to follow test_ naming convention"
+                    )
 
             # Check for proper class naming
             content = test_file.read_text()
@@ -187,19 +195,19 @@ class TestEnhancer:
             content = test_file.read_text()
 
             # Check for docstrings in test classes and methods
-            if 'class Test' in content:
+            if "class Test" in content:
                 # Look for class docstrings
-                if '"""' in content[:content.find('class Test') + 100]:
+                if '"""' in content[: content.find("class Test") + 100]:
                     print(f"✅ {test_file.name} has class docstrings")
                 else:
                     print(f"💡 {test_file.name} could benefit from class docstrings")
 
-    def find_python_files(self, directory: Path) -> List[Path]:
+    def find_python_files(self, directory: Path) -> list[Path]:
         """Find all Python files in a directory."""
         python_files = []
         for root, dirs, files in os.walk(directory):
             for file in files:
-                if file.endswith('.py'):
+                if file.endswith(".py"):
                     python_files.append(Path(root) / file)
         return python_files
 
@@ -209,10 +217,17 @@ class TestEnhancer:
 
         # Run coverage analysis
         result = subprocess.run(
-            ["python", "-m", "pytest", "tests/", "--cov=src/devsynth", "--cov-report=term-missing"],
+            [
+                "python",
+                "-m",
+                "pytest",
+                "tests/",
+                "--cov=src/devsynth",
+                "--cov-report=term-missing",
+            ],
             capture_output=True,
             text=True,
-            cwd=self.project_root
+            cwd=self.project_root,
         )
 
         if result.returncode == 0:
@@ -228,26 +243,26 @@ class TestEnhancer:
         test_files = self.find_python_files(self.tests_dir)
 
         patterns_found = {
-            'pytest_fixtures': 0,
-            'mock_usage': 0,
-            'parametrized_tests': 0,
-            'class_based_tests': 0
+            "pytest_fixtures": 0,
+            "mock_usage": 0,
+            "parametrized_tests": 0,
+            "class_based_tests": 0,
         }
 
         for test_file in test_files:
             content = test_file.read_text()
 
-            if '@pytest.fixture' in content:
-                patterns_found['pytest_fixtures'] += 1
+            if "@pytest.fixture" in content:
+                patterns_found["pytest_fixtures"] += 1
 
-            if 'mock' in content.lower():
-                patterns_found['mock_usage'] += 1
+            if "mock" in content.lower():
+                patterns_found["mock_usage"] += 1
 
-            if '@pytest.mark.parametrize' in content:
-                patterns_found['parametrized_tests'] += 1
+            if "@pytest.mark.parametrize" in content:
+                patterns_found["parametrized_tests"] += 1
 
-            if 'class Test' in content:
-                patterns_found['class_based_tests'] += 1
+            if "class Test" in content:
+                patterns_found["class_based_tests"] += 1
 
         print("📈 Test pattern usage:")
         for pattern, count in patterns_found.items():

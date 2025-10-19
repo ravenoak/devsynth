@@ -59,10 +59,12 @@ def run(argv: list[str] | None = None) -> dict[str, str]:
     args = parser.parse_args(argv)
 
     # Ensure environment variables are available for validation
-    os.environ['DEVSYNTH_VERSION'] = args.version
-    os.environ['DEVSYNTH_ENV'] = args.env
+    os.environ["DEVSYNTH_VERSION"] = args.version
+    os.environ["DEVSYNTH_ENV"] = args.env
 
-    print(f"[security_audit] Environment: DEVSYNTH_VERSION={os.environ.get('DEVSYNTH_VERSION', 'NOT_SET')}, DEVSYNTH_ENV={os.environ.get('DEVSYNTH_ENV', 'NOT_SET')}")
+    print(
+        f"[security_audit] Environment: DEVSYNTH_VERSION={os.environ.get('DEVSYNTH_VERSION', 'NOT_SET')}, DEVSYNTH_ENV={os.environ.get('DEVSYNTH_ENV', 'NOT_SET')}"
+    )
     require_pre_deploy_checks()
     if verify_security_policy.main() != 0:
         raise subprocess.CalledProcessError(1, "verify_security_policy")

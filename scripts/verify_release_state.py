@@ -57,6 +57,7 @@ def audit_is_clean() -> bool:
 
     # For alpha releases, allow unresolved questions
     import os
+
     version = os.environ.get("DEVSYNTH_VERSION", "")
     is_alpha_release = "0.1.0a1" in version
 

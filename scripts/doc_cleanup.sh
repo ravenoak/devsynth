@@ -33,7 +33,7 @@ find_inconsistent_dates() {
   for file in $(find $DOCS_DIR -name "*.md"); do
     last_reviewed=$(grep "last_reviewed:" $file | sed 's/.*last_reviewed: "\(.*\)".*/\1/')
     last_updated=$(grep -i "Last updated:" $file | sed 's/.*Last updated: \(.*\)/\1/')
-    
+
     if [ -n "$last_reviewed" ] && [ -n "$last_updated" ]; then
       if [ "$last_reviewed" != "$last_updated" ]; then
         echo "$file: last_reviewed=$last_reviewed, last_updated=$last_updated"
@@ -68,16 +68,16 @@ remove_implementation_status() {
     for file in $(grep -l "## Implementation Status" --include="*.md" $DOCS_DIR); do
       # Create a temporary file
       tmp_file=$(mktemp)
-      
+
       # Remove the Implementation Status section and everything after it
       sed '/## Implementation Status/,$d' $file > $tmp_file
-      
+
       # Add a newline at the end if needed
       echo "" >> $tmp_file
-      
+
       # Replace the original file with the modified content
       mv $tmp_file $file
-      
+
       echo "Updated: $file"
     done
   fi
@@ -99,7 +99,7 @@ update_last_updated() {
       if grep -q -i "Last updated:" $file; then
         last_reviewed=$(grep "last_reviewed:" $file | sed 's/.*last_reviewed: "\(.*\)".*/\1/')
         formatted_date=$(date -j -f "%Y-%m-%d" "$last_reviewed" "+%B %-d, %Y" 2>/dev/null)
-        
+
         if [ -n "$formatted_date" ]; then
           sed -i '' "s/_Last updated:.*/_Last updated: $formatted_date/" $file
           echo "Updated: $file"

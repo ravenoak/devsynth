@@ -58,11 +58,11 @@ The script has been tested on multiple files with different docstring patterns a
 def my_function(param1, param2):
     """
     This is a function description.
-    
+
     Args:
         param1: Description of param1
         param2: Description of param2
-        
+
     Returns:
         Description of return value
     """
@@ -75,14 +75,14 @@ def my_function(param1, param2):
 def my_function(param1, param2):
     """
     This is a function description.
-    
+
     Parameters
     ----------
     param1 : object
         Description of param1
     param2 : object
         Description of param2
-        
+
     Returns
     -------
     Description of return value

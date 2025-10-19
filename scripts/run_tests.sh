@@ -58,7 +58,7 @@ fi
 run_parallel_tests() {
   local test_path=$1
   local markers=$2
-  
+
   if [ -n "$markers" ]; then
     echo "Running tests in $test_path with markers: $markers"
     python -m pytest $test_path -m "$markers" -xvs $VERBOSE_FLAG $COVERAGE_FLAG -n $PARALLEL
@@ -71,7 +71,7 @@ run_parallel_tests() {
 # Function to run tests that require isolation
 run_isolation_tests() {
   local test_path=$1
-  
+
   echo "Running isolation tests in $test_path"
   python -m pytest $test_path -m "isolation" $VERBOSE_FLAG $COVERAGE_FLAG
 }
@@ -85,48 +85,48 @@ case $CATEGORY in
     # Run isolation tests sequentially
     run_isolation_tests "tests/"
     ;;
-    
+
   unit)
     echo "Running unit tests with parallelism ($PARALLEL processes)"
     run_parallel_tests "tests/unit/" "$MARKERS"
     ;;
-    
+
   integration)
     echo "Running integration tests with parallelism ($PARALLEL processes)"
     run_parallel_tests "tests/integration/" "$MARKERS"
     ;;
-    
+
   behavior)
     echo "Running behavior tests with parallelism ($PARALLEL processes)"
     run_parallel_tests "tests/behavior/" "$MARKERS"
     ;;
-    
+
   performance)
     echo "Running performance tests"
     # Performance tests are run sequentially to avoid interference
     python -m pytest tests/performance/ $VERBOSE_FLAG $COVERAGE_FLAG
     ;;
-    
+
   property)
     echo "Running property tests with parallelism ($PARALLEL processes)"
     run_parallel_tests "tests/property/" "$MARKERS"
     ;;
-    
+
   fast)
     echo "Running fast tests with parallelism ($PARALLEL processes)"
     run_parallel_tests "tests/" "fast and $MARKERS"
     ;;
-    
+
   medium)
     echo "Running medium tests with parallelism ($PARALLEL processes)"
     run_parallel_tests "tests/" "medium and $MARKERS"
     ;;
-    
+
   slow)
     echo "Running slow tests with parallelism ($PARALLEL processes)"
     run_parallel_tests "tests/" "slow and $MARKERS"
     ;;
-    
+
   *)
     echo "Unknown category: $CATEGORY"
     echo "Available categories: all, unit, integration, behavior, performance, property, fast, medium, slow"
