@@ -122,7 +122,7 @@ src/devsynth/application/edrr/wsde_specialized_agents.py:267
     class TestWriterAgent(BaseWSDESpecialist):
 
 tests/integration/general/test_error_handling_at_integration_points.py:15
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_error_handling_at_integration_points.py:15: PytestDeprecationWarning: 
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_error_handling_at_integration_points.py:15: PytestDeprecationWarning:
   Module 'lmstudio' was found, but when imported by pytest it raised:
       ImportError("cannot import name 'ASGITransport' from 'httpx' (unknown location)")
   In pytest 9.1 this warning will become an error by default.
@@ -131,7 +131,7 @@ tests/integration/general/test_error_handling_at_integration_points.py:15
     pytest.importorskip("lmstudio")
 
 tests/integration/general/test_provider_system.py:15
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_provider_system.py:15: PytestDeprecationWarning: 
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_provider_system.py:15: PytestDeprecationWarning:
   Module 'lmstudio' was found, but when imported by pytest it raised:
       ImportError("cannot import name 'ASGITransport' from 'httpx' (unknown location)")
   In pytest 9.1 this warning will become an error by default.
@@ -140,7 +140,7 @@ tests/integration/general/test_provider_system.py:15
     pytest.importorskip("lmstudio")
 
 tests/integration/general/test_provider_system_configurations.py:14
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_provider_system_configurations.py:14: PytestDeprecationWarning: 
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/integration/general/test_provider_system_configurations.py:14: PytestDeprecationWarning:
   Module 'lmstudio' was found, but when imported by pytest it raised:
       ImportError("cannot import name 'ASGITransport' from 'httpx' (unknown location)")
   In pytest 9.1 this warning will become an error by default.
@@ -153,7 +153,7 @@ tests/integration/llm/test_critical_llm_workflows.py:21
     class TestGenerator:
 
 tests/unit/adapters/test_chromadb_memory_store.py:19
-  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/adapters/test_chromadb_memory_store.py:19: PytestDeprecationWarning: 
+  /Users/caitlyn/Projects/github.com/ravenoak/devsynth/tests/unit/adapters/test_chromadb_memory_store.py:19: PytestDeprecationWarning:
   Module 'devsynth.adapters.chromadb_memory_store' was found, but when imported by pytest it raised:
       ImportError("ChromaDBMemoryStore requires the 'chromadb' package. Install it with 'pip install chromadb' or use the dev extras.")
   In pytest 9.1 this warning will become an error by default.

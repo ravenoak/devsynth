@@ -28,4 +28,3 @@ Retention and commit policy
 
 Migration notes
 - Existing top-level research artefacts (e.g., MVUU overlay files) should be grouped under `artifacts/research/` in a follow-up change to improve discoverability.
-
