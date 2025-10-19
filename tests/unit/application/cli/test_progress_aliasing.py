@@ -1,6 +1,7 @@
 """Unit tests for ProgressIndicator aliasing and import order."""
 
 import importlib
+
 import pytest
 
 from devsynth.application.cli.long_running_progress import (
@@ -24,7 +25,7 @@ class TestProgressIndicatorAliasing:
     def test_progress_indicator_base_available_at_import_time(self):
         """Test that _ProgressIndicatorBase is available immediately after import."""
         # This should not raise NameError
-        assert hasattr(LongRunningProgressIndicator, '__bases__')
+        assert hasattr(LongRunningProgressIndicator, "__bases__")
         assert _ProgressIndicatorBase in LongRunningProgressIndicator.__bases__
 
     def test_progress_indicator_protocol_exists(self):
@@ -32,8 +33,8 @@ class TestProgressIndicatorAliasing:
         # The protocol should be a runtime-checkable Protocol class
         assert _ProgressIndicatorProtocol is not None
         # It should have the expected methods
-        assert hasattr(_ProgressIndicatorProtocol, 'update')
-        assert hasattr(_ProgressIndicatorProtocol, 'complete')
+        assert hasattr(_ProgressIndicatorProtocol, "update")
+        assert hasattr(_ProgressIndicatorProtocol, "complete")
 
     def test_long_running_progress_indicator_inherits_correctly(self):
         """Test that LongRunningProgressIndicator inherits from the correct base."""
@@ -74,12 +75,12 @@ class TestProgressIndicatorAliasing:
         # Note: LongRunningProgressIndicator requires console, description, and total args
         # We can't easily instantiate it without proper setup, but we can verify the class exists
         assert LongRunningProgressIndicator is not None
-        assert hasattr(LongRunningProgressIndicator, '__init__')
+        assert hasattr(LongRunningProgressIndicator, "__init__")
 
     def test_progress_indicator_base_has_expected_methods(self):
         """Test that _ProgressIndicatorBase has the expected interface."""
         # Should have the methods from ProgressIndicator protocol
-        expected_methods = ['update', 'complete']
+        expected_methods = ["update", "complete"]
         for method in expected_methods:
             assert hasattr(_ProgressIndicatorBase, method)
 
@@ -89,7 +90,9 @@ class TestProgressIndicatorAliasing:
     def test_deterministic_tests_can_import_base(self):
         """Test that deterministic tests can import _ProgressIndicatorBase."""
         # This simulates what the deterministic progress tests do
-        from devsynth.application.cli.long_running_progress import _ProgressIndicatorBase as imported_base
+        from devsynth.application.cli.long_running_progress import (
+            _ProgressIndicatorBase as imported_base,
+        )
 
         assert imported_base is ProgressIndicator
         assert issubclass(LongRunningProgressIndicator, imported_base)

@@ -35,11 +35,14 @@ def test_atomic_rewrite_enabled_dry_run_succeeds(monkeypatch, tmp_path):
     # Enable the feature flag via monkeypatch
     from devsynth.application.cli.commands import atomic_rewrite_cmd
 
-    monkeypatch.setattr(atomic_rewrite_cmd, "is_enabled", lambda name: name == "atomic_rewrite")
+    monkeypatch.setattr(
+        atomic_rewrite_cmd, "is_enabled", lambda name: name == "atomic_rewrite"
+    )
 
     # Mock the git import to avoid needing a real git repository
-    import devsynth.core.mvu.atomic_rewrite as ar
     import importlib
+
+    import devsynth.core.mvu.atomic_rewrite as ar
 
     class DummyRepo:
         def __init__(self, wd):
@@ -55,6 +58,7 @@ def test_atomic_rewrite_enabled_dry_run_succeeds(monkeypatch, tmp_path):
         if name == "git":
             # Create a mock git module with a Repo class
             import types
+
             git_mock = types.ModuleType("git")
             git_mock.Repo = lambda path: DummyRepo(path)
             return git_mock

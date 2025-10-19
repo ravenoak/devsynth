@@ -11,24 +11,21 @@ from __future__ import annotations
 
 import os
 import shlex
-import sys
 
 import typer
 
 # Ensure sitecustomize is loaded for Python 3.12+ compatibility patches
-if sys.version_info >= (3, 12):
-    import sitecustomize  # noqa: F401
-
+import sitecustomize  # noqa: F401
 from devsynth.config.provider_env import ProviderEnv
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.observability.metrics import increment_counter
+
 # Import run_tests functions with explicit assignment to ensure they're available
 from devsynth.testing.run_tests import (
     COVERAGE_HTML_DIR,
     COVERAGE_JSON_PATH,
-    DEFAULT_COVERAGE_THRESHOLD,
     PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE,
     PYTEST_COV_PLUGIN_MISSING_MESSAGE,
     _coverage_threshold,
@@ -250,8 +247,14 @@ def run_tests_cmd(
     inventory = bool(inventory)
 
     # Extract actual values from OptionInfo objects
-    actual_speeds = speeds.default if speeds is not None and hasattr(speeds, 'default') else speeds
-    actual_features = features.default if features is not None and hasattr(features, 'default') else features
+    actual_speeds = (
+        speeds.default if speeds is not None and hasattr(speeds, "default") else speeds
+    )
+    actual_features = (
+        features.default
+        if features is not None and hasattr(features, "default")
+        else features
+    )
 
     normalized_speed_inputs = list(actual_speeds or [])
     normalized_feature_inputs = list(actual_features or [])
@@ -342,7 +345,9 @@ def run_tests_cmd(
         if "-p" not in tokens or "no:xdist" not in " ".join(tokens):
             addopts_value = ("-p no:xdist " + addopts_value).strip()
         # When plugin autoloading is disabled, explicitly load pytest-cov so coverage artifacts can be produced
-        if os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1" and not _addopts_has_plugin(tokens, "pytest_cov"):
+        if os.environ.get(
+            "PYTEST_DISABLE_PLUGIN_AUTOLOAD"
+        ) == "1" and not _addopts_has_plugin(tokens, "pytest_cov"):
             addopts_value = ("-p pytest_cov " + addopts_value).strip()
             tokens = _parse_pytest_addopts(addopts_value)
         # Ensure the coverage gate doesn't fail smoke runs while still producing artifacts
@@ -382,7 +387,9 @@ def run_tests_cmd(
     if smoke:
         existing_addopts = os.environ.get("PYTEST_ADDOPTS", "")
         if "--cov-fail-under" not in existing_addopts:
-            os.environ["PYTEST_ADDOPTS"] = (existing_addopts + " --cov-fail-under=0").strip()
+            os.environ["PYTEST_ADDOPTS"] = (
+                existing_addopts + " --cov-fail-under=0"
+            ).strip()
 
     if coverage_plugin_injected:
         message = "[cyan]-p pytest_cov appended to PYTEST_ADDOPTS because plugin autoloading is disabled[/cyan]"
@@ -546,8 +553,8 @@ def run_tests_cmd(
             else:
                 ux_bridge.print(
                     (
-                    "[green]Coverage {:.2f}% meets the {:.0f}% threshold[/green]"
-                ).format(coverage_percent, _coverage_threshold())
+                        "[green]Coverage {:.2f}% meets the {:.0f}% threshold[/green]"
+                    ).format(coverage_percent, _coverage_threshold())
                 )
                 _emit_coverage_artifact_messages(ux_bridge)
     else:

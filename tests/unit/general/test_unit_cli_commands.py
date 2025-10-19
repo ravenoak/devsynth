@@ -62,10 +62,13 @@ class TestCLICommands:
         cfg.config = MagicMock()
         cfg.config.project_root = "/proj"
 
-        with patch(
-            "devsynth.config.unified_loader.UnifiedConfigLoader.load",
-            return_value=cfg,
-        ), patch("pathlib.Path.mkdir"):  # Mock mkdir to avoid filesystem issues
+        with (
+            patch(
+                "devsynth.config.unified_loader.UnifiedConfigLoader.load",
+                return_value=cfg,
+            ),
+            patch("pathlib.Path.mkdir"),
+        ):  # Mock mkdir to avoid filesystem issues
             init_cmd(
                 root="/proj",
                 language="python",
@@ -91,28 +94,37 @@ class TestCLICommands:
         cfg.exists.return_value = True
 
         # Mock _find_config_path to return a path so init_cmd thinks project is initialized
-        with patch(
-            "devsynth.config.unified_loader.UnifiedConfigLoader.load", return_value=cfg
-        ), patch(
-            "devsynth.application.cli.commands.init_cmd._find_config_path",
-            return_value=Path("/tmp/test/.devsynth/project.yaml")
+        with (
+            patch(
+                "devsynth.config.unified_loader.UnifiedConfigLoader.load",
+                return_value=cfg,
+            ),
+            patch(
+                "devsynth.application.cli.commands.init_cmd._find_config_path",
+                return_value=Path("/tmp/test/.devsynth/project.yaml"),
+            ),
         ):
             init_cmd(root="/tmp/test", bridge=mock_bridge)
         mock_bridge.display_result.assert_any_call(
             "[yellow]Project already initialized at /tmp/test/.devsynth/project.yaml[/yellow]",
-            message_type="warning"
+            message_type="warning",
         )
 
-    @pytest.mark.xfail(reason="CLI error handling uses console.print() instead of display_result()")
+    @pytest.mark.xfail(
+        reason="CLI error handling uses console.print() instead of display_result()"
+    )
     @pytest.mark.medium
     def test_init_cmd_exception_raises_error(self, mock_bridge):
         """Errors are reported via the bridge.
 
         ReqID: N/A"""
-        with patch(
-            "devsynth.config.unified_loader.UnifiedConfigLoader.load",
-            side_effect=Exception("boom"),
-        ), patch("pathlib.Path.mkdir"):  # Mock mkdir to avoid filesystem issues
+        with (
+            patch(
+                "devsynth.config.unified_loader.UnifiedConfigLoader.load",
+                side_effect=Exception("boom"),
+            ),
+            patch("pathlib.Path.mkdir"),
+        ):  # Mock mkdir to avoid filesystem issues
             init_cmd(root="/tmp/test", bridge=mock_bridge)
         assert any(
             "boom" in c.args[0] for c in mock_bridge.display_result.call_args_list

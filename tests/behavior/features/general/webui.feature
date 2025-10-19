@@ -79,4 +79,3 @@ Feature: Streamlit WebUI Navigation
     When I navigate to "API Spec"
     And I submit the api spec form
     Then the apispec command should be executed
-

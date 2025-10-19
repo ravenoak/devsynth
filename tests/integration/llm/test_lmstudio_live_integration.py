@@ -9,8 +9,8 @@ import os
 import time
 from typing import Dict, List
 
-import pytest
 import httpx
+import pytest
 
 from devsynth.application.llm.providers import LMStudioProvider
 from devsynth.exceptions import DevSynthError
@@ -58,7 +58,9 @@ class TestLMStudioLiveIntegration:
         for model in models:
             assert "id" in model, f"Model missing 'id' field: {model}"
             assert "object" in model, f"Model missing 'object' field: {model}"
-            assert model["object"] == "model", f"Invalid model object type: {model['object']}"
+            assert (
+                model["object"] == "model"
+            ), f"Invalid model object type: {model['object']}"
 
     @pytest.mark.slow
     def test_basic_generation_with_auto_model(self, provider: LMStudioProvider):
@@ -102,19 +104,24 @@ class TestLMStudioLiveIntegration:
 
             try:
                 context = [
-                    {"role": "system", "content": "You are a helpful coding assistant."},
+                    {
+                        "role": "system",
+                        "content": "You are a helpful coding assistant.",
+                    },
                     {"role": "user", "content": "What is recursion in programming?"},
                 ]
 
                 response = provider.generate_with_context(
-                    "Explain it in simple terms.",
-                    context
+                    "Explain it in simple terms.", context
                 )
 
                 assert isinstance(response, str)
                 assert len(response) > 0
                 # Should mention programming concepts
-                assert any(term in response.lower() for term in ["function", "call", "itself", "recursive"])
+                assert any(
+                    term in response.lower()
+                    for term in ["function", "call", "itself", "recursive"]
+                )
 
                 tested_models.append(model["id"])
 
@@ -139,8 +146,7 @@ class TestLMStudioLiveIntegration:
         # Test different temperatures
         for temp in [0.1, 0.5, 0.9, 1.5]:
             response = provider.generate(
-                "Write a creative sentence.",
-                parameters={"temperature": temp}
+                "Write a creative sentence.", parameters={"temperature": temp}
             )
             assert isinstance(response, str)
             assert len(response) > 0
@@ -148,8 +154,7 @@ class TestLMStudioLiveIntegration:
         # Test different max_tokens
         for max_tokens in [50, 100, 200]:
             response = provider.generate(
-                "Write a short story.",
-                parameters={"max_tokens": max_tokens}
+                "Write a short story.", parameters={"max_tokens": max_tokens}
             )
             assert isinstance(response, str)
             assert len(response) > 0
@@ -184,8 +189,12 @@ class TestLMStudioLiveIntegration:
                 }
 
                 # Basic performance assertions
-                assert avg_response_time < 15.0, f"{model['id']} response time too slow: {avg_response_time}s"
-                assert avg_response_time > 0.01, f"{model['id']} response time suspiciously fast: {avg_response_time}s"
+                assert (
+                    avg_response_time < 15.0
+                ), f"{model['id']} response time too slow: {avg_response_time}s"
+                assert (
+                    avg_response_time > 0.01
+                ), f"{model['id']} response time suspiciously fast: {avg_response_time}s"
 
             except DevSynthError as e:
                 # Skip models that might not work for performance testing
@@ -194,7 +203,9 @@ class TestLMStudioLiveIntegration:
                 raise
 
         # Should have tested at least one model
-        assert len(performance_results) > 0, "No models available for performance testing"
+        assert (
+            len(performance_results) > 0
+        ), "No models available for performance testing"
 
         # Log performance results for analysis
         for model_id, results in performance_results.items():
@@ -219,7 +230,7 @@ class TestLMStudioLiveIntegration:
         assert len(response) > 0
 
         # Verify token tracker is working (basic check)
-        assert hasattr(provider, 'token_tracker')
+        assert hasattr(provider, "token_tracker")
         assert provider.token_tracker is not None
 
     @pytest.mark.slow
@@ -324,7 +335,9 @@ class TestLMStudioLiveIntegration:
             context.append({"role": "assistant", "content": f"Answer {i} about AI"})
 
         # Add a final question
-        final_response = provider.generate_with_context("What is the future of AI?", context)
+        final_response = provider.generate_with_context(
+            "What is the future of AI?", context
+        )
 
         assert isinstance(final_response, str)
         assert len(final_response) > 0
@@ -342,7 +355,9 @@ class TestLMStudioLiveIntegration:
             provider.model = model["id"]
 
             try:
-                response = provider.generate("Explain machine learning in simple terms.")
+                response = provider.generate(
+                    "Explain machine learning in simple terms."
+                )
 
                 # Basic quality metrics
                 quality_score = 0
@@ -353,7 +368,10 @@ class TestLMStudioLiveIntegration:
 
                 # Relevance check (should contain relevant terms)
                 response_lower = response.lower()
-                if any(term in response_lower for term in ["machine", "learning", "ai", "algorithm"]):
+                if any(
+                    term in response_lower
+                    for term in ["machine", "learning", "ai", "algorithm"]
+                ):
                     quality_score += 1
 
                 # Coherence check (shouldn't contain obvious errors)
@@ -369,7 +387,11 @@ class TestLMStudioLiveIntegration:
                 raise
 
         # Should have tested at least one model
-        tested_models = [model_id for model_id in quality_scores.keys() if quality_scores[model_id] > 0]
+        tested_models = [
+            model_id
+            for model_id in quality_scores.keys()
+            if quality_scores[model_id] > 0
+        ]
         assert len(tested_models) > 0, "No models available for quality testing"
 
         # All tested models should achieve reasonable quality scores
@@ -474,7 +496,7 @@ class TestLMStudioIntegrationEdgeCases:
         # Test with very short timeout
         config = {
             "base_url": "http://localhost:1234/v1",
-            "timeout": 0.001  # Very short timeout
+            "timeout": 0.001,  # Very short timeout
         }
         provider = LMStudioProvider(config)
 
@@ -536,13 +558,15 @@ class TestLMStudioIntegrationPerformance:
                 max_latency = max(latencies)
                 min_latency = min(latencies)
 
-                latency_results.append({
-                    "model": model["id"],
-                    "avg": avg_latency,
-                    "max": max_latency,
-                    "min": min_latency,
-                    "samples": latencies,
-                })
+                latency_results.append(
+                    {
+                        "model": model["id"],
+                        "avg": avg_latency,
+                        "max": max_latency,
+                        "min": min_latency,
+                        "samples": latencies,
+                    }
+                )
 
             except DevSynthError as e:
                 # Skip models that might not work for latency testing
@@ -555,19 +579,27 @@ class TestLMStudioIntegrationPerformance:
 
         # Log results for analysis
         for results in latency_results:
-            print(f"{results['model']} latency: avg={results['avg']:.2f}s, "
-                  f"min={results['min']:.2f}s, max={results['max']:.2f}s")
+            print(
+                f"{results['model']} latency: avg={results['avg']:.2f}s, "
+                f"min={results['min']:.2f}s, max={results['max']:.2f}s"
+            )
 
         # Performance assertions
         for results in latency_results:
             # Average should be reasonable (< 10s for local models)
-            assert results["avg"] < 10.0, f"{results['model']} average latency too high: {results['avg']}s"
+            assert (
+                results["avg"] < 10.0
+            ), f"{results['model']} average latency too high: {results['avg']}s"
 
             # Maximum should be acceptable (< 20s)
-            assert results["max"] < 20.0, f"{results['model']} max latency too high: {results['max']}s"
+            assert (
+                results["max"] < 20.0
+            ), f"{results['model']} max latency too high: {results['max']}s"
 
             # Should have reasonable consistency
-            assert results["max"] < results["avg"] * 3, f"{results['model']} latency too variable"
+            assert (
+                results["max"] < results["avg"] * 3
+            ), f"{results['model']} latency too variable"
 
     @pytest.mark.slow
     def test_throughput_measurement(self, lmstudio_available: bool):
@@ -605,8 +637,12 @@ class TestLMStudioIntegrationPerformance:
         elapsed = time.time() - start_time
         requests_per_second = request_count / elapsed if elapsed > 0 else 0
 
-        print(f"Throughput: {requests_per_second:.2f} requests/second ({request_count} requests in {elapsed:.2f}s)")
+        print(
+            f"Throughput: {requests_per_second:.2f} requests/second ({request_count} requests in {elapsed:.2f}s)"
+        )
 
         # Should achieve reasonable throughput (> 1 request per 10 seconds)
         assert request_count > 0, "No requests completed"
-        assert requests_per_second > 0.1, f"Throughput too low: {requests_per_second} req/s"
+        assert (
+            requests_per_second > 0.1
+        ), f"Throughput too low: {requests_per_second} req/s"

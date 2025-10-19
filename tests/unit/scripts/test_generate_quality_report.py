@@ -59,7 +59,7 @@ class TestQualityReportGenerator:
         @given(st.integers())
         def test_something(x):
             pass
-            
+
         @given(st.text())
         def test_another(s):
             pass

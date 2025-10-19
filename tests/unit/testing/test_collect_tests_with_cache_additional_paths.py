@@ -43,7 +43,15 @@ def test_collect_tests_with_cache_respects_ttl_expiry(
 
     calls: list[list[str]] = []
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         calls.append(cmd)
         return SimpleNamespace(
             returncode=0,
@@ -95,7 +103,15 @@ def test_collect_tests_with_cache_regenerates_on_fingerprint_mismatch(
 
     calls: list[list[str]] = []
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         calls.append(cmd)
         return SimpleNamespace(
             returncode=0,
@@ -148,7 +164,15 @@ def test_collect_tests_with_cache_falls_back_to_cache_when_collection_empty(
 
     calls: list[list[str]] = []
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         calls.append(cmd)
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
@@ -192,7 +216,15 @@ def test_collect_tests_with_cache_synthesizes_and_caches_node_ids(
     cache_dir = tmp_path / ".cache_synth"
     monkeypatch.setattr(rt, "COLLECTION_CACHE_DIR", str(cache_dir))
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr(rt.subprocess, "run", fake_run)

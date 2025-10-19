@@ -14,14 +14,14 @@ import os
 import sys
 
 # Set environment variables BEFORE any DevSynth imports
-os.environ['DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE'] = 'true'
-os.environ['LM_STUDIO_ENDPOINT'] = 'http://127.0.0.1:1234'
+os.environ["DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE"] = "true"
+os.environ["LM_STUDIO_ENDPOINT"] = "http://127.0.0.1:1234"
 
 import tempfile
 from pathlib import Path
 
 # Add the DevSynth source to the path
-sys.path.insert(0, '/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src')
+sys.path.insert(0, "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src")
 
 
 def test_lmstudio_provider_import():
@@ -31,7 +31,12 @@ def test_lmstudio_provider_import():
     print("=" * 50)
 
     try:
-        from devsynth.application.llm.lmstudio_provider import LMStudioProvider, LMStudioConnectionError, LMStudioModelError
+        from devsynth.application.llm.lmstudio_provider import (
+            LMStudioConnectionError,
+            LMStudioModelError,
+            LMStudioProvider,
+        )
+
         print("✅ LM Studio provider imported successfully")
 
         # Check that the classes exist
@@ -63,7 +68,7 @@ def test_lmstudio_provider_registration():
 
         print(f"📋 Available provider types: {list(provider_types.keys())}")
 
-        if 'lmstudio' in provider_types:
+        if "lmstudio" in provider_types:
             print("✅ LM Studio provider is registered in factory")
             return True
         else:
@@ -71,7 +76,10 @@ def test_lmstudio_provider_registration():
 
             # Let's debug why it's not registered
             try:
-                from devsynth.application.llm.lmstudio_provider import LMStudioProvider as LMP
+                from devsynth.application.llm.lmstudio_provider import (
+                    LMStudioProvider as LMP,
+                )
+
                 print(f"✅ LMStudioProvider class is available: {LMP}")
                 if LMP is None:
                     print("❌ LMStudioProvider is None (import failed)")
@@ -85,6 +93,7 @@ def test_lmstudio_provider_registration():
     except Exception as e:
         print(f"❌ Error testing provider registration: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -99,17 +108,19 @@ def test_lmstudio_provider_initialization():
         from devsynth.application.llm.lmstudio_provider import LMStudioProvider
 
         # Initialize provider with real LM Studio (be patient with timeouts)
-        provider = LMStudioProvider({
-            'api_base': 'http://127.0.0.1:1234',
-            'auto_select_model': True,
-            'call_timeout': 60.0,  # Longer timeout for LM Studio on limited machine
-            'max_retries': 2
-        })
+        provider = LMStudioProvider(
+            {
+                "api_base": "http://127.0.0.1:1234",
+                "auto_select_model": True,
+                "call_timeout": 60.0,  # Longer timeout for LM Studio on limited machine
+                "max_retries": 2,
+            }
+        )
 
         print("✅ LM Studio provider initialized successfully")
 
         # Test basic properties
-        assert provider.api_base == 'http://127.0.0.1:1234'
+        assert provider.api_base == "http://127.0.0.1:1234"
         print("✅ Provider API base set correctly")
 
         # Test model listing (this will use real LM Studio)
@@ -118,7 +129,7 @@ def test_lmstudio_provider_initialization():
             if models:
                 print(f"✅ Found {len(models)} available models")
                 # Use the first available model for testing
-                first_model = models[0]['id']
+                first_model = models[0]["id"]
                 print(f"✅ Using model: {first_model}")
 
                 # Update provider to use specific model
@@ -138,9 +149,9 @@ def test_lmstudio_provider_initialization():
     except Exception as e:
         print(f"❌ Error initializing LM Studio provider: {e}")
         import traceback
+
         traceback.print_exc()
         return False
-
 
 
 def test_configuration_loading():
@@ -155,10 +166,10 @@ def test_configuration_loading():
 
         # Set up environment variables
         env_vars = {
-            'DEVSYNTH_CONFIG_FILE': '/tmp/devsynth_lmstudio_test/lmstudio_config.yml',
-            'DEVSYNTH_MEMORY_PATH': str(temp_path / 'memory'),
-            'DEVSYNTH_CHROMADB_PATH': str(temp_path / 'chromadb'),
-            'DEVSYNTH_KUZU_PATH': str(temp_path / 'kuzu'),
+            "DEVSYNTH_CONFIG_FILE": "/tmp/devsynth_lmstudio_test/lmstudio_config.yml",
+            "DEVSYNTH_MEMORY_PATH": str(temp_path / "memory"),
+            "DEVSYNTH_CHROMADB_PATH": str(temp_path / "chromadb"),
+            "DEVSYNTH_KUZU_PATH": str(temp_path / "kuzu"),
         }
 
         # Apply environment variables
@@ -170,17 +181,21 @@ def test_configuration_loading():
         try:
             # Test configuration loading
             from devsynth.config.settings import get_settings
+
             settings = get_settings()
 
             # Verify LM Studio is configured as default provider
             llm_provider = settings["llm_provider"]
-            assert llm_provider == 'lmstudio', f"Expected lmstudio, got {llm_provider}"
+            assert llm_provider == "lmstudio", f"Expected lmstudio, got {llm_provider}"
             print("✅ LM Studio configured as default provider")
 
             # Test getting LLM settings
             from devsynth.config import get_llm_settings
+
             llm_settings = get_llm_settings()
-            assert llm_settings["provider"] == 'lmstudio', f"Expected lmstudio, got {llm_settings['provider']}"
+            assert (
+                llm_settings["provider"] == "lmstudio"
+            ), f"Expected lmstudio, got {llm_settings['provider']}"
             print("✅ LM Studio LLM settings loaded correctly")
 
             return True
@@ -188,9 +203,9 @@ def test_configuration_loading():
         except Exception as e:
             print(f"❌ Error loading configuration: {e}")
             import traceback
+
             traceback.print_exc()
             return False
-
 
 
 def test_lmstudio_health_check():
@@ -203,11 +218,13 @@ def test_lmstudio_health_check():
         from devsynth.application.llm.lmstudio_provider import LMStudioProvider
 
         # Initialize provider for health check
-        provider = LMStudioProvider({
-            'api_base': 'http://127.0.0.1:1234',
-            'call_timeout': 30.0,  # Longer timeout for health check
-            'max_retries': 2
-        })
+        provider = LMStudioProvider(
+            {
+                "api_base": "http://127.0.0.1:1234",
+                "call_timeout": 30.0,  # Longer timeout for health check
+                "max_retries": 2,
+            }
+        )
 
         # Test health check with real LM Studio
         print("🔍 Checking LM Studio health (this may take a moment)...")
@@ -227,9 +244,9 @@ def test_lmstudio_health_check():
         print(f"❌ Error testing health check: {e}")
         print("   This may be normal if LM Studio is temporarily unavailable")
         import traceback
+
         traceback.print_exc()
         return True  # Don't fail the test for health check issues
-
 
 
 if __name__ == "__main__":

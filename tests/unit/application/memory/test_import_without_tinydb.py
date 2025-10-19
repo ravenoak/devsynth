@@ -12,6 +12,7 @@ def test_import_memory_with_tinydb_available_succeeds():
     ReqID: N/A"""
     try:
         import tinydb
+
         tinydb_available = True
     except ImportError:
         tinydb_available = False

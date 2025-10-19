@@ -10,8 +10,8 @@ from typing import Any
 import pytest
 from typer.testing import CliRunner
 
-from devsynth.adapters.cli.typer_adapter import build_app
 from devsynth.adapters.cli import typer_adapter as module
+from devsynth.adapters.cli.typer_adapter import build_app
 
 
 class StubBridge:
@@ -54,7 +54,9 @@ def _no_progress(_: str, task_fn: Callable[[], Any], __: Any, *, total: int = 1)
     return task_fn()
 
 
-@pytest.mark.xfail(reason="CLI architecture changed - bridge is now passed as parameter, not module attribute")
+@pytest.mark.xfail(
+    reason="CLI architecture changed - bridge is now passed as parameter, not module attribute"
+)
 @pytest.mark.medium
 def test_cli_completion_rejects_invalid_shell(monkeypatch) -> None:
     """Invalid shells surface actionable messages (run_tests via Typer)."""
@@ -70,7 +72,9 @@ def test_cli_completion_rejects_invalid_shell(monkeypatch) -> None:
     assert "Shell bogus not supported" in result.stderr
 
 
-@pytest.mark.xfail(reason="CLI architecture changed - bridge is now passed as parameter, not module attribute")
+@pytest.mark.xfail(
+    reason="CLI architecture changed - bridge is now passed as parameter, not module attribute"
+)
 @pytest.mark.medium
 def test_cli_completion_detects_shell_when_unspecified(monkeypatch, tmp_path) -> None:
     """Shell auto-detection and script echo follow completion_cmd.py flow."""
@@ -82,7 +86,11 @@ def test_cli_completion_detects_shell_when_unspecified(monkeypatch, tmp_path) ->
 
     # Use the actual fish completion script
     import os
-    script_path = os.path.join(os.path.dirname(__file__), "../../../../../scripts/completions/devsynth-completion.fish")
+
+    script_path = os.path.join(
+        os.path.dirname(__file__),
+        "../../../../../scripts/completions/devsynth-completion.fish",
+    )
     monkeypatch.setattr(
         module,
         "generate_completion_script",
@@ -95,10 +103,15 @@ def test_cli_completion_detects_shell_when_unspecified(monkeypatch, tmp_path) ->
 
     assert result.exit_code == 0
     # Check that some completion script content is generated
-    assert "_devsynth_completion" in result.stdout or "complete -o default" in result.stdout
+    assert (
+        "_devsynth_completion" in result.stdout
+        or "complete -o default" in result.stdout
+    )
 
 
-@pytest.mark.xfail(reason="CLI architecture changed - bridge is now passed as parameter, not module attribute")
+@pytest.mark.xfail(
+    reason="CLI architecture changed - bridge is now passed as parameter, not module attribute"
+)
 @pytest.mark.medium
 def test_cli_completion_reports_generation_errors(monkeypatch) -> None:
     """Filesystem failures during generation bubble up with error context."""
@@ -114,7 +127,9 @@ def test_cli_completion_reports_generation_errors(monkeypatch) -> None:
     assert "Failed to generate completion script" in result.stderr
 
 
-@pytest.mark.xfail(reason="CLI architecture changed - bridge is now passed as parameter, not module attribute")
+@pytest.mark.xfail(
+    reason="CLI architecture changed - bridge is now passed as parameter, not module attribute"
+)
 @pytest.mark.medium
 def test_cli_completion_reports_install_errors(monkeypatch) -> None:
     """Installation path issues emit informative error messaging."""

@@ -13,10 +13,11 @@ Usage:
 """
 
 import os
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 pytestmark = pytest.mark.fast
 
@@ -36,7 +37,7 @@ class TestLMStudioIntegrationRegression:
 
         # Verify that LM Studio provider registration logic exists
         # (even if the actual package isn't installed)
-        assert hasattr(factory, 'register_provider_type')
+        assert hasattr(factory, "register_provider_type")
 
         # The factory should have a mechanism to register providers
         # This test ensures the registration interface works
@@ -59,12 +60,12 @@ class TestLMStudioIntegrationRegression:
         from devsynth.config.settings import get_settings
 
         # Set environment variables for LM Studio
-        original_provider = os.environ.get('DEVSYNTH_LLM_PROVIDER')
-        original_api_base = os.environ.get('DEVSYNTH_LLM_API_BASE')
+        original_provider = os.environ.get("DEVSYNTH_LLM_PROVIDER")
+        original_api_base = os.environ.get("DEVSYNTH_LLM_API_BASE")
 
         try:
-            os.environ['DEVSYNTH_LLM_PROVIDER'] = 'lmstudio'
-            os.environ['DEVSYNTH_LLM_API_BASE'] = 'http://127.0.0.1:1234'
+            os.environ["DEVSYNTH_LLM_PROVIDER"] = "lmstudio"
+            os.environ["DEVSYNTH_LLM_API_BASE"] = "http://127.0.0.1:1234"
 
             settings = get_settings()
 
@@ -72,20 +73,20 @@ class TestLMStudioIntegrationRegression:
             provider = settings["llm_provider"]
             api_base = settings["llm_api_base"]
 
-            assert provider == 'lmstudio'
-            assert api_base == 'http://127.0.0.1:1234'
+            assert provider == "lmstudio"
+            assert api_base == "http://127.0.0.1:1234"
 
         finally:
             # Restore original environment
             if original_provider is not None:
-                os.environ['DEVSYNTH_LLM_PROVIDER'] = original_provider
+                os.environ["DEVSYNTH_LLM_PROVIDER"] = original_provider
             else:
-                os.environ.pop('DEVSYNTH_LLM_PROVIDER', None)
+                os.environ.pop("DEVSYNTH_LLM_PROVIDER", None)
 
             if original_api_base is not None:
-                os.environ['DEVSYNTH_LLM_API_BASE'] = original_api_base
+                os.environ["DEVSYNTH_LLM_API_BASE"] = original_api_base
             else:
-                os.environ.pop('DEVSYNTH_LLM_API_BASE', None)
+                os.environ.pop("DEVSYNTH_LLM_API_BASE", None)
 
     @pytest.mark.fast
     def test_lmstudio_settings_extraction(self):
@@ -93,35 +94,35 @@ class TestLMStudioIntegrationRegression:
 
         ReqID: LMSTUDIO-REG-3
         """
-        from devsynth.config.settings import get_settings, get_llm_settings
+        from devsynth.config.settings import get_llm_settings, get_settings
 
         # Set environment variables for LM Studio
-        original_provider = os.environ.get('DEVSYNTH_LLM_PROVIDER')
-        original_api_base = os.environ.get('DEVSYNTH_LLM_API_BASE')
+        original_provider = os.environ.get("DEVSYNTH_LLM_PROVIDER")
+        original_api_base = os.environ.get("DEVSYNTH_LLM_API_BASE")
 
         try:
-            os.environ['DEVSYNTH_LLM_PROVIDER'] = 'lmstudio'
-            os.environ['DEVSYNTH_LLM_API_BASE'] = 'http://127.0.0.1:1234'
+            os.environ["DEVSYNTH_LLM_PROVIDER"] = "lmstudio"
+            os.environ["DEVSYNTH_LLM_API_BASE"] = "http://127.0.0.1:1234"
 
             # Test settings extraction
             llm_settings = get_llm_settings()
 
-            assert llm_settings["provider"] == 'lmstudio'
-            assert llm_settings["api_base"] == 'http://127.0.0.1:1234'
+            assert llm_settings["provider"] == "lmstudio"
+            assert llm_settings["api_base"] == "http://127.0.0.1:1234"
             assert "max_tokens" in llm_settings
             assert "temperature" in llm_settings
 
         finally:
             # Restore original environment
             if original_provider is not None:
-                os.environ['DEVSYNTH_LLM_PROVIDER'] = original_provider
+                os.environ["DEVSYNTH_LLM_PROVIDER"] = original_provider
             else:
-                os.environ.pop('DEVSYNTH_LLM_PROVIDER', None)
+                os.environ.pop("DEVSYNTH_LLM_PROVIDER", None)
 
             if original_api_base is not None:
-                os.environ['DEVSYNTH_LLM_API_BASE'] = original_api_base
+                os.environ["DEVSYNTH_LLM_API_BASE"] = original_api_base
             else:
-                os.environ.pop('DEVSYNTH_LLM_API_BASE', None)
+                os.environ.pop("DEVSYNTH_LLM_API_BASE", None)
 
     @pytest.mark.fast
     def test_lmstudio_provider_initialization_with_defaults(self):
@@ -138,15 +139,15 @@ class TestLMStudioIntegrationRegression:
 
             # Provider should be initialized even without LM Studio running
             assert provider is not None
-            assert hasattr(provider, 'api_base')
-            assert hasattr(provider, 'model')
-            assert hasattr(provider, 'max_tokens')
+            assert hasattr(provider, "api_base")
+            assert hasattr(provider, "model")
+            assert hasattr(provider, "max_tokens")
 
         except ImportError:
             # If lmstudio package is not available, this is acceptable for regression testing
             pytest.skip("LM Studio package not available")
 
-    @patch('devsynth.application.llm.lmstudio_provider.requests.get')
+    @patch("devsynth.application.llm.lmstudio_provider.requests.get")
     @pytest.mark.fast
     def test_lmstudio_provider_mock_initialization(self, mock_get):
         """Test LM Studio provider with mocked LM Studio service.
@@ -158,27 +159,29 @@ class TestLMStudioIntegrationRegression:
         # Mock the requests response for model listing
         mock_response = MagicMock()
         mock_response.json.return_value = {
-            'data': [
+            "data": [
                 {
-                    'id': 'test-model',
-                    'object': 'model',
-                    'created': 1234567890,
-                    'owned_by': 'test'
+                    "id": "test-model",
+                    "object": "model",
+                    "created": 1234567890,
+                    "owned_by": "test",
                 }
             ]
         }
         mock_get.return_value = mock_response
 
         # Initialize provider
-        provider = LMStudioProvider({
-            'api_base': 'http://127.0.0.1:1234',
-            'auto_select_model': False,
-            'model': 'test-model'  # Explicitly set the model
-        })
+        provider = LMStudioProvider(
+            {
+                "api_base": "http://127.0.0.1:1234",
+                "auto_select_model": False,
+                "model": "test-model",  # Explicitly set the model
+            }
+        )
 
         # Test that provider is properly configured
-        assert provider.api_base == 'http://127.0.0.1:1234'
-        assert provider.model == 'test-model'
+        assert provider.api_base == "http://127.0.0.1:1234"
+        assert provider.model == "test-model"
 
     @pytest.mark.fast
     def test_lmstudio_environment_variable_handling(self):
@@ -191,23 +194,23 @@ class TestLMStudioIntegrationRegression:
         # Test various environment variable combinations
         test_cases = [
             {
-                'env': {'DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE': 'true'},
-                'expected_provider': 'lmstudio',
+                "env": {"DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "true"},
+                "expected_provider": "lmstudio",
             },
             {
-                'env': {'DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE': 'false'},
-                'expected_provider': 'stub',  # Development default
+                "env": {"DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "false"},
+                "expected_provider": "stub",  # Development default
             },
             {
-                'env': {},
-                'expected_provider': 'stub',  # Development default
+                "env": {},
+                "expected_provider": "stub",  # Development default
             },
         ]
 
         for case in test_cases:
             # Set environment variables
             original_vars = {}
-            for key, value in case['env'].items():
+            for key, value in case["env"].items():
                 original_vars[key] = os.environ.get(key)
                 os.environ[key] = value
 
@@ -233,8 +236,9 @@ class TestLMStudioIntegrationRegression:
 
         ReqID: LMSTUDIO-REG-7
         """
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-            f.write("""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            f.write(
+                """
 application:
   name: DevSynth Test
 llm:
@@ -246,15 +250,17 @@ llm:
       model: test-model
       max_tokens: 1024
       temperature: 0.8
-""")
+"""
+            )
             config_file = f.name
 
         try:
             # Set the config file path
-            original_config = os.environ.get('DEVSYNTH_CONFIG_FILE')
-            os.environ['DEVSYNTH_CONFIG_FILE'] = config_file
+            original_config = os.environ.get("DEVSYNTH_CONFIG_FILE")
+            os.environ["DEVSYNTH_CONFIG_FILE"] = config_file
 
             from devsynth.config.settings import get_settings
+
             settings = get_settings()
 
             # Test that settings reflect the config file
@@ -267,9 +273,9 @@ llm:
         finally:
             # Restore environment and clean up
             if original_config is not None:
-                os.environ['DEVSYNTH_CONFIG_FILE'] = original_config
+                os.environ["DEVSYNTH_CONFIG_FILE"] = original_config
             else:
-                os.environ.pop('DEVSYNTH_CONFIG_FILE', None)
+                os.environ.pop("DEVSYNTH_CONFIG_FILE", None)
 
             os.unlink(config_file)
 

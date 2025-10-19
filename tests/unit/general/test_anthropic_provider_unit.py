@@ -100,7 +100,9 @@ class TestAnthropicProvider(unittest.TestCase):
         # Disable circuit breaker for this test by setting a high failure threshold
         original_cb = self.provider.circuit_breaker
         self.provider.circuit_breaker = MagicMock()
-        self.provider.circuit_breaker.call.side_effect = lambda func, *args, **kwargs: func(*args, **kwargs)
+        self.provider.circuit_breaker.call.side_effect = (
+            lambda func, *args, **kwargs: func(*args, **kwargs)
+        )
 
         try:
             response = MagicMock()

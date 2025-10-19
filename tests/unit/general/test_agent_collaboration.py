@@ -113,12 +113,15 @@ class TestAgentCollaboration:
         team.broadcast_message = MagicMock()
         team.add_solution = MagicMock()
         # Create a proper ConsensusOutcome object with SynthesisArtifact
-        from devsynth.application.collaboration.dto import ConsensusOutcome, SynthesisArtifact
+        from devsynth.application.collaboration.dto import (
+            ConsensusOutcome,
+            SynthesisArtifact,
+        )
 
         synthesis_artifact = SynthesisArtifact(
             text="final",
             key_points=("Final consensus result",),
-            metadata={"confidence": 0.9, "reasoning": "Final consensus result"}
+            metadata={"confidence": 0.9, "reasoning": "Final consensus result"},
         )
 
         consensus_outcome = ConsensusOutcome(
@@ -136,7 +139,7 @@ class TestAgentCollaboration:
             majority_opinion="final",
             stakeholder_explanation="Team consensus achieved",
             timestamp="2025-01-01T00:00:00Z",
-            metadata={}
+            metadata={},
         )
 
         team.build_consensus = MagicMock(return_value=consensus_outcome)
@@ -202,12 +205,15 @@ class TestAgentCollaboration:
         team.get_primus = MagicMock(return_value=a1)
         team.add_solution = MagicMock()
         # Create a proper ConsensusOutcome object
-        from devsynth.application.collaboration.dto import ConsensusOutcome, SynthesisArtifact
+        from devsynth.application.collaboration.dto import (
+            ConsensusOutcome,
+            SynthesisArtifact,
+        )
 
         synthesis_artifact = SynthesisArtifact(
             text="final",
             key_points=("Final consensus result",),
-            metadata={"reasoning": ""}
+            metadata={"reasoning": ""},
         )
 
         consensus_outcome = ConsensusOutcome(
@@ -225,7 +231,7 @@ class TestAgentCollaboration:
             majority_opinion="final",
             stakeholder_explanation="Team consensus achieved",
             timestamp="2025-01-01T00:00:00Z",
-            metadata={}
+            metadata={},
         )
 
         team.build_consensus = MagicMock(return_value=consensus_outcome)

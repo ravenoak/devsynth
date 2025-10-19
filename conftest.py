@@ -44,17 +44,17 @@ Env vars:
 import importlib.util
 import os
 import sys
+import time
 from pathlib import Path
-from typing import Dict, Iterator
+from typing import Dict, Iterator, List, Optional
 
 import pytest
-import time
-from typing import List, Optional
 
 
 def _should_load_bdd() -> bool:
     """Check if BDD should be loaded based on command line arguments."""
     import sys
+
     return any("behavior" in arg for arg in sys.argv)
 
 
@@ -123,7 +123,9 @@ def pytest_configure(config: pytest.Config) -> None:
     cov_fail_under_env = os.getenv("DEVSYNTH_COV_FAIL_UNDER")
 
     # Only adjust coverage for non-smoke, non-collection runs to improve performance
-    if config.getoption("--collect-only") or config.getoption("-m", default="").startswith("smoke"):
+    if config.getoption("--collect-only") or config.getoption(
+        "-m", default=""
+    ).startswith("smoke"):
         # Disable coverage for collection-only and smoke runs
         try:
             config.option.cov_fail_under = 0
@@ -265,7 +267,9 @@ def _get_cache_key(config: pytest.Config) -> str:
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_collection_modifyitems(config: pytest.Config, items: List[pytest.Item]) -> None:
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: List[pytest.Item]
+) -> None:
     """Optimize test collection by deferring expensive marker evaluation.
 
     This hook runs after test collection but before test execution,

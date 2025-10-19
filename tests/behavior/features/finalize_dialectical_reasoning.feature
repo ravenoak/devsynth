@@ -33,4 +33,3 @@ Feature: Finalize dialectical reasoning
     Given a reasoning loop receives a non-mapping task payload
     When execution begins with the malformed payload
     Then a type error is raised to protect invariant enforcement
-

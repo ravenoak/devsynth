@@ -253,10 +253,10 @@ def _enable_real_providers(monkeypatch: pytest.MonkeyPatch):
     """Load a fresh provider_system module with real provider classes."""
 
     import sys
-    from types import SimpleNamespace, ModuleType
+    from types import ModuleType, SimpleNamespace
 
     # Create a mock settings module to avoid circular import issues during reload
-    mock_settings = ModuleType('devsynth.config.settings')
+    mock_settings = ModuleType("devsynth.config.settings")
     settings = SimpleNamespace(
         tls_verify=True,
         tls_cert_file=None,
@@ -282,8 +282,8 @@ def _enable_real_providers(monkeypatch: pytest.MonkeyPatch):
     mock_settings.get_settings = mock_get_settings
 
     # Replace the settings module in sys.modules before reload
-    original_settings = sys.modules.get('devsynth.config.settings')
-    sys.modules['devsynth.config.settings'] = mock_settings
+    original_settings = sys.modules.get("devsynth.config.settings")
+    sys.modules["devsynth.config.settings"] = mock_settings
 
     try:
         monkeypatch.setenv("DEVSYNTH_TEST_ALLOW_PROVIDERS", "true")
@@ -295,7 +295,7 @@ def _enable_real_providers(monkeypatch: pytest.MonkeyPatch):
     finally:
         # Restore original settings module
         if original_settings is not None:
-            sys.modules['devsynth.config.settings'] = original_settings
+            sys.modules["devsynth.config.settings"] = original_settings
 
 
 def test_fallback_provider_uses_next_provider_on_failure():

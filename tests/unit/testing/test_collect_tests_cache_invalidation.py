@@ -38,7 +38,15 @@ def test_example():
     outputs = ["test_sample.py::test_example\n"]
     call_index = {"value": 0}
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         idx = min(call_index["value"], len(outputs) - 1)
         call_index["value"] += 1
         return SimpleNamespace(stdout=outputs[idx], stderr="", returncode=0)
@@ -106,7 +114,15 @@ def test_fast_case():
     ]
     call_index = {"value": 0}
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         idx = min(call_index["value"], len(outputs) - 1)
         call_index["value"] += 1
         return SimpleNamespace(stdout=outputs[idx], stderr="", returncode=0)
@@ -176,7 +192,15 @@ def test_cache_invalidation_on_target_path_change(
             self.stderr = ""
             self.returncode = 0
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):
         assert "--collect-only" in cmd
         calls["count"] += 1
         cwd = os.getcwd()

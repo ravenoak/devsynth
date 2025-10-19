@@ -21,7 +21,11 @@ def feature_path(source: str, *parts: str) -> str:
     else:
         # Fallback: assume we're in a test file and go up until we find the project root
         # This handles cases where the file structure is different
-        project_root = test_file.parents[3] if len(test_file.parents) > 3 else test_file.parents[-1]
+        project_root = (
+            test_file.parents[3]
+            if len(test_file.parents) > 3
+            else test_file.parents[-1]
+        )
 
     # Build the full path to the feature file
     result = str(project_root / "tests" / "behavior" / "features" / Path(*parts))

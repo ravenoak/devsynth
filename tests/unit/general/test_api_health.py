@@ -8,6 +8,7 @@ pytest.importorskip("fastapi")
 # Import will be done lazily when actually needed by tests
 TestClient = None
 
+
 def _get_testclient():
     """Lazily import TestClient to avoid MRO issues during collection."""
     global TestClient
@@ -18,6 +19,7 @@ def _get_testclient():
             # Fallback for MRO compatibility issues
             from starlette.testclient import TestClient
     return TestClient
+
 
 # Lazy initialization of client
 def _get_client():

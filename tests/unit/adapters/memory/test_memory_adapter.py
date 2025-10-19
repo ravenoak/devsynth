@@ -130,7 +130,10 @@ class TestMemorySystemAdapter:
         ReqID: N/A"""
         with patch("duckdb.connect") as mock_connect:
             # Use MagicMock with spec to ensure it has the same interface as the real DuckDB connection
-            from devsynth.application.memory.adapters._duckdb_protocols import DuckDBConnectionProtocol
+            from devsynth.application.memory.adapters._duckdb_protocols import (
+                DuckDBConnectionProtocol,
+            )
+
             mock_conn = MagicMock(spec=DuckDBConnectionProtocol)
             mock_conn.execute.return_value = None
             mock_connect.return_value = mock_conn
