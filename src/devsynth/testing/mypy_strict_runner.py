@@ -12,7 +12,7 @@ import sys
 from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence
 
 if TYPE_CHECKING:
     from devsynth.release import publish_manifest as _publish_manifest_type
@@ -52,6 +52,7 @@ def get_release_tag(default: str = "unknown") -> str:
     # Fall back to pyproject.toml version
     try:
         import tomllib
+
         pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
         if pyproject_path.exists():
             with pyproject_path.open("rb") as f:
@@ -233,7 +234,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if publish_manifest is not None:
         try:
             publication = publish_manifest(manifest)
-            evidence_created = _coerce_sequence(publication.created.get("release_evidence"))
+            evidence_created = _coerce_sequence(
+                publication.created.get("release_evidence")
+            )
             evidence_parts = []
             for evidence_id, created in zip(publication.evidence_ids, evidence_created):
                 suffix = " (new)" if bool(created) else ""
@@ -256,7 +259,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"[knowledge-graph] typing ingestion failed: {exc}", file=sys.stderr)
 
     if not publication_success:
-        print(f"[knowledge-graph] typing manifest created but knowledge graph unavailable (circular import); errors={error_count}", file=sys.stderr)
+        print(
+            f"[knowledge-graph] typing manifest created but knowledge graph unavailable (circular import); errors={error_count}",
+            file=sys.stderr,
+        )
 
     return process.returncode
 

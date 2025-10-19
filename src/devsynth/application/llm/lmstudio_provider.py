@@ -164,6 +164,7 @@ class LMStudioProvider(BaseLLMProvider):
         """
         # Get default settings from configuration
         from ...config.settings import get_llm_settings
+
         default_settings = get_llm_settings()
 
         # Initialize with default settings, overridden by provided config
@@ -214,7 +215,9 @@ class LMStudioProvider(BaseLLMProvider):
             self.call_timeout = (
                 float(timeout_env)
                 if timeout_env is not None
-                else float(self.config.get("call_timeout", 30))  # Increased default timeout
+                else float(
+                    self.config.get("call_timeout", 30)
+                )  # Increased default timeout
             )
         except (TypeError, ValueError):
             self.call_timeout = 30.0  # Increased default timeout
@@ -262,9 +265,13 @@ class LMStudioProvider(BaseLLMProvider):
                     logger.info(f"Using specified model: {self.model}")
                     model_selected = True
                 else:
-                    logger.warning(f"Specified model '{specified_model}' not available, falling back to auto-selection")
+                    logger.warning(
+                        f"Specified model '{specified_model}' not available, falling back to auto-selection"
+                    )
             except (LMStudioConnectionError, Exception) as e:
-                logger.warning(f"Could not verify specified model '{specified_model}': {e}, falling back to auto-selection")
+                logger.warning(
+                    f"Could not verify specified model '{specified_model}': {e}, falling back to auto-selection"
+                )
 
         if not model_selected and auto_select:
             # Try to use a known working model if auto-selection fails
@@ -332,9 +339,12 @@ class LMStudioProvider(BaseLLMProvider):
                     )
                 # Use native API for health check (5s timeout for quick health checks)
                 import requests
+
                 response = requests.get(f"{self.api_base}/api/v0/models", timeout=5)
                 models_data = response.json()
-                models = [m for m in models_data.get("data", []) if m.get("type") == "llm"]
+                models = [
+                    m for m in models_data.get("data", []) if m.get("type") == "llm"
+                ]
                 _ = len(models)
                 return True
             except Exception as e:  # noqa: BLE001
@@ -401,6 +411,7 @@ class LMStudioProvider(BaseLLMProvider):
         try:
             # Use the native LM Studio API instead of the OpenAI-compatible one
             import requests
+
             response = requests.get(f"{self.api_base}/api/v0/models", timeout=30)
             response.raise_for_status()
 

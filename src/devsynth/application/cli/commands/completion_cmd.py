@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import typer
 from pathlib import Path
+
+import typer
 from typer import completion as typer_completion
 
 from devsynth.interface.cli import CLIUXBridge

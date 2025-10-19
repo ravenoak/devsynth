@@ -61,6 +61,7 @@ class OpenRouterProvider(StreamingLLMProvider):
         """
         # Get default settings from configuration
         from ...config.settings import get_llm_settings
+
         default_settings = get_llm_settings()
 
         # Initialize with default settings, overridden by provided config
@@ -68,7 +69,9 @@ class OpenRouterProvider(StreamingLLMProvider):
 
         # Set instance variables from config
         self.api_key = self.config.get("openrouter_api_key")
-        self.model = self.config.get("openrouter_model") or "google/gemini-flash-1.5"  # Default to free tier
+        self.model = (
+            self.config.get("openrouter_model") or "google/gemini-flash-1.5"
+        )  # Default to free tier
         self.max_tokens = self.config.get("max_tokens") or 4096
         self.temperature = self.config.get("temperature") or 0.7
         self.base_url = self.config.get("base_url") or "https://openrouter.ai/api/v1"
@@ -110,6 +113,7 @@ class OpenRouterProvider(StreamingLLMProvider):
         # Initialize clients if dependencies are available
         try:
             import httpx
+
             # Create sync and async clients for different use cases
             self.sync_client = httpx.Client(
                 base_url=self.base_url,
@@ -129,7 +133,7 @@ class OpenRouterProvider(StreamingLLMProvider):
     def _should_retry(self, exc: Exception) -> bool:
         """Return ``True`` if the exception should trigger a retry."""
         # Don't retry on client errors (4xx) except rate limits (429)
-        if hasattr(exc, 'response') and exc.response is not None:
+        if hasattr(exc, "response") and exc.response is not None:
             status_code = exc.response.status_code
             if 400 <= status_code < 500 and status_code != 429:
                 return False
@@ -354,7 +358,9 @@ class OpenRouterProvider(StreamingLLMProvider):
 
                             try:
                                 chunk = response.json()
-                                if chunk.get("choices") and chunk["choices"][0].get("delta", {}).get("content"):
+                                if chunk.get("choices") and chunk["choices"][0].get(
+                                    "delta", {}
+                                ).get("content"):
                                     yield chunk["choices"][0]["delta"]["content"]
                             except Exception:
                                 # Skip malformed chunks
@@ -431,7 +437,9 @@ class OpenRouterProvider(StreamingLLMProvider):
 
                             try:
                                 chunk = response.json()
-                                if chunk.get("choices") and chunk["choices"][0].get("delta", {}).get("content"):
+                                if chunk.get("choices") and chunk["choices"][0].get(
+                                    "delta", {}
+                                ).get("content"):
                                     yield chunk["choices"][0]["delta"]["content"]
                             except Exception:
                                 # Skip malformed chunks
@@ -457,6 +465,7 @@ class OpenRouterProvider(StreamingLLMProvider):
             OpenRouterConnectionError: If there's an issue connecting to OpenRouter
             OpenRouterModelError: If there's an issue with the model or response
         """
+
         def _api_call():
             if self.sync_client is None:
                 raise OpenRouterConnectionError("HTTP client not available")

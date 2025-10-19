@@ -13,10 +13,10 @@ from rich.panel import Panel
 from rich.table import Table
 from typer import completion as typer_completion
 
-from devsynth.application.cli.registry import COMMAND_REGISTRY
-
 # Ensure CLI commands are registered before using the registry
 import devsynth.application.cli
+from devsynth.application.cli.registry import COMMAND_REGISTRY
+
 # Trigger command registration by accessing a command that will call __getattr__
 _ = devsynth.application.cli.run_tests_cmd
 # config_app will be imported just before use
@@ -73,7 +73,6 @@ def inspect_config_cmd(
     path: str | None = None, update: bool = False, prune: bool = False
 ) -> None:
     COMMAND_REGISTRY["inspect-config"](path=path, update=update, prune=prune)
-
 
 
 def _patch_typer_types() -> None:
@@ -321,6 +320,7 @@ def build_app() -> typer.Typer:
 
     # Import config_app just before use to ensure lazy loading
     from devsynth.application.cli import config_app
+
     app.add_typer(config_app, name="config", help="Manage configuration settings")
 
     @app.command(

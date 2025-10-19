@@ -4,7 +4,7 @@ import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Protocol, TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional, Protocol
 
 from rich.console import Console
 
@@ -13,23 +13,32 @@ if TYPE_CHECKING:
 else:
     UXBridge = Any
 
+
 # Lazy imports to improve CLI startup performance
 def _get_cli_utils():
     from devsynth.application.cli.utils import _check_services
+
     return _check_services
+
 
 def _get_config_loader():
     from devsynth.core.config_loader import _find_project_config, load_config
+
     return _find_project_config, load_config
+
 
 def _get_interfaces():
     from devsynth.interface.cli import CLIUXBridge
     from devsynth.interface.ux_bridge import UXBridge
+
     return CLIUXBridge, UXBridge
+
 
 def _get_logger():
     from devsynth.logging_setup import DevSynthLogger
+
     return DevSynthLogger(__name__)
+
 
 # Lazy-loaded logger to avoid import-time overhead (not used in this module)
 console = Console()

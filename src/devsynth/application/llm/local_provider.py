@@ -22,6 +22,7 @@ class LocalProvider(StreamingLLMProvider):
 
     def __init__(self, config: Dict[str, Any] | None = None) -> None:
         from ...config.settings import get_llm_settings
+
         default_settings = get_llm_settings()
         self.config = {**default_settings, **(config or {})}
 
