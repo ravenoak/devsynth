@@ -1,6 +1,6 @@
 #!/bin/bash
 # DevSynth Real-World Test Execution Script
-# 
+#
 # This script executes comprehensive real-world scenarios to validate
 # DevSynth's end-to-end functionality through complete application development workflows.
 #
@@ -100,9 +100,9 @@ log_info "Generating test execution summary..."
 cat > "$TEST_OUTPUT_DIR/summary_${TIMESTAMP}.md" << EOF
 # DevSynth Real-World Test Execution Summary
 
-**Date**: $(date)  
-**Environment**: $(poetry env info --path)  
-**DevSynth Version**: $(poetry run devsynth --version 2>/dev/null || echo "Unable to determine")  
+**Date**: $(date)
+**Environment**: $(poetry env info --path)
+**DevSynth Version**: $(poetry run devsynth --version 2>/dev/null || echo "Unable to determine")
 
 ## Test Results
 

@@ -11,7 +11,8 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Iterable, Set
+from typing import Set
+from collections.abc import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
@@ -33,8 +34,8 @@ CODE_FEATURE_MAP = {
 }
 
 
-def _extract_features_from_docs() -> Set[str]:
-    features: Set[str] = set()
+def _extract_features_from_docs() -> set[str]:
+    features: set[str] = set()
     for path in DOCS.rglob("*.md"):
         for line in path.read_text(encoding="utf-8").splitlines():
             match = re.match(r"^Feature:\s*(.+)", line)
@@ -43,8 +44,8 @@ def _extract_features_from_docs() -> Set[str]:
     return features
 
 
-def _extract_features_from_tests() -> Set[str]:
-    features: Set[str] = set()
+def _extract_features_from_tests() -> set[str]:
+    features: set[str] = set()
     for path in TESTS.rglob("*.feature"):
         for line in path.read_text(encoding="utf-8").splitlines():
             if line.startswith("Feature:"):
@@ -53,8 +54,8 @@ def _extract_features_from_tests() -> Set[str]:
     return features
 
 
-def _extract_features_from_code() -> Set[str]:
-    features: Set[str] = set()
+def _extract_features_from_code() -> set[str]:
+    features: set[str] = set()
     for path in SRC.rglob("*.py"):
         try:
             text = path.read_text(encoding="utf-8")
@@ -107,6 +108,7 @@ def main() -> int:
 
         # For alpha releases, don't fail on unresolved questions
         import os
+
         version = os.environ.get("DEVSYNTH_VERSION", "")
         is_alpha_release = "0.1.0a1" in version
 

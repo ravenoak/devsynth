@@ -142,7 +142,7 @@ with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
 try:
     # Test dump_to_file (lines 48-50)
     dump_to_file(temp_path, test_obj)
-    
+
     # Test load_from_file (lines 55-56)
     loaded_obj = load_from_file(temp_path)
     assert loaded_obj == test_obj

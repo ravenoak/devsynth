@@ -17,15 +17,16 @@ import sys
 def run_cli_help() -> None:
     proc = subprocess.run(
         ["poetry", "run", "devsynth", "--help"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
     )
     if proc.returncode != 0:
         print(proc.stdout)
         print(proc.stderr, file=sys.stderr)
         # For alpha release, don't fail on missing help command
-        print("[verify_minimal_install] CLI --help not available, but basic import works")
+        print(
+            "[verify_minimal_install] CLI --help not available, but basic import works"
+        )
 
 
 def import_core() -> None:

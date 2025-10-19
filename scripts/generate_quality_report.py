@@ -40,7 +40,7 @@ from devsynth.logging_setup import DevSynthLogger
 logger = DevSynthLogger(__name__)
 
 
-def get_coverage_metrics() -> Dict[str, Any]:
+def get_coverage_metrics() -> dict[str, Any]:
     """Get coverage metrics from existing coverage data."""
     try:
         coverage_file = Path("test_reports/coverage.json")
@@ -77,7 +77,7 @@ def get_coverage_metrics() -> Dict[str, Any]:
     }
 
 
-def get_mutation_testing_metrics(include_mutations: bool = False) -> Dict[str, Any]:
+def get_mutation_testing_metrics(include_mutations: bool = False) -> dict[str, Any]:
     """Get mutation testing metrics."""
     if not include_mutations:
         return {
@@ -137,7 +137,7 @@ def get_mutation_testing_metrics(include_mutations: bool = False) -> Dict[str, A
     }
 
 
-def get_property_test_metrics() -> Dict[str, Any]:
+def get_property_test_metrics() -> dict[str, Any]:
     """Get property-based test metrics."""
     try:
         # Count property tests
@@ -162,7 +162,7 @@ def get_property_test_metrics() -> Dict[str, Any]:
     return {"total_property_tests": 0, "property_test_files": 0, "enabled": False}
 
 
-def get_test_organization_metrics() -> Dict[str, Any]:
+def get_test_organization_metrics() -> dict[str, Any]:
     """Get test organization and marker metrics."""
     try:
         result = subprocess.run(
@@ -194,7 +194,7 @@ def get_test_organization_metrics() -> Dict[str, Any]:
     }
 
 
-def get_performance_metrics() -> Dict[str, Any]:
+def get_performance_metrics() -> dict[str, Any]:
     """Get test execution performance metrics."""
     try:
         # Check if benchmark results exist
@@ -214,7 +214,7 @@ def get_performance_metrics() -> Dict[str, Any]:
     }
 
 
-def calculate_overall_quality_score(metrics: Dict[str, Any]) -> float:
+def calculate_overall_quality_score(metrics: dict[str, Any]) -> float:
     """Calculate a weighted overall quality score."""
     weights = {
         "coverage": 0.3,
@@ -256,7 +256,7 @@ def calculate_overall_quality_score(metrics: Dict[str, Any]) -> float:
     return round(overall_score, 2)
 
 
-def generate_quality_recommendations(metrics: Dict[str, Any]) -> List[str]:
+def generate_quality_recommendations(metrics: dict[str, Any]) -> list[str]:
     """Generate actionable quality improvement recommendations."""
     recommendations = []
 
@@ -308,7 +308,7 @@ def generate_quality_recommendations(metrics: Dict[str, Any]) -> List[str]:
     return recommendations
 
 
-def generate_html_dashboard(metrics: Dict[str, Any], output_file: str) -> None:
+def generate_html_dashboard(metrics: dict[str, Any], output_file: str) -> None:
     """Generate an HTML quality dashboard."""
     html_content = f"""
 <!DOCTYPE html>
@@ -344,7 +344,7 @@ def generate_html_dashboard(metrics: Dict[str, Any], output_file: str) -> None:
             <h1>🧪 DevSynth Quality Dashboard</h1>
             <div class="subtitle">Comprehensive testing quality metrics and insights</div>
         </div>
-        
+
         <div class="metrics-grid">
             <div class="metric-card">
                 <h3>📊 Overall Quality Score</h3>
@@ -353,7 +353,7 @@ def generate_html_dashboard(metrics: Dict[str, Any], output_file: str) -> None:
                     <div class="progress-fill" style="width: {metrics['overall_score']}%; background: {'#28a745' if metrics['overall_score'] >= 80 else '#ffc107' if metrics['overall_score'] >= 60 else '#dc3545'};"></div>
                 </div>
             </div>
-            
+
             <div class="metric-card">
                 <h3>📈 Test Coverage</h3>
                 <div class="metric-value {'metric-good' if metrics['coverage']['line_coverage'] >= 80 else 'metric-warning' if metrics['coverage']['line_coverage'] >= 60 else 'metric-danger'}">{metrics['coverage']['line_coverage']:.1f}%</div>
@@ -362,21 +362,21 @@ def generate_html_dashboard(metrics: Dict[str, Any], output_file: str) -> None:
                 </div>
                 <div>{metrics['coverage']['covered_lines']:,} / {metrics['coverage']['num_statements']:,} lines covered</div>
             </div>
-            
+
             <div class="metric-card">
                 <h3>🧬 Mutation Testing</h3>
                 {'<div class="metric-value metric-warning">Skipped</div>' if metrics['mutation']['skipped'] else f'<div class="metric-value {"metric-good" if (metrics["mutation"]["mutation_score"] or 0) >= 70 else "metric-warning" if (metrics["mutation"]["mutation_score"] or 0) >= 50 else "metric-danger"}">{metrics["mutation"]["mutation_score"] or 0:.1f}%</div>'}
                 {'' if metrics['mutation']['skipped'] else f'<div class="progress-bar"><div class="progress-fill" style="width: {metrics["mutation"]["mutation_score"] or 0}%; background: {"#28a745" if (metrics["mutation"]["mutation_score"] or 0) >= 70 else "#ffc107" if (metrics["mutation"]["mutation_score"] or 0) >= 50 else "#dc3545"};"></div></div>'}
                 <div>{metrics['mutation']['killed_mutations']} / {metrics['mutation']['total_mutations']} mutations killed</div>
             </div>
-            
+
             <div class="metric-card">
                 <h3>🎲 Property Testing</h3>
                 <div class="metric-value {'metric-good' if metrics['property']['total_property_tests'] > 0 else 'metric-warning'}">{metrics['property']['total_property_tests']}</div>
                 <div>{metrics['property']['property_test_files']} property test files</div>
                 <div>Status: {'✅ Enabled' if metrics['property']['enabled'] else '⚠️ Disabled'}</div>
             </div>
-            
+
             <div class="metric-card">
                 <h3>🏷️ Test Organization</h3>
                 <div class="metric-value {'metric-good' if metrics['organization']['marker_compliance'] >= 95 else 'metric-warning' if metrics['organization']['marker_compliance'] >= 80 else 'metric-danger'}">{metrics['organization']['marker_compliance']:.1f}%</div>
@@ -385,7 +385,7 @@ def generate_html_dashboard(metrics: Dict[str, Any], output_file: str) -> None:
                 </div>
                 <div>{metrics['organization']['total_tests']:,} total tests</div>
             </div>
-            
+
             <div class="metric-card">
                 <h3>🚀 Performance</h3>
                 <div class="metric-value {'metric-good' if metrics['performance']['parallel_speedup'] >= 3 else 'metric-warning' if metrics['performance']['parallel_speedup'] >= 2 else 'metric-danger'}">{metrics['performance']['parallel_speedup']:.1f}x</div>
@@ -393,12 +393,12 @@ def generate_html_dashboard(metrics: Dict[str, Any], output_file: str) -> None:
                 <div>Efficiency: {metrics['performance']['efficiency']:.2f}</div>
             </div>
         </div>
-        
+
         <div class="recommendations">
             <h3>💡 Quality Improvement Recommendations</h3>
             {''.join(f'<div class="recommendation">{rec}</div>' for rec in metrics['recommendations'])}
         </div>
-        
+
         <div class="timestamp">
             Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         </div>
