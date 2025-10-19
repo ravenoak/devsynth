@@ -57,7 +57,7 @@ This document breaks down the [Testing Infrastructure Master Plan](testing_infra
     - Includes comprehensive error handling and user-friendly messages
     - All commands return appropriate exit codes (0 for success, 1 for failure)
     - CLI is accessible via `devsynth test <subcommand>`
-  - **Files Changed:** 
+  - **Files Changed:**
     - `src/devsynth/application/cli/commands/test_cmd.py` (new)
     - `src/devsynth/application/cli/main.py` (updated to include test command)
   - **Tests Required:** CLI integration tests for each subcommand

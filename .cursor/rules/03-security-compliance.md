@@ -205,4 +205,3 @@ if is_review_due(date(2024, 1, 1)):
 5. ✅ No hardcoded secrets
 6. ✅ Dependencies up to date
 7. ✅ Audit report archived
-

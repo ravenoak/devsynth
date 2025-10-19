@@ -48,4 +48,3 @@ The helper scripts perform several checks before taking action:
 
 These practices will evolve as DevSynth matures; contributors should keep this
 document current when introducing new deployment mechanisms.
-

@@ -12,7 +12,7 @@ version: "0.1.0-alpha.1"
 <div class="breadcrumbs">
 <a href="../index.md">Documentation</a> &gt; <a href="index.md">Developer Guides</a> &gt; Agent Tools
 </div>
- 
+
 # Agent Tools
 
 DevSynth agents rely on a registry of sandboxed tools to extend their

@@ -36,5 +36,5 @@ The archived files in this directory preserve the complete historical content fo
 
 ---
 
-*Created: September 30, 2025*  
+*Created: September 30, 2025*
 *Part of: Documentation Harmonization Phase 1*

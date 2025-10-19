@@ -205,7 +205,7 @@ except ValidationError as e:
         field = error["loc"][0]
         message = error["msg"]
         error_messages.append(f"Invalid {field}: {message}")
-    
+
     formatted_error = "\n".join(error_messages)
     console.print(f"[red]Configuration Error:[/red]\n{formatted_error}")
     sys.exit(1)
@@ -241,14 +241,14 @@ def retry_with_exponential_backoff(
     retryable_exceptions: tuple = (ConnectionError, TimeoutError)
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Retry a function with exponential backoff."""
-    
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> T:
             # Initialize variables
             num_retries = 0
             delay = initial_delay
-            
+
             # Loop until max retries reached
             while True:
                 try:
@@ -257,23 +257,23 @@ def retry_with_exponential_backoff(
                     num_retries += 1
                     if num_retries > max_retries:
                         raise LLMAPIError(f"Maximum retry attempts ({max_retries}) exceeded") from e
-                    
+
                     # Calculate delay with jitter if enabled
                     if jitter:
                         delay = min(max_delay, delay * exponential_base * (0.5 + random.random()))
                     else:
                         delay = min(max_delay, delay * exponential_base)
-                    
+
                     # Log retry attempt
                     logger.warning(
                         f"Retry attempt {num_retries}/{max_retries} after {delay:.2f}s delay. Error: {str(e)}"
                     )
-                    
+
                     # Wait before retrying
                     time.sleep(delay)
-        
+
         return wrapper
-    
+
     return decorator
 
 class LLMProvider:
@@ -326,22 +326,22 @@ def safe_open_file(
 ) -> Iterator[TextIO]:
     """Safely open a file with proper error handling."""
     file_path = Path(path)
-    
+
     # Create directories if needed and requested
     if create_dirs and 'w' in mode:
         os.makedirs(file_path.parent, exist_ok=True)
-    
+
     try:
         # Check if file exists for read operations
         if 'r' in mode and not file_path.exists():
             raise FileNotFoundError(f"File not found: {path}")
-        
+
         # Check permissions
         if 'r' in mode and not os.access(path, os.R_OK):
             raise FilePermissionError(f"Permission denied: Cannot read {path}")
         if 'w' in mode and file_path.exists() and not os.access(path, os.W_OK):
             raise FilePermissionError(f"Permission denied: Cannot write to {path}")
-        
+
         # Open the file
         file = open(file_path, mode, encoding=encoding)
         try:
@@ -402,18 +402,18 @@ class MemoryItemNotFoundError(MemoryError):
 
 class TransactionalMemoryStore(MemoryStore):
     """Memory store with transaction-like semantics."""
-    
+
     def __init__(self):
         self.items = {}
         self._transaction_stack = []
-    
+
     @contextmanager
     def transaction(self):
         """Create a transaction context for memory operations."""
         # Create a snapshot of the current state
         snapshot = deepcopy(self.items)
         self._transaction_stack.append(snapshot)
-        
+
         try:
             # Yield control to the context block
             yield
@@ -425,7 +425,7 @@ class TransactionalMemoryStore(MemoryStore):
                 self.items = self._transaction_stack.pop()
             # Re-raise the exception
             raise MemoryStoreError(f"Transaction failed: {str(e)}") from e
-    
+
     def store(self, item: MemoryItem) -> str:
         """Store an item in memory and return its ID."""
         try:
@@ -435,14 +435,14 @@ class TransactionalMemoryStore(MemoryStore):
             return item.id
         except Exception as e:
             raise MemoryStoreError(f"Failed to store item: {str(e)}") from e
-    
+
     def retrieve(self, item_id: str) -> Optional[MemoryItem]:
         """Retrieve an item from memory by ID."""
         item = self.items.get(item_id)
         if item is None:
             raise MemoryItemNotFoundError(f"Item not found: {item_id}")
         return item
-    
+
     # Other methods...
 
 # Usage example
@@ -501,14 +501,14 @@ class AgentStateError(AgentError):
 
 class RobustAgent(BaseAgent):
     """Base class for agents with robust error handling."""
-    
+
     def __init__(self, agent_id: str, **kwargs):
         self.agent_id = agent_id
         self.state = AgentState.UNINITIALIZED
         self.error = None
         self.retry_count = 0
         self.max_retries = kwargs.get('max_retries', 3)
-        
+
         try:
             self.state = AgentState.INITIALIZING
             # Perform initialization
@@ -518,15 +518,15 @@ class RobustAgent(BaseAgent):
             self.state = AgentState.FAILED
             self.error = str(e)
             raise AgentInitializationError(f"Failed to initialize agent {agent_id}: {str(e)}") from e
-    
+
     def execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a task with error handling and retries."""
         if self.state != AgentState.READY:
             raise AgentStateError(f"Agent {self.agent_id} is not ready (current state: {self.state.name})")
-        
+
         self.state = AgentState.BUSY
         self.retry_count = 0
-        
+
         while self.retry_count <= self.max_retries:
             try:
                 # Execute the task
@@ -541,23 +541,23 @@ class RobustAgent(BaseAgent):
                     raise AgentExecutionError(
                         f"Agent {self.agent_id} failed to execute task after {self.max_retries} attempts: {str(e)}"
                     ) from e
-                
+
                 # Log retry attempt
                 logger.warning(
                     f"Agent {self.agent_id} retry attempt {self.retry_count}/{self.max_retries}. Error: {str(e)}"
                 )
-                
+
                 # Wait before retrying
                 time.sleep(2 ** self.retry_count)  # Exponential backoff
-        
+
         # This should never be reached due to the exception in the loop
         self.state = AgentState.FAILED
         raise AgentExecutionError(f"Agent {self.agent_id} failed to execute task")
-    
+
     def _execute_task_impl(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Implementation of task execution. To be overridden by subclasses."""
         raise NotImplementedError("Subclasses must implement this method")
-    
+
     def terminate(self):
         """Terminate the agent."""
         try:
@@ -606,26 +606,26 @@ class WorkflowExecutionError(WorkflowError):
 
 class RobustWorkflowExecutor:
     """Workflow executor with robust error handling."""
-    
+
     def __init__(self, human_intervention_callback: Optional[Callable] = None):
         self.human_intervention_callback = human_intervention_callback
-    
+
     def execute_workflow(self, workflow: Workflow, context: Dict[str, Any]) -> Workflow:
         """Execute a workflow with robust error handling."""
         # Update workflow status
         workflow.status = WorkflowStatus.RUNNING
         workflow.error = None
-        
+
         # Track failed steps for potential recovery
         failed_steps = []
-        
+
         try:
             # Process each step in sequence
             for step in workflow.steps:
                 # Update current step status
                 step.status = WorkflowStepStatus.RUNNING
                 step.error = None
-                
+
                 try:
                     # Execute the step
                     self._execute_step(step, context)
@@ -635,14 +635,14 @@ class RobustWorkflowExecutor:
                     step.status = WorkflowStepStatus.FAILED
                     step.error = str(e)
                     failed_steps.append(step)
-                    
+
                     # Log the error
                     logger.error(f"Error in step {step.name}: {str(e)}")
-                    
+
                     # Determine if we should continue or abort
                     if step.critical:
                         raise WorkflowStepError(f"Critical step {step.name} failed: {str(e)}") from e
-                    
+
                     # Try human intervention if available
                     if self.human_intervention_callback:
                         try:
@@ -652,7 +652,7 @@ class RobustWorkflowExecutor:
                                 step.id,
                                 f"Step {step.name} failed: {str(e)}. How should we proceed?"
                             )
-                            
+
                             if resolution.get('action') == 'retry':
                                 # Retry the step
                                 try:
@@ -671,7 +671,7 @@ class RobustWorkflowExecutor:
                         except Exception as intervention_e:
                             logger.error(f"Human intervention failed: {str(intervention_e)}")
                             # Continue with the next step
-            
+
             # If we reached here, all steps completed or were handled
             if failed_steps:
                 # Some non-critical steps failed
@@ -690,9 +690,9 @@ class RobustWorkflowExecutor:
             workflow.status = WorkflowStatus.FAILED
             workflow.error = f"Unexpected error: {str(e)}"
             logger.error(f"Unexpected error in workflow execution: {str(e)}")
-        
+
         return workflow
-    
+
     def _execute_step(self, step: WorkflowStep, context: Dict[str, Any]):
         """Execute a single workflow step."""
         # Implementation details...
@@ -749,16 +749,16 @@ def require_valid_config(config: Dict[str, Any], required_keys: List[str]):
 
 class ConfigManager:
     """Manager for application configuration with validation."""
-    
+
     def __init__(self, config_path: str):
         self.config_path = config_path
         self.config = {}
-        
+
         try:
             # Load configuration
             with open(config_path, 'r') as f:
                 self.config = json.load(f)
-            
+
             # Validate configuration
             self._validate_config()
         except FileNotFoundError:
@@ -770,18 +770,18 @@ class ConfigManager:
         except Exception as e:
             logger.error(f"Error loading configuration: {str(e)}")
             raise ConfigurationError(f"Error loading configuration: {str(e)}")
-    
+
     def _validate_config(self):
         """Validate the configuration."""
         # Check required sections
         require_valid_config(self.config, ['llm', 'memory', 'agents'])
-        
+
         # Check LLM configuration
         require_valid_config(self.config['llm'], ['provider', 'model'])
-        
+
         # Check memory configuration
         require_valid_config(self.config['memory'], ['store_type'])
-        
+
         # Check agents configuration
         require_valid_config(self.config['agents'], ['default_team'])
 ```
@@ -823,30 +823,30 @@ structlog.configure(
 
 class DevSynthLogger:
     """Logger for DevSynth with structured logging."""
-    
+
     def __init__(self, component: str):
         self.logger = structlog.get_logger(component=component)
-    
+
     def debug(self, message: str, **kwargs):
         """Log a debug message."""
         self.logger.debug(message, **kwargs)
-    
+
     def info(self, message: str, **kwargs):
         """Log an info message."""
         self.logger.info(message, **kwargs)
-    
+
     def warning(self, message: str, **kwargs):
         """Log a warning message."""
         self.logger.warning(message, **kwargs)
-    
+
     def error(self, message: str, **kwargs):
         """Log an error message."""
         self.logger.error(message, **kwargs)
-    
+
     def critical(self, message: str, **kwargs):
         """Log a critical message."""
         self.logger.critical(message, **kwargs)
-    
+
     def exception(self, message: str, exc_info=True, **kwargs):
         """Log an exception."""
         self.logger.exception(message, exc_info=exc_info, **kwargs)
@@ -886,51 +886,51 @@ from devsynth.domain.exceptions import LLMAPIError, TokenLimitExceededError
 
 class TestLLMProvider:
     """Tests for the Provider."""
-    
+
     def test_generate_success(self):
         """Test successful text generation."""
         # Arrange
         provider = LLMProvider()
         provider._make_api_call = Mock(return_value={"choices": [{"message": {"content": "Generated text"}}]})
-        
+
         # Act
         result = provider.generate("Test prompt")
-        
+
         # Assert
         assert result == "Generated text"
         provider._make_api_call.assert_called_once()
-    
+
     def test_generate_api_error(self):
         """Test handling of API errors."""
         # Arrange
         provider = LLMProvider()
         provider._make_api_call = Mock(side_effect=ConnectionError("API connection failed"))
-        
+
         # Act & Assert
         with pytest.raises(LLMAPIError) as excinfo:
             provider.generate("Test prompt")
-        
+
         assert "API connection failed" in str(excinfo.value)
-    
+
     def test_generate_token_limit_exceeded(self):
         """Test handling of token limit exceeded."""
         # Arrange
         provider = LLMProvider()
         provider.token_tracker.count_tokens = Mock(return_value=10000)
         provider.max_tokens = 4000
-        
+
         # Act & Assert
         with pytest.raises(TokenLimitExceededError) as excinfo:
             provider.generate("Test prompt")
-        
+
         assert "exceeds the token limit" in str(excinfo.value)
-    
+
     @patch('time.sleep', return_value=None)  # Don't actually sleep in tests
     def test_generate_retry_success(self, mock_sleep):
         """Test successful retry after transient failure."""
         # Arrange
         provider = LLMProvider()
-        
+
         # Mock API call to fail twice then succeed
         side_effects = [
             ConnectionError("API connection failed"),
@@ -938,10 +938,10 @@ class TestLLMProvider:
             {"choices": [{"message": {"content": "Generated text"}}]}
         ]
         provider._make_api_call = Mock(side_effect=side_effects)
-        
+
         # Act
         result = provider.generate("Test prompt")
-        
+
         # Assert
         assert result == "Generated text"
         assert provider._make_api_call.call_count == 3

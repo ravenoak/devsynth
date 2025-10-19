@@ -128,7 +128,7 @@ This document provides comprehensive benchmarks and performance metrics for the 
 
 ### Test Environment Specifications
 
-- **Hardware**: 
+- **Hardware**:
   - CPU: 8-core Intel Core i7 or AMD Ryzen 7
   - RAM: 16GB DDR4
   - Storage: SSD with at least 100GB free space
@@ -176,7 +176,7 @@ This runs `pytest --benchmark-only` and stores results in `.benchmarks`.
 
 ### System Requirements
 
-- **Minimum**: 
+- **Minimum**:
   - CPU: 4-core processor
   - RAM: 8GB
   - Storage: 20GB free space

@@ -148,10 +148,10 @@ def test_something_succeeds_with_valid_input():
     # Arrange
     instance = MyClass()
     valid_input = "test"
-    
+
     # Act
     result = instance.process(valid_input)
-    
+
     # Assert
     assert result == expected_value
 ```
@@ -480,4 +480,3 @@ The multi-disciplined approach (dialectical, Socratic, systems, holistic thinkin
 - **Complete**: Lifecycle from concept to documentation covered
 
 By leveraging these rules effectively, you'll develop better software faster, with fewer mistakes and greater confidence.
-

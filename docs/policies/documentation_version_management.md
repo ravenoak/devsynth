@@ -60,10 +60,10 @@ When a new version of DevSynth is released:
    ```bash
    # For a new version (e.g., 1.2.0)
    mike deploy 1.2.0
-   
+
    # If this is the latest stable version
    mike deploy 1.2.0 latest --update-aliases
-   
+
    # Push the changes to the gh-pages branch
    mike set-default latest --push
    ```
@@ -80,7 +80,7 @@ When making changes to documentation for an existing version:
    ```bash
    # Update an existing version (e.g., 1.1.0)
    mike deploy 1.1.0 --update
-   
+
    # Push the changes to the gh-pages branch
    mike set-default latest --push
    ```
@@ -134,7 +134,7 @@ For content that varies between versions:
        ```python
        # Version 2.x code example
        ```text
-   
+
    === "Version 1.x"
        ```python
        # Version 1.x code example

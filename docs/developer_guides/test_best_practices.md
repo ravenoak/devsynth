@@ -76,28 +76,28 @@ For complex interfaces, create dedicated mock classes:
 ```python
 class RobustMockBridge(UXBridge):
     """Mock implementation of UXBridge with robust error handling."""
-    
+
     def __init__(self, answers, confirms):
         self.answers = list(answers)
         self.confirms = list(confirms)
         self.messages = []
         self.answer_index = 0
         self.confirm_index = 0
-    
+
     def ask_question(self, *args, **kwargs):
         if self.answer_index < len(self.answers):
             answer = self.answers[self.answer_index]
             self.answer_index += 1
             return answer
         return ""  # Default answer if we run out
-    
+
     def confirm_choice(self, *args, **kwargs):
         if self.confirm_index < len(self.confirms):
             confirm = self.confirms[self.confirm_index]
             self.confirm_index += 1
             return confirm
         return False  # Default confirmation if we run out
-    
+
     def display_result(self, message, **kwargs):
         self.messages.append(message)
 ```
@@ -115,11 +115,11 @@ def test_file_operations(tmp_path):
     # Ensure directory exists
     test_dir = tmp_path / "test_dir"
     test_dir.mkdir(exist_ok=True)
-    
+
     # Perform file operations
     test_file = test_dir / "test_file.txt"
     test_file.write_text("test content")
-    
+
     # Assert file exists and has expected content
     assert test_file.exists()
     assert test_file.read_text() == "test content"
@@ -145,7 +145,7 @@ def test_async_function_from_sync():
     async def run_test():
         result = await my_async_function()
         assert result == expected_result
-    
+
     asyncio.run(run_test())
 ```
 
@@ -204,7 +204,7 @@ def test_with_data(sample_data):
 
 **Problem**: Tests that are too slow can hinder development and CI/CD processes.
 
-**Solution**: 
+**Solution**:
 - Mark tests with appropriate speed markers (fast, medium, slow).
 - Use mocks for external dependencies.
 - Optimize test setup and teardown.

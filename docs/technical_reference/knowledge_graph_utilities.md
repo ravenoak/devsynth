@@ -60,14 +60,14 @@ This method queries the knowledge graph for concepts related to a given concept.
 def query_related_concepts(self, concept: str, limit: int = 10) -> List[Dict[str, Any]]:
     """
     Query the knowledge graph for concepts related to a given concept.
-    
+
     Args:
         concept: The concept to find related concepts for
         limit: Maximum number of results to return
-        
+
     Returns:
         A list of related concepts with their relationships
-        
+
     Raises:
         ValueError: If the knowledge graph is not available
     """
@@ -81,14 +81,14 @@ This method queries the knowledge graph for relationships between two concepts.
 def query_concept_relationships(self, concept1: str, concept2: str) -> List[Dict[str, Any]]:
     """
     Query the knowledge graph for relationships between two concepts.
-    
+
     Args:
         concept1: The first concept
         concept2: The second concept
-        
+
     Returns:
         A list of relationships between the concepts
-        
+
     Raises:
         ValueError: If the knowledge graph is not available
     """
@@ -102,14 +102,14 @@ This method queries the knowledge graph for concepts of a specific type.
 def query_by_concept_type(self, concept_type: str, limit: int = 10) -> List[Dict[str, Any]]:
     """
     Query the knowledge graph for concepts of a specific type.
-    
+
     Args:
         concept_type: The type of concepts to find
         limit: Maximum number of results to return
-        
+
     Returns:
         A list of concepts of the specified type with their properties
-        
+
     Raises:
         ValueError: If the knowledge graph is not available
     """
@@ -123,14 +123,14 @@ This method queries the knowledge graph for knowledge relevant to a specific tas
 def query_knowledge_for_task(self, task: Dict[str, Any], limit: int = 10) -> List[Dict[str, Any]]:
     """
     Query the knowledge graph for knowledge relevant to a specific task.
-    
+
     Args:
         task: The task to find relevant knowledge for
         limit: Maximum number of results to return
-        
+
     Returns:
         A list of relevant concepts with their relevance scores
-        
+
     Raises:
         ValueError: If the knowledge graph is not available
     """
@@ -144,20 +144,20 @@ The `WSDETeam` class provides a method for applying dialectical reasoning with k
 def apply_dialectical_reasoning_with_knowledge_graph(self, task: Dict[str, Any], critic_agent: Any, wsde_memory_integration: Any) -> Dict[str, Any]:
     """
     Apply dialectical reasoning with knowledge graph integration.
-    
+
     This implements a knowledge graph-enhanced dialectical review process where:
     1. Relevant knowledge is queried from the knowledge graph for the task
     2. A thesis (initial solution) is identified and analyzed
     3. An antithesis (critique) is developed with reference to knowledge graph concepts
     4. A synthesis (improved solution) is created that incorporates knowledge graph insights
     5. A final evaluation assesses alignment with knowledge graph best practices
-    
+
 
     Args:
         task: The task for which dialectical reasoning is being applied
         critic_agent: The agent responsible for applying dialectical reasoning
         wsde_memory_integration: The WSDEMemoryIntegration instance for accessing the knowledge graph
-        
+
     Returns:
         A dictionary containing the thesis, antithesis, synthesis, evaluation, and knowledge graph insights
     """

@@ -106,19 +106,19 @@ graph TD
 
 ### Key Nodes in `base_agent_graph`:
 
-1.  **`process_input_node`**: 
+1.  **`process_input_node`**:
     *   Takes the `input_request` from the `AgentState`.
     *   Performs basic processing (e.g., stripping whitespace).
     *   Updates the `processed_input` field in the state.
     *   Can set an error if input is invalid.
 
-2.  **`llm_call_node`**: 
+2.  **`llm_call_node`**:
     *   Uses the `processed_input` as the prompt for an LLM.
     *   Leverages the DevSynth `provider_system` (`devsynth.adapters.provider_system.complete`) to make the LLM call. This ensures that the agent can use either OpenAI or LM Studio, with automatic fallback.
     *   Stores the LLM's raw response in the `llm_response` field.
     *   Handles potential errors during the LLM call.
 
-3.  **`parse_output_node`**: 
+3.  **`parse_output_node`**:
     *   Takes the `llm_response`.
     *   Performs basic parsing (e.g., stripping whitespace) to produce the final output.
     *   Stores the result in the `final_output` field.

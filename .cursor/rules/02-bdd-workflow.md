@@ -193,7 +193,7 @@ Feature: <Feature Name>
     Given a context with "<parameter>"
     When action with "<input>"
     Then result should be "<expected>"
-    
+
     Examples:
       | parameter | input   | expected |
       | value1    | input1  | output1  |
@@ -333,4 +333,3 @@ When I create a memory item
 
 - `templates/behavior/feature_template.feature`
 - `templates/step_definitions_template.py`
-

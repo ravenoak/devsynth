@@ -48,4 +48,3 @@ Stop the running containers when finished:
 ```bash
 docker compose down
 ```
-

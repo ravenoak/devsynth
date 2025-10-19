@@ -129,4 +129,3 @@ This roadmap decomposes the adapter strict-typing initiative into focused pull r
 ## Tracking and Evidence
 - Use an issue or task checklist mirroring this plan to ensure overrides are removed sequentially and documentation stays synchronized.
 - After each PR, append strict typing evidence to both documentation pages with citations to coverage output and test artifacts.
-

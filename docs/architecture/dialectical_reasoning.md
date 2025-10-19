@@ -35,7 +35,7 @@ The Dialectical Reasoning System follows the hexagonal architecture pattern of D
 
 ### Domain Layer
 
-- **Models**: 
+- **Models**:
   - `Requirement`: Represents a system requirement
   - `RequirementChange`: Represents a proposed change to a requirement
   - `DialecticalReasoning`: Represents the dialectical reasoning process and results
@@ -70,7 +70,7 @@ The dialectical reasoning process consists of the following steps:
 class DialecticalReasoningService:
     """Service for performing dialectical reasoning on requirement changes."""
 
-    def __init__(self, 
+    def __init__(self,
                  llm_provider: LLMProviderPort,
                  requirement_repository: RequirementRepositoryPort,
                  reasoning_repository: DialecticalReasoningRepositoryPort):
@@ -95,7 +95,7 @@ class DialecticalReasoningService:
         antithesis_arguments = await self._generate_arguments(antithesis, False)
 
         # Generate synthesis
-        synthesis = await self._generate_synthesis(thesis, antithesis, 
+        synthesis = await self._generate_synthesis(thesis, antithesis,
                                                 thesis_arguments, antithesis_arguments)
 
         # Generate recommendations
@@ -117,7 +117,7 @@ class DialecticalReasoningService:
         await self.reasoning_repository.save(reasoning)
         return reasoning
 
-    async def _generate_thesis(self, requirement: Requirement, 
+    async def _generate_thesis(self, requirement: Requirement,
                               requirement_change: RequirementChange) -> str:
         """Generate thesis for the proposed change."""
         prompt = f"""
@@ -126,7 +126,7 @@ class DialecticalReasoningService:
         Original requirement: {requirement.description}
         Proposed change: {requirement_change.description}
 
-        Generate a thesis statement that supports this change. 
+        Generate a thesis statement that supports this change.
         Consider the following aspects:
         1. The benefits of implementing this change
         2. How the change aligns with system goals
@@ -148,7 +148,7 @@ The impact assessment process analyzes the potential effects of implementing a r
 class ImpactAssessmentService:
     """Service for assessing the impact of requirement changes."""
 
-    def __init__(self, 
+    def __init__(self,
                  requirement_repository: RequirementRepositoryPort,
                  component_repository: ComponentRepositoryPort):
         """Initialize the impact assessment service."""
@@ -188,7 +188,7 @@ The interactive chat interface for the dialectical reasoning system:
 class DialecticalReasoningChatService:
     """Service for interactive discussions about requirement changes."""
 
-    def __init__(self, 
+    def __init__(self,
                  llm_provider: LLMProviderPort,
                  reasoning_repository: DialecticalReasoningRepositoryPort,
                  session_repository: ChatSessionRepositoryPort):
@@ -257,7 +257,7 @@ class DialecticalReasoningChatService:
 Consider a proposed change to a security requirement:
 
 ```text
-Original Requirement: 
+Original Requirement:
 The system must encrypt all user passwords using industry-standard hashing algorithms.
 
 Proposed Change:

@@ -46,7 +46,7 @@ Unified coverage configuration replacing multiple specialized configs:
 ### Speed Markers (Required)
 Every test must have exactly one speed marker:
 - `@pytest.mark.fast` - Execution time < 1s
-- `@pytest.mark.medium` - Execution time 1-5s  
+- `@pytest.mark.medium` - Execution time 1-5s
 - `@pytest.mark.slow` - Execution time > 5s
 
 ### Resource Markers
