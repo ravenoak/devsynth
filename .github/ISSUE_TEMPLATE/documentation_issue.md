@@ -21,10 +21,10 @@ assignees: ''
 ## Location
 <!-- Provide the location of the documentation issue -->
 
-**File path or URL:** 
+**File path or URL:**
 <!-- e.g., docs/getting_started/installation.md -->
 
-**Section/heading:** 
+**Section/heading:**
 <!-- e.g., "Configuration Options" -->
 
 ## Description
