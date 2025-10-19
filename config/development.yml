@@ -7,7 +7,7 @@ application:
   version: 0.1.0a1
   description: AI-driven development platform
 
-# Agent configuration  
+# Agent configuration
 agents:
   max_agents: 3
   default_timeout: 180
