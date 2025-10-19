@@ -26,4 +26,3 @@ Dependencies: epics/scripts-consolidation-into-main-application.md
 ## References
 - `src/devsynth/application/cli/commands/doctor_cmd.py`
 - `scripts/validate_config.py`
-

@@ -1,10 +1,10 @@
 # Test Isolation Audit and Optimization
 
-**Issue Type**: Performance Enhancement  
-**Priority**: High  
-**Effort**: Medium  
-**Created**: 2025-01-17  
-**Status**: Open  
+**Issue Type**: Performance Enhancement
+**Priority**: High
+**Effort**: Medium
+**Created**: 2025-01-17
+**Status**: Open
 
 ## Problem Statement
 
@@ -48,13 +48,13 @@ import pytest
 
 class TestDependencyAnalyzer:
     """Analyzes test dependencies to recommend isolation optimization."""
-    
+
     def __init__(self):
         self.file_accesses: Dict[str, Set[Path]] = {}
         self.network_usage: Dict[str, Set[str]] = {}
         self.global_state: Dict[str, Set[str]] = {}
         self.recommendations: Dict[str, str] = {}
-    
+
     def analyze_test_file(self, test_file: Path) -> Dict[str, any]:
         """Analyze all test functions in a file."""
         results = {
@@ -64,18 +64,18 @@ class TestDependencyAnalyzer:
             'isolation_required': [],
             'resource_conflicts': []
         }
-        
+
         # Parse AST to analyze test functions
         with open(test_file) as f:
             tree = ast.parse(f.read())
-        
+
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef) and node.name.startswith('test_'):
                 test_name = f"{test_file.stem}::{node.name}"
                 analysis = self._analyze_function_node(node)
-                
+
                 results['tests_analyzed'] += 1
-                
+
                 if self._has_isolation_marker(test_file, node.name):
                     if self._can_remove_isolation(analysis):
                         results['isolation_removable'].append({
@@ -87,9 +87,9 @@ class TestDependencyAnalyzer:
                             'test': test_name,
                             'reason': self._get_required_reason(analysis)
                         })
-        
+
         return results
-    
+
     def _analyze_function_node(self, node: ast.FunctionDef) -> Dict[str, any]:
         """Analyze a single test function AST node."""
         analysis = {
@@ -99,7 +99,7 @@ class TestDependencyAnalyzer:
             'fixture_dependencies': set(),
             'subprocess_calls': set()
         }
-        
+
         for child in ast.walk(node):
             # Detect file operations
             if isinstance(child, ast.Call):
@@ -111,47 +111,47 @@ class TestDependencyAnalyzer:
                         analysis['file_operations'].add(child.func.attr)
                     if child.func.attr in ('get', 'post', 'request'):
                         analysis['network_calls'].add(child.func.attr)
-            
+
             # Detect global variable assignments
             if isinstance(child, ast.Assign):
                 for target in child.targets:
                     if isinstance(target, ast.Name):
                         if target.id.isupper():  # Convention for globals
                             analysis['global_modifications'].add(target.id)
-        
+
         return analysis
-    
+
     def _has_isolation_marker(self, test_file: Path, test_name: str) -> bool:
         """Check if test has isolation marker."""
         # This would need to parse the actual pytest markers
         # For now, return a placeholder
         return False
-    
+
     def _can_remove_isolation(self, analysis: Dict[str, any]) -> bool:
         """Determine if isolation can be safely removed."""
         # No file operations outside tmp directories
         if analysis['file_operations'] and not self._uses_tmp_only(analysis):
             return False
-        
+
         # No network calls
         if analysis['network_calls']:
             return False
-        
+
         # No global state modifications
         if analysis['global_modifications']:
             return False
-        
+
         # No subprocess calls that could interfere
         if analysis['subprocess_calls']:
             return False
-        
+
         return True
-    
+
     def _uses_tmp_only(self, analysis: Dict[str, any]) -> bool:
         """Check if file operations are limited to tmp directories."""
         # Implementation would check if all file paths are under tmp
         return True  # Placeholder
-    
+
     def _get_removal_reason(self, analysis: Dict[str, any]) -> str:
         """Get reason why isolation can be removed."""
         reasons = []
@@ -162,7 +162,7 @@ class TestDependencyAnalyzer:
         if not analysis['global_modifications']:
             reasons.append("No global state modifications")
         return "; ".join(reasons)
-    
+
     def _get_required_reason(self, analysis: Dict[str, any]) -> str:
         """Get reason why isolation is required."""
         reasons = []
@@ -173,7 +173,7 @@ class TestDependencyAnalyzer:
         if analysis['global_modifications']:
             reasons.append("Global state modifications detected")
         return "; ".join(reasons)
-    
+
     def generate_report(self, output_file: Path = None) -> str:
         """Generate analysis report."""
         report = [
@@ -186,44 +186,44 @@ class TestDependencyAnalyzer:
             f"- Isolation required: {sum(len(r['isolation_required']) for r in self.results)}",
             "",
         ]
-        
+
         for result in self.results:
             report.extend([
                 f"## {result['file']}",
                 f"Tests analyzed: {result['tests_analyzed']}",
                 "",
             ])
-            
+
             if result['isolation_removable']:
                 report.append("### Isolation Removable:")
                 for item in result['isolation_removable']:
                     report.append(f"- `{item['test']}`: {item['reason']}")
                 report.append("")
-            
+
             if result['isolation_required']:
                 report.append("### Isolation Required:")
                 for item in result['isolation_required']:
                     report.append(f"- `{item['test']}`: {item['reason']}")
                 report.append("")
-        
+
         report_text = "\n".join(report)
-        
+
         if output_file:
             output_file.write_text(report_text)
-        
+
         return report_text
 
 def main():
     """Main analysis function."""
     analyzer = TestDependencyAnalyzer()
     test_dirs = [Path('tests/unit'), Path('tests/integration'), Path('tests/behavior')]
-    
+
     for test_dir in test_dirs:
         if test_dir.exists():
             for test_file in test_dir.rglob('test_*.py'):
                 result = analyzer.analyze_test_file(test_file)
                 analyzer.results.append(result)
-    
+
     # Generate report
     report = analyzer.generate_report(Path('test_reports/isolation_analysis.md'))
     print(report)

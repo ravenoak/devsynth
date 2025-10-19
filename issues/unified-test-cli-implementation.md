@@ -1,10 +1,10 @@
 # Unified Test CLI Implementation
 
-**Issue Type**: Feature Enhancement  
-**Priority**: Critical  
-**Effort**: Large  
-**Created**: 2025-01-17  
-**Status**: Open  
+**Issue Type**: Feature Enhancement
+**Priority**: Critical
+**Effort**: Large
+**Created**: 2025-01-17
+**Status**: Open
 
 ## Problem Statement
 
@@ -30,7 +30,7 @@ devsynth test run [options]
 
 Options:
   --target=<unit|integration|behavior|all>  Test target (default: unit)
-  --speed=<fast|medium|slow|all>           Speed category (default: fast)  
+  --speed=<fast|medium|slow|all>           Speed category (default: fast)
   --parallel / --no-parallel               Enable/disable parallel execution
   --smoke                                  Smoke mode (minimal plugins)
   --segment                                Enable segmented execution
@@ -189,7 +189,7 @@ app = typer.Typer(help="DevSynth testing commands")
 
 class TestTarget(str, Enum):
     unit = "unit"
-    integration = "integration" 
+    integration = "integration"
     behavior = "behavior"
     all = "all"
 
@@ -215,10 +215,10 @@ def run(
 ):
     """Run tests with specified options."""
     from devsynth.testing.run_tests import run_tests
-    
+
     # Convert CLI options to run_tests parameters
     speed_categories = [s.value for s in speed] if speed else None
-    
+
     success, output = run_tests(
         target=target.value,
         speed_categories=speed_categories,
@@ -231,7 +231,7 @@ def run(
         extra_marker=markers,
         keyword_filter=keyword,
     )
-    
+
     typer.echo(output)
     if not success:
         raise typer.Exit(1)
@@ -245,18 +245,18 @@ def coverage(
 ):
     """Generate coverage reports."""
     from devsynth.testing.coverage_analysis import generate_coverage_report
-    
+
     success = generate_coverage_report(
         format=format,
         threshold=threshold,
         quality_check=quality_check,
         output_dir=report_dir,
     )
-    
+
     if not success:
         raise typer.Exit(1)
 
-@app.command()  
+@app.command()
 def validate(
     markers: bool = False,
     requirements: bool = False,
@@ -267,7 +267,7 @@ def validate(
 ):
     """Validate test suite quality and organization."""
     from devsynth.testing.validation import run_validation
-    
+
     success = run_validation(
         check_markers=markers,
         check_requirements=requirements,
@@ -276,7 +276,7 @@ def validate(
         generate_report=report,
         auto_fix=fix,
     )
-    
+
     if not success:
         raise typer.Exit(1)
 
@@ -300,7 +300,7 @@ def generate_coverage_report(
     output_dir: str = "htmlcov",
 ) -> bool:
     """Generate coverage report with quality analysis."""
-    
+
     if quality_check:
         # Focus on meaningful coverage metrics
         return _generate_quality_coverage_report(threshold, output_dir)
@@ -310,24 +310,24 @@ def generate_coverage_report(
 
 def _generate_quality_coverage_report(threshold: int, output_dir: str) -> bool:
     """Generate quality-focused coverage analysis."""
-    
+
     # Analyze coverage patterns
     coverage_data = _load_coverage_data()
-    
+
     # Identify low-value coverage (getters, setters, trivial methods)
     low_value_lines = _identify_low_value_coverage(coverage_data)
-    
+
     # Calculate meaningful coverage percentage
     meaningful_coverage = _calculate_meaningful_coverage(coverage_data, low_value_lines)
-    
+
     # Generate enhanced report
     report = _generate_enhanced_coverage_report(
         coverage_data, meaningful_coverage, low_value_lines
     )
-    
+
     # Save report
     _save_coverage_report(report, output_dir)
-    
+
     return meaningful_coverage >= threshold
 ```
 
@@ -343,7 +343,7 @@ Mutation testing implementation.
 
 class MutationTester:
     """Mutation testing for validating test effectiveness."""
-    
+
     def run_mutation_testing(
         self,
         target_modules: List[str],
@@ -351,28 +351,28 @@ class MutationTester:
         output_file: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Run mutation testing on target modules."""
-        
+
         results = {
             'total_mutations': 0,
             'caught_mutations': 0,
             'mutation_score': 0.0,
             'module_results': {},
         }
-        
+
         for module in target_modules:
             module_result = self._test_module_mutations(module)
             results['module_results'][module] = module_result
             results['total_mutations'] += module_result['total_mutations']
             results['caught_mutations'] += module_result['caught_mutations']
-        
+
         if results['total_mutations'] > 0:
             results['mutation_score'] = (
                 results['caught_mutations'] / results['total_mutations']
             ) * 100
-        
+
         if output_file:
             self._save_results(results, output_file)
-        
+
         return results
 ```
 
@@ -396,14 +396,14 @@ SCRIPT_MIGRATIONS = {
 
 def generate_migration_guide():
     """Generate migration guide for existing scripts."""
-    
+
     guide = [
         "# Migration Guide: Old Scripts to Unified CLI",
         "",
         "This guide shows how to migrate from old testing scripts to the new unified CLI.",
         "",
     ]
-    
+
     for old_script, new_command in SCRIPT_MIGRATIONS.items():
         guide.extend([
             f"## {old_script}",
@@ -411,7 +411,7 @@ def generate_migration_guide():
             f"**New**: `{new_command} [options]`",
             "",
         ])
-    
+
     return "\n".join(guide)
 ```
 
@@ -422,7 +422,7 @@ def generate_migration_guide():
 - No disruption to current workflows
 - Early feedback and testing
 
-### Phase 2: Soft Migration (Week 3-4)  
+### Phase 2: Soft Migration (Week 3-4)
 - Add deprecation warnings to old scripts
 - Update documentation to recommend new CLI
 - Provide migration examples
@@ -454,17 +454,17 @@ def test_coverage_command_with_threshold():
 ```
 
 ### Integration Tests
-```python  
+```python
 def test_complete_test_workflow():
     """Test complete testing workflow using unified CLI."""
     # Run tests
     result = runner.invoke(app, ['run', '--target=unit', '--report'])
     assert result.exit_code == 0
-    
+
     # Check coverage
     result = runner.invoke(app, ['coverage', '--format=html'])
     assert result.exit_code == 0
-    
+
     # Validate tests
     result = runner.invoke(app, ['validate', '--markers'])
     assert result.exit_code == 0
@@ -478,7 +478,7 @@ def test_complete_test_workflow():
 - [ ] Usage examples and tutorials
 - [ ] Troubleshooting guide
 
-### Developer Documentation  
+### Developer Documentation
 - [ ] CLI architecture documentation
 - [ ] Extension points for new commands
 - [ ] Testing patterns and conventions

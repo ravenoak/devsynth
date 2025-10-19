@@ -25,4 +25,3 @@ Documentation utilities (internal link validation, index generation, breadcrumb 
 ## References
 - `scripts/validate_internal_links.py`, `scripts/generate_doc_index.py`, `scripts/deduplicate_breadcrumbs.py`
 - `src/devsynth/application/cli/commands/validate_metadata_cmd.py`
-

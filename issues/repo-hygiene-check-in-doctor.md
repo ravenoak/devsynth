@@ -23,4 +23,3 @@ Dependencies: epics/scripts-consolidation-into-main-application.md
 ## References
 - `scripts/repo_hygiene_check.py`
 - `src/devsynth/application/cli/commands/doctor_cmd.py`
-

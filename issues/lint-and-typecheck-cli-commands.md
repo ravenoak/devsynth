@@ -20,4 +20,3 @@ Developers use `scripts/run_style_checks.py` (Black+isort) and `scripts/run_stat
 
 ## References
 - `scripts/run_style_checks.py`, `scripts/run_static_analysis.py`
-

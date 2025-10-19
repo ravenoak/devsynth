@@ -1,10 +1,10 @@
 # Testing Infrastructure Consolidation
 
-**Issue Type**: Technical Debt  
-**Priority**: Critical  
-**Effort**: Large  
-**Created**: 2025-01-17  
-**Status**: Open  
+**Issue Type**: Technical Debt
+**Priority**: Critical
+**Effort**: Large
+**Created**: 2025-01-17
+**Status**: Open
 
 ## Problem Statement
 

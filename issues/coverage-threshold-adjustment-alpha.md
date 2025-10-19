@@ -1,9 +1,9 @@
 # Coverage Threshold Adjustment for Alpha Release
 
-**Date**: 2025-09-24  
-**Status**: implemented  
-**Affected Area**: testing, release  
-**Priority**: high  
+**Date**: 2025-09-24
+**Status**: implemented
+**Affected Area**: testing, release
+**Priority**: high
 
 ## Summary
 

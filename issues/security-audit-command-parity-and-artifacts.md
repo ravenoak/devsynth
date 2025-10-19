@@ -24,4 +24,3 @@ Dependencies: epics/scripts-consolidation-into-main-application.md
 ## References
 - `src/devsynth/application/cli/commands/security_audit_cmd.py`
 - `scripts/security/security_scan.py`
-

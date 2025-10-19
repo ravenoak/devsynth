@@ -64,4 +64,3 @@ Phase 3 (Cleanup and deprecation removals):
 - `src/devsynth/application/cli/commands/*`
 - `scripts/security/security_scan.py`, `scripts/repo_hygiene_check.py`, `scripts/validate_config.py`
 - Existing issues: `testing-script-consolidation.md`, `unified-test-cli-implementation.md`, `validate-metadata-command.md`, `validate-manifest-command.md`
-

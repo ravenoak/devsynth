@@ -1,16 +1,16 @@
 # Testing Script Consolidation
 
-**Issue Type**: Technical Debt  
-**Priority**: Medium  
-**Effort**: Large  
-**Created**: 2025-01-17  
+**Issue Type**: Technical Debt
+**Priority**: Medium
+**Effort**: Large
+**Created**: 2025-01-17
 
 ## Problem Statement
 
 The `scripts/` directory contains 200+ testing-related scripts with overlapping functionality, inconsistent interfaces, and significant maintenance burden. This creates:
 
 - **Cognitive Overhead**: Developers must navigate many similar scripts
-- **Maintenance Burden**: Changes require updates across multiple scripts  
+- **Maintenance Burden**: Changes require updates across multiple scripts
 - **Inconsistent UX**: Different error handling, output formats, and interfaces
 - **Technical Debt**: Duplicate code and logic across scripts
 
@@ -139,6 +139,6 @@ devsynth test collect [--cache] [--refresh] [--format=json|text]
 
 ---
 
-**Assignee**: TBD  
-**Milestone**: Testing Infrastructure v2.0  
+**Assignee**: TBD
+**Milestone**: Testing Infrastructure v2.0
 **Labels**: technical-debt, testing, cli, consolidation

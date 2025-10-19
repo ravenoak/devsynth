@@ -22,4 +22,3 @@ Evidence and logs are scattered across `artifacts/` and `diagnostics/` with inco
 - `artifacts/README.md`
 - `diagnostics/README.md`
 - `docs/policies/artifacts_and_diagnostics_policy.md`
-
