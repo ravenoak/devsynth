@@ -8,8 +8,7 @@ and don't pollute the developer's environment, file system, or depend on externa
 import sys
 
 # Load sitecustomize early for Python 3.12+ compatibility patches
-if sys.version_info >= (3, 12):
-    import sitecustomize  # noqa: F401
+import sitecustomize  # noqa: F401
 
 pytest_plugins = [
     "tests.conftest_extensions",
@@ -1204,7 +1203,7 @@ def is_property_testing_enabled() -> bool:
     try:
         import yaml
 
-        with open(cfg_path, "r") as f:  # type: ignore[call-arg]
+        with open(cfg_path) as f:  # type: ignore[call-arg]
             data: dict[str, Any] = yaml.safe_load(f) or {}
         return bool(data.get("formalVerification", {}).get("propertyTesting", False))
     except Exception:
