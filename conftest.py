@@ -1,22 +1,28 @@
 """Root conftest.py to ensure pytest-bdd configuration is properly loaded.
 
-Also gates coverage thresholds via environment variables so that strict coverage
-is only enforced on full-suite jobs.
+Also gates coverage thresholds via environment variables so that strict
+coverage is only enforced on full-suite jobs.
 
 ## API Key and Testing Constraints
 
 ### LLM Provider Testing Requirements
 
-**Anthropic API**: Currently waiting on valid API key for testing. Tests requiring Anthropic API are expected to fail until key is available.
+**Anthropic API**: Currently waiting on valid API key for testing. Tests
+requiring Anthropic API are expected to fail until key is available.
 
-**OpenAI API**: Valid API keys available. Use only cheap, inexpensive models (e.g., gpt-3.5-turbo, gpt-4o-mini) and only when absolutely necessary for testing core functionality.
+**OpenAI API**: Valid API keys available. Use only cheap, inexpensive models
+(e.g., gpt-3.5-turbo, gpt-4o-mini) and only when absolutely necessary for
+testing core functionality.
 
-**OpenRouter API**: Valid API keys available with free-tier access. Use OpenRouter free-tier for:
+**OpenRouter API**: Valid API keys available with free-tier access. Use
+OpenRouter free-tier for:
 - All OpenRouter-specific tests
 - General tests requiring live LLM functionality
 - Prefer OpenRouter over OpenAI for cost efficiency
 
-**LM Studio**: Tests run on same host as application tests. Resources are limited - use large timeouts (60+ seconds) and consider resource constraints when designing tests.
+**LM Studio**: Tests run on the same host as application tests. Resources are
+limited—use large timeouts (60+ seconds) and consider resource constraints when
+designing tests.
 
 ### Environment Variables for LLM Testing
 
@@ -45,16 +51,17 @@ import importlib.util
 import os
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
+from functools import wraps
+from importlib import import_module
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any
 
 import pytest
 
 
 def _should_load_bdd() -> bool:
     """Check if BDD should be loaded based on command line arguments."""
-    import sys
 
     return any("behavior" in arg for arg in sys.argv)
 
@@ -83,7 +90,10 @@ def _setup_pytest_bdd() -> None:
 
         config.addinivalue_line(
             "markers",
-            "isolation: mark test to run in isolation due to interactions with other tests",
+            (
+                "isolation: mark test to run in isolation due to interactions "
+                "with other tests"
+            ),
         )
 
         if not CONFIG_STACK:
@@ -102,6 +112,77 @@ def _setup_pytest_bdd() -> None:
         # Optimize BDD scenario loading
         config.option.bdd_strict_markers = False  # Reduce marker validation overhead
         config.option.bdd_dry_run = False  # Skip dry run for faster collection
+
+
+def _patch_pytest_bdd_import_safety() -> None:
+    """Ensure pytest-bdd helpers work when imported outside pytest collection."""
+
+    spec = importlib.util.find_spec("pytest_bdd.scenario")
+    if spec is None:
+        return
+
+    scenario_module = import_module("pytest_bdd.scenario")
+    utils_module = import_module("pytest_bdd.utils")
+
+    if getattr(scenario_module.scenario, "__devsynth_import_safe__", False):
+        return
+
+    original_scenario = scenario_module.scenario
+    original_scenarios = scenario_module.scenarios
+    features_dir = Path(__file__).resolve().parent / "tests" / "behavior" / "features"
+    project_root = Path(__file__).resolve().parent
+
+    class _StubHook:
+        def pytest_bdd_apply_tag(self, *args: Any, **kwargs: Any) -> None:
+            return None
+
+        def __getattr__(self, _name: str) -> Callable[..., None]:
+            def _noop(*_args: Any, **_kwargs: Any) -> None:
+                return None
+
+            return _noop
+
+    class _StubConfig:
+        def __init__(self) -> None:
+            self.rootpath = str(project_root)
+            self.hook = _StubHook()
+
+        def getini(self, name: str, default: Any | None = None) -> Any | None:
+            if name == "bdd_features_base_dir":
+                return "tests/behavior/features"
+            return default
+
+    def _wrap(func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            stub: _StubConfig | None = None
+            if "features_base_dir" not in kwargs:
+                kwargs["features_base_dir"] = str(features_dir)
+            if not utils_module.CONFIG_STACK:
+                stub = _StubConfig()
+                utils_module.CONFIG_STACK.append(stub)
+            try:
+                return func(*args, **kwargs)
+            finally:
+                if (
+                    stub is not None
+                    and utils_module.CONFIG_STACK
+                    and utils_module.CONFIG_STACK[-1] is stub
+                ):
+                    utils_module.CONFIG_STACK.pop()
+
+        wrapper.__devsynth_import_safe__ = True  # type: ignore[attr-defined]
+        return wrapper
+
+    patched_scenario = _wrap(original_scenario)
+    patched_scenarios = _wrap(original_scenarios)
+
+    scenario_module.scenario = patched_scenario
+    scenario_module.scenarios = patched_scenarios
+
+    pytest_bdd_module = import_module("pytest_bdd")
+    pytest_bdd_module.scenario = patched_scenario
+    pytest_bdd_module.scenarios = patched_scenarios
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -165,8 +246,9 @@ def pytest_configure(config: pytest.Config) -> None:
                 config.option.cov_source = specific_sources
                 sources = specific_sources
 
-        # Simplified coverage configuration - use standard .coveragerc for all cases
-        # Remove complex WebUI-specific coverage patching in favor of unified configuration
+        # Simplified coverage configuration - use standard .coveragerc for all
+        # cases. Remove complex WebUI-specific coverage patching in favor of a
+        # unified configuration.
 
 
 # --- Test isolation and defaults -------------------------------------------------
@@ -236,6 +318,7 @@ def pytest_terminal_summary(terminalreporter: pytest.TerminalReporter) -> None:
 
 
 _setup_pytest_bdd()
+_patch_pytest_bdd_import_safety()
 
 
 # Simplified coverage handling - removed complex WebUI-specific coverage patching
