@@ -12,14 +12,15 @@ Usage:
 """
 
 import os
+import shutil
 import sys
 import tempfile
-import shutil
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 # Add the DevSynth source to the path
-sys.path.insert(0, '/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src')
+sys.path.insert(0, "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/src")
+
 
 def test_lmstudio_integration():
     """Test basic LM Studio integration with DevSynth."""
@@ -33,13 +34,13 @@ def test_lmstudio_integration():
 
         # Set up environment variables for LM Studio
         env_vars = {
-            'DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE': 'true',
-            'LM_STUDIO_ENDPOINT': 'http://127.0.0.1:1234',
-            'DEVSYNTH_OFFLINE': 'false',
-            'DEVSYNTH_CONFIG_FILE': '/Users/caitlyn/Projects/github.com/ravenoak/devsynth/config/lmstudio.yml',
-            'DEVSYNTH_MEMORY_PATH': str(temp_path / 'memory'),
-            'DEVSYNTH_CHROMADB_PATH': str(temp_path / 'chromadb'),
-            'DEVSYNTH_KUZU_PATH': str(temp_path / 'kuzu'),
+            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "true",
+            "LM_STUDIO_ENDPOINT": "http://127.0.0.1:1234",
+            "DEVSYNTH_OFFLINE": "false",
+            "DEVSYNTH_CONFIG_FILE": "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/config/lmstudio.yml",
+            "DEVSYNTH_MEMORY_PATH": str(temp_path / "memory"),
+            "DEVSYNTH_CHROMADB_PATH": str(temp_path / "chromadb"),
+            "DEVSYNTH_KUZU_PATH": str(temp_path / "kuzu"),
         }
 
         # Apply environment variables
@@ -53,29 +54,36 @@ def test_lmstudio_integration():
 
             # Test configuration loading
             from devsynth.config.settings import get_settings
+
             settings = get_settings()
 
             # Verify LM Studio is configured as default provider
             llm_provider = settings["llm_provider"]
-            assert llm_provider == 'lmstudio', f"Expected lmstudio, got {llm_provider}"
+            assert llm_provider == "lmstudio", f"Expected lmstudio, got {llm_provider}"
 
             # Test getting LLM settings
             from devsynth.config import get_llm_settings
+
             llm_settings = get_llm_settings()
-            assert llm_settings["provider"] == 'lmstudio', f"Expected lmstudio, got {llm_settings['provider']}"
+            assert (
+                llm_settings["provider"] == "lmstudio"
+            ), f"Expected lmstudio, got {llm_settings['provider']}"
             print("   ✅ Configuration loaded successfully")
 
             print("2. 🏭 Testing provider factory...")
 
             # Test provider factory
             from devsynth.application.llm.provider_factory import ProviderFactory
+
             factory = ProviderFactory()
 
             # Verify LM Studio provider is registered (or not, depending on availability)
-            if 'lmstudio' in factory.provider_types:
+            if "lmstudio" in factory.provider_types:
                 print("   ✅ LM Studio provider is registered in factory")
             else:
-                print("   ℹ️  LM Studio provider not registered (lmstudio package not available)")
+                print(
+                    "   ℹ️  LM Studio provider not registered (lmstudio package not available)"
+                )
             print("   ✅ Provider factory initialized successfully")
 
             print("3. 🤖 Testing LM Studio provider initialization...")
@@ -85,39 +93,54 @@ def test_lmstudio_integration():
                 from devsynth.application.llm.lmstudio_provider import LMStudioProvider
 
                 # Create provider with mock LM Studio service for testing
-                with patch('devsynth.application.llm.lmstudio_provider.lmstudio') as mock_lmstudio:
+                with patch(
+                    "devsynth.application.llm.lmstudio_provider.lmstudio"
+                ) as mock_lmstudio:
                     # Mock the LM Studio API responses
                     mock_lmstudio.sync_api.list_downloaded_models.return_value = [
-                        MagicMock(model_key='test-model', display_name='Test Model')
+                        MagicMock(model_key="test-model", display_name="Test Model")
                     ]
 
                     # Mock the LLM completion
                     mock_completion = MagicMock()
-                    mock_completion.content = "Hello! This is a test response from LM Studio."
-                    mock_lmstudio.llm.return_value.complete.return_value = mock_completion
+                    mock_completion.content = (
+                        "Hello! This is a test response from LM Studio."
+                    )
+                    mock_lmstudio.llm.return_value.complete.return_value = (
+                        mock_completion
+                    )
 
                     # Mock the LLM respond for context generation
                     mock_context_response = MagicMock()
-                    mock_context_response.content = "This is a context-aware response from LM Studio."
-                    mock_lmstudio.llm.return_value.respond.return_value = mock_context_response
+                    mock_context_response.content = (
+                        "This is a context-aware response from LM Studio."
+                    )
+                    mock_lmstudio.llm.return_value.respond.return_value = (
+                        mock_context_response
+                    )
 
                     # Initialize provider
-                    provider = LMStudioProvider({
-                        'api_base': 'http://127.0.0.1:1234',
-                        'auto_select_model': True
-                    })
+                    provider = LMStudioProvider(
+                        {"api_base": "http://127.0.0.1:1234", "auto_select_model": True}
+                    )
 
                     print("   ✅ LM Studio provider initialized successfully")
 
             except ImportError:
-                print("   ℹ️  LM Studio provider not available (lmstudio package not installed)")
-                print("   ℹ️  This is expected when the optional lmstudio package is not installed.")
+                print(
+                    "   ℹ️  LM Studio provider not available (lmstudio package not installed)"
+                )
+                print(
+                    "   ℹ️  This is expected when the optional lmstudio package is not installed."
+                )
                 return True
 
             print("4. 💬 Testing text generation...")
 
             # Test text generation
-            response = provider.generate("Hello, can you help me test DevSynth with LM Studio?")
+            response = provider.generate(
+                "Hello, can you help me test DevSynth with LM Studio?"
+            )
             assert isinstance(response, str), "Response should be a string"
             assert len(response) > 0, "Response should not be empty"
             print(f"   ✅ Generated response: '{response[:100]}...'")
@@ -127,15 +150,21 @@ def test_lmstudio_integration():
             # Test context-aware generation
             context = [
                 {"role": "system", "content": "You are a helpful AI assistant."},
-                {"role": "user", "content": "What is DevSynth?"}
+                {"role": "user", "content": "What is DevSynth?"},
             ]
 
             response_with_context = provider.generate_with_context(
                 "Can you explain more about it?", context
             )
-            assert isinstance(response_with_context, str), "Context response should be a string"
-            assert len(response_with_context) > 0, "Context response should not be empty"
-            print(f"   ✅ Generated context response: '{response_with_context[:100]}...'")
+            assert isinstance(
+                response_with_context, str
+            ), "Context response should be a string"
+            assert (
+                len(response_with_context) > 0
+            ), "Context response should not be empty"
+            print(
+                f"   ✅ Generated context response: '{response_with_context[:100]}...'"
+            )
 
             print("6. 🎯 Testing health check...")
 
@@ -143,7 +172,9 @@ def test_lmstudio_integration():
             health = provider.health_check()
             print(f"   ✅ Health check completed (result: {health})")
 
-            print("\n🎉 All tests passed! DevSynth LM Studio integration is working correctly.")
+            print(
+                "\n🎉 All tests passed! DevSynth LM Studio integration is working correctly."
+            )
             return True
 
         except ImportError as e:
@@ -155,6 +186,7 @@ def test_lmstudio_integration():
         except Exception as e:
             print(f"   ❌ Error testing LM Studio provider: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -179,12 +211,12 @@ def test_mock_lmstudio_scenario():
 
         # Set up environment variables for LM Studio with mock
         env_vars = {
-            'DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE': 'false',  # Use mock instead
-            'DEVSYNTH_OFFLINE': 'false',
-            'DEVSYNTH_CONFIG_FILE': '/Users/caitlyn/Projects/github.com/ravenoak/devsynth/config/lmstudio.yml',
-            'DEVSYNTH_MEMORY_PATH': str(temp_path / 'memory'),
-            'DEVSYNTH_CHROMADB_PATH': str(temp_path / 'chromadb'),
-            'DEVSYNTH_KUZU_PATH': str(temp_path / 'kuzu'),
+            "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "false",  # Use mock instead
+            "DEVSYNTH_OFFLINE": "false",
+            "DEVSYNTH_CONFIG_FILE": "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/config/lmstudio.yml",
+            "DEVSYNTH_MEMORY_PATH": str(temp_path / "memory"),
+            "DEVSYNTH_CHROMADB_PATH": str(temp_path / "chromadb"),
+            "DEVSYNTH_KUZU_PATH": str(temp_path / "kuzu"),
         }
 
         # Apply environment variables
@@ -198,6 +230,7 @@ def test_mock_lmstudio_scenario():
 
             # Test configuration loading
             from devsynth.config.settings import get_settings
+
             settings = get_settings()
 
             print("   ✅ Configuration loaded successfully")
@@ -207,6 +240,7 @@ def test_mock_lmstudio_scenario():
 
             # Test provider factory fallback to offline
             from devsynth.application.llm.provider_factory import ProviderFactory
+
             factory = ProviderFactory()
 
             # Should fallback to offline provider when LM Studio is not available
@@ -215,7 +249,9 @@ def test_mock_lmstudio_scenario():
                 print(f"   ✅ Provider created: {type(provider).__name__}")
             except Exception as e:
                 print(f"   ℹ️  Provider creation failed as expected: {e}")
-                print("   ℹ️  This is normal when no providers are available for testing")
+                print(
+                    "   ℹ️  This is normal when no providers are available for testing"
+                )
                 return True
 
             print("3. 🤖 Testing offline provider functionality...")
@@ -230,6 +266,7 @@ def test_mock_lmstudio_scenario():
         except Exception as e:
             print(f"   ❌ Error in mock test: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 

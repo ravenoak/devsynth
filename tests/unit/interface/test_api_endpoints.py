@@ -11,6 +11,7 @@ from fastapi import HTTPException
 # Import will be done lazily when actually needed by tests
 TestClient = None
 
+
 def _get_testclient():
     """Lazily import TestClient to avoid MRO issues during collection."""
     global TestClient
@@ -21,6 +22,7 @@ def _get_testclient():
             # Fallback for MRO compatibility issues
             from starlette.testclient import TestClient
     return TestClient
+
 
 from devsynth.api import app
 from devsynth.application.cli._command_exports import COMMAND_ATTRIBUTE_NAMES

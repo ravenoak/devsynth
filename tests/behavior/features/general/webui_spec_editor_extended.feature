@@ -13,7 +13,7 @@ Feature: WebUI Specification Editor Extended
     Given the WebUI is initialized
     When I try to load a non-existent specification file
     Then the editor should show empty content
-    
+
   Scenario: Edit and save without regenerating
     Given the WebUI is initialized
     And a specification file exists with content "original content"

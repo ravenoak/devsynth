@@ -225,7 +225,7 @@ class TestRealWorldScenarios:
         # Step 2: Requirements with GUI focus
         requirements_content = """# Smart File Organizer Requirements
 
-## Core Functionality  
+## Core Functionality
 - The system shall monitor specified directories for new files
 - The system shall organize files by type into predefined folder structures
 - The system shall detect and handle duplicate files with user confirmation
@@ -331,20 +331,20 @@ from unittest.mock import Mock, patch
 
 class Test{app_type.replace('_', '').title()}:
     '''Test suite for core {app_type} functionality.'''
-    
+
     def test_basic_functionality(self):
         '''Test basic application functionality.'''
         # Mock implementation for testing
         assert True  # Placeholder for actual test logic
-        
+
     def test_error_handling(self):
         '''Test error handling and edge cases.'''
         # Mock implementation for testing
         assert True  # Placeholder for actual test logic
-        
+
     def test_data_persistence(self):
         '''Test data persistence and retrieval.'''
-        # Mock implementation for testing  
+        # Mock implementation for testing
         assert True  # Placeholder for actual test logic
 """
 
@@ -372,17 +372,17 @@ from typing import Any, Dict, List, Optional
 
 class {app_type.replace('_', '').title()}:
     '''Main application class for {app_type.replace('_', ' ')}.'''
-    
+
     def __init__(self):
         '''Initialize the application.'''
         self.logger = logging.getLogger(__name__)
         self.data = {{}}
-        
+
     def run(self) -> None:
         '''Run the main application loop.'''
         self.logger.info("Starting {app_type.replace('_', ' ')} application")
         # Implementation would go here
-        
+
     def process_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         '''Process application data.'''
         # Implementation would go here
@@ -425,7 +425,7 @@ def add(title: str, description: str = "", priority: str = "Medium"):
     '''Add a new task.'''
     typer.echo(f"Added task: {title}")
 
-@app.command() 
+@app.command()
 def list():
     '''List all tasks.'''
     typer.echo("Task list would appear here")
@@ -450,7 +450,7 @@ from typing import Optional
 
 class Priority(Enum):
     HIGH = "High"
-    MEDIUM = "Medium" 
+    MEDIUM = "Medium"
     LOW = "Low"
 
 @dataclass
@@ -462,7 +462,7 @@ class Task:
     completed: bool = False
     created_at: datetime = None
     due_date: Optional[datetime] = None
-    
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = datetime.now()
@@ -479,16 +479,16 @@ from .models import Task
 
 class TaskStorage:
     '''Handles task persistence using JSON files.'''
-    
+
     def __init__(self, storage_path: str = "~/.task_manager/tasks.json"):
         self.storage_path = Path(storage_path).expanduser()
         self.storage_path.parent.mkdir(exist_ok=True)
-        
+
     def save_tasks(self, tasks: List[Task]) -> None:
         '''Save tasks to JSON file.'''
         # Implementation would serialize tasks to JSON
         pass
-        
+
     def load_tasks(self) -> List[Task]:
         '''Load tasks from JSON file.'''
         # Implementation would deserialize tasks from JSON
@@ -542,7 +542,7 @@ Base = declarative_base()
 
 class TransactionDB(Base):
     __tablename__ = "transactions"
-    
+
     id = Column(Integer, primary_key=True)
     amount = Column(Float, nullable=False)
     category = Column(String, nullable=False)
@@ -559,7 +559,7 @@ class TransactionCreate(BaseModel):
 class Transaction(TransactionCreate):
     id: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 """
@@ -656,47 +656,47 @@ from .organizer import FileOrganizer
 
 class FileOrganizerGUI:
     '''Main GUI application for file organizer.'''
-    
+
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Smart File Organizer")
         self.organizer = FileOrganizer()
         self.setup_ui()
-        
+
     def setup_ui(self):
         '''Set up the user interface.'''
         # Main frame
         main_frame = ttk.Frame(self.root, padding="10")
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        
+
         # Source directory selection
         ttk.Label(main_frame, text="Source Directory:").grid(row=0, column=0, sticky=tk.W)
         self.source_var = tk.StringVar()
         ttk.Entry(main_frame, textvariable=self.source_var, width=50).grid(row=0, column=1)
         ttk.Button(main_frame, text="Browse", command=self.select_source).grid(row=0, column=2)
-        
+
         # Organize button
         ttk.Button(main_frame, text="Organize Files", command=self.organize_files).grid(row=1, column=1)
-        
+
     def select_source(self):
         '''Select source directory.'''
         directory = filedialog.askdirectory()
         if directory:
             self.source_var.set(directory)
-            
+
     def organize_files(self):
         '''Start file organization process.'''
         source = self.source_var.get()
         if not source:
             messagebox.showerror("Error", "Please select a source directory")
             return
-            
+
         try:
             self.organizer.organize_directory(source)
             messagebox.showinfo("Success", "Files organized successfully")
         except Exception as e:
             messagebox.showerror("Error", f"Organization failed: {e}")
-            
+
     def run(self):
         '''Start the GUI application.'''
         self.root.mainloop()
@@ -715,47 +715,47 @@ from datetime import datetime
 
 class FileOrganizer:
     '''Handles file organization operations.'''
-    
+
     def __init__(self, config_path: str = "~/.file_organizer/config.json"):
         self.config_path = Path(config_path).expanduser()
         self.config_path.parent.mkdir(exist_ok=True)
         self.rules = self.load_rules()
-        
+
     def load_rules(self) -> Dict[str, str]:
         '''Load organization rules from config.'''
         if self.config_path.exists():
             with open(self.config_path, 'r') as f:
                 return json.load(f).get('rules', {})
         return self.default_rules()
-        
+
     def default_rules(self) -> Dict[str, str]:
         '''Get default organization rules.'''
         return {
             '.jpg': 'Images',
-            '.png': 'Images', 
+            '.png': 'Images',
             '.pdf': 'Documents',
             '.txt': 'Documents',
             '.mp4': 'Videos',
             '.mp3': 'Audio',
         }
-        
+
     def organize_directory(self, source_path: str) -> None:
         '''Organize files in the specified directory.'''
         source = Path(source_path)
         if not source.exists():
             raise ValueError(f"Source directory does not exist: {source_path}")
-            
+
         for file_path in source.iterdir():
             if file_path.is_file():
                 self.organize_file(file_path)
-                
+
     def organize_file(self, file_path: Path) -> None:
         '''Organize a single file based on its extension.'''
         extension = file_path.suffix.lower()
         if extension in self.rules:
             target_dir = file_path.parent / self.rules[extension]
             target_dir.mkdir(exist_ok=True)
-            
+
             target_path = target_dir / file_path.name
             if not target_path.exists():
                 shutil.move(str(file_path), str(target_path))
@@ -771,23 +771,23 @@ from typing import Dict, Any
 
 class ConfigManager:
     '''Manages file organizer configuration.'''
-    
+
     def __init__(self, config_path: str = "~/.file_organizer/config.json"):
         self.config_path = Path(config_path).expanduser()
         self.config_path.parent.mkdir(exist_ok=True)
-        
+
     def load_config(self) -> Dict[str, Any]:
         '''Load configuration from file.'''
         if self.config_path.exists():
             with open(self.config_path, 'r') as f:
                 return json.load(f)
         return self.default_config()
-        
+
     def save_config(self, config: Dict[str, Any]) -> None:
         '''Save configuration to file.'''
         with open(self.config_path, 'w') as f:
             json.dump(config, f, indent=2)
-            
+
     def default_config(self) -> Dict[str, Any]:
         '''Get default configuration.'''
         return {
@@ -1015,7 +1015,7 @@ class TestDevSynthWorkflowIntegration:
 
                 # Create mock requirements
                 requirements_content = """# Test Requirements
-                
+
 ## Basic Functionality
 - The system shall perform basic operations
 - The system shall handle user input

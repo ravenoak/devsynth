@@ -21,6 +21,7 @@ pytestmark = [pytest.mark.fast]
 # Flag to track if scenarios have been loaded
 _scenarios_loaded = False
 
+
 def _load_bdd_scenarios():
     """Load BDD scenarios, ensuring they're only loaded once."""
     global _scenarios_loaded
@@ -28,7 +29,9 @@ def _load_bdd_scenarios():
         return
 
     try:
-        scenarios(feature_path(__file__, "general", "cross_interface_consistency.feature"))
+        scenarios(
+            feature_path(__file__, "general", "cross_interface_consistency.feature")
+        )
         _scenarios_loaded = True
     except Exception as e:
         # If scenarios loading fails, it might be due to CONFIG_STACK issues
@@ -36,9 +39,11 @@ def _load_bdd_scenarios():
         # later when pytest-bdd is properly initialized.
         pass
 
+
 def pytest_configure(config):
     """Hook called after pytest is configured - load BDD scenarios here."""
     _load_bdd_scenarios()
+
 
 # Try to load scenarios immediately, but handle failures gracefully
 _load_bdd_scenarios()

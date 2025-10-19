@@ -92,7 +92,15 @@ def test_run_tests_keyword_filter_no_matches(monkeypatch, tmp_path):
     monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", str(tests_dir))
 
     # Mock subprocess.run for collection to return no node ids
-    def fake_run(cmd, check=False, capture_output=False, text=False, timeout=None, cwd=None, env=None):
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=False,
+        text=False,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):
         # Simulate --collect-only output with no matching lines
         return _DummyCompleted(stdout="", stderr="", returncode=0)
 
@@ -131,7 +139,15 @@ def test_run_tests_segment_batches(monkeypatch, tmp_path):
         "tests/unit/test_c.py::test_5",
     ]
 
-    def fake_run(cmd, check=False, capture_output=False, text=False, timeout=None, cwd=None, env=None):
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=False,
+        text=False,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):
         # Collection command returns the node ids in stdout, one per line
         if "--collect-only" in cmd:
             return _DummyCompleted(stdout="\n".join(collected), stderr="", returncode=0)
@@ -181,7 +197,15 @@ def test_collect_tests_with_cache_writes_cache_and_sanitizes(monkeypatch, tmp_pa
         "tests/unit/test_x.py:10",  # duplicate
     ]
 
-    def fake_run(cmd, check=False, capture_output=False, text=False, timeout=None, cwd=None, env=None):
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=False,
+        text=False,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):
         return _DummyCompleted(stdout="\n".join(noisy), stderr="", returncode=0)
 
     monkeypatch.setattr(rt.subprocess, "run", fake_run)

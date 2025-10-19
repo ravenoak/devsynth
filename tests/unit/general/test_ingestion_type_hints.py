@@ -10,7 +10,9 @@ if shutil.which("mypy") is None:
     pytest.skip("mypy is not installed", allow_module_level=True)
 
 
-@pytest.mark.skip(reason="Type checking tests can be slow and may timeout in CI environments")
+@pytest.mark.skip(
+    reason="Type checking tests can be slow and may timeout in CI environments"
+)
 @pytest.mark.fast
 def test_ingestion_type_hints_raises_error():
     """Test that the ingestion.py file has proper type hints.
@@ -20,7 +22,14 @@ def test_ingestion_type_hints_raises_error():
 
     ReqID: N/A"""
     project_root = Path(__file__).parent.parent.parent.parent
-    ingestion_path = project_root / "src" / "devsynth" / "application" / "documentation" / "ingestion.py"
+    ingestion_path = (
+        project_root
+        / "src"
+        / "devsynth"
+        / "application"
+        / "documentation"
+        / "ingestion.py"
+    )
     assert ingestion_path.exists(), f"ingestion.py file not found at {ingestion_path}"
     result = subprocess.run(
         ["mypy", "--ignore-missing-imports", str(ingestion_path)],

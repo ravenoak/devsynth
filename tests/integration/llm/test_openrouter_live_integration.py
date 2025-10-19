@@ -17,7 +17,6 @@ from devsynth.application.llm.openrouter_provider import (
     OpenRouterProvider,
 )
 
-
 # Skip all tests if OpenRouter API key is not available
 pytestmark = [
     pytest.mark.requires_resource("openrouter"),
@@ -100,14 +99,16 @@ class TestOpenRouterLiveIntegration:
             provider.model = model
 
             response = provider.generate_with_context(
-                "Explain it in simple terms.",
-                context
+                "Explain it in simple terms.", context
             )
 
             assert isinstance(response, str)
             assert len(response) > 0
             # Should mention programming concepts
-            assert any(term in response.lower() for term in ["function", "call", "itself", "recursive"])
+            assert any(
+                term in response.lower()
+                for term in ["function", "call", "itself", "recursive"]
+            )
 
     @pytest.mark.slow
     def test_embedding_generation(self, provider: OpenRouterProvider):
@@ -137,8 +138,7 @@ class TestOpenRouterLiveIntegration:
         # Test different temperatures
         for temp in [0.1, 0.5, 0.9, 1.5]:
             response = provider.generate(
-                "Write a creative sentence.",
-                parameters={"temperature": temp}
+                "Write a creative sentence.", parameters={"temperature": temp}
             )
             assert isinstance(response, str)
             assert len(response) > 0
@@ -146,8 +146,7 @@ class TestOpenRouterLiveIntegration:
         # Test different max_tokens
         for max_tokens in [50, 100, 200]:
             response = provider.generate(
-                "Write a short story.",
-                parameters={"max_tokens": max_tokens}
+                "Write a short story.", parameters={"max_tokens": max_tokens}
             )
             assert isinstance(response, str)
             assert len(response) > 0
@@ -191,7 +190,9 @@ class TestOpenRouterLiveIntegration:
 
             # Basic performance assertions
             assert avg_time < 10.0, f"{model} response time too slow: {avg_time}s"
-            assert avg_time > 0.1, f"{model} response time suspiciously fast: {avg_time}s"
+            assert (
+                avg_time > 0.1
+            ), f"{model} response time suspiciously fast: {avg_time}s"
 
     @pytest.mark.slow
     def test_token_tracking_integration(self, provider: OpenRouterProvider):
@@ -207,7 +208,7 @@ class TestOpenRouterLiveIntegration:
         assert len(response) > 0
 
         # Verify token tracker is working (basic check)
-        assert hasattr(provider, 'token_tracker')
+        assert hasattr(provider, "token_tracker")
         assert provider.token_tracker is not None
 
     @pytest.mark.slow
@@ -346,7 +347,9 @@ class TestOpenRouterLiveIntegration:
             context.append({"role": "assistant", "content": f"Answer {i} about AI"})
 
         # Add a final question
-        final_response = provider.generate_with_context("What is the future of AI?", context)
+        final_response = provider.generate_with_context(
+            "What is the future of AI?", context
+        )
 
         assert isinstance(final_response, str)
         assert len(final_response) > 0
@@ -378,11 +381,25 @@ class TestOpenRouterLiveIntegration:
             prompt_lower = prompt.lower()
             response_lower = response.lower()
 
-            if any(term in response_lower for term in ["machine", "learning", "ai"]) and "machine learning" in prompt_lower:
+            if (
+                any(term in response_lower for term in ["machine", "learning", "ai"])
+                and "machine learning" in prompt_lower
+            ):
                 quality_score += 1
-            elif any(term in response_lower for term in ["recursion", "function", "call"]) and "recursion" in prompt_lower:
+            elif (
+                any(
+                    term in response_lower for term in ["recursion", "function", "call"]
+                )
+                and "recursion" in prompt_lower
+            ):
                 quality_score += 1
-            elif any(term in response_lower for term in ["technology", "tech", "computer"]) and "technology" in prompt_lower:
+            elif (
+                any(
+                    term in response_lower
+                    for term in ["technology", "tech", "computer"]
+                )
+                and "technology" in prompt_lower
+            ):
                 quality_score += 1
 
             # Coherence check (shouldn't contain obvious errors)
@@ -396,7 +413,9 @@ class TestOpenRouterLiveIntegration:
             assert score >= 2, f"{model} quality score too low: {score}/3"
 
     @pytest.mark.slow
-    def test_cross_provider_consistency(self, provider: OpenRouterProvider, api_key: str):
+    def test_cross_provider_consistency(
+        self, provider: OpenRouterProvider, api_key: str
+    ):
         """Test consistency with other providers for comparison."""
         from devsynth.application.llm.providers import get_llm_provider
 
@@ -413,7 +432,10 @@ class TestOpenRouterLiveIntegration:
 
         assert isinstance(openrouter_response, str)
         assert len(openrouter_response) > 0
-        assert "fibonacci" in openrouter_response.lower() or "sequence" in openrouter_response.lower()
+        assert (
+            "fibonacci" in openrouter_response.lower()
+            or "sequence" in openrouter_response.lower()
+        )
 
 
 class TestOpenRouterIntegrationEdgeCases:
@@ -555,16 +577,22 @@ class TestOpenRouterIntegrationPerformance:
 
         # Log results for analysis
         for model, results in latency_results.items():
-            print(f"{model} latency: avg={results['avg']:.2f}s, "
-                  f"min={results['min']:.2f}s, max={results['max']:.2f}s")
+            print(
+                f"{model} latency: avg={results['avg']:.2f}s, "
+                f"min={results['min']:.2f}s, max={results['max']:.2f}s"
+            )
 
         # Performance assertions
         for model, results in latency_results.items():
             # Average should be reasonable (< 5s for free tier)
-            assert results["avg"] < 5.0, f"{model} average latency too high: {results['avg']}s"
+            assert (
+                results["avg"] < 5.0
+            ), f"{model} average latency too high: {results['avg']}s"
 
             # Maximum should be acceptable (< 10s)
-            assert results["max"] < 10.0, f"{model} max latency too high: {results['max']}s"
+            assert (
+                results["max"] < 10.0
+            ), f"{model} max latency too high: {results['max']}s"
 
             # Should have reasonable consistency
             assert results["max"] < results["avg"] * 3, f"{model} latency too variable"
@@ -597,8 +625,12 @@ class TestOpenRouterIntegrationPerformance:
         elapsed = time.time() - start_time
         requests_per_second = request_count / elapsed if elapsed > 0 else 0
 
-        print(f"Throughput: {requests_per_second:.2f} requests/second ({request_count} requests in {elapsed:.2f}s)")
+        print(
+            f"Throughput: {requests_per_second:.2f} requests/second ({request_count} requests in {elapsed:.2f}s)"
+        )
 
         # Should achieve reasonable throughput (> 1 request per 5 seconds)
         assert request_count > 0, "No requests completed"
-        assert requests_per_second > 0.2, f"Throughput too low: {requests_per_second} req/s"
+        assert (
+            requests_per_second > 0.2
+        ), f"Throughput too low: {requests_per_second} req/s"

@@ -78,7 +78,15 @@ def test_segmented_batches_surface_plugin_fallbacks_and_failure_tips(
         ]
     )
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         assert "--collect-only" in cmd, "collection command expected"
         return SimpleNamespace(returncode=0, stdout=collect_output, stderr="")
 

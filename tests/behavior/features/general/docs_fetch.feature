@@ -20,4 +20,3 @@ Feature: Documentation Fetch and Cache
   Scenario: Invalid library request
     When I fetch documentation for "nonexistent-lib" version "0.0.1"
     Then I should receive an error message indicating the docs were not found
-

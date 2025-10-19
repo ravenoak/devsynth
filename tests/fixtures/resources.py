@@ -26,6 +26,7 @@ except ImportError:
         """Fallback implementation when conftest isn't available."""
         return False
 
+
 try:  # pragma: no cover - optional dependency
     import yaml  # type: ignore
 except Exception:  # pragma: no cover

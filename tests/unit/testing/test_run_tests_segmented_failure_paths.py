@@ -15,7 +15,15 @@ def test_segment_batch_failure_appends_tips(monkeypatch) -> None:
         "tests/unit/mod_x_test.py::test_x1\n" "tests/unit/mod_y_test.py::test_y1\n"
     )
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         assert "--collect-only" in cmd and "-q" in cmd
         return SimpleNamespace(returncode=0, stdout=collected_ids, stderr="")
 
@@ -58,7 +66,15 @@ def test_segment_batch_benchmark_warning_forces_success(monkeypatch) -> None:
         "tests/unit/mod_x_test.py::test_x1\n" "tests/unit/mod_y_test.py::test_y1\n"
     )
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         return SimpleNamespace(returncode=0, stdout=collected_ids, stderr="")
 
     class WarnBatch:

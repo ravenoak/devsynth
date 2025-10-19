@@ -1203,6 +1203,7 @@ def is_property_testing_enabled() -> bool:
     cfg_path = Path(__file__).resolve().parent / "config" / "default.yml"
     try:
         import yaml
+
         with open(cfg_path, "r") as f:  # type: ignore[call-arg]
             data: dict[str, Any] = yaml.safe_load(f) or {}
         return bool(data.get("formalVerification", {}).get("propertyTesting", False))

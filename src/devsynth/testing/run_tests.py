@@ -7,12 +7,6 @@ intended for use by helper scripts such as ``scripts/manual_cli_testing.py``.
 
 from __future__ import annotations
 
-import sys
-
-# Load sitecustomize early for Python 3.12+ compatibility patches
-if sys.version_info >= (3, 12):
-    import sitecustomize  # noqa: F401
-
 import hashlib
 import importlib.util
 import inspect
@@ -38,7 +32,10 @@ from typing import (
 from unittest.mock import patch
 from uuid import uuid4
 
+# Load sitecustomize early for Python 3.12+ compatibility patches
+import sitecustomize  # noqa: F401
 from devsynth.logging_setup import DevSynthLogger
+
 
 # Lazy import release functions to avoid circular imports during basic test runs
 def _import_release_functions() -> tuple[Any, Any, Any, Any]:
@@ -50,8 +47,9 @@ def _import_release_functions() -> tuple[Any, Any, Any, Any]:
             publish_manifest,
             write_manifest,
         )
+
         return compute_file_checksum, get_release_tag, publish_manifest, write_manifest
-    except ImportError as e:
+    except ImportError:
         # If release module is not available due to circular imports,
         # provide stub implementations for basic functionality
         import hashlib
@@ -61,9 +59,9 @@ def _import_release_functions() -> tuple[Any, Any, Any, Any]:
             """Stub implementation for compute_file_checksum."""
             try:
                 path_str = str(path)
-                with open(path_str, 'rb') as f:
+                with open(path_str, "rb") as f:
                     return hashlib.sha256(f.read()).hexdigest()
-            except (FileNotFoundError, IOError):
+            except (FileNotFoundError, OSError):
                 return "stub_checksum"
 
         def get_release_tag_stub() -> str:
@@ -79,16 +77,24 @@ def _import_release_functions() -> tuple[Any, Any, Any, Any]:
                 evidence_ids=("stub_evidence",),
                 gate_status="stub_status",
                 created={"stub": "created"},
-                adapter_backend="stub_backend"
+                adapter_backend="stub_backend",
             )
 
         def write_manifest_stub(path: Any, manifest: Any) -> None:
             """Stub implementation for write_manifest."""
             pass
 
-        return compute_file_checksum_stub, get_release_tag_stub, publish_manifest_stub, write_manifest_stub
+        return (
+            compute_file_checksum_stub,
+            get_release_tag_stub,
+            publish_manifest_stub,
+            write_manifest_stub,
+        )
 
-compute_file_checksum, get_release_tag, publish_manifest, write_manifest = _import_release_functions()
+
+compute_file_checksum, get_release_tag, publish_manifest, write_manifest = (
+    _import_release_functions()
+)
 
 # Cache directory for test collection
 COLLECTION_CACHE_DIR = Path(".test_collection_cache")
@@ -402,7 +408,10 @@ def _ensure_coverage_artifacts() -> None:
     """Generate coverage artifacts when real coverage data exists."""
 
     try:
-        from coverage import Coverage
+        import importlib as _importlib
+
+        _coverage_mod = _importlib.import_module("coverage")
+        Coverage = getattr(_coverage_mod, "Coverage")
     except Exception:
         logger.debug("coverage library unavailable; skipping artifact generation")
         return
@@ -669,7 +678,10 @@ def ensure_pytest_asyncio_plugin_env(env: MutableMapping[str, str]) -> bool:
     plugin_aliases = ("pytest_asyncio",)
     if any(_plugin_explicitly_disabled(tokens, alias) for alias in plugin_aliases):
         logger.debug(
-            "pytest-asyncio remains disabled due to explicit -p no:pytest_asyncio override",
+            (
+                "pytest-asyncio remains disabled due to explicit "
+                "-p no:pytest_asyncio override"
+            ),
             extra={"pytest_addopts": addopts_value},
         )
         return False
@@ -801,14 +813,28 @@ def coverage_artifacts_status() -> tuple[bool, str | None]:
     return True, None
 
 
-def _archive_coverage_artifacts(*, release_tag: str, profile: str, timestamp: str, publication_message: str | None, execution_metadata: ExecutionMetadata) -> None:
-    """Copy coverage artifacts into artifacts/releases/<tag>/<profile>/<timestamp>-<profile>/.
+def _archive_coverage_artifacts(
+    *,
+    release_tag: str,
+    profile: str,
+    timestamp: str,
+    publication_message: str | None,
+    execution_metadata: ExecutionMetadata,
+) -> None:
+    """Archive coverage artifacts under artifacts/releases/<tag>/<profile>/...
 
-    Minimal archival to satisfy release documentation: copy coverage.json, htmlcov snapshot,
-    and a small CLI log capturing the command and knowledge-graph banner.
+    Copies coverage.json, an htmlcov snapshot, and a small CLI log capturing
+    the command and knowledge-graph banner. This keeps line lengths within
+    our flake8 limit while documenting intent clearly.
     """
     try:
-        dest_root = Path("artifacts") / "releases" / release_tag / profile / f"{timestamp}-{profile}"
+        dest_root = (
+            Path("artifacts")
+            / "releases"
+            / release_tag
+            / profile
+            / f"{timestamp}-{profile}"
+        )
         dest_root.mkdir(parents=True, exist_ok=True)
         # Copy JSON coverage
         try:
@@ -825,15 +851,24 @@ def _archive_coverage_artifacts(*, release_tag: str, profile: str, timestamp: st
             logger.warning("Archival: failed to copy HTML coverage directory: %s", exc)
         # Write a small log with the source command and banner message
         try:
-            cmd_entries = execution_metadata.get("commands") or []
+            cmd_entries_raw = execution_metadata.get("commands")
+            cmd_entries: list[Any] = []
+            if isinstance(cmd_entries_raw, Sequence) and not isinstance(
+                cmd_entries_raw, (str, bytes)
+            ):
+                cmd_entries = list(cmd_entries_raw)
+            elif cmd_entries_raw is not None:
+                cmd_entries = [str(cmd_entries_raw)]
             if not cmd_entries:
                 primary = execution_metadata.get("command")
-                cmd_entries = [primary] if primary else []
+                cmd_entries = [str(primary)] if primary is not None else []
             command_strs: list[str] = []
             for entry in cmd_entries:
                 if isinstance(entry, str):
                     command_strs.append(entry)
-                elif isinstance(entry, Sequence) and not isinstance(entry, (str, bytes)):
+                elif isinstance(entry, Sequence) and not isinstance(
+                    entry, (str, bytes)
+                ):
                     command_strs.append(" ".join(str(p) for p in entry))
                 elif entry is not None:
                     command_strs.append(str(entry))
@@ -842,7 +877,9 @@ def _archive_coverage_artifacts(*, release_tag: str, profile: str, timestamp: st
                 log_text.append("Command(s):\n" + "\n".join(command_strs))
             if publication_message:
                 log_text.append("\n" + publication_message)
-            (dest_root / f"devsynth_run_tests_{profile}.log").write_text("\n".join(log_text) or "")
+            (dest_root / f"devsynth_run_tests_{profile}.log").write_text(
+                "\n".join(log_text) or ""
+            )
         except Exception as exc:
             logger.warning("Archival: failed to write CLI log: %s", exc)
     except Exception:
@@ -1103,20 +1140,19 @@ def enforce_coverage_threshold(
             raise SystemExit(1)
         raise RuntimeError(message)
 
-    threshold = minimum_percent if minimum_percent is not None else _coverage_threshold()
+    threshold = (
+        minimum_percent if minimum_percent is not None else _coverage_threshold()
+    )
     if percent_value < threshold:
         message = (
-            f"Coverage {percent_value:.2f}% is below the required "
-            f"{threshold:.2f}%"
+            f"Coverage {percent_value:.2f}% is below the required " f"{threshold:.2f}%"
         )
         logger.error(message)
         if exit_on_failure:
             raise SystemExit(1)
         raise RuntimeError(message)
 
-    logger.info(
-        "Coverage %.2f%% meets the %.2f%% threshold.", percent_value, threshold
-    )
+    logger.info("Coverage %.2f%% meets the %.2f%% threshold.", percent_value, threshold)
     return percent_value
 
 
@@ -1304,8 +1340,12 @@ def _collect_via_pytest(
                 "event": "test_collection_failed",
                 "target": target,
                 "returncode": result.returncode,
-                "stdout": result.stdout[:500] if result.stdout else None,  # First 500 chars
-                "stderr": result.stderr[:500] if result.stderr else None,  # First 500 chars
+                "stdout": (
+                    result.stdout[:500] if result.stdout else None
+                ),  # First 500 chars
+                "stderr": (
+                    result.stderr[:500] if result.stderr else None
+                ),  # First 500 chars
                 "speed_category": category_expr,
             },
         )
@@ -1603,13 +1643,17 @@ def run_tests(
         ensure_pytest_bdd_plugin_env(env)
         ensure_pytest_asyncio_plugin_env(env)
 
-    # Pre-initialize pytest-bdd to avoid CONFIG_STACK issues when plugin autoloading is disabled
+    # Pre-initialize pytest-bdd to avoid CONFIG_STACK issues when plugin
+    # autoloading is disabled
     if env.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD") == "1":
         try:
             import pytest_bdd
+
             # Force initialization of pytest-bdd configuration stack
-            if hasattr(pytest_bdd.scenario, 'CONFIG_STACK'):
-                _ = len(pytest_bdd.scenario.CONFIG_STACK)  # Access CONFIG_STACK to ensure it's initialized
+            if hasattr(pytest_bdd.scenario, "CONFIG_STACK"):
+                _ = len(
+                    pytest_bdd.scenario.CONFIG_STACK
+                )  # Access CONFIG_STACK to ensure it's initialized
         except (ImportError, AttributeError):
             pass  # pytest-bdd not available or already initialized
 

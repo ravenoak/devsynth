@@ -30,7 +30,15 @@ def test_run_tests_report_injects_html_args_and_creates_dir(monkeypatch, tmp_pat
         "tests/unit/test_beta.py::test_b",
     ]
 
-    def fake_run(cmd, check=False, capture_output=False, text=False, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=False,
+        text=False,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         if "--collect-only" in cmd:
             return SimpleNamespace(stdout="\n".join(collected), stderr="", returncode=0)
         return SimpleNamespace(stdout="", stderr="", returncode=0)

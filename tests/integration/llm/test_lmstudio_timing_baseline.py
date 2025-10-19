@@ -10,9 +10,12 @@ Environment Context:
 - Model: qwen/qwen3-4b-2507 (primary test model)
 - Shared resources: Tests share host with LM Studio process
 """
+
 import time
-import pytest
+
 import httpx
+import pytest
+
 from devsynth.testing.llm_test_timeouts import TEST_TIMEOUTS
 
 pytestmark = [
@@ -31,11 +34,14 @@ def test_small_prompt_timing():
     start = time.time()
 
     with httpx.Client(timeout=TEST_TIMEOUTS.lmstudio_small) as client:
-        response = client.post(endpoint, json={
-            "model": "qwen/qwen3-4b-2507",
-            "messages": [{"role": "user", "content": "Hello"}],
-            "max_tokens": 20
-        })
+        response = client.post(
+            endpoint,
+            json={
+                "model": "qwen/qwen3-4b-2507",
+                "messages": [{"role": "user", "content": "Hello"}],
+                "max_tokens": 20,
+            },
+        )
 
     elapsed = time.time() - start
     assert response.status_code == 200
@@ -68,11 +74,14 @@ Provide a detailed analysis including best case, average case, and worst case sc
     start = time.time()
 
     with httpx.Client(timeout=TEST_TIMEOUTS.lmstudio_medium) as client:
-        response = client.post(endpoint, json={
-            "model": "qwen/qwen3-4b-2507",
-            "messages": [{"role": "user", "content": medium_prompt}],
-            "max_tokens": 200
-        })
+        response = client.post(
+            endpoint,
+            json={
+                "model": "qwen/qwen3-4b-2507",
+                "messages": [{"role": "user", "content": medium_prompt}],
+                "max_tokens": 200,
+            },
+        )
 
     elapsed = time.time() - start
     assert response.status_code == 200
@@ -133,11 +142,14 @@ Provide specific, actionable feedback with code examples where appropriate."""
     start = time.time()
 
     with httpx.Client(timeout=TEST_TIMEOUTS.lmstudio_large) as client:
-        response = client.post(endpoint, json={
-            "model": "qwen/qwen3-4b-2507",
-            "messages": [{"role": "user", "content": large_prompt}],
-            "max_tokens": 500
-        })
+        response = client.post(
+            endpoint,
+            json={
+                "model": "qwen/qwen3-4b-2507",
+                "messages": [{"role": "user", "content": large_prompt}],
+                "max_tokens": 500,
+            },
+        )
 
     elapsed = time.time() - start
     assert response.status_code == 200
@@ -151,13 +163,22 @@ def test_timeout_configuration_sanity():
     Ensures that timeouts are ordered correctly and provide adequate headroom.
     """
     # Verify timeout ordering (small < medium < large)
-    assert TEST_TIMEOUTS.lmstudio_small < TEST_TIMEOUTS.lmstudio_medium < TEST_TIMEOUTS.lmstudio_large
+    assert (
+        TEST_TIMEOUTS.lmstudio_small
+        < TEST_TIMEOUTS.lmstudio_medium
+        < TEST_TIMEOUTS.lmstudio_large
+    )
 
     # Verify health check timeout is reasonable (should be faster than small prompt)
     assert TEST_TIMEOUTS.lmstudio_health <= TEST_TIMEOUTS.lmstudio_small
 
     # Verify all timeouts are positive and reasonable (> 1s)
-    for timeout_name in ['lmstudio_small', 'lmstudio_medium', 'lmstudio_large', 'lmstudio_health']:
+    for timeout_name in [
+        "lmstudio_small",
+        "lmstudio_medium",
+        "lmstudio_large",
+        "lmstudio_health",
+    ]:
         timeout_value = getattr(TEST_TIMEOUTS, timeout_name)
         assert timeout_value > 0, f"{timeout_name} should be positive"
         assert timeout_value >= 1.0, f"{timeout_name} should be at least 1s"

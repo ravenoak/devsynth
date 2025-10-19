@@ -6,7 +6,10 @@ import pytest
 
 # Skip GUI-related tests in headless environments to avoid crashes
 if os.environ.get("DISPLAY", "") == "" and os.environ.get("WAYLAND_DISPLAY", "") == "":
-    pytest.skip("Skipping GUI tests in headless environment to avoid crashes", allow_module_level=True)
+    pytest.skip(
+        "Skipping GUI tests in headless environment to avoid crashes",
+        allow_module_level=True,
+    )
 
 pytestmark = [pytest.mark.fast]
 
@@ -86,9 +89,7 @@ def test_dpg_command_disabled(monkeypatch):
         "devsynth.application.cli.commands.dpg_cmd.get_settings",
         lambda reload=True: types.SimpleNamespace(gui_enabled=False),
     )
-    monkeypatch.setattr(
-        "devsynth.application.cli.commands.dpg_cmd.run_dpg_ui", None
-    )
+    monkeypatch.setattr("devsynth.application.cli.commands.dpg_cmd.run_dpg_ui", None)
     bridge = DummyBridge()
     cc.dpg_cmd(bridge=bridge)
     assert any("GUI support is disabled" in m for m in bridge.messages)
@@ -99,9 +100,7 @@ def test_dpg_command_missing_dependency(monkeypatch):
         "devsynth.application.cli.commands.dpg_cmd.get_settings",
         lambda reload=True: types.SimpleNamespace(gui_enabled=True),
     )
-    monkeypatch.setattr(
-        "devsynth.application.cli.commands.dpg_cmd.run_dpg_ui", None
-    )
+    monkeypatch.setattr("devsynth.application.cli.commands.dpg_cmd.run_dpg_ui", None)
     bridge = DummyBridge()
     cc.dpg_cmd(bridge=bridge)
     assert any("Dear PyGUI interface is unavailable" in m for m in bridge.messages)

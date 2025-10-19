@@ -39,7 +39,7 @@ class TestOpenAIProviderInitialization:
         assert provider.max_tokens == 1000
         assert provider.temperature == 0.8
         # Note: api_base may be overridden by default config, so we check it exists
-        assert hasattr(provider, 'api_base')
+        assert hasattr(provider, "api_base")
         assert provider.api_base is not None
 
     @pytest.mark.fast
@@ -96,7 +96,7 @@ class TestOpenAIProviderInitialization:
         # Should initialize but clients will be stub objects
         assert provider.api_key == "test-key"
         # When OpenAI library is unavailable, it creates stub clients
-        assert hasattr(provider, 'async_client')
+        assert hasattr(provider, "async_client")
         assert provider.async_client is not None
 
 
@@ -111,19 +111,17 @@ class TestOpenAIProviderTextGeneration:
             "object": "chat.completion",
             "created": 1677652288,
             "model": "gpt-3.5-turbo",
-            "choices": [{
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": "This is a test response from OpenAI."
-                },
-                "finish_reason": "stop"
-            }],
-            "usage": {
-                "prompt_tokens": 10,
-                "completion_tokens": 12,
-                "total_tokens": 22
-            }
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "This is a test response from OpenAI.",
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 12, "total_tokens": 22},
         }
 
     @pytest.mark.medium
@@ -131,8 +129,14 @@ class TestOpenAIProviderTextGeneration:
         """Test basic text generation."""
         config = {"api_key": "test-key"}
 
-        with patch("devsynth.application.llm.openai_provider.OpenAI") as mock_sync_client_class, \
-             patch("devsynth.application.llm.openai_provider.AsyncOpenAI") as mock_async_client_class:
+        with (
+            patch(
+                "devsynth.application.llm.openai_provider.OpenAI"
+            ) as mock_sync_client_class,
+            patch(
+                "devsynth.application.llm.openai_provider.AsyncOpenAI"
+            ) as mock_async_client_class,
+        ):
 
             # Mock the sync client (used for generate())
             mock_sync_client = MagicMock()
@@ -142,7 +146,9 @@ class TestOpenAIProviderTextGeneration:
             mock_response = MagicMock()
             mock_response.choices = [MagicMock()]
             mock_response.choices[0].message = MagicMock()
-            mock_response.choices[0].message.content = "This is a test response from OpenAI."
+            mock_response.choices[0].message.content = (
+                "This is a test response from OpenAI."
+            )
             mock_response.usage = MagicMock()
             mock_response.usage.prompt_tokens = 10
             mock_response.usage.completion_tokens = 12
@@ -166,8 +172,14 @@ class TestOpenAIProviderTextGeneration:
         """Test text generation with custom parameters."""
         config = {"api_key": "test-key"}
 
-        with patch("devsynth.application.llm.openai_provider.OpenAI") as mock_sync_client_class, \
-             patch("devsynth.application.llm.openai_provider.AsyncOpenAI") as mock_async_client_class:
+        with (
+            patch(
+                "devsynth.application.llm.openai_provider.OpenAI"
+            ) as mock_sync_client_class,
+            patch(
+                "devsynth.application.llm.openai_provider.AsyncOpenAI"
+            ) as mock_async_client_class,
+        ):
 
             # Mock the sync client (used for generate())
             mock_sync_client = MagicMock()
@@ -177,14 +189,15 @@ class TestOpenAIProviderTextGeneration:
             mock_response = MagicMock()
             mock_response.choices = [MagicMock()]
             mock_response.choices[0].message = MagicMock()
-            mock_response.choices[0].message.content = "This is a test response from OpenAI."
+            mock_response.choices[0].message.content = (
+                "This is a test response from OpenAI."
+            )
 
             mock_sync_client.chat.completions.create.return_value = mock_response
 
             provider = OpenAIProvider(config)
             response = provider.generate(
-                "Tell me a story",
-                parameters={"temperature": 0.9, "max_tokens": 500}
+                "Tell me a story", parameters={"temperature": 0.9, "max_tokens": 500}
             )
 
         assert response == "This is a test response from OpenAI."
@@ -209,7 +222,7 @@ class TestOpenAIProviderTextGeneration:
                 responses.POST,
                 "https://api.openai.com/v1/chat/completions",
                 json=mock_openai_response,
-                status=200
+                status=200,
             )
 
             provider = OpenAIProvider(config)
@@ -218,8 +231,8 @@ class TestOpenAIProviderTextGeneration:
         assert response == "This is a test response from OpenAI."
 
         # Verify context in request
-        request_data = rsps.calls[0].request.body.decode('utf-8')
-        request_json = __import__('json').loads(request_data)
+        request_data = rsps.calls[0].request.body.decode("utf-8")
+        request_json = __import__("json").loads(request_data)
         assert len(request_json["messages"]) == 3
         assert request_json["messages"][0]["role"] == "system"
         assert request_json["messages"][1]["role"] == "user"
@@ -253,7 +266,7 @@ class TestOpenAIProviderTextGeneration:
                 responses.POST,
                 "https://api.openai.com/v1/chat/completions",
                 json={"error": {"message": "Invalid API key"}},
-                status=401
+                status=401,
             )
 
             provider = OpenAIProvider(config)
@@ -273,13 +286,13 @@ class TestOpenAIProviderTextGeneration:
                 responses.POST,
                 "https://api.openai.com/v1/chat/completions",
                 json={"error": {"message": "Rate limit exceeded"}},
-                status=429
+                status=429,
             )
 
             provider = OpenAIProvider(config)
 
             # Should retry on 429 errors
-            with patch.object(provider, '_should_retry', return_value=True):
+            with patch.object(provider, "_should_retry", return_value=True):
                 with pytest.raises(DevSynthError):
                     provider.generate("Hello")
 
@@ -291,9 +304,9 @@ class TestOpenAIProviderStreaming:
     def mock_streaming_response(self):
         """Mock OpenAI streaming response."""
         return [
-            "data: {\"id\": \"chatcmpl-abc123\", \"object\": \"chat.completion.chunk\", \"created\": 1677652288, \"model\": \"gpt-3.5-turbo\", \"choices\": [{\"index\": 0, \"delta\": {\"content\": \"Hello\"}, \"finish_reason\": null}]}\n",
-            "data: {\"id\": \"chatcmpl-abc123\", \"object\": \"chat.completion.chunk\", \"created\": 1677652288, \"model\": \"gpt-3.5-turbo\", \"choices\": [{\"index\": 0, \"delta\": {\"content\": \" world\"}, \"finish_reason\": null}]}\n",
-            "data: {\"id\": \"chatcmpl-abc123\", \"object\": \"chat.completion.chunk\", \"created\": 1677652288, \"model\": \"gpt-3.5-turbo\", \"choices\": [{\"index\": 0, \"delta\": {\"content\": \"!\"}, \"finish_reason\": \"stop\"}]}\n",
+            'data: {"id": "chatcmpl-abc123", "object": "chat.completion.chunk", "created": 1677652288, "model": "gpt-3.5-turbo", "choices": [{"index": 0, "delta": {"content": "Hello"}, "finish_reason": null}]}\n',
+            'data: {"id": "chatcmpl-abc123", "object": "chat.completion.chunk", "created": 1677652288, "model": "gpt-3.5-turbo", "choices": [{"index": 0, "delta": {"content": " world"}, "finish_reason": null}]}\n',
+            'data: {"id": "chatcmpl-abc123", "object": "chat.completion.chunk", "created": 1677652288, "model": "gpt-3.5-turbo", "choices": [{"index": 0, "delta": {"content": "!"}, "finish_reason": "stop"}]}\n',
             "data: [DONE]\n",
         ]
 
@@ -309,7 +322,9 @@ class TestOpenAIProviderStreaming:
             mock_response.aiter_lines.return_value = mock_streaming_response
 
             mock_client_instance = MagicMock()
-            mock_client_instance.stream.return_value.__aenter__.return_value = mock_response
+            mock_client_instance.stream.return_value.__aenter__.return_value = (
+                mock_response
+            )
             mock_client.return_value = mock_client_instance
 
             provider = OpenAIProvider(config)
@@ -318,7 +333,7 @@ class TestOpenAIProviderStreaming:
             # Note: We can't easily test the full async streaming without async test framework
             # This tests the basic structure
             stream_gen = provider.generate_stream("Hello")
-            assert hasattr(stream_gen, '__aiter__')
+            assert hasattr(stream_gen, "__aiter__")
 
     @pytest.mark.medium
     def test_generate_stream_without_async_client(self):
@@ -342,16 +357,15 @@ class TestOpenAIProviderEmbeddings:
         """Mock OpenAI embedding response."""
         return {
             "object": "list",
-            "data": [{
-                "object": "embedding",
-                "embedding": [0.1, 0.2, 0.3, 0.4, 0.5],
-                "index": 0
-            }],
+            "data": [
+                {
+                    "object": "embedding",
+                    "embedding": [0.1, 0.2, 0.3, 0.4, 0.5],
+                    "index": 0,
+                }
+            ],
             "model": "text-embedding-ada-002",
-            "usage": {
-                "prompt_tokens": 8,
-                "total_tokens": 8
-            }
+            "usage": {"prompt_tokens": 8, "total_tokens": 8},
         }
 
     @pytest.mark.medium
@@ -364,7 +378,7 @@ class TestOpenAIProviderEmbeddings:
                 responses.POST,
                 "https://api.openai.com/v1/embeddings",
                 json=mock_embedding_response,
-                status=200
+                status=200,
             )
 
             provider = OpenAIProvider(config)
@@ -374,9 +388,11 @@ class TestOpenAIProviderEmbeddings:
         assert len(rsps.calls) == 1
 
         # Verify request structure
-        request_data = rsps.calls[0].request.body.decode('utf-8')
-        request_json = __import__('json').loads(request_data)
-        assert request_json["model"] == "text-embedding-ada-002"  # Default embedding model
+        request_data = rsps.calls[0].request.body.decode("utf-8")
+        request_json = __import__("json").loads(request_data)
+        assert (
+            request_json["model"] == "text-embedding-ada-002"
+        )  # Default embedding model
         assert request_json["input"] == "The quick brown fox"
 
     @pytest.mark.medium
@@ -388,22 +404,11 @@ class TestOpenAIProviderEmbeddings:
         multi_response = {
             "object": "list",
             "data": [
-                {
-                    "object": "embedding",
-                    "embedding": [0.1, 0.2, 0.3],
-                    "index": 0
-                },
-                {
-                    "object": "embedding",
-                    "embedding": [0.4, 0.5, 0.6],
-                    "index": 1
-                }
+                {"object": "embedding", "embedding": [0.1, 0.2, 0.3], "index": 0},
+                {"object": "embedding", "embedding": [0.4, 0.5, 0.6], "index": 1},
             ],
             "model": "text-embedding-ada-002",
-            "usage": {
-                "prompt_tokens": 16,
-                "total_tokens": 16
-            }
+            "usage": {"prompt_tokens": 16, "total_tokens": 16},
         }
 
         with responses.RequestsMock() as rsps:
@@ -411,7 +416,7 @@ class TestOpenAIProviderEmbeddings:
                 responses.POST,
                 "https://api.openai.com/v1/embeddings",
                 json=multi_response,
-                status=200
+                status=200,
             )
 
             provider = OpenAIProvider(config)
@@ -431,7 +436,7 @@ class TestOpenAIProviderEmbeddings:
                 responses.POST,
                 "https://api.openai.com/v1/embeddings",
                 json={"error": {"message": "Invalid model"}},
-                status=400
+                status=400,
             )
 
             provider = OpenAIProvider(config)
@@ -478,7 +483,7 @@ class TestOpenAIProviderErrorHandling:
 
             # This would typically be handled by retry logic
             # For unit tests, we test the error handling structure
-            with patch.object(provider, '_should_retry', return_value=False):
+            with patch.object(provider, "_should_retry", return_value=False):
                 with pytest.raises(DevSynthError):
                     provider.generate("Hello")
 
@@ -536,7 +541,7 @@ class TestOpenAIProviderTokenTracking:
         provider = OpenAIProvider(config)
 
         # Verify token tracker is initialized
-        assert hasattr(provider, 'token_tracker')
+        assert hasattr(provider, "token_tracker")
         assert provider.token_tracker is not None
 
     @pytest.mark.fast
@@ -550,8 +555,8 @@ class TestOpenAIProviderTokenTracking:
 
         # This would normally raise TokenLimitExceededError
         # but for unit tests, we just verify the method exists
-        assert hasattr(provider, 'token_tracker')
-        assert hasattr(provider.token_tracker, 'ensure_token_limit')
+        assert hasattr(provider, "token_tracker")
+        assert hasattr(provider.token_tracker, "ensure_token_limit")
 
 
 class TestOpenAIProviderResilience:
@@ -563,7 +568,7 @@ class TestOpenAIProviderResilience:
         config = {"api_key": "test-key"}
         provider = OpenAIProvider(config)
 
-        assert hasattr(provider, 'circuit_breaker')
+        assert hasattr(provider, "circuit_breaker")
         assert provider.circuit_breaker is not None
 
     @pytest.mark.fast
@@ -591,15 +596,15 @@ class TestOpenAIProviderResilience:
                 raise Exception("Transient error")
             return {"choices": [{"message": {"content": "Success after retry"}}]}
 
-        with patch.object(OpenAIProvider, 'generate') as mock_generate:
+        with patch.object(OpenAIProvider, "generate") as mock_generate:
             mock_generate.side_effect = mock_api_call
 
             provider = OpenAIProvider(config)
 
             # This would test retry logic
             # For unit tests, we verify the structure exists
-            assert hasattr(provider, '_should_retry')
-            assert hasattr(provider, '_get_retry_config')
+            assert hasattr(provider, "_should_retry")
+            assert hasattr(provider, "_get_retry_config")
 
 
 class TestOpenAIProviderMetrics:
@@ -612,8 +617,8 @@ class TestOpenAIProviderMetrics:
         provider = OpenAIProvider(config)
 
         # Verify that the provider has the necessary components for metrics
-        assert hasattr(provider, '_on_retry')
-        assert hasattr(provider, 'circuit_breaker')
+        assert hasattr(provider, "_on_retry")
+        assert hasattr(provider, "circuit_breaker")
 
     @pytest.mark.fast
     def test_telemetry_emission(self):
@@ -622,7 +627,7 @@ class TestOpenAIProviderMetrics:
         provider = OpenAIProvider(config)
 
         # Mock the metrics increment function
-        with patch('devsynth.application.llm.openai_provider.inc_provider') as mock_inc:
+        with patch("devsynth.application.llm.openai_provider.inc_provider") as mock_inc:
             provider._on_retry(Exception("test error"), 1, 1.0)
 
             # Verify metrics were incremented
@@ -669,7 +674,7 @@ class TestOpenAIProviderEdgeCases:
             "object": "chat.completion",
             "created": 1677652288,
             "model": "gpt-3.5-turbo",
-            "choices": []
+            "choices": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -677,7 +682,7 @@ class TestOpenAIProviderEdgeCases:
                 responses.POST,
                 "https://api.openai.com/v1/chat/completions",
                 json=empty_response,
-                status=200
+                status=200,
             )
 
             provider = OpenAIProvider(config)
@@ -692,17 +697,14 @@ class TestOpenAIProviderEdgeCases:
         """Test handling of malformed responses."""
         config = {"api_key": "test-key"}
 
-        malformed_response = {
-            "invalid": "response",
-            "structure": True
-        }
+        malformed_response = {"invalid": "response", "structure": True}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
                 responses.POST,
                 "https://api.openai.com/v1/chat/completions",
                 json=malformed_response,
-                status=200
+                status=200,
             )
 
             provider = OpenAIProvider(config)
@@ -722,19 +724,17 @@ class TestOpenAIProviderEdgeCases:
             "object": "chat.completion",
             "created": 1677652288,
             "model": "gpt-3.5-turbo",
-            "choices": [{
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": "Hello! 你好! ¡Hola! 🌟"
-                },
-                "finish_reason": "stop"
-            }],
-            "usage": {
-                "prompt_tokens": 5,
-                "completion_tokens": 10,
-                "total_tokens": 15
-            }
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Hello! 你好! ¡Hola! 🌟",
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {"prompt_tokens": 5, "completion_tokens": 10, "total_tokens": 15},
         }
 
         with responses.RequestsMock() as rsps:
@@ -742,7 +742,7 @@ class TestOpenAIProviderEdgeCases:
                 responses.POST,
                 "https://api.openai.com/v1/chat/completions",
                 json=unicode_response,
-                status=200
+                status=200,
             )
 
             provider = OpenAIProvider(config)

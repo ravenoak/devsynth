@@ -51,7 +51,9 @@ def test_collect_tests_with_cache_prunes_nonexistent_and_caches(tmp_path, monkey
             self.returncode = returncode
             self.stderr = stderr
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None):  # noqa: D401
+    def fake_run(
+        cmd, check=False, capture_output=True, text=True, timeout=None
+    ):  # noqa: D401
         # Emit node ids including a non-existent file and a line-number suffix
         lines = [
             f"{t1}::test_a",

@@ -53,7 +53,9 @@ def test_store_and_retrieve_with_fallback(monkeypatch, tmp_path):
         # Create a failing client instead of the real one
         self.file_path = file_path
         self.collection_name = kwargs.get("collection_name", "devsynth_memory")
-        self.versions_collection_name = kwargs.get("versions_collection_name", "devsynth_memory_versions")
+        self.versions_collection_name = kwargs.get(
+            "versions_collection_name", "devsynth_memory_versions"
+        )
         self._token_usage = 0
         self._cache = {}
         self._embedding_optimization_enabled = True

@@ -164,7 +164,15 @@ def test_collect_tests_with_cache_handles_timeout(
     monkeypatch.setitem(rt.TARGET_PATHS, "unit-tests", "tests")
     (tmp_path / "tests").mkdir()
 
-    def fake_run(cmd, check=False, capture_output=True, text=True, timeout=None, cwd=None, env=None):  # noqa: ANN001
+    def fake_run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        cwd=None,
+        env=None,
+    ):  # noqa: ANN001
         return SimpleNamespace(stdout="", stderr="", returncode=-1)
 
     monkeypatch.setattr(rt.subprocess, "run", fake_run)

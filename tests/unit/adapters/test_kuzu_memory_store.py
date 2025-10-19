@@ -41,6 +41,7 @@ def KuzuMemoryStoreClass(monkeypatch):
 
     # Also set it in the parent namespace to be safe
     import devsynth.config
+
     devsynth.config.settings = fake_settings
 
     fake_pkg = ModuleType("devsynth.application.memory")

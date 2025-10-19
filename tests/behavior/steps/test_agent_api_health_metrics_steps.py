@@ -41,6 +41,7 @@ def _module_stub(name: str, **attributes: object) -> ModuleType:
         setattr(module, attribute, value)
     return module
 
+
 scenarios(feature_path(__file__, "general", "agent_api_health_metrics.feature"))
 
 

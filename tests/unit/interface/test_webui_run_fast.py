@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from devsynth.interface import webui as webui_module
+
 WebUI = webui_module.WebUI
 
 
@@ -21,6 +22,7 @@ def streamlit_router_stub(monkeypatch: pytest.MonkeyPatch):
     previous_streamlit = sys.modules.get("streamlit")
     # Import Router from the webui package submodule
     from devsynth.interface.webui import Router
+
     previous_router = Router
     previous_cached_streamlit = webui_module._STREAMLIT
 

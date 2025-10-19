@@ -1,9 +1,10 @@
 """Unit tests for SyncManager Protocol functionality."""
 
-import pytest
-from typing import Dict, Any
+from typing import Any, Dict
 
-from devsynth.memory.sync_manager import SyncManager, MemoryStore, ValueT
+import pytest
+
+from devsynth.memory.sync_manager import MemoryStore, SyncManager, ValueT
 
 
 class MockMemoryStore:
@@ -40,8 +41,7 @@ class TestSyncManagerProtocol:
         store2 = MockMemoryStore()
 
         sync_manager = SyncManager(
-            stores={"tinydb": store1, "store2": store2},
-            required_stores={"tinydb"}
+            stores={"tinydb": store1, "store2": store2}, required_stores={"tinydb"}
         )
 
         assert "tinydb" in sync_manager.stores
@@ -52,10 +52,7 @@ class TestSyncManagerProtocol:
         store1 = MockMemoryStore()
 
         with pytest.raises(ValueError, match="Missing stores: store2"):
-            SyncManager(
-                stores={"store1": store1},
-                required_stores={"store1", "store2"}
-            )
+            SyncManager(stores={"store1": store1}, required_stores={"store1", "store2"})
 
     def test_sync_manager_write_to_all_stores(self):
         """Test write operation propagates to all configured stores."""
@@ -63,8 +60,7 @@ class TestSyncManagerProtocol:
         store2 = MockMemoryStore()
 
         sync_manager = SyncManager(
-            stores={"tinydb": store1, "store2": store2},
-            required_stores={"tinydb"}
+            stores={"tinydb": store1, "store2": store2}, required_stores={"tinydb"}
         )
 
         sync_manager.write("test_key", "test_value")
@@ -78,8 +74,7 @@ class TestSyncManagerProtocol:
         store2 = MockMemoryStore()
 
         sync_manager = SyncManager(
-            stores={"tinydb": store1, "store2": store2},
-            required_stores={"tinydb"}
+            stores={"tinydb": store1, "store2": store2}, required_stores={"tinydb"}
         )
 
         store1.write("test_key", "value_from_store1")
@@ -92,8 +87,7 @@ class TestSyncManagerProtocol:
         store2 = MockMemoryStore()
 
         sync_manager = SyncManager(
-            stores={"tinydb": store1, "store2": store2},
-            required_stores={"tinydb"}
+            stores={"tinydb": store1, "store2": store2}, required_stores={"tinydb"}
         )
 
         store2.write("test_key", "value_from_store2")
@@ -106,8 +100,7 @@ class TestSyncManagerProtocol:
         store2 = MockMemoryStore()
 
         sync_manager = SyncManager(
-            stores={"tinydb": store1, "store2": store2},
-            required_stores={"tinydb"}
+            stores={"tinydb": store1, "store2": store2}, required_stores={"tinydb"}
         )
 
         with pytest.raises(KeyError):
@@ -119,8 +112,7 @@ class TestSyncManagerProtocol:
         store2 = MockMemoryStore()
 
         sync_manager = SyncManager(
-            stores={"tinydb": store1, "store2": store2},
-            required_stores={"tinydb"}
+            stores={"tinydb": store1, "store2": store2}, required_stores={"tinydb"}
         )
 
         with sync_manager.transaction():
@@ -138,9 +130,7 @@ class TestSyncManagerProtocol:
         store1 = MockMemoryStore()
         store2 = MockMemoryStore()
 
-        sync_manager = SyncManager(
-            stores={"store1": store1, "store2": store2}
-        )
+        sync_manager = SyncManager(stores={"store1": store1, "store2": store2})
 
         initial_state1 = store1.snapshot()
         initial_state2 = store2.snapshot()
@@ -169,9 +159,7 @@ class TestSyncManagerProtocol:
 
     def test_sync_manager_with_generic_type(self):
         """Test SyncManager works with different value types."""
-        sync_manager = SyncManager[str](
-            stores={"mock": MockMemoryStore()}
-        )
+        sync_manager = SyncManager[str](stores={"mock": MockMemoryStore()})
 
         sync_manager.write("string_key", "string_value")
         sync_manager.write("int_key", 42)  # Type: ignore - testing runtime behavior

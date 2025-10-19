@@ -10,12 +10,13 @@ import os
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import pytest
 
-from devsynth.application.edrr.coordinator.core import EDRRCoordinator
 from devsynth.application.agents.critic import CriticAgent
+from devsynth.application.edrr.coordinator.core import EDRRCoordinator
+
 
 # Mock TestGenerator for integration tests (since the real class doesn't exist)
 class TestGenerator:
@@ -32,24 +33,32 @@ def test_{test_type}_functionality():
     # This is a mock test generated for integration testing
     assert True  # Mock assertion
 '''
+
+
 # Mock missing modules for integration tests
 class SyntaxAnalyzer:
     """Mock syntax analyzer for integration tests."""
+
     def __init__(self):
         pass
+
 
 class RequirementAnalyzer:
     """Mock requirement analyzer for integration tests."""
+
     def __init__(self):
         pass
+
 
 class GraphMemoryStore:
     """Mock graph memory store for integration tests."""
+
     def __init__(self):
         pass
+
+
 from devsynth.application.llm.openrouter_provider import OpenRouterProvider
 from devsynth.domain.models.requirement import Requirement
-
 
 # Skip all tests if OpenRouter API key is not available
 pytestmark = [
@@ -75,7 +84,7 @@ class TestCriticalLLMWorkflows:
         """Create OpenRouter provider for testing."""
         config = {
             "openrouter_api_key": api_key,
-            "openrouter_model": "google/gemini-flash-1.5"  # Fast, free-tier model
+            "openrouter_model": "google/gemini-flash-1.5",  # Fast, free-tier model
         }
         return OpenRouterProvider(config)
 
@@ -86,13 +95,15 @@ class TestCriticalLLMWorkflows:
             yield Path(temp_dir)
 
     @pytest.mark.slow
-    def test_edrr_framework_with_real_llm(self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path):
+    def test_edrr_framework_with_real_llm(
+        self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path
+    ):
         """Test the complete EDRR framework with real LLM generation."""
         # Create EDRR coordinator with OpenRouter provider
         coordinator = EDRRCoordinator(
             provider=openrouter_provider,
             project_path=temp_project_dir,
-            max_iterations=2  # Keep it short for testing
+            max_iterations=2,  # Keep it short for testing
         )
 
         # Test a simple task that requires LLM generation
@@ -110,10 +121,12 @@ class TestCriticalLLMWorkflows:
         assert coordinator.iteration_count > 0
 
         # Verify memory was used (basic check)
-        assert hasattr(coordinator, 'memory_store')
+        assert hasattr(coordinator, "memory_store")
 
     @pytest.mark.slow
-    def test_code_generation_and_syntax_analysis(self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path):
+    def test_code_generation_and_syntax_analysis(
+        self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path
+    ):
         """Test code generation followed by syntax analysis."""
         # Generate some code using LLM
         code_to_generate = """
@@ -136,10 +149,14 @@ class TestCriticalLLMWorkflows:
 
         # Verify analysis worked
         assert analysis_result is not None
-        assert hasattr(analysis_result, 'syntax_tree') or hasattr(analysis_result, 'issues')
+        assert hasattr(analysis_result, "syntax_tree") or hasattr(
+            analysis_result, "issues"
+        )
 
     @pytest.mark.slow
-    def test_requirement_analysis_with_llm(self, openrouter_provider: OpenRouterProvider):
+    def test_requirement_analysis_with_llm(
+        self, openrouter_provider: OpenRouterProvider
+    ):
         """Test requirement analysis using LLM generation."""
         # Create a requirement that needs LLM analysis
         requirement_text = """
@@ -162,12 +179,13 @@ class TestCriticalLLMWorkflows:
         assert len(analyzed_requirement.requirement_type) > 0
 
     @pytest.mark.slow
-    def test_memory_and_knowledge_graph_operations(self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path):
+    def test_memory_and_knowledge_graph_operations(
+        self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path
+    ):
         """Test memory operations with LLM-powered content."""
         # Create a memory store
         memory_store = GraphMemoryStore(
-            base_path=temp_project_dir / "memory",
-            provider=openrouter_provider
+            base_path=temp_project_dir / "memory", provider=openrouter_provider
         )
 
         # Add some content that requires LLM processing
@@ -179,8 +197,7 @@ class TestCriticalLLMWorkflows:
 
         # Store content with LLM-powered processing
         memory_id = memory_store.store_content(
-            content=test_content,
-            metadata={"source": "test", "type": "educational"}
+            content=test_content, metadata={"source": "test", "type": "educational"}
         )
 
         # Verify storage worked
@@ -188,14 +205,15 @@ class TestCriticalLLMWorkflows:
 
         # Query the memory using LLM-powered search
         query_results = memory_store.query_content(
-            query="What is machine learning?",
-            limit=5
+            query="What is machine learning?", limit=5
         )
 
         # Verify query worked and returned relevant results
         assert len(query_results) > 0
-        assert any("machine learning" in result.get("content", "").lower()
-                  for result in query_results)
+        assert any(
+            "machine learning" in result.get("content", "").lower()
+            for result in query_results
+        )
 
     @pytest.mark.slow
     def test_agent_coordination_with_llm(self, openrouter_provider: OpenRouterProvider):
@@ -213,7 +231,10 @@ class TestCriticalLLMWorkflows:
         # Generate critique using LLM
         critique = critique_agent.generate_critique(
             code=code_to_critique,
-            requirements=["Function should handle type conversion", "Should be efficient"]
+            requirements=[
+                "Function should handle type conversion",
+                "Should be efficient",
+            ],
         )
 
         # Verify critique was generated
@@ -222,8 +243,7 @@ class TestCriticalLLMWorkflows:
 
         # Generate tests using LLM
         test_code = test_generator.generate_tests(
-            code=code_to_critique,
-            test_type="unit"
+            code=code_to_critique, test_type="unit"
         )
 
         # Verify tests were generated
@@ -266,9 +286,10 @@ class TestCriticalLLMWorkflows:
         assert len(documentation) > 100  # Should be substantial
 
         # Should contain documentation elements
-        assert any(term in documentation.lower() for term in [
-            "class", "method", "description", "example", "parameter"
-        ])
+        assert any(
+            term in documentation.lower()
+            for term in ["class", "method", "description", "example", "parameter"]
+        )
 
     @pytest.mark.slow
     def test_cross_provider_consistency(self, api_key: str):
@@ -288,10 +309,7 @@ class TestCriticalLLMWorkflows:
         results = {}
 
         for model in openrouter_models:
-            config = {
-                "openrouter_api_key": api_key,
-                "openrouter_model": model
-            }
+            config = {"openrouter_api_key": api_key, "openrouter_model": model}
             provider = get_llm_provider(config)
             response = provider.generate(task)
             results[model] = response
@@ -302,12 +320,15 @@ class TestCriticalLLMWorkflows:
             assert len(response) > 50  # Should be meaningful
 
             # All should mention key concepts
-            assert any(term in response.lower() for term in [
-                "binary", "search", "algorithm", "sorted", "logarithmic"
-            ]), f"Response for {model} doesn't contain key binary search concepts"
+            assert any(
+                term in response.lower()
+                for term in ["binary", "search", "algorithm", "sorted", "logarithmic"]
+            ), f"Response for {model} doesn't contain key binary search concepts"
 
     @pytest.mark.slow
-    def test_llm_powered_code_improvement_workflow(self, openrouter_provider: OpenRouterProvider):
+    def test_llm_powered_code_improvement_workflow(
+        self, openrouter_provider: OpenRouterProvider
+    ):
         """Test complete code improvement workflow using LLM."""
         # Start with problematic code
         initial_code = """
@@ -358,12 +379,18 @@ class TestCriticalLLMWorkflows:
         assert len(improved_code) > len(initial_code)  # Should be more comprehensive
 
         # Should contain improvements
-        assert any(term in improved_code.lower() for term in [
-            "try", "except", "error", "handle", "check", "validate"
-        ]) or len(improved_code) > len(initial_code) * 1.2  # Significantly longer
+        assert (
+            any(
+                term in improved_code.lower()
+                for term in ["try", "except", "error", "handle", "check", "validate"]
+            )
+            or len(improved_code) > len(initial_code) * 1.2
+        )  # Significantly longer
 
     @pytest.mark.slow
-    def test_llm_powered_test_generation_workflow(self, openrouter_provider: OpenRouterProvider):
+    def test_llm_powered_test_generation_workflow(
+        self, openrouter_provider: OpenRouterProvider
+    ):
         """Test complete test generation workflow using LLM."""
         # Create a function to test
         function_to_test = """
@@ -382,8 +409,7 @@ class TestCriticalLLMWorkflows:
 
         # Generate comprehensive tests
         test_code = test_generator.generate_tests(
-            code=function_to_test,
-            test_type="comprehensive"
+            code=function_to_test, test_type="comprehensive"
         )
 
         # Verify test generation worked
@@ -391,17 +417,21 @@ class TestCriticalLLMWorkflows:
         assert len(test_code) > 100  # Should be substantial
 
         # Should contain test elements
-        assert any(term in test_code.lower() for term in [
-            "def test", "assert", "fibonacci", "pytest", "unittest"
-        ])
+        assert any(
+            term in test_code.lower()
+            for term in ["def test", "assert", "fibonacci", "pytest", "unittest"]
+        )
 
         # Should include edge cases
-        assert any(term in test_code.lower() for term in [
-            "zero", "negative", "one", "large", "edge"
-        ])
+        assert any(
+            term in test_code.lower()
+            for term in ["zero", "negative", "one", "large", "edge"]
+        )
 
     @pytest.mark.slow
-    def test_llm_powered_requirement_expansion(self, openrouter_provider: OpenRouterProvider):
+    def test_llm_powered_requirement_expansion(
+        self, openrouter_provider: OpenRouterProvider
+    ):
         """Test requirement expansion using LLM."""
         # Start with a basic requirement
         basic_requirement = "Users should be able to log in"
@@ -424,12 +454,22 @@ class TestCriticalLLMWorkflows:
 
         # Verify expansion worked
         assert isinstance(expanded_requirement, str)
-        assert len(expanded_requirement) > len(basic_requirement) * 2  # Should be significantly expanded
+        assert (
+            len(expanded_requirement) > len(basic_requirement) * 2
+        )  # Should be significantly expanded
 
         # Should contain expanded concepts
-        assert any(term in expanded_requirement.lower() for term in [
-            "authentication", "security", "password", "login", "user", "session"
-        ])
+        assert any(
+            term in expanded_requirement.lower()
+            for term in [
+                "authentication",
+                "security",
+                "password",
+                "login",
+                "user",
+                "session",
+            ]
+        )
 
     @pytest.mark.slow
     def test_performance_comparison_across_models(self, api_key: str):
@@ -444,10 +484,7 @@ class TestCriticalLLMWorkflows:
 
         for model in models:
             # Create provider for this model
-            config = {
-                "openrouter_api_key": api_key,
-                "openrouter_model": model
-            }
+            config = {"openrouter_api_key": api_key, "openrouter_model": model}
             provider = OpenRouterProvider(config)
 
             # Test multiple requests to get performance metrics
@@ -510,40 +547,46 @@ class TestCriticalLLMWorkflows:
 
         # Verify all models performed reasonably
         for model, data in performance_data.items():
-            assert data["avg_response_time"] < 10.0, f"{model} too slow: {data['avg_response_time']}s"
-            assert data["avg_response_length"] > 100, f"{model} responses too short: {data['avg_response_length']}"
-            assert data["avg_quality_score"] >= 1.5, f"{model} quality too low: {data['avg_quality_score']}"
+            assert (
+                data["avg_response_time"] < 10.0
+            ), f"{model} too slow: {data['avg_response_time']}s"
+            assert (
+                data["avg_response_length"] > 100
+            ), f"{model} responses too short: {data['avg_response_length']}"
+            assert (
+                data["avg_quality_score"] >= 1.5
+            ), f"{model} quality too low: {data['avg_quality_score']}"
 
     @pytest.mark.slow
-    def test_memory_persistence_and_retrieval(self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path):
+    def test_memory_persistence_and_retrieval(
+        self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path
+    ):
         """Test memory persistence and LLM-powered retrieval."""
         # Create memory store
         memory_store = GraphMemoryStore(
-            base_path=temp_project_dir / "memory",
-            provider=openrouter_provider
+            base_path=temp_project_dir / "memory", provider=openrouter_provider
         )
 
         # Store multiple pieces of information
         test_data = [
             {
                 "content": "Machine learning is a subset of AI that learns from data.",
-                "metadata": {"topic": "AI", "type": "definition"}
+                "metadata": {"topic": "AI", "type": "definition"},
             },
             {
                 "content": "Python is a popular programming language for data science.",
-                "metadata": {"topic": "programming", "type": "fact"}
+                "metadata": {"topic": "programming", "type": "fact"},
             },
             {
                 "content": "Recursion is when a function calls itself.",
-                "metadata": {"topic": "programming", "type": "concept"}
+                "metadata": {"topic": "programming", "type": "concept"},
             },
         ]
 
         stored_ids = []
         for data in test_data:
             memory_id = memory_store.store_content(
-                content=data["content"],
-                metadata=data["metadata"]
+                content=data["content"], metadata=data["metadata"]
             )
             stored_ids.append(memory_id)
 
@@ -554,19 +597,23 @@ class TestCriticalLLMWorkflows:
         # Query using LLM-powered search
         query_results = memory_store.query_content(
             query="What is machine learning and how does it relate to programming?",
-            limit=3
+            limit=3,
         )
 
         # Verify LLM-powered retrieval worked
         assert len(query_results) > 0
 
         # Should find relevant content
-        found_ml = any("machine learning" in result.get("content", "").lower()
-                      for result in query_results)
+        found_ml = any(
+            "machine learning" in result.get("content", "").lower()
+            for result in query_results
+        )
         assert found_ml, "Machine learning content not found in query results"
 
     @pytest.mark.slow
-    def test_complex_multi_agent_workflow(self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path):
+    def test_complex_multi_agent_workflow(
+        self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path
+    ):
         """Test complex multi-agent workflow with LLM coordination."""
         # This simulates a complex development workflow
 
@@ -575,13 +622,17 @@ class TestCriticalLLMWorkflows:
 
         # Agent 2: Code Generator
         from devsynth.application.agents.code_generator import CodeGenerator
+
         code_generator = CodeGenerator(provider=openrouter_provider)
 
         # Agent 3: Test Generator
         test_generator = TestGenerator(provider=openrouter_provider)
 
         # Agent 4: Documentation Generator
-        from devsynth.application.agents.documentation_generator import DocumentationGenerator
+        from devsynth.application.agents.documentation_generator import (
+            DocumentationGenerator,
+        )
+
         doc_generator = DocumentationGenerator(provider=openrouter_provider)
 
         # Step 1: Analyze requirements
@@ -599,19 +650,17 @@ class TestCriticalLLMWorkflows:
         generated_code = code_generator.generate_code(
             requirements=[analyzed_req],
             language="python",
-            framework="flask"  # Assume Flask for this example
+            framework="flask",  # Assume Flask for this example
         )
 
         # Step 3: Generate tests for the code
         test_code = test_generator.generate_tests(
-            code=generated_code,
-            test_type="comprehensive"
+            code=generated_code, test_type="comprehensive"
         )
 
         # Step 4: Generate documentation
         documentation = doc_generator.generate_documentation(
-            code=generated_code,
-            requirements=[analyzed_req]
+            code=generated_code, requirements=[analyzed_req]
         )
 
         # Verify the entire workflow produced results
@@ -625,9 +674,10 @@ class TestCriticalLLMWorkflows:
         assert len(documentation) > 100  # Should be meaningful documentation
 
         # Verify the code contains expected elements
-        assert any(term in generated_code.lower() for term in [
-            "def", "class", "register", "login", "password"
-        ])
+        assert any(
+            term in generated_code.lower()
+            for term in ["def", "class", "register", "login", "password"]
+        )
 
     @pytest.mark.slow
     def test_error_recovery_and_resilience(self, api_key: str):
@@ -635,7 +685,7 @@ class TestCriticalLLMWorkflows:
         # Test with invalid model first
         config = {
             "openrouter_api_key": api_key,
-            "openrouter_model": "invalid-model-name"
+            "openrouter_model": "invalid-model-name",
         }
 
         provider = OpenRouterProvider(config)
@@ -665,12 +715,21 @@ class TestCriticalLLMWorkflows:
             assert "token" in str(e).lower() or "limit" in str(e).lower()
 
     @pytest.mark.slow
-    @pytest.mark.parametrize("provider_config", [
-        {"provider": "openrouter", "openrouter_api_key": "test-key", "openrouter_model": "google/gemini-flash-1.5"},
-        {"provider": "openai", "api_key": "test-key"},
-        {"provider": "lmstudio", "base_url": "http://localhost:1234/v1"},
-    ])
-    def test_multi_provider_code_generation_workflow(self, provider_config, temp_project_dir: Path):
+    @pytest.mark.parametrize(
+        "provider_config",
+        [
+            {
+                "provider": "openrouter",
+                "openrouter_api_key": "test-key",
+                "openrouter_model": "google/gemini-flash-1.5",
+            },
+            {"provider": "openai", "api_key": "test-key"},
+            {"provider": "lmstudio", "base_url": "http://localhost:1234/v1"},
+        ],
+    )
+    def test_multi_provider_code_generation_workflow(
+        self, provider_config, temp_project_dir: Path
+    ):
         """Test code generation workflow across all providers."""
         from devsynth.application.llm.providers import get_llm_provider
 
@@ -681,6 +740,7 @@ class TestCriticalLLMWorkflows:
         elif provider_config["provider"] == "lmstudio":
             try:
                 import httpx
+
                 response = httpx.get("http://localhost:1234/v1/models", timeout=1)
                 if response.status_code != 200:
                     pytest.skip("LM Studio server not available")
@@ -703,17 +763,26 @@ class TestCriticalLLMWorkflows:
             # Verify we got actual code
             assert isinstance(generated_code, str)
             assert len(generated_code) > 50  # Should be substantial
-            assert "def " in generated_code.lower() or "function" in generated_code.lower()
+            assert (
+                "def " in generated_code.lower() or "function" in generated_code.lower()
+            )
 
         except Exception as e:
             pytest.skip(f"Provider {provider_config['provider']} failed: {e}")
 
     @pytest.mark.slow
-    @pytest.mark.parametrize("provider_config", [
-        {"provider": "openrouter", "openrouter_api_key": "test-key", "openrouter_model": "google/gemini-flash-1.5"},
-        {"provider": "openai", "api_key": "test-key"},
-        {"provider": "lmstudio", "base_url": "http://localhost:1234/v1"},
-    ])
+    @pytest.mark.parametrize(
+        "provider_config",
+        [
+            {
+                "provider": "openrouter",
+                "openrouter_api_key": "test-key",
+                "openrouter_model": "google/gemini-flash-1.5",
+            },
+            {"provider": "openai", "api_key": "test-key"},
+            {"provider": "lmstudio", "base_url": "http://localhost:1234/v1"},
+        ],
+    )
     def test_multi_provider_test_generation_workflow(self, provider_config):
         """Test test generation workflow across all providers."""
         from devsynth.application.llm.providers import get_llm_provider
@@ -725,6 +794,7 @@ class TestCriticalLLMWorkflows:
         elif provider_config["provider"] == "lmstudio":
             try:
                 import httpx
+
                 response = httpx.get("http://localhost:1234/v1/models", timeout=1)
                 if response.status_code != 200:
                     pytest.skip("LM Studio server not available")
@@ -747,7 +817,8 @@ class TestCriticalLLMWorkflows:
             """
 
             # Generate tests using LLM
-            test_code = provider.generate(f"""
+            test_code = provider.generate(
+                f"""
             Generate comprehensive tests for this Python function:
 
             {function_to_test}
@@ -757,26 +828,35 @@ class TestCriticalLLMWorkflows:
             - Edge case tests
             - Error handling tests
             - Mock data and fixtures
-            """)
+            """
+            )
 
             # Verify test generation worked
             assert isinstance(test_code, str)
             assert len(test_code) > 100  # Should be substantial
 
             # Should contain test elements
-            assert any(term in test_code.lower() for term in [
-                "def test", "assert", "fibonacci", "pytest", "unittest"
-            ])
+            assert any(
+                term in test_code.lower()
+                for term in ["def test", "assert", "fibonacci", "pytest", "unittest"]
+            )
 
         except Exception as e:
             pytest.skip(f"Provider {provider_config['provider']} failed: {e}")
 
     @pytest.mark.slow
-    @pytest.mark.parametrize("provider_config", [
-        {"provider": "openrouter", "openrouter_api_key": "test-key", "openrouter_model": "google/gemini-flash-1.5"},
-        {"provider": "openai", "api_key": "test-key"},
-        {"provider": "lmstudio", "base_url": "http://localhost:1234/v1"},
-    ])
+    @pytest.mark.parametrize(
+        "provider_config",
+        [
+            {
+                "provider": "openrouter",
+                "openrouter_api_key": "test-key",
+                "openrouter_model": "google/gemini-flash-1.5",
+            },
+            {"provider": "openai", "api_key": "test-key"},
+            {"provider": "lmstudio", "base_url": "http://localhost:1234/v1"},
+        ],
+    )
     def test_multi_provider_documentation_workflow(self, provider_config):
         """Test documentation generation workflow across all providers."""
         from devsynth.application.llm.providers import get_llm_provider
@@ -788,6 +868,7 @@ class TestCriticalLLMWorkflows:
         elif provider_config["provider"] == "lmstudio":
             try:
                 import httpx
+
                 response = httpx.get("http://localhost:1234/v1/models", timeout=1)
                 if response.status_code != 200:
                     pytest.skip("LM Studio server not available")
@@ -830,15 +911,18 @@ class TestCriticalLLMWorkflows:
             assert len(documentation) > 100  # Should be substantial
 
             # Should contain documentation elements
-            assert any(term in documentation.lower() for term in [
-                "class", "method", "description", "example", "parameter"
-            ])
+            assert any(
+                term in documentation.lower()
+                for term in ["class", "method", "description", "example", "parameter"]
+            )
 
         except Exception as e:
             pytest.skip(f"Provider {provider_config['provider']} failed: {e}")
 
     @pytest.mark.slow
-    def test_real_world_scenario_simulation(self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path):
+    def test_real_world_scenario_simulation(
+        self, openrouter_provider: OpenRouterProvider, temp_project_dir: Path
+    ):
         """Test a realistic development scenario with multiple LLM interactions."""
         # Simulate a complete development workflow
 
@@ -926,20 +1010,25 @@ class TestCriticalLLMWorkflows:
         assert len(generated_app) > 500  # Should be substantial code
 
         assert isinstance(generated_tests, str)
-        assert "def test" in generated_tests.lower() or "assert" in generated_tests.lower()
+        assert (
+            "def test" in generated_tests.lower() or "assert" in generated_tests.lower()
+        )
 
         assert isinstance(generated_docs, str)
         assert len(generated_docs) > 300
 
         # Verify content quality
-        assert any(term in generated_app.lower() for term in [
-            "flask", "app", "upload", "image", "filter"
-        ])
+        assert any(
+            term in generated_app.lower()
+            for term in ["flask", "app", "upload", "image", "filter"]
+        )
 
-        assert any(term in generated_tests.lower() for term in [
-            "test", "assert", "mock", "client"
-        ])
+        assert any(
+            term in generated_tests.lower()
+            for term in ["test", "assert", "mock", "client"]
+        )
 
-        assert any(term in generated_docs.lower() for term in [
-            "api", "setup", "install", "guide"
-        ])
+        assert any(
+            term in generated_docs.lower()
+            for term in ["api", "setup", "install", "guide"]
+        )
