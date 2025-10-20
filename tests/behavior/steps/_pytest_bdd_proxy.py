@@ -1,16 +1,12 @@
+"""Compatibility shim for historical ``pytest_bdd`` proxy imports.
+
+The pytest-bdd plugin is registered dynamically through
+``tests.pytest_plugin_registry``; this module remains so legacy imports do not
+fail when pytest attempts to discover ``tests.behavior.steps._pytest_bdd_proxy``.
 """
-Proxy module for pytest-bdd plugin to avoid import issues.
 
-This module serves as a proxy to ensure pytest-bdd plugin can be loaded
-without causing configuration errors during test discovery.
-"""
+__all__ = ("PYTEST_PLUGINS",)
 
-# Re-export pytest-bdd plugin functionality
-try:
-    from pytest_bdd import plugin as pytest_bdd_plugin
-except ImportError:
-    # Fallback if pytest-bdd is not available
-    pytest_bdd_plugin = None
-
-# Expose the plugin for pytest discovery
-pytest_plugins = ["pytest_bdd.plugin"] if pytest_bdd_plugin else []
+# No plugins are exported directly from this module; see
+# ``tests.pytest_plugin_registry`` for the canonical registry.
+PYTEST_PLUGINS: tuple[str, ...] = ()
