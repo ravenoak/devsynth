@@ -31,6 +31,58 @@ def test_reasoning_loop_retries_on_transient(monkeypatch):
 
 
 @pytest.mark.fast
+def test_reasoning_loop_retry_emits_debug_and_clamps_sleep(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Retry telemetry logs debug details and clamps backoff to remaining budget."""
+
+    call_counter = {"value": 0}
+
+    def transient_then_complete(wsde, task, critic, memory):
+        call_counter["value"] += 1
+        if call_counter["value"] < 3:
+            raise RuntimeError("transient jitter")
+        return {"status": "completed", "phase": "refine"}
+
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: transient_then_complete
+    )
+
+    clock = {"value": 0.0}
+    sleep_calls: list[float] = []
+
+    def fake_monotonic() -> float:
+        return clock["value"]
+
+    def fake_sleep(duration: float) -> None:
+        sleep_calls.append(duration)
+        clock["value"] += duration
+
+    monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(rl.time, "sleep", fake_sleep)
+
+    caplog.set_level("DEBUG", rl.logger.logger.name)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "retry"},
+        critic_agent=None,
+        max_iterations=4,
+        retry_attempts=2,
+        retry_backoff=0.2,
+        max_total_seconds=0.25,
+    )
+
+    assert call_counter["value"] == 3
+    assert results == [{"status": "completed", "phase": "refine"}]
+    assert sleep_calls == pytest.approx([0.2, 0.05])
+    assert any(
+        "Transient error in reasoning step; retrying in" in record.message
+        for record in caplog.records
+    )
+
+
+@pytest.mark.fast
 def test_reasoning_loop_retry_clamps_backoff_and_respects_budget(monkeypatch):
     """Exponential backoff honors the total budget by clamping sleep.
 
@@ -74,6 +126,49 @@ def test_reasoning_loop_retry_clamps_backoff_and_respects_budget(monkeypatch):
     assert call_count["value"] == 3  # two transient failures + success
     assert sleep_calls == pytest.approx([0.1, 0.05])
     assert results == [{"status": "in_progress", "phase": "refine"}]
+
+
+@pytest.mark.fast
+def test_reasoning_loop_retry_stops_when_remaining_budget_spent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Zero remaining budget stops retries without sleeping and breaks the loop."""
+
+    call_counter = {"value": 0}
+
+    def always_transient(*_args, **_kwargs):
+        call_counter["value"] += 1
+        raise RuntimeError("no budget left")
+
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: always_transient
+    )
+
+    monotonic_values = iter([0.0, 0.005, 0.02])
+
+    def fake_monotonic() -> float:
+        try:
+            return next(monotonic_values)
+        except StopIteration:  # pragma: no cover - deterministic guard
+            return 0.02
+
+    sleep_calls: list[float] = []
+
+    monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(rl.time, "sleep", sleep_calls.append)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "budget"},
+        critic_agent=None,
+        retry_attempts=3,
+        retry_backoff=0.1,
+        max_total_seconds=0.01,
+    )
+
+    assert results == []
+    assert call_counter["value"] == 1
+    assert sleep_calls == []
 
 
 @pytest.mark.fast
