@@ -5,8 +5,6 @@ import pytest
 
 from tests.fixtures.resources import backend_import_reason, skip_if_missing_backend
 
-pytestmark = [*skip_if_missing_backend("chromadb"), pytest.mark.fast]
-
 
 # Import dependencies directly - chromadb is available in the environment
 try:
@@ -18,8 +16,11 @@ try:
     from devsynth.application.memory.chromadb_store import ChromaDBStore
 except ImportError:
     pytest.skip("ChromaDBStore not available")
+
 from devsynth.application.memory.dto import MemoryRecord
 from devsynth.domain.models.memory import MemoryItem, MemoryType
+
+pytestmark = [*skip_if_missing_backend("chromadb"), pytest.mark.fast]
 
 
 class _TestableChromaDBStore(ChromaDBStore):

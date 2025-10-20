@@ -1,16 +1,20 @@
-"""
-Proxy module for pytest-bdd plugin to avoid import issues.
+"""Compatibility shim for importing :mod:`pytest_bdd.plugin`.
 
-This module serves as a proxy to ensure pytest-bdd plugin can be loaded
-without causing configuration errors during test discovery.
+Historically the behavior step packages exported ``pytest_plugins`` values to
+trigger plugin loading. Pytest 8 tightened the rules around nested
+declarations, so the root ``tests.conftest`` module now loads plugins via the
+central registry. We retain this module solely so legacy imports succeed
+without exposing an additional ``pytest_plugins`` attribute.
 """
 
-# Re-export pytest-bdd plugin functionality
-try:
-    from pytest_bdd import plugin as pytest_bdd_plugin
-except ImportError:
-    # Fallback if pytest-bdd is not available
+from __future__ import annotations
+
+from importlib import import_module
+from typing import Any
+
+try:  # pragma: no cover - defensive import guard
+    pytest_bdd_plugin: Any = import_module("pytest_bdd.plugin")
+except Exception:  # pragma: no cover - pytest-bdd not installed
     pytest_bdd_plugin = None
 
-# Expose the plugin for pytest discovery
-pytest_plugins = ["pytest_bdd.plugin"] if pytest_bdd_plugin else []
+__all__ = ["pytest_bdd_plugin"]

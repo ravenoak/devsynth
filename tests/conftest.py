@@ -50,6 +50,12 @@ def _load_additional_pytest_plugins(module_name: str) -> None:
     if not plugin_names:
         return
     for plugin_name in plugin_names:
+        if plugin_name == "pytest_bdd.plugin":
+            import os as _os
+
+            disable_autoload = _os.environ.get("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "")
+            if disable_autoload.lower() not in {"1", "true", "yes", "on"}:
+                continue
         target_name = _PLUGIN_REDIRECTS.get(plugin_name, plugin_name)
         if target_name not in pytest_plugins:
             pytest_plugins.append(target_name)
@@ -59,7 +65,7 @@ _ADDITIONAL_PYTEST_PLUGIN_PROVIDERS = [
     _pytest_plugin_registry.__name__,
 ]
 
-# Plugin redirects removed - pytest-bdd is auto-loaded by other plugins
+# Plugin redirects removed - centralized registry loads pytest-bdd directly
 _PLUGIN_REDIRECTS = {}
 
 for _provider in _ADDITIONAL_PYTEST_PLUGIN_PROVIDERS:
