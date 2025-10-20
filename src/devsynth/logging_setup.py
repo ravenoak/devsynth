@@ -400,7 +400,7 @@ def configure_logging(
         )
         effective_create_dir = bool(create_dir and not no_file_logging)
 
-        new_config: _EffectiveConfig = (
+        intended_config: _EffectiveConfig = (
             configured_log_dir,
             configured_log_file,
             effective_log_level,
@@ -408,7 +408,7 @@ def configure_logging(
         )
 
         # Idempotency: if already configured with the same effective config, do nothing
-        if _logging_configured and _last_effective_config == new_config:
+        if _logging_configured and _last_effective_config == intended_config:
             logger.debug(
                 "configure_logging called with identical config; skipping reconfiguration"
             )
@@ -421,6 +421,10 @@ def configure_logging(
         # Create directory if requested and file logging is not disabled
         if effective_create_dir:
             ensure_log_dir_exists(_configured_log_dir)
+            log_file_parent = Path(_configured_log_file).parent
+            parent_str = str(log_file_parent)
+            if parent_str not in ("", "."):
+                ensure_log_dir_exists(parent_str)
 
         # Set up root logger
         root_logger = logging.getLogger()
@@ -440,13 +444,16 @@ def configure_logging(
         console_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT))
         root_logger.addHandler(console_handler)
 
+        file_logging_enabled = False
+
         # Add file handler if applicable
-        if effective_create_dir:
+        if effective_create_dir and _configured_log_file:
             try:
                 file_handler = logging.FileHandler(_configured_log_file)
                 file_handler.setFormatter(JSONFormatter())
                 root_logger.addHandler(file_handler)
-            except (PermissionError, FileNotFoundError) as e:
+                file_logging_enabled = True
+            except (PermissionError, FileNotFoundError, OSError) as e:
                 # Log to console only if file logging fails
                 console_handler.setFormatter(
                     logging.Formatter(
@@ -454,13 +461,21 @@ def configure_logging(
                     )
                 )
                 root_logger.warning(f"Failed to set up file logging: {str(e)}")
+                root_logger.addHandler(logging.NullHandler())
+        else:
+            root_logger.addHandler(logging.NullHandler())
 
         # Mark as configured and remember the configuration
         _logging_configured = True
-        _last_effective_config = new_config
+        _last_effective_config = (
+            configured_log_dir,
+            configured_log_file,
+            effective_log_level,
+            file_logging_enabled,
+        )
 
         # Log configuration info
-        if effective_create_dir:
+        if file_logging_enabled:
             root_logger.info(f"Logging configured. Log file: {_configured_log_file}")
         else:
             root_logger.info(

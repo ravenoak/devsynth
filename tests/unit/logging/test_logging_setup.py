@@ -814,6 +814,66 @@ def test_redact_filter_masks_secret_tokens_via_caplog(
 
 
 @pytest.mark.fast
+def test_dev_synth_logger_handles_missing_log_file_path(
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """When the configured log file path is empty the logger falls back safely."""
+
+    import src.devsynth.logging_setup as logging_setup_module
+
+    root_logger = logging.getLogger()
+    original_handlers = list(root_logger.handlers)
+    original_filters = list(root_logger.filters)
+    original_level = root_logger.level
+
+    monkeypatch.setattr(logging_setup_module, "_logging_configured", False)
+    monkeypatch.setattr(logging_setup_module, "_last_effective_config", None)
+    monkeypatch.setattr(logging_setup_module, "_configured_log_dir", None)
+    monkeypatch.setattr(logging_setup_module, "_configured_log_file", None)
+
+    monkeypatch.setenv("DEVSYNTH_PROJECT_DIR", str(tmp_path))
+    monkeypatch.delenv("DEVSYNTH_NO_FILE_LOGGING", raising=False)
+
+    caplog.set_level(logging.INFO)
+
+    try:
+        configure_logging(
+            log_dir=str(tmp_path / "logs"),
+            log_file="",
+            create_dir=True,
+        )
+
+        root_logger = logging.getLogger()
+        if caplog.handler not in root_logger.handlers:
+            root_logger.addHandler(caplog.handler)
+
+        logger = DevSynthLogger("tests.logging.null-path")
+        logger.info("null path sentinel")
+
+        assert "null path sentinel" in caplog.text
+    finally:
+        current_logger = logging.getLogger()
+        for handler in current_logger.handlers[:]:
+            current_logger.removeHandler(handler)
+            if handler not in original_handlers:
+                try:
+                    handler.close()
+                except Exception:
+                    pass
+        for handler in original_handlers:
+            current_logger.addHandler(handler)
+
+        for filt in current_logger.filters[:]:
+            current_logger.removeFilter(filt)
+        for filt in original_filters:
+            current_logger.addFilter(filt)
+
+        current_logger.setLevel(original_level)
+
+
+@pytest.mark.fast
 def test_dev_synth_logger_emits_structured_extras_with_context(
     caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
