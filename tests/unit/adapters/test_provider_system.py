@@ -1,5 +1,6 @@
 import asyncio
 import os
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
@@ -15,6 +16,7 @@ from devsynth.adapters.provider_system import (
     OpenAIProvider,
     ProviderError,
     ProviderFactory,
+    TLSConfig,
     get_env_or_default,
     get_provider_config,
 )
@@ -746,6 +748,13 @@ def test_provider_factory_injected_config_selects_provider():
             "jitter": False,
         },
     }
+    dummy_settings = SimpleNamespace(
+        tls_verify=True,
+        tls_cert_file=None,
+        tls_key_file=None,
+        tls_ca_file=None,
+    )
+
     with (
         patch("devsynth.adapters.provider_system.requests.get") as mock_get,
         patch(
@@ -753,18 +762,52 @@ def test_provider_factory_injected_config_selects_provider():
             return_value={},
         ),
         patch("devsynth.adapters.provider_system.get_settings") as mock_get_settings,
+        patch("devsynth.adapters.provider_system.OpenAIProvider")
+        as mock_openai_provider,
+        patch("devsynth.adapters.provider_system.LMStudioProvider")
+        as mock_lmstudio_provider,
         patch.dict(
-            "os.environ", {"DEVSYNTH_OFFLINE": ""}
-        ),  # Ensure not in offline mode
+            "os.environ",
+            {
+                "DEVSYNTH_OFFLINE": "false",
+                "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE": "true",
+            },
+            clear=False,
+        ),
     ):
         mock_get.return_value.status_code = 200
-        mock_get_settings.return_value = type("Settings", (), {})()
+        mock_get_settings.return_value = dummy_settings
+
         provider = ProviderFactory.create_provider("openai", config=custom_config)
-        assert isinstance(provider, OpenAIProvider)
+        assert provider is mock_openai_provider.return_value
+        mock_openai_provider.assert_called_once()
+        first_call_kwargs = mock_openai_provider.call_args.kwargs
+        assert first_call_kwargs["api_key"] == "x"
+        assert first_call_kwargs["model"] == "gpt-4"
+        assert first_call_kwargs["base_url"] == "http://api"
+        assert isinstance(first_call_kwargs["tls_config"], TLSConfig)
+        assert first_call_kwargs["retry_config"] == custom_config["retry"]
+
+        mock_openai_provider.reset_mock()
         provider = ProviderFactory.create_provider("lmstudio", config=custom_config)
-        assert isinstance(provider, LMStudioProvider)
+        assert provider is mock_lmstudio_provider.return_value
+        mock_lmstudio_provider.assert_called_once()
+        lmstudio_kwargs = mock_lmstudio_provider.call_args.kwargs
+        assert lmstudio_kwargs["endpoint"] == "http://lm"
+        assert lmstudio_kwargs["model"] == "default"
+        assert isinstance(lmstudio_kwargs["tls_config"], TLSConfig)
+        assert lmstudio_kwargs["retry_config"] == custom_config["retry"]
+
+        mock_lmstudio_provider.reset_mock()
         provider = ProviderFactory.create_provider(config=custom_config)
-        assert isinstance(provider, OpenAIProvider)
+        assert provider is mock_openai_provider.return_value
+        mock_openai_provider.assert_called_once()
+        default_call_kwargs = mock_openai_provider.call_args.kwargs
+        assert default_call_kwargs["api_key"] == "x"
+        assert default_call_kwargs["model"] == "gpt-4"
+        assert default_call_kwargs["base_url"] == "http://api"
+        assert isinstance(default_call_kwargs["tls_config"], TLSConfig)
+        assert default_call_kwargs["retry_config"] == custom_config["retry"]
 
 
 def test_fallback_provider_respects_order(monkeypatch):
