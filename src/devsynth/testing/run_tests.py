@@ -675,7 +675,7 @@ def ensure_pytest_asyncio_plugin_env(env: MutableMapping[str, str]) -> bool:
     addopts_value = env.get("PYTEST_ADDOPTS", "")
     tokens = _parse_pytest_addopts(addopts_value)
 
-    plugin_aliases = ("pytest_asyncio",)
+    plugin_aliases = ("pytest_asyncio", "pytest_asyncio.plugin")
     if any(_plugin_explicitly_disabled(tokens, alias) for alias in plugin_aliases):
         logger.debug(
             (
@@ -690,11 +690,11 @@ def ensure_pytest_asyncio_plugin_env(env: MutableMapping[str, str]) -> bool:
         return False
 
     normalized = addopts_value.strip()
-    updated = f"{normalized} -p pytest_asyncio".strip()
+    updated = f"-p pytest_asyncio.plugin {normalized}".strip()
     env["PYTEST_ADDOPTS"] = updated
     logger.info(
         (
-            "Injected -p pytest_asyncio into PYTEST_ADDOPTS to preserve "
+            "Injected -p pytest_asyncio.plugin into PYTEST_ADDOPTS to preserve "
             "async test support"
         ),
         extra={"pytest_addopts": updated},
@@ -1948,10 +1948,15 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
             for alias in ("pytest_bdd", "pytest_bdd.plugin")
         ):
             additions.append("-p pytest_bdd")
+        if not any(
+            _addopts_has_plugin(tokens, alias)
+            for alias in ("pytest_asyncio", "pytest_asyncio.plugin")
+        ):
+            additions.append("-p pytest_asyncio.plugin")
         if additions:
             normalized = addopts.strip()
             request.env["PYTEST_ADDOPTS"] = (
-                f"{normalized} {' '.join(additions)}".strip()
+                f"{' '.join(additions)} {normalized}".strip()
             )
 
     try:

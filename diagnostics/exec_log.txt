@@ -58,3 +58,9 @@ exit_code: 0
 artifacts: diagnostics/mypy_strict_application_memory_20251016T231537Z.txt
 notes: memory strict typing
 ---
+timestamp: 2025-10-20T02:56:08+00:00
+command: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+exit_code: 0
+artifacts: diagnostics/devsynth_run_tests_smoke_fast_20251020T025026Z.log,test_reports/smoke_fast.log,diagnostics/smoke_validation_20251020T025026Z.txt
+notes: Coverage artifact generation skipped (no baseline)
+---

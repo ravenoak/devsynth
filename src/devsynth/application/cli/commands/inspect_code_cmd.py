@@ -4,7 +4,7 @@ structure, and quality.
 """
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from rich.console import Console
 from rich.panel import Panel
@@ -23,7 +23,7 @@ cli_bridge: UXBridge = CLIUXBridge()
 
 
 def inspect_code_cmd(
-    path: Optional[Path] = None,
+    path: Optional[Union[str, Path]] = None,
     *,
     bridge: Optional[UXBridge] = None,
 ) -> None:
@@ -56,7 +56,7 @@ def inspect_code_cmd(
         )
 
         # Determine the path to inspect
-        path_obj: Path = path.resolve() if path is not None else Path.cwd()
+        path_obj: Path = Path(path).resolve() if path is not None else Path.cwd()
         if not path_obj.exists():
             path_obj.mkdir(parents=True, exist_ok=True)
 

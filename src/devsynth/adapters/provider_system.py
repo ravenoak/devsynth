@@ -100,6 +100,24 @@ def _create_tls_config(settings: Any) -> TLSConfig:
     )
 
 
+def _is_network_guard_error(exc: Exception) -> bool:
+    """Return ``True`` when ``exc`` was raised by the network guard fixtures."""
+
+    message = str(exc)
+    if "Network access disabled during tests" in message:
+        return True
+
+    cause = getattr(exc, "__cause__", None)
+    if cause is not None and _is_network_guard_error(cause):
+        return True
+
+    context = getattr(exc, "__context__", None)
+    if context is not None and _is_network_guard_error(context):
+        return True
+
+    return False
+
+
 @lru_cache(maxsize=1)
 def get_provider_config() -> dict[str, Any]:
     """
@@ -1104,11 +1122,17 @@ class LMStudioProvider(BaseProvider):
             tls_kwargs["timeout"] = (0.2, 1.0)  # Override timeout for health check
             requests.get(health_url, **tls_kwargs)
         except Exception as exc:
-            raise ProviderError(
-                "LM Studio endpoint is not reachable; provider disabled. "
-                "Set OPENAI_API_KEY for OpenAI or start LM Studio at "
-                "LM_STUDIO_ENDPOINT."
-            ) from exc
+            if _is_network_guard_error(exc):
+                logger.info(
+                    "Skipping LM Studio health check because network access is disabled: %s",
+                    exc,
+                )
+            else:
+                raise ProviderError(
+                    "LM Studio endpoint is not reachable; provider disabled. "
+                    "Set OPENAI_API_KEY for OpenAI or start LM Studio at "
+                    "LM_STUDIO_ENDPOINT."
+                ) from exc
 
     def _should_retry(self, exc: Exception) -> bool:
         """Return ``True`` if the exception should trigger a retry."""

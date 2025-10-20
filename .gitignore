@@ -67,6 +67,7 @@ traceability.json
 test_reports/*
 !test_reports/
 !test_reports/test_markers_report.json
+!test_reports/smoke_fast*.log
 # Allow committing specific small artifacts inside diagnostics/; default ignore remains.
 diagnostics/*
 !diagnostics/

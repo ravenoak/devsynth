@@ -431,12 +431,12 @@ def run_tests_cmd(
         ux_bridge.print(message)
     if asyncio_plugin_injected:
         message = (
-            "[cyan]-p pytest_asyncio appended to PYTEST_ADDOPTS "
+            "[cyan]-p pytest_asyncio.plugin appended to PYTEST_ADDOPTS "
             "because plugin autoloading is disabled[/cyan]"
         )
         logger.info(
             (
-                "CLI appended -p pytest_asyncio to PYTEST_ADDOPTS to preserve "
+                "CLI appended -p pytest_asyncio.plugin to PYTEST_ADDOPTS to preserve "
                 "async test support"
             ),
             extra={"pytest_addopts": os.environ.get("PYTEST_ADDOPTS", "")},

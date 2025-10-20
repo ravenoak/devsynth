@@ -7,7 +7,8 @@ import pytest
 def reload_provider_system():
     import devsynth.adapters.provider_system as ps
 
-    importlib.reload(ps)
+    if hasattr(ps.get_provider_config, "cache_clear"):
+        ps.get_provider_config.cache_clear()
     return ps
 
 

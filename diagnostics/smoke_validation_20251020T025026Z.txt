@@ -1,0 +1,8 @@
+Smoke validation summary
+=======================
+Run timestamp (UTC): 2025-10-20T02:50:33Z
+Command: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+Primary log: diagnostics/devsynth_run_tests_smoke_fast_20251020T025026Z.log
+Result: PASS (exit code 0, no failures reported)
+Notes:
+- Coverage artifact generation skipped because the coverage data file was not present for smoke mode.
