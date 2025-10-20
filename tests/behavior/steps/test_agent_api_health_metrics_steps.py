@@ -8,6 +8,7 @@ from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.behavior.feature_paths import feature_path
 
@@ -15,10 +16,9 @@ pytestmark = [pytest.mark.fast]
 
 pytest.importorskip("fastapi")
 
-# Defer fastapi.testclient import to avoid MRO issues during collection
-# Import will be done lazily when actually needed by tests
+# Defer fastapi.testclient import to avoid MRO issues during collection.
+# Import will be done lazily when actually needed by tests.
 TestClient = None
-from pytest_bdd import given, parsers, scenarios, then, when
 
 
 def _get_testclient():

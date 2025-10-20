@@ -9,7 +9,11 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
+pytest.importorskip("onnxruntime", reason="onnxruntime package is required for these tests")
+
 from devsynth.adapters.onnx_runtime_adapter import ONNXRuntimeAdapter
+
+pytestmark = [pytest.mark.requires_resource("onnxruntime")]
 
 
 class TestONNXRuntimeAdapter:

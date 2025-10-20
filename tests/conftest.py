@@ -59,7 +59,9 @@ _ADDITIONAL_PYTEST_PLUGIN_PROVIDERS = [
     _pytest_plugin_registry.__name__,
 ]
 
-# Plugin redirects removed - pytest-bdd is auto-loaded by other plugins
+# Plugin redirects are unnecessary now that optional plugins (for example,
+# ``pytest_bdd.plugin``) are resolved through ``tests.pytest_plugin_registry``
+# before being appended to ``pytest_plugins``.
 _PLUGIN_REDIRECTS = {}
 
 for _provider in _ADDITIONAL_PYTEST_PLUGIN_PROVIDERS:
