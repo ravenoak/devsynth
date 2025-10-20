@@ -20,6 +20,7 @@ Next Actions:
 Resolution Evidence:
   - Starlette pinned `<0.47` with Poetry lock regenerated; FastAPI's TestClient now imports cleanly via the sitecustomize shim that rewrites `WebSocketDenialResponse`.【F:pyproject.toml†L49-L51】【F:poetry.lock†L6722-L6737】【F:src/sitecustomize.py†L12-L65】
   - Smoke CLI regression tests cover the new behavior, and the latest green run (2025-09-23) captures coverage diagnostics under `test_reports/coverage.json` while skipping enforcement in smoke mode.【F:tests/unit/application/cli/test_run_tests_cmd_smoke.py†L1-L142】【F:logs/2025-09-23T05:23:35Z-devsynth-run-tests-smoke-fast.log†L1464-L1469】
+  - 2025-10-20: Rebased on FastAPI 0.115.5/Starlette 0.41.3 per upstream release notes (Pydantic 2.10 support and `TestClient.raw_path` fix) and reran the smoke profile to capture `logs/run-tests-smoke-fast-20251020T171830Z.log`; the command still warns about skipped coverage artifacts but exits 0 for regression tracking.【F:pyproject.toml†L54-L55】【F:docs/release/0.1.0-alpha.1.md†L36-L41】【F:logs/run-tests-smoke-fast-20251020T171830Z.log†L1-L20】
 
 Documentation traceability (2025-09-23):
   - Regression narrative, rerun evidence, and residual risk recorded in docs/plan.md §§Commands executed, Gaps, and Academic rigor.【F:docs/plan.md†L120-L198】

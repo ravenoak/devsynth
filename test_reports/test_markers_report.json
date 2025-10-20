@@ -1,6 +1,6 @@
 {
   "markers": {
-    "fast": 2000,
+    "fast": 2010,
     "no_network": 15,
     "medium": 1617,
     "parametrize": 85,
@@ -17,13 +17,13 @@
     "skipif": 3,
     "property": 32,
     "anyio": 3,
-    "unit": 11,
+    "unit": 14,
     "xfail": 5,
     "smoke": 4,
     "skip": 5,
     "allow_real_coverage_artifacts": 2
   },
-  "files_scanned": 1298,
+  "files_scanned": 1299,
   "files_with_issues": 0,
   "undocumented_markers": []
 }
