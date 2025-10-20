@@ -19,6 +19,9 @@ from devsynth.adapters.provider_system import (
     get_provider_config,
 )
 
+# Provider-specific tests require real adapter classes rather than global stubs.
+os.environ.setdefault("DEVSYNTH_TEST_ALLOW_PROVIDERS", "true")
+
 # Do not use import-time gating; tests are fully mocked/offline by default.
 # Resource gating is applied only in truly live-provider tests.
 
@@ -345,6 +348,29 @@ def test_provider_initialization_succeeds(provider_class, config):
     assert provider is not None
     retry_decorator = provider.get_retry_decorator()
     assert callable(retry_decorator)
+
+
+def test_lmstudio_provider_initialization_skips_health_check_when_network_guard_active():
+    """LM Studio provider should bypass the health check when tests block network."""
+
+    with (
+        patch(
+            "devsynth.adapters.provider_system.TLSConfig.as_requests_kwargs",
+            return_value={"timeout": 0.1},
+        ),
+        patch(
+            "devsynth.adapters.provider_system.requests.get",
+            side_effect=RuntimeError("Network access disabled during tests (requests)"),
+        ) as mock_get,
+        patch("devsynth.adapters.provider_system.logger") as mock_logger,
+    ):
+        provider = LMStudioProvider(endpoint="http://test-endpoint")
+
+    assert isinstance(provider, LMStudioProvider)
+    mock_get.assert_called_once_with(
+        "http://test-endpoint/api/v0/models", timeout=(0.2, 1.0)
+    )
+    mock_logger.info.assert_called()
 
 
 def test_fallback_provider_succeeds():

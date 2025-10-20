@@ -1,0 +1,6 @@
+Smoke test summary - 2025-10-20T02:50:33Z (UTC)
+Command: poetry run devsynth run-tests --smoke --speed=fast --no-parallel --maxfail=1
+Exit code: 0
+Artifacts:
+  - diagnostics/devsynth_run_tests_smoke_fast_20251020T025026Z.log
+Outcome: PASS (no test failures observed; coverage artifact generation skipped because no prior coverage data was available.)

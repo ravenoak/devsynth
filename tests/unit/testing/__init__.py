@@ -20,7 +20,61 @@ def _ensure_path_exists(path: str) -> str:
     return path
 
 
+class _StubSettings(SimpleNamespace):
+    """Lightweight stand-in for ``devsynth.config.settings.Settings``."""
+
+    def __getitem__(self, key: str) -> object:
+        return getattr(self, key)
+
+
+def _make_default_settings() -> _StubSettings:
+    """Return deterministic default settings for tests."""
+
+    return _StubSettings(
+        tls_verify=True,
+        tls_cert_file=None,
+        tls_key_file=None,
+        tls_ca_file=None,
+        provider_max_retries=3,
+        provider_initial_delay=1.0,
+        provider_exponential_base=2.0,
+        provider_max_delay=60.0,
+        provider_jitter=True,
+        provider_retry_metrics=True,
+        provider_retry_conditions="",
+        provider_fallback_enabled=True,
+        provider_fallback_order="openai,lmstudio,stub",
+        provider_circuit_breaker_enabled=True,
+        provider_failure_threshold=5,
+        provider_recovery_timeout=60.0,
+        provider_type="stub",
+        lm_studio_endpoint="http://localhost",
+        llm_provider="stub",
+        llm_model="stub-model",
+        llm_temperature=0.7,
+        llm_auto_select_model=True,
+        openai_api_key=None,
+        openai_model="gpt-4",
+    )
+
+
+def _stub_get_settings(*_, **__) -> _StubSettings:
+    return _make_default_settings()
+
+
+def _stub_get_llm_settings(*_, **__) -> dict[str, object]:
+    settings = _make_default_settings()
+    return {
+        "provider": settings.llm_provider,
+        "model": settings.llm_model,
+        "temperature": settings.llm_temperature,
+        "auto_select_model": settings.llm_auto_select_model,
+    }
+
+
 _SETTINGS_MODULE.ensure_path_exists = _ensure_path_exists  # type: ignore[attr-defined]
+_SETTINGS_MODULE.get_settings = _stub_get_settings  # type: ignore[attr-defined]
+_SETTINGS_MODULE.get_llm_settings = _stub_get_llm_settings  # type: ignore[attr-defined]
 _CONFIG_MODULE.settings = _SETTINGS_MODULE  # type: ignore[attr-defined]
 sys.modules.setdefault("devsynth.config", _CONFIG_MODULE)
 sys.modules.setdefault("devsynth.config.settings", _SETTINGS_MODULE)
