@@ -93,8 +93,8 @@ def test_stub_store_matches_protocol_runtime() -> None:
     store = IntStore()
     assert isinstance(store, MemoryStore)
     typed_protocol = MemoryStore[int]
-    assert getattr(typed_protocol, "__origin__", None) is MemoryStore
-    assert getattr(typed_protocol, "__args__", ()) == (int,)
+    assert typed_protocol is MemoryStore
+    assert isinstance(store, typed_protocol)
 
     manager = build_manager()
     with manager.transaction():
@@ -112,6 +112,27 @@ def test_memory_store_parameters_are_runtime_typevars() -> None:
     parameters = getattr(MemoryStore, "__parameters__", ())
 
     assert parameters == (ValueT,)
+
+
+@pytest.mark.fast
+def test_parameterised_memory_store_runtime_is_safe() -> None:
+    """Subscripted protocols behave identically to the base protocol at runtime."""
+
+    store = IntStore()
+
+    assert isinstance(store, MemoryStore[int])
+    assert isinstance(store, MemoryStore[str])
+
+
+@pytest.mark.fast
+def test_snapshot_alias_preserves_runtime_origin() -> None:
+    """The snapshot alias remains a generic mapping tied to the value ``TypeVar``."""
+
+    snapshot_origin = get_origin(Snapshot)
+    snapshot_args = get_args(Snapshot)
+
+    assert snapshot_origin is Mapping
+    assert snapshot_args == (str, ValueT)
 
 
 @pytest.mark.fast

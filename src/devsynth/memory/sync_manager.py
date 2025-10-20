@@ -3,32 +3,65 @@
 from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Generic, Protocol, TypeVar, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Generic,
+    Iterator,
+    Protocol,
+    TypeAlias,
+    TypeVar,
+    runtime_checkable,
+)
 
 ValueT = TypeVar("ValueT")
-Snapshot = Mapping[str, ValueT]
+Snapshot: TypeAlias = Mapping[str, ValueT]
 
 
-@runtime_checkable
-class MemoryStore(Protocol, Generic[ValueT]):
-    """Protocol for simple key-value stores.
+if TYPE_CHECKING:
 
-    Stores used with :class:`SyncManager` must implement read/write helpers and
-    be able to snapshot/restore their state. Concrete adapters such as TinyDB
-    and DuckDB satisfy this interface in the application layer.
-    """
+    @runtime_checkable
+    class MemoryStore(Protocol[ValueT]):
+        """Protocol for simple key-value stores."""
 
-    def write(self, key: str, value: ValueT) -> None:
-        """Persist ``value`` under ``key``."""
+        def write(self, key: str, value: ValueT) -> None:
+            """Persist ``value`` under ``key``."""
 
-    def read(self, key: str) -> ValueT:
-        """Return the stored value for ``key`` or raise ``KeyError``."""
+        def read(self, key: str) -> ValueT:
+            """Return the stored value for ``key`` or raise ``KeyError``."""
 
-    def snapshot(self) -> Snapshot:
-        """Return a mapping representing the current store state."""
+        def snapshot(self) -> Snapshot:
+            """Return a mapping representing the current store state."""
 
-    def restore(self, snapshot: Snapshot) -> None:
-        """Restore the store from a previous :meth:`snapshot` output."""
+        def restore(self, snapshot: Snapshot) -> None:
+            """Restore the store from a previous :meth:`snapshot` output."""
+
+else:
+
+    @runtime_checkable
+    class MemoryStore(Protocol):
+        """Runtime-safe protocol for simple key-value stores."""
+
+        def write(self, key: str, value: object) -> None:
+            """Persist ``value`` under ``key``."""
+
+        def read(self, key: str) -> object:
+            """Return the stored value for ``key`` or raise ``KeyError``."""
+
+        def snapshot(self) -> Mapping[str, object]:
+            """Return a mapping representing the current store state."""
+
+        def restore(self, snapshot: Mapping[str, object]) -> None:
+            """Restore the store from a previous :meth:`snapshot` output."""
+
+    MemoryStore.__parameters__ = (ValueT,)
+
+    @classmethod
+    def _memory_store_getitem(cls, _type_args: object) -> type["MemoryStore"]:
+        """Return the base protocol to keep ``isinstance`` checks runtime-safe."""
+
+        return cls
+
+    MemoryStore.__class_getitem__ = classmethod(_memory_store_getitem)
 
 
 @dataclass(slots=True)
@@ -73,7 +106,7 @@ class SyncManager(Generic[ValueT]):
         raise KeyError(key)
 
     @contextmanager
-    def transaction(self):
+    def transaction(self) -> Iterator[None]:
         """Atomic commit/rollback across all stores."""
 
         snapshots = {name: store.snapshot() for name, store in self.stores.items()}
