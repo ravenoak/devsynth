@@ -10,13 +10,14 @@ Issue: issues/edrr-integration-with-real-llm-providers.md
 """
 
 import asyncio
+import importlib
 import os
 from collections.abc import Callable
 from enum import Enum
 from functools import lru_cache
+from types import ModuleType
 from typing import Any
 
-from devsynth.config.settings import get_settings
 from devsynth.exceptions import ConfigurationError, DevSynthError
 from devsynth.fallback import CircuitBreaker, retry_with_exponential_backoff
 from devsynth.logging_setup import DevSynthLogger
@@ -37,6 +38,51 @@ except Exception:  # pragma: no cover - absent when [llm] extra not installed
 
 # Create a logger for this module
 logger = DevSynthLogger(__name__)
+
+_SETTINGS_MODULE = "devsynth.config.settings"
+
+
+def _load_settings_module() -> ModuleType:
+    """Return a fully initialised settings module.
+
+    ``importlib.reload`` is invoked when ``get_settings`` has not yet been
+    exported—something that can happen during ``importlib.reload`` of modules
+    that depend on :mod:`devsynth.config.settings`.  The helper guarantees a
+    callable ``get_settings`` before returning the module.
+    """
+
+    module = importlib.import_module(_SETTINGS_MODULE)
+    get_settings_attr = getattr(module, "get_settings", None)
+    if callable(get_settings_attr):
+        return module
+
+    logger.debug(
+        "Reloading %%s because get_settings was not yet available", _SETTINGS_MODULE
+    )
+    module = importlib.reload(module)
+    get_settings_attr = getattr(module, "get_settings", None)
+    if not callable(get_settings_attr):
+        raise ImportError(
+            "devsynth.config.settings does not expose get_settings after reload"
+        )
+    return module
+
+
+def get_settings(*, reload: bool = False, **kwargs: Any) -> Any:
+    """Proxy to :func:`devsynth.config.settings.get_settings` with reload safety."""
+
+    module = _load_settings_module()
+    get_settings_fn = getattr(module, "get_settings")
+    return get_settings_fn(reload=reload, **kwargs)
+
+
+def _env_flag_is_truthy(env_var: str, *, default: str = "") -> bool:
+    """Return ``True`` when the environment variable represents a truthy flag."""
+
+    value = os.environ.get(env_var, default)
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
 
 class ProviderType(Enum):
@@ -218,11 +264,7 @@ class ProviderFactory:
         tls_conf = tls_config or _create_tls_config(tls_settings)
 
         # Global kill-switch for providers (useful in CI/tests)
-        if os.environ.get("DEVSYNTH_DISABLE_PROVIDERS", "").lower() in {
-            "1",
-            "true",
-            "yes",
-        }:
+        if _env_flag_is_truthy("DEVSYNTH_DISABLE_PROVIDERS"):
             logger.warning("Providers disabled via DEVSYNTH_DISABLE_PROVIDERS.")
             return NullProvider(reason="Disabled by DEVSYNTH_DISABLE_PROVIDERS")
 
@@ -237,7 +279,7 @@ class ProviderFactory:
             provider_type_value = str(provider_type)
 
         # Helper to choose safe default (stub/null)
-        safe_default = os.environ.get("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "stub").lower()
+        safe_default = os.environ.get("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "stub").strip().lower()
 
         def _safe_provider(reason: str) -> "BaseProvider":
             if safe_default == ProviderType.STUB.value:
@@ -250,7 +292,7 @@ class ProviderFactory:
             return NullProvider(reason=reason)
 
         # Global offline guard to prevent accidental network calls
-        if os.environ.get("DEVSYNTH_OFFLINE", "").lower() in {"1", "true", "yes"}:
+        if _env_flag_is_truthy("DEVSYNTH_OFFLINE"):
             if provider_type_value.lower() not in {ProviderType.STUB.value, "offline"}:
                 return _safe_provider("DEVSYNTH_OFFLINE active; using safe provider")
 
@@ -272,9 +314,7 @@ class ProviderFactory:
                         )
                     # Attempt LM Studio only when explicitly marked available
                     # to avoid network calls by default
-                    if os.environ.get(
-                        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
-                    ).lower() in {"1", "true", "yes"}:
+                    if _env_flag_is_truthy("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", default="false"):
                         logger.warning(
                             "OPENAI_API_KEY not found; attempting LM Studio as fallback"
                         )
@@ -307,10 +347,9 @@ class ProviderFactory:
             elif pt == ProviderType.LMSTUDIO.value:
                 # Respect availability flag to avoid network calls when not desired
                 if (
-                    os.environ.get(
-                        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", "false"
-                    ).lower()
-                    not in {"1", "true", "yes"}
+                    not _env_flag_is_truthy(
+                        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", default="false"
+                    )
                     and not explicit_request
                 ):
                     return _safe_provider("LM Studio not marked available")

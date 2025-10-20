@@ -1,5 +1,4 @@
 import importlib
-import os
 
 import pytest
 
@@ -7,9 +6,10 @@ import pytest
 def reload_provider_system():
     import devsynth.adapters.provider_system as ps
 
-    if hasattr(ps.get_provider_config, "cache_clear"):
-        ps.get_provider_config.cache_clear()
-    return ps
+    reloaded = importlib.reload(ps)
+    if hasattr(reloaded.get_provider_config, "cache_clear"):
+        reloaded.get_provider_config.cache_clear()
+    return reloaded
 
 
 @pytest.mark.fast
@@ -53,3 +53,19 @@ async def test_stub_provider_async_matches_sync(monkeypatch):
     emb_sync = provider.embed(["a", "b"])
     emb_async = await provider.aembed(["a", "b"])
     assert emb_sync == emb_async
+
+
+@pytest.mark.fast
+def test_provider_system_reload_preserves_settings_import(monkeypatch):
+    monkeypatch.setenv("DEVSYNTH_PROVIDER", "stub")
+    monkeypatch.delenv("DEVSYNTH_DISABLE_PROVIDERS", raising=False)
+
+    ps = reload_provider_system()
+
+    from devsynth.config.settings import get_settings as reloaded_get_settings
+
+    settings = reloaded_get_settings()
+    assert settings is not None
+
+    provider = ps.ProviderFactory.create_provider("stub")
+    assert provider.__class__.__name__ == "StubProvider"

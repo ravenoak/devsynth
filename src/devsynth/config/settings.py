@@ -55,6 +55,24 @@ kuzu_embedded: bool = DEFAULT_KUZU_EMBEDDED
 KUZU_EMBEDDED: bool = DEFAULT_KUZU_EMBEDDED
 
 
+def _uninitialised_get_settings(*_args: Any, **_kwargs: Any) -> Any:
+    """Placeholder used while the module is still initialising."""
+
+    raise RuntimeError(
+        "devsynth.config.settings.get_settings called before initialisation "
+        "completed. Reload the module once imports settle."
+    )
+
+
+_get_settings_impl: Callable[..., Any] = _uninitialised_get_settings
+
+
+def get_settings(reload: bool = False, **kwargs: Any) -> "Settings":
+    """Return cached settings, delegating to the active implementation."""
+
+    return _get_settings_impl(reload=reload, **kwargs)
+
+
 def _parse_bool_env(value: Any, field: str) -> bool:
     """Parse a boolean environment variable securely."""
     if isinstance(value, bool):
@@ -711,7 +729,7 @@ class Settings(BaseSettings):
 _settings_instance: Optional[Settings] = None
 
 
-def get_settings(reload: bool = False, **kwargs: Any) -> Settings:
+def _compute_settings(reload: bool = False, **kwargs: Any) -> Settings:
     """
     Get settings instance with lazy initialization.
 
@@ -746,6 +764,10 @@ def get_settings(reload: bool = False, **kwargs: Any) -> Settings:
     KUZU_EMBEDDED = kuzu_embedded
 
     return _settings_instance
+
+
+_get_settings_impl = _compute_settings
+get_settings.__doc__ = _compute_settings.__doc__
 
 
 # Initialize settings for module-level access
