@@ -25,6 +25,44 @@ def test_import_helper_exposes_typed_apply() -> None:
 
 
 @pytest.mark.fast
+def test_reasoning_loop_immediate_timeout_skips_apply_invocation(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """ReqID: EDRR-LOOP-Timeout-02 — Guard exits before invoking the reasoning step."""
+
+    monotonic_values = iter([0.0, 1.0])
+
+    def fake_monotonic() -> float:
+        try:
+            return next(monotonic_values)
+        except StopIteration:  # pragma: no cover - deterministic guard
+            return 1.0
+
+    apply_spy = MagicMock(
+        side_effect=AssertionError("reasoning callable should not be reached")
+    )
+
+    monkeypatch.setattr(rl.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: apply_spy)
+
+    caplog.set_level("DEBUG", rl.logger.logger.name)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"prompt": "timeout"},
+        critic_agent=None,
+        max_total_seconds=0.5,
+    )
+
+    assert results == []
+    apply_spy.assert_not_called()
+    assert any(
+        "max_total_seconds budget" in record.message for record in caplog.records
+    )
+
+
+@pytest.mark.fast
 def test_reasoning_loop_respects_total_budget_and_emits_debug(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

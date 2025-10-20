@@ -11,7 +11,19 @@ from unittest.mock import MagicMock
 import pytest
 
 import devsynth.methodology.edrr.reasoning_loop as rl
+from devsynth.domain.models.wsde_dialectical import DialecticalSequence
+from devsynth.methodology.edrr.contracts import CoordinatorRecorder, NullWSDETeam
 from devsynth.methodology.edrr.reasoning_loop import Phase
+
+
+@pytest.mark.fast
+@pytest.mark.unit
+def test_import_accessor_returns_typed_apply() -> None:
+    """The module-level helper exposes the canonical typed_apply callable."""
+
+    accessor = rl._import_apply_dialectical_reasoning()
+
+    assert accessor is rl.typed_apply
 
 
 @pytest.mark.fast
@@ -197,3 +209,69 @@ def test_reasoning_loop_exits_when_total_budget_elapsed(
     assert any(
         "max_total_seconds budget" in record.message for record in caplog.records
     )
+
+
+@pytest.mark.fast
+@pytest.mark.unit
+def test_reasoning_loop_accepts_dialectical_sequence_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """DialecticalSequence instances pass through the loop without conversion."""
+
+    sequence = DialecticalSequence(sequence_id="seq-1", steps=())
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: lambda *_: sequence)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "sequence"},
+        critic_agent=None,
+    )
+
+    assert results == [sequence]
+
+
+@pytest.mark.fast
+@pytest.mark.unit
+def test_reasoning_loop_records_unknown_phase_and_next_phase_fallbacks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unknown phase strings preserve the current phase and coordinator telemetry."""
+
+    payloads = iter(
+        [
+            {
+                "status": "in_progress",
+                "phase": "mystery",
+                "next_phase": "???",
+            },
+            {
+                "status": "in_progress",
+                "phase": "differentiate",
+            },
+            {"status": "completed", "phase": "refine"},
+        ]
+    )
+
+    def fake_apply(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return next(payloads)
+
+    monkeypatch.setattr(rl, "_import_apply_dialectical_reasoning", lambda: fake_apply)
+
+    coordinator = CoordinatorRecorder()
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "phase"},
+        critic_agent=None,
+        coordinator=coordinator,
+        phase=Phase.EXPAND,
+        max_iterations=4,
+    )
+
+    assert len(results) == 3
+    assert [record[0] for record in coordinator.records] == [
+        "expand",
+        "differentiate",
+        "refine",
+    ]
