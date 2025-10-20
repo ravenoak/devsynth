@@ -12,6 +12,7 @@ logs/
 !logs/
 logs/**
 !logs/**/*.log
+!logs/.gitkeep
 devsynth.log
 
 # DevSynth specific
