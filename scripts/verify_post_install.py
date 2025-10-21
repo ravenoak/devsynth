@@ -5,7 +5,10 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
+
+from packaging.requirements import InvalidRequirement, Requirement
 
 
 class VerificationError(RuntimeError):
@@ -64,6 +67,43 @@ def ensure_poetry_env() -> Path:
         raise SystemExit(1)
 
     return Path(path_str)
+
+
+def ensure_optional_dependency_specifiers(pyproject_path: Path) -> None:
+    data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+    project_table = data.get("project", {})
+    extras = project_table.get("optional-dependencies", {})
+
+    missing: list[tuple[str, str]] = []
+    for extra, dependencies in extras.items():
+        for raw_requirement in dependencies:
+            requirement_text = raw_requirement.strip()
+            if not requirement_text:
+                continue
+
+            try:
+                requirement = Requirement(requirement_text)
+            except InvalidRequirement as exc:  # pragma: no cover - defensive guard
+                missing.append((extra, f"{requirement_text} (invalid: {exc})"))
+                continue
+
+            # Direct references (e.g., pkg @ url) are acceptable; specifier set must
+            # be populated for standard requirements.
+            if requirement.url is None and not requirement.specifier:
+                missing.append((extra, requirement_text))
+
+    if missing:
+        formatted = "\n".join(
+            f"  - extra '{extra}': {requirement}" for extra, requirement in missing
+        )
+        message_prefix = (
+            "[post-install] optional dependency requirements must declare "
+            "explicit version constraints to avoid empty specifiers in distribution "
+            "metadata."
+        )
+        raise VerificationError(
+            f"{message_prefix} Missing specifiers detected:\n{formatted}"
+        )
 
 
 def run_cli_help() -> subprocess.CompletedProcess[str]:
@@ -148,13 +188,15 @@ def ensure_devsynth_cli(venv_path: Path) -> None:
         if proc.returncode != 0:
             emit_process_output(proc, label=label)
             raise VerificationError(
-                f"[post-install] Repair attempt '{label}' failed with exit code {proc.returncode}"
+                "[post-install] Repair attempt "
+                f"'{label}' failed with exit code {proc.returncode}"
             )
 
     # Re-verify after repair
     if not executable_exists():
         raise VerificationError(
-            f"[post-install] devsynth executable still missing at {devsynth_executable} after repair"
+            "[post-install] devsynth executable still missing at "
+            f"{devsynth_executable} after repair"
         )
 
     cli_proc = run_cli_help()
@@ -164,7 +206,7 @@ def ensure_devsynth_cli(venv_path: Path) -> None:
         if module_proc.returncode != 0:
             emit_process_output(module_proc, label="devsynth-module-help-after-repair")
         raise VerificationError(
-            "[post-install] 'poetry run devsynth --help' still failing after repair"
+            "[post-install] 'poetry run devsynth --help' still failing post-repair"
         )
 
     module_proc = run_module_help()
@@ -176,6 +218,7 @@ def ensure_devsynth_cli(venv_path: Path) -> None:
 
 
 def main() -> int:
+    ensure_optional_dependency_specifiers(REPO_ROOT / "pyproject.toml")
     venv_path = ensure_poetry_env()
     print(f"[post-install] poetry virtualenv: {venv_path}")
     try:
