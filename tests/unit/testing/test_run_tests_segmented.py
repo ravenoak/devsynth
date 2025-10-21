@@ -221,8 +221,11 @@ def test_run_segmented_tests_stop_after_maxfail(
     assert "segment failed" in output
     assert_type(metadata, rt.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
-    assert metadata["commands"] == [
-        ["python-stop", "tests/unit/test_alpha.py::test_one"]
-    ]
+    assert isinstance(metadata["commands"], tuple)
+    assert all(isinstance(command, tuple) for command in metadata["commands"])
+    assert isinstance(metadata["segments"], tuple)
+    assert metadata["commands"] == (
+        ("python-stop", "tests/unit/test_alpha.py::test_one"),
+    )
     assert metadata["segments"][0]["metadata_id"] == "batch-stop-1"
-    assert list(metadata["segments"][0]["command"]) == metadata["commands"][0]
+    assert metadata["segments"][0]["command"] == metadata["commands"][0]

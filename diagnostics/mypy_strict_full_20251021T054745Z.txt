@@ -1,0 +1,18 @@
+src/devsynth/interface/agentapi_models.py:51: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:62: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:72: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:81: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:89: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:95: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:101: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:108: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:114: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:121: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:129: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:136: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:145: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:166: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/interface/agentapi_models.py:174: error: Class cannot subclass "BaseModel" (has type "Any")  [misc]
+src/devsynth/application/cli/commands/run_tests_cmd.py:165: error: Redundant cast to "tuple[bool, str | None]"  [redundant-cast]
+Found 16 errors in 2 files (checked 434 source files)
+[knowledge-graph] typing gate fail → QualityGate ca7e519b-73fe-49e5-b459-94bd679dafa6 (new), TestRun 6d3546a2-e3ef-4872-a230-6899cbf47280 (new), Evidence [d27046bc-e200-413b-8ddd-b373299b7983 (new), 9e09929d-d07e-45ee-a6a6-4fb6dbd2fc15 (new)] via networkx; errors=0

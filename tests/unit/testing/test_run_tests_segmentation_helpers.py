@@ -72,22 +72,25 @@ def test_run_segmented_tests_single_speed(monkeypatch):
     assert "Batch output for:" in output
     assert_type(metadata, rt.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
+    assert isinstance(metadata["commands"], tuple)
+    assert all(isinstance(command, tuple) for command in metadata["commands"])
+    assert isinstance(metadata["segments"], tuple)
     assert segment_outputs == [
         "test1.py::test_a test2.py::test_b",
         "test3.py::test_c test4.py::test_d",
     ]
-    assert metadata["commands"] == [
-        [
+    assert metadata["commands"] == (
+        (
             "python-segment-1",
             "test1.py::test_a",
             "test2.py::test_b",
-        ],
-        [
+        ),
+        (
             "python-segment-2",
             "test3.py::test_c",
             "test4.py::test_d",
-        ],
-    ]
+        ),
+    )
     assert [segment["metadata_id"] for segment in metadata["segments"]] == [
         "batch-helper-1",
         "batch-helper-2",
@@ -96,7 +99,7 @@ def test_run_segmented_tests_single_speed(monkeypatch):
         metadata["segments"], metadata["commands"], strict=True
     ):
         assert_type(segment, rt.BatchExecutionMetadata)
-        assert list(segment["command"]) == list(command)
+        assert segment["command"] == command
     assert metadata["started_at"] == metadata["segments"][0]["started_at"]
     assert metadata["completed_at"] == metadata["segments"][-1]["completed_at"]
 
@@ -145,10 +148,13 @@ def test_run_segmented_tests_multiple_speeds(monkeypatch):
     assert "test2.py::test_medium" in output
     assert_type(metadata, rt.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
-    assert metadata["commands"] == [
-        ["python-multi-1", "test1.py::test_fast"],
-        ["python-multi-2", "test2.py::test_medium"],
-    ]
+    assert isinstance(metadata["commands"], tuple)
+    assert all(isinstance(command, tuple) for command in metadata["commands"])
+    assert isinstance(metadata["segments"], tuple)
+    assert metadata["commands"] == (
+        ("python-multi-1", "test1.py::test_fast"),
+        ("python-multi-2", "test2.py::test_medium"),
+    )
     assert [segment["metadata_id"] for segment in metadata["segments"]] == [
         "test1.py::test_fast",
         "test2.py::test_medium",
@@ -157,7 +163,7 @@ def test_run_segmented_tests_multiple_speeds(monkeypatch):
         metadata["segments"], metadata["commands"], strict=True
     ):
         assert_type(segment, rt.BatchExecutionMetadata)
-        assert list(segment["command"]) == list(command)
+        assert segment["command"] == command
 
 
 @pytest.mark.fast
@@ -186,8 +192,10 @@ def test_run_segmented_tests_no_tests_found(monkeypatch):
     assert output == ""
     assert_type(metadata, rt.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
-    assert metadata["segments"] == []
-    assert metadata["commands"] == []
+    assert isinstance(metadata["segments"], tuple)
+    assert isinstance(metadata["commands"], tuple)
+    assert metadata["segments"] == tuple()
+    assert metadata["commands"] == tuple()
     assert metadata["returncode"] == -1
     assert isinstance(metadata["started_at"], str)
     assert isinstance(metadata["completed_at"], str)
@@ -250,15 +258,18 @@ def test_run_segmented_tests_failure_with_maxfail(monkeypatch):
     assert call_count == 1  # Should stop after first failure
     assert_type(metadata, rt.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
-    assert metadata["commands"] == [
-        [
+    assert isinstance(metadata["commands"], tuple)
+    assert all(isinstance(command, tuple) for command in metadata["commands"])
+    assert isinstance(metadata["segments"], tuple)
+    assert metadata["commands"] == (
+        (
             "python-segment-maxfail",
             "test1.py::test_a",
             "test2.py::test_b",
-        ]
-    ]
+        ),
+    )
     assert metadata["segments"][0]["metadata_id"] == "batch-fail-1"
-    assert list(metadata["segments"][0]["command"]) == metadata["commands"][0]
+    assert metadata["segments"][0]["command"] == metadata["commands"][0]
 
 
 @pytest.mark.fast
@@ -308,7 +319,13 @@ def test_collect_tests_with_cache_all_tests_decomposes_successfully(
         str(behavior_dir): "tests/behavior/test_example.py::test_ok\n",
     }
 
-    def fake_run(cmd, capture_output, text, timeout):  # type: ignore[no-untyped-def]
+    def fake_run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        **kwargs,
+    ):  # noqa: ANN001
         test_path = cmd[3]
         calls.append(test_path)
         stdout = mapping.get(test_path)
@@ -382,7 +399,13 @@ def test_collect_tests_with_cache_timeout_falls_back_to_direct_collection(
 
     timeout_targets = {str(unit_dir), str(integration_dir), str(behavior_dir)}
 
-    def fake_run(cmd, capture_output, text, timeout):  # type: ignore[no-untyped-def]
+    def fake_run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        **kwargs,
+    ):  # noqa: ANN001
         test_path = cmd[3]
         calls.append(test_path)
         if test_path in timeout_targets:
@@ -402,10 +425,12 @@ def test_collect_tests_with_cache_timeout_falls_back_to_direct_collection(
         "tests/behavior/test_example.py::test_ok",
     ]
     assert calls[-1] == str(tests_root)
-    assert any(
-        getattr(record, "event", "") == "test_collection_timeout_retry"
+    timeout_events = {
+        getattr(record, "target", None)
         for record in caplog.records
-    )
+        if getattr(record, "event", "") == "test_collection_timeout"
+    }
+    assert timeout_events == {"unit-tests", "integration-tests", "behavior-tests"}
 
 
 @pytest.mark.fast
@@ -453,7 +478,13 @@ def test_collect_tests_with_cache_reuses_cache_and_preserves_environment(
         "tests/behavior/test_example.py::test_ok\n"
     )
 
-    def fake_run(cmd, capture_output, text, timeout):  # type: ignore[no-untyped-def]
+    def fake_run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=None,
+        **kwargs,
+    ):  # noqa: ANN001
         return DummyProcess(fallback_output)
 
     monkeypatch.setattr(rt.subprocess, "run", fake_run)
@@ -551,25 +582,28 @@ def test_run_segmented_tests_dry_run_batches_use_typed_requests(
     assert captured_batches and all(batch.dry_run for batch in captured_batches)
     assert_type(metadata, rt.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
+    assert isinstance(metadata["commands"], tuple)
+    assert all(isinstance(command, tuple) for command in metadata["commands"])
+    assert isinstance(metadata["segments"], tuple)
     assert len(metadata["segments"]) == 2
-    assert metadata["commands"] == [
-        [
+    assert metadata["commands"] == (
+        (
             "python-dry",
             "1",
             "test1.py::test_a",
             "test2.py::test_b",
-        ],
-        [
+        ),
+        (
             "python-dry",
             "2",
             "test3.py::test_c",
-        ],
-    ]
+        ),
+    )
     for segment, command in zip(
         metadata["segments"], metadata["commands"], strict=True
     ):
         assert_type(segment, rt.BatchExecutionMetadata)
-        assert list(segment["command"]) == command
+        assert segment["command"] == command
         assert segment["dry_run"] is True
 
 

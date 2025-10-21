@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Iterable
+from collections.abc import Iterable, Sequence
 
 import devsynth.testing.run_tests as rt
 
@@ -22,7 +22,7 @@ def build_batch_metadata(
 ) -> rt.BatchExecutionMetadata:
     """Create a minimally valid batch metadata object for tests."""
 
-    normalized_command = list(command or ("python", "-m", "pytest"))
+    normalized_command = tuple(command or ("python", "-m", "pytest"))
     metadata: rt.BatchExecutionMetadata = {
         "metadata_id": metadata_id,
         "command": normalized_command,
@@ -41,18 +41,23 @@ def build_batch_metadata(
 def build_segment_metadata(
     metadata_id: str,
     *,
-    segments: list[rt.BatchExecutionMetadata] | None = None,
-    commands: list[list[str]] | None = None,
+    segments: Sequence[rt.BatchExecutionMetadata] | None = None,
+    commands: Sequence[Sequence[str]] | None = None,
     returncode: int = 0,
     started_at: str | None = None,
     completed_at: str | None = None,
 ) -> rt.SegmentedRunMetadata:
     """Create aggregated metadata for segmented executions."""
 
-    actual_segments = segments or []
-    normalized_commands = commands or [
-        list(meta["command"]) for meta in actual_segments
-    ]
+    actual_segments: tuple[rt.BatchExecutionMetadata, ...] = (
+        tuple(segments)
+        if segments is not None
+        else tuple()
+    )
+    if commands is not None:
+        normalized_commands = tuple(tuple(command) for command in commands)
+    else:
+        normalized_commands = tuple(meta["command"] for meta in actual_segments)
     return {
         "metadata_id": metadata_id,
         "commands": normalized_commands,
