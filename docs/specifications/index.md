@@ -41,6 +41,7 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Interactive Requirements Gathering](interactive_requirements_gathering.md)**: Wizard for capturing project goals and constraints.
 - **[Requirements Wizard](requirements_wizard.md)**: Logging and priority persistence for the requirements wizard.
 - **[Requirements Wizard Logging](requirements_wizard_logging.md)**: Expected log structure and persistence rules for the requirements wizard.
+- **[Link Requirement Changes to EDRR Outcomes](link_requirements_to_edrr_outcomes.md)**: Ensures requirement updates are linked to their EDRR reasoning and impact artifacts.
 - **[Run Tests Maxfail Option](run_tests_maxfail_option.md)**: CLI flag to limit failures during test runs.
 - **[Integration Test Scenario Generation](integration_test_generation.md)**: Scenario-based scaffolding for integration tests.
 - **[Retry Predicates Specification](retry_predicates.md)**: Support conditional retry logic and metrics.
@@ -62,6 +63,11 @@ This section contains the official specifications for the DevSynth project, outl
 - **[Documentation Plan](documentation_plan.md)**: Comprehensive plan for DevSynth's documentation structure and organization.
 - **[Testing Infrastructure](testing_infrastructure.md)**: Specification for DevSynth's testing infrastructure.
 - **[End-to-End Deployment Script](end_to_end_deployment.md)**: Unified deployment with environment validation.
+- **[Complete Project Lifecycle](complete_project_lifecycle.md)**: Lifecycle contract for orchestrating LangGraph workflows from initialization through completion.
+
+## Traceability
+
+- **[Dialectical Audit Traceability Matrix](dialectical_audit_traceability.md)**: Mapping of audited features to their specifications, tests, and implementation evidence.
 
 ## Historical and Planning Documents
 
