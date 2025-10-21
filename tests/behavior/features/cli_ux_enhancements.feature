@@ -1,30 +1,33 @@
+@fast @cli @ux
 Feature: CLI UX Enhancements
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a DevSynth operator guiding initial configuration
+  I want enriched CLI interactions
+  So that I can complete wizards quickly without losing context
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given the CLI routes interactions through the UXBridge abstraction
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  @prompt_toolkit
+  Scenario: Prompt-toolkit session provides history and completions
+    Given prompt-toolkit is available in the execution environment
+    And the operator starts the DevSynth setup wizard from the CLI
+    When the operator navigates between questions using keyboard shortcuts
+    Then the prompt session exposes command history navigation without manual editing
+    And the prompt session offers tab-completion for available options
+    And previously entered answers remain intact after moving backwards
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
+  @rich
+  Scenario: Rich fallback engages when prompt-toolkit is unavailable
+    Given prompt-toolkit is not installed
+    When the operator launches the requirements wizard from the CLI
+    Then the CLI falls back to Rich-based prompts without raising errors
+    And the wizard still offers on-screen guidance for available commands
+    And navigation defaults to explicit commands while preserving sanitised output
 
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  @textual
+  Scenario: Textual TUI surfaces multi-pane wizard layout
+    Given the operator invokes "poetry run devsynth tui"
+    When the Textual application loads the requirements wizard workflow
+    Then the interface shows separate panes for inputs, live summary, and contextual help
+    And the operator can move backward or forward using keyboard navigation without typing sentinel commands
+    And the resulting configuration artefact matches the CLI baseline output
