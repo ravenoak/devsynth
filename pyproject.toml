@@ -290,6 +290,13 @@ module = [
   "rdflib.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+  "pydantic",
+  "pydantic.*",
+]
+follow_imports = "normal"
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
