@@ -1,0 +1,158 @@
+[info] task command missing or not functioning; installing go-task
+[info] appended devsynth-task-path snippet to /root/.profile
+[info] appended devsynth-task-path snippet to /root/.bash_profile
+[info] appended devsynth-task-path snippet to /root/.bashrc
+[info] appended devsynth-task-path snippet to /root/.zprofile
+[info] appended devsynth-task-path snippet to /root/.zshrc
+3.45.4
+[info] running 'poetry install --with dev --all-extras' during mandatory-bootstrap (attempt 1); output logged to /workspace/devsynth/diagnostics/poetry_install_mandatory-bootstrap_attempt1_20251021T173035Z.log
+Installing dependencies from lock file
+
+Package operations: 41 installs, 0 updates, 0 removals
+
+  - Installing mergedeep (1.3.4)
+  - Installing ghp-import (2.1.0)
+  - Installing markdown (3.9)
+  - Installing mkdocs-get-deps (0.2.0)
+  - Installing pyyaml-env-tag (1.1)
+  - Installing watchdog (6.0.0)
+  - Installing mkdocs (1.6.1)
+  - Installing bracex (2.6)
+  - Installing colorama (0.4.6)
+  - Installing mkdocs-autorefs (1.4.3)
+  - Installing narwhals (2.8.0)
+  - Installing pymdown-extensions (10.16.1)
+  - Installing pytz (2025.2)
+  - Installing altair (5.5.0)
+  - Installing babel (2.17.0)
+  - Installing backrefs (5.9)
+  - Installing blinker (1.9.0)
+  - Installing httpx-ws (0.8.0)
+  - Installing griffe (1.14.0)
+  - Installing mkdocs-material-extensions (1.3.1)
+  - Installing mkdocstrings (0.30.1)
+  - Installing msgspec (0.19.0)
+  - Installing paginate (0.5.7)
+  - Installing pandas (2.3.3)
+  - Installing pillow (11.3.0)
+  - Installing pyarrow (21.0.0)
+  - Installing pydeck (0.9.1)
+  - Installing safetensors (0.6.2)
+  - Installing tornado (6.5.2)
+  - Installing wcmatch (10.1)
+  - Installing dearpygui (2.1.0)
+  - Installing lmstudio (1.5.0)
+  - Installing mkdocs-gen-files (0.5.0)
+  - Installing mkdocs-include-markdown-plugin (7.2.0)
+  - Installing mkdocs-literate-nav (0.6.2)
+  - Installing mkdocs-material (9.6.22)
+  - Installing mkdocs-section-index (0.3.10)
+  - Installing mkdocs-typer2 (0.1.6)
+  - Installing mkdocstrings-python (1.18.2)
+  - Installing streamlit (1.50.0)
+  - Installing transformers (4.57.1)
+
+Installing the current project: devsynth (0.1.0a1)
+[info] post-install verification succeeded during bootstrap; no reinstall required
+[info] poetry virtualenv: /workspace/devsynth/.venv
+[info] post-install verification succeeded during post-verification; no reinstall required
+pre-commit installed at .git/hooks/pre-commit
+[INFO] Initializing environment for https://github.com/pre-commit/pre-commit-hooks.
+[INFO] Initializing environment for https://github.com/psf/black.
+[INFO] Initializing environment for https://github.com/PyCQA/isort.
+[INFO] Initializing environment for https://github.com/pycqa/flake8.
+[INFO] Initializing environment for https://github.com/pre-commit/mirrors-mypy.
+[INFO] Initializing environment for https://github.com/pre-commit/mirrors-mypy:types-requests,types-PyYAML,types-jsonschema,typer.
+[INFO] Initializing environment for https://github.com/asottile/pyupgrade.
+[INFO] Installing environment for https://github.com/pre-commit/pre-commit-hooks.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Installing environment for https://github.com/psf/black.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Installing environment for https://github.com/PyCQA/isort.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Installing environment for https://github.com/pycqa/flake8.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Installing environment for https://github.com/pre-commit/mirrors-mypy.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Installing environment for https://github.com/asottile/pyupgrade.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+No broken requirements found.
+[verify_test_organization] found 1157 test files under tests/
+2025-10-21 17:32:11,659 - devsynth.application.utils.token_tracker - INFO - Tiktoken is available for accurate token counting
+[info] property marker advisories (informational) in tests/property:
+ - /workspace/devsynth/tests/property/test_enhanced_graph_memory_adapter.py::test_traverse_graph_depth_bound: missing @pytest.mark.property
+ - /workspace/devsynth/tests/property/test_enhanced_graph_memory_adapter.py::test_research_provenance_persists: missing @pytest.mark.property
+[info] verify_test_markers: files=1300, cache_hits=0, cache_misses=1300, issues=0, speed_violations=0, property_violations=2
+[info] verify_test_markers: files=1300, cache_hits=1300, cache_misses=0, issues=0, speed_violations=0, property_violations=0
+Verified 3 requirements and 6 published specs; all traceability references present.
+[verify_version_sync] OK version=0.1.0a1
+3.45.4
+
+ Usage: devsynth [OPTIONS] COMMAND [ARGS]...
+
+ DevSynth CLI - automate iterative 'Expand, Differentiate, Refine, Retrace' workflows.
+
+ DevSynth is a tool for automating software development workflows using the EDRR (Expand, Differentiate, Refine, Retrace)
+ methodology. It helps you generate specifications from requirements, tests from specifications, and code from tests, all while
+ maintaining traceability and alignment.
+ Examples:   $ devsynth init       Initialize a new project in the current directory   $ devsynth spec --requirements-file
+ requirements.md       Generate specifications from requirements   $ devsynth test --spec-file specs.md       Generate tests
+ from specifications   $ devsynth code       Generate code from tests   $ devsynth run-pipeline --target unit-tests
+ Execute the generated code
+ Notes:   • Only the embedded ChromaDB backend is currently supported.   • Use 'devsynth <command> --help' for more information
+ on a specific command.   • Configuration can be managed with 'devsynth config' commands.   • Shell completion is available via
+ '--install-completion' or the 'completion' command.   • Long-running commands display progress indicators for better feedback.
+ • Dashboard metric hooks can be registered with '--dashboard-hook module:function'.
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --dashboard-hook              TEXT  Python path to function receiving dashboard metric events                                │
+│ --version                           Show DevSynth version and exit                                                           │
+│ --debug                             Enable debug logging (equivalent to --log-level DEBUG)                                   │
+│ --log-level                   TEXT  Set log level: DEBUG, INFO, WARNING, ERROR, CRITICAL                                     │
+│ --install-completion                Install completion for the current shell.                                                │
+│ --show-completion                   Show completion for the current shell, to copy it or customize the installation.         │
+│ --help                -h            Show this message and exit.                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ doctor                Validate environment configuration files and provide hints.                                            │
+│ check                 Alias for :func:`doctor_cmd` to maintain backward compatibility.                                       │
+│ generate-docs         Generate API reference documentation for a project.                                                    │
+│ ingest                Ingest a project into DevSynth.                                                                        │
+│ run-tests             Run DevSynth test suites.                                                                              │
+│ align                 Check alignment between SDLC artifacts.                                                                │
+│ completion            Show or install shell completion scripts (see scripts/completions).                                    │
+│ init                                                                                                                         │
+│ edrr-cycle            Run an enhanced EDRR cycle from a manifest file or a prompt.                                           │
+│ security-audit        Execute security audits and monitoring checks.                                                         │
+│ reprioritize-issues   Recalculate priority fields for open issues.                                                           │
+│ atomic-rewrite        Run minimal Atomic‑Rewrite flow.                                                                       │
+│ mvuu-dashboard        Launch the MVUU traceability dashboard.                                                                │
+│ spec                                                                                                                         │
+│ test                                                                                                                         │
+│ code                                                                                                                         │
+│ webapp                Generate a web application with the specified framework.                                               │
+│ serve                 Run the DevSynth API server.                                                                           │
+│ dbschema              Generate a database schema for the specified database type.                                            │
+│ webui                 Launch the Streamlit WebUI.                                                                            │
+│ dpg                   Launch the Dear PyGUI interface.                                                                       │
+│ alignment-metrics     Collect and report on alignment metrics.                                                               │
+│ test-metrics          Analyze test-first development metrics.                                                                │
+│ run-pipeline                                                                                                                 │
+│ run                   Run the generated code or a specific target.                                                           │
+│ gather                Interactively gather project goals, constraints and priority.                                          │
+│ refactor              Execute a refactor workflow based on the current project state.                                        │
+│ inspect               Inspect requirements from a file or interactively.                                                     │
+│ inspect-config                                                                                                               │
+│ validate-manifest     Validate the project configuration file against its schema.                                            │
+│ validate-metadata     Validate metadata in Markdown files.                                                                   │
+│ requirements          Requirements management commands                                                                       │
+│ mvu                   MVU utilities                                                                                          │
+│ vcs                   Git / VCS utilities                                                                                    │
+│ config                Manage configuration settings                                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
