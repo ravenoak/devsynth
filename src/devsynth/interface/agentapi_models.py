@@ -182,6 +182,6 @@ class HealthResponse(BaseModel):
 
 
 if TYPE_CHECKING:
-    _metrics = APIMetrics(start_time=0.0)
+    _metrics = APIMetrics(start_time=0.0, request_count=0, error_count=0)
     assert_type(_metrics.endpoint_counts, dict[str, int])
     assert_type(_metrics.endpoint_latency, dict[str, tuple[float, ...]])
