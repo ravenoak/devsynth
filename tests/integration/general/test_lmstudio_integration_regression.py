@@ -19,7 +19,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytestmark = pytest.mark.fast
+from tests.fixtures.resources import skip_if_missing_backend
+
+pytestmark = [
+    *skip_if_missing_backend("lmstudio", import_names=("requests",)),
+    pytest.mark.fast,
+]
 
 
 class TestLMStudioIntegrationRegression:

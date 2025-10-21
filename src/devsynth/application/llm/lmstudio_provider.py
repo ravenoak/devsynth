@@ -17,9 +17,20 @@ from devsynth.metrics import inc_provider
 # Import get_llm_settings lazily to avoid import issues during testing
 from ..utils.token_tracker import TokenLimitExceededError, TokenTracker
 from .providers import BaseLLMProvider
+from devsynth.exceptions import DevSynthError
+
+try:  # pragma: no cover - optional dependency for HTTP requests
+    import requests  # type: ignore
+except Exception:  # pragma: no cover - allow tests to patch attribute even when missing
+    class _RequestsUnavailable:  # type: ignore[too-few-public-methods]
+        def __getattr__(self, name: str) -> object:
+            raise DevSynthError(
+                "The 'requests' dependency is required for LM Studio integrations."
+            )
+
+    requests = _RequestsUnavailable()  # type: ignore[assignment]
 
 logger = DevSynthLogger(__name__)
-from devsynth.exceptions import DevSynthError
 
 
 def _require_lmstudio():

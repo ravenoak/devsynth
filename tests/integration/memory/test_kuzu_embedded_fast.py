@@ -14,10 +14,15 @@ from tests.fixtures.resources import (
 
 skip_module_if_backend_disabled("kuzu")
 
-pytest.importorskip(
+kuzu_mod = pytest.importorskip(
     "kuzu",
     reason=backend_import_reason("kuzu"),
 )
+if getattr(kuzu_mod, "__devsynth_optional_stub__", False):
+    pytest.skip(
+        "Optional backend 'kuzu' dependencies are provided via test stubs.",
+        allow_module_level=True,
+    )
 
 kuzu_memory_store = pytest.importorskip(
     "devsynth.adapters.kuzu_memory_store",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
@@ -55,20 +56,52 @@ def _make_default_settings() -> _StubSettings:
         llm_auto_select_model=True,
         openai_api_key=None,
         openai_model="gpt-4",
+        access_token=None,
+        llm_api_base="http://127.0.0.1:1234",
+        llm_max_tokens=1024,
+        llm_timeout=60,
     )
 
 
 def _stub_get_settings(*_, **__) -> _StubSettings:
-    return _make_default_settings()
+    settings = _make_default_settings()
+
+    env_provider = os.environ.get("DEVSYNTH_LLM_PROVIDER")
+    if env_provider:
+        settings.llm_provider = env_provider
+
+    env_api_base = os.environ.get("DEVSYNTH_LLM_API_BASE")
+    if env_api_base:
+        settings.llm_api_base = env_api_base
+
+    env_max_tokens = os.environ.get("DEVSYNTH_LLM_MAX_TOKENS")
+    if env_max_tokens and env_max_tokens.isdigit():
+        settings.llm_max_tokens = int(env_max_tokens)
+
+    env_timeout = os.environ.get("DEVSYNTH_LLM_TIMEOUT")
+    if env_timeout:
+        try:
+            settings.llm_timeout = int(env_timeout)
+        except ValueError:
+            pass
+
+    env_access_token = os.environ.get("DEVSYNTH_ACCESS_TOKEN")
+    if env_access_token is not None:
+        settings.access_token = env_access_token
+
+    return settings
 
 
 def _stub_get_llm_settings(*_, **__) -> dict[str, object]:
-    settings = _make_default_settings()
+    settings = _stub_get_settings()
     return {
         "provider": settings.llm_provider,
         "model": settings.llm_model,
         "temperature": settings.llm_temperature,
         "auto_select_model": settings.llm_auto_select_model,
+        "api_base": settings.llm_api_base,
+        "max_tokens": settings.llm_max_tokens,
+        "timeout": settings.llm_timeout,
     }
 
 

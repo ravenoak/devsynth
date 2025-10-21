@@ -1,0 +1,57 @@
+# Command: poetry run devsynth run-tests --target integration-tests --speed=fast -m requires_resource('lmstudio') --no-parallel --maxfail=1
+# Started: 2025-10-21T16:11:06.455057+00:00
+
+2025-10-21 16:11:10,380 - devsynth.testing.run_tests - INFO - test collection cache miss for target=integration-tests (fast) — collecting via pytest
+2025-10-21 16:12:00,441 - devsynth.testing.run_tests - INFO - Coverage data file detected at .coverage (135168 bytes)
+2025-10-21 16:12:19,563 - devsynth.testing.run_tests - INFO - Coverage HTML report generated
+2025-10-21 16:12:24,925 - devsynth.testing.run_tests - INFO - Coverage JSON report generated
+===================================================== test session starts 
+======================================================platform linux -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0benchmark: 
+5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 
+warmup=False warmup_iterations=100000)rootdir: /workspace/devsynthconfigfile: pytest.iniplugins: xdist-3.8.0, 
+hypothesis-6.141.1, langsmith-0.4.36, benchmark-5.1.0, mock-3.15.1, cov-7.0.0, Faker-37.11.0, anyio-4.11.0, bdd-8.1.0, 
+html-4.1.1, asyncio-1.2.0, metadata-3.1.1, rerunfailures-16.1asyncio: mode=Mode.STRICT, debug=False, 
+asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=functioncollected 8 
+itemstests/integration/general/test_lmstudio_integration_regression.py sssssss                                                [ 
+87%]tests/integration/llm/test_lmstudio_timing_baseline.py s                                                                 
+[100%]======================================================= warnings summary 
+=======================================================.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290  
+/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1290: PytestAssertRewriteWarning: Module 
+already imported so cannot be rewritten; anyio    self._mark_plugins_for_rewrite(hook, 
+disable_autoload).venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833  
+/workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module 
+already imported so cannot be rewritten; tests.fixtures.optional_deps    
+self.import_plugin(import_spec).venv/lib/python3.12/site-packages/astor/op_util.py:92  
+/workspace/devsynth/.venv/lib/python3.12/site-packages/astor/op_util.py:92: DeprecationWarning: ast.Num is deprecated and will 
+be removed in Python 3.14; use ast.Constant instead    precedence_data = dict((getattr(ast, x, None), z) for x, y, z in 
+op_data)-- Docs: 
+https://docs.pytest.org/en/stable/how-to/capture-warnings.html======================================================== tests 
+coverage ========================================================_______________________________________ coverage: platform 
+linux, python 3.12.10-final-0 _______________________________________Coverage HTML written to dir htmlcovCoverage JSON written 
+to file test_reports/coverage.json================================================= Test Categorization Summary 
+==================================================Test Type Distribution:  Unit Tests: 0  Integration Tests: 8  Behavior Tests: 
+0Test Speed Distribution:  Fast Tests (&lt; 1s): 8  Medium Tests (1-5s): 0  Slow Tests (&gt; 5s): 
+0===================================================== Top 10 Slowest Tests 
+=====================================================1. 
+tests/integration/general/test_lmstudio_integration_regression.py::TestLMStudioIntegrationRegression::test_lmstudio_provider_reg
+istration: 0.00s2. 
+tests/integration/general/test_lmstudio_integration_regression.py::TestLMStudioIntegrationRegression::test_lmstudio_config_file_
+integration: 0.00s3. 
+tests/integration/general/test_lmstudio_integration_regression.py::TestLMStudioIntegrationRegression::test_lmstudio_configuratio
+n_loading: 0.00s4. 
+tests/integration/general/test_lmstudio_integration_regression.py::TestLMStudioIntegrationRegression::test_lmstudio_provider_moc
+k_initialization: 0.00s5. 
+tests/integration/general/test_lmstudio_integration_regression.py::TestLMStudioIntegrationRegression::test_lmstudio_environment_
+variable_handling: 0.00s6. 
+tests/integration/general/test_lmstudio_integration_regression.py::TestLMStudioIntegrationRegression::test_lmstudio_settings_ext
+raction: 0.00s7. tests/integration/llm/test_lmstudio_timing_baseline.py::test_timeout_configuration_sanity: 0.00s8. 
+tests/integration/general/test_lmstudio_integration_regression.py::TestLMStudioIntegrationRegression::test_lmstudio_provider_ini
+tialization_with_defaults: 0.00s=============================================== 8 skipped, 3 warnings in 32.20s 
+================================================
+Tests completed successfully
+2025-10-21 16:12:24,999 - devsynth.testing.run_tests - INFO - Coverage 16.08% meets the 1.00% threshold.
+Coverage 16.08% meets the 1% threshold
+HTML coverage report available at /workspace/devsynth/htmlcov/index.html
+Coverage JSON written to /workspace/devsynth/test_reports/coverage.json
+
+# Exit: 0

@@ -12,6 +12,8 @@ import pytest
 def _create_stub(name: str, attrs: Mapping[str, object] | None = None) -> ModuleType:
     """Create a simple module stub with optional attributes."""
     mod = ModuleType(name)
+    # Flag DevSynth-created stubs so resource gating can treat them as unavailable.
+    setattr(mod, "__devsynth_optional_stub__", True)
     if attrs:
         for key, value in attrs.items():
             setattr(mod, key, value)

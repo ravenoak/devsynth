@@ -82,3 +82,15 @@ exit_code: 0
 artifacts: diagnostics/mypy_strict_application_memory_20251021T054828Z.txt
 notes: memory strict typing
 ---
+timestamp: 2025-10-21T16:09:58+00:00
+command: poetry run devsynth run-tests --target integration-tests --speed=fast -m requires_resource('openai') --no-parallel --maxfail=1
+exit_code: 1
+artifacts: diagnostics/openai_fast_subset.txt
+notes: live OpenAI fast subset
+---
+timestamp: 2025-10-21T16:12:27+00:00
+command: poetry run devsynth run-tests --target integration-tests --speed=fast -m requires_resource('lmstudio') --no-parallel --maxfail=1
+exit_code: 0
+artifacts: diagnostics/lmstudio_fast_subset.txt
+notes: live LM Studio fast subset
+---
