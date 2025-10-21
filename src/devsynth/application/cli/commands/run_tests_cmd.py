@@ -11,8 +11,14 @@ from __future__ import annotations
 
 import os
 import shlex
+from typing import cast
 
 import typer
+
+# Import run_tests module so monkeypatching ``devsynth.testing.run_tests.run_tests``
+# still affects the symbol used by this CLI command. Accessing attributes through
+# the module avoids stale references when tests replace ``run_tests``.
+import devsynth.testing.run_tests as run_tests_module
 
 # Ensure sitecustomize is loaded for Python 3.12+ compatibility patches
 import sitecustomize  # noqa: F401
@@ -22,28 +28,27 @@ from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.observability.metrics import increment_counter
 
-# Import run_tests functions with explicit assignment to ensure they're available
-from devsynth.testing.run_tests import (
-    COVERAGE_HTML_DIR,
-    COVERAGE_JSON_PATH,
-    PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE,
-    PYTEST_COV_PLUGIN_MISSING_MESSAGE,
-    _coverage_threshold,
-    collect_tests_with_cache,
-    coverage_artifacts_status,
-    enforce_coverage_threshold,
-    ensure_pytest_asyncio_plugin_env,
-    ensure_pytest_bdd_plugin_env,
-    ensure_pytest_cov_plugin_env,
-    pytest_cov_support_status,
-    run_tests,
+COVERAGE_HTML_DIR = run_tests_module.COVERAGE_HTML_DIR
+COVERAGE_JSON_PATH = run_tests_module.COVERAGE_JSON_PATH
+PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE = (
+    run_tests_module.PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE
 )
+PYTEST_COV_PLUGIN_MISSING_MESSAGE = run_tests_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE
 
 # Ensure imported functions are accessible in the module namespace
 # The import above should make these available, but we verify they're accessible
 
 logger = DevSynthLogger(__name__)
 DEFAULT_BRIDGE: UXBridge = CLIUXBridge()
+
+
+def _normalize_option_bool(value: object) -> bool:
+    """Coerce Typer ``OptionInfo`` objects or booleans into concrete ``bool`` values."""
+
+    if isinstance(value, bool):
+        return value
+    default_value = getattr(value, "default", False)
+    return bool(default_value)
 
 
 def _parse_feature_options(values: list[str]) -> dict[str, bool]:
@@ -156,7 +161,8 @@ def _coverage_instrumentation_disabled(tokens: list[str]) -> bool:
 def _coverage_instrumentation_status() -> tuple[bool, str | None]:
     """Determine whether pytest-cov instrumentation is active."""
 
-    return pytest_cov_support_status(os.environ)
+    status = run_tests_module.pytest_cov_support_status(os.environ)
+    return cast(tuple[bool, str | None], status)
 
 
 def run_tests_cmd(
@@ -247,7 +253,8 @@ def run_tests_cmd(
 
     # Typer guarantees booleans for "inventory", but tests may invoke this
     # function directly. Normalize parameters defensively for that scenario.
-    inventory = bool(inventory)
+    inventory = _normalize_option_bool(inventory)
+    dry_run = _normalize_option_bool(dry_run)
 
     # Extract actual values from OptionInfo objects
     actual_speeds = (
@@ -324,7 +331,9 @@ def run_tests_cmd(
             inventory_data[tgt] = {}
             for spd in speeds_all:
                 try:
-                    inventory_data[tgt][spd] = collect_tests_with_cache(tgt, spd)
+                    inventory_data[tgt][spd] = (
+                        run_tests_module.collect_tests_with_cache(tgt, spd)
+                    )
                 except Exception:
                     inventory_data[tgt][spd] = []
         report_dir = _Path("test_reports")
@@ -372,10 +381,8 @@ def run_tests_cmd(
         os.environ.setdefault("DEVSYNTH_TEST_TIMEOUT_SECONDS", "30")
         if dry_run:
             ux_bridge.print(
-                (
-                    "[cyan]Smoke dry-run enabled — previewing fast lane with "
-                    "plugins disabled and xdist off.[/cyan]"
-                )
+                "[cyan]Smoke dry-run enabled — previewing fast lane with "
+                "plugins disabled and xdist off.[/cyan]"
             )
 
     # Optimize inner subprocess validation runs used by tests: disable plugins
@@ -390,9 +397,11 @@ def run_tests_cmd(
 
     # Even in smoke mode, inject essential plugins explicitly when autoload is
     # disabled
-    coverage_plugin_injected = ensure_pytest_cov_plugin_env(os.environ)
-    bdd_plugin_injected = ensure_pytest_bdd_plugin_env(os.environ)
-    asyncio_plugin_injected = ensure_pytest_asyncio_plugin_env(os.environ)
+    coverage_plugin_injected = run_tests_module.ensure_pytest_cov_plugin_env(os.environ)
+    bdd_plugin_injected = run_tests_module.ensure_pytest_bdd_plugin_env(os.environ)
+    asyncio_plugin_injected = run_tests_module.ensure_pytest_asyncio_plugin_env(
+        os.environ
+    )
 
     # In smoke mode, force the coverage gate to be non-fatal while preserving
     # artifact generation
@@ -452,10 +461,8 @@ def run_tests_cmd(
         )
         if dry_run:
             ux_bridge.print(
-                (
-                    "[yellow]Dry run: coverage instrumentation unavailable: "
-                    f"{detail}[/yellow]"
-                )
+                "[yellow]Dry run: coverage instrumentation unavailable: "
+                f"{detail}[/yellow]"
             )
         else:
             ux_bridge.print(
@@ -482,7 +489,7 @@ def run_tests_cmd(
             os.environ[env_var] = "true" if enabled else "false"
         logger.info("Feature flags: %s", feature_map)
 
-    success, output = run_tests(
+    success, output = run_tests_module.run_tests(
         target,
         speed_categories,
         verbose,
@@ -501,10 +508,8 @@ def run_tests_cmd(
     if dry_run:
         if success:
             ux_bridge.print(
-                (
-                    "[yellow]Dry run complete — no tests executed. Rerun "
-                    "without --dry-run to execute suites.[/yellow]"
-                )
+                "[yellow]Dry run complete — no tests executed. Rerun "
+                "without --dry-run to execute suites.[/yellow]"
             )
             return
         raise typer.Exit(code=1)
@@ -544,7 +549,7 @@ def run_tests_cmd(
             ux_bridge.print(
                 "[yellow]Coverage enforcement skipped in smoke mode"
                 f"{suffix}. Run fast+medium profiles before enforcing the "
-                f"{_coverage_threshold():.0f}% gate.[/yellow]"
+                f"{run_tests_module._coverage_threshold():.0f}% gate.[/yellow]"
             )
 
             if coverage_enabled:
@@ -567,7 +572,7 @@ def run_tests_cmd(
                 ux_bridge.print(remediation)
                 raise typer.Exit(code=1)
         else:
-            artifacts_ok, artifact_issue = coverage_artifacts_status()
+            artifacts_ok, artifact_issue = run_tests_module.coverage_artifacts_status()
             if not artifacts_ok:
                 detail = f" ({artifact_issue})" if artifact_issue else ""
                 remediation = (
@@ -582,7 +587,9 @@ def run_tests_cmd(
                 raise typer.Exit(code=1)
 
             try:
-                coverage_percent = enforce_coverage_threshold(exit_on_failure=False)
+                coverage_percent = run_tests_module.enforce_coverage_threshold(
+                    exit_on_failure=False
+                )
             except RuntimeError as exc:
                 ux_bridge.print(f"[red]{exc}[/red]")
                 raise typer.Exit(code=1)
@@ -590,7 +597,7 @@ def run_tests_cmd(
                 ux_bridge.print(
                     (
                         "[green]Coverage {:.2f}% meets the {:.0f}% threshold[/green]"
-                    ).format(coverage_percent, _coverage_threshold())
+                    ).format(coverage_percent, run_tests_module._coverage_threshold())
                 )
                 _emit_coverage_artifact_messages(ux_bridge)
     else:
