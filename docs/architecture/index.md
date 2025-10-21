@@ -1,7 +1,7 @@
 ---
 author: DevSynth Team
 date: '2025-06-16'
-last_reviewed: "2025-10-02"
+last_reviewed: "2025-10-21"
 status: published
 tags:
 - architecture
@@ -27,6 +27,7 @@ This section provides detailed information about the architecture of DevSynth, i
 - **[UXBridge](uxbridge.md)**: How CLI modules are decoupled from the UI and reused by the future WebUI.
 - **[Phase 1 Overhaul](phase1_overhaul.md)**: Summary of the CLI refactor, unified configuration, and UXBridge pattern.
 - **[WebUI Overview](webui_overview.md)**: Layout of the NiceGUI interface and its use of UXBridge.
+- **[CLI and Textual UXBridge Integration](cli_textual_uxbridge.md)**: Flowchart describing how prompt-toolkit and Textual bridges reuse shared workflows.
 
 ## System Components
 

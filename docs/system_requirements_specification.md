@@ -7,7 +7,7 @@ tags:
 
 status: "draft"
 author: "DevSynth Team"
-last_reviewed: "2025-08-04"
+last_reviewed: "2025-10-21"
 ---
 
 <div class="breadcrumbs">
@@ -198,6 +198,7 @@ Primary users are individual software developers who:
 - [FR-49] The system shall track token usage for all LLM operations
 - [FR-50] The system shall provide token usage reports and statistics
 - [FR-51] The system shall implement token optimization strategies
+
 - [FR-52] The system shall support token budget constraints for operations
 - [FR-53] The system shall estimate costs based on token usage
 
@@ -248,6 +249,13 @@ Primary users are individual software developers who:
 - [FR-82] The WebUI shall expose equivalent forms for requirements gathering
 
   using the `UXBridge` abstraction.
+
+### 3.11 Multi-Channel User Experience
+
+- [FR-90] The system shall enhance CLI prompts with prompt-toolkit powered history, completions, and multi-select inputs while preserving a fallback to basic Rich prompts when prompt-toolkit is unavailable.
+- [FR-91] The system shall allow requirements and setup wizards to support keyboard navigation (forward, backward, review) without relying on sentinel keywords, ensuring parity across CLI, Textual, and WebUI bridges.
+- [FR-92] The system shall provide a Textual-based TUI that reuses the UXBridge workflows to present multi-pane wizard layouts with persistent summaries and context-aware help.
+- [FR-93] The system shall render Rich-based structured summaries (tables, panels, or layouts) for wizard outcomes and command help so users can review decisions without scanning linear transcripts.
 
 ## 4. Non-Functional Requirements
 

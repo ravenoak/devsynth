@@ -1,30 +1,26 @@
+@fast @requirements @ux
 Feature: Requirements Wizard Navigation
-  As a [role]
-  I want to [capability]
-  So that [benefit]
+  As a DevSynth operator refining requirements
+  I want adaptive navigation controls
+  So that I can revisit and validate entries without repeating the wizard
 
   Background:
-    Given [common setup step 1]
-    And [common setup step 2]
+    Given the requirements wizard is exposed through the UXBridge abstraction
 
-  Scenario: [Scenario 1 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
-    And [expected outcome 2]
+  Scenario: Keyboard shortcuts move backward without losing data
+    Given the operator is entering requirement details in the CLI
+    When the operator presses the configured back shortcut
+    Then the wizard returns to the previous step
+    And the previously provided answers remain editable
 
-  Scenario: [Scenario 2 Name]
-    Given [precondition 1]
-    When [action 1]
-    Then [expected outcome 1]
+  Scenario: Live summary updates while navigating in Textual
+    Given the operator is using the Textual TUI for the requirements wizard
+    When the operator advances to the acceptance criteria step
+    Then the summary pane reflects the collected metadata and actors
+    And the operator can open the review pane without leaving the current step
 
-  Scenario Outline: [Parameterized Scenario Name]
-    Given [precondition with <parameter>]
-    When [action with <parameter>]
-    Then [expected outcome with <parameter>]
-
-    Examples:
-      | parameter | other_value |
-      | value1    | result1     |
-      | value2    | result2     |
-      | value3    | result3     |
+  Scenario: Multi-select prompts replace repeated yes-no confirmations
+    Given prompt-toolkit capabilities are available
+    When the operator selects optional integrations for the project
+    Then the wizard presents a multi-select list with inline descriptions
+    And the resulting configuration captures all chosen integrations in a single confirmation step
