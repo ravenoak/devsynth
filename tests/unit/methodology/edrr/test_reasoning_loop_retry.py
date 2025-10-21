@@ -83,6 +83,46 @@ def test_reasoning_loop_retry_emits_debug_and_clamps_sleep(
 
 
 @pytest.mark.fast
+def test_reasoning_loop_retry_without_budget_uses_base_backoff(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Retries without a total budget use the configured backoff delay."""
+
+    call_counter = {"value": 0}
+
+    def transient_then_complete(wsde, task, critic, memory):
+        call_counter["value"] += 1
+        if call_counter["value"] == 1:
+            raise RuntimeError("intermittent glitch")
+        return {"status": "completed", "phase": "refine"}
+
+    monkeypatch.setattr(
+        rl, "_import_apply_dialectical_reasoning", lambda: transient_then_complete
+    )
+
+    sleep_calls: list[float] = []
+    monkeypatch.setattr(rl.time, "sleep", lambda seconds: sleep_calls.append(seconds))
+
+    caplog.set_level("DEBUG", rl.logger.logger.name)
+
+    results = rl.reasoning_loop(
+        wsde_team=NullWSDETeam(),
+        task={"problem": "no-budget"},
+        critic_agent=None,
+        retry_attempts=1,
+        retry_backoff=0.2,
+    )
+
+    assert call_counter["value"] == 2
+    assert results == [{"status": "completed", "phase": "refine"}]
+    assert sleep_calls == pytest.approx([0.2])
+    assert any(
+        "Transient error in reasoning step; retrying in" in record.message
+        for record in caplog.records
+    )
+
+
+@pytest.mark.fast
 def test_reasoning_loop_retry_clamps_backoff_and_respects_budget(monkeypatch):
     """Exponential backoff honors the total budget by clamping sleep.
 
