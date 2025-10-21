@@ -64,3 +64,21 @@ exit_code: 0
 artifacts: diagnostics/devsynth_run_tests_smoke_fast_20251020T025026Z.log,test_reports/smoke_fast.log,diagnostics/smoke_validation_20251020T025026Z.txt
 notes: Coverage artifact generation skipped (no baseline)
 ---
+timestamp: 2025-10-21T05:47:58+00:00
+command: PYTHONPATH=src python -m devsynth.testing.mypy_strict_runner
+exit_code: 1
+artifacts: diagnostics/mypy_strict_full_20251021T054745Z.txt
+notes: strict mypy runner
+---
+timestamp: 2025-10-21T05:48:23+00:00
+command: PYTHONPATH=src mypy --strict src/devsynth/testing/run_tests.py
+exit_code: 0
+artifacts: diagnostics/mypy_strict_run_tests_20251021T054820Z.txt
+notes: strict mypy run_tests module
+---
+timestamp: 2025-10-21T05:48:32+00:00
+command: PYTHONPATH=src mypy --strict src/devsynth/application/memory
+exit_code: 0
+artifacts: diagnostics/mypy_strict_application_memory_20251021T054828Z.txt
+notes: memory strict typing
+---

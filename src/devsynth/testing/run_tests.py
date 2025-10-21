@@ -285,11 +285,15 @@ def _generate_metadata_id(prefix: str) -> str:
     return f"{prefix}-{uuid4().hex}"
 
 
+CommandVector = tuple[str, ...]
+CommandMatrix = tuple[CommandVector, ...]
+
+
 class BatchExecutionMetadata(TypedDict):
     """Metadata describing a single pytest batch execution."""
 
     metadata_id: str
-    command: list[str]
+    command: CommandVector
     returncode: int
     started_at: str
     completed_at: str
@@ -302,11 +306,11 @@ class SegmentedRunMetadata(TypedDict):
     """Aggregated metadata describing a segmented pytest execution."""
 
     metadata_id: str
-    commands: list[list[str]]
+    commands: CommandMatrix
     returncode: int
     started_at: str | None
     completed_at: str | None
-    segments: list[BatchExecutionMetadata]
+    segments: tuple[BatchExecutionMetadata, ...]
 
 
 if TYPE_CHECKING:
@@ -1156,7 +1160,7 @@ def enforce_coverage_threshold(
     return percent_value
 
 
-def _sanitize_node_ids(ids: list[str]) -> list[str]:
+def _sanitize_node_ids(ids: Sequence[str]) -> list[str]:
     """Normalize and deduplicate pytest selection IDs.
 
     Args:
@@ -1827,19 +1831,19 @@ def run_tests(
 def _run_segmented_tests(request: SegmentedRunRequest) -> SegmentedRunResult:
     """Run tests in segments to handle large test suites."""
 
-    node_ids: list[str] = _sanitize_node_ids(list(request.node_ids))
+    sanitized_node_ids = tuple(_sanitize_node_ids(request.node_ids))
     all_outputs: list[str] = []
     segment_metadata: list[BatchExecutionMetadata] = []
     overall_success = True
 
-    segments: list[list[str]] = [
-        node_ids[i : i + request.segment_size]
-        for i in range(0, len(node_ids), request.segment_size)
-    ]
+    segments: tuple[CommandVector, ...] = tuple(
+        sanitized_node_ids[i : i + request.segment_size]
+        for i in range(0, len(sanitized_node_ids), request.segment_size)
+    )
 
     logger.info(
         "Running %d tests in %d segments of size %d for target=%s",
-        len(node_ids),
+        len(sanitized_node_ids),
         len(segments),
         request.segment_size,
         request.target,
@@ -1857,7 +1861,7 @@ def _run_segmented_tests(request: SegmentedRunRequest) -> SegmentedRunResult:
         )
 
         batch_request = SingleBatchRequest(
-            node_ids=tuple(segment_nodes),
+            node_ids=segment_nodes,
             marker_expr=request.marker_expr,
             verbose=request.verbose,
             report=request.report and (index == len(segments) - 1),
@@ -1883,24 +1887,24 @@ def _run_segmented_tests(request: SegmentedRunRequest) -> SegmentedRunResult:
     if segment_metadata:
         first_meta = segment_metadata[0]
         last_meta = segment_metadata[-1]
-        commands = [list(meta["command"]) for meta in segment_metadata]
+        commands: CommandMatrix = tuple(meta["command"] for meta in segment_metadata)
         combined_metadata = {
             "metadata_id": _generate_metadata_id("segmented"),
             "commands": commands,
             "returncode": last_meta["returncode"],
             "started_at": first_meta["started_at"],
             "completed_at": last_meta["completed_at"],
-            "segments": segment_metadata,
+            "segments": tuple(segment_metadata),
         }
     else:
         now_iso = datetime.now(UTC).isoformat()
         combined_metadata = {
             "metadata_id": _generate_metadata_id("segmented"),
-            "commands": [],
+            "commands": tuple(),
             "returncode": -1,
             "started_at": now_iso,
             "completed_at": now_iso,
-            "segments": [],
+            "segments": tuple(),
         }
 
     return overall_success, "\n".join(all_outputs), combined_metadata
@@ -1910,7 +1914,7 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
     """Run a single batch of tests."""
 
     cmd = [sys.executable, "-m", "pytest"]
-    cmd.extend(list(request.node_ids))
+    cmd.extend(request.node_ids)
     cmd.extend(["-m", request.marker_expr])
 
     coverage_args, coverage_enabled, coverage_issue = _resolve_coverage_configuration(
@@ -1968,7 +1972,7 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
             completed_at = datetime.now(UTC)
             dry_run_metadata: BatchExecutionMetadata = {
                 "metadata_id": _generate_metadata_id("batch"),
-                "command": list(cmd),
+                "command": tuple(cmd),
                 "returncode": 0,
                 "started_at": started_at.isoformat(),
                 "completed_at": completed_at.isoformat(),
@@ -2010,7 +2014,7 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
 
         metadata: BatchExecutionMetadata = {
             "metadata_id": _generate_metadata_id("batch"),
-            "command": list(cmd),
+            "command": tuple(cmd),
             "returncode": int(process.returncode or 0),
             "started_at": started_at.isoformat(),
             "completed_at": completed_at.isoformat(),
@@ -2028,7 +2032,7 @@ def _run_single_test_batch(request: SingleBatchRequest) -> BatchExecutionResult:
             error_msg,
             {
                 "metadata_id": _generate_metadata_id("batch"),
-                "command": list(cmd),
+                "command": tuple(cmd),
                 "returncode": -1,
                 "started_at": now_iso,
                 "completed_at": now_iso,

@@ -71,16 +71,19 @@ def test_run_segmented_tests_reports_only_last_segment(
     assert "segment 2 ok" in output
     assert_type(metadata, rt.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
-    assert metadata["commands"] == [
-        [
+    assert isinstance(metadata["commands"], tuple)
+    assert all(isinstance(command, tuple) for command in metadata["commands"])
+    assert isinstance(metadata["segments"], tuple)
+    assert metadata["commands"] == (
+        (
             "python-report-1",
             "tests/unit/test_alpha.py::test_a",
             "tests/unit/test_beta.py::test_b",
-        ],
-        [
+        ),
+        (
             "python-report-2",
             "tests/unit/test_gamma.py::test_c",
-        ],
-    ]
+        ),
+    )
     assert metadata["segments"][-1]["metadata_id"].startswith("batch-report-")
-    assert list(metadata["segments"][-1]["command"]) == metadata["commands"][-1]
+    assert metadata["segments"][-1]["command"] == metadata["commands"][-1]

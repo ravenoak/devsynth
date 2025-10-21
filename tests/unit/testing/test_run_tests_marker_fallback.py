@@ -55,3 +55,24 @@ def test_run_tests_marker_fallback_skips_segmentation(
     assert output.startswith("Marker fallback executed.")
     assert not segmented_calls, "segmentation should be bypassed when fallback triggers"
     assert batch_calls == [[rt.TARGET_PATHS["unit-tests"]]]
+
+
+@pytest.mark.fast
+def test_build_segment_metadata_uses_typed_sequences() -> None:
+    """Helper emits tuple-backed commands and segments for typing guarantees."""
+
+    segment = build_batch_metadata(
+        "batch-typed",
+        command=("python", "-m", "pytest", "tests/unit/test_sample.py"),
+        returncode=0,
+    )
+    metadata = build_segment_metadata(
+        "seg-typed",
+        segments=[segment],
+        returncode=0,
+    )
+
+    assert isinstance(metadata["commands"], tuple)
+    assert metadata["commands"] == (segment["command"],)
+    assert isinstance(metadata["segments"], tuple)
+    assert metadata["segments"] == (segment,)

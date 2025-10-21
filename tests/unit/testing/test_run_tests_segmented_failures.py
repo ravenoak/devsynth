@@ -151,10 +151,13 @@ def test__run_segmented_tests_aggregates_outputs(
     assert ensure_calls, "_ensure_coverage_artifacts should run after helper"
     assert_type(metadata, run_tests_module.SegmentedRunMetadata)
     assert metadata["metadata_id"].startswith("segmented-")
-    assert metadata["commands"] == [
-        ["python", "segment-1", "tests/unit/test_alpha.py::test_one"],
-        ["python", "segment-2", "tests/unit/test_gamma.py::test_three"],
-    ]
+    assert isinstance(metadata["commands"], tuple)
+    assert all(isinstance(command, tuple) for command in metadata["commands"])
+    assert isinstance(metadata["segments"], tuple)
+    assert metadata["commands"] == (
+        ("python", "segment-1", "tests/unit/test_alpha.py::test_one"),
+        ("python", "segment-2", "tests/unit/test_gamma.py::test_three"),
+    )
     assert [segment["metadata_id"] for segment in metadata["segments"]] == [
         "batch-1",
         "batch-2",
@@ -163,7 +166,8 @@ def test__run_segmented_tests_aggregates_outputs(
         metadata["segments"], metadata["commands"], strict=True
     ):
         assert_type(segment, run_tests_module.BatchExecutionMetadata)
-        assert list(segment["command"]) == command
+        assert isinstance(segment["command"], tuple)
+        assert segment["command"] == command
 
 
 @pytest.mark.fast
@@ -220,7 +224,7 @@ def test_segmented_runs_reinject_plugins_without_clobbering_addopts(
     assert success
     assert output.count("segment for") == len(node_ids)
     assert os.environ["PYTEST_ADDOPTS"] == "-k smoke"
-    expected_suffix = "-k smoke -p pytest_cov -p pytest_bdd.plugin"
+    expected_suffix = "-p pytest_asyncio.plugin -k smoke -p pytest_cov -p pytest_bdd.plugin"
     assert snapshots == [expected_suffix, expected_suffix]
 
 

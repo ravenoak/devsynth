@@ -1,29 +1,29 @@
 {
   "run_type": "typing",
   "release_tag": "unknown",
-  "source_command": "/Users/caitlyn/Projects/github.com/ravenoak/devsynth/.venv/bin/python -m mypy --strict src/devsynth",
+  "source_command": "/workspace/devsynth/.venv/bin/python -m mypy --strict src/devsynth",
   "artifacts": [
     {
       "artifact_type": "mypy_log",
-      "path": "diagnostics/mypy_strict_src_devsynth_20251016T231537Z.txt",
-      "checksum": "dc37c300630b07ee53c6cad940400dfb57e2554242e5d684daedddca5e221792",
-      "collected_at": "2025-10-16T23:15:37.133123+00:00"
+      "path": "diagnostics/mypy_strict_src_devsynth_20251021T054757Z.txt",
+      "checksum": "1de0122839d130540da50fc59aebfad69ec48ab73ae30a37fe5ea8cfb083bfa6",
+      "collected_at": "2025-10-21T05:47:57.703502+00:00"
     },
     {
       "artifact_type": "mypy_inventory",
-      "path": "diagnostics/mypy_strict_inventory_20251016T231537Z.md",
-      "checksum": "33ebbf4bbdeb097f25c33bbeea2b946675397ea252b2573d73bc08b575552457",
-      "collected_at": "2025-10-16T23:15:37.133123+00:00"
+      "path": "diagnostics/mypy_strict_inventory_20251021T054757Z.md",
+      "checksum": "92e187eec8462c87b1e53ee570546e4f269a02ca04d7535afa6231885257b456",
+      "collected_at": "2025-10-21T05:47:57.703502+00:00"
     }
   ],
   "test_run": {
     "profile": "typing-strict",
     "coverage_percent": null,
     "tests_collected": null,
-    "exit_code": 0,
-    "started_at": "2025-10-16T23:15:30.141867+00:00",
-    "completed_at": "2025-10-16T23:15:37.133123+00:00",
-    "run_checksum": "9cdc8c7ae5b3fa5fd4d67af93e4814ec5e8862f915ee8074cd52f8f3f7b608e5",
+    "exit_code": 1,
+    "started_at": "2025-10-21T05:47:47.840389+00:00",
+    "completed_at": "2025-10-21T05:47:57.703502+00:00",
+    "run_checksum": "4f72b8ce010a3d148102be0032169630cb3cc73fd55582798cc80a4938f8467e",
     "metadata": {
       "error_count": 0
     }
@@ -31,8 +31,8 @@
   "quality_gate": {
     "gate_name": "typing",
     "threshold": 0.0,
-    "status": "pass",
-    "evaluated_at": "2025-10-16T23:15:37.133123+00:00",
+    "status": "fail",
+    "evaluated_at": "2025-10-21T05:47:57.703502+00:00",
     "metadata": {
       "error_count": 0
     }
