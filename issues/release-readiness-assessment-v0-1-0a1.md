@@ -25,6 +25,8 @@ Strict typing and coverage evidence include the archived 92.40 % fast+medium m
 
 2025-10-21 follow-up: Aggregate strict mypy still fails because the interface Agent API models subclass `BaseModel` typed as `Any`, yielding the updated knowledge-graph banner (QualityGate ca7e519b…, TestRun 6d3546a2…, evidence `d27046bc…`, `9e09929d…`). Targeted strict coverage for `devsynth.testing.run_tests` passes after the typed metadata refactor, but the broader gate remains red pending the interface fixes.【F:diagnostics/mypy_strict_full_20251021T054745Z.txt†L1-L20】【F:diagnostics/mypy_strict_run_tests_20251021T054820Z.txt†L1-L1】
 
+2025-10-21 16:10 UTC follow-up: Fast integration rehearsals now pass with optional backends gated by stubs and by the LM Studio resource flag; both runs exit 0 with 22 tests passing and 9 skipped, confirming the new skip logic.【F:diagnostics/integration-fast-default-threshold1.log†L20-L58】【F:diagnostics/integration-fast-lmstudio-enabled.log†L21-L60】 The LM Studio Taskfile helper records a clean skip-only run while the OpenAI helper still exits 5 because no `requires_resource('openai')` tests are collected in the current suite.【F:diagnostics/lmstudio_fast_subset.txt†L38-L57】【F:diagnostics/openai_fast_subset.txt†L1-L11】 Smoke mode remains red, aborting after collection with coverage disabled until the broader hygiene regressions are fixed.【F:diagnostics/smoke-fast-20251021.log†L2954-L2966】
+
 ## Dialectical Analysis
 
 - **Thesis**: With ≥90 % coverage recorded and strict typing previously green, the release could proceed with minimal work.

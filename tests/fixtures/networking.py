@@ -87,34 +87,33 @@ def disable_network(monkeypatch: pytest.MonkeyPatch) -> None:
             # Allow in-memory TestClient requests against the ASGI test server
             try:
                 host = getattr(url, "host", None) or getattr(url, "netloc", None)
-                if host == "testserver":
+                if isinstance(host, bytes):
+                    host = host.decode("utf-8", "ignore")
+                host_str = str(host or "")
+                if host_str.split(":")[0] == "testserver":
                     return _orig_client_request(self, method, url, *args, **kwargs)
             except Exception:
-                # Fallback to string check if URL is not httpx.URL
-                try:
-                    if str(url).startswith("http://testserver") or str(url).startswith(
-                        "https://testserver"
-                    ):
-                        return _orig_client_request(self, method, url, *args, **kwargs)
-                except Exception:
-                    pass
+                host_str = str(url)
+                if host_str.startswith("http://testserver") or host_str.startswith(
+                    "https://testserver"
+                ):
+                    return _orig_client_request(self, method, url, *args, **kwargs)
             raise RuntimeError("Network access disabled during tests (httpx)")
 
         async def guard_httpx_async_request(self, method: str, url, *args: Any, **kwargs: Any):  # type: ignore[no-redef]
             try:
                 host = getattr(url, "host", None) or getattr(url, "netloc", None)
-                if host == "testserver":
+                if isinstance(host, bytes):
+                    host = host.decode("utf-8", "ignore")
+                host_str = str(host or "")
+                if host_str.split(":")[0] == "testserver":
                     return await _orig_async_request(self, method, url, *args, **kwargs)
             except Exception:
-                try:
-                    if str(url).startswith("http://testserver") or str(url).startswith(
-                        "https://testserver"
-                    ):
-                        return await _orig_async_request(
-                            self, method, url, *args, **kwargs
-                        )
-                except Exception:
-                    pass
+                host_str = str(url)
+                if host_str.startswith("http://testserver") or host_str.startswith(
+                    "https://testserver"
+                ):
+                    return await _orig_async_request(self, method, url, *args, **kwargs)
             raise RuntimeError("Network access disabled during tests (httpx)")
 
         monkeypatch.setattr(httpx.Client, "request", guard_httpx_request, raising=False)  # type: ignore

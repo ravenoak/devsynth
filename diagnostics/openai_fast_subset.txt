@@ -1,0 +1,9 @@
+# Command: poetry run devsynth run-tests --target integration-tests --speed=fast -m requires_resource('openai') --no-parallel --maxfail=1
+# Started: 2025-10-21T16:09:38.568689+00:00
+
+2025-10-21 16:09:42,522 - devsynth.testing.run_tests - INFO - test collection cache miss for target=integration-tests (fast) — collecting via pytest
+2025-10-21 16:09:56,506 - devsynth.testing.run_tests - WARNING - Test collection failed with exit code 5
+Test collection failed with exit code 5
+Tests failed
+
+# Exit: 1

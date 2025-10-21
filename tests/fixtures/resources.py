@@ -214,9 +214,13 @@ def skip_if_missing_backend(
     import_reason = backend_import_reason(resource, resolved_extras)
 
     for name in resolved_imports:
+        module = sys.modules.get(name)
+        if getattr(module, "__devsynth_optional_stub__", False):
+            markers.append(pytest.mark.skip(reason=skip_reason))
+            return markers
+
         spec = _safe_find_spec(name)
         if not _spec_is_importable(spec):
-            module = sys.modules.get(name)
             if module is not None and getattr(module, "__spec__", None) is None:
                 continue
             mark = _importorskip_with_reason(
