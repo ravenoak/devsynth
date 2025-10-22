@@ -360,6 +360,16 @@ devsynth run-pipeline
 
 Use [`templates/project.yaml`](templates/project.yaml) as a reference for your `.devsynth/project.yaml`. If you run into issues, see [docs/getting_started/troubleshooting.md](docs/getting_started/troubleshooting.md).
 
+### Textual Wizard Interface
+
+Prefer a guided terminal UI? Launch the Textual-powered experience:
+
+```bash
+poetry run devsynth tui --wizard init
+```
+
+Enable the accessible palette with `--colorblind` (or `DEVSYNTH_CLI_COLORBLIND=1`). Use `--wizard requirements --requirements-output requirements.json` to drive the requirements wizard through the same Textual bridge used by the CLI.
+
 ## Examples
 
 The repository includes runnable examples that walk through common workflows:
