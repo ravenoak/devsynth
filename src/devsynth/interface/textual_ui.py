@@ -5,11 +5,18 @@ available Textual features without coupling to a specific UI implementation.
 It purposely degrades gracefully when the optional ``textual`` dependency is
 missing, enabling the CLI to continue operating with the baseline Rich/Typer
 stack while still supporting richer layouts when Textual is installed.
+
+When Textual is available the bridge can launch a lightweight event loop that
+mirrors the recorded pane content. The loop favours accessibility by allowing
+colorblind-friendly palettes negotiated by the CLI layer and falls back to a
+no-op when automated tests disable interactive sessions via the
+``DEVSYNTH_TUI_AUTOMATED`` flag.
 """
 
 from __future__ import annotations
 
 import copy
+import os
 from collections import deque
 from dataclasses import dataclass
 from importlib import util as import_util
@@ -85,6 +92,8 @@ class TextualUXBridge(UXBridge):
         confirm_responses: Sequence[bool] | None = None,
         layout: MultiPaneLayout | None = None,
         require_textual: bool = False,
+        colorblind_mode: bool = False,
+        theme_overrides: Mapping[str, str] | None = None,
     ) -> None:
         if require_textual and not TEXTUAL_AVAILABLE:
             raise RuntimeError(
@@ -97,6 +106,8 @@ class TextualUXBridge(UXBridge):
         self._layout = layout or MultiPaneLayout.default()
         self._interaction_history: list[dict[str, Any]] = []
         self._progress_snapshots: list[SubtaskProgressSnapshot] = []
+        self._colorblind_mode = bool(colorblind_mode)
+        self._theme_overrides = dict(theme_overrides or {})
 
     # ------------------------------------------------------------------
     # UXBridge interface
@@ -202,6 +213,35 @@ class TextualUXBridge(UXBridge):
         return TEXTUAL_AVAILABLE
 
     # ------------------------------------------------------------------
+    # Theme helpers
+    # ------------------------------------------------------------------
+
+    @property
+    def colorblind_mode(self) -> bool:
+        """Return whether the bridge prefers the colorblind-friendly palette."""
+
+        return self._colorblind_mode
+
+    @property
+    def theme_overrides(self) -> Mapping[str, str]:
+        """Return theme overrides negotiated with the CLI layer."""
+
+        return MappingProxyType(dict(self._theme_overrides))
+
+    def configure_theme(
+        self,
+        *,
+        colorblind_mode: bool | None = None,
+        theme_overrides: Mapping[str, str] | None = None,
+    ) -> None:
+        """Update theme preferences to keep Textual output in sync with the CLI."""
+
+        if colorblind_mode is not None:
+            self._colorblind_mode = bool(colorblind_mode)
+        if theme_overrides is not None:
+            self._theme_overrides = dict(theme_overrides)
+
+    # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
@@ -225,6 +265,81 @@ class TextualUXBridge(UXBridge):
             self._layout.log.log(f"[{status}] {description}")
         else:
             self._layout.log.log(str(description))
+
+    # ------------------------------------------------------------------
+    # Event loop helpers
+    # ------------------------------------------------------------------
+
+    def run_event_loop(self, *, refresh_interval: float = 0.25) -> None:
+        """Launch a lightweight Textual event loop to mirror pane content."""
+
+        automated = os.environ.get("DEVSYNTH_TUI_AUTOMATED", "0").lower() in {
+            "1",
+            "true",
+            "yes",
+        }
+        if automated:
+            return
+
+        if not self._textual_enabled:
+            raise RuntimeError(
+                "Textual support is unavailable. Install the 'textual' extra to "
+                "launch the DevSynth TUI."
+            )
+
+        try:
+            from textual.app import App, ComposeResult
+            from textual.containers import Horizontal
+            from textual.widgets import Footer, Header, Static
+        except Exception as exc:  # pragma: no cover - optional dependency guard
+            raise RuntimeError("Failed to import Textual runtime") from exc
+
+        layout = self._layout
+        color_accent = "#FF9900" if self._colorblind_mode else "#00A2FF"
+
+        css = (
+            "Screen { layout: vertical; }\n"
+            "#panes { layout: horizontal; }\n"
+            f"#sidebar, #content, #log {{ border: heavy {color_accent}; padding: 1 2; width: 1fr; }}\n"
+            "#sidebar { background: rgba(0, 0, 0, 0.25); }\n"
+            "#content { background: rgba(0, 0, 0, 0.15); }\n"
+            "#log { background: rgba(0, 0, 0, 0.05); }\n"
+        )
+
+        overrides = "\n".join(
+            f"#{key} {{ {value} }}" for key, value in self._theme_overrides.items()
+        )
+        if overrides:
+            css = f"{css}\n{overrides}"
+
+        class WizardApp(App):
+            CSS = css
+            BINDINGS = [
+                ("q", "quit", "Quit"),
+                ("escape", "quit", "Quit"),
+            ]
+
+            def compose(self) -> ComposeResult:  # type: ignore[override]
+                yield Header(show_clock=True)
+                with Horizontal(id="panes"):
+                    yield Static("", id="sidebar")
+                    yield Static("", id="content")
+                    yield Static("", id="log")
+                yield Footer()
+
+            def on_mount(self) -> None:  # pragma: no cover - UI side effect
+                self.set_interval(refresh_interval, self.refresh_panes)
+                self.refresh_panes()
+
+            def refresh_panes(self) -> None:  # pragma: no cover - UI side effect
+                sidebar = "\n".join(layout.sidebar.lines) or "—"
+                content = "\n".join(layout.content.lines) or "—"
+                log = "\n".join(layout.log.lines) or "—"
+                self.query_one("#sidebar", Static).update(sidebar)
+                self.query_one("#content", Static).update(content)
+                self.query_one("#log", Static).update(log)
+
+        WizardApp().run()
 
 
 class _TextualProgress(ProgressIndicator, SupportsNestedSubtasks):

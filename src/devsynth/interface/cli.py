@@ -552,12 +552,18 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
     frontends.
     """
 
-    def __init__(self, colorblind_mode: bool = False) -> None:
+    def __init__(self, colorblind_mode: bool | None = None) -> None:
         """Initialize the CLI UX bridge.
 
         Args:
             colorblind_mode: Whether to use the colorblind-friendly theme
         """
+        if colorblind_mode is None:
+            colorblind_mode = os.environ.get("DEVSYNTH_CLI_COLORBLIND", "0").lower() in {
+                "1",
+                "true",
+                "yes",
+            }
         # Use the appropriate theme based on colorblind_mode
         theme = COLORBLIND_THEME if colorblind_mode else DEVSYNTH_THEME
         self.console = Console(theme=theme)

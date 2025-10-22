@@ -1,6 +1,7 @@
 import importlib
 import os
 from collections.abc import Iterable
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -38,7 +39,94 @@ else:
     from devsynth.application.cli.vcs_commands import vcs_app
 
 
-def init_cmd(wizard: bool = False, *, bridge: UXBridge | None = None) -> None:
+@dataclass(slots=True)
+class CLIThemeOptions:
+    """Shared theme configuration propagated from Typer callbacks."""
+
+    colorblind_mode: bool = False
+    overrides: Dict[str, str] = field(default_factory=dict)
+
+
+def _ensure_ctx_state(ctx: typer.Context) -> Dict[str, Any]:
+    if ctx.obj is None:
+        ctx.obj = {}
+    return ctx.obj
+
+
+def _set_theme_options(ctx: typer.Context, theme: CLIThemeOptions) -> None:
+    state = _ensure_ctx_state(ctx)
+    state["theme"] = theme
+
+
+def _get_theme_options(ctx: typer.Context | None) -> CLIThemeOptions:
+    if ctx is None or ctx.obj is None:
+        return CLIThemeOptions()
+    theme = ctx.obj.get("theme")  # type: ignore[assignment]
+    if isinstance(theme, CLIThemeOptions):
+        return theme
+    return CLIThemeOptions()
+
+
+def _create_textual_bridge(
+    theme: CLIThemeOptions,
+    *,
+    require_textual: bool,
+) -> UXBridge:
+    try:
+        from devsynth.interface import TextualUXBridge, TEXTUAL_AVAILABLE
+    except Exception as exc:  # pragma: no cover - degraded optional import
+        raise typer.BadParameter("Textual bridge is unavailable.") from exc
+
+    if require_textual and not TEXTUAL_AVAILABLE:
+        raise typer.BadParameter(
+            "Install the 'textual' extra to launch the DevSynth TUI."
+        )
+
+    bridge = TextualUXBridge(
+        require_textual=require_textual,
+        colorblind_mode=theme.colorblind_mode,
+        theme_overrides=theme.overrides,
+    )
+    configure = getattr(bridge, "configure_theme", None)
+    if callable(configure):
+        configure(
+            colorblind_mode=theme.colorblind_mode,
+            theme_overrides=theme.overrides,
+        )
+    return bridge
+
+
+def _run_bridge_event_loop(bridge: UXBridge) -> None:
+    run_loop = getattr(bridge, "run_event_loop", None)
+    if callable(run_loop):
+        try:
+            run_loop()
+        except RuntimeError as exc:  # pragma: no cover - user feedback path
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(1) from exc
+
+
+def init_cmd(
+    ctx: typer.Context,
+    wizard: bool = False,
+    *,
+    tui: bool = typer.Option(
+        False,
+        "--tui/--no-tui",
+        help="Launch the setup wizard with the Textual interface.",
+    ),
+    bridge: UXBridge | None = None,
+) -> None:
+    """Dispatch the init command, optionally routing through the Textual TUI."""
+
+    theme = _get_theme_options(ctx)
+
+    if tui:
+        active_bridge = bridge or _create_textual_bridge(theme, require_textual=True)
+        COMMAND_REGISTRY["init"](wizard=True, bridge=active_bridge)
+        _run_bridge_event_loop(active_bridge)
+        return
+
     COMMAND_REGISTRY["init"](wizard=wizard, bridge=bridge)
 
 
@@ -289,6 +377,10 @@ def build_app() -> typer.Typer:
             },
             {"command": "devsynth code", "description": "Generate code from tests"},
             {
+                "command": "devsynth tui",
+                "description": "Launch the Textual TUI for guided wizards",
+            },
+            {
                 "command": "devsynth run-pipeline --target unit-tests",
                 "description": "Execute the generated code",
             },
@@ -300,6 +392,7 @@ def build_app() -> typer.Typer:
             "Shell completion is available via '--install-completion' or the 'completion' command.",
             "Long-running commands display progress indicators for better feedback.",
             "Dashboard metric hooks can be registered with '--dashboard-hook module:function'.",
+            "Enable the colorblind-friendly palette with '--colorblind' or the DEVSYNTH_CLI_COLORBLIND environment variable.",
         ],
     )
 
@@ -338,6 +431,49 @@ def build_app() -> typer.Typer:
             shell=shell, install=install, path=path
         )  # nosec B604: shell arg selects completion target
 
+    @app.command(
+        "tui",
+        help="Launch the Textual interface for DevSynth wizards.",
+    )
+    def tui_command(
+        ctx: typer.Context,
+        wizard: str = typer.Option(
+            "init",
+            "--wizard",
+            "-w",
+            help="Wizard to launch (init or requirements).",
+            show_default=True,
+        ),
+        requirements_output: Path = typer.Option(
+            Path("requirements_wizard.json"),
+            "--requirements-output",
+            help="Output file when running the requirements wizard.",
+        ),
+    ) -> None:
+        """Start the Textual UI with the configured theme settings."""
+
+        theme = _get_theme_options(ctx)
+        bridge = _create_textual_bridge(theme, require_textual=True)
+        wizard_name = wizard.strip().lower()
+
+        if wizard_name == "init":
+            COMMAND_REGISTRY["init"](wizard=True, bridge=bridge)
+        elif wizard_name in {"requirements", "requirement"}:
+            from devsynth.application.cli.config import CLIConfig
+            from devsynth.application.requirements.wizard import requirements_wizard
+
+            requirements_wizard(
+                bridge,
+                output_file=str(requirements_output),
+                config=CLIConfig(non_interactive=False),
+            )
+        else:
+            raise typer.BadParameter(
+                "Wizard must be 'init' or 'requirements'."
+            )
+
+        _run_bridge_event_loop(bridge)
+
     @app.callback(invoke_without_command=True)
     def main(
         ctx: typer.Context,
@@ -364,6 +500,12 @@ def build_app() -> typer.Typer:
             "--log-level",
             help="Set log level: DEBUG, INFO, WARNING, ERROR, CRITICAL",
             is_eager=True,
+        ),
+        colorblind: bool = typer.Option(
+            False,
+            "--colorblind/--no-colorblind",
+            help="Use the colorblind-friendly theme across CLI and TUI output.",
+            envvar="DEVSYNTH_CLI_COLORBLIND",
         ),
     ) -> None:
         # Handle --version eagerly
@@ -413,6 +555,11 @@ def build_app() -> typer.Typer:
                 typer.echo(
                     f"Failed to load dashboard hook '{dashboard_hook}'", err=True
                 )
+
+        theme = CLIThemeOptions(colorblind_mode=colorblind)
+        _set_theme_options(ctx, theme)
+        os.environ["DEVSYNTH_CLI_COLORBLIND"] = "1" if colorblind else "0"
+
         if ctx.invoked_subcommand is None:
             typer.echo(ctx.get_help())
             raise typer.Exit()
