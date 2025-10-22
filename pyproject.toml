@@ -50,6 +50,8 @@ langchain-community = "*"
 openai = "*"
 toml = "*"
 requests = "*"
+# Optional user interface dependencies
+textual = {version = "*", optional = true}
 # Pin FastAPI and Starlette to compatible versions to resolve MRO issues
 fastapi = {version = "^0.115.5", optional = true}
 starlette = {version = "^0.41.3", optional = true}
@@ -186,6 +188,7 @@ api = [
 webui = ["streamlit>=0"]
 webui_nicegui = ["nicegui>=0"]
 gui = ["dearpygui>=0"]
+textual_ui = ["textual>=0"]
 tests = [
     "fastapi>=0.115.5,<0.116.0",
     "starlette>=0.41.3,<0.42.0",

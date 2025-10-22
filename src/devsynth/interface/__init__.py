@@ -8,6 +8,14 @@ across different UI frameworks (CLI, WebUI, Agent API).
 from .cli import CLIUXBridge
 from .ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
+try:  # pragma: no cover - optional dependency import guard
+    from .textual_ui import LayoutPane, MultiPaneLayout, TextualUXBridge, TEXTUAL_AVAILABLE
+except Exception:  # pragma: no cover - degrade gracefully when Textual is unavailable
+    TextualUXBridge = None  # type: ignore[assignment]
+    MultiPaneLayout = None  # type: ignore[assignment]
+    LayoutPane = None  # type: ignore[assignment]
+    TEXTUAL_AVAILABLE = False
+
 # Import WebUI directly from the webui module to avoid circular imports
 try:
     import importlib.util
@@ -37,3 +45,6 @@ __all__ = [
     "WebUI",
     "sanitize_output",
 ]
+
+if TextualUXBridge is not None:
+    __all__.extend(["TextualUXBridge", "MultiPaneLayout", "LayoutPane", "TEXTUAL_AVAILABLE"])

@@ -10,6 +10,7 @@ from __future__ import annotations
 import html
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
+from types import MappingProxyType
 from typing import Any, Literal, Protocol, TypeAlias, TypedDict, runtime_checkable
 
 from devsynth.security.validation import parse_bool_env
@@ -217,6 +218,12 @@ class UXBridge(ABC):
     # ------------------------------------------------------------------
     # New descriptive methods
     # ------------------------------------------------------------------
+
+    @property
+    def capabilities(self) -> Mapping[str, bool]:
+        """Advertise optional UX features supported by the bridge."""
+
+        return MappingProxyType({})
 
     @abstractmethod
     def ask_question(
