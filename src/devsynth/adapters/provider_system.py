@@ -15,7 +15,7 @@ import os
 from collections.abc import Callable
 from enum import Enum
 from functools import lru_cache
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import Any
 
 from devsynth.exceptions import ConfigurationError, DevSynthError
@@ -52,7 +52,10 @@ def _load_settings_module() -> ModuleType:
     """
 
     module = importlib.import_module(_SETTINGS_MODULE)
-    get_settings_attr = getattr(module, "get_settings", None)
+    try:
+        get_settings_attr = getattr(module, "get_settings", None)
+    except AttributeError:
+        get_settings_attr = None
     if callable(get_settings_attr):
         return module
 
@@ -60,7 +63,10 @@ def _load_settings_module() -> ModuleType:
         "Reloading %%s because get_settings was not yet available", _SETTINGS_MODULE
     )
     module = importlib.reload(module)
-    get_settings_attr = getattr(module, "get_settings", None)
+    try:
+        get_settings_attr = getattr(module, "get_settings", None)
+    except AttributeError:
+        get_settings_attr = None
     if not callable(get_settings_attr):
         raise ImportError(
             "devsynth.config.settings does not expose get_settings after reload"
@@ -261,6 +267,18 @@ class ProviderFactory:
             tls_settings = get_settings(reload=True)
             if old_key is not None:
                 os.environ["OPENAI_API_KEY"] = old_key
+        except (ImportError, RuntimeError) as exc:
+            if config is None:
+                raise
+            logger.warning(
+                "Settings unavailable; using default TLS configuration: %s", exc
+            )
+            tls_settings = SimpleNamespace(
+                tls_verify=True,
+                tls_cert_file=None,
+                tls_key_file=None,
+                tls_ca_file=None,
+            )
         tls_conf = tls_config or _create_tls_config(tls_settings)
 
         # Global kill-switch for providers (useful in CI/tests)
@@ -279,7 +297,9 @@ class ProviderFactory:
             provider_type_value = str(provider_type)
 
         # Helper to choose safe default (stub/null)
-        safe_default = os.environ.get("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "stub").strip().lower()
+        safe_default = (
+            os.environ.get("DEVSYNTH_SAFE_DEFAULT_PROVIDER", "stub").strip().lower()
+        )
 
         def _safe_provider(reason: str) -> "BaseProvider":
             if safe_default == ProviderType.STUB.value:
@@ -314,7 +334,9 @@ class ProviderFactory:
                         )
                     # Attempt LM Studio only when explicitly marked available
                     # to avoid network calls by default
-                    if _env_flag_is_truthy("DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", default="false"):
+                    if _env_flag_is_truthy(
+                        "DEVSYNTH_RESOURCE_LMSTUDIO_AVAILABLE", default="false"
+                    ):
                         logger.warning(
                             "OPENAI_API_KEY not found; attempting LM Studio as fallback"
                         )
