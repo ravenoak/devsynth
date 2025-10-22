@@ -22,6 +22,7 @@ from rich.theme import Theme
 
 from devsynth.interface.error_handler import EnhancedErrorHandler
 from devsynth.interface.output_formatter import OutputFormatter
+from devsynth.interface.prompt_toolkit_adapter import get_prompt_toolkit_adapter
 from devsynth.interface.shared_bridge import SharedBridgeMixin
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
@@ -599,6 +600,22 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
             logger.debug("Non-interactive mode active; returning default answer")
             return default or ""
 
+        adapter = get_prompt_toolkit_adapter()
+        if adapter is not None:
+            try:
+                answer = adapter.prompt_text(
+                    message,
+                    choices=choices,
+                    default=default,
+                    show_default=show_default,
+                )
+            except Exception as exc:  # pragma: no cover - defensive logging
+                logger.debug("Prompt-toolkit prompt failed: %s", exc)
+            else:
+                validated_answer = validate_safe_input(str(answer))
+                logger.debug(f"User answered: {validated_answer}")
+                return validated_answer
+
         styled_message = Text(message, style="prompt")
         answer = Prompt.ask(
             styled_message,
@@ -615,6 +632,16 @@ class CLIUXBridge(SharedBridgeMixin, UXBridge):
         if _non_interactive():
             logger.debug("Non-interactive mode active; returning default confirmation")
             return default
+
+        adapter = get_prompt_toolkit_adapter()
+        if adapter is not None:
+            try:
+                answer = adapter.confirm(message, default=default)
+            except Exception as exc:  # pragma: no cover - defensive logging
+                logger.debug("Prompt-toolkit confirm failed: %s", exc)
+            else:
+                logger.debug(f"User confirmed: {answer}")
+                return answer
 
         styled_message = Text(message, style="prompt")
         answer = Confirm.ask(styled_message, default=default)
