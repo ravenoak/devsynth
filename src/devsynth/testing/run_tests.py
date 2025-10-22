@@ -122,6 +122,10 @@ PYTEST_COV_AUTOLOAD_DISABLED_MESSAGE = (
 DEFAULT_COVERAGE_THRESHOLD = 70.0
 
 
+class PytestCovMissingError(RuntimeError):
+    """Raised when pytest-cov instrumentation is required but unavailable."""
+
+
 def _coverage_threshold() -> float:
     """Return the coverage threshold, honoring overrides via environment."""
     raw_value = os.environ.get("DEVSYNTH_COVERAGE_THRESHOLD")
@@ -379,10 +383,18 @@ BatchExecutionResult = tuple[bool, str, BatchExecutionMetadata]
 SegmentedRunResult = tuple[bool, str, SegmentedRunMetadata]
 
 
+def ensure_coverage_output_directory() -> Path:
+    """Create the coverage JSON output directory if it does not exist."""
+
+    output_dir = COVERAGE_JSON_PATH.parent
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
+
+
 def _reset_coverage_artifacts() -> None:
     """Remove stale coverage artifacts before starting a test run."""
 
-    COVERAGE_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+    ensure_coverage_output_directory()
     for path in (
         Path(".coverage"),
         COVERAGE_JSON_PATH,
@@ -1631,6 +1643,8 @@ def run_tests(
     if env is None:
         env = os.environ.copy()
 
+    ensure_coverage_output_directory()
+
     if dry_run:
         logger.info("Dry run requested; skipping coverage artifact cleanup")
     else:
@@ -1668,7 +1682,7 @@ def run_tests(
             "pytest-cov plugin unavailable; aborting test run",
             extra={"coverage_issue": coverage_issue},
         )
-        return False, message
+        raise PytestCovMissingError(message)
 
     # Normalize requested speed categories; default to fast+medium for parity
     # with the repository-wide pytest.ini when no explicit speeds are provided.

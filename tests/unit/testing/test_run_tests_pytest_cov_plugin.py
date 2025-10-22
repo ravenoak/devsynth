@@ -126,7 +126,7 @@ def test_run_tests_aborts_when_pytest_cov_missing(
 
     monkeypatch.setattr(run_tests_module, "collect_tests_with_cache", _fail_collect)
 
-    success, output = run_tests_module.run_tests("unit-tests")
+    with pytest.raises(run_tests_module.PytestCovMissingError) as excinfo:
+        run_tests_module.run_tests("unit-tests")
 
-    assert success is False
-    assert run_tests_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE in output
+    assert run_tests_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE in str(excinfo.value)
