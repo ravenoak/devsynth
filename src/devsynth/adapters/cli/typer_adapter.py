@@ -3,15 +3,21 @@ import os
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from types import SimpleNamespace
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+from typing_extensions import Literal
 
 import click
 import typer
 from rich.box import ROUNDED
 from rich.console import Console
+from rich.layout import Layout
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
+from rich.text import Text
+from rich.tree import Tree
 from typer import completion as typer_completion
 
 # Ensure CLI commands are registered before using the registry
@@ -22,7 +28,7 @@ from devsynth.application.cli.registry import COMMAND_REGISTRY
 _ = devsynth.application.cli.run_tests_cmd
 # config_app will be imported just before use
 from devsynth.core.config_loader import load_config
-from devsynth.interface.cli import DEVSYNTH_THEME, CLIUXBridge
+from devsynth.interface.cli import COLORBLIND_THEME, DEVSYNTH_THEME, CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge, sanitize_output
 from devsynth.logging_setup import DevSynthLogger
 from devsynth.metrics import register_dashboard_hook
@@ -305,99 +311,151 @@ class CommandHelp:
         notes: list[str] | None = None,
         options: dict[str, str] | None = None,
     ) -> None:
-        """Initialize the command help.
+        """Initialize the command help."""
 
-        Args:
-            summary: Short summary of the command
-            description: Detailed description of the command
-            examples: List of example dictionaries with 'command' and 'description' keys
-            notes: List of additional notes
-            options: Dictionary of option names and descriptions
-        """
         self.summary = summary
         self.description = description or ""
         self.examples = examples or []
         self.notes = notes or []
         self.options = options or {}
 
-    def format(self) -> str:
-        """Format the help text.
+    @staticmethod
+    def _sanitize(value: str) -> str:
+        return sanitize_output(value) if value else ""
 
-        Returns:
-            The formatted help text
-        """
-        parts = [self.summary]
+    def format(self) -> str:
+        """Format the help text for Typer integration."""
+
+        parts = [self._sanitize(self.summary)]
 
         if self.description:
-            parts.append("\n" + self.description)
+            parts.extend(["", self._sanitize(self.description)])
 
         if self.examples:
-            parts.append("\nExamples:")
+            parts.append("")
+            parts.append("Examples:")
             for example in self.examples:
-                parts.append(f"  $ {example['command']}")
-                if "description" in example:
-                    parts.append(f"      {example['description']}")
+                command = self._sanitize(example.get("command", ""))
+                parts.append(f"  $ {command}")
+                description = example.get("description")
+                if description:
+                    parts.append(f"      {self._sanitize(description)}")
 
         if self.notes:
-            parts.append("\nNotes:")
+            parts.append("")
+            parts.append("Notes:")
             for note in self.notes:
-                parts.append(f"  • {note}")
+                parts.append(f"  • {self._sanitize(note)}")
 
         if self.options:
-            parts.append("\nOptions:")
+            parts.append("")
+            parts.append("Options:")
             for option, description in self.options.items():
-                parts.append(f"  {option}: {description}")
+                parts.append(
+                    f"  {self._sanitize(option)}: {self._sanitize(description)}"
+                )
 
         return "\n".join(parts)
+
+    def as_markdown(self) -> Markdown:
+        """Return the help content as Markdown."""
+
+        lines = [f"# {self._sanitize(self.summary)}"]
+
+        if self.description:
+            lines.extend(["", self._sanitize(self.description)])
+
+        if self.examples:
+            lines.extend(["", "## Examples"])
+            for example in self.examples:
+                command = self._sanitize(example.get("command", ""))
+                description = self._sanitize(example.get("description", ""))
+                lines.append(f"- `{command}`")
+                if description:
+                    lines.append(f"  - {description}")
+
+        if self.notes:
+            lines.extend(["", "## Notes"])
+            for note in self.notes:
+                lines.append(f"- {self._sanitize(note)}")
+
+        if self.options:
+            lines.extend(["", "## Options"])
+            for option, description in self.options.items():
+                lines.append(
+                    f"- `{self._sanitize(option)}`: {self._sanitize(description)}"
+                )
+
+        return Markdown("\n".join(lines))
+
+    def as_panel(self, title: str = "DevSynth CLI") -> Panel:
+        """Create a panel suitable for Rich console output."""
+
+        return Panel(self.as_markdown(), title=title, border_style="cyan")
+
+    def as_notes_panel(self) -> Panel | None:
+        """Create a supplemental notes panel when notes are available."""
+
+        if not self.notes:
+            return None
+
+        notes_table = Table.grid(padding=(0, 1))
+        notes_table.add_column()
+        for note in self.notes:
+            notes_table.add_row(Text(f"• {self._sanitize(note)}", style="note"))
+
+        return Panel(notes_table, title="Notes", border_style="magenta")
+
+
+MAIN_COMMAND_HELP = CommandHelp(
+    summary="DevSynth CLI - automate iterative 'Expand, Differentiate, Refine, Retrace' workflows.",
+    description=(
+        "DevSynth is a tool for automating software development workflows using "
+        "the EDRR (Expand, Differentiate, Refine, Retrace) methodology. It helps "
+        "you generate specifications from requirements, tests from specifications, "
+        "and code from tests, all while maintaining traceability and alignment."
+    ),
+    examples=[
+        {
+            "command": "devsynth init",
+            "description": "Initialize a new project in the current directory",
+        },
+        {
+            "command": "devsynth spec --requirements-file requirements.md",
+            "description": "Generate specifications from requirements",
+        },
+        {
+            "command": "devsynth test --spec-file specs.md",
+            "description": "Generate tests from specifications",
+        },
+        {"command": "devsynth code", "description": "Generate code from tests"},
+        {
+            "command": "devsynth tui",
+            "description": "Launch the Textual TUI for guided wizards",
+        },
+        {
+            "command": "devsynth run-pipeline --target unit-tests",
+            "description": "Execute the generated code",
+        },
+    ],
+    notes=[
+        "Only the embedded ChromaDB backend is currently supported.",
+        "Use 'devsynth <command> --help' for more information on a specific command.",
+        "Configuration can be managed with 'devsynth config' commands.",
+        "Shell completion is available via '--install-completion' or the 'completion' command.",
+        "Long-running commands display progress indicators for better feedback.",
+        "Dashboard metric hooks can be registered with '--dashboard-hook module:function'.",
+        "Enable the colorblind-friendly palette with '--colorblind' or the DEVSYNTH_CLI_COLORBLIND environment variable.",
+    ],
+)
 
 
 def build_app() -> typer.Typer:
     """Create a Typer application with all commands registered."""
     _patch_typer_types()
-    main_help = CommandHelp(
-        summary="DevSynth CLI - automate iterative 'Expand, Differentiate, Refine, Retrace' workflows.",
-        description=(
-            "DevSynth is a tool for automating software development workflows using "
-            "the EDRR (Expand, Differentiate, Refine, Retrace) methodology. It helps "
-            "you generate specifications from requirements, tests from specifications, "
-            "and code from tests, all while maintaining traceability and alignment."
-        ),
-        examples=[
-            {
-                "command": "devsynth init",
-                "description": "Initialize a new project in the current directory",
-            },
-            {
-                "command": "devsynth spec --requirements-file requirements.md",
-                "description": "Generate specifications from requirements",
-            },
-            {
-                "command": "devsynth test --spec-file specs.md",
-                "description": "Generate tests from specifications",
-            },
-            {"command": "devsynth code", "description": "Generate code from tests"},
-            {
-                "command": "devsynth tui",
-                "description": "Launch the Textual TUI for guided wizards",
-            },
-            {
-                "command": "devsynth run-pipeline --target unit-tests",
-                "description": "Execute the generated code",
-            },
-        ],
-        notes=[
-            "Only the embedded ChromaDB backend is currently supported.",
-            "Use 'devsynth <command> --help' for more information on a specific command.",
-            "Configuration can be managed with 'devsynth config' commands.",
-            "Shell completion is available via '--install-completion' or the 'completion' command.",
-            "Long-running commands display progress indicators for better feedback.",
-            "Dashboard metric hooks can be registered with '--dashboard-hook module:function'.",
-            "Enable the colorblind-friendly palette with '--colorblind' or the DEVSYNTH_CLI_COLORBLIND environment variable.",
-        ],
-    )
 
     app = typer.Typer(
-        help=main_help.format(),
+        help=MAIN_COMMAND_HELP.format(),
         context_settings={"help_option_names": ["--help", "-h"]},
     )
 
@@ -595,69 +653,196 @@ def _warn_if_features_disabled() -> None:
         logger.debug("Failed to read feature flags for warning message")
 
 
-def show_help() -> None:
-    """Display the CLI help message with enhanced formatting."""
-    console = Console(theme=DEVSYNTH_THEME)
+def _extract_commands(typer_obj: Any) -> list[Any]:
+    """Return registered commands from a Typer instance."""
 
-    # Create a panel with the main help text
-    app = build_app()
+    if typer_obj is None:
+        return []
 
-    # Extract the help text from the app
-    help_text = (app.info.help if app.info else "DevSynth CLI") or "DevSynth CLI"
+    for attr in ("registered_commands", "commands"):
+        commands = getattr(typer_obj, attr, None)
+        if commands:
+            return list(commands)
+    return []
 
-    # Create a panel with the help text
-    main_panel = Panel(
-        Markdown(help_text), title="DevSynth CLI", subtitle="v1.0", border_style="cyan"
-    )
-    console.print(main_panel)
 
-    # Create a table with the available commands
-    command_table = Table(
+def _command_name(command: Any) -> str:
+    """Return the command name as a safe string."""
+
+    value = getattr(command, "name", "") or ""
+    return str(value)
+
+
+def _get_command_groups(app: Any) -> list[SimpleNamespace]:
+    """Collect metadata about registered command groups."""
+
+    groups: list[SimpleNamespace] = []
+    registered_groups = getattr(app, "registered_groups", None)
+    if registered_groups:
+        for group in registered_groups:
+            typer_instance = getattr(group, "typer_instance", None)
+            help_text = getattr(group, "help", "") or getattr(
+                getattr(typer_instance, "info", None), "help", ""
+            )
+            groups.append(
+                SimpleNamespace(
+                    name=str(getattr(group, "name", "") or ""),
+                    help=help_text,
+                    commands=_extract_commands(typer_instance),
+                )
+            )
+    elif hasattr(app, "registered_typers"):
+        for typer_instance, name in getattr(app, "registered_typers"):
+            help_text = getattr(getattr(typer_instance, "info", None), "help", "")
+            groups.append(
+                SimpleNamespace(
+                    name=str(name or ""),
+                    help=help_text,
+                    commands=_extract_commands(typer_instance),
+                )
+            )
+
+    return groups
+
+
+def _format_command_entry(name: str, description: str | None) -> Text:
+    """Return a styled Rich Text entry for a command."""
+
+    safe_name = sanitize_output(str(name or ""))
+    label = Text(safe_name, style="command")
+    if description:
+        label.append(" – ", style="dim")
+        label.append(sanitize_output(str(description)), style="info")
+    return label
+
+
+def _format_group_label(name: str, description: str | None) -> Text:
+    """Return a styled label for a command group."""
+
+    label = Text(sanitize_output(name), style="section")
+    if description:
+        label.append(" – ", style="dim")
+        label.append(sanitize_output(description), style="info")
+    return label
+
+
+def _build_command_tree(app: Any, filter_set: set[str] | None) -> Tree:
+    """Create a Rich tree describing available commands."""
+
+    tree = Tree(Text("Commands", style="heading"), guide_style="dim")
+    commands = getattr(app, "registered_commands", []) or []
+    for command in sorted(commands, key=lambda c: _command_name(c).lower()):
+        tree.add(
+            _format_command_entry(
+                _command_name(command), getattr(command, "help", "")
+            )
+        )
+
+    for group in _get_command_groups(app):
+        group_name = str(group.name or "")
+        if filter_set and group_name.lower() not in filter_set:
+            continue
+        branch = tree.add(_format_group_label(group_name, group.help))
+        for sub_command in sorted(
+            group.commands, key=lambda c: _command_name(c).lower()
+        ):
+            branch.add(
+                _format_command_entry(
+                    _command_name(sub_command), getattr(sub_command, "help", "")
+                )
+            )
+
+    return tree
+
+
+def _build_command_table(app: Any, filter_set: set[str] | None) -> Table:
+    """Create a Rich table of commands and descriptions."""
+
+    table = Table(
         title="Available Commands",
         box=ROUNDED,
         show_header=True,
         header_style="bold cyan",
     )
-    command_table.add_column("Command", style="green")
-    command_table.add_column("Description", style="white")
+    table.add_column("Command", style="command")
+    table.add_column("Description", style="info")
 
-    # Add rows for each command
-    for command in app.registered_commands:
-        command_table.add_row(command.name, command.help or "")
-
-    # Add rows for each subcommand group
-    groups = []
-    if hasattr(app, "registered_groups"):
-        groups = app.registered_groups
-    elif hasattr(app, "registered_typers"):
-        # Older Typer versions store tuples of (typer_instance, name)
-        for typer_instance, name in app.registered_typers:
-            groups.append(
-                type(
-                    "_GroupInfo",
-                    (),
-                    {
-                        "name": name,
-                        "typer_instance": typer_instance,
-                        "help": getattr(typer_instance.info, "help", ""),
-                    },
-                )()
-            )
-    for group in groups:
-        command_table.add_row(
-            f"{group.name} [subcommands]",
-            (getattr(group, "help", None) or group.typer_instance.info.help or ""),
+    for command in sorted(
+        getattr(app, "registered_commands", []), key=lambda c: _command_name(c).lower()
+    ):
+        table.add_row(
+            Text(sanitize_output(_command_name(command)), style="command"),
+            Text(
+                sanitize_output(str(getattr(command, "help", "") or "")),
+                style="info",
+            ),
         )
 
-    console.print(command_table)
+    for group in _get_command_groups(app):
+        group_name = str(group.name or "")
+        if filter_set and group_name.lower() not in filter_set:
+            continue
+        label = Text(sanitize_output(group_name), style="section")
+        description = Text(
+            sanitize_output(str(group.help or "")), style="info"
+        )
+        table.add_row(label, description)
 
-    # Add a note about getting more help
-    console.print(
-        "\n[bold blue]For more information on a specific command:[/bold blue]"
+    return table
+
+
+def show_help(
+    render_mode: Literal["layout", "tree", "table"] = "layout",
+    *,
+    group_filter: Sequence[str] | None = None,
+) -> None:
+    """Display the CLI help message with enhanced formatting."""
+
+    colorblind_env = os.environ.get("DEVSYNTH_CLI_COLORBLIND", "0").lower()
+    colorblind_mode = colorblind_env in {"1", "true", "yes"}
+    theme = COLORBLIND_THEME if colorblind_mode else DEVSYNTH_THEME
+    console = Console(theme=theme)
+
+    if render_mode not in {"layout", "tree", "table"}:
+        raise ValueError(f"Unsupported help render mode: {render_mode}")
+
+    app = build_app()
+    filter_set = {name.lower() for name in group_filter} if group_filter else None
+
+    overview_panel = MAIN_COMMAND_HELP.as_panel(title="DevSynth CLI")
+    commands_renderable = (
+        _build_command_tree(app, filter_set)
+        if render_mode in {"layout", "tree"}
+        else _build_command_table(app, filter_set)
     )
-    console.print("  [green]devsynth [COMMAND] --help[/green]")
+    notes_panel = MAIN_COMMAND_HELP.as_notes_panel()
+    footer = Text(
+        "Use 'devsynth [COMMAND] --help' for more information on a command.",
+        style="info",
+    )
 
-    # Provide a simple marker line for tests to assert
+    if render_mode == "layout":
+        layout = Layout(name="root")
+        layout.split(
+            Layout(overview_panel, name="overview", size=15),
+            Layout(name="body"),
+        )
+        if notes_panel:
+            layout["body"].split_row(
+                Layout(commands_renderable, name="commands", ratio=3),
+                Layout(notes_panel, name="notes", ratio=2),
+            )
+        else:
+            layout["body"].update(commands_renderable)
+        console.print(layout)
+    else:
+        console.print(overview_panel)
+        console.print(commands_renderable)
+        if notes_panel:
+            console.print(notes_panel)
+
+    console.print(footer)
+
     logger.info("Commands:")
     logger.info("Run 'devsynth [COMMAND] --help' for more information on a command.")
 

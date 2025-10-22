@@ -18,16 +18,23 @@ from typing import (
     Union,
 )
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
+from rich.text import Text
 
 from devsynth.config import ProjectUnifiedConfig, load_project_config
 from devsynth.config.unified_loader import UnifiedConfigLoader
-from devsynth.interface.cli import CLIUXBridge, _non_interactive
+from devsynth.interface.cli import (
+    CLIUXBridge,
+    COLORBLIND_THEME,
+    DEVSYNTH_THEME,
+    _non_interactive,
+)
 from devsynth.interface.prompt_toolkit_adapter import get_prompt_toolkit_adapter
-from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
+from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge, sanitize_output
 
 from ..wizard_textual import TextualWizardViewModel
 
@@ -311,6 +318,100 @@ class SetupWizard:
             self._textual_view.set_active_step(self.current_step - 1)
             self._textual_view.log_progress(desc, status)
         self.bridge.display_result(f"[bold blue]{desc}[/bold blue]")
+
+    def _render_to_bridge(self, renderable: object) -> None:
+        """Render a Rich object using the active bridge when available."""
+
+        target_console = getattr(self.bridge, "console", None)
+        if isinstance(target_console, Console):
+            target_console.print(renderable)
+            return
+
+        colorblind_env = os.environ.get("DEVSYNTH_CLI_COLORBLIND", "0").lower()
+        colorblind_mode = colorblind_env in {"1", "true", "yes"}
+        theme = COLORBLIND_THEME if colorblind_mode else DEVSYNTH_THEME
+        fallback_console = Console(
+            theme=theme, record=True, force_terminal=False, width=100
+        )
+        fallback_console.print(renderable)
+        output = fallback_console.export_text(clear=False)
+        self.bridge.display_result(output)
+
+    def _build_summary_panel(self, selections: WizardSelections) -> Panel:
+        """Create a structured Rich panel summarizing wizard selections."""
+
+        def _text(value: object, *, style: str | None = None) -> Text:
+            sanitized = sanitize_output(str(value)) if value is not None else "-"
+            return Text(sanitized, style=style)
+
+        config_table = Table(
+            show_header=False,
+            expand=True,
+            box=None,
+            padding=(0, 1),
+        )
+        config_table.add_column("Setting", style="key", no_wrap=True)
+        config_table.add_column("Value", style="value")
+        config_table.add_row(_text("Project Root", style="key"), _text(selections.root))
+        config_table.add_row(_text("Language", style="key"), _text(selections.language))
+        config_table.add_row(_text("Structure", style="key"), _text(selections.structure))
+        if selections.constraints:
+            config_table.add_row(
+                _text("Constraints", style="key"), _text(selections.constraints)
+            )
+        if selections.goals:
+            config_table.add_row(_text("Goals", style="key"), _text(selections.goals))
+        config_table.add_row(
+            _text("Memory Backend", style="key"), _text(selections.memory_backend)
+        )
+        config_table.add_row(
+            _text("Offline Mode", style="key"),
+            Text(
+                "Enabled" if selections.offline_mode else "Disabled",
+                style="success" if selections.offline_mode else "warning",
+            ),
+        )
+
+        features_table = Table(
+            box=None,
+            show_header=True,
+            header_style="heading",
+            expand=True,
+        )
+        features_table.add_column("Feature", style="key")
+        features_table.add_column("Status", style="value")
+        for feat in FEATURE_NAMES:
+            if feat not in selections.features:
+                continue
+            enabled = selections.features[feat]
+            label = feat.replace("_", " ").title()
+            status = Text(
+                "Enabled" if enabled else "Disabled",
+                style="success" if enabled else "warning",
+            )
+            features_table.add_row(_text(label, style="key"), status)
+
+        steps_table = Table.grid(expand=True, padding=(0, 1))
+        steps_table.add_column(justify="left")
+        steps = (
+            "Create or edit your requirements file: requirements.md",
+            "Generate specifications: devsynth spec",
+            "Generate tests: devsynth test",
+            "Generate code: devsynth code",
+        )
+        for idx, step in enumerate(steps, start=1):
+            steps_table.add_row(Text(f"{idx}. {sanitize_output(step)}", style="command"))
+
+        content = Group(
+            Text("Configuration", style="heading"),
+            config_table,
+            Text("Features", style="section"),
+            features_table,
+            Text("Next Steps", style="subheading"),
+            steps_table,
+        )
+
+        return Panel(content, title="Setup Summary", border_style="cyan", padding=(1, 2))
 
     def _show_help(self, topic: str, subtopic: Optional[str] = None) -> str:
         """Show help text for a specific option."""
@@ -686,47 +787,43 @@ class SetupWizard:
             features=feature_flags,
         )
 
-        self.bridge.display_result("\n[bold]Configuration Summary:[/bold]")
         summary_lines = [
             f"Project Root: {selections.root}",
             f"Language: {selections.language}",
             f"Structure: {selections.structure}",
         ]
-        self.bridge.display_result(summary_lines[0])
-        self.bridge.display_result(summary_lines[1])
-        self.bridge.display_result(summary_lines[2])
         if selections.constraints:
             summary_lines.append(f"Constraints: {selections.constraints}")
-            self.bridge.display_result(summary_lines[-1])
         if selections.goals:
             summary_lines.append(f"Goals: {selections.goals}")
-            self.bridge.display_result(summary_lines[-1])
-        memory_line = f"Memory Backend: {selections.memory_backend}"
-        summary_lines.append(memory_line)
-        self.bridge.display_result(memory_line)
-        self.bridge.display_result(
-            "Offline Mode: " f"{'Enabled' if selections.offline_mode else 'Disabled'}"
-        )
+        summary_lines.append(f"Memory Backend: {selections.memory_backend}")
         summary_lines.append(
             "Offline Mode: " f"{'Enabled' if selections.offline_mode else 'Disabled'}"
         )
 
-        self.bridge.display_result("\nFeatures:")
         feature_lines: list[str] = []
         for feat, enabled in selections.features.items():
-            self.bridge.display_result(
-                f"  {feat.replace('_', ' ').title()}: "
-                f"{'Enabled' if enabled else 'Disabled'}"
-            )
             feature_lines.append(
                 f"{feat.replace('_', ' ').title()}: "
                 f"{'Enabled' if enabled else 'Disabled'}"
             )
 
+        summary_panel = self._build_summary_panel(selections)
+        self._render_to_bridge(summary_panel)
+
         if self._textual_view is not None:
             combined_summary = list(summary_lines)
             combined_summary.append("Features:")
             combined_summary.extend(feature_lines)
+            combined_summary.append("Next Steps:")
+            combined_summary.extend(
+                [
+                    "1. Create or edit your requirements file: requirements.md",
+                    "2. Generate specifications: devsynth spec",
+                    "3. Generate tests: devsynth test",
+                    "4. Generate code: devsynth code",
+                ]
+            )
             self._textual_view.set_summary_lines(combined_summary)
 
         proceed = bool(auto_confirm_flag)
@@ -776,14 +873,6 @@ class SetupWizard:
             highlight=True,
             message_type="success",
         )
-
-        self.bridge.display_result("\n[bold]Next Steps:[/bold]")
-        self.bridge.display_result(
-            "1. Create or edit your requirements file: requirements.md"
-        )
-        self.bridge.display_result("2. Generate specifications: devsynth spec")
-        self.bridge.display_result("3. Generate tests: devsynth test")
-        self.bridge.display_result("4. Generate code: devsynth code")
 
         return cfg
 

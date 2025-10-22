@@ -232,4 +232,5 @@ def test_setup_wizard_accepts_typed_inputs(tmp_path, monkeypatch) -> None:
     assert Path(cfg.config.project_root) == tmp_path
     assert cfg.config.constraints == str(constraints_path)
     assert cfg.config.features["code_generation"] is True
-    assert any("Configuration Summary" in msg for msg in bridge.messages)
+    assert any("Setup Summary" in msg for msg in bridge.messages)
+    assert any("Next Steps" in msg for msg in bridge.messages)
