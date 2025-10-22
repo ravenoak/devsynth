@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+from types import SimpleNamespace
+
 import pytest
 import typer
 from typer.testing import CliRunner
@@ -106,6 +108,40 @@ def test_show_help_succeeds(mock_build_app, mock_console):
     show_help()
     assert mock_console_instance.print.call_count > 0
     mock_build_app.assert_called_once()
+
+
+@patch("devsynth.adapters.cli.typer_adapter.Console")
+@patch("devsynth.adapters.cli.typer_adapter.build_app")
+@pytest.mark.medium
+def test_show_help_table_mode(mock_build_app, mock_console):
+    """Table render mode should render commands without error.
+
+    ReqID: N/A"""
+
+    command = SimpleNamespace(name="init", help="Init projects")
+    mock_app = SimpleNamespace(
+        info=SimpleNamespace(help="Test"),
+        registered_commands=[command],
+        registered_groups=[],
+    )
+    mock_build_app.return_value = mock_app
+    mock_console_instance = MagicMock()
+    mock_console.return_value = mock_console_instance
+
+    show_help(render_mode="table", group_filter=["config"])
+
+    assert mock_console_instance.print.call_count > 0
+    mock_build_app.assert_called_once()
+
+
+@pytest.mark.fast
+def test_show_help_invalid_mode_raises() -> None:
+    """Passing an unsupported render mode should raise a ValueError.
+
+    ReqID: N/A"""
+
+    with pytest.raises(ValueError):
+        show_help(render_mode="invalid")  # type: ignore[arg-type]
 
 
 @patch("devsynth.adapters.cli.typer_adapter._warn_if_features_disabled")

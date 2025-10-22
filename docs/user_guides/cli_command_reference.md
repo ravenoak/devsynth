@@ -63,6 +63,20 @@ DevSynth commands follow a few simple rules to ensure messages are clear, concis
 
 These principles are enforced in tests for key commands (see unit tests under `tests/unit/application/cli/commands/`).
 
+## Rich Output Formatting Guidelines
+
+The CLI renders help, summaries, and structured feedback with [Rich](https://rich.readthedocs.io) components. Use the following conventions so layouts remain consistent and accessible across commands:
+
+- Prefer helper utilities (`CommandOutput`, wizard summary builders, or `show_help` helpers) whenever possible; they automatically respect the active theme and sanitization policy.
+- When constructing custom tables or panels:
+  - Title sections in Title Case and keep borders minimal (`box=None` or `ROUNDED`) to improve screen-reader export text.
+  - Use theme style keys such as `heading`, `section`, `command`, `info`, `success`, and `warning` rather than hard-coded colors so colorblind themes render correctly.
+  - Sanitize all dynamic strings via `sanitize_output` (or `OutputFormatter`) before adding them to Rich `Text`, `Table`, or `Panel` instances.
+- Group related information inside a single panel or layout. For example, summaries should combine configuration, feature toggles, and next steps so duplicate plain-text lines are avoided.
+- Provide textual fallbacks: when a bridge lacks a Rich console, export renderables with `Console(record=True).export_text()` and emit the resulting string via the bridge.
+- Keep column widths balanced for narrow terminals (aim for ≤ 100 characters) and prefer grid layouts for multi-section output.
+- Validate rich output against both standard and colorblind themes before shipping and ensure status indications rely on both color and label text (e.g., "Enabled"/"Disabled").
+
 ## Core Commands
 
 ### init
