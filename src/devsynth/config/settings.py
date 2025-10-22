@@ -6,7 +6,7 @@ import os
 import re
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, TypeVar, Union, cast
 
 import toml  # type: ignore[import-untyped]  # TODO(2025-12-20): Adopt typed tomllib or bundle stubs.
 import yaml
@@ -65,6 +65,15 @@ def _uninitialised_get_settings(*_args: Any, **_kwargs: Any) -> Any:
 
 
 _get_settings_impl: Callable[..., Any] = _uninitialised_get_settings
+
+
+def _install_get_settings_impl(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Rebind the active ``get_settings`` implementation during module import."""
+
+    global _get_settings_impl
+    _get_settings_impl = func
+    globals()["get_settings"] = get_settings
+    return func
 
 
 def get_settings(reload: bool = False, **kwargs: Any) -> "Settings":
@@ -729,6 +738,7 @@ class Settings(BaseSettings):
 _settings_instance: Optional[Settings] = None
 
 
+@_install_get_settings_impl
 def _compute_settings(reload: bool = False, **kwargs: Any) -> Settings:
     """
     Get settings instance with lazy initialization.
@@ -766,7 +776,6 @@ def _compute_settings(reload: bool = False, **kwargs: Any) -> Settings:
     return _settings_instance
 
 
-_get_settings_impl = _compute_settings
 get_settings.__doc__ = _compute_settings.__doc__
 
 

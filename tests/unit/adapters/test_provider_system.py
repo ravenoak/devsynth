@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 import os
 from types import SimpleNamespace
 from typing import Any
@@ -762,10 +763,12 @@ def test_provider_factory_injected_config_selects_provider():
             return_value={},
         ),
         patch("devsynth.adapters.provider_system.get_settings") as mock_get_settings,
-        patch("devsynth.adapters.provider_system.OpenAIProvider")
-        as mock_openai_provider,
-        patch("devsynth.adapters.provider_system.LMStudioProvider")
-        as mock_lmstudio_provider,
+        patch(
+            "devsynth.adapters.provider_system.OpenAIProvider"
+        ) as mock_openai_provider,
+        patch(
+            "devsynth.adapters.provider_system.LMStudioProvider"
+        ) as mock_lmstudio_provider,
         patch.dict(
             "os.environ",
             {
@@ -808,6 +811,44 @@ def test_provider_factory_injected_config_selects_provider():
         assert default_call_kwargs["base_url"] == "http://api"
         assert isinstance(default_call_kwargs["tls_config"], TLSConfig)
         assert default_call_kwargs["retry_config"] == custom_config["retry"]
+
+
+def test_provider_factory_injected_config_survives_missing_settings(monkeypatch):
+    """ProviderFactory should still create providers when settings reload fails."""
+
+    custom_config = {
+        "default_provider": "openai",
+        "openai": {"api_key": "x", "model": "gpt-4", "base_url": "http://api"},
+        "retry": {
+            "max_retries": 1,
+            "initial_delay": 0,
+            "exponential_base": 2,
+            "max_delay": 1,
+            "jitter": False,
+        },
+    }
+
+    settings_module = importlib.import_module("devsynth.config.settings")
+    monkeypatch.delattr(settings_module, "get_settings", raising=False)
+
+    def noop_reload(module):
+        return module
+
+    with (
+        patch.object(provider_system.importlib, "reload", side_effect=noop_reload),
+        patch(
+            "devsynth.adapters.provider_system.OpenAIProvider"
+        ) as mock_openai_provider,
+        patch.dict(
+            "os.environ",
+            {"DEVSYNTH_OFFLINE": "false"},
+            clear=False,
+        ),
+    ):
+        provider = ProviderFactory.create_provider("openai", config=custom_config)
+
+    mock_openai_provider.assert_called_once()
+    assert provider is mock_openai_provider.return_value
 
 
 def test_fallback_provider_respects_order(monkeypatch):

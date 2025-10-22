@@ -1,0 +1,29 @@
+......................................                                                                                   [100%]
+======================================================= warnings summary =======================================================
+.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833
+  /workspace/devsynth/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py:833: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; tests.fixtures.optional_deps
+    self.import_plugin(import_spec)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================= Test Categorization Summary ==================================================
+Test Type Distribution:
+  Unit Tests: 38
+  Integration Tests: 0
+  Behavior Tests: 0
+
+Test Speed Distribution:
+  Fast Tests (< 1s): 38
+  Medium Tests (1-5s): 0
+  Slow Tests (> 5s): 0
+===================================================== Top 10 Slowest Tests =====================================================
+1. tests/unit/adapters/test_provider_system.py::test_embed_success_succeeds: 0.16s
+2. tests/unit/adapters/test_provider_system.py::test_provider_factory_injected_config_selects_provider: 0.02s
+3. tests/unit/adapters/test_provider_system.py::test_get_env_or_default_succeeds: 0.01s
+4. tests/unit/adapters/test_provider_system.py::test_base_provider_methods_succeeds: 0.01s
+5. tests/unit/adapters/test_provider_system.py::test_complete_falls_back_to_next_provider: 0.01s
+6. tests/unit/adapters/test_provider_system.py::test_openai_provider_complete_error_raises_error: 0.01s
+7. tests/unit/adapters/test_provider_system.py::test_provider_factory_create_provider_succeeds: 0.01s
+8. tests/unit/adapters/test_provider_system.py::test_complete_success_succeeds: 0.01s
+9. tests/unit/adapters/test_provider_system.py::test_fallback_provider_circuit_breaker_blocks_after_failure: 0.01s
+10. tests/unit/adapters/test_provider_system.py::test_fallback_provider_async_methods_has_expected: 0.01s
+38 passed, 1 warning in 0.96s
