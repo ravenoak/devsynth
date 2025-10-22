@@ -22,7 +22,7 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
 2. Provision the environment:
    ```bash
    bash scripts/install_dev.sh      # general setup (auto-installs go-task)
-    bash scripts/codex_setup.sh      # Codex agents (finishes <15m, warns >10m)
+   bash scripts/codex_setup.sh      # Codex agents (finishes <15m, warns >10m)
    task --version                   # verify Taskfile is available
    ```
    The install script downloads `go-task` to `$HOME/.local/bin` and adds it to
@@ -30,6 +30,22 @@ DevSynth implements agent services under `src/devsynth/` and supporting scripts 
    [scripts/install_dev.sh](scripts/install_dev.sh),
    the release guide [docs/release/0.1.0-alpha.1.md](docs/release/0.1.0-alpha.1.md),
    and the CI workflow [.github/workflows/ci.yml](.github/workflows/ci.yml).
+   - Always inspect `scripts/codex_setup.sh` and `scripts/codex_maintenance.sh`
+     first when diagnosing environment failures. Provisioning calls them as
+     `scripts/codex_setup.sh || touch CODEX_ENVIRONMENT_SETUP_FAILED` for new
+     containers and `scripts/codex_maintenance.sh || touch
+     CODEX_ENVIRONMENT_MAINTENANCE_FAILED` for cached resumes. Both scripts now
+     self-install Poetry via `pipx` when missing, enforce Poetry 2.2.1 (to match
+     the lock file), normalize the project version from either `[tool.poetry]`
+     or `[project]`, and run `poetry check` up front so lock-file drift is
+     reported immediately.
+   - On a cached container rerun the lighter maintenance script directly to
+     resync dependencies and run fast health probes:
+     ```bash
+     bash scripts/codex_maintenance.sh
+     ```
+     Successful runs remove the corresponding `CODEX_ENVIRONMENT_*_FAILED`
+     marker files so the workspace reflects its current status.
 3. Install dependencies with development and test extras. Use `poetry run` for all Python invocations (or `task` for Taskfile targets) so commands run inside the Poetry-managed virtualenv.
 
    Optional test extras map to resource markers:

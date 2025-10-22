@@ -121,14 +121,46 @@ fi
 echo "DIALECTICAL CHECKPOINT: What dependencies are truly required?"
 echo "DIALECTICAL CHECKPOINT: How do we verify the cache reproduces identical environments?"
 
+# Ensure Poetry matches the lock file expectations. Poetry 2.2.1 introduced the
+# `[project]` metadata layout used in this repository.
+POETRY_REQUIRED_VERSION="2.2.1"
+ensure_poetry() {
+  local desired="$1"
+  local current=""
+  if command -v poetry >/dev/null 2>&1; then
+    current="$(poetry --version | awk '{print $3}' | tr -d '()')"
+    if [[ "$current" == "$desired" ]]; then
+      return
+    fi
+    echo "[info] Poetry $current found; reinstalling $desired" >&2
+  else
+    echo "[info] Poetry not found; installing $desired" >&2
+  fi
+  run_check "pipx install poetry==$desired" pipx install --force "poetry==$desired"
+}
+ensure_poetry "$POETRY_REQUIRED_VERSION"
+
 # Accept either the legacy 0.1.0-alpha.1 notation or the PEP 440-compliant
 # 0.1.0a1 form. Normalize the current version to the latter for comparison so
-# future releases can switch schemes without breaking setup.
+# future releases can switch schemes without breaking setup. The project version
+# moved from `[tool.poetry]` to `[project]`; handle both layouts for resiliency.
 EXPECTED_VERSION="0.1.0a1"
 CURRENT_VERSION="$(python - <<'PY'
+import sys
 import tomllib
-with open('pyproject.toml', 'rb') as f:
-    print(tomllib.load(f)['tool']['poetry']['version'])
+
+with open('pyproject.toml', 'rb') as handle:
+    data = tomllib.load(handle)
+
+version = (
+    data.get('tool', {}).get('poetry', {}).get('version')
+    or data.get('project', {}).get('version')
+)
+
+if not version:
+    raise SystemExit('Unable to determine project version from pyproject.toml')
+
+print(version)
 PY
 )"
 NORMALIZED_VERSION="${CURRENT_VERSION/-alpha./a}"
@@ -136,6 +168,14 @@ if [[ "$NORMALIZED_VERSION" != "$EXPECTED_VERSION" ]]; then
   echo "Project version $CURRENT_VERSION does not match $EXPECTED_VERSION" >&2
   exit 1
 fi
+
+POETRY_CHECK_LOG="$(mktemp)"
+if ! poetry check >"$POETRY_CHECK_LOG" 2>&1; then
+  cat "$POETRY_CHECK_LOG"
+  echo "[error] Poetry metadata check failed. Run 'poetry lock' to refresh the lock file or resolve the reported issues." >&2
+  exit 1
+fi
+rm -f "$POETRY_CHECK_LOG"
 
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/devsynth"
 WHEEL_DIR="$CACHE_DIR/wheels"
