@@ -387,6 +387,8 @@ if ! run_poetry_install "1" "mandatory-bootstrap" "$initial_install_timestamp"; 
   exit 1
 fi
 
+echo "[info] Before running tests manually, execute 'poetry install --with dev --extras \"tests retrieval chromadb api\"' to provision mandatory extras." >&2
+
 if ! ensure_devsynth_cli "bootstrap"; then
   echo "[error] unable to verify the environment during bootstrap. Review diagnostics/post_install_bootstrap_* and poetry_install_bootstrap_* logs." >&2
   exit 1
