@@ -7,11 +7,27 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from devsynth.application.cli.config import CLIConfig
+from devsynth.application.wizard_textual import (
+    TextualWizardViewModel,
+    is_back_command,
+)
 from devsynth.config import get_project_config, save_config
 from devsynth.config.settings import ensure_path_exists
 from devsynth.domain.models.requirement import RequirementPriority, RequirementType
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.utils.logging import DevSynthLogger
+
+
+REQUIREMENTS_HELP: dict[str, str] = {
+    "title": "Provide a concise, descriptive name for the requirement.",
+    "description": "Explain what the system should accomplish in clear terms.",
+    "type": "Choose whether the requirement is functional or non-functional.",
+    "priority": "Select how important the requirement is relative to others.",
+    "constraints": (
+        "List any limitations or conditions separated by commas, such as"
+        " tooling, performance thresholds, or compliance needs."
+    ),
+}
 
 
 def requirements_wizard(
@@ -35,6 +51,24 @@ def requirements_wizard(
 
     config = config or CLIConfig.from_env()
     logger = DevSynthLogger(__name__)
+    capabilities = dict(getattr(bridge, "capabilities", {}) or {})
+    supports_layout = bool(capabilities.get("supports_layout_panels"))
+    supports_shortcuts = bool(capabilities.get("supports_keyboard_shortcuts"))
+    textual_view: TextualWizardViewModel | None = None
+    if supports_layout:
+        textual_view = TextualWizardViewModel(
+            bridge,
+            steps=[
+                "Title",
+                "Description",
+                "Type",
+                "Priority",
+                "Constraints",
+            ],
+            contextual_help=REQUIREMENTS_HELP,
+            keyboard_shortcuts=supports_shortcuts,
+        )
+        textual_view.set_active_step(0)
 
     steps: Sequence[tuple[str, str, Optional[Sequence[str]], str]] = [
         ("title", "Requirement title", None, ""),
@@ -71,16 +105,28 @@ def requirements_wizard(
     while index < len(steps):
         key, message, choices, default = steps[index]
         default_val = responses.get(key, default)
+        if textual_view is not None:
+            textual_view.set_active_step(index)
+            textual_view.present_question(
+                key,
+                f"Step {index + 1}/{len(steps)}: {message}",
+                help_text=REQUIREMENTS_HELP.get(key),
+            )
         if config.non_interactive:
             reply = default_val or ""
         else:
             prefix = f"Step {index + 1}/{len(steps)}: "
+            nav_hint = (
+                " (use ← to go back)"
+                if supports_shortcuts and textual_view is not None
+                else " (type 'back' to go back)"
+            )
             reply = bridge.ask_question(
-                prefix + message + " (type 'back' to go back)",
+                prefix + message + nav_hint,
                 choices=choices,
                 default=default_val,
             )
-        if reply.lower() == "back":
+        if is_back_command(str(reply), keyboard_shortcuts=supports_shortcuts):
             if index > 0:
                 index -= 1
             else:
@@ -88,6 +134,9 @@ def requirements_wizard(
             continue
         responses[key] = reply
         logger.info("wizard_step", step=key, value=reply)
+        if textual_view is not None:
+            textual_view.record_field(key, message, reply)
+            textual_view.log_progress(f"Captured {message}")
         index += 1
 
     result = {
@@ -117,6 +166,17 @@ def requirements_wizard(
     except Exception as exc:  # pragma: no cover - unexpected
         logger.error("requirements_save_failed", exc_info=exc)
         raise
+
+    summary_lines = [
+        f"Title: {result['title']}",
+        f"Type: {result['type']}",
+        f"Priority: {result['priority']}",
+        "Constraints: "
+        + (", ".join(result["constraints"]) if result["constraints"] else "—"),
+    ]
+    if textual_view is not None:
+        textual_view.set_summary_lines(summary_lines)
+        textual_view.record_activity(f"Saved requirements to {output_path}")
 
     bridge.display_result(f"[green]Requirements saved to {output_path}[/green]")
 

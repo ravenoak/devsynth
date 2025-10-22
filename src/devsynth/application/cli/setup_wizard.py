@@ -28,6 +28,8 @@ from devsynth.config.unified_loader import UnifiedConfigLoader
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 
+from ..wizard_textual import TextualWizardViewModel
+
 from .progress import ProgressManager
 
 
@@ -267,13 +269,32 @@ class SetupWizard:
     }
 
     def __init__(self, bridge: Optional[WizardBridge | UXBridge] = None) -> None:
-        self.bridge: WizardBridge = bridge or CLIUXBridge()
+        self.bridge: UXBridge = (bridge or CLIUXBridge())  # type: ignore[assignment]
         self.console = Console()
         # Basic, Project, Memory, Features, Finalize
         self.total_steps = 5
         self.current_step = 0
         self.progress_manager = ProgressManager(self.bridge)
         self._progress_id = "wizard"
+        capabilities = dict(getattr(self.bridge, "capabilities", {}) or {})
+        supports_layout = bool(capabilities.get("supports_layout_panels"))
+        supports_shortcuts = bool(capabilities.get("supports_keyboard_shortcuts"))
+        self._textual_view: TextualWizardViewModel | None = None
+        if supports_layout:
+            steps = (
+                "Basic Settings",
+                "Project Configuration",
+                "Memory Configuration",
+                "Feature Selection",
+                "Finalize Setup",
+            )
+            self._textual_view = TextualWizardViewModel(
+                self.bridge,
+                steps=steps,
+                contextual_help=self.HELP_TEXT,
+                keyboard_shortcuts=supports_shortcuts,
+            )
+            self._textual_view.set_active_step(0)
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -285,9 +306,12 @@ class SetupWizard:
         self.progress_manager.update_progress(
             self._progress_id, advance=1, description=desc, status=status
         )
+        if self._textual_view is not None:
+            self._textual_view.set_active_step(self.current_step - 1)
+            self._textual_view.log_progress(desc, status)
         self.bridge.display_result(f"[bold blue]{desc}[/bold blue]")
 
-    def _show_help(self, topic: str, subtopic: Optional[str] = None) -> None:
+    def _show_help(self, topic: str, subtopic: Optional[str] = None) -> str:
         """Show help text for a specific option."""
         if subtopic:
             features_help = self.HELP_TEXT.get("features")
@@ -299,17 +323,21 @@ class SetupWizard:
             entry = self.HELP_TEXT.get(topic)
             help_text = entry if isinstance(entry, str) else "No help available"
 
-        self.console.print(
-            Panel(
-                Markdown(help_text),
-                title=f"Help: {topic.replace('_', ' ').title()}",
-                border_style="blue",
+        if self._textual_view is None:
+            self.console.print(
+                Panel(
+                    Markdown(help_text),
+                    title=f"Help: {topic.replace('_', ' ').title()}",
+                    border_style="blue",
+                )
             )
-        )
+        return help_text
 
     def _prompt_with_help(self, topic: str, question: str, **kwargs: Any) -> str:
         """Prompt the user with a question and offer help."""
-        self._show_help(topic)
+        help_text = self._show_help(topic)
+        if self._textual_view is not None:
+            self._textual_view.present_question(topic, question, help_text=help_text)
         return self.bridge.ask_question(question, **kwargs)
 
     def _prompt_features(
@@ -332,14 +360,29 @@ class SetupWizard:
 
         for feat in feature_list:
             if feat in features:
-                raw_flags[feat] = bool(features[feat])
+                chosen = bool(features[feat])
             elif auto_confirm:
-                raw_flags[feat] = bool(existing.get(feat, False))
+                chosen = bool(existing.get(feat, False))
             else:
-                self._show_help("features", feat)
-                raw_flags[feat] = self.bridge.confirm_choice(
-                    f"Enable {feat.replace('_', ' ')}?",
+                question = f"Enable {feat.replace('_', ' ')}?"
+                help_text = self._show_help("features", feat)
+                if self._textual_view is not None:
+                    self._textual_view.present_question(
+                        "features",
+                        question,
+                        subtopic=feat,
+                        help_text=help_text,
+                    )
+                chosen = self.bridge.confirm_choice(
+                    question,
                     default=existing.get(feat, False),
+                )
+            raw_flags[feat] = chosen
+            if self._textual_view is not None:
+                self._textual_view.record_field(
+                    f"feature_{feat}",
+                    feat.replace("_", " ").title(),
+                    chosen,
                 )
         return _normalize_feature_flags(raw_flags)
 
@@ -453,6 +496,10 @@ class SetupWizard:
             memory_backend_value = preset_config.memory_backend
             offline_mode_value = preset_config.offline_mode
             feature_flags = preset_config.as_feature_flags()
+            if self._textual_view is not None:
+                self._textual_view.record_activity(
+                    f"Preset selected: {preset_choice}"
+                )
             self._show_progress("Basic Settings", status="preset applied")
             self._show_progress("Project Configuration", status="preset")
             self._show_progress("Memory Configuration", status="preset")
@@ -464,10 +511,18 @@ class SetupWizard:
             root_path = Path(
                 self._prompt_with_help("root", "Project root", default=os.getcwd())
             )
+        if self._textual_view is not None:
+            self._textual_view.record_field(
+                "root", "Project Root", str(root_path) if root_path else None
+            )
 
         if language_value is None:
             language_value = self._prompt_with_help(
                 "language", "Primary language", default="python"
+            )
+        if self._textual_view is not None:
+            self._textual_view.record_field(
+                "language", "Language", language_value
             )
 
         if not quick_setup:
@@ -480,6 +535,10 @@ class SetupWizard:
                     choices=["single_package", "monorepo"],
                     default="single_package",
                 )
+            if self._textual_view is not None:
+                self._textual_view.record_field(
+                    "structure", "Structure", structure_value
+                )
 
             if constraints_value is None:
                 constraints_prompt = self._prompt_with_help(
@@ -489,6 +548,13 @@ class SetupWizard:
                     show_default=False,
                 )
                 constraints_value = constraints_prompt or None
+            if self._textual_view is not None:
+                constraints_display = (
+                    str(_ensure_path(constraints_value)) if constraints_value else None
+                )
+                self._textual_view.record_field(
+                    "constraints", "Constraints", constraints_display
+                )
 
             if goals_value is None:
                 goals_prompt = self._prompt_with_help(
@@ -498,6 +564,8 @@ class SetupWizard:
                     show_default=False,
                 )
                 goals_value = goals_prompt or None
+            if self._textual_view is not None:
+                self._textual_view.record_field("goals", "Goals", goals_value)
 
             self._show_progress("Memory Configuration", status="configuring")
 
@@ -508,6 +576,10 @@ class SetupWizard:
                     choices=["memory", "file", "kuzu", "chromadb"],
                     default=cfg.config.memory_store_type,
                 )
+            if self._textual_view is not None:
+                self._textual_view.record_field(
+                    "memory_backend", "Memory Backend", memory_backend_value
+                )
 
             if offline_mode_value is None:
                 env_offline = _env_flag("DEVSYNTH_INIT_OFFLINE_MODE")
@@ -517,6 +589,10 @@ class SetupWizard:
                     offline_mode_value = self.bridge.confirm_choice(
                         "Enable offline mode?", default=cfg.config.offline_mode
                     )
+            if self._textual_view is not None:
+                self._textual_view.record_field(
+                    "offline_mode", "Offline Mode", offline_mode_value
+                )
 
             feature_flags = self._prompt_features(
                 cfg, feature_flags, bool(auto_confirm_flag)
@@ -533,6 +609,27 @@ class SetupWizard:
         language_value = language_value or "python"
         structure_value = structure_value or "single_package"
 
+        if self._textual_view is not None:
+            self._textual_view.record_field(
+                "structure", "Structure", structure_value
+            )
+            self._textual_view.record_field(
+                "constraints", "Constraints", str(constraints_path) if constraints_path else None
+            )
+            self._textual_view.record_field("goals", "Goals", goals_text)
+            self._textual_view.record_field(
+                "memory_backend", "Memory Backend", memory_backend_value
+            )
+            self._textual_view.record_field(
+                "offline_mode", "Offline Mode", offline_mode_value
+            )
+            for feat, enabled in feature_flags.items():
+                self._textual_view.record_field(
+                    f"feature_{feat}",
+                    feat.replace("_", " ").title(),
+                    enabled,
+                )
+
         selections = WizardSelections(
             root=root_path,
             language=language_value,
@@ -545,24 +642,47 @@ class SetupWizard:
         )
 
         self.bridge.display_result("\n[bold]Configuration Summary:[/bold]")
-        self.bridge.display_result(f"Project Root: {selections.root}")
-        self.bridge.display_result(f"Language: {selections.language}")
-        self.bridge.display_result(f"Structure: {selections.structure}")
+        summary_lines = [
+            f"Project Root: {selections.root}",
+            f"Language: {selections.language}",
+            f"Structure: {selections.structure}",
+        ]
+        self.bridge.display_result(summary_lines[0])
+        self.bridge.display_result(summary_lines[1])
+        self.bridge.display_result(summary_lines[2])
         if selections.constraints:
-            self.bridge.display_result(f"Constraints: {selections.constraints}")
+            summary_lines.append(f"Constraints: {selections.constraints}")
+            self.bridge.display_result(summary_lines[-1])
         if selections.goals:
-            self.bridge.display_result(f"Goals: {selections.goals}")
-        self.bridge.display_result(f"Memory Backend: {selections.memory_backend}")
+            summary_lines.append(f"Goals: {selections.goals}")
+            self.bridge.display_result(summary_lines[-1])
+        memory_line = f"Memory Backend: {selections.memory_backend}"
+        summary_lines.append(memory_line)
+        self.bridge.display_result(memory_line)
         self.bridge.display_result(
+            "Offline Mode: " f"{'Enabled' if selections.offline_mode else 'Disabled'}"
+        )
+        summary_lines.append(
             "Offline Mode: " f"{'Enabled' if selections.offline_mode else 'Disabled'}"
         )
 
         self.bridge.display_result("\nFeatures:")
+        feature_lines: list[str] = []
         for feat, enabled in selections.features.items():
             self.bridge.display_result(
                 f"  {feat.replace('_', ' ').title()}: "
                 f"{'Enabled' if enabled else 'Disabled'}"
             )
+            feature_lines.append(
+                f"{feat.replace('_', ' ').title()}: "
+                f"{'Enabled' if enabled else 'Disabled'}"
+            )
+
+        if self._textual_view is not None:
+            combined_summary = list(summary_lines)
+            combined_summary.append("Features:")
+            combined_summary.extend(feature_lines)
+            self._textual_view.set_summary_lines(combined_summary)
 
         proceed = bool(auto_confirm_flag)
         if not proceed:
