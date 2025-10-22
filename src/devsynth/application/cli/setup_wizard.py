@@ -25,7 +25,8 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from devsynth.config import ProjectUnifiedConfig, load_project_config
 from devsynth.config.unified_loader import UnifiedConfigLoader
-from devsynth.interface.cli import CLIUXBridge
+from devsynth.interface.cli import CLIUXBridge, _non_interactive
+from devsynth.interface.prompt_toolkit_adapter import get_prompt_toolkit_adapter
 from devsynth.interface.ux_bridge import ProgressIndicator, UXBridge
 
 from ..wizard_textual import TextualWizardViewModel
@@ -357,33 +358,77 @@ class SetupWizard:
         )
 
         feature_list: tuple[FeatureName, ...] = FEATURE_NAMES
+        default_flags = {
+            feat: (
+                bool(features[feat])
+                if feat in features
+                else bool(existing.get(feat, False))
+            )
+            for feat in feature_list
+        }
 
-        for feat in feature_list:
-            if feat in features:
-                chosen = bool(features[feat])
-            elif auto_confirm:
-                chosen = bool(existing.get(feat, False))
-            else:
-                question = f"Enable {feat.replace('_', ' ')}?"
-                help_text = self._show_help("features", feat)
-                if self._textual_view is not None:
-                    self._textual_view.present_question(
-                        "features",
-                        question,
-                        subtopic=feat,
-                        help_text=help_text,
-                    )
-                chosen = self.bridge.confirm_choice(
-                    question,
-                    default=existing.get(feat, False),
-                )
-            raw_flags[feat] = chosen
+        adapter = get_prompt_toolkit_adapter()
+        use_prompt_toolkit = (
+            isinstance(self.bridge, CLIUXBridge)
+            and adapter is not None
+            and not _non_interactive()
+            and not auto_confirm
+            and not features
+            and self._textual_view is None
+        )
+
+        if auto_confirm:
+            raw_flags.update(default_flags)
             if self._textual_view is not None:
-                self._textual_view.record_field(
-                    f"feature_{feat}",
-                    feat.replace("_", " ").title(),
-                    chosen,
+                for feat in feature_list:
+                    chosen = raw_flags.get(feat, False)
+                    self._textual_view.record_field(
+                        f"feature_{feat}",
+                        feat.replace("_", " ").title(),
+                        chosen,
+                    )
+        elif use_prompt_toolkit:
+            options = [
+                (feat, feat.replace("_", " ").title()) for feat in feature_list
+            ]
+            defaults = [feat for feat, enabled in default_flags.items() if enabled]
+            selected = set(
+                adapter.prompt_multi_select(
+                    "Use space to toggle features and press Enter to confirm.",
+                    options=options,
+                    default=defaults,
                 )
+            )
+            for feat in feature_list:
+                raw_flags[feat] = feat in selected
+        else:
+            for feat in feature_list:
+                if feat in features:
+                    chosen = bool(features[feat])
+                elif auto_confirm:
+                    chosen = bool(existing.get(feat, False))
+                else:
+                    question = f"Enable {feat.replace('_', ' ')}?"
+                    help_text = self._show_help("features", feat)
+                    if self._textual_view is not None:
+                        self._textual_view.present_question(
+                            "features",
+                            question,
+                            subtopic=feat,
+                            help_text=help_text,
+                        )
+                    chosen = self.bridge.confirm_choice(
+                        question,
+                        default=existing.get(feat, False),
+                    )
+                raw_flags[feat] = chosen
+                if self._textual_view is not None:
+                    self._textual_view.record_field(
+                        f"feature_{feat}",
+                        feat.replace("_", " ").title(),
+                        chosen,
+                    )
+
         return _normalize_feature_flags(raw_flags)
 
     def _apply_quick_setup(

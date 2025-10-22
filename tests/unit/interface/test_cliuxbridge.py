@@ -8,6 +8,15 @@ from rich.text import Text
 from devsynth.interface.cli import CLIProgressIndicator, CLIUXBridge
 
 
+@pytest.fixture(autouse=True)
+def disable_prompt_toolkit(monkeypatch):
+    """Ensure prompt-toolkit integration is disabled for CLI UX bridge tests."""
+
+    monkeypatch.setattr(
+        "devsynth.interface.cli.get_prompt_toolkit_adapter", lambda: None
+    )
+
+
 @pytest.fixture
 def clean_state():
     # Set up clean state

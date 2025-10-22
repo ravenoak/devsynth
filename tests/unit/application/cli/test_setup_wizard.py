@@ -1,12 +1,24 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
 from devsynth.application.cli.setup_wizard import SetupWizard
+from devsynth.config import ProjectUnifiedConfig
+from devsynth.config.loader import ConfigModel
 from devsynth.interface.cli import CLIUXBridge
 from devsynth.interface.ux_bridge import UXBridge
 
 pytestmark = [pytest.mark.fast]
+
+
+@pytest.fixture(autouse=True)
+def disable_prompt_toolkit(monkeypatch):
+    """Disable prompt-toolkit integration for legacy wizard tests."""
+
+    monkeypatch.setattr(
+        "devsynth.application.cli.setup_wizard.get_prompt_toolkit_adapter", lambda: None
+    )
 
 
 class DummyBridge(UXBridge):
@@ -135,6 +147,32 @@ def test_setup_wizard_abort_succeeds(tmp_path, monkeypatch) -> None:
     cfg_file = tmp_path / ".devsynth" / "project.yaml"
     assert not cfg_file.exists()
     assert any(("Initialization aborted" in msg for msg in bridge.messages))
+
+
+def test_prompt_features_uses_prompt_toolkit_multiselect(monkeypatch) -> None:
+    """When available the wizard should use the prompt-toolkit multi-select dialog."""
+
+    cfg = ProjectUnifiedConfig(ConfigModel(), Path("project.yaml"), False)
+    wizard = SetupWizard()
+    wizard.progress_manager.update_progress = lambda *_a, **_k: None
+    wizard.bridge.display_result = lambda *_a, **_k: None
+
+    adapter = MagicMock()
+    adapter.prompt_multi_select.return_value = ["code_generation", "test_generation"]
+    monkeypatch.setattr(
+        "devsynth.application.cli.setup_wizard.get_prompt_toolkit_adapter",
+        lambda: adapter,
+    )
+    monkeypatch.setattr(
+        "devsynth.application.cli.setup_wizard._non_interactive", lambda: False
+    )
+
+    features = wizard._prompt_features(cfg, features=None, auto_confirm=False)
+
+    assert features["code_generation"] is True
+    assert features["test_generation"] is True
+    assert features["wsde_collaboration"] is False
+    adapter.prompt_multi_select.assert_called_once()
 
 
 class TypedBridge(UXBridge):
