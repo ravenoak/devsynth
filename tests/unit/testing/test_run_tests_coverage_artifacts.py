@@ -11,6 +11,8 @@ import pytest
 
 import devsynth.testing.run_tests as rt
 
+from .run_tests_test_utils import build_batch_metadata
+
 
 @pytest.fixture
 def coverage_test_environment(
@@ -257,3 +259,107 @@ def test_ensure_coverage_artifacts_html_failure_still_writes_json(
     assert "Failed to write coverage HTML report" in caplog.text
     assert coverage_test_environment.coverage_json.exists()
     assert json.loads(coverage_test_environment.coverage_json.read_text()) == payload
+
+
+@pytest.mark.fast
+def test_run_tests_writes_manifest_with_coverage_reference(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Successful coverage runs persist JSON path and manifest artifacts."""
+
+    monkeypatch.chdir(tmp_path)
+
+    coverage_json = tmp_path / "test_reports" / "coverage.json"
+    html_dir = tmp_path / "htmlcov"
+    legacy_dir = tmp_path / "test_reports" / "htmlcov"
+    monkeypatch.setattr(rt, "COVERAGE_JSON_PATH", coverage_json)
+    monkeypatch.setattr(rt, "COVERAGE_HTML_DIR", html_dir)
+    monkeypatch.setattr(rt, "LEGACY_HTML_DIRS", (legacy_dir,))
+
+    publication_calls: list[dict[str, object]] = []
+    written_manifests: dict[str, dict[str, object]] = {}
+
+    def fake_publish(manifest: dict[str, object]) -> SimpleNamespace:
+        publication_calls.append(manifest)
+        return SimpleNamespace(
+            test_run_id="run-1",
+            quality_gate_id="gate-1",
+            evidence_ids=("evidence-1",),
+            gate_status="pass",
+            created={
+                "test_run": True,
+                "quality_gate": True,
+                "release_evidence": [True],
+            },
+            adapter_backend="stub",
+        )
+
+    def fake_write_manifest(path: Path | str, manifest: dict[str, object]) -> None:
+        manifest_path = Path(path)
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest_path.write_text(json.dumps(manifest))
+        written_manifests[manifest_path.name] = manifest
+
+    def fake_checksum(path: Path | str) -> str:
+        return f"checksum:{Path(path).name}"
+
+    def fake_collect(
+        target: str, speed: str | None, *, keyword_filter: str | None = None
+    ) -> list[str]:
+        assert target == "unit-tests"
+        return ["tests/unit/sample_test.py::test_ok"]
+
+    def fake_batch(
+        request: rt.SingleBatchRequest,
+    ) -> rt.BatchExecutionResult:
+        assert request.node_ids
+        return (
+            True,
+            "pytest passed",
+            build_batch_metadata(
+                "batch-success",
+                command=["python", "-m", "pytest"],
+                returncode=0,
+            ),
+        )
+
+    def fake_ensure() -> None:
+        coverage_json.parent.mkdir(parents=True, exist_ok=True)
+        html_dir.mkdir(parents=True, exist_ok=True)
+        (html_dir / "index.html").write_text("<html>coverage</html>")
+        coverage_payload = {"totals": {"percent_covered": 92.5}}
+        coverage_json.write_text(json.dumps(coverage_payload))
+        (tmp_path / "coverage.json").write_text(json.dumps(coverage_payload))
+
+    monkeypatch.setattr(rt, "publish_manifest", fake_publish)
+    monkeypatch.setattr(rt, "write_manifest", fake_write_manifest)
+    monkeypatch.setattr(rt, "compute_file_checksum", fake_checksum)
+    monkeypatch.setattr(rt, "collect_tests_with_cache", fake_collect)
+    monkeypatch.setattr(rt, "_run_single_test_batch", fake_batch)
+    monkeypatch.setattr(rt, "_archive_coverage_artifacts", lambda **_: None)
+    monkeypatch.setattr(rt, "pytest_cov_support_status", lambda env: (True, None))
+    monkeypatch.setattr(rt, "_ensure_coverage_artifacts", fake_ensure)
+    monkeypatch.setattr(rt, "get_release_tag", lambda: "v-test")
+
+    success, output = rt.run_tests(
+        "unit-tests",
+        ["fast"],
+        report=True,
+        env={},
+    )
+
+    assert success is True
+    assert "pytest passed" in output
+    assert coverage_json.exists()
+    assert json.loads(coverage_json.read_text())["totals"]["percent_covered"] == 92.5
+    assert publication_calls, "publish_manifest should be invoked"
+
+    manifest_path = coverage_json.parent / "coverage_manifest_latest.json"
+    assert manifest_path.exists()
+    manifest_payload = json.loads(manifest_path.read_text())
+    artifact_paths = [artifact["path"] for artifact in manifest_payload["artifacts"]]
+    assert any("test_reports/coverage.json" in path for path in artifact_paths)
+
+    archived_keys = sorted(written_manifests)
+    assert "coverage_manifest_latest.json" in archived_keys
+    assert any(name.startswith("coverage_manifest_") for name in archived_keys)

@@ -142,10 +142,10 @@ def test_run_tests_fails_when_pytest_cov_missing(
         lambda env: (False, run_tests_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE),
     )
 
-    success, output = run_tests_module.run_tests("unit-tests", ["fast"], env={})
+    with pytest.raises(run_tests_module.PytestCovMissingError) as excinfo:
+        run_tests_module.run_tests("unit-tests", ["fast"], env={})
 
-    assert success is False
-    assert run_tests_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE in output
+    assert run_tests_module.PYTEST_COV_PLUGIN_MISSING_MESSAGE in str(excinfo.value)
 
 
 @pytest.mark.fast

@@ -10,7 +10,7 @@ from typing import Literal, Optional, Protocol, TypeAlias, TypedDict
 from devsynth.agents.sandbox import sandboxed
 from devsynth.interface.ux_bridge import UXBridge
 from devsynth.logging_setup import DevSynthLogger
-from devsynth.testing.run_tests import run_tests
+from devsynth.testing.run_tests import PytestCovMissingError, run_tests
 
 logger = DevSynthLogger(__name__)
 
@@ -249,15 +249,18 @@ def run_tests_tool(
     logger.debug(
         "Running tests with target=%s, speed_categories=%s", target, speed_categories
     )
-    success, output = run_tests(
-        target=target,
-        speed_categories=speed_categories,
-        verbose=verbose,
-        report=report,
-        parallel=parallel,
-        segment=segment,
-        segment_size=segment_size,
-    )
+    try:
+        success, output = run_tests(
+            target=target,
+            speed_categories=speed_categories,
+            verbose=verbose,
+            report=report,
+            parallel=parallel,
+            segment=segment,
+            segment_size=segment_size,
+        )
+    except PytestCovMissingError as exc:
+        return {"success": False, "error": str(exc), "output": str(exc)}
     return {"success": success, "output": output}
 
 

@@ -452,6 +452,15 @@ def run_tests_cmd(
         )
         ux_bridge.print(message)
 
+    try:
+        run_tests_module.ensure_coverage_output_directory()
+    except OSError as exc:
+        ux_bridge.print(
+            "[red]Unable to prepare coverage artifact directory: "
+            f"{exc}[/red]"
+        )
+        raise typer.Exit(code=1)
+
     coverage_enabled_initial, coverage_skip_reason_initial = (
         _coverage_instrumentation_status()
     )
@@ -472,6 +481,12 @@ def run_tests_cmd(
                 coverage_skip_reason_initial == PYTEST_COV_PLUGIN_MISSING_MESSAGE
                 or not smoke
             ):
+                if coverage_skip_reason_initial == PYTEST_COV_PLUGIN_MISSING_MESSAGE:
+                    ux_bridge.print(
+                        "[red]Install pytest-cov via 'poetry add --group dev "
+                        "pytest-cov' or rerun 'poetry install --with dev --extras "
+                        "tests' before retrying.[/red]"
+                    )
                 raise typer.Exit(code=1)
 
     # For explicit fast-only runs (and not smoke), apply a slightly looser timeout
@@ -489,18 +504,22 @@ def run_tests_cmd(
             os.environ[env_var] = "true" if enabled else "false"
         logger.info("Feature flags: %s", feature_map)
 
-    success, output = run_tests_module.run_tests(
-        target,
-        speed_categories,
-        verbose,
-        report,
-        not no_parallel,
-        segment,
-        segment_size,
-        maxfail,
-        extra_marker=marker,
-        dry_run=dry_run,
-    )
+    try:
+        success, output = run_tests_module.run_tests(
+            target,
+            speed_categories,
+            verbose,
+            report,
+            not no_parallel,
+            segment,
+            segment_size,
+            maxfail,
+            extra_marker=marker,
+            dry_run=dry_run,
+        )
+    except run_tests_module.PytestCovMissingError as exc:
+        ux_bridge.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1)
 
     if output:
         ux_bridge.print(output)

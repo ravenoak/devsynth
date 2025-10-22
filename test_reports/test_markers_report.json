@@ -1,8 +1,8 @@
 {
   "markers": {
-    "fast": 2010,
+    "fast": 2021,
     "no_network": 15,
-    "medium": 1617,
+    "medium": 1618,
     "parametrize": 85,
     "slow": 222,
     "requires_resource": 77,
@@ -23,7 +23,7 @@
     "skip": 5,
     "allow_real_coverage_artifacts": 2
   },
-  "files_scanned": 1299,
+  "files_scanned": 1305,
   "files_with_issues": 0,
   "undocumented_markers": []
 }
