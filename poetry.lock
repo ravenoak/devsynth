@@ -8649,4 +8649,4 @@ webui-nicegui = ["nicegui"]
 [metadata]
 lock-version = "2.1"
 python-versions = "<3.15,>=3.12"
-content-hash = "ef1f66cad33009d7f758ec2e167df0fe9cdfc6f0f09dcd768337b0ce24ae7b5d"
+content-hash = "500ba3091beed5255e6e8df4d8745e0f0e3ca0b59468a85669707cffb21a27d8"
