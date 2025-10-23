@@ -116,6 +116,7 @@ Next steps
 - MVUU engine for tracking Minimum Viable Utility Units
 - Atomic-Rewrite workflow for fine-grained code updates
 - **Adaptive Project Ingestion**: Dynamically understands and adapts to diverse project structures (including monorepos, multi-language projects, and custom layouts) using a `.devsynth/project.yaml` file and a fully integrated "Expand, Differentiate, Refine, Retrospect" (EDRR) framework. The `EDRRCoordinator` orchestrates this process across all system components. See [EDRR Assessment](docs/implementation/edrr_assessment.md) for details. The presence of a `.devsynth/` directory is the marker that a project is managed by DevSynth.
+- **Cursor IDE Integration**: Seamless integration with Cursor IDE providing structured AI assistance through Rules, Commands, and Modes that align with DevSynth's EDRR framework and SDD+BDD methodologies. See [Cursor Integration Guide](.cursor/README.md) for details.
 
 ## SDLC Policies and Documentation Framework
 
