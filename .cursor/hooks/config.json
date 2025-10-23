@@ -1,0 +1,146 @@
+{
+  "self_improvement": {
+    "enabled": true,
+    "analysis_frequency_hours": 1,
+    "auto_apply_threshold": 0.9,
+    "min_confidence_for_suggestions": 0.7,
+    "max_suggestions_per_cycle": 10,
+    "enable_continuous_learning": true,
+    "enable_auto_rule_generation": true,
+    "enable_pattern_detection": true,
+    "enable_analytics_collection": true
+  },
+
+  "hooks": {
+    "enabled_events": [
+      "rule_loaded",
+      "rule_applied",
+      "command_executed",
+      "code_generated",
+      "code_reviewed",
+      "error_occurred",
+      "pattern_detected",
+      "session_started",
+      "session_ended"
+    ],
+    "analytics_retention_days": 30,
+    "max_events_per_day": 10000,
+    "real_time_metrics_enabled": true
+  },
+
+  "rule_validation": {
+    "min_acceptable_score": 0.7,
+    "auto_improve_below_score": 0.8,
+    "required_sections": ["description", "guidelines"],
+    "recommended_sections": ["examples", "references"],
+    "max_rule_length": 2000,
+    "min_rule_length": 50
+  },
+
+  "pattern_detection": {
+    "min_pattern_frequency": 3,
+    "min_pattern_confidence": 0.6,
+    "analyze_imports": true,
+    "analyze_functions": true,
+    "analyze_classes": true,
+    "analyze_documentation": true,
+    "analyze_error_patterns": true,
+    "analyze_file_patterns": true
+  },
+
+  "learning": {
+    "insight_retention_days": 90,
+    "min_insight_confidence": 0.7,
+    "auto_apply_insights": false,
+    "session_analysis_enabled": true,
+    "context_effectiveness_tracking": true,
+    "improvement_suggestion_rate": 0.1
+  },
+
+  "analytics": {
+    "collection_enabled": true,
+    "real_time_enabled": true,
+    "aggregation_intervals": [1, 24, 168],
+    "performance_tracking": true,
+    "usage_pattern_analysis": true,
+    "trend_detection": true,
+    "anomaly_detection": true
+  },
+
+  "quality_gates": {
+    "require_validation_before_apply": true,
+    "require_approval_for_major_changes": true,
+    "backup_before_changes": true,
+    "rollback_on_failure": true,
+    "notify_on_improvements": true,
+    "log_all_changes": true
+  },
+
+  "integration": {
+    "memory_system_integration": true,
+    "edrr_framework_integration": true,
+    "b_dd_integration": true,
+    "dialectical_audit_integration": true,
+    "wsde_model_integration": true
+  },
+
+  "thresholds": {
+    "high_confidence": 0.9,
+    "medium_confidence": 0.7,
+    "low_confidence": 0.5,
+    "high_priority": 4,
+    "medium_priority": 3,
+    "low_priority": 2,
+    "excellent_health": 0.9,
+    "good_health": 0.7,
+    "fair_health": 0.5
+  },
+
+  "directories": {
+    "rules": ".cursor/rules",
+    "commands": ".cursor/commands",
+    "analytics": ".cursor/analytics",
+    "patterns": ".cursor/patterns",
+    "learning": ".cursor/learning",
+    "suggestions": ".cursor/suggestions",
+    "logs": ".cursor/logs"
+  },
+
+  "file_patterns": {
+    "python_files": ["**/*.py"],
+    "markdown_files": ["**/*.md"],
+    "configuration_files": ["**/*.json", "**/*.yaml", "**/*.yml"],
+    "documentation_files": ["docs/**/*.md", "README.md", "CHANGELOG.md"],
+    "test_files": ["tests/**/*.py", "**/*test*.py", "**/*spec*.py"],
+    "specification_files": ["docs/specifications/**/*.md", "**/spec*.md"]
+  },
+
+  "improvement_triggers": {
+    "low_rule_effectiveness": 0.7,
+    "high_error_rate": 0.1,
+    "decreasing_usage_trend": true,
+    "missing_examples": true,
+    "inconsistent_formatting": true,
+    "conflicting_guidance": true,
+    "outdated_patterns": true
+  },
+
+  "auto_improvements": {
+    "add_yaml_frontmatter": true,
+    "add_examples": true,
+    "improve_clarity": true,
+    "fix_formatting": true,
+    "update_confidence_scores": true,
+    "optimize_glob_patterns": true,
+    "remove_deprecated_rules": false
+  },
+
+  "notification_settings": {
+    "enable_console_output": true,
+    "enable_file_logging": true,
+    "log_level": "INFO",
+    "notify_on_new_insights": true,
+    "notify_on_rule_improvements": true,
+    "notify_on_system_health_changes": true
+  }
+}
