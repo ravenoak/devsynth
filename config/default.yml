@@ -156,3 +156,23 @@ features:
   prompt_auto_tuning: false
   automatic_phase_transitions: false
   collaboration_notifications: false
+
+# Cursor IDE integration
+cursor_integration:
+  enabled: true
+  rules_directory: ".cursor/rules"
+  commands_directory: ".cursor/commands"
+  modes_configured: false
+  edrr_enhanced: true
+  sdd_bdd_integration: true
+
+# Development workflow configuration
+development_workflow:
+  edrr_framework:
+    enabled: true
+    cursor_enhanced: true
+    default_phase: expand
+  specification_driven:
+    sdd_enabled: true
+    bdd_enabled: true
+    cursor_commands_available: true
