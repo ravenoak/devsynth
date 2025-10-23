@@ -1,299 +1,320 @@
-# DevSynth Cursor IDE Configuration
+# Cursor IDE Integration
 
-This directory contains Cursor IDE rules and configuration for effective AI-powered development within the DevSynth project.
+This directory contains Cursor IDE configuration files that integrate DevSynth's agentic development workflows with Cursor's AI assistance capabilities.
 
-## Structure Overview
+## Overview
 
-DevSynth uses the modern Cursor IDE rules format with modular, context-specific rule files:
+The Cursor integration enhances DevSynth's development experience by providing structured AI assistance that aligns with the project's established methodologies:
 
-```
-.cursor/
-├── README.md                    # This file
-├── CURSOR_INTEGRATION.md        # Comprehensive integration guide
-├── rules/                       # Modular rules directory
-│   ├── README.md                # Rules structure documentation
-│   ├── 00-project-core.md       # Core rules (always applied)
-│   ├── 01-testing-standards.md  # Testing guidelines
-│   ├── 02-bdd-workflow.md       # BDD and specifications
-│   ├── 03-security-compliance.md # Security and audit policies
-│   ├── 04-code-style.md         # Code style standards
-│   ├── 05-documentation.md      # Documentation requirements
-│   ├── 06-commit-workflow.md    # Commits and PRs
-│   └── workflows/               # Workflow guides
-│       ├── adding-feature.md    # Feature development workflow
-│       ├── fixing-bug.md        # Bug fix workflow
-│       └── running-tests.md     # Testing workflow
-├── rules.legacy                 # Backup of original single-file format
-└── validate-rules.py            # Rules validation script
-```
+- **EDRR Framework**: Expand, Differentiate, Refine, Retrospect development cycle
+- **SDD + BDD**: Specification-Driven Development with Behavior-Driven Development
+- **Multi-Agent Collaboration**: WSDE (Worker Self-Directed Enterprise) model
+- **Quality Assurance**: Comprehensive testing, security, and compliance checking
 
-## Quick Start
+## Directory Structure
 
-### For Developers
+### Rules (`.cursor/rules/`)
+Comprehensive rules system that guides AI behavior throughout the development lifecycle:
 
-1. **Read the Integration Guide**: Start with `CURSOR_INTEGRATION.md`
-2. **Understand Core Rules**: Review `rules/00-project-core.md`
-3. **Explore Workflows**: Check `rules/workflows/` for common tasks
-4. **Use AI Assistance**: Cursor's AI will apply rules automatically
+#### Core Rules (Always Applied)
+- **`00-architecture.mdc`**: Project constitution and core architectural principles (always active)
+- **`00-project-core.md`**: Core project philosophy, setup, and development workflow (always active)
+- **`01-edrr-framework.mdc`**: EDRR phase guidance and structured thinking methodology (always active)
+- **`02-specification-driven.mdc`**: Specification-Driven Development (SDD) + BDD integration (always active)
 
-### For AI/LLM Agents
+#### Context-Specific Rules (Auto-Attach)
+- **`01-testing-standards.md`**: Applied when working with test files - comprehensive testing standards
+- **`02-bdd-workflow.md`**: Applied when working with BDD features and step definitions
+- **`03-security-compliance.md`**: Applied to all source code - security requirements and validation
+- **`03-testing-philosophy.mdc`**: Applied when working with tests - testing philosophy and practices
+- **`04-code-style.md`**: Applied to all Python code - formatting and style standards
+- **`07-poetry-environment.md`**: Applied when working with dependency files - Poetry and environment management
 
-Rules are automatically loaded based on file context:
-- **Core rules** (`00-project-core.md`) apply to all files
-- **Specific rules** activate based on glob patterns (see each rule's front matter)
-- **Workflow guides** provide step-by-step instructions for common tasks
+#### Specialized Rules (Manual Invocation)
+- **`04-security-compliance.mdc`**: Deep security analysis - invoke with @security-analysis
+- **`05-dialectical-reasoning.mdc`**: Dialectical reasoning for decisions - invoke with @dialectical-audit
+- **`06-commit-workflow.md`**: Git workflow guidance - invoke with @commit-guidance
 
-## Key Features
+#### Workflow Rules
+- **`workflows/adding-feature.md`**: Feature development workflow guidance
+- **`workflows/fixing-bug.md`**: Bug fixing workflow guidance
+- **`workflows/running-tests.md`**: Testing workflow guidance
 
-### Multi-Disciplined Approach
+### Commands (`.cursor/commands/`)
+Structured workflow commands for systematic development:
 
-Rules embody four complementary methodologies:
+#### EDRR Workflow Commands
+- **`expand-phase.md`**: Generate multiple diverse approaches and explore alternatives
+- **`differentiate-phase.md`**: Analyze and compare approaches with multi-criteria evaluation
+- **`refine-phase.md`**: Implement and optimize selected solutions with comprehensive testing
+- **`retrospect-phase.md`**: Analyze outcomes and capture learnings for continuous improvement
 
-1. **Dialectical Reasoning** (thesis → antithesis → synthesis)
-   - Consider alternatives and trade-offs
-   - Document decision rationale
-   - Synthesize best approaches
+#### Specification and Testing Commands
+- **`generate-specification.md`**: Create comprehensive SDD specifications and BDD scenarios
+- **`validate-bdd-scenarios.md`**: Validate Gherkin syntax, content quality, and implementation feasibility
+- **`generate-test-suite.md`**: Create comprehensive test coverage (unit, integration, BDD)
+- **`code-review.md`**: Perform comprehensive code review and quality assessment
 
-2. **Socratic Method** (question-driven development)
-   - What is the problem?
-   - What proofs confirm the solution?
-   - Guide specification creation
+#### Development Workflow Commands
+- **`fix-bdd-syntax.md`**: Fix common BDD/Gherkin syntax issues
+- **`add-speed-markers.md`**: Add appropriate speed markers to tests
+- **`update-specifications.md`**: Update specifications to reflect implementation changes
 
-3. **Systems Thinking** (interconnected components)
-   - Understand ripple effects
-   - Maintain consistency across system
-   - Integrate changes holistically
+### Custom Modes (`.cursor/modes.json`)
+Specialized Cursor modes optimized for DevSynth workflows:
 
-4. **Holistic Perspective** (complete lifecycle)
-   - Planning through deployment
-   - Quality, security, maintainability
-   - Collaboration and documentation
+- **EDRRImplementer** (`Cmd+Shift+E`): Implementation within EDRR framework with comprehensive testing
+- **SpecArchitect** (`Cmd+Shift+S`): Specification and BDD scenario creation for SDD workflow
+- **TestArchitect** (`Cmd+Shift+T`): Comprehensive test suite creation and validation
+- **CodeReviewer** (`Cmd+Shift+R`): Comprehensive code review and quality assessment
+- **DialecticalThinker** (`Cmd+Shift+D`): Apply dialectical reasoning and multi-perspective analysis
 
-### Context-Aware Rules
+### Integration Files
+- **`CURSOR_SETUP.md`**: Comprehensive setup guide with platform-specific instructions
+- **`CURSOR_INTEGRATION.md`**: Integration troubleshooting and best practices
+- **`integration-test.md`**: Integration testing scenarios and validation
+- **`README.md`**: This overview document
 
-Rules activate based on what you're working on:
+## Usage Guidelines
 
-| Files | Active Rules | Guidance |
-|-------|--------------|----------|
-| Any file | 00-project-core.md | Mandatory workflows, critical commands |
-| `tests/**/*` | 01-testing-standards.md | Speed markers, test patterns, coverage |
-| `tests/behavior/**/*` | 02-bdd-workflow.md | Specifications, Gherkin, step definitions |
-| `src/**/*` | 03-security-compliance.md | Security policies, audit requirements |
-| `**/*.py` | 04-code-style.md | PEP 8, type hints, docstrings |
-| `docs/**/*.md` | 05-documentation.md | Front matter, metadata, traceability |
-| `.git/**/*` | 06-commit-workflow.md | Conventional Commits, PR workflow |
+### Daily Development Workflow
 
-### Workflow Integration
+1. **Environment Setup**: Ensure Poetry environment is active (`poetry run` prefix for all commands)
+2. **Context Loading**: Open project in Cursor to automatically load rules and context
+3. **Specification Check**: Review relevant specifications in `docs/specifications/`
+4. **EDRR Process**: Use structured commands for systematic development
+5. **Quality Gates**: Run tests and validation before committing
 
-Complete workflows for common tasks:
+### Command Usage
 
-- **Adding Features**: Specification → BDD → Implementation → Documentation
-- **Fixing Bugs**: Reproduce → Failing Test → Fix → Regression Tests
-- **Running Tests**: By speed, type, marker, with coverage
+Use commands with the `/` prefix in Cursor chat interface:
 
-## Core Principles
-
-### 1. Specification-First BDD (Non-Negotiable)
-
-**Every feature must follow this sequence:**
-
-1. Create specification in `docs/specifications/`
-2. Answer Socratic checklist
-3. Write failing BDD feature
-4. Implement with tests
-5. Update documentation
-
-### 2. Test Discipline (Mandatory)
-
-- **Exactly one speed marker** per test: `fast`, `medium`, or `slow`
-- **Resource guards** for optional dependencies
-- **Test organization** mirrors source structure
-- **Coverage target**: ≥90% aggregate
-
-### 3. Tool Integration
-
-- **Poetry**: All Python commands via `poetry run`
-- **go-task**: Common workflows via `task`
-- **pre-commit**: Quality checks before commits
-- **Verification scripts**: Test markers, traceability, audit
-
-### 4. Quality Standards
-
-- **Type hints**: Mandatory for all new code
-- **Docstrings**: Google style for all public APIs
-- **Formatting**: Black, isort, flake8
-- **Security**: Bandit, Safety scans
-
-### 5. Security & Compliance
-
-- **Security Policy**: Follow `docs/policies/security.md`
-- **Dialectical Audit**: Resolve before commits
-- **Encryption**: At rest and in transit (for deployments)
-- **Access Control**: Authentication, authorization, sanitization
-
-### 6. Conventional Commits
-
-```
-type(scope): brief summary
-
-Detailed explanation.
-
-Dialectical notes (for significant changes):
-- Thesis: Original approach
-- Antithesis: Problem identified
-- Synthesis: New solution
-
-ReqID: FR-XX
-Closes #issue
-```
-
-## How Cursor AI Uses Rules
-
-### Automatic Context Loading
-
-When you edit a file, Cursor loads relevant rules automatically:
-
-1. Core rules always included
-2. File-specific rules loaded based on globs
-3. Workflow guides available on demand
-
-### Intelligent Assistance
-
-**Without explicit prompting, AI:**
-- Suggests specification-first workflow
-- Adds speed markers to tests
-- Enforces code style standards
-- Recommends security checks
-- Maintains documentation sync
-
-### Quality Prevention
-
-**AI prevents common mistakes:**
-- Missing speed markers on tests
-- Code without specifications
-- Commits without audit resolution
-- Documentation without metadata
-- Security policy violations
-
-## Usage Examples
-
-### Feature Development
-
-```
-You: "Add memory search feature"
-
-AI (guided by rules):
-1. "First, let's create a specification..."
-2. "Now a failing BDD feature..."
-3. "Let's implement with proper type hints..."
-4. "Adding tests with speed markers..."
-5. "Updating documentation..."
-6. "Suggesting conventional commit..."
-```
-
-### Bug Fix
-
-```
-You: "Bug: memory leak in cache"
-
-AI (guided by rules):
-1. "Let's write a failing test first..."
-2. "Verified test fails - proves bug exists"
-3. "Implementing minimal fix..."
-4. "Adding regression tests..."
-5. "Running security checks..."
-```
-
-### Code Review
-
-```
-You: "Review this PR"
-
-AI checks:
-- Specification exists ✓
-- Tests have speed markers ✓
-- Code follows style guide ✓
-- Documentation updated ✓
-- Conventional commits used ✓
-- Security compliant ✓
-- Audit resolved ✓
-```
-
-## Integration with Existing Documentation
-
-These Cursor rules complement DevSynth's existing documentation:
-
-- **`CONTRIBUTING.md`**: Primary contribution guide
-- **`docs/policies/`**: Security, audit, governance
-- **`docs/specifications/`**: Technical specifications
-- **`docs/architecture/`**: System design
-- **`docs/TESTING_STANDARDS.md`**: Testing details
-
-**Note**: `AGENTS.md` and `scripts/codex_setup.sh` are for Codex environments only and should NOT be referenced for Cursor IDE development.
-
-## Validation
-
-Validate rules structure and format:
-
+#### EDRR Workflow Commands
 ```bash
-python .cursor/validate-rules.py
+/expand-phase implement user authentication system
+# Generates multiple approaches: OAuth2, JWT tokens, API keys, etc.
+
+/differentiate-phase authentication approaches security analysis
+# Compares approaches by security, complexity, performance, maintenance
+
+/refine-phase implement OAuth2 with FastAPI Security
+# Implements selected approach with comprehensive testing
+
+/retrospect-phase authentication implementation lessons learned
+# Analyzes outcomes and captures improvements
 ```
 
-## Maintenance
+#### Specification and Testing Commands
+```bash
+/generate-specification user profile management feature
+# Creates specification in docs/specifications/ and BDD scenarios in tests/behavior/features/
 
-### When to Update Rules
+/validate-bdd-scenarios user_profile_management.feature
+# Validates Gherkin syntax, content quality, and technical feasibility
 
-- Development workflows change
-- New tools or standards adopted
-- Common AI mistakes identified
-- Project structure evolves
-- Best practices emerge
+/generate-test-suite user profile component
+# Creates unit tests, integration tests, and BDD scenarios with proper speed markers
 
-### How to Update Rules
+/code-review recent user profile implementation changes
+# Performs comprehensive code review with security and performance analysis
+```
 
-1. Edit relevant rule file(s)
-2. Keep each rule under 500 lines
-3. Maintain clear, actionable guidance
-4. Add concrete examples
-5. Test with actual scenarios
-6. Run validation script
+#### Development Workflow Commands
+```bash
+/fix-bdd-syntax tests/behavior/features/user_profile_management.feature
+# Fixes common Gherkin syntax issues
 
-### Version History
+/add-speed-markers tests/unit/test_user_profile.py
+# Adds appropriate speed markers (@pytest.mark.fast/medium/slow)
 
-- **v1.0 (2025-10-08)**: Converted to modern modular format
-  - Split single file into focused modules
-  - Added workflow-specific guides
-  - Created comprehensive integration documentation
-  - Backed up legacy format to `rules.legacy`
+/update-specifications user profile management implementation details
+# Updates specifications to reflect actual implementation
+```
 
-## Success Metrics
+### Custom Modes Usage
 
-Effective Cursor AI assistance means:
+#### EDRRImplementer Mode (`Cmd+Shift+E`)
+- **When to Use**: Implementing new features, refactoring components
+- **Features**: Structured implementation guidance, automatic test generation
+- **Workflow**: Start here for most development tasks
 
-1. ✅ Follows BDD workflow without prompting
-2. ✅ Maintains test marker discipline automatically
-3. ✅ Uses correct command patterns consistently
-4. ✅ Organizes files in appropriate directories
-5. ✅ Meets quality and security requirements
-6. ✅ Integrates seamlessly with tooling
-7. ✅ Provides helpful, project-specific guidance
+#### SpecArchitect Mode (`Cmd+Shift+S`)
+- **When to Use**: Defining new features, creating specifications
+- **Features**: SDD workflow guidance, BDD scenario generation
+- **Workflow**: Use for specification-first development
 
-## Getting Help
+#### TestArchitect Mode (`Cmd+Shift+T`)
+- **When to Use**: Building comprehensive test suites, improving coverage
+- **Features**: Unit, integration, and BDD test generation
+- **Workflow**: Use when enhancing testing infrastructure
 
-- **Integration guide**: Read `CURSOR_INTEGRATION.md`
-- **Rule details**: See `rules/README.md`
-- **Workflows**: Check `rules/workflows/`
-- **Project docs**: Consult `docs/`
-- **Issues**: Open in `issues/` with `area/docs` label
+#### CodeReviewer Mode (`Cmd+Shift+R`)
+- **When to Use**: Code reviews, quality assessments, security audits
+- **Features**: Architecture compliance, security analysis, performance review
+- **Workflow**: Use for quality assurance and improvement
 
-## Philosophy
+#### DialecticalThinker Mode (`Cmd+Shift+D`)
+- **When to Use**: Complex architectural decisions, trade-off analysis
+- **Features**: Multi-perspective analysis, thesis-antithesis-synthesis
+- **Workflow**: Use for critical decision-making
 
-DevSynth's rules system ensures AI assistance is:
+### Rule Application Strategy
 
-- **Consistent**: All code follows project standards
-- **Quality-Focused**: Multiple quality gates enforced
-- **Efficient**: Workflows streamlined, mistakes prevented
-- **Collaborative**: Team alignment through shared standards
-- **Maintainable**: Long-term project health prioritized
+#### Always-Apply Rules
+- **00-architecture.mdc**: Provides project constitution and architectural principles
+- **00-project-core.md**: Core philosophy, Poetry environment, and workflow standards
+- **01-edrr-framework.mdc**: EDRR methodology and structured thinking guidance
+- **02-specification-driven.mdc**: SDD + BDD integration and intent-driven development
 
-By combining dialectical reasoning, Socratic questioning, systems thinking, and holistic perspective, we achieve thoughtful, purposeful, integrated, and complete development.
+#### Context-Aware Rules
+- **01-testing-standards.md**: Activates when working with test files
+- **02-bdd-workflow.md**: Activates when working with BDD features and step definitions
+- **03-security-compliance.md**: Activates for all source code security validation
+- **07-poetry-environment.md**: Activates when working with dependency management files
+
+#### Manual Rule Invocation
+Use `@rule-name` syntax in Cursor chat for specialized guidance:
+- `@dialectical-audit`: For complex decision analysis
+- `@security-analysis`: For deep security review
+- `@commit-guidance`: For Git workflow assistance
+
+## Integration Benefits
+
+### Enhanced Developer Experience
+- **Structured Guidance**: Clear workflows for complex development tasks with step-by-step assistance
+- **Quality Assurance**: Built-in compliance with project standards and automated quality gates
+- **Context Awareness**: AI assistance that understands project architecture, patterns, and specifications
+- **Consistency**: Standardized approaches across all development activities with enforced best practices
+- **Platform Integration**: Seamless integration with Poetry environments and development tools
+
+### Methodology Alignment
+- **EDRR Framework**: Structured thinking process for all development decisions with guided workflows
+- **SDD + BDD**: Intent-driven development with executable specifications and automated scenario generation
+- **Multi-Agent Collaboration**: Enhanced coordination between human and AI agents with specialized modes
+- **Continuous Improvement**: Learning integration from retrospective analysis with improvement suggestions
+
+### Quality Standards Integration
+- **Testing**: Comprehensive test generation and validation with speed markers and resource gating
+- **Security**: Built-in security compliance checking with automated vulnerability detection
+- **Performance**: Performance consideration in all implementations with optimization suggestions
+- **Documentation**: Living documentation that evolves with code and maintains traceability
+
+## Platform-Specific Integration
+
+### macOS Integration (Recommended)
+- **Python Location**: `/opt/homebrew/bin/python3.12` (Homebrew installation)
+- **Poetry Configuration**: In-project virtual environments with automatic activation
+- **Development Tools**: Full compatibility with all testing and quality tools
+- **Resource Access**: All optional dependencies available (kuzu, faiss-cpu, chromadb)
+
+### Linux Integration
+- **Python Location**: System Python 3.12 or pyenv-managed installation
+- **Package Management**: Support for both apt and conda package managers
+- **Development Tools**: Full compatibility with testing and quality tools
+- **Resource Access**: Most optional dependencies available (platform-specific restrictions apply)
+
+### Windows Integration
+- **Python Location**: Python 3.12 from python.org (ensure PATH configuration)
+- **Virtual Environments**: Poetry-managed environments with some limitations
+- **Development Tools**: Compatible with core development workflow
+- **Resource Access**: Limited optional dependencies (focus on essential features)
+
+## Development Environment Integration
+
+### Poetry Environment Management
+- **Automatic Activation**: Virtual environment managed by Poetry with in-project configuration
+- **Dependency Groups**: Organized extras for different development scenarios (dev, tests, api, etc.)
+- **Platform Markers**: Automatic handling of platform-specific dependencies
+- **Environment Validation**: Comprehensive validation scripts for environment integrity
+
+### Testing Integration
+- **Speed Markers**: All tests require speed markers (fast, medium, slow) for optimal execution
+- **Resource Gating**: Optional dependencies gated by environment variables
+- **Parallel Execution**: Configured for parallel test execution based on speed markers
+- **Coverage Integration**: Built-in coverage reporting with quality gates
+
+### Quality Assurance Integration
+- **Pre-commit Hooks**: Automatic code quality checks before commits
+- **Linting and Type Checking**: Integrated mypy, black, isort, and flake8
+- **Security Scanning**: Built-in bandit and safety checks
+- **Validation Scripts**: Comprehensive project validation before commits
+
+## Configuration Management
+
+The integration is configured through:
+- **Project Constitution**: `constitution.md` provides project-wide governance and standards
+- **Poetry Configuration**: `pyproject.toml` and `poetry.toml` define dependencies and environment
+- **Cursor Rules**: `.cursor/rules/` directory contains comprehensive development guidance
+- **AGENTS.md**: Enhanced with Cursor-specific guidance, workflows, and platform instructions
+- **Configuration Files**: `config/` directory contains environment-specific settings
+
+## Getting Started
+
+### Quick Setup
+1. **Install Prerequisites**: Python 3.12, Poetry, and Cursor IDE
+2. **Clone Repository**: `git clone <repository-url> && cd devsynth`
+3. **Setup Environment**: Follow platform-specific instructions in `CURSOR_SETUP.md`
+4. **Verify Integration**: Run `poetry run python scripts/verify_cursor_integration.py`
+5. **Start Development**: Use `/expand-phase` for your first feature implementation
+
+### First Feature Development
+```bash
+# 1. Create specification
+/generate-specification my new feature
+
+# 2. Implement with EDRR process
+/expand-phase implement my new feature
+/differentiate-phase feature implementation approaches
+/refine-phase implement selected approach
+/retrospect-phase implementation analysis
+
+# 3. Test and validate
+poetry run devsynth run-tests --speed=fast
+/generate-test-suite my new feature
+```
+
+## Best Practices
+
+1. **Environment First**: Always verify Poetry environment before development (`poetry run python --version`)
+2. **Specification Driven**: Check `docs/specifications/` before implementing any feature
+3. **EDRR Process**: Use structured approach for all development tasks with Cursor commands
+4. **Test Integration**: Write failing tests before implementation, use speed markers
+5. **Quality Gates**: Run validation scripts before committing (`scripts/verify_*.py`)
+6. **Platform Consistency**: Use consistent environment setup across team members
+7. **Documentation Updates**: Keep specifications and documentation synchronized with code
+8. **Security Awareness**: Follow security rules and run security validation
+
+## Troubleshooting
+
+### Quick Diagnostics
+```bash
+# Verify complete integration
+poetry run python scripts/verify_cursor_integration.py
+
+# Check environment
+poetry run python scripts/check_dev_environment.py
+
+# Validate test markers
+poetry run python scripts/verify_test_markers.py
+
+# Check requirements traceability
+poetry run python scripts/verify_requirements_traceability.py
+```
+
+### Common Issues
+- **Rules Not Applying**: Check YAML frontmatter in `.cursor/rules/*.mdc` files
+- **Commands Not Available**: Verify `.cursor/commands/` directory exists and contains `.md` files
+- **Environment Issues**: Recreate Poetry environment with `poetry env remove --all && poetry install`
+- **Testing Problems**: Check speed markers and environment variables for optional resources
+
+### Getting Help
+1. **Documentation**: Check `CURSOR_SETUP.md` and `docs/developer_guides/cursor_integration.md`
+2. **Validation Scripts**: Use diagnostic scripts in `scripts/` directory
+3. **Community**: Review project issues and discussions for Cursor IDE topics
+4. **Environment Report**: Generate comprehensive diagnostics with validation scripts
+
+---
+
+This integration transforms Cursor IDE into a comprehensive development environment that seamlessly combines AI assistance with DevSynth's structured methodologies. The result is enhanced developer productivity, consistent quality standards, and maintainable code that follows established architectural patterns and best practices.
+
+For detailed setup instructions, see `CURSOR_SETUP.md`. For troubleshooting, refer to the validation scripts and diagnostic tools in the `scripts/` directory.
